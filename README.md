@@ -12,7 +12,7 @@ or credentials that you supply.
 
 ## Run the Web app
 
-Use Node.js 24 and pnpm 10.33.0.
+Use Node.js 24.19.0 and pnpm 10.33.0.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -72,6 +72,9 @@ configured output; account-specific media addresses are not included.
 
 Encoding scripts create resources in your account and can incur charges.
 They are optional for trying the Web app with public reference streams.
+
+Before publishing changes, follow [the contribution checks](docs/contributing.md)
+for local secret checks and the existing browser subset.
 
 ## Licenses
 

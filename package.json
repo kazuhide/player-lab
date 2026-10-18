@@ -5,7 +5,7 @@
   "description": "Cross-platform Bitmovin Player Live DVR (timeshift) showcase",
   "packageManager": "pnpm@10.33.0",
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "scripts": {
     "build": "pnpm -r --if-present run build",
@@ -13,6 +13,7 @@
     "typecheck": "pnpm -r --if-present run typecheck",
     "lint": "pnpm -r --if-present run lint",
     "sync:webui": "bash scripts/sync-webui-bundle.sh",
-    "verify": "bash scripts/verify.sh"
+    "verify": "bash scripts/verify.sh",
+    "check:publication": "python3 scripts/check-publication.py"
   }
 }

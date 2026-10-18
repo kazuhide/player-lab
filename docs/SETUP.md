@@ -5,7 +5,7 @@ every script and app follows for credentials/config.
 
 ## Prerequisites
 
-- Node.js 24 and pnpm 10.33.0 (`corepack enable` then `corepack prepare pnpm@10.33.0 --activate`)
+- Node.js 24.19.0 and pnpm 10.33.0 (`corepack enable` then `corepack prepare pnpm@10.33.0 --activate`)
 - A Bitmovin account — https://dashboard.bitmovin.com
 - For the encoding scripts: the Bitmovin CLI (`npm i -g @bitmovin/cli`) and, for
   the multi-codec Per-Title run, `pip install bitmovin-api-sdk`

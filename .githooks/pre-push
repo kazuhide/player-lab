@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+"""Check each pushed commit before sending it to a remote."""
+from pathlib import Path
+import subprocess
+import sys
+
+checker = Path(__file__).resolve().parents[1] / "scripts/check-publication.py"
+for line in sys.stdin:
+    _, local, _, remote = line.split()
+    if set(local) == {"0"}:
+        continue
+    command = [sys.executable, str(checker), "--revision", local]
+    if set(remote) != {"0"}:
+        command.extend(["--base", remote])
+    if subprocess.run(command).returncode:
+        sys.exit(1)

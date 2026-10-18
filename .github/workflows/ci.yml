@@ -1,6 +1,5 @@
 name: CI
 
-# Run the existing workspace checks and native builds for each pull request.
 on:
   workflow_dispatch:
   push:
@@ -11,64 +10,148 @@ permissions:
   contents: read
 
 jobs:
+  publication:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Gitleaks 8.30.1
+        run: |
+          curl -fsSL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz -o "$RUNNER_TEMP/gitleaks.tar.gz"
+          printf '%s  %s\n' 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb "$RUNNER_TEMP/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+      - name: Test publication checks
+        run: python3 scripts/test-publication.py
+      - name: Check tracked files and commit history
+        env:
+          CHECK_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          args=()
+          if [[ -n "$CHECK_BASE" && ! "$CHECK_BASE" =~ ^0+$ ]]; then
+            args+=(--base "$CHECK_BASE")
+          fi
+          python3 scripts/check-publication.py "${args[@]}"
+
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 10.33.0
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24
+          node-version: 24.19.0
           cache: pnpm
-
       - name: Install
-        run: pnpm install --frozen-lockfile
-
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Type-check
-        run: pnpm -r --if-present run typecheck
-
+        run: pnpm typecheck
       - name: Test
-        run: pnpm -r --if-present run test
-
+        run: pnpm test
+      - name: Test environment loading and bundle verification
+        run: |
+          bash scripts/test-env-lib.sh
+          python3 scripts/test-native-ui.py
       - name: Build
-        run: pnpm -r --if-present run build
+        run: pnpm build
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: shared-web-ui
+          path: |
+            packages/ui-shared/dist/bitmovinplayer-ui.js
+            packages/ui-shared/dist/bitmovinplayer-ui.css
+          if-no-files-found: error
+          retention-days: 1
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.19.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install browser
+        run: pnpm --filter @showcase/e2e exec playwright install --with-deps chromium
+      - name: Check public playback and the existing GUI
+        env:
+          PLAYWRIGHT_BROWSER_CHANNEL: chromium
+        run: pnpm --filter @showcase/e2e e2e:public
 
   ios:
+    needs: build
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: shared-web-ui
+          path: packages/ui-shared/dist
+      - name: Sync existing shared UI resources
+        run: bash scripts/sync-webui-bundle.sh
       - name: Test DvrKit
         run: swift test --package-path apps/ios/DvrKit
-      - name: Install XcodeGen
-        run: brew install xcodegen
+      - name: Install XcodeGen 2.46.0
+        run: |
+          curl -fsSL https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip -o "$RUNNER_TEMP/xcodegen.zip"
+          printf '%s  %s\n' 4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806 "$RUNNER_TEMP/xcodegen.zip" | shasum -a 256 -c -
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP/xcodegen-tool"
+          echo "$RUNNER_TEMP/xcodegen-tool/xcodegen/bin" >> "$GITHUB_PATH"
       - name: Prepare an empty local configuration for compilation
         run: touch apps/ios/Local.xcconfig
       - name: Generate Xcode project
         run: cd apps/ios && xcodegen generate
+      - name: Restore resolved SDK versions
+        run: |
+          mkdir -p apps/ios/Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
+          cp apps/ios/Package.resolved apps/ios/Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
       - name: Build iOS app (simulator)
         run: |
           cd apps/ios && xcodebuild \
             -project Showcase.xcodeproj -scheme Showcase-iOS \
             -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/ios-build" \
+            -onlyUsePackageVersionsFromResolvedFile \
             CODE_SIGNING_ALLOWED=NO build
+      - name: Check packaged iOS shared UI
+        run: python3 scripts/check-native-ui.py "$RUNNER_TEMP/ios-build/Build/Products/Debug-iphonesimulator/Showcase-iOS.app"
       - name: Build tvOS app (simulator)
         run: |
           cd apps/ios && xcodebuild \
             -project Showcase.xcodeproj -scheme Showcase-tvOS \
             -destination 'generic/platform=tvOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/ios-build" \
+            -onlyUsePackageVersionsFromResolvedFile \
             CODE_SIGNING_ALLOWED=NO build
 
   android:
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: shared-web-ui
+          path: packages/ui-shared/dist
+      - name: Sync existing shared UI resources
+        run: bash scripts/sync-webui-bundle.sh
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
           distribution: temurin
           java-version: "17"
@@ -76,8 +159,7 @@ jobs:
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" >/dev/null
-      - name: Test :dvr, build the app, compile the instrumented test
-        # ANDROID_HOME is set on the runner, so settings.gradle.kts includes :app.
-        # assembleDebugAndroidTest compiles the on-device integration test (running
-        # it needs an emulator + a license keyed to com.showcase.dvr).
+      - name: Test DVR, build the app, compile the instrumented test
         run: cd apps/android && ./gradlew :dvr:test :app:assembleDebug :app:assembleDebugAndroidTest -PbitmovinLicenseKey=dummy
+      - name: Check packaged Android shared UI
+        run: python3 scripts/check-native-ui.py apps/android/app/build/outputs/apk/debug/app-debug.apk

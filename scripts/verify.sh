@@ -43,11 +43,7 @@ step "env-lib/sync-env self-test" bash scripts/test-env-lib.sh
 step "Sync app credentials" bash scripts/sync-env.sh
 
 # ---- Web E2E (Playwright; starts a Vite server, hits public reference streams) ----
-if [ -n "${BITMOVIN_PLAYER_LICENSE_KEY:-}" ]; then
-  step "Web E2E (Playwright)" bash -c 'cd tests/e2e && pnpm exec playwright test --reporter=line'
-else
-  skip "Web E2E" "BITMOVIN_PLAYER_LICENSE_KEY not set in .env"
-fi
+step "Public Web E2E (localhost)" pnpm --filter @showcase/e2e e2e:public
 
 # ---- iOS (macOS + Xcode) ----
 if [ "$(uname)" = "Darwin" ] && command -v xcodebuild >/dev/null 2>&1; then
