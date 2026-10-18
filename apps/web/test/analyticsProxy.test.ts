@@ -33,6 +33,10 @@ describe("isAggregation", () => {
 });
 
 describe("buildBitmovinQuery", () => {
+  it.each([null, [], 0, "", true].map((body) => ({ body })))("rejects a non-object JSON body ($body)", ({ body }) => {
+    expect(buildBitmovinQuery(body, CFG))
+      .toMatchObject({ ok: false, status: 400, message: "Request body must be a JSON object." });
+  });
   it("injects the license + caps the limit and passes through optional fields", () => {
     const r = buildBitmovinQuery({ ...VALID, interval: "HOUR", groupBy: ["x"], limit: 99999 }, CFG);
     expect(r.ok).toBe(true);
@@ -62,6 +66,24 @@ describe("shapeAnalyticsResponse", () => {
 });
 
 describe("handleAnalyticsQuery", () => {
+  it.each([null, [], 0, "", true].map((body) => ({ body })))("rejects non-object JSON before contacting upstream ($body)", async ({ body }) => {
+    const f = mockFetch(200, {});
+    const r = await handleAnalyticsQuery(body, CFG, f);
+    expect(r.status).toBe(400);
+    expect(f).not.toHaveBeenCalled();
+  });
+  it("does not echo server credentials in a transport error", async () => {
+    const f = vi.fn(async () => { throw new Error(CFG.apiKey); });
+    const r = await handleAnalyticsQuery(VALID, CFG, f);
+    expect(r.status).toBe(502);
+    expect(JSON.stringify(r.json)).not.toContain(CFG.apiKey);
+  });
+  it("does not echo credentials reflected in an upstream error body", async () => {
+    const f = mockFetch(401, { message: CFG.apiKey });
+    const r = await handleAnalyticsQuery(VALID, CFG, f);
+    expect(r.status).toBe(401);
+    expect(JSON.stringify(r.json)).not.toContain(CFG.apiKey);
+  });
   it("returns 503 not_configured when the API key is missing (never calls fetch)", async () => {
     const f = mockFetch(200, {});
     const r = await handleAnalyticsQuery(VALID, { licenseKey: "lic" }, f);
@@ -110,11 +132,11 @@ describe("handleAnalyticsQuery", () => {
     expect(f).not.toHaveBeenCalled();
   });
 
-  it("surfaces an upstream 401 verbatim (so the user fixes the key)", async () => {
+  it("preserves an upstream 401 without exposing the response body", async () => {
     const f = mockFetch(401, { message: "Invalid API key" });
     const r = await handleAnalyticsQuery(VALID, CFG, f);
     expect(r.status).toBe(401);
-    expect(r.json).toMatchObject({ error: "upstream_error", upstreamStatus: 401, message: "Invalid API key" });
+    expect(r.json).toMatchObject({ error: "upstream_error", upstreamStatus: 401, message: "Bitmovin Analytics returned HTTP 401." });
   });
 
   it("collapses a non-auth upstream error to 502", async () => {

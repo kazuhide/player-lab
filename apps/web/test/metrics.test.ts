@@ -31,6 +31,47 @@ describe("startup time", () => {
 });
 
 describe("rebuffering", () => {
+  it("updates the ratio during uninterrupted playback without mutating settled totals", () => {
+    const s = run([
+      { type: "load", t: 0 },
+      { type: "playing", t: 1000 },
+      { type: "stallStart", t: 6000 },
+      { type: "stallEnd", t: 8000 },
+    ]);
+    const before = { ...s };
+    expect(metricsSnapshot(s, 8000).rebufferRatio).toBeCloseTo(2 / 7);
+    const current = metricsSnapshot(s, 108000);
+    expect(current.watchedMs).toBe(105000);
+    expect(current.rebufferMs).toBe(2000);
+    expect(current.rebufferRatio).toBeCloseTo(2 / 107);
+    expect(metricsSnapshot(s, 108000)).toEqual(current);
+    expect(s).toEqual(before);
+    const paused = reduceMetrics(s, { type: "paused", t: 108000 });
+    expect(metricsSnapshot(paused, 208000)).toEqual(current);
+  });
+  it("includes an ongoing stall without double-counting later events", () => {
+    const s = run([
+      { type: "load", t: 0 },
+      { type: "playing", t: 1000 },
+      { type: "stallStart", t: 6000 },
+    ]);
+    expect(metricsSnapshot(s, 7000).rebufferMs).toBe(1000);
+    expect(metricsSnapshot(s, 8000).rebufferMs).toBe(2000);
+    const resumed = reduceMetrics(s, { type: "stallEnd", t: 8000 });
+    expect(metricsSnapshot(resumed, 9000)).toMatchObject({ watchedMs: 6000, rebufferMs: 2000 });
+  });
+  it("does not count duplicate stall events or buffering while paused", () => {
+    let s = run([
+      { type: "load", t: 0 },
+      { type: "playing", t: 1000 },
+      { type: "stallStart", t: 6000 },
+      { type: "stallStart", t: 7000 },
+    ]);
+    expect(metricsSnapshot(s, 8000)).toMatchObject({ rebufferMs: 2000, rebufferCount: 1 });
+    s = reduceMetrics(s, { type: "paused", t: 8000 });
+    s = reduceMetrics(s, { type: "stallStart", t: 9000 });
+    expect(metricsSnapshot(s, 18000)).toMatchObject({ watchedMs: 5000, rebufferMs: 2000, rebufferCount: 1 });
+  });
   it("accumulates stall time and ratio during playback", () => {
     const s = run([
       { type: "load", t: 0 },
@@ -54,6 +95,33 @@ describe("rebuffering", () => {
     const m = metricsSnapshot(s);
     expect(m.rebufferCount).toBe(0);
     expect(m.rebufferMs).toBe(0);
+  });
+});
+
+describe("session boundaries", () => {
+  it("does not accrue time before the first frame", () => {
+    expect(metricsSnapshot(initialMetrics(), 5000)).toMatchObject({ watchedMs: 0, rebufferMs: 0 });
+    expect(metricsSnapshot(run([{ type: "load", t: 0 }]), 5000))
+      .toMatchObject({ watchedMs: 0, rebufferMs: 0 });
+  });
+  it("freezes final totals when playback finishes", () => {
+    const s = run([
+      { type: "load", t: 0 },
+      { type: "playing", t: 1000 },
+      { type: "ended", t: 6000 },
+    ]);
+    expect(s.phase).toBe("idle");
+    expect(metricsSnapshot(s, 60000)).toMatchObject({ watchedMs: 5000, rebufferMs: 0 });
+  });
+  it("clears the previous source and active stall on unload", () => {
+    const s = run([
+      { type: "load", t: 0 },
+      { type: "playing", t: 1000 },
+      { type: "stallStart", t: 6000 },
+      { type: "unload", t: 8000 },
+    ]);
+    expect(s.phase).toBe("idle");
+    expect(metricsSnapshot(s, 60000)).toEqual(metricsSnapshot(initialMetrics()));
   });
 });
 
