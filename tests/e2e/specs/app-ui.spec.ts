@@ -1,9 +1,43 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+import type { PlayerAPI } from "bitmovin-player";
 
 // App-level UI tests — these drive the REAL apps/web (with its custom UI), not the
 // ui:false harness the other specs use. They guard the two things that were broken:
 // the UI theme selector, and the live→VOD UI switch.
 const APP = "http://localhost:5175";
+
+/** Expose the real SDK instance only in the test response. The constructor,
+ * configuration, source and SDK behavior are unchanged; production has no hook. */
+async function captureAppPlayer(page: Page): Promise<void> {
+  await page.route("**/src/main.ts", async (route) => {
+    const response = await route.fetch();
+    const body = await response.text();
+    const constructor = /const instance = new Player\([^\n]+\);/g;
+    expect(body.match(constructor), "the app constructor must be captured exactly once").toHaveLength(1);
+    const teardown = "const old = player;";
+    expect(body.split(teardown), "the capture must clear the reference during teardown").toHaveLength(2);
+    await route.fulfill({
+      response,
+      body: body.replace(constructor, "$&\nwindow.player = instance;")
+        .replace(teardown, `${teardown}\nwindow.player = undefined;`),
+    });
+  });
+  await page.goto(`${APP}/`);
+  await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toContain("Tears of Steel");
+}
+
+function configField(page: Page, label: RegExp) {
+  return page.locator("#config-panel .config-field").filter({
+    has: page.locator(".config-field-label", { hasText: label }),
+  });
+}
+
+async function openConfigGroup(page: Page, title: string): Promise<void> {
+  const group = page.locator("#config-panel .config-group").filter({
+    has: page.getByText(title, { exact: true }),
+  });
+  if (await group.getAttribute("open") === null) await group.locator("summary").click();
+}
 
 /** Read the control panel's derived mode + whether the LIVE button is visible. */
 async function uiState(page: import("@playwright/test").Page) {
@@ -559,6 +593,217 @@ test.describe("Web app UI", () => {
     await page.getByRole("button", { name: "Premiere", exact: true }).click();
     // toHaveText auto-waits for the reload + theme switch to settle — no fixed sleep.
     await expect(page.locator(".bmpui-label-metadata-title")).toHaveText("E2E CONFIG TITLE", { timeout: 10000 });
+  });
+
+  test("@public applied config overrides can be cleared without resetting other fields", async ({ page }) => {
+    await captureAppPlayer(page);
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    await openConfigGroup(page, "Playback");
+    await openConfigGroup(page, "Adaptation (initial)");
+    const audio = configField(page, /^audioLanguage/).locator("input");
+    const autoplay = configField(page, /^autoplay/).locator("input");
+    const logic = configField(page, /^logic/).locator("select");
+    await audio.fill("en");
+    await audio.blur();
+    await autoplay.uncheck();
+    await logic.selectOption("v2");
+    await page.getByRole("button", { name: /Recreate the player to apply/ }).click();
+    await expect.poll(() => page.evaluate(() => window.player?.getConfig(false).playback?.audioLanguage)).toBe("en");
+    await audio.fill("");
+    await audio.blur();
+    await logic.selectOption("");
+    const recreate = page.getByRole("button", { name: /Recreate the player to apply/ });
+    await expect(recreate).toBeEnabled();
+    await recreate.click();
+    await expect.poll(() => page.evaluate(() => {
+      const config = window.player?.getConfig(false);
+      return { audio: config?.playback?.audioLanguage, autoplay: config?.playback?.autoplay,
+        desktop: config?.adaptation?.desktop?.logic, mobile: config?.adaptation?.mobile?.logic };
+    })).toEqual({ audio: undefined, autoplay: false, desktop: undefined, mobile: undefined });
+
+    const title = configField(page, /^title/).locator("input");
+    const description = configField(page, /^description/).locator("input");
+    const offset = configField(page, /^options.startOffset \(s\)/).locator("input");
+    await title.fill("Config override");
+    await title.blur();
+    await description.fill("Keep this description");
+    await description.blur();
+    await offset.fill("12");
+    await offset.blur();
+    const reload = page.getByRole("button", { name: /Reload the source to apply/ });
+    await reload.click();
+    await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toBe("Config override");
+    await title.fill("");
+    await title.blur();
+    await offset.fill("");
+    await offset.blur();
+    await expect(reload).toBeEnabled();
+    await reload.click();
+    await expect.poll(() => page.evaluate(() => {
+      const source = window.player?.getSource();
+      return { title: source?.title, description: source?.description, offset: source?.options?.startOffset };
+    })).toEqual({ title: "VOD HLS (Tears of Steel)", description: "Keep this description", offset: undefined });
+  });
+
+  test("@public config inputs follow applied SDK values after language changes and rebuilds", async ({ page }) => {
+    await captureAppPlayer(page);
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    await openConfigGroup(page, "Playback");
+    await configField(page, /^autoplay/).locator("input").uncheck();
+    await page.getByRole("button", { name: /Recreate the player to apply/ }).click();
+    await expect.poll(() => page.evaluate(() => window.player?.getConfig(false).playback?.autoplay)).toBe(false);
+    const volume = configField(page, /^volume \(0/).locator("input");
+    const speed = configField(page, /^playbackSpeed/).locator("input");
+    await volume.fill("25");
+    await volume.blur();
+    await speed.fill("1.5");
+    await speed.blur();
+    await expect.poll(() => page.evaluate(() => [window.player?.getVolume(), window.player?.getPlaybackSpeed()])).toEqual([25, 1.5]);
+    const title = configField(page, /^title/).locator("input");
+    await title.fill("Applied source title");
+    await title.blur();
+    await page.getByRole("button", { name: /Reload the source to apply/ }).click();
+    await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toBe("Applied source title");
+    await page.getByRole("button", { name: "日本語", exact: true }).click();
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    await expect(volume).toHaveValue("25");
+    await expect(speed).toHaveValue("1.5");
+    await expect(title).toHaveValue("Applied source title");
+    await openConfigGroup(page, "Playback");
+    await expect(configField(page, /^autoplay/).locator("input")).not.toBeChecked();
+    // A draft in the reload band survives a recreate in the separate static band.
+    await title.fill("Unapplied draft");
+    await title.blur();
+    await page.getByRole("checkbox", { name: /Allow DVR/ }).uncheck();
+    await expect.poll(() => page.evaluate(() => window.player?.getConfig(false).playback?.timeShift)).toBe(false);
+    await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toBe("Applied source title");
+    await expect(volume).toHaveValue("100");
+    await expect(speed).toHaveValue("1");
+    await expect(title).toHaveValue("Unapplied draft");
+    await expect(page.getByRole("button", { name: /Reload the source to apply/ })).toBeEnabled();
+    expect(await page.evaluate(() => [window.player?.getVolume(), window.player?.getPlaybackSpeed()])).toEqual([100, 1]);
+  });
+
+  test("@public player gestures leave settings and recommendation handlers intact", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    await page.evaluate(async () => {
+      const moduleUrl = "/src/gestures.ts";
+      const { installPlayerGesture } = await import(moduleUrl);
+      const fixture = document.createElement("div");
+      fixture.id = "gesture-fixture";
+      fixture.style.cssText = "position:relative;z-index:1000;height:180px";
+      fixture.innerHTML = '<div class="bmpui-ui-settings-panel"><button>Fixture settings</button></div>' +
+        '<div class="bmpui-ui-recommendation-overlay"><button>Fixture recommendation</button><button>Fixture replay</button></div>' +
+        '<div id="gesture-surface" style="height:40px">Fixture video surface</div>';
+      for (const overlay of Array.from(fixture.children)) {
+        (overlay as HTMLElement).style.cssText = "position:static;display:block;transform:none;height:45px";
+      }
+      document.body.prepend(fixture);
+      const state = { clicks: [] as string[], playing: false, toggles: 0, seeks: 0 };
+      for (const button of Array.from(fixture.querySelectorAll("button"))) button.addEventListener("click", () => state.clicks.push(button.textContent!));
+      const fakePlayer = {
+        isPlaying: () => state.playing,
+        play: () => { state.playing = true; state.toggles++; },
+        pause: () => { state.playing = false; state.toggles++; },
+        isLive: () => false, getCurrentTime: () => 20, getDuration: () => 100,
+        seek: () => { state.seeks++; },
+      } as unknown as PlayerAPI;
+      installPlayerGesture(fixture, { getPlayer: () => fakePlayer, getMode: () => "seek", isActive: () => true });
+      Object.assign(window, { gestureFixture: state });
+    });
+    for (const name of ["Fixture settings", "Fixture recommendation", "Fixture replay"]) {
+      await page.getByRole("button", { name, exact: true }).click();
+    }
+    await page.waitForTimeout(300); // Cross the deliberate 250ms single-click gesture deadline.
+    expect(await page.evaluate(() => (window as unknown as { gestureFixture: { clicks: string[]; toggles: number } }).gestureFixture))
+      .toMatchObject({ clicks: ["Fixture settings", "Fixture recommendation", "Fixture replay"], toggles: 0 });
+    await page.locator("#gesture-surface").click();
+    await expect.poll(() => page.evaluate(() => (window as unknown as { gestureFixture: { toggles: number } }).gestureFixture.toggles)).toBe(1);
+    await page.locator("#gesture-surface").dblclick();
+    await expect.poll(() => page.evaluate(() => (window as unknown as { gestureFixture: { seeks: number } }).gestureFixture.seeks)).toBe(1);
+  });
+
+  for (const theme of ["Premiere", "Creator", "Studio"]) {
+    test(`@public ${theme} settings clicks preserve playback and recommendations load their source`, async ({ page }) => {
+      await captureAppPlayer(page);
+      await page.getByRole("button", { name: theme, exact: true }).click();
+      await expect.poll(() => page.evaluate(() => document.querySelector<HTMLVideoElement>("#player video")?.readyState ?? 0)).toBeGreaterThanOrEqual(3);
+      await page.evaluate(() => window.player!.pause());
+      await page.locator("#player .bmpui-ui-settingstogglebutton").click();
+      const settings = page.locator("#player .bmpui-ui-settings-panel");
+      await expect(settings).toBeVisible();
+      await settings.locator(".bmpui-ui-settings-panel-item:visible .bmpui-ui-label").first().click();
+      await page.waitForTimeout(300); // A settings click must not become a delayed playback gesture.
+      expect(await page.evaluate(() => window.player!.isPlaying())).toBe(false);
+      await page.locator("#player .bmpui-ui-settingstogglebutton").click();
+      await page.evaluate(async () => {
+        const player = window.player!;
+        player.seek(player.getDuration() - 0.2);
+        await player.play();
+      });
+      await expect(page.locator("#player .bmpui-ui-recommendation-overlay")).toBeVisible({ timeout: 25_000 });
+      const recommendation = page.locator("#player .bmpui-ui-recommendation-item").first();
+      await recommendation.click();
+      await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toContain("Big Buck Bunny");
+      await expect.poll(() => page.evaluate(() => document.querySelector<HTMLVideoElement>("#player video")?.readyState ?? 0))
+        .toBeGreaterThanOrEqual(3);
+      // Source selection made inside the SDK UI also becomes the app's rebuild source.
+      await page.getByRole("checkbox", { name: /DVR.*timeShift/ }).uncheck();
+      await expect.poll(() => page.evaluate(() => window.player?.getConfig(false).playback?.timeShift)).toBe(false);
+      await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toContain("Big Buck Bunny");
+      expect(await page.evaluate(() => window.player?.getSource()?.dash)).toContain("bbb_30fps.mpd");
+    });
+  }
+
+  test("@public selecting the current preset recommendation clears previous source overrides", async ({ page }) => {
+    await captureAppPlayer(page);
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    // Observe actual SDK completion without altering its load or event behavior.
+    await page.evaluate(() => {
+      window.__events = [];
+      window.player!.on(window.player!.exports.PlayerEvent.SourceLoaded, () => window.__events.push("SourceLoaded"));
+    });
+    const loadAndWait = async (action: () => Promise<unknown>): Promise<void> => {
+      const before = await page.evaluate(() => window.__events.length);
+      await action();
+      await expect.poll(() => page.evaluate(() => window.__events.length)).toBeGreaterThan(before);
+    };
+    await loadAndWait(() => page.getByRole("button", { name: "VOD DASH", exact: true }).click());
+    await page.getByRole("button", { name: "Premiere", exact: true }).click();
+    const title = configField(page, /^title/).locator("input");
+    const description = configField(page, /^description/).locator("input");
+    const reload = page.getByRole("button", { name: /Reload the source to apply/ });
+    await title.fill("Previous title override");
+    await title.blur();
+    await loadAndWait(() => reload.click());
+    await description.fill("Previous description override");
+    await description.blur();
+    await loadAndWait(() => reload.click());
+    // App-managed reloads must retain previously applied sibling overrides.
+    expect(await page.evaluate(() => window.player?.getSource()?.title)).toBe("Previous title override");
+    await page.evaluate(async () => {
+      const player = window.player!;
+      player.seek(player.getDuration() - 0.2);
+      await player.play();
+    });
+    await expect(page.locator("#player .bmpui-ui-recommendation-overlay")).toBeVisible({ timeout: 25_000 });
+    // This recommendation loads the SAME preset ID through the SDK UI directly.
+    await loadAndWait(() => page.locator("#player .bmpui-ui-recommendation-item").first().click());
+    await expect(title).toHaveValue("VOD DASH (Big Buck Bunny)");
+    await description.fill("New description only");
+    await description.blur();
+    await loadAndWait(() => reload.click());
+    expect(await page.evaluate(() => {
+      const source = window.player?.getSource();
+      return { title: source?.title, description: source?.description };
+    })).toEqual({ title: "VOD DASH (Big Buck Bunny)", description: "New description only" });
+    // A managed reload whose title equals the preset still retains its other
+    // applied fields on the next edit; it is not another preset selection.
+    const offset = configField(page, /^options.startOffset \(s\)/).locator("input");
+    await offset.fill("3");
+    await offset.blur();
+    await loadAndWait(() => reload.click());
+    expect(await page.evaluate(() => window.player?.getSource()?.description)).toBe("New description only");
   });
 
   test("info-chip overlays follow the language toggle", async ({ page }) => {

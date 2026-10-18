@@ -15,3 +15,9 @@ export function installVegaPolyfills(video: VideoPlayer): void {
   // `document.createElement('video')` is stubbed (in the full sample) to return this.
   (globalThis as Record<string, unknown>).gvideo = video;
 }
+
+/** Remove only the media element owned by the session being released. */
+export function removeVegaPolyfills(video: VideoPlayer): void {
+  const globals = globalThis as Record<string, unknown>;
+  if (globals.gvideo === video) delete globals.gvideo;
+}

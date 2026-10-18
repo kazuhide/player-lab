@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { PROVISIONED } from "../src/streams";
+import { PROVISIONED, requireProvisionedStreams } from "../src/streams";
 
 // Drives the stream we provisioned via encoding/test-streams (vod-baseline) — a
 // real H.264 ABR ladder on the showcase S3, proving the provision → E2E loop.
 test.describe("Provisioned VOD baseline (encoding/test-streams → S3)", () => {
+  test.beforeAll(() => requireProvisionedStreams());
+
   test("loads the provisioned HLS: finite duration, not live, ABR ladder", async ({ page }) => {
     await page.goto("/");
     const res = await page.evaluate(

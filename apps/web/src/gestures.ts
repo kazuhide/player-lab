@@ -58,9 +58,10 @@ export function installPlayerGesture(element: HTMLElement, hooks: GestureHooks):
   const seconds = hooks.seconds ?? 10;
   let pendingClick: ReturnType<typeof setTimeout> | null = null;
 
-  // Leave the control bar alone so its buttons / seek bar keep working.
+  // Settings and recommendation overlays are siblings of the control bar.
+  // Leave their entire interaction area to the UI, including labels and Replay.
   const withinControls = (e: Event): boolean =>
-    e.target instanceof Element && e.target.closest(".bmpui-ui-controlbar") !== null;
+    e.target instanceof Element && e.target.closest(".bmpui-ui-controlbar, .bmpui-ui-settings-panel, .bmpui-ui-recommendation-overlay") !== null;
 
   const onClick = (e: MouseEvent): void => {
     const player = hooks.getPlayer();

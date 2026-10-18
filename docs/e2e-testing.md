@@ -28,6 +28,11 @@ subset, and native compilation. Native jobs receive the same shared UI build;
 the packaged iOS app and Android APK are checked for matching JavaScript and CSS.
 The app READMEs list toolchain requirements.
 
+Public repositories also have [limits on simultaneous hosted jobs](https://docs.github.com/en/actions/reference/limits#job-concurrency-limits-for-github-hosted-runners).
+Jobs may wait for a runner or for other jobs on the same account to finish.
+A queued job has not started; other jobs in the run may already be complete.
+Required checks must pass before merging.
+
 ## Browser playback
 
 The existing Playwright suite is in [tests/e2e](../tests/e2e/README.md). It drives
@@ -65,27 +70,29 @@ browser subset runs without a Player key; a zero exit status means the executed
 steps passed. Read its full
 passed/skipped/failed summary and do not report skipped steps as successful.
 
-## Recorded local check
+## Recorded local checks
 
-On 2026-10-18, checks on macOS with Node.js 24 and pnpm 10.33.0 produced:
+On 2026-10-19, the combined maintenance changes were checked on macOS with
+Node.js 24.19.0 and pnpm 10.33.0:
 
 | Check | Result |
 | --- | --- |
 | Workspace type checks and build | Passed |
-| Workspace unit tests | 84 passed: Web 38, shared UI 22, React Native 12, Vega 12 |
+| Workspace unit tests | 154 passed: Web 75, shared UI 22, React Native 29, Vega 28 |
 | Environment-loader self-test | Passed |
-| Swift DvrKit | 6 passed |
-| Selected existing Chrome browser cases, retries disabled | 9 passed; 1 failed because provisioned media was not configured |
-| Local Android DVR test in offline mode | Dependency resolution failed because required Kotlin artifacts were not cached; tests did not run |
+| Public browser subset, retries disabled | 16 passed; command exited successfully |
+| Offline Encoding resource/credential tests | 17 passed; no account requests |
+| Publication and native packaging fixtures | 6 and 3 passed, respectively |
 
-The nine browser passes cover all-theme switching and English construction
-code, the standalone guide, configuration application, language switching,
-default playback, and the three public VOD baseline checks. The selected
-Network API case uses `PROVISIONED.vodBaselineHls`; without
-`VITE_TEST_STREAM_BASE_URL` it received the local page rather than an HLS
-playlist. This is not a successful Network API playback result. Configure your
-own fixture output before running that case.
+The browser cases cover all 14 themes and their English construction code,
+the standalone guide, applied configuration resets and hydration, settings and
+recommendation clicks, same-preset reloads, language switching, default
+playback, and the three public VOD baseline checks. Provisioned media cases are
+outside this subset; they now reject missing configuration before playback.
 
-These results do not verify hosted feature assets, native app playback,
-external Analytics receipt, offline playback, or a Vega device build. CI results
-are separate from this local record.
+Existing SDK warnings remain when tests cancel loads or interrupt `play()` with
+`pause()`, and builds report the SDK's use of `eval`. These results do not assert
+a warning-free console. They also do not verify live-event finalization, hosted
+feature media, licensed native playback, external Analytics receipt, actual
+cloud encoding, offline playback, or a Vega device build. Native compilation
+and packaged-resource results are recorded separately by CI.

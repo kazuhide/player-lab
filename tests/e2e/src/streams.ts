@@ -40,25 +40,37 @@ export const REFERENCE = {
 export const PUBLIC_VOD_HLS = REFERENCE.vodHls;
 export const PUBLIC_VOD_DASH = REFERENCE.vodDashBbb;
 
-const PROVISIONED_BASE = process.env.VITE_TEST_STREAM_BASE_URL ?? "";
+const PROVISIONED_BASE = (process.env.VITE_TEST_STREAM_BASE_URL ?? "").trim().replace(/\/+$/, "");
+const provisionedUrl = (path: string): string => PROVISIONED_BASE ? `${PROVISIONED_BASE}/${path}` : "";
 
 export const PROVISIONED = {
   /** vod-baseline — H.264 360p/480p ladder, DASH+HLS, video-only (10s sample). */
-  vodBaselineHls: `${PROVISIONED_BASE}/vod-baseline/master.m3u8`,
-  vodBaselineDash: `${PROVISIONED_BASE}/vod-baseline/manifest.mpd`,
+  vodBaselineHls: provisionedUrl("vod-baseline/master.m3u8"),
+  vodBaselineDash: provisionedUrl("vod-baseline/manifest.mpd"),
   /** vod-hevc — H.265 (hvc1) 480p, DASH+HLS, video-only (10s sample). */
-  vodHevcHls: `${PROVISIONED_BASE}/vod-hevc/master.m3u8`,
-  vodHevcDash: `${PROVISIONED_BASE}/vod-hevc/manifest.mpd`,
+  vodHevcHls: provisionedUrl("vod-hevc/master.m3u8"),
+  vodHevcDash: provisionedUrl("vod-hevc/manifest.mpd"),
   /** vod-sprites — H.264 480p + WebVTT sprite sheet (scrub preview). The VTT is the
    *  player's SourceConfig.thumbnailTrack; cues point at sprite-0.jpg#xywh=… tiles
    *  (160×90 every 5s). */
-  vodSpritesHls: `${PROVISIONED_BASE}/vod-sprites/master.m3u8`,
-  vodSpritesVtt: `${PROVISIONED_BASE}/vod-sprites/thumbnails/thumbnails.vtt`,
+  vodSpritesHls: provisionedUrl("vod-sprites/master.m3u8"),
+  vodSpritesVtt: provisionedUrl("vod-sprites/thumbnails/thumbnails.vtt"),
   /** vod-multiaudio — H.264 480p + two AAC audio renditions (en default + de) from
    *  distinct sources, in one HLS media.audio group. getAvailableAudio() lists both;
    *  setAudio() switches. HLS only. */
-  vodMultiAudioHls: `${PROVISIONED_BASE}/vod-multiaudio/master.m3u8`,
+  vodMultiAudioHls: provisionedUrl("vod-multiaudio/master.m3u8"),
   /** subtitle VTT (en) — sideloaded onto any video via SourceConfig.subtitleTracks.
    *  Re-timed Sintel subtitles (text/vtt, PUBLIC_READ); see encoding/test-streams/assets. */
-  subtitleVttEn: `${PROVISIONED_BASE}/assets/sintel_en.vtt`,
+  subtitleVttEn: provisionedUrl("assets/sintel_en.vtt"),
 } as const;
+
+/** Fail in a suite's beforeAll hook, before opening a player with unavailable media. */
+export function requireProvisionedStreams(): void {
+  const base = process.env.VITE_TEST_STREAM_BASE_URL?.trim();
+  if (!base) throw new Error("Provisioned media is not configured. Export VITE_TEST_STREAM_BASE_URL before running these scenarios; see tests/e2e/README.md.");
+  let parsed: URL;
+  try { parsed = new URL(base); } catch { throw new Error("VITE_TEST_STREAM_BASE_URL must be an absolute HTTP or HTTPS media base URL."); }
+  if (!["http:", "https:"].includes(parsed.protocol) || parsed.search || parsed.hash) {
+    throw new Error("VITE_TEST_STREAM_BASE_URL must be an absolute HTTP or HTTPS media base URL without a query or fragment.");
+  }
+}

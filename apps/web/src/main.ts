@@ -16,32 +16,17 @@ import {
   type UIConfig,
 } from "@showcase/ui-shared";
 import "@showcase/ui-shared/css";
-import { SOURCES } from "./sources";
+import { SOURCES, missingSourceSettings, nextPlaylistSource, type ShowcaseSource } from "./sources";
+import { configValue, deepMerge } from "./configState";
 import { liveLatencySeconds } from "./dvr/window";
-import { mountControlPanel, relocalizeControlPanel } from "./controlPanel";
-import { mountConfigPanel, type DeepPartial, type ConfigPanelOptions } from "./configPanel";
+import { mountControlPanel, relocalizeControlPanel, type ControlPanelHandle } from "./controlPanel";
+import { mountConfigPanel, type DeepPartial, type ConfigPanelOptions, type ConfigPanelHandle } from "./configPanel";
 import { renderConstruction, renderUiGuide } from "./uiGuide";
 import { createAnalyticsView } from "./analyticsView";
 import { installPlayerGesture, type DoubleClickMode } from "./gestures";
 import { installInfoOverlay, infoChip } from "./infoChip";
 import { pick, getLang, setLang, onLangChange, G, type L, type Lang } from "./i18n";
 import "./styles.css";
-
-/** Deep-merge `over` onto `base` (objects recurse; arrays/scalars replace; `undefined`
- *  is skipped) — used to layer the config panel's PlayerConfig/SourceConfig overrides. */
-function deepMerge<T>(base: T, over: DeepPartial<T>): T {
-  const out = { ...(base as Record<string, unknown>) } as Record<string, unknown>;
-  for (const k of Object.keys(over as object)) {
-    const ov = (over as Record<string, unknown>)[k];
-    const bv = out[k];
-    if (ov && typeof ov === "object" && !Array.isArray(ov) && bv && typeof bv === "object" && !Array.isArray(bv)) {
-      out[k] = deepMerge(bv, ov as DeepPartial<typeof bv>);
-    } else if (ov !== undefined) {
-      out[k] = ov;
-    }
-  }
-  return out as T;
-}
 
 // TimelineReferencePoint ("end") is a string enum the SDK doesn't expose at
 // runtime; reference it typed via SourceConfig.options (§11).
@@ -63,7 +48,7 @@ if (!playerEl || !panelEl || !themeBarEl || !guideEl || !constructionEl || !conf
   throw new Error("missing one of #player / #control-panel / #ui-theme-bar / #ui-guide / #ui-construction / #config-panel / #lang-toggle / #app-tagline");
 }
 if (!licenseKey) {
-  console.warn("VITE_BITMOVIN_PLAYER_LICENSE_KEY is not set — the player will not start. See .env.example.");
+  console.info("No Player key is configured. Web playback is available at localhost; other hostnames need a domain-allowed key. See .env.example.");
 }
 
 // ---------------------------------------------------------------------------
@@ -124,7 +109,7 @@ interface UiTheme {
 const RECOMMENDED_SOURCE_IDS = ["vod-dash", "vod-multiaudio", "vod-subtitles"];
 const BRAND_UICONFIG: UIConfig = {
   metadata: {
-    recommendations: SOURCES.filter((s) => RECOMMENDED_SOURCE_IDS.includes(s.id)).map((s) => ({
+    recommendations: SOURCES.filter((s) => RECOMMENDED_SOURCE_IDS.includes(s.id) && missingSourceSettings(s).length === 0).map((s) => ({
       title: s.config.title ?? s.label,
       resource: s.config,
     })),
@@ -361,8 +346,15 @@ function applyTheme(p: PlayerAPI, id: ThemeId): void {
 // DVR allow/forbid is a load-time PlayerConfig option (PlaybackConfig.timeShift),
 // so toggling it rebuilds the player; source switching uses player.load().
 let timeShiftEnabled = true;
-let currentSource: SourceConfig = SOURCES[0]?.config ?? {};
+let sourcePreset: SourceConfig = SOURCES[0]?.config ?? {};
+let sourceOverrides: DeepPartial<SourceConfig> = {};
+let currentSource: SourceConfig = sourcePreset;
+// A preset loaded directly by the SDK UI replaces the prior overrides, even
+// when it has the same ID. App-owned reloads retain their applied overrides.
+let appSourceLoad: { player: PlayerAPI; source: SourceConfig; settle: (() => void) | undefined } | undefined;
 let player: PlayerAPI | undefined;
+let controlPanel: ControlPanelHandle | undefined;
+let configPanel: ConfigPanelHandle | undefined;
 // 🔁 PlayerConfig overrides staged + committed from the comprehensive config panel.
 // They're deep-merged onto the base config every time the player is (re)built.
 let playerOverrides: DeepPartial<PlayerConfig> = {};
@@ -393,10 +385,7 @@ const EPISODE_PLAYLIST: string[] = ["vod-hls", "vod-dash", "vod-multiaudio", "vo
 // stable across reload overrides (overrides overlay the same logical source).
 let currentSourceId: string = SOURCES[0]?.id ?? "";
 function nextEpisodeSource(): (typeof SOURCES)[number] | undefined {
-  const idx = EPISODE_PLAYLIST.indexOf(currentSourceId);
-  // Current source isn't in the playlist (e.g. a live source) → start at the first; else wrap.
-  const nextId = idx === -1 ? EPISODE_PLAYLIST[0] : EPISODE_PLAYLIST[(idx + 1) % EPISODE_PLAYLIST.length];
-  return SOURCES.find((s) => s.id === nextId);
+  return nextPlaylistSource(SOURCES, EPISODE_PLAYLIST, currentSourceId);
 }
 function nextEpisodeTitle(): string | undefined {
   const s = nextEpisodeSource();
@@ -405,9 +394,38 @@ function nextEpisodeTitle(): string | undefined {
 function playNextEpisode(): void {
   const s = nextEpisodeSource();
   if (!s || !player) return;
-  currentSource = s.config;
-  currentSourceId = s.id;
-  void player.load(s.config).catch((err: unknown) => console.error("next-episode load failed", err));
+  void selectSource(s).catch((err: unknown) => console.error("next-episode load failed", err));
+}
+
+/** Every load path announces the active source kind, including playlist advances
+ * and config reloads. The hint belongs to this load, never to all future playback. */
+async function loadCurrentSource(instance: PlayerAPI): Promise<void> {
+  const isLive = SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false;
+  const settle = controlPanel?.beginSourceLoad(isLive);
+  const request = { player: instance, source: structuredClone(currentSource), settle };
+  appSourceLoad = request;
+  try {
+    await instance.load(request.source);
+  } catch (error) {
+    if (appSourceLoad === request) appSourceLoad = undefined;
+    if (player === instance) request.settle?.();
+    throw error;
+  } finally {
+    if (player === instance) configPanel?.refresh();
+  }
+}
+
+async function selectSource(source: ShowcaseSource): Promise<void> {
+  const missing = missingSourceSettings(source);
+  if (missing.length > 0) throw new Error(`Source is not configured. Set ${missing.join(", ")} in apps/web/.env.`);
+  const instance = player;
+  if (!instance) return;
+  sourcePreset = source.config;
+  sourceOverrides = {};
+  currentSource = sourcePreset;
+  currentSourceId = source.id;
+  await loadCurrentSource(instance);
+  if (player === instance) await instance.play();
 }
 
 // §15 — the QoE metrics card. It's created once (not rebuilt with the control panel,
@@ -524,13 +542,15 @@ function wireMetrics(p: PlayerAPI): void {
 // current source with merged overrides; ⚡ runtime edits hit the live player API.
 const configOptions: ConfigPanelOptions = {
   getPlayer: () => player,
+  getSource: () => currentSource,
   onRecreate: (overrides) => {
     playerOverrides = deepMerge(playerOverrides, overrides);
     void build();
   },
   onReload: (srcOverrides) => {
-    currentSource = deepMerge(currentSource, srcOverrides);
-    void player?.load(currentSource).catch((err: unknown) => console.error("config reload failed", err));
+    sourceOverrides = deepMerge(sourceOverrides, srcOverrides);
+    currentSource = deepMerge(sourcePreset, sourceOverrides);
+    if (player) void loadCurrentSource(player).catch((err: unknown) => console.error("config reload failed", err));
   },
 };
 
@@ -549,7 +569,7 @@ function renderAll(): void {
   // telemetry), so re-localize its labels in place instead.
   relocalizeControlPanel();
   analyticsView.relocalize();
-  mountConfigPanel(configEl!, configOptions);
+  configPanel = mountConfigPanel(configEl!, configOptions);
   // Keep the landmark aria-labels consistent with the visible language.
   themeBarEl!.setAttribute("aria-label", pick(G.themeBarLabel));
   constructionEl!.setAttribute("aria-label", pick(G.ariaConstruction));
@@ -589,6 +609,7 @@ async function doBuild(): Promise<void> {
     // Clear the ref before the async destroy so the gesture's getPlayer() can't act
     // on a tearing-down instance during the rebuild window.
     const old = player;
+    if (appSourceLoad?.player === old) appSourceLoad = undefined;
     player = undefined;
     await old.destroy();
   }
@@ -614,22 +635,20 @@ async function doBuild(): Promise<void> {
   player = instance;
   applyTheme(instance, currentThemeId);
   wireMetrics(instance);
-  mountControlPanel(instance, panelEl as HTMLElement, SOURCES, {
+  controlPanel = mountControlPanel(instance, panelEl as HTMLElement, SOURCES, {
     timeShiftEnabled,
     onTimeShiftToggle: (enabled) => {
       timeShiftEnabled = enabled;
       void build();
     },
-    onSourceSelected: (source) => {
-      currentSource = source.config;
-      currentSourceId = source.id;
-    },
+    currentSourceIsLive: SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false,
+    onSourceSelected: selectSource,
     onReloadWithStartOffset: (offsetFromEdge) => {
-      const src: SourceConfig = {
-        ...currentSource,
+      sourceOverrides = deepMerge(sourceOverrides, {
         options: { startOffset: offsetFromEdge, startOffsetTimelineReference: END_REFERENCE },
-      };
-      void instance.load(src).catch((err: unknown) => console.error("reload-with-offset failed", err));
+      });
+      currentSource = deepMerge(sourcePreset, sourceOverrides);
+      void loadCurrentSource(instance).catch((err: unknown) => console.error("reload-with-offset failed", err));
     },
     doubleClickMode,
     onDoubleClickModeChange: (mode) => {
@@ -661,7 +680,41 @@ async function doBuild(): Promise<void> {
     },
     extraTelemetry: qoeSection.sec,
   });
-  await instance.load(currentSource).catch((err: unknown) => console.error("load failed", err));
+  // Runtime fields reset with a new player; source/static fields read the applied
+  // config. Refresh the existing form so unrelated staged edits are not discarded.
+  instance.on(PlayerEvent.SourceLoaded, () => {
+    if (player !== instance) return;
+    const loaded = instance.getSource();
+    if (!loaded) return;
+    // RecommendationOverlay loads through the SDK directly. Keep later rebuilds
+    // and source edits attached to that source rather than the previous preset.
+    const selected = SOURCES.find((source) => source.config.hls === loaded.hls &&
+      source.config.dash === loaded.dash && source.config.title === loaded.title);
+    const request = appSourceLoad?.player === instance ? appSourceLoad : undefined;
+    const appManaged = request !== undefined && [
+      "hls", "dash", "title", "description", "poster",
+      "options.startOffset", "options.startOffsetTimelineReference",
+    ].every((path) => configValue(request.source, path) === configValue(loaded, path));
+    // SourceLoaded may be delivered after load() resolves. Consume the request
+    // and retire its source-kind hint here, after the SDK has loaded the source.
+    if (request) {
+      appSourceLoad = undefined;
+      request.settle?.();
+    }
+    if (selected && (!appManaged || selected.id !== currentSourceId)) {
+      currentSourceId = selected.id;
+      sourcePreset = selected.config;
+      sourceOverrides = {};
+    }
+    currentSource = loaded;
+  });
+  const refreshConfig = (): void => { if (player === instance) configPanel?.refresh(); };
+  for (const event of [PlayerEvent.VolumeChanged, PlayerEvent.Muted, PlayerEvent.Unmuted,
+    PlayerEvent.PlaybackSpeedChanged, PlayerEvent.ViewModeChanged, PlayerEvent.SourceLoaded]) {
+    instance.on(event, refreshConfig);
+  }
+  refreshConfig();
+  await loadCurrentSource(instance).catch((err: unknown) => console.error("load failed", err));
 }
 
 void build();

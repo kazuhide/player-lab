@@ -47,12 +47,17 @@ export VITE_TEST_STREAM_BASE_URL="https://media.example.test/test-streams"
 The runner appends the existing `vod-baseline/`, `vod-hevc/`, `vod-sprites/`,
 `vod-multiaudio/` and `assets/` paths. This variable is read by the Node.js test
 runner; setting it only in `apps/web/.env` does not configure these tests.
-Public `REFERENCE` scenarios do not need it. An unset base does not provision
-feature assets or skip their tests; configure the base before running them.
+Public `REFERENCE` scenarios do not need it. Provisioned suites fail in their
+setup hook with an explicit configuration message when the base is missing or
+invalid, before opening a player. They are not reported as passing or silently
+replaced with public reference media; configure the base before running them.
 
 For the application's optional sprite, multi-audio and subtitle demos, set the
 corresponding `VITE_VOD_*` values listed in `apps/web/.env.example`. Those values
 configure the application, separately from the test runner's shared base URL.
+The seven application presets remain visible. Demos with missing required URLs
+are disabled with the exact variable names shown next to the source controls.
+The episode playlist and recommendation tiles only offer configured sources.
 
 ## Existing scenarios
 

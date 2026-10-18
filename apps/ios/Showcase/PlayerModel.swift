@@ -32,8 +32,8 @@ enum UiMode: String, CaseIterable, Identifiable {
 /// DVR coordinate logic lives in `DvrKit`; this is the thin platform glue.
 ///
 /// The Bitmovin SDK usage below (event classes, config properties, `events.on`)
-/// type-checks against BitmovinPlayer 3.114.1, and the app is built for the
-/// simulator in CI.
+/// type-checks against the SDK pinned in project.yml. CI builds the app for the
+/// simulator; device playback needs a licensed app identifier.
 final class PlayerModel: ObservableObject {
     /// The UI is fixed at player-creation time (it lives on `PlayerConfig.styleConfig`), so
     /// switching the factory recreates the player; SwiftUI rebuilds the view (keyed on `uiMode`).

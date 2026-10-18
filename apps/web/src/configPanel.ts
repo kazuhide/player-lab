@@ -22,17 +22,20 @@ import type { PlayerAPI, PlayerConfig, SourceConfig, DynamicAdaptationConfig } f
 import { pick, type L } from "./i18n";
 import { FIELD_DOC } from "./configDocs";
 import { infoChip } from "./infoChip";
+import { configValue } from "./configState";
 
 /** A minimal recursive partial — PlayerConfig is deeply nested (playback, tweaks, …). */
-export type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
+export type DeepPartial<T> = { [K in keyof T]?: (T[K] extends object ? DeepPartial<T[K]> : T[K]) | undefined };
 
 export interface ConfigPanelOptions {
   /** The live player, for ⚡ runtime calls. May be undefined mid-rebuild. */
   getPlayer: () => PlayerAPI | undefined;
+  /** The source with its applied overrides, also available while the player rebuilds. */
+  getSource: () => SourceConfig;
   /** Commit staged 🔁 PlayerConfig overrides — `main.ts` rebuilds the player with them. */
   onRecreate: (overrides: DeepPartial<PlayerConfig>) => void;
   /** Commit staged 📥 SourceConfig overrides — `main.ts` reloads the current source. */
-  onReload: (overrides: Partial<SourceConfig>) => void;
+  onReload: (overrides: DeepPartial<SourceConfig>) => void;
 }
 
 type Mode = "recreate" | "reload" | "runtime";
@@ -42,6 +45,8 @@ interface FieldDef {
   kind: "bool" | "number" | "text" | "enum";
   options?: { value: string; label: string }[];
   initial: string | number | boolean;
+  /** Read the applied value; absent values fall back to the field's default. */
+  read?: () => unknown;
   apply: (raw: string | boolean) => void;
   hint?: string;
   /** Hover guidance ("?" chip overlay) — "what / when / default" for this field. For
@@ -114,18 +119,27 @@ function setPath(target: Record<string, unknown>, path: string, value: unknown):
   node[keys[keys.length - 1]!] = value;
 }
 
-/** Parse a numeric input; empty / NaN → undefined (so it doesn't override with NaN).
- *  Note: staging is additive — clearing a field back to "" won't *remove* an already
- *  staged value, it just won't add one. Re-applying with a fresh value replaces it. */
+/** Parse a numeric input. Empty / NaN clears the corresponding override. */
 function num(raw: string | boolean): number | undefined {
   const n = Number(raw);
   return raw === "" || Number.isNaN(n) ? undefined : n;
 }
 
-export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOptions): void {
+export interface ConfigPanelHandle {
+  /** Refresh applied fields, preserving edits that have not been applied yet. */
+  refresh: () => void;
+}
+
+// The SDK has no getters for these runtime setters. Remember successful calls for
+// this player instance only; recreating it must not retain the old instance's values.
+const runtimeValues = new WeakMap<PlayerAPI, Record<string, unknown>>();
+
+export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOptions): ConfigPanelHandle {
   // Staged overrides, committed on the per-band Apply buttons.
   let playerOverrides: DeepPartial<PlayerConfig> = {};
-  let sourceOverrides: Partial<SourceConfig> = {};
+  let sourceOverrides: DeepPartial<SourceConfig> = {};
+  const staged = new Set<FieldDef>();
+  const readers: (() => void)[] = [];
   let recreateDirty = false;
   let reloadDirty = false;
   let applyRecreateBtn: HTMLButtonElement | undefined;
@@ -145,7 +159,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   /** Stage a 🔁 PlayerConfig override at `path`. AdaptationConfig is per-platform, so
    *  adaptation.* is written to BOTH desktop and mobile. */
   function stagePlayer(path: string, value: unknown): void {
-    if (value === undefined) return;
     if (path.startsWith("adaptation.")) {
       const leaf = path.slice("adaptation.".length);
       setPath(playerOverrides as Record<string, unknown>, `adaptation.desktop.${leaf}`, value);
@@ -158,11 +171,22 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   }
 
   function stageSource(path: string, value: unknown): void {
-    if (value === undefined) return;
     setPath(sourceOverrides as Record<string, unknown>, path, value);
     reloadDirty = true;
     refreshButtons();
   }
+
+  const readPlayer = (path: string): unknown => configValue(
+    options.getPlayer()?.getConfig(false),
+    path.startsWith("adaptation.") ? path.replace("adaptation.", "adaptation.desktop.") : path,
+  );
+  const readRuntime = (key: string): unknown => {
+    const p = options.getPlayer();
+    return p ? runtimeValues.get(p)?.[key] : undefined;
+  };
+  const rememberRuntime = (p: PlayerAPI, key: string, value: unknown): void => {
+    runtimeValues.set(p, { ...runtimeValues.get(p), [key]: value });
+  };
 
   /** Shorthand field builders. Each pulls the field's SDK JSDoc (FIELD_DOC[path]) as its
    *  hover tooltip, so every config knob carries its official "what / when / default" note. */
@@ -170,6 +194,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     label,
     kind: "bool",
     initial,
+    read: () => readPlayer(path),
     apply: (v) => stagePlayer(path, v),
     ...(FIELD_DOC[path] ? { doc: FIELD_DOC[path] } : {}),
   });
@@ -177,6 +202,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     label,
     kind: "number",
     initial,
+    read: () => readPlayer(path),
     apply: (v) => stagePlayer(path, num(v)),
     ...(FIELD_DOC[path] ? { doc: FIELD_DOC[path] } : {}),
   });
@@ -185,6 +211,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     kind: "text",
     initial: "",
     ...(hint ? { hint } : {}),
+    read: () => readPlayer(path),
     apply: (v) => stagePlayer(path, v === "" ? undefined : v),
     ...(FIELD_DOC[path] ? { doc: FIELD_DOC[path] } : {}),
   });
@@ -193,6 +220,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     kind: "enum",
     options: opts,
     initial,
+    read: () => readPlayer(path),
     apply: (v) => stagePlayer(path, v === "" ? undefined : v),
     ...(FIELD_DOC[path] ? { doc: FIELD_DOC[path] } : {}),
   });
@@ -247,6 +275,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       fields: [
         {
           label: "volume (0–100)",
+          read: () => options.getPlayer()?.getVolume(),
           kind: "number",
           initial: 100,
           doc: { ja: "音量 0–100(0=無音, 100=最大)。ミュートとは独立。多くのブラウザは音声付き自動再生をブロックします。", en: "Volume 0–100 (0 = silent, 100 = max). Independent of mute. Note many browsers block autoplay with sound." },
@@ -254,6 +283,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "mute",
+          read: () => options.getPlayer()?.isMuted(),
           kind: "bool",
           initial: true,
           doc: { ja: "音声を消す/戻す。音声付き自動再生はブロックされやすいので、自動再生にはミュートが実質必須です。", en: "Silence / restore audio. Muted is effectively required for autoplay, since sound-on autoplay is widely blocked." },
@@ -266,6 +296,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "playbackSpeed",
+          read: () => options.getPlayer()?.getPlaybackSpeed(),
           kind: "number",
           initial: 1,
           doc: { ja: "再生速度の倍率(1=等倍, 2=2倍, 0.5=半分)。ライブの先頭付近では効果が限定されます。", en: "Playback rate multiplier (1 = normal, 2 = 2×, 0.5 = half). Has limited effect near the live edge." },
@@ -273,6 +304,10 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "buffer target forward (s) §8",
+          read: () => {
+            const p = options.getPlayer();
+            return p?.buffer.getLevel(p.exports.BufferType.ForwardDuration, p.exports.MediaType.Video).targetLevel;
+          },
           kind: "number",
           initial: 40,
           doc: { ja: "先読みする秒数(§8)。大きいほど安定する一方、遅延とメモリ消費が増えます。DVRウィンドウは広がりません。", en: "Seconds to buffer ahead (§8). Larger = steadier but more latency/memory. Does NOT widen the DVR window." },
@@ -286,6 +321,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "viewMode",
+          read: () => options.getPlayer()?.getViewMode(),
           kind: "enum",
           initial: "inline",
           doc: { ja: "表示モード: inline(既定)/ PiP(ピクチャインピクチャ)/ fullscreen。ユーザー操作を起点にしないと拒否される場合があります。", en: "Display mode: inline (default) / PiP / fullscreen. May be rejected unless triggered by a user gesture." },
@@ -307,6 +343,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "setAspectRatio",
+          read: () => options.getPlayer()?.getAspectRatio() || undefined,
           kind: "text",
           initial: "",
           hint: pick({ ja: "例: 16:9 / 1.78", en: "e.g. 16:9 / 1.78" }),
@@ -319,6 +356,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "setPosterImage (URL)",
+          read: () => readRuntime("poster") ?? options.getSource().poster,
           kind: "text",
           initial: "",
           doc: { ja: "再生前に表示する画像のURL。第2引数 true で再生中も保持します。", en: "Poster image URL shown before playback. Passing true (2nd arg) keeps it during playback too." },
@@ -326,10 +364,12 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
             const p = options.getPlayer();
             if (!p || v === "") return;
             p.setPosterImage(v as string, true);
+            rememberRuntime(p, "poster", v);
           },
         },
         {
           label: "setLogLevel",
+          read: () => readRuntime("logLevel") ?? options.getPlayer()?.getConfig(true).logs?.level,
           kind: "enum",
           initial: "warn",
           doc: { ja: "コンソールのログ詳細度。player.setLogLevel() は実行時メソッドなので、再生中に変更すると即座に反映されます(再生挙動は変わりません)。debug は詳しい反面、本番や長時間再生では性能が落ちます。通常は warn/error。", en: "Console log verbosity. player.setLogLevel() is a runtime method, so changing it mid-playback takes effect immediately (it doesn’t change playback). debug is detailed but hurts performance in production / long playback; use warn or error normally." },
@@ -338,6 +378,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
             const p = options.getPlayer();
             if (!p) return;
             p.setLogLevel(v as Parameters<PlayerAPI["setLogLevel"]>[0]);
+            rememberRuntime(p, "logLevel", v);
           },
         },
       ],
@@ -352,6 +393,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       fields: [
         {
           label: "limitToPlayerSize",
+          read: () => options.getPlayer()?.adaptation.getConfig().limitToPlayerSize,
           kind: "bool",
           initial: false,
           doc: { ja: "自動画質をプレイヤーの表示サイズに制限。映像要素より高解像度を選びません(モバイルの帯域節約に有効)。既定 false。", en: "Cap auto quality to the player's display size — never pick a resolution higher than the video element (saves bandwidth on small players). Default false." },
@@ -359,6 +401,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "qualityStabilityBalance (0–1)",
+          read: () => options.getPlayer()?.adaptation.getConfig().qualityStabilityBalance,
           kind: "number",
           initial: 0.5,
           doc: { ja: "0–1。安定性(切替を減らす)と画質追従のバランス。低いほど安定重視、高いほど画質優先。既定 0.5。", en: "0–1. Balance between stability (fewer switches) and chasing quality. Lower = steadier, higher = sharper. Default 0.5." },
@@ -366,6 +409,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "resolution.maxSelectableVideoHeight",
+          read: () => options.getPlayer()?.adaptation.getConfig().resolution?.maxSelectableVideoHeight,
           kind: "number",
           initial: "",
           doc: { ja: "選択可能な映像の高さの上限(px)。これより高い解像度は選ばれません。", en: "Upper bound on selectable video height (px). Qualities taller than this are not selected." },
@@ -373,6 +417,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "resolution.minSelectableVideoHeight",
+          read: () => options.getPlayer()?.adaptation.getConfig().resolution?.minSelectableVideoHeight,
           kind: "number",
           initial: "",
           doc: { ja: "選択可能な映像の高さの下限(px)。これより低い解像度は選ばれません。", en: "Lower bound on selectable video height (px). Qualities shorter than this are not selected." },
@@ -380,6 +425,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "resolution.maxSelectableVideoWidth",
+          read: () => options.getPlayer()?.adaptation.getConfig().resolution?.maxSelectableVideoWidth,
           kind: "number",
           initial: "",
           doc: { ja: "選択可能な映像の幅の上限(px)。これより広い解像度は選ばれません。", en: "Upper bound on selectable video width (px). Qualities wider than this are not selected." },
@@ -387,6 +433,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "resolution.minSelectableVideoWidth",
+          read: () => options.getPlayer()?.adaptation.getConfig().resolution?.minSelectableVideoWidth,
           kind: "number",
           initial: "",
           doc: { ja: "選択可能な映像の幅の下限(px)。これより狭い解像度は選ばれません。", en: "Lower bound on selectable video width (px). Qualities narrower than this are not selected." },
@@ -404,6 +451,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       fields: [
         {
           label: "targetLatency (s)",
+          read: () => options.getPlayer()?.lowlatency.getTargetLatency(),
           kind: "number",
           initial: "",
           doc: { ja: "ライブ端からの目標距離(秒)。小さいほど低遅延だがリバッファのリスクが上がる。catchup/fallback を設定すると、再生速度やシークでこの距離へ追従します。通常の HLS/DASH ライブでも有効(超低遅延のみ LL ストリームが必要)。", en: "Target distance from the live edge (s). Smaller = lower latency but higher rebuffer risk. With catchup/fallback set, the player steers to this distance via playback speed / seeks. Works on a normal HLS/DASH live stream (only sub-second latency needs an LL stream)." },
@@ -420,6 +468,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "catchup: playbackRateThreshold (s)",
+          read: () => options.getPlayer()?.lowlatency.getCatchupConfig()?.playbackRateThreshold,
           kind: "number",
           initial: "",
           doc: { ja: "目標より遅れた量がこの秒数を超えたら、再生速度を上げて(catchup)追いつく。既定 Infinity(無効)— 有限値で有効化。", en: "When latency runs over target by more than this many seconds, catch up by raising the playback speed. Default Infinity (off) — a finite value enables it." },
@@ -427,6 +476,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "catchup: seekThreshold (s)",
+          read: () => options.getPlayer()?.lowlatency.getCatchupConfig()?.seekThreshold,
           kind: "number",
           initial: "",
           doc: { ja: "目標より遅れた量がこの秒数を超えたら、ライブ端方向へシークして追いつく。既定 Infinity(無効)。", en: "When latency runs over target by more than this many seconds, catch up by seeking toward the live edge. Default Infinity (off)." },
@@ -434,6 +484,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "catchup: playbackRate",
+          read: () => options.getPlayer()?.lowlatency.getCatchupConfig()?.playbackRate,
           kind: "number",
           initial: "",
           doc: { ja: "catchup 中の再生速度(>1 で加速)。既定 1.2。", en: "Playback speed used while catching up (>1 = faster). Default 1.2." },
@@ -441,6 +492,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "fallback: playbackRateThreshold (s)",
+          read: () => options.getPlayer()?.lowlatency.getFallbackConfig()?.playbackRateThreshold,
           kind: "number",
           initial: "",
           doc: { ja: "目標より寄りすぎた(latency が小さすぎる)量がこの秒数を超えたら、再生速度を落として(fallback)戻す。既定 Infinity(無効)。", en: "When latency runs under target by more than this many seconds, fall back by lowering the playback speed. Default Infinity (off)." },
@@ -448,6 +500,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "fallback: seekThreshold (s)",
+          read: () => options.getPlayer()?.lowlatency.getFallbackConfig()?.seekThreshold,
           kind: "number",
           initial: "",
           doc: { ja: "目標より寄りすぎた量がこの秒数を超えたら、シークして目標距離へ戻す。既定 Infinity(無効)。", en: "When latency runs under target by more than this many seconds, fall back by seeking to the target distance. Default Infinity (off)." },
@@ -455,6 +508,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         },
         {
           label: "fallback: playbackRate",
+          read: () => options.getPlayer()?.lowlatency.getFallbackConfig()?.playbackRate,
           kind: "number",
           initial: "",
           doc: { ja: "fallback 中の再生速度(<1 で減速)。既定 0.95。", en: "Playback speed used while falling back (<1 = slower). Default 0.95." },
@@ -473,6 +527,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
           initial: "",
           hint: pick({ ja: "TitleBar に表示", en: "Shown in the TitleBar" }),
           doc: { ja: "ソースのタイトル。TitleBar を持つUI(一部のテーマ)に表示されます。", en: "Source title. Shown by UIs that include a TitleBar (some themes)." },
+          read: () => configValue(options.getSource(), "title"),
           apply: (v) => stageSource("title", v === "" ? undefined : v),
         },
         {
@@ -480,6 +535,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
           kind: "text",
           initial: "",
           doc: { ja: "ソースの説明。タイトルと併せて TitleBar 付きUIに表示されます。", en: "Source description. Shown alongside the title in TitleBar-equipped UIs." },
+          read: () => configValue(options.getSource(), "description"),
           apply: (v) => stageSource("description", v === "" ? undefined : v),
         },
         {
@@ -487,6 +543,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
           kind: "text",
           initial: "",
           doc: { ja: "再生開始前に表示するサムネイル画像のURL。", en: "URL of the thumbnail image shown before playback starts." },
+          read: () => configValue(options.getSource(), "poster"),
           apply: (v) => stageSource("poster", v === "" ? undefined : v),
         },
         {
@@ -495,6 +552,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
           initial: "",
           hint: pick({ ja: "ライブは負値で端から", en: "Negative = behind the live edge" }),
           doc: { ja: "再生開始位置。VODは先頭からの秒数。ライブは負値で端からの距離(§11)。下の reference と併用します。", en: "Start position. For VOD, seconds from the start; for live, a negative value = distance behind the edge (§11). Pairs with the reference below." },
+          read: () => configValue(options.getSource(), "options.startOffset"),
           apply: (v) => stageSource("options.startOffset", num(v)),
         },
         {
@@ -507,6 +565,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
             { value: "start", label: "start" },
             { value: "end", label: "end" },
           ],
+          read: () => configValue(options.getSource(), "options.startOffsetTimelineReference"),
           apply: (v) => stageSource("options.startOffsetTimelineReference", v === "" ? undefined : v),
         },
       ],
@@ -665,15 +724,15 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   note.textContent = pick({
     ja:
       "未掲載(値が動的なリスト、またはオブジェクト/コールバック設定のため): quality/track 選択(setVideoQuality / setAudioQuality / setAudio、字幕は player.subtitles ＝ プレイヤーの設定歯車)、" +
-      "player.lowlatency の catchup/fallback、setQueryParameters / setAuthentication / setVideoElement、network のリクエストコールバック(preprocessHttpRequest 等)、player.drm / advertising / vr 各API。",
+      "setQueryParameters / setAuthentication / setVideoElement、network のリクエストコールバック(preprocessHttpRequest 等)、player.drm / advertising / vr 各API。",
     en:
       "Not surfaced here (values are dynamic lists, or object/callback config): quality/track selection (setVideoQuality / setAudioQuality / setAudio; subtitles via player.subtitles — i.e. the player’s settings gear), " +
-      "player.lowlatency catchup/fallback, setQueryParameters / setAuthentication / setVideoElement, the network request callbacks (preprocessHttpRequest etc.), and the player.drm / advertising / vr APIs.",
+      "setQueryParameters / setAuthentication / setVideoElement, the network request callbacks (preprocessHttpRequest etc.), and the player.drm / advertising / vr APIs.",
   });
   head.append(h2, intro, note);
   container.appendChild(head);
 
-  function field(def: FieldDef): HTMLElement {
+  function field(def: FieldDef, mode: Mode): HTMLElement {
     const row = document.createElement("label");
     row.className = "config-field";
     const name = document.createElement("span");
@@ -690,7 +749,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       const cb = document.createElement("input");
       cb.type = "checkbox";
       cb.checked = Boolean(def.initial);
-      cb.addEventListener("change", () => def.apply(cb.checked));
+      cb.addEventListener("change", () => apply(cb.checked));
       input = cb;
       row.classList.add("is-bool");
     } else if (def.kind === "enum") {
@@ -702,16 +761,31 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         if (o.value === String(def.initial)) opt.selected = true;
         sel.appendChild(opt);
       }
-      sel.addEventListener("change", () => def.apply(sel.value));
+      sel.addEventListener("change", () => apply(sel.value));
       input = sel;
     } else {
       const inp = document.createElement("input");
       inp.type = def.kind === "number" ? "number" : "text";
       inp.value = String(def.initial);
       inp.className = "config-input";
-      inp.addEventListener("change", () => def.apply(inp.value));
+      inp.addEventListener("change", () => apply(inp.value));
       input = inp;
     }
+    function sync(): void {
+      if (staged.has(def) || document.activeElement === input) return;
+      let applied: unknown;
+      try { applied = def.read?.(); } catch { /* Runtime APIs can be unavailable before a source loads. */ }
+      const value = applied ?? def.initial;
+      if (input instanceof HTMLInputElement && input.type === "checkbox") input.checked = Boolean(value);
+      else input.value = typeof value === "number" && !Number.isFinite(value) ? "" : String(value);
+    }
+    function apply(value: string | boolean): void {
+      def.apply(value);
+      if (mode === "runtime") sync();
+      else staged.add(def);
+    }
+    readers.push(sync);
+    sync();
     row.appendChild(input);
 
     if (def.hint) {
@@ -746,7 +820,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
 
     const fields = document.createElement("div");
     fields.className = "config-fields";
-    for (const f of group.fields) fields.appendChild(field(f));
+    for (const f of group.fields) fields.appendChild(field(f, group.mode));
     details.appendChild(fields);
     return details;
   }
@@ -780,6 +854,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   applyReloadBtn = applyButton(pick({ ja: "📥 ソースを再読み込みして適用", en: "📥 Reload the source to apply" }), () => {
     options.onReload(sourceOverrides);
     sourceOverrides = {};
+    for (const g of groups.filter((g) => g.mode === "reload")) for (const f of g.fields) staged.delete(f);
     reloadDirty = false;
     refreshButtons();
   });
@@ -808,6 +883,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   applyRecreateBtn = applyButton(pick({ ja: "🔁 プレイヤーを再生成して適用", en: "🔁 Recreate the player to apply" }), () => {
     options.onRecreate(playerOverrides);
     playerOverrides = {};
+    for (const g of groups.filter((g) => g.mode === "recreate")) for (const f of g.fields) staged.delete(f);
     recreateDirty = false;
     refreshButtons();
   });
@@ -818,4 +894,5 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   container.appendChild(statBand);
 
   refreshButtons();
+  return { refresh: () => readers.forEach((read) => read()) };
 }

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { PROVISIONED } from "../src/streams";
+import { PROVISIONED, requireProvisionedStreams } from "../src/streams";
 
 // Sprite thumbnails (§12 scrubbing). The encoder produced a JPEG sprite sheet + a
 // WebVTT index; the player loads the VTT as SourceConfig.thumbnailTrack, and
@@ -18,6 +18,8 @@ import { PROVISIONED } from "../src/streams";
 // The geometry picks (t=2 → tile 0, t=7 → tile 1) assume the provisioned clip is
 // ≥10s with the 5s sprite interval (it is — the Sintel trailer, ~52s).
 test.describe("Sprite thumbnails — thumbnailTrack + getThumbnail", () => {
+  test.beforeAll(() => requireProvisionedStreams());
+
   test("getThumbnail tiles parse AND the resolved sheet is fetchable", async ({ page, request }) => {
     await page.goto("/");
     const res = await page.evaluate(

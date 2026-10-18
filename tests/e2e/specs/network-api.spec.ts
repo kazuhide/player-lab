@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { PROVISIONED } from "../src/streams";
+import { PROVISIONED, requireProvisionedStreams } from "../src/streams";
 
 // §16 Network API — the player exposes NetworkConfig.preprocessHttpRequest, a hook
 // to inspect/rewrite every HTTP request. The harness wires it to record URLs.
 test.describe("Network API — preprocessHttpRequest interception", () => {
+  test.beforeAll(() => requireProvisionedStreams());
+
   test("intercepts the player's manifest + segment requests", async ({ page }) => {
     await page.goto("/");
     const res = await page.evaluate(

@@ -28,6 +28,14 @@ Select a theme to inspect its actual UI and construction code. The configuration
 panels distinguish settings that recreate the player, reload the source, or
 apply immediately. Unapplied changes do not prove that the SDK accepted them.
 
+Source edits retain other applied source settings. Selecting a preset, including
+that same preset from a recommendation, clears earlier source overrides.
+The SDK's `SourceLoaded` notification can arrive after the asynchronous `load()`
+call completes. The app settles source state on that notification so live and
+on-demand labels follow the active source and later edits cannot restore old
+overrides. Notifications from an old player and cancellations of older loads
+cannot settle a newer source change.
+
 For live media, seek within the rewind window or jump to the live edge. The DVR
 state panel reports the current window and offset. Buffer targets control
 media downloaded ahead; they do not make the rewind window longer. See

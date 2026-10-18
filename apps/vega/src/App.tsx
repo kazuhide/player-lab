@@ -18,6 +18,7 @@ export const App: React.FC = () => {
   const [sourceIndex, setSourceIndex] = useState(0);
   const [dvr, setDvr] = useState<DvrState | null>(null);
   const [log, setLog] = useState<string[]>([]);
+  const [dvrAllowed, setDvrAllowed] = useState(true);
   const controllerRef = useRef<DvrController | null>(null);
 
   const onDvr = useCallback((state: DvrState, line?: string) => {
@@ -42,7 +43,13 @@ export const App: React.FC = () => {
 
   return (
     <View style={styles.root}>
-      <BitmovinPlayer config={config} source={source.config} onDvr={onDvr} controllerRef={controllerRef} />
+      <BitmovinPlayer
+        config={config}
+        source={source.config}
+        onDvr={onDvr}
+        controllerRef={controllerRef}
+        timeShiftEnabled={dvrAllowed}
+      />
       <ControlPanel
         sources={SOURCES}
         activeId={source.id}
@@ -50,6 +57,8 @@ export const App: React.FC = () => {
         log={log}
         onSelectSource={setSourceIndex}
         controllerRef={controllerRef}
+        dvrAllowed={dvrAllowed}
+        onDvrAllowedChange={setDvrAllowed}
       />
     </View>
   );

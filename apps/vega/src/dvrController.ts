@@ -17,6 +17,7 @@ export type DvrUpdate = (state: DvrState, log?: string) => void;
 export class DvrController {
   private prev: PlayerSnapshot | null = null;
   private timeShiftEnabled = true;
+  private disposed = false;
 
   constructor(
     private readonly player: PlayerAPI,
@@ -31,6 +32,8 @@ export class DvrController {
   }
 
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
     this.player.off(PlayerEvent.TimeChanged, this.handleRefresh);
     this.player.off(PlayerEvent.SourceLoaded, this.handleSourceLoaded);
     this.player.off(PlayerEvent.TimeShifted, this.handleTimeShifted);
@@ -39,16 +42,19 @@ export class DvrController {
   }
 
   setTimeShiftEnabled(enabled: boolean): void {
+    if (this.disposed) return;
     this.timeShiftEnabled = enabled;
     this.emit();
   }
 
   goToLiveEdge(): void {
+    if (this.disposed) return;
     this.player.timeShift(0);
   }
 
   /** Seek to an offset relative to the live edge (timeShift semantics), clamped. */
   seek(offsetFromEdge: number): void {
+    if (this.disposed) return;
     const target = this.timeShiftEnabled ? clampToWindow(offsetFromEdge, this.player.getMaxTimeShift()) : 0;
     this.player.timeShift(target);
   }
@@ -64,6 +70,7 @@ export class DvrController {
   }
 
   private emit(log?: string): void {
+    if (this.disposed) return;
     const snap = this.snapshot();
     let line = log;
     if (this.prev && detectLiveToVod(this.prev, snap)) line = "live→VOD";
@@ -76,6 +83,7 @@ export class DvrController {
   private readonly handleTimeShifted = (): void => this.emit("TimeShifted");
   private readonly handleDurationChanged = (): void => this.emit("DurationChanged");
   private readonly handleWindowExceeded = (): void => {
+    if (this.disposed) return;
     this.player.timeShift(0);
     this.emit("DVRWindowExceeded → recover");
   };

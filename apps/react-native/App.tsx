@@ -4,7 +4,7 @@
  * The DVR coordinate logic lives in `src/dvr` (pure, unit-tested in this package).
  * RN's player API is async/Promise-based, so this app awaits the reads into a
  * `PlayerSnapshot` and feeds the sync helpers. RN has **no `onDurationChanged`**
- * event, so live→VOD (§9) is detected by polling snapshots on `onTimeChanged`.
+ * event, so live→VOD is detected by polling snapshots on `onTimeChanged`.
  *
  * The "Player UI" picker reuses the shared `@showcase/ui-shared` bundle (§12): RN renders
  * the player UI as a Web UI, so the same bundle the web app uses runs here. Switching the
@@ -12,9 +12,8 @@
  * live in a keyed `PlayerPane` that remounts on change — mirroring the Android `key(uiMode)`
  * approach. On-device, the bundle must be delivered to the native app (Expo prebuild) — see README.
  *
- * Typechecked/built in the Expo project (RN deps installed) — see README. The
- * SDK symbol names follow the bitmovin-player-react-native v1.x API and are
- * confirmed on the first Expo build.
+ * The screen and helpers type-check against the installed React Native and player
+ * types. Native playback requires an external Expo development build; see README.
  */
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Platform, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
@@ -27,8 +26,8 @@ import {
   type PlayerViewConfig,
   type WebUiConfig,
 } from "bitmovin-player-react-native";
-import { clampToWindow } from "./src/dvr/window";
-import { deriveDvrState, detectLiveToVod, type DvrState, type PlayerSnapshot } from "./src/dvr/state";
+import type { DvrState } from "./src/dvr/state";
+import { SnapshotController } from "./src/dvr/snapshotController";
 import { SOURCES, type ShowcaseSource } from "./src/sources";
 
 // Both keys flow from the repo-root .env via scripts/sync-env.sh → this app's .env
@@ -117,12 +116,14 @@ function PlayerPane({ uiMode, source, onSelectSource }: PlayerPaneProps): React.
   const [timeShiftEnabled, setTimeShiftEnabled] = useState(true);
   const [dvr, setDvr] = useState<DvrState | null>(null);
   const [log, setLog] = useState<string[]>([]);
-  const prevSnap = useRef<PlayerSnapshot | null>(null);
+  const snapshots = useRef<SnapshotController | null>(null);
 
   const append = useCallback((m: string) => setLog((l) => [m, ...l].slice(0, 40)), []);
 
   const load = useCallback(
     (s: ShowcaseSource) => {
+      snapshots.current?.sourceChanged();
+      setDvr(null);
       append(`load ${s.label}`);
       player.load({ url: s.url, type: sdkType(s.kind) });
     },
@@ -130,47 +131,22 @@ function PlayerPane({ uiMode, source, onSelectSource }: PlayerPaneProps): React.
   );
 
   useEffect(() => {
+    const controller = new SnapshotController(player, setDvr, append);
+    snapshots.current = controller;
     // Load the currently-selected source on mount/remount (a UI-mode switch remounts this pane),
     // so playback continues under the new UI instead of resetting to the first source.
     if (source) load(source);
-    return () => player.destroy();
+    return () => {
+      controller.dispose();
+      if (snapshots.current === controller) snapshots.current = null;
+      player.destroy();
+    };
     // `player` identity is stable from usePlayer; `source` is read once per mount intentionally.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const refresh = useCallback(async () => {
-    const [isLive, duration, maxTimeShift, timeShift, currentTime] = await Promise.all([
-      player.isLive(),
-      player.getDuration(),
-      player.getMaxTimeShift(),
-      player.getTimeShift(),
-      player.getCurrentTime(),
-    ]);
-    const snap: PlayerSnapshot = { isLive, duration, maxTimeShift, timeShift, currentTime };
-    // §9: no onDurationChanged on RN — detect the switch from the polled snapshot.
-    if (prevSnap.current && detectLiveToVod(prevSnap.current, snap)) append("live→VOD detected (poll)");
-    // §5.3: the RN SDK exposes no DvrWindowExceeded event, so detect a window
-    // overrun in the poll (position older than the window's lower bound) and
-    // recover to the live edge.
-    if (timeShiftEnabled && maxTimeShift < 0 && timeShift < maxTimeShift - 1) {
-      append("DVR window exceeded → recover");
-      player.timeShift(0);
-    }
-    prevSnap.current = snap;
-    setDvr(deriveDvrState(snap, { timeShiftEnabled }));
-  }, [player, timeShiftEnabled, append]);
-
-  const seek = useCallback(
-    async (offset: number) => {
-      if (!timeShiftEnabled) {
-        player.timeShift(0);
-        return;
-      }
-      const max = await player.getMaxTimeShift();
-      player.timeShift(clampToWindow(offset, max));
-    },
-    [player, timeShiftEnabled],
-  );
+  const refresh = useCallback(() => snapshots.current?.refresh(), []);
+  const seek = useCallback((offset: number) => snapshots.current?.seek(offset), []);
 
   // Select our custom factory by name; omitted for the SDK default UI.
   const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction
@@ -219,6 +195,8 @@ function PlayerPane({ uiMode, source, onSelectSource }: PlayerPaneProps): React.
         <Switch
           value={timeShiftEnabled}
           onValueChange={(v) => {
+            // Update the controller before a refresh, including when playback is paused.
+            snapshots.current?.setTimeShiftEnabled(v);
             setTimeShiftEnabled(v);
             void refresh();
           }}

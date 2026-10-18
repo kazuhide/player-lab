@@ -18,6 +18,7 @@
     "src/Sources.ts",
     "src/dvrController.ts",
     "src/vegaPlayer.ts",
+    "src/playerSession.ts",
     "src/polyfills.ts",
     "test"
   ]
