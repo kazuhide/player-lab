@@ -9,7 +9,7 @@ import zipfile
 def check(bundle, source):
     names = ("bitmovinplayer-ui.js", "bitmovinplayer-ui.css")
     if bundle.is_dir():
-        contents = {name: [p.read_bytes() for p in (bundle / name, bundle / "WebUI" / name)
+        contents = {name: [p.read_bytes() for p in (bundle / name,)
                            if p.is_file()] for name in names}
     else:
         with zipfile.ZipFile(bundle) as archive:

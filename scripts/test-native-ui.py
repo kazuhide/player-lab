@@ -42,6 +42,19 @@ class NativeAssetsTests(unittest.TestCase):
                     archive.writestr("assets/" + name, name)
             checker.check(apk, source)
 
+    def test_ios_subdirectory_only_is_not_a_root_bundle_resource(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            source.mkdir()
+            app = root / "Sample.app"
+            (app / "WebUI").mkdir(parents=True)
+            for name in ("bitmovinplayer-ui.js", "bitmovinplayer-ui.css"):
+                (source / name).write_text(name)
+                (app / "WebUI" / name).write_text(name)
+            with self.assertRaises(ValueError):
+                checker.check(app, source)
+
 
 if __name__ == "__main__":
     unittest.main()
