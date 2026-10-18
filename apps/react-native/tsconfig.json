@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": [],
+    "noEmit": true
+  },
+  "//": "Type-checks the pure DVR logic, the sources, and the RN App.tsx against the real bitmovin-player-react-native + react-native types.",
+  "include": ["src", "test", "App.tsx"]
+}

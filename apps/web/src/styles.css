@@ -1,0 +1,993 @@
+/* Design tokens — one consistent visual language so the page reads as a few clear
+   zones (theme band · stage · controls+telemetry · guide) rather than a pile of boxes. */
+:root {
+  --bg: #f4f6f9;
+  --card: #ffffff;
+  --ink: #1f2430;
+  --muted: #6b7280;
+  --line: #e3e6ec;
+  --accent: #2b6cff;
+  --radius: 10px;
+  --gap: 1rem;
+  /* Telemetry (dark readout) family — one background, per-box accent. */
+  --tele-bg: #0f1622;
+  --tele-ink: #cdd6e6;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+#app {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* --- Header: title on the left, language toggle on the right --- */
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.lang-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.lang-btn {
+  padding: 0.3rem 0.7rem;
+  border: none;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.lang-btn + .lang-btn {
+  border-left: 1px solid var(--line);
+}
+
+.lang-btn.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.app-tagline {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* --- UI theme band: the headline control, full width in its own card --- */
+.ui-theme-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: var(--gap);
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.ui-theme-bar-label {
+  margin-right: 0.2rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+/* Each customization-method group sits on its own row: a leading category chip,
+   then that category's theme buttons. */
+.theme-cat {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.theme-cat-label {
+  flex: 0 0 8.5rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+/* ID-scoped so it outranks `#ui-theme-bar button` (1,0,1) — a plain `.theme-btn.active`
+   (0,2,0) would lose to it and the active button would render gray. */
+#ui-theme-bar .theme-btn.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.ui-theme-bar-note {
+  flex-basis: 100%;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* Active theme's build call, shown under the theme buttons. */
+.ui-theme-bar-code {
+  flex-basis: 100%;
+  padding: 0.3rem 0.55rem;
+  border-radius: 6px;
+  background: #eef3ff;
+  color: #2b56c8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.76rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* --- Stage: player (left) + "how this UI is built" (right) --- */
+.stage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  align-items: flex-start;
+  margin-bottom: var(--gap);
+}
+
+#player {
+  flex: 1 1 60%;
+  min-width: 22rem;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+/* Right-side panel: the active theme's "how it's built" (diff + construction code).
+   Wider than before so the code reads without a horizontal scrollbar. */
+.ui-construction {
+  display: flex;
+  flex: 1 1 36%;
+  min-width: 20rem;
+}
+
+.ui-construction .theme-diff {
+  flex: 1;
+  margin: 0;
+}
+
+/* On wide screens, pin the construction panel to the PLAYER's height and scroll its
+   content internally — so switching themes (whose "how it's built" content varies in
+   length) never changes the stage height. The player defines the row height via its
+   16:9 aspect-ratio; the panel's content is taken out of flow (absolute) so it can't
+   grow the row. Below this width the stage stacks and the panel flows naturally.
+   The breakpoint sits just above the side-by-side wrap point (#player 22rem +
+   .ui-construction 20rem + 1rem gap + #app's 2rem padding = 45rem) so the pin is only
+   ever active while the columns truly sit side-by-side — pinning a wrapped column would
+   collapse it to zero height (its only child is out of flow). */
+@media (min-width: 46rem) {
+  .stage {
+    align-items: stretch;
+  }
+  .ui-construction {
+    position: relative;
+  }
+  .ui-construction .theme-diff {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+}
+
+/* --- Controls + telemetry --- */
+.panels {
+  margin-bottom: var(--gap);
+}
+
+#control-panel {
+  min-width: 0;
+}
+
+/* Sections flow into a responsive multi-column board instead of one tall stack. */
+.panel-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.panel-grid .panel-section {
+  flex: 1 1 14rem;
+}
+
+.panel-grid-state {
+  margin-top: 0.75rem;
+}
+
+.panel-grid-state .panel-section {
+  flex: 1 1 18rem;
+}
+
+.panel-section {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.panel-section h2 {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.panel-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0.3rem 0;
+}
+
+.panel-label {
+  min-width: 4.5rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Scope app button styling to the app's own controls — bare `button` rules leak
+   into the Bitmovin player's <button> elements (the full-player play overlay then
+   gets a gray box + border that masks the whole video on hover). */
+#ui-theme-bar button,
+#control-panel button {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #c4c9d4;
+  border-radius: 6px;
+  background: #f5f6f8;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+#ui-theme-bar button:hover,
+#control-panel button:hover {
+  background: #e9ebef;
+}
+
+#control-panel button:disabled,
+#control-panel input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.seek-input {
+  width: 5rem;
+}
+
+.panel-subnote {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.panel-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.3rem 0;
+}
+
+/* Telemetry boxes — one dark family (DVR state · event log · QoE), each distinguished
+   only by a colored left accent so they read as a coherent set. */
+.panel-readout,
+.panel-log,
+.metrics {
+  margin: 0;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  background: var(--tele-bg);
+  color: var(--tele-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow: auto;
+}
+
+.panel-readout {
+  border-left-color: #4a90ff;
+}
+
+.panel-log {
+  max-height: 12rem;
+  border-left-color: #43c06a;
+}
+
+.metrics {
+  max-height: 12rem;
+}
+
+.metrics-qoe {
+  border-left-color: #f3b04b;
+}
+
+/* --- "How the UI is customized" guide --- */
+.ui-guide {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+/* Per-theme "diff from default" — updates on theme switch. Sits in the stage's
+   right panel. */
+.theme-diff {
+  padding: 0.85rem 1rem;
+  border: 1px solid #d6e0f5;
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: #f6f9ff;
+}
+
+.theme-diff-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.theme-diff-base {
+  margin: 0 0 0.4rem;
+  color: #555;
+  font-size: 0.82rem;
+}
+
+.theme-diff-list {
+  margin: 0.3rem 0;
+  padding-left: 0.25rem;
+  list-style: none;
+}
+
+.theme-diff-list li {
+  margin: 0.2rem 0;
+  font-size: 0.84rem;
+  color: #333;
+}
+
+.theme-diff-op {
+  display: inline-block;
+  width: 1.1em;
+  font-weight: 700;
+  text-align: center;
+}
+
+.theme-diff-op.add {
+  color: #1a8f3c;
+}
+
+.theme-diff-op.remove {
+  color: #c0392b;
+}
+
+.theme-diff-op.reskin {
+  color: var(--accent);
+}
+
+.theme-diff-effort {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Per-theme "how it's built" construction code — readable: larger, and it WRAPS
+   (pre-wrap) instead of forcing a horizontal scrollbar in the narrow panel. */
+.theme-diff-codehead {
+  margin: 0.75rem 0 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6a7c9a;
+}
+
+.theme-diff-code {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border-radius: 8px;
+  background: var(--tele-bg);
+  color: #d8e2ff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.theme-diff-code code {
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.theme-diff-codesrc {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+}
+
+.ui-guide-head h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+}
+
+.ui-guide-intro {
+  margin: 0 0 1rem;
+  max-width: 62rem;
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+/* ---------------------------------------------------------------------------
+   Player Config editor — collapsible accordion grouped by apply-mode
+   (🔁 recreate · 📥 reload · ⚡ runtime).
+   --------------------------------------------------------------------------- */
+.config-panel {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.config-head h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+}
+
+.config-intro {
+  margin: 0 0 0.5rem;
+  max-width: 64rem;
+  color: #555;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.config-note {
+  margin: 0 0 1rem;
+  max-width: 64rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  background: #f4f6f9;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.config-group {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.config-group > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.config-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.config-group > summary::before {
+  content: "▸";
+  margin-right: 0.1rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  transition: transform 0.12s ease;
+}
+
+.config-group[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.config-group-title {
+  flex: 1;
+}
+
+/* Apply-mode chips. */
+.config-mode {
+  flex: none;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.config-mode.mode-recreate {
+  background: #fdecec;
+  color: #c0392b;
+}
+
+.config-mode.mode-reload {
+  background: #e8f0ff;
+  color: #2b56c8;
+}
+
+.config-mode.mode-runtime {
+  background: #e7f7ec;
+  color: #1a8f3c;
+}
+
+.config-group-blurb {
+  margin: 0 0.8rem 0.5rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.config-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0 0.8rem 0.8rem;
+}
+
+.config-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+}
+
+.config-field-label {
+  flex: 1 1 9rem;
+  color: #444;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+}
+
+.config-field.is-bool {
+  justify-content: space-between;
+}
+
+.config-input {
+  width: 6rem;
+}
+
+#config-panel input,
+#config-panel select {
+  padding: 0.15rem 0.3rem;
+  border: 1px solid #c4c9d4;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 0.8rem;
+}
+
+.config-hint {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.config-apply-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.config-apply {
+  padding: 0.45rem 0.85rem;
+  border: 1px solid #c4c9d4;
+  border-radius: 7px;
+  background: #f5f6f8;
+  color: var(--ink);
+  font-size: 0.84rem;
+  cursor: pointer;
+}
+
+.config-apply:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.config-apply.is-dirty {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Config bands — dynamic (no rebuild) emphasized first, static (recreate) after. */
+.config-band {
+  margin-top: 1rem;
+  padding: 0.8rem 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.config-band-dynamic {
+  border-color: #bfe3c8;
+  border-left: 4px solid #1a8f3c;
+  background: #f5fbf7;
+}
+
+.config-band-static {
+  border-color: #f0dcd9;
+  border-left: 4px solid #c0392b;
+  background: #fdf8f7;
+}
+
+.config-band-head {
+  margin: 0 0 0.7rem;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.config-band-dynamic .config-band-head {
+  color: #157a33;
+}
+
+.config-band-static .config-band-head {
+  color: #a5342a;
+}
+
+/* --- Main page: link to the standalone customization guide --- */
+.ui-guide-link {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: #eef3ff;
+  color: #2b56c8;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ui-guide-link:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* --- Standalone guide page (guide.html / guide.ts) --- */
+.guide-back {
+  display: inline-block;
+  margin-bottom: 0.2rem;
+  color: var(--accent);
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+
+.guide-back:hover {
+  text-decoration: underline;
+}
+
+.guide-doc {
+  max-width: 56rem;
+}
+
+.guide-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  margin-bottom: 1.5rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--card);
+  font-size: 0.85rem;
+}
+
+.guide-toc a {
+  color: #2b56c8;
+  text-decoration: none;
+}
+
+.guide-toc a:hover {
+  text-decoration: underline;
+}
+
+.guide-section {
+  margin-bottom: 2rem;
+  scroll-margin-top: 1rem;
+}
+
+.guide-section h2 {
+  margin: 0 0 0.6rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 1.15rem;
+}
+
+.guide-p {
+  margin: 0 0 0.8rem;
+  color: #2c3340;
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.guide-list {
+  margin: 0 0 0.9rem;
+  padding-left: 1.1rem;
+}
+
+.guide-list li {
+  margin: 0.4rem 0;
+  color: #2c3340;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.guide-code {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  background: var(--tele-bg);
+  color: #d8e2ff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  overflow-x: auto;
+}
+
+.guide-code code {
+  white-space: pre;
+}
+
+/* One-line intro under a section heading. */
+.guide-section-intro {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* A captioned code block: the caption sits above the code as context. */
+.guide-codefig {
+  margin: 0 0 1rem;
+}
+
+.guide-codecap {
+  margin: 0 0 0.35rem;
+  color: #2c3340;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.guide-codefig .guide-code {
+  margin: 0;
+}
+
+/* Callout boxes — a tip (blue) or a gotcha (amber). */
+.guide-callout {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.guide-callout.tip {
+  border-left-color: #2b6cff;
+  background: #eef3ff;
+  color: #233;
+}
+
+.guide-callout.warn {
+  border-left-color: #e0a106;
+  background: #fff7e6;
+  color: #4a3a05;
+}
+
+/* Cookbook recipe card — a goal title, a one-line note, then the snippet. */
+.guide-recipe {
+  margin: 0 0 1rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.guide-recipe-title {
+  margin: 0 0 0.2rem;
+  font-size: 0.98rem;
+}
+
+.guide-recipe-note {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.guide-recipe .guide-code {
+  margin: 0;
+}
+
+.guide-catalog {
+  display: grid;
+  grid-template-columns: minmax(11rem, max-content) 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+}
+
+.guide-catalog dt {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  color: #1f2430;
+  font-weight: 600;
+}
+
+.guide-catalog dd {
+  margin: 0;
+  color: #4a5260;
+  line-height: 1.5;
+}
+
+.guide-links {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.guide-links li {
+  margin: 0.35rem 0;
+}
+
+.guide-links a {
+  color: #2b56c8;
+}
+
+/* --- Shared "?" info chip + overlay (src/infoChip.ts) -------------------------
+   Every settings item (Player Config, UI settings, control panel) carries a "?" chip;
+   hovering/focusing it shows the single body-appended overlay with when/how guidance. */
+.info-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-left: 0.35rem;
+  border: 1px solid #c4c9d4;
+  border-radius: 50%;
+  background: #f2f4f8;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+  user-select: none;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.info-chip:hover,
+.info-chip:focus-visible {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  outline: none;
+}
+
+.info-overlay {
+  position: fixed;
+  z-index: 1000;
+  max-width: 22rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  background: #1f2633;
+  color: #eef2fb;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  box-shadow: 0 8px 24px rgba(15, 20, 30, 0.28);
+  pointer-events: none;
+}
+
+.info-overlay[hidden] {
+  display: none;
+}
+
+/* --- Bitmovin Analytics (server-proxied query) panel --- */
+.analytics-panel {
+  margin-bottom: var(--gap);
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.analytics-panel h2 {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0.3rem;
+  font-size: 0.95rem;
+}
+
+.analytics-intro {
+  margin: 0 0 0.7rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.analytics-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.analytics-preset {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #c4c9d4;
+  border-radius: 6px;
+  background: #f5f6f8;
+  color: var(--ink);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.analytics-preset:hover {
+  background: #e9ebef;
+}
+
+.analytics-status {
+  margin: 0.6rem 0 0;
+  min-height: 1.2em;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.analytics-result {
+  margin: 0.5rem 0 0;
+  max-height: 12rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border-left: 3px solid #34c6d3;
+  background: var(--tele-bg);
+  color: var(--tele-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow: auto;
+}

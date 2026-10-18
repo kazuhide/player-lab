@@ -1,0 +1,14 @@
+# Gradle build state and caches (the wrapper under gradle/wrapper/ IS committed)
+.gradle/
+build/
+**/build/
+
+# Local SDK / signing config
+local.properties
+
+# IDE
+.idea/
+*.iml
+.kotlin/
+captures/
+.cxx/

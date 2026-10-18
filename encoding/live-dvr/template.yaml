@@ -1,0 +1,269 @@
+# Bitmovin Encoding Template — Live DVR showcase channel.
+#
+# Single RTMP ingest, CMAF (fMP4) serving both DASH and HLS, manifestGenerator V2.
+# The DVR (timeshift) window is the entire point of this channel:
+#
+#   live.start.{dash,hls}Manifests[].timeshift: 300       -> getMaxTimeShift() ~ -300
+#   live.start.{dash,hls}Manifests[].liveEdgeOffset: 90   -> DASH live edge held 90s back
+#
+# Start via ./start.sh (not the raw CLI): it resolves ${OUTPUT_ID} by name
+# (BITMOVIN_OUTPUT_NAME in config/encoding.conf; created from the BITMOVIN_OUTPUT_*
+# vars in .env on first use), validates, and starts. cloudRegion defaults to
+# Tokyo; change it if your bucket lives elsewhere.
+# After RUNNING, read the encoder IP from `bitmovin encoding jobs live` and push
+# RTMP to rtmp://<encoderIp>/live/dvrshowcase (see encoding/README.md).
+
+metadata:
+  type: LIVE
+  name: dvr-showcase-live
+
+inputs:
+  redundantRtmp:
+    main-rtmp-input:
+      properties:
+        name: dvr-showcase-live RTMP input
+        # Dynamic ingest point = classic encoder-IP RTMP. (staticIngestPoints,
+        # which routes to rtmps://live-input.bitmovin.com, is a separate
+        # account-gated feature; this account ingests via the encoder IP.)
+        ingestPoints:
+          - applicationName: live
+            streamKey: dvrshowcase
+
+configurations:
+  video:
+    h264:
+      v-720p:
+        properties:
+          height: 720
+          bitrate: 3000000
+          presetConfiguration: LIVE_LOW_LATENCY
+      v-480p:
+        properties:
+          height: 480
+          bitrate: 1600000
+          presetConfiguration: LIVE_LOW_LATENCY
+      v-240p:
+        properties:
+          height: 240
+          bitrate: 800000
+          presetConfiguration: LIVE_LOW_LATENCY
+  audio:
+    aac:
+      a-aac:
+        properties:
+          channelLayout: NONE
+          bitrate: 128000
+          rate: 48000.0
+
+encodings:
+  main-encoding:
+    properties:
+      name: dvr-showcase-live
+      cloudRegion: AWS_AP_NORTHEAST_1   # Tokyo (encoder); set the bucket's AWS region in .env
+      encoderVersion: STABLE
+
+    streams:
+      s-720p:
+        properties:
+          inputStreams:
+            - inputId: $/inputs/redundantRtmp/main-rtmp-input
+              inputPath: /
+              selectionMode: AUTO
+          codecConfigId: $/configurations/video/h264/v-720p
+      s-480p:
+        properties:
+          inputStreams:
+            - inputId: $/inputs/redundantRtmp/main-rtmp-input
+              inputPath: /
+              selectionMode: AUTO
+          codecConfigId: $/configurations/video/h264/v-480p
+      s-240p:
+        properties:
+          inputStreams:
+            - inputId: $/inputs/redundantRtmp/main-rtmp-input
+              inputPath: /
+              selectionMode: AUTO
+          codecConfigId: $/configurations/video/h264/v-240p
+      s-audio:
+        properties:
+          inputStreams:
+            - inputId: $/inputs/redundantRtmp/main-rtmp-input
+              inputPath: /
+              selectionMode: AUTO
+          codecConfigId: $/configurations/audio/aac/a-aac
+          mode: STANDARD
+
+    muxings:
+      fmp4:
+        m-720p:
+          properties:
+            streams:
+              - streamId: $/encodings/main-encoding/streams/s-720p
+            outputs:
+              - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
+                outputPath: "live/dvr-showcase/video/720p/"
+                acl:
+                  - permission: PUBLIC_READ
+            segmentLength: 4.0
+            segmentNaming: "seg_%number%.m4s"
+        m-480p:
+          properties:
+            streams:
+              - streamId: $/encodings/main-encoding/streams/s-480p
+            outputs:
+              - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
+                outputPath: "live/dvr-showcase/video/480p/"
+                acl:
+                  - permission: PUBLIC_READ
+            segmentLength: 4.0
+            segmentNaming: "seg_%number%.m4s"
+        m-240p:
+          properties:
+            streams:
+              - streamId: $/encodings/main-encoding/streams/s-240p
+            outputs:
+              - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
+                outputPath: "live/dvr-showcase/video/240p/"
+                acl:
+                  - permission: PUBLIC_READ
+            segmentLength: 4.0
+            segmentNaming: "seg_%number%.m4s"
+        m-audio:
+          properties:
+            streams:
+              - streamId: $/encodings/main-encoding/streams/s-audio
+            outputs:
+              - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
+                outputPath: "live/dvr-showcase/audio/128000/"
+                acl:
+                  - permission: PUBLIC_READ
+            segmentLength: 4.0
+            segmentNaming: "seg_%number%.m4s"
+
+    live:
+      start:
+        properties:
+          # Legacy schema-required field; the real ingest key is the
+          # ingestPoints[].streamKey above.
+          streamKey: dvrshowcase
+          manifestGenerator: V2
+          # Safety net so the encoder can never run unattended: stop if no stream
+          # arrives within 10 min of start, or 30s after ingest bytes stop.
+          autoShutdownConfiguration:
+            streamTimeoutMinutes: 10
+            bytesReadTimeoutSeconds: 30
+          dashManifests:
+            - manifestId: $/manifests/dash/main-dash
+              timeshift: 300
+              liveEdgeOffset: 90
+          hlsManifests:
+            - manifestId: $/manifests/hls/main-hls
+              timeshift: 300
+              liveEdgeOffset: 90
+
+manifests:
+  hls:
+    main-hls:
+      properties:
+        manifestName: main.m3u8
+        outputs:
+          - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
+            outputPath: "live/dvr-showcase/"
+            acl:
+              - permission: PUBLIC_READ
+      media:
+        audio:
+          audio-media:
+            properties:
+              name: Audio Media
+              uri: "audio.m3u8"
+              segmentPath: "audio/128000/"
+              language: en
+              groupId: AUDIO
+              isDefault: true
+              encodingId: $/encodings/main-encoding
+              muxingId: $/encodings/main-encoding/muxings/fmp4/m-audio
+              streamId: $/encodings/main-encoding/streams/s-audio
+      streams:
+        s-720p-info:
+          properties:
+            name: Video 720p
+            uri: "video_720p.m3u8"
+            segmentPath: "video/720p/"
+            audio: AUDIO
+            forceFrameRateAttribute: true
+            encodingId: $/encodings/main-encoding
+            muxingId: $/encodings/main-encoding/muxings/fmp4/m-720p
+            streamId: $/encodings/main-encoding/streams/s-720p
+        s-480p-info:
+          properties:
+            name: Video 480p
+            uri: "video_480p.m3u8"
+            segmentPath: "video/480p/"
+            audio: AUDIO
+            forceFrameRateAttribute: true
+            encodingId: $/encodings/main-encoding
+            muxingId: $/encodings/main-encoding/muxings/fmp4/m-480p
+            streamId: $/encodings/main-encoding/streams/s-480p
+        s-240p-info:
+          properties:
+            name: Video 240p
+            uri: "video_240p.m3u8"
+            segmentPath: "video/240p/"
+            audio: AUDIO
+            forceFrameRateAttribute: true
+            encodingId: $/encodings/main-encoding
+            muxingId: $/encodings/main-encoding/muxings/fmp4/m-240p
+            streamId: $/encodings/main-encoding/streams/s-240p
+  dash:
+    main-dash:
+      properties:
+        name: Main DASH Manifest
+        manifestName: main.mpd
+        outputs:
+          - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
+            outputPath: "live/dvr-showcase/"
+            acl:
+              - permission: PUBLIC_READ
+      periods:
+        period-1:
+          properties:
+            start: 0
+          adaptationsets:
+            video:
+              video-as:
+                properties:
+                  labels:
+                    - value: video
+                representations:
+                  fmp4:
+                    rep-720p:
+                      properties:
+                        type: TEMPLATE
+                        encodingId: $/encodings/main-encoding
+                        muxingId: $/encodings/main-encoding/muxings/fmp4/m-720p
+                        segmentPath: "video/720p/"
+                    rep-480p:
+                      properties:
+                        type: TEMPLATE
+                        encodingId: $/encodings/main-encoding
+                        muxingId: $/encodings/main-encoding/muxings/fmp4/m-480p
+                        segmentPath: "video/480p/"
+                    rep-240p:
+                      properties:
+                        type: TEMPLATE
+                        encodingId: $/encodings/main-encoding
+                        muxingId: $/encodings/main-encoding/muxings/fmp4/m-240p
+                        segmentPath: "video/240p/"
+            audio:
+              audio-as:
+                properties:
+                  lang: en
+                representations:
+                  fmp4:
+                    rep-audio:
+                      properties:
+                        type: TEMPLATE
+                        encodingId: $/encodings/main-encoding
+                        muxingId: $/encodings/main-encoding/muxings/fmp4/m-audio
+                        segmentPath: "audio/128000/"

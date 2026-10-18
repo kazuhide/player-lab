@@ -1,0 +1,69 @@
+name: Showcase
+options:
+  bundleIdPrefix: com.showcase.dvr
+  createIntermediateGroups: true
+  # Local.xcconfig is generated (untracked) by scripts/sync-env.sh from the
+  # repo-root .env; allow generating the project without it (CI builds licenseless).
+  disabledValidations: [missingConfigFiles]
+
+configFiles:
+  Debug: Local.xcconfig
+  Release: Local.xcconfig
+
+packages:
+  BitmovinPlayer:
+    url: https://github.com/bitmovin/player-ios.git
+    from: "3.0.0"
+  DvrKit:
+    path: DvrKit
+
+settings:
+  base:
+    # Swift 5 language mode keeps the scaffold off Swift 6 strict-concurrency
+    # until the app is built and tuned in Xcode.
+    SWIFT_VERSION: "5.0"
+    GENERATE_INFOPLIST_FILE: YES
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # License keys flow: repo-root .env → scripts/sync-env.sh → Local.xcconfig
+    # (BITMOVIN_PLAYER_LICENSE_KEY / BITMOVIN_ANALYTICS_LICENSE_KEY build settings)
+    # → these Info.plist keys → ShowcaseApp.swift. Empty when the xcconfig is absent.
+    INFOPLIST_KEY_BitmovinLicenseKey: "$(BITMOVIN_PLAYER_LICENSE_KEY)"
+    INFOPLIST_KEY_BitmovinAnalyticsLicenseKey: "$(BITMOVIN_ANALYTICS_LICENSE_KEY)"
+
+targets:
+  Showcase-iOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: Showcase
+      # The shared Web UI bundle (synced from packages/ui-shared/dist by
+      # scripts/sync-webui-bundle.sh) is bundled as an app resource so the iOS Web UI can load
+      # it (§12). `optional` so `xcodegen generate` works before the first sync. tvOS omits this —
+      # it uses the native System UI, where the Web UI is unavailable.
+      - path: WebUI
+        buildPhase: resources
+        optional: true
+    settings:
+      base:
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "Player Playground"
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - package: BitmovinPlayer
+        product: BitmovinPlayer
+      - package: DvrKit
+
+  Showcase-tvOS:
+    type: application
+    platform: tvOS
+    deploymentTarget: "15.0"
+    sources: [Showcase]
+    settings:
+      base:
+        INFOPLIST_KEY_CFBundleDisplayName: "Player Playground"
+    dependencies:
+      - package: BitmovinPlayer
+        product: BitmovinPlayer
+      - package: DvrKit

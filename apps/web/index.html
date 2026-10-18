@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bitmovin Player Playground</title>
+  </head>
+  <body>
+    <main id="app">
+      <header class="app-header">
+        <div class="app-title">
+          <h1>Bitmovin Player Playground</h1>
+          <p class="app-tagline" id="app-tagline"></p>
+        </div>
+        <div id="lang-toggle" class="lang-toggle" aria-label="Language"></div>
+      </header>
+      <section id="ui-theme-bar" class="ui-theme-bar" aria-label="UI theme"></section>
+      <div class="stage">
+        <div id="player"></div>
+        <aside id="ui-construction" class="ui-construction" aria-label="UI 構築の解説"></aside>
+      </div>
+      <div class="panels">
+        <section id="control-panel" aria-label="操作パネル"></section>
+      </div>
+      <section id="config-panel" class="config-panel" aria-label="Player Config"></section>
+      <div id="analytics-panel" aria-label="Bitmovin Analytics"></div>
+      <section id="ui-guide" class="ui-guide"></section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

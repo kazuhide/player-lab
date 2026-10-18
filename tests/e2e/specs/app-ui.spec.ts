@@ -1,0 +1,793 @@
+import { expect, test } from "@playwright/test";
+
+// App-level UI tests — these drive the REAL apps/web (with its custom UI), not the
+// ui:false harness the other specs use. They guard the two things that were broken:
+// the UI theme selector, and the live→VOD UI switch.
+const APP = "http://localhost:5175";
+
+/** Read the control panel's derived mode + whether the LIVE button is visible. */
+async function uiState(page: import("@playwright/test").Page) {
+  return page.evaluate(() => {
+    const ro = document.querySelector(".panel-readout")?.textContent ?? "";
+    const lb = document.querySelector('[class*="livebutton"]');
+    return {
+      mode: /mode:\s*(\S+)/.exec(ro)?.[1],
+      dvrAvailable: /dvrAvailable:\s*(\S+)/.exec(ro)?.[1],
+      // Use the COMPUTED display, not the bmpui-hidden class: a CSS specificity bug once
+      // left the "hidden" pill at display:flex (visible) on VOD while the class was set,
+      // and a class-only check missed it. Actual visibility is what matters.
+      liveButtonVisible: lb ? getComputedStyle(lb).display !== "none" : false,
+    };
+  });
+}
+
+test.describe("Web app UI", () => {
+  test("theme selector swaps the UI build across all themes", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // Load a VOD source first: this is a composition test, and the stock theme's
+    // quality-settings button only appears once a multi-rendition source is loaded —
+    // so it must not hinge on whether the live default source is reachable.
+    await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
+    await page.waitForTimeout(3000);
+    // Default theme is the custom Live (DVR) build → has the custom LIVE button, no stock settings button.
+    await expect(page.locator('[class*="livebutton"]')).toHaveCount(1);
+    await expect(page.locator('[class*="settingstogglebutton"]')).toHaveCount(0);
+
+    // → Default (Bitmovin): the stock UI has a settings button and no custom LIVE button.
+    await page.getByRole("button", { name: "Default (Bitmovin)", exact: true }).click();
+    await expect(page.locator('[class*="settingstogglebutton"]')).toHaveCount(1);
+    await expect(page.locator('[class*="livebutton"]')).toHaveCount(0);
+
+    // → Neon (Default UI + CSS): a CSS-only re-skin of the DEFAULT tree → the neon skin
+    // class is present, and because it's the Default tree there is NO custom LIVE button.
+    await page.getByRole("button", { name: "Neon", exact: true }).click();
+    await expect(page.locator('[class*="ui-skin-neon"]')).toHaveCount(1);
+    await expect(page.locator('[class*="livebutton"]')).toHaveCount(0);
+    // The selected theme button reads as active (blue). Guards a specificity regression:
+    // `#ui-theme-bar button` (1,0,1) would otherwise outrank `.theme-btn.active` (0,2,0).
+    const activeBg = await page.evaluate(() => {
+      const el = Array.from(document.querySelectorAll(".theme-btn")).find((b) => b.classList.contains("active"));
+      return el ? getComputedStyle(el).backgroundColor : null;
+    });
+    expect(activeBg).toBe("rgb(43, 108, 255)");
+
+    // → Glass (Default UI + CSS): another CSS-only re-skin of the Default tree → glass class, still no LIVE button.
+    await page.getByRole("button", { name: "Glass", exact: true }).click();
+    await expect(page.locator('[class*="ui-skin-glass"]')).toHaveCount(1);
+    await expect(page.locator('[class*="livebutton"]')).toHaveCount(0);
+
+    // → Cinema (Custom UI): a different composition → the cinema skin class is present.
+    await page.getByRole("button", { name: "Cinema", exact: true }).click();
+    await expect(page.locator('[class*="ui-skin-cinema"]')).toHaveCount(1);
+
+    // → Sunset / Bold (Default UI + CSS): more CSS-only re-skins of the Default tree.
+    await page.getByRole("button", { name: "Sunset", exact: true }).click();
+    await expect(page.locator('[class*="ui-skin-sunset"]')).toHaveCount(1);
+    await page.getByRole("button", { name: "Bold", exact: true }).click();
+    await expect(page.locator('[class*="ui-skin-bold"]')).toHaveCount(1);
+
+    // → Compact (Custom UI): a slim composition (no center overlay).
+    await page.getByRole("button", { name: "Compact", exact: true }).click();
+    await expect(page.locator('[class*="ui-skin-compact"]')).toHaveCount(1);
+
+    // → Mono (Default UI + CSS): a CSS-only re-skin of the Default tree → mono class, no LIVE button.
+    await page.getByRole("button", { name: "Mono", exact: true }).click();
+    await expect(page.locator('[class*="ui-skin-mono"]')).toHaveCount(1);
+    await expect(page.locator('[class*="livebutton"]')).toHaveCount(0);
+
+    // → back to Live (DVR) (Custom UI): the LIVE button returns, the re-skins are gone.
+    await page.getByRole("button", { name: "Live (DVR)", exact: true }).click();
+    await expect(page.locator('[class*="livebutton"]')).toHaveCount(1);
+    await expect(page.locator('[class*="ui-skin-neon"]')).toHaveCount(0);
+    await expect(page.locator('[class*="ui-skin-glass"]')).toHaveCount(0);
+
+    // The selector is grouped into three categories (Default UI / Default UI + CSS / Custom UI),
+    // and every theme button lives under one of them.
+    await expect(page.locator(".theme-cat-label")).toHaveCount(3);
+    await expect(page.locator(".theme-cat .theme-btn")).toHaveCount(14);
+  });
+
+  test("the Binge theme: Skip Intro shows in the intro range; Next is hidden mid-clip", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
+    await page.waitForTimeout(3000);
+    await page.getByRole("button", { name: "連続再生", exact: true }).click();
+
+    const skip = page.locator('#player [class*="skipintro-button"]');
+    const nextEp = page.locator('#player [class*="nextepisode-button"]');
+
+    // Both buttons are DYNAMIC (not permanent). Pause + seek into the (sample) intro range 5–18s:
+    // Skip Intro shows, while Next stays hidden (it only surfaces near the end).
+    await page.evaluate(() => {
+      const v = document.querySelector<HTMLVideoElement>("#player video");
+      if (v) {
+        v.pause();
+        v.currentTime = 8;
+      }
+    });
+    await expect(skip).toBeVisible();
+    await expect(nextEp).toBeHidden();
+    // Clicking Skip Intro jumps the playhead forward toward introEnd (~18; keyframe-tolerant).
+    const beforeSkip = await page.evaluate(() => document.querySelector<HTMLVideoElement>("#player video")?.currentTime ?? 0);
+    await skip.click({ force: true });
+    // Poll for the seek to land: the segment at introEnd may need buffering, so a fixed wait flakes
+    // (it occasionally read the pre-seek time and saw no jump).
+    await expect
+      .poll(() => page.evaluate(() => document.querySelector<HTMLVideoElement>("#player video")?.currentTime ?? 0), {
+        timeout: 10_000,
+      })
+      .toBeGreaterThan(beforeSkip + 4);
+  });
+
+  test("the Binge theme: near the end, the Next-up card + Next button appear and Next advances", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
+    await page.waitForTimeout(3000);
+    await page.getByRole("button", { name: "連続再生", exact: true }).click();
+    // Turn OFF continuous play so the card stays (won't auto-advance), then seek into the final
+    // seconds — the Next-up card AND the (dynamic) Next button both surface.
+    await page.getByRole("checkbox", { name: /連続再生/ }).uncheck();
+    await page.waitForTimeout(500);
+    await page.evaluate(() => {
+      const v = document.querySelector<HTMLVideoElement>("#player video");
+      if (v) {
+        v.pause();
+        if (Number.isFinite(v.duration)) v.currentTime = v.duration - 6;
+      }
+    });
+    const card = page.locator('#player [class*="nextup-card"]');
+    const nextEp = page.locator('#player [class*="nextepisode-button"]');
+    // Generous timeout: seeking to the unbuffered tail can take a while to fetch the last segment.
+    await expect(card).toBeVisible({ timeout: 45000 });
+    await expect(card.locator(".nextup-title")).toContainText("VOD DASH"); // next after VOD HLS
+    await expect(nextEp).toBeVisible();
+    // The Next button advances to the next episode → a fresh source loads (playhead resets).
+    await nextEp.click({ force: true });
+    await page.waitForTimeout(3000);
+    const afterNext = await page.evaluate(() => document.querySelector<HTMLVideoElement>("#player video")?.currentTime ?? 999);
+    expect(afterNext).toBeLessThan(60);
+  });
+
+  test("the Sports theme overlays game info, auto-hides it, and INFO re-shows it", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
+    await page.waitForTimeout(3000);
+    await page.getByRole("button", { name: "スポーツ中継", exact: true }).click();
+    const scoreboard = page.locator('#player [class*="scoreboard-strip"]');
+    const playerCard = page.locator('#player [class*="playerinfo-card"]');
+    await expect(scoreboard).toHaveCount(1);
+    await expect(playerCard).toHaveCount(1);
+    // They appear initially (within the auto-hide window) and render the sample data.
+    await expect(scoreboard).toBeVisible();
+    await expect(playerCard).toBeVisible();
+    await expect(scoreboard).toContainText("North Hawks");
+    // …then auto-hide after a few seconds, with no interaction (like a broadcast scorebug).
+    await expect(scoreboard).toBeHidden({ timeout: 9000 });
+    await expect(playerCard).toBeHidden();
+    // The INFO button re-shows them.
+    const info = page.locator('#player [class*="sportsinfo-toggle"]').first();
+    await info.click({ force: true });
+    await expect(scoreboard).toBeVisible();
+    await expect(playerCard).toBeVisible();
+    // …and clicking INFO again hides them immediately.
+    await info.click({ force: true });
+    await expect(scoreboard).toBeHidden();
+  });
+
+  test("casting toggles add/remove the PiP / AirPlay / Chromecast buttons on the custom UIs", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
+    await page.waitForTimeout(3000);
+    // Default theme is Live (DVR), a CUSTOM tree → it ships without casting buttons.
+    await expect(page.locator('#player [class*="piptogglebutton"]')).toHaveCount(0);
+    await expect(page.locator('#player [class*="airplaytogglebutton"]')).toHaveCount(0);
+
+    // Toggle PiP on → the library button is added to the tree (PiP works in Chrome, so it's visible).
+    await page.getByRole("checkbox", { name: /PiP/ }).check();
+    await expect(page.locator('#player [class*="piptogglebutton"]')).toHaveCount(1);
+    // Toggle AirPlay on too → its button is added (present in the DOM; it self-hides off-Safari).
+    await page.getByRole("checkbox", { name: /AirPlay/ }).check();
+    await expect(page.locator('#player [class*="airplaytogglebutton"]')).toHaveCount(1);
+    // Both still present together (the toggles are independent).
+    await expect(page.locator('#player [class*="piptogglebutton"]')).toHaveCount(1);
+
+    // Toggle PiP back off → only that button is removed; AirPlay stays.
+    await page.getByRole("checkbox", { name: /PiP/ }).uncheck();
+    await expect(page.locator('#player [class*="piptogglebutton"]')).toHaveCount(0);
+    await expect(page.locator('#player [class*="airplaytogglebutton"]')).toHaveCount(1);
+
+    // Chromecast: enabling it also turns on PlayerConfig.remotecontrol, so it rebuilds the
+    // player; after the rebuild the Cast button is in the custom tree.
+    await page.getByRole("checkbox", { name: /Chromecast/ }).check();
+    await page.waitForTimeout(4000); // player recreate + source reload
+    await expect(page.locator('#player [class*="casttogglebutton"]')).toHaveCount(1);
+    // The player still plays after the cast-driven rebuild (remotecontrol didn't break init).
+    const playing = await page.evaluate(
+      () => (document.querySelector("#player video") as HTMLVideoElement | null)?.readyState ?? 0,
+    );
+    expect(playing).toBeGreaterThanOrEqual(2); // HAVE_CURRENT_DATA+
+
+    // On the stock Default UI all three are present already, independent of the toggles.
+    await page.getByRole("button", { name: "Default (Bitmovin)", exact: true }).click();
+    await expect(page.locator('#player [class*="piptogglebutton"]')).toHaveCount(1);
+  });
+
+  test("theme labels follow the language toggle and carry no brand/service names", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    await page.waitForSelector(".theme-cat", { timeout: 20000 });
+    // A theme with a localized label changes to Sports when English is selected.
+    await expect(page.getByRole("button", { name: "スポーツ中継", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "English" }).click();
+    await expect(page.getByRole("button", { name: "Sports", exact: true })).toBeVisible();
+    // The streaming-style themes are de-branded: no service names or imitation-style suffixes in any theme label.
+    const labels = await page.locator(".theme-btn").allTextContents();
+    expect(labels.some((l) => /Netflix|YouTube|Disney|風/.test(l))).toBe(false);
+  });
+
+  test("streaming-style themes build distinct compositions with brand colors", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // VOD HLS (Tears of Steel) has multiple video renditions, so the SeekBar renders
+    // and the settings gear shows its quality list. If that upstream stream ever drops
+    // to a single rendition, the gear + seek-color assertions below would fail for an
+    // unrelated reason — keep this on a multi-rendition source.
+    await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
+    await page.waitForTimeout(3000);
+
+    // The played-bar color guards the CSS-specificity fix: the base modern skin colors
+    // it at (0,3,0), so a brand override must reach that depth — a lone .ui-skin-* (0,2,0)
+    // silently loses and the bar stays white. Read the exact element the base rule targets.
+    const seekColor = (): Promise<string | null> =>
+      page.evaluate(() => {
+        const el = document.querySelector(".bmpui-ui-seekbar .bmpui-seekbar .bmpui-seekbar-playbackposition");
+        return el ? getComputedStyle(el).backgroundColor : null;
+      });
+
+    // Premiere: a different composition (title bar + settings gear) + brand red.
+    // Use the exact root class — `[class*="ui-titlebar"]` also matches the row class
+    // `bmpui-titlebar-row` (it contains the substring "ui-titlebar"). All three brand
+    // themes now also carry the official tv-sample RecommendationOverlay.
+    await page.getByRole("button", { name: "Premiere", exact: true }).click();
+    await expect(page.locator('[class*="ui-skin-premiere"]')).toHaveCount(1);
+    await expect(page.locator(".bmpui-ui-titlebar")).toHaveCount(1);
+    await expect(page.locator(".bmpui-ui-recommendation-overlay")).toHaveCount(1);
+    await expect(page.locator('[class*="settingstogglebutton"]')).toHaveCount(1);
+    expect(await seekColor()).toBe("rgb(229, 9, 20)");
+
+    // Creator: now WITH a title bar too (added to match the other brands), settings
+    // gear, RecommendationOverlay, brand red.
+    await page.getByRole("button", { name: "Creator", exact: true }).click();
+    await expect(page.locator('[class*="ui-skin-creator"]')).toHaveCount(1);
+    await expect(page.locator(".bmpui-ui-titlebar")).toHaveCount(1);
+    await expect(page.locator(".bmpui-ui-recommendation-overlay")).toHaveCount(1);
+    await expect(page.locator('[class*="settingstogglebutton"]')).toHaveCount(1);
+    expect(await seekColor()).toBe("rgb(255, 0, 0)");
+
+    // Studio: title bar + the inline scrubber + RecommendationOverlay, brand blue.
+    await page.getByRole("button", { name: "Studio", exact: true }).click();
+    await expect(page.locator('[class*="ui-skin-studio"]')).toHaveCount(1);
+    await expect(page.locator(".bmpui-ui-titlebar")).toHaveCount(1);
+    await expect(page.locator(".bmpui-ui-recommendation-overlay")).toHaveCount(1);
+    expect(await seekColor()).toBe("rgb(31, 155, 255)");
+
+    // …back to Live (DVR): the streaming skins, their settings gear, and the
+    // RecommendationOverlay are all gone (it's a brand-theme element).
+    await page.getByRole("button", { name: "Live (DVR)", exact: true }).click();
+    await expect(page.locator('[class*="ui-skin-premiere"]')).toHaveCount(0);
+    await expect(page.locator('[class*="settingstogglebutton"]')).toHaveCount(0);
+    await expect(page.locator(".bmpui-ui-recommendation-overlay")).toHaveCount(0);
+  });
+
+  test("the customization guide is a standalone page linked from the playground", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    const link = page.locator("#ui-guide .ui-guide-link");
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute("href", "/guide.html");
+    // The guide page loads with its detailed sections + reference links, and its own
+    // language toggle works.
+    await page.goto(`${APP}/guide.html`);
+    await expect(page.locator("#guide-title")).toHaveText("Player UI カスタマイズ・ガイド");
+    // Known sections by id (robust to adding/removing others) + the source reference link.
+    await expect(page.locator("#architecture")).toBeVisible();
+    await expect(page.locator("#references")).toBeVisible();
+    await expect(page.locator('.guide-links a[href*="bitmovin-player-ui"]').first()).toBeVisible();
+    // The code-first expansion: the deep "custom component" section, the cookbook with
+    // copy-paste recipes, gotcha callouts, and captioned code blocks.
+    await expect(page.locator("#custom-component")).toBeVisible();
+    await expect(page.locator("#cookbook .guide-recipe").first()).toBeVisible();
+    expect(await page.locator(".guide-recipe").count()).toBeGreaterThanOrEqual(5);
+    await expect(page.locator(".guide-callout.warn").first()).toBeVisible();
+    await expect(page.locator(".guide-codecap").first()).toBeVisible();
+    // A deep-link into the player-ui source (the user wanted source-referenced guidance).
+    await expect(page.locator('.guide-links a[href*="/tree/main/src/ts/components"]')).toBeVisible();
+
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    await expect(page.locator("#guide-title")).toHaveText("Player UI Customization Guide");
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    // Sample-code comments are English in the English UI — no kana/kanji in any code block
+    // (the prose/captions are bilingual; the code is English-only, like the rest of the app).
+    const cjkInGuideCode = await page.evaluate(() =>
+      Array.from(document.querySelectorAll(".guide-code code")).some((c) => /[぀-ヿ一-龯]/.test(c.textContent ?? "")),
+    );
+    expect(cjkInGuideCode).toBe(false);
+  });
+
+  test("the per-theme diff shows how each theme changes the default", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    const diff = page.locator("#ui-construction .theme-diff");
+    // Default theme is Live (DVR) → added components, built from the default (Japanese UI).
+    await expect(diff).toContainText("ベース:");
+    await expect(diff).toContainText("QuickSeekButton");
+    // The construction code shows HOW it's built — the real component tree + source file.
+    await expect(diff).toContainText("構築コード");
+    await expect(diff.locator(".theme-diff-code")).toContainText("new UIContainer");
+    await expect(diff.locator(".theme-diff-codesrc")).toContainText("buildLiveUiContainer");
+    // …and it reads without a horizontal scrollbar (the snippets are formatted narrow
+    // and the box wraps) — the panel was previously too small and scrolled sideways.
+    const overflow = await diff
+      .locator(".theme-diff-code")
+      .evaluate((el) => el.scrollWidth - el.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+
+    // Neon → a CSS-only reskin, zero component changes; construction shows the class + CSS.
+    await page.getByRole("button", { name: "Neon", exact: true }).click();
+    await expect(diff).toContainText("ui-skin-neon");
+    await expect(diff).toContainText("コンポーネント変更ゼロ");
+    await expect(diff.locator(".theme-diff-code")).toContainText("extraCssClasses");
+
+    // Premiere → a different composition; construction shows the new components + factory.
+    await page.getByRole("button", { name: "Premiere", exact: true }).click();
+    await expect(diff.locator(".theme-diff-code")).toContainText("new TitleBar()");
+    await expect(diff.locator(".theme-diff-codesrc")).toContainText("buildPremiereUiContainer");
+
+    // The stock theme is the baseline.
+    await page.getByRole("button", { name: "Default (Bitmovin)", exact: true }).click();
+    await expect(diff).toContainText("基準");
+  });
+
+  test("the stage height stays constant across themes (panel pinned to player height)", async ({ page }) => {
+    // Wide viewport → the construction panel is pinned to the player's height and scrolls
+    // internally, so theme content length never changes the stage height.
+    await page.setViewportSize({ width: 1280, height: 1000 });
+    await page.goto(`${APP}/`);
+    await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
+    await page.waitForTimeout(2500);
+    const heights = (): Promise<{ p: number; c: number }> =>
+      page.evaluate(() => ({
+        p: Math.round(document.querySelector("#player")!.getBoundingClientRect().height),
+        c: Math.round(document.querySelector("#ui-construction")!.getBoundingClientRect().height),
+      }));
+    // A short-content theme (Default) and the longest (Premiere) must both keep the panel
+    // equal to the player height, and the player height itself must not change.
+    await page.getByRole("button", { name: "Default (Bitmovin)", exact: true }).click();
+    const short = await heights();
+    await page.getByRole("button", { name: "Premiere", exact: true }).click();
+    const long = await heights();
+    expect(short.c).toBe(short.p); // panel pinned to player height
+    expect(long.c).toBe(long.p);
+    expect(long.p).toBe(short.p); // player height unchanged across themes
+    // …and the long theme's construction code scrolls within the pinned panel. (Premiere
+    // has the longest construction snippet — well taller than the ~428px player at this
+    // viewport — so it must overflow the pinned panel.)
+    const scrolls = await page.evaluate(() => {
+      const el = document.querySelector("#ui-construction .theme-diff")!;
+      return el.scrollHeight > el.clientHeight + 1;
+    });
+    expect(scrolls).toBe(true);
+  });
+
+  test("the Live theme has ±10s quick-seek buttons", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // The library's QuickSeekButton ×2 flank the play button (back / forward).
+    await expect(page.locator('[class*="quickseekbutton"]')).toHaveCount(2);
+  });
+
+  test("autohide is off by default and the toggle is enabled on every theme", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // Control-panel labels are bilingual; the app defaults to Japanese, so match the JA label.
+    const cb = page.getByRole("checkbox", { name: "コントロールを自動で隠す" });
+    // Default OFF — controls stay visible until you switch it on.
+    await expect(cb).not.toBeChecked();
+    // Enabled on every theme, including the stock Default (no gating, no hint anymore).
+    await expect(page.locator(".panel-hint")).toHaveCount(0);
+    for (const t of ["Default (Bitmovin)", "Cinema", "Premiere", "Live (DVR)"]) {
+      await page.getByRole("button", { name: t, exact: true }).click();
+      await expect(cb).toBeEnabled();
+    }
+  });
+
+  test("autohide drives the Default theme too (off = always shown, on = hides when idle)", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // Switch to the stock Default theme — the toggle now controls its hideDelay because
+    // DefaultUIFactory re-wraps the stock tree (it used to be a silent no-op here).
+    await page.getByRole("button", { name: "Default (Bitmovin)", exact: true }).click();
+    const cbOpacity = async (): Promise<number | null> =>
+      page.evaluate(() => {
+        const cb = document.querySelector(".bmpui-ui-controlbar");
+        return cb ? Number(getComputedStyle(cb).opacity) : null;
+      });
+    const idle = async (): Promise<void> => {
+      await page.locator("#player").hover();
+      await page.mouse.move(400, 300);
+      await page.mouse.move(0, 0); // away from the player → start the hide timer
+      await page.waitForTimeout(2800); // past the 2000ms hideDelay + fade
+    };
+    // Autohide OFF (default): the stock control bar stays visible when idle.
+    await idle();
+    await expect.poll(cbOpacity, { timeout: 2000 }).toBe(1);
+    // Turn autohide ON → the stock control bar now fades out when idle.
+    await page.getByRole("checkbox", { name: "コントロールを自動で隠す" }).check();
+    await idle();
+    await expect.poll(cbOpacity, { timeout: 4000 }).toBe(0);
+  });
+
+  test("UI settings section exposes the UIConfig toggles and they take effect", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // Control-panel labels are bilingual; the app defaults to Japanese, so match JA labels.
+    // A dedicated UI settings card holds autohide and the other UIManager-level toggles.
+    const uiSettings = page.locator("#control-panel .panel-section", { hasText: "UI 設定" });
+    await expect(uiSettings).toHaveCount(1);
+    // autohide + 7 UIConfig booleans, 2 numeric UIConfig inputs, and the honest "not shown" note.
+    await expect(uiSettings.locator('input[type="checkbox"]')).toHaveCount(8);
+    await expect(uiSettings.locator('input[type="number"]')).toHaveCount(2);
+    await expect(uiSettings.locator(".panel-subnote")).toHaveCount(1);
+    // Every setting here carries a "?" chip (8 toggles + 2 numbers).
+    expect(await uiSettings.locator(".info-chip").count()).toBeGreaterThanOrEqual(10);
+    // SDK defaults: scrub-preview + speed-item + snapping on, keep-on-hover off.
+    await expect(page.getByRole("checkbox", { name: "シーク中のプレビュー" })).toBeChecked();
+    await expect(page.getByRole("checkbox", { name: "シークをマーカーにスナップ" })).toBeChecked();
+    await expect(page.getByRole("checkbox", { name: "ホバー中はバーを隠さない" })).not.toBeChecked();
+
+    // playbackSpeedSelectionEnabled has a real, visible effect on a gear theme: the speed
+    // item in the settings panel hides when the flag is off, and returns when on.
+    await page.getByRole("button", { name: "Creator", exact: true }).click();
+    const speedItem = page.locator(".bmpui-ui-settings-panel-item").filter({ hasText: "再生速度" });
+    await expect(speedItem).not.toHaveClass(/bmpui-hidden/);
+    await page.getByRole("checkbox", { name: "設定歯車に再生速度を表示" }).uncheck();
+    await expect(speedItem).toHaveClass(/bmpui-hidden/); // rebuilt with playbackSpeedSelectionEnabled:false
+    await page.getByRole("checkbox", { name: "設定歯車に再生速度を表示" }).check();
+    await expect(speedItem).not.toHaveClass(/bmpui-hidden/);
+
+    // The setting persists across a theme switch (it lives in the app's UIConfig, not the theme).
+    await page.getByRole("checkbox", { name: "シーク中のプレビュー" }).uncheck();
+    await page.getByRole("button", { name: "Live (DVR)", exact: true }).click();
+    await expect(page.getByRole("checkbox", { name: "シーク中のプレビュー" })).not.toBeChecked();
+  });
+
+  test("telemetry: the state panel is 'Player state' (not DVR), and QoE notes it's client-side", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    const telemetry = page.locator("#control-panel .panel-grid-state");
+    // The readout also applies to VOD: it is named Player state, not DVR state.
+    await expect(telemetry.locator("h2", { hasText: "プレイヤー状態" })).toBeVisible();
+    await expect(telemetry.locator("h2", { hasText: "DVR" })).toHaveCount(0);
+    // The QoE card carries a "?" chip clarifying it's measured client-side in real time
+    // (not the Bitmovin Analytics query API, which is a server-side call).
+    const qoeChip = telemetry.locator(".panel-section", { hasText: "QoE" }).locator(".info-chip");
+    await expect(qoeChip).toHaveCount(1);
+    await expect(qoeChip).toHaveAttribute("data-info-en", /client-side/i);
+    await expect(qoeChip).toHaveAttribute("data-info-ja", /リアルタイム計測/);
+  });
+
+  test("the server-proxied Analytics view runs queries and shows an honest unconfigured state", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    const panel = page.locator(".analytics-panel");
+    await expect(panel).toBeVisible();
+    // Four preset queries + a "?" chip explaining the server proxy.
+    await expect(panel.locator(".analytics-preset")).toHaveCount(4);
+    await expect(panel.locator(".info-chip")).toHaveCount(1);
+    // The test server has no Analytics key, so a query returns the honest "not configured"
+    // message (proves the browser → /api/analytics/query proxy round-trip, no key exposed).
+    await page.getByRole("button", { name: "平均スタートアップ時間" }).click();
+    await expect(panel.locator(".analytics-status")).toContainText("API キー未設定");
+    // The status follows the language toggle (re-localized in place, no re-mount).
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    await expect(panel.locator(".analytics-status")).toContainText("No API key on the server");
+    await expect(page.getByRole("button", { name: "Avg startup time" })).toBeVisible();
+  });
+
+  test("the Player Config panel applies recreate / reload / runtime changes", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // Dynamic config (runtime + reload) leads in its own band; recreate config follows.
+    // Per-band counts document the split and survive additive growth of the static groups.
+    await expect(page.locator("#config-panel .config-band-dynamic")).toBeVisible();
+    await expect(page.locator("#config-panel .config-band-static")).toBeVisible();
+    // Dynamic band: Player API, Adaptation (dynamic), Low Latency (dynamic), Source.
+    await expect(page.locator("#config-panel .config-band-dynamic .config-group")).toHaveCount(4);
+    // Static band: Playback, Adaptation (initial), Buffer, Tweaks, Logs, Style, Cast, Live, Location, Misc.
+    await expect(page.locator("#config-panel .config-band-static .config-group")).toHaveCount(10);
+    // The runtime Dynamic Adaptation group exposes limitToPlayerSize (the field that was missing).
+    const limitField = page.locator("#config-panel .config-band-dynamic .config-field", {
+      hasText: "limitToPlayerSize",
+    });
+    await expect(limitField).toHaveCount(1);
+
+    // Per-field guidance: nearly every field carries a "?" chip carrying BOTH languages
+    // (data-info-ja / data-info-en), shown via the shared styled overlay. Inline dynamic
+    // fields are hand-translated; static config fields carry the SDK JSDoc + its JA translation.
+    await expect(page.locator("#config-panel .info-chip").first()).toBeVisible();
+    expect(await page.locator("#config-panel .info-chip").count()).toBeGreaterThan(100);
+    await expect(limitField.locator(".info-chip")).toHaveAttribute("data-info-ja", /プレイヤーの表示サイズ/);
+    await expect(limitField.locator(".info-chip")).toHaveAttribute("data-info-en", /display size/);
+    const autoplayChip = page
+      .locator("#config-panel .config-field", { hasText: "autoplay" })
+      .first()
+      .locator(".info-chip");
+    await expect(autoplayChip).toHaveAttribute("data-info-en", /loading a source/);
+    await expect(autoplayChip).toHaveAttribute("data-info-ja", /ソース読み込み/);
+    // Hovering a chip reveals the single styled overlay — in JA (default) it shows the JA text.
+    await limitField.locator(".info-chip").hover();
+    await expect(page.locator(".info-overlay")).toBeVisible();
+    await expect(page.locator(".info-overlay")).toContainText("プレイヤーの表示サイズ");
+    await expect(page.locator("#config-panel .config-mode.mode-recreate").first()).toBeVisible();
+    await expect(page.locator("#config-panel .config-mode.mode-reload").first()).toBeVisible();
+    await expect(page.locator("#config-panel .config-mode.mode-runtime").first()).toBeVisible();
+
+    // Open every group so its fields are interactable.
+    const openAll = (): Promise<void> =>
+      page.evaluate(() =>
+        document.querySelectorAll("#config-panel details").forEach((d) => ((d as HTMLDetailsElement).open = true)),
+      );
+    await openAll();
+
+    // 🔁 recreate: editing a PlayerConfig field stages it; Apply rebuilds the player.
+    const recreate = page.getByRole("button", { name: /再生成して適用/ });
+    await expect(recreate).toBeDisabled();
+    await page
+      .locator("#config-panel .config-field", { hasText: "autoplay" })
+      .first()
+      .locator("input[type=checkbox]")
+      .uncheck();
+    await expect(recreate).toBeEnabled();
+    await recreate.click();
+    // The player is rebuilt: a fresh control bar + <video> appear, and the staged edit
+    // is committed (button disabled again).
+    await expect(page.locator(".bmpui-ui-controlbar")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("video")).toHaveCount(1);
+    await expect(recreate).toBeDisabled();
+
+    // 📥 reload: a SourceConfig title override shows up in a theme that has a TitleBar.
+    const reload = page.getByRole("button", { name: /再読み込みして適用/ });
+    await openAll();
+    const titleInput = page
+      .locator("#config-panel .config-field", { hasText: /^title/ })
+      .first()
+      .locator("input");
+    await titleInput.fill("E2E CONFIG TITLE");
+    await titleInput.blur(); // text fields stage on change (fires on blur), like a real form
+    await expect(reload).toBeEnabled();
+    await reload.click();
+    await expect(reload).toBeDisabled(); // committed → no longer dirty
+    await page.getByRole("button", { name: "Premiere", exact: true }).click();
+    // toHaveText auto-waits for the reload + theme switch to settle — no fixed sleep.
+    await expect(page.locator(".bmpui-label-metadata-title")).toHaveText("E2E CONFIG TITLE", { timeout: 10000 });
+  });
+
+  test("info-chip overlays follow the language toggle", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // A control-panel chip (its panel does NOT re-mount on language change — the chip itself
+    // resolves the current language). Locate it by a language-STABLE substring — the UIConfig
+    // key, which is present in BOTH languages' text and won't drift when copy is reworded.
+    const chip = page.locator('#control-panel .info-chip[data-info-en*="seekbarSnappingEnabled"]');
+    await chip.hover();
+    await expect(page.locator(".info-overlay")).toContainText("マーカー");
+    // Switch to English → the same chip's overlay now shows English (no panel re-mount).
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    await chip.hover();
+    await expect(page.locator(".info-overlay")).toContainText("timeline marker");
+    await expect(page.locator(".info-overlay")).not.toContainText("マーカー");
+    // The chip's aria-label tracks the language too (updated by the lang-change handler).
+    await expect(chip).toHaveAttribute("aria-label", /timeline marker/);
+  });
+
+  test("the language toggle switches the UI prose between Japanese and English", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // Default Japanese.
+    await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+    await expect(page.locator(".ui-theme-bar-label")).toHaveText("UI テーマ");
+    await expect(page.locator(".ui-guide-head h2")).toHaveText("UI はどうカスタムするか");
+    // The control panel's own labels are bilingual too (a section title + a setting label).
+    await expect(page.locator("#control-panel h2", { hasText: "再生" })).toBeVisible();
+    await expect(page.getByRole("checkbox", { name: "シーク中のプレビュー" })).toBeVisible();
+    // Switch to English → prose across chrome, guide, the config panel AND the control panel updates.
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    await expect(page.getByRole("button", { name: "English", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await expect(page.locator(".ui-theme-bar-label")).toHaveText("UI theme");
+    await expect(page.locator(".ui-guide-head h2")).toHaveText("How to customize the UI");
+    await expect(page.locator(".config-band-dynamic .config-band-head")).toContainText("Dynamic");
+    // The control panel re-localized in place (it doesn't re-mount — preserves its live log).
+    await expect(page.locator("#control-panel h2", { hasText: "Playback" })).toBeVisible();
+    await expect(page.getByRole("checkbox", { name: "Seek scrub-preview" })).toBeVisible();
+    // Sample-code comments are localized too: no Japanese (kana/kanji) remains in the
+    // English construction snippet (guards the localizeCode comment map going stale).
+    const cjkInCode = await page.evaluate(() => {
+      const t = document.querySelector("#ui-construction .theme-diff-code")?.textContent ?? "";
+      return /[぀-ヿ一-龯]/.test(t);
+    });
+    expect(cjkInCode).toBe(false);
+    // Back to Japanese.
+    await page.getByRole("button", { name: "日本語", exact: true }).click();
+    await expect(page.locator("html")).toHaveAttribute("lang", "ja");
+    await expect(page.locator(".ui-theme-bar-label")).toHaveText("UI テーマ");
+  });
+
+  test("every theme's construction code is fully localized in English (no mixed JA/EN)", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    // Switch through EVERY theme button and assert its construction snippet has no kana/kanji.
+    // The earlier guard only checked the active (Live) theme; this catches a comment added to
+    // any theme (Default+CSS / Custom) without a matching localizeCode entry.
+    const buttons = page.locator("#ui-theme-bar .theme-btn");
+    const count = await buttons.count();
+    expect(count).toBeGreaterThanOrEqual(13);
+    const sources = new Set<string>();
+    for (let i = 0; i < count; i++) {
+      const name = (await buttons.nth(i).textContent())?.trim() ?? `#${i}`;
+      await buttons.nth(i).click();
+      const { cjk, src } = await page.evaluate(() => ({
+        cjk: /[぀-ヿ一-龯]/.test(document.querySelector("#ui-construction .theme-diff-code")?.textContent ?? ""),
+        src: document.querySelector("#ui-construction .theme-diff-codesrc")?.textContent ?? "",
+      }));
+      expect(cjk, `theme "${name}" has untranslated JA in its construction code`).toBe(false);
+      sources.add(src);
+    }
+    // The construction panel really updates per theme (guards against re-checking stale,
+    // already-English content if a click silently failed to switch): the unlocalized source
+    // path differs across themes, so we should have seen many distinct values.
+    expect(sources.size).toBeGreaterThanOrEqual(8);
+  });
+
+  test("double-click can be switched to ±10s seek", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // The setting offers both behaviors.
+    const sel = page.locator("#control-panel select");
+    await expect(sel.locator("option")).toHaveCount(2);
+
+    // VOD so currentTime is an ordinary timeline.
+    await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
+    await sel.selectOption("seek");
+
+    const readTime = async (): Promise<number> => {
+      const t = (await page.locator(".panel-readout").textContent()) ?? "";
+      return Number.parseFloat(/time \(rel\):\s*([\d.-]+)/.exec(t)?.[1] ?? "NaN");
+    };
+    // Wait until the source is actually playing (time advancing) before seeking,
+    // rather than a fixed sleep.
+    await expect.poll(readTime, { timeout: 15_000 }).toBeGreaterThan(0.5);
+    const box = (await page.locator("#player").boundingBox())!;
+    const before = await readTime();
+    // Double-click the right half → forward ~10s (well beyond the ~1s of playback drift).
+    await page.mouse.dblclick(box.x + box.width * 0.78, box.y + box.height * 0.42);
+    await expect.poll(async () => (await readTime()) - before, { timeout: 6_000 }).toBeGreaterThan(5);
+  });
+
+  test("the LIVE button is a reset pill — visible dot, no default-button box", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    await page.getByRole("button", { name: "Live DASH + DVR", exact: true }).click();
+    // Wait until the LIVE button is actually shown (live source settled).
+    await expect.poll(async () => (await uiState(page)).liveButtonVisible, { timeout: 20_000 }).toBe(true);
+    const style = await page.evaluate(() => {
+      const el = document.querySelector('[class*="livebutton"]')!;
+      const cs = getComputedStyle(el);
+      const dot = getComputedStyle(el, "::before");
+      return { borderStyle: cs.borderStyle, color: cs.color, dotW: parseFloat(dot.width) };
+    });
+    expect(style.dotW).toBeGreaterThan(0); // status dot not collapsed (flex: none)
+    expect(style.borderStyle).toBe("none"); // UA <button> border reset (cssClass replaces .bmpui-ui-button)
+    expect(style.color).toBe("rgb(255, 255, 255)"); // white label, not the UA dark text
+  });
+
+  test("live→VOD switches the DVR UI promptly (no stuck Live UI)", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    await page.getByRole("button", { name: "Live DASH + DVR", exact: true }).click();
+    await expect.poll(async () => (await uiState(page)).mode, { timeout: 20_000 }).toBe("live-dvr");
+    // The live source must really decode, not just parse — give the live edge time to buffer.
+    await expect
+      .poll(async () => page.evaluate(() => document.querySelector("video")?.readyState ?? 0), { timeout: 25_000 })
+      .toBeGreaterThanOrEqual(3);
+    expect((await uiState(page)).liveButtonVisible).toBe(true);
+
+    // Switch to VOD. The control panel mode + DVR availability flip promptly (the bug
+    // was a multi-second lag stuck on "live-dvr"); the player's LIVE button hides once
+    // isLive() settles (~0.5s later — the panel is optimistic, the player catches up),
+    // so poll for both rather than racing the settle.
+    await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
+    await expect.poll(async () => (await uiState(page)).mode, { timeout: 5_000 }).toBe("vod");
+    await expect.poll(async () => (await uiState(page)).liveButtonVisible, { timeout: 6_000 }).toBe(false);
+    expect((await uiState(page)).dvrAvailable).toBe("false");
+
+    // …and back to live is prompt too.
+    await page.getByRole("button", { name: "Live DASH + DVR", exact: true }).click();
+    await expect.poll(async () => (await uiState(page)).mode, { timeout: 10_000 }).toBe("live-dvr");
+  });
+
+  test("live playback shows a true live latency in the player-state readout", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    await page.getByRole("button", { name: "Live DASH + DVR", exact: true }).click();
+    await expect.poll(async () => (await uiState(page)).mode, { timeout: 20_000 }).toBe("live-dvr");
+    // Real playback so getCurrentTime(AbsoluteTime) resolves to a wall clock (DASH availabilityStartTime).
+    await expect
+      .poll(async () => page.evaluate(() => document.querySelector("video")?.readyState ?? 0), { timeout: 25_000 })
+      .toBeGreaterThanOrEqual(3);
+    // "liveLatency: X.Xs" is the TRUE end-to-end latency: positive even at the live edge (inherent
+    // encode/package/CDN/buffer delay). The old metric (−getTimeShift) read ~0.0s at the edge, so a
+    // positive value proves it's real latency, not the scrub offset.
+    await expect
+      .poll(
+        async () => {
+          const ro = (await page.locator(".panel-readout").textContent()) ?? "";
+          const m = /liveLatency:\s*([\d.]+)s/.exec(ro);
+          return m ? Number(m[1]) : -1;
+        },
+        { timeout: 20_000 },
+      )
+      .toBeGreaterThan(0);
+    // The SDK's getLatency() (distance from the live edge) is shown alongside it.
+    await expect(page.locator(".panel-readout")).toContainText("getLatency:");
+  });
+
+  test("the config panel exposes low-latency catchup + fallback runtime config", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    await page.evaluate(() =>
+      document.querySelectorAll("#config-panel details").forEach((d) => ((d as HTMLDetailsElement).open = true)),
+    );
+    const llGroup = page.locator("#config-panel .config-band-dynamic .config-group", { hasText: "Low Latency" });
+    await expect(llGroup).toHaveCount(1);
+    // targetLatency + catchup{playbackRateThreshold, seekThreshold, playbackRate}
+    //              + fallback{playbackRateThreshold, seekThreshold, playbackRate} = 7 number inputs.
+    await expect(llGroup.locator('input[type="number"]')).toHaveCount(7);
+    for (const label of [
+      "catchup: playbackRateThreshold",
+      "catchup: seekThreshold",
+      "fallback: playbackRateThreshold",
+      "fallback: seekThreshold",
+    ]) {
+      await expect(llGroup).toContainText(label);
+    }
+    // Editing a catchup field on a normal (non-low-latency) stream is a no-op — the read-merge-write
+    // via player.lowlatency.getCatchupConfig() throws and is caught — so it must not crash the app.
+    const seek = llGroup
+      .locator(".config-field", { hasText: "catchup: seekThreshold" })
+      .locator('input[type="number"]');
+    await seek.fill("10");
+    await seek.blur();
+    await expect(seek).toHaveValue("10");
+    await expect(page.locator("video")).toHaveCount(1);
+  });
+
+  test("app button styles don't leak onto the player (play overlay stays transparent)", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // The full-player center play/pause overlay must stay transparent. A solid
+    // background here is the app's `button { background }` styling leaking onto the
+    // Bitmovin <button>, which masked the whole video — a gray box at rest, a frame
+    // on hover. Assert the resting background; the leak applies at rest too.
+    await expect(page.locator('[class*="hugeplaybacktogglebutton"]')).toHaveCount(1);
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const b = document.querySelector('[class*="hugeplaybacktogglebutton"]');
+            return b ? getComputedStyle(b).backgroundColor : null;
+          }),
+        { timeout: 15_000 },
+      )
+      .toBe("rgba(0, 0, 0, 0)");
+  });
+
+  test("the default source actually plays (not just parses the manifest)", async ({ page }) => {
+    await page.goto(`${APP}/`);
+    // Guards the class of bug the user hit: a source whose manifest loads but whose
+    // video never decodes (e.g. a rate-limited / dead default). Assert REAL playback —
+    // the <video> reaches a ready state with data AND currentTime advances — not just
+    // the control panel's derived mode.
+    await expect
+      .poll(async () => page.evaluate(() => document.querySelector("video")?.readyState ?? 0), { timeout: 20_000 })
+      .toBeGreaterThanOrEqual(3); // HAVE_FUTURE_DATA
+    const t0 = await page.evaluate(() => document.querySelector("video")!.currentTime);
+    await expect
+      .poll(async () => page.evaluate((p) => (document.querySelector("video")?.currentTime ?? 0) - p, t0), {
+        timeout: 8_000,
+      })
+      .toBeGreaterThan(0.3); // time advanced → genuinely playing
+  });
+});

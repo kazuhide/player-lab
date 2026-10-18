@@ -1,0 +1,83 @@
+# VOD HEVC (H.265) test stream — single 480p rendition, fmp4, DASH + HLS.
+# Exercises a second codec (hvc1) end-to-end. One-shot encode; output persists on
+# S3. Placeholders ${INPUT_ID} / ${INPUT_PATH} / ${OUTPUT_ID} filled by provision.sh.
+metadata:
+  type: VOD
+  name: test-streams-vod-hevc
+
+configurations:
+  video:
+    h265:
+      v-480p:
+        properties:
+          name: vod-hevc 480p
+          dynamicRangeFormat: SDR
+          height: 480
+          bitrate: 1400000
+
+encodings:
+  main:
+    properties:
+      name: test-streams-vod-hevc
+      encoderVersion: STABLE
+    streams:
+      s-480p:
+        properties:
+          inputStreams:
+            - inputId: ${INPUT_ID}
+              inputPath: ${INPUT_PATH}
+              selectionMode: AUTO
+          codecConfigId: $/configurations/video/h265/v-480p
+          mode: STANDARD
+    muxings:
+      fmp4:
+        m-480p:
+          properties:
+            name: video 480p fmp4
+            streams:
+              - streamId: $/encodings/main/streams/s-480p
+            outputs:
+              - outputId: ${OUTPUT_ID}
+                outputPath: "test-streams/vod-hevc/video/480p/"
+                acl:
+                  - permission: PUBLIC_READ
+            initSegmentName: init.mp4
+            segmentLength: 4.0
+            segmentNaming: "seg_%number%.m4s"
+    start:
+      properties:
+        encodingMode: SINGLE_PASS
+        manifestGenerator: V2
+        vodDashManifests:
+          - manifestId: $/manifests/dash/defaultapi/default-dash
+        vodHlsManifests:
+          - manifestId: $/manifests/hls/defaultapi/default-hls
+
+manifests:
+  dash:
+    defaultapi:
+      default-dash:
+        properties:
+          encodingId: $/encodings/main
+          name: vod-hevc DASH
+          manifestName: manifest.mpd
+          profile: ON_DEMAND
+          outputs:
+            - outputId: ${OUTPUT_ID}
+              outputPath: "test-streams/vod-hevc/"
+              acl:
+                - permission: PUBLIC_READ
+          generatorVersion: V2
+  hls:
+    defaultapi:
+      default-hls:
+        properties:
+          encodingId: $/encodings/main
+          name: vod-hevc HLS
+          manifestName: master.m3u8
+          outputs:
+            - outputId: ${OUTPUT_ID}
+              outputPath: "test-streams/vod-hevc/"
+              acl:
+                - permission: PUBLIC_READ
+          generatorVersion: V2
