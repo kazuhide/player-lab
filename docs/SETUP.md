@@ -7,8 +7,8 @@ every script and app follows for credentials/config.
 
 - Node.js 24.19.0 and pnpm 10.33.0 (`corepack enable` then `corepack prepare pnpm@10.33.0 --activate`)
 - A Bitmovin account — https://dashboard.bitmovin.com
-- For the encoding scripts: the Bitmovin CLI (`npm i -g @bitmovin/cli`) and, for
-  the multi-codec Per-Title run, `pip install bitmovin-api-sdk`
+- For encoding: Bitmovin CLI 0.7.0, Python 3.10+ with OpenSSL, `jq`, and
+  `envsubst` (from GNU gettext). See the pinned installation below.
 
 ## The convention
 
@@ -46,7 +46,7 @@ cp .env.example .env    # then fill in the values
 | `BITMOVIN_ANALYTICS_LICENSE_KEY` | optional — Analytics collector license. When set, **every app's** collector reports QoE; empty keeps collectors off. |
 | `BITMOVIN_API_KEY` | secret — encoding scripts, Bitmovin CLI, and the web Analytics query proxy (server-side). |
 | `BITMOVIN_ANALYTICS_API_KEY` | optional secret — least-privilege key for the query proxy (falls back to `BITMOVIN_API_KEY`). |
-| `BITMOVIN_TENANT_ORG_ID` | optional — org-scoped accounts only. Sent as `X-Tenant-Org-Id` by the Per-Title python script and the web analytics proxy. The CLI-based shell scripts use the org selected via `bitmovin config` instead (they print a reminder when this is set). Replaces `BITMOVIN_ANALYTICS_ORG_ID` (still accepted). |
+| `BITMOVIN_TENANT_ORG_ID` | optional — org-scoped accounts only. Sent as `X-Tenant-Org-Id` by the Per-Title python script and the web analytics proxy. The shell workflows, including S3 bootstrap, use the org selected via `bitmovin config` instead (they print a reminder when this is set). Replaces `BITMOVIN_ANALYTICS_ORG_ID` (still accepted). |
 | `BITMOVIN_OUTPUT_BUCKET` / `_REGION` | S3 bucket/region for encoder output + public URL printing. |
 | `BITMOVIN_OUTPUT_ACCESS_KEY` / `_SECRET_KEY` | secret — used **once**, when a script has to create the named S3 output resource. |
 
@@ -77,14 +77,51 @@ pnpm verify     # typecheck + tests + builds (+ E2E / native builds where toolch
 
 ## 4. Encoders (test streams)
 
+Install the tested CLI and Python SDK versions from the repository root. The
+Python environment is local and ignored by Git; activate it in each new shell:
+
+```bash
+npm install -g @bitmovin/cli@0.7.0
+python3 -m venv encoding/.venv
+. encoding/.venv/bin/activate
+python3 -m pip install -r encoding/requirements.txt
+bitmovin --version
+python3 -m pip show bitmovin-api-sdk
+```
+
+The SDK is needed for the Per-Title script and for first-use S3 output creation
+by the shell scripts. Reusing an existing output in a shell workflow does not
+need Python. These versions were checked with Python 3.14; cloud encoding and
+account resources are not exercised by the offline regression tests.
+
 All encoder scripts share the storage rule — **bootstrap once, reference by
 name**: the S3 output *resource* is looked up by `BITMOVIN_OUTPUT_NAME`
 (`config/encoding.conf`) and created from `BITMOVIN_OUTPUT_*` only when missing.
 No resource id is ever pasted into a template or committed. Test sources come
 from the committed catalog in `config/encoding.conf` (env vars override).
 The lookup pages through the account's full listing (needs `jq`); on an account
-with thousands of resources that can take a while — `OUTPUT_ID=<uuid> …` /
-`INPUT_ID=<uuid> …` skip it entirely.
+with thousands of resources that can take a while. One exact name match is
+required. Multiple matches fail before creating resources or starting an
+encoding, even when a second match is on a later page. Use a unique name or
+`OUTPUT_ID=<uuid> …` to choose an existing output explicitly. The shell scripts
+also accept `INPUT_ID=<uuid> …` to bypass HTTPS input lookup.
+They also reject multiple HTTPS inputs for the same host. Name lookup and
+creation are separate requests, so bootstrap once before concurrent runs and
+pass explicit IDs when another process may modify the resource listing.
+
+First-use S3 creation reads the API key and S3 credentials from the environment.
+It uses the SDK with request logging disabled: the CLI's create command requires
+credential flags, which would expose them in a process listing. SDK exceptions
+can also contain the request payload, so bootstrap prints a fixed error instead
+of the exception body. Check existing outputs before retrying an uncertain
+creation. Credentials still exist in process memory and the environment; keep
+the machine and root `.env` private.
+
+The shell bootstrap reads only the CLI's selected organization locally and uses
+the same API-key environment variable as the CLI listing. The standalone
+Per-Title script uses `BITMOVIN_TENANT_ORG_ID` directly. Confirm both organization
+settings if you use both workflows. See the [CLI S3 interface](https://github.com/bitmovin/cli/blob/v0.7.0/src/commands/encoding/outputs/create/s3.ts)
+and [SDK request logging](https://github.com/bitmovin/bitmovin-api-sdk-python/blob/v1.284.0/bitmovin_api_sdk/common/rest_client.py).
 
 ```bash
 # one-shot VOD test streams (validate-only first — no cost):
@@ -100,9 +137,19 @@ DRY_RUN=1 python3 encoding/vod-multicodec-pertitle/multicodec_pertitle.py
 python3 encoding/vod-multicodec-pertitle/multicodec_pertitle.py
 ```
 
+Run the offline resource-resolution and credential-handling checks with:
+
+```bash
+python3 scripts/test-encoding.py
+```
+
+These checks use local CLI fixtures and mocked HTTP requests. They cover zero,
+one, and multiple name matches, pagination, explicit IDs, and success/error paths
+without creating outputs or starting encoders in an account.
+
 ## Test streams without an encoder
 
-The apps' live sources default to verified public live streams
+The apps' live sources default to public live streams
 (`docs/test-streams-catalog.md`), so UI and DVR behavior work with **no**
 Bitmovin encoder running. Point `VITE_LIVE_*_URL` (web) at the `dvr-showcase`
 channel while `encoding/live-dvr` is running.

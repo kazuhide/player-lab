@@ -1,7 +1,7 @@
-# VOD baseline test stream — H.264 fixed ladder (360p/480p) + AAC, fmp4,
+# VOD baseline test stream — video-only H.264 fixed ladder (360p/480p), fmp4,
 # default DASH + HLS. Encodes a public sample (BigBuckBunny) to the showcase S3
-# output. One-shot encode (no ongoing cost; the output persists and is reused by
-# the E2E suite). Placeholders ${INPUT_ID} / ${INPUT_PATH} / ${OUTPUT_ID} are
+# output. Encoding ends with the job; storage and delivery charges can continue.
+# The E2E suite reuses the output. Placeholders ${INPUT_ID} / ${INPUT_PATH} / ${OUTPUT_ID} are
 # filled by provision.sh (resolved from the account, never committed).
 metadata:
   type: VOD

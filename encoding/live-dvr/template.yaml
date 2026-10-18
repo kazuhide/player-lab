@@ -23,8 +23,8 @@ inputs:
       properties:
         name: dvr-showcase-live RTMP input
         # Dynamic ingest point = classic encoder-IP RTMP. (staticIngestPoints,
-        # which routes to rtmps://live-input.bitmovin.com, is a separate
-        # account-gated feature; this account ingests via the encoder IP.)
+        # which routes to rtmps://live-input.bitmovin.com, is a separate feature
+        # requiring account access; this template uses the encoder IP.)
         ingestPoints:
           - applicationName: live
             streamKey: dvrshowcase
@@ -147,7 +147,8 @@ encodings:
           # ingestPoints[].streamKey above.
           streamKey: dvrshowcase
           manifestGenerator: V2
-          # Safety net so the encoder can never run unattended: stop if no stream
+          # Stop after these input timeouts; check status and stop explicitly
+          # after testing. An active input can keep the encoder running. Stop if no stream
           # arrives within 10 min of start, or 30s after ingest bytes stop.
           autoShutdownConfiguration:
             streamTimeoutMinutes: 10

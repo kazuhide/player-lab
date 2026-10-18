@@ -58,6 +58,13 @@ jobs:
         run: |
           bash scripts/test-env-lib.sh
           python3 scripts/test-native-ui.py
+      - name: Test Encoding resource resolution and credential handling
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gettext-base jq
+          python3 -m venv "$RUNNER_TEMP/encoding-venv"
+          "$RUNNER_TEMP/encoding-venv/bin/python" -m pip install -r encoding/requirements.txt
+          "$RUNNER_TEMP/encoding-venv/bin/python" scripts/test-encoding.py
       - name: Build
         run: pnpm build
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

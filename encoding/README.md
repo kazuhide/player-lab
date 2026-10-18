@@ -17,13 +17,18 @@ the 54,000 manifest-element limit.
 
 ## Prerequisites
 
-- Bitmovin CLI (`npm i -g @bitmovin/cli`) and a repo-root `.env` with
+- Bitmovin CLI 0.7.0, `jq`, `envsubst`, and a repo-root `.env` with
   `BITMOVIN_API_KEY` + the `BITMOVIN_OUTPUT_*` values (see `.env.example` /
-  `docs/SETUP.md`). The scripts load `.env` themselves — no manual `export`.
+  [the setup instructions](../docs/SETUP.md#4-encoders-test-streams)). The scripts
+  load `.env` themselves — no manual `export`. First-use S3 output creation also
+  needs the pinned Python SDK from `encoding/requirements.txt`.
 - Storage follows the repo rule — **bootstrap once, reference by name**: the S3
   output resource (`BITMOVIN_OUTPUT_NAME` in `config/encoding.conf`, default
   `dvr-showcase-output`) is resolved by name at run time and created
   automatically from `BITMOVIN_OUTPUT_*` the first time a script needs it.
+  Multiple exact-name matches stop the run; use a unique name or set `OUTPUT_ID`
+  to choose an existing output. S3 credentials are read from the environment
+  without passing them as process arguments or enabling SDK request logging.
   Objects are written `PUBLIC_READ` so the player can fetch them (the bucket must
   permit public objects, or be fronted by a CDN / served via signed URLs).
 
