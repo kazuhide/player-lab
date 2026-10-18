@@ -50,8 +50,9 @@ xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS \
 
 `sync-env.sh` generates the untracked `Local.xcconfig` from
 `BITMOVIN_PLAYER_LICENSE_KEY` and optional `BITMOVIN_ANALYTICS_LICENSE_KEY`.
-Run it before `xcodegen generate`. The project allows a build without this file,
-but playback needs a valid player license. If the analytics key is supplied, the
+Run it before `xcodegen generate`. The project references this file even for
+compilation; an empty file is enough for the compile-only check below. Playback
+needs a valid player license. If the analytics key is supplied, the
 bundled collector reports playback-quality measurements to your account.
 Do not commit the generated key file.
 
@@ -79,3 +80,16 @@ license and a running live source, check seeking within the window, returning to
 live, recovery when paused media expires, and a live stream becoming on-demand.
 The app also checks for the latter transition from `TimeChanged` snapshots,
 because relying only on `DurationChanged` can miss it.
+
+## Build without credentials
+
+The Xcode project references the ignored `Local.xcconfig`. For compilation only,
+create an empty file before generating the project:
+
+```sh
+touch apps/ios/Local.xcconfig
+```
+
+Run this from the repository root. CI creates the same empty file. It does not
+provide a Player license or establish native playback. For a device run, use
+`sync-env.sh` with your own credentials as described above.

@@ -47,6 +47,8 @@ jobs:
         run: swift test --package-path apps/ios/DvrKit
       - name: Install XcodeGen
         run: brew install xcodegen
+      - name: Prepare an empty local configuration for compilation
+        run: touch apps/ios/Local.xcconfig
       - name: Generate Xcode project
         run: cd apps/ios && xcodegen generate
       - name: Build iOS app (simulator)
