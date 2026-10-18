@@ -58,6 +58,7 @@ on import; call it explicitly.
 
 import concurrent.futures
 import os
+import sys
 import time
 from datetime import datetime
 from os import path
@@ -72,7 +73,6 @@ from bitmovin_api_sdk import (
     Av1VideoConfiguration,
     AutoRepresentation,
     BitmovinApi,
-    BitmovinApiLogger,
     DashFmp4Representation,
     DashManifest,
     DashProfile,
@@ -92,7 +92,6 @@ from bitmovin_api_sdk import (
     MuxingStream,
     PerTitle,
     Period,
-    S3Output,
     S3OutputListQueryParams,
     StartEncodingRequest,
     Status,
@@ -118,6 +117,8 @@ AV1_VIDEO_PATH = "video/av1/{height}_{bitrate}_{uuid}"
 AAC_AUDIO_PATH = "audio/aac"
 
 _REPO_ROOT = path.abspath(path.join(path.dirname(path.abspath(__file__)), "..", ".."))
+sys.path.insert(0, path.join(_REPO_ROOT, "encoding"))
+from s3_output import create_output
 
 
 def _load_env_defaults():
@@ -146,7 +147,8 @@ def _load_env_defaults():
 def _api():
     key = os.environ["BITMOVIN_API_KEY"]
     org = os.environ.get("BITMOVIN_TENANT_ORG_ID")
-    kwargs = {"api_key": key, "logger": BitmovinApiLogger()}
+    # The verbose SDK logger prints request bodies, including S3 credentials.
+    kwargs = {"api_key": key}
     if org:
         kwargs["tenant_org_id"] = org
     return BitmovinApi(**kwargs)
@@ -408,28 +410,33 @@ def _log_errors(task):
 # Resource resolution — "bootstrap once, reference by name" (docs/SETUP.md).
 # ---------------------------------------------------------------------------
 def _resolve_output():
+    output_id = os.environ.get("OUTPUT_ID")
+    if output_id:
+        return api.encoding.outputs.s3.get(output_id=output_id)
     name = os.environ.get("BITMOVIN_OUTPUT_NAME", "dvr-showcase-output")
     offset = 0
+    matches = {}
     while True:
         page = api.encoding.outputs.s3.list(
             query_params=S3OutputListQueryParams(offset=offset, limit=100, name=name))
         for out in page.items or []:
             if out.name == name:  # the name query param is a partial match; require exact
-                print("using S3 output %r (%s)" % (name, out.id))
-                return out
+                matches[out.id] = out
+        if len(matches) > 1:
+            raise SystemExit(
+                "multiple S3 outputs have the exact name; use a unique "
+                "BITMOVIN_OUTPUT_NAME or set OUTPUT_ID explicitly")
         if not page.items or len(page.items) < 100:
             break
         offset += 100
-    bucket = os.environ.get("BITMOVIN_OUTPUT_BUCKET")
-    access = os.environ.get("BITMOVIN_OUTPUT_ACCESS_KEY")
-    secret = os.environ.get("BITMOVIN_OUTPUT_SECRET_KEY")
-    if not (bucket and access and secret):
-        raise SystemExit(
-            "S3 output %r not found, and BITMOVIN_OUTPUT_BUCKET/_ACCESS_KEY/_SECRET_KEY are not "
-            "all set to create it — see .env.example / docs/SETUP.md" % name)
-    print("creating S3 output %r (bucket %s)" % (name, bucket))
-    return api.encoding.outputs.s3.create(s3_output=S3Output(
-        name=name, bucket_name=bucket, access_key=access, secret_key=secret))
+        if offset > 20000:
+            raise SystemExit("S3 output listing exceeds the 20000 offset guard; set OUTPUT_ID")
+    if matches:
+        output = next(iter(matches.values()))
+        print("using S3 output %r (%s)" % (name, output.id))
+        return output
+    print("creating S3 output %r" % name)
+    return create_output(api)
 
 
 def _resolve_input(host):

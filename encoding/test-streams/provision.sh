@@ -2,7 +2,7 @@
 # Provision a test stream from templates/<scenario>.yaml via the Bitmovin
 # Encoding Templates API. VOD scenarios are one-shot encodes — the output
 # persists on the showcase S3 bucket (PUBLIC_READ) and is reused by the E2E suite,
-# so there's no ongoing cost.
+# so encoding ends with the job; storage and delivery charges can continue.
 #
 # Config (see docs/SETUP.md):
 #   - secrets (BITMOVIN_API_KEY, BITMOVIN_OUTPUT_*)  → repo-root .env
@@ -32,8 +32,8 @@ SOURCE_HOST="${SOURCE_HOST:-${SOURCE_DEFAULT_HOST:-test-videos.co.uk}}"
 INPUT_PATH="${INPUT_PATH:-$(encoding_catalog "$SCENARIO" PATH)}"
 : "${INPUT_PATH:?no source for \"$SCENARIO\" — add SOURCE_$(encoding_scenario_key "$SCENARIO")_PATH to config/encoding.conf or pass INPUT_PATH=}"
 
-# DRY_RUN must not touch the account: lookups only, never creation ("validate
-# only, no cost" is a contract, not a suggestion).
+# DRY_RUN may read account listings and validate a template, but never creates
+# resources or starts an encoding.
 NO_CREATE=""
 [ -n "${DRY_RUN:-}" ] && NO_CREATE="--no-create"
 

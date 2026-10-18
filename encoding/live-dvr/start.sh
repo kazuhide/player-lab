@@ -19,7 +19,8 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 . "$ROOT/encoding/lib.sh"
 encoding_load_config "$ROOT"
 
-# DRY_RUN must not touch the account: lookup only, never creation.
+# DRY_RUN may read account listings and validate a template, but never creates
+# resources or starts an encoding.
 NO_CREATE=""
 [ -n "${DRY_RUN:-}" ] && NO_CREATE="--no-create"
 

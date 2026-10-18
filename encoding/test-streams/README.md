@@ -54,5 +54,7 @@ Use the URLs printed by your run when configuring the tests in
 No `vod-iframe` template is included. A normal HLS master playlist does not provide
 an I-frame-only playlist for trick-play; that needs separate manifest generation.
 
-The Network-API scenario needs no special stream (it's player-side request
-interception on any source).
+Network-API interception is a player-side feature, but the included test uses
+`vod-baseline`. Provision that fixture and configure `VITE_TEST_STREAM_BASE_URL`
+before running the test; an unset URL is a missing prerequisite, rather than a
+playback result. See [the test setup](../../tests/e2e/README.md).

@@ -96,11 +96,15 @@ repo-root `.env` (`BITMOVIN_API_KEY`, `BITMOVIN_OUTPUT_*`, optionally
 `BITMOVIN_TENANT_ORG_ID`) and `config/encoding.conf` (the
 `SOURCE_VOD_MULTICODEC_PERTITLE_HOST/_PATH` test source and
 `BITMOVIN_OUTPUT_NAME`) itself — environment variables override both. The S3
-output is resolved **by name** and created only if missing; the HTTPS input is
-resolved/created by host. Nothing is exported by hand, no id is committed.
+output is resolved **by exact name** across all pages and created only if missing.
+Multiple outputs with that name stop the run before any encoding is created or
+started; choose a unique `BITMOVIN_OUTPUT_NAME` or set `OUTPUT_ID` to an existing
+output ID. The HTTPS input is resolved/created by host. Keep account IDs in local
+configuration rather than committing them.
 
 ```bash
-pip install bitmovin-api-sdk
+# Activate the Python environment from docs/SETUP.md first.
+python3 -m pip install -r encoding/requirements.txt
 
 # resolved plan only — no API calls, no cost:
 DRY_RUN=1 python3 encoding/vod-multicodec-pertitle/multicodec_pertitle.py
