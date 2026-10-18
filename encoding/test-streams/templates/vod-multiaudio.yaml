@@ -1,0 +1,155 @@
+# VOD + multiple selectable audio tracks (language switch). H.264 480p video with TWO
+# AAC audio renditions from DISTINCT sources, exposed as a CUSTOM HLS manifest with two
+# media.audio entries (en default + de) in one group — the player lists both and
+# setAudio() switches between them.
+#
+# Two inputs (see provision.sh AUDIO2_HOST): ${INPUT_ID} carries the video + English
+# audio (samplelib 30s), ${INPUT_ID2} carries the German audio (Sintel trailer). HLS
+# only (the audio sources differ in length; a custom HLS audio group handles that
+# cleanly, where a defaultapi DASH period would not).
+# Placeholders filled by provision.sh: ${INPUT_ID}/${INPUT_PATH} (video+en),
+# ${INPUT_ID2}/${INPUT_PATH2} (de), ${OUTPUT_ID}.
+metadata:
+  type: VOD
+  name: test-streams-vod-multiaudio
+
+configurations:
+  video:
+    h264:
+      v-480p:
+        properties:
+          name: vod-multiaudio 480p
+          profile: MAIN
+          height: 480
+          bitrate: 1400000
+  audio:
+    aac:
+      a-128k:
+        properties:
+          name: aac 128k
+          channelLayout: NONE
+          bitrate: 128000
+          rate: 48000.0
+
+encodings:
+  main:
+    properties:
+      name: test-streams-vod-multiaudio
+      encoderVersion: STABLE
+    streams:
+      s-video:
+        properties:
+          inputStreams:
+            - inputId: ${INPUT_ID}
+              inputPath: ${INPUT_PATH}
+              selectionMode: AUTO
+          codecConfigId: $/configurations/video/h264/v-480p
+          mode: STANDARD
+      s-audio-en:
+        properties:
+          inputStreams:
+            - inputId: ${INPUT_ID}
+              inputPath: ${INPUT_PATH}
+              selectionMode: AUTO
+          codecConfigId: $/configurations/audio/aac/a-128k
+          mode: STANDARD
+      s-audio-de:
+        properties:
+          inputStreams:
+            - inputId: ${INPUT_ID2}
+              inputPath: ${INPUT_PATH2}
+              selectionMode: AUTO
+          codecConfigId: $/configurations/audio/aac/a-128k
+          mode: STANDARD
+    muxings:
+      fmp4:
+        m-video:
+          properties:
+            name: video 480p fmp4
+            streams:
+              - streamId: $/encodings/main/streams/s-video
+            outputs:
+              - outputId: ${OUTPUT_ID}
+                outputPath: "test-streams/vod-multiaudio/video/480p/"
+                acl:
+                  - permission: PUBLIC_READ
+            initSegmentName: init.mp4
+            segmentLength: 4.0
+            segmentNaming: "seg_%number%.m4s"
+        m-audio-en:
+          properties:
+            name: audio en fmp4
+            streams:
+              - streamId: $/encodings/main/streams/s-audio-en
+            outputs:
+              - outputId: ${OUTPUT_ID}
+                outputPath: "test-streams/vod-multiaudio/audio/en/"
+                acl:
+                  - permission: PUBLIC_READ
+            initSegmentName: init.mp4
+            segmentLength: 4.0
+            segmentNaming: "seg_%number%.m4s"
+        m-audio-de:
+          properties:
+            name: audio de fmp4
+            streams:
+              - streamId: $/encodings/main/streams/s-audio-de
+            outputs:
+              - outputId: ${OUTPUT_ID}
+                outputPath: "test-streams/vod-multiaudio/audio/de/"
+                acl:
+                  - permission: PUBLIC_READ
+            initSegmentName: init.mp4
+            segmentLength: 4.0
+            segmentNaming: "seg_%number%.m4s"
+    start:
+      properties:
+        encodingMode: SINGLE_PASS
+        manifestGenerator: V2
+        vodHlsManifests:
+          - manifestId: $/manifests/hls/main-hls
+
+manifests:
+  hls:
+    main-hls:
+      properties:
+        manifestName: master.m3u8
+        outputs:
+          - outputId: ${OUTPUT_ID}
+            outputPath: "test-streams/vod-multiaudio/"
+            acl:
+              - permission: PUBLIC_READ
+      media:
+        audio:
+          audio-en:
+            properties:
+              name: English
+              language: en
+              groupId: AUDIO
+              isDefault: true
+              uri: "audio_en.m3u8"
+              segmentPath: "audio/en/"
+              encodingId: $/encodings/main
+              muxingId: $/encodings/main/muxings/fmp4/m-audio-en
+              streamId: $/encodings/main/streams/s-audio-en
+          audio-de:
+            properties:
+              name: German
+              language: de
+              groupId: AUDIO
+              isDefault: false
+              uri: "audio_de.m3u8"
+              segmentPath: "audio/de/"
+              encodingId: $/encodings/main
+              muxingId: $/encodings/main/muxings/fmp4/m-audio-de
+              streamId: $/encodings/main/streams/s-audio-de
+      streams:
+        s-video-info:
+          properties:
+            name: Video 480p
+            uri: "video_480p.m3u8"
+            segmentPath: "video/480p/"
+            audio: AUDIO
+            encodingId: $/encodings/main
+            muxingId: $/encodings/main/muxings/fmp4/m-video
+            streamId: $/encodings/main/streams/s-video

@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2021", "DOM"],
+    "types": ["vite/client"],
+    "verbatimModuleSyntax": false,
+    "noEmit": true
+  },
+  "include": ["src", "specs", "playwright.config.ts", "vite.config.ts"]
+}

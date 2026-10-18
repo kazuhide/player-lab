@@ -1,0 +1,27 @@
+{
+  "name": "@showcase/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "pnpm --filter @showcase/ui-shared build",
+    "dev": "vite",
+    "prebuild": "pnpm --filter @showcase/ui-shared build",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "pretypecheck": "pnpm --filter @showcase/ui-shared build",
+    "typecheck": "tsc --noEmit",
+    "pretest": "pnpm --filter @showcase/ui-shared build",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@showcase/ui-shared": "workspace:*",
+    "bitmovin-player": "^8.263.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "vite": "^8.0.0",
+    "vitest": "^3.2.0"
+  }
+}

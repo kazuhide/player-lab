@@ -1,0 +1,108 @@
+# VOD + sprite thumbnails (scrub preview). H.264 480p with a sprite track: a JPEG
+# sprite sheet + a WebVTT index every 5s. The player loads the .vtt as its
+# thumbnailTrack. Uses the defaultapi DASH+HLS manifests (the sprite is a separate
+# .jpg/.vtt the player references directly, not a manifest entry).
+# Placeholders ${INPUT_ID} / ${INPUT_PATH} / ${OUTPUT_ID} filled by provision.sh.
+metadata:
+  type: VOD
+  name: test-streams-vod-sprites
+
+configurations:
+  video:
+    h264:
+      v-480p:
+        properties:
+          name: vod-sprites 480p
+          profile: MAIN
+          height: 480
+          bitrate: 1400000
+
+encodings:
+  main:
+    properties:
+      name: test-streams-vod-sprites
+      encoderVersion: STABLE
+    streams:
+      s-480p:
+        properties:
+          inputStreams:
+            - inputId: ${INPUT_ID}
+              inputPath: ${INPUT_PATH}
+              selectionMode: AUTO
+          codecConfigId: $/configurations/video/h264/v-480p
+          mode: STANDARD
+        sprites:
+          sprite-5s:
+            properties:
+              name: sprite 160x90 every 5s
+              width: 160
+              height: 90
+              unit: SECONDS
+              distance: 5.0
+              # %number% is REQUIRED for the file name to match the VTT reference:
+              # with hTiles/vTiles, Bitmovin's VTT always indexes (sprite-0.jpg), and
+              # without the placeholder the image is written literally (sprite.jpg) —
+              # a mismatch that 404s the scrub preview. With it, both are sprite-0.jpg.
+              spriteName: sprite-%number%.jpg
+              vttName: thumbnails.vtt
+              hTiles: 10
+              vTiles: 10
+              creationMode: INTERVAL_START
+              aspectMode: CROP
+              outputs:
+                - outputId: ${OUTPUT_ID}
+                  outputPath: "test-streams/vod-sprites/thumbnails/"
+                  acl:
+                    - permission: PUBLIC_READ
+    muxings:
+      fmp4:
+        m-480p:
+          properties:
+            name: video 480p fmp4
+            streams:
+              - streamId: $/encodings/main/streams/s-480p
+            outputs:
+              - outputId: ${OUTPUT_ID}
+                outputPath: "test-streams/vod-sprites/video/480p/"
+                acl:
+                  - permission: PUBLIC_READ
+            initSegmentName: init.mp4
+            segmentLength: 4.0
+            segmentNaming: "seg_%number%.m4s"
+    start:
+      properties:
+        encodingMode: SINGLE_PASS
+        manifestGenerator: V2
+        vodDashManifests:
+          - manifestId: $/manifests/dash/defaultapi/default-dash
+        vodHlsManifests:
+          - manifestId: $/manifests/hls/defaultapi/default-hls
+
+manifests:
+  dash:
+    defaultapi:
+      default-dash:
+        properties:
+          encodingId: $/encodings/main
+          name: vod-sprites DASH
+          manifestName: manifest.mpd
+          profile: ON_DEMAND
+          outputs:
+            - outputId: ${OUTPUT_ID}
+              outputPath: "test-streams/vod-sprites/"
+              acl:
+                - permission: PUBLIC_READ
+          generatorVersion: V2
+  hls:
+    defaultapi:
+      default-hls:
+        properties:
+          encodingId: $/encodings/main
+          name: vod-sprites HLS
+          manifestName: master.m3u8
+          outputs:
+            - outputId: ${OUTPUT_ID}
+              outputPath: "test-streams/vod-sprites/"
+              acl:
+                - permission: PUBLIC_READ
+          generatorVersion: V2

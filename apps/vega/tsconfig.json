@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "lib": ["ES2021", "DOM"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "verbatimModuleSyntax": false,
+    "isolatedModules": false,
+    "types": [],
+    "noEmit": true
+  },
+  "//": "CI type-checks the framework-agnostic core — DVR logic, sources, and the modular player wiring (dvrController/vegaPlayer) — against the real bitmovin-player types. The React/Kepler .tsx UI (App/ControlPanel/BitmovinPlayer) is excluded here because react-native 0.72 + @types/react + TS 5.9 hit a known JSX-component type skew; those are type-checked in the Kepler/Metro build. See README.",
+  "include": [
+    "src/dvr",
+    "src/Sources.ts",
+    "src/dvrController.ts",
+    "src/vegaPlayer.ts",
+    "src/polyfills.ts",
+    "test"
+  ]
+}

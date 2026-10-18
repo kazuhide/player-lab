@@ -1,0 +1,49 @@
+# Web player playground
+
+The existing Bitmovin Web Player app includes a source and API control panel,
+14 interface themes, PlayerConfig and SourceConfig settings, named Tweaks
+settings, theme construction code, playback observations, and a customization
+guide at `guide.html`. The English/Japanese switch applies to the interface
+and its displayed explanations.
+
+## Run
+
+```sh
+pnpm install --frozen-lockfile
+pnpm --filter @showcase/web dev
+```
+
+Open the printed URL using `localhost` to try the Web Player without a key.
+The shared UI builds automatically before the development server starts.
+
+The [root setup guide](../../docs/SETUP.md) explains optional licenses and the
+server-side Analytics query API. `apps/web/.env` is only needed for Web-specific
+`VITE_*` overrides; see [.env.example](.env.example). Public VOD and live streams
+are defaults. Sprite, multi-audio, and sideloaded-subtitle demos need the feature
+stream URLs you configure there.
+
+## Try the controls
+
+Select a theme to inspect its actual UI and construction code. The configuration
+panels distinguish settings that recreate the player, reload the source, or
+apply immediately. Unapplied changes do not prove that the SDK accepted them.
+
+For live media, seek within the rewind window or jump to the live edge. The DVR
+state panel reports the current window and offset. Buffer targets control
+media downloaded ahead; they do not make the rewind window longer. See
+[DVR time and start settings](../../docs/dvr-time-and-start-config.md).
+
+The Analytics collector is optional. Its license is a client setting; the
+Analytics query API secret stays in the development server and must not be
+entered into client configuration.
+
+## Build and test
+
+```sh
+pnpm --filter @showcase/web build
+pnpm --filter @showcase/web test
+```
+
+The build checks types and bundles both HTML pages. Unit tests cover the DVR
+logic, metrics, client-license handling, and Analytics proxy. Browser checks
+are separate; see [testing](../../docs/e2e-testing.md).

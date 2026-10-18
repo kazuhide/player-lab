@@ -1,0 +1,17 @@
+{
+  "variant": "live",
+  "description": "Build-time UI structure produced by packages/ui-shared (LiveUIFactory.buildLiveUI). The SeekBar is DVR-aware: it branches on isLive() and sizes the window via getMaxTimeShift(), so it doubles as the DVR scrubber.",
+  "liveEdgeEpsilon": 1,
+  "skin": ["ui-skin-modern", "ui-skin-live"],
+  "structure": {
+    "overlays": ["SubtitleOverlay", "BufferingOverlay", "PlaybackToggleOverlay"],
+    "controlBar": {
+      "top": ["PlaybackTimeLabel(CurrentTime,hideInLive)", "WallClockLabel", "SeekBar(+SeekBarLabel)", "BehindLiveLabel", "PlaybackTimeLabel(TotalTime,hideInLive)"],
+      "bottom": ["QuickSeekButton(-10)", "PlaybackToggleButton", "QuickSeekButton(+10)", "LiveButton", "VolumeToggleButton", "VolumeSlider", "Spacer", "FullscreenToggleButton"]
+    }
+  },
+  "consumers": {
+    "web": "import { LiveUIFactory } from '@showcase/ui-shared' + '@showcase/ui-shared/css'; new Player({ ui: false }); LiveUIFactory.buildLiveUI(player)",
+    "webview": "load dist/bitmovinplayer-ui.js + dist/bitmovinplayer-ui.css; reference bitmovin.playerui.UIFactory.buildLiveUI"
+  }
+}

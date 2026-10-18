@@ -1,0 +1,693 @@
+// Custom styles for the DVR additions. The base bitmovin-player-ui CSS is
+// prepended at build time (see scripts/build-css.mjs); these rules extend it.
+//
+// Component cssClass "ui-livebutton" is emitted by the library as
+// `.bmpui-ui-livebutton`; the ToggleButton on/off classes as
+// `.bmpui-at-live-edge` / `.bmpui-behind-live`.
+
+// A self-contained "LIVE" pill. The component sets `cssClass: "ui-livebutton"`,
+// which REPLACES the library's `.bmpui-ui-button` base — so this element does not
+// inherit the button reset and must reset the UA `<button>` look itself (otherwise
+// it renders as a gray box with a border and dark text). Everything visual lives
+// here so the badge is consistent across skins.
+.bmpui-ui-livebutton {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  height: 2em;
+  margin: 0;
+  padding: 0 0.85em;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.78em;
+  line-height: 1;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+
+  // Status dot. `flex: none` is essential: the empty pseudo-element is a flex item,
+  // and without it the dot shrinks to width 0, leaving a dead gap before the label
+  // (the original "ugly spacing"). The label still aligns optically with the dot.
+  &::before {
+    content: "";
+    flex: none;
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: #9a9a9a;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  // At the live edge: solid red dot, faint red wash, not clickable.
+  &.bmpui-on,
+  &.bmpui-at-live-edge {
+    cursor: default;
+    background: rgba(232, 35, 43, 0.22);
+
+    &::before {
+      background: #ff2d35;
+      box-shadow: 0 0 0 0.16em rgba(255, 45, 53, 0.28);
+    }
+  }
+
+  // Behind live: dimmed, clickable to jump back to the edge.
+  &.bmpui-off,
+  &.bmpui-behind-live {
+    cursor: pointer;
+    opacity: 0.78;
+
+    &:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.26);
+    }
+  }
+}
+
+// CRITICAL: respect the library's hidden state. `.bmpui-hidden { display: none }`
+// (no !important) loses to our `.bmpui-ui-livebutton { display: inline-flex }` above
+// (same specificity, ours is later in the bundle), so the "hidden" pill would stay
+// VISIBLE — e.g. it kept showing on VOD. Re-assert the hide at higher specificity.
+.bmpui-ui-livebutton.bmpui-hidden {
+  display: none;
+}
+
+// Live time labels (§7): absolute wall-clock + relative behind-live.
+.bmpui-ui-label-wallclock,
+.bmpui-ui-label-behindlive {
+  padding: 0 0.5em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.bmpui-ui-label-behindlive {
+  text-align: right;
+}
+
+// ---------------------------------------------------------------------------
+// "Neon" skin — a CSS-ONLY re-skin of the Default tree. The exact same component
+// tree built by DefaultUIFactory gets a wholly different look purely by adding the
+// `ui-skin-neon` class (LiveUiOptions.extraCssClasses) and styling it here. This
+// is the "re-skin with CSS" customization lever the demo highlights: no new
+// components, no layout change — just a class and some rules.
+// ---------------------------------------------------------------------------
+.bmpui-ui-skin-neon {
+  .bmpui-ui-controlbar {
+    background: linear-gradient(180deg, rgba(6, 2, 20, 0) 0%, rgba(10, 3, 32, 0.94) 62%);
+  }
+
+  // Neon gradient seek bar with a glowing scrubber.
+  .bmpui-seekbar-playbackposition {
+    background: linear-gradient(90deg, #00e5ff, #ff2bd6);
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.85);
+  }
+  .bmpui-seekbar-playbackposition-marker {
+    background: #fff;
+    box-shadow: 0 0 8px #00e5ff, 0 0 16px #ff2bd6;
+  }
+  .bmpui-seekbar-bufferlevel {
+    background: rgba(0, 229, 255, 0.28);
+  }
+
+  // Buttons glow on hover.
+  .bmpui-ui-button:hover {
+    filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.9));
+  }
+
+  // The LIVE pill picks up the neon palette.
+  .bmpui-ui-livebutton {
+    background: rgba(0, 229, 255, 0.12);
+    color: #aef9ff;
+
+    &.bmpui-at-live-edge {
+      background: rgba(255, 43, 214, 0.2);
+      color: #fff;
+
+      &::before {
+        background: #ff2bd6;
+        box-shadow: 0 0 0 0.16em rgba(255, 43, 214, 0.35), 0 0 10px #ff2bd6;
+      }
+    }
+  }
+
+  // Time labels get a soft cyan glow.
+  .bmpui-ui-label-wallclock,
+  .bmpui-ui-label-behindlive,
+  .bmpui-ui-playbacktimelabel {
+    color: #aef9ff;
+    text-shadow: 0 0 6px rgba(0, 229, 255, 0.55);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// "Glass" skin — another CSS-ONLY re-skin of the Default tree (same components as
+// Neon), styled as frosted glass: a translucent, backdrop-blurred control bar.
+// Shows the CSS lever produces a wholly different aesthetic from Neon.
+// ---------------------------------------------------------------------------
+.bmpui-ui-skin-glass {
+  .bmpui-ui-controlbar {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  .bmpui-seekbar-playbackposition {
+    background: rgba(255, 255, 255, 0.9);
+  }
+  .bmpui-seekbar-playbackposition-marker {
+    background: #fff;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.85);
+  }
+  .bmpui-seekbar-bufferlevel {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .bmpui-ui-livebutton {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+
+    &.bmpui-at-live-edge {
+      background: rgba(232, 35, 43, 0.4);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// "Cinema" skin — pairs with the immersive Cinema COMPOSITION (CinemaUIFactory):
+// a deeper bottom gradient and a larger center play button for a theatre feel.
+// ---------------------------------------------------------------------------
+.bmpui-ui-skin-cinema {
+  .bmpui-ui-controlbar {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%);
+    padding-bottom: 0.4em;
+  }
+  .bmpui-ui-hugeplaybacktogglebutton {
+    transform: scale(1.3);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// "Sunset" skin — a CSS-only re-skin (Default tree), warm amber→pink palette.
+// Distinct from Neon (cyan/magenta) and Glass (frosted).
+// ---------------------------------------------------------------------------
+.bmpui-ui-skin-sunset {
+  .bmpui-ui-controlbar {
+    background: linear-gradient(180deg, rgba(40, 8, 30, 0) 0%, rgba(48, 10, 24, 0.92) 60%);
+  }
+  .bmpui-seekbar-playbackposition {
+    background: linear-gradient(90deg, #ffb347, #ff5e62, #ff2e63);
+    box-shadow: 0 0 8px rgba(255, 94, 98, 0.8);
+  }
+  .bmpui-seekbar-playbackposition-marker {
+    background: #ffe3b3;
+    box-shadow: 0 0 8px #ff9a3c, 0 0 14px #ff2e63;
+  }
+  .bmpui-seekbar-bufferlevel {
+    background: rgba(255, 154, 60, 0.3);
+  }
+  .bmpui-ui-livebutton.bmpui-at-live-edge {
+    background: rgba(255, 46, 99, 0.28);
+
+    &::before {
+      background: #ff2e63;
+      box-shadow: 0 0 0 0.16em rgba(255, 46, 99, 0.3);
+    }
+  }
+  .bmpui-ui-label-wallclock,
+  .bmpui-ui-label-behindlive,
+  .bmpui-ui-playbacktimelabel {
+    color: #ffd9a0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// "Bold" skin — oversized, high-contrast controls for a 10-foot / TV feel.
+// Pairs well with the autohide-off option. CSS-only on the Default tree.
+// ---------------------------------------------------------------------------
+.bmpui-ui-skin-bold {
+  .bmpui-ui-controlbar {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.92) 100%);
+    padding-bottom: 0.7em;
+  }
+  .bmpui-ui-button {
+    height: 2.4rem;
+    min-width: 2.4rem;
+    padding: 0.5rem;
+  }
+  .bmpui-ui-livebutton {
+    height: 2.6em;
+    font-size: 0.95em;
+  }
+  .bmpui-seekbar-playbackposition-marker {
+    width: 1.4em;
+    height: 1.4em;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// "Mono" skin — a CSS-ONLY monochrome re-skin of the Default tree. No hues at all:
+// a grayscale played bar and desaturated controls for an editorial, print-like
+// look. Same components as Neon/Glass/Sunset/Bold — only the rules differ.
+// ---------------------------------------------------------------------------
+.bmpui-ui-skin-mono {
+  .bmpui-ui-controlbar {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.9) 100%);
+  }
+  // Grayscale played bar + a crisp white square scrubber.
+  .bmpui-seekbar-playbackposition {
+    background: #e9e9e9;
+  }
+  .bmpui-seekbar-playbackposition-marker {
+    background: #fff;
+    border-radius: 0;
+  }
+  .bmpui-seekbar-bufferlevel {
+    background: rgba(255, 255, 255, 0.25);
+  }
+  // Strip color from every icon/button; restore brightness on hover for affordance.
+  .bmpui-ui-button {
+    filter: grayscale(1) contrast(1.1);
+  }
+  .bmpui-ui-button:hover {
+    filter: grayscale(1) brightness(1.4);
+  }
+  // The LIVE pill goes monochrome too (no brand color).
+  .bmpui-ui-livebutton.bmpui-at-live-edge::before {
+    background: #fff;
+    box-shadow: 0 0 0 0.16em rgba(255, 255, 255, 0.3);
+  }
+  .bmpui-ui-label-wallclock,
+  .bmpui-ui-label-behindlive,
+  .bmpui-ui-playbacktimelabel {
+    color: #f2f2f2;
+    letter-spacing: 0.02em;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// "Compact" skin — pairs with the slim Compact COMPOSITION (CompactUIFactory):
+// tight padding and small controls for embedded placements.
+// ---------------------------------------------------------------------------
+.bmpui-ui-skin-compact {
+  .bmpui-ui-controlbar {
+    padding: 0.25em 0.5em;
+    background: rgba(0, 0, 0, 0.62);
+  }
+  .bmpui-ui-button {
+    height: 1.05rem;
+    min-width: 1.05rem;
+    padding: 0.2rem;
+  }
+  .bmpui-ui-playbacktimelabel {
+    font-size: 0.8em;
+  }
+}
+
+// ===========================================================================
+// Streaming-service-style skins. Each pairs with its own COMPOSITION (see
+// liveUi.ts) — these are brand-flavored CSS on top of a different component tree,
+// not a re-skin of one shared tree. Homages only; no logos, no affiliation.
+// ===========================================================================
+
+// The base modern skin colors the played bar + buffer at (0,3,0) specificity
+// (`.bmpui-ui-seekbar .bmpui-seekbar .bmpui-seekbar-*`), so a brand override must
+// match that depth to win — a lone `.ui-skin-*` prefix (0,2,0) silently loses.
+// (The gradient skins above dodge this because they paint background-IMAGE, which
+// the base never sets; solid brand colors below nest to reach the needed depth.)
+// The MARKER is the exception: its base rule is only (0,2,0) and is NOT under the
+// inner `.bmpui-seekbar`, so the marker overrides stay un-nested to match that DOM —
+// nesting them under `.bmpui-seekbar` would match nothing.
+
+// "Premiere-style" — cinematic dark gradients, a bold title up top, brand red scrubber.
+.bmpui-ui-skin-premiere {
+  .bmpui-ui-controlbar {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%);
+    padding-bottom: 0.5em;
+  }
+  .bmpui-ui-titlebar {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0) 100%);
+    padding: 1em 1.3em;
+  }
+  .bmpui-label-metadata-title {
+    color: #fff;
+    font-size: 1.35em;
+    font-weight: 700;
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.7);
+  }
+  .bmpui-ui-seekbar .bmpui-seekbar {
+    .bmpui-seekbar-playbackposition {
+      background: #e50914;
+    }
+    .bmpui-seekbar-bufferlevel {
+      background: rgba(255, 255, 255, 0.35);
+    }
+  }
+  .bmpui-ui-seekbar .bmpui-seekbar-playbackposition-marker {
+    background: #e50914;
+    box-shadow: 0 0 0 0.25em rgba(229, 9, 20, 0.3);
+  }
+  .bmpui-ui-playbacktimelabel {
+    color: #fff;
+    font-weight: 600;
+  }
+  .bmpui-ui-button:hover {
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.7));
+  }
+}
+
+// "Creator-style" — a flat dark bar, a thin bright-red scrubber that pops on hover.
+.bmpui-ui-skin-creator {
+  .bmpui-ui-controlbar {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.78) 90%);
+  }
+  .bmpui-ui-seekbar .bmpui-seekbar {
+    .bmpui-seekbar-playbackposition {
+      background: #ff0000;
+    }
+    .bmpui-seekbar-bufferlevel {
+      background: rgba(255, 255, 255, 0.4);
+    }
+    .bmpui-seekbar-backdrop {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+  .bmpui-ui-seekbar .bmpui-seekbar-playbackposition-marker {
+    background: #ff0000;
+    transform: scale(0.85);
+    transition: transform 0.1s ease;
+  }
+  .bmpui-ui-seekbar:hover .bmpui-seekbar-playbackposition-marker {
+    transform: scale(1.25);
+  }
+  .bmpui-ui-playbacktimelabel {
+    color: #fff;
+  }
+}
+
+// "Studio-style" — deep navy chrome, the brand blue scrubber sitting inline
+// between the time labels, a title up top.
+.bmpui-ui-skin-studio {
+  .bmpui-ui-controlbar {
+    background: linear-gradient(180deg, rgba(16, 20, 38, 0) 0%, rgba(16, 20, 38, 0.94) 100%);
+    padding-bottom: 0.4em;
+  }
+  .bmpui-ui-titlebar {
+    background: linear-gradient(180deg, rgba(16, 20, 38, 0.78) 0%, rgba(16, 20, 38, 0) 100%);
+    padding: 0.9em 1.2em;
+  }
+  .bmpui-label-metadata-title {
+    color: #f0f3ff;
+    font-size: 1.25em;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .bmpui-ui-seekbar .bmpui-seekbar {
+    .bmpui-seekbar-playbackposition {
+      background: #1f9bff;
+    }
+    .bmpui-seekbar-bufferlevel {
+      background: rgba(120, 170, 255, 0.4);
+    }
+  }
+  .bmpui-ui-seekbar .bmpui-seekbar-playbackposition-marker {
+    background: #fff;
+    box-shadow: 0 0 0 0.16em rgba(31, 155, 255, 0.5), 0 0 8px rgba(31, 155, 255, 0.8);
+  }
+  .bmpui-ui-playbacktimelabel {
+    color: #cfe0ff;
+    font-variant-numeric: tabular-nums;
+  }
+  .bmpui-ui-button:hover {
+    filter: drop-shadow(0 0 5px rgba(31, 155, 255, 0.9));
+  }
+}
+
+
+// ===========================================================================
+// "Sports" theme — a live baseball-broadcast look. The LIVE/DVR control set plus
+// two CUSTOM overlay components (ScoreboardStrip across the top, PlayerInfoCard in
+// a corner) and an INFO toggle that shows/hides them. The overlays are absolutely
+// positioned so they persist over the video, independent of the control bar.
+// (Sample data lives in sportsData.ts — see the components.)
+// ===========================================================================
+.bmpui-ui-skin-sports {
+  // Broadcast accent on the seek bar + a tabular, sporty feel.
+  .bmpui-seekbar-playbackposition {
+    background: #ffcc00;
+  }
+  .bmpui-seekbar-playbackposition-marker {
+    background: #fff;
+    box-shadow: 0 0 6px rgba(255, 204, 0, 0.9);
+  }
+  .bmpui-ui-playbacktimelabel,
+  .bmpui-ui-label-wallclock,
+  .bmpui-ui-label-behindlive {
+    font-variant-numeric: tabular-nums;
+  }
+
+  // INFO toggle (show/hide overlays) — a compact text pill matching the LIVE button.
+  .bmpui-ui-sportsinfo-toggle {
+    font-size: 0.7em;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0 0.6em;
+    border-radius: 0.9em;
+    color: #04121f;
+    background: #ffcc00;
+    &.bmpui-info-hidden {
+      color: #ffcc00;
+      background: rgba(255, 204, 0, 0.18);
+    }
+  }
+}
+
+// The overlays carry their own classes (not tied to the skin) so they could be reused, but they
+// only appear in the Sports tree today.
+.bmpui-ui-scoreboard-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  padding: 0.4em 0.8em;
+  background: linear-gradient(180deg, rgba(4, 10, 22, 0.92), rgba(4, 10, 22, 0));
+  color: #fff;
+  font-size: 0.8em;
+  white-space: nowrap;
+  overflow: hidden;
+  pointer-events: none; // info only — don't intercept player clicks
+
+  .sb-label {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #ffcc00;
+    text-transform: uppercase;
+    font-size: 0.85em;
+  }
+  .sb-game {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    padding-right: 0.9em;
+    border-right: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  .sb-team {
+    opacity: 0.92;
+  }
+  .sb-score {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .sb-at {
+    opacity: 0.5;
+  }
+  .sb-status {
+    margin-left: 0.2em;
+    font-size: 0.82em;
+    color: #ffcc00;
+  }
+}
+
+.bmpui-ui-playerinfo-card {
+  position: absolute;
+  left: 0.8em;
+  bottom: 5.2em; // sit above the control bar
+  width: 14em;
+  padding: 0.6em 0.7em;
+  background: rgba(4, 10, 22, 0.82);
+  border-left: 3px solid #ffcc00;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.78em;
+  line-height: 1.4;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  .pi-head {
+    font-weight: 700;
+    color: #ffcc00;
+    margin-bottom: 0.35em;
+    font-size: 0.92em;
+  }
+  .pi-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4em;
+  }
+  .pi-role {
+    width: 1.6em;
+    font-weight: 700;
+    opacity: 0.7;
+  }
+  .pi-name {
+    font-weight: 600;
+  }
+  .pi-stat {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+  }
+  .pi-row + .pi-row .pi-stat {
+    margin-left: auto;
+  }
+  .pi-count {
+    display: flex;
+    gap: 0.5em;
+    margin: 0.4em 0;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #ffcc00;
+  }
+  .pi-lineup {
+    list-style: none;
+    margin: 0;
+    padding: 0.35em 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    li {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4em;
+      padding: 0.05em 0;
+      opacity: 0.9;
+    }
+    .pi-ord {
+      width: 1.1em;
+      color: #ffcc00;
+      font-weight: 700;
+    }
+    .pi-pos {
+      width: 2em;
+      opacity: 0.6;
+      font-size: 0.9em;
+    }
+    .pi-avg {
+      margin-left: auto;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}
+
+// The scoreboard strip sets its own `display:flex`, which (appended after the base CSS, equal
+// specificity) would otherwise beat `.bmpui-hidden{display:none}` — so this higher-specificity
+// rule is required for the SportsInfoToggleButton to hide it. The card arm is defensive (the card
+// sets no `display`, so the base hidden rule already covers it) in case a `display` is added later.
+.bmpui-ui-scoreboard-strip.bmpui-hidden,
+.bmpui-ui-playerinfo-card.bmpui-hidden {
+  display: none;
+}
+
+// ===========================================================================
+// "Binge / continuous play" theme — episodic VOD. A clean VOD control set plus
+// three custom components: SkipIntroButton + NextEpisodeButton (control-bar
+// buttons — they need to be in the bar to be clickable; a direct UIContainer-child
+// overlay doesn't receive clicks) and NextUpCard (an informational end-of-clip
+// overlay that auto-advances). See buildBingeUiContainer.
+// ===========================================================================
+.bmpui-ui-skin-binge {
+  .bmpui-seekbar-playbackposition {
+    background: #e50914;
+  }
+  // The two episode buttons share a pill look in the control bar.
+  .bmpui-ui-nextepisode-button,
+  .bmpui-ui-skipintro-button {
+    font-size: 0.72em;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0 0.7em;
+    border-radius: 0.9em;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
+    &:hover {
+      background: rgba(229, 9, 20, 0.85);
+    }
+  }
+  // Skip Intro stands out a touch more (the time-sensitive action).
+  .bmpui-ui-skipintro-button {
+    color: #04121f;
+    background: rgba(255, 255, 255, 0.92);
+    &:hover {
+      background: #fff;
+    }
+  }
+}
+
+// Both episode buttons are DYNAMIC — they self-hide via `.hide()` (adding `.bmpui-hidden`)
+// when out of range (Skip Intro outside the intro; Next away from the end). But
+// bitmovin-player-ui has NO catch-all `.bmpui-hidden{display:none}`: hiding works only
+// through per-component compound rules like `.bmpui-hidden.bmpui-ui-button`. These two
+// buttons pass a custom `cssClass`, which REPLACES `ui-button`, so the rendered element
+// lacks `.bmpui-ui-button` and none of the library's hide rules match it — it would stay
+// `display:block` while "hidden". This explicit compound rule restores the hide (same
+// idiom as the livebutton / scoreboard / nextup-card overrides above).
+.bmpui-ui-nextepisode-button.bmpui-hidden,
+.bmpui-ui-skipintro-button.bmpui-hidden {
+  display: none;
+}
+
+// Next-up card — an informational overlay near the end of the clip (auto-advance;
+// manual advance is the control-bar Next button).
+.bmpui-ui-nextup-card {
+  position: absolute;
+  right: 1.1em;
+  bottom: 5em;
+  width: 15em;
+  padding: 0.7em 0.85em;
+  background: rgba(4, 10, 22, 0.9);
+  border-radius: 6px;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  pointer-events: none; // informational only
+
+  .nextup-label {
+    font-size: 0.72em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+  }
+  .nextup-title {
+    font-weight: 700;
+    margin: 0.2em 0 0.4em;
+    line-height: 1.25;
+  }
+  .nextup-count {
+    font-size: 0.82em;
+    font-variant-numeric: tabular-nums;
+    color: #ff5b64;
+    font-weight: 600;
+  }
+}
+.bmpui-ui-nextup-card.bmpui-hidden {
+  display: none;
+}
