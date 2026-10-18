@@ -24,17 +24,21 @@ cd apps/ios/DvrKit && swift test
 
 The app needs Xcode. Its player dependency is a binary XCFramework, so the app
 cannot be built with `swift build`. Dependency requirements and deployment
-targets are declared in `project.yml`.
+targets are declared in `project.yml`. Use [XcodeGen 2.46.0](https://github.com/yonaskolb/XcodeGen/releases/tag/2.46.0).
+The app pins Player 3.128.0; `Package.resolved` also records its transitive
+package revisions.
 
 Set your keys in the repository-root `.env` as described in `docs/SETUP.md`.
 The player license must allow the app's bundle ID. From the repository root:
 
 ```bash
-brew install xcodegen          # if not installed
+xcodegen version              # must be 2.46.0; install the linked release if needed
 bash scripts/sync-env.sh
 pnpm --filter @showcase/ui-shared build && pnpm sync:webui
 cd apps/ios
 xcodegen generate
+mkdir -p Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
+cp Package.resolved Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 open Showcase.xcodeproj
 ```
 
@@ -45,6 +49,7 @@ For an unsigned iOS simulator build, from `apps/ios`:
 ```bash
 xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS \
   -destination 'generic/platform=iOS Simulator' \
+  -onlyUsePackageVersionsFromResolvedFile \
   CODE_SIGNING_ALLOWED=NO build
 ```
 
@@ -93,3 +98,7 @@ touch apps/ios/Local.xcconfig
 Run this from the repository root. CI creates the same empty file. It does not
 provide a Player license or establish native playback. For a device run, use
 `sync-env.sh` with your own credentials as described above.
+
+CI builds and syncs the shared UI before generating the project. It also checks
+that the resulting iOS app contains the exact generated JavaScript and CSS.
+This packaging check does not establish licensed playback on a device.

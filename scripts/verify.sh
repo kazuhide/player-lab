@@ -43,18 +43,21 @@ step "env-lib/sync-env self-test" bash scripts/test-env-lib.sh
 step "Sync app credentials" bash scripts/sync-env.sh
 
 # ---- Web E2E (Playwright; starts a Vite server, hits public reference streams) ----
-if [ -n "${BITMOVIN_PLAYER_LICENSE_KEY:-}" ]; then
-  step "Web E2E (Playwright)" bash -c 'cd tests/e2e && pnpm exec playwright test --reporter=line'
-else
-  skip "Web E2E" "BITMOVIN_PLAYER_LICENSE_KEY not set in .env"
-fi
+step "Public Web E2E (localhost)" pnpm --filter @showcase/e2e e2e:public
 
 # ---- iOS (macOS + Xcode) ----
 if [ "$(uname)" = "Darwin" ] && command -v xcodebuild >/dev/null 2>&1; then
   step "iOS DvrKit tests" swift test --package-path apps/ios/DvrKit
   if command -v xcodegen >/dev/null 2>&1; then
-    (cd apps/ios && xcodegen generate >/dev/null)
-    step "iOS app build (sim)" bash -c "cd apps/ios && xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build >/dev/null"
+    step "Generate locked iOS project" bash -c '
+      cd apps/ios &&
+      xcodegen version | grep -Fx "Version: 2.46.0" &&
+      { [ -f Local.xcconfig ] || touch Local.xcconfig; } &&
+      xcodegen generate &&
+      mkdir -p Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm &&
+      cp Package.resolved Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+    '
+    step "iOS app build (sim)" bash -c "cd apps/ios && xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS -destination 'generic/platform=iOS Simulator' -onlyUsePackageVersionsFromResolvedFile CODE_SIGNING_ALLOWED=NO build >/dev/null"
   else
     skip "iOS app build" "xcodegen not installed (brew install xcodegen)"
   fi

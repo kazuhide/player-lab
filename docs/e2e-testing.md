@@ -23,8 +23,10 @@ bash scripts/test-env-lib.sh
 | iOS/tvOS | `swift test --package-path apps/ios/DvrKit` |
 | Android | `cd apps/android` then `./gradlew :dvr:test` |
 
-The CI workflow runs workspace checks and native compilation. The app READMEs
-list toolchain requirements and explain which builds need native assets.
+The CI workflow runs workspace checks, environment-loader tests, a public browser
+subset, and native compilation. Native jobs receive the same shared UI build;
+the packaged iOS app and Android APK are checked for matching JavaScript and CSS.
+The app READMEs list toolchain requirements.
 
 ## Browser playback
 
@@ -36,8 +38,10 @@ affect the result. Provisioned media tests require `VITE_TEST_STREAM_BASE_URL`
 in the test runner's environment.
 
 Run the existing cases you intend to verify and report that exact selection.
-The CI workflow does not run these browser cases automatically. Do not treat
-workspace unit-test success as browser playback success.
+CI runs `pnpm --filter @showcase/e2e e2e:public`: the selected public VOD and GUI
+cases, with retries disabled. It uses Chromium supplied by the locked Playwright
+package. The complete suite still needs the documented assets and optional
+licenses. Do not treat workspace unit-test success as browser playback success.
 
 ## Native builds and device runs
 
@@ -56,8 +60,9 @@ TV, remote-control, casting, offline, or Analytics behavior.
 
 `pnpm verify` runs the existing combined script. It also synchronizes local
 credentials and shared UI assets and can run browser tests against external
-streams. Missing toolchains and a missing player key cause some steps to be
-skipped; a zero exit status means the executed steps passed. Read its full
+streams. Missing native toolchains cause their steps to be skipped. The localhost
+browser subset runs without a Player key; a zero exit status means the executed
+steps passed. Read its full
 passed/skipped/failed summary and do not report skipped steps as successful.
 
 ## Recorded local check

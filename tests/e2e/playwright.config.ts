@@ -3,19 +3,13 @@ import { defineConfig } from "@playwright/test";
 const PORT = 5174; // harness page (tests/e2e) — most specs use the ui:false harness
 const APP_PORT = 5175; // the real apps/web app — for the UI / theme-selector spec
 
-// The app now DEFAULTS to a reliable live source (the BBC R&D testcard — see
-// apps/web/src/sources.ts), so the app webServer needs no override and the app-ui
-// tests exercise the REAL default the user sees (the previous override masked the
-// fact that the old default, livesim2, returns HTTP 429 under load). The harness
-// live-dvr spec still references DASH-IF livesim2 (REFERENCE.liveDashDvr300), which
-// rate-limits, so point IT at the same testcard via E2E_LIVE_DASH_URL (read in Node;
-// type=dynamic, 15-min window satisfies its assertions).
+// The harness live-DVR spec needs a real moving rewind window. The app keeps
+// its own public VOD default, so GUI checks exercise its normal initial source.
 const E2E_LIVE_DASH_URL = "https://vs-dash-ww-rd-live.akamaized.net/pl/testcard2020/avc-full.mpd";
 process.env.E2E_LIVE_DASH_URL ??= E2E_LIVE_DASH_URL;
 
-// Uses the system Chrome (channel: "chrome") so no Playwright browser download is
-// needed. The player needs a license keyed to the origin — localhost is allowed by
-// default — injected into the dev servers via the VITE_*_LICENSE_KEY vars.
+// Local runs use installed Chrome. CI selects its pinned Playwright Chromium.
+// The Web player needs no key at localhost; other origins need an allowed license.
 export default defineConfig({
   testDir: "./specs",
   timeout: 90_000,
@@ -30,7 +24,7 @@ export default defineConfig({
   reporter: [["list"]],
   use: {
     baseURL: `http://localhost:${PORT}`,
-    channel: "chrome",
+    channel: process.env.PLAYWRIGHT_BROWSER_CHANNEL ?? "chrome",
     headless: true,
   },
   webServer: [
