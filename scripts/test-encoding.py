@@ -54,7 +54,7 @@ if "list" in args:
         sys.exit(1)
     print(json.dumps(page))
 elif "config" in args:
-    print(json.dumps({"tenantOrgId": "test-org"}))
+    print(json.dumps({"tenantOrgId": os.environ.get("TEST_CLI_ORG", "test-org")}))
 elif "create" in args:
     if os.environ.get("TEST_HTTP_OUTCOME") == "error":
         print(os.environ["BITMOVIN_OUTPUT_SECRET_KEY"])
@@ -189,6 +189,18 @@ requests.request = request
         for credential in ("dummy-access", "dummy-secret", "dummy-api"):
             self.assertNotIn(credential, observed)
         self.assertIn("creation failed", result.stderr)
+
+    def test_bootstrap_omits_blank_cli_organization_like_the_cli_listing(self):
+        for organization in ("", " \t "):
+            with self.subTest(organization=organization):
+                self.prepare_bootstrap("success")
+                self.env["TEST_CLI_ORG"] = organization
+                http_calls = self.directory / "http.jsonl"
+                http_calls.unlink(missing_ok=True)
+                result = self.resolve({"0": []}, "")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                http = json.loads(http_calls.read_text())
+                self.assertNotIn("X-Tenant-Org-Id", http["headers"])
 
     def test_entrypoints_stop_before_starting_when_output_is_ambiguous(self):
         pages = [{"id": FIRST_ID, "name": NAME}, {"id": SECOND_ID, "name": NAME}]

@@ -23,8 +23,12 @@ def create_output(api=None):
         # Omitting BitmovinApiLogger keeps request bodies and response data quiet.
         # The SDK's verbose logger includes the S3 credentials in the request.
         if api is None:
+            organization = os.environ.get("BITMOVIN_TENANT_ORG_ID")
+            # The CLI treats a blank organization as no tenant selection.
+            if organization is not None and not organization.strip():
+                organization = None
             api = BitmovinApi(api_key=os.environ["BITMOVIN_API_KEY"],
-                              tenant_org_id=os.environ.get("BITMOVIN_TENANT_ORG_ID"))
+                              tenant_org_id=organization)
         region = os.environ.get("BITMOVIN_OUTPUT_REGION")
         cloud_region = AwsCloudRegion(region.upper().replace("-", "_")) if region else None
         output = api.encoding.outputs.s3.create(s3_output=S3Output(
