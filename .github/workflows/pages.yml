@@ -47,7 +47,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           root = Path('site')
-          expected = {'index.html', 'styles.css', 'assets/player-preview.jpg', 'assets/favicon.svg'}
+          expected = {'index.html', 'ja/index.html', 'styles.css', 'assets/player-preview.jpg', 'assets/favicon.svg'}
           if root.is_symlink() or not root.is_dir():
               raise SystemExit('The Pages source must be the site directory.')
           entries = list(root.rglob('*'))
