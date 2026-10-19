@@ -340,6 +340,15 @@ function renderThemeBar(): void {
 /** A JA / EN language toggle in the header. */
 function renderLangToggle(): void {
   langToggleEl!.innerHTML = "";
+  const userGuide = document.getElementById("user-guide-link") as HTMLAnchorElement | null;
+  if (userGuide) {
+    userGuide.textContent = pick({ ja: "ユーザーガイド", en: "User guide" });
+    const guidePath = getLang() === "ja" ? "ja/guide/" : "guide/";
+    userGuide.href = import.meta.env.MODE === "pages"
+      ? `../${guidePath}`
+      : `https://kazuhide.github.io/player-lab/${guidePath}`;
+    userGuide.hreflang = getLang();
+  }
   const langs: { id: Lang; label: string }[] = [
     { id: "ja", label: "日本語" },
     { id: "en", label: "English" },

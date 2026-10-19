@@ -10,6 +10,8 @@ import sys
 import tempfile
 import unittest
 
+from guide_routes import GUIDE_ASSETS, GUIDE_FILES
+
 
 SCRIPT = Path(__file__).with_name('package-pages.py')
 
@@ -21,12 +23,15 @@ class PagesPackageTests(unittest.TestCase):
         self.root = Path(self.temporary.name)
         self.site = self.root / 'site'
         self.web = self.root / 'dist'
+        self.guide = self.root / 'guide'
         self.notices = self.root / 'notices'
         self.output = self.root / 'public'
         self.manifest = self.root / 'report.json'
-        for name in ['index.html', 'ja/index.html', 'styles.css',
-                     'assets/player-preview.jpg', 'assets/favicon.svg']:
+        for name in {'index.html', 'ja/index.html', 'styles.css',
+                     'assets/player-preview.jpg', 'assets/favicon.svg'} | GUIDE_ASSETS:
             self.write(self.site, name, b'public overview')
+        for name in GUIDE_FILES:
+            self.write(self.guide, name, b'[]' if name.endswith('.json') else b'public guide')
         self.write(self.web, 'index.html', b'<script type="module" src="/player-lab/web/assets/main-12345678.js"></script>')
         self.write(self.web, 'guide.html', b'<a href="./index.html">Playground</a>')
         self.write(self.web, 'assets/main-12345678.js', b'console.log("public");')
@@ -45,6 +50,7 @@ class PagesPackageTests(unittest.TestCase):
         return subprocess.run([
             sys.executable, str(SCRIPT), '--site-dir', str(self.site),
             '--web-dir', str(self.web), '--notices-dir', str(self.notices),
+            '--guide-dir', str(self.guide),
             '--output-dir', str(self.output), '--manifest', str(self.manifest),
             *map(str, extra),
         ], text=True, capture_output=True, timeout=10)
@@ -76,7 +82,7 @@ class PagesPackageTests(unittest.TestCase):
             'web/assets/main-12345678.js', 'web/assets/main-12345678.css',
             'web/notices/PROJECT-LICENSE.txt', 'web/notices/BITMOVIN-PLAYER-UI-LICENSE.txt',
             'web/notices/BITMOVIN-PLAYER-THIRD-PARTY-NOTICES.txt',
-        })
+        } | GUIDE_ASSETS | GUIDE_FILES)
         report = json.loads(self.manifest.read_text())
         self.assertEqual([f['path'] for f in report['files']], sorted(files))
         for item in report['files']:
@@ -91,6 +97,35 @@ class PagesPackageTests(unittest.TestCase):
 
     def test_extra_landing_file_is_rejected(self):
         self.write(self.site, 'internal.html', b'not public')
+        self.assert_rejected()
+
+    def test_only_generated_guide_files_are_accepted(self):
+        for name in ['.env', 'docs/guide/en/start.json', 'guide/notes.html', 'guide/start/source.json']:
+            with self.subTest(name=name):
+                path = self.write(self.guide, name, b'not public')
+                self.assert_rejected()
+                path.unlink()
+                while path.parent != self.guide and not any(path.parent.iterdir()):
+                    path = path.parent
+                    path.rmdir()
+
+    def test_guide_and_translated_entry_are_required(self):
+        for name in ['guide/start/index.html', 'ja/guide/index.html', 'ja/guide/search-index.json']:
+            with self.subTest(name=name):
+                path = self.guide / name
+                data = path.read_bytes()
+                path.unlink()
+                self.assert_rejected()
+                path.write_bytes(data)
+
+    def test_guide_output_must_be_separate_from_inputs(self):
+        self.output = self.guide / 'public'
+        self.assert_rejected()
+
+    def test_guide_root_link_is_rejected(self):
+        original = self.guide
+        self.guide = self.root / 'linked-guide'
+        self.guide.symlink_to(original, target_is_directory=True)
         self.assert_rejected()
 
     def test_source_map_is_rejected(self):
@@ -150,7 +185,8 @@ class PagesPackageTests(unittest.TestCase):
 
     def test_symbolic_and_hard_links_are_rejected_in_every_input(self):
         for root, name in [(self.site, 'styles.css'), (self.web, 'assets/main-12345678.js'),
-                           (self.notices, 'PROJECT-LICENSE.txt')]:
+                           (self.notices, 'PROJECT-LICENSE.txt'),
+                           (self.guide, 'guide/search-index.json')]:
             for hard in [False, True]:
                 with self.subTest(name=name, hard=hard):
                     path = root / name

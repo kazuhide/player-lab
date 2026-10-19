@@ -20,7 +20,6 @@ TEXT = {
         'start': 'Getting started', 'native': 'Native examples', 'media': 'Media and measurements',
         'reference': 'Reference', 'web_group': 'Web controls and UI',
         'settings': 'Player Config reference', 'controls': 'All 35 controls', 'themes': 'All 14 themes',
-        'settings_filter': 'Filter settings on this page', 'settings_count': '{count} settings shown',
         'kind': 'Input', 'fallback': 'Form fallback', 'options': 'Choices', 'api': 'Player API',
         'field': 'Setting', 'description': 'Meaning and use', 'mode': 'Applies',
         'runtime': 'Immediately', 'reload': 'Reload the source', 'recreate': 'Recreate the player',
@@ -46,7 +45,6 @@ TEXT = {
         'start': '利用の準備', 'native': 'ネイティブ版', 'media': '素材と測定',
         'reference': 'リファレンス', 'web_group': 'Webの操作とUI',
         'settings': 'Player Configの全設定', 'controls': '全35操作', 'themes': '全14テーマ',
-        'settings_filter': 'このページの設定を絞り込む', 'settings_count': '{count}項目を表示',
         'kind': '入力形式', 'fallback': '代替表示値', 'options': '選択肢', 'api': 'Player API',
         'field': '設定名', 'description': '意味と使い方', 'mode': '適用方法',
         'runtime': '即時に適用', 'reload': 'ソースを再読み込み', 'recreate': 'Playerを再生成',
@@ -210,10 +208,7 @@ def page_html(content, language, slug, title, lead, body, pagination=''):
 def settings_group(group, language):
     labels = TEXT[language]
     output = [f'<p class="guide-mode">{labels[group["mode"]]}</p>',
-              f'<aside class="guide-note"><p>{labels["fallback_note"]}</p></aside>',
-              f'<div class="guide-settings-filter" hidden><label for="settings-filter">{labels["settings_filter"]}</label>'
-              f'<input id="settings-filter" data-setting-filter type="search" autocomplete="off">'
-              f'<p data-setting-count data-count-template="{esc(labels["settings_count"])}" role="status"></p></div>']
+              f'<aside class="guide-note"><p>{labels["fallback_note"]}</p></aside>']
     for field in group['fields']:
         identity, description = field_anchor(field), field['description']
         fallback = json.dumps(field['fallback_initial'], ensure_ascii=False, allow_nan=False)

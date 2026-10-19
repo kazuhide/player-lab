@@ -5,7 +5,8 @@ import { resolve } from "node:path";
 const directory = process.env.E2E_PAGES_DIR;
 if (!directory) throw new Error("Set E2E_PAGES_DIR to the composed public Pages artifact.");
 const root = resolve(directory);
-for (const file of ["index.html", "ja/index.html", "web/index.html", "web/guide.html"]) {
+for (const file of ["index.html", "ja/index.html", "web/index.html", "web/guide.html",
+  "guide/index.html", "ja/guide/index.html"]) {
   if (!existsSync(resolve(root, file))) throw new Error("The Pages artifact is missing a required HTML entry.");
 }
 const port = Number(process.env.E2E_PAGES_PORT ?? 5214);
@@ -17,7 +18,7 @@ const origin = `http://localhost:${port}`;
 
 export default defineConfig({
   testDir: "./specs",
-  testMatch: "pages.spec.ts",
+  testMatch: ["pages.spec.ts", "user-guide.spec.ts"],
   timeout: 90_000,
   expect: { timeout: 20_000 },
   fullyParallel: false,

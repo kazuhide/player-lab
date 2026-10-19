@@ -2,6 +2,7 @@
 
 [Project overview and getting started](https://kazuhide.github.io/player-lab/)
 · [Web app](https://kazuhide.github.io/player-lab/web/)
+· User guide: [English](https://kazuhide.github.io/player-lab/guide/) / [日本語](https://kazuhide.github.io/player-lab/ja/guide/)
 
 A Bitmovin Player playground for Web, iOS/tvOS, Android/Fire TV, React Native,
 and Vega OS. Try player and source settings, switch between the standard and
