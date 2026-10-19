@@ -126,19 +126,27 @@ memory measurements and their limits.
 ## Additional native runtime checks
 
 On 2026-10-19, the hosted iOS test passed on an iPhone 17 Pro simulator with
-iOS 26.4 and Player 3.128.0: one test, zero failures or skips, 12.161 seconds.
+iOS 26.4 and Player 3.128.0: one test, zero failures or skips, 11.670 seconds.
 It checked the bundled shared interface, playback initiated through that
 interface, HLS source changes, rewind and live return, and interface recreation.
-Seek checks waited for completion events and visible controls as well as SDK
-offsets; accepting a request alone does not show that playback has moved.
+Seek checks waited for fresh completion events, SDK positions, and visible
+controls. They compared rewind landing positions with a media reference fixed
+before the request: the live edge can advance while a seek buffers. The same
+three-second position tolerance was retained. Control checks included ancestor
+visibility and used normal pointer events to reveal auto-hidden controls;
+accepting a request or finding hidden markup alone does not show the result.
 The [iOS guide](../apps/ios/README.md) records the test's model/UI scope and limits.
 
-The Android 16 emulator attempts with Player 3.155.0 failed with authentication
-error `1003`; licensed playback remains unverified. The app and instrumentation
-APK compiled with the final shared UI, and packaged JavaScript/CSS matched the
-source output. Packaging regression tests passed five cases. These build and
-packaging checks are separate from playback acceptance. Physical devices and
-the other native platforms remain separate verification tasks.
+The Android 16 emulator passed both runtime tests with Player 3.155.0 through
+`connectedDebugAndroidTest`: two tests, zero failures or skips, 29.294 seconds.
+They used the app's Compose controls, bundled shared interface, actual playback,
+source changes, rewind/live return, and the DVR setting. Initial playback waited
+for a visible control; rewind used the same fixed-reference and visibility checks
+as iOS. The app and instrumentation APK compiled with the final shared UI, and
+packaged JavaScript/CSS matched the source output. Packaging regression tests
+passed five cases. These runtime results are separate from CI compilation and
+packaging. Physical devices and the other native platforms remain separate
+verification tasks.
 
 ## Codec capability query
 
