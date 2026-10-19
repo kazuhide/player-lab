@@ -6,7 +6,7 @@
     <meta name="description" content="Try Bitmovin Player settings, explore 14 player interfaces, and inspect the code behind them. Web and native examples with reproducible playback checks.">
     <meta name="color-scheme" content="light">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'">
-    <meta property="og:title" content="Player Lab — Explore playback settings and interfaces">
+    <meta property="og:title" content="Player Lab — Bitmovin Player samples">
     <meta property="og:description" content="Change player settings, try custom interfaces, and keep the construction code in view.">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="en_US">
@@ -18,7 +18,7 @@
     <link rel="alternate" hreflang="ja" href="https://kazuhide.github.io/player-lab/ja/">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
-    <title>Player Lab — Explore playback settings and interfaces</title>
+    <title>Player Lab — Bitmovin Player samples</title>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -40,8 +40,8 @@
 
     <main id="main" tabindex="-1">
       <section class="hero wrap" aria-labelledby="intro-title">
+        <h1 id="intro-title">Bitmovin Player samples</h1>
         <div class="hero-copy">
-          <h1 id="intro-title">Explore playback settings and custom player interfaces.</h1>
           <p class="intro">Switch themes, adjust player and source settings, and inspect
             the code used to build each interface.</p>
           <div class="actions">
@@ -67,7 +67,7 @@
 
       <section class="explore wrap" id="explore" aria-labelledby="explore-title">
         <div class="section-intro">
-          <h2 id="explore-title">Try the setting.<br>See what changes.</h2>
+          <h2 id="explore-title">Web features</h2>
           <p>The interface and its code stay together, so experiments are easy to follow.</p>
         </div>
         <dl class="capabilities">
@@ -95,7 +95,7 @@
       <section class="start-section" id="start" aria-labelledby="start-title">
         <div class="start-grid wrap">
           <div>
-            <h2 id="start-title">Start on localhost.</h2>
+            <h2 id="start-title">Run the Web app</h2>
             <p>Use Node.js 24.19.0 and pnpm 10.33.0, then run these commands.</p>
             <p>Open the printed URL with the hostname <code>localhost</code>. The
               Web Player works there without a Player key. Other hosts and native
@@ -111,7 +111,7 @@ pnpm --filter @showcase/web dev</code></pre>
 
       <section class="platform-section wrap" id="platforms" aria-labelledby="platform-title">
         <div class="section-intro">
-          <h2 id="platform-title">Explore each platform.</h2>
+          <h2 id="platform-title">Platform examples</h2>
           <p>Each example keeps its platform's player and toolchain. The platform
             guides describe supported formats, license setup, and verification limits.</p>
         </div>
@@ -126,7 +126,7 @@ pnpm --filter @showcase/web dev</code></pre>
 
       <section class="verification wrap" aria-labelledby="verification-title">
         <div>
-          <h2 id="verification-title">Reproduce the checks.</h2>
+          <h2 id="verification-title">Playback tests</h2>
           <p>Test the existing features with a short public media fixture. The test
             record distinguishes browser playback, native builds, and runtime checks.</p>
         </div>
