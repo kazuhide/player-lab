@@ -96,3 +96,20 @@ a warning-free console. They also do not verify live-event finalization, hosted
 feature media, licensed native playback, external Analytics receipt, actual
 cloud encoding, offline playback, or a Vega device build. Native compilation
 and packaged-resource results are recorded separately by CI.
+
+## Additional checks with local media
+
+On 2026-10-19, the [generated Big Buck Bunny fixtures](local-test-media.md)
+were used for 10 additional Chrome cases with retries disabled: provisioned
+HLS/DASH loading and seeking, audio selection, subtitle cues, sprite geometry
+and image requests, network callbacks, and the existing app's three feature
+presets. The generated media stays outside version control.
+
+Two separate [controlled finalization cases](live-to-vod-and-analytics.md#run-a-controlled-web-finalization-check)
+also passed, one for HLS and one for DASH. They served real media from a loopback
+server, finalized the same manifest URL, and checked that the same Player moved
+from live/DVR to finite VOD without a source reload. They covered player
+recreation through the DVR setting before finalization and seeking afterward.
+These checks establish controlled local behavior; production live ingest,
+delivery infrastructure, physical devices, and cloud services remain separate
+verification tasks.

@@ -6,5 +6,5 @@
     "verbatimModuleSyntax": false,
     "noEmit": true
   },
-  "include": ["src", "specs", "playwright.config.ts", "vite.config.ts"]
+  "include": ["src", "specs", "finalization", "playwright*.config.ts", "vite.config.ts"]
 }
