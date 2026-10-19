@@ -68,10 +68,11 @@ fallback font, since font metrics differ across operating systems.
 Analytics ingress requests are intercepted before navigation so CI playback
 does not enter the demo's usage data. An enabled collector must attempt a
 request and show its collection notice; this does not prove remote ingestion.
-Account aggregation controls remain disabled even for synthetic click events.
+The account aggregation query panel stays hidden in both languages, while its
+controls remain disabled and guarded against synthetic click events.
 
 On 2026-10-19, Chrome 155 on macOS 27.0.1 passed all ten production cases with
-Playwright 1.61.0, one worker and no retries or skips, in 14.5 seconds. This used
+Playwright 1.61.0, one worker and no retries or skips, in 14.6 seconds. This used
 the generated 60-second fixture and the configured public licenses, with
 collector requests intercepted. Web unit
 tests passed 93 cases, package verification passed 32, the static test server

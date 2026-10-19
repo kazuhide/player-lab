@@ -45,9 +45,10 @@ an account API key into a browser setting.
 
 The Pages build includes public test media. When configured with its public
 Analytics license, the collector sends playback data to Bitmovin. Browser-local
-playback measurements remain available. Account aggregation queries are disabled
-on Pages and need a separate backend with server-side account credentials. See
-the [Web guide](../apps/web/README.md#pages-version) for the fixture and notices.
+playback measurements remain available. The account aggregation query panel is
+hidden on Pages; queries need a separate backend with server-side account
+credentials. See the [Web guide](../apps/web/README.md#pages-version) for the
+fixture and notices.
 
 This Pages build accepts only `PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY` and
 `PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY` as client licenses. Use separate

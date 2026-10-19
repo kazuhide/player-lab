@@ -45,9 +45,9 @@ interruptions, work in the browser. When an Analytics license is configured, the
 collector sends playback events and measurements to Bitmovin. Use a separate
 license for the public demo to keep its data separate from local testing; see
 [Analytics setup](https://developer.bitmovin.com/playback/docs/setup-analytics).
-Account aggregation queries remain disabled on Pages. They require a backend
-that keeps the account API key server-side; Pages does not run the development
-proxy.
+The account aggregation query panel is hidden on Pages. These queries require
+a backend that keeps the account API key server-side; Pages does not run the
+development proxy.
 
 The project code uses MIT. The hosted Bitmovin Player SDK remains proprietary;
 its [notice](https://kazuhide.github.io/player-lab/web/notices/BITMOVIN-PLAYER-NOTICE.txt)

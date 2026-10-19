@@ -165,9 +165,10 @@ test("long configuration API names fit the mobile page with a wider fallback fon
   await expectNoDocumentOverflow(page);
 });
 
-test("static Analytics queries stay disabled and collector traffic is intercepted", async ({ page }, testInfo) => {
+test("Pages hides server Analytics queries while preserving the configured collector", async ({ page }, testInfo) => {
   await openApp(page);
-  await expect(page.locator(".analytics-intro")).toContainText("static host");
+  await expect(page.locator(".analytics-panel")).toBeHidden();
+  await expect(page.getByRole("heading", { name: /^Bitmovin Analytics/ })).toHaveCount(0);
   await expect(page.locator(".analytics-collector-notice")).toHaveCount(analyticsEnabled ? 1 : 0);
   if (analyticsEnabled) await expect(page.locator(".analytics-collector-notice")).toBeVisible();
   const buttons = page.locator(".analytics-preset");
@@ -176,7 +177,9 @@ test("static Analytics queries stay disabled and collector traffic is intercepte
   await buttons.evaluateAll((elements) => elements.forEach((button) => button.dispatchEvent(new MouseEvent("click", { bubbles: true }))));
   await expect(page.locator(".analytics-status")).toContainText("static host");
   await page.getByRole("button", { name: "日本語", exact: true }).click();
-  await expect(page.locator(".analytics-intro")).toContainText("静的ファイル");
+  await expect(page.locator(".analytics-panel")).toBeHidden();
+  await expect(page.getByRole("heading", { name: /^Bitmovin Analytics/ })).toHaveCount(0);
+  if (analyticsEnabled) await expect(page.locator(".analytics-collector-notice")).toContainText("再生情報や端末情報");
   await expect(page.locator(".analytics-status")).toContainText("静的ファイル");
   await expectPlayback(page);
   if (analyticsEnabled) await expect.poll(() => audits.get(page)!.collectors.length).toBeGreaterThan(0);
