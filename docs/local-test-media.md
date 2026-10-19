@@ -51,7 +51,7 @@ source buttons, settings menus and seek-bar preview. The application keeps its
 
 On 2026-10-19, all ten feature browser checks passed on macOS with Google Chrome
 155.0.8059.85 and Node.js 24.19.0: one worker, zero retries, 16.7 seconds. The
-generator contract checks passed all five cases, and workspace type-checking
+generator contract checks passed all sixteen cases, and workspace type-checking
 and production builds passed. The fixture was encoded with FFmpeg 9.0.2.
 These results cover this browser and local media, not native devices or the
 cloud templates. Encoder versions and platforms can produce different bytes;
@@ -103,6 +103,32 @@ The audio container duration includes the initial encoder padding, while its
 skip-sample information starts presentation at zero. The rounded playlist
 values are a separate measurement. Comparing those durations alone would
 misidentify this expected padding as accumulating playback drift.
+
+### FFprobe version differences at the final audio sample
+
+The same generated audio bytes produce different final-packet measurements in
+FFprobe 6.1.1 and 9.0.2. In the observed Ubuntu 24.04 output, the final MP4
+track-run box (`trun`) stores a duration of 512 samples. FFprobe 6.1.1 reports
+a full 1,024-sample frame instead, giving a packet end of 60.010666 s;
+FFprobe 9.0.2 reports the stored partial duration and ends at 60.000000 s.
+Both report the same initial 1,024 skip samples and 60.021333 s container
+duration. The MOV demuxers differ in their handling of stored sample durations;
+see [version 6.1.1](https://github.com/FFmpeg/FFmpeg/blob/n6.1.1/libavformat/mov.c#L9018)
+and [version 9.0.2](https://github.com/FFmpeg/FFmpeg/blob/n9.0.2/libavformat/mov.c#L11683).
+
+The tool therefore reads the AAC tail's stored duration from its generated
+single-track MP4 fragment. It preserves the raw probe result separately as
+`probe_last_packet_end_seconds`, records the stored `last_packet_duration_samples`,
+and checks the actual final presentation against sixty seconds with the same
+1 ms bound. A genuinely extended audio tail still fails. Truncated boxes and
+sample tables fail rather than falling back to an assumed duration. The report
+also records the FFprobe version, so differences in measurement remain visible.
+
+Fresh generation passed with FFmpeg/FFprobe 6.1.1-3ubuntu5 on Ubuntu 24.04 and
+9.0.2 on macOS. Both outputs stored the same 512-sample tail and presented audio
+through 60.000000 s. These checks compare timing, not encoded file checksums.
+All ten feature browser checks also passed against the Ubuntu-generated media
+in Chrome 155 on macOS: zero retries, one worker, 16.9 seconds.
 
 ## Attribution
 

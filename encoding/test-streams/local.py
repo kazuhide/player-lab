@@ -74,6 +74,71 @@ def digest(path):
     return result.hexdigest()
 
 
+def last_audio_sample_duration(fragment):
+    """Read the AAC tail's stored duration, including a partial final frame.
+
+    FFprobe 6.1 infers a full AAC frame for the final packet even when the
+    fragment's track-run (trun) box stores a shorter presentation duration.
+    This reader is limited to the single-track fragments generated here.
+    """
+    def boxes(data):
+        offset = 0
+        while offset < len(data):
+            if len(data) - offset < 8:
+                raise ValueError("The generated MP4 fragment has a truncated box header.")
+            size = int.from_bytes(data[offset:offset + 4], 'big')
+            kind = data[offset + 4:offset + 8]
+            header = 8
+            if size == 1:
+                if len(data) - offset < 16:
+                    raise ValueError("The generated MP4 fragment has a truncated large box.")
+                size = int.from_bytes(data[offset + 8:offset + 16], 'big')
+                header = 16
+            elif size == 0:
+                size = len(data) - offset
+            if size < header or offset + size > len(data):
+                raise ValueError("The generated MP4 fragment has an invalid box size.")
+            yield kind, data[offset + header:offset + size]
+            offset += size
+
+    tracks = [payload for kind, movie in boxes(fragment.read_bytes()) if kind == b'moof'
+              for kind, payload in boxes(movie) if kind == b'traf']
+    if len(tracks) != 1:
+        raise ValueError("Expected a single-track generated audio fragment.")
+    contents = list(boxes(tracks[0]))
+    default_duration = None
+    for kind, payload in contents:
+        if kind == b'tfhd':
+            if len(payload) < 8:
+                raise ValueError("The generated track-fragment header is truncated.")
+            flags = int.from_bytes(payload[:4], 'big') & 0xffffff
+            cursor = 8 + (8 if flags & 0x1 else 0) + (4 if flags & 0x2 else 0)
+            if flags & 0x8:
+                if len(payload) < cursor + 4:
+                    raise ValueError("The generated default sample duration is truncated.")
+                default_duration = int.from_bytes(payload[cursor:cursor + 4], 'big')
+    runs = [payload for kind, payload in contents if kind == b'trun']
+    if not runs or len(runs[-1]) < 8:
+        raise ValueError("The generated audio fragment has no complete track run.")
+    run = runs[-1]
+    flags = int.from_bytes(run[:4], 'big') & 0xffffff
+    if run[0] not in [0, 1] or flags & ~0xf05:
+        raise ValueError("The generated audio track run uses unsupported fields.")
+    count = int.from_bytes(run[4:8], 'big')
+    cursor = 8 + (4 if flags & 0x1 else 0) + (4 if flags & 0x4 else 0)
+    width = 4 * sum(bool(flags & flag) for flag in [0x100, 0x200, 0x400, 0x800])
+    if not count or len(run) != cursor + count * width:
+        raise ValueError("The generated audio track run has an invalid sample count.")
+    if flags & 0x100:
+        tail = cursor + (count - 1) * width
+        duration = int.from_bytes(run[tail:tail + 4], 'big')
+    else:
+        duration = default_duration
+    if duration is None or not 0 < duration <= 1024:
+        raise ValueError("The generated AAC tail has no valid sample duration.")
+    return duration
+
+
 def probe_representation(baseline, number):
     """Inspect real encoded packets independently from playlist durations."""
     with tempfile.NamedTemporaryFile(suffix='.mp4') as combined:
@@ -92,14 +157,27 @@ def probe_representation(baseline, number):
     data = json.loads(result.stdout)
     stream = data['streams'][0]
     packets = data['packets']
-    return {
+    last = packets[-1]
+    probe_end = round(float(last['pts_time']) + float(last['duration_time']), 6)
+    report = {
         'codec': stream['codec_name'],
         'container_duration_seconds': float(stream['duration']),
         'packet_count': len(packets),
         'first_packet_seconds': float(packets[0]['pts_time']),
-        'last_packet_end_seconds': round(float(packets[-1]['pts_time']) + float(packets[-1]['duration_time']), 6),
+        'probe_last_packet_end_seconds': probe_end,
+        'last_packet_end_seconds': probe_end,
         'initial_skip_samples': sum(item.get('skip_samples', 0) for item in packets[0].get('side_data_list', [])),
     }
+    if stream['codec_name'] == 'aac':
+        duration = last_audio_sample_duration(parts[-1])
+        report['last_packet_duration_samples'] = duration
+        report['last_packet_end_seconds'] = round(float(last['pts_time']) + duration / int(stream['sample_rate']), 6)
+    return report
+
+
+def validate_presentation_end(number, probe):
+    if abs(probe['last_packet_end_seconds'] - 60) > .001:
+        raise ValueError(f"Representation {number} does not end at sixty seconds: {json.dumps(probe, sort_keys=True)}")
 
 
 def build(output, archive):
@@ -217,14 +295,14 @@ def build(output, archive):
         if number < 2 and (len(durations) != 30 or any(abs(v - 2) > .000001 for v in durations)):
             raise ValueError("Video did not produce thirty two-second segments.")
         probe = probe_representation(baseline, number)
-        if abs(probe['last_packet_end_seconds'] - 60) > .001:
-            raise ValueError("The encoded presentation does not end at sixty seconds.")
+        validate_presentation_end(number, probe)
         streams.append({'type': 'video' if number < 2 else 'audio', 'representation': number, **summary, **probe})
     version = subprocess.run(['ffmpeg', '-version'], capture_output=True, text=True, check=True).stdout.splitlines()[0]
+    probe_version = subprocess.run(['ffprobe', '-version'], capture_output=True, text=True, check=True).stdout.splitlines()[0]
     report = {
         'source_url': SOURCE_URL, 'source_sha256': SOURCE_SHA256,
         'source_license': LICENSE_URL, 'attribution': ATTRIBUTION,
-        'ffmpeg': version, 'threads_per_stage': threads,
+        'ffmpeg': version, 'ffprobe': probe_version, 'threads_per_stage': threads,
         'video_frames_per_second': 24, 'audio_sample_rate': 48000,
         'audio_samples_per_frame': 1024, 'streams': streams,
     }

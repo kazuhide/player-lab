@@ -4,10 +4,12 @@
 import importlib.util
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
+import json
 from pathlib import Path
 import subprocess
 import tempfile
 from threading import Barrier
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -36,7 +38,87 @@ def write_download(command, options, contents):
         Path(command[command.index('--output') + 1]).write_bytes(contents)
 
 
+def mp4_box(kind, payload):
+    return (len(payload) + 8).to_bytes(4, 'big') + kind + payload
+
+
+def audio_fragment(sample_durations, default_duration=None):
+    flags = 0x100 if default_duration is None else 0
+    trun = flags.to_bytes(4, 'big') + len(sample_durations).to_bytes(4, 'big')
+    if default_duration is None:
+        trun += b''.join(value.to_bytes(4, 'big') for value in sample_durations)
+    tfhd = (0x8 if default_duration else 0).to_bytes(4, 'big') + (1).to_bytes(4, 'big')
+    if default_duration:
+        tfhd += default_duration.to_bytes(4, 'big')
+    return mp4_box(b'moof', mp4_box(b'traf', mp4_box(b'tfhd', tfhd) + mp4_box(b'trun', trun)))
+
+
 class LocalMediaTests(unittest.TestCase):
+    def test_audio_tail_uses_the_serialized_partial_sample_duration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fragment = Path(directory) / 'last.m4s'
+            fragment.write_bytes(audio_fragment([1024, 1024, 512]))
+            self.assertEqual(MEDIA.last_audio_sample_duration(fragment), 512)
+
+    def test_audio_tail_can_use_a_declared_default_sample_duration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fragment = Path(directory) / 'last.m4s'
+            fragment.write_bytes(audio_fragment([1024, 1024], default_duration=1024))
+            self.assertEqual(MEDIA.last_audio_sample_duration(fragment), 1024)
+
+    def test_truncated_fragment_cannot_supply_an_audio_duration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fragment = Path(directory) / 'last.m4s'
+            fragment.write_bytes(audio_fragment([512])[:-2])
+            with self.assertRaises(ValueError):
+                MEDIA.last_audio_sample_duration(fragment)
+
+    def test_sample_count_must_fit_the_serialized_track_run(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fragment = Path(directory) / 'last.m4s'
+            # The enclosing boxes are complete; only the declared sample count
+            # exceeds the duration entries actually stored inside the run.
+            run = (0x100).to_bytes(4, 'big') + (2).to_bytes(4, 'big') + (512).to_bytes(4, 'big')
+            fragment.write_bytes(mp4_box(b'moof', mp4_box(b'traf', mp4_box(b'trun', run))))
+            with self.assertRaises(ValueError):
+                MEDIA.last_audio_sample_duration(fragment)
+
+    def test_ffprobe6_full_frame_inference_does_not_extend_actual_audio_presentation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'init-stream2.m4s').write_bytes(b'init')
+            (root / 'chunk-stream2-00030.m4s').write_bytes(audio_fragment([512]))
+            report = {
+                'streams': [{'codec_name': 'aac', 'duration': '60.021333', 'sample_rate': '48000'}],
+                'packets': [
+                    {'pts_time': '-0.021333', 'duration_time': '0.021333',
+                     'side_data_list': [{'skip_samples': 1024}]},
+                    {'pts_time': '59.989333', 'duration_time': '0.021333'},
+                ],
+            }
+            with patch.object(MEDIA.subprocess, 'run', return_value=SimpleNamespace(stdout=json.dumps(report))):
+                actual = MEDIA.probe_representation(root, 2)
+            self.assertEqual(actual['last_packet_end_seconds'], 60.0)
+            self.assertEqual(actual['probe_last_packet_end_seconds'], 60.010666)
+            self.assertEqual(actual['last_packet_duration_samples'], 512)
+            self.assertEqual(actual['initial_skip_samples'], 1024)
+            MEDIA.validate_presentation_end(2, actual)
+
+    def test_a_genuine_extra_audio_tail_is_still_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'init-stream2.m4s').write_bytes(b'init')
+            (root / 'chunk-stream2-00030.m4s').write_bytes(audio_fragment([1024]))
+            report = {
+                'streams': [{'codec_name': 'aac', 'duration': '60.021333', 'sample_rate': '48000'}],
+                'packets': [{'pts_time': '59.989333', 'duration_time': '0.021333'}],
+            }
+            with patch.object(MEDIA.subprocess, 'run', return_value=SimpleNamespace(stdout=json.dumps(report))):
+                actual = MEDIA.probe_representation(root, 2)
+            self.assertEqual(actual['last_packet_end_seconds'], 60.010666)
+            with self.assertRaisesRegex(ValueError, 'does not end at sixty seconds'):
+                MEDIA.validate_presentation_end(2, actual)
+
     def test_track_languages_and_only_one_default_survive_relative_reuse(self):
         master = '\n'.join([
             '#EXTM3U',
