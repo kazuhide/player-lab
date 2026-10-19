@@ -153,6 +153,18 @@ test("the app and guide keep language, relative navigation and document width at
   }
 });
 
+test("long configuration API names fit the mobile page with a wider fallback font", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 });
+  await openApp(page);
+  await page.locator(".config-group-blurb").evaluateAll((elements) => {
+    for (const element of elements) element.style.fontFamily = "monospace";
+  });
+  await expect(page.locator(".config-group-blurb").filter({
+    hasText: "set{Catchup,Fallback}Config(LowLatencySyncConfig)",
+  })).toBeVisible();
+  await expectNoDocumentOverflow(page);
+});
+
 test("static Analytics queries stay disabled and collector traffic is intercepted", async ({ page }, testInfo) => {
   await openApp(page);
   await expect(page.locator(".analytics-intro")).toContainText("static host");

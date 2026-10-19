@@ -62,14 +62,16 @@ for HLS and DASH, all 14 themes and code examples, the three configuration
 application modes, guide navigation, audio selection, visible subtitle cues,
 and decoded thumbnail images. English and Japanese app and guide layouts are
 checked at 375 and 1440 pixels. Code blocks may scroll within their own area.
+Long API names in configuration explanations are also checked with a wider
+fallback font, since font metrics differ across operating systems.
 
 Analytics ingress requests are intercepted before navigation so CI playback
 does not enter the demo's usage data. An enabled collector must attempt a
 request and show its collection notice; this does not prove remote ingestion.
 Account aggregation controls remain disabled even for synthetic click events.
 
-On 2026-10-19, Chrome 155 on macOS 27.0.1 passed all nine production cases with
-Playwright 1.61.0, one worker and no retries or skips, in 14.3 seconds. This used
+On 2026-10-19, Chrome 155 on macOS 27.0.1 passed all ten production cases with
+Playwright 1.61.0, one worker and no retries or skips, in 14.5 seconds. This used
 the generated 60-second fixture and the configured public licenses, with
 collector requests intercepted. Web unit
 tests passed 93 cases, package verification passed 32, the static test server
