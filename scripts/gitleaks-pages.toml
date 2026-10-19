@@ -1,0 +1,12 @@
+# Keep default detectors. This one SDK export declaration is JavaScript, not a key.
+# https://github.com/gitleaks/gitleaks/blob/v8.30.1/README.md#configuration
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Bitmovin 8.263.0 undefined export initialization"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''(?:^|/)web/assets/main-[A-Za-z0-9_-]{8,}\.js$''']
+regexTarget = "match"
+regexes = ['''^r\.getEncryptionKey=r\.getAllEncryptionKeys=void\s*$''']

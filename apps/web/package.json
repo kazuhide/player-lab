@@ -8,6 +8,8 @@
     "dev": "vite",
     "prebuild": "pnpm --filter @showcase/ui-shared build",
     "build": "tsc --noEmit && vite build",
+    "prebuild:pages": "pnpm --filter @showcase/ui-shared build",
+    "build:pages": "tsc --noEmit && vite build --mode pages",
     "preview": "vite preview",
     "pretypecheck": "pnpm --filter @showcase/ui-shared build",
     "typecheck": "tsc --noEmit",

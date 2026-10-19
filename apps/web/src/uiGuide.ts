@@ -553,7 +553,7 @@ export function renderUiGuide(container: HTMLElement): void {
   });
   const link = document.createElement("a");
   link.className = "ui-guide-link";
-  link.href = "/guide.html";
+  link.href = "./guide.html";
   link.textContent = pick({ ja: "詳細なカスタマイズ・ガイドを開く →", en: "Open the full customization guide →" });
   head.append(h2, intro, link);
   container.appendChild(head);

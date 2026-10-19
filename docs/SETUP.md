@@ -1,12 +1,12 @@
 # Setup — credentials & configuration
 
-What you need to build and run the showcase locally, and **the one convention**
-every script and app follows for credentials/config.
+What you need to build and run the apps locally, including their shared
+credential convention. The Pages version uses a separate public configuration.
 
 ## Prerequisites
 
 - Node.js 24.19.0 and pnpm 10.33.0 (`corepack enable` then `corepack prepare pnpm@10.33.0 --activate`)
-- A Bitmovin account — https://dashboard.bitmovin.com
+- A Bitmovin account for licensed hosts, native apps or cloud features — https://dashboard.bitmovin.com
 - For encoding: Bitmovin CLI 0.7.0, Python 3.10+ with OpenSSL, `jq`, and
   `envsubst` (from GNU gettext). See the pinned installation below.
 
@@ -19,12 +19,14 @@ Two files, one precedence rule:
 | **`.env`** (repo root) | no — gitignored | **every credential and account-specific value**: API keys, license keys, S3 bucket + credentials |
 | **`config/encoding.conf`** | yes — committed | non-secret encoding config: the S3 output **resource name** and the per-scenario **test-source catalog** |
 
-**Precedence everywhere: environment > `.env` > `config/encoding.conf`.**
+**Local precedence: environment > `.env` > `config/encoding.conf`.**
 Files never override variables you exported in the shell, so one-off overrides
 like `SOURCE_HOST=… provision.sh vod-baseline` always work. Loaders:
 `scripts/env-lib.sh` (bash) and the equivalent block in
 `encoding/vod-multicodec-pertitle/multicodec_pertitle.py` (python);
-`apps/web/vite.config.ts` follows the same rule via Vite's `loadEnv`.
+Regular modes in `apps/web/vite.config.ts` follow the same rule via Vite's
+`loadEnv`. The Pages profile ignores local dotenv files and inherited `VITE_*`
+overrides.
 
 Secrets vs licenses — the split that decides where a value may travel:
 
@@ -34,6 +36,40 @@ Secrets vs licenses — the split that decides where a value may travel:
   (`BITMOVIN_PLAYER_LICENSE_KEY`, `BITMOVIN_ANALYTICS_LICENSE_KEY`). They are
   embedded client-side by design — the dashboard allow-list is the control.
 
+## Pages version
+
+The public build targets [the Web app](https://kazuhide.github.io/player-lab/web/).
+Playback there requires a Player license allowing the hostname. The exact
+`localhost` exception does not apply to GitHub Pages or native apps. Never enter
+an account API key into a browser setting.
+
+The Pages build includes public test media. When configured with its public
+Analytics license, the collector sends playback data to Bitmovin. Browser-local
+playback measurements remain available. Account aggregation queries are disabled
+on Pages and need a separate backend with server-side account credentials. See
+the [Web guide](../apps/web/README.md#pages-version) for the fixture and notices.
+
+This Pages build accepts only `PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY` and
+`PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY` as client licenses. Use separate
+licenses intended for the public demo, and allow `kazuhide.github.io` on both.
+Both keys are delivered to visitors' browsers. Configure the two GitHub
+repository variables with those exact names before publishing. Empty values
+keep the corresponding build setting empty; an empty Analytics value leaves the
+collector off. Local `BITMOVIN_*` names and inherited `VITE_*` values are not
+fallbacks. Account API keys are never needed for Pages.
+
+CI builds and tests the static files under `/player-lab/web/`, then uploads
+those same files with a separate SHA-256 manifest. Pages accepts only a successful
+CI run for the current `main` commit and configured public Player and Analytics
+keys; it verifies the file list and hashes before deployment. A keyless build
+can be tested at `localhost`, but cannot be promoted by the Pages workflow.
+
+The artifact scan uses the default secret detectors. It distinguishes only those
+two explicitly configured public license values in the generated main bundle;
+other values and files remain subject to scanning. The temporary scan settings
+are kept outside the published files and removed afterward. Local account keys
+are never eligible for this exception.
+
 ## 1. Fill in `.env`
 
 ```bash
@@ -42,8 +78,8 @@ cp .env.example .env    # then fill in the values
 
 | Variable | What / who consumes it |
 | --- | --- |
-| `BITMOVIN_PLAYER_LICENSE_KEY` | Player license — every app. Allow-list each app's domain / bundle ID (Web hosts other than exact `localhost`; iOS/Android/RN: the bundle/application id). |
-| `BITMOVIN_ANALYTICS_LICENSE_KEY` | optional — Analytics collector license. When set, **every app's** collector reports QoE; empty keeps collectors off. |
+| `BITMOVIN_PLAYER_LICENSE_KEY` | Player license for local apps. Allow-list each app's domain / bundle ID (Web hosts other than exact `localhost`; iOS/Android/RN: the bundle/application id). |
+| `BITMOVIN_ANALYTICS_LICENSE_KEY` | optional — Analytics collector license for local apps. When set, their collectors report playback-quality measurements; empty keeps collectors off. |
 | `BITMOVIN_API_KEY` | secret — encoding scripts, Bitmovin CLI, and the web Analytics query proxy (server-side). |
 | `BITMOVIN_ANALYTICS_API_KEY` | optional secret — least-privilege key for the query proxy (falls back to `BITMOVIN_API_KEY`). |
 | `BITMOVIN_TENANT_ORG_ID` | optional — org-scoped accounts only. Sent as `X-Tenant-Org-Id` by the Per-Title python script and the web analytics proxy. The shell workflows, including S3 bootstrap, use the org selected via `bitmovin config` instead (they print a reminder when this is set). Replaces `BITMOVIN_ANALYTICS_ORG_ID` (still accepted). |
@@ -56,8 +92,8 @@ cp .env.example .env    # then fill in the values
 bash scripts/sync-env.sh    # rerun whenever .env changes (pnpm verify also runs it)
 ```
 
-One `.env`, five targets — each app consumes the same two license keys through
-its own toolchain-native mechanism:
+For local development, the apps consume the same two license keys through their
+own toolchain-native mechanisms:
 
 | Target | Mechanism (generated file is untracked) |
 | --- | --- |
@@ -160,8 +196,8 @@ The Web Player can run without a Player key at the exact hostname `localhost`.
 This exception is for the Web SDK; native apps still need their own licensed
 app identifiers. Analytics is optional and remains off without its key.
 
-The sprite, multi-audio, and sideloaded-subtitle examples do not include hosted
-account media. Set the existing `VITE_VOD_SPRITES_HLS_URL`,
+The local defaults for sprite, multi-audio, and sideloaded-subtitle examples
+need media URLs. Set the existing `VITE_VOD_SPRITES_HLS_URL`,
 `VITE_VOD_SPRITES_VTT_URL`, `VITE_VOD_MULTIAUDIO_HLS_URL`, and
 `VITE_VOD_SUBTITLE_VTT_URL` overrides in `apps/web/.env` to your own accessible
 media. See [the Web environment example](../apps/web/.env.example).

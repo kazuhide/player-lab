@@ -10,6 +10,10 @@ export interface ShowcaseSource {
   config: SourceConfig;
 }
 
+// Hosted examples use the bundled public fixture, not account-specific overrides.
+const IS_PAGES = import.meta.env.MODE === "pages";
+const PUBLIC_MEDIA_BASE = `${import.meta.env.BASE_URL}media/`;
+
 // ---------------------------------------------------------------------------
 // Live sources. The DEFAULTS are public reference streams that are genuinely
 // live right now (verified 2026-06-19: DASH type="dynamic" with a real
@@ -19,44 +23,50 @@ export interface ShowcaseSource {
 // channel finalizes to VOD when stopped, which is why it must not be the default).
 // ---------------------------------------------------------------------------
 const LIVE_DASH =
-  import.meta.env.VITE_LIVE_DASH_URL ??
+  (IS_PAGES ? undefined : import.meta.env.VITE_LIVE_DASH_URL) ??
   // BBC R&D testcard — Akamai-backed, continuously live (type="dynamic"), 15-min DVR
   // window, and one rich stream: multi-language audio (deu/eng/fra) AND subtitles
   // (deu/eng/fra). Reliable default. DASH-IF livesim2 was the prior default but
   // rate-limits (HTTP 429) under repeated loads, so it broke the app out of the box.
   "https://vs-dash-ww-rd-live.akamaized.net/pl/testcard2020/avc-full.mpd";
 const LIVE_HLS =
-  import.meta.env.VITE_LIVE_HLS_URL ??
+  (IS_PAGES ? undefined : import.meta.env.VITE_LIVE_HLS_URL) ??
   // Unified Streaming — live HLS, sliding window (no EXT-X-ENDLIST).
   "https://demo.unified-streaming.com/k8s/live/scte35.isml/.m3u8";
 
 // VOD reference streams (Unified Streaming Tears of Steel + DASH-IF), verified.
 const VOD_HLS =
-  "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8";
-const VOD_DASH = "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd";
+  IS_PAGES ? `${PUBLIC_MEDIA_BASE}vod-baseline/master.m3u8`
+    : "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8";
+const VOD_DASH = IS_PAGES ? `${PUBLIC_MEDIA_BASE}vod-baseline/manifest.mpd`
+  : "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd";
 
 // Feature demos require your own asset URLs in the VITE_VOD_* variables below.
 // Unset URLs stay empty; all demo presets remain available.
 // Provisioned Bitmovin VOD with a sprite thumbnail track (scrub preview). The VTT is
 // the player's thumbnailTrack; built by encoding/test-streams/vod-sprites.yaml.
 const VOD_SPRITES_HLS =
-  import.meta.env.VITE_VOD_SPRITES_HLS_URL ?? "";
+  IS_PAGES ? `${PUBLIC_MEDIA_BASE}vod-sprites/master.m3u8`
+    : import.meta.env.VITE_VOD_SPRITES_HLS_URL ?? "";
 const VOD_SPRITES_VTT =
-  import.meta.env.VITE_VOD_SPRITES_VTT_URL ?? "";
+  IS_PAGES ? `${PUBLIC_MEDIA_BASE}vod-sprites/thumbnails/thumbnails.vtt`
+    : import.meta.env.VITE_VOD_SPRITES_VTT_URL ?? "";
 
 // Provisioned Bitmovin VOD with two selectable audio tracks (en default + de).
 const VOD_MULTIAUDIO_HLS =
-  import.meta.env.VITE_VOD_MULTIAUDIO_HLS_URL ?? "";
+  IS_PAGES ? `${PUBLIC_MEDIA_BASE}vod-multiaudio/master.m3u8`
+    : import.meta.env.VITE_VOD_MULTIAUDIO_HLS_URL ?? "";
 
 // Sideloaded WebVTT subtitle (en), loaded client-side via SourceConfig.subtitleTracks.
 // Re-timed Sintel subtitles; see encoding/test-streams/assets/.
 const VOD_SUBTITLE_VTT =
-  import.meta.env.VITE_VOD_SUBTITLE_VTT_URL ?? "";
+  IS_PAGES ? `${PUBLIC_MEDIA_BASE}assets/sintel_en.vtt`
+    : import.meta.env.VITE_VOD_SUBTITLE_VTT_URL ?? "";
 
 export const SOURCES: ShowcaseSource[] = [
   // VOD first — the DEFAULT (index 0) loads instantly and reliably, so the app always
   // opens to a working player. Live is one click away.
-  { id: "vod-hls", label: "VOD HLS", kind: "vod-hls", isLive: false, config: { hls: VOD_HLS, title: "VOD HLS (Tears of Steel)" } },
+  { id: "vod-hls", label: "VOD HLS", kind: "vod-hls", isLive: false, config: { hls: VOD_HLS, title: IS_PAGES ? "VOD HLS (Big Buck Bunny)" : "VOD HLS (Tears of Steel)" } },
   { id: "vod-dash", label: "VOD DASH", kind: "vod-dash", isLive: false, config: { dash: VOD_DASH, title: "VOD DASH (Big Buck Bunny)" } },
   // Live (genuinely live + DVR window). One rich BBC testcard stream carries DVR +
   // multi-audio (deu/eng/fra) + subtitles, so it isn't split into duplicate buttons;

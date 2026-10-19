@@ -45,8 +45,8 @@
           <p class="intro">Switch themes, adjust player and source settings, and inspect
             the code used to build each interface.</p>
           <div class="actions">
-            <a class="button" href="#start">Run locally</a>
-            <a class="text-link" href="https://github.com/kazuhide/player-lab/tree/main/apps/web">Read the Web guide</a>
+            <a class="button" href="web/">Open Web app</a>
+            <a class="text-link" href="#start">Run locally</a>
           </div>
         </div>
         <p class="hero-note">A Bitmovin Player playground for the Web, with examples
@@ -59,7 +59,7 @@
               fetchpriority="high" decoding="async">
           </a>
           <figcaption>
-            <span>A capture of the existing Web app. Run it locally to try the controls.</span>
+            <span>A capture of the Web app with its player, settings and theme code.</span>
             <a href="https://github.com/kazuhide/player-lab/blob/main/docs/local-test-media.md">About the test media</a>
           </figcaption>
         </figure>
@@ -87,7 +87,7 @@
             <dt>Inspect real playback</dt>
             <dd>Try live rewind, audio selection, subtitles, and thumbnail previews.
               Player state, events, and local playback measurements help explain
-              the result. Optional examples list the media they need.</dd>
+              the result. The Pages version includes media for the feature examples.</dd>
           </div>
         </dl>
       </section>
@@ -97,9 +97,10 @@
           <div>
             <h2 id="start-title">Run the Web app</h2>
             <p>Use Node.js 24.19.0 and pnpm 10.33.0, then run these commands.</p>
-            <p>Open the printed URL with the hostname <code>localhost</code>. The
-              Web Player works there without a Player key. Other hosts and native
-              apps need your own license.</p>
+            <p>Open the printed URL with the hostname <code>localhost</code> to run
+              the Web Player without a key. Public Player and Analytics licenses must
+              allow <code>kazuhide.github.io</code>; both client keys are delivered to the browser.
+              Other hosts and native apps also need an allowed license.</p>
             <a class="text-link" href="https://github.com/kazuhide/player-lab/blob/main/docs/SETUP.md">Setup and optional media</a>
           </div>
           <pre tabindex="0" aria-label="Commands to run the Web application"><code>git clone https://github.com/kazuhide/player-lab.git
@@ -127,12 +128,20 @@ pnpm --filter @showcase/web dev</code></pre>
       <section class="verification wrap" aria-labelledby="verification-title">
         <div>
           <h2 id="verification-title">Playback tests</h2>
-          <p>Test the existing features with a short public media fixture. The test
-            record distinguishes browser playback, native builds, and runtime checks.</p>
+          <p>The Pages build includes a 60-second <em>Big Buck Bunny</em> fixture
+            as HLS and DASH, with two-second video segments.</p>
+          <p>Both audio tracks use the same soundtrack at different volumes; their
+            language labels are test metadata. The <em>Sintel</em> subtitles test cue
+            timing and are not a translation of <em>Big Buck Bunny</em>.</p>
+          <p>Browser-local playback measurements remain available. When configured,
+            the Analytics collector sends playback data to Bitmovin. Account aggregation
+            queries need a backend and are disabled on Pages. The test record
+            distinguishes browser playback, native builds and runtime checks.</p>
         </div>
         <div class="verification-links">
           <a href="https://github.com/kazuhide/player-lab/blob/main/docs/local-test-media.md">Generate the 60-second fixture</a>
           <a href="https://github.com/kazuhide/player-lab/blob/main/docs/e2e-testing.md">Read the test results</a>
+          <a href="web/media/ATTRIBUTION.txt">Media credits</a>
         </div>
       </section>
     </main>
@@ -142,6 +151,8 @@ pnpm --filter @showcase/web dev</code></pre>
         <span>Player Lab</span>
         <a href="https://github.com/kazuhide/player-lab/blob/main/LICENSE">Project code under MIT</a>
       </div>
+      <p>MIT applies to project code. The Bitmovin Player SDK uses a proprietary
+        license; see the <a href="web/notices/BITMOVIN-PLAYER-NOTICE.txt">SDK notice</a>.</p>
       <p>Preview media: <em>Big Buck Bunny</em>, (c) copyright 2008,
         Blender Foundation / www.bigbuckbunny.org.
         <a href="https://peach.blender.org/about/">Source and credits</a>.

@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import { resolveClientLicenseKey } from "./src/env/clientLicense";
+import { createPagesBuildConfig } from "./src/env/pagesBuild";
 import type { AnalyticsProxyConfig } from "./src/server/analyticsProxy";
 import { createAnalyticsMiddleware } from "./src/server/analyticsMiddleware";
 
@@ -22,6 +23,24 @@ function analyticsProxyPlugin(cfg: AnalyticsProxyConfig): Plugin {
 // The Bitmovin Player license key is read from VITE_BITMOVIN_PLAYER_LICENSE_KEY (see .env.example).
 // Allow-list this app's domain (e.g. localhost) on the license.
 export default defineConfig(({ mode }) => {
+  if (mode === "pages") {
+    const pages = createPagesBuildConfig(process.env);
+    return {
+      ...pages,
+      build: {
+        ...pages.build,
+        target: "es2021",
+        chunkSizeWarningLimit: 3000,
+        rollupOptions: {
+          input: {
+            main: fileURLToPath(new URL("./index.html", import.meta.url)),
+            guide: fileURLToPath(new URL("./guide.html", import.meta.url)),
+          },
+        },
+      },
+    };
+  }
+
   // Read env from the repo root (where the canonical .env lives — see the root .env.example) AND
   // apps/web, plus process.env (empty prefix → loadEnv includes all of process.env, so a
   // shell-exported BITMOVIN_API_KEY works in CI just like the player license does). Only VITE_
@@ -44,12 +63,12 @@ export default defineConfig(({ mode }) => {
     // CLI; it's also what the Analytics Query API authenticates with). A dedicated
     // BITMOVIN_ANALYTICS_API_KEY can be set instead for a least-privilege, analytics-scoped key.
     // Deliberately NO VITE_ fallback for the secret — a VITE_ var would be bundled client-side.
-    apiKey: env.BITMOVIN_ANALYTICS_API_KEY || env.BITMOVIN_API_KEY,
+    apiKey: env.BITMOVIN_ANALYTICS_API_KEY || env.BITMOVIN_API_KEY || "",
     // The license is domain-locked (not secret), so a VITE_ fallback is fine here.
-    licenseKey: env.BITMOVIN_ANALYTICS_LICENSE_KEY || env.VITE_BITMOVIN_ANALYTICS_LICENSE_KEY,
+    licenseKey: env.BITMOVIN_ANALYTICS_LICENSE_KEY || env.VITE_BITMOVIN_ANALYTICS_LICENSE_KEY || "",
     // Canonical org id (BITMOVIN_TENANT_ORG_ID → the X-Tenant-Org-Id header); the
     // pre-rename BITMOVIN_ANALYTICS_ORG_ID is still accepted.
-    orgId: env.BITMOVIN_TENANT_ORG_ID || env.BITMOVIN_ANALYTICS_ORG_ID,
+    orgId: env.BITMOVIN_TENANT_ORG_ID || env.BITMOVIN_ANALYTICS_ORG_ID || "",
   };
   return {
     plugins: [analyticsProxyPlugin(analyticsCfg)],

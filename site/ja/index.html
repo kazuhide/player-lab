@@ -45,8 +45,8 @@
           <p class="intro">Web版には設定パネルと再生操作用のボタンがあります。
             操作画面は14種類のテーマから選択できます。選択したテーマの画面を構成するコード例も表示します。</p>
           <div class="actions">
-            <a class="button" href="#start">Web版の起動手順</a>
-            <a class="text-link" href="https://github.com/kazuhide/player-lab/tree/main/apps/web">Web版のガイド（英語）</a>
+            <a class="button" href="../web/">Web版を開く</a>
+            <a class="text-link" href="#start">起動手順</a>
           </div>
         </div>
         <p class="hero-note">Web、iOS/tvOS、Android/Fire TV、React Native、Vega OS向けの実装を含みます。
@@ -89,7 +89,8 @@
               画質・音声・字幕の選択を実行します。これらの操作にはプレイヤーのAPI（アプリから機能を呼び出す仕組み）を使います。
               ライブ配信では巻き戻し可能な範囲と現在位置を表示します。プレイヤーが通知するイベントも記録します。
               再生開始までの時間や再生中にデータの読み込み待ちが発生した回数などをブラウザー内で測定して表示します。
-              複数音声、外部字幕、プレビュー画像の例は対応する素材のURLを別途設定して使用します。</dd>
+              Pages版には複数音声、外部字幕、プレビュー画像のテスト素材を含みます。
+              手元で起動する場合は、対応する素材のURLを別途設定します。</dd>
           </div>
         </dl>
       </section>
@@ -101,7 +102,9 @@
             <p>Node.js 24.19.0とpnpm 10.33.0を使用します。リポジトリを取得した後、
               依存パッケージをインストールして開発サーバーを起動します。</p>
             <p>起動後に表示されるURLをブラウザーで開きます。ホスト名が<code>localhost</code>の場合はWeb Playerをライセンスキーなしで実行できます。
-              その他のホスト名やiOS・Androidなどのアプリでは、利用するドメイン名またはアプリ識別子を登録したライセンスが必要です。</p>
+              Pages版に組み込むPlayerとAnalyticsのライセンスには<code>kazuhide.github.io</code>を許可登録します。
+              どちらのキーもブラウザーへ配信されます。
+              その他のホスト名やiOS・Androidなどのアプリでも、利用するドメイン名またはアプリ識別子を登録したライセンスを使用します。</p>
             <a class="text-link" href="https://github.com/kazuhide/player-lab/blob/main/docs/SETUP.md">ライセンスと設定手順（英語）</a>
           </div>
           <pre tabindex="0" aria-label="Webアプリを起動するコマンド"><code>git clone https://github.com/kazuhide/player-lab.git
@@ -129,9 +132,14 @@ pnpm --filter @showcase/web dev</code></pre>
       <section class="verification wrap" aria-labelledby="verification-title">
         <div>
           <h2 id="verification-title">再生テストと検証記録</h2>
-          <p>テスト用スクリプトはBig Buck Bunnyから60秒分の素材を生成します。
+          <p>Pages版にはBig Buck Bunnyから生成した60秒分の素材を含みます。
             動画を分割して配信するHLS・DASH形式に対応し、映像は2秒ごとに分割します。
             再生、画質・音声の選択、字幕、プレビュー画像などがテストの対象です。</p>
+          <p>2つの音声トラックは同じ音源を異なる音量で収録しており、言語名はテスト用の識別情報です。
+            字幕はSintelのテキストを使って表示タイミングを確認するための素材で、Big Buck Bunnyの翻訳ではありません。</p>
+          <p>ブラウザー内で測定する再生開始時間や読み込み待ちの回数は確認できます。
+            Analyticsのライセンスを設定した場合は、再生データをBitmovinへ送信します。
+            集計クエリはサーバー側の処理が必要なため、Pages版では無効です。</p>
           <p>ブラウザーでの再生テスト、アプリのビルド（ソースコードからアプリを作成する処理）、
             iOSシミュレーターやAndroidエミュレーターでの実行は別々に記録しています。
             テスト結果には実行環境、使用素材、確認した操作、未検証の項目を記載しています。</p>
@@ -139,6 +147,7 @@ pnpm --filter @showcase/web dev</code></pre>
         <div class="verification-links">
           <a href="https://github.com/kazuhide/player-lab/blob/main/docs/local-test-media.md">テスト素材の生成手順（英語）</a>
           <a href="https://github.com/kazuhide/player-lab/blob/main/docs/e2e-testing.md">テストの実行手順と結果（英語）</a>
+          <a href="../web/media/ATTRIBUTION.txt">テスト素材の出典（英語）</a>
         </div>
       </section>
     </main>
@@ -148,6 +157,8 @@ pnpm --filter @showcase/web dev</code></pre>
         <span>Player Lab</span>
         <a href="https://github.com/kazuhide/player-lab/blob/main/LICENSE">コードのライセンス：MIT（英語）</a>
       </div>
+      <p>MITは本プロジェクトのコードに適用されます。Bitmovin Player SDKには提供元独自の利用条件が適用されます。
+        <a href="../web/notices/BITMOVIN-PLAYER-NOTICE.txt">SDKの利用条件（英語）</a>を参照してください。</p>
       <p>画面例の映像素材：<em>Big Buck Bunny</em>, (c) copyright 2008,
         Blender Foundation / www.bigbuckbunny.org.
         <a href="https://peach.blender.org/about/">出典とクレジット（英語）</a>。

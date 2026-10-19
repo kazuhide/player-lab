@@ -45,6 +45,14 @@ const PROXY_UNAVAILABLE: L = {
   ja: "プロキシに到達できません(静的ビルドではミドルウェアが動きません — dev サーバー or バックエンドが必要)。",
   en: "The proxy isn’t reachable (the middleware doesn’t run in a static build — needs the dev server or a backend).",
 };
+const STATIC_HOST_UNAVAILABLE: L = {
+  ja: "このページは静的ファイルのみを配信するため、集計済みの Analytics データは取得できません。現在の再生セッションの計測値はブラウザー内の QoE パネルで確認できます。",
+  en: "Aggregated Analytics queries are unavailable on this static host because they require a server endpoint. The QoE panel still shows measurements from the current playback session.",
+};
+const COLLECTOR_NOTICE: L = {
+  ja: "利用状況と再生品質の確認のため、再生情報や端末情報を Bitmovin Analytics へ送信します。",
+  en: "Playback and device information is sent to Bitmovin Analytics to measure usage and playback quality.",
+};
 
 function isoDaysAgo(now: number, days: number): string {
   return new Date(now - days * 24 * 60 * 60 * 1000).toISOString();
@@ -58,17 +66,18 @@ export interface AnalyticsView {
 /** Build the Analytics query view. Returns its root element + a relocalize hook (main.ts calls
  *  it on language change so the view follows the language without losing a shown result). */
 export function createAnalyticsView(): AnalyticsView {
+  const staticHost = import.meta.env.MODE === "pages";
   const binder = new LangBinder();
   const root = document.createElement("section");
   root.className = "analytics-panel";
 
   const h2 = document.createElement("h2");
   h2.append(binder.span(TITLE));
-  h2.append(infoChip(HINT));
+  h2.append(infoChip(staticHost ? STATIC_HOST_UNAVAILABLE : HINT));
 
   const intro = document.createElement("p");
   intro.className = "analytics-intro";
-  binder.text(intro, INTRO);
+  binder.text(intro, staticHost ? STATIC_HOST_UNAVAILABLE : INTRO);
 
   const controls = document.createElement("div");
   controls.className = "analytics-controls";
@@ -76,6 +85,7 @@ export function createAnalyticsView(): AnalyticsView {
     const b = document.createElement("button");
     b.type = "button";
     b.className = "analytics-preset";
+    b.disabled = staticHost;
     binder.text(b, p.label);
     b.addEventListener("click", () => void runQuery(p));
     controls.appendChild(b);
@@ -96,6 +106,10 @@ export function createAnalyticsView(): AnalyticsView {
   result.hidden = true;
 
   async function runQuery(p: Preset): Promise<void> {
+    if (staticHost) {
+      setStatus(STATIC_HOST_UNAVAILABLE);
+      return;
+    }
     setStatus(RUNNING);
     result.hidden = true;
     const now = Date.now();
@@ -139,7 +153,14 @@ export function createAnalyticsView(): AnalyticsView {
     result.hidden = false;
   }
 
-  root.append(h2, intro, controls, status, result);
+  root.append(h2, intro);
+  if (staticHost && import.meta.env.VITE_BITMOVIN_ANALYTICS_LICENSE_KEY) {
+    const notice = document.createElement("p");
+    notice.className = "analytics-collector-notice";
+    binder.text(notice, COLLECTOR_NOTICE);
+    root.appendChild(notice);
+  }
+  root.append(controls, status, result);
 
   return {
     el: root,

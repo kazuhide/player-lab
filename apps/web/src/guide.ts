@@ -48,8 +48,8 @@ const SECTIONS: Section[] = [
       {
         kind: "p",
         text: {
-          ja: "プレイグラウンド本体は、同じプレイヤーに対して 16 個の UI ビルドを実行時に差し替えています(手法別にカテゴリ分け)。各テーマの実装は、プレイヤー右の「構築コード」パネルにそのまま出ます。このガイドはその裏側の仕組みと、ゼロから作るための手順書です。",
-          en: "The playground itself hot-swaps 16 UI builds against one player at runtime (grouped by technique). Each theme's real source shows in the “construction code” panel beside the player. This guide is the machinery behind that, and a step-by-step for building your own.",
+          ja: "プレイグラウンド本体は、同じプレイヤーに対して 14 個の UI ビルドを実行時に差し替えています(手法別にカテゴリ分け)。各テーマの実装は、プレイヤー右の「構築コード」パネルにそのまま出ます。このガイドはその裏側の仕組みと、ゼロから作るための手順書です。",
+          en: "The playground itself hot-swaps 14 UI builds against one player at runtime (grouped by technique). Each theme's real source shows in the “construction code” panel beside the player. This guide is the machinery behind that, and a step-by-step for building your own.",
         },
       },
     ],
