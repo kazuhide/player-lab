@@ -22,9 +22,11 @@ THEMES = (
     'custom-compact', 'custom-premiere', 'custom-creator', 'custom-studio',
 )
 LANGUAGES = ('en', 'ja')
-DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes')
-SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS))
-SOURCE_REVISION = 'aa45e002b2cc45477b17729e70f8a433adf4c146'
+COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'vega')
+DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
+SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS),
+         *(f'api-coverage/{name}' for name in COVERAGE_APPS))
+SOURCE_REVISION = 'f1a0d93c7e337afcc64c94b5e5d2249e69b59ecd'
 CONTENT_REVIEW = '2026-10-20'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 

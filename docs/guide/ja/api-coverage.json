@@ -1,0 +1,481 @@
+{
+  "id": "api-coverage",
+  "title": "公開APIの対応状況",
+  "lead": "各アプリで利用可能なSDK APIと、公開コードで確認できる操作・表示を比較します。アプリ別の一覧では、対象となるすべてのAPI IDと公式資料・コード証跡を確認できます。",
+  "noteTranslations": {
+    "web": [
+      {
+        "source": "The denominator covers PlayerConfig and SourceConfig leaf paths, PlayerAPI callable members including nested operational namespaces, and named PlayerEvent values. It is not a percentage of every exported SDK type, static constructor, utility, or event payload field.",
+        "text": "分母は、PlayerConfig・SourceConfigの末端パス、操作用の入れ子の名前空間を含むPlayerAPIの呼び出し可能なメンバー、名前付きのPlayerEvent値です。公開されたすべてのSDK型・静的コンストラクター・ユーティリティ・イベントのペイロードフィールドに対する割合ではありません。"
+      },
+      {
+        "source": "SDK declarations are extracted independently of the GUI inventory. Configuration arrays count element shapes once, maps and callbacks have explicit boundaries, and overloads count by method name. Available deprecated APIs remain counted.",
+        "text": "SDK宣言はGUI一覧とは独立して抽出しています。設定の配列は要素の型を一回だけ数え、マップとコールバックには対象の境界を明記します。オーバーロードはメソッド名ごとに一件と数え、利用可能な非推奨APIも残します。"
+      },
+      {
+        "source": "Direct means an app control can edit the field or invoke the operation with its supported GUI arguments. Preset means fixed source, value or theme choices; it does not mean every possible argument is exposed.",
+        "text": "「GUIで直接指定」は、アプリの操作部品からフィールドを編集するか、GUIがサポートする引数で操作を呼び出す場合です。「限定プリセット」は固定のソース・値・テーマ候補からの選択であり、任意の引数を指定できることは意味しません。"
+      },
+      {
+        "source": "The Player Config editor includes 134 GUI fields, but app helpers and paths absent from the public SDK declarations are not counted as public API coverage.",
+        "text": "Player Configエディターには134件のGUIフィールドがありますが、アプリ独自のヘルパーと公開SDK宣言に存在しないパスは、公開APIの対応件数に含めません。"
+      },
+      {
+        "source": "Audited standard UI action routes include video/audio quality, audio and subtitle track selection, Cast and AirPlay. Player Insights details, VR, advertising controls and every standard UI getter have not been qualified; their absence from this mapping is not proof that the SDK UI cannot call them.",
+        "text": "標準UIでは、映像・音声品質、音声・字幕トラック、Cast、AirPlayの操作経路を確認しています。Player Insightsの詳細、VR、広告操作、標準UIのすべてのgetterは確認していません。この一覧にないことだけで、SDK UIから呼び出せないとは判断しません。"
+      },
+      {
+        "source": "Observed APIs contribute only to display/log coverage. Metric collection and lifecycle calls do not become configurable merely because application code calls them.",
+        "text": "表示やログに使うAPIは、それぞれの対応件数にだけ加算します。計測値の収集やライフサイクル処理をアプリのコードから呼び出しても、設定可能な項目には数えません。"
+      },
+      {
+        "source": "The 22 observed events comprise 14 named log entries, 6 displayed-state refresh triggers and 2 derived playback-quality metric updates. This does not expose every event payload field.",
+        "text": "イベントの対応22件は、イベント名をログに出す14件、表示状態を更新する6件、再生品質の指標を更新する2件です。イベントが持つ各データ項目をGUIで確認できるという意味ではありません。"
+      },
+      {
+        "source": "10 shared adaptive-bitrate GUI controls write the same value to 20 desktop and mobile configuration paths. Those paths count as fields, but their desktop and mobile values cannot be edited independently.",
+        "text": "適応型ビットレートの設定10操作は、デスクトップ用とモバイル用の計20フィールドへ同じ値を設定します。フィールドとしては数えますが、デスクトップ用とモバイル用の値を独立して変更する操作はありません。"
+      },
+      {
+        "source": "The mapping is static source evidence. Browser playback and targeted GUI regressions are separate checks and do not establish that every option, event, browser, device, DRM system or external service works.",
+        "text": "対応付けはソースの静的な証跡に基づきます。ブラウザーでの再生と対象を絞ったGUI回帰テストは別の確認であり、すべての設定候補・イベント・ブラウザー・機器・DRM・外部サービスの動作を保証しません。"
+      }
+    ],
+    "web-ui": [
+      {
+        "source": "The denominator covers core UIConfig fields, canonical component configuration fields, component layout overrides, UIManager callable members and its two named dispatcher events. It excludes each individual component class method, component event payload and exported utility type.",
+        "text": "分母は、基本のUIConfigフィールド、正規化したコンポーネント設定フィールド、コンポーネントレイアウトの上書き、UIManagerの呼び出し可能なメンバー、名前付きディスパッチャーイベント二件です。各コンポーネントクラスのメソッド、コンポーネントイベントのペイロード、公開ユーティリティ型は含めません。"
+      },
+      {
+        "source": "UIComponentConfigMap is counted once per component/property path. The global context and nine variant contexts do not multiply the same parameter into ten APIs. UIConfig override containers are represented by their canonical configuration scopes.",
+        "text": "UIComponentConfigMapは、コンポーネントとプロパティのパスごとに一件と数えます。全体のコンテキストと九つの表示バリエーションによって、同じ引数を十件のAPIとして数えることはしません。UIConfigの上書き用コンテナーは、対応する正規の設定範囲で表します。"
+      },
+      {
+        "source": "A theme picker does not make every constructor constant GUI configurable. Constructor-only values receive code-only status. The Autohide switch supplies constrained UIContainer.hideDelay choices, and custom layouts supply a constrained QuickSeekButton inclusion choice.",
+        "text": "テーマを選べることだけで、コンストラクターの全定数をGUIで設定可能とは判断しません。生成時にだけ指定する値は「コードのみ」です。AutohideスイッチはUIContainer.hideDelayの限定候補を渡し、カスタムレイアウトはQuickSeekButtonを含めるかどうかの限定候補を渡します。"
+      },
+      {
+        "source": "The nine directly editable core UIConfig fields and fixed recommendation metadata are separate from individual component override editing. No arbitrary componentConfigOverrides or componentLayoutOverrides editor is present.",
+        "text": "直接編集できる基本UIConfigの九フィールドと固定のおすすめ情報は、個別のコンポーネント設定の上書きと区別します。componentConfigOverridesやcomponentLayoutOverridesを任意に編集するGUIはありません。"
+      },
+      {
+        "source": "These figures describe the Web application. Reusing the bundle in a native app does not transfer all Web controls or measured coverage to the native bridge.",
+        "text": "この件数はWebアプリを対象とします。同じバンドルをネイティブアプリで使っても、Web側の全操作や測定した対応件数をネイティブブリッジに引き継ぐことはできません。"
+      },
+      {
+        "source": "The local compatibility patch changes component release and recommendation action ownership. It does not add public declarations or increase the SDK API denominator.",
+        "text": "ローカルの互換パッチが変更するのは、コンポーネント解放とおすすめ操作の所有関係です。公開宣言を追加するものではなく、SDK APIの分母も増やしません。"
+      }
+    ],
+    "ios": [
+      {
+        "source": "Bounded public BitmovinPlayerCore operational scope: 65 configuration or nested input owners, 39 runtime owners, and four typed listener families. This is not a percentage of every SDK declaration.",
+        "text": "公開BitmovinPlayerCoreの操作に関わる範囲を対象とします。設定または入れ子の入力を持つ型65件、実行時の型39件、型付きリスナー四系統です。SDKの全宣言に対する割合ではありません。"
+      },
+      {
+        "source": "The denominator is extracted from pinned vendor DocC independently of the app mapping; available deprecated APIs remain counted.",
+        "text": "分母は、アプリ側の対応付けとは独立して、固定バージョンの公式DocCから抽出しています。利用可能な非推奨APIも対象に残します。"
+      },
+      {
+        "source": "Configuration counts public fields of the selected roots and nested input types. Initializers, enum cases, pure output data, inherited SwiftUI View APIs, and Analytics/Collector modules are outside this scope.",
+        "text": "設定は、対象ルートと入れ子の入力型の公開フィールドを数えます。イニシャライザー、enumケース、純粋な出力データ、SwiftUI Viewから継承するAPI、Analytics・Collectorモジュールは対象外です。"
+      },
+      {
+        "source": "Availability is the declared platform-family surface, not a guarantee that every member exists at the app minimum OS version. Per-symbol introduction metadata is retained in sdk-symbols.json.",
+        "text": "利用可能範囲は、宣言されたプラットフォーム系統に基づきます。アプリの最低OSバージョンですべてのメンバーを利用できることを保証するものではありません。シンボルごとの導入OS情報はsdk-symbols.jsonに保持しています。"
+      },
+      {
+        "source": "Direct means an app-owned control accepts arbitrary supported arguments or invokes an argumentless operation. Preset means a fixed set of sources, values or UI choices; it does not imply arbitrary argument support.",
+        "text": "「GUIで直接指定」は、アプリ独自の操作がサポートされる引数を任意に受け取るか、引数のない操作を呼び出す場合です。「限定プリセット」は、固定のソース・値・UI候補からの選択であり、任意の引数を指定できることは意味しません。"
+      },
+      {
+        "source": "Fixed construction values and namespace access are code-only. App DvrKit flags are excluded from SDK configuration counts; Allow DVR does not configure PlaybackConfig.isTimeShiftEnabled.",
+        "text": "生成時の固定値と名前空間へのアクセスは「コードのみ」です。アプリ側DvrKitのフラグはSDK設定に含めません。Allow DVRはPlaybackConfig.isTimeShiftEnabledを設定しません。"
+      },
+      {
+        "source": "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
+        "text": "読み取ったgetterとイベント購読は、設定や操作の対応件数には加算しません。Player.timeShiftは間接的に表示にも使われますが、操作として一件だけ数え、観測値として重複させません。"
+      },
+      {
+        "source": "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
+        "text": "型付きリスナー四系統が通知する具体的なEvent型を、個別のイベントIDとして数えます。汎用コールバックと抽象イベント基底型は除外し、公開リスナー登録APIは実行時の独立した行として残します。"
+      },
+      {
+        "source": "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
+        "text": "監視しているイベントIDは四件です。SourceLoaded・TimeShifted・DvrWindowExceededは名前付きログに記録し、TimeChangedはDVR表示の更新だけを行います。イベントのペイロードフィールドを表示するGUIはありません。"
+      },
+      {
+        "source": "Only app-owned GUI controls and derived displays are statically qualified. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
+        "text": "アプリが用意するGUI操作と派生表示だけを静的に確認しています。SDK提供のUIには、対応するAPIとの結び付けと実行時の証跡がない限り、直接指定・プリセットの対応件数を付けません。"
+      },
+      {
+        "source": "No licensed playback, simulator, device, tvOS remote, casting, offline or bridge runtime validation was performed for this inventory.",
+        "text": "このインベントリの作成では、ライセンスを使った再生、シミュレーター、実機、tvOSリモコン、キャスト、オフライン、ブリッジの実行時検証は実施していません。"
+      },
+      {
+        "source": "The iOS application also covers iPadOS; both have identical audited API availability and app control paths.",
+        "text": "iOSアプリにはiPadOSも含まれます。調査したAPIの利用可能範囲とアプリの操作経路は共通です。"
+      },
+      {
+        "source": "Five configuration fields are constrained presets: two fixed HLS source URLs and four UI variants backed by bundled JS/CSS resources. Missing custom resources fall back to the SDK UI.",
+        "text": "五つの設定フィールドが限定プリセットです。固定HLSソースURL二候補と、同梱JS・CSSを使うUI四候補に対応します。カスタムファイルが見つからない場合はSDK UIに戻ります。"
+      },
+      {
+        "source": "Eight runtime control candidates are sdk-ui-unverified; their evidence identifies only the native SDK UI container.",
+        "text": "実行時の操作候補八件は「SDK UIは未確認」です。証跡が示すのはネイティブSDK UIの入れ物だけです。"
+      },
+      {
+        "source": "SourceConfig.cmcdConfig requires OS 18 or later and TweaksConfig.includeMachineGeneratedSubtitles requires OS 27 or later; family-wide availability retains both.",
+        "text": "SourceConfig.cmcdConfigはOS 18以降、TweaksConfig.includeMachineGeneratedSubtitlesはOS 27以降が必要です。プラットフォーム系統全体の利用可能範囲として、両方を残します。"
+      }
+    ],
+    "tvos": [
+      {
+        "source": "Bounded public BitmovinPlayerCore operational scope: 65 configuration or nested input owners, 39 runtime owners, and four typed listener families. This is not a percentage of every SDK declaration.",
+        "text": "公開BitmovinPlayerCoreの操作に関わる範囲を対象とします。設定または入れ子の入力を持つ型65件、実行時の型39件、型付きリスナー四系統です。SDKの全宣言に対する割合ではありません。"
+      },
+      {
+        "source": "The denominator is extracted from pinned vendor DocC independently of the app mapping; available deprecated APIs remain counted.",
+        "text": "分母は、アプリ側の対応付けとは独立して、固定バージョンの公式DocCから抽出しています。利用可能な非推奨APIも対象に残します。"
+      },
+      {
+        "source": "Configuration counts public fields of the selected roots and nested input types. Initializers, enum cases, pure output data, inherited SwiftUI View APIs, and Analytics/Collector modules are outside this scope.",
+        "text": "設定は、対象ルートと入れ子の入力型の公開フィールドを数えます。イニシャライザー、enumケース、純粋な出力データ、SwiftUI Viewから継承するAPI、Analytics・Collectorモジュールは対象外です。"
+      },
+      {
+        "source": "Availability is the declared platform-family surface, not a guarantee that every member exists at the app minimum OS version. Per-symbol introduction metadata is retained in sdk-symbols.json.",
+        "text": "利用可能範囲は、宣言されたプラットフォーム系統に基づきます。アプリの最低OSバージョンですべてのメンバーを利用できることを保証するものではありません。シンボルごとの導入OS情報はsdk-symbols.jsonに保持しています。"
+      },
+      {
+        "source": "Direct means an app-owned control accepts arbitrary supported arguments or invokes an argumentless operation. Preset means a fixed set of sources, values or UI choices; it does not imply arbitrary argument support.",
+        "text": "「GUIで直接指定」は、アプリ独自の操作がサポートされる引数を任意に受け取るか、引数のない操作を呼び出す場合です。「限定プリセット」は、固定のソース・値・UI候補からの選択であり、任意の引数を指定できることは意味しません。"
+      },
+      {
+        "source": "Fixed construction values and namespace access are code-only. App DvrKit flags are excluded from SDK configuration counts; Allow DVR does not configure PlaybackConfig.isTimeShiftEnabled.",
+        "text": "生成時の固定値と名前空間へのアクセスは「コードのみ」です。アプリ側DvrKitのフラグはSDK設定に含めません。Allow DVRはPlaybackConfig.isTimeShiftEnabledを設定しません。"
+      },
+      {
+        "source": "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
+        "text": "読み取ったgetterとイベント購読は、設定や操作の対応件数には加算しません。Player.timeShiftは間接的に表示にも使われますが、操作として一件だけ数え、観測値として重複させません。"
+      },
+      {
+        "source": "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
+        "text": "型付きリスナー四系統が通知する具体的なEvent型を、個別のイベントIDとして数えます。汎用コールバックと抽象イベント基底型は除外し、公開リスナー登録APIは実行時の独立した行として残します。"
+      },
+      {
+        "source": "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
+        "text": "監視しているイベントIDは四件です。SourceLoaded・TimeShifted・DvrWindowExceededは名前付きログに記録し、TimeChangedはDVR表示の更新だけを行います。イベントのペイロードフィールドを表示するGUIはありません。"
+      },
+      {
+        "source": "Only app-owned GUI controls and derived displays are statically qualified. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
+        "text": "アプリが用意するGUI操作と派生表示だけを静的に確認しています。SDK提供のUIには、対応するAPIとの結び付けと実行時の証跡がない限り、直接指定・プリセットの対応件数を付けません。"
+      },
+      {
+        "source": "No licensed playback, simulator, device, tvOS remote, casting, offline or bridge runtime validation was performed for this inventory.",
+        "text": "このインベントリの作成では、ライセンスを使った再生、シミュレーター、実機、tvOSリモコン、キャスト、オフライン、ブリッジの実行時検証は実施していません。"
+      },
+      {
+        "source": "The UI variant picker is excluded on tvOS. The app always constructs System UI; only SourceConfig.url is a configuration preset.",
+        "text": "tvOSではUI候補を選ぶGUIがありません。常にSystem UIを生成し、設定のプリセットに数えるのはSourceConfig.urlだけです。"
+      },
+      {
+        "source": "Opaque native System UI controls have not been mapped to Core API members. No app-owned play, pause, volume, track or fullscreen control is credited.",
+        "text": "内部構造を確認していないネイティブSystem UIの操作は、Core APIのメンバーに対応付けていません。アプリ独自の再生・一時停止・音量・トラック・全画面の操作には対応件数を付けません。"
+      },
+      {
+        "source": "SDK APIs documented as no-op on tvOS remain in the available denominator when their Swift declaration permits tvOS.",
+        "text": "tvOSでは何も行わないと記載されたSDK APIも、Swift宣言でtvOSを許可している場合は利用可能な分母に残します。"
+      }
+    ],
+    "android": [
+      {
+        "source": "Bitmovin Android SDK 3.171.0; Android, Android TV and Android-based Fire TV share this SDK/build.",
+        "text": "Bitmovin Android SDK 3.171.0を対象とします。Android、Android TV、AndroidベースのFire TVは同じSDKとビルドを使用します。"
+      },
+      {
+        "source": "807 source scoped declarations normalize to 691 qualified operational IDs across four categories. The full public callable/property/constructor census has 2205 declarations; it is not an editable-control count.",
+        "text": "対象範囲のソース宣言807件を、四区分・691件の完全修飾API IDに正規化しています。公開されている呼び出し可能な宣言・プロパティ・コンストラクター全体は2205件ですが、この数はGUIで編集できる項目数ではありません。"
+      },
+      {
+        "source": "Configuration, commands, read-only observations and concrete event types have separate denominators. No aggregate percentage is asserted.",
+        "text": "設定、操作、読み取り専用の観測値、具体的なイベント型は、それぞれ別の分母で集計します。全区分を合計した割合は算出しません。"
+      },
+      {
+        "source": "Overloads count once by fully qualified method name; () distinguishes explicit methods from Kotlin properties. Exposed-overload counts are listed below.",
+        "text": "オーバーロードは完全修飾メソッド名ごとに一件と数えます。明示的なメソッドには()を付け、Kotlinプロパティと区別します。GUIに対応するオーバーロード数は後述します。"
+      },
+      {
+        "source": "Generated enum/Parcelable/Data helpers, constructors/builders, property getter/setter and interface aliases, callback contracts and optional-wrapper declarations have explicit exclusion reasons.",
+        "text": "自動生成されたenum・Parcelable・データ型の補助機能、コンストラクター、ビルダー、getter/setter、インターフェイスの別名、コールバック契約、任意ラッパーの宣言には、除外理由を明記しています。"
+      },
+      {
+        "source": "Deprecated callable fields/methods/events remain included; deprecation alone never excludes an operational ID.",
+        "text": "呼び出し可能な非推奨のフィールド・メソッド・イベントも対象です。非推奨であることだけを理由にAPI IDを除外しません。"
+      },
+      {
+        "source": "Missing means absent from the audited custom MainActivity control panel and related app sources. It does not prove absence from embedded SDK UI. Reported GUI coverage is a lower bound.",
+        "text": "「対応するGUIなし」は、調査したMainActivityのカスタム操作パネルと関連コードに対応するGUIがないことを示します。組み込みSDK UIに機能がないことは意味しません。確認済みのGUI件数は下限値です。"
+      },
+      {
+        "source": "sdk-ui-unverified identifies candidate SDK Web UI controls with an opaque native bridge/device path; these receive zero verified app-panel action credit.",
+        "text": "「SDK UIは未確認」は、ネイティブブリッジや実機での経路を確認できていないSDK Web UIの候補操作を示します。確認済みのアプリ操作件数には含めません。"
+      },
+      {
+        "source": "Default UI configuration uses SDK defaults. Synced app assets have the same filenames as default Web UI assets; bundle provenance and native SDK UI actions remain unaudited.",
+        "text": "標準UIにはSDKの既定設定を使用します。同期したアプリ側のファイルと標準Web UIのファイル名が同じため、実際に採用されるファイルの由来とネイティブSDK UIの操作は未確認です。"
+      },
+      {
+        "source": "Current UI choices are Default/Sports/Live/Cinema. No TvUi/focus selector is exposed. Android TV/Fire TV remote input and device-only behavior were not tested.",
+        "text": "UIの選択肢はDefault・Sports・Live・Cinemaです。TvUiやフォーカス方式の選択GUIはありません。Android TV・Fire TVのリモコン入力と実機固有の動作は試験していません。"
+      },
+      {
+        "source": "Cast, IMA, DRM, offline, low-latency, VR, PiP and Analytics remain SDK-available with their media, dependency, license, hardware or integration prerequisites; lack of a test device does not remove them.",
+        "text": "Cast、IMA、DRM、オフライン、低遅延、VR、PiP、Analyticsは、素材・依存ライブラリ・ライセンス・ハードウェア・組み込み条件を満たせば利用できるSDK APIとして残しています。試験用の実機がないことを理由に分母から除外しません。"
+      },
+      {
+        "source": "OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig rather than an SDK configuration field.",
+        "text": "OfflineManagerはGUIに接続されていません。ヘルパー内の呼び出しは「コードのみ」です。Allow DVRが変更するのはアプリ側のDvrConfigであり、SDKの設定フィールドではありません。"
+      },
+      {
+        "source": "jsLocation/cssLocation remain constant and match SDK defaults, so the UI mode picker does not receive GUI field credit for them.",
+        "text": "jsLocationとcssLocationはSDKの既定値と同じ定数です。UIの選択を変えても値は変わらないため、GUIで指定できる設定には含めません。"
+      },
+      {
+        "source": "duration/maxTimeShift/timeShift contribute to the rendered DVR text. isLive/currentTime are copied but unused by Dvr.deriveState and receive no observed GUI credit.",
+        "text": "duration・maxTimeShift・timeShiftは画面上のDVR情報に使われます。isLiveとcurrentTimeはコピーされますが、Dvr.deriveStateでは使われないため、GUIの観測件数には含めません。"
+      },
+      {
+        "source": "Source evidence reads only four explicit public app source files. No environment files, native local properties, license values or device state are accessed.",
+        "text": "証跡の取得では、明示した四つの公開アプリソースだけを読み取ります。環境設定ファイル、ネイティブのローカル設定、ライセンス値、実機の状態は参照しません。"
+      },
+      {
+        "source": "configuration_named_types: 242 configuration, 5 observation.",
+        "text": "configuration_named_types：設定242件、観測値5件。"
+      },
+      {
+        "source": "configuration_supporting_types: 50 configuration, 13 observation.",
+        "text": "configuration_supporting_types：設定50件、観測値13件。"
+      },
+      {
+        "source": "events: 115 event.",
+        "text": "events：イベント115件。"
+      },
+      {
+        "source": "runtime_argument_fields: 2 configuration.",
+        "text": "runtime_argument_fields：設定2件。"
+      },
+      {
+        "source": "runtime_playback: 63 command, 60 observation.",
+        "text": "runtime_playback：操作63件、観測値60件。"
+      },
+      {
+        "source": "runtime_supporting_types: 9 command, 89 observation.",
+        "text": "runtime_supporting_types：操作9件、観測値89件。"
+      },
+      {
+        "source": "runtime_ui_offline_analytics: 31 command, 12 observation.",
+        "text": "runtime_ui_offline_analytics：操作31件、観測値12件。"
+      },
+      {
+        "source": "android:com.bitmovin.player.PlayerView.off(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
+        "text": "android:com.bitmovin.player.PlayerView.off()：公開オーバーロード2件のうち、アプリのGUIに対応するものは0件です。"
+      },
+      {
+        "source": "android:com.bitmovin.player.api.Player.load(): 3 public overload declarations; 1 app-panel GUI overloads mapped.",
+        "text": "android:com.bitmovin.player.api.Player.load()：公開オーバーロード3件のうち、アプリのGUIに対応するものは1件です。"
+      },
+      {
+        "source": "android:com.bitmovin.player.api.Player.setSurface(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
+        "text": "android:com.bitmovin.player.api.Player.setSurface()：公開オーバーロード2件のうち、アプリのGUIに対応するものは0件です。"
+      },
+      {
+        "source": "android:com.bitmovin.player.api.playlist.PlaylistApi.add(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
+        "text": "android:com.bitmovin.player.api.playlist.PlaylistApi.add()：公開オーバーロード2件のうち、アプリのGUIに対応するものは0件です。"
+      },
+      {
+        "source": "android:com.bitmovin.player.api.playlist.PlaylistApi.remove(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
+        "text": "android:com.bitmovin.player.api.playlist.PlaylistApi.remove()：公開オーバーロード2件のうち、アプリのGUIに対応するものは0件です。"
+      },
+      {
+        "source": "android:com.bitmovin.player.api.playlist.PlaylistApi.seek(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
+        "text": "android:com.bitmovin.player.api.playlist.PlaylistApi.seek()：公開オーバーロード2件のうち、アプリのGUIに対応するものは0件です。"
+      }
+    ],
+    "react-native": [
+      {
+        "source": "The denominator covers the exported wrapper configuration roots, instance Player/Source/offline APIs, Cast manager and named view/offline callbacks. It is not the union of all underlying native SDK APIs.",
+        "text": "分母は、公開されたラッパーの設定ルート、インスタンスのPlayer・Source・オフラインAPI、Castマネージャー、名前付きの画面・オフラインコールバックです。内部で使用するすべてのネイティブSDK APIを合計したものではありません。"
+      },
+      {
+        "source": "Configuration counts leaf paths, callback contracts and opaque boundaries once; array element shapes are not multiplied. OfflineContentConfig has its own configuration scope, including inherited SourceConfig fields.",
+        "text": "設定は末端のパス、コールバック契約、内部を展開しない境界をそれぞれ一件と数えます。配列要素の型は要素数で増やしません。OfflineContentConfigは、SourceConfigから継承したフィールドも含め、独立した設定範囲で集計します。"
+      },
+      {
+        "source": "Static construction helpers, generic React references/styles, namespace containers and the generic onEvent callback are excluded. Data-transfer fields and enum values are not separate runtime operations.",
+        "text": "静的な生成ヘルパー、汎用のReact参照・スタイル、名前空間の入れ物、汎用のonEventコールバックは除外します。データ受け渡し用のフィールドとenum値は、独立した実行時操作には数えません。"
+      },
+      {
+        "source": "The source and UI pickers expose fixed presets. Time-shift buttons expose 0, -10, -30 and -60 seconds with DVR-window clamping; they do not accept arbitrary arguments.",
+        "text": "ソースとUIの選択は固定プリセットです。タイムシフトボタンは0・-10・-30・-60秒に限られ、DVRウィンドウ内に補正されます。任意の引数を入力することはできません。"
+      },
+      {
+        "source": "isLive and getCurrentTime are read by the snapshot controller but are not consumed by the displayed derived state, so they receive no observation credit.",
+        "text": "isLiveとgetCurrentTimeはスナップショット用コントローラーで読み取られますが、表示する派生状態には使われないため、観測件数には含めません。"
+      },
+      {
+        "source": "Allow DVR changes the application DVR helper, not a PlayerConfig playback property. License configuration comes from environment setup and is not GUI editable.",
+        "text": "Allow DVRが変更するのはアプリのDVRヘルパーであり、PlayerConfigの再生プロパティではありません。ライセンス設定は環境の準備時に渡すため、GUIから編集できません。"
+      },
+      {
+        "source": "The embedded native/shared Web UI has not been qualified against this wrapper version; its controls receive no inferred coverage credit. This is confirmed application-owned GUI coverage, not a full SDK UI claim.",
+        "text": "組み込みのネイティブUI・共有Web UIは、このラッパーバージョンでの動作を確認していません。対応件数を推測で加算しません。アプリが用意するGUIの確認済み範囲を示すもので、SDK UI全体の対応状況ではありません。"
+      },
+      {
+        "source": "The latest wrapper pins Apple 3.126.0 and Android 3.165.0+jason. These supported wrapper defaults are not overridden to the newer standalone SDK versions.",
+        "text": "最新版ラッパーが固定するネイティブSDKはApple 3.126.0とAndroid 3.165.0+jasonです。ラッパーがサポートするこの既定値を、より新しい単体SDKへ上書きしていません。"
+      },
+      {
+        "source": "TimeChanged only triggers refresh; SourceLoaded and TimeShifted also have named log entries. Event payload fields are not exposed. The screen and helpers are type-checked and unit-tested. Native playback and Expo prebuild/device integration were not performed for this measurement.",
+        "text": "TimeChangedは表示の更新だけを行い、SourceLoadedとTimeShiftedは名前付きログにも記録します。イベントのペイロードフィールドを表示するGUIはありません。画面とヘルパーは型検査と単体テストを実施しています。この測定では、ネイティブの実再生とExpo prebuild・実機への組み込みは実施していません。"
+      }
+    ],
+    "vega": [
+      {
+        "source": "The denominator is the published Vega-channel TypeScript PlayerConfig/SourceConfig paths, PlayerAPI callable members and PlayerEvent names. Data-transfer types, module-construction methods and exported utility namespaces are outside these scopes.",
+        "text": "分母は、公開VegaチャネルのTypeScript宣言に含まれるPlayerConfig・SourceConfigのパス、PlayerAPIの呼び出し可能なメンバー、PlayerEvent名です。データ受け渡し用の型、モジュール生成メソッド、公開ユーティリティ名前空間はこの範囲に含めません。"
+      },
+      {
+        "source": "This special beta channel is the current release supported by the official Vega sample. The general Web stable release is not a supported replacement.",
+        "text": "この特別なベータチャネルは、公式Vegaサンプルが現在サポートするリリースです。一般向けWeb安定版への置き換えはサポートされていません。"
+      },
+      {
+        "source": "Public declarations include APIs with module, media, device and platform prerequisites. Their presence does not prove that every Web feature operates on Vega. Unqualified features remain unexposed rather than being silently removed from the denominator.",
+        "text": "公開宣言には、モジュール・素材・機器・プラットフォームの前提条件を持つAPIも含まれます。宣言があることだけで、すべてのWeb機能がVegaで動作するとは判断しません。未検証の機能は未対応の状態で残し、分母から取り除きません。"
+      },
+      {
+        "source": "Source selection supplies fixed HLS/DASH URLs and titles. Time-shift buttons expose 0, -10, -30 and -60 seconds with window clamping; arbitrary SDK arguments are not editable.",
+        "text": "ソース選択では、固定のHLS・DASH URLとタイトルを渡します。タイムシフトボタンは0・-10・-30・-60秒に限られ、ウィンドウ内に補正されます。任意のSDK引数は編集できません。"
+      },
+      {
+        "source": "Allow DVR changes the application DVR helper. Player configuration, authentication and module registration are source/setup constants, not editable GUI settings.",
+        "text": "Allow DVRが変更するのはアプリのDVRヘルパーです。Player設定、認証、モジュール登録はソースや準備段階の定数であり、GUIから編集できる設定ではありません。"
+      },
+      {
+        "source": "isLive and getCurrentTime are read but not consumed by the displayed derived state, so they receive no observation credit.",
+        "text": "isLiveとgetCurrentTimeは読み取られますが、表示する派生状態には使われないため、観測件数には含めません。"
+      },
+      {
+        "source": "TimeChanged only triggers refresh; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed. Only the controller and helper code are type-checked/unit-tested in this repository. The Kepler TSX screen and real Vega playback were not built or device-tested for this measurement.",
+        "text": "TimeChangedは表示の更新だけを行い、SourceLoaded・TimeShifted・DurationChanged・DVRWindowExceededは名前付きログにも記録します。イベントのペイロードフィールドを表示するGUIはありません。このリポジトリではコントローラーとヘルパーの型検査・単体テストだけを実施しています。この測定ではKepler TSX画面のビルドとVega実機での再生試験は実施していません。"
+      }
+    ]
+  },
+  "reasonTranslations": {
+    "Abstract or base event type; concrete event identities are counted.": "抽象イベント型・基底型は対象外です。具体的なイベントIDを数えます。",
+    "Android framework callback; not a public app-panel playback operation.": "Androidフレームワークのコールバックであり、アプリの再生操作GUIではありません。",
+    "Callback/subscription implementation contract; associated API/event/input is counted separately.": "コールバック・購読を実装するための契約です。対応するAPI・イベント・入力を別に数えます。",
+    "Configuration builder alias; the corresponding public input field is counted once.": "設定ビルダーの別名です。対応する公開入力フィールドを一件だけ数えます。",
+    "Configuration input record, not an emitted event identity.": "設定入力のレコードであり、通知されるイベントIDではありません。",
+    "Construction input is measured in the configuration scopes.": "生成時の入力は設定範囲で集計します。",
+    "Constructor/factory alias; input fields and runtime operations are counted separately.": "コンストラクター・ファクトリーの別名です。入力フィールドと実行時操作を別に数えます。",
+    "Data/Object value helper; not an independent playback operation or input field.": "データ型・Object値の補助機能であり、独立した再生操作や入力フィールドではありません。",
+    "Enum choice metadata; counted through its parent input/observation rather than as an independent API.": "enum候補のメタデータです。独立したAPIではなく、親の入力・観測値に含めます。",
+    "Enum choice; counted through its parent input/observation, not as an API operation.": "enumの選択肢です。API操作としては数えず、親の入力・観測値に含めます。",
+    "Event payload/value declaration; the concrete event type is the event denominator unit.": "イベントのペイロード・値の宣言です。イベントの分母は具体的なイベント型単位で数えます。",
+    "GUI path has no matching public declaration in this SDK snapshot; it receives no API coverage credit.": "このGUIパスに対応する公開宣言が、対象のSDKスナップショットにありません。APIの対応件数には含めません。",
+    "Generated enum lookup alias; enum choices belong to their parent input/observation.": "自動生成されたenum検索の別名です。enum候補は親の入力・観測値に含めます。",
+    "Generated enum/Parcelable accessor; not an independent playback operation or input field.": "自動生成されたenum・Parcelableのアクセサーであり、独立した再生操作や入力フィールドではありません。",
+    "Generic catch-all callback; not a separately named event.": "汎用の一括コールバックであり、個別の名前付きイベントではありません。",
+    "Generic listener callback is a subscription mechanism, not an event identity.": "汎用リスナーコールバックは購読の仕組みであり、イベントIDではありません。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.enterFullscreen().": "android:com.bitmovin.player.PlayerView.enterFullscreen() のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.enterPictureInPicture().": "android:com.bitmovin.player.PlayerView.enterPictureInPicture() のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.exitFullscreen().": "android:com.bitmovin.player.PlayerView.exitFullscreen() のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.exitPictureInPicture().": "android:com.bitmovin.player.PlayerView.exitPictureInPicture() のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.isFullscreen.": "android:com.bitmovin.player.PlayerView.isFullscreen のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.isPictureInPicture.": "android:com.bitmovin.player.PlayerView.isPictureInPicture のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.isPictureInPictureAvailable.": "android:com.bitmovin.player.PlayerView.isPictureInPictureAvailable のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.isUiVisible.": "android:com.bitmovin.player.PlayerView.isUiVisible のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.player.": "android:com.bitmovin.player.PlayerView.player のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.scalingMode.": "android:com.bitmovin.player.PlayerView.scalingMode のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.setCustomMessageHandler().": "android:com.bitmovin.player.PlayerView.setCustomMessageHandler() のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.PlayerView.setPosterImage().": "android:com.bitmovin.player.PlayerView.setPosterImage() のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.api.Player.audio.": "android:com.bitmovin.player.api.Player.audio のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.api.Player.audioQuality.": "android:com.bitmovin.player.api.Player.audioQuality のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.api.Player.subtitle.": "android:com.bitmovin.player.api.Player.subtitle のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.api.Player.videoQuality.": "android:com.bitmovin.player.api.Player.videoQuality のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.api.advertising.AdvertisingApi.viewGroup.": "android:com.bitmovin.player.api.advertising.AdvertisingApi.viewGroup のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.api.offline.OfflineContentManager.Companion.offlineConfig.": "android:com.bitmovin.player.api.offline.OfflineContentManager.Companion.offlineConfig のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.api.source.SourceConfig.drmConfig.": "android:com.bitmovin.player.api.source.SourceConfig.drmConfig のgetter・setter・インターフェイス別名です。",
+    "Getter/setter/interface alias of android:com.bitmovin.player.api.source.SourceConfig.thumbnailTrack.": "android:com.bitmovin.player.api.source.SourceConfig.thumbnailTrack のgetter・setter・インターフェイス別名です。",
+    "Initialization/event-subscription alias; fields and concrete event types are counted separately.": "初期化・イベント購読の別名です。フィールドと具体的なイベント型を別に数えます。",
+    "Namespace container; its callable members are counted separately.": "名前空間の入れ物です。呼び出し可能なメンバーを別に数えます。",
+    "No Swift declaration is available for iOS in pinned DocC.": "固定バージョンのDocCに、iOS向けのSwift宣言がありません。",
+    "No Swift declaration is available for tvOS in pinned DocC.": "固定バージョンのDocCに、tvOS向けのSwift宣言がありません。",
+    "Separate optional module outside the current player dependency; retained as a separate public scope.": "現在のPlayer依存に含まれない任意モジュールです。別の公開範囲として保持します。",
+    "Supporting type/static/data/configuration-method alias outside the declared operational scopes.": "宣言した操作範囲に含めない、補助型・静的機能・データ・設定メソッドの別名です。",
+    "excluded convenience/data namespace": "便宜的な補助機能・データの名前空間は対象外です。",
+    "hidden/internal/private/protected": "非表示・内部用・private・protectedの宣言です。",
+    "reported in a separate configuration scope": "別の設定範囲で集計します。"
+  },
+  "appLabels": {
+    "web": {
+      "source": "Web",
+      "text": "Web"
+    },
+    "web-ui": {
+      "source": "Web UI and shared UI bundle",
+      "text": "Web UIと共有UIバンドル"
+    },
+    "ios": {
+      "source": "iOS",
+      "text": "iOS"
+    },
+    "tvos": {
+      "source": "tvOS",
+      "text": "tvOS"
+    },
+    "android": {
+      "source": "Android",
+      "text": "Android"
+    },
+    "react-native": {
+      "source": "React Native (iOS / Android)",
+      "text": "React Native（iOS／Android）"
+    },
+    "vega": {
+      "source": "Fire TV Vega",
+      "text": "Fire TV Vega"
+    }
+  },
+  "sdkLabels": {
+    "web": {
+      "source": "Bitmovin Player Web",
+      "text": "Bitmovin Player Web"
+    },
+    "web-ui": {
+      "source": "Bitmovin Player UI",
+      "text": "Bitmovin Player UI"
+    },
+    "apple": {
+      "source": "Bitmovin Player iOS/tvOS (scoped Core API)",
+      "text": "Bitmovin Player iOS/tvOS（対象のCore API）"
+    },
+    "android": {
+      "source": "Bitmovin Player Android / Android TV / Android Fire TV",
+      "text": "Bitmovin Player Android／Android TV／Android Fire TV"
+    },
+    "react-native": {
+      "source": "Bitmovin Player React Native wrapper",
+      "text": "Bitmovin Player React Nativeラッパー"
+    },
+    "vega": {
+      "source": "Bitmovin Player Vega channel",
+      "text": "Bitmovin Player Vegaチャネル"
+    }
+  },
+  "channelLabels": {
+    "stable": "安定版",
+    "stable-wrapper": "安定版ラッパー",
+    "vega-supported-beta": "Vega対応ベータ版"
+  }
+}
