@@ -1,5 +1,8 @@
 package com.showcase.app
 
+import android.os.SystemClock
+import android.view.InputDevice
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
@@ -22,6 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 
 /** Licensed runtime checks against the actual app controls, SDK and shared Web UI. */
@@ -30,6 +34,8 @@ class PlayerControlsInstrumentedTest {
     @get:Rule val ui = createAndroidComposeRule<MainActivity>()
     private val errors = CopyOnWriteArrayList<Int>()
     private val timeShiftCompletions = AtomicInteger()
+    private val completedTimeShiftPosition = AtomicReference(Double.NaN)
+    private var pointerSide = false
 
     @Test
     fun sharedUiPlaybackSourceSwitchAndDvrControls() {
@@ -38,7 +44,10 @@ class PlayerControlsInstrumentedTest {
         ui.runOnUiThread {
             player.on(PlayerEvent.Error::class) { errors.add(it.code.value) }
             player.on(SourceEvent.Error::class) { errors.add(it.code.value) }
-            player.on(PlayerEvent.TimeShifted::class) { timeShiftCompletions.incrementAndGet() }
+            player.on(PlayerEvent.TimeShifted::class) {
+                completedTimeShiftPosition.set(player.currentTime)
+                timeShiftCompletions.incrementAndGet()
+            }
             player.mute()
         }
 
@@ -59,15 +68,15 @@ class PlayerControlsInstrumentedTest {
             [...document.querySelectorAll('link[rel="stylesheet"]')]
               .some(link => link.href.includes('bitmovinplayer-ui.css'))
         """.trimIndent())
-        assertEquals("true", javascript(webView, """
+        awaitJavascript(webView, """
             (() => {
-              const button = [...document.querySelectorAll('.bmpui-ui-playbacktogglebutton')]
-                .find(button => button.getBoundingClientRect().width > 0);
+              $visibleElementScript
+              const button = visible('.bmpui-ui-playbacktogglebutton');
               if (!button) return false;
               button.click();
               return true;
             })()
-        """.trimIndent()))
+        """.trimIndent(), "shared UI playback button becomes visible", revealControls = true)
         var start = 0.0
         ui.runOnUiThread { start = player.currentTime }
         await("shared UI starts advancing playback") { player.isPlaying && player.currentTime > start + 1 }
@@ -78,15 +87,23 @@ class PlayerControlsInstrumentedTest {
         await("live source supplies a rewind window") {
             controller.dvr.dvrAvailable && controller.dvr.windowDuration > 10
         }
-        val beforeRewind = timeShiftCompletions.get()
-        ui.onNodeWithText("-10s").performScrollTo().performClick()
-        awaitJavascript(webView, sharedLiveUiScript(atEdge = false), "rewind completes in the SDK and shared UI") {
+        val rewindButton = ui.onNodeWithText("-10s").performScrollTo()
+        var beforeRewind = 0
+        var rewindTarget = Double.NaN
+        ui.runOnUiThread {
+            beforeRewind = timeShiftCompletions.get()
+            rewindTarget = player.currentTime - player.timeShift - 10
+        }
+        assertTrue("Rewind target must be finite", rewindTarget.isFinite())
+        rewindButton.performClick()
+        awaitJavascript(webView, sharedLiveUiScript(atEdge = false), "rewind completes in the SDK and shared UI", revealControls = true) {
             val offset = player.timeShift
-            timeShiftCompletions.get() > beforeRewind && offset.isFinite() && offset in -13.0..-7.0
+            timeShiftCompletions.get() > beforeRewind && offset.isFinite() && offset < 0 &&
+                abs(completedTimeShiftPosition.get() - rewindTarget) <= 3
         }
         val beforeReturn = timeShiftCompletions.get()
         ui.onNodeWithText("Live edge").performScrollTo().performClick()
-        awaitJavascript(webView, sharedLiveUiScript(atEdge = true), "return to live completes in the SDK and shared UI") {
+        awaitJavascript(webView, sharedLiveUiScript(atEdge = true), "return to live completes in the SDK and shared UI", revealControls = true) {
             timeShiftCompletions.get() > beforeReturn && abs(player.timeShift) < 1
         }
         ui.onNode(isToggleable()).performClick()
@@ -120,22 +137,52 @@ class PlayerControlsInstrumentedTest {
         view: WebView,
         script: String,
         label: String = "Shared UI DOM/styles",
+        revealControls: Boolean = false,
         predicate: () -> Boolean = { true },
     ) {
         val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(40)
         while (System.nanoTime() < deadline && errors.isEmpty() && ui.activity.controller.lastErrorCode == null) {
             var ready = false
             ui.runOnUiThread { ready = predicate() }
-            if (ready && javascript(view, script) == "true") return
+            if (ready) {
+                if (revealControls) movePointerInside(view)
+                if (javascript(view, script) == "true") return
+            }
             Thread.sleep(100)
         }
         assertTrue("$label did not settle; error codes: $errors; startup code: ${ui.activity.controller.lastErrorCode}", false)
     }
 
+    private fun movePointerInside(view: WebView) {
+        ui.runOnUiThread {
+            val now = SystemClock.uptimeMillis()
+            pointerSide = !pointerSide
+            val x = view.width * if (pointerSide) 0.3f else 0.4f
+            val event = MotionEvent.obtain(now, now, MotionEvent.ACTION_HOVER_MOVE, x, view.height / 3f, 0)
+            event.source = InputDevice.SOURCE_MOUSE
+            try {
+                view.dispatchGenericMotionEvent(event)
+            } finally {
+                event.recycle()
+            }
+        }
+    }
+
+    private val visibleElementScript = """
+        const visible = selector => [...document.querySelectorAll(selector)].find(element => {
+          const rect = element.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) return false;
+          for (let node = element; node; node = node.parentElement) {
+            const style = getComputedStyle(node);
+            if (style.display === 'none' || style.visibility !== 'visible' || Number(style.opacity) <= 0) return false;
+          }
+          return true;
+        });
+    """.trimIndent()
+
     private fun sharedLiveUiScript(atEdge: Boolean): String = """
         (() => {
-          const visible = selector => [...document.querySelectorAll(selector)]
-            .find(element => element.getBoundingClientRect().width > 0);
+          $visibleElementScript
           const label = visible('.bmpui-ui-label-behindlive');
           const button = visible('.bmpui-ui-livebutton');
           if (!label || !button) return false;

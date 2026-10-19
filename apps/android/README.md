@@ -95,12 +95,25 @@ messages or license values. A failed license request is a failed playback check,
 even when compilation and packaging pass. Leave the optional Analytics key empty
 when no collection is intended.
 
+The shared UI can exist before its playback control becomes visible. The test
+waits for that control, then checks that native playback time advances. It reveals
+controls through WebView pointer input and checks element dimensions and the
+computed display, visibility and opacity of each ancestor. Hidden controls with
+nonzero dimensions do not establish a visible result.
+
+Live offsets use a moving reference: the live edge can advance while a rewind
+buffers. The test fixes a media reference from the SDK-reported position and
+offset just before seeking, then checks that the next `TimeShifted` event lands
+within three seconds of the resulting target. It also requires a negative live
+offset and the visible behind-live state. The return-to-live check requires a new
+completion event, an SDK-reported offset within one second of zero, and visible
+`LIVE` text and button state.
+
 The app's event log also retains startup error codes, so a failed initial request
 can be distinguished from a source that is still loading.
 
 On 2026-10-19, the debug app and instrumentation APK compiled with Player 3.155.0.
-Both runtime tests reached an Android 16 emulator and failed with Player error
-`1003` (`LicenseAuthenticationFailed`). The Compose test reached the Sports UI and
-HLS source selection, but successful video playback and live rewind have not
-been established. Check the license and allowed application ID using the
-[official setup instructions](https://github.com/bitmovin/bitmovin-player-android-samples#sample-app-setup-instructions).
+An Android 16 emulator passed both real playback tests through the Gradle command
+above: 2 passed, 0 failed, 0 skipped in 29.294 seconds. The APK contained the final
+shared UI bundle. These checks used the catalog's public sample sources; physical
+devices, Android TV and Fire TV were not covered by this run.
