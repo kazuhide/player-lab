@@ -1,7 +1,16 @@
 import { defineConfig } from "@playwright/test";
 
-const PORT = 5174; // harness page (tests/e2e) — most specs use the ui:false harness
-const APP_PORT = 5175; // the real apps/web app — for the UI / theme-selector spec
+function testPort(name: string, fallback: number): number {
+  const port = Number(process.env[name] ?? fallback);
+  if (!Number.isInteger(port) || port < 1024 || port > 65535) {
+    throw new Error(`${name} must be an integer port between 1024 and 65535.`);
+  }
+  return port;
+}
+
+const PORT = testPort("E2E_HARNESS_PORT", 5174);
+const APP_PORT = testPort("E2E_APP_PORT", 5175);
+if (PORT === APP_PORT) throw new Error("The harness and application need distinct ports.");
 
 // The harness live-DVR spec needs a real moving rewind window. The app keeps
 // its own public VOD default, so GUI checks exercise its normal initial source.
