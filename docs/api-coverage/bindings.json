@@ -1,0 +1,34 @@
+{
+  "web": {
+    "file": "apps/web/package.json",
+    "pointer": "/dependencies/bitmovin-player"
+  },
+  "web-ui": {
+    "file": "packages/ui-shared/package.json",
+    "pointer": "/dependencies/bitmovin-player-ui"
+  },
+  "bitmovin-player-ui": {
+    "file": "packages/ui-shared/package.json",
+    "pointer": "/dependencies/bitmovin-player-ui"
+  },
+  "apple": {
+    "file": "apps/ios/Package.resolved",
+    "pointer": "/pins/0/state/version"
+  },
+  "bitmovin-player-ios-core": {
+    "file": "apps/ios/Package.resolved",
+    "pointer": "/pins/1/state/version"
+  },
+  "android": {
+    "file": "apps/android/app/build.gradle.kts",
+    "pattern": "implementation\\(\"com\\.bitmovin\\.player:player:([^\"\\)]+)\"\\)"
+  },
+  "react-native": {
+    "file": "apps/react-native/package.json",
+    "pointer": "/dependencies/bitmovin-player-react-native"
+  },
+  "vega": {
+    "file": "apps/vega/package.json",
+    "pointer": "/dependencies/bitmovin-player"
+  }
+}

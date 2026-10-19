@@ -1,0 +1,2463 @@
+{
+  "baseUrl": "https://cdn.bitmovin.com/player/ios/3.128.0",
+  "files": {
+    "data/documentation/bitmovinplayercore.json": {
+      "sha256": "e7726086be5e142845fbae7102b4ac5f656e845c7a13593b5a6e21a531600c39"
+    },
+    "data/documentation/bitmovinplayercore/adaptationconfig.json": {
+      "sha256": "6d882b20b5a1edbaa48feed239e0e41eb942000251b669b307f1225316c454b0"
+    },
+    "data/documentation/bitmovinplayercore/adaptationconfig/maxselectablebitrate.json": {
+      "sha256": "2034b69d68b8d26fbd8ec1017f52001ad5854175aec56ba25e6bb03e7dec5117"
+    },
+    "data/documentation/bitmovinplayercore/adbreakconfig.json": {
+      "sha256": "aa24643431775a83d46de2f5c00e6eff6f5087c5d4de2962b99d9f582f715df2"
+    },
+    "data/documentation/bitmovinplayercore/adbreakconfig/identifier.json": {
+      "sha256": "499d9b626813a2faa0f4998a9d1e92dfc8b2cfff4ffdfd66c0904d16e43895cd"
+    },
+    "data/documentation/bitmovinplayercore/adbreakconfig/position.json": {
+      "sha256": "97f0f2e8c3d15276ba6af7f8c3bd191be8a4d237c522b43373dde6b4019325b4"
+    },
+    "data/documentation/bitmovinplayercore/adbreakconfig/skippableafter.json": {
+      "sha256": "a258d64f23f9ea14cad2953186d529331ba9c26d97dd7dad6a5c93715837d007"
+    },
+    "data/documentation/bitmovinplayercore/adbreakfinishedevent.json": {
+      "sha256": "03014c775f2e73ffb13942d303843f89d320815c5a10f6e1d16ff0ba859dfca1"
+    },
+    "data/documentation/bitmovinplayercore/adbreakstartedevent.json": {
+      "sha256": "9635ac9628d037b443718494d349a17ca7301f9f9a55370041fdb341a1c56393"
+    },
+    "data/documentation/bitmovinplayercore/adclickedevent.json": {
+      "sha256": "38bb267ea99fb086cafdf2973b02fd6dd2b7c27c5feea8440cbe53f71dbe3a7f"
+    },
+    "data/documentation/bitmovinplayercore/adconfig.json": {
+      "sha256": "3776cd4f3c265915e44dd4dd25a5441dae17b2d95fc285a95f0f6651ee2ba3a5"
+    },
+    "data/documentation/bitmovinplayercore/adconfig/replacecontentduration.json": {
+      "sha256": "8c7252b420650f743b14cbc7685e711762866dc112ea108202b2cb31b7574b93"
+    },
+    "data/documentation/bitmovinplayercore/aderrorevent.json": {
+      "sha256": "fa917655f748569269c17d9725f65a2126a6af32762b160342225691749e0a75"
+    },
+    "data/documentation/bitmovinplayercore/adfinishedevent.json": {
+      "sha256": "e54c438219dcf545275ed4ecf2695a08f264199edb4a3fe140e055f7ba8abaf1"
+    },
+    "data/documentation/bitmovinplayercore/aditem.json": {
+      "sha256": "ba57ebc15bbd51981a808c5ad715636401d497b330f5ba788af9621b889d1881"
+    },
+    "data/documentation/bitmovinplayercore/aditem/linearaduiconfig.json": {
+      "sha256": "a17d6ec3f72e62535ee2f8fe1d1cac5c645005f332334560ca56faf9adcf258a"
+    },
+    "data/documentation/bitmovinplayercore/aditem/position.json": {
+      "sha256": "8c4f060f1811199c5aa417af042a6d70ae4d375bda2114acae6dd9815c15ab1a"
+    },
+    "data/documentation/bitmovinplayercore/aditem/sources.json": {
+      "sha256": "08f7e8b7e99fb21aeeb167746b4f8cf3cb365b4b9d52f257b4845d5ab414f52e"
+    },
+    "data/documentation/bitmovinplayercore/aditem/trigger.json": {
+      "sha256": "d210c180c1ba53e61e32bb1ca844a657c842d3ff53e119f0a686690903f614af"
+    },
+    "data/documentation/bitmovinplayercore/admanifestloadedevent.json": {
+      "sha256": "4a15d8c93ddce6ef9fd34dbcb1a18ac55439774d668f778c836c954ee8fb0399"
+    },
+    "data/documentation/bitmovinplayercore/admanifestloadevent.json": {
+      "sha256": "9c96c61e0e7a831eaf70067f27abeb9e68a56bc97e60bfb54591d4139e36d615"
+    },
+    "data/documentation/bitmovinplayercore/adquartileevent.json": {
+      "sha256": "7fc3d7827bd0ad7a6ff0465d4b98097dd0a201da1422852e7f9c948cf91603a9"
+    },
+    "data/documentation/bitmovinplayercore/adschedulechangedevent.json": {
+      "sha256": "f61e72f2f696eb2fed4a65738886998b55fb9f1ccca9a83edf54815c4adedbdf"
+    },
+    "data/documentation/bitmovinplayercore/adscheduledevent.json": {
+      "sha256": "41c492b61cfd20dee6ceb1848ae721332eb5811e5dd6851d8a9533c148fbd279"
+    },
+    "data/documentation/bitmovinplayercore/adskippedevent.json": {
+      "sha256": "7f93c415fb2b4bc95f1689299ca2a649f9c6784b076e4288a9fdb352e3cd7e76"
+    },
+    "data/documentation/bitmovinplayercore/adsource.json": {
+      "sha256": "d8c23c72ceb33ef3c2aa409243d406992def84b10ea6f1a5663d4f3e774d3171"
+    },
+    "data/documentation/bitmovinplayercore/adsource/tag.json": {
+      "sha256": "7a30170325bd438d06b6025a8704b9af1259a5649feac60b14c1029c50ee3483"
+    },
+    "data/documentation/bitmovinplayercore/adsource/type.json": {
+      "sha256": "9cb889e02e11d0eebd4956d29092f1ad30f488ff46568a36bd9fd12f3a620449"
+    },
+    "data/documentation/bitmovinplayercore/adsource/vastloadtimeout.json": {
+      "sha256": "c21b220f6f6514760d8f2d663cd42abae077cf4fadc47a2a5d0dc91ae5f4e97f"
+    },
+    "data/documentation/bitmovinplayercore/adsource/videoloadtimeout.json": {
+      "sha256": "a09e73961991d7266ba9fc3282d254c50206455e4a9be4069dd2be4404852cff"
+    },
+    "data/documentation/bitmovinplayercore/adstartedevent.json": {
+      "sha256": "bd52665fb5caa832e3d9729cb7e7792cd25521d31ba1fe4b75c0af08a2dfb957"
+    },
+    "data/documentation/bitmovinplayercore/adtagconfig.json": {
+      "sha256": "50910f54f280f467d0296400675090b7c79de021cc3eda75e4cd9895a8ec5352"
+    },
+    "data/documentation/bitmovinplayercore/adtagconfig/fallbacktags.json": {
+      "sha256": "0c99cea579cef5e115b398c6c380d67ae98688bba0ec6368ac6a39dbc7ed7406"
+    },
+    "data/documentation/bitmovinplayercore/adtagconfig/tag.json": {
+      "sha256": "0f54afccc369e99eecc8ac7d3f1238a3e1410de089417081b301e748f3a47b10"
+    },
+    "data/documentation/bitmovinplayercore/advertisingapi.json": {
+      "sha256": "fcb75b7098bfdcf15eab5121f46ac25ac3c078905f0ff66cda81886ea01fdb3d"
+    },
+    "data/documentation/bitmovinplayercore/advertisingapi/activead.json": {
+      "sha256": "3fec183d28f5928c4fb5ff402af90c498dd8c1691c64d6a8207a2a4b9d0a3658"
+    },
+    "data/documentation/bitmovinplayercore/advertisingapi/activeadbreak.json": {
+      "sha256": "790d00c84c4a116d06b8aae0ea962be0d483b1f16d270c7db482a36bb10b62b3"
+    },
+    "data/documentation/bitmovinplayercore/advertisingapi/register(adcontainer%3A).json": {
+      "sha256": "77e2ff959525b90ed878aaafd5263f3c553a80704defcaba28966193b64af820"
+    },
+    "data/documentation/bitmovinplayercore/advertisingapi/schedule(aditem%3A).json": {
+      "sha256": "215314bc6c4911ea931401fec6d45dd1526370595b46c8a1b8c905d57762d52b"
+    },
+    "data/documentation/bitmovinplayercore/advertisingapi/schedule.json": {
+      "sha256": "cf98fedc114b0a61f8ca0f73a8d2cf4eadb31ae973590a4aebf0fb0d5efb758e"
+    },
+    "data/documentation/bitmovinplayercore/advertisingapi/skip().json": {
+      "sha256": "f0256e377ac729cf92885ef3d77ccdd5c07068d862fadbfa4d642490a38a80fa"
+    },
+    "data/documentation/bitmovinplayercore/advertisingconfig.json": {
+      "sha256": "d963fd81fb8bc1aba246d5d495c74efbb6bffb0ae8f2fb9739a56928a07cd278"
+    },
+    "data/documentation/bitmovinplayercore/advertisingconfig/beforeinitialization.json": {
+      "sha256": "02aaee647d242cb2c908d8e2be84a3ea1d4f5ebb5428dca0b99f398070ab35f2"
+    },
+    "data/documentation/bitmovinplayercore/advertisingconfig/bitmovin.json": {
+      "sha256": "330af9b372f9792f66cdfcdaa8aa83b4531eac2199c3e7a39868243ffde6a0e0"
+    },
+    "data/documentation/bitmovinplayercore/advertisingconfig/ima.json": {
+      "sha256": "511ece301ac56694072fb1b42223efb5ff06b36c8c0f8b05519b862c26dd767a"
+    },
+    "data/documentation/bitmovinplayercore/advertisingconfig/onadsmanageravailable.json": {
+      "sha256": "2a9c457f755b7ab5969d2b7ba538a5ac9d5d729fe9b5ee07adae60002cef0bd4"
+    },
+    "data/documentation/bitmovinplayercore/advertisingconfig/schedule.json": {
+      "sha256": "ce092b7e043d0eb928c0f3f9e9350c165eb52b11537eb61b8fcf4c67b705f501"
+    },
+    "data/documentation/bitmovinplayercore/advertisingconfig/shouldloadaditem.json": {
+      "sha256": "5126c96771de523e02cc16a77be3338b900d00ff1b13a1bd5c594c5154247004"
+    },
+    "data/documentation/bitmovinplayercore/advertisingconfig/shouldplayaditem.json": {
+      "sha256": "0d142bea57452e7b0a2e9293711b05ca71b19e661db05c5b503ef852ccbad934"
+    },
+    "data/documentation/bitmovinplayercore/advertisingconfig/shouldplayseekedoveraditems.json": {
+      "sha256": "165252c82731efb5ede5f16c5ae2f9bdd19b31f966c594797a542bb2e2bf2025"
+    },
+    "data/documentation/bitmovinplayercore/airplayavailabilitychangedevent.json": {
+      "sha256": "5511de38539d0b26c3e301bdddaa571f92cb0cbe4d5ccb37b27ca537d3908c84"
+    },
+    "data/documentation/bitmovinplayercore/airplayavailableevent.json": {
+      "sha256": "71e4bcb4a47fc18eed89ce3b878ca7aedf2cad9efc1b90b8599c7c399f524f46"
+    },
+    "data/documentation/bitmovinplayercore/airplaychangedevent.json": {
+      "sha256": "896df45d0546b9bcee88516e93ee5c4cc8b86b09ba54aadb0b076bdd805b29e8"
+    },
+    "data/documentation/bitmovinplayercore/audioaddedevent.json": {
+      "sha256": "f7f44986ce58e3e3b96694b56567c5f154ec6f5c4af0b76d60e5d2c5eac709fc"
+    },
+    "data/documentation/bitmovinplayercore/audiochangedevent.json": {
+      "sha256": "8c54928da44c92dec8557d7458dea2b5b718928abe72fe9e82b55718accdee15"
+    },
+    "data/documentation/bitmovinplayercore/audioremovedevent.json": {
+      "sha256": "bee88e0db1a99f61d9cee5dc6880f26242d3cac72de43c69a8949e6f48e2f2a5"
+    },
+    "data/documentation/bitmovinplayercore/availabletracksfetchedevent.json": {
+      "sha256": "66bbe17a54ba4372dd256392abcd44165591e021607286eae7893c01118a2edd"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinadvertisingconfig.json": {
+      "sha256": "f9a12e94f42474646c06d59502f0efc9a3b297a8a9b5b33d1d91bad7b922846d"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinadvertisingconfig/macro.json": {
+      "sha256": "39e9d56c5840517f2d0d143c65666b032e528bf55a687400b3a8b451275c7a03"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinadvertisingconfig/onselectadquality.json": {
+      "sha256": "4bc3fc54ee4526fe18879e1042b23302461fbff8ad5a0925631f697929eaf48f"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager.json": {
+      "sha256": "61ce03380067bb4c68ef05f75a0fc3e34c811c9b8026b8111348aef218fb1524"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/add(listener%3A).json": {
+      "sha256": "aeb50c758b5ed1aaab87cefb5733d5c585d2173ab88588c00ac8394d0c1446bc"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/currenttime.json": {
+      "sha256": "759ace44b2a8c390be2f954e1c1a6b8bd2dcf1b4d8710b2b19fa1358672dea7c"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/duration.json": {
+      "sha256": "b513e00588a1334be7d0bbf016eec3d6bc67369767517e3645f2f3822e994847"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/getitemid(index%3A).json": {
+      "sha256": "b0236ec39d159b50380f67a51741b93c3927b8fa542d4d48ba3cf152e609a0cd"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/initializecasting().json": {
+      "sha256": "3e8fa642101c771649bd2c73467cd11ea19f84bbe87491d64bec52f305364ce7"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/initializecasting(applicationid%3A).json": {
+      "sha256": "2626de18bbea12136fd5aca89cf4f5e8c3a6c9c09c999b20e7b9a4e584320114"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/initializecasting(applicationid%3Amessagenamespace%3A).json": {
+      "sha256": "657fbd4d92159ba0b4800bb68ee69cef1f137529877e2a55c565d6b37cd59915"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/initializecasting(options%3A).json": {
+      "sha256": "8540da72c2486897c8bcf4ca8600c31a39bb7c4860c6932ab3394ba19003fdce"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/iscastavailable.json": {
+      "sha256": "f2add8a72a12a828ee9886a5ee50e7f8bce0033691b2124e532629976f487aa5"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/isconnected.json": {
+      "sha256": "362c51b0f99af000237adcf41a48b85a778fea7c390627c48346513a30c79796"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/isconnecting.json": {
+      "sha256": "8bf624785f6e36a3397bfa2fe0d020207020a5629b402eedf6a95179afea277f"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/isinitialized().json": {
+      "sha256": "6d7d528287036161d76e2770eebb1eb6b4e89d3fb2b9eac3258aaf19134aff02"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/ismuted.json": {
+      "sha256": "71739b51f7867b95d3d5321ce594d94336d3733f137b54b8d487e0cab09ce544"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/ispaused.json": {
+      "sha256": "d141629ba406414f98e29f7760e5ca328d16bf89d41d79b1c0ebd845b513634c"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/isplaying.json": {
+      "sha256": "51016832df90dce615782b26cd9ee9c7c03be913e9e6132834657180bab5bbb0"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/isstalled.json": {
+      "sha256": "89eb9df2cbc5d10e471a29a2ff644bbc7c55364ba7d9047d1c345e9f666b6c57"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/loadmedia().json": {
+      "sha256": "3d5c98fd3d35685035168c00ed2e389acee44798ff2a7d0b5a3cabb0001c79c5"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/loadmedia(autoplay%3A).json": {
+      "sha256": "f5630a37e87d39945e709e0b40571ee805f22593298a723beac0e1306d8f2471"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/loadmedia(autoplay%3Aposition%3A).json": {
+      "sha256": "0e5d45b16f6a65ead15a9fb2bc205a22fb1b0ea23539eff7c9d45d1276c95ce3"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/pause().json": {
+      "sha256": "fc263f5ed5f21f43a7715b316aebab215ccf57effafdf46395f1c7a891c093f5"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/play().json": {
+      "sha256": "1139e9cce7004982c2cd5acd2c3783f960a83dcfff172def5a18d7afe6c26807"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/remove(listener%3A).json": {
+      "sha256": "ae7fa2b0ec975515e81be71ac647e7cff218acb6d2be1e213d38ee74c60debb3"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/seek(time%3A).json": {
+      "sha256": "7ef23ee715a8e0821b9c6c0f2cbd7980df0eca47d900e1f317a8ca2f76134674"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/seektoitem(itemid%3Atime%3A).json": {
+      "sha256": "5862a5e43e81389b19d5564653c7234e834d1e8b97b3aa056dedffc31597319f"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/send(metadata%3A).json": {
+      "sha256": "14f5663a59222c7e54af74371e442955fca6c135a09cffed8c7dcfdb1a644d8b"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/sendmessage(_%3A).json": {
+      "sha256": "7516a9dcdbf47d3c2a1a8856048bfdf7323bfd9fbb70772da4269d8731a6dd42"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/sendmessage(_%3Awithnamespace%3A).json": {
+      "sha256": "0d4f4730c9e8a1297a85f6a92f37eb04f0df3a8b05c32ec3d78eff0ba70ab9aa"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/sharedinstance().json": {
+      "sha256": "e73476dab14266c8bb1c1328ad0c5a035686ae4da4cfc541b6287f5a2e67be3b"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/showdialog().json": {
+      "sha256": "36c9578103e44f59813969cd753f6bd46998134e32a74f396b1540ad388f8b7b"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanager/unload().json": {
+      "sha256": "d32b3a7ce694fab9ebee7fdb8fe64b74de4e307cc94aa51c7dded743437f12ed"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanageroptions.json": {
+      "sha256": "8c78df069d2f27c5fb294a6f0c092901c0649581aa8af37019f787056e075878"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanageroptions/applicationid.json": {
+      "sha256": "30dd56097f83bcd5dadd26192cf78406f4c4944ded33b0d733f69d7cf4a7dccf"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanageroptions/devicediscoverymode.json": {
+      "sha256": "d96a5d18208287c6fcdcc7df1a1cdf4fe26908cc4d0f8fca84c5ecf0053363e5"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanageroptions/enablebackgroundsessions.json": {
+      "sha256": "9fb55520f3a0251e88eaaf44be17ea04a5e5b2cde87feed94b727ce2f6d8e345"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanageroptions/messagenamespace.json": {
+      "sha256": "856abb4ff1487b5ddb1048818d5ed66514d24a86d90d924300907ddc430b4ec8"
+    },
+    "data/documentation/bitmovinplayercore/bitmovincastmanageroptions/stopreceiverapplicationwhenendingsession.json": {
+      "sha256": "0d85bce8421002b98741d22299ab05f5ade6ba9b6d9ab079988f4b62afb6fd6d"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfaceconfig.json": {
+      "sha256": "aa5829f1fbaa28e41bd6ff6ba1c25579c2bc5ed40a44e058c55cfa7b8ebeb16f"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfaceconfig/custommessagehandler.json": {
+      "sha256": "38c7172d65280f5f499bf89a41eb937fd3d4c4eadd98a22b97f8096912d137d7"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfaceconfig/customoptions.json": {
+      "sha256": "da5a6e208cf971e50c447db70685bb990342708ebb323fa6d571e8cc37528e1f"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfaceconfig/enableseekpreview.json": {
+      "sha256": "856257b2b1db5d114d340dd788cad132c2d1c5badd6526ecdac01494c0895b3e"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfaceconfig/enablewebviewinspecting.json": {
+      "sha256": "083a45eed35b64421c387a64ec21122cd0fa9bf153658c7eb890725ca76b2d64"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfaceconfig/forcesubtitlesintoviewcontainer.json": {
+      "sha256": "27bfdc387810b3864742e2c067125df0e64bbebb6e51bbbacc3af0fc5967d3e2"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfaceconfig/hidefirstframe.json": {
+      "sha256": "6a4d750ed7b9e8697f1b6d9473d2fc958afecb850aab6c7cf81bd128b3b8e15a"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfaceconfig/metadata.json": {
+      "sha256": "5fbd4b8ba1d974f2d6ca4e0af0210fe0c3dacef70f57fd8d4d6c50292c7580dc"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfaceconfig/playbackspeedselectionenabled.json": {
+      "sha256": "cf913813ff19a7ae7becda4b0aca07c0c0bf4599b3e9e643ff5aff575951b8b2"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfaceconfig/uimanagerfactoryfunction.json": {
+      "sha256": "9686c7038c25a9d29eab8a49cfc1df5e36ef5dc26637fcaf91478ccc09504ad5"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfacemetadata.json": {
+      "sha256": "6bc7527da51b5d6fa1afea870d1bac45a8f13aa5f4121a783d92c9fd0dd92481"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfacemetadata/sourcedescription.json": {
+      "sha256": "a62085aca01e7744dda08e36c064a146de42ffb929f2fcd4bc2d526d990936c5"
+    },
+    "data/documentation/bitmovinplayercore/bitmovinuserinterfacemetadata/title.json": {
+      "sha256": "6741d27460bfedf4679fff0c28fcc22cdb11206e7b776e6028e21915fc1c6eba"
+    },
+    "data/documentation/bitmovinplayercore/bufferapi.json": {
+      "sha256": "1f0a718c8ae731bc6648e18426df8c46d6c5a788dd0b8a2eb50cbf7fd5b77b60"
+    },
+    "data/documentation/bitmovinplayercore/bufferapi/getlevel(_%3A).json": {
+      "sha256": "09d71db09ef431ac88f70583ce052d260ff8d1043becfb0b8dc6ccd9f3ee066b"
+    },
+    "data/documentation/bitmovinplayercore/bufferapi/settargetlevel(_%3A).json": {
+      "sha256": "59506c87b549dadf878b6ea2cab8976fb8cda8aa4a399685bbf6f713a34007ed"
+    },
+    "data/documentation/bitmovinplayercore/bufferconfig.json": {
+      "sha256": "8660d478e87a76e70662a2f378b94b5b76e93c8814c62cb592b4b433721fb580"
+    },
+    "data/documentation/bitmovinplayercore/bufferconfig/audioandvideo.json": {
+      "sha256": "f626759ec2cfd1bba7cf06661926ccc182e704f02da6f365898a7bbd2b2134a3"
+    },
+    "data/documentation/bitmovinplayercore/buffermediatypeconfig.json": {
+      "sha256": "6ce9d16aba9b7b93d195678471bd5679e7f4bbc0f62040c3249177eaf904cf26"
+    },
+    "data/documentation/bitmovinplayercore/buffermediatypeconfig/forwardduration.json": {
+      "sha256": "70776d022ab2d94bb2d665cc9f1f1f1e21c33719b433bf954e398d904fe02e2e"
+    },
+    "data/documentation/bitmovinplayercore/castavailableevent.json": {
+      "sha256": "3b36f6ced96955c8c9df3c305c738d7103a7a93b7160be69f9f0aad79031c256"
+    },
+    "data/documentation/bitmovinplayercore/castpausedevent.json": {
+      "sha256": "e54009fa332a5298b7635b199d58537be44aeb82d612ae40a60f7d23f125316b"
+    },
+    "data/documentation/bitmovinplayercore/castplaybackfinishedevent.json": {
+      "sha256": "c63134962c90206426e23c380601fa9587c4fe2da4f4cc9dd8e7814531563fca"
+    },
+    "data/documentation/bitmovinplayercore/castplayingevent.json": {
+      "sha256": "c29db1d8543831d978546e1047e14d4347e67a282f5718b794a5cb93fb618e44"
+    },
+    "data/documentation/bitmovinplayercore/caststartedevent.json": {
+      "sha256": "4de84baea5fa6696794f3314ae933ab22d61370b3616c0a42ccbd62caa4b1a98"
+    },
+    "data/documentation/bitmovinplayercore/caststartevent.json": {
+      "sha256": "4caca6ee7580b482569451bcf7eb0e2ae0d87fa22df9ac5bf77f3bbabeead1b1"
+    },
+    "data/documentation/bitmovinplayercore/caststoppedevent.json": {
+      "sha256": "0812a86833564140727c105d432bb6ea4efc395f9c1b1543f3371e1eb0ba8555"
+    },
+    "data/documentation/bitmovinplayercore/casttimeupdatedevent.json": {
+      "sha256": "f54701182a95d3d17cdf0531ed41f5095b35d8afa04594e5a897779ed8028061"
+    },
+    "data/documentation/bitmovinplayercore/castwaitingfordeviceevent.json": {
+      "sha256": "f77627d740f1f864d68db1c4333336e631b8a0cb7a7c33419526783e84eaa1ab"
+    },
+    "data/documentation/bitmovinplayercore/clearkeyconfig.json": {
+      "sha256": "3cf2084980b429616ade1f47a38e4f1a65d187df49343d95692a9274fd6d562b"
+    },
+    "data/documentation/bitmovinplayercore/clearkeyconfig/decryptionkeys.json": {
+      "sha256": "3fe8883fa0a47ab834376dbd2744bb9aac64609be38cd616c590f474eeba04eb"
+    },
+    "data/documentation/bitmovinplayercore/clearkeyconfig/tocafdrmconfig(remotecontrolconfig%3A).json": {
+      "sha256": "9a0c734966376e12c1e1488740a4a8c0fb5c0869ad2ab41151ae904a27e8e6b3"
+    },
+    "data/documentation/bitmovinplayercore/cmcdconfig.json": {
+      "sha256": "eb97420b5613427978d2f7fd074fb79eb5a5d5c32aea6b5f5ebd1692a375a3e2"
+    },
+    "data/documentation/bitmovinplayercore/cmcdconfig/isenabled.json": {
+      "sha256": "fd09fdfce20e25bed433a261bbe188de8be15c52d7925ca2416060614b7b4411"
+    },
+    "data/documentation/bitmovinplayercore/consolelogger.json": {
+      "sha256": "d6b21d90aba19ab7f87efb2304b2e0cc36bd73ce8119a04da721ba03fa7bfc8a"
+    },
+    "data/documentation/bitmovinplayercore/consolelogger/level.json": {
+      "sha256": "c8f9e72aa79d2c1aad04ea2ea9a8af662bc1d575295bf39e1b6ae6ef3302a6b0"
+    },
+    "data/documentation/bitmovinplayercore/consolelogger/log(_%3A).json": {
+      "sha256": "9bb567d314ec3d46e28389be48cf43ed1b45fc3982845bf28738904d2b0bd449"
+    },
+    "data/documentation/bitmovinplayercore/contentdownloadcanceledevent.json": {
+      "sha256": "c81d8f4d0b73d39de794cbbc53995ca69563df30b6c3bc54bb08674c658b920c"
+    },
+    "data/documentation/bitmovinplayercore/contentdownloadfinishedevent.json": {
+      "sha256": "9f584809499c30208cb19e0dd00a0f2057ca30097b6cca89df80a1a1026fa3f7"
+    },
+    "data/documentation/bitmovinplayercore/contentdownloadprogresschangedevent.json": {
+      "sha256": "197bbeec2be2755cb861f6957987e7d02564458ea082fd7715351a4e785e7a08"
+    },
+    "data/documentation/bitmovinplayercore/contentdownloadresumedevent.json": {
+      "sha256": "3b87b790e58be02d2aafdb8520b8eda30c54ef6e9e733c8a608514583306ecb3"
+    },
+    "data/documentation/bitmovinplayercore/contentdownloadsuspendedevent.json": {
+      "sha256": "e6b57dd0bacb2383769161270a192792789d850c8942cae4dbbc4bd911a1cc43"
+    },
+    "data/documentation/bitmovinplayercore/contentoverlayapi.json": {
+      "sha256": "db00f826652e0a2c329f5c57a342b8aec711a2e9a471e97dcca205aa5562b447"
+    },
+    "data/documentation/bitmovinplayercore/contentoverlayapi/view.json": {
+      "sha256": "e4705f4ef060db1df56cb937c4abdcbeb0a840d41097321b063a2b83c1cc5cbd"
+    },
+    "data/documentation/bitmovinplayercore/contenturlmigrationfinishedevent.json": {
+      "sha256": "2b24af8119b6c22f96f2160c80e6a82d10fca637faa67d79b9c7e7855f22cc14"
+    },
+    "data/documentation/bitmovinplayercore/controlshideevent.json": {
+      "sha256": "1335dbd00cea86488b5f39dc0ad55dd30a0f720f28a93d86a7f8a90d1b58215c"
+    },
+    "data/documentation/bitmovinplayercore/controlsshowevent.json": {
+      "sha256": "245b7f5919680bb9f774fd22218a6cc96ecc249bd14692e2389dcdfaab7f78d5"
+    },
+    "data/documentation/bitmovinplayercore/cueenterevent.json": {
+      "sha256": "79824eed6736f9dd1e1151249f4dd199a53ae4ec0dcbc3162be942f27318726e"
+    },
+    "data/documentation/bitmovinplayercore/cueexitevent.json": {
+      "sha256": "046be66c158954ca985dfc96d9cf4d8ae00ee410514d5d2d7c0378d53f10c8b4"
+    },
+    "data/documentation/bitmovinplayercore/cueparsedevent.json": {
+      "sha256": "a58bb0400d64bb623941e9ebead7e783f283c5d003ae69ed272d7075b0f54879"
+    },
+    "data/documentation/bitmovinplayercore/custommessagehandler.json": {
+      "sha256": "27ae0da5522fe27801a7fa782f87f0ae16a31394f2263c1a2bcdf712b1a6c42b"
+    },
+    "data/documentation/bitmovinplayercore/custommessagehandler/delegate.json": {
+      "sha256": "152b779b87d311d791cc036b7eba2b95579817bb145d768efff5775da6efcd3b"
+    },
+    "data/documentation/bitmovinplayercore/custommessagehandler/sendmessage(_%3A).json": {
+      "sha256": "58ae3ecdb7214b260cc56422a129a4859a5af2a24f696c00813a0fec40d7b9ff"
+    },
+    "data/documentation/bitmovinplayercore/custommessagehandler/sendmessage(_%3Awithdata%3A).json": {
+      "sha256": "5bfecc2658fdf2bb9d7aac664e96785a475a27e77440023ea9691b4bbe5c8b5d"
+    },
+    "data/documentation/bitmovinplayercore/debugconfig.json": {
+      "sha256": "68476a229dbc14ae82a562c9a9217b0f0469d037d5fc14d21f90c669dd608412"
+    },
+    "data/documentation/bitmovinplayercore/debugconfig/logging.json": {
+      "sha256": "f7c2d399b48e50173b3b542cf0e6812a81998d5bfa0e037bd22f6b981ec8ed2b"
+    },
+    "data/documentation/bitmovinplayercore/decryptionkey.json": {
+      "sha256": "37618ea3784decae757fe3cb473f7a4952bb9908a9c7fadfd9ce92761b74f621"
+    },
+    "data/documentation/bitmovinplayercore/decryptionkey/key.json": {
+      "sha256": "f44b075c29dd47a2f52007fe43a2a721de75fa0bfc392fc54d6d81984e1a52d0"
+    },
+    "data/documentation/bitmovinplayercore/decryptionkey/kid.json": {
+      "sha256": "f8c18a08eab7c9b18937ad47efa503e0cb35fe3954d7453b0cd384c9abdff9b6"
+    },
+    "data/documentation/bitmovinplayercore/destroyevent.json": {
+      "sha256": "ca265d91401147039c9607db9f8a11874fdf902d068432bfd6340cf68b04f9d5"
+    },
+    "data/documentation/bitmovinplayercore/downloadconfig.json": {
+      "sha256": "9e1afdf9f1d7e69ac503b17a7ed27222c8b5c49f9e2e1785f20e4d2f13897dd5"
+    },
+    "data/documentation/bitmovinplayercore/downloadconfig/minimumbitrate.json": {
+      "sha256": "2d2644988129f6f72df30633a44e7c8a37cd75e2b3679a3b45f4d6765075af98"
+    },
+    "data/documentation/bitmovinplayercore/downloadconfig/supportclearkeycontent.json": {
+      "sha256": "6c04fb157e056cca4f1f5a7891a7e2a7775b5687317c9d0593294e5056b7b9d6"
+    },
+    "data/documentation/bitmovinplayercore/downloadconfig/tweaksconfig.json": {
+      "sha256": "8965edbdc26865d60d029bdbf0e95ce9b7aabc9c626cf3cc06a20a3ee27e761e"
+    },
+    "data/documentation/bitmovinplayercore/downloadfinishedevent.json": {
+      "sha256": "c5f921b74e1d01d1bcb2ff3c75941448ac98799c551bf9f8051f6f1c78cb69e3"
+    },
+    "data/documentation/bitmovinplayercore/downloadtweaksconfig.json": {
+      "sha256": "166b4527193e0e6c70531d68bf1154c0b83651ff338db211f0ec62ab63d310a9"
+    },
+    "data/documentation/bitmovinplayercore/downloadtweaksconfig/shouldinsertplaylisttypetagifmissing.json": {
+      "sha256": "2bdb68a831e04210685efd422fc5d015d32e3cab17adde8a624002f99d074df6"
+    },
+    "data/documentation/bitmovinplayercore/drmconfig.json": {
+      "sha256": "55fa0a9c0ec5c2ee253365c683632fe2e2c4ee782b676d5e33ee163f7e88ebef"
+    },
+    "data/documentation/bitmovinplayercore/drmconfig/licenseurl.json": {
+      "sha256": "182f42b3eb184d48d9c9c375df5fa49584e5ae1a943cc6c89cb47c980cf821ee"
+    },
+    "data/documentation/bitmovinplayercore/drmconfig/uuid.json": {
+      "sha256": "f539847b33ba4bd88de7e276a5e4659b5ea25912dea2a629cd8f79b936f0c77f"
+    },
+    "data/documentation/bitmovinplayercore/drmdataparsedevent.json": {
+      "sha256": "ff1ec34a18cc7ec0bd2d312fd20aecde6e82014a7c340d2927012a883910b9bc"
+    },
+    "data/documentation/bitmovinplayercore/durationchangedevent.json": {
+      "sha256": "11fb698561947f1c0b404f1fde13953c527ef3b002d207eac7f82a8aceead427"
+    },
+    "data/documentation/bitmovinplayercore/dvrwindowexceededevent.json": {
+      "sha256": "84cc3f42b7d59a291b9234187ed537d7cc908d18a440852be4d10bd06272a3bd"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig.json": {
+      "sha256": "be3c1731befe45aa6a8a689d2dcbd10ff5b54141891c15844b10b3107dbe99c3"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/certificaterequestheaders.json": {
+      "sha256": "ff9a15a3e1751f6421c3fbfff08119dc935f704479c8b4a468f7eb7a4f4bf891"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/certificateurl.json": {
+      "sha256": "1e52bf49f2e31f823b9c30010857fcde1c5455e758370cac3a3d70179e52074e"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/licenserequestheaders.json": {
+      "sha256": "7e041f76e7dcfd12d541f1c14603d3a215a7f6891c3d064e9d50f0a4b946a59e"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/persistlicensedata.json": {
+      "sha256": "5397c5c098e7b361103e46ae8e34c10f2e67e20eaafb43f0148401754ff17f8c"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/preparecertificate.json": {
+      "sha256": "85bc92e83ed44b9406e95ee39cd6dc06035d012b7e7523b462086e3037fb8cb9"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/preparecontentid.json": {
+      "sha256": "42dd07abec0be1446b4019883d2cee5f15f13e339a6d303e699bcaae05b68b4a"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/preparelicense.json": {
+      "sha256": "ab9834cc8101e8660a377670f4320fce00ac064a374873f9ba6f223df0a1b485"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/preparelicenseserverurl.json": {
+      "sha256": "779313dbcde4a23c83c867c29cb60c7f5a69a4120ed27044ff5c3cd1fac2c0fb"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/preparemessage.json": {
+      "sha256": "93876508bf82148816aa810849f113c572f3455df7afae08fe49e7fb1bc1ceb6"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/prepareofflinedrmlicenseinformation.json": {
+      "sha256": "fe4c83dec2df7cedb9b1e41207ba7fb2db7ad26da2fb6d3d9a3f5e0864967e5e"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/preparesyncmessage.json": {
+      "sha256": "67e74f7c61e45f03cd721a4bd1a5cd582b207900b8346cb1fcb34f4053d42c83"
+    },
+    "data/documentation/bitmovinplayercore/fairplayconfig/providelicensedata.json": {
+      "sha256": "d576c27605989a2fbe07683793c7a9a52019f779bd560b0078aa9e0f1c2251b6"
+    },
+    "data/documentation/bitmovinplayercore/fairplaylicenseacquiredevent.json": {
+      "sha256": "9d7d37d941391b213fee0fa227f16a5335f8afaa5c4f9e7b39adc31f97a3bc62"
+    },
+    "data/documentation/bitmovinplayercore/fullscreendisabledevent.json": {
+      "sha256": "47ba694e971c11d72e345fa8a8f017aee17e3c929fe04bce036d641ce3ca0860"
+    },
+    "data/documentation/bitmovinplayercore/fullscreenenabledevent.json": {
+      "sha256": "4108838f2605692fe8cdc9a08f4b4140c45977aa16369b49bc19f6b6e2a5bb9c"
+    },
+    "data/documentation/bitmovinplayercore/fullscreenenterevent.json": {
+      "sha256": "693b71df82e5d7b471974b7aedd7f364ef0547d0645127b7723b9b2c418a0b2d"
+    },
+    "data/documentation/bitmovinplayercore/fullscreenexitevent.json": {
+      "sha256": "a593a3890772d179a6ccddeaa3ae47c7b6dd4a1e0014036e665a2391689c4761"
+    },
+    "data/documentation/bitmovinplayercore/fullscreenhandler.json": {
+      "sha256": "90d42417e423afebe848ad1174ffd402e6293e08f447886f65c0a7fc64c596d3"
+    },
+    "data/documentation/bitmovinplayercore/fullscreenhandler/isfullscreen.json": {
+      "sha256": "0ab58a1eaf0d7c5268d321df0f957a30ad7e0a4cd65f897a41556a21d9d4a824"
+    },
+    "data/documentation/bitmovinplayercore/fullscreenhandler/onfullscreenexitrequested().json": {
+      "sha256": "dae50c8ad1636ad15c4a31b6577c7c535bbd5057848e0bf233020a3d61329ee3"
+    },
+    "data/documentation/bitmovinplayercore/fullscreenhandler/onfullscreenrequested().json": {
+      "sha256": "1730ecf8c055ba0cae2b379507135855f4a8d44c54939294e0f8b45712a57e5a"
+    },
+    "data/documentation/bitmovinplayercore/imaadbreakconfig.json": {
+      "sha256": "28a03177244292d69eaaabc4bf6e311d2374ba9e8870ddb5fdbd2b76ac610c01"
+    },
+    "data/documentation/bitmovinplayercore/imaadsmanager.json": {
+      "sha256": "5673b5b79a26a635de20c4263cf435956bdc50100fbe3ab9fa709820c48c0a11"
+    },
+    "data/documentation/bitmovinplayercore/imaadsmanager/adcuepoints.json": {
+      "sha256": "af3cb39cd7d0de670c143083f0423d020cf5206e2598841b974d2139961e5cf7"
+    },
+    "data/documentation/bitmovinplayercore/imaadsmanager/clicked().json": {
+      "sha256": "f561e9445e98524bf867cb99fc490b084a3e4b8e9b0ec9dc3a62b5c5d4bd11c8"
+    },
+    "data/documentation/bitmovinplayercore/imaadsmanager/discardadbreak().json": {
+      "sha256": "24c7c221c135b0613154505de31e3d20ac55d9a19c82be6aeda2a3b3cb36004a"
+    },
+    "data/documentation/bitmovinplayercore/imaadtagconfig.json": {
+      "sha256": "f52ec2a99473d25aadf160bc2541dfd97d23ccff6cfcd6eb12cf732b6d92605d"
+    },
+    "data/documentation/bitmovinplayercore/imaadvertisingconfig.json": {
+      "sha256": "4f624a6ee1e678c22523c4b0a13b3d6fc64f1b537fd5265dbce2d4e2bd261c28"
+    },
+    "data/documentation/bitmovinplayercore/imaadvertisingconfig/adattributionuimode.json": {
+      "sha256": "b6eb1aff22691b33f203f9f44f3b92d79abc3d5f71994bf084733387a6673d9f"
+    },
+    "data/documentation/bitmovinplayercore/imaadvertisingconfig/preferreduitype.json": {
+      "sha256": "ffeea5df073e013ed99c164601e3f25bdc420960f0fbd8e566e6083e8fd07bc1"
+    },
+    "data/documentation/bitmovinplayercore/imaadvertisingconfig/shouldpauseontap.json": {
+      "sha256": "cea246da752893c26824233f47b17d9a28888039449e13fd4df8b1c142526f3a"
+    },
+    "data/documentation/bitmovinplayercore/imasettings.json": {
+      "sha256": "4c199039f482596fd27ed78551fd18343c9995565f82d82c16b052536cf6e001"
+    },
+    "data/documentation/bitmovinplayercore/imasettings/disablenowplayinginfo.json": {
+      "sha256": "31302b482063f3bf8687689583ff18637760c92e77e5588284d2c2173a545c10"
+    },
+    "data/documentation/bitmovinplayercore/imasettings/enablebackgroundplayback.json": {
+      "sha256": "f702f9c16867b86915f1a0763c769f34f08ecbfbf59fcfb6251e34a2e7edf21f"
+    },
+    "data/documentation/bitmovinplayercore/imasettings/language.json": {
+      "sha256": "81e0573c22387b612606a7d73fb40410f3880f4acd827e4f80a86d08e3fea6a8"
+    },
+    "data/documentation/bitmovinplayercore/imasettings/maxredirects.json": {
+      "sha256": "7886b3aaf53f30f4eba7411eac998b51f8c5e37c25ae5996f37fea92fc2f95bf"
+    },
+    "data/documentation/bitmovinplayercore/imasettings/playerversion.json": {
+      "sha256": "ea86fc90c0f3c6948c6a61cb8bacbad9b7c236648cd7c1ea0207fa5a50a88181"
+    },
+    "data/documentation/bitmovinplayercore/imasettings/ppid.json": {
+      "sha256": "a51722987304f45f960498a39d4afe8d59cb77110dc60c8dd1fb2d240e8b67da"
+    },
+    "data/documentation/bitmovinplayercore/imasettings/sameappkeyenabled.json": {
+      "sha256": "d1ac10440dbd9c6d713b4501ff575848c4462c3e4d3fb021b51130c5fc608e21"
+    },
+    "data/documentation/bitmovinplayercore/imasettings/sessionid.json": {
+      "sha256": "6f7a17ba7eaa11bb3460295593265adc61eb78cf0fd25bc0372247e34d806250"
+    },
+    "data/documentation/bitmovinplayercore/interstitialcustomattributesmappingregistry.json": {
+      "sha256": "917a6834ee87c96d77acd3c71e6b185243f89b70df9c9d9a0f22f846b37b8faa"
+    },
+    "data/documentation/bitmovinplayercore/interstitialcustomattributesmappingregistry/clickthroughurl.json": {
+      "sha256": "1a054dd9e1aca9afa6a581947550c019a31c406676a8597ca2533d1fa712b9ba"
+    },
+    "data/documentation/bitmovinplayercore/interstitialcustomattributesmappingregistry/tracking.json": {
+      "sha256": "918f9cb7ce554deea499d7c18747f2fe17f6cd98856a6f558c4335bcf1359a7c"
+    },
+    "data/documentation/bitmovinplayercore/interstitialmacro.json": {
+      "sha256": "7ce9171be211fcb15affaf3bc43dd5a49be1b84e9811f03344cb3ab7c9f1db4b"
+    },
+    "data/documentation/bitmovinplayercore/interstitialmacro/name.json": {
+      "sha256": "277b244315b8f82d39ff8dc5cdbd3141b5376eeb2a53d078eaa80f0b94aed6e0"
+    },
+    "data/documentation/bitmovinplayercore/interstitialmacro/values.json": {
+      "sha256": "c9f5d2b0474386fb6fced6c5147fb77a3d612c35d5e0594a06e5daf4d4cb442e"
+    },
+    "data/documentation/bitmovinplayercore/interstitialsconfig.json": {
+      "sha256": "ff476575b2aabc5c384e63b25eda0d0c8ba37239f1aaab88e30096dda9da19ae"
+    },
+    "data/documentation/bitmovinplayercore/interstitialsconfig/customattributesmapping.json": {
+      "sha256": "0986cd474cd2cfbd372125255db044dc57d9f1838a5bb6c921a054ee8d943c7d"
+    },
+    "data/documentation/bitmovinplayercore/interstitialsconfig/macrovalueprovider.json": {
+      "sha256": "cf150fcd984a400df773301fa4e8899bf7dbe03e32f1a8f1689cd59155cf3db5"
+    },
+    "data/documentation/bitmovinplayercore/interstitialtrackingevent.json": {
+      "sha256": "8d65999ea713467e850add0570af10667d32fcf72843cdd416d7d6ec906782a4"
+    },
+    "data/documentation/bitmovinplayercore/interstitialtrackingevent/offset.json": {
+      "sha256": "ab9d170b81b27387f571d1f933f68135f114d83f312fd5ea4446a82b03283a29"
+    },
+    "data/documentation/bitmovinplayercore/interstitialtrackingevent/uris.json": {
+      "sha256": "2ddb8c158fbfbb9fc49d63535cd0dc8abe761235177e73e5a2e8a88a8d0bffe9"
+    },
+    "data/documentation/bitmovinplayercore/interstitialtrackingregistry.json": {
+      "sha256": "3285e7cf1688f13a180d2debe032973d2c9e8fe0ffcf5fa0b29cd471c5dc1c94"
+    },
+    "data/documentation/bitmovinplayercore/interstitialtrackingregistry/register(trackingevent%3Afor%3A).json": {
+      "sha256": "c59e6ec8c48aef41649c08ac5295b3d3f2f2afd78c4422a322af0ac2ff1e3066"
+    },
+    "data/documentation/bitmovinplayercore/interstitialtrackingregistry/register(trackingevents%3Afor%3A).json": {
+      "sha256": "6b122085546ffa01996a4251965879b4dc358064ad7ae677cdf902aeabfefed6"
+    },
+    "data/documentation/bitmovinplayercore/interstitialtrackingregistry/trackingevents(for%3A).json": {
+      "sha256": "868d3089945b41a63b1bd9c54fc543de95fcda84fa964ec3e481038448c5be73"
+    },
+    "data/documentation/bitmovinplayercore/labelingconfig.json": {
+      "sha256": "94aadf518e99031ac490ce5e7713a316e94dd635479d648974d50c1db91c139e"
+    },
+    "data/documentation/bitmovinplayercore/labelingconfig/audiolabel.json": {
+      "sha256": "2a8e34a6f901f5da76686ef06b893ecf23436d5a0a3c9e89e83f024996131b76"
+    },
+    "data/documentation/bitmovinplayercore/labelingconfig/subtitlelabel.json": {
+      "sha256": "e3d62dd166d4c7b645310183f9320365f764a5b4dd4e05c003e78b6f0df45caf"
+    },
+    "data/documentation/bitmovinplayercore/latencyapi.json": {
+      "sha256": "ffdcd1ad6980388cc1c8fa54f9d8c2d318d4cbc39149c8edb78e11b55f0e38e6"
+    },
+    "data/documentation/bitmovinplayercore/latencyapi/currentlatency.json": {
+      "sha256": "ba5ddd45f521e004ece659d34530510fafa5afd9e9d0db0fe4fc4be77cfdb4f4"
+    },
+    "data/documentation/bitmovinplayercore/latencyapi/currentmode.json": {
+      "sha256": "403a06dbb67d8f5346573557ab6454aa5721e5dabcba3bcb5eea48bfffa7b3d5"
+    },
+    "data/documentation/bitmovinplayercore/latencymodechangedevent.json": {
+      "sha256": "e0a76bbb0926ab8486f07b4b976dbdbe1018b65a39670d9131919a9bba772dce"
+    },
+    "data/documentation/bitmovinplayercore/licensevalidatedevent.json": {
+      "sha256": "6c75464efcbe0668b322f33cfb24c5ce84ece66f77ea9d31262748c1ab26e2df"
+    },
+    "data/documentation/bitmovinplayercore/linearaduiconfig.json": {
+      "sha256": "416def6b36e1675a060fcb92566c41d6576a28cb0ae89a87e237b62bac76a6b3"
+    },
+    "data/documentation/bitmovinplayercore/linearaduiconfig/message.json": {
+      "sha256": "ffa971bceafd065cf63f95acfb08b2e56d019047655c352c510114af4e9d445e"
+    },
+    "data/documentation/bitmovinplayercore/linearaduiconfig/requestsui.json": {
+      "sha256": "b0d8d1ace0895c4190624319395536f10ea63c7065ef230810944a0ea57e98ae"
+    },
+    "data/documentation/bitmovinplayercore/linearaduiconfig/skippablemessage.json": {
+      "sha256": "a7f76000673c6b750503671962dd3b62ffd030e1bbdbeead3284a637f5c92c4b"
+    },
+    "data/documentation/bitmovinplayercore/linearaduiconfig/untilskippablemessage.json": {
+      "sha256": "5adf8d8bf4d98917f1f5d2e936661eaf3396477bcee17a6764159c7e566ddeb6"
+    },
+    "data/documentation/bitmovinplayercore/liveconfig.json": {
+      "sha256": "5f4df8810d51c2503902429bc041acea132effc90fbcaf4e0074cb9059307870"
+    },
+    "data/documentation/bitmovinplayercore/liveconfig/mintimeshiftbufferdepth.json": {
+      "sha256": "b75d9419db3bc6f6c5b15f47b5706d14d9a58e9976009c8e85718fc8fb33ebd7"
+    },
+    "data/documentation/bitmovinplayercore/logger.json": {
+      "sha256": "a6adb548886cc85d3cb8ddc7abfa69c8eb46f84a7678e9ac9391d872b9a6dcfa"
+    },
+    "data/documentation/bitmovinplayercore/logger/level.json": {
+      "sha256": "231a90d08b2013bd4fbd8f7be0ca4749ce4c8448a399cbb3ad5234e0545feb37"
+    },
+    "data/documentation/bitmovinplayercore/logger/log(_%3A).json": {
+      "sha256": "1e1cc7c29630cd5d10233db1f63a519765fedf8180e677ba860e0c1f99bb888e"
+    },
+    "data/documentation/bitmovinplayercore/loggingconfig.json": {
+      "sha256": "bfad2d1bde200ea52f180b73edf22590bbb8101b0a45be2d5dce049564ed1cc2"
+    },
+    "data/documentation/bitmovinplayercore/loggingconfig/logger.json": {
+      "sha256": "355665d50814fc917b49b8395a1a374fc093d6a8f4585afa33d75513bea47653"
+    },
+    "data/documentation/bitmovinplayercore/metadataevent.json": {
+      "sha256": "e4edec11f546a4bcdfca6d48f6ec5fc40602b100272f6b38f9b1ba6fcaea902f"
+    },
+    "data/documentation/bitmovinplayercore/metadataparsedevent.json": {
+      "sha256": "57c7f3b3747d0f7d1dd2112f001874fbaeb2f442aebca9c06b7b9d4902622ab7"
+    },
+    "data/documentation/bitmovinplayercore/mutedevent.json": {
+      "sha256": "cd3dde487e76e24ecdd8ad5c3456292515aef5a6338dad4d197c6ee4524de000"
+    },
+    "data/documentation/bitmovinplayercore/networkconfig.json": {
+      "sha256": "f31d5e877e4a9212bc2dad6ca76e8c42d275a8478381b3a9bd1e8d181588dcb4"
+    },
+    "data/documentation/bitmovinplayercore/networkconfig/preprocesshttprequest.json": {
+      "sha256": "5d5e5b179125afeb495b48fd585ed10a8e95a4e542ddfa5e1c12f6921f9f0e64"
+    },
+    "data/documentation/bitmovinplayercore/networkconfig/preprocesshttprequestdelegate.json": {
+      "sha256": "eea3374ffe1ee7fbc2bbcf11b3947a3756ea7bc0ea7e3eb73dbea8bbb7b602ef"
+    },
+    "data/documentation/bitmovinplayercore/networkconfig/preprocesshttpresponse.json": {
+      "sha256": "7bd71bc59ca8a7d83b8aac85d35aa2c46763dca8fad61a103875e083b088ea08"
+    },
+    "data/documentation/bitmovinplayercore/networkconfig/retryhttprequest.json": {
+      "sha256": "59e522880bddde173b06c5bc5234a6d0413694b3bcc4278524d52c7111bd8d39"
+    },
+    "data/documentation/bitmovinplayercore/nowplayingapi.json": {
+      "sha256": "c4c8c28dae4552b351efc78868cd63955fd11b12ed96e2db090e05c08cff7ebc"
+    },
+    "data/documentation/bitmovinplayercore/nowplayingapi/isenabled.json": {
+      "sha256": "42bc5236b8dc51e6a7045fe55f8a1383d2be626f6e3cd091a1ad7efc0788b23d"
+    },
+    "data/documentation/bitmovinplayercore/nowplayingconfig.json": {
+      "sha256": "3f7355a0c712e6d8294ed3ffa8d73667b7eda5fa4e16a95636377d000775d933"
+    },
+    "data/documentation/bitmovinplayercore/nowplayingconfig/isnowplayinginfoenabled.json": {
+      "sha256": "5f9019c5e121e7d6412d67c6d84864196e51bf2a44ae5302b1d50e67cbc707a2"
+    },
+    "data/documentation/bitmovinplayercore/offlineconfig.json": {
+      "sha256": "363e698bcde79d5a01b062e91965ce24838c826db6e72bf1c444bcba93e94a08"
+    },
+    "data/documentation/bitmovinplayercore/offlineconfig/restrictmediadownloadstowifi.json": {
+      "sha256": "fc2fb0c8eaca5ed6b22ad21ca82196a1dd95f02cf67c08bdfec6826d775ceedb"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentlicenseexpiredevent.json": {
+      "sha256": "efe62e7ab267f56793c268900cb8184388523e4bbe10b87c5966abac02fa792c"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentlicenserenewedevent.json": {
+      "sha256": "379f9e04614edf05682964b3075d01aff20771a5d0c7cf995a8c470f715ac6b6"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager.json": {
+      "sha256": "0250aba2bf9839628b8bda0482916100406ee2d90eeee8200e31ef6c8b729c54"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/canceldownload().json": {
+      "sha256": "42abd8c279cabc6be684aff1d22bec17abc378436ed14e17e2bf3561e3f8915d"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/createofflinesourceconfig(restrictedtoassetcache%3A).json": {
+      "sha256": "07994792e71f7a4e6e1cd892434743f15fca49b2197be85b1523ebce52d4ec2a"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/deleteofflinedata().json": {
+      "sha256": "3dc5716a4bc5f1f5bf4e1dc1bc361f947f6ee2d90bdd5e79a4f561c84a4b1f00"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/download().json": {
+      "sha256": "09bf36c4174d346645203d6535de2f4ebce200bfc0982c28e95201f4ba96bde7"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/download(downloadconfig%3A).json": {
+      "sha256": "ff8f781da56a77dd6167b3fc89091ab475d87fdba4c2b939951885666634149f"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/download(tracks%3Adownloadconfig%3A).json": {
+      "sha256": "3cf1a429e22dd50d52eef21a0cc5c9cfaaf9601f243ad09716599dc42b3ae43d"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/fetchavailabletracks().json": {
+      "sha256": "e9c08bfb2352e8515f57ec68fdf68c6f0109999a2b8c69f5e6bbc00fac39cf0f"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/offlinedrmlicenseinformation.json": {
+      "sha256": "c5e79298546ec1db5cc3ee56a54d36d95e7cb8ad52421c660f962ad524eaa365"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/offlinestate.json": {
+      "sha256": "09e7b0a75cb80b1144e7d9bf0972904d928030eae4fa4690e1cffb6746983026"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/renewofflinelicense().json": {
+      "sha256": "ab159f1acaf398057359b39469fc89a99cb2d22fab4a7e043aae6d5ac6069728"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/resumedownload().json": {
+      "sha256": "f3fb43e6bc69c743e4bc2ffe6ab03430d5f138638f436b725fce2db6834dd506"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/sourceconfig.json": {
+      "sha256": "3228470c621342182924c7475f91fffac401784ea5d073302ad2cba57de23d3a"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/suspenddownload().json": {
+      "sha256": "9c3d0d1fe0b5cf458868fa9734245f70e19b1808099a78f68c1108d132d2c21a"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/syncofflinedrmlicenseinformation().json": {
+      "sha256": "c68181ce1d519dae77bb8fb972c89e16966602076564b6e3a19f3f6f84ff38a0"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/tweaks.json": {
+      "sha256": "a26ec95f072f4d97562a3cf4749af7f2008f60bccced2824622c7b2917a4df81"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanager/usedstorage.json": {
+      "sha256": "919ccf2268e49e561e028a0f05a283ef8bf55535932835b79682575fb29a0d06"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagereventhandler.json": {
+      "sha256": "8a89bca38e1870baf9c6178f557a30541e701765ef62289b73adc06f6254454b"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagereventhandler/add(listener%3A).json": {
+      "sha256": "8ed2b81e86f4f218d62cd7159efbd1d155a3bcedc8e4d0db14ae3b36ecd3da9e"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagereventhandler/remove(listener%3A).json": {
+      "sha256": "8e5f04cebe0e2a9c149ec25d6a45ca2393dc41cd13821ab7950a040056b2cd2c"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener.json": {
+      "sha256": "587e59c3960ae0087c676aa243f9c8500a0fc57389e1f313e0e718c2edb73712"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener/onavailabletracksfetched(_%3Aofflinecontentmanager%3A).json": {
+      "sha256": "91ba55f4b053201bdf62682db442d94f4b2a2dd231bb6345c781508d2a5c98cb"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener/oncontentdownloadcanceled(_%3Aofflinecontentmanager%3A).json": {
+      "sha256": "50ac2e22fb540dc32e1396493c19df3e3281cf1d9d6713124b55d6963460efce"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener/oncontentdownloadfinished(_%3Aofflinecontentmanager%3A).json": {
+      "sha256": "545f2e3b0a61900e03d279e73194cd21ee234f262bdc4993b0ece50c9e534945"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener/oncontentdownloadprogresschanged(_%3Aofflinecontentmanager%3A).json": {
+      "sha256": "3159f096a18e8a3351393171d5951e0d00b6ca1fe59f34c0ee63cfbe95a89613"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener/oncontentdownloadresumed(_%3Aofflinecontentmanager%3A).json": {
+      "sha256": "1bafc77c672132adbf94aa3a78c881c78324d6c3e05f713d7ad8f8d66d236604"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener/oncontentdownloadsuspended(_%3Aofflinecontentmanager%3A).json": {
+      "sha256": "dfabe320330385486787a267632f6843f9c869ec5f238fde457bcd4c352383da"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener/oncontenturlmigrationfinished(_%3Aofflinecontentmanager%3A).json": {
+      "sha256": "2ecb02c483dcbc624efd4d8f30a922a3e9dcdc962c1b4da7fec8faaf87d2c9f4"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener/onevent(_%3Aofflinecontentmanager%3A).json": {
+      "sha256": "d7580ce0dd81645ee90b4bfcbe4ff18f9457fdbae72f6b2d36cde24a0e00d5db"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener/onofflinecontentlicenseexpired(_%3Aofflinecontentmanager%3A).json": {
+      "sha256": "cb22cec129aca53ff5e60b5df6ce43576480a163b0da07ac7ca73cad64054292"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener/onofflinecontentlicenserenewed(_%3Aofflinecontentmanager%3A).json": {
+      "sha256": "a56647e6971678201199a7d7b398ab0dc251c149e863436cc93cc695e71f2ecc"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagerlistener/onofflineerror(_%3Aofflinecontentmanager%3A).json": {
+      "sha256": "59bf4ce38cfa3ad5b99e8c44750375c0fe76326ebed0a94b75735b836121db5d"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagertweaksapi.json": {
+      "sha256": "89326aeca75fb0ce1242c9e7966f2e06e66d82251ad318ea72de4f3de836e8ad"
+    },
+    "data/documentation/bitmovinplayercore/offlinecontentmanagertweaksapi/migratedownload(remoteasseturl%3Aresourceidentifiercallback%3A).json": {
+      "sha256": "6ab6ad2b0a10af74e182308711382353094c5e4d8c198513bcd48f6e2fba14b8"
+    },
+    "data/documentation/bitmovinplayercore/offlineerrorevent.json": {
+      "sha256": "1d91393b97eccf3c68018ba362445eeccd54cf66a3ae5b41982e67f8d803ac94"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager.json": {
+      "sha256": "646bf3990234f4c2df94be352cc3f444ad08d7c35d2f8b4e7cb3f9810274b144"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager/add(completionhandler%3Afor%3A).json": {
+      "sha256": "bb01ea5468207105ce8f5620680996115265ab0c58ae34a5d14f86ee8d18bcfe"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager/aresuspendeddownloadsrestored.json": {
+      "sha256": "b24a0792ee43a25dd1867b295ddbf6586e4968034caed1be490f6f78a5035782"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager/delegate.json": {
+      "sha256": "249e451449d1ba5ef158ad0b3931cc76d49a3891d6b2ec858aea2fc3efe0654f"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager/initializeofflinemanager().json": {
+      "sha256": "d8b9a3907a33f3a15b5bbcf18e34db45a17de8cb8e5e1d0b30e7e42bf4422113"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager/initializeofflinemanager(offlineconfig%3A).json": {
+      "sha256": "e69e1ec64b8c49574b8737ad6df250d74424a03b1ad1d4ac3630ee069cf44b81"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager/isofflinemanagerinitialized.json": {
+      "sha256": "6d64763577fdddb3816de01f1c6cf2039e7df043517b15bdd480a8d87fc86b3d"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager/minimumavailablespacethreshold.json": {
+      "sha256": "55b654eb0d4bf7119ae2f09247ffa5acf123d7bb5f307ed525a2a11647a3d2e4"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager/offlinecontentmanager(for%3A).json": {
+      "sha256": "a697b3abe4a425b65cb61c83f632178021ced5372cd3e29b0f3bacf2fef801ed"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager/offlinecontentmanager(for%3Aid%3A).json": {
+      "sha256": "75c891fc07eab3284be52f2514bd4ad87a8b401bd4194dba8d407de12558f66c"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager/restrictmediadownloadstowifi.json": {
+      "sha256": "dbd1b307acce86f2be4105b5fa2118a15d61e5acd5e95ae4e2693eceb2722ba8"
+    },
+    "data/documentation/bitmovinplayercore/offlinemanager/sharedinstance().json": {
+      "sha256": "0afa4eb81e2d4ac52531e2697a3dbe893cb27fdb95532f5816defbd12f6a6593"
+    },
+    "data/documentation/bitmovinplayercore/offlinesourceconfig.json": {
+      "sha256": "8913531c266b85c3145aeb796c4b2131452495cb20d3ee2ad854f381e08096f7"
+    },
+    "data/documentation/bitmovinplayercore/offlinesourceconfig/isrestrictedtoassetcache.json": {
+      "sha256": "0b4f76fe4958f45cd443b2f39c1b1a21250c1e0f1469a91b6ad72c55a8bcf996"
+    },
+    "data/documentation/bitmovinplayercore/offlinetrack.json": {
+      "sha256": "a0557e656af89da40c5de26b91c856dfcc95f36c283f51d448c72b5b23796380"
+    },
+    "data/documentation/bitmovinplayercore/offlinetrack/action.json": {
+      "sha256": "b2a4b220700e38fe0bb37390ecbb6b50f81e979563ddbfdcb5b6d3e96fd390ad"
+    },
+    "data/documentation/bitmovinplayercore/offlinetrackselection.json": {
+      "sha256": "21499a44883222781570480dba57cc338da658fd97cd7b7b805650f4cfeee2ed"
+    },
+    "data/documentation/bitmovinplayercore/offlinetrackselection/audiotracks.json": {
+      "sha256": "e4cef611707545303c7c4c9fb74ebc255599780bc8b80f9dc6f13fe7b696c6e8"
+    },
+    "data/documentation/bitmovinplayercore/offlinetrackselection/texttracks.json": {
+      "sha256": "ac4e635ccf7a30e71c87f84f157b50df8f3ae4aacb51617997b6935bb4cde188"
+    },
+    "data/documentation/bitmovinplayercore/outputobscuredevent.json": {
+      "sha256": "49f6676d33f0ab882bfc651adda800dd1065ddb0df5a2694b9213b2cdf367e3e"
+    },
+    "data/documentation/bitmovinplayercore/outputunobscuredevent.json": {
+      "sha256": "18ffa56f8a8fd971ad9e986c14875ad3eab3ca709ea20635f3512c526877ad4c"
+    },
+    "data/documentation/bitmovinplayercore/pausedevent.json": {
+      "sha256": "80276319fe1c78d70f9c32600a2fc74aaac4c2163a7b71f7a58463253f0248e3"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureapi.json": {
+      "sha256": "c9c14cb87ffde7f46fb181d6d421a5e3f2418bc83d43d7cf13c11d8d8537578d"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureapi/isenabled.json": {
+      "sha256": "260e5485cbd20c1e3b62c514fef0b70d0cf6f4cea259bb5243ae7ea0e45ffb5a"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureapi/showskipcontrols.json": {
+      "sha256": "e25680241f8f407de74e60d7f132966c663c4ed1923a02765f0eac168ff77d95"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureavailabilitychangedevent.json": {
+      "sha256": "dd2ae2e492209c3ec063933d794079857ff5a5829f2288932b5f43db8957ce4d"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureconfig.json": {
+      "sha256": "5bdc48b1def4119d9d9d2c326405c9ec0d7fbb2ec5533da07c30d4a2b32899ba"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureconfig/isenabled.json": {
+      "sha256": "f1ec265a07d1128afdb22963c90bc97e9200268a99e8506ff291e8f298a7f105"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureconfig/restoreuserinterfacehandler-swift.property.json": {
+      "sha256": "a0d342ff95de07a8e879c7e85871deff97f27f4e6bd3bce9b9029618a6b81b61"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureconfig/shouldenteronbackground.json": {
+      "sha256": "e3bd287c032f869165caa088c2ecc04458cd1bf061fee03344a7d6a7772444cc"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureconfig/showskipcontrols.json": {
+      "sha256": "b687ce8b1f3da6fd6fd79a74920d14b04ac02523cea5411b991242b12929a3bb"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureenteredevent.json": {
+      "sha256": "3d2654990e5919c19c5c85593fef70633d0da31d259c380f0e733e5c035abdf0"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureenterevent.json": {
+      "sha256": "b05bbc904a5ba24401b20b45fd88b3ae5325a67af1d55db5fe7b6b023df5ed06"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureexitedevent.json": {
+      "sha256": "dce5ffcd71caedb430bb2c6dcf8fa0f4a87993f320168871cbb3676ba451d1aa"
+    },
+    "data/documentation/bitmovinplayercore/pictureinpictureexitevent.json": {
+      "sha256": "122916a2b4cc810827bee06c978080606aed124f8abe6811748c0293b8648db1"
+    },
+    "data/documentation/bitmovinplayercore/playbackconfig.json": {
+      "sha256": "ecb3a3824ec6ae236063265dbb8bbed49edf5f0ce8e280fe71f9375dcf0c7033"
+    },
+    "data/documentation/bitmovinplayercore/playbackconfig/isautoplayenabled.json": {
+      "sha256": "9cd55e7d36f250e8e7083563a356b95e285abff6364c9a0aa471a0e958c486b2"
+    },
+    "data/documentation/bitmovinplayercore/playbackconfig/isbackgroundplaybackenabled.json": {
+      "sha256": "d958c38f54b6469f20169011a0f196997755c7c9e8f1e5e8c37fbd7727482fd5"
+    },
+    "data/documentation/bitmovinplayercore/playbackconfig/isforcedsubtitlecallback.json": {
+      "sha256": "95a54f0161c9c5afd673c617ccc65a9f3e9fecb3eeffd4b0a889e5cba7b9ed0a"
+    },
+    "data/documentation/bitmovinplayercore/playbackconfig/ismuted.json": {
+      "sha256": "50506f1b879383c99724bf3d0a1ec64ca7a939c0733fec9238c39560c55a5b75"
+    },
+    "data/documentation/bitmovinplayercore/playbackconfig/ispictureinpictureenabled.json": {
+      "sha256": "db713ddb8c929fddb923566c08f2ebf23925b6447d51e21ad1b2d881c70f0adf"
+    },
+    "data/documentation/bitmovinplayercore/playbackconfig/istimeshiftenabled.json": {
+      "sha256": "1c0edd90a981ab9b2ca7af19deeea49359680943d49a7c75200196c94b89403c"
+    },
+    "data/documentation/bitmovinplayercore/playbackfinishedevent.json": {
+      "sha256": "6c7ff16f5ef22124ce15cfe5a08d8b5c0f897a911ea3aec0d67fbf6314115707"
+    },
+    "data/documentation/bitmovinplayercore/playbackspeedchangedevent.json": {
+      "sha256": "e0471de7fc7dac67552bba6c3abbfaf11f6a6fd1b3f4825bcca3a71ae082b320"
+    },
+    "data/documentation/bitmovinplayercore/player.json": {
+      "sha256": "17c718c0f050b141f3003bc8a12890def19db7271149c81088f55bf0bea3fbad"
+    },
+    "data/documentation/bitmovinplayercore/player/addsubtitle(track%3A).json": {
+      "sha256": "88cfebe1889f68ddec19ecf475b8393ce1b418ce815e058d8d3332692c9c94e1"
+    },
+    "data/documentation/bitmovinplayercore/player/ads.json": {
+      "sha256": "df699e61af40eb3937220abdb7b59a5b67281a076a1084c94b2200f7fac7500a"
+    },
+    "data/documentation/bitmovinplayercore/player/allowsairplay.json": {
+      "sha256": "5dcdba8fda3c947e6988d12e40c9200a34b6f40d09bfe1b71cd35c9961c86fde"
+    },
+    "data/documentation/bitmovinplayercore/player/audio.json": {
+      "sha256": "1a66f9d73640c398ebc470d2c88690223dc6e1fbc1c2bfcd9a2eb48374f72188"
+    },
+    "data/documentation/bitmovinplayercore/player/availableaudio.json": {
+      "sha256": "1ca6c5ba7620ecfa4e3927fcef90a24ad80e5d54294d8665a3b83f85fadc3575"
+    },
+    "data/documentation/bitmovinplayercore/player/availablesubtitles.json": {
+      "sha256": "f21bdf80aa989bc84d9caf6afba61f00fd026f7461e3aa77ac0969b60870c93a"
+    },
+    "data/documentation/bitmovinplayercore/player/availablevideoqualities.json": {
+      "sha256": "f3780bbf3205d65b5f99ddf928067a73bdbfb46aaae149ef2823766364eacbf0"
+    },
+    "data/documentation/bitmovinplayercore/player/buffer.json": {
+      "sha256": "472aac0d6c2e2e23b0964d65fd670081568e4f33e3ec83dda1a5ad5100e8b6d8"
+    },
+    "data/documentation/bitmovinplayercore/player/canplay(atplaybackspeed%3A).json": {
+      "sha256": "9b2675b82a16ce304195e7649581d4ea5ba1901027ef9a850eae516f8411a55b"
+    },
+    "data/documentation/bitmovinplayercore/player/config.json": {
+      "sha256": "2b8bbb9ecb23a561ff028baf61dab5bc301aab9ce164e591d86fe8a81ff77e8b"
+    },
+    "data/documentation/bitmovinplayercore/player/currenttime(_%3A).json": {
+      "sha256": "01ccfd0ded1e0cb3ec06dc0543d6643f8530a8fd6530e7508378416e5d4c7e83"
+    },
+    "data/documentation/bitmovinplayercore/player/currenttime.json": {
+      "sha256": "406738505c670838e58dab5576ea7e6f33de4702b5d7890090c9bd811e1a2b7c"
+    },
+    "data/documentation/bitmovinplayercore/player/currentvideoframerate.json": {
+      "sha256": "ad85039f3d740dc3fc8dcf863f8523f301161e37cec66d93a17125223f35c3a9"
+    },
+    "data/documentation/bitmovinplayercore/player/destroy().json": {
+      "sha256": "58491c4386a845bc9c3aa86fe18c2c76ea482671ac24b2987475edee0a42cd44"
+    },
+    "data/documentation/bitmovinplayercore/player/duration.json": {
+      "sha256": "03e325cc9286f532fdfdf282a22a20e0f2d3578ea4dcb88633c7c9ad06877637"
+    },
+    "data/documentation/bitmovinplayercore/player/events.json": {
+      "sha256": "88711d9678b2dba20332814e131c2ffdde5a1ab2298e5f1df10f2e258a6ae534"
+    },
+    "data/documentation/bitmovinplayercore/player/isad.json": {
+      "sha256": "5215c20f7631193a0e7ec290344e258f81c2607564d9aaff16dfc38592a973ff"
+    },
+    "data/documentation/bitmovinplayercore/player/isairplayactive.json": {
+      "sha256": "f15808b31b89d1af1dcbbc30194ac7c4d13b0da13fe5a165dff1d49f9a743d5e"
+    },
+    "data/documentation/bitmovinplayercore/player/isairplayavailable.json": {
+      "sha256": "d34c378b91c654c8de0cdac4cbf0fbc8338e5e2c40a39efd16625770e6b6e9cb"
+    },
+    "data/documentation/bitmovinplayercore/player/isdestroyed.json": {
+      "sha256": "ee570b2e52b9f146a555e0f558f7dc10ded78714507b9eeebe627670d0c6f1cc"
+    },
+    "data/documentation/bitmovinplayercore/player/islive.json": {
+      "sha256": "c22c5db2c07399eee98756bbae5ba5a783b5df2cf34b0563c01078fc77ea6b70"
+    },
+    "data/documentation/bitmovinplayercore/player/ismuted.json": {
+      "sha256": "3e343ba5f5de8c7f1f70427a190839832cb8b87c1f09b180d16b9318ceb2d9b5"
+    },
+    "data/documentation/bitmovinplayercore/player/isoutputobscured.json": {
+      "sha256": "9c05edb4f2f89d0724872b8923d2371af56d0bfef2d0ddc8ecfe0e33bf23c1eb"
+    },
+    "data/documentation/bitmovinplayercore/player/ispaused.json": {
+      "sha256": "3342929f50c30ffb865a1079b7cfbed2b8ab148cda70427dbad690774646292c"
+    },
+    "data/documentation/bitmovinplayercore/player/isplaying.json": {
+      "sha256": "7936a21911c1acff4630a3b6e58d02c7322392eb4085f752e9c92208c891e750"
+    },
+    "data/documentation/bitmovinplayercore/player/latency.json": {
+      "sha256": "c33bb4a7f0d32216f0442773b3a5a767cb269bfdfb09f70240d500c86a4acc8f"
+    },
+    "data/documentation/bitmovinplayercore/player/load(playlistconfig%3A).json": {
+      "sha256": "788352669c0c3931c3cc0b6bf61d77b7a780984e37623912f796fb061ead045d"
+    },
+    "data/documentation/bitmovinplayercore/player/load(source%3A).json": {
+      "sha256": "09d850a270b927e5b58c034706bb5d1157b2eef58d490274835525e8d6e071b9"
+    },
+    "data/documentation/bitmovinplayercore/player/load(sourceconfig%3A).json": {
+      "sha256": "4d4db787701dc3682dcdb3ab98446db59a02fa8a6cc280f1236e0db53fba96c2"
+    },
+    "data/documentation/bitmovinplayercore/player/maxselectablebitrate.json": {
+      "sha256": "512c9c9929cb3b3b9a067f15f55b2c9c52222223ba7dc9fbf208baf99531dfbd"
+    },
+    "data/documentation/bitmovinplayercore/player/maxtimeshift.json": {
+      "sha256": "ab0f2127bf77815e39989618b6c9308b87307b4be875be15e82f273a35cf0584"
+    },
+    "data/documentation/bitmovinplayercore/player/mute().json": {
+      "sha256": "296c173c96c65a07ca33810bbf06b4960d5ae81491836eb63092cc4d5ce3db1c"
+    },
+    "data/documentation/bitmovinplayercore/player/nowplaying.json": {
+      "sha256": "2debeeb7a754efce582110c4169faa38af702281ede89b332fa5476540dc22d5"
+    },
+    "data/documentation/bitmovinplayercore/player/pause().json": {
+      "sha256": "148dbbbbb59c34e5eb3ef15f18e23997940acac00958d825e478fa3695da1bbe"
+    },
+    "data/documentation/bitmovinplayercore/player/play().json": {
+      "sha256": "fc4bf58be19e5f1ba99bfb6761bbf2a0ac87dca394d9f696cca0e65bc22bfeec"
+    },
+    "data/documentation/bitmovinplayercore/player/playbackspeed.json": {
+      "sha256": "d01fa72b80a4e0ead7f8cf8d4fc103cadfc8cc8f4d36886bc3b34f45e4acbb4d"
+    },
+    "data/documentation/bitmovinplayercore/player/playlist.json": {
+      "sha256": "c3017602e3ca9e8fc3a01ef19cd77418eb965d14161592922a54ec9e20bcdb9b"
+    },
+    "data/documentation/bitmovinplayercore/player/register(_%3A)-5njhg.json": {
+      "sha256": "5aa30cc4f24d1a02bd75516086d7c52cda382fc2b7745fb369fa3535f89ac15c"
+    },
+    "data/documentation/bitmovinplayercore/player/register(_%3A)-9z625.json": {
+      "sha256": "b51162d4265fafd5163c5d2ae26b8e82f46b1a8364a44689abc3d9a66f634e55"
+    },
+    "data/documentation/bitmovinplayercore/player/registeradcontainer(_%3A).json": {
+      "sha256": "332ece781d936d3e3fc24531098664b70cce90e42f2926a88b4cb8c6eea3d3be"
+    },
+    "data/documentation/bitmovinplayercore/player/removesubtitle(trackidentifier%3A).json": {
+      "sha256": "8fdaf0213745a8b4e4485678475cd0b4e0b9be5d0a17d54c1c1d891f001e8804"
+    },
+    "data/documentation/bitmovinplayercore/player/schedulead(aditem%3A).json": {
+      "sha256": "87aaccec6ef532ac5b3cd056ab326f8f00d715c6c34bff98c77e17c2503942a0"
+    },
+    "data/documentation/bitmovinplayercore/player/seek(time%3A).json": {
+      "sha256": "e65e7e7f85dd39541d331e5d9d292c45685a329cc35c0d1574597ab817fea09c"
+    },
+    "data/documentation/bitmovinplayercore/player/setaudio(trackidentifier%3A).json": {
+      "sha256": "5b4c5a2d9ec6ffcd617fc70e0a2ac46c273095f690c783176daa4eabbec8a3bd"
+    },
+    "data/documentation/bitmovinplayercore/player/setsubtitle(trackidentifier%3A).json": {
+      "sha256": "4b09b484ca218e9747f9b1d9f66c132150bf325d32991e1df54c606e65e02430"
+    },
+    "data/documentation/bitmovinplayercore/player/setsubtitlestyles(_%3A).json": {
+      "sha256": "0075956396e20d995a236d5531dd4939112087135f7a3a40405a682ce4b7cb3f"
+    },
+    "data/documentation/bitmovinplayercore/player/shareplay.json": {
+      "sha256": "44502b9596e18937f858bd6ee3c4c4dbe28a1e760fccd0dc9ef57b72e439d4be"
+    },
+    "data/documentation/bitmovinplayercore/player/showairplaytargetpicker().json": {
+      "sha256": "53e90ec9c1803dd8b476d067b788a7c6327d837b23002b5a65c8a20e110493bc"
+    },
+    "data/documentation/bitmovinplayercore/player/skipad().json": {
+      "sha256": "7570f175399cbc4bb2497f0cefaee93e78ceb54f30a1d20326a921779eca199c"
+    },
+    "data/documentation/bitmovinplayercore/player/source.json": {
+      "sha256": "0e17f8d92177795982d3610ef2a999c6192d30e47a114a7642d319eff99a2d2d"
+    },
+    "data/documentation/bitmovinplayercore/player/subtitle.json": {
+      "sha256": "5c085bdd277c4758f249c55da6db84608aeddb4b3703ff44630b2ac2c5ca08ce"
+    },
+    "data/documentation/bitmovinplayercore/player/thumbnail(fortime%3A).json": {
+      "sha256": "9d2db16da409af980a308c62b86ed53e189d27d0956a88fcdbc1b73a0a7e9c5e"
+    },
+    "data/documentation/bitmovinplayercore/player/thumbnails.json": {
+      "sha256": "bb7a76bdbdb7781ef9a72cce0b1e72ddf8049440c555e0a68ebf174a863f9cca"
+    },
+    "data/documentation/bitmovinplayercore/player/timeshift.json": {
+      "sha256": "c5a2ef65d4f373cac72db8b5b90b8bad39925cab0d93dd2496524ff792f02c47"
+    },
+    "data/documentation/bitmovinplayercore/player/unload().json": {
+      "sha256": "4495e19af6e7863efba5e9e0455c1c8d21ab7694f59aedfa628bc1de27161536"
+    },
+    "data/documentation/bitmovinplayercore/player/unmute().json": {
+      "sha256": "4c28a62d3bac98a1d798b6a367a05b12f384e78d6d33c5a3ee0e4dd76d8aab74"
+    },
+    "data/documentation/bitmovinplayercore/player/unregisterplayerlayer(_%3A).json": {
+      "sha256": "738e67552f2f50499c266d4628e072725fe20a47740b940770280983d7895e10"
+    },
+    "data/documentation/bitmovinplayercore/player/unregisterplayerviewcontroller(_%3A).json": {
+      "sha256": "0002a935076e34bd545ff78a7c71f8d5056cf71b11479a0209c4d695cfe1004b"
+    },
+    "data/documentation/bitmovinplayercore/player/videodownloadquality.json": {
+      "sha256": "ff678ecdcd35c781e72d583650db5f2771d8f97440c4de91ecf31bad1bc501f5"
+    },
+    "data/documentation/bitmovinplayercore/player/videoplaybackquality.json": {
+      "sha256": "3375ca913fee1458c2d47f723a881597c4f6880379da8da39b85b938fe4b47e3"
+    },
+    "data/documentation/bitmovinplayercore/player/videoquality.json": {
+      "sha256": "60933fbcf86bbaf1cb91aa0b28b011cce78bd737a12643c0b8a24c74612b321f"
+    },
+    "data/documentation/bitmovinplayercore/player/volume.json": {
+      "sha256": "aac61b7086843a2928b72457b2713fac642531f2c14ba40c6dc305bacd71d74b"
+    },
+    "data/documentation/bitmovinplayercore/playeractiveevent.json": {
+      "sha256": "a7a088c8ede08c96e977176ec3d291c0bd69e88e13acac23784d7b45c803fb98"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig.json": {
+      "sha256": "216c625a60881e05790196ff7574c6c00d9c81cfe6366aae75da946bf210b10c"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/adaptationconfig.json": {
+      "sha256": "2f153290ba2ba100a76d58a002abb7689513c79d014cda7065ab9d776b7f1669"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/advertisingconfig.json": {
+      "sha256": "cb9d7a6b74101bd8d6e2d94c77016d5fd836e6d39a03ae76ecfa8fc400de438d"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/bufferconfig.json": {
+      "sha256": "52a67e34597f0757c21ba52e2f0d292775ece74d39dde167fd1110989cc2d84f"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/interstitialsconfig.json": {
+      "sha256": "e652f4b94b4f344f4661f48a8bf873254600cf38137b7b90a3ab32f9e6e8682c"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/key.json": {
+      "sha256": "a42a846e5e8e1668f61a4d1cbc65a5592bcad90a6196eb38f17984fdb9c93acd"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/liveconfig.json": {
+      "sha256": "db65e107e43960d5d2c742f14f2d0cfd44ade53f28a126b90d18ceff11f6ada1"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/networkconfig.json": {
+      "sha256": "48f3368e43c764b82574842310031ad4884d68028714318a0cc45c5b420f08d2"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/nowplayingconfig.json": {
+      "sha256": "9e302855ca711def0c89a41bff16aa3492d653c4ffcc75948110614fd5a7d3ea"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/playbackconfig.json": {
+      "sha256": "6499f68851bf74658004bfa1bbc659d42815f7637774308d36dfd9f67af5e852"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/remotecontrolconfig.json": {
+      "sha256": "8dee835a842c70214fe71243a0aa936ab9413031f4336fee41c282ce0329d4cc"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/styleconfig.json": {
+      "sha256": "0e4299fe3706c0643269aa6be378f48c88264f8b280575234f9424b8af4b4c7e"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/thumbnailconfig.json": {
+      "sha256": "f72fdc0f9613530101f8a8d25c11a8e36f1a2a1bc82309a76ef2a5e5254e7424"
+    },
+    "data/documentation/bitmovinplayercore/playerconfig/tweaksconfig.json": {
+      "sha256": "f1c4757137b4aa03afc28b5ff6bf5427a58e477678f2ca67b366cc62284bab80"
+    },
+    "data/documentation/bitmovinplayercore/playercorefactory.json": {
+      "sha256": "a73c44c758d74ca98c77ad1adba3fafae78ead932e9037b73a3bdfb679c67432"
+    },
+    "data/documentation/bitmovinplayercore/playercorefactory/createplayer(playerconfig%3A).json": {
+      "sha256": "035ff1c90e00ed419aff7aac56872d853d532ee60f9b08caa27b11539995ad2e"
+    },
+    "data/documentation/bitmovinplayercore/playercorefactory/sdkversion.json": {
+      "sha256": "b094366bd0fe8ddc9f662c7c0bff2733fb26e2552dfac6dec34ab1562c2157a5"
+    },
+    "data/documentation/bitmovinplayercore/playererrorevent.json": {
+      "sha256": "8b8b5df2aa04c90a814eff3a862a7c7af0114b46d073204a092569284ad70533"
+    },
+    "data/documentation/bitmovinplayercore/playereventhandler.json": {
+      "sha256": "2cd360068ab5f55c0a448892ed52c5649dc5ce6449fcb487d4551353a92e0a4c"
+    },
+    "data/documentation/bitmovinplayercore/playereventhandler/add(listener%3A).json": {
+      "sha256": "5281c18a56dd9bfe3877baa808e3c1fe183e071cee362b1b48f7742ff57b2430"
+    },
+    "data/documentation/bitmovinplayercore/playereventhandler/remove(listener%3A).json": {
+      "sha256": "905d84b5ae68885942aec974454d62220f342b32ac567a12682d707027909f40"
+    },
+    "data/documentation/bitmovinplayercore/playereventsapi.json": {
+      "sha256": "8b847690d39215786e7a498dd87ac80a8fed3c5248fa36710f053de43a3567c0"
+    },
+    "data/documentation/bitmovinplayercore/playereventsapi/on(_%3A)-141fj.json": {
+      "sha256": "4d4e93a79bb314d765e91dbbe486ccf126471c8b408d0bef5784e508e90b3bbf"
+    },
+    "data/documentation/bitmovinplayercore/playereventsapi/on(_%3A)-1mxxx.json": {
+      "sha256": "739c53cf232d36d1223bd390aea6b5d78c02f8cc9e6991e907ccfb51e419cd6f"
+    },
+    "data/documentation/bitmovinplayercore/playerfactory.json": {
+      "sha256": "a45e03dd9d3831317f8b4664ef4065a88a955c79d13cac9831de607287ae4858"
+    },
+    "data/documentation/bitmovinplayercore/playerfactory/create(playerconfig%3A).json": {
+      "sha256": "da51d4666d78c46321ed8268337d6c76580abb5ca921aa15f361e3838e8fb92e"
+    },
+    "data/documentation/bitmovinplayercore/playerfactory/sdkversion.json": {
+      "sha256": "d1bb83f1504dd317c69e1a679b3d981c7b2c167d5b196c0005830dcf92b71d83"
+    },
+    "data/documentation/bitmovinplayercore/playerinactiveevent.json": {
+      "sha256": "ebebca5b90bf65d99455762146b17a16d5f9de708213d641b580a65b4879cdd0"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener.json": {
+      "sha256": "0cdf0960af10bfd4bfa9dfc6d8a2e1428c33e12ddf0070e95a81ca1cc4ca40a7"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onadbreakfinished(_%3Aplayer%3A).json": {
+      "sha256": "18f9ee9032b8502ef4d9169935b9e2aa17ffef2db02868754b473c5bbc179e45"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onadbreakstarted(_%3Aplayer%3A).json": {
+      "sha256": "ca50c97c8b6a01af3a763866e8521fb7d4578567b77ff69d6fa6e16ad846f28d"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onadclicked(_%3Aplayer%3A).json": {
+      "sha256": "0faa8fc7a62aad6337851d6e9ea63c45317b64309b0a3d57a81c4843e773af82"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onaderror(_%3Aplayer%3A).json": {
+      "sha256": "2c06461df6acf25eed6ea40310a6a952ad68d058c1d0bf95dc037f26fe00d812"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onadfinished(_%3Aplayer%3A).json": {
+      "sha256": "6354445e2f3dab3409b9006f19c792246322ed167b66a8e339d119b0a16ed0ef"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onadmanifestload(_%3Aplayer%3A).json": {
+      "sha256": "b7023c16b2fa51a3e628c202e1b69bd2a88507ac0a27d4653c32e43b240f96aa"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onadmanifestloaded(_%3Aplayer%3A).json": {
+      "sha256": "2a99972d4dc3f07bcae0d26c0c8196a9e4062166880f5192cb7db421da9d48b8"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onadquartile(_%3Aplayer%3A).json": {
+      "sha256": "e64b2b3f47edccafbcfb5aaa6d589559693613684fa582ed38cd85a3668efa5a"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onadschedulechanged(_%3Aplayer%3A).json": {
+      "sha256": "1aa3b709fc77edfc4f54ff3bc8b0ad18bbb130d5f9f9b650dc2e1e21594047c2"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onadscheduled(_%3Aplayer%3A).json": {
+      "sha256": "5adfe30a71efe3475783ba869a949940892941077e4443c0d1596b9c466b98f5"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onadskipped(_%3Aplayer%3A).json": {
+      "sha256": "11c538a8423d5ab3d2e54ac4e814a7cf1958881d9dedb42b680e7bf35bf2e15d"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onadstarted(_%3Aplayer%3A).json": {
+      "sha256": "2fc57f1fb6705371b73c654011cda8f428b3e351be195d112a67f26b34e2f2c9"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onairplayavailabilitychanged(_%3Aplayer%3A).json": {
+      "sha256": "a9fa3093c022f41fbfa614313121add217022ddce26fb19548aaf63014285efb"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onairplayavailable(_%3Aplayer%3A).json": {
+      "sha256": "342526c040201bdddc6ebeaaa8333e6275228469c45107b18cdf1ee179a634ce"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onairplaychanged(_%3Aplayer%3A).json": {
+      "sha256": "bac8f29ccf7cbd65b9e673976efaa75d63eaf4056bbd6a99c31fb42124242eb0"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onaudioadded(_%3Aplayer%3A).json": {
+      "sha256": "b7d817574b106fe4f13484cc0a2a54478282e7bea8f1d4baf86627bebc2f6e4d"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onaudiochanged(_%3Aplayer%3A).json": {
+      "sha256": "a25f890cb6a7e10427e2f3cb733070d9f9e3a3f5f76f3c98b1ff682a9f55b251"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onaudioremoved(_%3Aplayer%3A).json": {
+      "sha256": "0f2ddb84175128b35b227bdb9449e9ef97e887aad968370fe565f3d680c56224"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncastavailable(_%3Aplayer%3A).json": {
+      "sha256": "974a24fb773a595c1306f9ab4ca2799a947a5ccc852d7db0afd89f58732ee312"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncastpaused(_%3Aplayer%3A).json": {
+      "sha256": "c27baa59de50863171f342bc4af06c8559e2377ff29058efcedc62f076cc1e93"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncastplaybackfinished(_%3Aplayer%3A).json": {
+      "sha256": "4a493ab0c9cbdaf738f7e283c3bae6267f55253ed33f95064f491c6c56a7b989"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncastplaying(_%3Aplayer%3A).json": {
+      "sha256": "b7f588aff68e49b261353ec41eeebc7325fe8b5aac0822ea525775a545c620a9"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncaststart(_%3Aplayer%3A).json": {
+      "sha256": "89adffb729124842c4e9367a84730bd484766b797556cf6a7dfa40c4d838744f"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncaststarted(_%3Aplayer%3A).json": {
+      "sha256": "1baca3b86f16c99dc24f739d134fbdb759c1cd1568d316b6afddfb29eb9a5eca"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncaststopped(_%3Aplayer%3A).json": {
+      "sha256": "db960c047637b15145b24d66301516b15413cce51876c00c13b3023f838c8c14"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncasttimeupdated(_%3Aplayer%3A).json": {
+      "sha256": "07a484c859d7593685c2ae9c5adb52c8282d7a5302617c3efcb5d9451535c2bf"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncastwaiting(fordevice%3Aplayer%3A).json": {
+      "sha256": "f137d97cef771b4595e3209c5800c77a073e3a5ac7fe05f413e2c227eb9d10e4"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncueenter(_%3Aplayer%3A).json": {
+      "sha256": "24e90618bf99761f634655bb78c9ce1f434274dbf50fc1b5b2b643826b68f7c0"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncueexit(_%3Aplayer%3A).json": {
+      "sha256": "af9a942f0052bb285f49a8579e5b526848aba1a7bf26f3419eeb9cf8919d8b9a"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/oncueparsed(_%3Aplayer%3A).json": {
+      "sha256": "d4dd7d256145d1a2c8eb42255914688d48ce5993c9cb5b8072effd200a60649b"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/ondestroy(_%3Aplayer%3A).json": {
+      "sha256": "a65603af17b565e3132a0cfe3ae0dcaa6144000fcfd39713392aa70979c1925f"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/ondownloadfinished(_%3Aplayer%3A).json": {
+      "sha256": "ce25d6924bc23b4cdb98415501d8874b5cccfdaa9f186900acd675a7c67afdb0"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/ondrmdataparsed(_%3Aplayer%3A).json": {
+      "sha256": "bb23f46e4a69238fe241132f4ceedb0b8a607aefcac721fbd3ed30ada03f6077"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/ondurationchanged(_%3Aplayer%3A).json": {
+      "sha256": "ad9ba880e0d8e3e4421d3d4f28640ee1107b1be37bcd0d6a794ea0e797e2c4d5"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/ondvrwindowexceeded(_%3Aplayer%3A).json": {
+      "sha256": "f1cc8364a42a745994677e001624dcb94a5a6b3a9c49a58b9e5e1ec1a299bd97"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onevent(_%3Aplayer%3A).json": {
+      "sha256": "b7fc225ad91adfe8927b3cc1c4264a4d0283a290ec431605afa00a073ca67b7b"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onfairplaylicenseacquired(_%3Aplayer%3A).json": {
+      "sha256": "f9f59d42676fee696635ee12d13abcf2c95db4c3086ecc2ac359ef734fe7643b"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onlatencymodechanged(_%3Aplayer%3A).json": {
+      "sha256": "1025b9b94028d90084834b5d1c4d08b1d35d7dc288c942e1339e22159b105901"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onlicensevalidated(_%3Aplayer%3A).json": {
+      "sha256": "34699272a79776558bebc41595c41b3f198eef44dd86eb748248d9d0f34f83ba"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onmetadata(_%3Aplayer%3A).json": {
+      "sha256": "5493d2283b032daca17e7dcf89062ced50cf990505113ff771eb4d504e41a610"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onmetadataparsed(_%3Aplayer%3A).json": {
+      "sha256": "c1e4986ab8f630f4be9c4304832aac7ed9847c89304ebadf7ff25cfe2fc2ac2a"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onmuted(_%3Aplayer%3A).json": {
+      "sha256": "feb1e59e2f1008a719d752125cd68bcceba7385f349de6ead4953fa73d928903"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onoutputobscured(_%3Aplayer%3A).json": {
+      "sha256": "a9c0f266f627d8e08db14f793cf0d375b3f3842018d21e8dcd9f43da3c733b15"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onoutputunobscured(_%3Aplayer%3A).json": {
+      "sha256": "f85dfcd168b1a9241754bfdc9aa558b40b34b5aebb8bd115d019cef506b3e65f"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onpaused(_%3Aplayer%3A).json": {
+      "sha256": "93fcebe3aaf4c42b8287496d109d18c748214b25dbb65740b79b800b9c9e60cd"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onplay(_%3Aplayer%3A).json": {
+      "sha256": "32b2cbe4910447ca0af32420cf3b21294547bba5a0103f57de1e88ea3b7e3c44"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onplaybackfinished(_%3Aplayer%3A).json": {
+      "sha256": "7cb0c52742c27bdeeffefdfac08d164d7c6d98edcff29288f2bfa2c3db506eca"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onplaybackspeedchanged(_%3Aplayer%3A).json": {
+      "sha256": "977e3ad109bf0d88aebbb6866e26d31bb7a83a02444c1678d31434f56e321faa"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onplayeractive(_%3Aplayer%3A).json": {
+      "sha256": "6b43f51fdd1a460b1b98d63756e7c0c168ab494e30c6830f25823389114ee686"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onplayererror(_%3Aplayer%3A).json": {
+      "sha256": "0e84a790e2ce6eb62914a3ff1dddd4d82ab769c7703996d60330889a1be45840"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onplayerinactive(_%3Aplayer%3A).json": {
+      "sha256": "43aa8bf0c1f1b774203de7600d963e23ef803fe7c899e072f35c3ba1a726f97d"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onplayerwarning(_%3Aplayer%3A).json": {
+      "sha256": "d69bb036d98fca551f7d069dd25250a4defc43acf45555d3715bd97b16f6847b"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onplaying(_%3Aplayer%3A).json": {
+      "sha256": "d126f315e14b8a8134e6823e10c021d48adbf1bd070968b8dca4d68d8b3df6e7"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onplaylisttransition(_%3Aplayer%3A).json": {
+      "sha256": "231c77b3f9cd54cd2cc6f4d9815736154bd19501da91dce1ff6688449f051abb"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onready(_%3Aplayer%3A).json": {
+      "sha256": "b429f4a6f4dc24970e2dec3306515e8d6e9ceb49de14eb65940cfe6c0b770ff5"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onseek(_%3Aplayer%3A).json": {
+      "sha256": "79512bcbf8c005ab24ca33f1561b439f85aec73728be2b4be9b69062730992a2"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onseeked(_%3Aplayer%3A).json": {
+      "sha256": "246e72a0594a31ba13bdddb8a7f8b6b01441be998a54b18f24773a95c116124f"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onshareplayended(_%3Aplayer%3A).json": {
+      "sha256": "a9455d1201f682c133cf17b939cc043a8012d0223a0babc542118245d458c242"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onshareplaystarted(_%3Aplayer%3A).json": {
+      "sha256": "b2939f5431003cffcebd3e64375c4f0d08fc41cb8fb0eb07990e609d44fce4a4"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onshareplaysuspensionended(_%3Aplayer%3A).json": {
+      "sha256": "aeb8adb8efc874aea3d700d3d6a104c5789cc95ae88d6c2d4e6671229cebbabd"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onshareplaysuspensionstarted(_%3Aplayer%3A).json": {
+      "sha256": "b4633b1a44aed669b9a2ec24933b70298f105ad3bad72cb165353d463332081c"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsourceadded(_%3Aplayer%3A).json": {
+      "sha256": "8cefcd58f412f1897b54c5638598377e790266e561669f390f3ed4a30d33ca07"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsourceerror(_%3Aplayer%3A).json": {
+      "sha256": "213b99dfac09afb2f530488328ecb23dbd4d9619b71b6c470c1cca38c5b9475d"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsourceload(_%3Aplayer%3A).json": {
+      "sha256": "32db065ad1dccc47dc06654df1897df5e5e3a6c377dfff633cb462590a8ea017"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsourceloaded(_%3Aplayer%3A).json": {
+      "sha256": "ab05ca6bb7a9283a8c5175531f388aa75afccf1eebf3ecaa31fb62e2f9edfcac"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsourcemetadatachanged(_%3Aplayer%3A).json": {
+      "sha256": "e1add2677ba751b4c9bef5f277667f6f1ccccfa53676f0531b844f31eba98166"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsourceremoved(_%3Aplayer%3A).json": {
+      "sha256": "f8392af6cd323ea50ce28274a165bfaeda0c646c7e8f698e2609ab376aabb58b"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsourceunload(_%3Aplayer%3A).json": {
+      "sha256": "5a1855f7bf506e6ae8508a0f55be8ac3fe0bc1f2d4eee21583080d6048f2bbaa"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsourceunloaded(_%3Aplayer%3A).json": {
+      "sha256": "0e8ca0cf45d09c0c2682397622a2b67aa9507f0a7cb7f687e0cf66ee6c547960"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsourcewarning(_%3Aplayer%3A).json": {
+      "sha256": "36d6f716a7bdcb73e99a766ac6dea4d085e032f9773a8625564021742696108c"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onstallended(_%3Aplayer%3A).json": {
+      "sha256": "045891dc132a5c363d2aceb016bca773b5320678fab5a8c00ef17f0d91982b0d"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onstallstarted(_%3Aplayer%3A).json": {
+      "sha256": "7374abbc297044885c5c537b54b366068a6785a14ed2e58f5e335009a19f1b95"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsubtitleadded(_%3Aplayer%3A).json": {
+      "sha256": "3462c18d5f173f81d4ddeaa7a560971088435c53983a78c2ec21034e95a404be"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsubtitlechanged(_%3Aplayer%3A).json": {
+      "sha256": "1980b024a3b6a2159dc79c90e4bfe92d74ebac1496818ec9a12f0f2330847f41"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onsubtitleremoved(_%3Aplayer%3A).json": {
+      "sha256": "3cefd2c4bd194e8d046295f142c65195f438464f67565ac13a498bacb697c13a"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/ontimechanged(_%3Aplayer%3A).json": {
+      "sha256": "3779d5b3076bf34fc74d0db89f24f131cbf9c8bbe22bcefff7a6b4d71d0afdb8"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/ontimeshift(_%3Aplayer%3A).json": {
+      "sha256": "afad65823b3339145bd559781f42328d135d5e8cba7c3cec1ef7bb9f1c96dbfa"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/ontimeshifted(_%3Aplayer%3A).json": {
+      "sha256": "5da4b954615ab304864c36d88225ae56950ca2f644dc6c992444c156879f1515"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onunmuted(_%3Aplayer%3A).json": {
+      "sha256": "1eb639e915f320df7b35ef4afc4ff542f466f9b234767d542f3ecbadb6a13966"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onvideodownloadqualitychanged(_%3Aplayer%3A).json": {
+      "sha256": "4ec9bb1b6d48ef3da50576d11617b410087fe8a50944bcfc28092ea7b8db1216"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onvideoplaybackqualitychanged(_%3Aplayer%3A).json": {
+      "sha256": "7513ef86cfd519819e35aa5c58829f69cef07cbc5aac89825dc685dc8c53b726"
+    },
+    "data/documentation/bitmovinplayercore/playerlistener/onvideosizechanged(_%3Aplayer%3A).json": {
+      "sha256": "846b08affa525d0e7efd6f727a81d52cef62ab316baf7fc63e3050a7ea8d035e"
+    },
+    "data/documentation/bitmovinplayercore/playerview.json": {
+      "sha256": "a7cd86779e0db0111df3fb375375cf2292fff17cf8b9d2ddfafad1bc3809530a"
+    },
+    "data/documentation/bitmovinplayercore/playerview/contentoverlay.json": {
+      "sha256": "5a02aa3be3d0fcb293fcc806aea510466a3cf7f360b8f609d19882e28ed5b9fc"
+    },
+    "data/documentation/bitmovinplayercore/playerview/didmovetosuperview().json": {
+      "sha256": "1160ceb0b7b0e6c05d3b8477080259edf49eabfb044e25a355cf2dc40b973c2b"
+    },
+    "data/documentation/bitmovinplayercore/playerview/didrotate().json": {
+      "sha256": "774adf15bc6b2489c72899f8501778f999ff1981f6ffd13539af742bace66d7f"
+    },
+    "data/documentation/bitmovinplayercore/playerview/events.json": {
+      "sha256": "8f3fbabc993a8f86d23e2b72052a77feecf79afed896207cbb30a75162800292"
+    },
+    "data/documentation/bitmovinplayercore/playerview/fullscreenhandler.json": {
+      "sha256": "23e1c839660e859209503e5007e2598e05a15526e66bc5ce17ba83eaf1518a13"
+    },
+    "data/documentation/bitmovinplayercore/playerview/layoutsubviews().json": {
+      "sha256": "d8ff462e64840b345123b39d98f50a1cdc3e04034b62e69a1daaf22ddcebcf48"
+    },
+    "data/documentation/bitmovinplayercore/playerview/oninternaladplayerwillunload(_%3Aplayer%3A).json": {
+      "sha256": "af7502f38bb333162cbd848455f627bc4b1697f9bf591c378ca394cf534a271e"
+    },
+    "data/documentation/bitmovinplayercore/playerview/oninternaladpresentationfinished(_%3Aplayer%3A).json": {
+      "sha256": "04caae74c4a334ef39fe5a822ac705a039c7925e0b8736211d3cf196f768f6f8"
+    },
+    "data/documentation/bitmovinplayercore/playerview/oninternaladpresentationstarted(_%3Aplayer%3A).json": {
+      "sha256": "8de6a80c10b97e890bc095d5dca85986d8514aaca51f4ffe9ad0b8408f28fe2c"
+    },
+    "data/documentation/bitmovinplayercore/playerview/pictureinpicture.json": {
+      "sha256": "17d5ea252da88fa1d65788ba10c2c55d2aa57bef1d4d7ec2dbf14896e8db8c29"
+    },
+    "data/documentation/bitmovinplayercore/playerview/player.json": {
+      "sha256": "e924383f467606a71ae0e434d588cc30c60650a50b5686095981d9ec65985f2b"
+    },
+    "data/documentation/bitmovinplayercore/playerview/systemui.json": {
+      "sha256": "4b447dfbf94ecb20f17eea3dbb8d3aa9a2068d71b5845f555fc1909300494cc8"
+    },
+    "data/documentation/bitmovinplayercore/playerview/tweaks.json": {
+      "sha256": "3a6c18880ada78ef996ff795667e2794ea29a61faa336435a1128f6ade39ff04"
+    },
+    "data/documentation/bitmovinplayercore/playerview/videobounds.json": {
+      "sha256": "03d72619729f4b1edfb9a587625071afd9a8173bc635a4b861a44550dbab77a9"
+    },
+    "data/documentation/bitmovinplayercore/playerview/willrotate().json": {
+      "sha256": "eed83a98b89319cbc1c2404b30e4c53f039c9c3d6418f648d24f695b00302996"
+    },
+    "data/documentation/bitmovinplayercore/playerviewconfig.json": {
+      "sha256": "6c72fbd80ec648c96309b265caf1bbf5c99f4b55b6d722e1513841b077f6e4e6"
+    },
+    "data/documentation/bitmovinplayercore/playerviewconfig/hidefirstframe.json": {
+      "sha256": "e8e852edb0b0d75bd3707800bbedceb687e6f90b72561d9bf6a90685478f3f75"
+    },
+    "data/documentation/bitmovinplayercore/playerviewconfig/pictureinpictureconfig.json": {
+      "sha256": "28210a7ba2400ee8dca8b520a6ee3f0c48849a787430b60564d50ef79362ef1a"
+    },
+    "data/documentation/bitmovinplayercore/playerviewconfig/tweaksconfig.json": {
+      "sha256": "6002d0851f09e1635335749cf47b923409e4642e0d3d90034bbc4a8c23a19b9f"
+    },
+    "data/documentation/bitmovinplayercore/playervieweventsapi.json": {
+      "sha256": "459c880696d9434342cb4afcec0a28f91f59952927161da46e84f64c92363261"
+    },
+    "data/documentation/bitmovinplayercore/playervieweventsapi/on(_%3A).json": {
+      "sha256": "d75dec97d8a9519964de89a1365748c153c5af3a6558c9d4112e7573d13194ff"
+    },
+    "data/documentation/bitmovinplayercore/playerviewtweaksapi.json": {
+      "sha256": "0e6ecc22c7597fc4508815583094aacc4277bb4184d882eda99ad338818b5054"
+    },
+    "data/documentation/bitmovinplayercore/playerviewtweaksapi/hideplaybackcontrolsinpictureinpicture.json": {
+      "sha256": "dc49621be24f4445aedfa32fb39eb4cb261f3010cae404dacc73284ee983cceb"
+    },
+    "data/documentation/bitmovinplayercore/playerviewtweaksconfig.json": {
+      "sha256": "890bea4437891d638d5dae161de0ec345dc326fc4aca3f9a34c7c1c09f9db0d4"
+    },
+    "data/documentation/bitmovinplayercore/playerviewtweaksconfig/hideplaybackcontrolsinpictureinpicture.json": {
+      "sha256": "7d434da834037980d15b2e880a91a4f9858b4d8f2ad4f477f1c9a1e965a82b9b"
+    },
+    "data/documentation/bitmovinplayercore/playerwarningevent.json": {
+      "sha256": "45d4f962d4ca6313005e0ee65e5ed210e5ed723a5131dd5307b22125f5c44954"
+    },
+    "data/documentation/bitmovinplayercore/playevent.json": {
+      "sha256": "7f18a15796fc3abaa6ed82835b976526b68a3de9ac5483e6b9ec9e175fc346f0"
+    },
+    "data/documentation/bitmovinplayercore/playingevent.json": {
+      "sha256": "f736ad6ad8c274fdfae65ff04da0176b9887a59257b655e5a4562e1da801213e"
+    },
+    "data/documentation/bitmovinplayercore/playlistapi.json": {
+      "sha256": "604b0015bc73c7635348d58d9473c055ab7559d7c0568cfa8d2408c605867e60"
+    },
+    "data/documentation/bitmovinplayercore/playlistapi/add(source%3A).json": {
+      "sha256": "c5bc75dd6e6fd4aa24deee322da291d0b3a70c2afff314ffd2b3349f0b4d0342"
+    },
+    "data/documentation/bitmovinplayercore/playlistapi/add(source%3Aat%3A).json": {
+      "sha256": "db2b30dcab83b39dabac28ff31364106c29e42873fc1037cb5ac10844434101e"
+    },
+    "data/documentation/bitmovinplayercore/playlistapi/remove(sourceat%3A).json": {
+      "sha256": "41ba054980b7c7e67efeaaf38168423c615412bf4bb4f655c35d85563723527c"
+    },
+    "data/documentation/bitmovinplayercore/playlistapi/seek(source%3Atime%3A).json": {
+      "sha256": "bf7dd1b466c854cc8af1f182f0bbe3a73168c7ecbfe7b16e7fca05d645d09f12"
+    },
+    "data/documentation/bitmovinplayercore/playlistapi/sources.json": {
+      "sha256": "2a950516b8639f11de5f12121b1fb5c497c1ae8e59b20b3b28e3584b60a33cab"
+    },
+    "data/documentation/bitmovinplayercore/playlistconfig.json": {
+      "sha256": "af959c5c736228ec58addd80aea79a563e90b36c08df3491e03ec643278f7ad1"
+    },
+    "data/documentation/bitmovinplayercore/playlistconfig/options.json": {
+      "sha256": "52496389e23b384e52258028d9e829baaad7d2de3e1a06ccd16e2a45bbf4c2b0"
+    },
+    "data/documentation/bitmovinplayercore/playlistconfig/sources.json": {
+      "sha256": "1524083501d77e0ea12c3e1f8b9809305abae280260227e55e95c23f7ae1c8b8"
+    },
+    "data/documentation/bitmovinplayercore/playlistoptions.json": {
+      "sha256": "6e0439651fc74a260263b3bc33e1fd2d1194d79fcc2dc391996dffe9b6fcce17"
+    },
+    "data/documentation/bitmovinplayercore/playlistoptions/preloadallsources.json": {
+      "sha256": "5be4c5e8cdff4abf5581d0ab87ffc610aa400c5817d6f8bc23efee98bc8319bb"
+    },
+    "data/documentation/bitmovinplayercore/playlistoptions/replaymode.json": {
+      "sha256": "7d59dee036338473ee2048994f4ba900abdccf3515ad925837d929f6ede2fb7e"
+    },
+    "data/documentation/bitmovinplayercore/playlisttransitionevent.json": {
+      "sha256": "ec341ac00379db23553bd64e563bbd65a82bfcfbc0bf09a2e5656d7d8e327fad"
+    },
+    "data/documentation/bitmovinplayercore/playreadyconfig.json": {
+      "sha256": "20265693feede83de3828c8db8c5e3573714655846d7d13487240571547b28ef"
+    },
+    "data/documentation/bitmovinplayercore/playreadyconfig/licenserequestheaders.json": {
+      "sha256": "7447ee6d2083a6a695992db608e9487a2de057f0789b6248f1ed8fee0984b8fd"
+    },
+    "data/documentation/bitmovinplayercore/playreadyconfig/licenserequestretrydelay.json": {
+      "sha256": "a37e715a5a69e84a9cb36f9e569c567dd891422a20ad8a7a2798fa5c539b41b8"
+    },
+    "data/documentation/bitmovinplayercore/playreadyconfig/maxlicenserequestretries.json": {
+      "sha256": "e8809b5c80e6cd8883a95587036e9fd55d6b0ebaf0ca79cbba6b6d2a669a75c8"
+    },
+    "data/documentation/bitmovinplayercore/playreadyconfig/mediakeysystemconfig.json": {
+      "sha256": "a8b1c2e5c0e12da7743bba96f34282cdc14bea9e81b7b9ee52ab186e2798c305"
+    },
+    "data/documentation/bitmovinplayercore/playreadyconfig/tocafdrmconfig(remotecontrolconfig%3A).json": {
+      "sha256": "ff3ef07cf553fa86476e247ad676332232af6af2e891b2b752e30e6bcc28d56d"
+    },
+    "data/documentation/bitmovinplayercore/readyevent.json": {
+      "sha256": "8fee732e7bcce799cd248eb55592c8e9963b46ed31f0f00d549f9e58a6737880"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolapi.json": {
+      "sha256": "dfb71adb5942218ac137e0eaa772a5443372f767fb195b6d45afd3e4e4633ae1"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolapi/caststop().json": {
+      "sha256": "d011f881a5a5bccf9767415bf722fafb42f71f6b2fc6c67b982ef6dfe5d9ba47"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolapi/castvideo().json": {
+      "sha256": "035d6ae7395953b7a6104dc064cf285fbac7197a617fe448607f1644b7734170"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolapi/iscastavailable.json": {
+      "sha256": "2e76a3034beb06becdec0433aea04b088685108c958f48c337a23c99d9f1895a"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolapi/iscasting.json": {
+      "sha256": "9a8ddd1893601a10b928aabc11bbfe3204ac137e225471e348cfb4d8be831b57"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolapi/iswaitingfordevice.json": {
+      "sha256": "c2aa84b44110ef4c73cfbbd51561676f8dab5a74a6ed409875685db1c631b6b7"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolconfig.json": {
+      "sha256": "6fa6af653c46df4af33a7469d68a96468b5e84caddf81e0600de31f7931a7f3c"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolconfig/allowsairplay.json": {
+      "sha256": "0c73fe8c80549837ab9c83e228f21ca4b3488948e0a5af59a0436f6fdd47d1fd"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolconfig/customreceiverconfig.json": {
+      "sha256": "0992c363ff50d0000ca1b7cc4145a151d9ea24160edb27aa56a2c0c439391280"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolconfig/isairplayenabled.json": {
+      "sha256": "d90eaaafc4b53b93fedc7c85f83f144197fc4be2636dfe9c235ba58375f8e87d"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolconfig/iscastenabled.json": {
+      "sha256": "6fa21a63dfbbbc4372956198cf5e048dfde562e61b9246b9ed6382e93d1b79ca"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolconfig/preparesource.json": {
+      "sha256": "a633325f031a1c6efde11cc0c205e470af8a968fdc57db875b5ad44bb9ae2492"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolconfig/receiverstylesheeturl.json": {
+      "sha256": "32c3cf7d47f9282a2579022029381089da92121667a29edc9ee4d16fded17037"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolconfig/senddrmlicenserequestswithcredentials.json": {
+      "sha256": "a53dc1f13172cdc4a4ecf7b1e09701f4c37cf33d689b5343336cfec8e6e0144e"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolconfig/sendmanifestrequestswithcredentials.json": {
+      "sha256": "ff855a8d81d535334de489907692d0772f4f4cca0a8b35248f1f5e2ee3e6fef9"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolconfig/sendsegmentrequestswithcredentials.json": {
+      "sha256": "d43189e16c84d416ec06e78e75ac714d9f81c084e57a4a142defbf27d9744438"
+    },
+    "data/documentation/bitmovinplayercore/remotecontrolconfig/usesexternalplaybackwhileexternalscreenisactive.json": {
+      "sha256": "0544a2534f168535e764a78062581112661f63575401d87a186af41f3e524907"
+    },
+    "data/documentation/bitmovinplayercore/scalingmodechangedevent.json": {
+      "sha256": "273c90a3b95b32396b7cd549f55a881f8e4a2c53d8b5b7ebf2976e36cf2fadf6"
+    },
+    "data/documentation/bitmovinplayercore/seekedevent.json": {
+      "sha256": "7f8cf8c769a958b87a95ca3e4ba27ea8b3b8ac82bdfab8828f507adf63fb71ed"
+    },
+    "data/documentation/bitmovinplayercore/seekevent.json": {
+      "sha256": "a79b0796688692db7970d906e6a5c79dfff49c212ff3b2722ac3cef220627b7b"
+    },
+    "data/documentation/bitmovinplayercore/shareplayapi.json": {
+      "sha256": "8225da1285fbf142c82984ac97eafdd580dee59e80bc2457f48033c86eddd360"
+    },
+    "data/documentation/bitmovinplayercore/shareplayapi/beginsuspension(for%3A).json": {
+      "sha256": "dce6e5118f24652c09d13cc8f5557cc4788f4a4357b2babe0670cd39978b567f"
+    },
+    "data/documentation/bitmovinplayercore/shareplayapi/coordinate(with%3A).json": {
+      "sha256": "883027979fea6e4d415534553e11290fb538c454ba6570549a2d8c24c4d94feb"
+    },
+    "data/documentation/bitmovinplayercore/shareplayapi/endsuspension(_%3A).json": {
+      "sha256": "394d6d99f86fb2408d75abf44831448289b3525b8ab938f8dc6947ed272ef7e3"
+    },
+    "data/documentation/bitmovinplayercore/shareplayapi/endsuspension(_%3Aproposingnewtime%3A).json": {
+      "sha256": "2de24f89f7804b1124479d273a193180ee3c42a55f4e3da70095d0b6618dcf81"
+    },
+    "data/documentation/bitmovinplayercore/shareplayapi/isingroupsession.json": {
+      "sha256": "c6e81ec3fc6300defb6407fd65d30c91c449dc8d59a393bfe008c893ed9e5967"
+    },
+    "data/documentation/bitmovinplayercore/shareplayapi/issuspended.json": {
+      "sha256": "e5d8fd742d09df38fd14ba4ca35ff5dcffedd6dc820fab94efb5de2d3c720241"
+    },
+    "data/documentation/bitmovinplayercore/shareplayapi/suspensionreasons.json": {
+      "sha256": "d3c34796cd23adef1b4f5a8f7e4f332ba69980aec8d2504b59cc7bfab309f9a8"
+    },
+    "data/documentation/bitmovinplayercore/shareplayendedevent.json": {
+      "sha256": "5d2725981fc69b469b5d2295154cab2f119a9fcee4b641e5ef65d111865343b5"
+    },
+    "data/documentation/bitmovinplayercore/shareplaystartedevent.json": {
+      "sha256": "e7614431e2afb4332ec5266bd872fe476447c75834089681c2cb51176df03c69"
+    },
+    "data/documentation/bitmovinplayercore/shareplaysuspensionendedevent.json": {
+      "sha256": "34440a8f46180cc34cb3e05fbde43bcd77223d8708d48e2312d08f65e88b2feb"
+    },
+    "data/documentation/bitmovinplayercore/shareplaysuspensionstartedevent.json": {
+      "sha256": "01ccaf128c0eaf6207862324f2f9ea85a8be032dc7e6fd6577cc74d67e8099de"
+    },
+    "data/documentation/bitmovinplayercore/source.json": {
+      "sha256": "4455a02ac3ab0706b55ced459ad4c9211487d3c8dc8587c1da7515d192ce8a5b"
+    },
+    "data/documentation/bitmovinplayercore/source/drm.json": {
+      "sha256": "8f9ac729dae57b0b8e24f69d14627dde1b9de4ebdb823dfe6b6a6d8dfa6d0308"
+    },
+    "data/documentation/bitmovinplayercore/source/duration.json": {
+      "sha256": "7badaa3c7a866f842b1a01522be9d5243eb2a5d987c1b46431a096811a2b15ae"
+    },
+    "data/documentation/bitmovinplayercore/source/events.json": {
+      "sha256": "c930874e1ecbfbf46216d7250e35086ada102424eed572a3f315e19f79acc902"
+    },
+    "data/documentation/bitmovinplayercore/source/isactive.json": {
+      "sha256": "dccfd230566ba1d24b1914e00bc40213497ccddb6a893a4257aa5b47d0010bcc"
+    },
+    "data/documentation/bitmovinplayercore/source/isattachedtoplayer.json": {
+      "sha256": "a7a13b5962d139732c5f885f316b058fdb8b65eeb10f13235faf616a5a83f396"
+    },
+    "data/documentation/bitmovinplayercore/source/latency.json": {
+      "sha256": "b2adf5d7797d7416eb6b72fc08a638792afb442d856f7501781dd2ef21ce4d41"
+    },
+    "data/documentation/bitmovinplayercore/source/loadingstate.json": {
+      "sha256": "e9c18c39faf230868e4faa02ebda0f5bb0ac52c2e03031145ae1de1d2365a3a8"
+    },
+    "data/documentation/bitmovinplayercore/source/markers.json": {
+      "sha256": "27056d0acbfd334cb79c1efee8cdfe5ce4e74ec4996d63ed0829ad0cf46c20f2"
+    },
+    "data/documentation/bitmovinplayercore/source/metadata.json": {
+      "sha256": "2fa107496c8492550b06effab64ea0eb63e9fa15b35ea13c401231b83277eedc"
+    },
+    "data/documentation/bitmovinplayercore/source/sourceconfig.json": {
+      "sha256": "0a098c7f018d61c337aa7a2bf5388b8a9b6441a45d32e6e6bff25f843ba8d230"
+    },
+    "data/documentation/bitmovinplayercore/source/thumbnail(fortime%3A).json": {
+      "sha256": "1b2574f072514e20c4fe555e090e6cc6eb61521fbbd9ace737ca0caa0467f091"
+    },
+    "data/documentation/bitmovinplayercore/sourceaddedevent.json": {
+      "sha256": "9e4b190d82f80f0f47a298eeb04021fd0dad2df06b7d2c4a1d6f24c57b29f7a4"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig.json": {
+      "sha256": "da8749c8bda18355bd3fc22f40e926e0e8316258903ff54c82f99822d7154d80"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/add(subtitletrack%3A).json": {
+      "sha256": "764f3666d9dd52135b977550529210661b964d5bb1121990eac3a3cbc0a81976"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/cmcdconfig.json": {
+      "sha256": "e9c98a72f3485053706e682319ab94164895ad2186e0ae8d7758087ab7214837"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/drmconfig.json": {
+      "sha256": "ddce3c186be3b8c87d3b68027bed50b959581fc31eb46d7462cbc46161970c3a"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/isposterpersistent.json": {
+      "sha256": "73c74c2085061598491bbf077ade549bb3f461eec45fe97f88a2172d52a66f7f"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/labelingconfig.json": {
+      "sha256": "e6e48de9edced7a191a9dee3a39a2b7572a3e89c41d9b5bcc3b1cbc2c7fc26a0"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/liveconfig.json": {
+      "sha256": "012fb96e2f9c8888039d481e2526fb01c89c377e7c805993b3dcf7cc717a7049"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/markers.json": {
+      "sha256": "37d5d7e254c314920d71a8a1fc87ef18e1836821702a38ecb357e600bb09f5bc"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/metadata.json": {
+      "sha256": "2ac683f8601f123c4f70c3946bef1224fd0e958082de1ba0ed07e6d92f0aff9c"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/options.json": {
+      "sha256": "07879fea420dd6ea15b69f8d86e45b8550ca8060d4f6423369f157fcfc35c505"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/postersource.json": {
+      "sha256": "536d800972846542f4505da6e0e940bf11b7cf42c941ddedd664413f946b2b68"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/sourcedescription.json": {
+      "sha256": "2e252c4f42fd8e7e396313c52b9d5856cff04fa1aafb40c302dedc58e21d98c9"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/thumbnailtrack.json": {
+      "sha256": "aacb30ea7b02102ceeec4ad0d4bfcfdd10e853ee723edb65beae1b680a9a052d"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/title.json": {
+      "sha256": "67f73f08e16f37060d2e8386832e6404307a82b8493ae3110f26157b07d8f033"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/tracks.json": {
+      "sha256": "9143b57d6d5dceff11897833ef82c225c449cd054bff5be798557c8b19973ffa"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/type.json": {
+      "sha256": "8de2c1f4fa80e0b65d302d1fa1371da3391248a6d4aff63c50318c7721f8ede4"
+    },
+    "data/documentation/bitmovinplayercore/sourceconfig/url.json": {
+      "sha256": "50383f04bfb6563efd7072769d4eacca33b797dd1d6e130904f2d25e89d8c74c"
+    },
+    "data/documentation/bitmovinplayercore/sourcedrmapi.json": {
+      "sha256": "a9a93ec09e94602dec28d9c9e15a7375b44d29a0fbe518db455afbff81c3447c"
+    },
+    "data/documentation/bitmovinplayercore/sourcedrmapi/fairplay.json": {
+      "sha256": "144bd5c6fc376bdc2310ea012de2b4734537fc03f60910b40dc055cfe60eff9a"
+    },
+    "data/documentation/bitmovinplayercore/sourcedrmfairplayapi.json": {
+      "sha256": "4e3d869e2c5b9e5ee731fbbe094c08e47b04ae4b4cc614e2b55779aaea50e6a2"
+    },
+    "data/documentation/bitmovinplayercore/sourcedrmfairplayapi/renewexpiringlicense(for%3A).json": {
+      "sha256": "35bc9edf534c8bc3a2c97975156bdcaeea3cabc4d18c1095b8e0c02c7e0c079d"
+    },
+    "data/documentation/bitmovinplayercore/sourceerrorevent.json": {
+      "sha256": "f7a1aed51d23c752e406be13ee002090ec6f7970ebd6522ac33021980628f38f"
+    },
+    "data/documentation/bitmovinplayercore/sourceeventhandler.json": {
+      "sha256": "7dd2cd5430026fa5eb8aaf770df8cf0a9bacd84b0ef7a4bea13e940fb73ffce1"
+    },
+    "data/documentation/bitmovinplayercore/sourceeventhandler/add(listener%3A).json": {
+      "sha256": "2eef218476bd0758eabfd306496a66fb0047ec6cee06d0e816f5d0da25d91856"
+    },
+    "data/documentation/bitmovinplayercore/sourceeventhandler/remove(listener%3A).json": {
+      "sha256": "a26c393ba634cf6d9023bd6501b7b6818f673003cd745ad3205741934bb3a896"
+    },
+    "data/documentation/bitmovinplayercore/sourceeventsapi.json": {
+      "sha256": "1cdfa229dc8e2338eba80976240cdd2939db775ec9081acdff480202f508e921"
+    },
+    "data/documentation/bitmovinplayercore/sourceeventsapi/on(_%3A).json": {
+      "sha256": "83affd15e9fb10831f78f97e4f1dc9ea07fe526844b5fce01ad2bef51d7d3e2a"
+    },
+    "data/documentation/bitmovinplayercore/sourcefactory.json": {
+      "sha256": "2490b9171f15ceb06eb639e998334b8b2bdbd85b5c0cf08e6d5538bec46bd239"
+    },
+    "data/documentation/bitmovinplayercore/sourcefactory/create(from%3A).json": {
+      "sha256": "bf120c6f94b98d840de78c3b1bbcc394a403288e5b873db8453970dbcc5b7488"
+    },
+    "data/documentation/bitmovinplayercore/sourcefactory/createsource(from%3A).json": {
+      "sha256": "e50a182852c14f4deec0b1a498401408b4d05ff364aabf462a4a01e6be750bb6"
+    },
+    "data/documentation/bitmovinplayercore/sourcelatencyapi.json": {
+      "sha256": "e687d83df247c5670de1ab6a6aed49374aa4a418c34dcd49e5f23ee62adab7f3"
+    },
+    "data/documentation/bitmovinplayercore/sourcelatencyapi/automaticallypreserveslatency.json": {
+      "sha256": "2670be77d235994f4d1b2f8244ae4b30ba0db24f6e8b119f8aa354fc40d963ff"
+    },
+    "data/documentation/bitmovinplayercore/sourcelatencyapi/recommendedlatency.json": {
+      "sha256": "6feae9b71dfd6ec5ee3802ce3c0b27adb6073ffb5ae4d6471637954bc0ffb260"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener.json": {
+      "sha256": "f9d6b6ea37c59a2b87b91e1ed4a866ccb87ead79f9878b2cfa7909671a22a1b5"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onaudioadded(_%3Asource%3A).json": {
+      "sha256": "6079be52f9e51305acfa27d562a4262a85bbb3b2b63545a99788f21e5615ba8a"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onaudiochanged(_%3Asource%3A).json": {
+      "sha256": "d3d2dd59cffba097f58680d5ec0d0105ebf7e3988ef6d78e903270c701484ded"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onaudioremoved(_%3Asource%3A).json": {
+      "sha256": "90239cbc184f8f99dd9e60924c40b141cb7a0dc44819fb21a55014b2f8e61037"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/oncueparsed(_%3Asource%3A).json": {
+      "sha256": "fa7b1bb66b4004e2efb2d899a1eec1bd940172adfc5f59b881d0218245c9eafc"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/ondrmdataparsed(_%3Asource%3A).json": {
+      "sha256": "304c425e96ca43c8d2f3f6989043df670227545e66ed0678905aeda877d920cc"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/ondurationchanged(_%3Asource%3A).json": {
+      "sha256": "5a76e2eb74cc2ca6be2473b0e86f53deb87df317d2fb0579e5846e342f5e41e5"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onevent(_%3Asource%3A).json": {
+      "sha256": "b3a7bd7f3d0a52cf8d46c5ab04d2e82918be69a5d9efac0bd8d42a4d786c3c93"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onfairplaylicenseacquired(_%3Asource%3A).json": {
+      "sha256": "e52240ab01fdb8b1832a0b9844062c377acf993702175ae9306e194297513d4f"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onmetadataparsed(_%3Asource%3A).json": {
+      "sha256": "107da32b38bddcc33ef21c84f296ef8941ed54e44959f8a1f3abdefb8321b46a"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onsourceerror(_%3Asource%3A).json": {
+      "sha256": "f7524458aca102b6b8da36350a3ba8278f5c9e1b8f1cbf692dd57fe0d51882fd"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onsourceload(_%3Asource%3A).json": {
+      "sha256": "09f33bb129838f0c7f1fde97d767021df8760ebd4ab4c93e1c985d3c5d120bd6"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onsourceloaded(_%3Asource%3A).json": {
+      "sha256": "b38fb4cbdd3711bb6ecf92b7226c774e199a67e69f78ecc0fa3d4619eaada78d"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onsourceunload(_%3Asource%3A).json": {
+      "sha256": "cd8a76f5219a9dd011258d8a34a71620bf58c9700fe77b668068b2cefd3f36a9"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onsourceunloaded(_%3Asource%3A).json": {
+      "sha256": "39eea09d76d25171a4b2a2d6dfc34fa288ec793828f5e9586fda8c3a8f1e40bd"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onsourcewarning(_%3Asource%3A).json": {
+      "sha256": "50f0cb280f3392fcbf5c0d0c88d5fc7e6b5dfe13f7f44392955963bc3c624bfb"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onsubtitleadded(_%3Asource%3A).json": {
+      "sha256": "8d261a1232ba15542668edc28ab11d7ea475cadf2bb9c719336ac55a21612955"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onsubtitlechanged(_%3Asource%3A).json": {
+      "sha256": "40e856fc12ca6fa3ec0aec52ffd09c30d4a04509fd0403ddc022e58349917407"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onsubtitleremoved(_%3Asource%3A).json": {
+      "sha256": "dca6261982b4f528d7f42e69459b7775b871aec9d7353e23139834a529c1632b"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onvideodownloadqualitychanged(_%3Asource%3A).json": {
+      "sha256": "21d838b99a3c1ec1b42088aba6b1e199ba5aba63cd6e6360718cf668a60a37ea"
+    },
+    "data/documentation/bitmovinplayercore/sourcelistener/onvideoplaybackqualitychanged(_%3Asource%3A).json": {
+      "sha256": "212e0f8547b918d94df769c3019918c8d775119863334de3a2445ea195b7da99"
+    },
+    "data/documentation/bitmovinplayercore/sourceliveconfig.json": {
+      "sha256": "aba92d17ece046652de1adf4fc9cc6c70d4fb1fcebbac1234221767f24a93565"
+    },
+    "data/documentation/bitmovinplayercore/sourceliveconfig/automaticallypreserveslatency.json": {
+      "sha256": "a5b87168557a40fd52da72c98f7a10a31b6980993b5aa4cce5c389ec7e5dc758"
+    },
+    "data/documentation/bitmovinplayercore/sourceliveconfig/mintimeshiftbufferdepth.json": {
+      "sha256": "487dc9ea5b7a5d4d2e8cf978e46351d32309eac947e064dfec78958a831e471c"
+    },
+    "data/documentation/bitmovinplayercore/sourceliveconfig/targetlatency.json": {
+      "sha256": "6e5ebe84657edaf0c66a22cf2bfd44fa3464ffa63862f6dce6fcac072b219e35"
+    },
+    "data/documentation/bitmovinplayercore/sourceloadedevent.json": {
+      "sha256": "47725825d31a35bd21641eb42e9a7d984dbc6fbb64c1caa5d2ce74c659454f45"
+    },
+    "data/documentation/bitmovinplayercore/sourceloadevent.json": {
+      "sha256": "b2393b6b86978bf1d82d145d3a8a9a616cf767975d2c066e53fda32fe95ccfa9"
+    },
+    "data/documentation/bitmovinplayercore/sourcemetadatachangedevent.json": {
+      "sha256": "90bcc8129985cd680aa76f7d5848825b261e7b3fd2c572d1549048014b861a1e"
+    },
+    "data/documentation/bitmovinplayercore/sourceoptions.json": {
+      "sha256": "970a1a3e15bbff34f662e322dcf1056d0893f37eb23d077a700227e9439d3d12"
+    },
+    "data/documentation/bitmovinplayercore/sourceoptions/shareplayidentifier.json": {
+      "sha256": "ffa9c76afb7b1a1ea268f0626af4d0617b3a125a3a6f445ffd9fbdbeede2066d"
+    },
+    "data/documentation/bitmovinplayercore/sourceoptions/startoffset.json": {
+      "sha256": "5a6c1676ba7801aee38c6180e4eb80dee4c55eb2b33f7711a57b06a3d7c5fb87"
+    },
+    "data/documentation/bitmovinplayercore/sourceoptions/startoffsettimelinereference.json": {
+      "sha256": "12a11f808a9b1a5c3fcae20cda6ec91f69a1beffab0b56b54fbfd165a028b0fa"
+    },
+    "data/documentation/bitmovinplayercore/sourceremovedevent.json": {
+      "sha256": "893472f68464f67f79c21f1b05492bdf99633ccade27856a1ddcf9c23ec0e2b3"
+    },
+    "data/documentation/bitmovinplayercore/sourceunloadedevent.json": {
+      "sha256": "6dcd026833f01219e4ec0af6e2d348b96506769c7a004256db297d177bc5bc1a"
+    },
+    "data/documentation/bitmovinplayercore/sourceunloadevent.json": {
+      "sha256": "7e15c651812fcd9744d2a68f7221a2f8a313d3c5481d4a53ccd413269f7d06ae"
+    },
+    "data/documentation/bitmovinplayercore/sourcewarningevent.json": {
+      "sha256": "75739b82ee0c71bbc8a7c554d378984c1e1a0200109c76d9a8c1fe10b2ea59c7"
+    },
+    "data/documentation/bitmovinplayercore/stallendedevent.json": {
+      "sha256": "fe9f597c077c0a90fe696b3cb882d52d05ac861158e21e68182de6dbc507d40c"
+    },
+    "data/documentation/bitmovinplayercore/stallstartedevent.json": {
+      "sha256": "b81755da570e4f9be53a4dc12d1c33bbb6be67f1ca1089fab966bca91ca401c0"
+    },
+    "data/documentation/bitmovinplayercore/styleconfig.json": {
+      "sha256": "6adcc36411048ace15b99c14f8aac225404360b7c9698d0e17d96b383fc42382"
+    },
+    "data/documentation/bitmovinplayercore/styleconfig/isuienabled.json": {
+      "sha256": "1d20c93970efaa9e7cf681dff9d41a3476b89a5ec50ea3ae2f5f552938906399"
+    },
+    "data/documentation/bitmovinplayercore/styleconfig/playeruicss.json": {
+      "sha256": "f0fe52703c7fd4759ed660490f68f98186d38a86231f345715c98042a94dd45c"
+    },
+    "data/documentation/bitmovinplayercore/styleconfig/playeruijs.json": {
+      "sha256": "4172d66052363250f9c92245de358899abaf1bf520718e8c4532475814753355"
+    },
+    "data/documentation/bitmovinplayercore/styleconfig/scalingmode.json": {
+      "sha256": "9f7fcb22591e0383f31430377c6aad1c090831372e5083206f4cc0fc6ec6003d"
+    },
+    "data/documentation/bitmovinplayercore/styleconfig/supplementalplayeruicss.json": {
+      "sha256": "9f76cc72f2a9cd16fef050378ab62b0e006d5843bcd0a8bfec62a2b7e70c8dd7"
+    },
+    "data/documentation/bitmovinplayercore/styleconfig/userinterfaceconfig.json": {
+      "sha256": "b7dfcfa4e67b762a6142ea0750053fa8aa071d42b03fa5bd310a866aabbe784f"
+    },
+    "data/documentation/bitmovinplayercore/styleconfig/userinterfacetype.json": {
+      "sha256": "9ee71ad26e3b4aa0062ff1211acfbf6eabe0eedca51b8916ccdd2e104b931e75"
+    },
+    "data/documentation/bitmovinplayercore/subtitleaddedevent.json": {
+      "sha256": "98244921b628832c006e95c85084f42d7bc0e0297f4b5d1f951eeb5353ff27e3"
+    },
+    "data/documentation/bitmovinplayercore/subtitlechangedevent.json": {
+      "sha256": "c30f543151ede51bc8d8b4e69ebccca95d855188c83994a995a41442c5ba6037"
+    },
+    "data/documentation/bitmovinplayercore/subtitleremovedevent.json": {
+      "sha256": "afa491e163d13faa9fd783bb316396b1a6ab8dc72aea0f03954efa25655b00fc"
+    },
+    "data/documentation/bitmovinplayercore/subtitletrack.json": {
+      "sha256": "1809e4d237d3e743292840b91b3ad4d89ff03913b00cb3964561db1d4188bbb5"
+    },
+    "data/documentation/bitmovinplayercore/subtitletrack/associatedlanguage.json": {
+      "sha256": "d5684192bf143d0ed880d21ead259ac131aef9a5043679de3147158a836360b2"
+    },
+    "data/documentation/bitmovinplayercore/subtitletrack/characteristics.json": {
+      "sha256": "7d39f1eb4882f04138631a78c77db3b7bb4a416e2dbc1013fc14b364732ea64a"
+    },
+    "data/documentation/bitmovinplayercore/subtitletrack/controller.json": {
+      "sha256": "a9e6655fd5b2f2c6e4cf2c0dbc54a5113328eb4f916f95b49f1fd86297969346"
+    },
+    "data/documentation/bitmovinplayercore/subtitletrack/format.json": {
+      "sha256": "f97aaf526cdbe01dc95e935344767fe3e0b177dc3d1bfa2042d6bbdc6c4ae4c9"
+    },
+    "data/documentation/bitmovinplayercore/subtitletrack/isforced.json": {
+      "sha256": "90bffd50f2d7d835f74e1378ab4eddb3c0322f767b0127d4a53c8d97fdd306e7"
+    },
+    "data/documentation/bitmovinplayercore/subtitletrack/language.json": {
+      "sha256": "6bd4ed4c6a1ecfda7a751b46906772667d6278195e5bbc2d25e283ef10772a02"
+    },
+    "data/documentation/bitmovinplayercore/subtitletrackcontroller.json": {
+      "sha256": "efb8cf689e029715f2f5cc9c2285d9fb11b6f2c10b784edc2a2830fde6d18ed0"
+    },
+    "data/documentation/bitmovinplayercore/subtitletrackcontroller/cueenter(_%3A).json": {
+      "sha256": "6e9cceef304de94678d6e08a891facb09bfd6a190a40682887ca59bb08ae897f"
+    },
+    "data/documentation/bitmovinplayercore/subtitletrackcontroller/cueexit(_%3A).json": {
+      "sha256": "f62b53002d420eb09cbb6e075e49d85e2978a1ef0788019189d4e01591d8c8ba"
+    },
+    "data/documentation/bitmovinplayercore/subtitleuserinterfaceconfig.json": {
+      "sha256": "d976a4e4de7f909d1f969a3c58207e1e577feafdfc438e43ed0d8379a5e6df5c"
+    },
+    "data/documentation/bitmovinplayercore/subtitleuserinterfaceconfig/subtitlestyles.json": {
+      "sha256": "f0f88833583a618c6931ab6dc93c5e00142ed213da178a182d02cf4f6ae3f7cb"
+    },
+    "data/documentation/bitmovinplayercore/systemuiapi.json": {
+      "sha256": "55fa3c8d0b6c614587534c0c936492560ce2e25aeca2143b2263a4983ca7422b"
+    },
+    "data/documentation/bitmovinplayercore/systemuiapi/contextualactions.json": {
+      "sha256": "233cb303fc95e025181a5f23c7def3981d6793e33f20de9f32f8291174afad7d"
+    },
+    "data/documentation/bitmovinplayercore/systemuiapi/custominfoviewcontrollers.json": {
+      "sha256": "fa77706fe12d548902837dc44bc86bde01c86038c96d5efc4c5afeb7f376d355"
+    },
+    "data/documentation/bitmovinplayercore/systemuiapi/infoviewactions.json": {
+      "sha256": "05610fa6adb6e0893215b738773df6c4c0ad017e134b423a667979f8e243ff35"
+    },
+    "data/documentation/bitmovinplayercore/systemuiapi/transportbarcustommenuitems.json": {
+      "sha256": "dcfa1006594ac7a7945a73db6df6aad97fac5a495ced970ab498b68203c29600"
+    },
+    "data/documentation/bitmovinplayercore/systemuserinterfaceconfig.json": {
+      "sha256": "280e5b9794ae52a692acb05ecf8e3e0c5fdabd6f92615e1fa44e182caa99a063"
+    },
+    "data/documentation/bitmovinplayercore/systemuserinterfaceconfig/hidefirstframe.json": {
+      "sha256": "405514810765cc522fe9e187e9f6ea2a74a7410c6ed0b56e8d371a5faa2f8d2c"
+    },
+    "data/documentation/bitmovinplayercore/systemuserinterfaceconfig/showautosubtitleoption.json": {
+      "sha256": "4fe371c93482170ff60c90bae22a391a3adc7030cbb780d82c7401c23179ac53"
+    },
+    "data/documentation/bitmovinplayercore/systemuserinterfaceconfig/showinfoviews.json": {
+      "sha256": "f716e4c5e1aa93f3d4dcdff86e4631b8e740ad3ce6a46dbaa59dcc97062e1806"
+    },
+    "data/documentation/bitmovinplayercore/systemuserinterfaceconfig/showseekbar.json": {
+      "sha256": "19280c45ac747eb35cb2915a4b64cd744399d42a3e852bbee92b837b327bfc2f"
+    },
+    "data/documentation/bitmovinplayercore/systemuserinterfaceconfig/showtitleinseekbar.json": {
+      "sha256": "943c7c645d599660be40cb610105150d25957f564dc04f0be5964ddcc7bbef9f"
+    },
+    "data/documentation/bitmovinplayercore/systemuserinterfaceconfig/subtitlestyles.json": {
+      "sha256": "6e4722d74eebaaa9156f1df27d35745712a389da245980f6d1824fa05ec76ce1"
+    },
+    "data/documentation/bitmovinplayercore/systemuserinterfaceconfig/timetoseekafteruserseeked.json": {
+      "sha256": "baebd7ede91a08dff35da66b8e9d8eee5b8af7c2e6fca73ffcd9fe9cc32a31f8"
+    },
+    "data/documentation/bitmovinplayercore/systemuserinterfaceconfig/transportbarcustommenuitems.json": {
+      "sha256": "b515014d910a7873cf14ad816680eed1ce4050ddaa67c8f108052778916c9ddf"
+    },
+    "data/documentation/bitmovinplayercore/thumbnailconfig.json": {
+      "sha256": "480054a0fee04d216f5628c7f418834a8992fa387f4b2fcc57987961c36cdc11"
+    },
+    "data/documentation/bitmovinplayercore/thumbnailconfig/renderingmode.json": {
+      "sha256": "47008ecca8f1d33b66f5b14a9eddd0b2a4a12d44d56f35d2bf3679073122f84b"
+    },
+    "data/documentation/bitmovinplayercore/thumbnailsapi.json": {
+      "sha256": "30f344397b6e01952ed558aaf47cbb50993e1213836497275b4c24eaaba26fa2"
+    },
+    "data/documentation/bitmovinplayercore/thumbnailsapi/cancelpendingrenderrequests().json": {
+      "sha256": "c3ca8a141d3d57b60accdaa35110affe06e0f3b3b5a310c621edd19234f7df2b"
+    },
+    "data/documentation/bitmovinplayercore/thumbnailsapi/container.json": {
+      "sha256": "b927859c269b3e62408d82efed4db93eb3fc84a47dfa6f6e254fbfadf47a2961"
+    },
+    "data/documentation/bitmovinplayercore/thumbnailsapi/renderingmode.json": {
+      "sha256": "dc0b60d2909cf8f6ded30b13f87a3049ead57539f19546c84041fd8acbd3b2ff"
+    },
+    "data/documentation/bitmovinplayercore/thumbnailsapi/renderthumbnail(for%3Atime%3Atolerancebefore%3Atoleranceafter%3A).json": {
+      "sha256": "ac4cd9bbc566c1cad2bab0cfd162c1263103101fbe6cfdf78cc40fc1dd44a316"
+    },
+    "data/documentation/bitmovinplayercore/thumbnailsapi/renderthumbnail(fortime%3Atolerancebefore%3Atoleranceafter%3A).json": {
+      "sha256": "a540859a57b3b028fdcf1f4150484313e06195692a8dd33c0a364492048b8b21"
+    },
+    "data/documentation/bitmovinplayercore/thumbnailsapi/thumbnail(fortime%3A).json": {
+      "sha256": "dae05bddda3f8096f00a5a2a53c82572d3dc6ff07fcd929359f399fb4e47e59a"
+    },
+    "data/documentation/bitmovinplayercore/thumbnailtrack.json": {
+      "sha256": "9a1ed0a21eb85e45db8a20ea16ea13034f0875180c347d7c21f9d25066a167ff"
+    },
+    "data/documentation/bitmovinplayercore/timechangedevent.json": {
+      "sha256": "c3385e6e91ab9b13db452479f240c39d699400a4f4aaea5ea9b1c8c0ed9a12f3"
+    },
+    "data/documentation/bitmovinplayercore/timelinemarkerenterevent.json": {
+      "sha256": "fa304adea679a95adb01e3addf2bf60be05f2b16ac1bec8237fe13a001889165"
+    },
+    "data/documentation/bitmovinplayercore/timelinemarkerexitevent.json": {
+      "sha256": "016b24537d72cd4c86ffc5dcc0b4acd550d7a3efc5245a392069802c6e73f683"
+    },
+    "data/documentation/bitmovinplayercore/timeshiftedevent.json": {
+      "sha256": "7bf22c759a36a54de821a1ecf6a5b81ea16fc1dee463a0553fb5f2ae76eb7891"
+    },
+    "data/documentation/bitmovinplayercore/timeshiftevent.json": {
+      "sha256": "cf9f071e5e17d4c2cf074f7581bc307d5735e8a7e501c06d9e06116df3bb94e1"
+    },
+    "data/documentation/bitmovinplayercore/track.json": {
+      "sha256": "584e3222c5fa273f41495feba50ae82ac087aa3bfd494206636a179bb244c106"
+    },
+    "data/documentation/bitmovinplayercore/track/identifier.json": {
+      "sha256": "90c14f600c506b4be36bf19c3c4a3e01202162ea0be57393de9c2f71e1e1236b"
+    },
+    "data/documentation/bitmovinplayercore/track/isdefaulttrack.json": {
+      "sha256": "fc70b316b1240592438961d872f01df6efc55cacd451cfb8b94fd09bc3f36b70"
+    },
+    "data/documentation/bitmovinplayercore/track/label.json": {
+      "sha256": "1325bb0856f288a8387fa3870014c03ac6cdd107d135f52bca1c008aa586c4bf"
+    },
+    "data/documentation/bitmovinplayercore/track/type.json": {
+      "sha256": "066ec68567e6fab0375740669f909595678da12d9524c05f397053a36804880e"
+    },
+    "data/documentation/bitmovinplayercore/track/url.json": {
+      "sha256": "49dcff256f0130a9f8e2a605411eb685bc236fb4d393f82c8228635b15fbe306"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig.json": {
+      "sha256": "7de2e9cea4531bbfe47f3bfd8dd837b39556753a6f90ebf2149c921999805caa"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/datebasedtimeshiftingforlivestreams.json": {
+      "sha256": "88bebfd8df0e43fa1a01cf91f41575819bdf57a9053e322cc50f9d6fc3b7636d"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/delayinitialsubtitleselection.json": {
+      "sha256": "d3b81ef1d0521060c05714f9f1664a7710813b4a75043f0fa6d439eeb9346824"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/discardadswhilecasting.json": {
+      "sha256": "d01b2f3a252f6f9bbe9d013b177ac3bf2d2ebe37e2df35c37dda0b760223fcfb"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/enforcedminimumbufferlevelforplayback.json": {
+      "sha256": "976e616ba14944308424d57982312cd8921004c768e5802a99e087b9277253aa"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/includemachinegeneratedsubtitles.json": {
+      "sha256": "43c752839a026209c4a5f0c12a5c81df39ba38c63e1f2e13df6437e0bc65004b"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/iscustomhlsloadingenabled.json": {
+      "sha256": "375afe5bcf9e60a62df13de8dddce4b22322c4e7b36fda9fae7cf4d5c5893db9"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/isnativehlsparsingenabled.json": {
+      "sha256": "7b9b070515b6990f80c8d406500d97c8f95adcc92c9f56d4d2e288840cd088d6"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/parseadditionalmediaattributes.json": {
+      "sha256": "848592ece92e24fb4ac09f2262d3c8962060bc003125931e0c0d8250813855f5"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/playbackstartbehaviour.json": {
+      "sha256": "44196744ee15c0f259ce36eda1019342c5b77cc4f9ee4a9aa34ded79f956844e"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/restoreairplayplaybackposition.json": {
+      "sha256": "1f0e05db63ceb7115a2626e05914d7e707a74b4636280e8d35aeaf67759f2d6b"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/seektoendthreshold.json": {
+      "sha256": "f7887346917f783abf2b8dbfb903c79e0b80807fd98fecc675a06e136d19c6e6"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/sourcefailureaction.json": {
+      "sha256": "352323c164f0e1ff70a9ef804c1e9efa23960c0ce0bf64db8aa386ce7ec984a2"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/timechangedinterval.json": {
+      "sha256": "470224db47f6a2fac23b414165439f0af8c780e52fd51d622a84c006a2a264c9"
+    },
+    "data/documentation/bitmovinplayercore/tweaksconfig/unstallingbehaviour.json": {
+      "sha256": "721f4101430dbf38e54089e7ad72c76caed13fe2de134efa4f36d009ee300e55"
+    },
+    "data/documentation/bitmovinplayercore/unmutedevent.json": {
+      "sha256": "91001342089e4216861b8309fb3f7d14eefb1b46eb5adb169be928a0263c2db6"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi.json": {
+      "sha256": "b127499c917f7cc1f1d3813eeffd1810392094a030e40c66d6017f362933cb9a"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/arecontrolsshown.json": {
+      "sha256": "6d8ca9eea3b03f8f6ce7c0038f8452de8daa1354d5a342d0e65fa310fd9aaae3"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/enterfullscreen().json": {
+      "sha256": "8da8ef5f426206fd7ee704b45cc2cae57b127f122c33d3f526577490412a7cf0"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/enterpictureinpicture().json": {
+      "sha256": "43991c8200cc47b00200a9ce0d778f49c3cbd87fe43f82f717e4030a66fe4936"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/exitfullscreen().json": {
+      "sha256": "e3e645b7a9461ae7b58cb0f7ea9750736fc5e71a94bf9a98cafd9bd57ddea620"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/exitpictureinpicture().json": {
+      "sha256": "c992c7c7782036e50b469ac0f049ba9c1f1eb4647cc866635bdaeb5da018858c"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/isfullscreen.json": {
+      "sha256": "5e268b10f7e958f9d741e8dc84f004673ba917ead0a5b12f1a477cd36eb77322"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/isfullscreenavailable.json": {
+      "sha256": "7d1449dfca0f959543cbe30273ea3cb01ac340bd3e5ba8993951e2070dde381f"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/ispictureinpicture.json": {
+      "sha256": "0f3a88e13eae7813cf686721e4c55502c8ecd2f73e38749fea9e8a3cd1026048"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/ispictureinpictureavailable.json": {
+      "sha256": "2b36a0f37cd3bb7b13578842b9ee33631cf35fbe7da7674c0b3fbaaa5bc06fa4"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/scalingmode.json": {
+      "sha256": "fbf17a903134b71e46fc70272e275256dae8677c587a7ca0e56d02f99c04178c"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/setposterimage(url%3Akeeppersistent%3A).json": {
+      "sha256": "832cea30e68fd5388341dfe644ea6ae3ab4bcf7e6f9ba6a9d18ceae44129621a"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceapi/setsubtitlestyles(_%3A).json": {
+      "sha256": "c00b3736796886072a325d23ce787f8b5e125d2c6946b22be6ab4cabde88bc45"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceconfig.json": {
+      "sha256": "9547055ec8511ed62375f7bac9a0e7ac53071efe2549f41bab4f1d122cd6ab7d"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceeventhandler.json": {
+      "sha256": "0a830fffcaf0c99cfb4ae031776af4ffa3284279091bdb99f4a0c8a44399b612"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceeventhandler/add(listener%3A).json": {
+      "sha256": "e7dc4771eef85af1c7cecc379d55727f8cd5110b885f9700a12e871b57e76cb2"
+    },
+    "data/documentation/bitmovinplayercore/userinterfaceeventhandler/remove(listener%3A).json": {
+      "sha256": "0179cb40d9bb77aa3132f16a53febf0aa6a24f2e995c6ff89b46b34580cb21b9"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener.json": {
+      "sha256": "16e8f2c33803c30255e533e788c3622a67838877e642807e6634a598a18d596e"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/oncontrolshide(_%3Aview%3A).json": {
+      "sha256": "9ab87ac8da8c14141ef56ba02f6cdc5ae125e4b52195fdd45239cfb4cfb33aa0"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/oncontrolsshow(_%3Aview%3A).json": {
+      "sha256": "a5279eb3596ffa085d599d098a6b2c084057e7bc7e65b4bdfa9e03a2b87bd5a8"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/onfullscreendisabled(_%3Aview%3A).json": {
+      "sha256": "d86079a67752772e293ae28668903ecd44c62f1c2f898fced4aea8a04f4a01b4"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/onfullscreenenabled(_%3Aview%3A).json": {
+      "sha256": "948f5b1109ec155bf2da47feedff3d111d4474f10159aac6aee5147d8c95037e"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/onfullscreenenter(_%3Aview%3A).json": {
+      "sha256": "48b6a0a3f8e9fb347f9f3de6b6f577f139e9cc83c1a3a34c6d20b6b980c31019"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/onfullscreenexit(_%3Aview%3A).json": {
+      "sha256": "29708282c2bad1e3a8262428867b2a9b56c9ccc2c124c0b6cd3b7279d780072a"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/onpictureinpictureavailabilitychanged(_%3Aview%3A).json": {
+      "sha256": "5d59a0d22ca75deade410a5434015e49ae6adece33ea1002d7dabe056973bc67"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/onpictureinpictureenter(_%3Aview%3A).json": {
+      "sha256": "769be58acf7c28ebf405412e98aa6bd9322e8b1bbb1a437fe0659032038264b2"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/onpictureinpictureentered(_%3Aview%3A).json": {
+      "sha256": "4fba0b13254eb1c6c8004c7163cda1b23fa89c9f34a7eeb0ed3c2a8ced1c5235"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/onpictureinpictureexit(_%3Aview%3A).json": {
+      "sha256": "af390b042357be5257635b93032b335d84499f48e65910fbf715f47c39fd910f"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/onpictureinpictureexited(_%3Aview%3A).json": {
+      "sha256": "591e1280d0e57e80d44345b5827c84fdd6dd58af48f01291d4159bc89ed18a37"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/onscalingmodechanged(_%3Aview%3A).json": {
+      "sha256": "bbe00d1144b1a7ddd064611a596800bfaad9dadf18a1ae6d051b972cafda7b8b"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/ontimelinemarkerenter(_%3Aview%3A).json": {
+      "sha256": "237cae582b8b94fc1d34fab4eee6bcfc5ccc31c18934399a09436dba8440a92a"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/ontimelinemarkerexit(_%3Aview%3A).json": {
+      "sha256": "80d2074aced34acd9987a6b2ffb275fd6420a840a103d135997a3a83f8f121ed"
+    },
+    "data/documentation/bitmovinplayercore/userinterfacelistener/onvideoboundschanged(_%3Aview%3A).json": {
+      "sha256": "72fbe8fb63aa03a460f7a74dd064f5c82f22633b8fade08ebd5ddc2c52573e83"
+    },
+    "data/documentation/bitmovinplayercore/vastmacro.json": {
+      "sha256": "9cc755a18f33b2d6f6c828128c0da3ffc327facd20c0649c42ab7fc1146e77e6"
+    },
+    "data/documentation/bitmovinplayercore/vastmacro/name.json": {
+      "sha256": "01339d6bcf3cb33ab429a675b8359cb8a9a8a41ca16a79ca780a6ebc76cb8f08"
+    },
+    "data/documentation/bitmovinplayercore/vastmacro/values.json": {
+      "sha256": "966984f352360bf167cc88f921d9fd7c7558186b086ebad7c425647919f11e0c"
+    },
+    "data/documentation/bitmovinplayercore/vastmacroconfig.json": {
+      "sha256": "2bd4a5d4ea15b4136d72b6801e972737db310215b0671d4e1e6f588dbf0fcd3c"
+    },
+    "data/documentation/bitmovinplayercore/vastmacroconfig/valueprovider.json": {
+      "sha256": "2396a1d3807d2bdcc05b321d6aaad9c79fed1bbb11ec3627d8edcb01dace81e4"
+    },
+    "data/documentation/bitmovinplayercore/videoboundschangedevent.json": {
+      "sha256": "dda0f3c50906826bea85e5a37269163f7597f8f9b03f828bc416c9a11503e6d3"
+    },
+    "data/documentation/bitmovinplayercore/videodownloadqualitychangedevent.json": {
+      "sha256": "c7819b45259506e21bbd6e29b7adc846cc1e638b6f561732bbfdf2d24d0502d2"
+    },
+    "data/documentation/bitmovinplayercore/videoplaybackqualitychangedevent.json": {
+      "sha256": "a461d96e8c43e11a4df06b663f73ccd61dcfa6cc54cfd297f64debb0313130b5"
+    },
+    "data/documentation/bitmovinplayercore/videoplayerview.json": {
+      "sha256": "db4f605a46265785f80c417449456420d0ac8071780fac5656d55d6fdc373538"
+    },
+    "data/documentation/bitmovinplayercore/videoplayerview/body.json": {
+      "sha256": "c4c0c80c999e9f36cbfc265cf1fba4a8f1847df3516cd23276da4e208c6678cb"
+    },
+    "data/documentation/bitmovinplayercore/videoplayerview/ispictureinpictureactive(_%3A).json": {
+      "sha256": "0de42f9fdcba43b0855e5edaf0decc794b342eff617f9f8148f3fa23c3a958f2"
+    },
+    "data/documentation/bitmovinplayercore/videoplayerview/ispictureinpictureavailable(_%3A).json": {
+      "sha256": "b667721ad7d8356353fd2120332a3a99c4ab5770670cdd8e694a54d3b6ed38e8"
+    },
+    "data/documentation/bitmovinplayercore/videoplayerview/ispictureinpictureenabled(_%3A).json": {
+      "sha256": "d429525e0a382c4897a092f6ba7956bcaa2195ed8a9843dd48f1778db5bd658e"
+    },
+    "data/documentation/bitmovinplayercore/videoplayerview/scalingmode(_%3A).json": {
+      "sha256": "8229f0e345b424368913bbfd48b2e3d1bd6e93bcaa887c21ec112624f82eaf2f"
+    },
+    "data/documentation/bitmovinplayercore/videoplayerview/showskipcontrolsinpictureinpicture(_%3A).json": {
+      "sha256": "bd058e09b6a33133dd1cf72e99756d7dc1f975e59f27bde2db8759a76f80ee96"
+    },
+    "data/documentation/bitmovinplayercore/videosizechangedevent.json": {
+      "sha256": "f8aa2b70a77dee1553a1ee7c018a6d74e4885eb4c6aa56c296ff6809d5c8304e"
+    },
+    "data/documentation/bitmovinplayercore/widevineconfig.json": {
+      "sha256": "4fea66dae1950f08dd6a10053265d9498056235ad6a9eca8d2216b66f7d1b73a"
+    },
+    "data/documentation/bitmovinplayercore/widevineconfig/licenserequestheaders.json": {
+      "sha256": "725b5e5a3b3da87a00cf3309fafc5ea8198b333186e4c642c1b34e0c91f2fdca"
+    },
+    "data/documentation/bitmovinplayercore/widevineconfig/licenserequestretrydelay.json": {
+      "sha256": "7af3fcc2243b71c34941e8381468dcec610a3be84423b2f992bc098adfc519be"
+    },
+    "data/documentation/bitmovinplayercore/widevineconfig/maxlicenserequestretries.json": {
+      "sha256": "0cfc7c81873f83af5701cc695eade9088ab13d9ba2b3e3dbdaddc0451814fb06"
+    },
+    "data/documentation/bitmovinplayercore/widevineconfig/mediakeysystemconfig.json": {
+      "sha256": "b2b1d52f213e9c47aca50d68b4ff2c857cd2ba6f1d9750eaf3f075fbf62014a2"
+    },
+    "data/documentation/bitmovinplayercore/widevineconfig/tocafdrmconfig(remotecontrolconfig%3A).json": {
+      "sha256": "7e4185773d5536acdcd676d2753c3621ddbc28f3a0ca80de3de5607b6e85be3e"
+    }
+  },
+  "package": "bitmovin-player-ios-core",
+  "sources": [
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-ios"
+    },
+    {
+      "url": "https://github.com/bitmovin/player-ios/tree/3.128.0"
+    },
+    {
+      "url": "https://github.com/bitmovin/player-ios-core/tree/3.128.0"
+    },
+    {
+      "sha256": "233e0ae000a4d82b7edc1e754b722fd20dbff5c1ebb1288c1ba9d673d8c49011",
+      "url": "https://raw.githubusercontent.com/bitmovin/player-ios-core/3.128.0/Package.swift"
+    },
+    {
+      "sha256": "2757bf8bc8aa1cbcb91039dd5ada6aa43c1751fee84925bb22703f6d80dce4e4",
+      "url": "https://cdn.bitmovin.com/player/ios_tvos/3.128.0/BitmovinPlayerCore.zip"
+    },
+    {
+      "sha256": "e7726086be5e142845fbae7102b4ac5f656e845c7a13593b5a6e21a531600c39",
+      "url": "https://cdn.bitmovin.com/player/ios/3.128.0/data/documentation/bitmovinplayercore.json"
+    }
+  ],
+  "version": "3.128.0"
+}

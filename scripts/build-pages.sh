@@ -12,6 +12,7 @@ cd "$repo_dir"
 notice_dir="$(mktemp -d)"
 trap 'rm -rf "$notice_dir"' EXIT
 
+python3 scripts/check-api-coverage.py
 pnpm --filter @showcase/web build:pages
 
 python3 - "$notice_dir" <<'PY'

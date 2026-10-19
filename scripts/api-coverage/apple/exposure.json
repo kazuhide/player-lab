@@ -1,0 +1,922 @@
+{
+  "applications": {
+    "ios": {
+      "BitmovinPlayerCore.BitmovinUserInterfaceConfig.uiManagerFactoryFunction": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 46,
+            "symbol": "model.setUiMode(mode)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 21,
+            "symbol": "UiMode.factoryFunction"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 104,
+            "symbol": "uiConfig.uiManagerFactoryFunction = factory"
+          }
+        ],
+        "limitation": "Default, Sports, Live, Cinema UI modes; dependent on generated JS/CSS resources.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.DvrWindowExceededEvent": {
+        "eventExposure": "named log and recovery",
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 184,
+            "symbol": "events.on(DvrWindowExceededEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 187,
+            "symbol": "append(\"DVRWindowExceeded → recover\")"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 188,
+            "symbol": "player.timeShift = 0"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 78,
+            "symbol": "Event log"
+          }
+        ],
+        "limitation": "Individually subscribed, named in visible log, and triggers recovery.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.PlaybackConfig.isAutoplayEnabled": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 90,
+            "symbol": "config.playbackConfig.isAutoplayEnabled = false"
+          }
+        ],
+        "limitation": "Fixed false at player construction.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.PlaybackConfig.isMuted": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 91,
+            "symbol": "config.playbackConfig.isMuted = true"
+          }
+        ],
+        "limitation": "Fixed true at player construction.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.Player.currentTime": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 146,
+            "symbol": "player.currentTime"
+          },
+          {
+            "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+            "line": 103,
+            "symbol": "Dvr.deriveState"
+          }
+        ],
+        "limitation": "Captured in a snapshot, but not consumed by the app-owned DVR projection or displayed.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.Player.destroy()": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 81,
+            "symbol": "previous.destroy()"
+          }
+        ],
+        "limitation": "Cleanup during UI preset recreation; no standalone destroy command in the control panel.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.Player.duration": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 143,
+            "symbol": "player.duration"
+          },
+          {
+            "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+            "line": 98,
+            "symbol": "Dvr.isLiveStream"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 69,
+            "symbol": "model.dvr.mode"
+          }
+        ],
+        "limitation": "Duration is projected into live/VOD mode and live-to-VOD detection; no raw duration field in the app-owned panel.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.events": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 171,
+            "symbol": "player.events.on(TimeChangedEvent.self)"
+          }
+        ],
+        "limitation": "Subscription namespace; not a separately displayed observation.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.Player.isLive": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 142,
+            "symbol": "player.isLive"
+          },
+          {
+            "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+            "line": 98,
+            "symbol": "Dvr.isLiveStream uses duration"
+          }
+        ],
+        "limitation": "Captured in a snapshot, but DvrKit derives live state from duration and never consumes this field.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.Player.load(sourceConfig:)": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 35,
+            "symbol": "model.load(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 122,
+            "symbol": "player.load(sourceConfig:)"
+          }
+        ],
+        "limitation": "Two public HLS source buttons trigger this overload.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.Player.maxTimeShift": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 144,
+            "symbol": "player.maxTimeShift"
+          },
+          {
+            "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+            "line": 105,
+            "symbol": "windowDuration(s.maxTimeShift)"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 73,
+            "symbol": "model.dvr.windowDuration"
+          }
+        ],
+        "limitation": "Displayed through windowDuration/dvrAvailable and used to clamp fixed rewind offsets.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.pause()": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 13,
+            "symbol": "VideoPlayerView(player:playerViewConfig:)"
+          }
+        ],
+        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
+        "status": "sdk-ui-unverified"
+      },
+      "BitmovinPlayerCore.Player.play()": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 13,
+            "symbol": "VideoPlayerView(player:playerViewConfig:)"
+          }
+        ],
+        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
+        "status": "sdk-ui-unverified"
+      },
+      "BitmovinPlayerCore.Player.playbackSpeed": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 13,
+            "symbol": "VideoPlayerView(player:playerViewConfig:)"
+          }
+        ],
+        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
+        "status": "sdk-ui-unverified"
+      },
+      "BitmovinPlayerCore.Player.seek(time:)": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 13,
+            "symbol": "VideoPlayerView(player:playerViewConfig:)"
+          }
+        ],
+        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
+        "status": "sdk-ui-unverified"
+      },
+      "BitmovinPlayerCore.Player.setAudio(trackIdentifier:)": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 13,
+            "symbol": "VideoPlayerView(player:playerViewConfig:)"
+          }
+        ],
+        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
+        "status": "sdk-ui-unverified"
+      },
+      "BitmovinPlayerCore.Player.timeShift": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 55,
+            "symbol": "model.goToLiveEdge()"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 57,
+            "symbol": "model.seek(toOffsetFromEdge:)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 126,
+            "symbol": "player.timeShift = 0"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 135,
+            "symbol": "player.timeShift = Dvr.clampToWindow(...)"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 71,
+            "symbol": "model.dvr.behindLive"
+          }
+        ],
+        "limitation": "Live edge and four fixed rewind offsets. Also observed indirectly in the DVR state.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.Player.volume": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 13,
+            "symbol": "VideoPlayerView(player:playerViewConfig:)"
+          }
+        ],
+        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
+        "status": "sdk-ui-unverified"
+      },
+      "BitmovinPlayerCore.PlayerConfig.key": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 89,
+            "symbol": "config.key = licenseKey"
+          }
+        ],
+        "limitation": "Key supplied at app startup; no GUI key editor. Credential values were not inspected.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.PlayerConfig.playbackConfig": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 90,
+            "symbol": "config.playbackConfig.isAutoplayEnabled"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 91,
+            "symbol": "config.playbackConfig.isMuted"
+          }
+        ],
+        "limitation": "Access to a config namespace for fixed startup values; no general configuration editor.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.PlayerConfig.styleConfig": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 101,
+            "symbol": "config.styleConfig.playerUiJs"
+          }
+        ],
+        "limitation": "Namespace container; the iOS preset-controlled child fields are mapped individually.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.PlayerEventsApi.on(_:)-141fj": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 175,
+            "symbol": "player.events.on(SourceLoadedEvent.self)"
+          }
+        ],
+        "limitation": "SourceEvent publisher registration; not an event identity or GUI action.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.PlayerEventsApi.on(_:)-1mxxx": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 171,
+            "symbol": "player.events.on(TimeChangedEvent.self)"
+          }
+        ],
+        "limitation": "PlayerEvent publisher registration; not an event identity or GUI action.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.SourceConfig.type": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 122,
+            "symbol": "SourceConfig(url:type:)"
+          },
+          {
+            "file": "apps/ios/Showcase/Sources.swift",
+            "line": 9,
+            "symbol": ".hls"
+          },
+          {
+            "file": "apps/ios/Showcase/Sources.swift",
+            "line": 27,
+            "symbol": "Sources.all"
+          }
+        ],
+        "limitation": "Both GUI source choices have the same fixed HLS type; no format configuration control.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.SourceConfig.url": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 35,
+            "symbol": "model.load(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 122,
+            "symbol": "SourceConfig(url:type:)"
+          },
+          {
+            "file": "apps/ios/Showcase/Sources.swift",
+            "line": 27,
+            "symbol": "Sources.all"
+          }
+        ],
+        "limitation": "Exactly two bundled HLS URLs; no URL editor.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.SourceLoadedEvent": {
+        "eventExposure": "named log",
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 175,
+            "symbol": "events.on(SourceLoadedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 177,
+            "symbol": "append(\"SourceLoaded\")"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 78,
+            "symbol": "Event log"
+          }
+        ],
+        "limitation": "Individually subscribed and named in visible log; event payload discarded.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.StyleConfig.playerUiCss": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 46,
+            "symbol": "model.setUiMode(mode)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 102,
+            "symbol": "config.styleConfig.playerUiCss = css"
+          }
+        ],
+        "limitation": "Bundled local CSS selected only for custom UI presets; no CSS editor.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.StyleConfig.playerUiJs": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 46,
+            "symbol": "model.setUiMode(mode)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 101,
+            "symbol": "config.styleConfig.playerUiJs = js"
+          }
+        ],
+        "limitation": "Bundled local JS selected only for custom UI presets; missing bundle silently falls back to SDK UI.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.StyleConfig.userInterfaceConfig": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 46,
+            "symbol": "model.setUiMode(mode)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 105,
+            "symbol": "config.styleConfig.userInterfaceConfig = uiConfig"
+          }
+        ],
+        "limitation": "Custom UI presets install a BitmovinUserInterfaceConfig instance; properties are not generally editable.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.TimeChangedEvent": {
+        "eventExposure": "monitored",
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 171,
+            "symbol": "events.on(TimeChangedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 173,
+            "symbol": "refresh()"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 67,
+            "symbol": "DVR state"
+          }
+        ],
+        "limitation": "Monitored as a refresh trigger; neither event name nor event payload is logged.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.TimeShiftedEvent": {
+        "eventExposure": "named log",
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 179,
+            "symbol": "events.on(TimeShiftedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "append(\"TimeShifted\")"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 78,
+            "symbol": "Event log"
+          }
+        ],
+        "limitation": "Individually subscribed and named in visible log; event payload discarded.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.UserInterfaceApi.enterFullscreen()": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 13,
+            "symbol": "VideoPlayerView(player:playerViewConfig:)"
+          }
+        ],
+        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
+        "status": "sdk-ui-unverified"
+      },
+      "BitmovinPlayerCore.UserInterfaceApi.exitFullscreen()": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 13,
+            "symbol": "VideoPlayerView(player:playerViewConfig:)"
+          }
+        ],
+        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
+        "status": "sdk-ui-unverified"
+      }
+    },
+    "tvos": {
+      "BitmovinPlayerCore.DvrWindowExceededEvent": {
+        "eventExposure": "named log and recovery",
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 184,
+            "symbol": "events.on(DvrWindowExceededEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 187,
+            "symbol": "append(\"DVRWindowExceeded → recover\")"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 188,
+            "symbol": "player.timeShift = 0"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 78,
+            "symbol": "Event log"
+          }
+        ],
+        "limitation": "Individually subscribed, named in visible log, and triggers recovery.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.PlaybackConfig.isAutoplayEnabled": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 90,
+            "symbol": "config.playbackConfig.isAutoplayEnabled = false"
+          }
+        ],
+        "limitation": "Fixed false at player construction.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.PlaybackConfig.isMuted": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 91,
+            "symbol": "config.playbackConfig.isMuted = true"
+          }
+        ],
+        "limitation": "Fixed true at player construction.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.Player.currentTime": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 146,
+            "symbol": "player.currentTime"
+          },
+          {
+            "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+            "line": 103,
+            "symbol": "Dvr.deriveState"
+          }
+        ],
+        "limitation": "Captured in a snapshot, but not consumed by the app-owned DVR projection or displayed.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.Player.destroy()": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 81,
+            "symbol": "previous.destroy()"
+          }
+        ],
+        "limitation": "Cleanup during UI preset recreation; no standalone destroy command in the control panel.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.Player.duration": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 143,
+            "symbol": "player.duration"
+          },
+          {
+            "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+            "line": 98,
+            "symbol": "Dvr.isLiveStream"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 69,
+            "symbol": "model.dvr.mode"
+          }
+        ],
+        "limitation": "Duration is projected into live/VOD mode and live-to-VOD detection; no raw duration field in the app-owned panel.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.events": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 171,
+            "symbol": "player.events.on(TimeChangedEvent.self)"
+          }
+        ],
+        "limitation": "Subscription namespace; not a separately displayed observation.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.Player.isLive": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 142,
+            "symbol": "player.isLive"
+          },
+          {
+            "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+            "line": 98,
+            "symbol": "Dvr.isLiveStream uses duration"
+          }
+        ],
+        "limitation": "Captured in a snapshot, but DvrKit derives live state from duration and never consumes this field.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.Player.load(sourceConfig:)": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 35,
+            "symbol": "model.load(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 122,
+            "symbol": "player.load(sourceConfig:)"
+          }
+        ],
+        "limitation": "Two public HLS source buttons trigger this overload.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.Player.maxTimeShift": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 144,
+            "symbol": "player.maxTimeShift"
+          },
+          {
+            "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+            "line": 105,
+            "symbol": "windowDuration(s.maxTimeShift)"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 73,
+            "symbol": "model.dvr.windowDuration"
+          }
+        ],
+        "limitation": "Displayed through windowDuration/dvrAvailable and used to clamp fixed rewind offsets.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.timeShift": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 55,
+            "symbol": "model.goToLiveEdge()"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 57,
+            "symbol": "model.seek(toOffsetFromEdge:)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 126,
+            "symbol": "player.timeShift = 0"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 135,
+            "symbol": "player.timeShift = Dvr.clampToWindow(...)"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 71,
+            "symbol": "model.dvr.behindLive"
+          }
+        ],
+        "limitation": "Live edge and four fixed rewind offsets. Also observed indirectly in the DVR state.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.PlayerConfig.key": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 89,
+            "symbol": "config.key = licenseKey"
+          }
+        ],
+        "limitation": "Key supplied at app startup; no GUI key editor. Credential values were not inspected.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.PlayerConfig.playbackConfig": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 90,
+            "symbol": "config.playbackConfig.isAutoplayEnabled"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 91,
+            "symbol": "config.playbackConfig.isMuted"
+          }
+        ],
+        "limitation": "Access to a config namespace for fixed startup values; no general configuration editor.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.PlayerConfig.styleConfig": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 94,
+            "symbol": "config.styleConfig.userInterfaceType"
+          }
+        ],
+        "limitation": "Namespace container; the iOS preset-controlled child fields are mapped individually.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.PlayerEventsApi.on(_:)-141fj": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 175,
+            "symbol": "player.events.on(SourceLoadedEvent.self)"
+          }
+        ],
+        "limitation": "SourceEvent publisher registration; not an event identity or GUI action.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.PlayerEventsApi.on(_:)-1mxxx": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 171,
+            "symbol": "player.events.on(TimeChangedEvent.self)"
+          }
+        ],
+        "limitation": "PlayerEvent publisher registration; not an event identity or GUI action.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.SourceConfig.type": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 122,
+            "symbol": "SourceConfig(url:type:)"
+          },
+          {
+            "file": "apps/ios/Showcase/Sources.swift",
+            "line": 9,
+            "symbol": ".hls"
+          },
+          {
+            "file": "apps/ios/Showcase/Sources.swift",
+            "line": 27,
+            "symbol": "Sources.all"
+          }
+        ],
+        "limitation": "Both GUI source choices have the same fixed HLS type; no format configuration control.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.SourceConfig.url": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 35,
+            "symbol": "model.load(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 122,
+            "symbol": "SourceConfig(url:type:)"
+          },
+          {
+            "file": "apps/ios/Showcase/Sources.swift",
+            "line": 27,
+            "symbol": "Sources.all"
+          }
+        ],
+        "limitation": "Exactly two bundled HLS URLs; no URL editor.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.SourceLoadedEvent": {
+        "eventExposure": "named log",
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 175,
+            "symbol": "events.on(SourceLoadedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 177,
+            "symbol": "append(\"SourceLoaded\")"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 78,
+            "symbol": "Event log"
+          }
+        ],
+        "limitation": "Individually subscribed and named in visible log; event payload discarded.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.StyleConfig.userInterfaceType": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 94,
+            "symbol": "config.styleConfig.userInterfaceType = .system"
+          }
+        ],
+        "limitation": "tvOS always uses System UI.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.TimeChangedEvent": {
+        "eventExposure": "monitored",
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 171,
+            "symbol": "events.on(TimeChangedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 173,
+            "symbol": "refresh()"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 67,
+            "symbol": "DVR state"
+          }
+        ],
+        "limitation": "Monitored as a refresh trigger; neither event name nor event payload is logged.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.TimeShiftedEvent": {
+        "eventExposure": "named log",
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 179,
+            "symbol": "events.on(TimeShiftedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "append(\"TimeShifted\")"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 78,
+            "symbol": "Event log"
+          }
+        ],
+        "limitation": "Individually subscribed and named in visible log; event payload discarded.",
+        "status": "observed"
+      }
+    }
+  },
+  "platformNotes": {
+    "ios": [
+      "The iOS application also covers iPadOS; both have identical audited API availability and app control paths.",
+      "Five configuration fields are constrained presets: two fixed HLS source URLs and four UI variants backed by bundled JS/CSS resources. Missing custom resources fall back to the SDK UI.",
+      "Eight runtime control candidates are sdk-ui-unverified; their evidence identifies only the native SDK UI container.",
+      "SourceConfig.cmcdConfig requires OS 18 or later and TweaksConfig.includeMachineGeneratedSubtitles requires OS 27 or later; family-wide availability retains both."
+    ],
+    "tvos": [
+      "The UI variant picker is excluded on tvOS. The app always constructs System UI; only SourceConfig.url is a configuration preset.",
+      "Opaque native System UI controls have not been mapped to Core API members. No app-owned play, pause, volume, track or fullscreen control is credited.",
+      "SDK APIs documented as no-op on tvOS remain in the available denominator when their Swift declaration permits tvOS."
+    ]
+  },
+  "scopeNotes": [
+    "Bounded public BitmovinPlayerCore operational scope: 65 configuration or nested input owners, 39 runtime owners, and four typed listener families. This is not a percentage of every SDK declaration.",
+    "The denominator is extracted from pinned vendor DocC independently of the app mapping; available deprecated APIs remain counted.",
+    "Configuration counts public fields of the selected roots and nested input types. Initializers, enum cases, pure output data, inherited SwiftUI View APIs, and Analytics/Collector modules are outside this scope.",
+    "Availability is the declared platform-family surface, not a guarantee that every member exists at the app minimum OS version. Per-symbol introduction metadata is retained in sdk-symbols.json.",
+    "Direct means an app-owned control accepts arbitrary supported arguments or invokes an argumentless operation. Preset means a fixed set of sources, values or UI choices; it does not imply arbitrary argument support.",
+    "Fixed construction values and namespace access are code-only. App DvrKit flags are excluded from SDK configuration counts; Allow DVR does not configure PlaybackConfig.isTimeShiftEnabled.",
+    "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
+    "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
+    "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
+    "Only app-owned GUI controls and derived displays are statically qualified. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
+    "No licensed playback, simulator, device, tvOS remote, casting, offline or bridge runtime validation was performed for this inventory."
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "checks": [
+    {
+      "owner": "Player",
+      "source_jar_entry": "Player.kt",
+      "public_source_methods": 31,
+      "public_source_properties": 36,
+      "dokka_methods": 31,
+      "dokka_properties": 36,
+      "pass": true
+    },
+    {
+      "owner": "Source",
+      "source_jar_entry": "source/Source.kt",
+      "public_source_methods": 6,
+      "public_source_properties": 14,
+      "dokka_methods": 6,
+      "dokka_properties": 14,
+      "pass": true
+    },
+    {
+      "owner": "AdvertisingApi",
+      "source_jar_entry": "advertising/AdvertisingApi.kt",
+      "public_source_methods": 3,
+      "public_source_properties": 4,
+      "dokka_methods": 3,
+      "dokka_properties": 4,
+      "pass": true
+    },
+    {
+      "owner": "BufferApi",
+      "source_jar_entry": "buffer/BufferApi.kt",
+      "public_source_methods": 2,
+      "public_source_properties": 0,
+      "dokka_methods": 2,
+      "dokka_properties": 0,
+      "pass": true
+    },
+    {
+      "owner": "RemoteControlApi",
+      "source_jar_entry": "casting/RemoteControlApi.kt",
+      "public_source_methods": 2,
+      "public_source_properties": 2,
+      "dokka_methods": 2,
+      "dokka_properties": 2,
+      "pass": true
+    },
+    {
+      "owner": "LowLatencyApi",
+      "source_jar_entry": "live/LowLatencyApi.kt",
+      "public_source_methods": 1,
+      "public_source_properties": 5,
+      "dokka_methods": 1,
+      "dokka_properties": 5,
+      "pass": true
+    },
+    {
+      "owner": "PlaylistApi",
+      "source_jar_entry": "playlist/PlaylistApi.kt",
+      "public_source_methods": 6,
+      "public_source_properties": 1,
+      "dokka_methods": 6,
+      "dokka_properties": 1,
+      "pass": true
+    },
+    {
+      "owner": "VrApi",
+      "source_jar_entry": "vr/VrApi.kt",
+      "public_source_methods": 2,
+      "public_source_properties": 8,
+      "dokka_methods": 2,
+      "dokka_properties": 8,
+      "pass": true
+    },
+    {
+      "owner": "SsaiApi",
+      "source_jar_entry": "ssai/SsaiApi.kt",
+      "public_source_methods": 11,
+      "public_source_properties": 0,
+      "dokka_methods": 11,
+      "dokka_properties": 0,
+      "pass": true
+    },
+    {
+      "owner": "PlayerConfig",
+      "source_jar_entry": "PlayerConfig.kt",
+      "public_source_properties": 12,
+      "dokka_properties": 12,
+      "pass": true
+    },
+    {
+      "owner": "SourceConfig",
+      "source_jar_entry": "source/SourceConfig.kt",
+      "public_source_properties": 25,
+      "dokka_properties": 25,
+      "pass": true
+    },
+    {
+      "owner": "PlayerViewConfig",
+      "source_jar_entry": "ui/PlayerViewConfig.kt",
+      "public_source_constructor_fields": 6,
+      "dokka_properties": 6,
+      "pass": true
+    },
+    {
+      "owner": "WebUi",
+      "source_jar_entry": "ui/UiConfig.kt",
+      "public_source_constructor_fields": 8,
+      "dokka_properties": 8,
+      "pass": true
+    },
+    {
+      "owner": "PlayerEvent",
+      "source_jar_entry": "event/Event.kt",
+      "public_source_concrete_types": 75,
+      "dokka_concrete_types": 75,
+      "pass": true
+    },
+    {
+      "owner": "SourceEvent",
+      "source_jar_entry": "event/Event.kt",
+      "public_source_concrete_types": 37,
+      "dokka_concrete_types": 37,
+      "pass": true
+    },
+    {
+      "owner": "OfflineEvent",
+      "source_jar_entry": "event/Event.kt",
+      "public_source_concrete_types": 3,
+      "dokka_concrete_types": 3,
+      "pass": true
+    }
+  ],
+  "pass": true,
+  "source_jar_sha256": "a44320a3594a0bc02019742d397e37af769fc49ced9946443d426f2299a11e85",
+  "rows_unique": true,
+  "row_count": 807,
+  "all_public_declaration_rows": 2205,
+  "dokka_pages": 776,
+  "dokka_packages": 55,
+  "normalizedOperationalIds": 691,
+  "normalizedExcludedIds": 1668,
+  "sourceArtifacts": [
+    {
+      "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-core/3.171.0/player-core-3.171.0-sources.jar",
+      "sha256": "a44320a3594a0bc02019742d397e37af769fc49ced9946443d426f2299a11e85"
+    },
+    {
+      "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-ui-web/3.171.0/player-ui-web-3.171.0-sources.jar",
+      "sha256": "c071fd09a9b7f5561c6384b0415a73114e09d89c8043d583679547e0e64c18b4"
+    }
+  ],
+  "noRawSdkContentInSnapshot": true
+}
