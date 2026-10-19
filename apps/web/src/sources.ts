@@ -90,3 +90,29 @@ export const SOURCES: ShowcaseSource[] = [
     },
   },
 ];
+
+/** Missing environment settings for a preset's required media. */
+export function missingSourceSettings(source: ShowcaseSource): string[] {
+  const hasUrl = (url: unknown): boolean => typeof url === "string" && url.trim().length > 0;
+  const required: [string, unknown][] = source.id === "vod-sprites" ? [
+    ["VITE_VOD_SPRITES_HLS_URL", source.config.hls],
+    ["VITE_VOD_SPRITES_VTT_URL", source.config.thumbnailTrack?.url],
+  ] : source.id === "vod-multiaudio" ? [
+    ["VITE_VOD_MULTIAUDIO_HLS_URL", source.config.hls],
+  ] : source.id === "vod-subtitles" ? [
+    ["VITE_VOD_SUBTITLE_VTT_URL", source.config.subtitleTracks?.[0]?.url],
+  ] : source.kind === "live-hls" ? [["VITE_LIVE_HLS_URL", source.config.hls]]
+    : source.kind === "live-dash" ? [["VITE_LIVE_DASH_URL", source.config.dash]] : [];
+  return required.filter(([, url]) => !hasUrl(url)).map(([name]) => name);
+}
+
+/** Advance through configured episodes, preserving their original order. */
+export function nextPlaylistSource(sources: ShowcaseSource[], playlist: string[], currentId: string): ShowcaseSource | undefined {
+  const current = playlist.indexOf(currentId);
+  for (let step = 1; step <= playlist.length; step++) {
+    const id = playlist[(current + step) % playlist.length];
+    const source = sources.find((candidate) => candidate.id === id);
+    if (source && missingSourceSettings(source).length === 0) return source;
+  }
+  return undefined;
+}

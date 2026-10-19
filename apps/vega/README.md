@@ -18,6 +18,7 @@ not bundled or relicensed by this repository.
 - `src/dvrController.ts`: player events, clamped live seeking, live-to-on-demand
   transition handling, and expired-position recovery.
 - `src/vegaPlayer.ts`: modular player registration and construction.
+- `src/playerSession.ts`: asynchronous media/player ownership and cleanup.
 - `src/Sources.ts`: player source configurations.
 - `src/App.tsx`, `src/ControlPanel.tsx`, `src/BitmovinPlayer.tsx`: Kepler controls
   and video surface, including `KeplerVideoSurfaceView` and `useTVEventHandler`.
@@ -37,6 +38,14 @@ and modular player wiring against the installed player types. As specified in
 `tsconfig.json`, it excludes the React/Kepler `.tsx` controls. Those components
 need to be built and checked in the Kepler project. Passing the commands above
 does not establish that the device app builds or plays.
+
+The session tests use delayed Promises with fake media and player objects. They
+check source changes during initialization and loading, cleanup ordering, and
+the current "Allow DVR" setting. Each session releases its own controller,
+player, surface handle, and media object once. A replacement waits for the old
+player and media cleanup before installing the global media shim. Late callbacks
+from a cancelled session cannot publish controls for a previous source. These
+tests do not exercise the Vega runtime, a device video surface, or playback.
 
 ## Build in a Kepler project
 

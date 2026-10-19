@@ -1,18 +1,18 @@
-# DVR time display + start configuration ()
+# DVR time display and start settings
 
-Concrete guidance for three DVR knobs: absolute vs relative time, `startOffset`,
-and `minTimeShiftBufferDepth` — what each does, when to use it, and what value to
-set. The web control panel implements all three; the native apps follow the same
-shapes.
+Digital video recorder (DVR) controls let viewers rewind within a live stream's
+available window. The Web control panel displays relative and absolute time and
+can reload at an offset. Native SDK settings have their own names and units;
+they are not all exposed in the Web panel.
 
-## Absolute vs relative time (`TimeMode`, )
+## Absolute and relative time (`TimeMode`)
 
 `player.getCurrentTime(mode)` takes a `TimeMode`:
 
 | Mode | Returns | Use it for |
 | --- | --- | --- |
-| `RelativeTime` (`"relativetime"`) | seconds from the DVR window start at tune-in (live) / 0…duration (VOD) | the **scrubber position** and the **"−Xs behind live"** label |
-| `AbsoluteTime` (`"absolutetime"`) | Unix timestamp — from `EXT-X-PROGRAM-DATE-TIME` (live HLS) / `availabilityStartTime` (live DASH) | the **wall-clock "live at HH:MM:SS"** label; **resume / deep-link** into a live event (survives manifest sliding); **multiview / multi-player sync** |
+| `RelativeTime` (`"relativetime"`) | seconds on the playback timeline | playback position; use `getTimeShift()` for the distance behind the live edge |
+| `AbsoluteTime` (`"absolutetime"`) | Unix timestamp when the stream supplies a clock reference | wall-clock display and comparing playback time with the current clock |
 
 The control panel shows **both** (`time (rel)` and `time (abs/PDT)`).
 
@@ -20,52 +20,54 @@ The control panel shows **both** (`time (rel)` and `time (abs/PDT)`).
 runtime, so pass the string values (`"relativetime"` / `"absolutetime"`), typed via
 `getCurrentTime`'s own signature — see `controlPanel.ts`.
 
-**Absolute time needs PDT in the stream.** Without `EXT-X-PROGRAM-DATE-TIME` (HLS)
-or `availabilityStartTime` (DASH), `AbsoluteTime` mirrors relative time and the
-panel shows `— (needs PDT)`. To emit it from the **encode**, enable PDT on the live
-HLS manifest (`insertProgramDateTime` / `programDateTimeSettings` in the Encoding
-Templates schema) — add this to `encoding/live-dvr/template.yaml` before running
-the DVR-live channel.
+Program date time (PDT) maps media time to a clock, for example through
+`EXT-X-PROGRAM-DATE-TIME` in an HTTP Live Streaming (HLS) playlist. Dynamic
+Adaptive Streaming over HTTP (DASH) uses its manifest timing information.
+The panel shows `— (needs PDT)` when it cannot obtain a usable absolute time.
+Clock-based latency also depends on the viewer's system clock being accurate.
 
 ## `startOffset` — start behind the live edge
 
-`SourceConfig.options.startOffset` + `startOffsetTimelineReference`, applied on
-(re)load:
+`SourceConfig.options.startOffset` applies when loading a source. For live
+playback its default reference is the end of the timeline, so a negative value
+starts behind the live edge. Given an existing player and a live HLS URL:
 
 ```ts
-player.load({
+import type { SourceConfig } from "bitmovin-player";
+
+const source: SourceConfig = {
   hls: liveUrl,
   options: {
-    startOffset: -20,                          // 20s …
-    startOffsetTimelineReference: "end",       // … behind the live edge (default for live)
+    startOffset: -20, // Start 20 seconds behind the live edge.
   },
-});
+};
+await player.load(source);
 ```
 
-- **Live:** negative offset + `End` → start N seconds behind the edge. Use for a
-  "join behind live" UX, or to land inside the DVR window for a demo.
-- **VOD:** positive offset + `Start` (the default) → start N seconds in.
+- **Live:** a negative offset with the default end reference starts behind the
+  edge, within the available window.
+- **Video on demand (VOD):** the default reference is the start. A positive offset
+  starts that many seconds into the clip.
 
-The control panel's **"Reload at offset"** reloads the current source this way
-(`-20` by default). `startOffset` does **not** fire a `Seek` event.
+The panel's **Reload at offset** uses an explicit end reference (`-20` by
+default), including when the selected source is VOD. The example above relies on
+the SDK's live default; see [SourceConfigOptions](https://cdn.bitmovin.com/player/web/8/docs/interfaces/core_config.sourceconfigoptions.html)
+for explicit timeline references. A start offset configures initial playback;
+it is not a call to `seek()`.
 
-## `minTimeShiftBufferDepth` — when DVR turns on
+## Minimum window depth is platform-specific
 
-`SourceConfig` live config's `minTimeShiftBufferDepth` (seconds): timeshift stays
-disabled until at least this much buffer has accumulated, so `getMaxTimeShift()`
-returns `0` until the window is deep enough.
+The pinned Web SDK has no `minTimeShiftBufferDepth` field in `SourceConfig`, and
+the Web panel has no control with that name. Do not paste a native setting into
+a Web source configuration.
 
-```ts
-player.load({
-  hls: liveUrl,
-  options: { startOffset: -20, startOffsetTimelineReference: "end" },
-  // require ~30s of window before exposing DVR controls
-  // (SourceLiveConfig) minTimeShiftBufferDepth: 30,
-});
-```
+For example, iOS exposes [`SourceLiveConfig.minTimeshiftBufferDepth`](https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/sourceliveconfig/mintimeshiftbufferdepth/index.html)
+in platform code. It uses a non-positive offset and defaults to `-40` seconds;
+timeshifting remains unavailable until the stream has sufficient depth. It is
+not a positive Web option or a setting exposed by this sample's iOS screen.
 
-- **When:** avoid showing a tiny, jumpy DVR window right at tune-in; gate the DVR
-  UI until the window is usable.
-- **Value:** a fraction of the configured window — e.g. `30` for a 300s window. Too
-  high delays DVR availability; `0` (default) exposes it as soon as any window
-  exists.
+The DVR window comes from media still advertised by the stream and available
+from the origin. The player's forward buffer holds downloaded media ahead of
+the playhead. Increasing **Forward buffer** can use more memory and tolerate
+network interruptions, but cannot restore expired segments or widen the DVR
+window. The panel keeps those values separate for this reason.

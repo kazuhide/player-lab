@@ -11,6 +11,8 @@ export interface ControlPanelProps {
   log: string[];
   onSelectSource: (index: number) => void;
   controllerRef: React.MutableRefObject<DvrController | null>;
+  dvrAllowed: boolean;
+  onDvrAllowedChange: (enabled: boolean) => void;
 }
 
 /** Runtime control panel (§13) in Kepler/RN components — TV-remote focusable. */
@@ -21,9 +23,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   log,
   onSelectSource,
   controllerRef,
+  dvrAllowed,
+  onDvrAllowedChange,
 }) => {
-  const [dvrAllowed, setDvrAllowed] = React.useState(true);
-
   return (
     <View style={styles.panel}>
       <View style={styles.row}>
@@ -49,7 +51,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         <Switch
           value={dvrAllowed}
           onValueChange={(v) => {
-            setDvrAllowed(v);
+            onDvrAllowedChange(v);
             controllerRef.current?.setTimeShiftEnabled(v);
           }}
         />

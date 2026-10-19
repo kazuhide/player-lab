@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { PROVISIONED } from "../src/streams";
+import { PROVISIONED, requireProvisionedStreams } from "../src/streams";
 
 // Subtitles via SourceConfig.subtitleTracks (sideloaded WebVTT — the player fetches
 // the .vtt directly, no manifest involvement). The player lists the track, enable()
@@ -8,6 +8,8 @@ import { PROVISIONED } from "../src/streams";
 // and rendered — a broken URL or unparseable VTT would yield a track object but no
 // cue, and the toBeTruthy()/contains check would fail.
 test.describe("Subtitles — sideloaded WebVTT track", () => {
+  test.beforeAll(() => requireProvisionedStreams());
+
   test("lists the en track, enables it, and a cue renders", async ({ page }) => {
     await page.goto("/");
     const res = await page.evaluate(

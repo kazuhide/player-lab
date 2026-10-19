@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { PROVISIONED } from "../src/streams";
+import { PROVISIONED, requireProvisionedStreams } from "../src/streams";
 
 // Multiple selectable audio tracks (language switch). The encoder produced two AAC
 // renditions from distinct sources, exposed as two media.audio entries (en default
@@ -7,6 +7,8 @@ import { PROVISIONED } from "../src/streams";
 // the real guard that the custom media.audio manifest is correct (a single-track or
 // mislabelled manifest would fail the count/lang/switch assertions).
 test.describe("Multi-audio — track list + switching", () => {
+  test.beforeAll(() => requireProvisionedStreams());
+
   test("exposes en+de tracks and setAudio switches between them", async ({ page }) => {
     await page.goto("/");
     const res = await page.evaluate(

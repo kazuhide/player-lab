@@ -6,8 +6,8 @@ export interface NextUpCardConfig extends ComponentConfig {
   /** Title of the next episode, read each time the card appears (so it stays correct after an
    *  advance without a UI rebuild). Returns undefined/empty when there's no next episode. */
   getNextTitle?: (() => string | undefined) | undefined;
-  /** When true, auto-advance on playback end and show a countdown. When false, the card just
-   *  offers a "Play now" button. */
+  /** When true, show a countdown and auto-advance on playback end. When false,
+   *  show an informational prompt to use the control-bar Next button. */
   autoplay?: boolean | undefined;
   /** Show the card when the remaining time drops to/below this many seconds. Default 10. */
   leadSeconds?: number | undefined;

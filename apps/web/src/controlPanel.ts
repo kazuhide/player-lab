@@ -11,7 +11,8 @@
  */
 import type { PlayerAPI } from "bitmovin-player";
 import type { CastingButtons, UIConfig } from "@showcase/ui-shared";
-import type { ShowcaseSource } from "./sources";
+import { missingSourceSettings, type ShowcaseSource } from "./sources";
+import { createSourceLoadHint } from "./dvr/sourceLoad";
 import type { DoubleClickMode } from "./gestures";
 import { clampToWindow, liveLatencySeconds } from "./dvr/window";
 import { deriveDvrState, type PlayerSnapshot } from "./dvr/state";
@@ -51,8 +52,10 @@ export interface ControlPanelOptions {
   timeShiftEnabled: boolean;
   /** Request a DVR enable/disable — `main.ts` rebuilds the player. */
   onTimeShiftToggle: (enabled: boolean) => void;
-  /** Report the selected source so a rebuild can reload the same one. */
-  onSourceSelected: (source: ShowcaseSource) => void;
+  /** The active source kind, including when this panel is rebuilt for a live source. */
+  currentSourceIsLive: boolean;
+  /** Select and load a source through the owner of the player lifecycle. */
+  onSourceSelected: (source: ShowcaseSource) => Promise<void>;
   /** Reload the current source starting `offsetFromEdge` seconds behind the live
    *  edge (SourceConfig.options.startOffset, §11). 0 = default start. */
   onReloadWithStartOffset: (offsetFromEdge: number) => void;
@@ -157,12 +160,17 @@ function fmt(n: number): string {
   return `${n.toFixed(1)}s`;
 }
 
+export interface ControlPanelHandle {
+  /** Apply a temporary kind hint until this particular load settles. */
+  beginSourceLoad: (isLive: boolean) => () => void;
+}
+
 export function mountControlPanel(
   player: PlayerAPI,
   container: HTMLElement,
   sources: ShowcaseSource[],
   options: ControlPanelOptions,
-): void {
+): ControlPanelHandle {
   const { PlayerEvent, BufferType, MediaType, ViewMode } = player.exports;
   const timeShiftEnabled = options.timeShiftEnabled;
   // Fresh label binder for this mount — relocalizeControlPanel() re-applies the language.
@@ -186,30 +194,34 @@ export function mountControlPanel(
     player.timeShift(clampToWindow(offset, player.getMaxTimeShift()), "panel");
   }
 
-  // The known type of the just-selected source. getDuration() lags ~seconds after a
-  // switch, so the §9 duration-based detection would keep showing the previous mode;
-  // for a deliberate switch we trust this hint until the player's own snapshot settles.
-  let expectedLive = sources[0]?.isLive ?? true;
+  // A source hint only covers a pending load. Once it settles, duration is
+  // authoritative, including a live stream finalizing into on-demand media.
+  const sourceHint = createSourceLoadHint();
+  sourceHint.begin(options.currentSourceIsLive);
 
   // --- Sources (§13) ---
   const sourceRow = document.createElement("div");
   sourceRow.className = "panel-row";
+  const missingAssets = document.createElement("p");
+  const missingDescriptions: string[] = [];
   for (const source of sources) {
-    sourceRow.append(
-      button(source.label, () => {
-        expectedLive = source.isLive;
-        options.onSourceSelected(source);
-        // Play after load: an idle (paused) source isn't analyzed, so getDuration()
-        // stays Infinity and the DVR UI lingers in "live" mode for seconds after a
-        // live→VOD switch. Playing settles isLive()/duration immediately.
-        void player
-          .load(source.config)
-          .then(() => player.play())
-          .catch((err: unknown) => log(`load error: ${String(err)}`));
-        refresh();
-      }),
-    );
+    const missing = missingSourceSettings(source);
+    const sourceButton = button(source.label, () => {
+      void options.onSourceSelected(source).catch((err: unknown) => log(`load error: ${String(err)}`));
+    });
+    if (missing.length > 0) {
+      sourceButton.disabled = true;
+      sourceButton.setAttribute("aria-describedby", "source-requirements");
+      missingDescriptions.push(`${source.label}: ${missing.join(", ")}`);
+    }
+    sourceRow.append(sourceButton);
   }
+  missingAssets.id = "source-requirements";
+  missingAssets.hidden = missingDescriptions.length === 0;
+  binder.text(missingAssets, {
+    ja: `未設定のデモは無効です。apps/web/.env に次を設定してください: ${missingDescriptions.join("; ")}`,
+    en: `Unconfigured demos are disabled. Set these values in apps/web/.env: ${missingDescriptions.join("; ")}`,
+  });
 
   // --- Seek (§5.1–5.3) ---
   const seekInput = document.createElement("input");
@@ -413,8 +425,8 @@ export function mountControlPanel(
     options.autoplayNext,
     (checked) => options.onAutoplayNextToggle(checked),
     {
-      ja: "「連続再生」テーマで、クリップ終了時に Next-up カードがカウントダウンし次のエピソードを自動再生します。オフは「今すぐ再生」ボタンでの手動のみ。",
-      en: "In the Binge theme, the Next-up card counts down and auto-plays the next episode when a clip ends. Off = manual via the “Play now” button only.",
+      ja: "「連続再生」テーマの Next-up カードは、終了前にカウントダウンを表示して次のエピソードへ自動で進みます。オフの場合はコントロールバーの Next ボタンで手動で進みます。",
+      en: "In the Binge theme, the Next-up card counts down before the clip ends and then advances automatically. When off, use the control-bar Next button to advance manually.",
     },
   );
 
@@ -491,7 +503,7 @@ export function mountControlPanel(
   const controlsGrid = document.createElement("div");
   controlsGrid.className = "panel-grid";
   controlsGrid.append(
-    section({ ja: "ソース", en: "Source" }, sourceRow),
+    section({ ja: "ソース", en: "Source" }, sourceRow, missingAssets),
     section(
       { ja: "シーク", en: "Seek" },
       row({ ja: "ライブ", en: "Live" }, button({ ja: "ライブ端へ移動", en: "Go to live edge" }, () => player.timeShift(0, "panel"))),
@@ -569,22 +581,7 @@ export function mountControlPanel(
   }
 
   function refresh(): void {
-    let snap = snapshot();
-    // §9: getDuration() lags ~seconds after a source switch (the old source's value
-    // lingers until the new manifest is parsed), so the duration-based detection
-    // briefly shows the PREVIOUS mode. For a deliberate switch we know the target
-    // type, so reflect it immediately — in BOTH directions — until the player's own
-    // duration settles, at which point these guards go false and the real snapshot
-    // takes over.
-    const settledVod = Number.isFinite(snap.duration) && snap.duration > 0;
-    if (!expectedLive && !settledVod) {
-      // Known VOD, duration not yet finite → show VOD now.
-      snap = { ...snap, isLive: false, duration: 1, maxTimeShift: 0, timeShift: 0 };
-    } else if (expectedLive && settledVod) {
-      // Known live, but a stale finite duration lingers → show live now. Keep the
-      // real maxTimeShift/timeShift so the DVR window readout fills in as it settles.
-      snap = { ...snap, isLive: true, duration: Infinity };
-    }
+    const snap = sourceHint.snapshot(snapshot());
     const state = deriveDvrState(snap, { timeShiftEnabled });
     // §7 — both times, from the real TimeMode API:
     //  - relative: scrubber position / "behind live" (window start = 0)
@@ -653,4 +650,11 @@ export function mountControlPanel(
   player.on(PlayerEvent.DurationChanged, refresh);
 
   refresh();
+  return {
+    beginSourceLoad: (isLive) => {
+      const token = sourceHint.begin(isLive);
+      refresh();
+      return () => { sourceHint.settle(token); refresh(); };
+    },
+  };
 }

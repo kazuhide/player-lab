@@ -81,7 +81,16 @@ delivery or rendering.
 
 ## Player event handling
 
-- `refresh()` reads the snapshot with `Promise.all` before deriving state.
+- `refresh()` reads the snapshot with `Promise.all` before deriving state. Native
+  events share one in-flight batch and at most one pending refresh, so a burst
+  cannot create an unbounded queue of bridge reads. Successful batches publish
+  in order even if events keep arriving during each read; discarding every such
+  batch would prevent the controls from updating on a slower bridge. Source
+  changes and unmounts invalidate older completions.
+- A rejected read keeps the last valid display and logs `Snapshot read failed`.
+  The other reads in that batch finish before another batch starts. Read and
+  seek completions from a previous source cannot update controls or seek.
+- "Allow DVR" updates the cached display immediately, including while paused.
 - The screen detects a live stream becoming on-demand by comparing snapshots on
   `onTimeChanged`, rather than relying on an `onDurationChanged` event.
 - Recovery from an expired rewind position is also detected from snapshots. The
