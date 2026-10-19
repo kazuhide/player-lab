@@ -139,3 +139,17 @@ APK compiled with the final shared UI, and packaged JavaScript/CSS matched the
 source output. Packaging regression tests passed five cases. These build and
 packaging checks are separate from playback acceptance. Physical devices and
 the other native platforms remain separate verification tasks.
+
+## Codec capability query
+
+On 2026-10-19, Chrome 155.0.8059.85 and the locked Chromium 149.0.7827.55
+reported support for H.264 (`avc1.64001e`) and High Efficiency Video Coding
+(HEVC, `hvc1.1.6.L93.B0`) on macOS. The query used a secure localhost origin
+and a 640 × 360, 24-frame-per-second, 500-kilobit-per-second configuration.
+`canPlayType` returned a support string, `MediaSource.isTypeSupported` returned
+true, and `MediaCapabilities.decodingInfo` returned `supported`, `smooth`, and
+`powerEfficient` as true for both file and media-source modes.
+
+These [capability estimates](https://www.w3.org/TR/media-capabilities/) do not
+establish actual decoding, audible synchronization, or hardware measurements.
+The local fixture checks played H.264; HEVC playback remains unverified.
