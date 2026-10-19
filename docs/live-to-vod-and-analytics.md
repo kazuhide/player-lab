@@ -54,10 +54,12 @@ override `E2E_FINALIZATION_PORT` if that port is in use.
 
 An event carrying wall-clock timestamps can retain those timestamps after its
 duration becomes finite. The SDK's [`getCurrentTime`](https://cdn.bitmovin.com/player/web/8/docs/interfaces/core.playerapi.html)
-defaults to absolute time. Compare a VOD seek position on the explicitly relative
-timeline; a Unix timestamp and an offset within the clip are different values.
-The app already displays both timelines separately, and this check compares
-relative positions while using the finite duration to classify the finished event.
+defaults to absolute time. In these finalized events the seekable range also
+keeps its wall-clock origin: seeking to `10` is clamped to the start, rather than
+ten seconds into the clip. Use `getSeekableRange().start + 10` as the seek target,
+wait for `Seeked`, and read `getCurrentTime("relativetime")` to check the offset.
+The app already displays both timelines separately. The check uses a finite
+duration to classify VOD and one completed seek position to verify both bounds.
 
 ## Analytics / QoE
 

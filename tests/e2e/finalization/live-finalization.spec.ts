@@ -66,8 +66,10 @@ for (const format of ["hls", "dash"] as const) {
 
     media.finalize();
     await expect.poll(() => media.counts().finalManifests).toBeGreaterThan(0);
-    await expect.poll(() => page.evaluate(() => window.player?.getDuration()), { timeout: 30_000 }).toBeGreaterThan(59);
-    await expect.poll(() => page.evaluate(() => window.player?.getDuration())).toBeLessThan(61);
+    await expect.poll(() => page.evaluate(() => {
+      const duration = window.player!.getDuration();
+      return Number.isFinite(duration) && duration > 59 && duration < 61;
+    }), { timeout: 30_000 }).toBe(true);
     await expect(state).toContainText(/mode:\s*vod/);
     await expect(state).toContainText(/dvrAvailable:\s*false/);
     await expect(page.locator('#player [class*="livebutton"]')).toBeHidden();
@@ -83,12 +85,31 @@ for (const format of ["hls", "dash"] as const) {
     expect(after.source).toEqual(before);
     expect(after.events).toContain("DurationChanged");
     expect(after.events).not.toContain("SourceLoaded");
-    const seek = await page.evaluate(() => window.player!.seek(10));
-    expect(seek).toBe(true);
-    // An event with wall-clock timing retains an absolute default time after it
-    // ends. Compare VOD seek positions explicitly on the relative timeline.
-    await expect.poll(() => page.evaluate(() => window.player!.getCurrentTime("relativetime" as TimeMode))).toBeGreaterThan(8);
-    await expect.poll(() => page.evaluate(() => window.player!.getCurrentTime("relativetime" as TimeMode))).toBeLessThan(16);
+    const seek = await page.evaluate(async () => {
+      const player = window.player!;
+      const event = player.exports.PlayerEvent.Seeked;
+      const completion = new Promise<boolean>((resolve) => {
+        const finish = (fired: boolean) => {
+          clearTimeout(timer);
+          player.off(event, onSeeked);
+          resolve(fired);
+        };
+        const onSeeked = () => finish(true);
+        const timer = setTimeout(() => finish(false), 10_000);
+        player.on(event, onSeeked);
+      });
+      // Finalizing an event does not rebase its wall-clock media timeline.
+      const accepted = player.seek(player.getSeekableRange().start + 10);
+      const fired = await completion;
+      // An event with wall-clock timing retains an absolute default time after
+      // it ends. Read one completed seek on the relative VOD timeline.
+      return { accepted, fired, position: player.getCurrentTime("relativetime" as TimeMode) };
+    });
+    expect(seek.accepted).toBe(true);
+    expect(seek.fired, "the VOD seek must complete").toBe(true);
+    expect(Number.isFinite(seek.position)).toBe(true);
+    expect(seek.position).toBeGreaterThan(8);
+    expect(seek.position).toBeLessThan(16);
     console.log(`${format}: real media, live/DVR recreation, manifest finalization, finite duration and VOD seek verified`);
     await page.evaluate(() => window.player!.pause());
   });
