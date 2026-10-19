@@ -1,0 +1,2012 @@
+{
+  "id": "settings",
+  "title": "Player Config: all 134 fields",
+  "lead": "Find the scope, application mode, input format and description of each field. A visible control does not establish that a value applies in your environment or that its behavior has been verified there.",
+  "notes": [
+    "A form fallback is the display value used when the form cannot read an applied value. It is not the SDK default, the current effective value or a recommended value.",
+    "The initial Adaptation fields are applied to both desktop and mobile configurations.",
+    "Descriptions explain the public implementation and the pinned SDK API. They do not establish device validation for every field.",
+    "The public per-field source documentation does not define app_id; consult the official API specification.",
+    "Descriptions target Web SDK 8.263.0. The online API reference may describe a newer release; check its version before comparing fields."
+  ],
+  "groups": [
+    {
+      "id": "player-api",
+      "title": "Player API",
+      "mode": "runtime",
+      "fields": [
+        {
+          "scope": "PlayerAPI",
+          "path": "volume",
+          "label": "volume (0–100)",
+          "kind": "number",
+          "fallback_initial": 100,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 277
+          },
+          "api": "player.setVolume",
+          "description": "Change volume immediately from 0 to 100. This API also unmutes a muted player, so changing the volume may make audio audible."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "mute",
+          "label": "mute",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 285
+          },
+          "api": "player.mute / player.unmute",
+          "description": "Toggle mute for the current playback. Clearing the checkbox enables audio output."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "playbackSpeed",
+          "label": "playbackSpeed",
+          "kind": "number",
+          "fallback_initial": 1,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 298
+          },
+          "api": "player.setPlaybackSpeed",
+          "description": "Set the playback-rate multiplier: 1 is normal speed and 2 is twice normal speed. Behavior is constrained near the live edge."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "buffer.forwardTarget",
+          "label": "buffer target forward (s) §8",
+          "kind": "number",
+          "fallback_initial": 40,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 306
+          },
+          "api": "player.buffer.setTargetLevel",
+          "description": "Immediately change the forward video-buffer target in seconds. This does not extend the available rewind window."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "viewMode",
+          "label": "viewMode",
+          "kind": "enum",
+          "fallback_initial": "inline",
+          "options": [
+            {
+              "value": "inline",
+              "label": "inline"
+            },
+            {
+              "value": "pictureinpicture",
+              "label": "PiP"
+            },
+            {
+              "value": "fullscreen",
+              "label": "fullscreen"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 323
+          },
+          "api": "player.setViewMode",
+          "description": "Choose inline, pictureinpicture or fullscreen. Browser support and a user gesture are required."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "aspectRatio",
+          "label": "setAspectRatio",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 345
+          },
+          "api": "player.setAspectRatio",
+          "description": "Change the aspect ratio using a ratio such as 16:9 or 16/9. This API cannot change it when both width and height are fixed."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "poster",
+          "label": "setPosterImage (URL)",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 358
+          },
+          "api": "player.setPosterImage",
+          "description": "Set the poster immediately. This app passes true as the second argument, so the image remains displayed during video playback. Its application differs from SourceConfig.poster."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "logLevel",
+          "label": "setLogLevel",
+          "kind": "enum",
+          "fallback_initial": "warn",
+          "options": [
+            {
+              "value": "debug",
+              "label": "debug"
+            },
+            {
+              "value": "log",
+              "label": "log"
+            },
+            {
+              "value": "warn",
+              "label": "warn"
+            },
+            {
+              "value": "error",
+              "label": "error"
+            },
+            {
+              "value": "off",
+              "label": "off"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 371
+          },
+          "api": "player.setLogLevel",
+          "description": "Immediately change console-log verbosity. Detailed debug output can affect performance."
+        }
+      ]
+    },
+    {
+      "id": "dynamic-adaptation",
+      "title": "Adaptation (dynamic)",
+      "mode": "runtime",
+      "fields": [
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.limitToPlayerSize",
+          "label": "limitToPlayerSize",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 395
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "Keep automatic video-quality selection within the display size of the video element."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.qualityStabilityBalance",
+          "label": "qualityStabilityBalance (0–1)",
+          "kind": "number",
+          "fallback_initial": 0.5,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 403
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "Set the balance between quality and stability from 0 to 1. Zero favors quality; 1 reduces quality to favor stable playback. This is used by the low-latency adaptation logic."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.resolution.maxSelectableVideoHeight",
+          "label": "resolution.maxSelectableVideoHeight",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 411
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "Set the maximum height for automatic video-quality selection in pixels. If every quality is taller, the smallest height remains allowed. This normally does not remove choices from manual selection."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.resolution.minSelectableVideoHeight",
+          "label": "resolution.minSelectableVideoHeight",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 419
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "Set the minimum height for automatic video-quality selection in pixels. If every quality is shorter, the largest height remains allowed. This normally does not remove choices from manual selection."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.resolution.maxSelectableVideoWidth",
+          "label": "resolution.maxSelectableVideoWidth",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 427
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "Set the maximum width for automatic video-quality selection in pixels. If every quality is wider, the smallest width remains allowed. This normally does not remove choices from manual selection."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.resolution.minSelectableVideoWidth",
+          "label": "resolution.minSelectableVideoWidth",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 435
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "Set the minimum width for automatic video-quality selection in pixels. If every quality is narrower, the largest width remains allowed. This normally does not remove choices from manual selection."
+        }
+      ]
+    },
+    {
+      "id": "low-latency",
+      "title": "Low Latency (dynamic)",
+      "mode": "runtime",
+      "fields": [
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.targetLatency",
+          "label": "targetLatency (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 453
+          },
+          "api": "player.lowlatency.setTargetLatency",
+          "description": "Set the target distance from the live edge in seconds. Use catchup and fallback together to try latency tracking."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.catchup.playbackRateThreshold",
+          "label": "catchup: playbackRateThreshold (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 470
+          },
+          "api": "player.lowlatency.setCatchupConfig",
+          "description": "Catch up by changing speed when latency exceeds the target by more than this number of seconds. The default Infinity disables this threshold."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.catchup.seekThreshold",
+          "label": "catchup: seekThreshold (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 478
+          },
+          "api": "player.lowlatency.setCatchupConfig",
+          "description": "Catch up by seeking toward the live edge when latency exceeds the target by more than this number of seconds. The default Infinity disables this threshold."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.catchup.playbackRate",
+          "label": "catchup: playbackRate",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 486
+          },
+          "api": "player.lowlatency.setCatchupConfig",
+          "description": "Set the playback-rate multiplier used to catch up. A value greater than 1 speeds playback up."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.fallback.playbackRateThreshold",
+          "label": "fallback: playbackRateThreshold (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 494
+          },
+          "api": "player.lowlatency.setFallbackConfig",
+          "description": "Slow down when playback is closer to the live edge than the target by more than this number of seconds. The default Infinity disables this threshold."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.fallback.seekThreshold",
+          "label": "fallback: seekThreshold (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 502
+          },
+          "api": "player.lowlatency.setFallbackConfig",
+          "description": "Move back toward the target position when playback is too close to the live edge by more than this number of seconds. The default Infinity disables this threshold."
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.fallback.playbackRate",
+          "label": "fallback: playbackRate",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 510
+          },
+          "api": "player.lowlatency.setFallbackConfig",
+          "description": "Set the playback-rate multiplier used to fall back from the live edge. A value below 1 slows playback down."
+        }
+      ]
+    },
+    {
+      "id": "source",
+      "title": "Source",
+      "mode": "reload",
+      "fields": [
+        {
+          "scope": "SourceConfig",
+          "path": "title",
+          "label": "title",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 525
+          },
+          "description": "Set the source title. Themes with a TitleBar display it. Reload the source to apply the change."
+        },
+        {
+          "scope": "SourceConfig",
+          "path": "description",
+          "label": "description",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 534
+          },
+          "description": "Set the source description. Check it in a theme with a TitleBar, as with the title."
+        },
+        {
+          "scope": "SourceConfig",
+          "path": "poster",
+          "label": "poster (URL)",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 542
+          },
+          "description": "Set the URL of the image displayed before playback. This applies differently from the immediate setPosterImage API."
+        },
+        {
+          "scope": "SourceConfig",
+          "path": "options.startOffset",
+          "label": "options.startOffset (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 550
+          },
+          "description": "Set the start position in seconds. For on-demand media it applies when the source loads; for live media it applies when playback starts. To start behind the live edge, use a negative value with the end reference. Out-of-range positions are clamped."
+        },
+        {
+          "scope": "SourceConfig",
+          "path": "options.startOffsetTimelineReference",
+          "label": "options.startOffsetTimelineReference",
+          "kind": "enum",
+          "fallback_initial": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Default"
+            },
+            {
+              "value": "start",
+              "label": "start"
+            },
+            {
+              "value": "end",
+              "label": "end"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 559
+          },
+          "description": "Set the reference for startOffset. The start value refers to the beginning of the video or rewind window; end refers to the video end or live edge. When omitted, the default is start for on-demand media and end for live media."
+        }
+      ]
+    },
+    {
+      "id": "playback",
+      "title": "Playback",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.autoplay",
+          "label": "autoplay",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 580
+          },
+          "description": "Choose whether playback starts automatically after loading. Browsers may block autoplay with audio."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.muted",
+          "label": "muted (initial)",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 581
+          },
+          "description": "Choose whether a new player starts muted. This applies at a different time from the immediate mute control."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.volume",
+          "label": "volume (initial, 0–100)",
+          "kind": "number",
+          "fallback_initial": 100,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 582
+          },
+          "description": "Set the initial volume of a new player from 0 to 100. Mute is a separate setting."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.playsInline",
+          "label": "playsInline",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 583
+          },
+          "description": "Add playsinline to the video element. This enables inline playback on supported mobile browsers."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.seeking",
+          "label": "seeking",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 584
+          },
+          "description": "Choose whether seeking is allowed. Distinguish this from the timeShift control that allows live rewinding."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.allowDecodingErrorRecovery",
+          "label": "allowDecodingErrorRecovery",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 585
+          },
+          "description": "Configure automatic recovery from PLAYBACK_VIDEO_DECODING_ERROR. When enabled, the source reloads and resumes at the previous position. Recovery is normally attempted once at a given position; a repeated error or failed recovery produces an error."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.audioLanguage",
+          "label": "audioLanguage",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 586
+          },
+          "description": "Set the preferred audio language at startup. The source must contain a matching track."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.subtitleLanguage",
+          "label": "subtitleLanguage",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 587
+          },
+          "description": "Set the preferred subtitle language at startup. The source must contain matching subtitles."
+        }
+      ]
+    },
+    {
+      "id": "adaptation",
+      "title": "Adaptation (initial)",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.startupBitrate",
+          "label": "startupBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 598
+          },
+          "description": "Set the starting bitrate. Leave the field empty for automatic selection. Otherwise use a number in bps or a value with a unit, such as 500kbps."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.maxStartupBitrate",
+          "label": "maxStartupBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 599
+          },
+          "description": "Set the maximum starting bitrate. This has no effect when startupBitrate is explicitly set."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.preload",
+          "label": "preload",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 600
+          },
+          "description": "Choose whether content is preloaded before playback. SDK defaults differ for on-demand and live media, so check the applied value."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.disableDownloadCancelling",
+          "label": "disableDownloadCancelling",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 601
+          },
+          "description": "Disable cancellation of slow downloads and retries at lower quality. Compare its behavior with normal automatic adaptation."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.qualityThreshold",
+          "label": "qualityThreshold",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 602
+          },
+          "description": "Set the allowed PSNR difference between selected qualities for sources carrying Quality Optimized Streaming Data. This does not affect every ordinary source."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.qualityUpperThreshold",
+          "label": "qualityUpperThreshold",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 603
+          },
+          "description": "Set a PSNR upper target used in quality selection. PSNR measures the difference between an original and compressed image; compatible quality data is required."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.bitrates.maxSelectableVideoBitrate",
+          "label": "bitrates.maxSelectableVideoBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 604
+          },
+          "description": "Set the maximum automatically selected video bitrate in bps. If every quality exceeds it, the lowest bitrate remains allowed. This normally does not remove choices from manual selection."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.bitrates.minSelectableVideoBitrate",
+          "label": "bitrates.minSelectableVideoBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 605
+          },
+          "description": "Set the minimum automatically selected video bitrate in bps. If every quality is below it, the highest bitrate remains allowed. This normally does not remove choices from manual selection."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.bitrates.maxSelectableAudioBitrate",
+          "label": "bitrates.maxSelectableAudioBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 606
+          },
+          "description": "Set the maximum automatically selected audio bitrate in bps. If every quality exceeds it, the lowest bitrate remains allowed. This normally does not remove choices from manual selection."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.bitrates.minSelectableAudioBitrate",
+          "label": "bitrates.minSelectableAudioBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 607
+          },
+          "description": "Set the minimum automatically selected audio bitrate in bps. If every quality is below it, the highest bitrate remains allowed. This normally does not remove choices from manual selection."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.logic",
+          "label": "logic",
+          "kind": "enum",
+          "fallback_initial": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Default"
+            },
+            {
+              "value": "v1",
+              "label": "v1 (buffer)"
+            },
+            {
+              "value": "v2",
+              "label": "v2 (fill-rate)"
+            },
+            {
+              "value": "v3",
+              "label": "v3 (download-prediction)"
+            },
+            {
+              "value": "low-latency-v1",
+              "label": "low-latency-v1"
+            },
+            {
+              "value": "wish",
+              "label": "wish"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 608
+          },
+          "description": "Choose the adaptation logic. The default is v3; v1 and v2 are deprecated. The low-latency-v1 logic is for chunked-CMAF live streams and requires tweaks.chunked_cmaf_streaming. It is distinct from ordinary live-latency tracking settings."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.rttEstimationMethod",
+          "label": "rttEstimationMethod",
+          "kind": "enum",
+          "fallback_initial": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Default"
+            },
+            {
+              "value": "weightedaverage",
+              "label": "weightedaverage"
+            },
+            {
+              "value": "median",
+              "label": "median"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 616
+          },
+          "description": "Choose weightedaverage or median for estimating network round-trip time. This only applies with the v3 adaptation logic."
+        }
+      ]
+    },
+    {
+      "id": "buffer",
+      "title": "Buffer (initial)",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "buffer.video.forwardduration",
+          "label": "video.forwardduration (s)",
+          "kind": "number",
+          "fallback_initial": 40,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 628
+          },
+          "description": "Set the target seconds of video kept ahead of the playhead. A larger value can increase media-buffer memory use."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "buffer.video.backwardduration",
+          "label": "video.backwardduration (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 629
+          },
+          "description": "Set the target seconds of played video to retain. This does not extend the rewind window offered by the live origin."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "buffer.audio.forwardduration",
+          "label": "audio.forwardduration (s)",
+          "kind": "number",
+          "fallback_initial": 40,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 630
+          },
+          "description": "Set the target seconds of audio kept ahead of the playhead. This is separate from the video setting."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "buffer.audio.backwardduration",
+          "label": "audio.backwardduration (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 631
+          },
+          "description": "Set the target seconds of played audio to retain. This is separate from the video setting."
+        }
+      ]
+    },
+    {
+      "id": "tweaks",
+      "title": "Tweaks",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.log_level",
+          "label": "log_level",
+          "kind": "enum",
+          "fallback_initial": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Default"
+            },
+            {
+              "value": "debug",
+              "label": "debug"
+            },
+            {
+              "value": "log",
+              "label": "log"
+            },
+            {
+              "value": "warn",
+              "label": "warn"
+            },
+            {
+              "value": "error",
+              "label": "error"
+            },
+            {
+              "value": "off",
+              "label": "off"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 643
+          },
+          "description": "Set the log level through the low-level configuration. The Logs group is the usual initial setting; use Player API setLogLevel for a change during playback."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_buffer_level",
+          "label": "max_buffer_level",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 79
+          },
+          "description": "This legacy setting adjusts the buffer limit in seconds. It is deprecated; normally use buffer forwardduration. For live media it is limited by the smaller of its value and the HLS playlist length or DASH rewind window."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.startup_threshold",
+          "label": "startup_threshold",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 79
+          },
+          "description": "Set the seconds to buffer before initial playback. The SDK caps this at the maximum buffer amount minus 0.5 seconds. Increasing the input cannot make it wait beyond that cap."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.restart_threshold",
+          "label": "restart_threshold",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 79
+          },
+          "description": "Set the seconds to buffer before resuming after a buffering interruption. The SDK caps this at the maximum buffer amount minus 0.5 seconds."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.native_hls_parsing",
+          "label": "native_hls_parsing",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 80
+          },
+          "description": "Parse playlists during native HLS playback on Safari and include segment information such as PDT in events."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.native_hls_download_error_handling",
+          "label": "native_hls_download_error_handling",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 80
+          },
+          "description": "Enable detection of playback stalls caused by failed requests during native HLS playback on Safari, so an error event can be raised."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.stop_download_on_pause",
+          "label": "stop_download_on_pause",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 80
+          },
+          "description": "Stop new playlist and segment requests while paused. Requests that have already started finish normally."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.licenseServer",
+          "label": "licenseServer",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 81
+          },
+          "description": "Change the Player license-server URL. Only allowed URLs apply. This is separate from the DRM server for protected content."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.impressionServer",
+          "label": "impressionServer",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 81
+          },
+          "description": "Change the impression-reporting URL. Only allowed URLs apply."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_audio_only_threshold_bitrate",
+          "label": "hls_audio_only_threshold_bitrate",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 81
+          },
+          "description": "Treat HLS variants below the specified bitrate in bps as audio-only and remove them if a higher-bitrate candidate exists."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.file_protocol",
+          "label": "file_protocol",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 82
+          },
+          "description": "Configure file-protocol use with app_id. This is not a setting for the HTTPS Pages deployment."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.app_id",
+          "label": "app_id",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 82
+          },
+          "description": "Consult the official API specification. The public per-field documentation used for this catalog does not define app_id."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.adaptation_set_switching_without_supplemental_property",
+          "label": "adaptation_set_switching_without_supplemental_property",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 82
+          },
+          "description": "Use the group attribute rather than SupplementalProperty for switching between DASH Adaptation Sets."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.drm_stall_recovery_settle_timeout_ms",
+          "label": "drm_stall_recovery_settle_timeout_ms",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 83
+          },
+          "description": "Set the stabilization wait in milliseconds before reloading a source after waitingforkey with a permanently failed key ID (KID). This is not a general DRM-network timeout."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.drm_stall_recovery_license_activity_lookback_ms",
+          "label": "drm_stall_recovery_license_activity_lookback_ms",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 83
+          },
+          "description": "Set the lookback period in milliseconds during which recent DRM-license state changes count as stabilization activity."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.ignore_mp4_edts_box",
+          "label": "ignore_mp4_edts_box",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 84
+          },
+          "description": "Remove MP4 edts information, which can adjust the start time, before passing segments to the decoder. This is a workaround for browser differences."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.ignore_hls_audio_groups",
+          "label": "ignore_hls_audio_groups",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 84
+          },
+          "description": "Treat same-named HLS audio renditions as separate tracks instead of grouping them as quality candidates."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.prevent_video_element_preloading",
+          "label": "prevent_video_element_preloading",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 84
+          },
+          "description": "Set the video element to preload=none. In native HLS playback on Safari, audio tracks or duration may remain unavailable until playback starts. This differs from preloading metadata only."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.serviceworker_scope",
+          "label": "serviceworker_scope",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 85
+          },
+          "description": "Set the scope of the Service Worker created by the corresponding module."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.fairplay_ignore_duplicate_init_data_key_errors",
+          "label": "fairplay_ignore_duplicate_init_data_key_errors",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 85
+          },
+          "description": "Ignore FairPlay keyerror events when requests for the same initialization data are duplicated."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.no_quota_exceeded_adjustment",
+          "label": "no_quota_exceeded_adjustment",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 86
+          },
+          "description": "Disable the SDK buffer-target adjustment after a browser capacity error. This does not guarantee lower memory use."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.segment_encryption_transition_handling",
+          "label": "segment_encryption_transition_handling",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 86
+          },
+          "description": "This deprecated legacy setting has no effect in the pinned version: standard SDK buffering has handled it since 8.33.0. Do not treat it as an active switch for encryption-boundary behavior."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.enable_seek_for_live",
+          "label": "enable_seek_for_live",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 87
+          },
+          "description": "Adjust permission to use the SDK seek operation on live streams. The ordinary DVR control panel uses timeShift."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.resume_live_content_at_previous_position_after_ad_break",
+          "label": "resume_live_content_at_previous_position_after_ad_break",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 87
+          },
+          "description": "With true, resume live media at the same media position as before the ad. The default false advances by the ad duration to retain the previous distance from the live edge. This tweak is ignored when the ad specifies replaceContentDuration."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.dword_base_media_decode_timestamps",
+          "label": "dword_base_media_decode_timestamps",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 88
+          },
+          "description": "Allow use of the Tizen module on non-Tizen platforms. It only applies when that module is included; it is not general browser timestamp correction."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.force_base_media_decode_time_rewrite",
+          "label": "force_base_media_decode_time_rewrite",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 88
+          },
+          "description": "Rewrite Base Media Decode Time on Tizen or webOS devices with the corresponding module, whether or not it exceeds 32 bits. It can cause problems with short discontinuities; use it only when measurements show an improvement."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.tizen_max_safe_bmdt",
+          "label": "tizen_max_safe_bmdt",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 89
+          },
+          "description": "Set the decode-time limit considered safe on Tizen. Larger values are rewritten to smaller ones. The Tizen module is required; SDK defaults differ by TV generation."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.tizen_max_safe_pto",
+          "label": "tizen_max_safe_pto",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 89
+          },
+          "description": "Set the presentation-time-offset limit considered safe on Tizen. Larger values are rewritten to smaller ones. The Tizen module is required; SDK defaults differ by TV generation."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.webos_max_safe_bmdt",
+          "label": "webos_max_safe_bmdt",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 89
+          },
+          "description": "Set the decode-time limit considered safe on webOS. Larger values are rewritten to smaller ones. The webOS module is required; SDK defaults differ by TV generation."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.webos_max_safe_pto",
+          "label": "webos_max_safe_pto",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 90
+          },
+          "description": "Set the presentation-time-offset limit considered safe on webOS. Larger values are rewritten to smaller ones. The webOS module is required; SDK defaults differ by TV generation."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.akamai_datetime_parsing",
+          "label": "akamai_datetime_parsing",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 90
+          },
+          "description": "Parse the date and time embedded in segment URLs that use the supported format."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.clear_buffers_on_seeking_backwards",
+          "label": "clear_buffers_on_seeking_backwards",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 90
+          },
+          "description": "Change buffer retention during backward seeks so the necessary segments are requested again."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.drop_invalid_segments",
+          "label": "drop_invalid_segments",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 91
+          },
+          "description": "Drop invalid MP4 segments and try to continue. Playback may continue with gaps caused by the missing data."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.min_size_for_gap_skipping",
+          "label": "min_size_for_gap_skipping",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 91
+          },
+          "description": "Do not skip timeline gaps shorter than this value."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.proactive_gap_skip_distance_seconds",
+          "label": "proactive_gap_skip_distance_seconds",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 91
+          },
+          "description": "With a positive value in seconds, skip gaps proactively before reaching them."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.force_software_decryption",
+          "label": "force_software_decryption",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 92
+          },
+          "description": "Use software decryption rather than WebCrypto for content the SDK decrypts itself, such as HLS AES-128 and DASH ClearKey. This does not affect Widevine or PlayReady decryption performed by the browser CDM."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_retries",
+          "label": "max_retries",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 92
+          },
+          "description": "Set the retry count for failed manifest requests. For HLS this covers both master and variant playlists."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_cdn_retries",
+          "label": "max_cdn_retries",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 92
+          },
+          "description": "Set the download-retry count per CDN for on-demand media."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_mpd_retries",
+          "label": "max_mpd_retries",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 93
+          },
+          "description": "Set the retry count for failed downloads of the DASH MPD manifest."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.mpd_retry_delay",
+          "label": "mpd_retry_delay",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 93
+          },
+          "description": "Set the delay in seconds before retrying a failed MPD request."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.mpd_update_period_tolerance",
+          "label": "mpd_update_period_tolerance",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 93
+          },
+          "description": "Set how many seconds a live MPD may remain older than minimumUpdatePeriod before it is considered stale."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.parse_cea_708_caption",
+          "label": "parse_cea_708_caption",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 94
+          },
+          "description": "Parse CEA-708 captions from the source instead of CEA-608. This is separate from selecting WebVTT subtitles."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_sync_segment_playback_time_via_media_sequence",
+          "label": "hls_sync_segment_playback_time_via_media_sequence",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 94
+          },
+          "description": "Use media-sequence numbers to synchronize HLS segment playback times during quality changes."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_parse_manifest_in_worker",
+          "label": "hls_parse_manifest_in_worker",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 95
+          },
+          "description": "Parse HLS manifests in a worker thread. This can help with large manifests; it does not parallelize every playback task."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_clear_buffers_on_discontinuity_switches",
+          "label": "hls_clear_buffers_on_discontinuity_switches",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 95
+          },
+          "description": "Clear SourceBuffer at HLS discontinuity transitions. This can affect visible transitions and performance."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.chunked_cmaf_streaming",
+          "label": "chunked_cmaf_streaming",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 96
+          },
+          "description": "Use fetch so complete CMAF chunks can reach the decoder while a request is still in progress. A compatible stream format is required."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.parse_emsg_boxes",
+          "label": "parse_emsg_boxes",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 96
+          },
+          "description": "Parse MP4 emsg events during MSE playback. This does not affect native playback."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_backup_stream_penalty_duration",
+          "label": "hls_backup_stream_penalty_duration",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 96
+          },
+          "description": "Set the seconds before a failed HLS stream penalty expires. This affects failover to a backup stream."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.check_all_drm_licenses_for_kid",
+          "label": "check_all_drm_licenses_for_kid",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 97
+          },
+          "description": "Check the state across available DRM licenses when a key status changes, before deciding whether playback can continue."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_parse_native_metadata",
+          "label": "hls_parse_native_metadata",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 97
+          },
+          "description": "Relay native HLS metadata such as ID3 as SDK events on Safari."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.prefer_managed_media_source",
+          "label": "prefer_managed_media_source",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 97
+          },
+          "description": "Prefer ManagedMediaSource to MediaSource when available. Support depends on the runtime environment."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.infinite_retries_for_live",
+          "label": "infinite_retries_for_live",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 98
+          },
+          "description": "Keep retrying live requests after all qualities have failed, rather than ending with an error, so playback can recover if the stream returns."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.minimal_backward_buffer_clearing_interval",
+          "label": "minimal_backward_buffer_clearing_interval",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 98
+          },
+          "description": "Set the minimum interval in seconds for clearing played media from the buffer."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_safe_mse_duration",
+          "label": "max_safe_mse_duration",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 99
+          },
+          "description": "Configure compatibility for older environments that cannot use Infinity as the live MediaSource duration."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.disable_parallel_segment_loading",
+          "label": "disable_parallel_segment_loading",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 99
+          },
+          "description": "Reduce parallel requests for audio/video or initialization/data segments. Compare it with the normal SDK request schedule."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.enable_muted_background_playback",
+          "label": "enable_muted_background_playback",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 99
+          },
+          "description": "On Chromium browsers, use volume zero instead of the media element muted flag to avoid muted-video suspension after switching tabs. Preserve SDK-reported mute and volume values. This may increase battery use and does not guarantee all background playback."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.postpone_manifest_updates_until_playback_start",
+          "label": "postpone_manifest_updates_until_playback_start",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 100
+          },
+          "description": "Delay live-manifest updates until playback starts. This may help startup on slower devices; it does not apply to low-latency HLS."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_startup_buffer",
+          "label": "max_startup_buffer",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 100
+          },
+          "description": "Set the startup-buffer cap in seconds. Additional downloads stop at the cap until playback starts. A finite value overrides SDK defaults. Without an override, caps vary by environment; TV defaults require the corresponding module."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.dash_clear_buffers_on_period_switches",
+          "label": "dash_clear_buffers_on_period_switches",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 101
+          },
+          "description": "Clear SourceBuffer when switching DASH periods. Transitions may become more visible even with compatible content."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.disable_auto_recovery_on_dvr_window_exceeded",
+          "label": "disable_auto_recovery_on_dvr_window_exceeded",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 101
+          },
+          "description": "Disable the standard SDK recovery from an expired DVR position. This app also has its own handler that returns to the live edge."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.enable_performance_logs",
+          "label": "enable_performance_logs",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 102
+          },
+          "description": "Enable Performance logs containing timings for SDK operations."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.enable_sgai_handling",
+          "label": "enable_sgai_handling",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 102
+          },
+          "description": "Enable HLS Interstitial handling in the pinned version. AdvertisingCore and compatible content are required. This is not a general switch for every ad-insertion method."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.audio_track_switch_buffer_grace_period",
+          "label": "audio_track_switch_buffer_grace_period",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 102
+          },
+          "description": "Set how many seconds of the previous audio buffer to keep ahead of the playhead during track changes. Retention must be enabled and the codec and DRM protection must remain unchanged."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.disable_audio_buffer_clearing_on_track_switch",
+          "label": "disable_audio_buffer_clearing_on_track_switch",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 103
+          },
+          "description": "Keep part of the previous buffer when changing audio tracks with the same codec and DRM protection. Changed conditions clear it completely. In some environments switching is delayed and the old audio remains briefly audible."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.sgai_trigger_delay_compensation",
+          "label": "sgai_trigger_delay_compensation",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 103
+          },
+          "description": "Set the compensation in seconds for ad-trigger delay caused by the TimeChanged event interval. A compatible ad-insertion feature is required."
+        }
+      ]
+    },
+    {
+      "id": "logs",
+      "title": "Logs",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "logs.level",
+          "label": "level",
+          "kind": "enum",
+          "fallback_initial": "warn",
+          "options": [
+            {
+              "value": "debug",
+              "label": "debug"
+            },
+            {
+              "value": "log",
+              "label": "log"
+            },
+            {
+              "value": "warn",
+              "label": "warn"
+            },
+            {
+              "value": "error",
+              "label": "error"
+            },
+            {
+              "value": "off",
+              "label": "off"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 653
+          },
+          "description": "Set console verbosity when creating the player. Detailed debug or log output can affect performance during long playback."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "logs.bitmovin",
+          "label": "bitmovin (console credit)",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 653
+          },
+          "description": "Toggle the Bitmovin credit printed in the console. This does not change a logo over the video."
+        }
+      ]
+    },
+    {
+      "id": "style",
+      "title": "Style",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "style.aspectratio",
+          "label": "aspectratio",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 660
+          },
+          "description": "Set the player aspect ratio. Avoid specifying width, height and aspectratio all at once."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "style.width",
+          "label": "width",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 661
+          },
+          "description": "Set the player width using a unit such as px or %. App CSS can take precedence, leaving no visible difference."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "style.height",
+          "label": "height",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 662
+          },
+          "description": "Set the player height using a unit such as px or %. App CSS can take precedence, leaving no visible difference."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "style.nativeSubtitles",
+          "label": "nativeSubtitles",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 663
+          },
+          "description": "Configure browser-native subtitle rendering for native HLS and progressive files. This does not apply to every playback technology."
+        }
+      ]
+    },
+    {
+      "id": "cast",
+      "title": "Cast",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "cast.enable",
+          "label": "enable",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 671
+          },
+          "description": "Configure Chromecast support through CastConfig. The casting-button control uses remotecontrol and is a separate operation."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "cast.application_id",
+          "label": "application_id",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 672
+          },
+          "description": "Set the application ID of a custom Cast receiver. The current control panel uses the default receiver and does not set this value."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "cast.message_namespace",
+          "label": "message_namespace",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 673
+          },
+          "description": "Set the message namespace for a custom Cast receiver. It is not required for ordinary Cast operation."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "cast.receiverStylesheetUrl",
+          "label": "receiverStylesheetUrl",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 674
+          },
+          "description": "Set the stylesheet URL loaded by the Cast receiver. This does not change the local Web player CSS."
+        }
+      ]
+    },
+    {
+      "id": "live",
+      "title": "Live",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "live.incrementalManifestUpdates",
+          "label": "incrementalManifestUpdates",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 682
+          },
+          "description": "Use HLS Playlist Delta Updates instead of retrieving a complete manifest on supported sources. The pinned type documentation specifies HLS; this does not affect every HLS or DASH stream."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "live.lowLatency.targetLatency",
+          "label": "lowLatency.targetLatency (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 683
+          },
+          "description": "Set the initial target live latency of a new player in seconds. The dynamic Low Latency group also allows a change during playback."
+        }
+      ]
+    },
+    {
+      "id": "location",
+      "title": "Location",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "location.ui",
+          "label": "ui",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 691
+          },
+          "description": "Set the JavaScript location used by the SDK to load its UI. This app creates a UIManager itself; normally change themes using the buttons at the top."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "location.ui_css",
+          "label": "ui_css",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 692
+          },
+          "description": "Set the CSS location used by the SDK to load its UI. Its application differs from the shared UI CSS imported by this app."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "location.cast",
+          "label": "cast",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 693
+          },
+          "description": "Set the URL of the Google Cast sender library."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "location.google_ima",
+          "label": "google_ima",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 694
+          },
+          "description": "Set the Google IMA loading URL. This field is deprecated; use ImaAdvertisingConfig.sdkUrl for new integrations. This GUI does not provide a complete ad-configuration editor."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "location.serviceworker",
+          "label": "serviceworker",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 695
+          },
+          "description": "Set the Service Worker JavaScript location. It requires the corresponding module, placement at the same level as the host HTML, and CORS permission on the content origin. Adding the module without a path produces a setup warning."
+        }
+      ]
+    },
+    {
+      "id": "misc",
+      "title": "Misc",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "licensing.delay",
+          "label": "licensing.delay (ms)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 703
+          },
+          "description": "Set the delay before issuing the Player license request, in milliseconds, up to 30,000 ms (30 seconds). This is not a content-DRM license setting."
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "storage.disableStorageApi",
+          "label": "storage.disableStorageApi",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 704
+          },
+          "description": "Disable player Web Storage persistence. This is separate from the UI-storage setting in the control panel."
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerConfig.html",
+      "label": "Official Web Player API reference (check version)"
+    }
+  ]
+}

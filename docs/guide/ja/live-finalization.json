@@ -1,0 +1,114 @@
+{
+  "id": "live-finalization",
+  "title": "ライブ終了後のVODへの切り替え",
+  "lead": "配信終了を検出したときに、同じPlayerとソースを保ちながらライブ用の表示をVODへ切り替える動作を確認します。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "ライブ終了の検出と表示"
+    },
+    {
+      "type": "p",
+      "text": "各アプリは再生時間を含む状態を読み直し、ライブ／VODの表示状態を更新します。ライブの終了は、ブラウザーを再読み込みしたりソースを選び直したりする操作とは別に確認します。"
+    },
+    {
+      "type": "p",
+      "text": "このアプリの共通判定は、再生時間が有限の正数ならVOD、Infinity、0、NaNならライブです。これは各SDKから得た状態をアプリ内で扱うためのルールです。すべての映像形式についてライブを定義する一般式ではありません。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "対象",
+        "状態の見直し"
+      ],
+      "rows": [
+        [
+          "Web／Vega",
+          "DurationChanged通知"
+        ],
+        [
+          "Android",
+          "TimeChanged時の状態再取得。読み込み・シーク完了時も更新"
+        ],
+        [
+          "iOS／tvOS",
+          "TimeChanged時の読み直し"
+        ],
+        [
+          "React Native",
+          "onTimeChanged時の読み直し"
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "クラウドを使わない制御された検証"
+    },
+    {
+      "type": "p",
+      "text": "生成済みの60秒素材を使い、同じURLのマニフェストを途中で終了済みへ変更するテストを用意しています。素材が未生成の場合だけ、最初のコマンドを実行してください。既存出力を上書きしない条件は同じです。"
+    },
+    {
+      "type": "p",
+      "text": ".cache/test-streamsを先に生成済みの場合、以下のlocal.pyは再実行せず、既存の素材でテストを開始します。素材生成ツールは既存出力を上書きしません。"
+    },
+    {
+      "type": "code",
+      "text": "python3 encoding/test-streams/local.py\nE2E_FINALIZATION_MEDIA_DIR=\\\n\"$PWD/.cache/test-streams/vod-baseline\" \\\n  pnpm --filter @showcase/e2e e2e:finalization"
+    },
+    {
+      "type": "p",
+      "text": "ループバックのテストサーバーが実際のメディアを最初はライブとして配信し、その後に同じマニフェストURLを確定します。HLSではEXT-X-ENDLISTで今後セグメントを追加しないことを示し、DASHでは動的なMPDから有限の静的なプレゼンテーションへ移行します。HLSとDASHの2件を分けて確認します。"
+    },
+    {
+      "type": "p",
+      "text": "テストはDVR設定によるPlayerの再生成、終了前の巻き戻し、有限の再生時間、VOD表示、終了後のシークを確認します。マニフェストの確定時にはPlayerとソースを変えず、新しいSourceLoadedが発生しないことも確認します。標準ポート5192が使えない場合はE2E_FINALIZATION_PORTを変更します。"
+    },
+    {
+      "type": "note",
+      "title": "このテストが確認する範囲",
+      "text": "実際のPlayerとメディアを使った、制御されたローカルの終了処理です。本番のライブ入力、エンコーダー、配信網、物理端末まで含む試験ではありません。"
+    },
+    {
+      "type": "h2",
+      "text": "VODになっても時刻の原点が残ることがある"
+    },
+    {
+      "type": "p",
+      "text": "ライブ時に実時刻を使っていた素材では、有限のVODになってもシーク可能範囲の原点に実時刻が残る場合があります。その場合にseek(10)とすると、先頭から10秒ではなく範囲外として先頭へ制限されます。先頭から10秒へ移動するには、シーク可能範囲の始点へ10を足します。"
+    },
+    {
+      "type": "code",
+      "text": "const range = player.getSeekableRange();\nplayer.seek(range.start + 10);\n// After Seeked, inspect the relative playback position.\nconst relative = player.getCurrentTime(\"relativetime\");"
+    },
+    {
+      "type": "p",
+      "text": "Seeked通知を待ってから相対時刻を読み、実際の移動結果を確かめます。アプリは相対時刻と絶対時刻を別々に表示します。配信側の時計情報がない場合や端末の時計がずれている場合は、実時刻に基づく表示や遅延値の意味にも注意してください。"
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/live-to-vod-and-analytics.md",
+      "line": 6,
+      "label": "共通の状態判定と各SDKの通知"
+    },
+    {
+      "path": "docs/live-to-vod-and-analytics.md",
+      "line": 31,
+      "label": "制御された終了テストと時刻の原点"
+    },
+    {
+      "path": "docs/dvr-time-and-start-config.md",
+      "line": 8,
+      "label": "相対時刻・絶対時刻と時計の条件"
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc8216.html#section-4.3.3.4",
+      "label": "HLSのEXT-X-ENDLIST"
+    },
+    {
+      "url": "https://dashif.org/DASH-IF-IOP/live2vod/",
+      "label": "DASH-IFのライブからVODへの移行指針"
+    }
+  ]
+}

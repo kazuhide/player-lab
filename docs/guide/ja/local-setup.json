@@ -1,0 +1,199 @@
+{
+  "id": "local-setup",
+  "title": "ローカル実行とライセンス設定",
+  "lead": "Web版の基本操作はlocalhostで試せます。独自ホスト、ネイティブアプリ、Analytics、クラウドの処理には、それぞれに対応したライセンスやアカウント設定を用意します。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Web版を起動する"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "項目",
+        "対象版・条件"
+      ],
+      "widths": [
+        0.32,
+        0.68
+      ],
+      "rows": [
+        [
+          "Node.js / pnpm",
+          "24.19.0 / 10.33.0。リポジトリで固定された版を使います。"
+        ],
+        [
+          "Web Player / UI",
+          "Bitmovin Player 8.263.0 / Player UI 4.15.1。オンライン資料の最新版とは一致しない場合があります。"
+        ],
+        [
+          "ブラウザー",
+          "HLSまたはDASHを再生できるブラウザー。コーデック、外部表示、低遅延の対応は環境によって異なります。"
+        ],
+        [
+          "ネットワーク",
+          "依存関係の取得、ライセンス認証、外部参照ストリームには通信が必要です。ローカル起動だけで完全なオフライン再生になるわけではありません。"
+        ]
+      ]
+    },
+    {
+      "type": "code",
+      "title": "初回の取得と起動",
+      "text": "git clone https://github.com/kazuhide/player-lab.git\ncd player-lab\ncorepack enable\ncorepack prepare pnpm@10.33.0 --activate\npnpm install --frozen-lockfile\npnpm --filter @showcase/web dev"
+    },
+    {
+      "type": "p",
+      "text": "起動メッセージに出たURLを、ホスト名localhostで開きます。Web SDKはこのホスト名ではPlayer keyを設定せず利用できます。このガイドの検証手順はlocalhostに統一しています。公式Webリリースノート8.86.0では127.0.0.1も認証不要の対象とされていますが、今回そのホストでの実再生は確認していません。LANのIPアドレス、独自ホスト名、GitHub Pages、ネイティブアプリには対応するライセンスが必要です。"
+    },
+    {
+      "type": "p",
+      "text": "通常の開発モードは、公開Pages版と同じ60秒素材を自動で使う構成ではありません。基本HLSはTears of Steel、DASHは公開Big Buck Bunny、ライブは外部参照ストリームです。追加の音声・字幕・画像プレビューは、素材URLを設定するまで選べないものがあります。"
+    },
+    {
+      "type": "h2",
+      "text": "必要な場合だけローカル設定を作る"
+    },
+    {
+      "type": "code",
+      "title": "リポジトリのルートで実行",
+      "text": "cp .env.example .env\n# Edit .env locally, then synchronize native settings.\nbash scripts/sync-env.sh"
+    },
+    {
+      "type": "p",
+      "text": ".envは自分のエディターで編集します。通常のローカル設定は、シェルの環境変数、ルートの.env、公開のconfig/encoding.confの順で優先されます。Web専用のVITE_*設定を明示した場合は、その値が優先されます。設定を変えたら開発サーバーを再起動し、ネイティブ版は同期と再ビルドを行います。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "変数",
+        "用途と扱い"
+      ],
+      "widths": [
+        0.47,
+        0.53
+      ],
+      "rows": [
+        [
+          "BITMOVIN_PLAYER_LICENSE_KEY",
+          "Playerのクライアント用ライセンス。利用するドメインやアプリ識別子を許可します。"
+        ],
+        [
+          "BITMOVIN_ANALYTICS_LICENSE_KEY",
+          "任意。再生イベントを収集するクライアント用ライセンス。空なら収集しません。"
+        ],
+        [
+          "BITMOVIN_ANALYTICS_API_KEY",
+          "任意。ローカルの集計クエリ用サーバー資格情報。ブラウザーへ渡しません。"
+        ],
+        [
+          "BITMOVIN_API_KEY",
+          "クラウド処理などのサーバー・CLI用資格情報。集計クエリの代替にもなります。ブラウザーへ渡しません。"
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "title": "ライセンスとアカウントAPIキーを分ける",
+      "text": "Player・Analyticsのライセンスはクライアントへ渡る値です。利用先の許可設定で管理します。アカウントAPIキーはサーバー側だけで保持し、VITE_*、HTML、クライアントコードへ入れないでください。公開デモには専用のクライアントライセンスを使います。"
+    },
+    {
+      "type": "h2",
+      "text": "各ツールへの反映"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "対象",
+        "反映先・注意点"
+      ],
+      "widths": [
+        0.24,
+        0.76
+      ],
+      "rows": [
+        [
+          "Web",
+          "Viteがルートの.envを読みます。追加素材のURLはapps/web/.envで設定できます。"
+        ],
+        [
+          "iOS / tvOS",
+          "sync-env.shがLocal.xcconfigへ反映します。最初の同期後はXcodeGenでプロジェクトを生成します。"
+        ],
+        [
+          "Android",
+          "sync-env.shがlocal.propertiesへ反映します。Gradleプロパティによる明示指定も可能です。"
+        ],
+        [
+          "React Native",
+          "生成されたEXPO_PUBLIC_*設定を、統合先のExpoプロジェクトへ移します。"
+        ],
+        [
+          "Vega OS",
+          "Kepler側のエントリーポイントでglobalThisへ設定します。詳細は組み込みの章を参照してください。"
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "公開Pages版を自分で配布する場合"
+    },
+    {
+      "type": "p",
+      "text": "このプロジェクトのPages配布は、mainのCIで生成・テストした静的ファイルをそのまま公開する構成です。CIはファイル一覧とSHA-256の照合情報を作り、Pagesは同じコミットの成功した成果物を確認して配布します。ローカルの.envや継承したVITE_*はPages設定の代わりにはなりません。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "GitHub Repository variable",
+        "内容"
+      ],
+      "widths": [
+        0.58,
+        0.42
+      ],
+      "rows": [
+        [
+          "PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY",
+          "公開先ホストを許可した専用Playerライセンス。"
+        ],
+        [
+          "PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY",
+          "公開先ホストを許可した専用Analyticsライセンス。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "現在の公開先はkazuhide.github.ioです。別の公開先ではそのホストを許可し、パス・Pages設定・利用条件も確認します。これらの値は配布されたJavaScriptに含まれる前提です。現在のPagesワークフローは2つの公開用ライセンスが設定された成果物を配布対象にします。アカウントAPIキーは不要です。"
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/SETUP.md",
+      "line": 1,
+      "label": "ライセンス・環境設定"
+    },
+    {
+      "path": "package.json",
+      "line": 1,
+      "label": "ツールの固定版"
+    },
+    {
+      "path": "apps/web/package.json",
+      "line": 1,
+      "label": "Web依存関係"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/index.html",
+      "label": "Web Player API（最新版表示に注意）"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-web",
+      "label": "Web 8.86.0の127.0.0.1例外"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-analytics",
+      "label": "Analyticsのライセンス設定"
+    }
+  ]
+}

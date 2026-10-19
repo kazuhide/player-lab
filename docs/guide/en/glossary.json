@@ -1,0 +1,176 @@
+{
+  "id": "glossary",
+  "title": "Glossary",
+  "lead": "Setting names retain their English spelling so that you can match them to SDK identifiers. This glossary explains abbreviations and how the sample uses them.",
+  "blocks": [
+    {
+      "type": "table",
+      "headers": [
+        "Term",
+        "Meaning"
+      ],
+      "rows": [
+        [
+          "API",
+          "Application Programming Interface. An interface through which software calls functionality. In this guide, it refers to commands for playback operations and cloud processing."
+        ],
+        [
+          "SDK",
+          "Software Development Kit. Development components such as libraries and type definitions integrated into an app. Web, iOS, and Android use different SDKs."
+        ],
+        [
+          "UI",
+          "User Interface. The parts users see or operate, such as play buttons, settings menus, and labels."
+        ],
+        [
+          "Config",
+          "Short for configuration. PlayerConfig mainly configures the Player, SourceConfig the source, and UIConfig the user interface."
+        ],
+        [
+          "HLS",
+          "HTTP Live Streaming. A delivery format that retrieves playlists and media segments over HTTP. It is used for both live and VOD."
+        ],
+        [
+          "DASH",
+          "Dynamic Adaptive Streaming over HTTP. A delivery format that retrieves media using a manifest called an MPD. Like HLS, it supports both live and VOD."
+        ],
+        [
+          "VOD",
+          "Video on Demand. On-demand video for which the viewer can choose when to start and where to seek. The app classifies it using a finite duration."
+        ],
+        [
+          "DVR",
+          "Digital Video Recorder. In this app, it means seeking into the available history of a live stream and the rewind window itself."
+        ],
+        [
+          "manifest",
+          "A file describing media locations, qualities, tracks, timing, and related information. HLS playlists and DASH MPDs are manifests."
+        ],
+        [
+          "segment",
+          "A portion of continuous audio or video divided for delivery. The two-second duration in the media chapter refers to video boundaries; audio segments are not necessarily all the same duration."
+        ],
+        [
+          "ABR",
+          "Adaptive Bitrate. Selection of playback quality according to conditions such as network capacity. It is a Player adaptation decision, not a new encode."
+        ],
+        [
+          "AAC",
+          "Advanced Audio Coding. An audio compression format. The bundled media uses 48 kHz audio; timing checks account for encoder frames and initial padding."
+        ],
+        [
+          "PTS",
+          "Presentation Time Stamp. A media timestamp indicating when to present audio or video. It is usually different from the current wall-clock time."
+        ],
+        [
+          "PDT",
+          "Program Date Time. Information mapping media time to a real-world clock. HLS uses fields such as EXT-X-PROGRAM-DATE-TIME."
+        ],
+        [
+          "QoE",
+          "Quality of Experience. A way to assess viewing quality. This app measures startup time, rebuffering, errors, and related events in the browser."
+        ],
+        [
+          "rebuffering",
+          "Waiting to accumulate more buffered data after playback has started because data has run short. The app distinguishes it from initial startup waiting and user pauses."
+        ],
+        [
+          "CDN",
+          "Content Delivery Network. A network of servers delivering media and other content. Even if a file exists at the origin, caching or referenced-resource availability can affect retrieval."
+        ],
+        [
+          "CORS",
+          "Cross-Origin Resource Sharing. A mechanism by which a server permits a Web app from another origin to read a response. An origin is defined by its scheme, host, and port."
+        ],
+        [
+          "DRM",
+          "Digital Rights Management. A system for managing rights to view encrypted content. It is separate from the license to use Bitmovin Player itself."
+        ],
+        [
+          "PiP",
+          "Picture-in-Picture. Displays video in a separate small window. It differs from casting to another device, such as a TV."
+        ],
+        [
+          "GC",
+          "Garbage Collection. Automatic reclamation of memory for unreachable JavaScript objects and similar resources. Its timing varies, and it does not establish that all media memory has been released."
+        ],
+        [
+          "hvc1",
+          "An identifier for HEVC video in formats such as MP4. Its presence alone does not guarantee that an OS or browser can decode the video."
+        ],
+        [
+          "RTMP",
+          "Real-Time Messaging Protocol. Here it is the input protocol used to send video to a live encoder. The Web Player plays the resulting HLS or DASH."
+        ],
+        [
+          "Per-Title (PerTitle)",
+          "An encoding method that analyzes each video to choose resolution and bitrate combinations. It operates at a different stage from ABR during playback."
+        ],
+        [
+          "Bundle ID (BundleID)",
+          "An Apple application identifier used when allowing an app on a license. The corresponding Android identifier is applicationId; it is a different setting."
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.77
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 4,
+      "label": "API calls and configuration application"
+    },
+    {
+      "path": "docs/dvr-time-and-start-config.md",
+      "line": 9,
+      "label": "DVR and time terminology"
+    },
+    {
+      "path": "docs/local-test-media.md",
+      "line": 71,
+      "label": "Segments, AAC, and presentation timestamps"
+    },
+    {
+      "path": "apps/web/src/analytics/metrics.ts",
+      "line": 90,
+      "label": "QoE and rebuffering"
+    },
+    {
+      "path": "docs/player-capabilities.md",
+      "line": 7,
+      "label": "PiP and external playback"
+    },
+    {
+      "path": "docs/web-performance.md",
+      "line": 71,
+      "label": "Interpreting memory and garbage collection"
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS",
+      "label": "MDN: CORS definition"
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Memory_management",
+      "label": "MDN: memory management and GC"
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/codecs_parameter",
+      "label": "MDN: HEVC codec identifiers"
+    },
+    {
+      "url": "https://developer.bitmovin.com/encoding/docs/rtmp-api-configuration",
+      "label": "Bitmovin: RTMP live input and HLS/DASH output"
+    },
+    {
+      "url": "https://developer.bitmovin.com/encoding/docs/overview-per-title-encoding",
+      "label": "Bitmovin: Per-Title processing"
+    },
+    {
+      "url": "https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleidentifier",
+      "label": "Apple: CFBundleIdentifier"
+    }
+  ]
+}

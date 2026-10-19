@@ -1,0 +1,132 @@
+{
+  "id": "native-apple",
+  "title": "iOS, iPadOS, and tvOS",
+  "lead": "Use the SwiftUI app to try HLS source switching and live rewind. iOS and iPadOS can select the shared Web UI; tvOS uses the system UI.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Preparation and build"
+    },
+    {
+      "type": "p",
+      "text": "Xcode and XcodeGen 2.46.0 are required. The declared minimum OS versions are iOS 15.0 and tvOS 15.0, and the Player is pinned to 3.128.0. The Player is a binary XCFramework, so swift build alone cannot build the app. Synchronize the licenses and shared UI in the common preparation, then run the following starting at the repository root."
+    },
+    {
+      "type": "code",
+      "text": "xcodegen version\ncd apps/ios\nxcodegen generate\nmkdir -p Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm\ncp Package.resolved Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved\nopen Showcase.xcodeproj"
+    },
+    {
+      "type": "p",
+      "text": "Check that xcodegen version reports 2.46.0. In Xcode, choose Showcase-iOS or Showcase-tvOS, select a destination, and run. Configure a development team and signing for a physical device. Allow com.showcase.dvr.Showcase-iOS for iOS or com.showcase.dvr.Showcase-tvOS for tvOS on the Player license."
+    },
+    {
+      "type": "note",
+      "text": "Synchronize the shared UI before running xcodegen generate. The generated iOS target includes the WebUI JavaScript and CSS as resources. Without those files, selecting a custom mode will not show the intended UI. tvOS does not use this Web UI."
+    },
+    {
+      "type": "code",
+      "title": "Unsigned iOS Simulator build from apps/ios",
+      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS \\\n  -destination 'generic/platform=iOS Simulator' \\\n  -onlyUsePackageVersionsFromResolvedFile \\\n  CODE_SIGNING_ALLOWED=NO build"
+    },
+    {
+      "type": "h2",
+      "text": "Suggested screen workflow"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select Live HLS or VOD HLS under Source. The first Live HLS source loads at startup. Autoplay is off and mute is on. Start playback with the player’s play button.",
+        "On iOS or iPadOS, switch Player UI between Default, Sports, Live (DVR), and Cinema. tvOS has no such selector and uses the system UI.",
+        "After live playback starts and the rewind window becomes available, use the −10s, −30s, −60s, and −120s helper buttons. These numbers are distances from the live edge.",
+        "Use Go to live edge to return to live. Wait for the seek to complete and the LIVE display to settle.",
+        "Read mode, dvrAvailable, behindLive, atLiveEdge, and windowDuration in DVR state. Event log shows recent source loads, seeks, window-expiry events, and related activity."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Changing the iOS UI recreates the Player and SwiftUI view and reloads the selected source. It does not preserve playback position or playing state. Compare appearances with that reload behavior in mind. The Sports scores and player details are fictional sample data, not a sports-data service."
+    },
+    {
+      "type": "note",
+      "title": "Do not add DASH to the Apple catalog",
+      "text": "The Apple SDK in this configuration accepts HLS and progressive MP4. The app’s catalog contains only HLS. Loading DASH with the pinned SDK causes a precondition failure and terminates the app. Do not add it to the catalog even though SourceKind includes a DASH enum case. Use Web or Android to compare DASH behavior."
+    },
+    {
+      "type": "h2",
+      "text": "When something does not work"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "If the app builds but cannot play, check the Player license, allowed bundle identifier, network, and reference source. An empty Local.xcconfig used only for compilation does not provide a playback license.",
+        "When generating the project for the first time, run sync-env.sh, synchronize the shared UI, then run xcodegen generate.",
+        "If the HLS rewind buttons are disabled, start playback first. While paused, the app may continue waiting for the window to become available.",
+        "If the paused playback position falls outside the live retention window, the DvrWindowExceeded event requests a return to the live edge.",
+        "TimeChanged snapshots also check whether a live stream has ended and become VOD. This handles cases where DurationChanged alone would miss the transition."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Running tests and reading recorded results"
+    },
+    {
+      "type": "code",
+      "title": "Test DVR calculations from the repository root",
+      "text": "swift test --package-path apps/ios/DvrKit"
+    },
+    {
+      "type": "p",
+      "text": "The optional Showcase-iOS-Runtime scheme checks the real SDK and shared UI. Replace <SIMULATOR_NAME> below with an iOS simulator name installed in your Xcode. A Player license, network access, and the reference streams are required."
+    },
+    {
+      "type": "code",
+      "title": "Run from apps/ios",
+      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Runtime \\\n  -destination 'platform=iOS Simulator,name=<SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
+    },
+    {
+      "type": "p",
+      "text": "This test uses the real SDK and model, with visible controls in the shared WebView. It checks VOD, starting playback through the UI, switching HLS sources, rewind, return to live, DVR state changes, and recreation with Cinema UI. License errors or unreachable streams are not replaced with mocks or treated as successful skips."
+    },
+    {
+      "type": "note",
+      "title": "Recorded verification scope",
+      "text": "The October 19, 2026 record reports one pass, zero failures, and 11.670 seconds on an iPhone 17 Pro / iOS 26.4 simulator, using Player 3.128.0 and shared UI 4.15.1. These are recorded results, not a new test run. They do not cover physical devices, tvOS playback, TV remotes, casting, offline playback, or Analytics receipt. Successful iOS/tvOS builds in CI are also separate from actual playback."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/ios/README.md",
+      "line": 28,
+      "label": "Build, licenses, and shared UI"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 104,
+      "label": "Real-SDK tests and recorded results"
+    },
+    {
+      "path": "apps/ios/project.yml",
+      "line": 29,
+      "label": "Targets and minimum OS versions"
+    },
+    {
+      "path": "apps/ios/Showcase/ContentView.swift",
+      "line": 32,
+      "label": "Screen implementation"
+    },
+    {
+      "path": "apps/ios/Showcase/PlayerModel.swift",
+      "line": 68,
+      "label": "UI recreation, playback settings, and live behavior"
+    },
+    {
+      "path": "apps/ios/Showcase/Sources.swift",
+      "line": 23,
+      "label": "HLS source catalog"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ios-samples#available-sample-apps",
+      "label": "Official Bitmovin iOS samples, formats, and license setup"
+    }
+  ]
+}

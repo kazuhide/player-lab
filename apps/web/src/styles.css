@@ -44,6 +44,20 @@ body {
   overflow: hidden;
 }
 
+.app-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.app-guide-link {
+  color: var(--accent);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  text-underline-offset: 0.2em;
+}
+
 .lang-btn {
   padding: 0.3rem 0.7rem;
   border: none;

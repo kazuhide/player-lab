@@ -1,0 +1,159 @@
+{
+  "id": "web-ui-settings",
+  "title": "UI settings and external displays",
+  "lead": "UI settings change the behavior of screen components. Keep them separate from Player Config playback settings, and choose a theme and source on which the change can be observed.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Ten UI settings"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Setting",
+        "What to check"
+      ],
+      "rows": [
+        [
+          "Autohide controls",
+          "Hide the bar after inactivity. Initially off; applies to every theme, including Default."
+        ],
+        [
+          "Seek scrub-preview",
+          "Make the video follow the scrubber while dragging. When off, seek after release."
+        ],
+        [
+          "Keep bar on hover",
+          "With autohide enabled, keep the bar visible while the pointer is over the player."
+        ],
+        [
+          "Speed item in settings gear",
+          "Toggle the playback-speed selector. Check it in a theme with a settings menu."
+        ],
+        [
+          "Snap seeks to markers",
+          "Snap a seek near a marker to its position."
+        ],
+        [
+          "Fullscreen on first play",
+          "Enter fullscreen when the first playback begins through the play button. This is difficult to observe with the default autoplay behavior."
+        ],
+        [
+          "Keep subtitles in view",
+          "Keep overflowing subtitles inside the display area. Use a source with subtitles."
+        ],
+        [
+          "Disable UI storage",
+          "Stop persisting UI selections such as volume, quality and tracks in the browser."
+        ],
+        [
+          "Snap range (%)",
+          "Set the snapping distance as a percentage of seek-bar width."
+        ],
+        [
+          "CEA-608 small-player px",
+          "Set the player-height threshold for small-player placement of compatible captions."
+        ]
+      ],
+      "widths": [
+        0.38,
+        0.62
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The sample chapter markers are at 120, 360 and 600 seconds. The 60-second Pages sample cannot reach them, so it cannot demonstrate marker snapping. The CEA-608 setting also cannot be checked using only the separate WebVTT subtitle file."
+    },
+    {
+      "type": "p",
+      "text": "Changing a checkbox or number rebuilds the active theme UI. Settings that do not recreate the player retain the current playback session. Changing a value on media that cannot exercise the feature is not evidence that the feature worked."
+    },
+    {
+      "type": "h2",
+      "text": "PiP, AirPlay and Chromecast"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Control",
+        "Scope and prerequisites"
+      ],
+      "rows": [
+        [
+          "Playback panel PiP toggle",
+          "Change the player view mode. Browser and OS support are required."
+        ],
+        [
+          "Casting & PiP: PiP button",
+          "Add a small-window button to custom UIs. It is hidden in unsupported environments."
+        ],
+        [
+          "AirPlay button",
+          "Add AirPlay to custom UIs. A compatible Safari environment is required."
+        ],
+        [
+          "Chromecast button",
+          "Add Cast to custom UIs. The player is recreated to enable remotecontrol. A compatible receiver is required."
+        ]
+      ],
+      "widths": [
+        0.39,
+        0.61
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Default and the CSS themes use the standard UI structure, which already includes these buttons. The add/remove checkboxes change the custom UI component trees. Enabling a checkbox does not make a button or receiver available unless the browser, connection and device requirements are met."
+    },
+    {
+      "type": "note",
+      "text": "The Cast control is wired to remotecontrol using the default receiver. The existence of its settings is separate from verification on a physical receiver. TV remote navigation and VR playback controls are not provided as features of the current Web screen."
+    },
+    {
+      "type": "h2",
+      "text": "Continuous play"
+    },
+    {
+      "type": "p",
+      "text": "The Binge playlist advances through configured presets in this order: VOD HLS, VOD DASH, VOD + Multi-audio and VOD + Subtitles. Automatic advancement is initially enabled. When disabled, use the Next button near the end. Skip Intro appears from 5 to 18 seconds. Those are sample times, not automatically detected intro boundaries."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 254
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 274
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 373
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 418
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 146
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 404
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 652
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 700
+    },
+    {
+      "path": "tests/e2e/specs/app-ui.spec.ts",
+      "line": 237
+    }
+  ]
+}

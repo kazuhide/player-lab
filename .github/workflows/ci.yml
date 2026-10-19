@@ -60,6 +60,7 @@ jobs:
           python3 scripts/test-native-ui.py
           python3 scripts/test-local-media.py
           python3 scripts/test-pages-package.py
+          python3 scripts/test-user-guide.py
           python3 tests/e2e/test-serve-pages.py
       - name: Test Encoding resource resolution and credential handling
         run: |

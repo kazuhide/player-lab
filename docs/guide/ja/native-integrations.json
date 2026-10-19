@@ -1,0 +1,149 @@
+{
+  "id": "native-integrations",
+  "title": "React Native と Vega OS への組み込み",
+  "lead": "この 2 つのフォルダーは、外部のネイティブプロジェクトへ組み込むソースです。リポジトリの型検査や単体テストの成功だけで、そのアプリが端末でビルド・再生できることは確認できません。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "React Native と Expo"
+    },
+    {
+      "type": "p",
+      "text": "apps/react-native は App.tsx、ソース一覧、DVR ロジックと状態管理を提供します。宣言された依存関係は Expo ~54.0.0、React Native 0.81.5、React 19.1.0、bitmovin-player-react-native ^1.20.1 です。完成した Expo アプリではないため、対応する外部プロジェクトに組み込みます。"
+    },
+    {
+      "type": "code",
+      "title": "README の外部プロジェクト作成例",
+      "text": "npx create-expo-app@latest dvr-showcase\ncd dvr-showcase\nnpx expo install bitmovin-player-react-native expo-crypto"
+    },
+    {
+      "type": "note",
+      "text": "@latest が生成する依存関係は時間とともに変わります。生成結果を apps/react-native/package.json のバージョンと照合します。ネイティブ Player モジュールが必要なため Expo Go では動作せず、開発用のネイティブビルドが必要です。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "リポジトリの共通準備で sync-env.sh と共有 UI のビルド・同期を実行します。",
+        "apps/react-native の App.tsx、src/、生成された .env を外部 Expo プロジェクトへコピーします。ライセンスは EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY、任意の Analytics は EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY から読まれます。",
+        "コピーしたApp.tsxのコンポーネントを、外部プロジェクトのエントリーポイントから表示するよう接続します。Expo Routerを使う構成では、プレイヤーを表示するルート画面に接続します。ファイルをコピーするだけでは、元の画面は置き換わりません。",
+        "外部アプリの bundle identifier または application ID を、自分の Player ライセンスと、利用する場合は Analytics ライセンスで許可します。固定の公開アプリ ID は用意されていません。",
+        "カスタム UI を使う場合は assets/webui/ の JavaScript と CSS を外部アプリの iOS／Android プロジェクトへ同梱し、App.tsx の WEBUI_JS／WEBUI_CSS が実際のファイルを指すようにします。現在のアドレスは統合用プレースホルダーです。",
+        "外部 Expo プロジェクトから iOS または Android の開発ビルドを実行します。"
+      ]
+    },
+    {
+      "type": "code",
+      "title": "外部 Expo プロジェクトで実行先に合うコマンドを選択",
+      "text": "npx expo run:ios\nnpx expo run:android"
+    },
+    {
+      "type": "p",
+      "text": "画面には Default、Sports、Live (DVR)、Cinema の UI 選択、ソースボタン、Live edge、−10／−30／−60 秒、Allow DVR、状態とイベントログがあります。UI 変更時に PlayerPane を作り直し、選択中ソースを再ロードします。ソースの選択は保持されますが、再生位置や再生中状態の継続は保証しません。カタログに DASH が含まれていても、実行先の iOS を含む全 OS で使えることを意味しません。"
+    },
+    {
+      "type": "code",
+      "title": "リポジトリのルートからロジックと型を確認",
+      "text": "pnpm --filter @showcase/react-native test\npnpm --filter @showcase/react-native typecheck"
+    },
+    {
+      "type": "note",
+      "text": "型検査はApp.tsx、ソース一覧、純粋なロジックが対象です。外部Expoプロジェクトの生成、ネイティブビルド、WebViewの描画、実再生を確認するものではなく、端末で実再生する自動テストも未収録です。"
+    },
+    {
+      "type": "h2",
+      "text": "Vega OS と Kepler"
+    },
+    {
+      "type": "p",
+      "text": "Vega OS は Android 系 Fire TV とは別の実行環境です。apps/vega はモジュール版 Web Player を W3C media element へ接続し、React Native／Kepler の画面部品を使います。ブラウザーの document が必要な bitmovin-player-ui は使いません。依存関係は Player 8.138.0-beta.28、React Native 0.72.0、React 18.2.0 と Amazon のデバイスパッケージです。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Amazon の Vega／Kepler 開発ツールと、対応する Fire TV 端末または Vega シミュレーターを準備します。CLI、SDK、デバイスパッケージの利用条件は各提供元で確認します。",
+        "設定済み Kepler プロジェクトへソースを組み込みます。リポジトリ内だけで完結するスタンドアロンの端末ビルドではありません。",
+        "src/polyfills.ts を実行環境用の互換レイヤーへ置き換えます。Base64、DOMParser、W3C media、WebCrypto が必要で、最小のひな型だけでは再生できません。",
+        "アプリ登録前のエントリーポイントで自分のライセンスを globals へ設定します。App.tsx 自身は .env を読みません。Player の tweaks.app_id は com.showcase.dvr.vega の設定例なので、自分の設定とライセンス許可を合わせます。",
+        "Kepler プロジェクトでビルド・導入・起動し、映像、シーク、ライブ復帰、位置失効時の回復とリモコンを端末で確認します。"
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Kepler エントリーポイントの設定例",
+      "text": "globalThis.BITMOVIN_PLAYER_LICENSE_KEY = \"<YOUR_PLAYER_LICENSE_KEY>\";\nglobalThis.BITMOVIN_ANALYTICS_LICENSE_KEY = \"\";"
+    },
+    {
+      "type": "code",
+      "title": "設定済み Kepler プロジェクトで実行",
+      "text": "react-native build-kepler --build-type Debug\nkepler device install-app --dir .\nkepler device launch-app"
+    },
+    {
+      "type": "p",
+      "text": "画面にはソース、Live edge、−10／−30／−60 秒、Allow DVR、状態とログが含まれます。設定例は自動再生有効・ミュート有効です。専用の再生／一時停止ボタン、音声・字幕・画質選択、TV リモコンのキーイベント処理まで用意されたアプリではありません。DRM 用モジュールも対象外です。"
+    },
+    {
+      "type": "code",
+      "title": "リポジトリのルートからコア部分を確認",
+      "text": "pnpm --filter @showcase/vega test\npnpm --filter @showcase/vega typecheck"
+    },
+    {
+      "type": "note",
+      "text": "Vegaの型検査はコア処理が対象で、React／Keplerの.tsx画面は除外します。セッションテストも偽のmedia／Playerを使います。Keplerビルド、画面、リモコン、実再生の成功は記録されていません。"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/react-native/README.md",
+      "line": 29,
+      "label": "Expo への統合手順と限界"
+    },
+    {
+      "path": "apps/react-native/App.tsx",
+      "line": 71,
+      "label": "実画面と UI 切り替え"
+    },
+    {
+      "path": "apps/react-native/src/dvr/snapshotController.ts",
+      "line": 28,
+      "label": "非同期状態取得の上限と更新"
+    },
+    {
+      "path": "apps/vega/README.md",
+      "line": 3,
+      "label": "Vega の位置付けと別プロジェクトでの実行"
+    },
+    {
+      "path": "apps/vega/src/App.tsx",
+      "line": 29,
+      "label": "app ID・再生設定・Analytics"
+    },
+    {
+      "path": "apps/vega/src/ControlPanel.tsx",
+      "line": 29,
+      "label": "実際の操作パネル"
+    },
+    {
+      "path": "apps/vega/src/vegaPlayer.ts",
+      "line": 7,
+      "label": "モジュール構成と DRM の範囲"
+    },
+    {
+      "path": "apps/vega/tsconfig.json",
+      "line": 15,
+      "label": "型検査から除外される TSX"
+    },
+    {
+      "path": "docs/e2e-testing.md",
+      "line": 82,
+      "label": "CI と端末検証の区別"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setting-up-your-environment",
+      "label": "Bitmovin React Native のネイティブ開発環境と Expo Go の制限"
+    },
+    {
+      "url": "https://docs.expo.dev/more/create-expo/",
+      "label": "Expoのプロジェクトテンプレートと画面構成"
+    }
+  ]
+}

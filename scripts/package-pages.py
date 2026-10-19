@@ -12,11 +12,13 @@ import stat
 from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 
+from guide_routes import GUIDE_ASSETS, GUIDE_FILES
+
 
 SITE_FILES = {
     'index.html', 'ja/index.html', 'styles.css',
     'assets/player-preview.jpg', 'assets/favicon.svg',
-}
+} | GUIDE_ASSETS
 NOTICE_FILES = {
     'PROJECT-LICENSE.txt', 'BITMOVIN-PLAYER-UI-LICENSE.txt',
     'BITMOVIN-PLAYER-THIRD-PARTY-NOTICES.txt',
@@ -260,12 +262,14 @@ def verify(root, manifest):
         raise ValueError('The manifest must be separate from the public artifact.')
     records = read_manifest(manifest)
     directories = {'ja', 'assets', 'web', 'web/assets', 'web/notices', 'web/media'}
+    directories.update(str(parent) for name in SITE_FILES | GUIDE_FILES
+                       for parent in Path(name).parents if str(parent) != '.')
     directories.update(f'web/media/{name}' for name in MEDIA_DIRECTORIES)
     files = regular_tree(root, directories)
     if files.keys() != records.keys():
         raise ValueError('The artifact contains missing or additional files.')
-    if {name for name in files if not name.startswith('web/')} != SITE_FILES:
-        raise ValueError('The overview contains missing or unexpected files.')
+    if {name for name in files if not name.startswith('web/')} != SITE_FILES | GUIDE_FILES:
+        raise ValueError('The overview or guide contains missing or unexpected files.')
     check_web_files({name[4:]: path for name, path in files.items()
                      if name.startswith('web/') and not name.startswith(('web/notices/', 'web/media/'))})
     check_notice_files({name[12:]: path for name, path in files.items() if name.startswith('web/notices/')})
@@ -283,18 +287,19 @@ def verify(root, manifest):
     return len(files)
 
 
-def package(site, web, notices, output, manifest, media=None):
+def package(site, web, notices, guide, output, manifest, media=None):
     if os.path.lexists(output) or os.path.lexists(manifest):
         raise FileExistsError('The output and manifest must be new paths.')
     output = output.resolve()
     manifest = manifest.resolve()
-    inputs = [source.resolve() for source in [site, web, notices, *([media] if media else [])]]
+    inputs = [source.resolve() for source in [site, web, notices, guide, *([media] if media else [])]]
     if manifest.is_relative_to(output) or any(
         output.is_relative_to(source) or source.is_relative_to(output)
         or manifest.is_relative_to(source) for source in inputs
     ):
         raise ValueError('Output and report paths must be separate from all inputs.')
     selected = exact_tree(site, SITE_FILES)
+    selected.update(exact_tree(guide, GUIDE_FILES))
     selected.update({f'web/{name}': path for name, path in collect_web(web).items()})
     notice_files = check_notice_files(regular_tree(notices, set()))
     selected.update({f'web/notices/{name}': path for name, path in notice_files.items()})
@@ -323,22 +328,23 @@ def package(site, web, notices, output, manifest, media=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ['site-dir', 'web-dir', 'notices-dir', 'output-dir']:
+    for name in ['site-dir', 'web-dir', 'notices-dir', 'guide-dir', 'output-dir']:
         parser.add_argument(f'--{name}', type=Path)
     parser.add_argument('--manifest', type=Path, required=True)
     parser.add_argument('--media-dir', type=Path)
     parser.add_argument('--verify-dir', type=Path)
     args = parser.parse_args()
-    packaging = [args.site_dir, args.web_dir, args.notices_dir, args.output_dir]
+    packaging = [args.site_dir, args.web_dir, args.notices_dir, args.guide_dir, args.output_dir]
     if args.verify_dir and any(value is not None for value in packaging + [args.media_dir]):
         parser.error('--verify-dir cannot be combined with packaging arguments.')
     if not args.verify_dir and any(value is None for value in packaging):
-        parser.error('Packaging requires --site-dir, --web-dir, --notices-dir and --output-dir.')
+        parser.error('Packaging requires --site-dir, --web-dir, --notices-dir, --guide-dir and --output-dir.')
     try:
         if args.verify_dir:
             count = verify(args.verify_dir, args.manifest)
         else:
-            count = package(args.site_dir, args.web_dir, args.notices_dir, args.output_dir, args.manifest, args.media_dir)
+            count = package(args.site_dir, args.web_dir, args.notices_dir, args.guide_dir,
+                            args.output_dir, args.manifest, args.media_dir)
     except (OSError, ValueError, ET.ParseError):
         parser.exit(1, 'Pages validation failed: invalid input or output. No package was approved.\n')
     if args.verify_dir:

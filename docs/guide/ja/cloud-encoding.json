@@ -1,0 +1,254 @@
+{
+  "id": "cloud-encoding",
+  "title": "クラウドで検証用ストリームを作る",
+  "lead": "Encoding APIを確認するときだけ使う任意の手順です。ローカル素材や公開参照ストリームでのPlayer操作には、クラウドのエンコーダーは必要ありません。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "実行する前に"
+    },
+    {
+      "type": "note",
+      "title": "開始操作は課金される処理です",
+      "text": "実際のエンコードではアカウント内にリソースを作成し、料金が発生します。VODのエンコード終了後も保存・配信料金は続く場合があります。ライブは停止を確認してください。以下の開始・送信・停止コマンドは、自分のアカウントで実行するための手順です。"
+    },
+    {
+      "type": "p",
+      "text": "シェルのワークフローにはBitmovin CLI 0.7.0、jq、GNU gettextのenvsubstが必要です。初回のS3出力作成とPer-TitleにはPython 3.10以降とOpenSSL、固定したPython SDKを使います。公開ドキュメントで確認したSDKは1.284.0です。"
+    },
+    {
+      "type": "code",
+      "text": "npm install -g @bitmovin/cli@0.7.0\npython3 -m venv encoding/.venv\n. encoding/.venv/bin/activate\npython3 -m pip install -r encoding/requirements.txt\nbitmovin --version\npython3 -m pip show bitmovin-api-sdk"
+    },
+    {
+      "type": "p",
+      "text": "秘密のAPIキー、S3バケットや資格情報は未追跡のルート.envへ設定します。公開するエンコード構成と入力素材のカタログはconfig/encoding.confに置きます。設定の優先順位は、シェルで渡した環境変数、.env、config/encoding.confの順です。実際のアカウントID、保存先URL、資格情報はコミットしません。"
+    },
+    {
+      "type": "p",
+      "text": "S3出力はBITMOVIN_OUTPUT_NAMEの完全一致で検索し、存在しない場合だけ作成します。同名が複数あれば停止します。最初の作成を同時実行せず、先に出力リソースを一度準備してください。シェルのワークフローでは、既存出力をOUTPUT_ID、既存HTTPS入力をINPUT_IDで明示する方法もあります。Per-TitleスクリプトにもOUTPUT_IDがあります。"
+    },
+    {
+      "type": "p",
+      "text": "同梱テンプレートは出力にPUBLIC_READを指定します。この書き込みを許可するS3構成と、ブラウザーから取得できる配信URLを用意します。非公開ストレージや別の配信方式を使う場合は、出力権限と配信設定を変更してください。"
+    },
+    {
+      "type": "p",
+      "text": "組織を使い分ける場合、シェルのワークフローはBitmovin CLIで選択した組織、Per-Title PythonはBITMOVIN_TENANT_ORG_IDを使います。両方の設定が意図した組織か確認します。初回S3作成では資格情報をコマンドライン引数へ渡さず、SDKから環境変数を使います。"
+    },
+    {
+      "type": "h2",
+      "text": "利用できるシナリオ"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "シナリオ／ツール",
+        "主な内容",
+        "条件と制約"
+      ],
+      "rows": [
+        [
+          "vod-baseline",
+          "H.264の360p／480p、HLSとDASH",
+          "有限の時間とシークを検証"
+        ],
+        [
+          "vod-hevc",
+          "H.265、hvc1、480p、HLSとDASH",
+          "HEVC対応の再生環境が必要"
+        ],
+        [
+          "vod-sprites",
+          "480p映像とスプライト画像、WebVTT",
+          "画像プレビューに使う"
+        ],
+        [
+          "vod-multiaudio",
+          "2つの入力によるen／de音声",
+          "両入力に音声が必要。HLSのみ"
+        ],
+        [
+          "字幕アセット",
+          "別配信のWebVTT字幕",
+          "subtitleTracksで読み込む。専用エンコード不要"
+        ],
+        [
+          "live-dvr/start.sh",
+          "RTMP入力、300秒の巻き戻し窓、HLS／DASH",
+          "起動中の課金と停止確認が必要"
+        ],
+        [
+          "multicodec_pertitle.py",
+          "H.264／HEVC／AV1と共有AACを統合",
+          "3エンコードと2マニフェストを作成"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "クラウドテンプレートの入力素材・長さはシナリオによって異なります。ローカルの60秒、2秒映像セグメントという条件を、そのままクラウド用テンプレートにも当てはめないでください。"
+    },
+    {
+      "type": "h2",
+      "text": "VODの作成"
+    },
+    {
+      "type": "code",
+      "text": "DRY_RUN=1 \\\n  encoding/test-streams/provision.sh vod-baseline\n\n# Starts a billable one-shot encoding.\nencoding/test-streams/provision.sh vod-baseline"
+    },
+    {
+      "type": "p",
+      "text": "最初のコマンドは既存リソースの解決とテンプレートの検証を行い、新しいリソースの作成やエンコード開始は行いません。ただし、アカウント内の一覧や検証APIへアクセスする場合があり、完全なオフライン処理ではありません。入力や出力が見つからない場合は、検証専用の仮IDを使います。本実行でその仮IDを使ってエンコードを開始することはありません。"
+    },
+    {
+      "type": "p",
+      "text": "本実行はFINISHEDまで状態を監視し、完了時にHLSとDASHのURLを表示します。シナリオ名を変更すると、対応するテンプレートを使います。複数音声ではDASHを生成しないため、実際に生成したHLSを使用してください。"
+    },
+    {
+      "type": "p",
+      "text": "機能テストへ出力を渡す場合は、テストランナーを起動するシェルに共通ベースURLを設定します。末尾のスラッシュは付けません。これはアプリ用のVITE_VOD_*とは別の設定です。"
+    },
+    {
+      "type": "code",
+      "text": "export VITE_TEST_STREAM_BASE_URL=\\\n\"https://media.example.test/test-streams\"\npnpm --filter @showcase/e2e e2e \\\n  specs/provisioned-vod.spec.ts --retries=0"
+    },
+    {
+      "type": "p",
+      "text": "上のドメインは置き換えが必要な例です。テストはvod-baseline/などの既定のパスを追加します。設定がなければ、別の公開素材へ勝手に置き換えず、再生を始める前に不足を通知します。"
+    },
+    {
+      "type": "h2",
+      "text": "画像・音声・字幕を追加する際の注意"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "スプライトのWebVTTと実ファイルの名前を一致させます。テンプレートはsprite-%number%.jpgを使い、sprite-0.jpgなどを書きます。番号のない名前ではWebVTT参照と合わず、画像取得に失敗することがあります。",
+        "同じ音声の複数ビットレートは品質の選択肢です。別の言語などを切り替えるトラックには、異なるlanguage／nameとHLSの音声グループが必要です。言語ラベルだけで翻訳音声とは判断できません。",
+        "SubRipの.srt字幕ファイルと、入力欄のSRTストリーミングプロトコルは別です。字幕はWebVTTへ変換します。sidecarはファイルをそのままコピーするため、変換処理にはなりません。",
+        "同梱のSintel字幕は映画本編の開始時刻を約106.25秒前へ移し、短いクリップでも字幕が出るようにしています。プレイヤー側でsubtitleTracksを使う経路を検証します。",
+        "Iフレーム専用プレイリストは同梱テンプレートの対象外です。通常のHLSマスターや画像プレビューがあることだけでは、この機能が含まれているとは判断できません。"
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "3コーデックのPer-Title"
+    },
+    {
+      "type": "p",
+      "text": "Per-Titleはコンテンツごとの解析で画質段階を作る方式です。この例はコーデックごとに独立したH.264、HEVC、AV1のジョブを作り、固定3並列で開始・監視します。AAC 128 kbit/sはH.264のジョブで1回作成し、HLSとDASHで共有します。分割MP4のセグメント設定は4秒です。"
+    },
+    {
+      "type": "code",
+      "text": "DRY_RUN=1 python3 \\\n  encoding/vod-multicodec-pertitle/multicodec_pertitle.py\n\n# Starts three billable encodings and two manifests.\npython3 \\\n  encoding/vod-multicodec-pertitle/multicodec_pertitle.py"
+    },
+    {
+      "type": "p",
+      "text": "このPythonスクリプトのDRY_RUNは、設定済みの計画を標準出力へ表示し、API呼び出し前に終了します。シェルのDRY_RUNとの違いに注意してください。計画専用のJSONファイルは生成しません。"
+    },
+    {
+      "type": "p",
+      "text": "実実行では、すべてのエンコードが完了してから生成された分割MP4の一覧を取得し、実際のIDと出力パスを使って統合マニフェストを作ります。Per-Titleの画質数とIDは処理後に決まるため、先に固定マニフェストへ書きません。出力はtest-streams/vod-multicodec-pertitle/<RUN>/に置かれ、manifest.mpdとmaster.m3u8を生成します。"
+    },
+    {
+      "type": "p",
+      "text": "入力はSOURCE_VOD_MULTICODEC_PERTITLE_HOST／_PATHで指定します。最低・最高ビットレートや固定解像度の追加を操作するGUIやコマンドライン引数はありません。必要な場合は各ジョブのSDK設定を編集する拡張になります。RAMや素材の複雑さから並列数を自動調整する仕組みもありません。AV1を含む実行時間や料金は、短い入力で確認してください。"
+    },
+    {
+      "type": "h2",
+      "text": "ライブDVRの開始と停止"
+    },
+    {
+      "type": "p",
+      "text": "live-dvrのテンプレートはRTMP入力、720p／480p／240pの映像とAAC音声、4秒セグメント、300秒の巻き戻し窓を設定します。DASHのライブ端は90秒後方に置きます。稼働中のチャネルを、必要に応じてローカルのVITE_LIVE_HLS_URL／VITE_LIVE_DASH_URLへ指定します。"
+    },
+    {
+      "type": "code",
+      "text": "DRY_RUN=1 encoding/live-dvr/start.sh\n\n# Starts a billable live encoder.\nencoding/live-dvr/start.sh"
+    },
+    {
+      "type": "p",
+      "text": "RUNNINGになったら、表示されたエンコーダーIPへ入力を送ります。次のテストパターンは420秒で入力を止めます。IPは自分の実行結果に置き換えます。"
+    },
+    {
+      "type": "code",
+      "text": "ffmpeg -re \\\n  -f lavfi -i testsrc2=size=1280x720:rate=30 \\\n  -f lavfi -i sine=frequency=1000 \\\n  -c:v libx264 -preset veryfast \\\n  -tune zerolatency -b:v 3M -g 60 \\\n  -c:a aac -b:a 128k -t 420 \\\n  -f flv \"rtmp://<encoderIp>/live/dvrshowcase\""
+    },
+    {
+      "type": "p",
+      "text": "300秒の素材がそろってから、マニフェストの巻き戻し窓とPlayerの値を確認します。テンプレートには、開始後10分間入力がない場合と、入力バイトが30秒間途絶えた場合の自動終了条件があります。入力の終了を、エンコーダー停止の確認の代わりにはしません。"
+    },
+    {
+      "type": "code",
+      "text": "bitmovin encoding jobs stop <encoding-id>\nbitmovin encoding jobs status <encoding-id>"
+    },
+    {
+      "type": "note",
+      "title": "監視の終了とエンコーダー停止は別です",
+      "text": "シェルスクリプトは状態を連続して読み取れないと監視を終了します。その時点でクラウドのジョブが停止したとは限りません。表示されたエンコードIDで状態を確認し、必要なら停止します。Per-Titleの1ジョブが失敗した場合も、他のジョブの状態を別途確認してください。"
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/SETUP.md",
+      "line": 115,
+      "label": "ツール導入・出力解決・組織設定"
+    },
+    {
+      "path": "encoding/requirements.txt",
+      "line": 2,
+      "label": "固定したPython SDK"
+    },
+    {
+      "path": "config/encoding.conf",
+      "line": 15,
+      "label": "入力素材のシナリオ別カタログ"
+    },
+    {
+      "path": "encoding/test-streams/README.md",
+      "line": 15,
+      "label": "VODの費用とシナリオ一覧"
+    },
+    {
+      "path": "encoding/test-streams/provision.sh",
+      "line": 35,
+      "label": "DRY_RUNと監視処理"
+    },
+    {
+      "path": "encoding/lib.sh",
+      "line": 114,
+      "label": "検証専用の仮IDと入力・出力の解決"
+    },
+    {
+      "path": "docs/test-streams-config.md",
+      "line": 7,
+      "label": "画像・音声・字幕の構成上の注意"
+    },
+    {
+      "path": "encoding/vod-multicodec-pertitle/README.md",
+      "line": 3,
+      "label": "3ジョブと共有音声の構成"
+    },
+    {
+      "path": "encoding/vod-multicodec-pertitle/multicodec_pertitle.py",
+      "line": 178,
+      "label": "Per-TitleのSDK設定"
+    },
+    {
+      "path": "encoding/vod-multicodec-pertitle/multicodec_pertitle.py",
+      "line": 474,
+      "label": "計画のみの実行と固定3並列"
+    },
+    {
+      "path": "encoding/README.md",
+      "line": 3,
+      "label": "ライブ設定・入力・停止"
+    },
+    {
+      "path": "encoding/live-dvr/start.sh",
+      "line": 22,
+      "label": "ライブの検証・開始・監視"
+    }
+  ]
+}

@@ -1,0 +1,329 @@
+{
+  "id": "native-overview",
+  "title": "Native sample scope and preparation",
+  "lead": "The native samples demonstrate source switching, live rewind, returning to the live edge, and sharing UI resources. They do not reproduce the Web app’s full configuration panel. Use the Web app to compare a broad range of settings, and the native samples to inspect platform integration and playback behavior.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Included projects and source formats"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Target",
+        "What is provided",
+        "Source formats"
+      ],
+      "rows": [
+        [
+          "iOS / iPadOS",
+          "A SwiftUI app generated with XcodeGen",
+          "Live HLS and VOD HLS in the catalog"
+        ],
+        [
+          "tvOS",
+          "An app using the same Swift sources",
+          "Live HLS and VOD HLS in the catalog"
+        ],
+        [
+          "Android / Android-based Fire TV",
+          "A Kotlin app built with Gradle",
+          "Live and VOD in HLS and DASH"
+        ],
+        [
+          "React Native",
+          "Screens and logic to integrate into an external Expo project",
+          "An HLS/DASH catalog; check the target OS restrictions separately"
+        ],
+        [
+          "Vega OS",
+          "Sources to integrate into an external Kepler project",
+          "HLS/DASH modules are registered; device playback has not been verified"
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.41,
+        0.36
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Each native catalog uses external public reference streams. The samples do not all load the 60-second Big Buck Bunny media bundled with Pages. Reference stream content and availability depend on the provider. You can try these sources without starting a cloud encoder, but network conditions or provider restrictions may prevent playback."
+    },
+    {
+      "type": "h2",
+      "text": "UI and feature comparison"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Target",
+        "Player UI",
+        "Helper panel"
+      ],
+      "rows": [
+        [
+          "iOS / iPadOS",
+          "Default, Sports, Live (DVR), Cinema",
+          "Source selection, live-edge-relative seeking, DVR setting, state, and logs"
+        ],
+        [
+          "tvOS",
+          "System UI; no Web UI selector",
+          "The source and DVR panel shared with iOS"
+        ],
+        [
+          "Android / Android-based Fire TV",
+          "Default, Sports, Live (DVR), Cinema",
+          "Source selection, live-edge-relative seeking, DVR setting, state, and logs"
+        ],
+        [
+          "React Native",
+          "Four UI choices; delivery of the shared UI assets requires integration",
+          "Source selection, live-edge-relative seeking, DVR setting, state, and logs"
+        ],
+        [
+          "Vega OS",
+          "Kepler components rather than browser UI",
+          "Source selection, live-edge-relative seeking, DVR setting, state, and logs"
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.39,
+        0.38
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The native helper panels do not provide the Web app’s PlayerConfig, SourceConfig, or TweakConfig lists, or audio, subtitle, and quality selectors. Features in the SDK’s standard UI depend on the source, OS, device, and SDK support. A source button for multi-audio or subtitles does not mean that track selection has been verified."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Feature",
+        "Included implementation",
+        "Usage and verification limits"
+      ],
+      "rows": [
+        [
+          "Offline",
+          "An OfflineManager helper class for Android",
+          "Not connected to the screen. There is no GUI for downloads or offline playback."
+        ],
+        [
+          "Casting / PiP / VR",
+          "SDK support and sample integration are separate",
+          "Do not treat these as verified native GUI or playback features."
+        ],
+        [
+          "TV remote",
+          "Android declares a TV launcher; Vega uses Kepler screen components",
+          "Check focus navigation and play/pause keys on the device. Dedicated key handling is not implemented."
+        ],
+        [
+          "Analytics",
+          "The collector is enabled when an optional license is configured",
+          "Check sending, receipt, and aggregation separately. There is no account-query GUI."
+        ]
+      ],
+      "widths": [
+        0.21,
+        0.36,
+        0.43
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Licenses and application identifiers"
+    },
+    {
+      "type": "p",
+      "text": "Native playback requires your own Player license and permission for the application identifier. The Web SDK’s localhost exception does not apply. If you use Analytics, allow the application identifier on that license as well. Update the permissions if you change an identifier. Normal native playback does not require an account API key."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Target",
+        "Default identifier",
+        "Generated configuration and delivery"
+      ],
+      "rows": [
+        [
+          "iOS",
+          "com.showcase.dvr.Showcase-iOS",
+          "apps/ios/Local.xcconfig → build settings → Info.plist"
+        ],
+        [
+          "tvOS",
+          "com.showcase.dvr.Showcase-tvOS",
+          "The same mechanism as iOS"
+        ],
+        [
+          "Android / Android-based Fire TV",
+          "com.showcase.dvr",
+          "apps/android/local.properties → Manifest"
+        ],
+        [
+          "React Native",
+          "The bundle identifier or application ID configured in the external app",
+          "Transfer apps/react-native/.env to the external app"
+        ],
+        [
+          "Vega OS",
+          "The example uses com.showcase.dvr.vega",
+          "Set globals in the Kepler entry point"
+        ]
+      ],
+      "widths": [
+        0.19,
+        0.41,
+        0.4
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Run the common preparation from the repository root using Node.js 24.19.0 and pnpm 10.33.0. Create the root .env file from .env.example and enter your own licenses. The Analytics license is optional; leaving it empty disables the collector. The following example contains a placeholder."
+    },
+    {
+      "type": "code",
+      "title": "License configuration example",
+      "text": "BITMOVIN_PLAYER_LICENSE_KEY=<YOUR_PLAYER_LICENSE_KEY>\nBITMOVIN_ANALYTICS_LICENSE_KEY="
+    },
+    {
+      "type": "code",
+      "title": "Run from the repository root",
+      "text": "pnpm install --frozen-lockfile\nbash scripts/sync-env.sh\npnpm --filter @showcase/ui-shared build\npnpm sync:webui"
+    },
+    {
+      "type": "note",
+      "text": "sync-env.sh writes local license settings to untracked files for each tool. Run it again after a license change, then rebuild the app. Do not add generated configuration files, license values, or local SDK paths to the public repository."
+    },
+    {
+      "type": "h2",
+      "text": "Reading DVR state"
+    },
+    {
+      "type": "p",
+      "text": "DVR is the available rewind window in a live stream. These samples use 0 for the live edge and negative values for the past. −30s seeks to 30 seconds behind the live edge; it does not rewind 30 seconds from the current position. The requested position is clamped to the range reported by the SDK."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Display",
+        "Meaning"
+      ],
+      "rows": [
+        [
+          "vod",
+          "On-demand video with a known finite duration"
+        ],
+        [
+          "live-dvr",
+          "Classified as live, with an available rewind window and the sample’s DVR setting enabled"
+        ],
+        [
+          "live-no-dvr",
+          "The rewind window is unavailable, not yet known, or disabled in the sample"
+        ],
+        [
+          "behindLive",
+          "Seconds behind the live edge"
+        ],
+        [
+          "windowDuration",
+          "Length of the rewind window reported by the SDK"
+        ],
+        [
+          "atLiveEdge",
+          "By default, within one second of the live edge"
+        ]
+      ],
+      "widths": [
+        0.25,
+        0.75
+      ]
+    },
+    {
+      "type": "p",
+      "text": "HLS may report a zero-length rewind window just after startup. Start playback and wait for the range to become available. Increasing the forward buffer does not extend the historical media retained by the stream. The live edge keeps moving while a seek completes. Acceptance of a seek request, completion inside the SDK, and the UI update do not happen at the same instant."
+    },
+    {
+      "type": "note",
+      "title": "What Allow DVR controls",
+      "text": "This switch controls the sample’s state calculation and helper rewind buttons. It does not change a global SDK DVR setting or guarantee that all seeking, including the shared UI’s seek bar, is disabled. Toggling it also does not move playback to the live edge. Use Live edge or Go to live edge to return to live."
+    },
+    {
+      "type": "h2",
+      "text": "Distinguishing verification methods"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Method",
+        "What it establishes",
+        "What still needs checking"
+      ],
+      "rows": [
+        [
+          "Unit tests",
+          "Calculations, state transitions, and handling of delayed work",
+          "Playback and video output with the real SDK"
+        ],
+        [
+          "Type checking",
+          "Compatibility with API types included in the check",
+          "Excluded screens, native builds, and execution"
+        ],
+        [
+          "Native builds and bundle checks",
+          "Compilation and inclusion of required JS/CSS resources",
+          "Playback and controls with a valid license"
+        ],
+        [
+          "Playback on a simulator or emulator",
+          "Behavior for the tested OS, SDK, source, and procedure",
+          "Physical devices, TV, remotes, casting, offline playback, and Analytics aggregation"
+        ]
+      ],
+      "widths": [
+        0.29,
+        0.34,
+        0.37
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/SETUP.md",
+      "line": 74,
+      "label": "License settings and delivery to each app"
+    },
+    {
+      "path": "docs/bitmovin-feature-coverage.md",
+      "line": 30,
+      "label": "Platform coverage"
+    },
+    {
+      "path": "docs/player-capabilities.md",
+      "line": 3,
+      "label": "Scope of the Web device-feature documentation"
+    },
+    {
+      "path": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+      "line": 60,
+      "label": "Live coordinates and state calculation"
+    },
+    {
+      "path": "apps/android/dvr/src/main/kotlin/com/showcase/dvr/Dvr.kt",
+      "line": 43,
+      "label": "Android live coordinates and state calculation"
+    },
+    {
+      "path": "docs/e2e-testing.md",
+      "line": 82,
+      "label": "Native verification scope"
+    }
+  ]
+}

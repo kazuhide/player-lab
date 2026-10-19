@@ -1,0 +1,161 @@
+{
+  "id": "themes",
+  "title": "Screenshots of all 14 themes",
+  "lead": "Compare the public Web app using the same 60-second clip paused near 15 seconds. The display varies with viewport size, media, playback position, and supported features. Scores and player information in the Sports theme are sample data.",
+  "themes": [
+    {
+      "id": "default",
+      "category": "default",
+      "label": "Default (Bitmovin)",
+      "description": "Uses the standard component layout.",
+      "code": "DefaultUIFactory.buildDefaultUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 158
+      }
+    },
+    {
+      "id": "custom-neon",
+      "category": "css",
+      "label": "Neon",
+      "description": "Adds color and border styling to the standard layout.",
+      "code": "DefaultUIFactory.buildDefaultUI(player, undefined, { extraCssClasses: [\"ui-skin-neon\"] })",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 167
+      }
+    },
+    {
+      "id": "custom-glass",
+      "category": "css",
+      "label": "Glass",
+      "description": "Uses a translucent control bar in the standard layout.",
+      "code": "DefaultUIFactory.buildDefaultUI(player, undefined, { extraCssClasses: [\"ui-skin-glass\"] })",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 175
+      }
+    },
+    {
+      "id": "custom-sunset",
+      "category": "css",
+      "label": "Sunset",
+      "description": "Adds a warm color palette to the standard layout.",
+      "code": "DefaultUIFactory.buildDefaultUI(player, undefined, { extraCssClasses: [\"ui-skin-sunset\"] })",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 183
+      }
+    },
+    {
+      "id": "custom-bold",
+      "category": "css",
+      "label": "Bold",
+      "description": "Enlarges text and controls in the standard layout.",
+      "code": "DefaultUIFactory.buildDefaultUI(player, undefined, { extraCssClasses: [\"ui-skin-bold\"] })",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 191
+      }
+    },
+    {
+      "id": "custom-mono",
+      "category": "css",
+      "label": "Mono",
+      "description": "Styles the standard layout mainly in white, black, and gray.",
+      "code": "DefaultUIFactory.buildDefaultUI(player, undefined, { extraCssClasses: [\"ui-skin-mono\"] })",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 199
+      }
+    },
+    {
+      "id": "custom-live",
+      "category": "custom",
+      "label": "Live (DVR)",
+      "description": "Adds live-position, rewind, and wall-clock displays.",
+      "code": "LiveUIFactory.buildLiveUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 208
+      }
+    },
+    {
+      "id": "custom-sports",
+      "category": "custom",
+      "label": "Sports",
+      "description": "Overlays sample scores and player information.",
+      "code": "SportsUIFactory.buildSportsUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 216
+      }
+    },
+    {
+      "id": "custom-binge",
+      "category": "custom",
+      "label": "Binge",
+      "description": "Adds intro skipping and next-video controls.",
+      "code": "BingeUIFactory.buildBingeUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 227
+      }
+    },
+    {
+      "id": "custom-cinema",
+      "category": "custom",
+      "label": "Cinema",
+      "description": "Uses a central play control and a slim control bar.",
+      "code": "CinemaUIFactory.buildCinemaUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 249
+      }
+    },
+    {
+      "id": "custom-compact",
+      "category": "custom",
+      "label": "Compact",
+      "description": "Uses a small, single-row control bar.",
+      "code": "CompactUIFactory.buildCompactUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 257
+      }
+    },
+    {
+      "id": "custom-premiere",
+      "category": "custom",
+      "label": "Premiere",
+      "description": "Uses a title, description, and full-width seek bar.",
+      "code": "PremiereUIFactory.buildPremiereUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 267
+      }
+    },
+    {
+      "id": "custom-creator",
+      "category": "custom",
+      "label": "Creator",
+      "description": "Places one row of controls below a full-width seek bar.",
+      "code": "CreatorUIFactory.buildCreatorUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 275
+      }
+    },
+    {
+      "id": "custom-studio",
+      "category": "custom",
+      "label": "Studio",
+      "description": "Places the seek bar between time labels.",
+      "code": "StudioUIFactory.buildStudioUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 283
+      }
+    }
+  ]
+}

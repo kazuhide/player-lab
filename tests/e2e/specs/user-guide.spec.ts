@@ -1,0 +1,495 @@
+import { expect, test, type Locator, type Page } from "@playwright/test";
+import { readFileSync, readdirSync } from "node:fs";
+import { resolve } from "node:path";
+
+type Language = "en" | "ja";
+interface Setting { scope: string; path: string }
+interface SettingGroup { id: string; title: string; fields: Setting[] }
+interface GuideDocument { id: string; title: string; groups?: SettingGroup[] }
+interface SearchEntry { kind: string; title: string; url: string }
+interface HeldHashChanges {
+  pending: { oldURL: string; newURL: string }[];
+  releaseNext: () => void;
+}
+declare global {
+  interface Window { __guideHashChangeTest?: HeldHashChanges }
+}
+
+const languages: Language[] = ["en", "ja"];
+const contentRoot = resolve(__dirname, "../../../docs/guide");
+const content = Object.fromEntries(languages.map((language) => [language,
+  Object.fromEntries(readdirSync(resolve(contentRoot, language)).filter((name) => name.endsWith(".json"))
+    .map((name) => {
+      const document = JSON.parse(readFileSync(resolve(contentRoot, language, name), "utf8")) as GuideDocument;
+      return [document.id, document];
+    })),
+])) as Record<Language, Record<string, GuideDocument>>;
+const messages = {
+  en: { overview: "User guide", error: "Search could not load. Use the contents or try again.",
+    noScript: "The chapters and references work without JavaScript." },
+  ja: { overview: "ユーザーガイド", error: "検索データを読み込めませんでした。目次を使うか、もう一度検索してください。",
+    noScript: "本文と参照資料はJavaScriptを使わずに読めます。" },
+};
+
+function guidePath(language: Language, slug = ""): string {
+  return `/player-lab/${language === "ja" ? "ja/" : ""}guide/${slug ? `${slug}/` : ""}`;
+}
+
+function groups(language: Language): SettingGroup[] {
+  return content[language].settings!.groups!;
+}
+
+async function expectProjectLink(page: Page, link: Locator, path: string): Promise<void> {
+  const destination = new URL((await link.getAttribute("href"))!, page.url());
+  expect(destination.origin).toBe(new URL(page.url()).origin);
+  expect(destination.pathname).toBe(path);
+}
+
+async function expectNoDocumentOverflow(page: Page): Promise<void> {
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    document: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.document - dimensions.viewport, JSON.stringify(dimensions)).toBeLessThanOrEqual(1);
+}
+
+async function expectCompleteTweakCatalog(page: Page): Promise<void> {
+  await expect(page.locator("[data-setting-filter], .guide-settings-filter")).toHaveCount(0);
+  await expect(page.locator("article[data-setting]")).toHaveCount(65);
+  await expect(page.locator("article[data-setting]:visible")).toHaveCount(65);
+}
+
+async function expectHeadingStructure(page: Page): Promise<void> {
+  const main = page.locator("main");
+  await expect(main.getByRole("heading", { level: 1 })).toHaveCount(1);
+  const headings = await main.getByRole("heading").evaluateAll((elements) => elements.map((element) => ({
+    level: Number(element.tagName.slice(1)), text: element.textContent?.trim(),
+  })));
+  expect(headings[0]?.level).toBe(1);
+  for (let index = 0; index < headings.length; index++) {
+    expect(headings[index]?.text).toBeTruthy();
+    if (index > 0) expect(headings[index]!.level).toBeLessThanOrEqual(headings[index - 1]!.level + 1);
+  }
+}
+
+async function tabTo(page: Page, target: Locator): Promise<void> {
+  for (let index = 0; index < 15; index++) {
+    await page.keyboard.press("Tab");
+    if (await target.evaluate((element) => element === document.activeElement)) return;
+  }
+  await expect(target).toBeFocused();
+}
+
+const errors = new WeakMap<Page, string[]>();
+test.beforeEach(({ page }) => {
+  const observed: string[] = [];
+  errors.set(page, observed);
+  page.on("pageerror", (error) => observed.push(error.message));
+});
+test.afterEach(({ page }) => {
+  expect(errors.get(page), "the static guide must not raise uncaught errors").toEqual([]);
+});
+
+for (const language of languages) {
+  test.describe(`user guide (${language})`, () => {
+    test("the landing call to action, app language and return links stay within the project", async ({ page }) => {
+      await page.route(/analytics-ingress[^/]*\.bitmovin\.com/i, (route) => route.fulfill({
+        status: 204, headers: { "Access-Control-Allow-Origin": "*" },
+      }));
+      await page.goto(`/player-lab/${language === "ja" ? "ja/" : ""}`);
+      const callToAction = page.locator(".hero .actions").getByRole("link", {
+        name: language === "ja" ? "ユーザーガイド" : "User guide", exact: true,
+      });
+      await expectProjectLink(page, callToAction, guidePath(language));
+      await callToAction.click();
+      await expect(page).toHaveURL((url) => url.pathname === guidePath(language));
+      await expect(page.locator("html")).toHaveAttribute("lang", language);
+      await expectProjectLink(page, page.locator(".guide-header nav a").first(), "/player-lab/web/");
+      await page.locator(".guide-header nav a").first().click();
+      await expect(page).toHaveURL(/\/player-lab\/web\/$/);
+      await page.getByRole("button", { name: language === "ja" ? "日本語" : "English", exact: true }).click();
+      await expect(page.locator("html")).toHaveAttribute("lang", language);
+      const guide = page.locator("#user-guide-link");
+      await expect(guide).toHaveAttribute("hreflang", language);
+      await expect(guide).toHaveText(language === "ja" ? "ユーザーガイド" : "User guide");
+      const destination = new URL((await guide.getAttribute("href"))!, page.url());
+      expect(destination.origin).toBe(new URL(page.url()).origin);
+      expect(destination.pathname).toBe(guidePath(language));
+      await guide.click();
+      await expect(page).toHaveURL((url) => url.pathname === guidePath(language));
+      await expect(page.locator("main > h1")).toHaveText(messages[language].overview);
+      await expectProjectLink(page, page.locator(".guide-header nav a").first(), "/player-lab/web/");
+      await page.locator(".guide-header nav a").first().click();
+      await expect(page).toHaveURL(/\/player-lab\/web\/$/);
+      await expect(page.locator("html")).toHaveAttribute("lang", language);
+    });
+
+    test("all chapters and reference routes serve their own localized content", async ({ page }) => {
+      const routes = [
+        { slug: "", title: messages[language].overview },
+        ...Object.values(content[language]).map((document) => ({ slug: document.id, title: document.title })),
+        ...groups(language).map((group) => ({ slug: `settings/${group.id}`, title: group.title })),
+      ];
+      expect(routes).toHaveLength(38);
+      for (const route of routes) {
+        await test.step(route.slug || "overview", async () => {
+          const response = await page.goto(guidePath(language, route.slug));
+          expect(response?.status()).toBe(200);
+          await expect(page.locator("html")).toHaveAttribute("lang", language);
+          await expect(page.locator("main > h1")).toHaveText(route.title);
+          await expect(page.locator("[data-guide-search]")).toBeVisible();
+          await expectHeadingStructure(page);
+        });
+      }
+    });
+
+    test("all 134 setting identifiers can be found and lead to existing setting articles", async ({ page, request }) => {
+      const response = await request.get(`${guidePath(language)}search-index.json`);
+      expect(response.status()).toBe(200);
+      const index = await response.json() as SearchEntry[];
+      const settings = index.filter((entry) => entry.kind === "setting");
+      const expected = groups(language).flatMap((group) => group.fields.map((field) => ({
+        title: `${field.scope}.${field.path}`, group: group.id, path: field.path,
+      })));
+      expect(settings).toHaveLength(134);
+      expect(settings.map((entry) => entry.title).sort()).toEqual(expected.map((field) => field.title).sort());
+      await page.goto(guidePath(language));
+      const input = page.locator("[data-guide-search]");
+      const results = page.locator("[data-search-results]");
+      await input.fill("tweaks");
+      await expect(results.locator("a")).toHaveCount(12);
+      for (const field of expected) {
+        await input.fill(field.title);
+        const link = results.locator("a").first();
+        await expect(link).toHaveText(field.title);
+        const target = new URL((await link.getAttribute("href"))!);
+        expect(target.pathname).toBe(guidePath(language, `settings/${field.group}`));
+        expect(target.hash).not.toBe("");
+      }
+      await input.fill("ＰｌａｙｅｒＡＰＩ．ｖｏｌｕｍｅ");
+      await expect(results.locator("a").first()).toHaveText("PlayerAPI.volume");
+      for (const group of groups(language)) {
+        await page.goto(guidePath(language, `settings/${group.id}`));
+        const articles = await page.locator("article[data-setting]").evaluateAll((elements) => elements.map((element) => ({
+          id: element.id, path: element.querySelector("h2 code")?.textContent,
+        })));
+        expect(articles.map((article) => article.path).sort()).toEqual(group.fields.map((field) => field.path).sort());
+        const targets = settings.filter((entry) => entry.url.startsWith(`settings/${group.id}/#`));
+        expect(targets).toHaveLength(group.fields.length);
+        for (const entry of targets) expect(articles.map((article) => article.id)).toContain(entry.url.split("#")[1]);
+      }
+    });
+
+    test("language navigation retains chapter and setting fragments below the sticky header", async ({ page }) => {
+      const other: Language = language === "en" ? "ja" : "en";
+      await page.goto(guidePath(language, "native-overview"));
+      const section = await page.locator("main > h2[id]").nth(1).getAttribute("id");
+      await page.goto(`${guidePath(language, "native-overview")}#${section}`);
+      await page.locator("a[data-guide-language]").click();
+      await expect(page).toHaveURL((url) => url.pathname === guidePath(other, "native-overview") && url.hash === `#${section}`);
+      await expect(page.locator("html")).toHaveAttribute("lang", other);
+      await expect.poll(() => page.locator(`#${section}`).evaluate((element) => {
+        const header = document.querySelector(".guide-header")!;
+        const top = element.getBoundingClientRect().top;
+        return top >= header.getBoundingClientRect().bottom - 1 && top < window.innerHeight;
+      })).toBe(true);
+      const nextSection = await page.locator("main > h2[id]").nth(2).getAttribute("id");
+      await page.goto(`${guidePath(other, "native-overview")}#${nextSection}`);
+      await page.locator("a[data-guide-language]").click();
+      await expect(page).toHaveURL((url) => url.pathname === guidePath(language, "native-overview") && url.hash === `#${nextSection}`);
+      await page.goto(guidePath(language, "settings/tweaks"));
+      const setting = await page.locator("article[data-setting]").nth(10).getAttribute("id");
+      await page.goto(`${guidePath(language, "settings/tweaks")}#${setting}`);
+      await page.locator("a[data-guide-language]").click();
+      await expect(page).toHaveURL((url) => url.pathname === guidePath(other, "settings/tweaks") && url.hash === `#${setting}`);
+      await expect(page.locator(`#${setting}`)).toBeVisible();
+    });
+
+    test("the complete catalog stays visible while global searches change", async ({ page }) => {
+      await page.goto(guidePath(language, "settings/tweaks"));
+      await expectCompleteTweakCatalog(page);
+      const search = page.locator("[data-guide-search]");
+      const results = page.locator("[data-search-results]");
+      for (const field of ["max_buffer_level", "stop_download_on_pause"]) {
+        const title = `PlayerConfig.tweaks.${field}`;
+        await search.fill(title);
+        await expect(results.locator("a").first()).toHaveText(title);
+        await expectCompleteTweakCatalog(page);
+      }
+      await search.fill("no-such-setting-8b2d");
+      await expect(results).toBeHidden();
+      await expectCompleteTweakCatalog(page);
+      await search.clear();
+      await expect(results.locator("a")).toHaveCount(0);
+      await expectCompleteTweakCatalog(page);
+    });
+
+    test("setting links support repeated fragments, history and direct navigation", async ({ page }) => {
+      const path = guidePath(language, "settings/tweaks");
+      await page.goto(path);
+      await expectCompleteTweakCatalog(page);
+      const search = page.locator("[data-guide-search]");
+      await search.fill("PlayerConfig.tweaks.stop_download_on_pause");
+      const result = page.locator("[data-search-results]").getByRole("link", {
+        name: "PlayerConfig.tweaks.stop_download_on_pause", exact: true,
+      });
+      await expect(result).toBeVisible();
+      const first = new URL((await result.getAttribute("href"))!, page.url());
+      const secondId = await page.locator("article[data-setting]").filter({
+        has: page.getByRole("heading", { name: "tweaks.max_buffer_level", exact: true }),
+      }).getAttribute("id");
+      const second = new URL(`#${secondId}`, first);
+      const expectAtFragment = async (destination: URL): Promise<void> => {
+        await expect(page).toHaveURL(destination.href);
+        await expectCompleteTweakCatalog(page);
+        const target = page.locator(`article[id="${destination.hash.slice(1)}"]`);
+        await expect(target).toBeVisible();
+        await expect.poll(() => target.evaluate((element) => {
+          const top = element.getBoundingClientRect().top;
+          return top >= document.querySelector(".guide-header")!.getBoundingClientRect().bottom - 1 && top < window.innerHeight;
+        })).toBe(true);
+      };
+      await result.click();
+      await expectAtFragment(first);
+      await search.fill("PlayerConfig.tweaks.stop_download_on_pause");
+      await result.click();
+      await expectAtFragment(first);
+      await page.goto(second.href);
+      await expectAtFragment(second);
+      await page.goBack();
+      await expectAtFragment(first);
+      await page.goForward();
+      await expectAtFragment(second);
+    });
+
+    test("delayed fragment events preserve the latest search and reading position", async ({ page }) => {
+      await page.addInitScript(() => {
+        const pending: { oldURL: string; newURL: string }[] = [];
+        let replaying = false;
+        window.__guideHashChangeTest = {
+          pending,
+          releaseNext: () => {
+            const event = pending.shift();
+            if (!event) throw new Error("No captured hashchange is ready.");
+            replaying = true;
+            try {
+              window.dispatchEvent(new HashChangeEvent("hashchange", event));
+            } finally {
+              replaying = false;
+            }
+          },
+        };
+        window.addEventListener("hashchange", (event) => {
+          if (replaying) return;
+          event.stopImmediatePropagation();
+          pending.push({ oldURL: event.oldURL, newURL: event.newURL });
+        }, true);
+      });
+      const path = guidePath(language, "settings/tweaks");
+      const thirdField = "tweaks.segment_encryption_transition_handling";
+      const scenarios = ["one search navigation", "repeated search navigation", "mixed repeated navigation"] as const;
+      for (const scenario of scenarios) {
+        await test.step(scenario, async () => {
+          await page.goto(path);
+          await page.reload();
+          const search = page.locator("[data-guide-search]");
+          const results = page.locator("[data-search-results]");
+          const thirdId = await page.locator("article[data-setting]").filter({
+            has: page.getByRole("heading", { name: thirdField, exact: true }),
+          }).getAttribute("id");
+          if (scenario === "mixed repeated navigation") {
+            await page.goto(`${path}#${thirdId}`);
+            await page.reload();
+          }
+          const transitions: { oldURL: string; newURL: string }[] = [];
+          const selectSetting = async (field: string): Promise<URL> => {
+            const title = `PlayerConfig.tweaks.${field}`;
+            await search.fill(title);
+            const result = results.getByRole("link", { name: title, exact: true });
+            await expect(result).toBeVisible();
+            const destination = new URL((await result.getAttribute("href"))!, page.url());
+            const oldURL = page.url();
+            await result.click();
+            await expect(page).toHaveURL(destination.href);
+            transitions.push({ oldURL, newURL: destination.href });
+            return destination;
+          };
+          const navigateDirectly = async (destination: URL): Promise<void> => {
+            const oldURL = page.url();
+            await page.goto(destination.href);
+            await expect(page).toHaveURL(destination.href);
+            transitions.push({ oldURL, newURL: destination.href });
+          };
+          const firstId = await page.locator("article[data-setting]").filter({
+            has: page.getByRole("heading", { name: "tweaks.stop_download_on_pause", exact: true }),
+          }).getAttribute("id");
+          let final = new URL(`#${firstId}`, page.url());
+          if (scenario === "mixed repeated navigation") await navigateDirectly(final);
+          else final = await selectSetting("stop_download_on_pause");
+          if (scenario !== "one search navigation") {
+            await selectSetting("max_buffer_level");
+            if (scenario === "mixed repeated navigation") await navigateDirectly(new URL(`#${thirdId}`, page.url()));
+            final = await selectSetting("stop_download_on_pause");
+          }
+          await expect.poll(() => page.evaluate(() => window.__guideHashChangeTest!.pending.length)).toBe(transitions.length);
+          expect(await page.evaluate(() => window.__guideHashChangeTest!.pending)).toEqual(transitions);
+          await search.fill("PlayerAPI.volume");
+          await expect(results.locator("a").first()).toHaveText("PlayerAPI.volume");
+          await page.locator(`article[id="${thirdId}"]`).scrollIntoViewIfNeeded();
+          const readingPosition = await page.evaluate(() => window.scrollY);
+          for (let index = 0; index < transitions.length; index++) {
+            await page.evaluate(() => window.__guideHashChangeTest!.releaseNext());
+            await expect(page).toHaveURL(final.href);
+            await expectCompleteTweakCatalog(page);
+            await expect(search).toHaveValue("PlayerAPI.volume");
+            await expect(results.locator("a").first()).toHaveText("PlayerAPI.volume");
+            const languageURL = new URL((await page.locator("a[data-guide-language]").getAttribute("href"))!, page.url());
+            expect(languageURL.hash).toBe(final.hash);
+            expect(Math.abs(await page.evaluate(() => window.scrollY) - readingPosition)).toBeLessThanOrEqual(1);
+          }
+          expect(await page.evaluate(() => window.__guideHashChangeTest!.pending.length)).toBe(0);
+        });
+      }
+    });
+
+    test("a failed search index can be retried through the next input", async ({ page }) => {
+      let attempts = 0;
+      await page.route("**/search-index.json", async (route) => {
+        attempts++;
+        if (attempts === 1) await route.fulfill({ status: 503, body: "Unavailable" });
+        else await route.continue();
+      });
+      await page.goto(guidePath(language, "native-apple"));
+      const input = page.locator("[data-guide-search]");
+      const results = page.locator("[data-search-results]");
+      await input.fill("PlayerAPI.volume");
+      await expect(page.locator("[data-search-status]")).toHaveText(messages[language].error);
+      await expect(results).toBeHidden();
+      await expect(page.locator("[data-guide-search-container]")).not.toHaveAttribute("aria-busy", "true");
+      await input.fill("PlayerAPI.mute");
+      await expect(results.locator("a").first()).toHaveText("PlayerAPI.mute");
+      expect(attempts).toBe(2);
+      await expect(page.locator("[data-search-status]")).not.toHaveText(messages[language].error);
+    });
+
+    test("a held index response only publishes results for the latest input", async ({ page }) => {
+      let release!: () => void;
+      let started!: () => void;
+      const held = new Promise<void>((resolveRequest) => { release = resolveRequest; });
+      const requested = new Promise<void>((resolveRequest) => { started = resolveRequest; });
+      await page.route("**/search-index.json", async (route) => {
+        started();
+        await held;
+        await route.continue();
+      });
+      await page.goto(guidePath(language));
+      const input = page.locator("[data-guide-search]");
+      const results = page.locator("[data-search-results]");
+      await input.fill("PlayerAPI.volume");
+      await requested;
+      await expect(page.locator("[data-guide-search-container]")).toHaveAttribute("aria-busy", "true");
+      await input.fill("PlayerAPI.mute");
+      release();
+      await expect(results.locator("a").first()).toHaveText("PlayerAPI.mute");
+      await expect(results.getByRole("link", { name: "PlayerAPI.volume", exact: true })).toHaveCount(0);
+      await expect(page.locator("[data-guide-search-container]")).not.toHaveAttribute("aria-busy", "true");
+      await input.fill("x");
+      await expect(results).toBeHidden();
+      await expect(results.locator("a")).toHaveCount(0);
+      await expect(page.locator("[data-search-status]")).toBeEmpty();
+    });
+
+    test("skip navigation and the mobile contents work with the keyboard", async ({ page }) => {
+      await page.goto(guidePath(language, "start"));
+      await page.keyboard.press("Tab");
+      await expect(page.locator(".skip-link")).toBeFocused();
+      await expect(page.locator(".skip-link")).toBeVisible();
+      await page.keyboard.press("Enter");
+      await expect(page.locator("main")).toBeFocused();
+      await page.setViewportSize({ width: 375, height: 900 });
+      await page.goto(guidePath(language));
+      await page.keyboard.press("Tab");
+      const skip = page.locator(".skip-link");
+      await expect(skip).toBeFocused();
+      const hit = await skip.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        const top = document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+        return { unobscured: top !== null && (top === element || element.contains(top)),
+          topTag: top?.tagName, topClass: top?.getAttribute("class"), bounds: bounds.toJSON() };
+      });
+      expect(hit.unobscured, JSON.stringify(hit)).toBe(true);
+      const summary = page.locator(".guide-mobile-contents > summary");
+      await tabTo(page, summary);
+      await expect(summary).toHaveCSS("outline-style", "solid");
+      await page.keyboard.press("Enter");
+      await expect(page.locator(".guide-mobile-contents")).toHaveAttribute("open", "");
+      await page.keyboard.press("Tab");
+      const firstChapter = page.locator(".guide-mobile-contents nav a").first();
+      await expect(firstChapter).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL((url) => url.pathname === guidePath(language, "start"));
+      await expect(page.locator("main > h1")).toHaveText(content[language].start!.title);
+    });
+
+    for (const width of [320, 375, 768, 1024, 1440]) {
+      test(`long text, code, tables and images fit a ${width}px document`, async ({ page }, testInfo) => {
+        await page.setViewportSize({ width, height: 900 });
+        for (const slug of ["start", "native-apple", "cloud-encoding", "settings/tweaks", "controls", "themes"]) {
+          await test.step(slug, async () => {
+            await page.goto(guidePath(language, slug));
+            await expectNoDocumentOverflow(page);
+            await expectHeadingStructure(page);
+            if (slug === "settings/tweaks" && [320, 1440].includes(width)) {
+              const image = testInfo.outputPath(`guide-${language}-${width}.png`);
+              await page.screenshot({ path: image });
+              await testInfo.attach(`guide-${language}-${width}`, { path: image, contentType: "image/png" });
+            }
+          });
+        }
+      });
+    }
+  });
+}
+
+test("localized guide figures and representative theme images decode", async ({ page }) => {
+  for (const language of languages) {
+    for (const slug of ["start", "web-sources-tracks", "web-player-config", "themes"]) {
+      await page.goto(guidePath(language, slug));
+      const images = slug === "themes"
+        ? page.locator("#default img, #custom-premiere img")
+        : page.locator(".guide-figure img");
+      await expect(images).toHaveCount(slug === "themes" ? 2 : 1);
+      for (const image of await images.all()) {
+        await image.scrollIntoViewIfNeeded();
+        const decoded = await image.evaluate(async (element: HTMLImageElement) => {
+          await element.decode();
+          return { complete: element.complete, width: element.naturalWidth, height: element.naturalHeight, src: element.currentSrc };
+        });
+        expect(decoded.complete).toBe(true);
+        expect(decoded.width).toBeGreaterThan(0);
+        expect(decoded.height).toBeGreaterThan(0);
+        expect(new URL(decoded.src).pathname).toMatch(/^\/player-lab\/assets\/guide\/[^/]+\.jpg$/);
+      }
+    }
+  }
+});
+
+test.describe("guide without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+  for (const language of languages) {
+    test(`${language} content and references remain navigable`, async ({ page }) => {
+      await page.goto(guidePath(language));
+      await expect(page.locator("noscript p")).toContainText(messages[language].noScript);
+      await expect(page.locator("noscript p")).toBeVisible();
+      await expect(page.locator("[data-guide-search-container]")).toBeHidden();
+      const firstChapter = page.locator(".guide-sidebar a").filter({ hasText: content[language].start!.title });
+      await firstChapter.click();
+      await expect(page.locator("main > h1")).toHaveText(content[language].start!.title);
+      await expect(page.locator("main > ol li")).toHaveCount(4);
+      await page.goto(guidePath(language, "settings/tweaks"));
+      await expectCompleteTweakCatalog(page);
+      await expectHeadingStructure(page);
+      await expectNoDocumentOverflow(page);
+    });
+  }
+});

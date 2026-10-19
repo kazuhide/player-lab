@@ -32,7 +32,7 @@
       </a>
       <nav aria-label="Main navigation">
         <a class="nav-detail" href="#explore">Explore</a>
-        <a class="nav-detail" href="#platforms">Platforms</a>
+        <a class="nav-detail" href="guide/">User guide</a>
         <a href="https://github.com/kazuhide/player-lab">GitHub</a>
         <a class="language-link" href="ja/" lang="ja" hreflang="ja">日本語</a>
       </nav>
@@ -46,7 +46,7 @@
             the code used to build each interface.</p>
           <div class="actions">
             <a class="button" href="web/">Open Web app</a>
-            <a class="text-link" href="#start">Run locally</a>
+            <a class="text-link" href="guide/">User guide</a>
           </div>
         </div>
         <p class="hero-note">A Bitmovin Player playground for the Web, with examples
@@ -60,7 +60,7 @@
           </a>
           <figcaption>
             <span>A capture of the Web app with its player, settings and theme code.</span>
-            <a href="https://github.com/kazuhide/player-lab/blob/main/docs/local-test-media.md">About the test media</a>
+            <a href="guide/media/">About the test media</a>
           </figcaption>
         </figure>
       </section>
@@ -101,7 +101,7 @@
               the Web Player without a key. Public Player and Analytics licenses must
               allow <code>kazuhide.github.io</code>; both client keys are delivered to the browser.
               Other hosts and native apps also need an allowed license.</p>
-            <a class="text-link" href="https://github.com/kazuhide/player-lab/blob/main/docs/SETUP.md">Setup and optional media</a>
+            <a class="text-link" href="guide/local-setup/">Setup and optional media</a>
           </div>
           <pre tabindex="0" aria-label="Commands to run the Web application"><code>git clone https://github.com/kazuhide/player-lab.git
 cd player-lab
@@ -117,11 +117,11 @@ pnpm --filter @showcase/web dev</code></pre>
             guides describe supported formats, license setup, and verification limits.</p>
         </div>
         <div class="platform-list">
-          <a href="https://github.com/kazuhide/player-lab/tree/main/apps/web"><span>Web</span><span>Settings, 14 themes, and construction examples</span></a>
-          <a href="https://github.com/kazuhide/player-lab/tree/main/apps/ios"><span>iOS / tvOS</span><span>Swift player and live rewind controls</span></a>
-          <a href="https://github.com/kazuhide/player-lab/tree/main/apps/android"><span>Android / Fire TV</span><span>Kotlin player, live rewind, and offline example</span></a>
-          <a href="https://github.com/kazuhide/player-lab/tree/main/apps/react-native"><span>React Native</span><span>Player screen for an Expo development build</span></a>
-          <a href="https://github.com/kazuhide/player-lab/tree/main/apps/vega"><span>Vega OS</span><span>Modular player integration and native controls</span></a>
+          <a href="guide/web-screen-themes/"><span>Web</span><span>Settings, 14 themes, and construction examples</span></a>
+          <a href="guide/native-apple/"><span>iOS / tvOS</span><span>Swift player and live rewind controls</span></a>
+          <a href="guide/native-android/"><span>Android / Fire TV</span><span>Kotlin player, live rewind, and offline example</span></a>
+          <a href="guide/native-integrations/"><span>React Native</span><span>Player screen for an Expo development build</span></a>
+          <a href="guide/native-integrations/"><span>Vega OS</span><span>Modular player integration and native controls</span></a>
         </div>
       </section>
 
@@ -139,8 +139,8 @@ pnpm --filter @showcase/web dev</code></pre>
             distinguishes browser playback, native builds and runtime checks.</p>
         </div>
         <div class="verification-links">
-          <a href="https://github.com/kazuhide/player-lab/blob/main/docs/local-test-media.md">Generate the 60-second fixture</a>
-          <a href="https://github.com/kazuhide/player-lab/blob/main/docs/e2e-testing.md">Read the test results</a>
+          <a href="guide/media/">Generate the 60-second fixture</a>
+          <a href="guide/measurement/">Read the test results</a>
           <a href="web/media/ATTRIBUTION.txt">Media credits</a>
         </div>
       </section>

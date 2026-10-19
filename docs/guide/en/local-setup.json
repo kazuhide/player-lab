@@ -1,0 +1,199 @@
+{
+  "id": "local-setup",
+  "title": "Local setup and licenses",
+  "lead": "You can try the basic Web controls on localhost. Custom hosts, native apps, Analytics, and cloud processing each require the appropriate licenses or account configuration.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Start the Web app"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Item",
+        "Version or requirements"
+      ],
+      "widths": [
+        0.32,
+        0.68
+      ],
+      "rows": [
+        [
+          "Node.js / pnpm",
+          "24.19.0 / 10.33.0. Use the versions pinned by the repository."
+        ],
+        [
+          "Web Player / UI",
+          "Bitmovin Player 8.263.0 / Player UI 4.15.1. Online documentation may describe a newer version."
+        ],
+        [
+          "Browser",
+          "A browser that can play HLS or DASH. Codec support, external playback, and low-latency support depend on the environment."
+        ],
+        [
+          "Network",
+          "Dependency downloads, license authentication, and external reference streams require connectivity. Running locally does not by itself provide fully offline playback."
+        ]
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Clone and start for the first time",
+      "text": "git clone https://github.com/kazuhide/player-lab.git\ncd player-lab\ncorepack enable\ncorepack prepare pnpm@10.33.0 --activate\npnpm install --frozen-lockfile\npnpm --filter @showcase/web dev"
+    },
+    {
+      "type": "p",
+      "text": "Open the URL shown in the startup message using the hostname localhost. The Web SDK can run on this hostname without a Player key. Reproduction steps in this guide use localhost consistently. The official Web 8.86.0 release notes also list 127.0.0.1 as exempt from authentication, but actual playback on that host was not checked for this guide. LAN IP addresses, custom hostnames, GitHub Pages, and native apps require an appropriate license."
+    },
+    {
+      "type": "p",
+      "text": "The normal development mode does not automatically use the same 60-second media as the public Pages build. Basic HLS uses Tears of Steel, DASH uses a public Big Buck Bunny stream, and live playback uses external reference streams. Some additional audio, subtitle, and image preview options remain unavailable until their media URLs are configured."
+    },
+    {
+      "type": "h2",
+      "text": "Create local settings only when needed"
+    },
+    {
+      "type": "code",
+      "title": "Run from the repository root",
+      "text": "cp .env.example .env\n# Edit .env locally, then synchronize native settings.\nbash scripts/sync-env.sh"
+    },
+    {
+      "type": "p",
+      "text": "Edit .env in your own editor. Normal local settings take precedence in this order: shell environment variables, the root .env file, then the public config/encoding.conf file. Explicit Web-specific VITE_* settings take priority. Restart the development server after changing settings. For native apps, synchronize the settings and rebuild."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Variable",
+        "Purpose and handling"
+      ],
+      "widths": [
+        0.47,
+        0.53
+      ],
+      "rows": [
+        [
+          "BITMOVIN_PLAYER_LICENSE_KEY",
+          "Client license for the Player. Allow the domains or application identifiers where it will run."
+        ],
+        [
+          "BITMOVIN_ANALYTICS_LICENSE_KEY",
+          "Optional client license for collecting playback events. Leave it empty to disable collection."
+        ],
+        [
+          "BITMOVIN_ANALYTICS_API_KEY",
+          "Optional server credential for local aggregate queries. Do not pass it to the browser."
+        ],
+        [
+          "BITMOVIN_API_KEY",
+          "Server or CLI credential for cloud processing and related operations. It can also be used for aggregate queries. Do not pass it to the browser."
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "title": "Keep client licenses separate from account API keys",
+      "text": "Player and Analytics licenses are delivered to clients. Manage their allowed domains and application identifiers. Keep account API keys on the server; do not place them in VITE_*, HTML, or client code. Use dedicated client licenses for a public demo."
+    },
+    {
+      "type": "h2",
+      "text": "How settings reach each tool"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Target",
+        "Destination and notes"
+      ],
+      "widths": [
+        0.24,
+        0.76
+      ],
+      "rows": [
+        [
+          "Web",
+          "Vite reads the root .env file. Additional media URLs can be configured in apps/web/.env."
+        ],
+        [
+          "iOS / tvOS",
+          "sync-env.sh writes Local.xcconfig. Generate the project with XcodeGen after the first synchronization."
+        ],
+        [
+          "Android",
+          "sync-env.sh writes local.properties. Explicit Gradle properties are also supported."
+        ],
+        [
+          "React Native",
+          "Move the generated EXPO_PUBLIC_* settings into the Expo project where you integrate the sample."
+        ],
+        [
+          "Vega OS",
+          "Set globalThis in the Kepler entry point. See the integration chapter for details."
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Publishing your own Pages build"
+    },
+    {
+      "type": "p",
+      "text": "The project publishes the static files generated and tested by CI on main. CI produces a file inventory and SHA-256 verification data. The Pages workflow verifies the successful artifact from the same commit before deployment. A local .env file or inherited VITE_* values do not replace the Pages configuration."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "GitHub Repository variable",
+        "Value to configure"
+      ],
+      "widths": [
+        0.58,
+        0.42
+      ],
+      "rows": [
+        [
+          "PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY",
+          "Dedicated Player license that allows the public host."
+        ],
+        [
+          "PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY",
+          "Dedicated Analytics license that allows the public host."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The current public host is kazuhide.github.io. For another host, allow that hostname and check the paths, Pages settings, and applicable terms. These values are expected to be included in the distributed JavaScript. The current Pages workflow only deploys artifacts configured with both public client licenses. An account API key is not required."
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/SETUP.md",
+      "line": 1,
+      "label": "Licenses and environment settings"
+    },
+    {
+      "path": "package.json",
+      "line": 1,
+      "label": "Pinned tool versions"
+    },
+    {
+      "path": "apps/web/package.json",
+      "line": 1,
+      "label": "Web dependencies"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/index.html",
+      "label": "Web Player API (may show the latest version)"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-web",
+      "label": "Web 8.86.0 exception for 127.0.0.1"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-analytics",
+      "label": "Analytics license setup"
+    }
+  ]
+}

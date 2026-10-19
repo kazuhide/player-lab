@@ -1,0 +1,257 @@
+{
+  "id": "web-player-config",
+  "title": "Apply Player Config changes",
+  "lead": "The editor groups settings by how they take effect. First check whether the change applies immediately, reloads the source or recreates the player.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Three application modes"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Mode",
+        "Scope and application",
+        "Fields"
+      ],
+      "rows": [
+        [
+          "Instant",
+          "Player API, dynamic Adaptation and Low Latency. Calls an API when the input change is committed.",
+          "21"
+        ],
+        [
+          "Reload",
+          "SourceConfig title, description, poster and start settings. Reloads the source to apply changes.",
+          "5"
+        ],
+        [
+          "Recreate",
+          "Initial PlayerConfig settings. Creates a new player to apply changes.",
+          "108"
+        ]
+      ],
+      "widths": [
+        0.18,
+        0.69,
+        0.13
+      ]
+    },
+    {
+      "type": "p",
+      "text": "There are 134 fields in 14 groups. DVR, UI and casting controls also appear in the separate control panel. Open or close a group using its heading. Dynamic groups start open; recreation groups start closed."
+    },
+    {
+      "type": "h2",
+      "text": "Try an immediate setting"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Player API and inspect current values such as volume and mute.",
+        "Change one field, then commit it by leaving the input or using its selector. Inputs apply on a change event, not on every keystroke.",
+        "Check the actual change in volume, playback speed or view mode. Changing volume may unmute the player and make audio audible.",
+        "Compare another value while retaining the same playback."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Fullscreen and PiP require a supported environment and a user gesture. Some runtime fields do not implement removal of a value when cleared. Leaving aspect ratio, poster, resolution limits or latency values empty does not necessarily restore the SDK default."
+    },
+    {
+      "type": "h2",
+      "text": "Apply source settings"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Change title in Source. Use a theme such as Premiere that displays the title.",
+        "Change description, poster, startOffset and its reference if needed.",
+        "Press Reload the source to apply.",
+        "Check the on-video display and start position after reloading."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Reload and recreation edits remain staged until their respective Apply button is pressed. The button is disabled when there are no changes. A source reload retains the other applied source settings."
+    },
+    {
+      "type": "h2",
+      "text": "Apply initial settings"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open the groups you need, such as Playback, Adaptation or Buffer.",
+        "Change a small number of values to compare.",
+        "Press Recreate the player to apply.",
+        "Check applied values and playback behavior after loading again."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Initial Adaptation settings are applied to both desktop and mobile. Initial buffer settings separate audio/video and forward/backward retention. After recreation, runtime fields such as volume are read again from the new instance."
+    },
+    {
+      "type": "h2",
+      "text": "Configuration groups"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Group",
+        "Fields",
+        "Scope"
+      ],
+      "rows": [
+        [
+          "Player API",
+          "8",
+          "Volume, mute, speed, buffer, view mode, aspect ratio, poster and logs"
+        ],
+        [
+          "Adaptation (dynamic)",
+          "6",
+          "Display-size limits, quality stability and resolution limits"
+        ],
+        [
+          "Low Latency (dynamic)",
+          "7",
+          "Target latency, catchup and fallback"
+        ],
+        [
+          "Source",
+          "5",
+          "Title, description, poster, start position and reference"
+        ],
+        [
+          "Playback",
+          "8",
+          "Initial playback behavior and languages"
+        ],
+        [
+          "Adaptation (initial)",
+          "12",
+          "Starting bitrate, bitrate limits and adaptation logic"
+        ],
+        [
+          "Buffer (initial)",
+          "4",
+          "Forward and backward buffers for audio and video"
+        ],
+        [
+          "Tweaks",
+          "65",
+          "64 primitive fields plus log_level"
+        ],
+        [
+          "Logs",
+          "2",
+          "Verbosity and the console credit"
+        ],
+        [
+          "Style",
+          "4",
+          "Aspect ratio, dimensions and native subtitles"
+        ],
+        [
+          "Cast",
+          "4",
+          "CastConfig support and receiver settings"
+        ],
+        [
+          "Live",
+          "2",
+          "Incremental manifests and target latency"
+        ],
+        [
+          "Location",
+          "5",
+          "UI, CSS, Cast, IMA and Service Worker locations"
+        ],
+        [
+          "Misc",
+          "2",
+          "License-request delay and player storage"
+        ]
+      ],
+      "widths": [
+        0.32,
+        0.09,
+        0.59
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Initial display values in the settings catalog are form fallbacks when an applied value cannot be read. They are not SDK defaults, current effective values or recommendations. A Tweaks checkbox documented as false does not establish that the SDK default is false."
+    },
+    {
+      "type": "h2",
+      "text": "Restore a setting"
+    },
+    {
+      "type": "p",
+      "text": "Clear an optional Source or initial-configuration override, or select its default option, then apply it to remove only that override. Other settings remain applied. Checkboxes explicitly specify on or off; they do not provide an unset state. The GUI has no global reset, configuration-file save/load or complete configuration-code export."
+    },
+    {
+      "type": "h2",
+      "text": "Settings outside this GUI"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "Quality, audio and subtitle choices depend on the source. Use the menus inside the player.",
+        "APIs accepting functions or objects, such as request preprocessing, authentication or video-element replacement, are not included in this form.",
+        "The GUI does not edit complete DRM, advertising or VR configurations and APIs.",
+        "Object or callback tweaks such as query_parameters, segmentLoader, disable_retry_for_response_status, wish_abr_params and playstation_5 are excluded."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The existence of a field does not establish that it applies in the current environment or has been verified on every platform. Use compatible media and environments for conditional settings such as TV, DRM, advertising and native HLS."
+    },
+    {
+      "type": "figure",
+      "file": "config",
+      "caption": "The five SourceConfig fields. The Apply button is below the complete configuration panel."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 65
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 144
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 269
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 576
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 721
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 735
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 853
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 883
+    },
+    {
+      "path": "apps/web/test/configState.test.ts",
+      "line": 5
+    }
+  ]
+}

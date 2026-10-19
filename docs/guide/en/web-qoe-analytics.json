@@ -1,0 +1,134 @@
+{
+  "id": "web-qoe-analytics",
+  "title": "State, events and playback measurements",
+  "lead": "Distinguish the current playback-session values calculated in the browser from Analytics data sent to and aggregated by Bitmovin.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Event log"
+    },
+    {
+      "type": "p",
+      "text": "The log shows notifications such as SourceLoaded, Play, Playing, Paused, Seek, TimeShift, StallStarted and Error with local timestamps. New events appear first; the log retains up to 80 lines. Frequent TimeChanged events are excluded. Recreating the player also rebuilds the control panel."
+    },
+    {
+      "type": "h2",
+      "text": "Six QoE readouts"
+    },
+    {
+      "type": "p",
+      "text": "Quality of Experience (QoE) refers here to playback-quality indicators. The app calculates them in the browser from SDK events; they are not account-level aggregate results."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Readout",
+        "Definition in this app"
+      ],
+      "rows": [
+        [
+          "startup",
+          "Time from SourceLoaded to the first Playing event, not the entire time from opening the page to the first video frame."
+        ],
+        [
+          "rebuffering",
+          "Stall time divided by playing plus stall time after startup, with the interruption count. Pauses and initial buffering are excluded."
+        ],
+        [
+          "errors",
+          "The number of Error events in the session."
+        ],
+        [
+          "seek time",
+          "Time from the latest Seek or TimeShift to its corresponding completion event."
+        ],
+        [
+          "live latency",
+          "The difference between the device clock and the wall-clock time corresponding to the video."
+        ],
+        [
+          "edge latency",
+          "The distance from the live edge returned by the SDK getLatency API."
+        ]
+      ],
+      "widths": [
+        0.27,
+        0.73
+      ]
+    },
+    {
+      "type": "p",
+      "text": "A new SourceLoaded, source unload or player destruction resets the measurements. Changes that only replace a theme or UI retain the same player measurements. At playback end, final totals are retained and stop increasing."
+    },
+    {
+      "type": "note",
+      "text": "QoE latency fields may retain their last valid value when timing information becomes temporarily unavailable. Check the Player state readout, including needs PDT, to determine whether timing is valid for the current source."
+    },
+    {
+      "type": "h2",
+      "text": "Analytics collection on Pages"
+    },
+    {
+      "type": "p",
+      "text": "The public Pages app uses a dedicated Analytics license to send playback and device information to Bitmovin Analytics. It displays a notice explaining this collection. A visible browser-local QoE readout and data aggregation in the destination dashboard are separate checks."
+    },
+    {
+      "type": "p",
+      "text": "Pages serves static files and does not run a backend holding an account API key. The server-proxied Analytics query panel is therefore hidden. Its absence does not mean that the collector has stopped sending playback data."
+    },
+    {
+      "type": "h2",
+      "text": "Aggregate queries in local development"
+    },
+    {
+      "type": "p",
+      "text": "The local development server supports aggregate queries when an API key and Analytics license are configured server-side. Four GUI buttons query impressions, average startup time, average video startup time and average buffered time over the last seven days. Results are displayed as rows."
+    },
+    {
+      "type": "p",
+      "text": "An unconfigured server displays a configuration message; an unreachable proxy displays a connection message. The query uses the Analytics license selected on the server. An empty result means no rows were returned, not directly that playback succeeded or failed."
+    },
+    {
+      "type": "note",
+      "text": "Player and Analytics licenses are client-side values. The account API key is a server-side secret. Never enter an account API key into Player Config, a URL, an image field or another browser-side input."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 629
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 479
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 490
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 499
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 542
+    },
+    {
+      "path": "apps/web/src/analytics/metrics.ts",
+      "line": 90
+    },
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 24
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 70
+    },
+    {
+      "path": "docs/SETUP.md",
+      "line": 45
+    }
+  ]
+}

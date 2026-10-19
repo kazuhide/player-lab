@@ -1,0 +1,392 @@
+{
+  "id": "controls",
+  "title": "All 35 control-panel items",
+  "lead": "These 35 controls are separate from theme selection, Player Config, and track menus inside the Player. Check each control's input type and the resulting behavior.",
+  "controls": [
+    {
+      "group": "source",
+      "id": "vod-hls",
+      "label": "VOD HLS",
+      "kind": "button",
+      "description": "The initial source. Pages plays a 60-second Big Buck Bunny excerpt.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "vod-dash",
+      "label": "VOD DASH",
+      "kind": "button",
+      "description": "Play the same bundled 60-second Pages media using DASH.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "live-dash",
+      "label": "Live DASH + DVR",
+      "kind": "button",
+      "description": "Use the public live source to check rewind, multiple audio tracks, and subtitles. Availability depends on the provider.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "live-hls",
+      "label": "Live HLS",
+      "kind": "button",
+      "description": "Play a public HLS live source. The available rewind range depends on its media and loading state.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "vod-sprites",
+      "label": "VOD + Sprites",
+      "kind": "button",
+      "description": "Move the pointer over the seek bar to inspect previews cropped from a sprite sheet.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "vod-multiaudio",
+      "label": "VOD + Multi-audio",
+      "kind": "button",
+      "description": "Select between two tracks in the Player's audio menu. Language labels on the Pages media are test metadata.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "vod-subtitles",
+      "label": "VOD + Subtitles",
+      "kind": "button",
+      "description": "Choose English in the Player's subtitle menu to check WebVTT subtitle rendering.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "seek",
+      "id": "live-edge",
+      "label": "Go to live edge",
+      "kind": "button",
+      "description": "Move to the current live edge. This does not move to the start or end of an on-demand clip.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 509
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek-offset",
+      "label": "Offset from edge (s)",
+      "kind": "number",
+      "description": "Zero is the live edge; negative values are earlier positions. The initial display is -30. Entering a value alone does not move playback.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 227
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek-submit",
+      "label": "Seek",
+      "kind": "button",
+      "description": "Move to the entered offset. The request is clamped to the available DVR window.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 232
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek--10",
+      "label": "-10s",
+      "kind": "button",
+      "description": "Move ten seconds behind the live edge, not ten seconds back from the current position.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 235
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek--30",
+      "label": "-30s",
+      "kind": "button",
+      "description": "Move 30 seconds behind the live edge, not 30 seconds back from the current position.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 235
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek--60",
+      "label": "-60s",
+      "kind": "button",
+      "description": "Move 60 seconds behind the live edge, not 60 seconds back from the current position.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 235
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek--120",
+      "label": "-120s",
+      "kind": "button",
+      "description": "Move 120 seconds behind the live edge, not 120 seconds back from the current position.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 235
+      }
+    },
+    {
+      "group": "playback",
+      "id": "timeshift",
+      "label": "Allow DVR (timeShift)",
+      "kind": "checkbox",
+      "description": "Allow live rewind. Changing this setting recreates the Player. It starts enabled.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 240
+      }
+    },
+    {
+      "group": "playback",
+      "id": "double-click",
+      "label": "Double-click",
+      "kind": "select",
+      "description": "Choose fullscreen toggling, or ten-second backward/forward seeking on the left/right half. This applies to themes other than Default.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 452
+      }
+    },
+    {
+      "group": "playback",
+      "id": "start-offset",
+      "label": "Start offset behind edge (s)",
+      "kind": "number",
+      "description": "Set the start position after reloading. The initial display is -20 and the reference is explicitly end.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 469
+      }
+    },
+    {
+      "group": "playback",
+      "id": "start-reload",
+      "label": "Reload at offset",
+      "kind": "button",
+      "description": "Reload the source at the specified start position. Unlike a seek, this also restarts local QoE session measurements.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 474
+      }
+    },
+    {
+      "group": "playback",
+      "id": "buffer-target",
+      "label": "Buffer target (s)",
+      "kind": "number",
+      "description": "The forward video-buffer target. The initial display is 40 seconds.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 479
+      }
+    },
+    {
+      "group": "playback",
+      "id": "buffer-submit",
+      "label": "Set buffer target",
+      "kind": "button",
+      "description": "Apply the entered value through player.buffer.setTargetLevel. It does not change the live rewind window.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 484
+      }
+    },
+    {
+      "group": "playback",
+      "id": "pip-toggle",
+      "label": "Toggle Picture-in-Picture",
+      "kind": "button",
+      "description": "Show video in a separate small window where supported. Availability depends on the browser and operating system.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 492
+      }
+    },
+    {
+      "group": "playback",
+      "id": "autoplay-next",
+      "label": "Continuous play (auto-next)",
+      "kind": "checkbox",
+      "description": "Toggle the Binge theme's end-of-clip countdown and automatic advance. It starts enabled.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 423
+      }
+    },
+    {
+      "group": "ui",
+      "id": "autohide",
+      "label": "Autohide controls",
+      "kind": "checkbox",
+      "description": "Hide the control bar after inactivity. This starts disabled and applies to every theme, including Default.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 253
+      }
+    },
+    {
+      "group": "ui",
+      "id": "enableSeekPreview",
+      "label": "Seek scrub-preview",
+      "kind": "checkbox",
+      "description": "Choose between moving video during a drag and seeking only on release. This is separate from image thumbnails.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 278
+      }
+    },
+    {
+      "group": "ui",
+      "id": "disableAutoHideWhenHovered",
+      "label": "Keep bar on hover",
+      "kind": "checkbox",
+      "description": "When autohide is enabled, keep the bar visible while the pointer is over the Player.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 287
+      }
+    },
+    {
+      "group": "ui",
+      "id": "playbackSpeedSelectionEnabled",
+      "label": "Speed item in settings gear",
+      "kind": "checkbox",
+      "description": "Show playback-speed choices in the settings menu. Check a theme with its own gear, such as Premiere, Creator, or Studio.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 296
+      }
+    },
+    {
+      "group": "ui",
+      "id": "seekbarSnappingEnabled",
+      "label": "Snap seeks to markers",
+      "kind": "checkbox",
+      "description": "Snap a seek near a marker to that position. Sample markers start at 120 seconds, so the 60-second Pages media cannot demonstrate this.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 305
+      }
+    },
+    {
+      "group": "ui",
+      "id": "enterFullscreenOnInitialPlayback",
+      "label": "Fullscreen on first play",
+      "kind": "checkbox",
+      "description": "Enter fullscreen when the play button starts initial playback. The app's default autoplay makes this difficult to observe.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 314
+      }
+    },
+    {
+      "group": "ui",
+      "id": "forceSubtitlesIntoViewContainer",
+      "label": "Keep subtitles in view",
+      "kind": "checkbox",
+      "description": "Keep overflowing subtitles within the display area. Compare using a source with subtitles.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 323
+      }
+    },
+    {
+      "group": "ui",
+      "id": "disableStorageApi",
+      "label": "Disable UI storage",
+      "kind": "checkbox",
+      "description": "Disable persistence of UI choices such as volume, quality, and tracks. This is separate from PlayerConfig storage.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 332
+      }
+    },
+    {
+      "group": "ui",
+      "id": "seekbarSnappingRange",
+      "label": "Snap range (%)",
+      "kind": "number",
+      "description": "Set how close a seek must be to a marker, as a percentage of seek-bar width. The initial display is 1.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 353
+      }
+    },
+    {
+      "group": "ui",
+      "id": "cea608SmallPlayerHeightThreshold",
+      "label": "CEA-608 small-player px",
+      "kind": "number",
+      "description": "Set the height at which small-player caption placement changes. The initial display is 360 pixels and applies to CEA-608 captions.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 362
+      }
+    },
+    {
+      "group": "casting",
+      "id": "pip",
+      "label": "PiP button",
+      "kind": "checkbox",
+      "description": "Add a Picture-in-Picture button to a custom UI. Default and CSS themes already include the stock button and are not changed by this addition.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 390
+      }
+    },
+    {
+      "group": "casting",
+      "id": "airplay",
+      "label": "AirPlay button",
+      "kind": "checkbox",
+      "description": "Add an AirPlay button to a custom UI. It appears only in supported Safari environments.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 398
+      }
+    },
+    {
+      "group": "casting",
+      "id": "cast",
+      "label": "Chromecast button",
+      "kind": "checkbox",
+      "description": "Add a Cast button to a custom UI. This recreates the Player to enable remotecontrol and requires a compatible receiver.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 406
+      }
+    }
+  ]
+}

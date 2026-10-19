@@ -20,7 +20,8 @@ import json
 import shutil
 import sys
 
-target = Path(sys.argv[1])
+target = Path(sys.argv[1]) / 'notices'
+target.mkdir()
 sdk = Path('apps/web/node_modules/bitmovin-player')
 metadata = json.loads((sdk / 'package.json').read_text(encoding='utf-8'))
 entry = (sdk / metadata['main']).read_text(encoding='utf-8')
@@ -38,6 +39,9 @@ shutil.copyfile(sdk / 'THIRD_PARTY_NOTICES', target / 'BITMOVIN-PLAYER-THIRD-PAR
     'https://legal.bitmovin.com/legal/terms\n', encoding='utf-8')
 PY
 
+python3 scripts/build-user-guide.py --content-dir docs/guide --output-dir "$notice_dir/guide"
+
 python3 scripts/package-pages.py \
-  --site-dir site --web-dir apps/web/dist --notices-dir "$notice_dir" \
+  --site-dir site --web-dir apps/web/dist --notices-dir "$notice_dir/notices" \
+  --guide-dir "$notice_dir/guide" \
   --media-dir "$1" --output-dir "$2" --manifest "$3"

@@ -1,0 +1,176 @@
+{
+  "id": "glossary",
+  "title": "用語集",
+  "lead": "本文の設定名は、SDKの識別子と照合できるよう英語表記を維持しています。略語と、このサンプルでの使い方をまとめます。",
+  "blocks": [
+    {
+      "type": "table",
+      "headers": [
+        "用語",
+        "意味"
+      ],
+      "rows": [
+        [
+          "API",
+          "Application Programming Interface。ソフトウェアから機能を呼び出すための窓口です。このガイドでは再生操作やクラウド処理の命令を指します。"
+        ],
+        [
+          "SDK",
+          "Software Development Kit。アプリに組み込むライブラリや型定義などの開発用部品です。Web、iOS、Androidで別のSDKを使います。"
+        ],
+        [
+          "UI",
+          "User Interface。再生ボタン、設定メニュー、表示ラベルなど、利用者が見たり操作したりする部分です。"
+        ],
+        [
+          "Config",
+          "Configurationの略で設定を指します。PlayerConfigはプレイヤー、SourceConfigはソース、UIConfigはUIを主な対象にします。"
+        ],
+        [
+          "HLS",
+          "HTTP Live Streaming。プレイリストとメディアの区切りをHTTPで取得する配信方式です。ライブにもVODにも使われます。"
+        ],
+        [
+          "DASH",
+          "Dynamic Adaptive Streaming over HTTP。MPDというマニフェストに基づいてメディアを取得する配信方式です。HLSと同様にライブとVODがあります。"
+        ],
+        [
+          "VOD",
+          "Video on Demand。視聴者が再生開始や移動位置を選べるオンデマンド動画です。アプリは有限の長さを持つ素材として判定します。"
+        ],
+        [
+          "DVR",
+          "Digital Video Recorder。このアプリでは、ライブの利用可能な過去へ戻る操作と、その巻き戻し可能範囲を指します。"
+        ],
+        [
+          "manifest／マニフェスト",
+          "メディアの場所、品質、トラック、時間などを記述する案内ファイルです。HLSのプレイリストやDASHのMPDが該当します。"
+        ],
+        [
+          "segment／セグメント",
+          "連続する音声や映像を配信のために区切った単位です。素材の章にある2秒は映像の区切りで、音声が毎回同じ長さになるとは限りません。"
+        ],
+        [
+          "ABR",
+          "Adaptive Bitrate。通信状況などに合わせて再生する品質を切り替える方式です。プレイヤーの適応選択であり、エンコードをやり直す処理ではありません。"
+        ],
+        [
+          "AAC",
+          "Advanced Audio Coding。音声を圧縮する形式です。同梱素材では48kHzの音声を使い、エンコーダーのフレームと初期パディングを考慮して時間を検査します。"
+        ],
+        [
+          "PTS",
+          "Presentation Time Stamp。音声や映像をいつ提示するかを示すメディア上の時刻です。通常、時計の現在時刻そのものとは異なります。"
+        ],
+        [
+          "PDT",
+          "Program Date Time。メディア時刻と実世界の時計を対応付ける情報です。HLSではEXT-X-PROGRAM-DATE-TIMEなどを使います。"
+        ],
+        [
+          "QoE",
+          "Quality of Experience。視聴時の品質を評価する考え方です。このアプリでは起動時間、再バッファ、エラーなどをブラウザー内で計測します。"
+        ],
+        [
+          "rebuffer／再バッファ",
+          "再生を始めた後に、データが足りなくなって再びバッファを蓄える状態です。アプリの集計では初回の待機や利用者の一時停止と区別します。"
+        ],
+        [
+          "CDN",
+          "Content Delivery Network。映像などを利用者へ配信するサーバー網です。配信元で素材があっても、キャッシュや参照先の状態で取得結果が変わる場合があります。"
+        ],
+        [
+          "CORS",
+          "Cross-Origin Resource Sharing。異なる接続元のWebアプリへ、サーバーが応答の読み取りを許可する仕組みです。接続元は方式、ホスト、ポートで区別します。"
+        ],
+        [
+          "DRM",
+          "Digital Rights Management。暗号化したコンテンツの視聴権を管理する仕組みです。Bitmovin Player自体の利用ライセンスとは別です。"
+        ],
+        [
+          "PiP",
+          "Picture-in-Picture。映像を独立した小さなウィンドウで表示する機能です。テレビなどの別端末へ送るCastとは異なります。"
+        ],
+        [
+          "GC",
+          "Garbage Collection。到達できなくなったJavaScriptオブジェクトなどのメモリを実行環境が回収する処理です。回収時点は一定ではなく、全メディアメモリの解放を示しません。"
+        ],
+        [
+          "hvc1",
+          "MP4などでHEVC映像を示す識別子です。文字列があるだけで、そのOSやブラウザーがデコードできることを保証するものではありません。"
+        ],
+        [
+          "RTMP",
+          "Real-Time Messaging Protocol。ここでは、ライブエンコーダーへ映像を送る入力側の方式です。生成されたHLSやDASHをWeb Playerが再生します。"
+        ],
+        [
+          "Per-Title（PerTitle）",
+          "動画ごとの内容を解析して解像度やビットレートの組み合わせを決めるエンコード方式です。再生中のABRとは処理する段階が異なります。"
+        ],
+        [
+          "Bundle ID（BundleID）",
+          "Appleアプリの識別子です。ライセンスで実行先を許可するときに使います。Androidの対応する識別子はapplicationIdで、同じ設定名ではありません。"
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.77
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 4,
+      "label": "APIと設定の反映方法"
+    },
+    {
+      "path": "docs/dvr-time-and-start-config.md",
+      "line": 9,
+      "label": "DVRと時間の用語"
+    },
+    {
+      "path": "docs/local-test-media.md",
+      "line": 71,
+      "label": "セグメント、AAC、提示時刻"
+    },
+    {
+      "path": "apps/web/src/analytics/metrics.ts",
+      "line": 90,
+      "label": "QoEと再バッファ"
+    },
+    {
+      "path": "docs/player-capabilities.md",
+      "line": 7,
+      "label": "PiPと外部表示"
+    },
+    {
+      "path": "docs/web-performance.md",
+      "line": 71,
+      "label": "メモリと回収の読み方"
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS",
+      "label": "MDN:CORSの定義"
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Memory_management",
+      "label": "MDN:メモリ管理とGC"
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/codecs_parameter",
+      "label": "MDN:HEVCのcodecs識別子"
+    },
+    {
+      "url": "https://developer.bitmovin.com/encoding/docs/rtmp-api-configuration",
+      "label": "Bitmovin:RTMPライブ入力とHLS/DASH出力"
+    },
+    {
+      "url": "https://developer.bitmovin.com/encoding/docs/overview-per-title-encoding",
+      "label": "Bitmovin:Per-Titleの処理"
+    },
+    {
+      "url": "https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleidentifier",
+      "label": "Apple:CFBundleIdentifier"
+    }
+  ]
+}
