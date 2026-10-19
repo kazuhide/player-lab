@@ -69,10 +69,11 @@ request and show its collection notice; this does not prove remote ingestion.
 Account aggregation controls remain disabled even for synthetic click events.
 
 On 2026-10-19, Chrome 155 on macOS 27.0.1 passed all nine production cases with
-Playwright 1.61.0, one worker and no retries or skips, in 15.3 seconds. This used
-the generated 60-second fixture and a synthetic collector license. Web unit
+Playwright 1.61.0, one worker and no retries or skips, in 14.3 seconds. This used
+the generated 60-second fixture and the configured public licenses, with
+collector requests intercepted. Web unit
 tests passed 93 cases, package verification passed 32, the static test server
-passed three, and the secret-scanner regression passed its three cases.
+passed three, and the secret-scanner regression passed 15 cases.
 Hosted domain licensing and actual Analytics receipt are separate checks.
 
 ## Native builds and device runs

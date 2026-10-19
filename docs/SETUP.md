@@ -64,6 +64,12 @@ CI run for the current `main` commit and configured public Player and Analytics
 keys; it verifies the file list and hashes before deployment. A keyless build
 can be tested at `localhost`, but cannot be promoted by the Pages workflow.
 
+The artifact scan uses the default secret detectors. It distinguishes only those
+two explicitly configured public license values in the generated main bundle;
+other values and files remain subject to scanning. The temporary scan settings
+are kept outside the published files and removed afterward. Local account keys
+are never eligible for this exception.
+
 ## 1. Fill in `.env`
 
 ```bash
