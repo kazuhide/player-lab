@@ -414,6 +414,7 @@ function playNextEpisode(): void {
 // which clears its container on every rebuild) because its metrics accumulate across the
 // session; the control panel re-attaches this same node into its telemetry row each build.
 let metrics = initialMetrics();
+let metricsTimer: number | undefined;
 const metricsEl = document.createElement("pre");
 metricsEl.className = "metrics metrics-qoe";
 /** Wrap a telemetry box in a titled card matching the control panel's section style. The
@@ -446,7 +447,7 @@ const analyticsView = createAnalyticsView();
 document.getElementById("analytics-panel")?.appendChild(analyticsView.el);
 
 function renderMetrics(): void {
-  const m = metricsSnapshot(metrics);
+  const m = metricsSnapshot(metrics, performance.now());
   metricsEl.textContent = [
     `startup      ${m.startupMs !== null ? `${Math.round(m.startupMs)} ms` : "—"}`,
     `rebuffering  ${(m.rebufferRatio * 100).toFixed(2)}%  (${m.rebufferCount}×)`,
@@ -459,6 +460,15 @@ function renderMetrics(): void {
 function feed(ev: MetricsEvent): void {
   metrics = reduceMetrics(metrics, ev);
   renderMetrics();
+  // Render the active phase even when no player event arrives, such as during
+  // a long stall or uninterrupted VOD playback. One timer serves this readout;
+  // elapsed time comes from the clock, never from counting timer ticks.
+  const active = metrics.phase === "playing" || metrics.phase === "stalled";
+  if (active && metricsTimer === undefined) metricsTimer = window.setInterval(renderMetrics, 500);
+  else if (!active && metricsTimer !== undefined) {
+    window.clearInterval(metricsTimer);
+    metricsTimer = undefined;
+  }
 }
 
 // TimeMode (§7) isn't exposed at runtime by the web SDK — reference the documented string value.
@@ -482,6 +492,9 @@ function sdkLatencySeconds(p: PlayerAPI): number | null {
 function wireMetrics(p: PlayerAPI): void {
   const now = (): number => performance.now();
   p.on(PlayerEvent.SourceLoaded, () => feed({ type: "load", t: now() }));
+  p.on(PlayerEvent.SourceUnloaded, () => feed({ type: "unload", t: now() }));
+  p.on(PlayerEvent.Destroy, () => feed({ type: "unload", t: now() }));
+  p.on(PlayerEvent.PlaybackFinished, () => feed({ type: "ended", t: now() }));
   p.on(PlayerEvent.Playing, () => feed({ type: "playing", t: now() }));
   p.on(PlayerEvent.Paused, () => feed({ type: "paused", t: now() }));
   p.on(PlayerEvent.StallStarted, () => feed({ type: "stallStart", t: now() }));

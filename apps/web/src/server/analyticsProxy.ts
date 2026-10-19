@@ -68,7 +68,14 @@ type BuildResult =
   | { ok: false; status: number; error: string; message: string };
 
 /** Validate the client request and assemble the Bitmovin query body (injecting the license). */
-export function buildBitmovinQuery(body: Partial<AnalyticsQueryRequest>, cfg: AnalyticsProxyConfig): BuildResult {
+export function buildBitmovinQuery(body: unknown, cfg: AnalyticsProxyConfig): BuildResult {
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return { ok: false, status: 400, error: "bad_request", message: "Request body must be a JSON object." };
+  }
+  return buildObjectQuery(body as Record<string, unknown>, cfg);
+}
+
+function buildObjectQuery(body: Record<string, unknown>, cfg: AnalyticsProxyConfig): BuildResult {
   if (!isAggregation(body.aggregation)) {
     return { ok: false, status: 400, error: "bad_request", message: `aggregation must be one of: ${ALLOWED_AGGREGATIONS.join(", ")}` };
   }
@@ -104,10 +111,12 @@ export function shapeAnalyticsResponse(raw: unknown): { rows: unknown[][]; rowCo
 
 /** The proxy entry point. Returns the status + JSON to send back to the browser. */
 export async function handleAnalyticsQuery(
-  body: Partial<AnalyticsQueryRequest>,
+  body: unknown,
   cfg: AnalyticsProxyConfig,
   fetchFn: typeof fetch,
 ): Promise<ProxyResult> {
+  const built = buildBitmovinQuery(body, cfg);
+  if (!built.ok) return { status: built.status, json: { error: built.error, message: built.message } };
   if (!cfg.apiKey) {
     return {
       status: 503,
@@ -118,9 +127,6 @@ export async function handleAnalyticsQuery(
       },
     };
   }
-  const built = buildBitmovinQuery(body, cfg);
-  if (!built.ok) return { status: built.status, json: { error: built.error, message: built.message } };
-
   const headers: Record<string, string> = { "Content-Type": "application/json", "X-Api-Key": cfg.apiKey };
   if (cfg.orgId) headers["X-Tenant-Org-Id"] = cfg.orgId;
 
@@ -137,8 +143,9 @@ export async function handleAnalyticsQuery(
     });
     // Read the body inside the timeout window too, so a header-then-stall upstream can't hang.
     text = await res.text();
-  } catch (err) {
-    return { status: 502, json: { error: "upstream_unreachable", message: `Could not reach Bitmovin Analytics: ${String((err as Error)?.message ?? err)}` } };
+  } catch {
+    // Transport errors can contain request headers or credentials. Keep them server-side.
+    return { status: 502, json: { error: "upstream_unreachable", message: "Could not reach Bitmovin Analytics." } };
   } finally {
     clearTimeout(timer);
   }
@@ -151,15 +158,12 @@ export async function handleAnalyticsQuery(
   }
 
   if (!res.ok) {
-    const message =
-      (parsed as { data?: { message?: string }; message?: string })?.data?.message ??
-      (parsed as { message?: string })?.message ??
-      `Bitmovin Analytics returned HTTP ${res.status}`;
-    // Surface auth failures verbatim (so the user knows to fix the key); collapse the rest to 502.
+    const message = `Bitmovin Analytics returned HTTP ${res.status}.`;
+    // Preserve the auth status without echoing a response body that could reflect credentials.
     const status = res.status === 401 || res.status === 403 ? res.status : 502;
     return { status, json: { error: "upstream_error", upstreamStatus: res.status, message } };
   }
 
   const shaped = shapeAnalyticsResponse(parsed);
-  return { status: 200, json: { ...shaped, aggregation: built.aggregation, dimension: body.dimension } };
+  return { status: 200, json: { ...shaped, aggregation: built.aggregation, dimension: built.query.dimension } };
 }

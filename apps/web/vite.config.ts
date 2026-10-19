@@ -1,58 +1,20 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import { resolveClientLicenseKey } from "./src/env/clientLicense";
-import { handleAnalyticsQuery, type AnalyticsProxyConfig } from "./src/server/analyticsProxy";
+import type { AnalyticsProxyConfig } from "./src/server/analyticsProxy";
+import { createAnalyticsMiddleware } from "./src/server/analyticsMiddleware";
 
 // Dev-server middleware that mounts the Bitmovin Analytics proxy at POST /api/analytics/query.
 // It holds the SECRET api key server-side (read via loadEnv from a non-VITE_ var, so it is NEVER
 // injected into the client bundle) and forwards queries to Bitmovin. In production this same
 // `handleAnalyticsQuery` logic belongs in a serverless function / backend route; the middleware
 // here makes it work under `vite` (dev + the E2E server) without a separate process.
-const MAX_BODY_BYTES = 1_000_000;
-
 function analyticsProxyPlugin(cfg: AnalyticsProxyConfig): Plugin {
   return {
     name: "bitmovin-analytics-proxy",
-    apply: "serve", // dev-server only — there is no static-build equivalent (use a serverless route in prod)
+    apply: "serve", // dev-server only; static builds need their own server route
     configureServer(server) {
-      server.middlewares.use("/api/analytics/query", (req, res) => {
-        let done = false; // guard so we respond exactly once
-        const send = (status: number, json: unknown): void => {
-          if (done) return;
-          done = true;
-          res.statusCode = status;
-          res.setHeader("Content-Type", "application/json");
-          res.end(JSON.stringify(json));
-        };
-        if (req.method !== "POST") return send(405, { error: "method_not_allowed", message: "Use POST." });
-
-        const chunks: Buffer[] = [];
-        let size = 0;
-        req.on("data", (chunk: Buffer) => {
-          size += chunk.length; // byte-accurate cap
-          if (size > MAX_BODY_BYTES) {
-            send(413, { error: "payload_too_large", message: "Request body exceeds 1 MB." });
-            req.destroy();
-            return;
-          }
-          chunks.push(chunk);
-        });
-        req.on("error", () => send(400, { error: "request_error", message: "The request stream errored." }));
-        req.on("end", () => {
-          if (done) return; // already responded (e.g. 413)
-          void (async () => {
-            let body: unknown = {};
-            try {
-              const raw = Buffer.concat(chunks).toString("utf8");
-              body = raw ? JSON.parse(raw) : {};
-            } catch {
-              return send(400, { error: "bad_json", message: "Request body is not valid JSON." });
-            }
-            const result = await handleAnalyticsQuery(body as Record<string, unknown>, cfg, fetch);
-            send(result.status, result.json);
-          })();
-        });
-      });
+      server.middlewares.use("/api/analytics/query", createAnalyticsMiddleware(cfg));
     },
   };
 }

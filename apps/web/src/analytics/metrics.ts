@@ -1,5 +1,5 @@
 /**
- * Playback QoE metrics (§15) computed from the player's event stream — startup
+ * Playback quality metrics computed from the player's event stream — startup
  * time, rebuffering %, error count, seek time, and live latency. Pure and
  * unit-tested: events carry explicit timestamps so the logic is deterministic.
  *
@@ -14,6 +14,8 @@ export type MetricsEvent =
   | { type: "paused"; t: number }
   | { type: "stallStart"; t: number }
   | { type: "stallEnd"; t: number }
+  | { type: "ended"; t: number }
+  | { type: "unload"; t: number }
   | { type: "error" }
   | { type: "seek"; t: number }
   | { type: "seeked"; t: number }
@@ -79,6 +81,10 @@ export function reduceMetrics(state: MetricsState, ev: MetricsEvent): MetricsSta
     case "load":
       // A new source resets the per-session metrics.
       return { ...initialMetrics(), loadAt: ev.t, phaseSince: ev.t };
+    case "unload":
+      return { ...initialMetrics(), phaseSince: ev.t };
+    case "ended":
+      return { ...settle(state, ev.t), phase: "idle", loadAt: null, seekAt: null };
     case "playing": {
       const s = settle(state, ev.t);
       const startupMs = s.startupMs ?? (s.loadAt !== null ? ev.t - s.loadAt : null);
@@ -90,7 +96,7 @@ export function reduceMetrics(state: MetricsState, ev: MetricsEvent): MetricsSta
     }
     case "stallStart": {
       // Buffering before the first frame is startup, not rebuffering.
-      if (state.startupMs === null) return state;
+      if (state.startupMs === null || state.phase !== "playing") return state;
       const s = settle(state, ev.t);
       return { ...s, phase: "stalled", phaseSince: ev.t, rebufferCount: s.rebufferCount + 1 };
     }
@@ -112,7 +118,9 @@ export function reduceMetrics(state: MetricsState, ev: MetricsEvent): MetricsSta
   }
 }
 
-export function metricsSnapshot(s: MetricsState): MetricsSnapshot {
+/** Include the active phase at `now` without committing or double-counting it. */
+export function metricsSnapshot(state: MetricsState, now = state.phaseSince): MetricsSnapshot {
+  const s = settle(state, now);
   const denom = s.watchedMs + s.rebufferMs;
   return {
     startupMs: s.startupMs,
