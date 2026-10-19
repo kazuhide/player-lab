@@ -22,7 +22,12 @@ preserves playback intent. Temporary SDK listeners and the pause hook are
 removed when the action settles or is cancelled; the hook restores the original
 method only while it still owns that method. Expected browser cancellations of
 retired actions are consumed, while active cancellations and genuine failures
-remain observable.
+remain observable. A superseding recommendation inherits its predecessor's pending
+unload notification. A source receipt replaced during pending playback also
+identifies cancellation before that notification arrives. Disposal recognizes
+only the SDK's exported `PlayerAPINotAvailableError`; local ownership is cleared
+even when the destroyed API can no longer unsubscribe. The SDK's `destroy()`
+contract owns removal of its remaining event handlers.
 
 These are version-specific ownership corrections, not a general memory fix.
 See [the measurement instructions and results](../docs/web-performance.md) for

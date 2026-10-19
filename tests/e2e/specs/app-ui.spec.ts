@@ -68,7 +68,7 @@ test("@public SDK UI settings release excluded setting controls once", async ({ 
   }
 });
 
-for (const scenario of ["released", "superseded", "active-failure", "active-abort", "released-failure", "released-intent", "pause", "released-pause", "external-source", "unload", "destroy", "play-failure"] as const) {
+for (const scenario of ["released", "superseded", "active-failure", "active-abort", "released-failure", "released-intent", "pause", "released-pause", "external-source", "unload", "destroy", "play-failure", "superseded-unload-pending", "superseded-external-source", "superseded-unload", "destroy-before-notify", "destroy-notify-invalid", "external-source-play", "active-load-abort", "destroyed-failure"] as const) {
   test(`@public SDK recommendation promises retain ownership: ${scenario}`, async ({ page }, testInfo) => {
     await captureAppPlayer(page);
     if (scenario === "pause" || scenario === "released-pause") {
@@ -81,13 +81,16 @@ for (const scenario of ["released", "superseded", "active-failure", "active-abor
       const module = await import(/* @vite-ignore */ url);
       return module.inspectRecommendationPromises(window.player!, scenario);
     }, { url: helper, scenario });
-    const clicks = scenario === "superseded" || scenario === "external-source" ? 2 : 1;
-    const plays = ["superseded", "active-abort", "released-intent", "play-failure"].includes(scenario) ? 1 : 0;
+    const clicks = scenario === "superseded-external-source" ? 3
+      : scenario.startsWith("superseded") || scenario === "external-source" || scenario === "external-source-play" ? 2 : 1;
+    const plays = ["superseded", "superseded-unload-pending", "external-source-play", "active-abort", "released-intent", "play-failure"].includes(scenario) ? 1 : 0;
     expect(result).toEqual({ loads: clicks, plays, listeners: 0, pauseRestored: true });
-    if (scenario === "active-failure" || scenario === "released-failure") {
+    if (scenario === "active-failure" || scenario === "released-failure" || scenario === "destroyed-failure") {
       expect(errors).toEqual(["Recommendation fixture load failed"]);
     } else if (scenario === "play-failure") {
       expect(errors).toEqual(["Recommendation fixture play failed"]);
+    } else if (scenario === "active-load-abort") {
+      expect(errors).toEqual(["Active recommendation load abort"]);
     } else if (scenario === "active-abort") {
       expect(errors).toEqual(["Active recommendation abort"]);
     } else {
@@ -95,6 +98,19 @@ for (const scenario of ["released", "superseded", "active-failure", "active-abor
     }
   });
 }
+
+test("@public SDK recommendation promises survive real API invalidation before Destroy", async ({ page }, testInfo) => {
+  await captureAppPlayer(page);
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  const helper = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-release.ts")}`;
+  const result = await page.evaluate(async (url) => {
+    const module = await import(/* @vite-ignore */ url);
+    return module.inspectRealRecommendationDestroy();
+  }, helper);
+  expect(result).toEqual({ plays: 0, invalidatedSynchronously: true, notifiedSynchronously: false, destroyNotified: true });
+  expect(errors).toEqual([]);
+});
 
 async function expectDecodedPlayback(page: Page): Promise<void> {
   const before = await page.evaluate(() => {
@@ -858,14 +874,17 @@ test.describe("Web app UI", () => {
       await expect.poll(() => page.evaluate(() => window.player?.getConfig(false).playback?.timeShift)).toBe(false);
       await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toContain("Big Buck Bunny");
       expect(await page.evaluate(() => window.player?.getSource()?.dash)).toContain("bbb_30fps.mpd");
-      // A recommendation preserves playback intent through app source recreation.
-      // Check decoded output and clock progression, rather than the source URL alone.
+      // The recreated Player uses the app default autoplay=true; the first
+      // recommendation above independently proves autoplay=false behavior.
+      // Check decoded output and clock progression after source recreation too.
       await expectDecodedPlayback(page);
       expect(errors).toEqual([]);
     });
   }
 
   test("@public selecting the current preset recommendation clears previous source overrides", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
     await captureAppPlayer(page);
     await page.getByRole("button", { name: "English", exact: true }).click();
     // Observe actual SDK completion without altering its load or event behavior.
@@ -914,6 +933,8 @@ test.describe("Web app UI", () => {
     await offset.blur();
     await loadAndWait(() => reload.click());
     expect(await page.evaluate(() => window.player?.getSource()?.description)).toBe("New description only");
+    await expectDecodedPlayback(page);
+    expect(errors).toEqual([]);
   });
 
   test("info-chip overlays follow the language toggle", async ({ page }) => {

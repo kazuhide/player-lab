@@ -1,5 +1,5 @@
 import { Container, DynamicSettingsPanelItem, Icon, PlaybackSpeedSelectBox, RecommendationItem, SeekBar, SettingsPanelItem, UIContainer, UIFactory, UIManager, UIVariantIdentifier, Watermark, i18n, type Component, type ComponentConfig } from "bitmovin-player-ui";
-import type { PlayerAPI } from "bitmovin-player";
+import { Player, type PlayerAPI } from "bitmovin-player";
 import {
   BingeUIFactory, CinemaUIFactory, CompactUIFactory, CreatorUIFactory, DefaultUIFactory,
   LiveUIFactory, PremiereUIFactory, SportsUIFactory, StudioUIFactory,
@@ -195,7 +195,7 @@ export function inspectExcludedSettingsRelease(player: PlayerAPI) {
 // Exercise the actual SDK component, UI manager and DOM click with controlled
 // public load/play promises. The browser test observes genuine unhandled errors
 // through Playwright; this helper installs no rejection listener or suppressor.
-export async function inspectRecommendationPromises(player: PlayerAPI, scenario: "released" | "superseded" | "active-failure" | "active-abort" | "released-failure" | "released-intent" | "pause" | "released-pause" | "external-source" | "unload" | "destroy" | "play-failure") {
+export async function inspectRecommendationPromises(player: PlayerAPI, scenario: "released" | "superseded" | "active-failure" | "active-abort" | "released-failure" | "released-intent" | "pause" | "released-pause" | "external-source" | "unload" | "destroy" | "play-failure" | "superseded-unload-pending" | "superseded-external-source" | "superseded-unload" | "destroy-before-notify" | "destroy-notify-invalid" | "external-source-play" | "active-load-abort" | "destroyed-failure") {
   const deferred = () => {
     let resolve!: () => void;
     let reject!: (reason: unknown) => void;
@@ -213,6 +213,8 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
   const boundOn = on.bind(player);
   const boundOff = off.bind(player);
   let currentSource = player.getSource();
+  let invalidated = false;
+  let deferredUnloads = 0;
   const resource = { dash: "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd" };
   const first = new RecommendationItem({ recommendationConfig: { title: "First recommendation", resource } });
   const second = new RecommendationItem({ recommendationConfig: { title: "Second recommendation", resource: { ...resource } } });
@@ -231,17 +233,25 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
     boundOn(event, callback);
   };
   player.off = (event, callback) => {
+    if (invalidated) throw new player.exports.PlayerAPINotAvailableError("off");
     listeners.get(event)?.delete(callback);
     boundOff(event, callback);
   };
   const emit = (event: string) => [...(listeners.get(event)?.values() ?? [])].forEach((callback) => callback());
-  player.getSource = () => currentSource;
+  player.getSource = () => {
+    if (invalidated) throw new player.exports.PlayerAPINotAvailableError("getSource");
+    return currentSource;
+  };
   player.load = (source) => {
     const pending = { ...deferred(), source };
     loads.push(pending);
     const unloading = currentSource != null;
     currentSource = null;
-    if (unloading) emit(player.exports.PlayerEvent.SourceUnloaded);
+    // Web 8.280 clears the receipt before asynchronous SourceUnloaded delivery.
+    if (unloading) {
+      if (scenario.startsWith("superseded-") || (scenario === "external-source-play" && loads.length === 2)) deferredUnloads++;
+      else emit(player.exports.PlayerEvent.SourceUnloaded);
+    }
     return pending.promise;
   };
   player.play = () => { const pending = deferred(); plays.push(pending); return pending.promise; };
@@ -263,7 +273,56 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
     first.getDomElement().get(0).click();
     if (loads.length !== 1 || plays.length !== 0) throw new Error("Recommendation must wait for its load before playing");
     if (["released", "released-failure", "released-intent", "released-pause"].includes(scenario)) manager.release();
-    if (scenario === "superseded") {
+    if (scenario.startsWith("superseded-")) {
+      second.getDomElement().get(0).click();
+      if (deferredUnloads !== 1) throw new Error("The preceding unload must remain pending across both clicks");
+      if (scenario === "superseded-external-source") {
+        const replacement = { hls: "https://example.invalid/replacement.m3u8" };
+        const loading = player.load(replacement);
+        currentSource = replacement;
+        loads[2]!.resolve();
+        await loading;
+      }
+      emit(player.exports.PlayerEvent.SourceUnloaded);
+      deferredUnloads--;
+      if (scenario === "superseded-unload") emit(player.exports.PlayerEvent.SourceUnloaded);
+      loads[0]!.reject(new DOMException("Superseded load", "AbortError"));
+      if (scenario === "superseded-unload-pending") {
+        await finishLoad(1);
+        const latestPlay = plays[0];
+        if (!latestPlay) throw new Error("The latest recommendation must play after the preceding delayed unload");
+        latestPlay.resolve();
+      } else {
+        loads[1]!.resolve();
+        await Promise.resolve();
+      }
+    } else if (scenario === "external-source-play") {
+      await finishLoad(0);
+      const replacement = { hls: "https://example.invalid/replacement.m3u8" };
+      const loading = player.load(replacement);
+      plays[0]!.reject(new DOMException("Replaced recommendation playback", "AbortError"));
+      await new Promise<void>((resolve) => setTimeout(resolve, 30));
+      emit(player.exports.PlayerEvent.SourceUnloaded);
+      deferredUnloads--;
+      currentSource = replacement;
+      loads[1]!.resolve();
+      await loading;
+    } else if (scenario === "destroy-before-notify" || scenario === "destroy-notify-invalid" || scenario === "destroyed-failure") {
+      manager.release();
+      // destroy() invalidates public APIs before its asynchronous Destroy event.
+      invalidated = true;
+      if (scenario !== "destroy-before-notify") emit(player.exports.PlayerEvent.Destroy);
+      if (scenario === "destroyed-failure") loads[0]!.reject(new Error("Recommendation fixture load failed"));
+      else loads[0]!.resolve();
+      await new Promise<void>((resolve) => setTimeout(resolve, 30));
+      if (player.pause !== pause) throw new Error("Disposed action must restore its pause hook before notification");
+      if (scenario === "destroy-before-notify") emit(player.exports.PlayerEvent.Destroy);
+      // The SDK owns removal of all listeners once destroy() completes.
+      for (const [event, values] of listeners) {
+        for (const callback of values.keys()) boundOff(event as Parameters<PlayerAPI["off"]>[0], callback as Parameters<PlayerAPI["off"]>[1]);
+      }
+      listeners.clear();
+    } else if (scenario === "superseded") {
       second.getDomElement().get(0).click();
       await finishLoad(0);
       if (plays.length !== 0) throw new Error("An obsolete load must not play a later source");
@@ -271,6 +330,8 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
       plays[0]!.resolve();
     } else if (scenario === "active-failure" || scenario === "released-failure") {
       loads[0]!.reject(new Error("Recommendation fixture load failed"));
+    } else if (scenario === "active-load-abort") {
+      loads[0]!.reject(new DOMException("Active recommendation load abort", "AbortError"));
     } else if (scenario === "active-abort" || scenario === "play-failure") {
       await finishLoad(0);
       plays[0]!.reject(scenario === "active-abort"
@@ -307,5 +368,52 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
     player.off = off;
     manager.release();
     element.remove();
+  }
+}
+
+// Validate invalidation timing against the installed SDK, independently of the
+// controlled teardown fixture. No source or license is needed on localhost.
+export async function inspectRealRecommendationDestroy() {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const checked = <T>(phase: string, operation: () => T): T => {
+    try { return operation(); } catch (error) {
+      const message = error && typeof error === "object" && "message" in error ? String(error.message) : String(error);
+      throw new Error(`${phase}: ${message}`);
+    }
+  };
+  const player = checked("construct", () => new Player(host, { key: "", ui: false, playback: { autoplay: false } }));
+  const PlayerAPINotAvailableError = player.exports.PlayerAPINotAvailableError;
+  let finishLoad!: () => void;
+  player.load = () => new Promise<void>((resolve) => { finishLoad = resolve; });
+  let plays = 0;
+  player.play = () => { plays++; return Promise.resolve(); };
+  const item = new RecommendationItem({ recommendationConfig: {
+    title: "Destroy recommendation", resource: { hls: "https://example.invalid/not-loaded.m3u8" },
+  } });
+  const manager = checked("UI manager", () => new UIManager(player, [{ identifier: UIVariantIdentifier.main,
+    ui: new UIContainer({ components: [item] }),
+  }]));
+  let destroyNotified = false;
+  let released = false;
+  player.on(player.exports.PlayerEvent.Destroy, () => { destroyNotified = true; });
+  try {
+    checked("click", () => item.getDomElement().get(0).click());
+    checked("release", () => manager.release());
+    released = true;
+    const destroying = checked("destroy", () => player.destroy());
+    const notifiedSynchronously = destroyNotified;
+    let invalidatedSynchronously = false;
+    try { player.getSource(); } catch (error) {
+      if (!(error instanceof PlayerAPINotAvailableError)) throw new Error(`Unexpected post-destroy exception: ${String(error)}`);
+      invalidatedSynchronously = true;
+    }
+    finishLoad();
+    await destroying.catch((error) => { throw new Error(`destroy settlement: ${String(error)}`); });
+    await new Promise<void>((resolve) => setTimeout(resolve, 30));
+    return { plays, invalidatedSynchronously, notifiedSynchronously, destroyNotified };
+  } finally {
+    if (!released) checked("final release", () => manager.release());
+    host.remove();
   }
 }
