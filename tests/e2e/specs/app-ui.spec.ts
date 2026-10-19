@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import type { PlayerAPI } from "bitmovin-player";
+import { resolve } from "node:path";
 
 // App-level UI tests — these drive the REAL apps/web (with its custom UI), not the
 // ui:false harness the other specs use. They guard the two things that were broken:
@@ -31,6 +32,31 @@ function configField(page: Page, label: RegExp) {
     has: page.locator(".config-field-label", { hasText: label }),
   });
 }
+
+test("@public released factory controls stop localizing and release auxiliary children once", async ({ page }, testInfo) => {
+  await captureAppPlayer(page);
+  const helper = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-release.ts")}`;
+  const result = await page.evaluate(async (url) => {
+    const module = await import(/* @vite-ignore */ url);
+    return module.inspectFactoryRelease(window.player!);
+  }, helper) as { stockReleased: number; results: {
+    factory: string; auxiliaryComponents: number; releasedExactlyOnce: boolean;
+    localizedWhileActive: boolean; localizedAfterRelease: boolean; adoptedChildren: boolean;
+    icons: number; iconsReleasedExactlyOnce: boolean; iconsStoppedLocalizing: boolean;
+  }[] };
+  expect(result.results).toHaveLength(9);
+  expect(result.stockReleased, "release the discarded stock root, preserving its adopted children").toBe(1);
+  for (const value of result.results) {
+    expect(value.auxiliaryComponents, value.factory).toBeGreaterThan(0);
+    expect(value.adoptedChildren, value.factory).toBe(true);
+    expect(value.localizedWhileActive, value.factory).toBe(true);
+    expect(value.releasedExactlyOnce, value.factory).toBe(true);
+    expect(value.localizedAfterRelease, value.factory).toBe(false);
+    expect(value.icons, value.factory).toBeGreaterThan(0);
+    expect(value.iconsReleasedExactlyOnce, JSON.stringify(value)).toBe(true);
+    expect(value.iconsStoppedLocalizing, value.factory).toBe(true);
+  }
+});
 
 async function openConfigGroup(page: Page, title: string): Promise<void> {
   const group = page.locator("#config-panel .config-group").filter({

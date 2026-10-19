@@ -120,6 +120,8 @@ function castingComponents(casting?: CastingButtons): Component<ComponentConfig>
 export function buildDefaultUiContainer(options: LiveUiOptions = {}): UIContainer {
   const stock = UIFactory.defaultLayouts.main();
   const cfg = stock.getConfig();
+  // Adopt the children, but release the unused root's localization subscription.
+  stock.release();
   return new UIContainer({
     components: cfg.components ?? [],
     cssClasses: [...(cfg.cssClasses ?? []), ...(options.extraCssClasses ?? [])],

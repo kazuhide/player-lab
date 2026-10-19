@@ -2,3 +2,5 @@ packages:
   - "packages/*"
   - "apps/*"
   - "tests/*"
+patchedDependencies:
+  bitmovin-player-ui@4.15.1: patches/bitmovin-player-ui@4.15.1.patch

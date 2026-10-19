@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  bitmovin-player-ui@4.15.1:
+    hash: c8bc1aa77aeeca4dd777d0c8675cc9b304aa24f501337b7ed95eac11514e65e7
+    path: patches/bitmovin-player-ui@4.15.1.patch
+
 importers:
 
   .: {}
@@ -87,7 +92,7 @@ importers:
     dependencies:
       bitmovin-player-ui:
         specifier: ^4.15.1
-        version: 4.15.1
+        version: 4.15.1(patch_hash=c8bc1aa77aeeca4dd777d0c8675cc9b304aa24f501337b7ed95eac11514e65e7)
     devDependencies:
       bitmovin-player:
         specifier: ^8.263.0
@@ -7665,7 +7670,7 @@ snapshots:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0)
 
-  bitmovin-player-ui@4.15.1: {}
+  bitmovin-player-ui@4.15.1(patch_hash=c8bc1aa77aeeca4dd777d0c8675cc9b304aa24f501337b7ed95eac11514e65e7): {}
 
   bitmovin-player@8.138.0-beta.28: {}
 
