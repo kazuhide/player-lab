@@ -48,12 +48,17 @@ curl -s <url> | grep -E 'type="dynamic"|timeShiftBufferDepth|EXT-X-ENDLIST|EXT-X
 
 ## Browser test requirements
 
-The Playwright suite reaches external reference servers. It is run separately
-from workspace unit tests and is not part of the CI workflow. Report the cases
-actually executed and any unavailable services. Provisioned tests read
+The public-reference Playwright subset runs in CI and reaches external reference
+servers. Other scenarios have the requirements in
+[the browser test guide](../tests/e2e/README.md). Report the cases actually
+executed and any unavailable services. Provisioned tests read
 `VITE_TEST_STREAM_BASE_URL` from the runner environment; create and configure
 your own output before running those cases. No account-specific output address
 is provided.
+
+For deterministic feature checks without a cloud account, generate the
+[local sixty-second fixture](local-test-media.md). Its HLS and DASH outputs use
+the same baseline paths, with additional audio, subtitle and sprite assets.
 
 ## Why the live defaults are public streams
 

@@ -28,6 +28,39 @@ So three apps get an event and two (iOS, RN) poll — but all feed the same
 `detectLiveToVod`, and on the transition the UI swaps from live mode (DVR seek bar,
 "behind live" label) to VOD mode (plain seek bar).
 
+### Run a controlled Web finalization check
+
+Generate the [local 60-second media](../encoding/test-streams/README.md), then run:
+
+```sh
+E2E_FINALIZATION_MEDIA_DIR="$PWD/.cache/test-streams/vod-baseline" \
+  pnpm --filter @showcase/e2e e2e:finalization
+```
+
+The check uses the existing app, a real Player instance, and real media bytes.
+A loopback server first advertises the clip as live, then finalizes the same
+manifest URL. It adds HLS's [end-of-playlist signal](https://www.rfc-editor.org/rfc/rfc8216.html#section-4.3.3.4)
+or changes DASH from a dynamic to a finite static presentation, following the
+[DASH-IF live-to-VOD guidance](https://dashif.org/DASH-IF-IOP/live2vod/).
+This isolates manifest finalization without starting a live encoder or using
+account credentials. It does not test a production ingest pipeline.
+
+Both cases exercise the DVR setting's player recreation, rewind, the finite
+duration and VOD UI after finalization, and seeking within the finished clip.
+They also check that finalization keeps the same Player and source without a
+new `SourceLoaded` event. The optional suite is separate from public-reference
+tests and requires the local fixture directory. Its server uses port 5192;
+override `E2E_FINALIZATION_PORT` if that port is in use.
+
+An event carrying wall-clock timestamps can retain those timestamps after its
+duration becomes finite. The SDK's [`getCurrentTime`](https://cdn.bitmovin.com/player/web/8/docs/interfaces/core.playerapi.html)
+defaults to absolute time. In these finalized events the seekable range also
+keeps its wall-clock origin: seeking to `10` is clamped to the start, rather than
+ten seconds into the clip. Use `getSeekableRange().start + 10` as the seek target,
+wait for `Seeked`, and read `getCurrentTime("relativetime")` to check the offset.
+The app already displays both timelines separately. The check uses a finite
+duration to classify VOD and one completed seek position to verify both bounds.
+
 ## Analytics / QoE
 
 Two layers, so the demo both *shows* the signals and *reports* them:

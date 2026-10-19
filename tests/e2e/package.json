@@ -5,8 +5,10 @@
   "description": "Playwright end-to-end tests driving the real Bitmovin Web player",
   "scripts": {
     "e2e": "playwright test",
+    "e2e:finalization": "playwright test --config playwright.finalization.config.ts",
     "typecheck": "tsc --noEmit",
-    "e2e:public": "playwright test specs/vod-baseline.spec.ts specs/app-ui.spec.ts --grep \"theme selector swaps|customization guide is|Player Config panel applies|construction code is fully localized|language toggle switches|default source actually plays|VOD baseline|@public\" --retries=0"
+    "e2e:public": "playwright test specs/vod-baseline.spec.ts specs/app-ui.spec.ts --grep \"theme selector swaps|customization guide is|Player Config panel applies|construction code is fully localized|language toggle switches|default source actually plays|VOD baseline|@public\" --retries=0",
+    "e2e:features": "playwright test specs/provisioned-vod.spec.ts specs/multiaudio.spec.ts specs/subtitles.spec.ts specs/sprites.spec.ts specs/network-api.spec.ts specs/app-features.spec.ts --retries=0"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",

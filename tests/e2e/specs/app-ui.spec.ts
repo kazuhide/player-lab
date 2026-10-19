@@ -4,7 +4,7 @@ import type { PlayerAPI } from "bitmovin-player";
 // App-level UI tests — these drive the REAL apps/web (with its custom UI), not the
 // ui:false harness the other specs use. They guard the two things that were broken:
 // the UI theme selector, and the live→VOD UI switch.
-const APP = "http://localhost:5175";
+const APP = `http://localhost:${process.env.E2E_APP_PORT ?? "5175"}`;
 
 /** Expose the real SDK instance only in the test response. The constructor,
  * configuration, source and SDK behavior are unchanged; production has no hook. */

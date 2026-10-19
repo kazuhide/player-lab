@@ -1,5 +1,12 @@
 # Test streams for end-to-end playback tests
 
+For the existing Web feature checks without a cloud account, use
+`python3 encoding/test-streams/local.py` from the repository root. It generates
+60-second public *Big Buck Bunny* fixtures with two-second video segments.
+See [local test media](../../docs/local-test-media.md) for the browser command,
+requirements, attribution and the reason audio boundaries differ from video.
+The scripts below continue to exercise the Encoding API itself.
+
 Test streams created via the Bitmovin Encoding Templates API, consumed by
 `tests/e2e`. Each `templates/<scenario>.yaml` is a parameterized Encoding Template;
 `provision.sh` resolves the account's input/output IDs at run time (never
