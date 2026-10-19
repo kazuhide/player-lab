@@ -108,16 +108,27 @@ def build(output, archive):
             raise RuntimeError(f"Install {tool} before generating local test media.")
     if not archive.exists():
         archive.parent.mkdir(parents=True, exist_ok=True)
-        temporary = archive.with_suffix('.download')
+        descriptor, name = tempfile.mkstemp(
+            prefix=f'.{archive.name}.', suffix='.download', dir=archive.parent
+        )
+        temporary = Path(name)
         try:
-            subprocess.run([
-                'curl', '--fail', '--location', '--silent', '--show-error',
-                '--connect-timeout', '20', '--max-time', '300',
-                '--output', str(temporary), SOURCE_URL,
-            ], check=True)
+            # Write through the exclusively created descriptor, so curl never
+            # reopens a predictable filename or follows a sibling symlink.
+            with os.fdopen(descriptor, 'wb') as writer:
+                subprocess.run([
+                    'curl', '--fail', '--location', '--silent', '--show-error',
+                    '--connect-timeout', '20', '--max-time', '300',
+                    '--output', '-', SOURCE_URL,
+                ], stdout=writer, check=True)
             if digest(temporary) != SOURCE_SHA256:
                 raise ValueError("The downloaded public source does not match its pinned checksum.")
-            temporary.replace(archive)
+            try:
+                # A hard link publishes the verified file atomically and fails
+                # if another generator already populated this cache path.
+                os.link(temporary, archive)
+            except FileExistsError:
+                pass  # The common checksum check below also verifies the winner.
         finally:
             temporary.unlink(missing_ok=True)
     if digest(archive) != SOURCE_SHA256:
