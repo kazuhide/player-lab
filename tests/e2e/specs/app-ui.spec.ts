@@ -7,9 +7,9 @@ import { resolve } from "node:path";
 // the UI theme selector, and the live→VOD UI switch.
 const APP = `http://localhost:${process.env.E2E_APP_PORT ?? "5175"}`;
 
-/** Expose the real SDK instance only in the test response. The constructor,
- * configuration, source and SDK behavior are unchanged; production has no hook. */
-async function captureAppPlayer(page: Page): Promise<void> {
+/** Expose the real SDK instance only in the test response. Optionally disable
+ * autoplay on its first construction; SDK methods and sources remain unchanged. */
+async function captureAppPlayer(page: Page, autoplayFalse = false): Promise<void> {
   await page.route("**/src/main.ts", async (route) => {
     const response = await route.fetch();
     const body = await response.text();
@@ -19,7 +19,7 @@ async function captureAppPlayer(page: Page): Promise<void> {
     expect(body.split(teardown), "the capture must clear the reference during teardown").toHaveLength(2);
     await route.fulfill({
       response,
-      body: body.replace(constructor, "$&\nwindow.player = instance;")
+      body: body.replace(constructor, `${autoplayFalse ? "if (!window.__initialAutoplayFalseApplied) { config.playback = { ...config.playback, autoplay: false }; window.__initialAutoplayFalseApplied = true; }\n" : ""}$&\nwindow.player = instance;`)
         .replace(teardown, `${teardown}\nwindow.player = undefined;`),
     });
   });
@@ -31,6 +31,81 @@ function configField(page: Page, label: RegExp) {
   return page.locator("#config-panel .config-field").filter({
     has: page.locator(".config-field-label", { hasText: label }),
   });
+}
+
+test("@public SDK UI settings remove the speed control and preserve themed quick seek", async ({ page }) => {
+  await page.goto(`${APP}/`);
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await page.getByRole("button", { name: "Premiere", exact: true }).click();
+  const speed = page.locator("#player .bmpui-ui-playbackspeedselectbox");
+  await expect(speed).toHaveCount(1);
+  await expect(page.locator("#player .bmpui-ui-quickseekbutton")).toHaveCount(2);
+  const toggle = page.getByRole("checkbox", { name: /Speed item in settings gear/ });
+  await toggle.uncheck();
+  await expect(speed).toHaveCount(0, { timeout: 5000 });
+  await expect(page.locator("#player .bmpui-ui-quickseekbutton")).toHaveCount(2);
+  await toggle.check();
+  await expect(speed).toHaveCount(1);
+  await page.getByRole("button", { name: "Default (Bitmovin)", exact: true }).click();
+  await expect(page.locator("#player .bmpui-ui-quickseekbutton")).toHaveCount(0);
+  await expect(page.locator("#player .bmpui-ui-captiontogglebutton")).toHaveCount(0);
+  await expect(page.locator("#player .bmpui-ui-watermark")).toHaveCount(0);
+});
+
+test("@public SDK UI settings release excluded setting controls once", async ({ page }, testInfo) => {
+  await captureAppPlayer(page);
+  const helper = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-release.ts")}`;
+  const results = await page.evaluate(async (url) => {
+    const module = await import(/* @vite-ignore */ url);
+    return module.inspectExcludedSettingsRelease(window.player!);
+  }, helper) as { factory: string; remainingSpeedControls: number; excludedSpeedControls: number; releasedExactlyOnce: boolean; stoppedLocalizing: boolean }[];
+  expect(results).toHaveLength(4);
+  for (const result of results) {
+    expect(result.remainingSpeedControls, result.factory).toBe(0);
+    expect(result.excludedSpeedControls, result.factory).toBe(1);
+    expect(result.releasedExactlyOnce, JSON.stringify(result)).toBe(true);
+    expect(result.stoppedLocalizing, result.factory).toBe(true);
+  }
+});
+
+for (const scenario of ["released", "superseded", "active-failure", "active-abort", "released-failure", "released-intent", "pause", "released-pause", "external-source", "unload", "destroy", "play-failure"] as const) {
+  test(`@public SDK recommendation promises retain ownership: ${scenario}`, async ({ page }, testInfo) => {
+    await captureAppPlayer(page);
+    if (scenario === "pause" || scenario === "released-pause") {
+      await expect.poll(() => page.evaluate(() => window.player!.isPlaying())).toBe(true);
+    }
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    const helper = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-release.ts")}`;
+    const result = await page.evaluate(async ({ url, scenario }) => {
+      const module = await import(/* @vite-ignore */ url);
+      return module.inspectRecommendationPromises(window.player!, scenario);
+    }, { url: helper, scenario });
+    const clicks = scenario === "superseded" || scenario === "external-source" ? 2 : 1;
+    const plays = ["superseded", "active-abort", "released-intent", "play-failure"].includes(scenario) ? 1 : 0;
+    expect(result).toEqual({ loads: clicks, plays, listeners: 0, pauseRestored: true });
+    if (scenario === "active-failure" || scenario === "released-failure") {
+      expect(errors).toEqual(["Recommendation fixture load failed"]);
+    } else if (scenario === "play-failure") {
+      expect(errors).toEqual(["Recommendation fixture play failed"]);
+    } else if (scenario === "active-abort") {
+      expect(errors).toEqual(["Active recommendation abort"]);
+    } else {
+      expect(errors).toEqual([]);
+    }
+  });
+}
+
+async function expectDecodedPlayback(page: Page): Promise<void> {
+  const before = await page.evaluate(() => {
+    const video = document.querySelector<HTMLVideoElement>("#player video")!;
+    return { time: video.currentTime, frames: video.getVideoPlaybackQuality().totalVideoFrames };
+  });
+  await expect.poll(() => page.evaluate((before) => {
+    const video = document.querySelector<HTMLVideoElement>("#player video");
+    return !!video && !video.paused && video.currentTime > before.time + 0.2 &&
+      video.getVideoPlaybackQuality().totalVideoFrames > before.frames;
+  }, before)).toBe(true);
 }
 
 test("@public released factory controls stop localizing and release auxiliary children once", async ({ page }, testInfo) => {
@@ -751,7 +826,10 @@ test.describe("Web app UI", () => {
 
   for (const theme of ["Premiere", "Creator", "Studio"]) {
     test(`@public ${theme} settings clicks preserve playback and recommendations load their source`, async ({ page }) => {
-      await captureAppPlayer(page);
+      await captureAppPlayer(page, true);
+      expect(await page.evaluate(() => window.player!.getConfig(false).playback?.autoplay)).toBe(false);
+      const errors: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
       await page.getByRole("button", { name: theme, exact: true }).click();
       await expect.poll(() => page.evaluate(() => document.querySelector<HTMLVideoElement>("#player video")?.readyState ?? 0)).toBeGreaterThanOrEqual(3);
       await page.evaluate(() => window.player!.pause());
@@ -773,11 +851,17 @@ test.describe("Web app UI", () => {
       await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toContain("Big Buck Bunny");
       await expect.poll(() => page.evaluate(() => document.querySelector<HTMLVideoElement>("#player video")?.readyState ?? 0))
         .toBeGreaterThanOrEqual(3);
+      // The SDK recommendation itself must start decoded playback with autoplay off.
+      await expectDecodedPlayback(page);
       // Source selection made inside the SDK UI also becomes the app's rebuild source.
       await page.getByRole("checkbox", { name: /DVR.*timeShift/ }).uncheck();
       await expect.poll(() => page.evaluate(() => window.player?.getConfig(false).playback?.timeShift)).toBe(false);
       await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toContain("Big Buck Bunny");
       expect(await page.evaluate(() => window.player?.getSource()?.dash)).toContain("bbb_30fps.mpd");
+      // A recommendation preserves playback intent through app source recreation.
+      // Check decoded output and clock progression, rather than the source URL alone.
+      await expectDecodedPlayback(page);
+      expect(errors).toEqual([]);
     });
   }
 
