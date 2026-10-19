@@ -48,6 +48,33 @@ cases, with retries disabled. It uses Chromium supplied by the locked Playwright
 package. The complete suite still needs the documented assets and optional
 licenses. Do not treat workspace unit-test success as browser playback success.
 
+## Static Pages app
+
+The [Pages build instructions](../apps/web/README.md#build-and-test) generate
+the public fixture and package the production app. Run its browser checks with
+`E2E_PAGES_DIR` pointing to that complete site directory. Set
+`E2E_PAGES_ANALYTICS_ENABLED=1` when the artifact includes a public Analytics
+license; leave it unset for a keyless local build.
+
+The tests serve actual built files under `/player-lab/web/`, without a development
+server or a fallback page. They check advancing video time and decoded frames
+for HLS and DASH, all 14 themes and code examples, the three configuration
+application modes, guide navigation, audio selection, visible subtitle cues,
+and decoded thumbnail images. English and Japanese app and guide layouts are
+checked at 375 and 1440 pixels. Code blocks may scroll within their own area.
+
+Analytics ingress requests are intercepted before navigation so CI playback
+does not enter the demo's usage data. An enabled collector must attempt a
+request and show its collection notice; this does not prove remote ingestion.
+Account aggregation controls remain disabled even for synthetic click events.
+
+On 2026-10-19, Chrome 155 on macOS 27.0.1 passed all nine production cases with
+Playwright 1.61.0, one worker and no retries or skips, in 15.3 seconds. This used
+the generated 60-second fixture and a synthetic collector license. Web unit
+tests passed 93 cases, package verification passed 32, the static test server
+passed three, and the secret-scanner regression passed its three cases.
+Hosted domain licensing and actual Analytics receipt are separate checks.
+
 ## Native builds and device runs
 
 CI compiles iOS/tvOS apps and the Android app and instrumented tests. This checks

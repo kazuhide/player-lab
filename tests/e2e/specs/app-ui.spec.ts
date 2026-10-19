@@ -341,7 +341,7 @@ test.describe("Web app UI", () => {
     await page.goto(`${APP}/`);
     const link = page.locator("#ui-guide .ui-guide-link");
     await expect(link).toBeVisible();
-    await expect(link).toHaveAttribute("href", "/guide.html");
+    await expect(link).toHaveAttribute("href", "./guide.html");
     // The guide page loads with its detailed sections + reference links, and its own
     // language toggle works.
     await page.goto(`${APP}/guide.html`);

@@ -51,6 +51,29 @@ if (!licenseKey) {
   console.info("No Player key is configured. Web playback is available at localhost; other hostnames need a domain-allowed key. See .env.example.");
 }
 
+if (import.meta.env.MODE === "pages") {
+  const footer = document.createElement("footer");
+  footer.className = "distribution-notices";
+  const links: [string, L][] = [
+    ["media/ATTRIBUTION.txt", { ja: "テスト素材の出典", en: "Test media credits" }],
+    ["notices/PROJECT-LICENSE.txt", { ja: "プロジェクトのライセンス", en: "Project license" }],
+    ["notices/BITMOVIN-PLAYER-NOTICE.txt", { ja: "Player SDKの利用条件", en: "Player SDK notice" }],
+    ["notices/BITMOVIN-PLAYER-UI-LICENSE.txt", { ja: "Player UIのライセンス", en: "Player UI license" }],
+    ["notices/BITMOVIN-PLAYER-THIRD-PARTY-NOTICES.txt", { ja: "依存ソフトウェアのライセンス", en: "Third-party notices" }],
+  ];
+  function renderNotices(): void {
+    footer.replaceChildren(...links.map(([href, label]) => {
+      const link = document.createElement("a");
+      link.href = href;
+      link.textContent = pick(label);
+      return link;
+    }));
+  }
+  renderNotices();
+  onLangChange(renderNotices);
+  document.getElementById("app")!.appendChild(footer);
+}
+
 // ---------------------------------------------------------------------------
 // UI themes. The SAME player is driven by three different UI builds, switchable
 // at runtime — the demo's point: reshaping the player UI is a one-liner swap of

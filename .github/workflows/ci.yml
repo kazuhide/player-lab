@@ -59,6 +59,8 @@ jobs:
           bash scripts/test-env-lib.sh
           python3 scripts/test-native-ui.py
           python3 scripts/test-local-media.py
+          python3 scripts/test-pages-package.py
+          python3 tests/e2e/test-serve-pages.py
       - name: Test Encoding resource resolution and credential handling
         run: |
           sudo apt-get update -qq
@@ -111,6 +113,57 @@ jobs:
         env:
           PLAYWRIGHT_BROWSER_CHANNEL: chromium
         run: E2E_FINALIZATION_MEDIA_DIR="$RUNNER_TEMP/test-streams/vod-baseline" pnpm --filter @showcase/e2e e2e:finalization
+      - name: Build the isolated Pages release
+        env:
+          # This variable is intentionally public: the value is delivered to browsers.
+          PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY: ${{ vars.PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY }}
+          PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY: ${{ vars.PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY }}
+          BITMOVIN_API_KEY: pages-build-private-canary-account
+          BITMOVIN_PLAYER_LICENSE_KEY: pages-build-private-canary-player
+          VITE_BITMOVIN_PLAYER_LICENSE_KEY: pages-build-private-canary-vite-player
+          VITE_BITMOVIN_ANALYTICS_LICENSE_KEY: pages-build-private-canary-analytics
+          VITE_LIVE_HLS_URL: https://example.invalid/pages-build-private-canary.m3u8
+          VITE_UNEXPECTED_VALUE: pages-build-private-canary-extra
+        run: |
+          mkdir "$RUNNER_TEMP/pages-release"
+          bash scripts/build-pages.sh "$RUNNER_TEMP/test-streams" \
+            "$RUNNER_TEMP/pages-release/site" "$RUNNER_TEMP/pages-release/manifest.json"
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP']) / 'pages-release'
+          if any(b'pages-build-private-canary' in path.read_bytes()
+                 for path in (root / 'site').rglob('*') if path.is_file()):
+              raise SystemExit('Unselected environment values entered the Pages build.')
+          (root / 'release.json').write_text(json.dumps({
+              'sha': os.environ['GITHUB_SHA'],
+              'base': '/player-lab/web/',
+              'publicPlayerKeyConfigured': bool(os.environ.get('PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY', '').strip()),
+              'publicAnalyticsKeyConfigured': bool(os.environ.get('PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY', '').strip()),
+          }) + '\n', encoding='utf-8')
+          PY
+      - name: Scan the actual Pages release with Gitleaks 8.30.1
+        run: |
+          curl -fsSL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz -o "$RUNNER_TEMP/gitleaks.tar.gz"
+          printf '%s  %s\n' 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb "$RUNNER_TEMP/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          python3 scripts/test-pages-secrets.py --gitleaks "$RUNNER_TEMP/gitleaks"
+          "$RUNNER_TEMP/gitleaks" dir "$RUNNER_TEMP/pages-release" --config scripts/gitleaks-pages.toml --no-banner --redact=100
+      - name: Check the production Pages app at its project URL
+        env:
+          PLAYWRIGHT_BROWSER_CHANNEL: chromium
+          E2E_PAGES_DIR: ${{ runner.temp }}/pages-release/site
+          E2E_PAGES_ANALYTICS_ENABLED: ${{ vars.PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY != '' && '1' || '0' }}
+        run: pnpm --filter @showcase/e2e e2e:pages
+      - name: Verify the tested Pages files before upload
+        run: python3 scripts/package-pages.py --verify-dir "$RUNNER_TEMP/pages-release/site" --manifest "$RUNNER_TEMP/pages-release/manifest.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: pages-release
+          path: ${{ runner.temp }}/pages-release
+          if-no-files-found: error
+          retention-days: 1
 
   ios:
     needs: build

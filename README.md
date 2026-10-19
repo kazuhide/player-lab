@@ -1,6 +1,7 @@
 # Player Lab
 
 [Project overview and getting started](https://kazuhide.github.io/player-lab/)
+· [Web app](https://kazuhide.github.io/player-lab/web/)
 
 A Bitmovin Player playground for Web, iOS/tvOS, Android/Fire TV, React Native,
 and Vega OS. Try player and source settings, switch between the standard and
@@ -10,7 +11,11 @@ The Web app includes 14 themes, configuration panels, player API controls,
 UI construction examples, an English/Japanese language switch, and a separate
 customization guide. Existing examples also cover live rewind, multi-audio,
 subtitles, sprite previews, and playback measurements. Some examples need media
-or credentials that you supply.
+or credentials that you supply when running locally. The Pages build includes
+public test media; see the [Web guide](apps/web/README.md#pages-version) for its
+contents and Pages limitations.
+When configured, the Analytics collector sends playback data to Bitmovin.
+Account aggregation queries remain disabled on Pages.
 
 ## Run the Web app
 
@@ -69,8 +74,8 @@ bash scripts/test-env-lib.sh
 
 [Testing instructions](docs/e2e-testing.md) distinguish unit tests, browser
 playback, native builds, and device checks. Public reference streams can change
-or become unavailable. Sprite and multi-audio fixtures require your own
-configured output; account-specific media addresses are not included.
+or become unavailable. Local sprite and multi-audio examples need configured
+media URLs; the Pages build includes a public 60-second fixture.
 
 [Web memory and processor measurements](docs/web-performance.md) cover repeated
 theme changes and player release, with reproduction steps and measurement limits.
@@ -84,6 +89,9 @@ for local secret checks and the existing browser subset.
 ## Licenses
 
 Project code is provided under [MIT](LICENSE). Dependencies retain their own
-licenses; SDK binaries and installed dependencies are not bundled here.
+licenses. The hosted Bitmovin Player SDK is proprietary; the project's MIT
+license does not cover it. See the
+[SDK notice](https://kazuhide.github.io/player-lab/web/notices/BITMOVIN-PLAYER-NOTICE.txt).
+SDK binaries and generated media are not tracked in this Git repository.
 The [subtitle asset notes](encoding/test-streams/assets/README.md) describe its
 attribution and timestamp changes.

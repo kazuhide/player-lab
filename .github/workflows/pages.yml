@@ -16,6 +16,9 @@ jobs:
       github.event.workflow_run.head_branch == 'main' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     outputs:
       publish: ${{ steps.current.outputs.publish }}
       sha: ${{ steps.current.outputs.sha }}
@@ -41,27 +44,44 @@ jobs:
         with:
           ref: ${{ steps.current.outputs.sha }}
           persist-credentials: false
-      - name: Check the public site artifact contains only its intended files
+      - name: Download the files tested by the successful main CI run
         if: steps.current.outputs.publish == 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: pages-release
+          path: ${{ runner.temp }}/pages-release
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Check the tested release and its public file manifest
+        if: steps.current.outputs.publish == 'true'
+        env:
+          EXPECTED_SHA: ${{ steps.current.outputs.sha }}
         run: |
           python3 - <<'PY'
+          import json
+          import os
+          import stat
           from pathlib import Path
-          root = Path('site')
-          expected = {'index.html', 'ja/index.html', 'styles.css', 'assets/player-preview.jpg', 'assets/favicon.svg'}
-          if root.is_symlink() or not root.is_dir():
-              raise SystemExit('The Pages source must be the site directory.')
-          entries = list(root.rglob('*'))
-          if any(path.is_symlink() or (path.is_file() and path.stat().st_nlink != 1) for path in entries):
-              raise SystemExit('The Pages artifact must not contain links.')
-          actual = {str(path.relative_to(root)) for path in entries if path.is_file()}
-          if actual != expected:
-              raise SystemExit('The Pages artifact contains missing or unexpected files.')
+          root = Path(os.environ['RUNNER_TEMP']) / 'pages-release'
+          if {path.name for path in root.iterdir()} != {'site', 'manifest.json', 'release.json'}:
+              raise SystemExit('The tested release contains unexpected entries.')
+          for name in ['release.json', 'manifest.json']:
+              metadata = (root / name).lstat()
+              if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
+                  raise SystemExit('Release metadata must be regular files without links.')
+          release = json.loads((root / 'release.json').read_text(encoding='utf-8'))
+          expected = {'sha': os.environ['EXPECTED_SHA'], 'base': '/player-lab/web/',
+                      'publicPlayerKeyConfigured': True, 'publicAnalyticsKeyConfigured': True}
+          if release != expected:
+              raise SystemExit('Pages requires the tested main commit and explicitly configured public Player and Analytics keys.')
           PY
-      - name: Upload the static project overview
+          python3 scripts/package-pages.py --verify-dir "$RUNNER_TEMP/pages-release/site" \
+            --manifest "$RUNNER_TEMP/pages-release/manifest.json"
+      - name: Upload the tested project overview and Web app
         if: steps.current.outputs.publish == 'true'
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
-          path: site
+          path: ${{ runner.temp }}/pages-release/site
           retention-days: 1
 
   deploy:

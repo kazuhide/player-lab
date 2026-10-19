@@ -74,6 +74,18 @@ body {
   color: var(--muted);
 }
 
+.distribution-notices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+}
+
+.distribution-notices a {
+  color: var(--accent);
+}
+
 /* --- UI theme band: the headline control, full width in its own card --- */
 .ui-theme-bar {
   display: flex;
@@ -845,10 +857,16 @@ body {
 
 .guide-catalog {
   display: grid;
-  grid-template-columns: minmax(11rem, max-content) 1fr;
+  grid-template-columns: minmax(11rem, max-content) minmax(0, 1fr);
   gap: 0.35rem 1rem;
   margin: 0 0 1rem;
   font-size: 0.88rem;
+}
+
+.guide-catalog dt,
+.guide-catalog dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .guide-catalog dt {
@@ -862,6 +880,17 @@ body {
   margin: 0;
   color: #4a5260;
   line-height: 1.5;
+}
+
+@media (max-width: 40rem) {
+  .guide-catalog {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.25rem;
+  }
+
+  .guide-catalog dd {
+    margin-bottom: 0.6rem;
+  }
 }
 
 .guide-links {
