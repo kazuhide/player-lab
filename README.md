@@ -70,6 +70,9 @@ playback, native builds, and device checks. Public reference streams can change
 or become unavailable. Sprite and multi-audio fixtures require your own
 configured output; account-specific media addresses are not included.
 
+[Web memory and processor measurements](docs/web-performance.md) cover repeated
+theme changes and player release, with reproduction steps and measurement limits.
+
 Encoding scripts create resources in your account and can incur charges.
 They are optional for trying the Web app with public reference streams.
 
