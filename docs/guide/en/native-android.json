@@ -9,7 +9,7 @@
     },
     {
       "type": "p",
-      "text": "Java 17 and the Android SDK are required. The current configuration uses compileSdk 36, targetSdk 36, minSdk 23, and Player 3.155.0. CI uses SDK 36 and Build Tools 36.0.0. Set the SDK location with ANDROID_HOME, ANDROID_SDK_ROOT, or apps/android/local.properties. After synchronizing licenses and the shared UI in the common preparation, run the following from the repository root."
+      "text": "Java 17 and the Android SDK are required. Player 3.171.0 requires compileSdk 37; the project uses AGP 9.1.1 and Gradle 9.3.1, with targetSdk 36 and minSdk 23. Install platform 37.0 (platforms;android-37.0) and Build Tools 36.0.0 (build-tools;36.0.0), matching CI. Set the SDK location with ANDROID_HOME, ANDROID_SDK_ROOT, or apps/android/local.properties. After synchronizing licenses and the shared UI in the common preparation, run the following from the repository root."
     },
     {
       "type": "code",

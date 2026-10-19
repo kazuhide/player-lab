@@ -9,16 +9,29 @@
     },
     {
       "type": "p",
-      "text": "apps/react-native は App.tsx、ソース一覧、DVR ロジックと状態管理を提供します。宣言された依存関係は Expo ~54.0.0、React Native 0.81.5、React 19.1.0、bitmovin-player-react-native ^1.20.1 です。完成した Expo アプリではないため、対応する外部プロジェクトに組み込みます。"
+      "text": "apps/react-native は App.tsx、ソース一覧、DVR ロジックと状態管理を提供します。依存関係は Expo ~54.0.0、React Native 0.81.5、React 19.1.0 と、バージョンを固定した bitmovin-player-react-native 1.28.0 です。完成した Expo アプリではないため、対応する外部プロジェクトに組み込みます。"
+    },
+    {
+      "type": "p",
+      "text": "このラッパーのネイティブ Player 既定版は、iOS／tvOS が Swift Package Manager 経由の 3.126.0、Android が 3.165.0+jason です。組み込み時はラッパーが定める組み合わせを使います。単体のネイティブサンプルは、それぞれ別の SDK バージョンを固定しています。"
     },
     {
       "type": "code",
       "title": "README の外部プロジェクト作成例",
-      "text": "npx create-expo-app@latest dvr-showcase\ncd dvr-showcase\nnpx expo install bitmovin-player-react-native expo-crypto"
+      "text": "npx create-expo-app@latest dvr-showcase\ncd dvr-showcase\nnpx expo install bitmovin-player-react-native@1.28.0 expo-crypto"
     },
     {
       "type": "note",
       "text": "@latest が生成する依存関係は時間とともに変わります。生成結果を apps/react-native/package.json のバージョンと照合します。ネイティブ Player モジュールが必要なため Expo Go では動作せず、開発用のネイティブビルドが必要です。"
+    },
+    {
+      "type": "p",
+      "text": "外部プロジェクトの app.json、または同等の app.config に Player の設定プラグインを登録します。既存のプラグインを残して、次の項目を追加します。"
+    },
+    {
+      "type": "code",
+      "title": "app.json の Player プラグイン設定",
+      "text": "{\n  \"expo\": {\n    \"plugins\": [\"bitmovin-player-react-native\"]\n  }\n}"
     },
     {
       "type": "steps",
@@ -30,6 +43,15 @@
         "カスタム UI を使う場合は assets/webui/ の JavaScript と CSS を外部アプリの iOS／Android プロジェクトへ同梱し、App.tsx の WEBUI_JS／WEBUI_CSS が実際のファイルを指すようにします。現在のアドレスは統合用プレースホルダーです。",
         "外部 Expo プロジェクトから iOS または Android の開発ビルドを実行します。"
       ]
+    },
+    {
+      "type": "note",
+      "text": "1.27 から、iOS の Player と Google IMA の依存管理が CocoaPods から Swift Package Manager に変わりました。既存アプリを更新する場合は、明示的に追加した Player、Player Core、Analytics、IMA の Pod 依存を削除し、ブリッジ、Expo、任意の Cast の Pod は残します。プラグインを登録したうえで、次の iOS prebuild を再実行します。必要に応じて Pod を導入し、生成された .xcworkspace を開きます。prebuild を使わない構成は、出典にある公式移行ガイドに従います。Player と IMA の固定版は、導入したパッケージの ios/dependencies.json で確認できます。組み込み後は再ビルドし、フレームワークの同梱と Release アーカイブも確認します。"
+    },
+    {
+      "type": "code",
+      "title": "導入・更新後に iOS のネイティブ構成を更新",
+      "text": "npx expo prebuild --platform ios"
     },
     {
       "type": "code",
@@ -55,7 +77,7 @@
     },
     {
       "type": "p",
-      "text": "Vega OS は Android 系 Fire TV とは別の実行環境です。apps/vega はモジュール版 Web Player を W3C media element へ接続し、React Native／Kepler の画面部品を使います。ブラウザーの document が必要な bitmovin-player-ui は使いません。依存関係は Player 8.138.0-beta.28、React Native 0.72.0、React 18.2.0 と Amazon のデバイスパッケージです。"
+      "text": "Vega OS は Android 系 Fire TV とは別の実行環境です。apps/vega はモジュール版 Web Player を W3C media element へ接続し、React Native／Kepler の画面部品を使います。ブラウザーの document が必要な bitmovin-player-ui は使いません。依存関係は Player 8.138.0-beta.28、React Native 0.72.0、React 18.2.0 と Amazon のデバイスパッケージです。2026-10-20 時点の公式 Vega サンプルは 8.138.0-beta.XX 系のみを対応対象としています。最新の掲載版 beta.28 を引き続き固定し、一般向け Web 版を Vega 対応版として扱いません。"
     },
     {
       "type": "steps",
@@ -140,6 +162,26 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/setting-up-your-environment",
       "label": "Bitmovin React Native のネイティブ開発環境と Expo Go の制限"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/docs/ios-dependencies.md",
+      "label": "React Native の iOS 依存関係に関する公式移行手順"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/dependencies.json",
+      "label": "React Native 1.28.0 の Apple SDK 既定版"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/build.gradle",
+      "label": "React Native 1.28.0 の Android SDK 既定版"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/blob/0c7463104d3c18f56440aeec7beccd0d92c11aaa/README.md#features-and-limitations",
+      "label": "Vega で対応する Player の公式リリース系統"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/blob/0c7463104d3c18f56440aeec7beccd0d92c11aaa/PLAYER-CHANGELOG.md",
+      "label": "Vega 向け Player の公式リリース履歴"
     },
     {
       "url": "https://docs.expo.dev/more/create-expo/",

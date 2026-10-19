@@ -12,6 +12,14 @@ and the Amazon device packages. Third-party libraries and platform tools are
 external dependencies with their own licenses and access requirements; they are
 not bundled or relicensed by this repository.
 
+Vega uses a separate Player release channel. As of 2026-10-20, the
+[official Vega sample](https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/blob/0c7463104d3c18f56440aeec7beccd0d92c11aaa/README.md#features-and-limitations)
+supports only `8.138.0-beta.XX`; its latest
+[listed release](https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/blob/0c7463104d3c18f56440aeec7beccd0d92c11aaa/PLAYER-CHANGELOG.md)
+is `8.138.0-beta.28`, which this app retains. Keep this Vega-specific pin when
+updating the browser and native SDKs; general Web releases are not declared
+supported on Vega by that sample.
+
 ## Layout
 
 - `src/dvr/`: TypeScript rewind-window calculations and state handling.

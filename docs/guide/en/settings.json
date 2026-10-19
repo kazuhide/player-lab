@@ -1,13 +1,13 @@
 {
   "id": "settings",
-  "title": "Player Config: all 134 fields",
+  "title": "Player Config: 134 GUI fields",
   "lead": "Find the scope, application mode, input format and description of each field. A visible control does not establish that a value applies in your environment or that its behavior has been verified there.",
   "notes": [
     "A form fallback is the display value used when the form cannot read an applied value. It is not the SDK default, the current effective value or a recommended value.",
     "The initial Adaptation fields are applied to both desktop and mobile configurations.",
-    "Descriptions explain the public implementation and the pinned SDK API. They do not establish device validation for every field.",
-    "The public per-field source documentation does not define app_id; consult the official API specification.",
-    "Descriptions target Web SDK 8.263.0. The online API reference may describe a newer release; check its version before comparing fields."
+    "Descriptions cover the app's 134 GUI fields. They do not establish device validation for every field or coverage of the SDK's entire configuration surface.",
+    "The app_id editor field is not documented in this SDK's public declarations and is excluded from API coverage. A value editable in the form is not necessarily a supported public SDK setting.",
+    "The repository now pins Web SDK 8.280.0. These field descriptions were originally reviewed against 8.263.0; the dependency update does not establish new per-field behavior validation. Check the API reference version when comparing fields."
   ],
   "groups": [
     {

@@ -29,16 +29,47 @@ app or verify playback.
 ## Build in an Expo project
 
 Use an Expo project compatible with this folder's `package.json`: Expo 54,
-React Native 0.81.5, and `bitmovin-player-react-native` 1.x. The following creates
-an external project; check its generated dependency versions against the manifest
-because `@latest` can change:
+React Native 0.81.5, React 19.1.0, and `bitmovin-player-react-native` 1.28.0.
+The wrapper defaults to native Player 3.126.0 through Swift Package Manager on
+iOS/tvOS and 3.165.0+jason on Android. Keep this wrapper-supported combination;
+the standalone native samples have separate SDK pins.
+
+The following creates an external project; check its generated dependency
+versions against the manifest because `@latest` can change:
 
 ```bash
 npx create-expo-app@latest dvr-showcase
 cd dvr-showcase
-npx expo install bitmovin-player-react-native expo-crypto
+npx expo install bitmovin-player-react-native@1.28.0 expo-crypto
 # Copy this folder's App.tsx, src/, and generated .env into the Expo project.
 ```
+
+Register the Player config plugin in the external project's `app.json` or
+equivalent `app.config`, preserving any existing plugins:
+
+```json
+{
+  "expo": {
+    "plugins": ["bitmovin-player-react-native"]
+  }
+}
+```
+
+Version 1.27 migrated iOS Player and Google IMA dependencies from CocoaPods to
+Swift Package Manager. When upgrading an existing app, remove explicit Player,
+Player Core, Analytics, and IMA pod dependencies; keep the React Native bridge,
+Expo, and optional Cast pods. With the plugin registered, rerun iOS prebuild:
+
+```bash
+npx expo prebuild --platform ios
+```
+
+Install pods if prebuild did not do so, then open the generated `.xcworkspace`.
+For projects maintained without prebuild, follow the
+[official iOS dependency migration guide](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/docs/ios-dependencies.md).
+The installed package's `ios/dependencies.json` defines the exact Player and IMA
+versions. Rebuild and check framework embedding and Release archives after
+integration; the repository's type checks do not verify them.
 
 At the repository root, `bash scripts/sync-env.sh` generates this folder's ignored
 `.env` with `EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY` and optional
