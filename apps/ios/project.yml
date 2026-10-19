@@ -25,11 +25,6 @@ settings:
     GENERATE_INFOPLIST_FILE: YES
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
-    # License keys flow: repo-root .env → scripts/sync-env.sh → Local.xcconfig
-    # (BITMOVIN_PLAYER_LICENSE_KEY / BITMOVIN_ANALYTICS_LICENSE_KEY build settings)
-    # → these Info.plist keys → ShowcaseApp.swift. Empty when the xcconfig is absent.
-    INFOPLIST_KEY_BitmovinLicenseKey: "$(BITMOVIN_PLAYER_LICENSE_KEY)"
-    INFOPLIST_KEY_BitmovinAnalyticsLicenseKey: "$(BITMOVIN_ANALYTICS_LICENSE_KEY)"
 
 targets:
   Showcase-iOS:
@@ -47,8 +42,8 @@ targets:
         optional: true
     settings:
       base:
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_CFBundleDisplayName: "Player Playground"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Showcase/Info.plist
         TARGETED_DEVICE_FAMILY: "1,2"
     dependencies:
       - package: BitmovinPlayer
@@ -62,8 +57,41 @@ targets:
     sources: [Showcase]
     settings:
       base:
-        INFOPLIST_KEY_CFBundleDisplayName: "Player Playground"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Showcase/Info.plist
     dependencies:
       - package: BitmovinPlayer
         product: BitmovinPlayer
       - package: DvrKit
+
+  Showcase-iOSRuntimeTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources: [ShowcaseTests]
+    dependencies:
+      - target: Showcase-iOS
+      - package: BitmovinPlayer
+        product: BitmovinPlayer
+      - package: DvrKit
+    settings:
+      base:
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Showcase-iOS.app/Showcase-iOS"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+# Keep app build schemes alongside the opt-in runtime scheme for command-line builds.
+schemes:
+  Showcase-iOS:
+    build:
+      targets:
+        Showcase-iOS: all
+  Showcase-tvOS:
+    build:
+      targets:
+        Showcase-tvOS: all
+  Showcase-iOS-Runtime:
+    build:
+      targets:
+        Showcase-iOS: all
+    test:
+      targets: [Showcase-iOSRuntimeTests]

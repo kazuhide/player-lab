@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Verify the generated JS/CSS are included unchanged in a built app or APK."""
+"""Verify packaged shared UI assets and the iOS app's credential-key wiring."""
 import argparse
 from pathlib import Path
+import plistlib
 import sys
 import zipfile
 
@@ -9,6 +10,7 @@ import zipfile
 def check(bundle, source):
     names = ("bitmovinplayer-ui.js", "bitmovinplayer-ui.css")
     if bundle.is_dir():
+        check_ios_config(bundle)
         contents = {name: [p.read_bytes() for p in (bundle / name,)
                            if p.is_file()] for name in names}
     else:
@@ -19,6 +21,19 @@ def check(bundle, source):
         expected = (source / name).read_bytes()
         if not expected or contents[name] != [expected]:
             raise ValueError("Missing, duplicated or different shared UI asset: " + name)
+
+
+def check_ios_config(bundle):
+    with (bundle / "Info.plist").open("rb") as file:
+        info = plistlib.load(file)
+    if not isinstance(info, dict):
+        raise ValueError("Invalid iOS app Info.plist")
+    for name in ("BitmovinLicenseKey", "BitmovinAnalyticsLicenseKey"):
+        value = info.get(name)
+        # Empty keys are valid for compile-only CI. Missing keys are different:
+        # they make a locally configured license disappear before app startup.
+        if not isinstance(value, str) or "$(" in value:
+            raise ValueError("Missing or unresolved iOS app setting: " + name)
 
 
 def main():

@@ -66,6 +66,9 @@ The shared UI uses `bitmovin-player-ui` 4.x. A successful Android build does not
 establish that it renders correctly in the native player library's WebView;
 check rendering and input on each target.
 
+The control rows scroll horizontally on narrow displays, so all existing source,
+UI, and seek buttons remain reachable without changing the control layout.
+
 ## Playback checks
 
 Unit tests and APK builds do not verify licensed playback. On a device or
@@ -73,3 +76,44 @@ emulator, check live seeking, returning to live, and recovery when paused media
 expires. Android TV and Fire TV also need remote-control checks; the app declares
 a `LEANBACK_LAUNCHER` entry for TV launchers. Use your own license and reachable
 test streams.
+
+With an emulator or device connected, run the real playback tests from
+`apps/android`:
+
+```sh
+./gradlew :app:connectedDebugAndroidTest
+```
+
+`PlayerDvrInstrumentedTest` checks the real library's source loading and finite
+on-demand duration. `PlayerControlsInstrumentedTest` uses the app's actual Compose
+buttons and switch, checks the bundled Sports UI's elements and stylesheet in its
+WebView, starts playback through that UI, then checks source switching, live
+rewind, return to live, and the DVR setting. Both tests need network access and a
+valid license allowing `com.showcase.dvr`; neither substitutes a mock player.
+Player and Source failures report numeric error codes without printing their
+messages or license values. A failed license request is a failed playback check,
+even when compilation and packaging pass. Leave the optional Analytics key empty
+when no collection is intended.
+
+The shared UI can exist before its playback control becomes visible. The test
+waits for that control, then checks that native playback time advances. It reveals
+controls through WebView pointer input and checks element dimensions and the
+computed display, visibility and opacity of each ancestor. Hidden controls with
+nonzero dimensions do not establish a visible result.
+
+Live offsets use a moving reference: the live edge can advance while a rewind
+buffers. The test fixes a media reference from the SDK-reported position and
+offset just before seeking, then checks that the next `TimeShifted` event lands
+within three seconds of the resulting target. It also requires a negative live
+offset and the visible behind-live state. The return-to-live check requires a new
+completion event, an SDK-reported offset within one second of zero, and visible
+`LIVE` text and button state.
+
+The app's event log also retains startup error codes, so a failed initial request
+can be distinguished from a source that is still loading.
+
+On 2026-10-19, the debug app and instrumentation APK compiled with Player 3.155.0.
+An Android 16 emulator passed both real playback tests through the Gradle command
+above: 2 passed, 0 failed, 0 skipped in 29.294 seconds. The APK contained the final
+shared UI bundle. These checks used the catalog's public sample sources; physical
+devices, Android TV and Fire TV were not covered by this run.

@@ -5,6 +5,11 @@ shared Web UI from `@showcase/ui-shared`; tvOS uses the native System UI because
 the Web UI is unavailable there. DVR means the window of live media that a viewer
 can rewind.
 
+The Apple sample offers HLS sources. The pinned native library accepts HLS and
+progressive MP4; loading a DASH source violates its precondition and terminates
+the app. DASH remains available in the Web and Android samples. See the
+[official Apple sample formats](https://github.com/bitmovin/bitmovin-player-ios-samples#available-sample-apps).
+
 ## Layout
 
 - `DvrKit/`: Swift package containing the rewind-window calculations and tests.
@@ -29,7 +34,11 @@ The app pins Player 3.128.0; `Package.resolved` also records its transitive
 package revisions.
 
 Set your keys in the repository-root `.env` as described in `docs/SETUP.md`.
-The player license must allow the app's bundle ID. From the repository root:
+The generated targets use `com.showcase.dvr.Showcase-iOS` and
+`com.showcase.dvr.Showcase-tvOS`. Allow the identifier of the target you run on
+your Player license; if you change it in Xcode, allow the changed identifier.
+See the [official bundle identifier setup](https://github.com/bitmovin/bitmovin-player-ios-samples#add-the-bundle-identifier-as-an-allowed-domain).
+From the repository root:
 
 ```bash
 xcodegen version              # must be 2.46.0; install the linked release if needed
@@ -61,6 +70,12 @@ needs a valid player license. If the analytics key is supplied, the
 bundled collector reports playback-quality measurements to your account.
 Do not commit the generated key file.
 
+`Showcase/Info.plist` maps the license build settings to the entries read at
+startup; it stores references, never credential values. The previously generated
+plist omitted these custom entries, so configured builds started with an empty
+key. Both app targets now use the explicit plist. CI rejects missing or unresolved
+entries while allowing empty values for compilation without credentials.
+
 ## Shared player UI
 
 On iOS, the "Player UI" picker selects the default Web UI or Sports, Live, and
@@ -85,6 +100,56 @@ license and a running live source, check seeking within the window, returning to
 live, recovery when paused media expires, and a live stream becoming on-demand.
 The app also checks for the latter transition from `TimeChanged` snapshots,
 because relying only on `DurationChanged` can miss it.
+
+The opt-in `Showcase-iOS-Runtime` scheme runs a hosted test against the real
+library and shared Web UI. After the setup/build steps above, select an available
+iOS simulator in Xcode or run this command from `apps/ios`, replacing the simulator
+name with one installed on your machine:
+
+```sh
+xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Runtime \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.4' \
+  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO test
+```
+
+The test checks finite on-demand playback, the bundled Sports UI's rendered
+elements and stylesheet, playback started through that UI, switching to live HLS
+and back, seeking behind live, returning to live, disabling/enabling DVR, and
+recreating the player with the Cinema UI. It retains a screenshot in the Xcode
+test result. It uses public reference streams and needs a valid license allowing
+`com.showcase.dvr.Showcase-iOS`. Leave the optional Analytics key empty when no
+collection is intended. A library error or unavailable stream fails the test;
+there is no mock fallback or success-on-skip behavior.
+
+Live HLS can expose its rewind window only after playback starts. The runtime
+test waits for the new source to load, starts playback, then checks the window;
+waiting for a window while the source is paused can time out.
+
+A native seek and its WebView display update complete asynchronously. For both
+rewinding and returning to live, the test waits for
+[`TimeShiftedEvent`](https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerlistener/index.html),
+which signals completed live seeking, then checks the SDK offset and the visible
+behind-live label and LIVE button. An offset check alone does not establish that
+the on-screen controls have caught up.
+
+The live edge advances while a seek buffers. The rewind check captures the
+requested media position and checks the position recorded at seek completion
+within the same three-second tolerance. A finite negative offset and the
+behind-live controls then confirm that playback remains behind the moving edge.
+
+Shared controls also need time to finish layout, and automatic hiding can make
+an ancestor transparent while its controls keep nonzero bounds. The test waits
+for positive width and height and checks display, visibility, and opacity through
+the ancestor chain. When controls are hidden, ordinary mouse movement on the
+rendered UI requests their display before the same state checks run again.
+
+On 2026-10-19, this runtime test passed on an iPhone 17 Pro simulator running
+iOS 26.4 with Player 3.128.0 and `bitmovin-player-ui` 4.15.1 including the
+repository's cleanup patch: one test, zero failures, 11.670 seconds. The shared
+Sports UI was also inspected in the retained image. This is simulator evidence;
+physical-device, tvOS, remote-control, casting, and offline playback checks remain
+separate.
 
 ## Build without credentials
 
