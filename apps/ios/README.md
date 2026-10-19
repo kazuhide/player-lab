@@ -133,9 +133,20 @@ which signals completed live seeking, then checks the SDK offset and the visible
 behind-live label and LIVE button. An offset check alone does not establish that
 the on-screen controls have caught up.
 
+The live edge advances while a seek buffers. The rewind check captures the
+requested media position and checks the position recorded at seek completion
+within the same three-second tolerance. A finite negative offset and the
+behind-live controls then confirm that playback remains behind the moving edge.
+
+Shared controls also need time to finish layout, and automatic hiding can make
+an ancestor transparent while its controls keep nonzero bounds. The test waits
+for positive width and height and checks display, visibility, and opacity through
+the ancestor chain. When controls are hidden, ordinary mouse movement on the
+rendered UI requests their display before the same state checks run again.
+
 On 2026-10-19, this runtime test passed on an iPhone 17 Pro simulator running
 iOS 26.4 with Player 3.128.0 and `bitmovin-player-ui` 4.15.1 including the
-repository's cleanup patch: one test, zero failures, 12.161 seconds. The shared
+repository's cleanup patch: one test, zero failures, 11.670 seconds. The shared
 Sports UI was also inspected in the retained image. This is simulator evidence;
 physical-device, tvOS, remote-control, casting, and offline playback checks remain
 separate.

@@ -14,6 +14,8 @@ final class PlayerRuntimeTests: XCTestCase {
     private var errorCodes: [Int] = []
     private var sourceLoads = 0
     private var timeShiftCompletions = 0
+    private var lastTimeShiftedMediaTime: TimeInterval?
+    private weak var observedPlayer: Player?
 
     func testSharedUiPlaybackSourceSwitchAndDvrControls() async throws {
         XCTAssertFalse(bitmovinLicenseKey().isEmpty, "Configure a native Player license first")
@@ -42,16 +44,18 @@ final class PlayerRuntimeTests: XCTestCase {
         }
         let webView = try await sharedWebView(in: view, skin: "sports")
         // Click the rendered shared UI, proving its JavaScript-to-native bridge.
-        let clicked = try await webView.evaluateJavaScript("""
-            (() => {
-              const button = [...document.querySelectorAll('.bmpui-ui-playbacktogglebutton')]
-                .find(button => button.getBoundingClientRect().width > 0);
-              if (!button) return false;
-              button.click();
-              return true;
-            })()
-            """) as? Bool
-        XCTAssertEqual(clicked, true, "Shared UI must expose a visible playback button")
+        try await eventually("shared UI exposes a visible playback button") {
+            let script = """
+                (() => {
+                  \(self.sharedUiVisibilityScript)
+                  const button = visible('.bmpui-ui-playbacktogglebutton');
+                  if (!button) { revealControls(); return false; }
+                  button.click();
+                  return true;
+                })()
+                """
+            return try await webView.evaluateJavaScript(script) as? Bool == true
+        }
         let start = model.player.currentTime
         try await eventually("shared UI starts advancing playback") {
             model.player.isPlaying && model.player.currentTime > start + 1
@@ -65,11 +69,16 @@ final class PlayerRuntimeTests: XCTestCase {
             model.dvr.isLive && model.dvr.dvrAvailable && model.dvr.windowDuration > 10
         }
         let beforeRewind = timeShiftCompletions
+        let rewindFromTime = model.player.currentTime
+        let rewindFromOffset = model.player.timeShift
+        let rewindTarget = rewindFromTime - rewindFromOffset - 10
         model.seek(toOffsetFromEdge: -10)
         try await eventually("rewind completes in the SDK and shared UI") {
             let offset = model.player.timeShift
             guard self.timeShiftCompletions > beforeRewind,
-                  offset.isFinite && (-13 ... -7).contains(offset) else { return false }
+                  let completedMediaTime = self.lastTimeShiftedMediaTime,
+                  completedMediaTime.isFinite && abs(completedMediaTime - rewindTarget) <= 3,
+                  offset.isFinite && offset < 0 else { return false }
             return try await self.sharedLiveUi(in: webView, atEdge: false)
         }
         let beforeReturn = timeShiftCompletions
@@ -116,8 +125,14 @@ final class PlayerRuntimeTests: XCTestCase {
     }
 
     private func observeErrors(_ player: Player) {
+        observedPlayer = player
+        lastTimeShiftedMediaTime = nil
         player.events.on(TimeShiftedEvent.self).receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.timeShiftCompletions += 1 }
+            .sink { [weak self, weak player] _ in
+                guard let self, let player, self.observedPlayer === player else { return }
+                self.timeShiftCompletions += 1
+                self.lastTimeShiftedMediaTime = player.currentTime
+            }
             .store(in: &subscriptions)
         player.events.on(SourceLoadedEvent.self).receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.sourceLoads += 1 }
@@ -143,14 +158,31 @@ final class PlayerRuntimeTests: XCTestCase {
         throw RuntimeFailure.timeout
     }
 
+    private let sharedUiVisibilityScript = """
+        const isVisible = element => {
+          const rect = element.getBoundingClientRect();
+          if (!(rect.width > 0 && rect.height > 0)) return false;
+          for (let node = element; node; node = node.parentElement) {
+            const style = getComputedStyle(node);
+            if (style.display === 'none' || style.visibility === 'hidden' ||
+                style.visibility === 'collapse' || Number(style.opacity) <= 0) return false;
+          }
+          return true;
+        };
+        const visible = selector => [...document.querySelectorAll(selector)].find(isVisible);
+        const revealControls = () => {
+          const root = visible('.bmpui-ui-uicontainer');
+          if (root) root.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+        };
+        """
+
     private func sharedLiveUi(in webView: WKWebView, atEdge: Bool) async throws -> Bool {
         let script = """
             (() => {
-              const visible = selector => [...document.querySelectorAll(selector)]
-                .find(element => element.getBoundingClientRect().width > 0);
+              \(sharedUiVisibilityScript)
               const label = visible('.bmpui-ui-label-behindlive');
               const button = visible('.bmpui-ui-livebutton');
-              if (!label || !button) return false;
+              if (!label || !button) { revealControls(); return false; }
               const atEdge = \(atEdge ? "true" : "false");
               const text = label.textContent.trim();
               return atEdge
