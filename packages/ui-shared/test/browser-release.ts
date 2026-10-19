@@ -195,7 +195,7 @@ export function inspectExcludedSettingsRelease(player: PlayerAPI) {
 // Exercise the actual SDK component, UI manager and DOM click with controlled
 // public load/play promises. The browser test observes genuine unhandled errors
 // through Playwright; this helper installs no rejection listener or suppressor.
-export async function inspectRecommendationPromises(player: PlayerAPI, scenario: "released" | "superseded" | "active-failure" | "active-abort" | "released-failure" | "released-intent" | "pause" | "released-pause" | "external-source" | "unload" | "destroy" | "play-failure" | "superseded-unload-pending" | "superseded-external-source" | "superseded-unload" | "destroy-before-notify" | "destroy-notify-invalid" | "external-source-play" | "active-load-abort" | "destroyed-failure") {
+export async function inspectRecommendationPromises(player: PlayerAPI, scenario: "released" | "superseded" | "active-failure" | "active-abort" | "released-failure" | "released-intent" | "pause" | "released-pause" | "external-source" | "unload" | "destroy" | "play-failure" | "superseded-unload-pending" | "superseded-external-source" | "superseded-unload" | "destroy-before-notify" | "destroy-notify-invalid" | "external-source-play" | "active-load-abort" | "destroyed-failure" | "pause-next-before-unload" | "pause-next-after-unload" | "pause-next-external-source" | "pause-next-external-unload" | "pause-next-after-external-unload" | "pause-cancelled-load" | "pause-receipt-destroy") {
   const deferred = () => {
     let resolve!: () => void;
     let reject!: (reason: unknown) => void;
@@ -249,7 +249,7 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
     currentSource = null;
     // Web 8.280 clears the receipt before asynchronous SourceUnloaded delivery.
     if (unloading) {
-      if (scenario.startsWith("superseded-") || (scenario === "external-source-play" && loads.length === 2)) deferredUnloads++;
+      if (scenario.startsWith("superseded-") || scenario.startsWith("pause-") || (scenario === "external-source-play" && loads.length === 2)) deferredUnloads++;
       else emit(player.exports.PlayerEvent.SourceUnloaded);
     }
     return pending.promise;
@@ -273,7 +273,51 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
     first.getDomElement().get(0).click();
     if (loads.length !== 1 || plays.length !== 0) throw new Error("Recommendation must wait for its load before playing");
     if (["released", "released-failure", "released-intent", "released-pause"].includes(scenario)) manager.release();
-    if (scenario.startsWith("superseded-")) {
+    if (scenario.startsWith("pause-")) {
+      if (player.getConfig(false).playback?.autoplay !== false || !player.getVideoElement().paused) {
+        throw new Error("The autoplay=false SDK media element must be paused during teardown");
+      }
+      player.pause("recommendation-fixture-between-clicks");
+      if (player.pause !== pause) throw new Error("Cancelling the action must restore its pause hook immediately");
+      if (deferredUnloads !== 1) throw new Error("The first load must still own one delayed teardown notification");
+      const notifyUnload = () => { emit(player.exports.PlayerEvent.SourceUnloaded); deferredUnloads--; };
+      if (scenario === "pause-cancelled-load") {
+        notifyUnload();
+        await finishLoad(0);
+      } else if (scenario === "pause-receipt-destroy") {
+        manager.release();
+        invalidated = true;
+        emit(player.exports.PlayerEvent.Destroy);
+        loads[0]!.reject(new DOMException("Destroyed cancelled recommendation", "AbortError"));
+        for (const [event, values] of listeners) {
+          for (const callback of values.keys()) boundOff(event as Parameters<PlayerAPI["off"]>[0], callback as Parameters<PlayerAPI["off"]>[1]);
+        }
+        listeners.clear();
+      } else {
+        const notifyBeforeNext = scenario === "pause-next-after-unload" || scenario === "pause-next-after-external-unload";
+        if (notifyBeforeNext) notifyUnload();
+        second.getDomElement().get(0).click();
+        if (scenario === "pause-next-external-source") {
+          const replacement = { hls: "https://example.invalid/replacement.m3u8" };
+          const loading = player.load(replacement);
+          currentSource = replacement;
+          loads[2]!.resolve();
+          await loading;
+        }
+        if (!notifyBeforeNext) notifyUnload();
+        if (scenario === "pause-next-external-unload" || scenario === "pause-next-after-external-unload") emit(player.exports.PlayerEvent.SourceUnloaded);
+        loads[0]!.reject(new DOMException("Paused first recommendation", "AbortError"));
+        if (scenario === "pause-next-before-unload" || scenario === "pause-next-after-unload") {
+          await finishLoad(1);
+          const latestPlay = plays[0];
+          if (!latestPlay) throw new Error("The second recommendation must play after pause and delayed teardown");
+          latestPlay.resolve();
+        } else {
+          loads[1]!.resolve();
+          await Promise.resolve();
+        }
+      }
+    } else if (scenario.startsWith("superseded-")) {
       second.getDomElement().get(0).click();
       if (deferredUnloads !== 1) throw new Error("The preceding unload must remain pending across both clicks");
       if (scenario === "superseded-external-source") {

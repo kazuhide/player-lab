@@ -256,50 +256,90 @@ diff --git a/dist/js/framework/utils/RecommendationPlayback.js b/dist/js/framewo
 new file mode 100644
 --- /dev/null
 +++ b/dist/js/framework/utils/RecommendationPlayback.js
-@@ -0,0 +1,95 @@
+@@ -0,0 +1,133 @@
 +"use strict";
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.playRecommendation = playRecommendation;
-+var pendingRecommendations = new WeakMap();
-+function playRecommendation(player, source) {
-+    var previous = pendingRecommendations.get(player);
-+    var inheritedUnload = previous && previous.hasPendingUnload();
-+    if (previous) previous.cancel();
-+    var cancelled = false;
-+    var listening = true;
-+    // load() clears getSource() before its asynchronous unload notification.
-+    // A newer recommendation inherits that notification from the retired action.
-+    var ownUnloadPending = inheritedUnload || player.getSource() != null;
-+    var playRequested = false;
++var recommendationStates = new WeakMap();
++function createState(player) {
 +    var events = player.exports.PlayerEvent;
 +    var PlayerAPINotAvailableError = player.exports.PlayerAPINotAvailableError;
-+    var originalPause = player.pause;
-+    var action = { cancel: cancel, hasPendingUnload: function () { return ownUnloadPending; } };
-+    function cleanup() {
++    var state = { action: null, unloads: [], listening: false, disposed: false };
++    state.isUnavailable = function (error) { return error instanceof PlayerAPINotAvailableError; };
++    state.cleanup = function () {
++        if (!state.disposed && (state.action || state.unloads.length)) return;
 +        try {
-+            if (player.pause === pause) player.pause = originalPause;
-+            if (listening) {
-+                listening = false;
++            if (state.listening) {
++                state.listening = false;
 +                try {
 +                    player.off(events.SourceUnloaded, onSourceUnloaded);
-+                    player.off(events.Paused, cancel);
-+                    player.off(events.Destroy, cancel);
++                    player.off(events.Paused, onPaused);
++                    player.off(events.Destroy, onDestroy);
 +                } catch (error) {
-+                    // destroy() invalidates off() before its Destroy notification;
-+                    // it owns disposal of all remaining SDK listeners.
-+                    if (!(error instanceof PlayerAPINotAvailableError)) throw error;
-+                    cancelled = true;
++                    // destroy() invalidates off() before notifying Destroy and
++                    // owns disposal of all remaining SDK event handlers.
++                    if (!state.isUnavailable(error)) throw error;
++                    state.disposed = true;
 +                }
 +            }
 +        } finally {
-+            if (pendingRecommendations.get(player) === action) pendingRecommendations.delete(player);
++            if (state.disposed) state.unloads.length = 0;
++            if (recommendationStates.get(player) === state) recommendationStates.delete(player);
++        }
++    };
++    function onSourceUnloaded() {
++        // Each receipt identifies a concrete source our load requested to tear
++        // down. Its notification can outlive pause, action failure or a new click.
++        if (state.unloads.length) state.unloads.shift();
++        else if (state.action) state.action.cancel();
++        state.cleanup();
++    }
++    function onPaused() {
++        if (state.action) state.action.cancel();
++    }
++    function onDestroy() {
++        state.disposed = true;
++        state.unloads.length = 0;
++        if (state.action) state.action.cancel();
++        state.cleanup();
++    }
++    state.destroy = onDestroy;
++    state.listen = function () {
++        if (state.listening) return;
++        state.listening = true;
++        player.on(events.SourceUnloaded, onSourceUnloaded);
++        player.on(events.Paused, onPaused);
++        player.on(events.Destroy, onDestroy);
++    };
++    return state;
++}
++function playRecommendation(player, source) {
++    var previousSource = player.getSource();
++    var state = recommendationStates.get(player) || createState(player);
++    if (state.action) state.action.cancel();
++    // Action cleanup may detach an idle state; pending teardown receipts keep
++    // this player-owned coordinator alive independently of playback intent.
++    recommendationStates.set(player, state);
++    var receipt = previousSource == null ? null : { source: previousSource, request: source };
++    if (receipt) state.unloads.push(receipt);
++    var cancelled = false;
++    var playRequested = false;
++    var originalPause = player.pause;
++    var action = { cancel: cancel };
++    function cleanup() {
++        try {
++            if (player.pause === pause) player.pause = originalPause;
++        } finally {
++            if (state.action === action) state.action = null;
++            state.cleanup();
 +        }
 +    }
-+    function sourceIsCurrent() {
++    function sourceMatches(expectedSource) {
 +        try {
-+            return player.getSource() === source;
++            return player.getSource() === expectedSource;
 +        } catch (error) {
-+            if (!(error instanceof PlayerAPINotAvailableError)) throw error;
++            if (!state.isUnavailable(error)) throw error;
++            state.destroy();
 +            cancelled = true;
 +            return false;
 +        }
@@ -309,45 +349,43 @@ new file mode 100644
 +        cleanup();
 +    }
 +    function pause() {
-+        // pause() emits no event when already paused, but still cancels this intent.
++        // pause() emits no event when already paused, but still cancels intent.
 +        cancel();
 +        return originalPause.apply(this, arguments);
-+    }
-+    function onSourceUnloaded() {
-+        // The first unload belongs to this load; later unloads replace its source.
-+        if (ownUnloadPending) ownUnloadPending = false;
-+        else cancel();
 +    }
 +    function fail(error) {
 +        var browserCancellation = typeof DOMException !== 'undefined' && error instanceof DOMException && error.name === 'AbortError';
 +        // An external load can replace the receipt and reject pending play before
 +        // SourceUnloaded is delivered. Active load and same-source aborts stay visible.
-+        if (browserCancellation && playRequested && !cancelled && !sourceIsCurrent()) cancelled = true;
++        if (browserCancellation && playRequested && !cancelled && !sourceMatches(source)) cancelled = true;
 +        cleanup();
 +        if (cancelled && browserCancellation) return;
 +        // Keep genuine failures visible once, including failures after cancellation.
 +        throw error;
 +    }
-+    pendingRecommendations.set(player, action);
++    state.action = action;
 +    player.pause = pause;
-+    player.on(events.SourceUnloaded, onSourceUnloaded);
-+    player.on(events.Paused, cancel);
-+    player.on(events.Destroy, cancel);
++    state.listen();
 +    var loading;
 +    try {
 +        loading = player.load(source);
 +    } catch (error) {
++        // A synchronous validation failure that leaves the previous source in
++        // place did not initiate the teardown represented by this new receipt.
++        if (receipt && sourceMatches(receipt.source)) {
++            var index = state.unloads.indexOf(receipt);
++            if (index !== -1) state.unloads.splice(index, 1);
++        }
 +        cleanup();
 +        throw error;
 +    }
 +    // No UI/component is retained. A theme release preserves playback intent;
 +    // another source, pause, recommendation or player destruction cancels it.
 +    return loading.then(function () {
-+        if (cancelled || pendingRecommendations.get(player) !== action) return;
++        if (cancelled || state.action !== action) return;
 +        // Web 8.280 retains the exact SourceConfig passed to load(). A different
 +        // source receipt cannot acquire this action's delayed play intent.
-+        if (!sourceIsCurrent()) { cancel(); return; }
-+        ownUnloadPending = false;
++        if (!sourceMatches(source)) { cancel(); return; }
 +        playRequested = true;
 +        return player.play();
 +    }).then(cleanup, fail);

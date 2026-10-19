@@ -18,16 +18,22 @@ Loading a source can cancel a playback request issued before that load finishes.
 The action waits for loading, then plays only if the same source object still
 belongs to the originating Player. A later recommendation, source change,
 unload, pause request or destruction cancels that action. Changing only the UI
-preserves playback intent. Temporary SDK listeners and the pause hook are
-removed when the action settles or is cancelled; the hook restores the original
-method only while it still owns that method. Expected browser cancellations of
-retired actions are consumed, while active cancellations and genuine failures
-remain observable. A superseding recommendation inherits its predecessor's pending
-unload notification. A source receipt replaced during pending playback also
-identifies cancellation before that notification arrives. Disposal recognizes
-only the SDK's exported `PlayerAPINotAvailableError`; local ownership is cleared
-even when the destroyed API can no longer unsubscribe. The SDK's `destroy()`
-contract owns removal of its remaining event handlers.
+preserves playback intent. Settling or cancelling an action restores its pause
+hook immediately, only while it still owns that method. Teardown receipts record
+the concrete previous source and requested replacement for each recommendation
+load. Their lifetime belongs to the Player: they survive cancellation of the
+playback intent until the ordered `SourceUnloaded` notification or destruction.
+The coordinator's temporary SDK listeners detach when neither an action nor a
+teardown receipt remains. This allows a new recommendation after pause to own
+its playback intent without inheriting an unrelated future unload.
+
+Expected browser cancellations of retired actions are consumed, while active
+cancellations and genuine failures remain observable. A source receipt replaced
+during pending playback also identifies cancellation before that notification
+arrives. Disposal recognizes only the SDK's exported
+`PlayerAPINotAvailableError`; local ownership is cleared even when the destroyed
+API can no longer unsubscribe. The SDK's `destroy()` contract owns removal of
+its remaining event handlers.
 
 These are version-specific ownership corrections, not a general memory fix.
 See [the measurement instructions and results](../docs/web-performance.md) for

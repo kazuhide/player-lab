@@ -68,9 +68,9 @@ test("@public SDK UI settings release excluded setting controls once", async ({ 
   }
 });
 
-for (const scenario of ["released", "superseded", "active-failure", "active-abort", "released-failure", "released-intent", "pause", "released-pause", "external-source", "unload", "destroy", "play-failure", "superseded-unload-pending", "superseded-external-source", "superseded-unload", "destroy-before-notify", "destroy-notify-invalid", "external-source-play", "active-load-abort", "destroyed-failure"] as const) {
+for (const scenario of ["released", "superseded", "active-failure", "active-abort", "released-failure", "released-intent", "pause", "released-pause", "external-source", "unload", "destroy", "play-failure", "superseded-unload-pending", "superseded-external-source", "superseded-unload", "destroy-before-notify", "destroy-notify-invalid", "external-source-play", "active-load-abort", "destroyed-failure", "pause-next-before-unload", "pause-next-after-unload", "pause-next-external-source", "pause-next-external-unload", "pause-next-after-external-unload", "pause-cancelled-load", "pause-receipt-destroy"] as const) {
   test(`@public SDK recommendation promises retain ownership: ${scenario}`, async ({ page }, testInfo) => {
-    await captureAppPlayer(page);
+    await captureAppPlayer(page, scenario.startsWith("pause-"));
     if (scenario === "pause" || scenario === "released-pause") {
       await expect.poll(() => page.evaluate(() => window.player!.isPlaying())).toBe(true);
     }
@@ -81,9 +81,9 @@ for (const scenario of ["released", "superseded", "active-failure", "active-abor
       const module = await import(/* @vite-ignore */ url);
       return module.inspectRecommendationPromises(window.player!, scenario);
     }, { url: helper, scenario });
-    const clicks = scenario === "superseded-external-source" ? 3
-      : scenario.startsWith("superseded") || scenario === "external-source" || scenario === "external-source-play" ? 2 : 1;
-    const plays = ["superseded", "superseded-unload-pending", "external-source-play", "active-abort", "released-intent", "play-failure"].includes(scenario) ? 1 : 0;
+    const clicks = scenario === "superseded-external-source" || scenario === "pause-next-external-source" ? 3
+      : scenario.startsWith("superseded") || scenario.startsWith("pause-next-") || scenario === "external-source" || scenario === "external-source-play" ? 2 : 1;
+    const plays = ["pause-next-before-unload", "pause-next-after-unload", "superseded", "superseded-unload-pending", "external-source-play", "active-abort", "released-intent", "play-failure"].includes(scenario) ? 1 : 0;
     expect(result).toEqual({ loads: clicks, plays, listeners: 0, pauseRestored: true });
     if (scenario === "active-failure" || scenario === "released-failure" || scenario === "destroyed-failure") {
       expect(errors).toEqual(["Recommendation fixture load failed"]);
