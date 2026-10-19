@@ -476,7 +476,10 @@ function telemetryCard(title: string, body: HTMLElement, hint?: L): { sec: HTMLE
 // The QoE readout is computed CLIENT-SIDE in real time from the player's event stream — an
 // honest note distinguishes it from Bitmovin Analytics (the dashboard), which the same signals
 // also feed when an analytics key is set, but whose query API is a server-side call.
-const QOE_HINT: L = {
+const QOE_HINT: L = import.meta.env.MODE === "pages" ? {
+  ja: "現在の再生セッションの品質をプレイヤーのイベントからブラウザー内で計測します。",
+  en: "Playback quality measurements from the current session, computed in the browser from player events.",
+} : {
   ja: "今のセッションの QoE を、player のイベントからブラウザ側でリアルタイム計測した値です(集計済みの Bitmovin Analytics は下の「サーバー経由クエリ」)。",
   en: "The current session's QoE, measured client-side in real time from the player's events. (Aggregated Bitmovin Analytics is the server-proxied panel below.)",
 };
@@ -485,7 +488,13 @@ const qoeSection = telemetryCard(pick(G.sideQoe), metricsEl, QOE_HINT);
 // The server-proxied Bitmovin Analytics query view (a sibling of the config panel). Created once
 // and re-localized in place on language change (so a shown result survives a toggle).
 const analyticsView = createAnalyticsView();
-document.getElementById("analytics-panel")?.appendChild(analyticsView.el);
+const analyticsContainer = document.getElementById("analytics-panel");
+if (import.meta.env.MODE === "pages") {
+  analyticsView.el.hidden = true;
+  const collectorNotice = analyticsView.el.querySelector(".analytics-collector-notice");
+  if (collectorNotice) analyticsContainer?.appendChild(collectorNotice);
+}
+analyticsContainer?.appendChild(analyticsView.el);
 
 function renderMetrics(): void {
   const m = metricsSnapshot(metrics, performance.now());
