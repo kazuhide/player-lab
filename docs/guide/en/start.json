@@ -1,0 +1,99 @@
+{
+  "id": "start",
+  "title": "Scope and first steps",
+  "lead": "Player Lab is a collection of samples for exploring Bitmovin Player settings, playback controls, and user interface (UI) configurations. This guide covers the public Web app, local setup, platform-specific samples, and test media generation.",
+  "blocks": [
+    {
+      "type": "p",
+      "text": "This guide describes the public implementation as of October 19, 2026. The samples currently use Bitmovin Player. Each platform exposes a different set of controls. The Web app focuses on comparing settings and UI configurations; the native samples focus on platform integration and live rewind behavior."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Goal",
+        "Where to start"
+      ],
+      "widths": [
+        0.32,
+        0.68
+      ],
+      "rows": [
+        [
+          "Try the app without installing anything",
+          "Open the public Web app and follow the steps in this chapter."
+        ],
+        [
+          "Compare the appearance and construction code",
+          "Read “The Web screen and themes” and “Customize the player UI.”"
+        ],
+        [
+          "Change playback or streaming settings",
+          "Use “Apply Player Config changes” and “Player Config: all 134 fields.”"
+        ],
+        [
+          "Reproduce the behavior locally",
+          "Read “Local setup and licenses” and “Public demo media and local reproduction.”"
+        ],
+        [
+          "Integrate with iOS, Android, or TV",
+          "Read the four native chapters to check each platform’s scope and required tools."
+        ],
+        [
+          "Check measurements and test results",
+          "Read “Performance measurement and verified test scope.” Distinguish recorded results from checks you run yourself."
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Open the public Web app"
+    },
+    {
+      "type": "p",
+      "text": "Public Web app: https://kazuhide.github.io/player-lab/web/\nProject overview in Japanese: https://kazuhide.github.io/player-lab/ja/\nDetailed UI guide: https://kazuhide.github.io/player-lab/web/guide.html"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open the public Web app in a browser. To use Japanese, select the language switch at the top. The initial source is VOD HLS, which plays a 60-second Big Buck Bunny clip. Audio starts muted. Press the play button if playback does not start automatically.",
+        "Switch between themes such as Default (Bitmovin), Neon, and Live (DVR) to compare controls and layouts using the same video. The construction example to the right or below the player shows the code for the selected theme.",
+        "Select VOD DASH, VOD + Multi-audio, VOD + Subtitles, and VOD + Sprites in turn. Try audio and subtitle selection and thumbnail previews. The additional audio and subtitles are functional test tracks, not translations of the video.",
+        "Open Runtime / Player API in Player Config and change volume. Fields in this group apply immediately. Changing the volume unmutes the player and may produce sound. For Source Config and Recreate fields, press the displayed apply button before checking the result."
+      ]
+    },
+    {
+      "type": "note",
+      "title": "Three points to check first",
+      "text": "A theme named Live does not determine the source’s streaming mode. Construction code is an example for the selected theme, not an automatic export of all settings. The short public demo media cannot demonstrate a long rewind window or sample chapter markers at 120 seconds and beyond."
+    },
+    {
+      "type": "figure",
+      "file": "overview",
+      "caption": "The public Web app. Select a theme at the top and inspect its construction code beside the video. The layout changes with the screen width."
+    },
+    {
+      "type": "h2",
+      "text": "How to read this guide"
+    },
+    {
+      "type": "p",
+      "text": "UI refers to the controls and displays on screen. An API provides operations that code can call, and an SDK is a development library used to integrate the Player. HLS and DASH deliver video in segments, VOD is on-demand video, and DVR refers here to the available live rewind window.\nThe guide uses the English field labels shown in the app alongside property names used in code. Check the input labels because units differ between fields, including seconds, milliseconds, and bits per second. The glossary explains abbreviations. Use the guide contents and chapter links to navigate."
+    },
+    {
+      "type": "p",
+      "text": "“Recorded” refers to verification results in the public documentation. It does not mean every OS or cloud procedure was rerun for this guide. Check which OS, SDK, source, and operations a result covers, and distinguish it from verification in your own environment."
+    }
+  ],
+  "sources": [
+    {
+      "path": "README.md",
+      "line": 1,
+      "label": "Project overview"
+    },
+    {
+      "path": "apps/web/README.md",
+      "line": 1,
+      "label": "Using the Web app"
+    }
+  ]
+}

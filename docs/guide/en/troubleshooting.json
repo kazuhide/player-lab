@@ -1,0 +1,266 @@
+{
+  "id": "troubleshooting",
+  "title": "Troubleshooting",
+  "lead": "First identify whether the issue occurs on public Pages, in the local Web app, or in a native app. Check licensing, network access, setting application, and media or device support separately.",
+  "blocks": [
+    {
+      "type": "p",
+      "text": "The Web event log, the browser’s Console and Network panels, and native error codes provide clues. Record the source, theme, changed fields, and apply action so that you can compare results. A successful build alone does not establish successful license authentication or actual playback."
+    },
+    {
+      "type": "h2",
+      "text": "Licenses and hosts"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Symptom",
+        "Check",
+        "Action"
+      ],
+      "rows": [
+        [
+          "License error on Pages",
+          "Check that the Player license allows the public host kazuhide.github.io.",
+          "Check the dedicated public-demo license and deployment configuration. The localhost exception does not apply to Pages. Do not try to fix it by entering an account API key."
+        ],
+        [
+          "The local Web app does not start",
+          "Check that the server is running, the port is correct, and the URL is reachable. The instructions use localhost.",
+          "Open the startup URL with localhost as the host. If you use another hostname or a LAN IP address, also check the license permissions for that host."
+        ],
+        [
+          "Different behavior on 127.0.0.1",
+          "127.0.0.1 and localhost are different origins, with separate storage and CORS conditions.",
+          "Use localhost consistently for this guide’s reproduction steps. The SDK officially exempts 127.0.0.1 from authentication from version 8.86.0, but playback at that URL was not verified for this guide."
+        ],
+        [
+          "Native error 1003",
+          "The Player license request failed or was rejected. Check the application identifier, key type, and network.",
+          "Check that the Android applicationId or Apple Bundle ID matches the license permissions. Synchronize settings and rebuild. An unapproved identifier is not the only possible cause."
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.34,
+        0.43
+      ]
+    },
+    {
+      "type": "note",
+      "text": "1003 is LicenseAuthenticationFailed in the native SDKs. It is separate from DRM errors when decrypting content. Read the error definition for the target SDK rather than assuming the Web error number has the same meaning."
+    },
+    {
+      "type": "h2",
+      "text": "Playback startup and media retrieval"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Symptom",
+        "Check",
+        "Action"
+      ],
+      "rows": [
+        [
+          "The source loads but does not autoplay",
+          "Check whether the browser blocks autoplay with sound.",
+          "Press play inside the video. For comparison, try muted autoplay, then adjust volume and mute after playback starts."
+        ],
+        [
+          "The media URL fails, returns 404, or requires authentication",
+          "In Network, check not only the manifest but also the referenced video, audio, subtitles, and images.",
+          "Correct the URL, access permissions, authentication or expiry, and relative paths. Compare Player settings after retrieval succeeds."
+        ],
+        [
+          "The URL opens directly but fails in the Web app",
+          "Check CORS messages in Console and response headers from the media server.",
+          "Allow the app’s origin at the media server. Apply the required permissions to segments and subtitles as well as the manifest. Do not use disabled browser security as a fix."
+        ],
+        [
+          "An HTTPS page cannot fetch HTTP media",
+          "Check Console for Mixed Content messages or fetch failures after a change to HTTPS.",
+          "Serve media and its referenced resources over HTTPS for use on public pages. Do not use a local HTTP URL unchanged as a public Pages source."
+        ],
+        [
+          "An additional-media button is disabled",
+          "For the local Web app, check the required settings shown near the button for missing media environment variables.",
+          "Configure the required media URLs using the sources, audio, subtitles, and thumbnails chapter. Pages uses bundled media."
+        ],
+        [
+          "Audio/subtitle lists are missing, or a track is undefined",
+          "Check that loading has completed, that the source has tracks, and that the theme provides a selection menu. An empty value alone does not identify the cause.",
+          "Compare with a configured VOD + Multi-audio or VOD + Subtitles source. Use a theme such as Default or Premiere and select a track after loading completes."
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.34,
+        0.43
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Applying settings and meeting display conditions"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Symptom",
+        "Check",
+        "Action"
+      ],
+      "rows": [
+        [
+          "A Player Config change has no visible effect",
+          "Check whether the field applies immediately, reloads the source, or recreates the Player, and whether you pressed the appropriate apply button.",
+          "Apply the change as described in the Player Config chapter. Re-enter any unapplied input lost during a language switch."
+        ],
+        [
+          "An earlier source setting remains or disappears",
+          "Check whether the action reloads the source or selects a preset again.",
+          "A reload preserves other applied overrides. A source button or recommendation selection clears sourceOverrides, even when selecting the same preset."
+        ],
+        [
+          "A UI setting does not change the appearance",
+          "Check the field’s conditions, such as theme, subtitle format, markers, or the first playback.",
+          "Check the UI settings and external playback chapter. The 60-second Pages media cannot demonstrate snapping to sample markers at 120 seconds and beyond."
+        ],
+        [
+          "Cast, AirPlay, or PiP buttons are missing",
+          "Check browser/OS support, receivers, connection requirements, and differences between standard and custom UI.",
+          "Try a supported environment and receiver. Enabling a button in the custom UI does not guarantee availability or successful output to a real device."
+        ],
+        [
+          "A TV or VR operation described in the guide is missing",
+          "Check whether the description covers the current GUI or a code example to add.",
+          "Use the UI customization chapter to check the distinction. Examples such as SpatialNavigation and VR are not implemented screen controls."
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.34,
+        0.43
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Live timing and Analytics"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Symptom",
+        "Check",
+        "Action"
+      ],
+      "rows": [
+        [
+          "Live rewind is unavailable",
+          "Check Allow DVR, dvrAvailable, maxTimeShift, and source loading.",
+          "Try a public live source with an available rewind window. For HLS, wait until the range is known. Increasing the buffer does not extend the retained history."
+        ],
+        [
+          "The screen shows needs PDT",
+          "Check wall-clock information from the stream and the device clock. These are separate conditions from relative time and the DVR window.",
+          "Use media with wall-clock information. Do not interpret unavailable wall-clock latency as zero; distinguish it from relative position and distance from the SDK’s live edge."
+        ],
+        [
+          "The display does not change after live ends",
+          "Check whether the stream still signals live and whether the SDK’s duration has become a finite positive value.",
+          "Use the conditions in the live-to-VOD chapter. The app also uses timing information after loading rather than relying only on the source-type label."
+        ],
+        [
+          "There is no server-query panel on Pages",
+          "Pages serves static files and has no server to process account aggregate queries.",
+          "The panel is intentionally hidden. Check the current playback in the QoE section. Configure the local development server if aggregate queries are needed."
+        ],
+        [
+          "Analytics seems disabled because the query panel is missing",
+          "The query UI and playback collector are separate features.",
+          "Public Pages shows a collection notice and sends events through a collector configured with a dedicated license. Verify successful sending and dashboard aggregation separately."
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.34,
+        0.43
+      ]
+    },
+    {
+      "type": "note",
+      "text": "When sharing findings, report the target SDK, source type, reproduction steps, error codes, and retrieval results without including key values, authentication headers, personal information, or private media URLs."
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/SETUP.md",
+      "line": 29,
+      "label": "Key types and allowed hosts"
+    },
+    {
+      "path": "apps/web/README.md",
+      "line": 14,
+      "label": "Starting on localhost"
+    },
+    {
+      "path": "apps/android/README.md",
+      "line": 45,
+      "label": "Allowed Android application identifiers"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 35,
+      "label": "Allowed Apple application identifiers"
+    },
+    {
+      "path": "apps/web/src/sources.ts",
+      "line": 104,
+      "label": "Detection of missing media settings"
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 853,
+      "label": "Applying configuration"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 589,
+      "label": "Language switching and unapplied inputs"
+    },
+    {
+      "path": "apps/web/src/dvr/state.ts",
+      "line": 47,
+      "label": "Live and VOD state"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 490,
+      "label": "Hidden Pages queries and collection notice"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-web",
+      "label": "Web SDK 8.86.0: license exception for 127.0.0.1"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3/docs/player-core/com.bitmovin.player.api.deficiency/-player-error-code/-license-authentication-failed/index.html",
+      "label": "Android: definition of error 1003"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayer/errors",
+      "label": "Apple: definition of error 1003"
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Autoplay",
+      "label": "MDN: autoplay conditions"
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS",
+      "label": "MDN: CORS and origins"
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Mixed_content",
+      "label": "MDN: HTTPS and mixed content"
+    }
+  ]
+}

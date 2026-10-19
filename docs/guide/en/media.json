@@ -1,0 +1,226 @@
+{
+  "id": "media",
+  "title": "Public demo media and local reproduction",
+  "lead": "Pages includes short test media. You can also regenerate the media locally and run automated checks against the same features.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "The public demo and regular development mode"
+    },
+    {
+      "type": "p",
+      "text": "The GitHub Pages app uses a 60-second Big Buck Bunny excerpt for HLS and DASH. It also includes presets for thumbnail previews, multiple audio tracks, and subtitles. Viewing the public demo does not require generating media or running a cloud encoding."
+    },
+    {
+      "type": "p",
+      "text": "Regular development mode has different defaults. VOD HLS uses an external Tears of Steel stream, VOD DASH uses an external Big Buck Bunny stream, and live playback uses external public services. Starting the local development server alone does not select the same 60-second media as Pages. Public reference services can change or become unavailable."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Where you run it",
+        "On-demand media",
+        "Additional setup"
+      ],
+      "rows": [
+        [
+          "GitHub Pages",
+          "Bundled 60-second HLS and DASH",
+          "No media generation needed to view the demo"
+        ],
+        [
+          "Regular development mode",
+          "External public reference streams",
+          "Configure optional URLs for feature presets"
+        ],
+        [
+          "Local feature tests",
+          "The 60-second media you generate",
+          "Generate it with FFmpeg before running the tests"
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Generate the 60-second media and check its features"
+    },
+    {
+      "type": "p",
+      "text": "Run these commands from the repository root. You need Python 3, FFmpeg with the libx264 and aac encoders, FFprobe, curl, and the workspace dependencies."
+    },
+    {
+      "type": "code",
+      "text": "pnpm install --frozen-lockfile\npython3 encoding/test-streams/local.py\nE2E_MEDIA_DIR=.cache/test-streams \\\n  pnpm --filter @showcase/e2e e2e:features"
+    },
+    {
+      "type": "p",
+      "text": "The first run downloads Blender's source archive, approximately 121 MB, and checks its pinned SHA-256 checksum. Generated files and the downloaded archive stay under .cache/ and are not committed to Git. The generator refuses to overwrite an existing output directory. A failed run also leaves its output in place, so choose a new directory when trying again."
+    },
+    {
+      "type": "code",
+      "text": "python3 encoding/test-streams/local.py \\\n  --output .cache/test-streams-next\nE2E_MEDIA_DIR=.cache/test-streams-next \\\n  pnpm --filter @showcase/e2e e2e:features"
+    },
+    {
+      "type": "p",
+      "text": "Use --source-archive <ZIP path> to reuse the same verified archive. A different file is rejected if it does not match the pinned checksum."
+    },
+    {
+      "type": "p",
+      "text": "The runner starts media, Player-harness, and application servers, then stops them when the test run ends. Their default ports are 5180, 5174, and 5175. For concurrent runs, set different E2E_MEDIA_PORT, E2E_HARNESS_PORT, and E2E_APP_PORT values. Local runs use installed Google Chrome; continuous integration uses the Chromium version matched to the locked Playwright package."
+    },
+    {
+      "type": "h2",
+      "text": "Generated files"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Relative path",
+        "Purpose"
+      ],
+      "rows": [
+        [
+          "vod-baseline/master.m3u8",
+          "Basic HLS playback"
+        ],
+        [
+          "vod-baseline/manifest.mpd",
+          "Basic DASH playback"
+        ],
+        [
+          "vod-multiaudio/master.m3u8",
+          "Switch between two audio tracks"
+        ],
+        [
+          "vod-sprites/master.m3u8",
+          "HLS with thumbnail previews"
+        ],
+        [
+          "vod-sprites/thumbnails/thumbnails.vtt",
+          "Map playback times to regions of the image"
+        ],
+        [
+          "vod-sprites/thumbnails/sprite-0.jpg",
+          "One image containing 12 preview tiles"
+        ],
+        [
+          "assets/sintel_en.vtt",
+          "WebVTT for subtitle checks"
+        ],
+        [
+          "fixture-report.json",
+          "Tool versions and measured timing"
+        ],
+        [
+          "ATTRIBUTION.txt",
+          "Sources, licenses, and modifications"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The video is H.264 at 24 frames per second, with 320 x 180 and 640 x 360 renditions. Audio is two-channel AAC at 48 kHz. HLS and DASH share the same fragmented MP4 files, and the feature playlists reuse those files."
+    },
+    {
+      "type": "note",
+      "title": "The audio and subtitles are test material",
+      "text": "The en and de labels are test metadata. Both tracks use the same nonverbal soundtrack, with one at a lower volume; they are not translations. The subtitles contain Sintel text retimed into the short clip and do not describe Big Buck Bunny. Tests run muted and do not establish audible audio/video synchronization."
+    },
+    {
+      "type": "p",
+      "text": "The preview sheet contains 12 tiles of 160 x 90 pixels at five-second intervals. WebVTT specifies which region to show at each time. This differs from an HLS I-frame-only playlist. The repository includes neither a template for generating that playlist nor a verified public reference stream for it."
+    },
+    {
+      "type": "h2",
+      "text": "Try the feature presets locally"
+    },
+    {
+      "type": "p",
+      "text": "In a separate terminal, start a server that serves only the generated media directory."
+    },
+    {
+      "type": "code",
+      "text": "pnpm --filter @showcase/e2e exec vite \\\n  ../../.cache/test-streams \\\n  --config vite.media.config.ts \\\n  --port 5180 --strictPort"
+    },
+    {
+      "type": "p",
+      "text": "Set the following Web-specific URLs in apps/web/.env, then start the regular development server. These examples refer to your local media server."
+    },
+    {
+      "type": "code",
+      "text": "VITE_VOD_SPRITES_HLS_URL=http://localhost:5180/vod-sprites/master.m3u8\nVITE_VOD_SPRITES_VTT_URL=http://localhost:5180/vod-sprites/thumbnails/thumbnails.vtt\nVITE_VOD_MULTIAUDIO_HLS_URL=http://localhost:5180/vod-multiaudio/master.m3u8\nVITE_VOD_SUBTITLE_VTT_URL=http://localhost:5180/assets/sintel_en.vtt"
+    },
+    {
+      "type": "code",
+      "text": "pnpm --filter @showcase/web dev"
+    },
+    {
+      "type": "p",
+      "text": "Choose VOD + Sprites to inspect seek previews, VOD + Multi-audio to list and switch audio tracks, and VOD + Subtitles to enable subtitles. These settings do not replace the basic VOD HLS or VOD DASH presets. The subtitle preset in regular development mode also uses the regular VOD HLS video."
+    },
+    {
+      "type": "h2",
+      "text": "Reproduce the Pages artifact"
+    },
+    {
+      "type": "p",
+      "text": "Use the dedicated build and test to reproduce the public app's configuration. Choose new output paths. The artifact manifest is written outside the site directory."
+    },
+    {
+      "type": "code",
+      "text": "python3 encoding/test-streams/local.py \\\n  --output .cache/pages-media\nbash scripts/build-pages.sh \\\n  .cache/pages-media \\\n  .cache/pages-site \\\n  .cache/pages-manifest.json\nE2E_PAGES_DIR=\"$PWD/.cache/pages-site\" \\\n  pnpm --filter @showcase/e2e e2e:pages"
+    },
+    {
+      "type": "p",
+      "text": "This build ignores local dotenv files and regular VITE_* settings. Use the dedicated public setting names when including public licenses. When testing an artifact with Analytics enabled, also set E2E_PAGES_ANALYTICS_ENABLED=1. CI intercepts Analytics ingress before browser tests so test playback does not enter the public demo's usage data."
+    },
+    {
+      "type": "h2",
+      "text": "Redistributing the media"
+    },
+    {
+      "type": "p",
+      "text": "The Big Buck Bunny and Sintel material is used under Blender Foundation's CC BY 3.0 license. Modifications include extracting 60 seconds, resizing video, attenuating the alternate audio, generating thumbnails, and retiming subtitles. Retain ATTRIBUTION.txt, which records the sources and changes, when sharing the generated media."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/README.md",
+      "line": 25,
+      "label": "Pages media and build steps"
+    },
+    {
+      "path": "apps/web/src/sources.ts",
+      "line": 25,
+      "label": "Sources in Pages and regular development mode"
+    },
+    {
+      "path": "docs/local-test-media.md",
+      "line": 3,
+      "label": "Generating local media, limits, and attribution"
+    },
+    {
+      "path": "encoding/test-streams/local.py",
+      "line": 183,
+      "label": "Pinned checksum and generated-file implementation"
+    },
+    {
+      "path": "apps/web/.env.example",
+      "line": 20,
+      "label": "Optional feature media URLs"
+    },
+    {
+      "path": "docs/e2e-testing.md",
+      "line": 51,
+      "label": "Pages test settings and intercepted collection"
+    },
+    {
+      "url": "https://creativecommons.org/licenses/by/3.0/",
+      "label": "Creative Commons Attribution 3.0"
+    },
+    {
+      "url": "https://peach.blender.org/about/",
+      "label": "Big Buck Bunny license information"
+    }
+  ]
+}

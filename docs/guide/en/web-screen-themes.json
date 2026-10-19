@@ -1,0 +1,172 @@
+{
+  "id": "web-screen-themes",
+  "title": "The Web screen and themes",
+  "lead": "The public Web app lets you change the appearance and playback settings of Bitmovin Player in a browser. Selecting a theme also displays code explaining its composition.",
+  "blocks": [
+    {
+      "type": "p",
+      "text": "Language and theme selectors appear at the top. The video and construction code sit below, followed by controls for sources, seeking, playback, UI settings and casting; state, event and QoE readouts; and the Player Config editor. A link at the bottom opens the detailed UI customization guide."
+    },
+    {
+      "type": "note",
+      "text": "The initial source is VOD HLS with the Live (DVR) theme. Autoplay and mute are enabled; control autohide is off. A theme named Live can also play on-demand media. Theme buttons do not select the streaming format."
+    },
+    {
+      "type": "h2",
+      "text": "Three customization methods"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Category",
+        "What changes"
+      ],
+      "rows": [
+        [
+          "Default UI",
+          "Default (Bitmovin) provides the standard component composition for comparison."
+        ],
+        [
+          "Default UI + CSS",
+          "Neon, Glass, Sunset, Bold and Mono retain the standard structure and change colors, sizes and other styling through CSS."
+        ],
+        [
+          "Custom UI",
+          "Live (DVR), Sports, Binge, Cinema, Compact, Premiere, Creator and Studio change the choice and arrangement of components."
+        ]
+      ],
+      "widths": [
+        0.24,
+        0.76
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "The 14 themes"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Theme",
+        "Main display and controls"
+      ],
+      "rows": [
+        [
+          "Default (Bitmovin)",
+          "Compare behavior against the standard UI."
+        ],
+        [
+          "Neon",
+          "Apply bright colors and gradients to the standard UI."
+        ],
+        [
+          "Glass",
+          "Show a translucent control bar."
+        ],
+        [
+          "Sunset",
+          "Apply a warm gradient palette."
+        ],
+        [
+          "Bold",
+          "Show larger controls with high contrast."
+        ],
+        [
+          "Mono",
+          "Use a monochrome palette with the standard UI."
+        ],
+        [
+          "Live (DVR)",
+          "Show the live edge, wall-clock time, distance behind live and 10-second skip controls."
+        ],
+        [
+          "Sports",
+          "Overlay sample scores and player information. The INFO button shows them again."
+        ],
+        [
+          "Binge",
+          "Try skipping the sample intro from 5 to 18 seconds and moving to the next episode near the end."
+        ],
+        [
+          "Cinema",
+          "Use a central play control and a slim control bar."
+        ],
+        [
+          "Compact",
+          "Use a compact single row without a central playback overlay."
+        ],
+        [
+          "Premiere",
+          "Show a title, full-width seek bar, settings menu and recommendations at the end."
+        ],
+        [
+          "Creator",
+          "Show a title and full-width seek bar with a row for playback, volume, time and settings."
+        ],
+        [
+          "Studio",
+          "Show a title and a single-row seek bar between the time labels."
+        ]
+      ],
+      "widths": [
+        0.27,
+        0.73
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Compare the video and code"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Check that VOD HLS plays, then select Default (Bitmovin).",
+        "Switch to a CSS theme such as Neon. Check that the appearance changes while the layout stays the same.",
+        "Switch to a custom UI such as Premiere and compare the title, settings and seek-bar positions.",
+        "Read the difference summary and construction code beside the video to identify added, removed and modified components."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "A theme change retains the playing player and rebuilds only its UI. The construction code is an implementation example for that theme. It is not a configuration file reflecting every current GUI input or an export that saves the complete state."
+    },
+    {
+      "type": "h2",
+      "text": "Display language"
+    },
+    {
+      "type": "p",
+      "text": "Use the Japanese and English buttons at the top to change language. Technical field names such as autoplay remain in English so they match SDK identifiers. The browser remembers the language across navigation between the app and detailed guide."
+    },
+    {
+      "type": "note",
+      "text": "Changing language rebuilds the Player Config form and discards edits that have not been applied. Apply the changes you need first. Changing language alone does not reset the state readout, event log or applied settings."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/index.html",
+      "line": 11
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 155
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 360
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 589
+    },
+    {
+      "path": "apps/web/src/uiGuide.ts",
+      "line": 466
+    },
+    {
+      "path": "apps/web/src/i18n.ts",
+      "line": 18
+    }
+  ]
+}

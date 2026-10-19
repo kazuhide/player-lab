@@ -1,0 +1,329 @@
+{
+  "id": "native-overview",
+  "title": "ネイティブ版の範囲と準備",
+  "lead": "ネイティブ版ではソース切り替え、ライブ配信の巻き戻し、ライブ位置への復帰、UI の共有方法を確認できます。Web 版の設定一覧をそのまま移植したアプリではありません。設定を広く比較する用途には Web 版を使い、ネイティブ版では各 OS 上の実装例と再生動作を確認します。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "配布されるものと再生ソース"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "対象",
+        "配布内容",
+        "ソース形式"
+      ],
+      "rows": [
+        [
+          "iOS／iPadOS",
+          "XcodeGen から生成する SwiftUI アプリ",
+          "カタログは Live HLS／VOD HLS"
+        ],
+        [
+          "tvOS",
+          "同じ Swift ソースを使うアプリ",
+          "カタログは Live HLS／VOD HLS"
+        ],
+        [
+          "Android／Android 系 Fire TV",
+          "Gradle でビルドする Kotlin アプリ",
+          "Live／VOD の HLS と DASH"
+        ],
+        [
+          "React Native",
+          "外部 Expo プロジェクトへ組み込む画面とロジック",
+          "HLS／DASH のカタログ。実行先 OS の制約は別途確認"
+        ],
+        [
+          "Vega OS",
+          "外部 Kepler プロジェクトへ組み込むソース",
+          "HLS／DASH のモジュールを登録。端末再生は未確認"
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.41,
+        0.36
+      ]
+    },
+    {
+      "type": "p",
+      "text": "各ネイティブ版のカタログは外部の公開参照ストリームを使います。Pages に同梱された 60 秒の Big Buck Bunny 素材を共通で読み込む構成ではありません。参照ストリームの内容や可用性は提供元によって変わります。クラウドエンコーダーを起動しなくても参照ソースを試せますが、通信や参照先の制限で再生できない場合があります。"
+    },
+    {
+      "type": "h2",
+      "text": "UI と機能の比較"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "対象",
+        "プレイヤー内 UI",
+        "補助パネル"
+      ],
+      "rows": [
+        [
+          "iOS／iPadOS",
+          "Default、Sports、Live (DVR)、Cinema",
+          "ソース、ライブ端基準のシーク、DVR 設定、状態、ログ"
+        ],
+        [
+          "tvOS",
+          "OS の System UI。Web UI の選択なし",
+          "iOS と共通のソース・DVR 用パネル"
+        ],
+        [
+          "Android／Android 系 Fire TV",
+          "Default、Sports、Live (DVR)、Cinema",
+          "ソース、ライブ端基準のシーク、DVR 設定、状態、ログ"
+        ],
+        [
+          "React Native",
+          "4 種類の選択例。共有 UI のアセット配信は要統合",
+          "ソース、ライブ端基準のシーク、DVR 設定、状態、ログ"
+        ],
+        [
+          "Vega OS",
+          "ブラウザー用 UI を使わず Kepler の部品で構成",
+          "ソース、ライブ端基準のシーク、DVR 設定、状態、ログ"
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.39,
+        0.38
+      ]
+    },
+    {
+      "type": "p",
+      "text": "ネイティブ版の補助パネルには、Web 版のような PlayerConfig／SourceConfig／TweakConfig 一覧や、音声・字幕・画質の選択欄はありません。SDK 標準 UI の機能は、ソース、OS、端末、SDK の対応に依存します。音声や字幕付きのソースボタンがあることを、その選択操作まで確認済みであることと混同しないでください。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "機能",
+        "含まれる実装",
+        "利用・確認の範囲"
+      ],
+      "rows": [
+        [
+          "オフライン",
+          "Android に OfflineManager の補助クラス",
+          "画面からは未接続。ダウンロード・オフライン再生の操作 GUI はない"
+        ],
+        [
+          "Casting／PiP／VR",
+          "SDK 自体の対応とサンプルの統合は別",
+          "ネイティブ専用 GUI・実再生の確認済み機能としては扱わない"
+        ],
+        [
+          "TV のリモコン",
+          "Android は TV 用ランチャー宣言。Vega は Kepler の画面部品",
+          "フォーカス移動や再生・停止キーは端末で要確認。専用キー処理の実装済みとはしない"
+        ],
+        [
+          "Analytics",
+          "任意のライセンス設定時にコレクターを有効化",
+          "送信・受信・集計は別々に確認。アカウント集計の GUI はない"
+        ]
+      ],
+      "widths": [
+        0.21,
+        0.36,
+        0.43
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "必要なライセンスと識別子"
+    },
+    {
+      "type": "p",
+      "text": "ネイティブ再生には、自分の Player ライセンスと実行先アプリの識別子の許可が必要です。Web SDK の localhost の例外は適用されません。Analytics を使う場合は、そのライセンス側でも実行アプリの識別子を許可します。識別子を変更した場合は許可設定も変更します。通常のネイティブ再生にアカウント API キーは不要です。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "対象",
+        "初期の識別子",
+        "生成設定・受け渡し"
+      ],
+      "rows": [
+        [
+          "iOS",
+          "com.showcase.dvr.Showcase-iOS",
+          "apps/ios/Local.xcconfig → ビルド設定 → Info.plist"
+        ],
+        [
+          "tvOS",
+          "com.showcase.dvr.Showcase-tvOS",
+          "iOS と同じ受け渡し"
+        ],
+        [
+          "Android／Android 系 Fire TV",
+          "com.showcase.dvr",
+          "apps/android/local.properties → Manifest"
+        ],
+        [
+          "React Native",
+          "外部アプリで設定した bundle identifier／application ID",
+          "apps/react-native/.env を外部アプリへ渡す"
+        ],
+        [
+          "Vega OS",
+          "設定例は com.showcase.dvr.vega",
+          "Kepler のエントリーポイントで globals に設定"
+        ]
+      ],
+      "widths": [
+        0.19,
+        0.41,
+        0.4
+      ]
+    },
+    {
+      "type": "p",
+      "text": "共通準備はリポジトリのルートで行います。Node.js 24.19.0 と pnpm 10.33.0 を使います。ルートの .env は .env.example から作成し、自分のライセンスを設定します。Analytics ライセンスは任意です。空欄ならコレクターを有効にしません。以下はプレースホルダーの例です。"
+    },
+    {
+      "type": "code",
+      "title": "ライセンス設定の例",
+      "text": "BITMOVIN_PLAYER_LICENSE_KEY=<YOUR_PLAYER_LICENSE_KEY>\nBITMOVIN_ANALYTICS_LICENSE_KEY="
+    },
+    {
+      "type": "code",
+      "title": "リポジトリのルートで実行",
+      "text": "pnpm install --frozen-lockfile\nbash scripts/sync-env.sh\npnpm --filter @showcase/ui-shared build\npnpm sync:webui"
+    },
+    {
+      "type": "note",
+      "text": "sync-env.sh はローカルのライセンス設定を各ツール用の無追跡ファイルへ反映します。ライセンス変更後は再実行し、アプリをビルドし直します。生成ファイル、ライセンス値、ローカル SDK パスを公開リポジトリへ追加しないでください。"
+    },
+    {
+      "type": "h2",
+      "text": "DVR 状態の読み方"
+    },
+    {
+      "type": "p",
+      "text": "DVR はライブ配信で過去へ戻れる範囲です。各サンプルではライブ端を 0、過去を負数で扱います。−30s は現在位置から 30 秒戻る操作ではなく、ライブ端の 30 秒前へ移動する操作です。指定位置は SDK が報告する範囲内へ補正します。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "表示",
+        "読み方"
+      ],
+      "rows": [
+        [
+          "vod",
+          "長さが確定したオンデマンド映像"
+        ],
+        [
+          "live-dvr",
+          "ライブとして判定され、巻き戻し範囲があり、サンプル側の DVR 設定が有効"
+        ],
+        [
+          "live-no-dvr",
+          "巻き戻し範囲がない・未取得、またはサンプル側で無効"
+        ],
+        [
+          "behindLive",
+          "ライブ端から遅れている秒数"
+        ],
+        [
+          "windowDuration",
+          "SDK が報告する巻き戻し可能範囲の長さ"
+        ],
+        [
+          "atLiveEdge",
+          "既定ではライブ端から 1 秒以内と判定"
+        ]
+      ],
+      "widths": [
+        0.25,
+        0.75
+      ]
+    },
+    {
+      "type": "p",
+      "text": "HLS は再生開始直後に巻き戻し範囲が 0 と報告される場合があります。再生を始めて範囲が取得されるまで待ちます。先読みバッファを増やしても、配信側が提供する過去の映像は増えません。ライブ端はシークの完了を待つ間にも前進します。移動要求の受理と、SDK 内の移動完了と、画面表示の更新は同時ではありません。"
+    },
+    {
+      "type": "note",
+      "title": "Allow DVR が制御する範囲",
+      "text": "このスイッチはサンプル側の状態計算と補助の巻き戻しボタンを制御します。SDK 全体の DVR 設定を切り替える機能ではなく、共有 UI 内のシークバーを含むすべての操作を禁止する保証はありません。切り替えるだけでライブ位置へ移動するわけでもありません。ライブへ戻る場合は Live edge または Go to live edge を使います。"
+    },
+    {
+      "type": "h2",
+      "text": "検証結果を読むときの区別"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "確認方法",
+        "分かること",
+        "別に確かめること"
+      ],
+      "rows": [
+        [
+          "単体テスト",
+          "計算、状態遷移、遅い処理の扱い",
+          "実 SDK の再生や映像の表示"
+        ],
+        [
+          "型検査",
+          "対象に含まれた API の型との整合",
+          "除外された画面、ネイティブのビルドと実行"
+        ],
+        [
+          "ネイティブビルド・同梱チェック",
+          "コンパイルと、必要な JS／CSS の同梱",
+          "有効なライセンスでの再生・操作"
+        ],
+        [
+          "シミュレーター／エミュレーターの実再生",
+          "その OS・SDK・ソース・テスト手順での動作",
+          "物理端末、TV、リモコン、Casting、Offline、Analytics 集計"
+        ]
+      ],
+      "widths": [
+        0.29,
+        0.34,
+        0.37
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/SETUP.md",
+      "line": 74,
+      "label": "ライセンス設定と各アプリへの受け渡し"
+    },
+    {
+      "path": "docs/bitmovin-feature-coverage.md",
+      "line": 30,
+      "label": "各プラットフォームの範囲"
+    },
+    {
+      "path": "docs/player-capabilities.md",
+      "line": 3,
+      "label": "Web のデバイス機能の説明範囲"
+    },
+    {
+      "path": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+      "line": 60,
+      "label": "ライブ座標と状態計算"
+    },
+    {
+      "path": "apps/android/dvr/src/main/kotlin/com/showcase/dvr/Dvr.kt",
+      "line": 43,
+      "label": "Android のライブ座標と状態計算"
+    },
+    {
+      "path": "docs/e2e-testing.md",
+      "line": 82,
+      "label": "ネイティブ検証の範囲"
+    }
+  ]
+}

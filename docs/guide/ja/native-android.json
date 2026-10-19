@@ -1,0 +1,121 @@
+{
+  "id": "native-android",
+  "title": "Android・Android 系 Fire TV",
+  "lead": "Kotlin と Compose のアプリで HLS／DASH のソースを読み込み、ライブの巻き戻しと共有 Web UI を試します。Android 系 Fire TV と Vega OS は別ターゲットです。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "準備とビルド"
+    },
+    {
+      "type": "p",
+      "text": "Java 17 と Android SDK が必要です。現行構成は compileSdk 36、targetSdk 36、minSdk 23、Player 3.155.0 です。CI は SDK 36 と Build Tools 36.0.0 を使います。SDK の場所は ANDROID_HOME、ANDROID_SDK_ROOT、または apps/android/local.properties で設定します。共通準備でライセンスと共有 UI を同期した後、リポジトリのルートから次を実行します。"
+    },
+    {
+      "type": "code",
+      "text": "cd apps/android\n./gradlew :app:assembleDebug"
+    },
+    {
+      "type": "p",
+      "text": "出力は apps/android/app/build/outputs/apk/debug/app-debug.apk です。Android Studio で apps/android を開いて接続端末やエミュレーターへ実行することもできます。Player ライセンスには application ID の com.showcase.dvr を許可します。"
+    },
+    {
+      "type": "p",
+      "text": "ライセンスはルート .env から sync-env.sh により local.properties の bitmovinLicenseKey／bitmovinAnalyticsLicenseKey へ反映します。スクリプトはローカル SDK パスを保持します。Gradle の -PbitmovinLicenseKey と -PbitmovinAnalyticsLicenseKey は local.properties より優先されますが、コマンド履歴に値を残さないよう、通常は生成ファイルを使います。Analytics ライセンスを空にするとコレクターは無効です。"
+    },
+    {
+      "type": "h2",
+      "text": "画面で確認する順序"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "ソースボタンで Live DASH + DVR、Live HLS、複数音声または字幕付きの Live DASH、VOD HLS、VOD DASH を選びます。起動時は先頭の Live DASH + DVR が読み込まれます。",
+        "プレイヤー内のコントロールで再生します。UI の Default、Sports、Live (DVR)、Cinema を切り替えて配置や表示を比較します。",
+        "−10s、−30s、−60s でライブ端からの指定位置へ移動します。Live edge でライブ位置へ戻ります。",
+        "Allow DVR、mode、dvrAvailable、behindLive、window の表示と、下部のイベントログを確認します。狭い画面ではボタン列を横にスクロールできます。",
+        "PlayerError または SourceError が記録されたら数値コードを確認します。まずライセンスの許可 application ID と参照ソースへの通信を確認します。"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Android の UI 切り替えは Player を残して PlayerView を作り直します。Player 自体を作り直す iOS／React Native とは異なります。Sports、Live、Cinema の JavaScript と CSS は file:///android_asset/ から読み込みます。カスタム UI が表示されない場合は共有 UI のビルド・同期を行い、APK をビルドし直します。"
+    },
+    {
+      "type": "note",
+      "title": "TV 端末の確認",
+      "text": "Manifest に Android TV／Fire TV 向けの LEANBACK_LAUNCHER 宣言があります。ただし TV 上のフォーカス移動、ボタン到達性、リモコン、実再生は各端末で確認が必要です。電話向けエミュレーターでの成功を、物理端末や TV の確認結果として扱わないでください。"
+    },
+    {
+      "type": "h2",
+      "text": "オフラインのコード例"
+    },
+    {
+      "type": "p",
+      "text": "OfflineManager は OfflineContentManager を包む補助クラスです。ダウンロード候補を取得し、最小ビットレートの映像と先頭音声を選んで処理し、完了後の OfflineSourceConfig を取得する流れを示します。状態、進捗、削除、リソース解放の呼び出しもあります。"
+    },
+    {
+      "type": "note",
+      "text": "このクラスは MainActivity から呼ばれておらず、ダウンロード・オフライン再生・削除の操作 GUI はありません。画面で使える完成機能ではなく、別途画面と接続するためのコード例です。必要なサービス設定、保存容量、コンテンツとライセンス、通信を切った実再生も統合先で確認します。コンパイル成功はダウンロードやオフライン再生の成功を示しません。"
+    },
+    {
+      "type": "h2",
+      "text": "テストの実行と記録された結果"
+    },
+    {
+      "type": "code",
+      "title": "apps/android で実行",
+      "text": "./gradlew :dvr:test\n./gradlew :app:connectedDebugAndroidTest"
+    },
+    {
+      "type": "p",
+      "text": "dvr:test は巻き戻しの純粋な計算を確認します。connectedDebugAndroidTest は起動済みエミュレーターまたは接続端末、ネットワーク、許可された Player ライセンスを必要とします。PlayerDvrInstrumentedTest は実 SDK の読み込みと有限の VOD 長を、PlayerControlsInstrumentedTest は実際の Compose 操作と共有 WebView の表示、UI からの再生、ソース切り替え、巻き戻し、ライブ復帰、DVR 状態を確認します。"
+    },
+    {
+      "type": "p",
+      "text": "共有 UI が存在しても、操作部品のレイアウトや自動非表示の状態は後から変わります。記録されたテストは表示寸法だけでなく祖先要素の可視性も確認します。ライブ端が移動するため、シーク完了位置は要求前に固定したメディア基準と比較します。テストの 3 秒の許容差は製品のシーク精度保証ではありません。"
+    },
+    {
+      "type": "note",
+      "title": "記録済みの検証範囲",
+      "text": "2026-10-19 の記録では Android 16 エミュレーター、Player 3.155.0 で実再生テスト 2 件成功、失敗・スキップ 0、29.294 秒でした。最終の共有 UI を含むアプリと instrumentation APK のビルドも確認されています。ここでは記録済みの結果を示しており、再実行した結果ではありません。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics の受信はこの結果に含みません。"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/android/README.md",
+      "line": 22,
+      "label": "ビルドとライセンス"
+    },
+    {
+      "path": "apps/android/README.md",
+      "line": 72,
+      "label": "実再生テストと記録された結果"
+    },
+    {
+      "path": "apps/android/app/build.gradle.kts",
+      "line": 9,
+      "label": "SDK・Java・application ID・ライセンス優先度"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+      "line": 182,
+      "label": "実画面と PlayerView の再生成"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/OfflineManager.kt",
+      "line": 22,
+      "label": "オフライン補助クラス"
+    },
+    {
+      "path": "apps/android/app/src/main/AndroidManifest.xml",
+      "line": 21,
+      "label": "通常端末・TV のランチャー宣言"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/Sources.kt",
+      "line": 20,
+      "label": "公開参照ソースのカタログ"
+    }
+  ]
+}

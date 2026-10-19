@@ -1,0 +1,114 @@
+{
+  "id": "live-finalization",
+  "title": "Transitioning from live playback to VOD",
+  "lead": "Check how the app updates its live display after an event ends, while retaining the same Player and source.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Detecting finalization and updating the display"
+    },
+    {
+      "type": "p",
+      "text": "Each app reads a snapshot that includes duration and updates its live/VOD display state. Check live finalization separately from refreshing the browser or selecting the source again."
+    },
+    {
+      "type": "p",
+      "text": "The app's shared rule treats a finite, positive duration as VOD and Infinity, zero, or NaN as live. This is an application rule for handling SDK snapshots, not a general definition of every media format."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Target",
+        "When the state is read again"
+      ],
+      "rows": [
+        [
+          "Web / Vega",
+          "DurationChanged notification"
+        ],
+        [
+          "Android",
+          "TimeChanged; also after loading and seek completion"
+        ],
+        [
+          "iOS / tvOS",
+          "Read again on TimeChanged"
+        ],
+        [
+          "React Native",
+          "Read again on onTimeChanged"
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "A controlled check without a cloud encoder"
+    },
+    {
+      "type": "p",
+      "text": "A test uses the generated 60-second media and changes the manifest at the same URL to a finalized presentation during playback. Run the first command only if the media has not been generated. Existing output is still never overwritten."
+    },
+    {
+      "type": "p",
+      "text": "If .cache/test-streams already exists from a successful generation, skip local.py below and start the test with that media. The generator refuses to overwrite an existing output."
+    },
+    {
+      "type": "code",
+      "text": "python3 encoding/test-streams/local.py\nE2E_FINALIZATION_MEDIA_DIR=\\\n\"$PWD/.cache/test-streams/vod-baseline\" \\\n  pnpm --filter @showcase/e2e e2e:finalization"
+    },
+    {
+      "type": "p",
+      "text": "A loopback test server initially advertises real media as live, then finalizes the same manifest URL. HLS uses EXT-X-ENDLIST to indicate that no more segments will be added. DASH changes from a dynamic MPD to a finite static presentation. The suite checks HLS and DASH as separate cases."
+    },
+    {
+      "type": "p",
+      "text": "The tests exercise Player recreation through the DVR setting, rewind before finalization, finite duration, the VOD display, and seeking afterward. During finalization, they also check that the same Player and source remain active without a new SourceLoaded event. Set E2E_FINALIZATION_PORT if the default port, 5192, is unavailable."
+    },
+    {
+      "type": "note",
+      "title": "What this test establishes",
+      "text": "This is a controlled local finalization check with a real Player and real media. It does not cover production ingest, the encoder, delivery infrastructure, or physical devices."
+    },
+    {
+      "type": "h2",
+      "text": "A finalized VOD can retain its clock origin"
+    },
+    {
+      "type": "p",
+      "text": "Media that used wall-clock time during live playback can retain that origin in its seekable range after becoming finite VOD. In that case, seek(10) is outside the range and is clamped to the start, rather than moving ten seconds into the clip. Add ten to the start of the seekable range instead."
+    },
+    {
+      "type": "code",
+      "text": "const range = player.getSeekableRange();\nplayer.seek(range.start + 10);\n// After Seeked, inspect the relative playback position.\nconst relative = player.getCurrentTime(\"relativetime\");"
+    },
+    {
+      "type": "p",
+      "text": "Wait for Seeked before reading relative time to check the completed movement. The app displays relative and absolute time separately. Interpret clock-based displays and latency carefully when the source lacks clock information or the device clock is inaccurate."
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/live-to-vod-and-analytics.md",
+      "line": 6,
+      "label": "Shared state classification and SDK notifications"
+    },
+    {
+      "path": "docs/live-to-vod-and-analytics.md",
+      "line": 31,
+      "label": "Controlled finalization and timeline origins"
+    },
+    {
+      "path": "docs/dvr-time-and-start-config.md",
+      "line": 8,
+      "label": "Relative/absolute time and clock requirements"
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc8216.html#section-4.3.3.4",
+      "label": "HLS EXT-X-ENDLIST"
+    },
+    {
+      "url": "https://dashif.org/DASH-IF-IOP/live2vod/",
+      "label": "DASH-IF live-to-VOD transition guidance"
+    }
+  ]
+}

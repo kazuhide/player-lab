@@ -1,0 +1,392 @@
+{
+  "id": "controls",
+  "title": "操作パネルの全35項目",
+  "lead": "テーマ選択、Player Config、映像内のトラック選択とは別に、操作パネルの35項目を一覧にしています。表示形式と反映後の動作を確認してください。",
+  "controls": [
+    {
+      "group": "source",
+      "id": "vod-hls",
+      "label": "VOD HLS",
+      "kind": "button",
+      "description": "初期ソース。Pagesでは60秒のBig Buck Bunnyを再生します。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "vod-dash",
+      "label": "VOD DASH",
+      "kind": "button",
+      "description": "Pagesに同梱した同じ60秒素材をDASHで再生します。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "live-dash",
+      "label": "Live DASH + DVR",
+      "kind": "button",
+      "description": "公開ライブソースです。巻き戻し、複数音声、字幕を確認します。提供元の配信状況に依存します。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "live-hls",
+      "label": "Live HLS",
+      "kind": "button",
+      "description": "公開HLSライブソースです。巻き戻し可能範囲は配信内容と取得状況に依存します。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "vod-sprites",
+      "label": "VOD + Sprites",
+      "kind": "button",
+      "description": "シークバーにポインターを置き、画像の切り出しによるプレビューを確認します。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "vod-multiaudio",
+      "label": "VOD + Multi-audio",
+      "kind": "button",
+      "description": "プレイヤーの音声メニューで2つの音声トラックを選びます。Pages素材の言語ラベルはテスト用です。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "source",
+      "id": "vod-subtitles",
+      "label": "VOD + Subtitles",
+      "kind": "button",
+      "description": "プレイヤーの字幕メニューでEnglishを選び、WebVTTの字幕表示を確認します。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 202
+      }
+    },
+    {
+      "group": "seek",
+      "id": "live-edge",
+      "label": "ライブ端へ移動",
+      "kind": "button",
+      "description": "現在のライブ端へ移動します。VODの先頭や終端へ移動する操作ではありません。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 509
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek-offset",
+      "label": "端からのオフセット (秒)",
+      "kind": "number",
+      "description": "0はライブ端、負値は過去です。初期表示は-30です。入力だけでは移動しません。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 227
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek-submit",
+      "label": "シーク",
+      "kind": "button",
+      "description": "入力したオフセットへ移動します。指定範囲は利用可能なDVRウィンドウ内に収まるよう補正されます。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 232
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek--10",
+      "label": "-10s",
+      "kind": "button",
+      "description": "ライブ端から10秒前へ移動します。現在位置から10秒戻る操作ではありません。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 235
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek--30",
+      "label": "-30s",
+      "kind": "button",
+      "description": "ライブ端から30秒前へ移動します。現在位置から30秒戻る操作ではありません。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 235
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek--60",
+      "label": "-60s",
+      "kind": "button",
+      "description": "ライブ端から60秒前へ移動します。現在位置から60秒戻る操作ではありません。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 235
+      }
+    },
+    {
+      "group": "seek",
+      "id": "seek--120",
+      "label": "-120s",
+      "kind": "button",
+      "description": "ライブ端から120秒前へ移動します。現在位置から120秒戻る操作ではありません。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 235
+      }
+    },
+    {
+      "group": "playback",
+      "id": "timeshift",
+      "label": "DVR を許可 (timeShift)",
+      "kind": "checkbox",
+      "description": "ライブの巻き戻しを許可します。変更時はプレイヤーを再生成します。初期状態はオンです。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 240
+      }
+    },
+    {
+      "group": "playback",
+      "id": "double-click",
+      "label": "ダブルクリック",
+      "kind": "select",
+      "description": "全画面切り替え、または左半分で10秒戻る・右半分で10秒進む操作を選びます。Default以外が対象です。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 452
+      }
+    },
+    {
+      "group": "playback",
+      "id": "start-offset",
+      "label": "端からの開始オフセット (秒)",
+      "kind": "number",
+      "description": "再読み込み後の開始位置です。初期表示は-20、基準は明示的にendとなります。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 469
+      }
+    },
+    {
+      "group": "playback",
+      "id": "start-reload",
+      "label": "オフセットで再読み込み",
+      "kind": "button",
+      "description": "指定した開始位置でソースを読み込み直します。単なるシークとは異なり、QoEのセッション計測も始め直します。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 474
+      }
+    },
+    {
+      "group": "playback",
+      "id": "buffer-target",
+      "label": "バッファ目標 (秒)",
+      "kind": "number",
+      "description": "前方の映像バッファ目標です。初期表示は40秒です。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 479
+      }
+    },
+    {
+      "group": "playback",
+      "id": "buffer-submit",
+      "label": "バッファ目標を設定",
+      "kind": "button",
+      "description": "入力値をplayer.buffer.setTargetLevelで反映します。ライブの巻き戻し可能時間は変えません。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 484
+      }
+    },
+    {
+      "group": "playback",
+      "id": "pip-toggle",
+      "label": "ピクチャインピクチャ切替",
+      "kind": "button",
+      "description": "対応するブラウザーで映像を独立した小窓に表示します。利用可否はブラウザーとOSに依存します。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 492
+      }
+    },
+    {
+      "group": "playback",
+      "id": "autoplay-next",
+      "label": "連続再生(自動で次へ)",
+      "kind": "checkbox",
+      "description": "Bingeテーマの終盤のカウントダウンと自動送りを切り替えます。初期状態はオンです。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 423
+      }
+    },
+    {
+      "group": "ui",
+      "id": "autohide",
+      "label": "コントロールを自動で隠す",
+      "kind": "checkbox",
+      "description": "操作がないとバーを隠します。初期状態はオフで、Defaultを含む全テーマに作用します。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 253
+      }
+    },
+    {
+      "group": "ui",
+      "id": "enableSeekPreview",
+      "label": "シーク中のプレビュー",
+      "kind": "checkbox",
+      "description": "ドラッグ中に映像も移動させるか、指を離した後にシークするかを切り替えます。画像サムネイルの有無とは別です。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 278
+      }
+    },
+    {
+      "group": "ui",
+      "id": "disableAutoHideWhenHovered",
+      "label": "ホバー中はバーを隠さない",
+      "kind": "checkbox",
+      "description": "自動非表示がオンの場合に、プレイヤー上のポインターを理由にバーを表示し続けます。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 287
+      }
+    },
+    {
+      "group": "ui",
+      "id": "playbackSpeedSelectionEnabled",
+      "label": "設定歯車に再生速度を表示",
+      "kind": "checkbox",
+      "description": "設定メニューに再生速度の選択を表示します。独自の歯車を持つPremiere、Creator、Studioなどで確認します。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 296
+      }
+    },
+    {
+      "group": "ui",
+      "id": "seekbarSnappingEnabled",
+      "label": "シークをマーカーにスナップ",
+      "kind": "checkbox",
+      "description": "マーカー付近へシークした際に位置を合わせます。現在のサンプルマーカーは120秒以降のため、60秒のPages素材では確認できません。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 305
+      }
+    },
+    {
+      "group": "ui",
+      "id": "enterFullscreenOnInitialPlayback",
+      "label": "初回再生で全画面",
+      "kind": "checkbox",
+      "description": "再生ボタンで初回再生を始めるときに全画面化します。既定の自動再生中には動作を確認しにくい項目です。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 314
+      }
+    },
+    {
+      "group": "ui",
+      "id": "forceSubtitlesIntoViewContainer",
+      "label": "字幕を画面内に収める",
+      "kind": "checkbox",
+      "description": "はみ出す字幕を表示領域内に収めるための設定です。字幕のあるソースで比較します。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 323
+      }
+    },
+    {
+      "group": "ui",
+      "id": "disableStorageApi",
+      "label": "UI のストレージを無効化",
+      "kind": "checkbox",
+      "description": "音量や画質、トラックなどのUI選択の保存を無効にします。PlayerConfig側のstorageとは別項目です。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 332
+      }
+    },
+    {
+      "group": "ui",
+      "id": "seekbarSnappingRange",
+      "label": "スナップ範囲 (%)",
+      "kind": "number",
+      "description": "シークバー幅に対して何%以内をマーカーへ合わせるかを指定します。初期表示は1です。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 353
+      }
+    },
+    {
+      "group": "ui",
+      "id": "cea608SmallPlayerHeightThreshold",
+      "label": "CEA-608 小型プレイヤー px",
+      "kind": "number",
+      "description": "小型プレイヤーの字幕配置を切り替える高さです。初期表示は360pxで、CEA-608字幕が対象です。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 362
+      }
+    },
+    {
+      "group": "casting",
+      "id": "pip",
+      "label": "PiP ボタン",
+      "kind": "checkbox",
+      "description": "カスタムUIへPiPボタンを追加します。DefaultとCSSテーマは標準のボタンを内蔵しており、追加操作の対象ではありません。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 390
+      }
+    },
+    {
+      "group": "casting",
+      "id": "airplay",
+      "label": "AirPlay ボタン",
+      "kind": "checkbox",
+      "description": "カスタムUIへAirPlayボタンを追加します。対応するSafari環境でのみ表示されます。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 398
+      }
+    },
+    {
+      "group": "casting",
+      "id": "cast",
+      "label": "Chromecast ボタン",
+      "kind": "checkbox",
+      "description": "カスタムUIへCastボタンを追加します。remotecontrolを有効にするためプレイヤーを再生成し、対応する受信機が必要です。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 406
+      }
+    }
+  ]
+}

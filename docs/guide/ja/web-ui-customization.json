@@ -1,0 +1,194 @@
+{
+  "id": "web-ui-customization",
+  "title": "UIを変更するためのガイド",
+  "lead": "画面下部の詳細ガイドは、同じプレイヤーに異なるUIを組み合わせる方法を説明します。まずテーマを比較し、必要な変更に対応する節とコードを読みます。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "どこから変更するか"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "目的",
+        "入口"
+      ],
+      "rows": [
+        [
+          "標準の操作を使う",
+          "DefaultUIFactoryの構成を使います。"
+        ],
+        [
+          "色やサイズを変える",
+          "標準ツリーにクラスを追加し、CSSまたはSCSSで変更します。Neonなどが作例です。"
+        ],
+        [
+          "部品を足す・配置を変える",
+          "UIContainerとControlBarの部品配列を組み直します。"
+        ],
+        [
+          "独自の情報や操作を出す",
+          "Label、Button、ToggleButtonなどを継承します。スコアやライブ時刻が作例です。"
+        ]
+      ],
+      "widths": [
+        0.35,
+        0.65
+      ]
+    },
+    {
+      "type": "p",
+      "text": "UIManagerはプレイヤーとUIを結び付けます。UIContainerは表示する部品をまとめるルート、ControlBarは操作バー、Containerは部品を並べる入れ物です。Spacerで部品の間の余白を広げます。これらの役割を分けると、見た目の変更と再生エンジンの設定を混同せずに進められます。"
+    },
+    {
+      "type": "h2",
+      "text": "基本となる生成と破棄"
+    },
+    {
+      "type": "code",
+      "text": "const player = new Player(element, {\n  key: playerLicense,\n  ui: false,\n});\nconst ui = LiveUIFactory.buildLiveUI(player);\n\n// Release the old UI before replacing it.\nui.release();\nconst nextUi = PremiereUIFactory.buildPremiereUI(player);"
+    },
+    {
+      "type": "p",
+      "text": "上のコードは必要な変数やimportを用意した環境で使う抜粋です。アプリのテーマ切り替えも、古いUIをreleaseして新しいUIを同じプレイヤーへ結び付けます。プレイヤー本体を再生成する設定変更とは異なります。"
+    },
+    {
+      "type": "h2",
+      "text": "ガイドの14節"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "節",
+        "読む内容"
+      ],
+      "rows": [
+        [
+          "概要",
+          "UIの構造とスキンの分離、テーマの比較方法"
+        ],
+        [
+          "アーキテクチャと用語",
+          "UIManager、UIContainer、Component、UIVariant"
+        ],
+        [
+          "3つの入り口",
+          "標準UI、部品の組み替え、CSSによる変更"
+        ],
+        [
+          "ツリーを組む",
+          "複数行の操作バーと部品の順序"
+        ],
+        [
+          "コンポーネント・カタログ",
+          "ボタン、バー、ラベル、字幕、設定などの代表部品"
+        ],
+        [
+          "部品を自作する",
+          "継承、configure、イベント、後片付け"
+        ],
+        [
+          "設定パネルを作る",
+          "歯車と画質・速度・音声などの選択欄"
+        ],
+        [
+          "イベント",
+          "UIの操作通知とSDKの再生状態通知"
+        ],
+        [
+          "スタイリング",
+          "bmpuiのクラス、スキンとCSSの優先順位"
+        ],
+        [
+          "設定",
+          "UIConfigと個別部品の設定の使い分け"
+        ],
+        [
+          "UIバリアントとTV",
+          "条件による構成選択とリモコン向け手法"
+        ],
+        [
+          "ジェスチャ",
+          "映像面のクリックとダブルクリックの扱い"
+        ],
+        [
+          "クックブック",
+          "よく使う6つの変更例"
+        ],
+        [
+          "参考リンク",
+          "公式APIとソース"
+        ]
+      ],
+      "widths": [
+        0.39,
+        0.61
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "6つの変更例"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "操作を追加・削除する。ControlBarの部品配列を変更します。",
+        "コントロールを常時表示する。UIContainerのhideDelayを-1にします。",
+        "1要素の色を変える。対象のクラスとCSSの優先順位を確認します。",
+        "タイトルと説明を出す。TitleBarを配置し、SourceConfigに値を渡します。",
+        "次の動画を出す。RecommendationOverlayとmetadata.recommendationsを組み合わせます。",
+        "プレイヤーの値に追従するラベルを作る。Labelを継承し、イベントで表示を更新します。"
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "自作部品の後片付け"
+    },
+    {
+      "type": "p",
+      "text": "configureでは基底のsuper.configureを呼び、再生イベントを購読して表示を更新します。独自に作成したタイマー、イベント購読、補助部品などは、所有する部品のreleaseで解放します。テーマを何度も切り替える用途では、画面から消したことだけで解放済みと判断しないことが重要です。"
+    },
+    {
+      "type": "p",
+      "text": "このリポジトリには、固定バージョンのUIライブラリの補助部品を解放する修正と、繰り返し切り替えの検証があります。ただし、それだけでSDKやブラウザーの全メモリが空になるわけではありません。性能の結果は計測条件とともに公開ドキュメントを参照します。"
+    },
+    {
+      "type": "note",
+      "text": "UIVariant、TVのSpatialNavigation、VRなどのガイド内の例は、現在のWeb画面にその操作がすべて実装されていることを意味しません。GUIで試せる項目、コードで追加する作例、実機が必要な機能を区別して利用してください。"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/uiGuide.ts",
+      "line": 535
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 34
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 58
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 260
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 551
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 631
+    },
+    {
+      "path": "docs/web-performance.md",
+      "line": 140
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/web/guide.html",
+      "label": "公開UIカスタマイズガイド"
+    }
+  ]
+}

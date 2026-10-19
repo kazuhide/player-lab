@@ -1,0 +1,134 @@
+{
+  "id": "web-qoe-analytics",
+  "title": "状態、イベント、再生品質の計測",
+  "lead": "ブラウザー内で計算する現在の再生セッションの値と、Bitmovinへ送信・集計されるAnalyticsを区別して読みます。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "イベントログ"
+    },
+    {
+      "type": "p",
+      "text": "イベントログはSourceLoaded、Play、Playing、Paused、Seek、TimeShift、StallStarted、Errorなどの通知を時刻とともに表示します。新しい通知が上に入り、最大80行です。毎回のTimeChangedは頻度が高いため、このログには並べません。プレイヤー再生成では操作パネルも作り直されます。"
+    },
+    {
+      "type": "h2",
+      "text": "QoEの6つの表示"
+    },
+    {
+      "type": "p",
+      "text": "QoEはQuality of Experienceで、この画面では再生品質の指標を指します。SDKのイベントからブラウザー内で計算しており、アカウントの集計結果ではありません。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "表示",
+        "このアプリの定義"
+      ],
+      "rows": [
+        [
+          "startup",
+          "SourceLoadedから最初のPlayingまでの時間です。ページを開いてから最初の映像までの全時間ではありません。"
+        ],
+        [
+          "rebuffering",
+          "再生開始後の停止時間÷再生中と停止中の合計時間と、その回数です。一時停止と初回バッファリングは除きます。"
+        ],
+        [
+          "errors",
+          "セッション内で受けたErrorイベントの回数です。"
+        ],
+        [
+          "seek time",
+          "最後のSeekまたはTimeShiftから対応する完了通知までの時間です。"
+        ],
+        [
+          "live latency",
+          "端末の現在時刻と映像に対応する実時刻との差です。"
+        ],
+        [
+          "edge latency",
+          "SDKのgetLatencyが返す、ライブ端からの距離です。"
+        ]
+      ],
+      "widths": [
+        0.27,
+        0.73
+      ]
+    },
+    {
+      "type": "p",
+      "text": "新しいSourceLoaded、ソースの解除、プレイヤーの破棄で計測は初期化されます。テーマやUIだけの切り替えでは、同じプレイヤーの計測を維持します。再生が終了すると、その時点の合計を保って増加を止めます。"
+    },
+    {
+      "type": "note",
+      "text": "QoE欄の遅延値は、時刻情報が一時的に得られなくなった場合に直近の有効値を保つことがあります。現在のソースで値が有効かを確かめるときは、Player stateのneeds PDTなども確認します。"
+    },
+    {
+      "type": "h2",
+      "text": "PagesのAnalytics送信"
+    },
+    {
+      "type": "p",
+      "text": "公開Pages版は専用のAnalyticsライセンスを使い、再生情報や端末情報をBitmovin Analyticsへ送信します。画面にはその旨の通知を表示します。ブラウザー内のQoE欄が表示されることと、送信先のダッシュボードでデータを集計できることは別の確認事項です。"
+    },
+    {
+      "type": "p",
+      "text": "Pagesは静的ファイルの配信であり、アカウントAPIキーを保持するバックエンドを実行しません。そのためBitmovin Analyticsのサーバー経由クエリ欄は非表示です。クエリ欄がないことを理由に、コレクターの送信も停止したと判断しないでください。"
+    },
+    {
+      "type": "h2",
+      "text": "ローカル開発時の集計クエリ"
+    },
+    {
+      "type": "p",
+      "text": "ローカルの開発サーバーでは、サーバー側にAPIキーとAnalyticsライセンスを設定した場合に集計クエリを利用できます。GUIの4ボタンは、直近7日間のインプレッション数、平均スタートアップ時間、平均ビデオスタートアップ、平均バッファ時間を問い合わせます。結果は行として表示されます。"
+    },
+    {
+      "type": "p",
+      "text": "APIキーを設定していない場合は未設定のメッセージ、プロキシへ接続できない場合は到達不可のメッセージが出ます。集計対象はサーバー側で選んだAnalyticsライセンスです。空の結果は行がないことを意味し、再生自体の成功・失敗を直接示すものではありません。"
+    },
+    {
+      "type": "note",
+      "text": "PlayerライセンスとAnalyticsライセンスはクライアントで利用する値です。アカウントのAPIキーはサーバー側の秘密情報です。APIキーをPlayer Config、URL、画像入力などのブラウザー側の欄に入れないでください。"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 629
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 479
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 490
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 499
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 542
+    },
+    {
+      "path": "apps/web/src/analytics/metrics.ts",
+      "line": 90
+    },
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 24
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 70
+    },
+    {
+      "path": "docs/SETUP.md",
+      "line": 45
+    }
+  ]
+}

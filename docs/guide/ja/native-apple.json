@@ -1,0 +1,132 @@
+{
+  "id": "native-apple",
+  "title": "iOS・iPadOS・tvOS",
+  "lead": "SwiftUI アプリで HLS のソース切り替えとライブの巻き戻しを試します。iOS と iPadOS は共有 Web UI を選択でき、tvOS は OS の System UI を使います。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "準備とビルド"
+    },
+    {
+      "type": "p",
+      "text": "Xcode と XcodeGen 2.46.0 が必要です。宣言された最低 OS は iOS 15.0／tvOS 15.0、固定された Player は 3.128.0 です。Player はバイナリー XCFramework のため、アプリを swift build だけでビルドすることはできません。共通準備でライセンスと共有 UI を同期してから、リポジトリのルートを起点に次を実行します。"
+    },
+    {
+      "type": "code",
+      "text": "xcodegen version\ncd apps/ios\nxcodegen generate\nmkdir -p Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm\ncp Package.resolved Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved\nopen Showcase.xcodeproj"
+    },
+    {
+      "type": "p",
+      "text": "xcodegen version が 2.46.0 であることを確認します。Xcode では Showcase-iOS または Showcase-tvOS を選び、実行先を指定して起動します。実機への導入では開発チームと署名も設定します。Player ライセンスでは iOS に com.showcase.dvr.Showcase-iOS、tvOS に com.showcase.dvr.Showcase-tvOS を許可します。"
+    },
+    {
+      "type": "note",
+      "text": "共有 UI は xcodegen generate より前に同期します。生成後の iOS ターゲットには WebUI の JavaScript と CSS がリソースとして入ります。未同梱の場合、カスタムモードを選んでも意図した外観を確認できません。tvOS はこの Web UI を使いません。"
+    },
+    {
+      "type": "code",
+      "title": "apps/ios から署名なしの iOS シミュレーター用ビルド",
+      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS \\\n  -destination 'generic/platform=iOS Simulator' \\\n  -onlyUsePackageVersionsFromResolvedFile \\\n  CODE_SIGNING_ALLOWED=NO build"
+    },
+    {
+      "type": "h2",
+      "text": "画面で確認する順序"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Source で Live HLS または VOD HLS を選びます。起動時は先頭の Live HLS が読み込まれます。自動再生は無効、ミュートは有効です。プレイヤー内の再生ボタンで開始します。",
+        "iOS／iPadOS は Player UI の Default、Sports、Live (DVR)、Cinema を切り替えます。tvOS にこの選択欄はなく、System UI を使います。",
+        "ライブ再生後、巻き戻し可能な範囲が取得されると −10s、−30s、−60s、−120s の補助ボタンが使えます。数字はライブ端からの距離です。",
+        "Go to live edge でライブ位置へ戻ります。移動完了と、LIVE 表示が落ち着くまで待ちます。",
+        "DVR state の mode、dvrAvailable、behindLive、atLiveEdge、windowDuration を読みます。Event log には直近の読み込み・シーク・範囲超過などが表示されます。"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "iOS の UI を切り替えると Player と SwiftUI の表示ビューを作り直し、選択中のソースを再ロードします。再生位置や再生中状態まで保存する実装ではありません。同じソースを読み直す点を踏まえて外観を比較します。Sports のスコアや選手情報は架空のサンプルデータであり、試合データの配信サービスではありません。"
+    },
+    {
+      "type": "note",
+      "title": "Apple 版に DASH を追加しない",
+      "text": "この構成の Apple SDK は HLS と progressive MP4 を受け付けます。アプリのカタログは HLS のみです。固定 SDK に DASH を読み込ませると precondition failure によりアプリが終了するため、SourceKind に DASH の列挙値があってもカタログへ追加しないでください。DASH の操作比較には Web または Android を使います。"
+    },
+    {
+      "type": "h2",
+      "text": "動かない場合の確認"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "ビルドできても再生できない場合は、Player ライセンスの値、許可した bundle identifier、ネットワーク、参照ソースを確認します。コンパイル専用の空の Local.xcconfig は再生ライセンスを提供しません。",
+        "ライセンス同期後に初めてプロジェクトを生成する場合は、sync-env.sh、共有 UI の同期、xcodegen generate の順で進めます。",
+        "HLS の巻き戻しボタンが無効な場合は、まず再生を開始します。一時停止したままでは範囲の取得を待ち続けることがあります。",
+        "再生中に一時停止位置がライブの保持範囲外へ出た場合、DvrWindowExceeded イベントでライブ端への復帰を要求します。",
+        "ライブが終了して VOD になったかどうかは TimeChanged のスナップショットでも確認します。DurationChanged だけでは変化を取りこぼす場合への対応です。"
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "テストの実行と記録された結果"
+    },
+    {
+      "type": "code",
+      "title": "リポジトリのルートから DVR の計算をテスト",
+      "text": "swift test --package-path apps/ios/DvrKit"
+    },
+    {
+      "type": "p",
+      "text": "実 SDK と共有 UI を確認する任意のテストには Showcase-iOS-Runtime スキームを使います。次の <SIMULATOR_NAME> は自分の Xcode にインストールされた iOS シミュレーター名へ置き換えます。Player ライセンス、ネットワーク、参照ストリームが必要です。"
+    },
+    {
+      "type": "code",
+      "title": "apps/ios で実行",
+      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Runtime \\\n  -destination 'platform=iOS Simulator,name=<SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
+    },
+    {
+      "type": "p",
+      "text": "このテストは実 SDK とモデル、共有 WebView の可視コントロールを使います。VOD、UI からの再生開始、HLS のソース切り替え、巻き戻し、ライブ復帰、DVR 状態の切り替え、Cinema UI への再生成を確認します。ライセンスエラーや参照先の不通をモックや成功扱いのスキップで置き換えません。"
+    },
+    {
+      "type": "note",
+      "title": "記録済みの検証範囲",
+      "text": "2026-10-19 の記録では、iPhone 17 Pro／iOS 26.4 シミュレーター、Player 3.128.0、共有 UI 4.15.1 で 1 件成功、失敗 0、11.670 秒でした。ここでは記録済みの結果を示しており、再実行した結果ではありません。物理端末、tvOS の再生、TV リモコン、Casting、オフライン、Analytics の受信はこの結果に含みません。CI の iOS／tvOS ビルド成功も実再生とは別です。"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/ios/README.md",
+      "line": 28,
+      "label": "ビルド・ライセンス・共有 UI"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 104,
+      "label": "実 SDK テストと記録された結果"
+    },
+    {
+      "path": "apps/ios/project.yml",
+      "line": 29,
+      "label": "ターゲットと最低 OS"
+    },
+    {
+      "path": "apps/ios/Showcase/ContentView.swift",
+      "line": 32,
+      "label": "画面の実装"
+    },
+    {
+      "path": "apps/ios/Showcase/PlayerModel.swift",
+      "line": 68,
+      "label": "UI 再生成・再生設定・ライブ処理"
+    },
+    {
+      "path": "apps/ios/Showcase/Sources.swift",
+      "line": 23,
+      "label": "HLS のソースカタログ"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ios-samples#available-sample-apps",
+      "label": "Bitmovin iOS 公式サンプルと形式・ライセンス設定"
+    }
+  ]
+}

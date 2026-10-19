@@ -1,0 +1,121 @@
+{
+  "id": "native-android",
+  "title": "Android and Android-based Fire TV",
+  "lead": "Use the Kotlin and Compose app to load HLS/DASH sources, try live rewind, and compare the shared Web UI. Android-based Fire TV and Vega OS are separate targets.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Preparation and build"
+    },
+    {
+      "type": "p",
+      "text": "Java 17 and the Android SDK are required. The current configuration uses compileSdk 36, targetSdk 36, minSdk 23, and Player 3.155.0. CI uses SDK 36 and Build Tools 36.0.0. Set the SDK location with ANDROID_HOME, ANDROID_SDK_ROOT, or apps/android/local.properties. After synchronizing licenses and the shared UI in the common preparation, run the following from the repository root."
+    },
+    {
+      "type": "code",
+      "text": "cd apps/android\n./gradlew :app:assembleDebug"
+    },
+    {
+      "type": "p",
+      "text": "The output is apps/android/app/build/outputs/apk/debug/app-debug.apk. You can also open apps/android in Android Studio and run on a connected device or emulator. Allow the application ID com.showcase.dvr on the Player license."
+    },
+    {
+      "type": "p",
+      "text": "sync-env.sh transfers licenses from the root .env file to bitmovinLicenseKey and bitmovinAnalyticsLicenseKey in local.properties. The script preserves the local SDK path. Gradle’s -PbitmovinLicenseKey and -PbitmovinAnalyticsLicenseKey override local.properties, but the generated file is preferable for normal use to avoid leaving values in command history. An empty Analytics license disables the collector."
+    },
+    {
+      "type": "h2",
+      "text": "Suggested screen workflow"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Use the source buttons to select Live DASH + DVR, Live HLS, Live DASH with multiple audio tracks or subtitles, VOD HLS, or VOD DASH. The first Live DASH + DVR source loads at startup.",
+        "Start playback with the controls inside the player. Switch between Default, Sports, Live (DVR), and Cinema to compare layouts and displays.",
+        "Use −10s, −30s, or −60s to seek to the specified distance behind the live edge. Use Live edge to return to live.",
+        "Check Allow DVR, mode, dvrAvailable, behindLive, window, and the event log below. Scroll the button rows horizontally on a narrow screen.",
+        "If PlayerError or SourceError appears, check its numeric code. First check the application ID allowed by the license and connectivity to the reference source."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Changing the Android UI recreates PlayerView while keeping the Player. This differs from iOS and React Native, which recreate the Player. The Sports, Live, and Cinema JavaScript and CSS load from file:///android_asset/. If the custom UI does not appear, build and synchronize the shared UI, then rebuild the APK."
+    },
+    {
+      "type": "note",
+      "title": "Checking TV devices",
+      "text": "The Manifest declares LEANBACK_LAUNCHER for Android TV and Fire TV. Focus navigation, button reachability, remote controls, and actual playback still need testing on each device. A successful phone-emulator test does not establish behavior on physical devices or TVs."
+    },
+    {
+      "type": "h2",
+      "text": "Offline code example"
+    },
+    {
+      "type": "p",
+      "text": "OfflineManager is a helper around OfflineContentManager. It demonstrates retrieving download candidates, selecting the lowest-bitrate video and first audio track, downloading, and obtaining the resulting OfflineSourceConfig. It also includes calls for state, progress, deletion, and resource release."
+    },
+    {
+      "type": "note",
+      "text": "MainActivity does not call this class, and there is no GUI for downloading, offline playback, or deletion. It is an integration example that needs to be connected to a screen, not a completed screen feature. In the integrating app, check the required service configuration, storage space, content and licenses, and actual playback with networking disabled. Successful compilation does not prove that downloading or offline playback works."
+    },
+    {
+      "type": "h2",
+      "text": "Running tests and reading recorded results"
+    },
+    {
+      "type": "code",
+      "title": "Run from apps/android",
+      "text": "./gradlew :dvr:test\n./gradlew :app:connectedDebugAndroidTest"
+    },
+    {
+      "type": "p",
+      "text": "dvr:test checks pure rewind calculations. connectedDebugAndroidTest requires a running emulator or connected device, network access, and an authorized Player license. PlayerDvrInstrumentedTest checks real-SDK loading and finite VOD duration. PlayerControlsInstrumentedTest checks actual Compose interactions and the shared WebView display, playback through the UI, source switching, rewind, return to live, and DVR state."
+    },
+    {
+      "type": "p",
+      "text": "Even when the shared UI exists, its control layout and auto-hide state can change later. The recorded tests check ancestor visibility as well as display dimensions. Because the live edge moves, the completed seek position is compared with a media reference captured before the request. The test’s three-second tolerance is not a product guarantee of seek precision."
+    },
+    {
+      "type": "note",
+      "title": "Recorded verification scope",
+      "text": "The October 19, 2026 record reports two real-playback tests passing, with zero failures or skips, in 29.294 seconds on an Android 16 emulator with Player 3.155.0. Builds of the app with the final shared UI and the instrumentation APK were also checked. These are recorded results, not a new test run. They do not cover physical devices, Android TV, Fire TV, offline playback, casting, or Analytics receipt."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/android/README.md",
+      "line": 22,
+      "label": "Build and licenses"
+    },
+    {
+      "path": "apps/android/README.md",
+      "line": 72,
+      "label": "Real-playback tests and recorded results"
+    },
+    {
+      "path": "apps/android/app/build.gradle.kts",
+      "line": 9,
+      "label": "SDK, Java, application ID, and license precedence"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+      "line": 182,
+      "label": "Screen implementation and PlayerView recreation"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/OfflineManager.kt",
+      "line": 22,
+      "label": "Offline helper class"
+    },
+    {
+      "path": "apps/android/app/src/main/AndroidManifest.xml",
+      "line": 21,
+      "label": "Phone and TV launcher declarations"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/Sources.kt",
+      "line": 20,
+      "label": "Public reference source catalog"
+    }
+  ]
+}

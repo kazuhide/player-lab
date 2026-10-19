@@ -1,0 +1,161 @@
+{
+  "id": "themes",
+  "title": "14テーマの画面例",
+  "lead": "公開Web版の同じ60秒素材を15秒付近で停止した画面を比較できます。表示は画面幅、素材、再生位置、対応機能によって変わります。スポーツ中継のスコアや選手情報はサンプルです。",
+  "themes": [
+    {
+      "id": "default",
+      "category": "default",
+      "label": "Default (Bitmovin)",
+      "description": "標準のコンポーネント構成です。",
+      "code": "DefaultUIFactory.buildDefaultUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 158
+      }
+    },
+    {
+      "id": "custom-neon",
+      "category": "css",
+      "label": "Neon",
+      "description": "標準構成に色と境界線のスタイルを加えます。",
+      "code": "DefaultUIFactory.buildDefaultUI(player, undefined, { extraCssClasses: [\"ui-skin-neon\"] })",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 167
+      }
+    },
+    {
+      "id": "custom-glass",
+      "category": "css",
+      "label": "Glass",
+      "description": "標準構成で半透明の操作バーを使います。",
+      "code": "DefaultUIFactory.buildDefaultUI(player, undefined, { extraCssClasses: [\"ui-skin-glass\"] })",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 175
+      }
+    },
+    {
+      "id": "custom-sunset",
+      "category": "css",
+      "label": "Sunset",
+      "description": "標準構成に暖色の配色を加えます。",
+      "code": "DefaultUIFactory.buildDefaultUI(player, undefined, { extraCssClasses: [\"ui-skin-sunset\"] })",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 183
+      }
+    },
+    {
+      "id": "custom-bold",
+      "category": "css",
+      "label": "Bold",
+      "description": "標準構成の文字や操作部品を大きく表示します。",
+      "code": "DefaultUIFactory.buildDefaultUI(player, undefined, { extraCssClasses: [\"ui-skin-bold\"] })",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 191
+      }
+    },
+    {
+      "id": "custom-mono",
+      "category": "css",
+      "label": "Mono",
+      "description": "標準構成を白・黒・グレー中心で表示します。",
+      "code": "DefaultUIFactory.buildDefaultUI(player, undefined, { extraCssClasses: [\"ui-skin-mono\"] })",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 199
+      }
+    },
+    {
+      "id": "custom-live",
+      "category": "custom",
+      "label": "Live (DVR)",
+      "description": "ライブ位置、巻き戻し、実時刻の表示を追加します。",
+      "code": "LiveUIFactory.buildLiveUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 208
+      }
+    },
+    {
+      "id": "custom-sports",
+      "category": "custom",
+      "label": "スポーツ中継",
+      "description": "スコアと選手情報のサンプルを映像に重ねて表示します。",
+      "code": "SportsUIFactory.buildSportsUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 216
+      }
+    },
+    {
+      "id": "custom-binge",
+      "category": "custom",
+      "label": "連続再生",
+      "description": "イントロのスキップと次の動画への操作を追加します。",
+      "code": "BingeUIFactory.buildBingeUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 227
+      }
+    },
+    {
+      "id": "custom-cinema",
+      "category": "custom",
+      "label": "Cinema",
+      "description": "中央の再生操作と細い操作バーを使います。",
+      "code": "CinemaUIFactory.buildCinemaUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 249
+      }
+    },
+    {
+      "id": "custom-compact",
+      "category": "custom",
+      "label": "Compact",
+      "description": "小さな1段の操作バーを使います。",
+      "code": "CompactUIFactory.buildCompactUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 257
+      }
+    },
+    {
+      "id": "custom-premiere",
+      "category": "custom",
+      "label": "Premiere",
+      "description": "タイトル、説明、全幅のシークバーを使います。",
+      "code": "PremiereUIFactory.buildPremiereUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 267
+      }
+    },
+    {
+      "id": "custom-creator",
+      "category": "custom",
+      "label": "Creator",
+      "description": "全幅のシークバーの下に操作部品を1列で置きます。",
+      "code": "CreatorUIFactory.buildCreatorUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 275
+      }
+    },
+    {
+      "id": "custom-studio",
+      "category": "custom",
+      "label": "Studio",
+      "description": "時刻表示の間にシークバーを置きます。",
+      "code": "StudioUIFactory.buildStudioUI(player)",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 283
+      }
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "id": "web-live-dvr",
+  "title": "Live rewinding and time readouts",
+  "lead": "DVR lets you move back within the part of a live stream that remains available. Distinguish the forward buffer, distance from the live edge and delay relative to real time.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Move to an offset from the live edge"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select Live DASH + DVR or Live HLS. Check live-dvr and dvrAvailable in Player state.",
+        "Check that Allow DVR is enabled. If the window is not available just after loading, wait for the state to update.",
+        "Enter -30 in Offset from edge and press Seek to request a position 30 seconds behind the live edge.",
+        "The -10s, -30s, -60s and -120s buttons use the same reference. They do not move back by that amount from the current position.",
+        "Press Go to live edge and check that the distance behind the edge returns close to zero."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The live edge is offset zero; past positions are negative. For example, maxTimeShift of -900 seconds gives a window from -900 to zero. Out-of-range requests are clamped to the currently available window. The numeric input and Seek button are disabled when DVR is unavailable or the window is empty."
+    },
+    {
+      "type": "note",
+      "text": "Changing Allow DVR recreates the player. Check loading and the start position rather than assuming the current playback session continues. HLS may initially report a zero rewind window and establish its range later."
+    },
+    {
+      "type": "h2",
+      "text": "Reload at a start offset"
+    },
+    {
+      "type": "p",
+      "text": "Enter -20 in Start offset behind edge and press Reload at offset to reload with an explicit end reference. This sets SourceConfig startOffset rather than simply seeking the current playback. This control also explicitly uses end for on-demand media. To start 20 seconds from the beginning of a video, use Source startOffset with the start reference."
+    },
+    {
+      "type": "h2",
+      "text": "Read the state"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Readout",
+        "Meaning"
+      ],
+      "rows": [
+        [
+          "mode",
+          "One of vod, live-dvr or live-no-dvr. A finite positive duration is treated as on-demand media."
+        ],
+        [
+          "dvrAvailable",
+          "True when the stream is live, DVR is enabled and the window has a positive length."
+        ],
+        [
+          "maxTimeShift / windowDuration",
+          "The negative offset of the oldest position and the available window length."
+        ],
+        [
+          "timeShift / behindLive",
+          "The negative offset from the edge and the same distance expressed as positive seconds."
+        ],
+        [
+          "atLiveEdge",
+          "An app-level test for a position within one second of the edge."
+        ],
+        [
+          "seekProgress",
+          "The oldest position is 0%; the live edge is 100%."
+        ],
+        [
+          "time (rel)",
+          "Seconds on the playback timeline, not the distance behind the live edge itself."
+        ],
+        [
+          "time (abs/PDT)",
+          "Wall-clock time when timing information is available; otherwise needs PDT is displayed."
+        ],
+        [
+          "liveLatency",
+          "The difference between the device clock and the time corresponding to the video. It depends on clock accuracy."
+        ],
+        [
+          "getLatency",
+          "The SDK distance from the live edge, distinct from delay relative to real time."
+        ]
+      ],
+      "widths": [
+        0.36,
+        0.64
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Program Date Time (PDT) maps media time to a real-world clock. HLS uses information such as EXT-X-PROGRAM-DATE-TIME; DASH uses manifest timing information. Sources without clock information, or a significantly incorrect device clock, cannot provide a meaningful real-time latency reading."
+    },
+    {
+      "type": "h2",
+      "text": "Buffer size and DVR range"
+    },
+    {
+      "type": "p",
+      "text": "The buffer target is the number of seconds of video to fetch and keep ahead of the playhead. A larger value may tolerate network variation while retaining more media. It cannot recover past segments already removed at the origin, so it does not extend the DVR window."
+    },
+    {
+      "type": "p",
+      "text": "When the playhead falls behind the valid window, DVRWindowExceeded is emitted. This app logs the event and returns to the live edge. Its own recovery handler remains separate even if a tweak disables the standard SDK recovery."
+    },
+    {
+      "type": "h2",
+      "text": "Target latency, catchup and fallback"
+    },
+    {
+      "type": "p",
+      "text": "Dynamic Low Latency settings specify the desired distance from the live edge and speed changes or seeks when playback moves away from it. Catchup recovers when playback is too far behind; fallback restores distance when it is too close to the edge. These behaviors cannot be checked with on-demand media."
+    },
+    {
+      "type": "note",
+      "text": "Reducing the target number alone does not change the streaming format or origin latency. A compatible low-latency stream, network and device are also required. An empty threshold can represent an SDK Infinity value that disables that behavior."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 201
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 474
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 584
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 641
+    },
+    {
+      "path": "apps/web/src/dvr/state.ts",
+      "line": 47
+    },
+    {
+      "path": "apps/web/src/dvr/window.ts",
+      "line": 11
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 445
+    },
+    {
+      "path": "docs/dvr-time-and-start-config.md",
+      "line": 9
+    }
+  ]
+}

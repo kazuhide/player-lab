@@ -1,0 +1,168 @@
+{
+  "id": "web-sources-tracks",
+  "title": "Sources, audio, subtitles and thumbnails",
+  "lead": "Use the source buttons to choose media and the feature you want to check. Pages bundles short on-demand samples and uses external public streams for live playback.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Seven sources"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Button",
+        "What to check"
+      ],
+      "rows": [
+        [
+          "VOD HLS",
+          "Play the 60-second Big Buck Bunny sample over HLS."
+        ],
+        [
+          "VOD DASH",
+          "Play the same 60-second sample over DASH and compare the formats."
+        ],
+        [
+          "Live DASH + DVR",
+          "Use an external public live stream to check rewinding, multiple audio tracks and subtitles."
+        ],
+        [
+          "Live HLS",
+          "Play an external public HLS live stream."
+        ],
+        [
+          "VOD + Sprites",
+          "Check image thumbnails on the seek bar."
+        ],
+        [
+          "VOD + Multi-audio",
+          "Choose between two audio tracks."
+        ],
+        [
+          "VOD + Subtitles",
+          "Enable and display separately loaded WebVTT subtitles."
+        ]
+      ],
+      "widths": [
+        0.31,
+        0.69
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The provider controls the availability, content and rewind window of external live streams. This guide does not guarantee their future availability. In local development, unconfigured feature presets are disabled and list the required environment-variable names."
+    },
+    {
+      "type": "h2",
+      "text": "Basic playback and seeking"
+    },
+    {
+      "type": "p",
+      "text": "Use the controls inside the video for play/pause, volume and fullscreen. The seek bar represents the whole video for on-demand media and the available rewind window for live media. On custom themes, a single click on the video surface toggles playback."
+    },
+    {
+      "type": "p",
+      "text": "With Double-click set to Fullscreen, a double-click on the video surface toggles fullscreen. With Seek ±10s, a double-click on the left half moves back 10 seconds and the right half moves forward 10 seconds. Targets are clamped to the video duration or live DVR window. Default (Bitmovin) uses the stock UI behavior."
+    },
+    {
+      "type": "h2",
+      "text": "Switch audio tracks"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select VOD + Multi-audio.",
+        "Select a theme with an audio menu, such as Default or Premiere.",
+        "Open the player settings menu and choose another Audio track.",
+        "Unmute and adjust the volume if you want to listen."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Both bundled audio tracks contain the same nonverbal soundtrack at different volumes. The en/de labels are test metadata for track selection, not English and German translations."
+    },
+    {
+      "type": "h2",
+      "text": "Display subtitles"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select VOD + Subtitles.",
+        "Choose English in the subtitle menu inside the player.",
+        "Move to a time containing a cue and check its display. Select the disabled option to check that it disappears."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The subtitle text comes from Sintel and has been retimed for a short test. It does not describe Big Buck Bunny. Available subtitle and audio lists can change when you select another source."
+    },
+    {
+      "type": "h2",
+      "text": "Check seek thumbnails"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select VOD + Sprites.",
+        "Move the pointer along the seek bar inside the video.",
+        "Check that the displayed time and image change with the position."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "A sprite sheet combines several small images into one file. A WebVTT file maps times to image regions, and the player displays the corresponding region. Seek scrub-preview in UI settings is a separate feature: it controls whether the playing video follows the scrubber while dragging."
+    },
+    {
+      "type": "h2",
+      "text": "Selecting a source again"
+    },
+    {
+      "type": "p",
+      "text": "Source changes such as a title or start position retain the other applied source settings when the same source reloads. Selecting a preset through a source button or an end-of-playback recommendation clears the previous source overrides, even if you select the same preset again."
+    },
+    {
+      "type": "note",
+      "text": "The current GUI has no field for pasting an arbitrary HLS or DASH URL. To use different local media, follow the public documentation to change the source environment settings or source definitions."
+    },
+    {
+      "type": "figure",
+      "file": "source-controls",
+      "caption": "Source selection. VOD is on-demand media; Live selects live streams."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/sources.ts",
+      "line": 73
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 211
+    },
+    {
+      "path": "apps/web/src/gestures.ts",
+      "line": 43
+    },
+    {
+      "path": "apps/web/README.md",
+      "line": 38
+    },
+    {
+      "path": "docs/local-test-media.md",
+      "line": 59
+    },
+    {
+      "path": "tests/e2e/specs/pages.spec.ts",
+      "line": 192
+    },
+    {
+      "path": "tests/e2e/specs/pages.spec.ts",
+      "line": 206
+    },
+    {
+      "path": "tests/e2e/specs/pages.spec.ts",
+      "line": 220
+    }
+  ]
+}

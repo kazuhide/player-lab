@@ -1,0 +1,194 @@
+{
+  "id": "web-ui-customization",
+  "title": "Customize the player UI",
+  "lead": "The detailed guide linked at the bottom of the app explains how to attach different UIs to the same player. Compare themes first, then read the section and code relevant to your change.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Choose a starting point"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Goal",
+        "Starting point"
+      ],
+      "rows": [
+        [
+          "Use standard controls",
+          "Use the DefaultUIFactory composition."
+        ],
+        [
+          "Change colors or sizes",
+          "Add a class to the standard tree and style it with CSS or SCSS. Neon is one example."
+        ],
+        [
+          "Add components or change layout",
+          "Recompose the component arrays in UIContainer and ControlBar."
+        ],
+        [
+          "Display custom information or actions",
+          "Extend Label, Button or ToggleButton. Scores and live wall-clock labels are examples."
+        ]
+      ],
+      "widths": [
+        0.35,
+        0.65
+      ]
+    },
+    {
+      "type": "p",
+      "text": "UIManager connects the player and UI. UIContainer is the root of the displayed components; ControlBar holds playback controls; Container arranges components. Spacer expands the gap between them. Keeping these roles separate helps distinguish appearance changes from playback-engine configuration."
+    },
+    {
+      "type": "h2",
+      "text": "Create and release a UI"
+    },
+    {
+      "type": "code",
+      "text": "const player = new Player(element, {\n  key: playerLicense,\n  ui: false,\n});\nconst ui = LiveUIFactory.buildLiveUI(player);\n\n// Release the old UI before replacing it.\nui.release();\nconst nextUi = PremiereUIFactory.buildPremiereUI(player);"
+    },
+    {
+      "type": "p",
+      "text": "This excerpt requires the corresponding imports and variables. Theme changes in the app similarly release the old UI and attach a new UI to the same player. This differs from a configuration change that recreates the player itself."
+    },
+    {
+      "type": "h2",
+      "text": "Fourteen guide sections"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Section",
+        "What it covers"
+      ],
+      "rows": [
+        [
+          "Overview",
+          "Separating UI structure and skin, and comparing themes"
+        ],
+        [
+          "Architecture and vocabulary",
+          "UIManager, UIContainer, Component and UIVariant"
+        ],
+        [
+          "Three ways in",
+          "Default UI, component composition and CSS changes"
+        ],
+        [
+          "Composing the tree",
+          "Multi-row control bars and component order"
+        ],
+        [
+          "Component catalogue",
+          "Representative buttons, bars, labels, subtitles and settings"
+        ],
+        [
+          "Custom components",
+          "Inheritance, configure, events and cleanup"
+        ],
+        [
+          "Settings panels",
+          "The gear menu and quality, speed and audio selectors"
+        ],
+        [
+          "Events",
+          "UI input notifications and SDK playback events"
+        ],
+        [
+          "Styling",
+          "bmpui classes, skins and CSS specificity"
+        ],
+        [
+          "Configuration",
+          "UIConfig versus individual component configuration"
+        ],
+        [
+          "UI variants and TV",
+          "Conditional UI selection and remote-control techniques"
+        ],
+        [
+          "Gestures",
+          "Video-surface clicks and double-clicks"
+        ],
+        [
+          "Cookbook",
+          "Six common modifications"
+        ],
+        [
+          "References",
+          "Official APIs and source code"
+        ]
+      ],
+      "widths": [
+        0.39,
+        0.61
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Six common modifications"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "Add or remove a control by editing the ControlBar component array.",
+        "Keep controls visible by setting UIContainer hideDelay to -1.",
+        "Recolor one element by checking its target class and CSS specificity.",
+        "Show title and description with TitleBar and SourceConfig values.",
+        "Show the next videos using RecommendationOverlay and metadata.recommendations.",
+        "Create a label that follows a player value by extending Label and updating it from events."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Release custom components"
+    },
+    {
+      "type": "p",
+      "text": "Call super.configure from configure and subscribe to playback events to update the display. Release timers, event subscriptions and auxiliary components from their owning component release method. Removing a UI from the screen alone does not establish that its resources have been released, particularly with repeated theme changes."
+    },
+    {
+      "type": "p",
+      "text": "The repository includes a patch that releases auxiliary objects in the pinned UI library, with checks for repeated UI replacement. This does not establish that every SDK or browser allocation becomes empty. Read the public performance results together with their measurement conditions."
+    },
+    {
+      "type": "note",
+      "text": "Guide examples such as UIVariant, TV SpatialNavigation and VR do not mean that every corresponding control is implemented in the current Web app. Distinguish GUI controls, examples requiring code changes and capabilities requiring physical devices."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/uiGuide.ts",
+      "line": 535
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 34
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 58
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 260
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 551
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 631
+    },
+    {
+      "path": "docs/web-performance.md",
+      "line": 140
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/web/guide.html",
+      "label": "Public UI customization guide"
+    }
+  ]
+}

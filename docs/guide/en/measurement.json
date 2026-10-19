@@ -1,0 +1,316 @@
+{
+  "id": "measurement",
+  "title": "Performance measurement and verified test scope",
+  "lead": "Compare runs under the same workload and measurement conditions. A successful build, browser playback, and device execution provide different kinds of evidence.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Current resource use and concurrency"
+    },
+    {
+      "type": "p",
+      "text": "Local media generation uses the smaller of four and the detected CPU count for FFmpeg decoder, filter, and video-encoder settings. This is not a four-thread limit for the entire process. The different stages and the two video encoders can each run their own work."
+    },
+    {
+      "type": "p",
+      "text": "It avoids writing large raw-video intermediates to disk and reuses fragmented MP4 files across HLS, DASH, and the feature playlists. Checksumming, archive extraction, and concatenation for packet inspection read and write in one-MiB blocks. Per-Title starts and monitors three cloud jobs with fixed concurrency of three."
+    },
+    {
+      "type": "p",
+      "text": "These are the implemented controls. There is no continuous monitoring of RAM, CPU load, heat, or input complexity to adjust concurrency, nor a dedicated JSON artifact containing an automatic resource plan. The media generator writes measurements to fixture-report.json; the performance suite writes lifecycle-performance.json."
+    },
+    {
+      "type": "p",
+      "text": "Increasing the Player's forward buffer retains more media and can help tolerate temporary network interruptions. The rewind window, however, depends on the delivery manifest and media still available from the origin. A larger forward buffer cannot recover older segments already removed by the server."
+    },
+    {
+      "type": "p",
+      "text": "React Native reads several asynchronous state values concurrently and coalesces refreshes into one running snapshot plus one pending refresh. This bounds the queue during bursts of events. Results from an old source are discarded, while a failed refresh preserves the last valid display. Live finalization and positions falling outside the rewind window are also detected from these snapshots."
+    },
+    {
+      "type": "h2",
+      "text": "Measure Web UI and playback lifecycle changes"
+    },
+    {
+      "type": "p",
+      "text": "The workload cycles through all 14 themes three times, changes the seek-preview setting, switches HLS/DASH, recreates the Player through the DVR setting, and finally releases the Player and UI. At settled steps it checks that one Player and one media element are active, and that disposal stops the app's metrics timer."
+    },
+    {
+      "type": "p",
+      "text": "Run the following from the repository root. Run the final media-generation command only if .cache/test-streams has not been generated. Reuse existing verified media."
+    },
+    {
+      "type": "code",
+      "text": "pnpm install --frozen-lockfile\npnpm --filter @showcase/e2e exec \\\n  playwright install chromium\npython3 encoding/test-streams/local.py"
+    },
+    {
+      "type": "p",
+      "text": "Finish generating the media before starting a server for that directory in a separate terminal."
+    },
+    {
+      "type": "code",
+      "text": "pnpm --filter @showcase/e2e exec vite \\\n  ../../.cache/test-streams \\\n  --config vite.media.config.ts \\\n  --port 5180 --strictPort"
+    },
+    {
+      "type": "p",
+      "text": "Stop other builds, browser tests, emulators, and similar workloads before measuring. The measurement starts the app at localhost:5184, so ports 5180 and 5184 must be available."
+    },
+    {
+      "type": "code",
+      "text": "pnpm --filter @showcase/e2e e2e:performance"
+    },
+    {
+      "type": "p",
+      "text": "One full warm-up is excluded, followed by three measured runs in fresh browser contexts, executed serially at 1440 x 900. Set PERF_RUNS=5, for example, to choose one to ten measured runs. Adaptive quality remains enabled and the chosen video dimensions are recorded. Ordinary measurements use no CPU/network throttling or forced garbage collection."
+    },
+    {
+      "type": "p",
+      "text": "Results are saved to tests/e2e/test-results/lifecycle-performance.json. They include individual samples, medians, ranges, browser/Node versions, CPU and memory information, and hashes identifying the code actually served. The app uses a development server, so this is not a production-page performance score."
+    },
+    {
+      "type": "h2",
+      "text": "What CPU and memory counters mean"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Counter",
+        "Meaning and scope"
+      ],
+      "rows": [
+        [
+          "ThreadTime",
+          "Renderer main-thread CPU time"
+        ],
+        [
+          "ProcessTime",
+          "CPU time across the renderer process; excludes separate browser and GPU processes"
+        ],
+        [
+          "TaskDuration",
+          "Elapsed time in renderer tasks; not interchangeable with CPU time"
+        ],
+        [
+          "JavaScript heap",
+          "JavaScript-managed objects; excludes total media-buffer, decoder, and GPU memory"
+        ],
+        [
+          "DOM / listeners",
+          "Page objects and event handlers; may include detached objects awaiting collection"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "One MiB is 1,048,576 bytes. A high final heap value alone does not establish a leak. Examine repeated runs, connected elements, and Player/UI ownership together. Correctness checks are enforced, but the suite does not impose arbitrary CPU or heap pass/fail thresholds."
+    },
+    {
+      "type": "p",
+      "text": "For retention diagnosis, PERF_DIAGNOSTIC_GC=1 explicitly requests garbage collection after the final measured sample. Those results are recorded separately in collectionDiagnostics. They do not represent ordinary playback memory use or establish a CPU improvement."
+    },
+    {
+      "type": "h2",
+      "text": "Performance comparison recorded on 2026-10-19"
+    },
+    {
+      "type": "p",
+      "text": "The public documentation records sequential measurements of the original public baseline and the UI 4.15.1 ownership correction on the same Apple M5 machine: ten logical CPUs, 32 GiB RAM, Node 24.19.0, pnpm 10.33.0, and Chromium 149.0.7827.55. Each condition used one excluded warm-up and three measured runs."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Median in ordinary measurements",
+        "Original baseline",
+        "Patched"
+      ],
+      "rows": [
+        [
+          "Renderer process CPU time",
+          "1.811 s",
+          "1.979 s"
+        ],
+        [
+          "Main-thread CPU time",
+          "1.103 s",
+          "1.166 s"
+        ],
+        [
+          "JavaScript heap after disposal",
+          "28.08 MiB",
+          "28.24 MiB"
+        ],
+        [
+          "Highest sampled heap per run",
+          "29.76 MiB",
+          "31.89 MiB"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "CPU-time ranges overlap and the patched medians are higher. These ordinary measurements demonstrate neither a CPU improvement nor a reduction in the highest sampled heap."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Separate diagnostic after explicit collection",
+        "Original baseline",
+        "Patched"
+      ],
+      "rows": [
+        [
+          "JavaScript heap",
+          "19.61 MiB",
+          "17.59 MiB"
+        ],
+        [
+          "DOM nodes",
+          "12,618",
+          "10,535"
+        ],
+        [
+          "Event listeners",
+          "14,333",
+          "10,580"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "For this workload, the separate diagnostic showed approximately 10% less retained JavaScript heap, 17% fewer DOM nodes, and 26% fewer listeners. These are not total-memory savings during normal playback. Both conditions had 886 connected page elements; the results do not establish that every SDK object was collected. Short desktop measurements cannot predict long sessions, other devices, or native-app memory."
+    },
+    {
+      "type": "h2",
+      "text": "Run the checks"
+    },
+    {
+      "type": "code",
+      "text": "pnpm typecheck\npnpm test\npnpm build\nbash scripts/test-env-lib.sh\npnpm --filter @showcase/e2e e2e:public"
+    },
+    {
+      "type": "p",
+      "text": "Use e2e:features for feature media, e2e:pages for the generated Pages artifact, and e2e:finalization for controlled live finalization. The combined pnpm verify command also synchronizes environment settings and shared UI assets. Steps requiring unavailable native toolchains are skipped. Read the executed/passed/failed/skipped summary rather than relying on the exit code alone."
+    },
+    {
+      "type": "h2",
+      "text": "Verification recorded in the public documentation"
+    },
+    {
+      "type": "p",
+      "text": "The following results were recorded in the public documentation on 2026-10-19. They were not rerun for publication of this guide. Selections and execution conditions differ, so do not add the counts together as if they were a single suite."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Scope",
+        "Recorded result",
+        "Coverage and limits"
+      ],
+      "rows": [
+        [
+          "Local feature media",
+          "Chrome 155; 10 cases; zero retries; 16.7 s",
+          "HLS/DASH, seeking, audio switching, subtitles, thumbnails, and network API"
+        ],
+        [
+          "Media generator contract",
+          "16 passed",
+          "Generator boundary cases; no real cloud encoding"
+        ],
+        [
+          "Ubuntu-generated media",
+          "Chrome 155; 10 cases; zero retries; 16.9 s",
+          "Ubuntu output played on macOS; not a byte-for-byte comparison"
+        ],
+        [
+          "Production Pages artifact",
+          "Chrome 155 / macOS 27.0.1; 10 cases; zero retries or skips; 14.6 s",
+          "HLS/DASH time and decoding, 14 themes, settings, English/Japanese layout, audio, subtitles, and thumbnails"
+        ],
+        [
+          "Pages supporting checks",
+          "93 Web unit cases, 32 packaging cases, 3 server cases, and 15 secret-scanner regression cases passed",
+          "Separate checks with different scopes"
+        ],
+        [
+          "Controlled live finalization",
+          "One HLS case and one DASH case passed",
+          "Same Player and source transition from live to VOD; no real cloud encoder"
+        ],
+        [
+          "UI lifecycle regression",
+          "17 selected public browser cases; zero retries",
+          "Shared UI disposal/recreation; separate from performance measurements"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Pages automated tests intercept Analytics ingress in advance. Checking a collector request attempt and its notice does not establish remote receipt or dashboard aggregation. Host licensing, real collection, and account aggregation are separate checks."
+    },
+    {
+      "type": "p",
+      "text": "For HEVC, Chrome 155 and Chromium 149 reported supported, smooth, and powerEfficient as true for a 640 x 360, 24-frames-per-second, 500-kbit/s capability query. This is an estimate of support. The local media checks actually played H.264; these results do not establish HEVC decoding, audible synchronization, or measured hardware power consumption."
+    },
+    {
+      "type": "note",
+      "title": "Check the API documentation version",
+      "text": "The repository's Web dependency is Bitmovin Player 8.263.0. The online Web 8 API documentation displayed 8.280.0 when consulted. Do not treat the online latest version as identical to the locked dependency; also check repository types and implementation when using settings and APIs."
+    }
+  ],
+  "sources": [
+    {
+      "path": "encoding/test-streams/local.py",
+      "line": 218,
+      "label": "CPU-dependent settings and intermediate processing"
+    },
+    {
+      "path": "encoding/vod-multicodec-pertitle/multicodec_pertitle.py",
+      "line": 489,
+      "label": "Fixed concurrency of three"
+    },
+    {
+      "path": "docs/dvr-time-and-start-config.md",
+      "line": 69,
+      "label": "Forward buffer versus rewind window"
+    },
+    {
+      "path": "docs/web-performance.md",
+      "line": 3,
+      "label": "Measurement procedure and counter scope"
+    },
+    {
+      "path": "docs/web-performance.md",
+      "line": 93,
+      "label": "Recorded performance comparison"
+    },
+    {
+      "path": "docs/e2e-testing.md",
+      "line": 51,
+      "label": "Pages test results"
+    },
+    {
+      "path": "docs/e2e-testing.md",
+      "line": 100,
+      "label": "Combined verification and recorded results"
+    },
+    {
+      "path": "docs/local-test-media.md",
+      "line": 43,
+      "label": "Feature-media check results"
+    },
+    {
+      "url": "https://www.w3.org/TR/media-capabilities/",
+      "label": "W3C Media Capabilities"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/index.html",
+      "label": "Bitmovin Web API documentation"
+    },
+    {
+      "path": "apps/react-native/src/dvr/snapshotController.ts",
+      "line": 28,
+      "label": "Concurrent snapshots and coalesced refreshes"
+    }
+  ]
+}

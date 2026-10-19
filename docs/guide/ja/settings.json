@@ -1,0 +1,2012 @@
+{
+  "id": "settings",
+  "title": "Player Config 全134項目",
+  "lead": "各項目の対象、反映方法、入力形式と説明をまとめます。設定欄の存在と、実行環境での有効性や動作確認済みの範囲は区別してください。",
+  "notes": [
+    "代替表示値はフォームで適用値を読めない場合の表示値です。SDKの既定値、現在の実効値、推奨値とは区別します。",
+    "再生成のAdaptation項目はdesktopとmobileの両方に適用されます。",
+    "説明は公開実装と固定したSDKのAPIに基づきます。すべての項目を各デバイスで検証したという意味ではありません。",
+    "app_idはこの公開ソースに項目別説明がないため、仕様は公式APIで確認します。",
+    "説明の対象はWeb SDK 8.263.0です。オンラインのAPIリファレンスは新しい版を示す場合があるため、項目を比較する前にバージョンを確認してください。"
+  ],
+  "groups": [
+    {
+      "id": "player-api",
+      "title": "Player API",
+      "mode": "runtime",
+      "fields": [
+        {
+          "scope": "PlayerAPI",
+          "path": "volume",
+          "label": "volume (0–100)",
+          "kind": "number",
+          "fallback_initial": 100,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 277
+          },
+          "api": "player.setVolume",
+          "description": "音量を0～100で即時変更します。このAPIはミュート中のプレイヤーをミュート解除するため、音量変更後に音声が出る場合があります。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "mute",
+          "label": "mute",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 285
+          },
+          "api": "player.mute / player.unmute",
+          "description": "現在の再生のミュートを切り替えます。チェックを外す操作は音声の再生を伴います。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "playbackSpeed",
+          "label": "playbackSpeed",
+          "kind": "number",
+          "fallback_initial": 1,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 298
+          },
+          "api": "player.setPlaybackSpeed",
+          "description": "再生速度の倍率です。1が等速、2が2倍です。ライブ端付近では制約があります。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "buffer.forwardTarget",
+          "label": "buffer target forward (s) §8",
+          "kind": "number",
+          "fallback_initial": 40,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 306
+          },
+          "api": "player.buffer.setTargetLevel",
+          "description": "映像の前方バッファ目標を秒単位で即時変更します。巻き戻し可能時間を広げる設定ではありません。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "viewMode",
+          "label": "viewMode",
+          "kind": "enum",
+          "fallback_initial": "inline",
+          "options": [
+            {
+              "value": "inline",
+              "label": "inline"
+            },
+            {
+              "value": "pictureinpicture",
+              "label": "PiP"
+            },
+            {
+              "value": "fullscreen",
+              "label": "fullscreen"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 323
+          },
+          "api": "player.setViewMode",
+          "description": "inline、pictureinpicture、fullscreenから表示モードを選びます。対応環境とユーザー操作が必要です。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "aspectRatio",
+          "label": "setAspectRatio",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 345
+          },
+          "api": "player.setAspectRatio",
+          "description": "16:9や16/9などの比率を指定して縦横比を変更します。幅と高さの両方が固定されている場合、このAPIでは変更できません。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "poster",
+          "label": "setPosterImage (URL)",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 358
+          },
+          "api": "player.setPosterImage",
+          "description": "ポスター画像を即時設定します。このアプリは第2引数にtrueを渡すため、映像の再生中も画像の表示が残ります。SourceConfig.posterとは適用方法が異なります。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "logLevel",
+          "label": "setLogLevel",
+          "kind": "enum",
+          "fallback_initial": "warn",
+          "options": [
+            {
+              "value": "debug",
+              "label": "debug"
+            },
+            {
+              "value": "log",
+              "label": "log"
+            },
+            {
+              "value": "warn",
+              "label": "warn"
+            },
+            {
+              "value": "error",
+              "label": "error"
+            },
+            {
+              "value": "off",
+              "label": "off"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 371
+          },
+          "api": "player.setLogLevel",
+          "description": "コンソールの出力レベルを即時変更します。debugの詳細出力は性能に影響し得ます。"
+        }
+      ]
+    },
+    {
+      "id": "dynamic-adaptation",
+      "title": "Adaptation(動的)",
+      "mode": "runtime",
+      "fields": [
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.limitToPlayerSize",
+          "label": "limitToPlayerSize",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 395
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "自動画質で映像要素の表示サイズより高い解像度を選ばないようにします。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.qualityStabilityBalance",
+          "label": "qualityStabilityBalance (0–1)",
+          "kind": "number",
+          "fallback_initial": 0.5,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 403
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "0～1で画質と安定性の配分を指定します。0は画質を優先し、1は画質を抑えて再生の安定性を優先します。Low Latencyの適応ロジックで使います。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.resolution.maxSelectableVideoHeight",
+          "label": "resolution.maxSelectableVideoHeight",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 411
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "自動選択する映像の高さの上限をピクセルで指定します。全候補が上限を超える場合は高さが最も小さい品質が許可されます。通常は手動選択の候補を削除しません。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.resolution.minSelectableVideoHeight",
+          "label": "resolution.minSelectableVideoHeight",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 419
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "自動選択する映像の高さの下限をピクセルで指定します。全候補が下限未満の場合は高さが最も大きい品質が許可されます。通常は手動選択の候補を削除しません。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.resolution.maxSelectableVideoWidth",
+          "label": "resolution.maxSelectableVideoWidth",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 427
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "自動選択する映像の幅の上限をピクセルで指定します。全候補が上限を超える場合は幅が最も小さい品質が許可されます。通常は手動選択の候補を削除しません。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "adaptation.resolution.minSelectableVideoWidth",
+          "label": "resolution.minSelectableVideoWidth",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 435
+          },
+          "api": "player.adaptation.setConfig",
+          "description": "自動選択する映像の幅の下限をピクセルで指定します。全候補が下限未満の場合は幅が最も大きい品質が許可されます。通常は手動選択の候補を削除しません。"
+        }
+      ]
+    },
+    {
+      "id": "low-latency",
+      "title": "Low Latency(動的)",
+      "mode": "runtime",
+      "fields": [
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.targetLatency",
+          "label": "targetLatency (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 453
+          },
+          "api": "player.lowlatency.setTargetLatency",
+          "description": "目標とするライブ端からの距離を秒単位で指定します。catchupとfallbackを組み合わせて追従動作を試します。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.catchup.playbackRateThreshold",
+          "label": "catchup: playbackRateThreshold (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 470
+          },
+          "api": "player.lowlatency.setCatchupConfig",
+          "description": "目標より遅れた量がこの秒数を超えると速度で追いつきます。既定のInfinityは無効を意味します。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.catchup.seekThreshold",
+          "label": "catchup: seekThreshold (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 478
+          },
+          "api": "player.lowlatency.setCatchupConfig",
+          "description": "目標より遅れた量がこの秒数を超えるとライブ端の方向へシークします。既定のInfinityは無効です。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.catchup.playbackRate",
+          "label": "catchup: playbackRate",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 486
+          },
+          "api": "player.lowlatency.setCatchupConfig",
+          "description": "追いつく間の再生倍率です。1を超える値で加速します。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.fallback.playbackRateThreshold",
+          "label": "fallback: playbackRateThreshold (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 494
+          },
+          "api": "player.lowlatency.setFallbackConfig",
+          "description": "目標よりライブ端へ近づき過ぎた量がこの秒数を超えると減速します。既定のInfinityは無効です。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.fallback.seekThreshold",
+          "label": "fallback: seekThreshold (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 502
+          },
+          "api": "player.lowlatency.setFallbackConfig",
+          "description": "ライブ端へ近づき過ぎた量がこの秒数を超えると、目標位置の方向へ戻ります。既定のInfinityは無効です。"
+        },
+        {
+          "scope": "PlayerAPI",
+          "path": "lowlatency.fallback.playbackRate",
+          "label": "fallback: playbackRate",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 510
+          },
+          "api": "player.lowlatency.setFallbackConfig",
+          "description": "ライブ端から離れる間の再生倍率です。1未満で減速します。"
+        }
+      ]
+    },
+    {
+      "id": "source",
+      "title": "Source",
+      "mode": "reload",
+      "fields": [
+        {
+          "scope": "SourceConfig",
+          "path": "title",
+          "label": "title",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 525
+          },
+          "description": "ソースのタイトルです。TitleBarを持つテーマで表示されます。適用にはソースの再読み込みが必要です。"
+        },
+        {
+          "scope": "SourceConfig",
+          "path": "description",
+          "label": "description",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 534
+          },
+          "description": "ソースの説明です。タイトルと同様にTitleBarを持つテーマで確認します。"
+        },
+        {
+          "scope": "SourceConfig",
+          "path": "poster",
+          "label": "poster (URL)",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 542
+          },
+          "description": "再生前に表示する画像のURLです。即時のsetPosterImageとは反映方法が異なります。"
+        },
+        {
+          "scope": "SourceConfig",
+          "path": "options.startOffset",
+          "label": "options.startOffset (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 550
+          },
+          "description": "再生開始位置を秒単位で指定します。VODではソース読み込み時、ライブでは再生開始時に適用されます。ライブ端から戻る場合は負値とend基準を組み合わせ、範囲外は補正されます。"
+        },
+        {
+          "scope": "SourceConfig",
+          "path": "options.startOffsetTimelineReference",
+          "label": "options.startOffsetTimelineReference",
+          "kind": "enum",
+          "fallback_initial": "",
+          "options": [
+            {
+              "value": "",
+              "label": "（既定）"
+            },
+            {
+              "value": "start",
+              "label": "start"
+            },
+            {
+              "value": "end",
+              "label": "end"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 559
+          },
+          "description": "startOffsetの基準です。startは映像または巻き戻し窓の先頭、endは映像の終端またはライブ端です。未指定の既定はVODがstart、ライブがendです。"
+        }
+      ]
+    },
+    {
+      "id": "playback",
+      "title": "Playback",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.autoplay",
+          "label": "autoplay",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 580
+          },
+          "description": "読み込み後に自動再生するかを指定します。音声付き自動再生はブラウザーに拒否される場合があります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.muted",
+          "label": "muted（初期）",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 581
+          },
+          "description": "新しいプレイヤーの開始時に音声をミュートするかを指定します。即時の mute 操作とは反映時点が異なります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.volume",
+          "label": "volume（初期, 0–100）",
+          "kind": "number",
+          "fallback_initial": 100,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 582
+          },
+          "description": "新しいプレイヤーの初期音量を0〜100で指定します。ミュート状態は別項目です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.playsInline",
+          "label": "playsInline",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 583
+          },
+          "description": "映像要素に playsinline を設定します。対応するモバイルブラウザーでインライン再生を行うための設定です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.seeking",
+          "label": "seeking",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 584
+          },
+          "description": "シークを許可するかを指定します。ライブの巻き戻し許可は操作パネルの timeShift と区別します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.allowDecodingErrorRecovery",
+          "label": "allowDecodingErrorRecovery",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 585
+          },
+          "description": "PLAYBACK_VIDEO_DECODING_ERRORからの自動復旧を指定します。有効時はソースを再読み込みして元の位置から再開します。同じ再生位置での復旧は原則1回で、再発や復旧失敗時はエラーになります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.audioLanguage",
+          "label": "audioLanguage",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 586
+          },
+          "description": "開始時に優先する音声言語を指定します。ソース側に対応するトラックが必要です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "playback.subtitleLanguage",
+          "label": "subtitleLanguage",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 587
+          },
+          "description": "開始時に優先する字幕言語を指定します。ソース側に対応する字幕が必要です。"
+        }
+      ]
+    },
+    {
+      "id": "adaptation",
+      "title": "Adaptation（初期）",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.startupBitrate",
+          "label": "startupBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 598
+          },
+          "description": "開始時のビットレートです。自動選択には空欄を使います。指定時はbpsの数値、または500kbpsなど単位付きの値を使います。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.maxStartupBitrate",
+          "label": "maxStartupBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 599
+          },
+          "description": "開始時のビットレート上限です。startupBitrate を明示した場合は効果がありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.preload",
+          "label": "preload",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 600
+          },
+          "description": "再生前にコンテンツを先読みするかを指定します。SDKの既定はVODとライブで異なるため実際の適用値を確認します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.disableDownloadCancelling",
+          "label": "disableDownloadCancelling",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 601
+          },
+          "description": "遅いダウンロードを中断して低画質で再試行する処理を無効にします。通常の自動調整との違いを比較する項目です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.qualityThreshold",
+          "label": "qualityThreshold",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 602
+          },
+          "description": "Quality Optimized Streaming Data を持つソースで、選択する品質に許容するPSNR差を指定します。通常の素材すべてに効く設定ではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.qualityUpperThreshold",
+          "label": "qualityUpperThreshold",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 603
+          },
+          "description": "画質選択で使うPSNRの上限目安です。PSNRは元映像と圧縮映像の差を表す指標で、適用には対応する品質データが必要です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.bitrates.maxSelectableVideoBitrate",
+          "label": "bitrates.maxSelectableVideoBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 604
+          },
+          "description": "自動選択する映像ビットレートの上限です。全候補が上限を超える場合は最も低いビットレートが許可されます。通常は手動選択の候補を削除しません。単位はbpsです。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.bitrates.minSelectableVideoBitrate",
+          "label": "bitrates.minSelectableVideoBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 605
+          },
+          "description": "自動選択する映像ビットレートの下限です。全候補が下限未満の場合は最も高いビットレートが許可されます。通常は手動選択の候補を削除しません。単位はbpsです。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.bitrates.maxSelectableAudioBitrate",
+          "label": "bitrates.maxSelectableAudioBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 606
+          },
+          "description": "自動選択する音声ビットレートの上限です。全候補が上限を超える場合は最も低いビットレートが許可されます。通常は手動選択の候補を削除しません。単位はbpsです。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.bitrates.minSelectableAudioBitrate",
+          "label": "bitrates.minSelectableAudioBitrate",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 607
+          },
+          "description": "自動選択する音声ビットレートの下限です。全候補が下限未満の場合は最も高いビットレートが許可されます。通常は手動選択の候補を削除しません。単位はbpsです。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.logic",
+          "label": "logic",
+          "kind": "enum",
+          "fallback_initial": "",
+          "options": [
+            {
+              "value": "",
+              "label": "（既定）"
+            },
+            {
+              "value": "v1",
+              "label": "v1 (buffer)"
+            },
+            {
+              "value": "v2",
+              "label": "v2 (fill-rate)"
+            },
+            {
+              "value": "v3",
+              "label": "v3 (download-prediction)"
+            },
+            {
+              "value": "low-latency-v1",
+              "label": "low-latency-v1"
+            },
+            {
+              "value": "wish",
+              "label": "wish"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 608
+          },
+          "description": "画質の適応ロジックを選びます。既定はv3です。v1とv2は非推奨です。low-latency-v1はchunked CMAFのライブ向けで、tweaks.chunked_cmaf_streamingとの併用が必要です。通常のライブ遅延追従の設定とは区別します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "adaptation.rttEstimationMethod",
+          "label": "rttEstimationMethod",
+          "kind": "enum",
+          "fallback_initial": "",
+          "options": [
+            {
+              "value": "",
+              "label": "（既定）"
+            },
+            {
+              "value": "weightedaverage",
+              "label": "weightedaverage"
+            },
+            {
+              "value": "median",
+              "label": "median"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 616
+          },
+          "description": "通信の往復時間の推定方法をweightedaverageまたはmedianから選びます。v3の適応ロジックを使う場合にのみ有効です。"
+        }
+      ]
+    },
+    {
+      "id": "buffer",
+      "title": "Buffer（初期）",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "buffer.video.forwardduration",
+          "label": "video.forwardduration (s)",
+          "kind": "number",
+          "fallback_initial": 40,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 628
+          },
+          "description": "映像を再生位置より先に保持する目標秒数です。大きいほどメディアバッファの使用量が増え得ます。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "buffer.video.backwardduration",
+          "label": "video.backwardduration (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 629
+          },
+          "description": "再生済みの映像を保持する目標秒数です。ライブ配信元の巻き戻し可能時間を延長する設定ではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "buffer.audio.forwardduration",
+          "label": "audio.forwardduration (s)",
+          "kind": "number",
+          "fallback_initial": 40,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 630
+          },
+          "description": "音声を再生位置より先に保持する目標秒数です。映像の設定とは別項目です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "buffer.audio.backwardduration",
+          "label": "audio.backwardduration (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 631
+          },
+          "description": "再生済みの音声を保持する目標秒数です。映像の設定とは別項目です。"
+        }
+      ]
+    },
+    {
+      "id": "tweaks",
+      "title": "Tweaks",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.log_level",
+          "label": "log_level",
+          "kind": "enum",
+          "fallback_initial": "",
+          "options": [
+            {
+              "value": "",
+              "label": "（既定）"
+            },
+            {
+              "value": "debug",
+              "label": "debug"
+            },
+            {
+              "value": "log",
+              "label": "log"
+            },
+            {
+              "value": "warn",
+              "label": "warn"
+            },
+            {
+              "value": "error",
+              "label": "error"
+            },
+            {
+              "value": "off",
+              "label": "off"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 643
+          },
+          "description": "低レベル設定側からログレベルを指定します。通常はLogsグループ、再生中の変更はPlayer APIのsetLogLevelを使えます。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_buffer_level",
+          "label": "max_buffer_level",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 79
+          },
+          "description": "バッファ上限を秒で調整する旧設定です。非推奨のため通常はbufferのforwarddurationを使います。ライブではHLSプレイリスト長やDASHの巻き戻し窓との小さい値に制限されます。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.startup_threshold",
+          "label": "startup_threshold",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 79
+          },
+          "description": "初回再生前に蓄えるバッファ量を秒で指定します。SDKでは最大バッファ量から0.5秒を引いた値が上限です。入力値を増やしても、その上限を超えて待つ設定にはなりません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.restart_threshold",
+          "label": "restart_threshold",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 79
+          },
+          "description": "バッファ不足による停止から再開する前に蓄える量を秒で指定します。SDKでは最大バッファ量から0.5秒を引いた値が上限です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.native_hls_parsing",
+          "label": "native_hls_parsing",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 80
+          },
+          "description": "SafariのネイティブHLS再生でプレイリストを解析し、PDTなどのセグメント情報をイベントに含める設定です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.native_hls_download_error_handling",
+          "label": "native_hls_download_error_handling",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 80
+          },
+          "description": "SafariのネイティブHLS再生で、取得失敗に伴う停止を検出してエラーイベントを出すための設定です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.stop_download_on_pause",
+          "label": "stop_download_on_pause",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 80
+          },
+          "description": "一時停止中は新しいプレイリストやセグメントの取得を止めます。すでに開始した通信は完了します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.licenseServer",
+          "label": "licenseServer",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 81
+          },
+          "description": "Playerのライセンスサーバーを変更します。許可されたURLのみが対象で、コンテンツのDRMサーバーとは別です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.impressionServer",
+          "label": "impressionServer",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 81
+          },
+          "description": "インプレッション送信先を変更します。許可されたURLのみが対象です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_audio_only_threshold_bitrate",
+          "label": "hls_audio_only_threshold_bitrate",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 81
+          },
+          "description": "指定bpsより低いHLSバリアントを音声のみとみなし、より高い候補がある場合に除外します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.file_protocol",
+          "label": "file_protocol",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 82
+          },
+          "description": "fileプロトコル向けの設定です。app_idと組み合わせる用途があり、HTTPSのPages配信向けの設定ではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.app_id",
+          "label": "app_id",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 82
+          },
+          "description": "仕様は公式APIで確認。この公開ソースの項目別説明にはapp_idの定義が含まれていません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.adaptation_set_switching_without_supplemental_property",
+          "label": "adaptation_set_switching_without_supplemental_property",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 82
+          },
+          "description": "DASHのAdaptation Setの切り替えに、SupplementalPropertyではなくgroup属性を使います。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.drm_stall_recovery_settle_timeout_ms",
+          "label": "drm_stall_recovery_settle_timeout_ms",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 83
+          },
+          "description": "永久失敗と判定された鍵ID（KID）を伴うwaitingforkeyから、ソースを再読み込みするまでの安定化待機をミリ秒で指定します。一般のDRM通信タイムアウトではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.drm_stall_recovery_license_activity_lookback_ms",
+          "label": "drm_stall_recovery_license_activity_lookback_ms",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 83
+          },
+          "description": "DRMライセンスの直近の状態変化を、安定化処理として扱う期間をミリ秒で指定します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.ignore_mp4_edts_box",
+          "label": "ignore_mp4_edts_box",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 84
+          },
+          "description": "再生開始時刻の補正に関わるMP4のedts情報をデコーダーへ渡す前に除去します。ブラウザー差の回避策となる設定です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.ignore_hls_audio_groups",
+          "label": "ignore_hls_audio_groups",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 84
+          },
+          "description": "HLSの同名音声を品質候補としてまとめず、それぞれ独立した音声トラックとして扱います。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.prevent_video_element_preloading",
+          "label": "prevent_video_element_preloading",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 84
+          },
+          "description": "映像要素をpreload=noneにします。SafariのネイティブHLSでは、再生開始まで音声トラックや再生時間を取得できなくなる場合があります。メタデータだけを先読みする設定とは区別します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.serviceworker_scope",
+          "label": "serviceworker_scope",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 85
+          },
+          "description": "対応モジュールが作成するService Workerの適用範囲を指定します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.fairplay_ignore_duplicate_init_data_key_errors",
+          "label": "fairplay_ignore_duplicate_init_data_key_errors",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 85
+          },
+          "description": "FairPlayで同じ初期化データの鍵要求が重複した際のkeyerrorを無視する設定です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.no_quota_exceeded_adjustment",
+          "label": "no_quota_exceeded_adjustment",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 86
+          },
+          "description": "ブラウザーの容量不足エラー後に、SDKがバッファ目標を自動調整する処理を無効にします。省メモリ化を保証する設定ではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.segment_encryption_transition_handling",
+          "label": "segment_encryption_transition_handling",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 86
+          },
+          "description": "非推奨の旧設定です。8.33.0以降はSDKの標準バッファ処理が対応するため、この固定版では効果がありません。暗号化境界の動作を切り替える有効なスイッチとしては扱いません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.enable_seek_for_live",
+          "label": "enable_seek_for_live",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 87
+          },
+          "description": "SDKのライブ向けseek操作の許可を調整します。通常のDVR操作パネルはtimeShiftを使います。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.resume_live_content_at_previous_position_after_ad_break",
+          "label": "resume_live_content_at_previous_position_after_ad_break",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 87
+          },
+          "description": "trueでは広告前と同じメディア位置からライブを再開します。既定のfalseでは広告時間分を進め、広告前と同じライブ端からの距離で再開します。広告のreplaceContentDurationを指定した場合、このTweakは無視されます。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.dword_base_media_decode_timestamps",
+          "label": "dword_base_media_decode_timestamps",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 88
+          },
+          "description": "Tizenモジュールを非Tizen環境でも使えるようにする設定です。Tizenモジュールが含まれている場合にのみ有効で、一般のブラウザー向け時刻補正設定ではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.force_base_media_decode_time_rewrite",
+          "label": "force_base_media_decode_time_rewrite",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 88
+          },
+          "description": "TizenまたはwebOSの対応モジュールと実機で、32ビットを超えるかにかかわらずBase Media Decode Timeを書き換えます。短い不連続境界を持つ素材では問題を招く場合があり、実測で改善した場合にだけ使用する設定です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.tizen_max_safe_bmdt",
+          "label": "tizen_max_safe_bmdt",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 89
+          },
+          "description": "Tizenで安全とみなすデコード時刻の上限です。超えた値を小さく書き換えます。Tizenモジュールが必要で、SDKの既定値はTVの世代で異なります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.tizen_max_safe_pto",
+          "label": "tizen_max_safe_pto",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 89
+          },
+          "description": "Tizenで安全とみなす提示時刻オフセットの上限です。超えた値を小さく書き換えます。Tizenモジュールが必要で、SDKの既定値はTVの世代で異なります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.webos_max_safe_bmdt",
+          "label": "webos_max_safe_bmdt",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 89
+          },
+          "description": "webOSで安全とみなすデコード時刻の上限です。超えた値を小さく書き換えます。webOSモジュールが必要で、SDKの既定値はTVの世代で異なります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.webos_max_safe_pto",
+          "label": "webos_max_safe_pto",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 90
+          },
+          "description": "webOSで安全とみなす提示時刻オフセットの上限です。超えた値を小さく書き換えます。webOSモジュールが必要で、SDKの既定値はTVの世代で異なります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.akamai_datetime_parsing",
+          "label": "akamai_datetime_parsing",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 90
+          },
+          "description": "対応する形式のセグメントURLに含まれる日時を解析します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.clear_buffers_on_seeking_backwards",
+          "label": "clear_buffers_on_seeking_backwards",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 90
+          },
+          "description": "後方へシークする際のバッファ保持を変更し、必要なセグメントを再取得させます。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.drop_invalid_segments",
+          "label": "drop_invalid_segments",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 91
+          },
+          "description": "無効なMP4セグメントを破棄して継続を試みます。再生が続いても欠落によるギャップが生じる可能性があります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.min_size_for_gap_skipping",
+          "label": "min_size_for_gap_skipping",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 91
+          },
+          "description": "これより短いタイムラインのギャップはスキップしないようにします。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.proactive_gap_skip_distance_seconds",
+          "label": "proactive_gap_skip_distance_seconds",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 91
+          },
+          "description": "正の秒数を指定すると、ギャップの手前で先行してスキップします。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.force_software_decryption",
+          "label": "force_software_decryption",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 92
+          },
+          "description": "SDKが手動で復号するHLS AES-128やDASH ClearKeyに、WebCryptoではなくソフトウェア復号を使います。ブラウザーのCDMが処理するWidevineやPlayReadyの復号には作用しません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_retries",
+          "label": "max_retries",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 92
+          },
+          "description": "マニフェスト取得失敗時の再試行回数を指定します。HLSではmasterとvariantの両方が対象です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_cdn_retries",
+          "label": "max_cdn_retries",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 92
+          },
+          "description": "VODでCDNごとに行うダウンロード再試行の回数です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_mpd_retries",
+          "label": "max_mpd_retries",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 93
+          },
+          "description": "DASHマニフェストであるMPDの取得に失敗した際の再試行回数です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.mpd_retry_delay",
+          "label": "mpd_retry_delay",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 93
+          },
+          "description": "MPD取得に失敗してから再試行するまでの待機秒数です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.mpd_update_period_tolerance",
+          "label": "mpd_update_period_tolerance",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 93
+          },
+          "description": "ライブMPDがminimumUpdatePeriodを超えて古くなっても許容する時間を秒単位で指定します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.parse_cea_708_caption",
+          "label": "parse_cea_708_caption",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 94
+          },
+          "description": "ソースに含まれるCEA-708字幕を、CEA-608の代わりに解析する設定です。WebVTTの字幕選択とは別です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_sync_segment_playback_time_via_media_sequence",
+          "label": "hls_sync_segment_playback_time_via_media_sequence",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 94
+          },
+          "description": "HLSの品質切り替え時に、セグメントのメディアシーケンス番号を使って再生時刻を合わせます。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_parse_manifest_in_worker",
+          "label": "hls_parse_manifest_in_worker",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 95
+          },
+          "description": "HLSマニフェストをワーカースレッドで解析します。大きなマニフェストで効果が見込まれる設定で、全処理の並列化ではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_clear_buffers_on_discontinuity_switches",
+          "label": "hls_clear_buffers_on_discontinuity_switches",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 95
+          },
+          "description": "HLSのdiscontinuity境界でSourceBufferをクリアします。切り替えの見え方や性能が変わる可能性があります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.chunked_cmaf_streaming",
+          "label": "chunked_cmaf_streaming",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 96
+          },
+          "description": "取得途中でも完成したCMAFチャンクをデコーダーへ渡すためfetchを使います。対応する配信形式が必要です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.parse_emsg_boxes",
+          "label": "parse_emsg_boxes",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 96
+          },
+          "description": "MSEによる再生でMP4のemsgイベントを解析します。ネイティブ再生には作用しません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_backup_stream_penalty_duration",
+          "label": "hls_backup_stream_penalty_duration",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 96
+          },
+          "description": "取得に失敗したHLS系統のペナルティが失効するまでの秒数です。バックアップへの切り替えに関係します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.check_all_drm_licenses_for_kid",
+          "label": "check_all_drm_licenses_for_kid",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 97
+          },
+          "description": "鍵の状態が変わった際、利用できる全DRMライセンスの状態を確認して再生可否を判断します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.hls_parse_native_metadata",
+          "label": "hls_parse_native_metadata",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 97
+          },
+          "description": "SafariのネイティブHLS再生で、ID3などのメタデータをSDKのイベントとして中継します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.prefer_managed_media_source",
+          "label": "prefer_managed_media_source",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 97
+          },
+          "description": "利用可能な場合、通常のMediaSourceよりManagedMediaSourceを優先します。対応状況は実行環境に依存します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.infinite_retries_for_live",
+          "label": "infinite_retries_for_live",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 98
+          },
+          "description": "ライブの取得障害で品質候補を試し終えても、エラー終了せず復帰まで再試行を続けます。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.minimal_backward_buffer_clearing_interval",
+          "label": "minimal_backward_buffer_clearing_interval",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 98
+          },
+          "description": "再生済みバッファを除去する処理の最小間隔を秒単位で指定します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_safe_mse_duration",
+          "label": "max_safe_mse_duration",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 99
+          },
+          "description": "ライブ時のMediaSourceのdurationにInfinityを使えない旧環境向けの互換性設定です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.disable_parallel_segment_loading",
+          "label": "disable_parallel_segment_loading",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 99
+          },
+          "description": "音声・映像、または初期化・データセグメントの並行取得を抑える設定です。通常のSDKの取得スケジュールと比較します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.enable_muted_background_playback",
+          "label": "enable_muted_background_playback",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 99
+          },
+          "description": "Chromium系で別タブへ移った際のミュート映像停止を避けるため、映像要素のmutedではなく音量0を使います。SDKが返すミュート・音量の値は維持します。電池消費が増える場合があり、すべてのバックグラウンド再生を保証しません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.postpone_manifest_updates_until_playback_start",
+          "label": "postpone_manifest_updates_until_playback_start",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 100
+          },
+          "description": "ライブのマニフェスト更新の開始を再生開始まで遅らせます。低速端末の起動に有効な場合があり、HLS低遅延配信は対象外です。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.max_startup_buffer",
+          "label": "max_startup_buffer",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 100
+          },
+          "description": "初回再生前に蓄えるバッファの上限秒数です。到達後は再生開始まで追加取得を止めます。有限値はSDKの既定を上書きします。未指定時の上限は環境ごとに異なり、TV用の既定は対応モジュールがある場合に適用されます。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.dash_clear_buffers_on_period_switches",
+          "label": "dash_clear_buffers_on_period_switches",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 101
+          },
+          "description": "DASHのperiod切り替え時にSourceBufferをクリアします。互換性のあるコンテンツでも切り替えが目立つ可能性があります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.disable_auto_recovery_on_dvr_window_exceeded",
+          "label": "disable_auto_recovery_on_dvr_window_exceeded",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 101
+          },
+          "description": "SDK標準のDVR範囲外からの自動復旧を無効にします。ただしこのアプリには独自のライブ端へ戻す処理もあります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.enable_performance_logs",
+          "label": "enable_performance_logs",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 102
+          },
+          "description": "SDK内部処理の所要時間を含むPerformanceログを有効にします。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.enable_sgai_handling",
+          "label": "enable_sgai_handling",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 102
+          },
+          "description": "この固定版でHLS Interstitialsを処理するための設定です。AdvertisingCoreモジュールと対応コンテンツが必要です。あらゆる広告挿入方式を有効にする汎用スイッチではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.audio_track_switch_buffer_grace_period",
+          "label": "audio_track_switch_buffer_grace_period",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 102
+          },
+          "description": "音声切り替え時に再生位置より先へ保持する変更前の音声バッファの秒数です。保持機能が有効で、コーデックとDRM保護が変わらない切り替えに作用します。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.disable_audio_buffer_clearing_on_track_switch",
+          "label": "disable_audio_buffer_clearing_on_track_switch",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 103
+          },
+          "description": "コーデックとDRM保護が変わらない音声切り替えで、変更前のバッファを一部保持します。条件が変わる場合は全体を消去します。環境によって切り替えが遅れ、変更前の音声が短時間残ることがあります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "tweaks.sgai_trigger_delay_compensation",
+          "label": "sgai_trigger_delay_compensation",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 103
+          },
+          "description": "TimeChangedイベントの間隔によって広告開始が遅れる分の補正秒数です。対応する広告挿入機能が対象です。"
+        }
+      ]
+    },
+    {
+      "id": "logs",
+      "title": "Logs",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "logs.level",
+          "label": "level",
+          "kind": "enum",
+          "fallback_initial": "warn",
+          "options": [
+            {
+              "value": "debug",
+              "label": "debug"
+            },
+            {
+              "value": "log",
+              "label": "log"
+            },
+            {
+              "value": "warn",
+              "label": "warn"
+            },
+            {
+              "value": "error",
+              "label": "error"
+            },
+            {
+              "value": "off",
+              "label": "off"
+            }
+          ],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 653
+          },
+          "description": "プレイヤー生成時のコンソール出力レベルです。debugやlogの詳細出力は長時間再生などの性能に影響し得ます。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "logs.bitmovin",
+          "label": "bitmovin (ロゴログ)",
+          "kind": "bool",
+          "fallback_initial": true,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 653
+          },
+          "description": "コンソールに表示するBitmovinのクレジットを切り替えます。映像上のロゴを変更する項目ではありません。"
+        }
+      ]
+    },
+    {
+      "id": "style",
+      "title": "Style",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "style.aspectratio",
+          "label": "aspectratio",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 660
+          },
+          "description": "プレイヤーの縦横比です。width、height、aspectratioの3項目を同時に指定することは避けます。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "style.width",
+          "label": "width",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 661
+          },
+          "description": "プレイヤー幅をpxや%などで指定します。このアプリのCSSが優先されて表示差が出ない場合があります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "style.height",
+          "label": "height",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 662
+          },
+          "description": "プレイヤー高さをpxや%などで指定します。このアプリのCSSが優先されて表示差が出ない場合があります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "style.nativeSubtitles",
+          "label": "nativeSubtitles",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 663
+          },
+          "description": "ネイティブHLSやプログレッシブファイルで、ブラウザー側の字幕描画を使うための設定です。すべての再生方式に作用する設定ではありません。"
+        }
+      ]
+    },
+    {
+      "id": "cast",
+      "title": "Cast",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "cast.enable",
+          "label": "enable",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 671
+          },
+          "description": "CastConfigのChromecast対応を指定します。操作パネルのキャストボタン追加はremotecontrol設定を使うため別の操作として扱います。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "cast.application_id",
+          "label": "application_id",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 672
+          },
+          "description": "カスタムCastレシーバーのアプリケーションIDです。標準レシーバーを使う現在の操作パネルでは指定しません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "cast.message_namespace",
+          "label": "message_namespace",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 673
+          },
+          "description": "カスタムCastレシーバーとのメッセージ名前空間を指定します。通常のCast操作に必須の値ではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "cast.receiverStylesheetUrl",
+          "label": "receiverStylesheetUrl",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 674
+          },
+          "description": "Castレシーバーが読み込むスタイルシートのURLです。手元のWebプレイヤーのCSSを変更する設定ではありません。"
+        }
+      ]
+    },
+    {
+      "id": "live",
+      "title": "Live",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "live.incrementalManifestUpdates",
+          "label": "incrementalManifestUpdates",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 682
+          },
+          "description": "対応するHLSのPlaylist Delta Updatesで、完全なマニフェスト取得の代わりに増分更新を使います。この固定版の型コメントはHLSを対象としており、すべてのHLSやDASHに効果がある設定ではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "live.lowLatency.targetLatency",
+          "label": "lowLatency.targetLatency (s)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 683
+          },
+          "description": "新しいプレイヤーの目標ライブ遅延を秒単位で指定します。再生中の変更は動的Low Latencyグループでも試せます。"
+        }
+      ]
+    },
+    {
+      "id": "location",
+      "title": "Location",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "location.ui",
+          "label": "ui",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 691
+          },
+          "description": "SDKが読み込むUIのJavaScriptの場所です。このアプリは独自にUIManagerを生成するため、通常のテーマ変更は上部のボタンで行います。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "location.ui_css",
+          "label": "ui_css",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 692
+          },
+          "description": "SDKが読み込むUIのCSSの場所です。このアプリが読み込む共有UIのCSSとは反映経路が異なります。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "location.cast",
+          "label": "cast",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 693
+          },
+          "description": "Google Cast送信側ライブラリの読み込みURLです。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "location.google_ima",
+          "label": "google_ima",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 694
+          },
+          "description": "Google IMAの読み込みURLです。この項目は非推奨で、新規統合にはImaAdvertisingConfig.sdkUrlを使います。このGUIに広告設定一式が用意されているという意味ではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "location.serviceworker",
+          "label": "serviceworker",
+          "kind": "text",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 695
+          },
+          "description": "Service WorkerのJavaScriptの場所です。対応するモジュール、ホストHTMLと同じ階層への配置、コンテンツ配信側のCORS許可が必要です。モジュールを追加してパスを指定しない場合はセットアップ警告になります。"
+        }
+      ]
+    },
+    {
+      "id": "misc",
+      "title": "その他",
+      "mode": "recreate",
+      "fields": [
+        {
+          "scope": "PlayerConfig",
+          "path": "licensing.delay",
+          "label": "licensing.delay (ms)",
+          "kind": "number",
+          "fallback_initial": "",
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 703
+          },
+          "description": "Playerのライセンス要求を発行するまでの遅延をミリ秒で指定します。最大は30,000ミリ秒（30秒）です。コンテンツのDRMライセンスの設定欄ではありません。"
+        },
+        {
+          "scope": "PlayerConfig",
+          "path": "storage.disableStorageApi",
+          "label": "storage.disableStorageApi",
+          "kind": "bool",
+          "fallback_initial": false,
+          "options": [],
+          "source": {
+            "path": "apps/web/src/configPanel.ts",
+            "line": 704
+          },
+          "description": "プレイヤーのWeb Storage保存を無効にします。操作パネルにあるUI側の保存設定とは別項目です。"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerConfig.html",
+      "label": "公式Web Player APIリファレンス（バージョンを確認）"
+    }
+  ]
+}
