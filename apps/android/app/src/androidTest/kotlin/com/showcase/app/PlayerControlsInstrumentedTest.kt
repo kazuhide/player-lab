@@ -21,6 +21,7 @@ import org.junit.runner.RunWith
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.abs
 
 /** Licensed runtime checks against the actual app controls, SDK and shared Web UI. */
@@ -28,6 +29,7 @@ import kotlin.math.abs
 class PlayerControlsInstrumentedTest {
     @get:Rule val ui = createAndroidComposeRule<MainActivity>()
     private val errors = CopyOnWriteArrayList<Int>()
+    private val timeShiftCompletions = AtomicInteger()
 
     @Test
     fun sharedUiPlaybackSourceSwitchAndDvrControls() {
@@ -36,6 +38,7 @@ class PlayerControlsInstrumentedTest {
         ui.runOnUiThread {
             player.on(PlayerEvent.Error::class) { errors.add(it.code.value) }
             player.on(SourceEvent.Error::class) { errors.add(it.code.value) }
+            player.on(PlayerEvent.TimeShifted::class) { timeShiftCompletions.incrementAndGet() }
             player.mute()
         }
 
@@ -72,11 +75,20 @@ class PlayerControlsInstrumentedTest {
         ui.onNodeWithText("Live DASH + DVR").performScrollTo().performClick()
         await("live source loads") { player.isLive }
         ui.runOnUiThread { player.play() }
-        await("live source supplies a rewind window") { controller.dvr.dvrAvailable }
+        await("live source supplies a rewind window") {
+            controller.dvr.dvrAvailable && controller.dvr.windowDuration > 10
+        }
+        val beforeRewind = timeShiftCompletions.get()
         ui.onNodeWithText("-10s").performScrollTo().performClick()
-        await("rewind changes the SDK offset") { player.timeShift < -3 }
+        awaitJavascript(webView, sharedLiveUiScript(atEdge = false), "rewind completes in the SDK and shared UI") {
+            val offset = player.timeShift
+            timeShiftCompletions.get() > beforeRewind && offset.isFinite() && offset in -13.0..-7.0
+        }
+        val beforeReturn = timeShiftCompletions.get()
         ui.onNodeWithText("Live edge").performScrollTo().performClick()
-        await("return to live updates the SDK offset") { abs(player.timeShift) < 3 }
+        awaitJavascript(webView, sharedLiveUiScript(atEdge = true), "return to live completes in the SDK and shared UI") {
+            timeShiftCompletions.get() > beforeReturn && abs(player.timeShift) < 1
+        }
         ui.onNode(isToggleable()).performClick()
         ui.runOnUiThread { assertFalse(controller.dvr.dvrAvailable) }
         ui.onNode(isToggleable()).performClick()
@@ -104,14 +116,37 @@ class PlayerControlsInstrumentedTest {
         return result
     }
 
-    private fun awaitJavascript(view: WebView, script: String) {
+    private fun awaitJavascript(
+        view: WebView,
+        script: String,
+        label: String = "Shared UI DOM/styles",
+        predicate: () -> Boolean = { true },
+    ) {
         val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(40)
-        while (System.nanoTime() < deadline && errors.isEmpty()) {
-            if (javascript(view, script) == "true") return
+        while (System.nanoTime() < deadline && errors.isEmpty() && ui.activity.controller.lastErrorCode == null) {
+            var ready = false
+            ui.runOnUiThread { ready = predicate() }
+            if (ready && javascript(view, script) == "true") return
             Thread.sleep(100)
         }
-        assertTrue("Shared UI DOM/styles did not load; error codes: $errors", false)
+        assertTrue("$label did not settle; error codes: $errors; startup code: ${ui.activity.controller.lastErrorCode}", false)
     }
+
+    private fun sharedLiveUiScript(atEdge: Boolean): String = """
+        (() => {
+          const visible = selector => [...document.querySelectorAll(selector)]
+            .find(element => element.getBoundingClientRect().width > 0);
+          const label = visible('.bmpui-ui-label-behindlive');
+          const button = visible('.bmpui-ui-livebutton');
+          if (!label || !button) return false;
+          const text = label.textContent.trim();
+          return $atEdge
+            ? text === 'LIVE' && button.classList.contains('bmpui-at-live-edge')
+              && !button.classList.contains('bmpui-behind-live')
+            : text.endsWith(' behind') && button.classList.contains('bmpui-behind-live')
+              && !button.classList.contains('bmpui-at-live-edge');
+        })()
+    """.trimIndent()
 
     private fun descendants(view: View): List<View> =
         if (view is ViewGroup) (0 until view.childCount).flatMap { index ->
