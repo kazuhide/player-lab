@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Try Bitmovin Player settings, explore 14 player interfaces, and inspect the code behind them. Web and native examples with reproducible playback checks.">
+    <meta name="color-scheme" content="light">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'">
+    <meta property="og:title" content="Player Lab — Explore playback settings and interfaces">
+    <meta property="og:description" content="Change player settings, try custom interfaces, and keep the construction code in view.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kazuhide.github.io/player-lab/">
+    <meta property="og:image" content="https://kazuhide.github.io/player-lab/assets/player-preview.jpg">
+    <link rel="canonical" href="https://kazuhide.github.io/player-lab/">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+    <title>Player Lab — Explore playback settings and interfaces</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header wrap">
+      <a class="wordmark" href="./" aria-label="Player Lab home">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+          <rect width="30" height="30" rx="7" fill="currentColor"/>
+          <path d="M12 8.5 22 15 12 21.5Z" fill="white"/>
+        </svg>
+        <span>Player Lab</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a class="nav-detail" href="#explore">Explore</a>
+        <a class="nav-detail" href="#platforms">Platforms</a>
+        <a href="https://github.com/kazuhide/player-lab">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section class="hero wrap" aria-labelledby="intro-title">
+        <div class="hero-copy">
+          <h1 id="intro-title">Explore playback settings and custom player interfaces.</h1>
+          <p class="intro">Switch themes, adjust player and source settings, and inspect
+            the code used to build each interface.</p>
+          <div class="actions">
+            <a class="button" href="#start">Run locally</a>
+            <a class="text-link" href="https://github.com/kazuhide/player-lab/tree/main/apps/web">Read the Web guide</a>
+          </div>
+        </div>
+        <p class="hero-note">A Bitmovin Player playground for the Web, with examples
+          for iOS, Android, React Native, and Vega OS. Start with the existing
+          player controls and see how a setting changes playback.</p>
+        <figure class="app-preview">
+          <a href="assets/player-preview.jpg" aria-label="Open the full application screenshot">
+            <img src="assets/player-preview.jpg" width="1560" height="1120"
+              alt="The existing Web playground with its Premiere theme, sprite preview, source controls, and interface construction code."
+              fetchpriority="high" decoding="async">
+          </a>
+          <figcaption>
+            <span>A capture of the existing Web app. Run it locally to try the controls.</span>
+            <a href="https://github.com/kazuhide/player-lab/blob/main/docs/local-test-media.md">About the test media</a>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="explore wrap" id="explore" aria-labelledby="explore-title">
+        <div class="section-intro">
+          <h2 id="explore-title">Try the setting.<br>See what changes.</h2>
+          <p>The interface and its code stay together, so experiments are easy to follow.</p>
+        </div>
+        <dl class="capabilities">
+          <div>
+            <dt>Configure playback</dt>
+            <dd>Change player settings, source settings, and advanced tweaks in the
+              onscreen panels. Each setting indicates whether it applies immediately,
+              reloads the source, or recreates the player.</dd>
+          </div>
+          <div>
+            <dt>Explore 14 interfaces</dt>
+            <dd>Compare the standard interface, styles made with Cascading Style
+              Sheets (CSS), and custom component layouts. The construction panel
+              shows the code for the selected theme.</dd>
+          </div>
+          <div>
+            <dt>Inspect real playback</dt>
+            <dd>Try live rewind, audio selection, subtitles, and thumbnail previews.
+              Player state, events, and local playback measurements help explain
+              the result. Optional examples list the media they need.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="start-section" id="start" aria-labelledby="start-title">
+        <div class="start-grid wrap">
+          <div>
+            <h2 id="start-title">Start on localhost.</h2>
+            <p>Use Node.js 24.19.0 and pnpm 10.33.0, then run these commands.</p>
+            <p>Open the printed URL with the hostname <code>localhost</code>. The
+              Web Player works there without a Player key. Other hosts and native
+              apps need your own license.</p>
+            <a class="text-link" href="https://github.com/kazuhide/player-lab/blob/main/docs/SETUP.md">Setup and optional media</a>
+          </div>
+          <pre tabindex="0" aria-label="Commands to run the Web application"><code>git clone https://github.com/kazuhide/player-lab.git
+cd player-lab
+pnpm install --frozen-lockfile
+pnpm --filter @showcase/web dev</code></pre>
+        </div>
+      </section>
+
+      <section class="platform-section wrap" id="platforms" aria-labelledby="platform-title">
+        <div class="section-intro">
+          <h2 id="platform-title">Explore each platform.</h2>
+          <p>Each example keeps its platform's player and toolchain. The platform
+            guides describe supported formats, license setup, and verification limits.</p>
+        </div>
+        <div class="platform-list">
+          <a href="https://github.com/kazuhide/player-lab/tree/main/apps/web"><span>Web</span><span>Settings, 14 themes, and construction examples</span></a>
+          <a href="https://github.com/kazuhide/player-lab/tree/main/apps/ios"><span>iOS / tvOS</span><span>Swift player and live rewind controls</span></a>
+          <a href="https://github.com/kazuhide/player-lab/tree/main/apps/android"><span>Android / Fire TV</span><span>Kotlin player, live rewind, and offline example</span></a>
+          <a href="https://github.com/kazuhide/player-lab/tree/main/apps/react-native"><span>React Native</span><span>Player screen for an Expo development build</span></a>
+          <a href="https://github.com/kazuhide/player-lab/tree/main/apps/vega"><span>Vega OS</span><span>Modular player integration and native controls</span></a>
+        </div>
+      </section>
+
+      <section class="verification wrap" aria-labelledby="verification-title">
+        <div>
+          <h2 id="verification-title">Reproduce the checks.</h2>
+          <p>Test the existing features with a short public media fixture. The test
+            record distinguishes browser playback, native builds, and runtime checks.</p>
+        </div>
+        <div class="verification-links">
+          <a href="https://github.com/kazuhide/player-lab/blob/main/docs/local-test-media.md">Generate the 60-second fixture</a>
+          <a href="https://github.com/kazuhide/player-lab/blob/main/docs/e2e-testing.md">Read the test results</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer wrap">
+      <div class="footer-top">
+        <span>Player Lab</span>
+        <a href="https://github.com/kazuhide/player-lab/blob/main/LICENSE">Project code under MIT</a>
+      </div>
+      <p>Preview media: <em>Big Buck Bunny</em>, (c) copyright 2008,
+        Blender Foundation / www.bigbuckbunny.org.
+        <a href="https://peach.blender.org/about/">Source and credits</a>.
+        Licensed under <a href="https://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0</a>.
+        The preview shows a resized excerpt with generated thumbnails.</p>
+    </footer>
+  </body>
+</html>
