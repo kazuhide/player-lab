@@ -66,6 +66,9 @@ The shared UI uses `bitmovin-player-ui` 4.x. A successful Android build does not
 establish that it renders correctly in the native player library's WebView;
 check rendering and input on each target.
 
+The control rows scroll horizontally on narrow displays, so all existing source,
+UI, and seek buttons remain reachable without changing the control layout.
+
 ## Playback checks
 
 Unit tests and APK builds do not verify licensed playback. On a device or
@@ -73,3 +76,31 @@ emulator, check live seeking, returning to live, and recovery when paused media
 expires. Android TV and Fire TV also need remote-control checks; the app declares
 a `LEANBACK_LAUNCHER` entry for TV launchers. Use your own license and reachable
 test streams.
+
+With an emulator or device connected, run the real playback tests from
+`apps/android`:
+
+```sh
+./gradlew :app:connectedDebugAndroidTest
+```
+
+`PlayerDvrInstrumentedTest` checks the real library's source loading and finite
+on-demand duration. `PlayerControlsInstrumentedTest` uses the app's actual Compose
+buttons and switch, checks the bundled Sports UI's elements and stylesheet in its
+WebView, starts playback through that UI, then checks source switching, live
+rewind, return to live, and the DVR setting. Both tests need network access and a
+valid license allowing `com.showcase.dvr`; neither substitutes a mock player.
+Player and Source failures report numeric error codes without printing their
+messages or license values. A failed license request is a failed playback check,
+even when compilation and packaging pass. Leave the optional Analytics key empty
+when no collection is intended.
+
+The app's event log also retains startup error codes, so a failed initial request
+can be distinguished from a source that is still loading.
+
+On 2026-10-19, the debug app and instrumentation APK compiled with Player 3.155.0.
+Both runtime tests reached an Android 16 emulator and failed with Player error
+`1003` (`LicenseAuthenticationFailed`). The Compose test reached the Sports UI and
+HLS source selection, but successful video playback and live rewind have not
+been established. Check the license and allowed application ID using the
+[official setup instructions](https://github.com/bitmovin/bitmovin-player-android-samples#sample-app-setup-instructions).

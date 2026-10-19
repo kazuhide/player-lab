@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -97,10 +98,14 @@ class PlayerController(context: Context, licenseKey: String, analyticsLicenseKey
     var timeShiftEnabled: Boolean by mutableStateOf(true)
         private set
     val log = mutableStateListOf<String>()
+    var lastErrorCode: Int? by mutableStateOf(null)
+        private set
 
     init {
+        player.on(PlayerEvent.Error::class) { lastErrorCode = it.code.value; append("PlayerError ${it.code.value}") }
+        player.on(SourceEvent.Error::class) { lastErrorCode = it.code.value; append("SourceError ${it.code.value}") }
         player.on(PlayerEvent.TimeChanged::class) { refresh() }
-        player.on(SourceEvent.Loaded::class) { append("SourceLoaded"); refresh() }
+        player.on(SourceEvent.Loaded::class) { lastErrorCode = null; append("SourceLoaded"); refresh() }
         player.on(PlayerEvent.TimeShifted::class) { append("TimeShifted"); refresh() }
         // §5.3: recover from DVRWindowExceeded by snapping to the live edge.
         player.on(PlayerEvent.DvrWindowExceeded::class) {
@@ -150,7 +155,8 @@ class PlayerController(context: Context, licenseKey: String, analyticsLicenseKey
 }
 
 class MainActivity : ComponentActivity() {
-    private lateinit var controller: PlayerController
+    internal lateinit var controller: PlayerController
+        private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -198,20 +204,29 @@ private fun ShowcaseScreen(controller: PlayerController) {
         }
 
         // Player UI: the SDK default vs. our shared @showcase/ui-shared custom factories (§12).
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             Text("UI:")
             UiMode.entries.forEach { mode ->
                 Button(onClick = { uiMode = mode }, enabled = uiMode != mode) { Text(mode.label) }
             }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             Sources.all.forEach { source ->
                 Button(onClick = { controller.load(source) }) { Text(source.label) }
             }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             Button(onClick = { controller.goToLiveEdge() }) { Text("Live edge") }
             listOf(-10.0, -30.0, -60.0).forEach { offset ->
                 Button(onClick = { controller.seek(offset) }, enabled = controller.dvr.dvrAvailable) {

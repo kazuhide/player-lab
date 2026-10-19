@@ -53,8 +53,13 @@ licenses. Do not treat workspace unit-test success as browser playback success.
 CI compiles iOS/tvOS apps and the Android app and instrumented tests. This checks
 SDK types and build wiring. Android's instrumented test can be run separately
 with `connectedAndroidTest` on an emulator or device with an appropriate license.
-No iOS app XCTest, React Native end-to-end harness, or Vega device harness is
-included.
+iOS has an opt-in hosted XCTest scheme, `Showcase-iOS-Runtime`. It exercises the
+existing model and shared WebView controls with a real SDK. The Android tests
+include the actual Compose controls and shared WebView. Follow the
+[iOS](../apps/ios/README.md) and [Android](../apps/android/README.md) guides to run
+them with your own allowed license. CI compiles native apps without a playback
+license; it does not run these licensed scenarios. No React Native end-to-end
+harness or Vega device harness is included.
 
 Native playback needs an app-allowlisted player license and a runtime. Shared
 Web UI rendering must be checked in the native WebView; tvOS uses system UI and
@@ -72,8 +77,8 @@ passed/skipped/failed summary and do not report skipped steps as successful.
 
 ## Recorded local checks
 
-On 2026-10-19, the combined maintenance changes were checked on macOS with
-Node.js 24.19.0 and pnpm 10.33.0:
+At the maintenance baseline (`dc43bc7`), the following checks ran on macOS on
+2026-10-19 with Node.js 24.19.0 and pnpm 10.33.0. Later checks are recorded below:
 
 | Check | Result |
 | --- | --- |
@@ -113,3 +118,24 @@ recreation through the DVR setting before finalization and seeking afterward.
 These checks establish controlled local behavior; production live ingest,
 delivery infrastructure, physical devices, and cloud services remain separate
 verification tasks.
+
+The later [UI lifecycle regression](web-performance.md) brings the public
+browser subset to 17 cases. That guide records the separate processor and
+memory measurements and their limits.
+
+## Additional native runtime checks
+
+On 2026-10-19, the hosted iOS test passed on an iPhone 17 Pro simulator with
+iOS 26.4 and Player 3.128.0: one test, zero failures or skips, 12.161 seconds.
+It checked the bundled shared interface, playback initiated through that
+interface, HLS source changes, rewind and live return, and interface recreation.
+Seek checks waited for completion events and visible controls as well as SDK
+offsets; accepting a request alone does not show that playback has moved.
+The [iOS guide](../apps/ios/README.md) records the test's model/UI scope and limits.
+
+The Android 16 emulator attempts with Player 3.155.0 failed with authentication
+error `1003`; licensed playback remains unverified. The app and instrumentation
+APK compiled with the final shared UI, and packaged JavaScript/CSS matched the
+source output. Packaging regression tests passed five cases. These build and
+packaging checks are separate from playback acceptance. Physical devices and
+the other native platforms remain separate verification tasks.
