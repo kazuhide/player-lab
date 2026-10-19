@@ -79,7 +79,16 @@ targets:
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Showcase-iOS.app/Showcase-iOS"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
+# Keep app build schemes alongside the opt-in runtime scheme for command-line builds.
 schemes:
+  Showcase-iOS:
+    build:
+      targets:
+        Showcase-iOS: all
+  Showcase-tvOS:
+    build:
+      targets:
+        Showcase-tvOS: all
   Showcase-iOS-Runtime:
     build:
       targets:
