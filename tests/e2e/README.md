@@ -36,6 +36,19 @@ pnpm --filter @showcase/e2e typecheck
 
 ## Provisioned feature assets
 
+To test the existing feature presets locally without cloud resources, follow
+[local test media](../../docs/local-test-media.md):
+
+```bash
+python3 encoding/test-streams/local.py
+E2E_MEDIA_DIR=.cache/test-streams pnpm --filter @showcase/e2e e2e:features
+```
+
+The generator provides the same fixture paths used by the feature tests. The
+runner configures the optional application presets and starts/stops its local
+media server. It does not generate an HEVC fixture or replace cloud Encoding
+API verification.
+
 The provisioned scenarios require your own hosted outputs from
 `encoding/test-streams/`. Export their common base URL in the shell running
 Playwright, without a trailing slash:
@@ -76,6 +89,7 @@ configuration, not a claim that it passed in your environment.
 | `live-dvr.spec.ts` | Live state, a rewind window, seeking behind live, and returning near the live edge. | Access to the default public live source, or `E2E_LIVE_DASH_URL` pointing to a compatible live stream. |
 | `live-analytics.spec.ts` | Advancing live playback and an outgoing Analytics collector request. | Both `E2E_ANALYTICS_LIVE_DASH_URL` and `E2E_ANALYTICS_LICENSE_KEY`; otherwise this opt-in file is skipped. |
 | `app-ui.spec.ts` | Theme composition, guide and construction code, language switching, UI settings, controls, player state, and live-to-on-demand UI changes. | Access to the application's public reference streams; optional feature assets use the application's `VITE_VOD_*` settings. |
+| `app-features.spec.ts` | The original application's audio/subtitle settings menus and visible sprite preview. | Local feature runner and its generated media. |
 
 Public reference sources depend on external servers and can change or become
 unavailable. Provisioned checks expect the matching assets, not arbitrary media

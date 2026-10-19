@@ -58,6 +58,7 @@ jobs:
         run: |
           bash scripts/test-env-lib.sh
           python3 scripts/test-native-ui.py
+          python3 scripts/test-local-media.py
       - name: Test Encoding resource resolution and credential handling
         run: |
           sudo apt-get update -qq
@@ -96,6 +97,20 @@ jobs:
         env:
           PLAYWRIGHT_BROWSER_CHANNEL: chromium
         run: pnpm --filter @showcase/e2e e2e:public
+      - name: Install local media tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+      - name: Generate the verified public test fixture
+        run: python3 encoding/test-streams/local.py --output "$RUNNER_TEMP/test-streams" --source-archive "$RUNNER_TEMP/source-cache/BigBuckBunny_640x360.m4v.zip"
+      - name: Check audio, subtitles, thumbnails and network controls
+        env:
+          PLAYWRIGHT_BROWSER_CHANNEL: chromium
+        run: E2E_MEDIA_DIR="$RUNNER_TEMP/test-streams" pnpm --filter @showcase/e2e e2e:features
+      - name: Check controlled HLS and DASH event finalization
+        env:
+          PLAYWRIGHT_BROWSER_CHANNEL: chromium
+        run: E2E_FINALIZATION_MEDIA_DIR="$RUNNER_TEMP/test-streams/vod-baseline" pnpm --filter @showcase/e2e e2e:finalization
 
   ios:
     needs: build

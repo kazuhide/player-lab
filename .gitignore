@@ -16,6 +16,8 @@ apps/react-native/assets/webui/
 
 # Test / coverage
 coverage/
+.cache/
+test-results/
 
 # Env & secrets — the Bitmovin license key lives here, never in the tree
 .env

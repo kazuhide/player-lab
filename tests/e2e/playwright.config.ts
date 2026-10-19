@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { resolve } from "node:path";
 
 function testPort(name: string, fallback: number): number {
   const port = Number(process.env[name] ?? fallback);
@@ -11,6 +12,17 @@ function testPort(name: string, fallback: number): number {
 const PORT = testPort("E2E_HARNESS_PORT", 5174);
 const APP_PORT = testPort("E2E_APP_PORT", 5175);
 if (PORT === APP_PORT) throw new Error("The harness and application need distinct ports.");
+
+const MEDIA_PORT = testPort("E2E_MEDIA_PORT", 5180);
+const repositoryRoot = resolve(__dirname, "../..");
+const mediaDirectory = process.env.E2E_MEDIA_DIR
+  ? resolve(repositoryRoot, process.env.E2E_MEDIA_DIR) : undefined;
+if (mediaDirectory && [PORT, APP_PORT].includes(MEDIA_PORT)) {
+  throw new Error("The media server needs a separate port.");
+}
+const localBase = `http://localhost:${MEDIA_PORT}`;
+if (mediaDirectory) process.env.VITE_TEST_STREAM_BASE_URL = localBase;
+const quote = (value: string): string => `'${value.replaceAll("'", "'\\''")}'`;
 
 // The harness live-DVR spec needs a real moving rewind window. The app keeps
 // its own public VOD default, so GUI checks exercise its normal initial source.
@@ -37,6 +49,12 @@ export default defineConfig({
     headless: true,
   },
   webServer: [
+    ...(mediaDirectory ? [{
+      command: `pnpm exec vite ${quote(mediaDirectory)} --config ${quote(resolve(__dirname, "vite.media.config.ts"))} --port ${MEDIA_PORT} --strictPort`,
+      url: `${localBase}/fixture-report.json`,
+      reuseExistingServer: false,
+      timeout: 60_000,
+    }] : []),
     {
       command: `pnpm exec vite --port ${PORT} --strictPort`,
       url: `http://localhost:${PORT}`,
@@ -68,6 +86,12 @@ export default defineConfig({
         // the canonical name into the client), so E2E runs don't report to the dashboard.
         BITMOVIN_ANALYTICS_LICENSE_KEY: "",
         VITE_BITMOVIN_ANALYTICS_LICENSE_KEY: "",
+        ...(mediaDirectory ? {
+          VITE_VOD_SPRITES_HLS_URL: `${localBase}/vod-sprites/master.m3u8`,
+          VITE_VOD_SPRITES_VTT_URL: `${localBase}/vod-sprites/thumbnails/thumbnails.vtt`,
+          VITE_VOD_MULTIAUDIO_HLS_URL: `${localBase}/vod-multiaudio/master.m3u8`,
+          VITE_VOD_SUBTITLE_VTT_URL: `${localBase}/assets/sintel_en.vtt`,
+        } : {}),
       },
     },
   ],
