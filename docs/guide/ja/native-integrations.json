@@ -17,7 +17,7 @@
     },
     {
       "type": "note",
-      "text": "+jason は、Media3／ExoPlayer との衝突を避けるため、メディア処理ライブラリの名前空間とリソース名を変更した Android SDK の構成です。Google IMA 3.37.0 以降との併用には、この構成と core-library desugaring（新しい Java ライブラリの API を古い Android でも使える形へ変換するビルド処理）が必要です。ラッパー 1.28.0 は Player と media-session 3.165.0+jason、IMA 3.38.0、desugar_jdk_libs 2.1.5 を選びます。Expo プラグインにはネイティブ Player SDK のバージョンを変更する項目がありません。これらの依存関係を組み合わせたまま使い、Player の版だけを変えてラッパーの更新が検証できたとは扱いません。"
+      "text": "+jason は、Media3／ExoPlayer との衝突を避けるため、メディア処理ライブラリの名前空間とリソース名を変更した Android SDK の構成です。Google IMA 3.37.0 以降との併用には、この構成と core-library desugaring（新しい Java ライブラリの API を古い Android でも使える形へ変換するビルド処理）が必要です。ラッパー 1.28.0 は Player と media-session 3.165.0+jason、IMA 3.38.0、desugar_jdk_libs 2.1.5 を選びます。Expo プラグインにはネイティブ Player SDK のバージョンを変更する項目がありません。依存関係はこの組み合わせで使用します。Player だけを更新した構成の動作は未検証です。"
     },
     {
       "type": "code",
