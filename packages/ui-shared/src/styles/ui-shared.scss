@@ -92,7 +92,8 @@
   text-align: right;
 }
 
-// Its custom cssClass replaces the SDK label class that normally owns hide().
+// Their custom cssClass replaces the SDK label class that normally owns hide().
+.bmpui-ui-label-wallclock.bmpui-hidden,
 .bmpui-ui-label-behindlive.bmpui-hidden {
   display: none;
 }
