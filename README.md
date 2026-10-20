@@ -8,7 +8,7 @@ A Bitmovin Player playground for Web, iOS/tvOS, Android/Fire TV, React Native,
 and Vega OS. Try player and source settings, switch between the standard and
 custom player interfaces, and inspect the code that builds each Web interface.
 
-The Web app includes 14 themes, configuration panels, player API controls,
+The Web app includes themes, configuration panels, player API controls,
 UI construction examples, an English/Japanese language switch, and a separate
 customization guide. Existing examples also cover live rewind, multi-audio,
 subtitles, sprite previews, and playback measurements. Some examples need media
@@ -41,15 +41,15 @@ how to customize it. See the [Web instructions](apps/web/README.md).
 | Path | Contents |
 | --- | --- |
 | [Web](apps/web) | Player playground, settings, UI examples, and guide |
-| [iOS/tvOS](apps/ios) | Swift app, source/playback configuration editor, and DVR tests |
-| [Android/Fire TV](apps/android) | Kotlin app, source/player configuration editors, DVR tests, and offline helper |
+| [iOS/tvOS](apps/ios) | Swift app, source/playback configuration editor, UI examples, and playback tests |
+| [Android/Fire TV](apps/android) | Kotlin app, source/player configuration editors, UI examples, playback tests, and offline helper |
 | [React Native](apps/react-native) | Existing screen and settings, with a generator for an external Expo development build |
 | [Vega OS](apps/vega) | Kepler application host, native video integration, and settings; requires the Vega toolchain |
 | [Shared UI](packages/ui-shared) | Custom player components, themes, and UI factories |
 | [Encoding](encoding) | Optional scripts to create your own test streams |
 | `tests/e2e` | Browser tests that drive the existing Web app and player |
 
-Native apps keep their own toolchains and DVR implementations. iPhone/iPad,
+Native apps keep their own toolchains and playback integrations. iPhone/iPad,
 Android, and React Native can use the shared Web UI; tvOS and Vega use native
 interfaces. Type checks and compilation do not establish playback on a device.
 

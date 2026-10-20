@@ -37,7 +37,7 @@
     },
     {
       "type": "p",
-      "text": "The workload cycles through all 14 themes three times, changes the seek-preview setting, applies Source settings three times, recreates the Player through Player settings and DVR controls three times each, switches HLS/DASH three times, and finally releases the Player and UI. The 21 phases create and destroy seven Players per run. Settled states verify one active Player/media element and disposal stops the app timer."
+      "text": "The workload cycles through the available themes three times, changes the seek-preview setting, applies Source settings three times, recreates the Player through Player settings and live-rewind controls three times each, switches HLS/DASH three times, and finally releases the Player and UI. The 21 phases create and destroy seven Players per run. Settled states verify one active Player/media element and disposal stops the app timer."
     },
     {
       "type": "p",
@@ -260,7 +260,7 @@
         [
           "Production Pages artifact",
           "Chrome 155 / macOS 27.0.1; 10 cases; zero retries or skips; 14.6 s",
-          "HLS/DASH time and decoding, 14 themes, settings, English/Japanese layout, audio, subtitles, and thumbnails"
+          "HLS/DASH time and decoding, themes, settings, English/Japanese layout, audio, subtitles, and thumbnails"
         ],
         [
           "Pages supporting checks",

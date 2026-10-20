@@ -58,7 +58,7 @@ license; leave it unset for a keyless local build.
 
 The tests serve actual built files under `/player-lab/web/`, without a development
 server or a fallback page. They check advancing video time and decoded frames
-for HLS and DASH, all 14 themes and code examples, the three configuration
+for HLS and DASH, all available themes and code examples, the three configuration
 application modes, guide navigation, audio selection, visible subtitle cues,
 and decoded thumbnail images. English and Japanese app and guide layouts are
 checked at 375 and 1440 pixels. Code blocks may scroll within their own area.
@@ -120,7 +120,7 @@ At the maintenance baseline (`dc43bc7`), the following checks ran on macOS on
 | Offline Encoding resource/credential tests | 17 passed; no account requests |
 | Publication and native packaging fixtures | 6 and 3 passed, respectively |
 
-The browser cases cover all 14 themes and their English construction code,
+The browser cases cover all available themes and their English construction code,
 the standalone guide, applied configuration resets and hydration, settings and
 recommendation clicks, same-preset reloads, language switching, default
 playback, and the three public VOD baseline checks. Provisioned media cases are
