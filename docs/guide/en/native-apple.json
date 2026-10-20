@@ -139,7 +139,7 @@
     },
     {
       "type": "h2",
-      "text": "Current local configuration and playback checks"
+      "text": "Local configuration playback"
     },
     {
       "type": "p",
@@ -259,6 +259,10 @@
     {
       "type": "p",
       "text": "On October 21, 2026, an additional actual iPad / iOS 26.4 GUI case passed with Player 3.128.0 and the updated shared UI 4.23.0 ownership patch: one passed, zero failed or skipped, 116.240 seconds. Installed JavaScript/CSS matched the generated resources after execution. It applied 60-second HLS settings, switched to Sports, loaded progressive MP4 and applied a title-only change on the same Player with a new Source. Offset 5 seconds, autoplay, mute, maximum bitrate 2,500,000 bit/s, forward buffer 8 seconds, Sports and the disabled app DVR switch were retained. Visible MP4 playback advanced from 6.778 to 11.178 seconds. This playback/configuration check is separate from the Web heap measurements."
+    },
+    {
+      "type": "p",
+      "text": "Additional source-only MP4 checks passed on iPhone in 81.745 seconds and Apple TV in 109.539 seconds. Both changed Start muted from on to off through the GUI before a title-only Apply. Native observations confirmed the same Player, a new Source, a fresh SourceLoaded count from 1 to 2, retained startup settings/UI/app DVR, and advancing visible video. Together with the iPad case, these qualify source-only MP4 reload and mute delivery on all three simulators."
     },
     {
       "type": "h2",

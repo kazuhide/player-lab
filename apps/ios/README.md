@@ -343,6 +343,13 @@ selected. Native MP4 positions advanced from 6.778 to 11.178 seconds with visibl
 video. This is playback/configuration evidence; Web heap measurements are
 documented separately in [Web performance](../../docs/web-performance.md).
 
+Additional source-only MP4 checks passed on iPhone in 81.745 seconds and Apple TV
+in 109.539 seconds. Both changed **Start muted** from on to off through the GUI,
+then applied a title-only edit. Native observations confirmed the same Player,
+a new Source, a fresh `SourceLoaded` count from 1 to 2, retained startup settings,
+UI mode and app DVR selection, and advancing video. Together with the iPad case,
+these cover source-only MP4 reload and mute delivery on all three simulators.
+
 ## Configuration tests
 
 After generating the project and restoring `Package.resolved`, the hostless

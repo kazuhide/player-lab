@@ -87,7 +87,7 @@
     },
     {
       "type": "h2",
-      "text": "Apple HLS can end while its SDK duration remains infinite"
+      "text": "Apple HLS completion"
     },
     {
       "type": "p",
