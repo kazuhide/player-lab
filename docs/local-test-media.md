@@ -6,6 +6,12 @@ video sizes (320×180 and 640×360), AAC audio, HLS and DASH manifests, sprite
 thumbnails and a separate subtitle file. The cloud templates remain available
 for testing the Encoding API itself.
 
+The multi-audio HLS preset also contains English and German subtitle renditions.
+Each has thirty two-second WebVTT segments with generated test text, allowing
+native HLS clients to select subtitles without a separate application API. A
+zero-based `X-TIMESTAMP-MAP` relates cue times to the media timeline. These cues
+identify the selected language; they are not translations of the film dialogue.
+
 ## Run the checks
 
 Install FFmpeg with `libx264` and `aac` encoders, `ffprobe`, Python 3 and `curl`,

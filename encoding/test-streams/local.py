@@ -112,6 +112,40 @@ def audio_master(master, prefix="", alternate=True):
     return '\n'.join(lines) + '\n'
 
 
+def add_hls_subtitles(master, directory):
+    """Add native HLS test cues without re-encoding or copying video/audio."""
+    renditions = []
+    for language, label, text in [
+        ('en', 'English test subtitles', 'English subtitle test'),
+        ('de', 'German test subtitles', 'Deutscher Untertiteltest'),
+    ]:
+        playlist = ['#EXTM3U', '#EXT-X-VERSION:3', '#EXT-X-TARGETDURATION:2',
+                    '#EXT-X-MEDIA-SEQUENCE:0', '#EXT-X-PLAYLIST-TYPE:VOD']
+        for number in range(30):
+            start, end = number * 2, (number + 1) * 2
+            stamp = lambda second: f'00:{second // 60:02}:{second % 60:02}.000'
+            name = f'subtitle-{language}-{number:02}.vtt'
+            (directory / name).write_text(
+                'WEBVTT\nX-TIMESTAMP-MAP=LOCAL:00:00:00.000,MPEGTS:0\n\n'
+                f'{stamp(start)} --> {stamp(end)}\n{text}: {start:02}s\n', encoding='utf-8')
+            playlist.extend(['#EXTINF:2.000,', name])
+        playlist.append('#EXT-X-ENDLIST')
+        name = f'subtitle-{language}.m3u8'
+        (directory / name).write_text('\n'.join(playlist) + '\n', encoding='utf-8')
+        renditions.append(
+            '#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="subtitles",'
+            f'NAME="{label}",LANGUAGE="{language}",AUTOSELECT=YES,DEFAULT=NO,'
+            f'FORCED=NO,URI="{name}"')
+    lines = []
+    for line in master.splitlines():
+        if line.startswith('#EXT-X-STREAM-INF:'):
+            line += ',SUBTITLES="subtitles"'
+        lines.append(line)
+        if line == '#EXTM3U':
+            lines.extend(renditions)
+    return '\n'.join(lines) + '\n'
+
+
 def summarize_durations(durations):
     if not durations or any(value <= 0 for value in durations):
         raise ValueError("A media playlist has no valid segment durations.")
@@ -317,7 +351,8 @@ def build(output, archive):
     (baseline / 'master.m3u8').write_text(audio_master(master, alternate=False))
     multi = output / 'vod-multiaudio'
     multi.mkdir()
-    (multi / 'master.m3u8').write_text(audio_master(master, prefix='../vod-baseline/'))
+    (multi / 'master.m3u8').write_text(add_hls_subtitles(
+        audio_master(master, prefix='../vod-baseline/'), multi))
     (output / 'vod-sprites/master.m3u8').write_text(
         audio_master(master, prefix='../vod-baseline/', alternate=False)
     )
@@ -349,6 +384,7 @@ def build(output, archive):
         f'Big Buck Bunny (60-second excerpt; resized; alternate audio attenuated).\n'
         f'{ATTRIBUTION}\n{LICENSE_URL}\nhttps://peach.blender.org/about/\n\n'
         'The en/de labels are test metadata, not translations of the soundtrack.\n'
+        'Native HLS subtitle renditions contain generated English/German test cues, not movie dialogue.\n'
         'Subtitle verification uses separate, retimed Sintel text, not Big Buck Bunny dialogue.\n'
         'Sintel: Blender Foundation, CC BY 3.0; https://durian.blender.org/\n'
     )
