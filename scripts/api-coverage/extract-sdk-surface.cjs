@@ -6,17 +6,18 @@ const { createRequire } = require('node:module');
 const compilerRepo = process.env.SDK_COVERAGE_REPO || path.resolve(__dirname, '../..');
 const ts = createRequire(path.join(compilerRepo, 'apps/web/package.json'))('typescript');
 const TYPE_FLAGS = ts.TypeFlags;
-// TypeScript's resolved mapped symbols can add or remove readonly without
-// changing their original declaration. Fail explicitly if this compiler hook changes.
-if (typeof ts.getCheckFlags !== 'function' || !ts.CheckFlags?.Mapped || !ts.CheckFlags?.Readonly) {
+// Resolved mapped/intersection symbols can differ from their original declarations.
+// Use the compiler's modifier resolution, and fail if these compiler hooks change.
+if (typeof ts.getCheckFlags !== 'function' || typeof ts.getDeclarationModifierFlagsFromSymbol !== 'function'
+    || !ts.CheckFlags?.Readonly) {
   throw new Error('The installed TypeScript compiler cannot report resolved mapped-property modifiers');
 }
 const readonlyProperty = symbol => {
   if (!symbol) return false;
   const flags = ts.getCheckFlags(symbol);
-  if (flags & ts.CheckFlags.Mapped) return Boolean(flags & ts.CheckFlags.Readonly);
   return Boolean(flags & ts.CheckFlags.Readonly)
-    || (symbol.declarations || []).some(d => ts.getCombinedModifierFlags(d) & ts.ModifierFlags.Readonly)
+    || Boolean(symbol.flags & ts.SymbolFlags.Property)
+      && Boolean(ts.getDeclarationModifierFlagsFromSymbol(symbol) & ts.ModifierFlags.Readonly)
     || Boolean(symbol.flags & ts.SymbolFlags.GetAccessor) && !(symbol.flags & ts.SymbolFlags.SetAccessor);
 };
 const sha256 = data => crypto.createHash('sha256').update(data).digest('hex');

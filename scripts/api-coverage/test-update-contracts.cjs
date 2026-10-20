@@ -127,3 +127,31 @@ test('mapped readonly inheritance contributes effective property contracts', () 
     assert.deepEqual(changed(after, mutable), []);
   });
 });
+
+test('intersection inheritance retains the effective writable property contract', () => {
+  withFixture(extract => {
+    const before = extract('1.0.0', `interface A { readonly value: number }
+      interface B { value: number }
+      type Base = A & B;
+      export interface Config extends Base {}`);
+    const after = extract('1.0.1', `interface A { readonly value: number }
+      interface B { readonly value: number }
+      type Base = A & B;
+      export interface Config extends Base {}`);
+    assert.deepEqual(changed(before, after), ['Config.value']);
+  });
+});
+
+test('generic intersection properties use resolved modifiers rather than any original declaration', () => {
+  withFixture(extract => {
+    const before = extract('1.0.0', `interface A<T> { readonly value: T }
+      interface B<T> { value: T }
+      type Base<T> = A<T> & B<T>;
+      export interface Config extends Base<number> {}`);
+    const after = extract('1.0.1', `interface A<T> { readonly value: T }
+      interface B<T> { readonly value: T }
+      type Base<T> = A<T> & B<T>;
+      export interface Config extends Base<number> {}`);
+    assert.deepEqual(changed(before, after), ['Config.value']);
+  });
+});
