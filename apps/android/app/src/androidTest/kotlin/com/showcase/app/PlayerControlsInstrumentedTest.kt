@@ -6,9 +6,9 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
-import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -106,9 +106,9 @@ class PlayerControlsInstrumentedTest {
         awaitJavascript(webView, sharedLiveUiScript(atEdge = true), "return to live completes in the SDK and shared UI", revealControls = true) {
             timeShiftCompletions.get() > beforeReturn && abs(player.timeShift) < 1
         }
-        ui.onNode(isToggleable()).performClick()
+        ui.onNodeWithTag("allow-dvr").performScrollTo().performClick()
         ui.runOnUiThread { assertFalse(controller.dvr.dvrAvailable) }
-        ui.onNode(isToggleable()).performClick()
+        ui.onNodeWithTag("allow-dvr").performClick()
         ui.runOnUiThread { assertTrue(controller.dvr.dvrAvailable) }
         ui.onNodeWithText("VOD HLS").performScrollTo().performClick()
         await("VOD state after source switch") { controller.dvr.mode == PlaybackMode.VOD }
