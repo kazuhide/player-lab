@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-20",
-  "sourceRevision": "9dfe6a6d014f7cdf3e43a75025af74c00f87d665",
+  "sourceRevision": "3fb00d86326b9f316528ae7415d8919a1f2e0ac5",
   "sdks": [
     {
       "id": "web",
@@ -97816,9 +97816,9 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 59,
-              "symbol": "try { await player?.destroy(); }"
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 107,
+              "symbol": "try { destroyed = Promise.resolve(player?.destroy()).then(() => true, destroyFailed); }"
             }
           ]
         },
@@ -98842,8 +98842,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -100262,8 +100262,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "4a4bbc9a97bc5ada1143aa90e5e55aa8fd8ca053f7a6c9e47ee75b71514d8a44",
-              "line": 64,
+              "sha256": "2f11e3d21ae13bdb87439d1efd3f01a6c9be84f71f53b64f33112606fff43b13",
+              "line": 66,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -104005,8 +104005,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "4a4bbc9a97bc5ada1143aa90e5e55aa8fd8ca053f7a6c9e47ee75b71514d8a44",
-              "line": 64,
+              "sha256": "2f11e3d21ae13bdb87439d1efd3f01a6c9be84f71f53b64f33112606fff43b13",
+              "line": 66,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -104069,8 +104069,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "4a4bbc9a97bc5ada1143aa90e5e55aa8fd8ca053f7a6c9e47ee75b71514d8a44",
-              "line": 64,
+              "sha256": "2f11e3d21ae13bdb87439d1efd3f01a6c9be84f71f53b64f33112606fff43b13",
+              "line": 66,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -105342,8 +105342,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "4a4bbc9a97bc5ada1143aa90e5e55aa8fd8ca053f7a6c9e47ee75b71514d8a44",
-              "line": 64,
+              "sha256": "2f11e3d21ae13bdb87439d1efd3f01a6c9be84f71f53b64f33112606fff43b13",
+              "line": 66,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -105406,8 +105406,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "4a4bbc9a97bc5ada1143aa90e5e55aa8fd8ca053f7a6c9e47ee75b71514d8a44",
-              "line": 64,
+              "sha256": "2f11e3d21ae13bdb87439d1efd3f01a6c9be84f71f53b64f33112606fff43b13",
+              "line": 66,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -111058,8 +111058,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -112364,8 +112364,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -112860,8 +112860,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -112906,8 +112906,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -113006,8 +113006,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -113052,8 +113052,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -113530,8 +113530,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -114183,9 +114183,9 @@
         "isLive is read but not consumed by the displayed derived state and remains code-only. getCurrentTime now passes through DvrState.currentTime to the visible position in the existing state line and receives observation credit. Position is SDK media time in seconds and can use an absolute timeline for live sources.",
         "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
         "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed.",
-        "The App/control/configuration/video-surface JSX and helpers are type-checked against installed declarations. Separate native checks used Vega SDK 0.24.12112 and an arm64 Virtual Device: all 3 Release packages built, Live DASH and VOD HLS rendered frames and advancing SDK positions, and native focus/scrolling, text entry, invalid-bitrate validation and Reset were exercised. The 57 unit/session tests still mock native boundaries. Repeated valid Apply, retained-instance background recovery, resource counts/memory, physical devices, DRM/offline, audio correctness and quantitative buffer/bitrate behavior remain unqualified.",
+        "The App/control/configuration/video-surface JSX and helpers are type-checked against installed declarations. Native checks used Vega SDK 0.24.12112 and an arm64 Virtual Device: all 3 Release packages built, earlier Live DASH and VOD HLS checks rendered frames and advancing SDK positions, and native focus/scrolling, text entry, invalid-bitrate validation and Reset were exercised. The final lifecycle implementation passed 3 valid bitrate Apply cycles with changing VOD frames and advancing positions in the same app instance. Its 68 unit/session tests still mock native boundaries. After background/foreground, the same instance retained drafts and settings but playback did not resume; a full app restart restored VOD playback. Process memory/file-descriptor samples do not establish native media/surface allocation counts or leak freedom. Physical devices, DRM/offline, audio correctness and quantitative buffer/bitrate behavior remain unqualified.",
         "PlayerConfig.network.requestApi is fixed to Fetch by vegaPlayerConfig and used at SDK construction. This receives code-only configuration credit, not GUI credit; the existing network hooks and unrelated configuration fields are retained.",
-        "On background transitions, AppState retires the media session and removes its surface; foreground acquisition waits for a new surface and the previous cleanup. Within a retained app instance, the applied source/player settings, drafts, logs and Allow DVR are preserved. Playback position retention is not implemented. This lifecycle integration adds no editable SDK field or GUI coverage credit."
+        "Foreground Apply waits for fulfilled SDK destruction before synchronous native release because the SDK's asynchronous stop sequence still uses the media object. On background transitions, AppState cancels callbacks, requests synchronous native release before the handler yields, and removes the surface, including when a newer session is waiting for the retiring owner. Foreground acquisition waits for a new surface and confirmed prior cleanup. Unconfirmed release or SDK destruction retains the owner and blocks replacement. Pending-initialization abort success acknowledges cancellation without proving late native-allocation release, so replacement also remains blocked. The 1000 ms native release deadline is an app policy. Within a retained instance, applied source/player settings, drafts, logs and Allow DVR are preserved; playback position retention is not implemented. Playback can remain stopped after foreground return and requires a full app restart. This lifecycle integration adds no editable SDK field or GUI coverage credit."
       ]
     }
   ]

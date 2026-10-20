@@ -137,7 +137,7 @@
     },
     {
       "type": "p",
-      "text": "Vega requires playback resources to be released when the app enters the background. The AppState handler retires the current session and removes the video surface. On foreground return, it waits for cleanup and a new surface, then uses the applied source and player settings. Within a retained app instance, drafts, source, settings, logs and Allow DVR remain available; playback starts from the configured source offset according to Autoplay. Playback position is not restored. If the OS ends the app instance, a later launch is a fresh start."
+      "text": "Vega requires native playback resources to be released before background handling yields because its JavaScript thread can be suspended. The AppState handler cancels callbacks, requests synchronous native release and removes the video surface. Ordinary foreground Apply waits for the SDK's asynchronous stop to finish before releasing native media; that stop sequence still uses the media object. Foreground return waits for a new surface and confirmed prior cleanup. A failed or unconfirmed release keeps the previous owner and blocks replacement. Initialization-abort success alone does not confirm release of a later native allocation. The 1000 ms release deadline is this app's policy. Playback position is not restored."
     },
     {
       "type": "code",
@@ -146,7 +146,7 @@
     },
     {
       "type": "note",
-      "text": "The 2026-10-20 run passed 57 unit tests and the full App type check, built all three Release packages and installed the arm64 package on a Vega Virtual Device. Native screenshots confirmed Live DASH and VOD HLS video with advancing SDK positions; the final VOD check advanced from 2.1 to 5.1 seconds. Native remote focus/scrolling, text entry, zero-bitrate validation and Reset were also exercised. Unit/session tests still mock native media/player boundaries and provide separate evidence."
+      "text": "The 2026-10-20 run passed 68 unit tests and the full App type check. The final lifecycle implementation built all three Release packages and was installed on an arm64 Vega Virtual Device. Three valid Apply cycles with video bitrate caps of 2, 3 and 4 Mbit/s each showed changing VOD HLS frames and advancing SDK positions in the same app instance. Earlier native checks also confirmed Live DASH playback, remote focus/scrolling, text entry, zero-bitrate validation and Reset. Unit/session tests still mock native media/player boundaries and provide separate evidence."
     },
     {
       "type": "p",
@@ -159,7 +159,7 @@
     },
     {
       "type": "note",
-      "text": "Repeated valid Apply, retained-instance background recovery, native resource counts and memory remain unqualified. A background attempt left no instance available for foreground-by-instance; one app relaunch restored final VOD playback. Physical Fire TV, DRM/offline behavior, audio correctness and quantitative buffer/bitrate behavior were not qualified. Virtual-device results do not replace target-device compatibility and performance checks."
+      "text": "In the final background/foreground check, the same app instance retained the unapplied title draft and applied bitrate setting, but video remained black and all five SDK position samples stayed at 57.6 seconds. Playback recovery on foreground return failed this check. Fully terminating and relaunching the app restored VOD progress from 1.6 to 5.5 seconds. Process memory and file-descriptor samples were collected, but they do not establish native media/surface allocation counts or leak freedom. Physical Fire TV, DRM/offline behavior, audio correctness and quantitative buffer/bitrate behavior were not qualified. Virtual-device results do not replace target-device compatibility and performance checks."
     }
   ],
   "sources": [
@@ -297,6 +297,10 @@
     {
       "url": "https://developer.amazon.com/docs/vega/0.24/media-player-requirements",
       "label": "Vega media resource requirements"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/acr-summary-report#reclaimmediaresource-crashes",
+      "label": "Amazon guidance on releasing media before background suspension"
     }
   ]
 }
