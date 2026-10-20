@@ -35,7 +35,16 @@ class PlayerControlsInstrumentedTest {
     private val errors = CopyOnWriteArrayList<Int>()
     private val timeShiftCompletions = AtomicInteger()
     private val completedTimeShiftPosition = AtomicReference(Double.NaN)
+    private val timeShiftObservations = CopyOnWriteArrayList<TimeShiftObservation>()
     private var pointerSide = false
+
+    private data class TimeShiftObservation(
+        val phase: String,
+        val uptimeMs: Long,
+        val position: Double,
+        val target: Double?,
+        val offset: Double,
+    )
 
     @Test
     fun sharedUiPlaybackSourceSwitchAndDvrControls() {
@@ -44,8 +53,17 @@ class PlayerControlsInstrumentedTest {
         ui.runOnUiThread {
             player.on(PlayerEvent.Error::class) { errors.add(it.code.value) }
             player.on(SourceEvent.Error::class) { errors.add(it.code.value) }
+            player.on(PlayerEvent.TimeShift::class) {
+                timeShiftObservations.add(
+                    TimeShiftObservation("request", SystemClock.uptimeMillis(), it.position, it.target, player.timeShift),
+                )
+            }
             player.on(PlayerEvent.TimeShifted::class) {
-                completedTimeShiftPosition.set(player.currentTime)
+                val position = player.currentTime
+                completedTimeShiftPosition.set(position)
+                timeShiftObservations.add(
+                    TimeShiftObservation("completed", SystemClock.uptimeMillis(), position, null, player.timeShift),
+                )
                 timeShiftCompletions.incrementAndGet()
             }
             player.mute()
@@ -141,16 +159,42 @@ class PlayerControlsInstrumentedTest {
         predicate: () -> Boolean = { true },
     ) {
         val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(40)
+        var readyPolls = 0
         while (System.nanoTime() < deadline && errors.isEmpty() && ui.activity.controller.lastErrorCode == null) {
             var ready = false
             ui.runOnUiThread { ready = predicate() }
             if (ready) {
+                readyPolls++
                 if (revealControls) movePointerInside(view)
                 if (javascript(view, script) == "true") return
             }
             Thread.sleep(100)
         }
-        assertTrue("$label did not settle; error codes: $errors; startup code: ${ui.activity.controller.lastErrorCode}", false)
+        var native = ""
+        ui.runOnUiThread {
+            val player = ui.activity.controller.player
+            native = "completions=${timeShiftCompletions.get()} readyPolls=$readyPolls " +
+                "position=${player.currentTime} completedPosition=${completedTimeShiftPosition.get()} " +
+                "offset=${player.timeShift} maxOffset=${player.maxTimeShift} playing=${player.isPlaying} " +
+                "observations=${timeShiftObservations.takeLast(8)}"
+        }
+        // Diagnose a missed native condition separately from hidden or stale Web UI state.
+        // Only live-control text, numeric playback state and CSS visibility are captured.
+        val dom = runCatching { javascript(view, """
+            JSON.stringify([...document.querySelectorAll('.bmpui-ui-label-behindlive,.bmpui-ui-livebutton')].map(element => {
+              const rect = element.getBoundingClientRect();
+              return {text:element.textContent.trim(), classes:element.className, rect:{x:rect.x,y:rect.y,w:rect.width,h:rect.height},
+                hiddenBy:[element,...(function*(){for(let n=element.parentElement;n;n=n.parentElement)yield n;})()].flatMap(node => {
+                  const style=getComputedStyle(node);
+                  return style.display==='none'||style.visibility!=='visible'||Number(style.opacity)<=0
+                    ? [{classes:node.className,display:style.display,visibility:style.visibility,opacity:style.opacity}] : [];
+                })};
+            }))
+        """.trimIndent()) }.getOrDefault("unavailable")
+        assertTrue(
+            "$label did not settle; error codes: $errors; startup code: ${ui.activity.controller.lastErrorCode}; $native; dom=$dom",
+            false,
+        )
     }
 
     private fun movePointerInside(view: WebView) {

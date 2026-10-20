@@ -166,6 +166,11 @@ player settings. The configuration-only tests do not establish media playback or
 completion of all SDK resource cleanup; `Player.isDestroyed` reports API
 invalidation, and the recording test counts the app's destroy calls.
 
+`PlayerUiHandoffInstrumentedTest` keeps the same player playing VOD while cycling
+through Sports, Live (DVR), Cinema and Default three times. It checks that each
+retired view detaches, one active view intersects the viewport, and playback time
+advances after every handoff. This also requires an authorized license.
+
 The shared UI can exist before its playback control becomes visible. The test
 waits for that control, then checks that native playback time advances. It reveals
 controls through WebView pointer input and checks element dimensions and the
@@ -180,6 +185,11 @@ offset and the visible behind-live state. The return-to-live check requires a ne
 completion event, an SDK-reported offset within one second of zero, and visible
 `LIVE` text and button state.
 
+If that check fails, its report includes monotonic request/completion times,
+the requested media target, completion position and offset, native-ready poll
+count, and the live controls' text, classes, dimensions and hidden ancestors.
+It does not include SDK error messages or configuration dumps.
+
 The app's event log also retains startup error codes, so a failed initial request
 can be distinguished from a source that is still loading.
 
@@ -189,7 +199,7 @@ all four configuration/ownership checks with a dummy license in 41.737 seconds.
 Touch swipes reached both Apply sections; D-pad Down/Center moved focus and
 changed a draft switch after entering remote input mode.
 
-The final configured VOD playback case passed with an authorized license in
+An earlier configured VOD playback case passed with an authorized license in
 18.342 seconds. An earlier grouped authorized-license run passed six of seven
 checks in 71.104 seconds, including configured VOD playback and the existing
 VOD-duration check. The existing shared-UI/DVR controls check reported non-network timeout
@@ -198,6 +208,38 @@ changed app failed the return-to-live assertion with the same SDK, shared UI
 bundle, and emulator. This does not qualify that shared-UI/live-edge path for
 3.171.0. No error or timing threshold was relaxed. Physical devices, Android TV,
 Fire TV, and completed SDK resource cleanup remain outside these checks.
+
+A further 2026-10-20 comparison used the same 3.171.0 SDK, shared UI bundle and
+Android 16 emulator for base `2c90983` and main `09e0a37`. Both failed the unchanged
+current-edge/visible-`LIVE` check with no Player or Source errors. The SDK reached
+the requested media target, but the live edge advanced between request and completion:
+
+| App revision | Return completion latency | Completion minus requested target | Offset at completion |
+| --- | --- | --- | --- |
+| `2c90983` | 6.598 s | +0.057 s | -6.573 s |
+| `09e0a37` | 4.439 s | +0.367 s | -4.116 s |
+
+The shared UI's behind-live text and button class agreed with that SDK offset.
+Reaching the requested timestamp does not establish arrival within one second
+of the subsequently moving edge. Alternating diagnostic runs with restart
+thresholds of 0.1 and 5 seconds each passed twice and failed once, so changing that threshold alone
+did not remove the failure. Production defaults and acceptance conditions were
+kept. These observations do not establish stable live-return behavior.
+
+The original seven-check grouped run subsequently passed in 102.038 seconds,
+and the separate 12-handoff playback check passed in 49.268 seconds. Neither
+reproduced timeout 1004. That earlier timeout remains a separate, unresolved
+observation; it has not been attributed to the moving-edge failure.
+
+The final eight-check grouped run passed seven checks in 97.328 seconds,
+including the strict live-return and viewport-aware UI-handoff checks. The
+unchanged configured-VOD check failed its first-observed-position assertion
+(`9.0..13.0` seconds for the configured 10-second start offset). That report did
+not record the sampled position, so it does not distinguish late observation
+from an incorrect start position. The assertion now includes the numeric sample
+for future diagnosis; its range and timing are unchanged. This startup-offset
+qualification remains open independently of live-return stability and timeout
+1004. No further runtime repeats were used to obtain a passing result.
 
 On 2026-10-19, the debug app and instrumentation APK compiled with Player 3.155.0.
 An Android 16 emulator passed both real playback tests through the Gradle command

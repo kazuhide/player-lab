@@ -93,16 +93,20 @@
     },
     {
       "type": "p",
-      "text": "dvr:test checks pure rewind calculations; app:testDebugUnitTest checks draft validation and exact SDK configuration mapping. PlayerConfigurationInstrumentedTest drives the actual Compose editor and SDK configuration, reset, source retention, view detachment, and D-pad focus. PlayerOwnershipInstrumentedTest uses recording API implementations to verify exactly-once destroy calls, listener removal, and rejection of retired player/source callbacks. These checks can run without a valid Player license and do not prove playback or completed internal resource cleanup. The real playback tests require network access and an authorized Player license: PlayerDvrInstrumentedTest checks loading and finite VOD duration, and PlayerControlsInstrumentedTest checks shared WebView display, playback through the UI, source switching, rewind, return to live, and DVR state. PlayerConfigurationPlaybackInstrumentedTest verifies that the GUI-applied source and player configuration autoplays muted VOD from the 10-second start offset and advances."
+      "text": "dvr:test checks pure rewind calculations; app:testDebugUnitTest checks draft validation and exact SDK configuration mapping. PlayerConfigurationInstrumentedTest drives the actual Compose editor and SDK configuration, reset, source retention, view detachment, and D-pad focus. PlayerOwnershipInstrumentedTest uses recording API implementations to verify exactly-once destroy calls, listener removal, and rejection of retired player/source callbacks. These checks can run without a valid Player license and do not prove playback or completed internal resource cleanup. The real playback tests require network access and an authorized Player license: PlayerDvrInstrumentedTest checks loading and finite VOD duration, and PlayerControlsInstrumentedTest checks shared WebView display, playback through the UI, source switching, rewind, return to live, and DVR state. PlayerConfigurationPlaybackInstrumentedTest verifies that the GUI-applied source and player configuration autoplays muted VOD from the 10-second start offset and advances. PlayerUiHandoffInstrumentedTest checks 12 UI-mode handoffs during VOD playback: the same player remains active, retired views detach, the active view intersects the viewport, and playback time advances after every handoff."
     },
     {
       "type": "p",
-      "text": "Even when the shared UI exists, its control layout and auto-hide state can change later. The recorded tests check ancestor visibility as well as display dimensions. Because the live edge moves, the completed seek position is compared with a media reference captured before the request. The test’s three-second tolerance is not a product guarantee of seek precision."
+      "text": "Even when the shared UI exists, its control layout and auto-hide state can change later. The tests check ancestor visibility as well as display dimensions. Rewind completion must land within three seconds of a media target captured before the request; that tolerance is not a product guarantee. Return to live still requires a fresh completion event, an SDK offset within one second of zero, and visible LIVE text/button state. Failure reports record monotonic request/completion times, target and completion positions, offsets, native-ready poll counts, and live-control visibility; SDK error messages and configuration dumps are omitted."
+    },
+    {
+      "type": "p",
+      "text": "A further October 20 comparison of 2c90983 and 09e0a37 used the same Player 3.171.0 SDK, shared UI bundle and Android 16 emulator. Both failed the unchanged current-edge check without Player/Source errors. In the recorded examples, completion landed within 0.057 and 0.367 seconds of the requested media target, but took 6.598 and 4.439 seconds; the edge moved and completion offsets were -6.573 and -4.116 seconds. The live controls’ text and button class matched the behind-live SDK offset. Alternating restart-threshold probes at 0.1 and 5 seconds each passed twice and failed once. Production defaults were kept; these results do not establish stable live-return behavior."
     },
     {
       "type": "note",
       "title": "October 20 verification scope",
-      "text": "On October 20, 2026, Player 3.171.0 passed six DVR JVM tests, six configuration JVM tests, and app/instrumentation builds. Four configuration/ownership checks passed with a dummy license on an Android 16 phone emulator in 41.737 seconds; touch scrolling reached both Apply sections and D-pad navigation changed a draft switch. The final GUI-configured VOD autoplay case passed with an authorized license in 18.342 seconds. An earlier grouped authorized-license run passed six of seven checks in 71.104 seconds, including configured VOD playback and the existing VOD-duration check. The shared-UI/DVR controls check reported non-network timeout 1004 in the grouped run. Separate comparisons of base 2c90983 and the changed app both failed the return-to-live assertion with the same SDK, bundle, and emulator. That shared-UI/live-edge path remains unqualified for 3.171.0. Physical devices, Android TV, Fire TV, offline, casting, Analytics receipt, and completed SDK resource cleanup were not established."
+      "text": "On October 20, 2026, Player 3.171.0 passed six DVR JVM tests, six configuration JVM tests, and app/instrumentation builds. Earlier, four configuration/ownership checks passed with a dummy license in 41.737 seconds; touch scrolling reached both Apply sections and D-pad navigation changed a draft switch. A configured-VOD run passed in 18.342 seconds. Follow-up runs passed the original seven grouped checks in 102.038 seconds and the separate 12-handoff playback check in 49.268 seconds. The final eight-check group passed seven in 97.328 seconds: strict live-return and viewport-aware UI handoffs passed, while the unchanged configured-VOD first-position check failed its 9.0..13.0-second range. Its sampled position was not recorded, so late observation and incorrect starting position cannot be distinguished. The assertion now reports that number without changing the range or timing. An earlier six-of-seven grouped run reported timeout 1004; follow-up runs did not reproduce it, and its cause remains separate and unresolved. Stable live return and grouped startup-offset qualification remain open. Physical devices, Android TV, Fire TV, offline, casting, Analytics receipt, and completed SDK resource cleanup were not established."
     }
   ],
   "sources": [
@@ -150,6 +154,21 @@
       "path": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
       "line": 17,
       "label": "Validated source and player settings"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+      "line": 50,
+      "label": "Strict live controls and failure diagnostics"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerUiHandoffInstrumentedTest.kt",
+      "line": 29,
+      "label": "Playing-player UI handoff check"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerConfigurationPlaybackInstrumentedTest.kt",
+      "line": 60,
+      "label": "Configured VOD first-position assertion"
     }
   ]
 }

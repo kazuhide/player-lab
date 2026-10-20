@@ -93,16 +93,20 @@
     },
     {
       "type": "p",
-      "text": "dvr:test は巻き戻し計算、app:testDebugUnitTest は下書き検証と正確な SDK 設定への変換を確認します。PlayerConfigurationInstrumentedTest は実際の Compose エディターと SDK 設定、Reset、ソース保持、ビューの切り離し、D-pad フォーカスを確認します。PlayerOwnershipInstrumentedTest は記録用 API 実装で destroy が各 1 回であること、購読の解除、旧 Player／ソースのコールバックの拒否を確認します。これらは有効な Player ライセンスなしでも実行でき、実再生や SDK 内部の全リソース解放完了を証明するものではありません。実再生テストにはネットワークと許可された Player ライセンスが必要です。PlayerDvrInstrumentedTest は読み込みと有限の VOD 長を、PlayerControlsInstrumentedTest は共有 WebView、UI からの再生、ソース切り替え、巻き戻し、ライブ復帰、DVR 状態を確認します。 PlayerConfigurationPlaybackInstrumentedTest は GUI で反映した設定により、VOD が 10 秒の開始位置からミュート・自動再生で進むことを確認します。"
+      "text": "dvr:test は巻き戻し計算、app:testDebugUnitTest は下書き検証と正確な SDK 設定への変換を確認します。PlayerConfigurationInstrumentedTest は実際の Compose エディターと SDK 設定、Reset、ソース保持、ビューの切り離し、D-pad フォーカスを確認します。PlayerOwnershipInstrumentedTest は記録用 API 実装で destroy が各 1 回であること、購読の解除、旧 Player／ソースのコールバックの拒否を確認します。これらは有効な Player ライセンスなしでも実行でき、実再生や SDK 内部の全リソース解放完了を証明するものではありません。実再生テストにはネットワークと許可された Player ライセンスが必要です。PlayerDvrInstrumentedTest は読み込みと有限の VOD 長を、PlayerControlsInstrumentedTest は共有 WebView、UI からの再生、ソース切り替え、巻き戻し、ライブ復帰、DVR 状態を確認します。 PlayerConfigurationPlaybackInstrumentedTest は GUI で反映した設定により、VOD が 10 秒の開始位置からミュート・自動再生で進むことを確認します。 PlayerUiHandoffInstrumentedTest は VOD 再生中に UI モードを 12 回切り替え、同じ Player が維持されること、旧ビューの切り離し、有効ビューと表示領域の交差、各切り替え後の再生時刻の進行を確認します。"
     },
     {
       "type": "p",
-      "text": "共有 UI が存在しても、操作部品のレイアウトや自動非表示の状態は後から変わります。記録されたテストは表示寸法だけでなく祖先要素の可視性も確認します。ライブ端が移動するため、シーク完了位置は要求前に固定したメディア基準と比較します。テストの 3 秒の許容差は製品のシーク精度保証ではありません。"
+      "text": "共有 UI が存在しても、操作部品のレイアウトや自動非表示の状態は後から変わります。テストは表示寸法だけでなく祖先要素の可視性も確認します。巻き戻しの完了位置は要求前に固定したメディア目標の 3 秒以内を必要としますが、この許容差は製品の精度保証ではありません。ライブ復帰は引き続き、新しい完了イベント、ゼロから 1 秒以内の SDK オフセット、可視状態の LIVE テキストとボタン状態を必要とします。失敗時には単調増加時計での要求・完了時刻、目標・完了位置、オフセット、ネイティブ条件の成立回数、ライブ操作部品の可視性を記録し、SDK エラーメッセージや設定全体は出力しません。"
+    },
+    {
+      "type": "p",
+      "text": "10 月 20 日の追加比較では、2c90983 と 09e0a37 に同じ Player 3.171.0、共有 UI バンドル、Android 16 エミュレーターを使い、両方で Player／Source エラーなしに、変更していない現在のライブ端の検証が失敗しました。記録例の完了位置は要求時の目標から 0.057 秒、0.367 秒以内でしたが、完了まで 6.598 秒、4.439 秒かかり、移動する端からのオフセットは -6.573 秒、-4.116 秒でした。ライブ操作部品のテキストとボタンクラスは SDK の behind live オフセットと一致しました。再バッファ閾値 0.1 秒と 5 秒を交互に試した診断では、それぞれ 2 回成功・1 回失敗でした。製品の既定値は維持しており、安定したライブ復帰を確認した結果ではありません。"
     },
     {
       "type": "note",
       "title": "2026-10-20 の検証範囲",
-      "text": "2026-10-20 に Player 3.171.0 で DVR の JVM テスト 6 件、設定の JVM テスト 6 件、アプリ・instrumentation APK のビルドが成功しました。Android 16 の電話向けエミュレーターではダミーライセンスで設定・所有権の 4 件が 41.737 秒で成功し、縦スワイプで両 Apply 領域へ到達、D-pad で下書きスイッチを変更できました。最終コードでは GUI 設定による 10 秒位置からの VOD 自動再生が許可済みライセンスで 18.342 秒で成功しました。それ以前の一括実行では、設定付き VOD 再生と既存 VOD 長の確認を含む 7 件中 6 件が 71.104 秒で成功しました。共有 UI／DVR 操作テストは一括実行で非ネットワークの timeout 1004 を報告しました。同じ SDK・バンドル・エミュレーターで base 2c90983 と変更後を個別に比較した場合も、両方でライブ復帰の検証が失敗しています。この共有 UI／ライブ端の経路は 3.171.0 で確認済みとは扱いません。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics の受信、SDK 内部リソースの全解放完了は未確認です。"
+      "text": "2026-10-20 に Player 3.171.0 で DVR の JVM テスト 6 件、設定の JVM テスト 6 件、アプリ・instrumentation APK のビルドが成功しました。それ以前に、ダミーライセンスで設定・所有権の 4 件が 41.737 秒で成功し、縦スワイプで両 Apply 領域へ到達、D-pad で下書きスイッチを変更できました。設定付き VOD の単独実行は 18.342 秒で成功しています。追加検証では既存 7 件の一括実行が 102.038 秒、12 回の UI 切り替え検査の単独実行が 49.268 秒で成功しました。最終の 8 件一括実行は 97.328 秒で 7 件成功し、厳密なライブ復帰と表示領域を確認する UI 切り替えは成功しましたが、既存の設定付き VOD の最初の観測位置が 9.0..13.0 秒の範囲を満たしませんでした。実測値が記録されておらず、観測の遅れと開始位置の誤りは区別できません。今後の診断用に実測値を出力しますが、範囲とタイミングは変えていません。それ以前の 7 件中 6 件が成功した一括実行では timeout 1004 が出ましたが、追加実行では再現せず、原因は別の未解決事項です。安定したライブ復帰と一括実行での開始オフセットの確認は未完了です。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics の受信、SDK 内部リソースの全解放完了は未確認です。"
     }
   ],
   "sources": [
@@ -150,6 +154,21 @@
       "path": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
       "line": 17,
       "label": "ソース・Player 設定の検証と変換"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+      "line": 50,
+      "label": "厳密なライブ操作検証と失敗時診断"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerUiHandoffInstrumentedTest.kt",
+      "line": 29,
+      "label": "再生中 Player の UI 切り替え検査"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerConfigurationPlaybackInstrumentedTest.kt",
+      "line": 60,
+      "label": "設定付き VOD の最初の観測位置の検証"
     }
   ]
 }
