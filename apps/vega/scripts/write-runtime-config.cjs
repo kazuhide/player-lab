@@ -9,9 +9,15 @@ function writeRuntimeConfig(destination, environment, withoutCredentials = false
   const temporary = destination + "." + process.pid + ".tmp";
   let created = false;
   try {
-    fs.writeFileSync(temporary, JSON.stringify(config) + "\n", { flag: "wx", mode: 0o600 });
+    const descriptor = fs.openSync(temporary, "wx", 0o600);
     created = true;
+    try {
+      fs.writeFileSync(descriptor, JSON.stringify(config) + "\n");
+    } finally {
+      fs.closeSync(descriptor);
+    }
     fs.renameSync(temporary, destination);
+    created = false;
   } finally {
     if (created && fs.existsSync(temporary)) fs.unlinkSync(temporary);
   }

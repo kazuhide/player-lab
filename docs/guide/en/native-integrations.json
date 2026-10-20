@@ -142,7 +142,7 @@
     },
     {
       "type": "note",
-      "text": "The 2026-10-20 run passed 52 unit tests and the full App type check, built all three Release packages and installed the arm64 package on a Vega Virtual Device. Native screenshots confirmed Live DASH and VOD HLS video with advancing SDK positions; the final VOD check advanced from 2.1 to 5.1 seconds. Native remote focus/scrolling, text entry, zero-bitrate validation and Reset were also exercised. Unit/session tests still mock native media/player boundaries and provide separate evidence."
+      "text": "The 2026-10-20 run passed 53 unit tests and the full App type check, built all three Release packages and installed the arm64 package on a Vega Virtual Device. Native screenshots confirmed Live DASH and VOD HLS video with advancing SDK positions; the final VOD check advanced from 2.1 to 5.1 seconds. Native remote focus/scrolling, text entry, zero-bitrate validation and Reset were also exercised. Unit/session tests still mock native media/player boundaries and provide separate evidence."
     },
     {
       "type": "p",

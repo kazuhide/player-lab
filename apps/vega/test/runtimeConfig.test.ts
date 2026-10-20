@@ -3,9 +3,10 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { runInNewContext } from "node:vm";
-import { afterEach, expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 
 const require = createRequire(resolve("scripts/write-runtime-config.cjs"));
+const fs = require("node:fs") as typeof import("node:fs");
 const { writeRuntimeConfig } = require("../scripts/write-runtime-config.cjs") as {
   writeRuntimeConfig: (destination: string, environment: Record<string, string>, withoutCredentials?: boolean) => void;
 };
@@ -15,7 +16,10 @@ function destination(): string {
   directories.push(directory);
   return join(directory, "runtime.local.json");
 }
-afterEach(() => directories.splice(0).forEach((directory) => rmSync(directory, { recursive: true, force: true })));
+afterEach(() => {
+  vi.restoreAllMocks();
+  directories.splice(0).forEach((directory) => rmSync(directory, { recursive: true, force: true }));
+});
 
 it("writes only selected runtime keys atomically with private file permissions", () => {
   const path = destination();
@@ -37,6 +41,19 @@ it("does not overwrite or remove an existing temporary file", () => {
   writeFileSync(temporary, "existing");
   expect(() => writeRuntimeConfig(path, {}, true)).toThrow();
   expect(readFileSync(temporary, "utf8")).toBe("existing");
+});
+
+it("removes its own temporary file after a partial write failure and preserves the applied configuration", () => {
+  const path = destination();
+  writeFileSync(path, "previous configuration");
+  const originalWrite = fs.writeFileSync;
+  vi.spyOn(fs, "writeFileSync").mockImplementationOnce((file, _contents, options) => {
+    originalWrite(file, "SYNTHETIC_PARTIAL_KEY", options);
+    throw Object.assign(new Error("Injected write failure"), { code: "ENOSPC" });
+  });
+  expect(() => writeRuntimeConfig(path, { BITMOVIN_PLAYER_LICENSE_KEY: "SYNTHETIC_PLAYER_KEY" })).toThrow("Injected write failure");
+  expect(readFileSync(path, "utf8")).toBe("previous configuration");
+  expect(readdirSync(directories[0]!)).toEqual(["runtime.local.json"]);
 });
 
 it("sets runtime keys before evaluating the existing App and registers its component", () => {

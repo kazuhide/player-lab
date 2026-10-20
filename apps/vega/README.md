@@ -222,7 +222,7 @@ position together with changing video frames.
 ## Validation scope
 
 Validation on 2026-10-20 used macOS on Apple silicon, Vega SDK 0.24.12112 and an
-arm64 VVD. The 52 unit tests and full App type-check passed. The native toolchain
+arm64 VVD. The 53 unit tests and full App type-check passed. The native toolchain
 produced JS/Hermes bundles and all three Release packages; the arm64 package was
 installed and launched on VVD. Native screenshots showed changing Live DASH and
 VOD HLS video frames together with advancing SDK playback positions. Native
