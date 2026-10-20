@@ -113,14 +113,21 @@ function createExtractor({ packageRoot, entryFile, dependencies = {}, checkedAt 
     const refs = locations(symbol); if (!refs.length) refs.push(...origin);
     for (const ref of refs) if (!old.declarations.some(x => x.file === ref.file && x.line === ref.line)) old.declarations.push(ref);
     old.deprecated ||= tags(symbol).includes('deprecated');
-    Object.assign(old, extra); old.officialReference = memberRef(id, old.declarations); members.set(id, old);
+    const { contracts, ...facts } = extra;
+    if (contracts) {
+      const chains = [...(old.contracts || [])];
+      if (!chains.some(chain => JSON.stringify(chain) === JSON.stringify(contracts))) chains.push(contracts);
+      old.contracts = chains.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    }
+    Object.assign(old, facts); old.officialReference = memberRef(id, old.declarations); members.set(id, old);
   }
   function configWalk(t, id, ancestors, symbol, origin, options, parents = []) {
     const ownOrigin = locations(symbol); if (ownOrigin.length) origin = ownOrigin;
     // Scalar rows omit null/undefined. Retain the full property and enclosing
     // property contracts so release comparisons still detect breaking changes.
     const contracts = parents.at(-1)?.path === id ? parents : [...parents, {
-      path: id, type: text(symbol ? symbolType(symbol) : t),
+      path: id, type: parents.length ? text(symbol ? symbolType(symbol) : t)
+        : checker.typeToString(t, undefined, ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.InTypeAlias),
       optional: Boolean(symbol?.flags & ts.SymbolFlags.Optional),
       readonly: (symbol?.declarations || []).some(d => ts.getCombinedModifierFlags(d) & ts.ModifierFlags.Readonly),
     }];
