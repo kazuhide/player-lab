@@ -96,6 +96,36 @@ targets:
         product: BitmovinPlayer
       - package: DvrKit
 
+  Showcase-iOSFinalizationTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources: [ShowcaseFinalizationTests]
+    dependencies:
+      - target: Showcase-iOS
+      - package: BitmovinPlayer
+        product: BitmovinPlayer
+      - package: DvrKit
+    settings:
+      base:
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Showcase-iOS.app/Showcase-iOS"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+  Showcase-tvOSFinalizationTests:
+    type: bundle.unit-test
+    platform: tvOS
+    deploymentTarget: "15.0"
+    sources: [ShowcaseFinalizationTests]
+    dependencies:
+      - target: Showcase-tvOS
+      - package: BitmovinPlayer
+        product: BitmovinPlayer
+      - package: DvrKit
+    settings:
+      base:
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Showcase-tvOS.app/Showcase-tvOS"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
   Showcase-tvOSConfigurationTests:
     type: bundle.unit-test
     platform: tvOS
@@ -149,6 +179,18 @@ schemes:
         Showcase-iOS: all
     test:
       targets: [Showcase-iOSConfigurationTests]
+  Showcase-iOS-Finalization:
+    build:
+      targets:
+        Showcase-iOS: all
+    test:
+      targets: [Showcase-iOSFinalizationTests]
+  Showcase-tvOS-Finalization:
+    build:
+      targets:
+        Showcase-tvOS: all
+    test:
+      targets: [Showcase-tvOSFinalizationTests]
   Showcase-tvOS-Configuration:
     build:
       targets:

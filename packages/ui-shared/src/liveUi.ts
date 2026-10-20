@@ -212,6 +212,7 @@ export function buildLiveUiContainer(options: LiveUiOptions = {}): UIContainer {
           }),
         ],
       }),
+      new RecommendationOverlay(), // The SDK provides Replay after native completion.
     ],
     cssClasses: ["ui-skin-modern", "ui-skin-live", ...(options.extraCssClasses ?? [])],
     hideDelay: options.hideDelay ?? 2000,
@@ -533,6 +534,7 @@ export function buildSportsUiContainer(options: LiveUiOptions = {}): UIContainer
           }),
         ],
       }),
+      new RecommendationOverlay(), // The SDK provides Replay after native completion.
     ],
     cssClasses: ["ui-skin-modern", "ui-skin-sports", ...(options.extraCssClasses ?? [])],
     hideDelay: options.hideDelay ?? 2000,
