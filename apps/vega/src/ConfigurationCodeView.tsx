@@ -6,8 +6,8 @@ export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Ele
   return <View style={styles.container}>
     <Button title={expanded ? "Hide applied code" : "Show applied code"} onPress={() => setExpanded(!expanded)} />
     {expanded && <>
-      <Text>Player and source settings sent to the SDK. Draft edits are excluded and license keys use placeholders.</Text>
-      <Text>This TV host has no clipboard integration.</Text>
+      <Text style={styles.help}>Player and source settings sent to the SDK. Draft edits are excluded and license keys use placeholders.</Text>
+      <Text style={styles.help}>This TV host has no clipboard integration.</Text>
       <Text selectable accessibilityLabel="Applied configuration code" style={styles.code}>{code}</Text>
     </>}
   </View>;
@@ -15,5 +15,6 @@ export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Ele
 
 const styles = StyleSheet.create({
   container: { gap: 8, marginTop: 8 },
+  help: { color: "#dddddd" },
   code: { fontFamily: "monospace", fontSize: 12, color: "#dddddd", backgroundColor: "#181818", padding: 8 },
 });
