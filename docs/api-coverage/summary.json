@@ -14112,40 +14112,40 @@
         "command": {
           "byStatus": {
             "code-only": 0,
-            "direct": 0,
+            "direct": 1,
             "internal": 1,
             "missing": 43,
             "observed": 0,
-            "preset": 2,
+            "preset": 1,
             "sdk-ui-unverified": 0
           },
           "denominator": 46,
           "deprecated": 1,
-          "percentDirect": 0.0,
+          "percentDirect": 2.17,
           "percentDirectOrPreset": 4.35
         },
         "configuration": {
           "byStatus": {
             "code-only": 3,
-            "direct": 0,
+            "direct": 10,
             "internal": 0,
-            "missing": 259,
+            "missing": 251,
             "observed": 0,
-            "preset": 5,
+            "preset": 3,
             "sdk-ui-unverified": 0
           },
           "denominator": 267,
           "deprecated": 1,
-          "percentDirect": 0.0,
-          "percentDirectOrPreset": 1.87
+          "percentDirect": 3.75,
+          "percentDirectOrPreset": 4.87
         },
         "event": {
           "byStatus": {
             "code-only": 0,
             "direct": 0,
-            "internal": 0,
-            "missing": 74,
-            "observed": 3,
+            "internal": 1,
+            "missing": 71,
+            "observed": 5,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
@@ -14322,12 +14322,16 @@
         "The denominator covers the exported wrapper configuration roots, instance Player/Source/offline APIs, Cast manager and named view/offline callbacks. It is not the union of all underlying native SDK APIs.",
         "Configuration counts leaf paths, callback contracts and opaque boundaries once; array element shapes are not multiplied. OfflineContentConfig has its own configuration scope, including inherited SourceConfig fields.",
         "Static construction helpers, generic React references/styles, namespace containers and the generic onEvent callback are excluded. Data-transfer fields and enum values are not separate runtime operations.",
-        "The source and UI pickers expose fixed presets. Time-shift buttons expose 0, -10, -30 and -60 seconds with DVR-window clamping; they do not accept arbitrary arguments.",
+        "The source editor exposes URL/type/title/poster and startOffset/reference; the player editor exposes autoplay/mute, audioAndVideo.forwardDuration and maxSelectableBitrate. Only those leaf paths receive direct configuration credit. Apply validates the draft, recreates the player and reloads the source; unchanged/invalid Apply and Reset draft do not replace the player.",
+        "iOS offers HLS and progressive; Android also offers DASH. Buffer 0 selects automatically only on iOS; this form requires positive Android targets. Maximum bitrate accepts whole bit/s values: 1–2147483647 on Android and 1–9007199254740991 on iOS, matching the native integer conversion and JavaScript exact-integer limit. Blank buffer/cap fields omit SDK overrides. The complete applied source, chosen UI, log and Allow DVR helper state survive recreation; playback position resets.",
+        "The UI picker exposes named factory/asset presets. Time-shift buttons expose 0, -10, -30 and -60 seconds with DVR-window clamping; they do not accept arbitrary offsets.",
         "isLive and getCurrentTime are read by the snapshot controller but are not consumed by the displayed derived state, so they receive no observation credit.",
         "Allow DVR changes the application DVR helper, not a PlayerConfig playback property. License configuration comes from environment setup and is not GUI editable.",
-        "The embedded native/shared Web UI has not been qualified against this wrapper version; its controls receive no inferred coverage credit. This is confirmed application-owned GUI coverage, not a full SDK UI claim.",
+        "The embedded native/shared Web UI has not been qualified against this wrapper version; its controls receive no inferred coverage credit. Application-owned controls are source-mapped and mock-tested, not native playback qualification.",
         "The latest wrapper pins Apple 3.126.0 and Android 3.165.0+jason. These supported wrapper defaults are not overridden to the newer standalone SDK versions.",
-        "TimeChanged only triggers refresh; SourceLoaded and TimeShifted also have named log entries. Event payload fields are not exposed. The screen and helpers are type-checked and unit-tested. Native playback and Expo prebuild/device integration were not performed for this measurement."
+        "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries; event payload fields are not exposed. onPlayerViewReady only triggers loading and is internal.",
+        "Player.load receives the edited SourceConfig. No Source instance lifecycle, read-only configuration observation, offline operation or unrelated nested property is inferred from those input controls.",
+        "The actual App/configuration JSX and helpers are type-checked against installed declarations and tested with mocked native/player boundaries. Native Expo builds, WebView/native layout and device playback were not performed for this measurement."
       ],
       "scopes": [
         {
@@ -14790,16 +14794,16 @@
             "command": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 0,
+                "direct": 1,
                 "internal": 1,
                 "missing": 23,
                 "observed": 0,
-                "preset": 2,
+                "preset": 1,
                 "sdk-ui-unverified": 0
               },
               "denominator": 26,
               "deprecated": 0,
-              "percentDirect": 0.0,
+              "percentDirect": 3.85,
               "percentDirectOrPreset": 7.69
             },
             "configuration": {
@@ -14870,17 +14874,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 3,
-                "direct": 0,
+                "direct": 4,
                 "internal": 0,
-                "missing": 88,
+                "missing": 84,
                 "observed": 0,
                 "preset": 2,
                 "sdk-ui-unverified": 0
               },
               "denominator": 93,
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 2.15
+              "percentDirect": 4.3,
+              "percentDirectOrPreset": 6.45
             },
             "event": {
               "byStatus": {
@@ -15016,9 +15020,9 @@
               "byStatus": {
                 "code-only": 0,
                 "direct": 0,
-                "internal": 0,
-                "missing": 65,
-                "observed": 3,
+                "internal": 1,
+                "missing": 62,
+                "observed": 5,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
@@ -15130,17 +15134,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 0,
+                "direct": 6,
                 "internal": 0,
-                "missing": 73,
+                "missing": 69,
                 "observed": 0,
-                "preset": 2,
+                "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 75,
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 2.67
+              "percentDirect": 8.0,
+              "percentDirectOrPreset": 8.0
             },
             "event": {
               "byStatus": {
@@ -21441,32 +21445,32 @@
         "command": {
           "byStatus": {
             "code-only": 0,
-            "direct": 0,
+            "direct": 1,
             "internal": 3,
             "missing": 62,
             "observed": 0,
-            "preset": 2,
+            "preset": 1,
             "sdk-ui-unverified": 0
           },
           "denominator": 67,
           "deprecated": 0,
-          "percentDirect": 0.0,
+          "percentDirect": 1.49,
           "percentDirectOrPreset": 2.99
         },
         "configuration": {
           "byStatus": {
-            "code-only": 5,
-            "direct": 0,
+            "code-only": 3,
+            "direct": 12,
             "internal": 0,
-            "missing": 645,
+            "missing": 638,
             "observed": 0,
-            "preset": 3,
+            "preset": 0,
             "sdk-ui-unverified": 0
           },
           "denominator": 653,
           "deprecated": 5,
-          "percentDirect": 0.0,
-          "percentDirectOrPreset": 0.46
+          "percentDirect": 1.84,
+          "percentDirectOrPreset": 1.84
         },
         "event": {
           "byStatus": {
@@ -21583,10 +21587,13 @@
         "The denominator is the published Vega-channel TypeScript PlayerConfig/SourceConfig paths, PlayerAPI callable members and PlayerEvent names. Data-transfer types, module-construction methods and exported utility namespaces are outside these scopes.",
         "This special beta channel is the current release supported by the official Vega sample. The general Web stable release is not a supported replacement.",
         "Public declarations include APIs with module, media, device and platform prerequisites. Their presence does not prove that every Web feature operates on Vega. Unqualified features remain unexposed rather than being silently removed from the denominator.",
-        "Source selection supplies fixed HLS/DASH URLs and titles. Time-shift buttons expose 0, -10, -30 and -60 seconds with window clamping; arbitrary SDK arguments are not editable.",
-        "Allow DVR changes the application DVR helper. Player configuration, authentication and module registration are source/setup constants, not editable GUI settings.",
+        "The source editor exposes HLS/DASH/progressive string URLs, title/poster and startOffset/reference. Player controls expose autoplay/mute, separate audio/video forwardduration targets and the adaptation video bitrate cap. Only those leaf paths receive direct configuration credit; progressive array fields and unrelated object members remain unexposed.",
+        "Apply validates the draft, recreates the SDK player through the serialized session and reloads the source; unchanged/invalid Apply and Reset draft do not replace resources. The selected/custom source, logs and Allow DVR helper state persist while playback position resets. Time-shift buttons remain fixed at 0, -10, -30 and -60 seconds with window clamping.",
+        "Allow DVR changes the application DVR helper, not PlayerConfig.playback.timeShift. License/authentication, ui:false and module registration remain setup constants, not GUI settings. Title/poster are passed in SourceConfig, but the Kepler screen has no poster overlay or HTML Player UI.",
         "isLive and getCurrentTime are read but not consumed by the displayed derived state, so they receive no observation credit.",
-        "TimeChanged only triggers refresh; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed. Only the controller and helper code are type-checked/unit-tested in this repository. The Kepler TSX screen and real Vega playback were not built or device-tested for this measurement."
+        "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
+        "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed.",
+        "The actual App/control/configuration/video-surface JSX and helpers are type-checked against installed SDK, React Native and Kepler declarations. App/session tests mock native/media/player boundaries, including initialization and cleanup changes. Kepler builds, native layout, TV focus/keyboard input and real Vega playback were not performed for this measurement."
       ],
       "scopes": [
         {
@@ -21594,16 +21601,16 @@
             "command": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 0,
+                "direct": 1,
                 "internal": 3,
                 "missing": 62,
                 "observed": 0,
-                "preset": 2,
+                "preset": 1,
                 "sdk-ui-unverified": 0
               },
               "denominator": 67,
               "deprecated": 0,
-              "percentDirect": 0.0,
+              "percentDirect": 1.49,
               "percentDirectOrPreset": 2.99
             },
             "configuration": {
@@ -21673,18 +21680,18 @@
             },
             "configuration": {
               "byStatus": {
-                "code-only": 5,
-                "direct": 0,
+                "code-only": 3,
+                "direct": 5,
                 "internal": 0,
-                "missing": 366,
+                "missing": 363,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 371,
               "deprecated": 3,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 1.35,
+              "percentDirectOrPreset": 1.35
             },
             "event": {
               "byStatus": {
@@ -21804,17 +21811,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 0,
+                "direct": 7,
                 "internal": 0,
-                "missing": 279,
+                "missing": 275,
                 "observed": 0,
-                "preset": 3,
+                "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 282,
               "deprecated": 2,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 1.06
+              "percentDirect": 2.48,
+              "percentDirectOrPreset": 2.48
             },
             "event": {
               "byStatus": {
@@ -22765,7 +22772,7 @@
     }
   ],
   "checkedAt": "2026-10-20",
-  "inputSha256": "482d7d644a81867a9666d86b30193a5ba30384a9ca61214cc75b8eb962ef73df",
+  "inputSha256": "bbff978e8f9a881dd6e9d4d1450637a9ea3bb335881979fd0ad9913bc3bd25b4",
   "schemaVersion": 1,
   "sdks": [
     {
@@ -22891,5 +22898,5 @@
       "version": "4.23.0"
     }
   ],
-  "sourceRevision": "f87f09b6d062b6d74628878e38c0baf34f92d991"
+  "sourceRevision": "ba4d2460ed09fd034c3a011d74cff1ac4f273e1d"
 }

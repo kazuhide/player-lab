@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-20",
-  "sourceRevision": "f87f09b6d062b6d74628878e38c0baf34f92d991",
+  "sourceRevision": "ba4d2460ed09fd034c3a011d74cff1ac4f273e1d",
   "sdks": [
     {
       "id": "web",
@@ -89372,7 +89372,9 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 165,
+              "symbol": "player.destroy();"
             }
           ]
         },
@@ -89467,12 +89469,16 @@
             {
               "kind": "app",
               "file": "apps/react-native/src/dvr/snapshotController.ts",
-              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583"
+              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583",
+              "line": 68,
+              "symbol": "this.player.getTimeShift(), this.player.getCurrentTime(),"
             },
             {
               "kind": "app",
               "file": "apps/react-native/src/dvr/state.ts",
-              "sha256": "fb3ad06009affd3c613d8ca9e914236339b25b22dc028716384cc0a5e3e5e10a"
+              "sha256": "fb3ad06009affd3c613d8ca9e914236339b25b22dc028716384cc0a5e3e5e10a",
+              "line": 33,
+              "symbol": "export function isLiveStream(s: PlayerSnapshot): boolean {"
             }
           ]
         },
@@ -89495,17 +89501,23 @@
             {
               "kind": "app",
               "file": "apps/react-native/src/dvr/snapshotController.ts",
-              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583"
+              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583",
+              "line": 67,
+              "symbol": "this.player.isLive(), this.player.getDuration(), this.player.getMaxTimeShift(),"
             },
             {
               "kind": "app",
               "file": "apps/react-native/src/dvr/state.ts",
-              "sha256": "fb3ad06009affd3c613d8ca9e914236339b25b22dc028716384cc0a5e3e5e10a"
+              "sha256": "fb3ad06009affd3c613d8ca9e914236339b25b22dc028716384cc0a5e3e5e10a",
+              "line": 43,
+              "symbol": "const mode: PlaybackMode = !live ? \"vod\" : dvrAvailable ? \"live-dvr\" : \"live-no-dvr\";"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 246,
+              "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
         },
@@ -89528,17 +89540,23 @@
             {
               "kind": "app",
               "file": "apps/react-native/src/dvr/snapshotController.ts",
-              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583"
+              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583",
+              "line": 67,
+              "symbol": "this.player.isLive(), this.player.getDuration(), this.player.getMaxTimeShift(),"
             },
             {
               "kind": "app",
               "file": "apps/react-native/src/dvr/state.ts",
-              "sha256": "fb3ad06009affd3c613d8ca9e914236339b25b22dc028716384cc0a5e3e5e10a"
+              "sha256": "fb3ad06009affd3c613d8ca9e914236339b25b22dc028716384cc0a5e3e5e10a",
+              "line": 41,
+              "symbol": "const win = windowDuration(s.maxTimeShift);"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 246,
+              "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
         },
@@ -89615,17 +89633,23 @@
             {
               "kind": "app",
               "file": "apps/react-native/src/dvr/snapshotController.ts",
-              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583"
+              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583",
+              "line": 68,
+              "symbol": "this.player.getTimeShift(), this.player.getCurrentTime(),"
             },
             {
               "kind": "app",
               "file": "apps/react-native/src/dvr/state.ts",
-              "sha256": "fb3ad06009affd3c613d8ca9e914236339b25b22dc028716384cc0a5e3e5e10a"
+              "sha256": "fb3ad06009affd3c613d8ca9e914236339b25b22dc028716384cc0a5e3e5e10a",
+              "line": 50,
+              "symbol": "behindLive: live ? behindLive(offset) : 0,"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 246,
+              "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
         },
@@ -89828,12 +89852,16 @@
             {
               "kind": "app",
               "file": "apps/react-native/src/dvr/snapshotController.ts",
-              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583"
+              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583",
+              "line": 67,
+              "symbol": "this.player.isLive(), this.player.getDuration(), this.player.getMaxTimeShift(),"
             },
             {
               "kind": "app",
               "file": "apps/react-native/src/dvr/state.ts",
-              "sha256": "fb3ad06009affd3c613d8ca9e914236339b25b22dc028716384cc0a5e3e5e10a"
+              "sha256": "fb3ad06009affd3c613d8ca9e914236339b25b22dc028716384cc0a5e3e5e10a",
+              "line": 33,
+              "symbol": "export function isLiveStream(s: PlayerSnapshot): boolean {"
             }
           ]
         },
@@ -89896,7 +89924,7 @@
           "category": "command",
           "scope": "Player",
           "deprecated": false,
-          "status": "preset",
+          "status": "direct",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/player.ts",
           "evidence": [
             {
@@ -89909,13 +89937,31 @@
             },
             {
               "kind": "app",
-              "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "file": "apps/react-native/src/ConfigurationPanel.tsx",
+              "sha256": "a5f816345c31b31d90e5e3d8d0a742a21bd3f43e80fc4a80bcc55cd1f3073177",
+              "line": 59,
+              "symbol": "<Button title=\"Apply and recreate player\" onPress={onApply} disabled={!changed} />"
             },
             {
               "kind": "app",
-              "file": "apps/react-native/src/dvr/snapshotController.ts",
-              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583"
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 90,
+              "symbol": "const next = parseConfiguration(draft, platform);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/configuration.ts",
+              "sha256": "bdccb390a5652e6a8cf8950ba89a5bf7f3d4d728d2f187c06ca41c46bcf578b9",
+              "line": 82,
+              "symbol": "const source: SourceConfig = {"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 175,
+              "symbol": "player.load(source);"
             }
           ]
         },
@@ -90298,12 +90344,23 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 224,
+              "symbol": "<Button title=\"Live edge\" onPress={() => player.timeShift(0)} />"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 225,
+              "symbol": "{[-10, -30, -60].map((o) => ("
             },
             {
               "kind": "app",
               "file": "apps/react-native/src/dvr/snapshotController.ts",
-              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583"
+              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583",
+              "line": 100,
+              "symbol": "this.player.timeShift(clampToWindow(offset, max));"
             }
           ]
         },
@@ -90366,7 +90423,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/adaptationConfig.ts",
           "evidence": [
             {
@@ -90376,6 +90433,34 @@
               "file": "build/adaptationConfig.d.ts",
               "line": 9,
               "sha256": "0b63d5838a18e25cd1de335a685103897dd402399f23c78a4b5b4820468b13e2"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/ConfigurationPanel.tsx",
+              "sha256": "a5f816345c31b31d90e5e3d8d0a742a21bd3f43e80fc4a80bcc55cd1f3073177",
+              "line": 55,
+              "symbol": "{field(\"Maximum bitrate (bits per second)\", \"maxBitrate\", true)}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/configuration.ts",
+              "sha256": "bdccb390a5652e6a8cf8950ba89a5bf7f3d4d728d2f187c06ca41c46bcf578b9",
+              "line": 94,
+              "symbol": "...(maxBitrate !== undefined ? { adaptationConfig: { maxSelectableBitrate: maxBitrate } } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 90,
+              "symbol": "const next = parseConfiguration(draft, platform);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 143,
+              "symbol": "...playerConfig,"
             }
           ]
         },
@@ -91136,7 +91221,16 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 41,
+              "symbol": "? { analyticsConfig: { licenseKey: ANALYTICS_LICENSE_KEY } }"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 142,
+              "symbol": "...ANALYTICS,"
             }
           ]
         },
@@ -91181,7 +91275,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/bufferConfig.ts",
           "evidence": [
             {
@@ -91191,6 +91285,34 @@
               "file": "build/bufferConfig.d.ts",
               "line": 13,
               "sha256": "af8cf7ad029811d3bbcab6012f1437bbfdec314ae354d4bbe3bebad1059f2f57"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/ConfigurationPanel.tsx",
+              "sha256": "a5f816345c31b31d90e5e3d8d0a742a21bd3f43e80fc4a80bcc55cd1f3073177",
+              "line": 53,
+              "symbol": "{field(\"Forward buffer (seconds)\", \"forwardDuration\", true)}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/configuration.ts",
+              "sha256": "bdccb390a5652e6a8cf8950ba89a5bf7f3d4d728d2f187c06ca41c46bcf578b9",
+              "line": 93,
+              "symbol": "...(forwardDuration !== undefined ? { bufferConfig: { audioAndVideo: { forwardDuration } } } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 90,
+              "symbol": "const next = parseConfiguration(draft, platform);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 143,
+              "symbol": "...playerConfig,"
             }
           ]
         },
@@ -91249,7 +91371,9 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 141,
+              "symbol": "licenseKey: LICENSE_KEY,"
             }
           ]
         },
@@ -91420,7 +91544,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/playbackConfig.ts",
           "evidence": [
             {
@@ -91430,6 +91554,34 @@
               "file": "build/playbackConfig.d.ts",
               "line": 17,
               "sha256": "2900da8b94f7c899c391ece6f82f63c4769c9a68afc717d396065a9b8d62248b"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/ConfigurationPanel.tsx",
+              "sha256": "a5f816345c31b31d90e5e3d8d0a742a21bd3f43e80fc4a80bcc55cd1f3073177",
+              "line": 50,
+              "symbol": "<Text>Autoplay</Text><Switch accessibilityLabel=\"Autoplay\" value={draft.autoplay} onValueChange={(value) => update(\"autoplay\", value)} />"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/configuration.ts",
+              "sha256": "bdccb390a5652e6a8cf8950ba89a5bf7f3d4d728d2f187c06ca41c46bcf578b9",
+              "line": 92,
+              "symbol": "playbackConfig: { isAutoplayEnabled: draft.autoplay, isMuted: draft.muted },"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 90,
+              "symbol": "const next = parseConfiguration(draft, platform);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 143,
+              "symbol": "...playerConfig,"
             }
           ]
         },
@@ -91456,7 +91608,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/playbackConfig.ts",
           "evidence": [
             {
@@ -91466,6 +91618,34 @@
               "file": "build/playbackConfig.d.ts",
               "line": 29,
               "sha256": "2900da8b94f7c899c391ece6f82f63c4769c9a68afc717d396065a9b8d62248b"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/ConfigurationPanel.tsx",
+              "sha256": "a5f816345c31b31d90e5e3d8d0a742a21bd3f43e80fc4a80bcc55cd1f3073177",
+              "line": 51,
+              "symbol": "<Text>Mute on startup</Text><Switch accessibilityLabel=\"Mute on startup\" value={draft.muted} onValueChange={(value) => update(\"muted\", value)} />"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/configuration.ts",
+              "sha256": "bdccb390a5652e6a8cf8950ba89a5bf7f3d4d728d2f187c06ca41c46bcf578b9",
+              "line": 92,
+              "symbol": "playbackConfig: { isAutoplayEnabled: draft.autoplay, isMuted: draft.muted },"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 90,
+              "symbol": "const next = parseConfiguration(draft, platform);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 143,
+              "symbol": "...playerConfig,"
             }
           ]
         },
@@ -91668,12 +91848,23 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 109,
+              "symbol": "title={mode.label}"
             },
             {
               "kind": "app",
-              "file": "apps/react-native/src/sources.ts",
-              "sha256": "3939f8afbad91bb3b9b3b9908520cc46f2056d5e9faba662f7f0bfac2e6fec5d"
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 110,
+              "symbol": "onPress={() => setUiMode(mode)}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 147,
+              "symbol": "playerUiCss: WEBUI_CSS,"
             }
           ]
         },
@@ -91696,12 +91887,23 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 109,
+              "symbol": "title={mode.label}"
             },
             {
               "kind": "app",
-              "file": "apps/react-native/src/sources.ts",
-              "sha256": "3939f8afbad91bb3b9b3b9908520cc46f2056d5e9faba662f7f0bfac2e6fec5d"
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 110,
+              "symbol": "onPress={() => setUiMode(mode)}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 146,
+              "symbol": "playerUiJs: WEBUI_JS,"
             }
           ]
         },
@@ -91760,7 +91962,9 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 145,
+              "symbol": "userInterfaceType: UserInterfaceType.Bitmovin,"
             }
           ]
         },
@@ -93047,7 +93251,7 @@
           "category": "event",
           "scope": "PlayerViewProps",
           "deprecated": false,
-          "status": "missing",
+          "status": "observed",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/components/PlayerView/events.ts",
           "evidence": [
             {
@@ -93057,6 +93261,20 @@
               "file": "build/components/PlayerView/events.d.ts",
               "line": 209,
               "sha256": "1a5745082ac8c9fb32a4fd737781e047a5750aae8bcf72ec459b781c4e9d9577"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 209,
+              "symbol": "onPlayerError={() => { if (active.current) append(\"Player error\"); }}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 253,
+              "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
         },
@@ -93065,7 +93283,7 @@
           "category": "event",
           "scope": "PlayerViewProps",
           "deprecated": false,
-          "status": "missing",
+          "status": "internal",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/components/PlayerView/properties.ts",
           "evidence": [
             {
@@ -93075,6 +93293,27 @@
               "file": "build/components/PlayerView/properties.d.ts",
               "line": 82,
               "sha256": "11f4289bd0d370b142c0957a5e8b1bb6be0fa12dbb1de92cda7d4371c5f17d22"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 197,
+              "symbol": "onPlayerViewReady={() => { if (active.current) setViewReady(true); }}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 170,
+              "symbol": "if (!viewReady || !active.current) return;"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 175,
+              "symbol": "player.load(source);"
             }
           ]
         },
@@ -93173,7 +93412,7 @@
           "category": "event",
           "scope": "PlayerViewProps",
           "deprecated": false,
-          "status": "missing",
+          "status": "observed",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/components/PlayerView/events.ts",
           "evidence": [
             {
@@ -93183,6 +93422,20 @@
               "file": "build/components/PlayerView/events.d.ts",
               "line": 254,
               "sha256": "1a5745082ac8c9fb32a4fd737781e047a5750aae8bcf72ec459b781c4e9d9577"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 210,
+              "symbol": "onSourceError={() => { if (active.current) append(\"Source error\"); }}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 253,
+              "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
         },
@@ -93223,7 +93476,23 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 199,
+              "symbol": "onSourceLoaded={() => {"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 201,
+              "symbol": "append(\"SourceLoaded\");"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 253,
+              "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
         },
@@ -93372,7 +93641,23 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 198,
+              "symbol": "onTimeChanged={() => { if (active.current) void refresh(); }}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/dvr/snapshotController.ts",
+              "sha256": "59c0709342598b58ad693d80dc6a298bf8474a07df71f58488938ae22b485583",
+              "line": 80,
+              "symbol": "this.onUpdate(deriveDvrState(snapshot, { timeShiftEnabled: this.timeShiftEnabled }));"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 246,
+              "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
         },
@@ -93413,7 +93698,23 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 204,
+              "symbol": "onTimeShifted={() => {"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 206,
+              "symbol": "append(\"TimeShifted\");"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 253,
+              "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
         },
@@ -94934,7 +95235,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/source.ts",
           "evidence": [
             {
@@ -94944,6 +95245,34 @@
               "file": "build/source.d.ts",
               "line": 55,
               "sha256": "3e9a2d8061f49fe03024a755c2cfd097e3b880fe9ac2d592488b518b8af4f42e"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/ConfigurationPanel.tsx",
+              "sha256": "a5f816345c31b31d90e5e3d8d0a742a21bd3f43e80fc4a80bcc55cd1f3073177",
+              "line": 41,
+              "symbol": "{field(\"Start offset (seconds)\", \"startOffset\", true)}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/configuration.ts",
+              "sha256": "bdccb390a5652e6a8cf8950ba89a5bf7f3d4d728d2f187c06ca41c46bcf578b9",
+              "line": 85,
+              "symbol": "...(startOffset !== undefined ? { startOffset } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 90,
+              "symbol": "const next = parseConfiguration(draft, platform);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 175,
+              "symbol": "player.load(source);"
             }
           ]
         },
@@ -94952,7 +95281,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/source.ts",
           "evidence": [
             {
@@ -94962,6 +95291,34 @@
               "file": "build/source.d.ts",
               "line": 61,
               "sha256": "3e9a2d8061f49fe03024a755c2cfd097e3b880fe9ac2d592488b518b8af4f42e"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/ConfigurationPanel.tsx",
+              "sha256": "a5f816345c31b31d90e5e3d8d0a742a21bd3f43e80fc4a80bcc55cd1f3073177",
+              "line": 45,
+              "symbol": "<Button title=\"Start\" onPress={() => update(\"timeline\", \"start\")} disabled={draft.timeline === \"start\"} />"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/configuration.ts",
+              "sha256": "bdccb390a5652e6a8cf8950ba89a5bf7f3d4d728d2f187c06ca41c46bcf578b9",
+              "line": 86,
+              "symbol": "...(reference !== undefined ? { startOffsetTimelineReference: reference } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 90,
+              "symbol": "const next = parseConfiguration(draft, platform);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 175,
+              "symbol": "player.load(source);"
             }
           ]
         },
@@ -94970,7 +95327,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/source.ts",
           "evidence": [
             {
@@ -94980,6 +95337,34 @@
               "file": "build/source.d.ts",
               "line": 100,
               "sha256": "3e9a2d8061f49fe03024a755c2cfd097e3b880fe9ac2d592488b518b8af4f42e"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/ConfigurationPanel.tsx",
+              "sha256": "a5f816345c31b31d90e5e3d8d0a742a21bd3f43e80fc4a80bcc55cd1f3073177",
+              "line": 40,
+              "symbol": "{field(\"Poster URL\", \"poster\")}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/configuration.ts",
+              "sha256": "bdccb390a5652e6a8cf8950ba89a5bf7f3d4d728d2f187c06ca41c46bcf578b9",
+              "line": 83,
+              "symbol": "url, type, ...(title ? { title } : {}), ...(poster ? { poster } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 90,
+              "symbol": "const next = parseConfiguration(draft, platform);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 175,
+              "symbol": "player.load(source);"
             }
           ]
         },
@@ -95186,7 +95571,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/source.ts",
           "evidence": [
             {
@@ -95196,6 +95581,34 @@
               "file": "build/source.d.ts",
               "line": 92,
               "sha256": "3e9a2d8061f49fe03024a755c2cfd097e3b880fe9ac2d592488b518b8af4f42e"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/ConfigurationPanel.tsx",
+              "sha256": "a5f816345c31b31d90e5e3d8d0a742a21bd3f43e80fc4a80bcc55cd1f3073177",
+              "line": 39,
+              "symbol": "{field(\"Source title\", \"title\")}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/src/configuration.ts",
+              "sha256": "bdccb390a5652e6a8cf8950ba89a5bf7f3d4d728d2f187c06ca41c46bcf578b9",
+              "line": 83,
+              "symbol": "url, type, ...(title ? { title } : {}), ...(poster ? { poster } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 90,
+              "symbol": "const next = parseConfiguration(draft, platform);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 175,
+              "symbol": "player.load(source);"
             }
           ]
         },
@@ -95204,7 +95617,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "preset",
+          "status": "direct",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/source.ts",
           "evidence": [
             {
@@ -95217,13 +95630,31 @@
             },
             {
               "kind": "app",
-              "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "file": "apps/react-native/src/ConfigurationPanel.tsx",
+              "sha256": "a5f816345c31b31d90e5e3d8d0a742a21bd3f43e80fc4a80bcc55cd1f3073177",
+              "line": 34,
+              "symbol": "<Button title=\"HLS\" onPress={() => update(\"type\", \"hls\")} disabled={draft.type === \"hls\"} />"
             },
             {
               "kind": "app",
-              "file": "apps/react-native/src/sources.ts",
-              "sha256": "3939f8afbad91bb3b9b3b9908520cc46f2056d5e9faba662f7f0bfac2e6fec5d"
+              "file": "apps/react-native/src/configuration.ts",
+              "sha256": "bdccb390a5652e6a8cf8950ba89a5bf7f3d4d728d2f187c06ca41c46bcf578b9",
+              "line": 62,
+              "symbol": "const type = { hls: SourceType.HLS, dash: SourceType.DASH, progressive: SourceType.PROGRESSIVE }[draft.type];"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 90,
+              "symbol": "const next = parseConfiguration(draft, platform);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 175,
+              "symbol": "player.load(source);"
             }
           ]
         },
@@ -95232,7 +95663,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "preset",
+          "status": "direct",
           "officialReference": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/source.ts",
           "evidence": [
             {
@@ -95245,13 +95676,31 @@
             },
             {
               "kind": "app",
-              "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "file": "apps/react-native/src/ConfigurationPanel.tsx",
+              "sha256": "a5f816345c31b31d90e5e3d8d0a742a21bd3f43e80fc4a80bcc55cd1f3073177",
+              "line": 31,
+              "symbol": "{field(\"Source URL\", \"url\")}"
             },
             {
               "kind": "app",
-              "file": "apps/react-native/src/sources.ts",
-              "sha256": "3939f8afbad91bb3b9b3b9908520cc46f2056d5e9faba662f7f0bfac2e6fec5d"
+              "file": "apps/react-native/src/configuration.ts",
+              "sha256": "bdccb390a5652e6a8cf8950ba89a5bf7f3d4d728d2f187c06ca41c46bcf578b9",
+              "line": 83,
+              "symbol": "url, type, ...(title ? { title } : {}), ...(poster ? { poster } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 90,
+              "symbol": "const next = parseConfiguration(draft, platform);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 175,
+              "symbol": "player.load(source);"
             }
           ]
         },
@@ -95328,12 +95777,23 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "e6ade658bf7b9a37db7358b420a74f676fca9f2203be02f6d122944f48bb3dd2"
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 109,
+              "symbol": "title={mode.label}"
             },
             {
               "kind": "app",
-              "file": "apps/react-native/src/sources.ts",
-              "sha256": "3939f8afbad91bb3b9b3b9908520cc46f2056d5e9faba662f7f0bfac2e6fec5d"
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 110,
+              "symbol": "onPress={() => setUiMode(mode)}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/react-native/App.tsx",
+              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "line": 188,
+              "symbol": "? { uiConfig: { variant: new CustomUi(uiMode.factoryFunction) } satisfies WebUiConfig }"
             }
           ]
         }
@@ -95488,12 +95948,16 @@
         "The denominator covers the exported wrapper configuration roots, instance Player/Source/offline APIs, Cast manager and named view/offline callbacks. It is not the union of all underlying native SDK APIs.",
         "Configuration counts leaf paths, callback contracts and opaque boundaries once; array element shapes are not multiplied. OfflineContentConfig has its own configuration scope, including inherited SourceConfig fields.",
         "Static construction helpers, generic React references/styles, namespace containers and the generic onEvent callback are excluded. Data-transfer fields and enum values are not separate runtime operations.",
-        "The source and UI pickers expose fixed presets. Time-shift buttons expose 0, -10, -30 and -60 seconds with DVR-window clamping; they do not accept arbitrary arguments.",
+        "The source editor exposes URL/type/title/poster and startOffset/reference; the player editor exposes autoplay/mute, audioAndVideo.forwardDuration and maxSelectableBitrate. Only those leaf paths receive direct configuration credit. Apply validates the draft, recreates the player and reloads the source; unchanged/invalid Apply and Reset draft do not replace the player.",
+        "iOS offers HLS and progressive; Android also offers DASH. Buffer 0 selects automatically only on iOS; this form requires positive Android targets. Maximum bitrate accepts whole bit/s values: 1–2147483647 on Android and 1–9007199254740991 on iOS, matching the native integer conversion and JavaScript exact-integer limit. Blank buffer/cap fields omit SDK overrides. The complete applied source, chosen UI, log and Allow DVR helper state survive recreation; playback position resets.",
+        "The UI picker exposes named factory/asset presets. Time-shift buttons expose 0, -10, -30 and -60 seconds with DVR-window clamping; they do not accept arbitrary offsets.",
         "isLive and getCurrentTime are read by the snapshot controller but are not consumed by the displayed derived state, so they receive no observation credit.",
         "Allow DVR changes the application DVR helper, not a PlayerConfig playback property. License configuration comes from environment setup and is not GUI editable.",
-        "The embedded native/shared Web UI has not been qualified against this wrapper version; its controls receive no inferred coverage credit. This is confirmed application-owned GUI coverage, not a full SDK UI claim.",
+        "The embedded native/shared Web UI has not been qualified against this wrapper version; its controls receive no inferred coverage credit. Application-owned controls are source-mapped and mock-tested, not native playback qualification.",
         "The latest wrapper pins Apple 3.126.0 and Android 3.165.0+jason. These supported wrapper defaults are not overridden to the newer standalone SDK versions.",
-        "TimeChanged only triggers refresh; SourceLoaded and TimeShifted also have named log entries. Event payload fields are not exposed. The screen and helpers are type-checked and unit-tested. Native playback and Expo prebuild/device integration were not performed for this measurement."
+        "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries; event payload fields are not exposed. onPlayerViewReady only triggers loading and is internal.",
+        "Player.load receives the edited SourceConfig. No Source instance lifecycle, read-only configuration observation, offline operation or unrelated nested property is inferred from those input controls.",
+        "The actual App/configuration JSX and helpers are type-checked against installed declarations and tested with mocked native/player boundaries. Native Expo builds, WebView/native layout and device playback were not performed for this measurement."
       ]
     },
     {
@@ -95970,7 +96434,9 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd"
+              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
+              "line": 59,
+              "symbol": "try { await player?.destroy(); }"
             }
           ]
         },
@@ -96209,12 +96675,16 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 68,
+              "symbol": "currentTime: this.player.getCurrentTime(),"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/dvr/state.ts",
-              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24"
+              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24",
+              "line": 32,
+              "symbol": "export function isLiveStream(s: PlayerSnapshot): boolean {"
             }
           ]
         },
@@ -96291,17 +96761,23 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 65,
+              "symbol": "duration: this.player.getDuration(),"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/dvr/state.ts",
-              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24"
+              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24",
+              "line": 42,
+              "symbol": "const mode: PlaybackMode = !live ? \"vod\" : dvrAvailable ? \"live-dvr\" : \"live-no-dvr\";"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
+              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "line": 63,
+              "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
         },
@@ -96342,17 +96818,23 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 66,
+              "symbol": "maxTimeShift: this.player.getMaxTimeShift(),"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/dvr/state.ts",
-              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24"
+              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24",
+              "line": 40,
+              "symbol": "const win = windowDuration(s.maxTimeShift);"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
+              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "line": 63,
+              "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
         },
@@ -96573,17 +97055,23 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 67,
+              "symbol": "timeShift: this.player.getTimeShift(),"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/dvr/state.ts",
-              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24"
+              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24",
+              "line": 49,
+              "symbol": "behindLive: live ? behindLive(offset) : 0,"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
+              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "line": 63,
+              "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
         },
@@ -96822,12 +97310,16 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 64,
+              "symbol": "isLive: this.player.isLive(),"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/dvr/state.ts",
-              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24"
+              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24",
+              "line": 32,
+              "symbol": "export function isLiveStream(s: PlayerSnapshot): boolean {"
             }
           ]
         },
@@ -96926,7 +97418,7 @@
           "category": "command",
           "scope": "PlayerAPI",
           "deprecated": false,
-          "status": "preset",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerAPI.html#load",
           "evidence": [
             {
@@ -96939,23 +97431,31 @@
             },
             {
               "kind": "app",
-              "file": "apps/vega/src/App.tsx",
-              "sha256": "dc385bc404e0d7f09d392ffd1508a7eb304f523a8a3b68935927acf537b72272"
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 58,
+              "symbol": "<Button title=\"Apply and recreate player\" onPress={onApply} disabled={!changed} />"
             },
             {
               "kind": "app",
-              "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
+              "file": "apps/vega/src/App.tsx",
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/App.tsx",
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 76,
+              "symbol": "source={applied.source}"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd"
-            },
-            {
-              "kind": "app",
-              "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
+              "line": 88,
+              "symbol": "await player.load(options.source);"
             }
           ]
         },
@@ -97212,7 +97712,9 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 37,
+              "symbol": "this.player.off(PlayerEvent.TimeChanged, this.handleRefresh);"
             }
           ]
         },
@@ -97235,7 +97737,9 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 26,
+              "symbol": "player.on(PlayerEvent.TimeChanged, this.handleRefresh);"
             }
           ]
         },
@@ -97743,23 +98247,31 @@
             },
             {
               "kind": "app",
-              "file": "apps/vega/src/App.tsx",
-              "sha256": "dc385bc404e0d7f09d392ffd1508a7eb304f523a8a3b68935927acf537b72272"
+              "file": "apps/vega/src/ControlPanel.tsx",
+              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "line": 38,
+              "symbol": "<Button title=\"Live edge\" onPress={() => controllerRef.current?.goToLiveEdge()} />"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
-            },
-            {
-              "kind": "app",
-              "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd"
+              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "line": 39,
+              "symbol": "{[-10, -30, -60].map((offset) => ("
             },
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 52,
+              "symbol": "this.player.timeShift(0);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/dvrController.ts",
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 59,
+              "symbol": "this.player.timeShift(target);"
             }
           ]
         },
@@ -98326,7 +98838,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.BitrateLimitationConfig.html#maxSelectableVideoBitrate",
           "evidence": [
             {
@@ -98336,6 +98848,34 @@
               "file": "types/core/PlayerConfigAPI.d.ts",
               "sha256": "0bc104a4e46b703e699c4708bb083b253fa2fe3e15995d112d6f27a4b7a50b21",
               "line": 1623
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 54,
+              "symbol": "{field(\"Maximum video bitrate (bits per second)\", \"maxVideoBitrate\", true)}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 82,
+              "symbol": "...(maxVideoBitrate !== undefined ? { adaptation: { bitrates: { maxSelectableVideoBitrate: maxVideoBitrate } } } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/App.tsx",
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/BitmovinPlayer.tsx",
+              "sha256": "8bd6a681925968dc0e3b94b4981880a597e79e3707a7644bb957c551ea6470be",
+              "line": 39,
+              "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
         },
@@ -101922,7 +102462,9 @@
             {
               "kind": "app",
               "file": "apps/vega/src/App.tsx",
-              "sha256": "dc385bc404e0d7f09d392ffd1508a7eb304f523a8a3b68935927acf537b72272"
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 42,
+              "symbol": "...(ANALYTICS_LICENSE_KEY ? { analytics: { key: ANALYTICS_LICENSE_KEY } } : {}),"
             }
           ]
         },
@@ -102039,7 +102581,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.BufferMediaTypeConfig.html#forwardduration",
           "evidence": [
             {
@@ -102049,6 +102591,34 @@
               "file": "types/core/PlayerConfigAPI.d.ts",
               "sha256": "0bc104a4e46b703e699c4708bb083b253fa2fe3e15995d112d6f27a4b7a50b21",
               "line": 635
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 52,
+              "symbol": "{field(\"Audio forward buffer (seconds)\", \"audioForwardDuration\", true)}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 80,
+              "symbol": "...(audio !== undefined ? { audio: { forwardduration: audio } } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/App.tsx",
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/BitmovinPlayer.tsx",
+              "sha256": "8bd6a681925968dc0e3b94b4981880a597e79e3707a7644bb957c551ea6470be",
+              "line": 39,
+              "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
         },
@@ -102075,7 +102645,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.BufferMediaTypeConfig.html#forwardduration",
           "evidence": [
             {
@@ -102085,6 +102655,34 @@
               "file": "types/core/PlayerConfigAPI.d.ts",
               "sha256": "0bc104a4e46b703e699c4708bb083b253fa2fe3e15995d112d6f27a4b7a50b21",
               "line": 635
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 51,
+              "symbol": "{field(\"Video forward buffer (seconds)\", \"videoForwardDuration\", true)}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 79,
+              "symbol": "...(video !== undefined ? { video: { forwardduration: video } } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/App.tsx",
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/BitmovinPlayer.tsx",
+              "sha256": "8bd6a681925968dc0e3b94b4981880a597e79e3707a7644bb957c551ea6470be",
+              "line": 39,
+              "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
         },
@@ -102323,7 +102921,9 @@
             {
               "kind": "app",
               "file": "apps/vega/src/App.tsx",
-              "sha256": "dc385bc404e0d7f09d392ffd1508a7eb304f523a8a3b68935927acf537b72272"
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 36,
+              "symbol": "key: LICENSE_KEY,"
             }
           ]
         },
@@ -103304,7 +103904,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "code-only",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlaybackConfig.html#autoplay",
           "evidence": [
             {
@@ -103317,8 +103917,31 @@
             },
             {
               "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 48,
+              "symbol": "<Text style={styles.label}>Autoplay</Text><Switch accessibilityLabel=\"Autoplay\" value={draft.autoplay} onValueChange={(value) => update(\"autoplay\", value)} />"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 77,
+              "symbol": "playback: { autoplay: draft.autoplay, muted: draft.muted },"
+            },
+            {
+              "kind": "app",
               "file": "apps/vega/src/App.tsx",
-              "sha256": "dc385bc404e0d7f09d392ffd1508a7eb304f523a8a3b68935927acf537b72272"
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/BitmovinPlayer.tsx",
+              "sha256": "8bd6a681925968dc0e3b94b4981880a597e79e3707a7644bb957c551ea6470be",
+              "line": 39,
+              "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
         },
@@ -103345,7 +103968,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "code-only",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlaybackConfig.html#muted",
           "evidence": [
             {
@@ -103358,8 +103981,31 @@
             },
             {
               "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 49,
+              "symbol": "<Text style={styles.label}>Mute on startup</Text><Switch accessibilityLabel=\"Mute on startup\" value={draft.muted} onValueChange={(value) => update(\"muted\", value)} />"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 77,
+              "symbol": "playback: { autoplay: draft.autoplay, muted: draft.muted },"
+            },
+            {
+              "kind": "app",
               "file": "apps/vega/src/App.tsx",
-              "sha256": "dc385bc404e0d7f09d392ffd1508a7eb304f523a8a3b68935927acf537b72272"
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/BitmovinPlayer.tsx",
+              "sha256": "8bd6a681925968dc0e3b94b4981880a597e79e3707a7644bb957c551ea6470be",
+              "line": 39,
+              "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
         },
@@ -105010,7 +105656,9 @@
             {
               "kind": "app",
               "file": "apps/vega/src/App.tsx",
-              "sha256": "dc385bc404e0d7f09d392ffd1508a7eb304f523a8a3b68935927acf537b72272"
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 37,
+              "symbol": "ui: false,"
             }
           ]
         },
@@ -105699,12 +106347,23 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 29,
+              "symbol": "player.on(PlayerEvent.DurationChanged, this.handleDurationChanged);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/dvrController.ts",
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 84,
+              "symbol": "private readonly handleDurationChanged = (): void => this.emit(\"DurationChanged\");"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
+              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "line": 70,
+              "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
         },
@@ -105727,12 +106386,30 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 31,
+              "symbol": "player.on(PlayerEvent.DVRWindowExceeded, this.handleWindowExceeded);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/dvrController.ts",
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 85,
+              "symbol": "private readonly handleWindowExceeded = (): void => {"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/dvrController.ts",
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 88,
+              "symbol": "this.emit(\"DVRWindowExceeded → recover\");"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
+              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "line": 70,
+              "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
         },
@@ -106187,12 +106864,23 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 27,
+              "symbol": "player.on(PlayerEvent.SourceLoaded, this.handleSourceLoaded);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/dvrController.ts",
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 82,
+              "symbol": "private readonly handleSourceLoaded = (): void => this.emit(\"SourceLoaded\");"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
+              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "line": 70,
+              "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
         },
@@ -106395,12 +107083,30 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 26,
+              "symbol": "player.on(PlayerEvent.TimeChanged, this.handleRefresh);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/dvrController.ts",
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 81,
+              "symbol": "private readonly handleRefresh = (): void => this.emit();"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/dvrController.ts",
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 78,
+              "symbol": "this.onUpdate(deriveDvrState(snap, { timeShiftEnabled: this.timeShiftEnabled }), line);"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
+              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "line": 63,
+              "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
         },
@@ -106441,12 +107147,23 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvrController.ts",
-              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5"
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 28,
+              "symbol": "player.on(PlayerEvent.TimeShifted, this.handleTimeShifted);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/dvrController.ts",
+              "sha256": "89924a0dbd0cc07fa16f7761e5cdd034713461e09713fb4d376fc96cf48de0a5",
+              "line": 83,
+              "symbol": "private readonly handleTimeShifted = (): void => this.emit(\"TimeShifted\");"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
+              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "line": 70,
+              "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
         },
@@ -108903,7 +109620,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "preset",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfig.html#dash",
           "evidence": [
             {
@@ -108916,18 +109633,31 @@
             },
             {
               "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 33,
+              "symbol": "<Button title=\"DASH\" onPress={() => update(\"type\", \"dash\")} disabled={draft.type === \"dash\"} />"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 67,
+              "symbol": "const media = draft.type === \"hls\" ? { hls: url } : draft.type === \"dash\" ? { dash: url } : { progressive: url };"
+            },
+            {
+              "kind": "app",
               "file": "apps/vega/src/App.tsx",
-              "sha256": "dc385bc404e0d7f09d392ffd1508a7eb304f523a8a3b68935927acf537b72272"
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
             },
             {
               "kind": "app",
-              "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
-            },
-            {
-              "kind": "app",
-              "file": "apps/vega/src/Sources.ts",
-              "sha256": "989dec72de2dc23025a7f41b2a00850856445476aa2f2c641a91f6b5f1042c22"
+              "file": "apps/vega/src/playerSession.ts",
+              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
+              "line": 88,
+              "symbol": "await player.load(options.source);"
             }
           ]
         },
@@ -110196,7 +110926,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "preset",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfig.html#hls",
           "evidence": [
             {
@@ -110209,18 +110939,31 @@
             },
             {
               "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 29,
+              "symbol": "{field(\"Source URL\", \"url\")}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 67,
+              "symbol": "const media = draft.type === \"hls\" ? { hls: url } : draft.type === \"dash\" ? { dash: url } : { progressive: url };"
+            },
+            {
+              "kind": "app",
               "file": "apps/vega/src/App.tsx",
-              "sha256": "dc385bc404e0d7f09d392ffd1508a7eb304f523a8a3b68935927acf537b72272"
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
             },
             {
               "kind": "app",
-              "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
-            },
-            {
-              "kind": "app",
-              "file": "apps/vega/src/Sources.ts",
-              "sha256": "989dec72de2dc23025a7f41b2a00850856445476aa2f2c641a91f6b5f1042c22"
+              "file": "apps/vega/src/playerSession.ts",
+              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
+              "line": 88,
+              "symbol": "await player.load(options.source);"
             }
           ]
         },
@@ -110679,7 +111422,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfigOptions.html#startOffset",
           "evidence": [
             {
@@ -110689,6 +111432,34 @@
               "file": "types/core/PlayerConfigAPI.d.ts",
               "sha256": "0bc104a4e46b703e699c4708bb083b253fa2fe3e15995d112d6f27a4b7a50b21",
               "line": 100
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 39,
+              "symbol": "{field(\"Start offset (seconds)\", \"startOffset\", true)}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 72,
+              "symbol": "...(startOffset !== undefined ? { startOffset } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/App.tsx",
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/playerSession.ts",
+              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
+              "line": 88,
+              "symbol": "await player.load(options.source);"
             }
           ]
         },
@@ -110697,7 +111468,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfigOptions.html#startOffsetTimelineReference",
           "evidence": [
             {
@@ -110707,6 +111478,34 @@
               "file": "types/core/PlayerConfigAPI.d.ts",
               "sha256": "0bc104a4e46b703e699c4708bb083b253fa2fe3e15995d112d6f27a4b7a50b21",
               "line": 106
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 43,
+              "symbol": "<Button title=\"Start\" onPress={() => update(\"timeline\", \"start\")} disabled={draft.timeline === \"start\"} />"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 73,
+              "symbol": "...(reference !== undefined ? { startOffsetTimelineReference: reference } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/App.tsx",
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/playerSession.ts",
+              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
+              "line": 88,
+              "symbol": "await player.load(options.source);"
             }
           ]
         },
@@ -110769,7 +111568,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfig.html#poster",
           "evidence": [
             {
@@ -110779,6 +111578,34 @@
               "file": "types/core/PlayerConfigAPI.d.ts",
               "sha256": "0bc104a4e46b703e699c4708bb083b253fa2fe3e15995d112d6f27a4b7a50b21",
               "line": 347
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 37,
+              "symbol": "{field(\"Poster URL\", \"poster\")}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 70,
+              "symbol": "...media, ...(title ? { title } : {}), ...(poster ? { poster } : {}),"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/App.tsx",
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/playerSession.ts",
+              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
+              "line": 88,
+              "symbol": "await player.load(options.source);"
             }
           ]
         },
@@ -110787,7 +111614,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfig.html#progressive",
           "evidence": [
             {
@@ -110797,6 +111624,34 @@
               "file": "types/core/PlayerConfigAPI.d.ts",
               "sha256": "0bc104a4e46b703e699c4708bb083b253fa2fe3e15995d112d6f27a4b7a50b21",
               "line": 332
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 34,
+              "symbol": "<Button title=\"Progressive MP4\" onPress={() => update(\"type\", \"progressive\")} disabled={draft.type === \"progressive\"} />"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 67,
+              "symbol": "const media = draft.type === \"hls\" ? { hls: url } : draft.type === \"dash\" ? { dash: url } : { progressive: url };"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/App.tsx",
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/playerSession.ts",
+              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
+              "line": 88,
+              "symbol": "await player.load(options.source);"
             }
           ]
         },
@@ -111237,7 +112092,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "preset",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfig.html#title",
           "evidence": [
             {
@@ -111250,18 +112105,31 @@
             },
             {
               "kind": "app",
+              "file": "apps/vega/src/ConfigurationPanel.tsx",
+              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "line": 36,
+              "symbol": "{field(\"Source title\", \"title\")}"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/configuration.ts",
+              "sha256": "7a391bee7c82d527bf5527c10dc500efa3cd1d89e513b7b8f7cc5e8d17556500",
+              "line": 70,
+              "symbol": "...media, ...(title ? { title } : {}), ...(poster ? { poster } : {}),"
+            },
+            {
+              "kind": "app",
               "file": "apps/vega/src/App.tsx",
-              "sha256": "dc385bc404e0d7f09d392ffd1508a7eb304f523a8a3b68935927acf537b72272"
+              "sha256": "57c0070c6d6373da0267fa35bc97f4cdb8e453ca7d4872506d8cd6bcef544674",
+              "line": 59,
+              "symbol": "const next = parseConfiguration(draft);"
             },
             {
               "kind": "app",
-              "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "8d2c662d09d38ab9914ee1803d43e03d8d9c0ef81b659d0bad1079b59568e63b"
-            },
-            {
-              "kind": "app",
-              "file": "apps/vega/src/Sources.ts",
-              "sha256": "989dec72de2dc23025a7f41b2a00850856445476aa2f2c641a91f6b5f1042c22"
+              "file": "apps/vega/src/playerSession.ts",
+              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
+              "line": 88,
+              "symbol": "await player.load(options.source);"
             }
           ]
         },
@@ -111906,10 +112774,13 @@
         "The denominator is the published Vega-channel TypeScript PlayerConfig/SourceConfig paths, PlayerAPI callable members and PlayerEvent names. Data-transfer types, module-construction methods and exported utility namespaces are outside these scopes.",
         "This special beta channel is the current release supported by the official Vega sample. The general Web stable release is not a supported replacement.",
         "Public declarations include APIs with module, media, device and platform prerequisites. Their presence does not prove that every Web feature operates on Vega. Unqualified features remain unexposed rather than being silently removed from the denominator.",
-        "Source selection supplies fixed HLS/DASH URLs and titles. Time-shift buttons expose 0, -10, -30 and -60 seconds with window clamping; arbitrary SDK arguments are not editable.",
-        "Allow DVR changes the application DVR helper. Player configuration, authentication and module registration are source/setup constants, not editable GUI settings.",
+        "The source editor exposes HLS/DASH/progressive string URLs, title/poster and startOffset/reference. Player controls expose autoplay/mute, separate audio/video forwardduration targets and the adaptation video bitrate cap. Only those leaf paths receive direct configuration credit; progressive array fields and unrelated object members remain unexposed.",
+        "Apply validates the draft, recreates the SDK player through the serialized session and reloads the source; unchanged/invalid Apply and Reset draft do not replace resources. The selected/custom source, logs and Allow DVR helper state persist while playback position resets. Time-shift buttons remain fixed at 0, -10, -30 and -60 seconds with window clamping.",
+        "Allow DVR changes the application DVR helper, not PlayerConfig.playback.timeShift. License/authentication, ui:false and module registration remain setup constants, not GUI settings. Title/poster are passed in SourceConfig, but the Kepler screen has no poster overlay or HTML Player UI.",
         "isLive and getCurrentTime are read but not consumed by the displayed derived state, so they receive no observation credit.",
-        "TimeChanged only triggers refresh; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed. Only the controller and helper code are type-checked/unit-tested in this repository. The Kepler TSX screen and real Vega playback were not built or device-tested for this measurement."
+        "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
+        "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed.",
+        "The actual App/control/configuration/video-surface JSX and helpers are type-checked against installed SDK, React Native and Kepler declarations. App/session tests mock native/media/player boundaries, including initialization and cleanup changes. Kepler builds, native layout, TV focus/keyboard input and real Vega playback were not performed for this measurement."
       ]
     }
   ]

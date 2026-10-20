@@ -232,20 +232,20 @@ class GuideTests(unittest.TestCase):
 
     def test_native_configuration_totals_include_audited_code_only_entries(self):
         report = json.loads((ROOT / 'docs/api-coverage/coverage.json').read_text())
-        expected = {'ios': (209, '11 / 209 · 5.26%', 5, 6),
-                    'tvos': (180, '8 / 180 · 4.44%', 1, 7),
-                    'android': (294, '10 / 294 · 3.40%', 5, 5),
-                    'react-native': (267, '8 / 267 · 3.00%', 5, 3),
-                    'vega': (653, '8 / 653 · 1.23%', 3, 5)}
+        expected = {'ios': (209, '11 / 209 · 5.26%', 0, 5, 6),
+                    'tvos': (180, '8 / 180 · 4.44%', 0, 1, 7),
+                    'android': (294, '10 / 294 · 3.40%', 0, 5, 5),
+                    'react-native': (267, '16 / 267 · 5.99%', 10, 3, 3),
+                    'vega': (653, '15 / 653 · 2.30%', 12, 0, 3)}
         for app in report['applications']:
             if app['id'] not in expected:
                 continue
-            total, used, preset, code = expected[app['id']]
+            total, used, direct, preset, code = expected[app['id']]
             for language in ('en', 'ja'):
                 with self.subTest(app=app['id'], language=language):
                     table = category_metrics([app], 'configuration', language, route_file(language, 'api-coverage'),
                                              self.content[language]['api-coverage'])
-                    self.assertIn(f'<td>{total}</td><td>{used}</td><td>0</td><td>{preset}</td><td>{code}</td>', table)
+                    self.assertIn(f'<td>{total}</td><td>{used}</td><td>{direct}</td><td>{preset}</td><td>{code}</td>', table)
 
     def test_zero_denominators_have_no_invented_percentage(self):
         changed = copy.deepcopy(self.report)
