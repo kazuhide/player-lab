@@ -120,8 +120,10 @@ internal data class PlayerDraft(
         // The documented threshold ceiling is the forward buffer minus 0.5 seconds.
         // https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.buffer/-buffer-config/index.html
         if (forward != null) {
-            if (startup != null && startup > forward - 0.5) errors["startupThreshold"] = "Must be at most forward buffer minus 0.5 s."
-            if (restart != null && restart > forward - 0.5) errors["restartThreshold"] = "Must be at most forward buffer minus 0.5 s."
+            // Account for one ULP of subtraction error, e.g. 0.6 - 0.5 being slightly below 0.1.
+            fun exceedsHeadroom(threshold: Double) = threshold - (forward - 0.5) > Math.ulp(forward)
+            if (startup != null && exceedsHeadroom(startup)) errors["startupThreshold"] = "Must be at most forward buffer minus 0.5 s."
+            if (restart != null && exceedsHeadroom(restart)) errors["restartThreshold"] = "Must be at most forward buffer minus 0.5 s."
         }
         val bitrate = if (maxVideoBitrate.isBlank()) Int.MAX_VALUE else maxVideoBitrate.trim().toIntOrNull()
         if (bitrate == null || bitrate < 0) errors["maxVideoBitrate"] = "Enter a whole number from 0 to 2147483647 bps, or leave blank."

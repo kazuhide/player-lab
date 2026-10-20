@@ -71,6 +71,15 @@ class ConfigurationTest {
     }
 
     @Test
+    fun decimalBufferBoundaryAcceptsRoundingWithoutRelaxingTheHeadroomRule() {
+        val draft = PlayerDraft(forwardDuration = "0.6", startupThreshold = "0.1", restartThreshold = "0.1")
+        val settings = requireNotNull(draft.validate().value)
+        assertEquals(0.1, settings.toPlayerConfig("dummy").bufferConfig.startupThreshold, 0.0)
+        assertEquals(0.1, settings.toPlayerConfig("dummy").bufferConfig.restartThreshold, 0.0)
+        assertTrue(draft.copy(startupThreshold = "0.100001").validate().errors.containsKey("startupThreshold"))
+    }
+
+    @Test
     fun editedValuesSurviveDraftRoundTripsWithExactSdkUnits() {
         val settings = requireNotNull(PlayerDraft(
             autoplay = true, muted = true, timeShift = false, startupThreshold = "1",
