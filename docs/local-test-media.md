@@ -30,7 +30,9 @@ written to disk. HLS and DASH reuse the same fragmented MP4 segments, and featur
 playlists reuse those files.
 
 The test runner starts local media, player-harness and application servers,
-runs one browser worker with zero retries, and stops its servers afterward.
+uses a CPU/memory-based worker budget of one to four with zero retries, and
+stops its servers afterward. Set `E2E_WORKERS=1` to reduce concurrency. Performance
+measurements use their separate single-worker configuration.
 The default ports are 5180, 5174 and 5175. Set `E2E_MEDIA_PORT`,
 `E2E_HARNESS_PORT` and `E2E_APP_PORT` to use distinct ports for parallel runs.
 Google Chrome must be installed; continuous integration uses Playwright's

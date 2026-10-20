@@ -1,0 +1,529 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-21",
+  "environment": {
+    "browser": "155.0.8059.85",
+    "node": "v24.19.0",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64",
+    "cpuModel": "Apple M5",
+    "logicalCpus": 10,
+    "availableParallelism": 10,
+    "memoryGiB": 32
+  },
+  "conditions": {
+    "app": "Vite development server",
+    "viewport": "1440x900",
+    "headless": true,
+    "warmupRunsExcluded": 1,
+    "measuredRuns": 3,
+    "workers": 1,
+    "retries": 0,
+    "media": "Local 60-second H.264/AAC Big Buck Bunny HLS/DASH fixture with 2-second video segments",
+    "forcedGarbageCollectionDuringSamples": false,
+    "explicitCollectionAfterSamples": false,
+    "cpuThrottling": false,
+    "networkThrottling": false,
+    "note": "Run on an otherwise idle machine. Renderer CPU excludes other browser processes. RSS is sampled by browser process type and includes shared pages, code, JavaScript and native allocations; it is not a private-allocation total. GPU-process RSS is system RAM, not VRAM. JavaScript heap excludes native media buffers and GPU memory."
+  },
+  "before": {
+    "source": {
+      "revision": "80a02edccad0d220c22698782f57cf4cfdd5fbd6",
+      "playerVersion": "8.281.0",
+      "uiVersion": "4.23.0",
+      "harnessSha256": "4a78c03b3905464893c4d1907dcf38e1c199961f242f8fd28007830cd1862fde",
+      "sharedUiSha256": "4f175113a339af2d778b1181f79d1eac8b6f9c79d273a69308859c88e7a059e6",
+      "playerAppSha256": "1de037a1cd9554092ac81079a42364a85052f03bc9060a9285e67830dbfdad69",
+      "servedSharedUiSha256": [
+        "0870d98cffe691e0f072d9f772efcb874b2e5c884e69541aaf661851ff293f5a"
+      ],
+      "servedUiDependencySha256": [
+        "2f5419010444ec1082495209fec7329519a4894156464371df62d16a4b0566d3"
+      ],
+      "uiPatchSha256": "92cf839f9c6a2f81bda8b908d8c344c1304f299fee4a2394d06a150d9d8942cb"
+    },
+    "sourceQualification": "The recorded HEAD predates the temporary Web 8.281.0 package overrides and measurement harness. Actual installed versions and measured input/served-response hashes are recorded here; this is not a clean checkout of that revision.",
+    "ordinaryDisposal": {
+      "phase": "disposed",
+      "elapsedMsMedian": 15159.20000000298,
+      "taskMsMedian": 1313.92,
+      "taskMsMin": 1253.25,
+      "taskMsMax": 1346.0790000000002,
+      "threadCpuMsMedian": 1349.1189999999997,
+      "threadCpuMsMin": 1288.089,
+      "threadCpuMsMax": 1381.6309999999999,
+      "rendererCpuMsMedian": 2332.566,
+      "rendererCpuMsMin": 2159.722,
+      "rendererCpuMsMax": 2342.501,
+      "jsHeapUsedMiBMedian": 27.02239227294922,
+      "jsHeapUsedMiBMin": 22.156726837158203,
+      "jsHeapUsedMiBMax": 27.64212417602539,
+      "domNodesMedian": 13881,
+      "domListenersMedian": 15378,
+      "activeIntervalsMedian": 1,
+      "requestsInFlightMax": 0
+    },
+    "highestSampledHeapMiB": {
+      "median": 33.94412612915039,
+      "min": 33.83382034301758,
+      "max": 37.138633728027344,
+      "samples": [
+        33.83382034301758,
+        37.138633728027344,
+        33.94412612915039
+      ]
+    },
+    "ordinaryEndpointSamples": [
+      {
+        "jsHeapUsedMiB": 22.156726837158203,
+        "domNodes": 13234,
+        "domListeners": 14773,
+        "connectedElements": 988,
+        "mediaElements": 0,
+        "livePlayers": 0,
+        "playersCreated": 7,
+        "playersDestroyed": 7,
+        "appMetricsTimer": false,
+        "appSourceLoadPending": false,
+        "requestsInFlight": 0,
+        "activeIntervals": 1,
+        "processMemory": {
+          "rssMiBByType": {
+            "browser": 222.921875,
+            "renderer": 664.203125,
+            "GPU": 130.734375,
+            "network.mojom.NetworkService": 100.34375,
+            "storage.mojom.StorageService": 65.625,
+            "mac_notifications.mojom.MacNotificationProvider": 72.734375,
+            "audio.mojom.AudioService": 75.765625
+          },
+          "countByType": {
+            "browser": 1,
+            "renderer": 3,
+            "GPU": 1,
+            "network.mojom.NetworkService": 1,
+            "storage.mojom.StorageService": 1,
+            "mac_notifications.mojom.MacNotificationProvider": 1,
+            "audio.mojom.AudioService": 1
+          },
+          "retiredBeforeRss": 0
+        }
+      },
+      {
+        "jsHeapUsedMiB": 27.02239227294922,
+        "domNodes": 15178,
+        "domListeners": 16612,
+        "connectedElements": 988,
+        "mediaElements": 0,
+        "livePlayers": 0,
+        "playersCreated": 7,
+        "playersDestroyed": 7,
+        "appMetricsTimer": false,
+        "appSourceLoadPending": false,
+        "requestsInFlight": 0,
+        "activeIntervals": 1,
+        "processMemory": {
+          "rssMiBByType": {
+            "browser": 226.15625,
+            "renderer": 717.546875,
+            "GPU": 131.328125,
+            "network.mojom.NetworkService": 102.5625,
+            "storage.mojom.StorageService": 65.6875,
+            "mac_notifications.mojom.MacNotificationProvider": 72.78125,
+            "audio.mojom.AudioService": 75.90625
+          },
+          "countByType": {
+            "browser": 1,
+            "renderer": 3,
+            "GPU": 1,
+            "network.mojom.NetworkService": 1,
+            "storage.mojom.StorageService": 1,
+            "mac_notifications.mojom.MacNotificationProvider": 1,
+            "audio.mojom.AudioService": 1
+          },
+          "retiredBeforeRss": 0
+        }
+      },
+      {
+        "jsHeapUsedMiB": 27.64212417602539,
+        "domNodes": 13881,
+        "domListeners": 15378,
+        "connectedElements": 988,
+        "mediaElements": 0,
+        "livePlayers": 0,
+        "playersCreated": 7,
+        "playersDestroyed": 7,
+        "appMetricsTimer": false,
+        "appSourceLoadPending": false,
+        "requestsInFlight": 0,
+        "activeIntervals": 1,
+        "processMemory": {
+          "rssMiBByType": {
+            "browser": 225.921875,
+            "renderer": 716.640625,
+            "GPU": 133.953125,
+            "network.mojom.NetworkService": 103.546875,
+            "storage.mojom.StorageService": 66.203125,
+            "mac_notifications.mojom.MacNotificationProvider": 73.296875,
+            "audio.mojom.AudioService": 76.21875
+          },
+          "countByType": {
+            "browser": 1,
+            "renderer": 3,
+            "GPU": 1,
+            "network.mojom.NetworkService": 1,
+            "storage.mojom.StorageService": 1,
+            "mac_notifications.mojom.MacNotificationProvider": 1,
+            "audio.mojom.AudioService": 1
+          },
+          "retiredBeforeRss": 0
+        }
+      }
+    ],
+    "explicitCollection": {
+      "jsHeapUsedMiB": {
+        "median": 20.04883575439453,
+        "min": 20.043155670166016,
+        "max": 20.050765991210938,
+        "samples": [
+          20.043155670166016,
+          20.050765991210938,
+          20.04883575439453
+        ]
+      },
+      "domNodes": {
+        "median": 12991,
+        "min": 12991,
+        "max": 12991,
+        "samples": [
+          12991,
+          12991,
+          12991
+        ]
+      },
+      "domListeners": {
+        "median": 14469,
+        "min": 14469,
+        "max": 14469,
+        "samples": [
+          14469,
+          14469,
+          14469
+        ]
+      }
+    },
+    "explicitCollectionProcessRssMiB": {
+      "browser": {
+        "median": 222.953125,
+        "min": 220.65625,
+        "max": 227.703125,
+        "samples": [
+          220.65625,
+          222.953125,
+          227.703125
+        ]
+      },
+      "renderer": {
+        "median": 607.609375,
+        "min": 533.84375,
+        "max": 674.359375,
+        "samples": [
+          533.84375,
+          607.609375,
+          674.359375
+        ]
+      },
+      "GPU": {
+        "median": 131.046875,
+        "min": 130.296875,
+        "max": 131.921875,
+        "samples": [
+          131.046875,
+          130.296875,
+          131.921875
+        ]
+      }
+    },
+    "explicitCollectionProcessCounts": {
+      "browser": 1,
+      "renderer": 3,
+      "GPU": 1,
+      "network.mojom.NetworkService": 1,
+      "storage.mojom.StorageService": 1,
+      "mac_notifications.mojom.MacNotificationProvider": 1,
+      "audio.mojom.AudioService": 1
+    },
+    "diagnosticSource": {
+      "revision": "80a02edccad0d220c22698782f57cf4cfdd5fbd6",
+      "playerVersion": "8.281.0",
+      "uiVersion": "4.23.0",
+      "harnessSha256": "4a78c03b3905464893c4d1907dcf38e1c199961f242f8fd28007830cd1862fde",
+      "sharedUiSha256": "4f175113a339af2d778b1181f79d1eac8b6f9c79d273a69308859c88e7a059e6",
+      "playerAppSha256": "1de037a1cd9554092ac81079a42364a85052f03bc9060a9285e67830dbfdad69",
+      "servedSharedUiSha256": [
+        "b7415711e2ddd12188268b733f86b354c7f6f675bec8300e8ad46578c2eb7aa7"
+      ],
+      "servedUiDependencySha256": [
+        "d4a79780e93773e7d38f39f8a408186181acbcbd5fd6bf1450370cb78ca3c703"
+      ],
+      "uiPatchSha256": "92cf839f9c6a2f81bda8b908d8c344c1304f299fee4a2394d06a150d9d8942cb"
+    }
+  },
+  "after": {
+    "source": {
+      "revision": "dee205bfd044f0f01b3e9471c03f264f604b1557",
+      "playerVersion": "8.281.0",
+      "uiVersion": "4.23.0",
+      "trackedMeasuredInputsClean": true,
+      "sharedUiBundleSha256": "d70fd680b6ae799ba3e374db22c812d8178d08e10339e2f478b80f08381de4a3",
+      "harnessSha256": "43d614e92ac2ebe8b544130e00b3b6c1286cc6327ffc72ce94d491ab5c4731e6",
+      "sharedUiSha256": "4f175113a339af2d778b1181f79d1eac8b6f9c79d273a69308859c88e7a059e6",
+      "playerAppSha256": "1de037a1cd9554092ac81079a42364a85052f03bc9060a9285e67830dbfdad69",
+      "servedSharedUiSha256": [
+        "3bf4cecfb9073d37de40e1f59c95d886e8b3e67cf8a8a02591a1e53f3b67f928"
+      ],
+      "servedUiDependencySha256": [
+        "abfe87ea3dac994edef283a04dfad8c0af979e5707c518193c6bc2567a859953"
+      ],
+      "uiPatchSha256": "2d4331ac846ba26dfa1c43839b6ac9504ae34d2b9042302ca71efb763ba93114"
+    },
+    "sourceQualification": "Tracked measured application, dependency, patch and harness inputs were committed and clean before and after measurement.",
+    "ordinaryDisposal": {
+      "phase": "disposed",
+      "elapsedMsMedian": 15216,
+      "taskMsMedian": 1738.9029999999998,
+      "taskMsMin": 1731.579,
+      "taskMsMax": 1752.254,
+      "threadCpuMsMedian": 1785.356,
+      "threadCpuMsMin": 1777.7060000000001,
+      "threadCpuMsMax": 1799.217,
+      "rendererCpuMsMedian": 2923.5409999999997,
+      "rendererCpuMsMin": 2891.757,
+      "rendererCpuMsMax": 2928.936,
+      "jsHeapUsedMiBMedian": 15.919548034667969,
+      "jsHeapUsedMiBMin": 15.838424682617188,
+      "jsHeapUsedMiBMax": 21.499446868896484,
+      "domNodesMedian": 2803,
+      "domListenersMedian": 835,
+      "activeIntervalsMedian": 1,
+      "requestsInFlightMax": 0
+    },
+    "highestSampledHeapMiB": {
+      "median": 29.376689910888672,
+      "min": 26.332332611083984,
+      "max": 29.647632598876953,
+      "samples": [
+        29.376689910888672,
+        26.332332611083984,
+        29.647632598876953
+      ]
+    },
+    "ordinaryEndpointSamples": [
+      {
+        "jsHeapUsedMiB": 15.919548034667969,
+        "domNodes": 2803,
+        "domListeners": 835,
+        "connectedElements": 988,
+        "mediaElements": 0,
+        "livePlayers": 0,
+        "playersCreated": 7,
+        "playersDestroyed": 7,
+        "appMetricsTimer": false,
+        "appSourceLoadPending": false,
+        "requestsInFlight": 0,
+        "activeIntervals": 1,
+        "processMemory": {
+          "rssMiBByType": {
+            "browser": 247.203125,
+            "renderer": 709.4375,
+            "GPU": 158.234375,
+            "network.mojom.NetworkService": 116.328125,
+            "storage.mojom.StorageService": 80.875,
+            "mac_notifications.mojom.MacNotificationProvider": 89.078125,
+            "audio.mojom.AudioService": 93.1875
+          },
+          "countByType": {
+            "browser": 1,
+            "renderer": 3,
+            "GPU": 1,
+            "network.mojom.NetworkService": 1,
+            "storage.mojom.StorageService": 1,
+            "mac_notifications.mojom.MacNotificationProvider": 1,
+            "audio.mojom.AudioService": 1
+          },
+          "retiredBeforeRss": 0
+        }
+      },
+      {
+        "jsHeapUsedMiB": 15.838424682617188,
+        "domNodes": 2803,
+        "domListeners": 835,
+        "connectedElements": 988,
+        "mediaElements": 0,
+        "livePlayers": 0,
+        "playersCreated": 7,
+        "playersDestroyed": 7,
+        "appMetricsTimer": false,
+        "appSourceLoadPending": false,
+        "requestsInFlight": 0,
+        "activeIntervals": 1,
+        "processMemory": {
+          "rssMiBByType": {
+            "browser": 249.703125,
+            "renderer": 707.46875,
+            "GPU": 161.421875,
+            "network.mojom.NetworkService": 117.359375,
+            "storage.mojom.StorageService": 82.234375,
+            "mac_notifications.mojom.MacNotificationProvider": 90.234375,
+            "audio.mojom.AudioService": 94.234375
+          },
+          "countByType": {
+            "browser": 1,
+            "renderer": 3,
+            "GPU": 1,
+            "network.mojom.NetworkService": 1,
+            "storage.mojom.StorageService": 1,
+            "mac_notifications.mojom.MacNotificationProvider": 1,
+            "audio.mojom.AudioService": 1
+          },
+          "retiredBeforeRss": 0
+        }
+      },
+      {
+        "jsHeapUsedMiB": 21.499446868896484,
+        "domNodes": 3450,
+        "domListeners": 1444,
+        "connectedElements": 988,
+        "mediaElements": 0,
+        "livePlayers": 0,
+        "playersCreated": 7,
+        "playersDestroyed": 7,
+        "appMetricsTimer": false,
+        "appSourceLoadPending": false,
+        "requestsInFlight": 0,
+        "activeIntervals": 1,
+        "processMemory": {
+          "rssMiBByType": {
+            "browser": 250.515625,
+            "renderer": 706.546875,
+            "GPU": 161.3125,
+            "network.mojom.NetworkService": 118,
+            "storage.mojom.StorageService": 82.359375,
+            "mac_notifications.mojom.MacNotificationProvider": 90.375,
+            "audio.mojom.AudioService": 94.34375
+          },
+          "countByType": {
+            "browser": 1,
+            "renderer": 3,
+            "GPU": 1,
+            "network.mojom.NetworkService": 1,
+            "storage.mojom.StorageService": 1,
+            "mac_notifications.mojom.MacNotificationProvider": 1,
+            "audio.mojom.AudioService": 1
+          },
+          "retiredBeforeRss": 0
+        }
+      }
+    ],
+    "explicitCollection": {
+      "jsHeapUsedMiB": {
+        "median": 13.67559814453125,
+        "min": 13.663761138916016,
+        "max": 13.679149627685547,
+        "samples": [
+          13.663761138916016,
+          13.679149627685547,
+          13.67559814453125
+        ]
+      },
+      "domNodes": {
+        "median": 2560,
+        "min": 2560,
+        "max": 2560,
+        "samples": [
+          2560,
+          2560,
+          2560
+        ]
+      },
+      "domListeners": {
+        "median": 531,
+        "min": 531,
+        "max": 531,
+        "samples": [
+          531,
+          531,
+          531
+        ]
+      }
+    },
+    "explicitCollectionProcessRssMiB": {
+      "browser": {
+        "median": 244.4375,
+        "min": 244.03125,
+        "max": 245.234375,
+        "samples": [
+          244.03125,
+          244.4375,
+          245.234375
+        ]
+      },
+      "renderer": {
+        "median": 661.890625,
+        "min": 660.375,
+        "max": 664.5625,
+        "samples": [
+          661.890625,
+          660.375,
+          664.5625
+        ]
+      },
+      "GPU": {
+        "median": 158.1875,
+        "min": 154.765625,
+        "max": 158.59375,
+        "samples": [
+          154.765625,
+          158.1875,
+          158.59375
+        ]
+      }
+    },
+    "explicitCollectionProcessCounts": {
+      "browser": 1,
+      "renderer": 3,
+      "GPU": 1,
+      "network.mojom.NetworkService": 1,
+      "storage.mojom.StorageService": 1,
+      "mac_notifications.mojom.MacNotificationProvider": 1,
+      "audio.mojom.AudioService": 1
+    },
+    "diagnosticSource": {
+      "revision": "dee205bfd044f0f01b3e9471c03f264f604b1557",
+      "playerVersion": "8.281.0",
+      "uiVersion": "4.23.0",
+      "trackedMeasuredInputsClean": true,
+      "sharedUiBundleSha256": "d70fd680b6ae799ba3e374db22c812d8178d08e10339e2f478b80f08381de4a3",
+      "harnessSha256": "43d614e92ac2ebe8b544130e00b3b6c1286cc6327ffc72ce94d491ab5c4731e6",
+      "sharedUiSha256": "4f175113a339af2d778b1181f79d1eac8b6f9c79d273a69308859c88e7a059e6",
+      "playerAppSha256": "1de037a1cd9554092ac81079a42364a85052f03bc9060a9285e67830dbfdad69",
+      "servedSharedUiSha256": [
+        "3bf4cecfb9073d37de40e1f59c95d886e8b3e67cf8a8a02591a1e53f3b67f928"
+      ],
+      "servedUiDependencySha256": [
+        "abfe87ea3dac994edef283a04dfad8c0af979e5707c518193c6bc2567a859953"
+      ],
+      "uiPatchSha256": "2d4331ac846ba26dfa1c43839b6ac9504ae34d2b9042302ca71efb763ba93114"
+    }
+  },
+  "limits": [
+    "Three fresh contexts per condition, after one excluded complete warm-up; sequential measurements on one host.",
+    "Both conditions ran Player 8.281.0 and UI 4.23.0; application and shared-UI source hashes match. Harness provenance guards changed, while workload and sampling phases stayed the same.",
+    "The 21 phases include 14 themes three times, settings, Source Apply, Player Apply, HLS/DASH switches, DVR recreation and disposal; seven players are created and destroyed per context.",
+    "Adaptive quality selected 320x180 through theme changes and 640x360 in later recreation phases in both conditions.",
+    "No CPU/network throttling. Ordinary samples do not force garbage collection; collection diagnostics are separate runs.",
+    "RSS sums shared and private resident pages by process type; renderer values sum three processes, and GPU-process RSS measures system RAM rather than VRAM.",
+    "CPU time and process RSS increased in these runs. Retained JavaScript-heap reduction does not establish total-memory or CPU savings, leak freedom, long-session behavior or results on other devices."
+  ]
+}
