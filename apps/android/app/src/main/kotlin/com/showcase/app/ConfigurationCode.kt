@@ -24,6 +24,18 @@ internal fun configurationCode(source: SourceSettings, player: PlayerSettings, u
     val poster = source.posterUrl.takeIf { it.isNotBlank() }?.let(::kotlinString) ?: "null"
     val reference = source.offsetReference?.let { "TimelineReferencePoint.${it.name}" } ?: "null"
     val live = source.liveTargetLatency?.let { "SourceLiveConfig(targetLatency = $it)" } ?: "null"
+    fun languages(values: List<String>) = if (values.isEmpty()) "emptyList()"
+        else values.joinToString(", ", "listOf(", ")", transform = ::kotlinString)
+    val retries = player.httpRetryDelays?.let {
+        "RetryHttpRequestConfig.Retry(${if (it.isEmpty()) "emptyList()" else it.joinToString(", ", "listOf(", ")")})"
+    } ?: "RetryHttpRequestConfig.LinearIncreasingBackoffRetry"
+    val subtitles = source.externalSubtitle?.let {
+        """listOf(SubtitleTrack(
+        url = ${kotlinString(it.url)}, mimeType = "text/vtt",
+        label = ${it.label.takeIf(String::isNotBlank)?.let(::kotlinString) ?: "null"}, id = "showcase-external-webvtt",
+        isDefault = ${it.isDefault}, language = ${it.language.takeIf(String::isNotBlank)?.let(::kotlinString) ?: "null"},
+    ))"""
+    } ?: "emptyList()"
     val view = uiMode.factoryFunction?.let { factory ->
         """PlayerViewConfig(uiConfig = UiConfig.WebUi(
     jsLocation = "file:///android_asset/bitmovinplayer-ui.js",
@@ -35,6 +47,8 @@ internal fun configurationCode(source: SourceSettings, player: PlayerSettings, u
 import com.bitmovin.player.api.buffer.*
 import com.bitmovin.player.api.live.SourceLiveConfig
 import com.bitmovin.player.api.media.AdaptationConfig
+import com.bitmovin.player.api.media.subtitle.SubtitleTrack
+import com.bitmovin.player.api.network.*
 import com.bitmovin.player.api.source.*
 import com.bitmovin.player.api.ui.*
 
@@ -42,6 +56,7 @@ val playerConfig = PlayerConfig(
     key = "YOUR_PLAYER_KEY",
     playbackConfig = PlaybackConfig(
         isAutoplayEnabled = ${player.autoplay}, isMuted = ${player.muted}, isTimeShiftEnabled = ${player.timeShift},
+        preferredAudioLanguages = ${languages(player.preferredAudioLanguages)},
     ),
     bufferConfig = BufferConfig(
         audioAndVideo = BufferMediaTypeConfig(${player.forwardDuration}),
@@ -51,12 +66,15 @@ val playerConfig = PlayerConfig(
         maxSelectableVideoBitrate = ${player.maxVideoBitrate}, preload = ${player.preload},
         isRebufferingAllowed = ${player.rebuffering}, qualityStabilityBalance = ${player.qualityStabilityBalance}f,
     ),
+    networkConfig = NetworkConfig(retryHttpRequestConfig = $retries),
 )
 val sourceConfig = SourceConfig(
     url = ${kotlinString(source.url)}, type = SourceType.${source.type.name},
     title = $title, posterSource = $poster, isPosterPersistent = ${source.posterPersistent},
     options = SourceOptions(${source.startOffset ?: "null"}, $reference),
     liveConfig = $live,
+    preferredAudioLanguages = ${languages(source.preferredAudioLanguages)},
+    subtitleTracks = $subtitles,
 )
 val playerViewConfig = $view
 

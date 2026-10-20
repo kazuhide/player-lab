@@ -71,6 +71,22 @@ internal fun ConfigurationPanel(controller: PlayerController, uiMode: UiMode = U
             "Blank keeps SDK defaults. An explicit value moves the SDK's live edge. The SDK tries to approach it while avoiding stalls, without a deadline guarantee. Ignored for VOD.",
             KeyboardType.Decimal,
         )
+        ConfigField(
+            "Source audio language priority", source.preferredAudioLanguages,
+            { source = source.copy(preferredAudioLanguages = it) }, "source-audio-languages",
+            sourceErrors["preferredAudioLanguages"],
+            "Comma-separated codes, e.g. de, en. Blank inherits the player preference; a nonempty list overrides it. No match uses the default track.",
+        )
+        Text("External WebVTT subtitle", style = MaterialTheme.typography.titleSmall)
+        ConfigField("WebVTT URL", source.subtitleUrl, { source = source.copy(subtitleUrl = it) },
+            "source-subtitle-url", sourceErrors["subtitleUrl"], "Optional HTTP or HTTPS WebVTT file; blank adds no external track.")
+        ConfigField("Subtitle label", source.subtitleLabel, { source = source.copy(subtitleLabel = it) },
+            "source-subtitle-label", helper = "Optional name shown in the subtitle menu.")
+        ConfigField("Subtitle language", source.subtitleLanguage, { source = source.copy(subtitleLanguage = it) },
+            "source-subtitle-language", sourceErrors["subtitleLanguage"], "Optional language code, e.g. en or en-US.")
+        ConfigToggle("Default external subtitle", source.subtitleDefault, "source-subtitle-default") {
+            source = source.copy(subtitleDefault = it)
+        }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Button(onClick = {
                 val validated = source.validate()
@@ -91,6 +107,12 @@ internal fun ConfigurationPanel(controller: PlayerController, uiMode: UiMode = U
         ConfigToggle("Autoplay", player.autoplay, "config-autoplay") { player = player.copy(autoplay = it) }
         ConfigToggle("Start muted", player.muted, "config-muted") { player = player.copy(muted = it) }
         ConfigToggle("Enable SDK live time shifting", player.timeShift, "config-timeshift") { player = player.copy(timeShift = it) }
+        ConfigField(
+            "Player audio language priority", player.preferredAudioLanguages,
+            { player = player.copy(preferredAudioLanguages = it) }, "config-audio-languages",
+            playerErrors["preferredAudioLanguages"],
+            "Comma-separated codes, highest priority first. Blank = no preference. A nonempty source preference takes precedence.",
+        )
         Text("Buffer", style = MaterialTheme.typography.titleSmall)
         ConfigField("Startup threshold (s)", player.startupThreshold, { player = player.copy(startupThreshold = it) }, "config-startup", playerErrors["startupThreshold"], "Default 2.5; nonnegative and at most forward buffer minus 0.5", KeyboardType.Decimal)
         ConfigField("Restart threshold (s)", player.restartThreshold, { player = player.copy(restartThreshold = it) }, "config-restart", playerErrors["restartThreshold"], "Default 5; buffer needed after a stall", KeyboardType.Decimal)
@@ -100,6 +122,12 @@ internal fun ConfigurationPanel(controller: PlayerController, uiMode: UiMode = U
         ConfigToggle("Preload content", player.preload, "config-preload") { player = player.copy(preload = it) }
         ConfigToggle("Allow rebuffering", player.rebuffering, "config-rebuffering") { player = player.copy(rebuffering = it) }
         ConfigField("Live quality / stability balance", player.qualityStabilityBalance, { player = player.copy(qualityStabilityBalance = it) }, "config-balance", playerErrors["qualityStabilityBalance"], "0 = quality; 1 = stability; default 0.5. Live streams near the live edge only.", KeyboardType.Decimal)
+        Text("Network", style = MaterialTheme.typography.titleSmall)
+        ConfigField(
+            "HTTP retry delays (s)", player.httpRetryDelays, { player = player.copy(httpRetryDelays = it) },
+            "config-http-retries", playerErrors["httpRetryDelays"],
+            "Blank = SDK linear backoff. none = no retries. Otherwise enter finite nonnegative seconds, e.g. 0, 1, 2; one retry per value. Applies after player restart, not to DRM renewals by default.",
+        )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Button(onClick = {
                 val validated = player.validate()

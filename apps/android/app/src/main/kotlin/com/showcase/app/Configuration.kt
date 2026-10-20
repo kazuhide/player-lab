@@ -6,13 +6,29 @@ import com.bitmovin.player.api.buffer.BufferConfig
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
 import com.bitmovin.player.api.live.SourceLiveConfig
 import com.bitmovin.player.api.media.AdaptationConfig
+import com.bitmovin.player.api.media.subtitle.SubtitleTrack
+import com.bitmovin.player.api.network.NetworkConfig
+import com.bitmovin.player.api.network.RetryHttpRequestConfig
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceOptions
 import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.api.source.TimelineReferencePoint
 import java.net.URI
+import java.util.Locale
 
 internal data class ValidatedDraft<T>(val value: T?, val errors: Map<String, String>)
+
+internal data class ExternalSubtitleSettings(
+    val url: String,
+    val label: String = "",
+    val language: String = "",
+    val isDefault: Boolean = false,
+) {
+    fun toSubtitleTrack() = SubtitleTrack(
+        url = url, mimeType = "text/vtt", label = label.ifBlank { null },
+        id = "showcase-external-webvtt", isDefault = isDefault, language = language.ifBlank { null },
+    )
+}
 
 /** Values owned by the app; each load receives fresh SDK configuration objects. */
 internal data class SourceSettings(
@@ -24,6 +40,8 @@ internal data class SourceSettings(
     val startOffset: Double? = null,
     val offsetReference: TimelineReferencePoint? = null,
     val liveTargetLatency: Double? = null,
+    val preferredAudioLanguages: List<String> = emptyList(),
+    val externalSubtitle: ExternalSubtitleSettings? = null,
 ) {
     fun toSourceConfig() = SourceConfig(
         url = url,
@@ -33,6 +51,8 @@ internal data class SourceSettings(
         isPosterPersistent = posterPersistent,
         options = SourceOptions(startOffset, offsetReference),
         liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },
+        preferredAudioLanguages = preferredAudioLanguages.toList(),
+        subtitleTracks = externalSubtitle?.let { listOf(it.toSubtitleTrack()) } ?: emptyList(),
     )
 
     companion object {
@@ -49,6 +69,11 @@ internal data class SourceDraft(
     val startOffset: String = "",
     val offsetReference: TimelineReferencePoint? = null,
     val liveTargetLatency: String = "",
+    val preferredAudioLanguages: String = "",
+    val subtitleUrl: String = "",
+    val subtitleLabel: String = "",
+    val subtitleLanguage: String = "",
+    val subtitleDefault: Boolean = false,
 ) {
     fun validate(): ValidatedDraft<SourceSettings> {
         val errors = mutableMapOf<String, String>()
@@ -58,11 +83,26 @@ internal data class SourceDraft(
         }
         val offset = if (startOffset.isBlank()) null else finiteNumber(startOffset, "startOffset", errors)
         val latency = if (liveTargetLatency.isBlank()) null else finiteNumber(liveTargetLatency, "liveTargetLatency", errors)
+        val languages = languageList(preferredAudioLanguages, "preferredAudioLanguages", errors)
+        if (subtitleUrl.isBlank()) {
+            if (subtitleLabel.isNotBlank() || subtitleLanguage.isNotBlank() || subtitleDefault) {
+                errors["subtitleUrl"] = "Enter a WebVTT URL for these subtitle settings, or clear them."
+            }
+        } else if (!httpUrl(subtitleUrl.trim())) {
+            errors["subtitleUrl"] = "Enter an absolute HTTP or HTTPS WebVTT URL."
+        }
+        if (subtitleLanguage.trim().any { it.isWhitespace() || it == ',' }) {
+            errors["subtitleLanguage"] = "Enter one language code, such as en or en-US, or leave blank."
+        }
+        val subtitle = subtitleUrl.trim().takeIf { it.isNotEmpty() }?.let {
+            ExternalSubtitleSettings(it, subtitleLabel.trim(), subtitleLanguage.trim(), subtitleDefault)
+        }
         // The SDK corrects out-of-bound offsets rather than rejecting their sign.
         // https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.source/-source-options/index.html
         return ValidatedDraft(
             if (errors.isEmpty()) SourceSettings(
                 url.trim(), type, title.trim(), posterUrl.trim(), posterPersistent, offset, offsetReference, latency,
+                languages, subtitle,
             ) else null,
             errors,
         )
@@ -73,6 +113,9 @@ internal data class SourceDraft(
             settings.url, settings.type, settings.title, settings.posterUrl, settings.posterPersistent,
             settings.startOffset?.toString().orEmpty(), settings.offsetReference,
             settings.liveTargetLatency?.toString().orEmpty(),
+            settings.preferredAudioLanguages.joinToString(", "), settings.externalSubtitle?.url.orEmpty(),
+            settings.externalSubtitle?.label.orEmpty(), settings.externalSubtitle?.language.orEmpty(),
+            settings.externalSubtitle?.isDefault ?: false,
         )
     }
 }
@@ -89,11 +132,14 @@ internal data class PlayerSettings(
     val preload: Boolean = true,
     val rebuffering: Boolean = true,
     val qualityStabilityBalance: Float = 0.5f,
+    val preferredAudioLanguages: List<String> = emptyList(),
+    val httpRetryDelays: List<Double>? = null,
 ) {
     fun toPlayerConfig(licenseKey: String) = PlayerConfig(
         key = licenseKey,
         playbackConfig = PlaybackConfig(
             isAutoplayEnabled = autoplay, isMuted = muted, isTimeShiftEnabled = timeShift,
+            preferredAudioLanguages = preferredAudioLanguages.toList(),
         ),
         bufferConfig = BufferConfig(
             audioAndVideo = BufferMediaTypeConfig(forwardDuration),
@@ -102,6 +148,10 @@ internal data class PlayerSettings(
         adaptationConfig = AdaptationConfig(
             maxSelectableVideoBitrate = maxVideoBitrate, preload = preload,
             isRebufferingAllowed = rebuffering, qualityStabilityBalance = qualityStabilityBalance,
+        ),
+        networkConfig = NetworkConfig(
+            retryHttpRequestConfig = httpRetryDelays?.let { RetryHttpRequestConfig.Retry(it.toList()) }
+                ?: RetryHttpRequestConfig.LinearIncreasingBackoffRetry,
         ),
     )
 }
@@ -117,6 +167,8 @@ internal data class PlayerDraft(
     val preload: Boolean = true,
     val rebuffering: Boolean = true,
     val qualityStabilityBalance: String = "0.5",
+    val preferredAudioLanguages: String = "",
+    val httpRetryDelays: String = "",
 ) {
     fun validate(): ValidatedDraft<PlayerSettings> {
         val errors = mutableMapOf<String, String>()
@@ -135,10 +187,19 @@ internal data class PlayerDraft(
         if (bitrate == null || bitrate < 0) errors["maxVideoBitrate"] = "Enter a whole number from 0 to 2147483647 bps, or leave blank."
         val balance = finiteNumber(qualityStabilityBalance, "qualityStabilityBalance", errors, 0.0)
         if (balance != null && balance > 1.0) errors["qualityStabilityBalance"] = "Enter a number from 0 to 1."
+        val languages = languageList(preferredAudioLanguages, "preferredAudioLanguages", errors)
+        val retries = when {
+            httpRetryDelays.isBlank() -> null
+            httpRetryDelays.trim().equals("none", ignoreCase = true) -> emptyList()
+            else -> httpRetryDelays.split(',').mapNotNull {
+                finiteNumber(it, "httpRetryDelays", errors, 0.0)
+            }
+        }
         return ValidatedDraft(
             if (errors.isEmpty()) PlayerSettings(
                 autoplay, muted, timeShift, requireNotNull(startup), requireNotNull(restart), requireNotNull(forward),
                 requireNotNull(bitrate), preload, rebuffering, requireNotNull(balance).toFloat(),
+                languages, retries,
             ) else null,
             errors,
         )
@@ -150,8 +211,20 @@ internal data class PlayerDraft(
             settings.restartThreshold.toString(), settings.forwardDuration.toString(),
             settings.maxVideoBitrate.takeUnless { it == Int.MAX_VALUE }?.toString().orEmpty(),
             settings.preload, settings.rebuffering, settings.qualityStabilityBalance.toString(),
+            settings.preferredAudioLanguages.joinToString(", "),
+            settings.httpRetryDelays?.let { if (it.isEmpty()) "none" else it.joinToString(", ") }.orEmpty(),
         )
     }
+}
+
+private fun languageList(text: String, field: String, errors: MutableMap<String, String>): List<String> {
+    if (text.isBlank()) return emptyList()
+    val languages = text.split(',').map { it.trim() }
+    if (languages.any { it.isEmpty() || it.any(Char::isWhitespace) }) {
+        errors[field] = "Enter comma-separated language codes, such as de, en."
+    }
+    // Preserve priority and spelling; discard only duplicate codes, ignoring case.
+    return languages.distinctBy { it.lowercase(Locale.ROOT) }
 }
 
 private fun httpUrl(value: String): Boolean = runCatching {
