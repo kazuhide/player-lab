@@ -11,7 +11,9 @@ import zipfile
 from collections import Counter
 from pathlib import Path
 
-CONFIGURATION_EXPOSURE = json.loads((Path(__file__).with_name('exposure.json')).read_text())['configuration']
+EXPOSURE = json.loads((Path(__file__).with_name('exposure.json')).read_text())
+CONFIGURATION_EXPOSURE = EXPOSURE['configuration']
+RUNTIME_EXPOSURE = EXPOSURE['runtime']
 
 
 def build_scope(inventory, repo, scratch, version):
@@ -175,7 +177,14 @@ def build_scope(inventory, repo, scratch, version):
         owner=r['qualified_owner']; name=m['name']; signature=m['signature']
         result={'status':'missing','evidence':[],'runtime_verified':False}
         member = 'android:' + owner + '.' + name
-        if m['kind'] == 'property' and member in CONFIGURATION_EXPOSURE:
+        operational = member + ('()' if m['kind'] in ('function', 'extension_function') else '')
+        if operational in RUNTIME_EXPOSURE:
+            exposed = RUNTIME_EXPOSURE[operational]
+            result.update(status=exposed['status'], runtime_verified=exposed['qualification'] == 'observed',
+                sdk_ui_qualification=exposed['qualification'], evidence=[
+                    ev(item['file'], item['needle'], item['symbol'], exposed['limitation'])
+                    for item in exposed['evidence']])
+        elif m['kind'] == 'property' and member in CONFIGURATION_EXPOSURE:
             exposed = CONFIGURATION_EXPOSURE[member]
             result.update(status=exposed['status'], evidence=[
                 ev(item['file'], item['needle'], item['symbol'], exposed['limitation'])
@@ -263,9 +272,14 @@ def build_scope(inventory, repo, scratch, version):
              'coverage':mapping(r,m,category)}
         if scope.startswith('runtime'):
             candidates={'play','pause','seek','timeShift','mute','unmute','volume','playbackSpeed','setAudio','setAudioTrack','setVideoQuality','setSubtitle','setSubtitleTrack','enterFullscreen','exitFullscreen','enterPictureInPicture','exitPictureInPicture'}
-            row['sdk_ui_coverage']={'status':'unaudited' if m['name'] in candidates else 'not_assessed',
-                'evidence':[ev(MAIN,'PlayerView(context, displayedPlayer, playerViewConfig(uiMode))','ShowcaseScreen AndroidView')],
-                'note':'SDK Web UI and shared custom factories have their own controls. This inventory does not infer native bridge or device GUI coverage from API presence or compilation.'}
+            qualification = row['coverage'].get('sdk_ui_qualification')
+            row['sdk_ui_coverage'] = {
+                'status': qualification or ('unaudited' if m['name'] in candidates else 'not_assessed'),
+                'evidence': row['coverage']['evidence'] if qualification else [
+                    ev(MAIN, 'PlayerView(context, displayedPlayer, playerViewConfig(uiMode))', 'ShowcaseScreen AndroidView')],
+                'note': 'Qualified routes are limited to the recorded phone and SDK version. Other APIs require separate device and GUI qualification.'
+                    if qualification else 'SDK Web UI and shared custom factories have their own controls. This inventory does not infer native bridge or device GUI coverage from API presence or compilation.'}
+
         return row
 
 
@@ -336,7 +350,7 @@ def build_scope(inventory, repo, scratch, version):
            'Runtime playback domain: Player, Source and every public Player sub-API, including inherited casting. UI, offline and Analytics integration APIs are a separate domain.',
            'Deprecated callable properties/methods/events are retained with flags. Constructors/builders/companions and event subscription overload aliases remain fully preserved in dokka-public-inventory.json; they are not multiplied into field/command coverage.',
            'Public generated enum entries and Parcelable CREATOR accessors are retained in supporting_generated_accessors, as observations. Builder/constructor/companion aliases, enum cases and event payload properties remain in the full raw inventory without multiplying the semantic field/command units. Optional media-session/video-feed wrappers and the separate Analytics collector dependency remain separately identifiable in the raw inventory.',
-           'SDK Web UI integration exists; its native bridge/device availability is an unaudited scope and is not silently counted as custom app panel coverage. Android TV/Fire TV use the same build, with no TV UI selector currently exposed.',
+           'SDK Web UI integration has version-specific phone qualification for the explicitly mapped runtime routes. Unmapped routes receive no inferred GUI credit. Android TV/Fire TV use the same build, with no TV UI selector currently exposed.',
            'No aggregate percentage is emitted: configuration structures, method overloads, getter observations and concrete event types are different units.'
         ],
         'excluded_unavailable_internal_nonpublic':[],
@@ -346,6 +360,19 @@ def build_scope(inventory, repo, scratch, version):
         'summary':summary,'rows':rows}
     (ART/'android-coverage-rows.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     (ART/'android-coverage-summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n')
+
+    runtime_ids = {
+        'android:' + row['owner'] + '.' + row['member'] +
+        ('()' if row['declaration_kind'] in ('function', 'extension_function') else '')
+        for row in rows if row['scope'].startswith('runtime')
+    }
+    unknown_runtime = set(RUNTIME_EXPOSURE) - runtime_ids
+    if unknown_runtime:
+        raise RuntimeError('Runtime exposure references an unavailable scoped SDK member: ' + ', '.join(sorted(unknown_runtime)))
+    allowed = {'observed': {'direct_gui', 'constrained_preset', 'observed'}, 'not-exposed': {'missing'}}
+    for identifier, exposure in RUNTIME_EXPOSURE.items():
+        if exposure['status'] not in allowed.get(exposure['qualification'], set()):
+            raise RuntimeError('Runtime exposure qualification contradicts its coverage status: ' + identifier)
 
     unknown = set(CONFIGURATION_EXPOSURE) - {row['id'] for row in rows if row['category'] == 'configuration'}
     if unknown:

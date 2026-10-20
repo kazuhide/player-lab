@@ -581,6 +581,346 @@
       ],
       "limitation": "null/Start/End; default VOD Start/live End.",
       "status": "direct_gui"
+    },
+    "android:com.bitmovin.player.api.live.SourceLiveConfig.targetLatency": {
+      "status": "direct_gui",
+      "limitation": "Optional finite source target latency in seconds. Blank leaves liveConfig unset and preserves SDK defaults; no ideal-latency or seek-completion guarantee.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "needle": "\"Live target latency (s)\", source.liveTargetLatency, { source = source.copy(liveTargetLatency = it) },",
+          "symbol": "\"Live target latency (s)\", source.liveTargetLatency, { source = source.copy(liveTargetLatency = it) },"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "needle": "liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },",
+          "symbol": "liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "owner.load(source)",
+          "symbol": "owner.load(source)"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.source.SourceConfig.liveConfig": {
+      "status": "code_only",
+      "limitation": "Owner binding for the separately mapped targetLatency leaf; no arbitrary live configuration editor.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "needle": "liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },",
+          "symbol": "liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },"
+        }
+      ]
+    }
+  },
+  "runtime": {
+    "android:com.bitmovin.player.api.Player.mute()": {
+      "status": "direct_gui",
+      "qualification": "observed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
+          "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.Player.pause()": {
+      "status": "direct_gui",
+      "qualification": "observed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
+          "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.Player.play()": {
+      "status": "direct_gui",
+      "qualification": "observed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
+          "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.Player.playbackSpeed": {
+      "status": "direct_gui",
+      "qualification": "observed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
+          "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.Player.seek()": {
+      "status": "direct_gui",
+      "qualification": "observed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
+          "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.Player.unmute()": {
+      "status": "direct_gui",
+      "qualification": "observed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
+          "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.source.Source.setAudioTrack()": {
+      "status": "direct_gui",
+      "qualification": "observed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Visible standard option; fresh native Source changed event and selected ID match; source retained.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {",
+          "symbol": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.source.Source.setSubtitleTrack()": {
+      "status": "direct_gui",
+      "qualification": "observed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Visible standard option; fresh native Source changed event and selected ID match; source retained.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {",
+          "symbol": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.source.Source.setVideoQuality()": {
+      "status": "direct_gui",
+      "qualification": "observed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Visible standard option; fresh native Source changed event and selected ID match; source retained.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {",
+          "symbol": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.Player.getThumbnail()": {
+      "status": "direct_gui",
+      "qualification": "observed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Actual standard hover calls native Android.getThumbnail; published 3.171.0 UI AAR calls Player.getThumbnail and published core AAR delegates to active Source.getThumbnail; reference returned null image. No rendered thumbnail image claim.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
+          "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.source.Source.getThumbnail()": {
+      "status": "direct_gui",
+      "qualification": "observed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Actual standard hover calls native Android.getThumbnail; published 3.171.0 UI AAR calls Player.getThumbnail and published core AAR delegates to active Source.getThumbnail; reference returned null image. No rendered thumbnail image claim.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
+          "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.PlayerView.enterFullscreen()": {
+      "status": "missing",
+      "qualification": "not-exposed",
+      "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
+          "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.PlayerView.exitFullscreen()": {
+      "status": "missing",
+      "qualification": "not-exposed",
+      "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
+          "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.PlayerView.enterPictureInPicture()": {
+      "status": "missing",
+      "qualification": "not-exposed",
+      "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
+          "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.PlayerView.exitPictureInPicture()": {
+      "status": "missing",
+      "qualification": "not-exposed",
+      "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
+          "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.PlayerView.isFullscreen": {
+      "status": "missing",
+      "qualification": "not-exposed",
+      "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
+          "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.PlayerView.isPictureInPicture": {
+      "status": "missing",
+      "qualification": "not-exposed",
+      "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
+          "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.Player.volume": {
+      "status": "missing",
+      "qualification": "not-exposed",
+      "limitation": "Android phone emulator, SDK 3.171.0. Mobile volume slider is hidden; native volume=100 inspected. No GUI setter call or volume-change claim.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
+          "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
+          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+        }
+      ]
     }
   }
 }

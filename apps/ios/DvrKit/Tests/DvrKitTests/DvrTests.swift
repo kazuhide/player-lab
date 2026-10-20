@@ -57,6 +57,25 @@ final class DvrTests: XCTestCase {
         XCTAssertFalse(Dvr.detectLiveToVod(prev: live, next: live))
     }
 
+    func testCompletedLiveSourceKeepsNativeTimingButDisablesLiveCommandsDuringReplay() {
+        let ended = PlayerSnapshot(isLive: true, duration: .infinity, maxTimeShift: -60,
+                                   timeShift: -10, currentTime: 1060, liveSourceFinalized: true)
+        let state = Dvr.deriveState(ended, config: DvrConfig(timeShiftEnabled: true))
+        XCTAssertEqual(state.mode, .endedLive)
+        XCTAssertFalse(state.isLive)
+        XCTAssertFalse(state.dvrAvailable)
+        XCTAssertFalse(state.atLiveEdge)
+        XCTAssertEqual(state.windowDuration, 0)
+        XCTAssertEqual(state.behindLive, 0)
+        XCTAssertTrue(ended.isLive)
+        XCTAssertTrue(ended.duration.isInfinite)
+        XCTAssertFalse(Dvr.detectLiveToVod(prev: live, next: ended))
+        XCTAssertEqual(Dvr.deriveState(live, config: DvrConfig(timeShiftEnabled: true)).mode, .liveDvr)
+        let finite = PlayerSnapshot(isLive: false, duration: 60, maxTimeShift: 0,
+                                    timeShift: 0, currentTime: 60, liveSourceFinalized: true)
+        XCTAssertEqual(Dvr.deriveState(finite, config: DvrConfig(timeShiftEnabled: true)).mode, .vod)
+    }
+
     func testLabels() {
         XCTAssertEqual(Dvr.formatBehindLive(0), "LIVE")
         XCTAssertEqual(Dvr.formatBehindLive(-0.5), "LIVE")

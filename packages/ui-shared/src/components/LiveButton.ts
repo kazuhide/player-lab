@@ -2,6 +2,7 @@ import { ButtonStyle, ToggleButton } from "bitmovin-player-ui";
 import type { ToggleButtonConfig, UIInstanceManager } from "bitmovin-player-ui";
 import type { PlayerAPI } from "bitmovin-player";
 import { DEFAULT_LIVE_EDGE_EPSILON, deriveLiveButtonState } from "../liveState";
+import { observeLiveSourceCompletion } from "./observeLiveSourceCompletion";
 
 export interface LiveButtonConfig extends ToggleButtonConfig {
   /** Seconds within the edge still treated as "at live". Default 1. */
@@ -41,8 +42,11 @@ export class LiveButton extends ToggleButton<LiveButtonConfig> {
   override configure(player: PlayerAPI, uimanager: UIInstanceManager): void {
     super.configure(player, uimanager);
     const { PlayerEvent } = player.exports;
+    let released = false;
 
     const update = (): void => {
+      if (released) return;
+      if (!currentSource()) { this.hide(); return; }
       const state = deriveLiveButtonState(player.isLive(), player.getTimeShift(), this.liveEdgeEpsilon);
       if (state === "hidden") {
         this.hide();
@@ -52,15 +56,15 @@ export class LiveButton extends ToggleButton<LiveButtonConfig> {
       if (state === "at-edge") this.on();
       else this.off();
     };
+    const currentSource = observeLiveSourceCompletion(player, uimanager, update);
 
     this.onClick.subscribe(() => {
+      if (released || !currentSource() || !player.isLive()) return;
       // timeShift(0) returns to the live edge.
       player.timeShift(0, "ui-livebutton");
     });
 
     const events = [
-      PlayerEvent.SourceLoaded,
-      PlayerEvent.SourceUnloaded,
       PlayerEvent.TimeChanged,
       PlayerEvent.TimeShift,
       PlayerEvent.TimeShifted,
@@ -74,6 +78,7 @@ export class LiveButton extends ToggleButton<LiveButtonConfig> {
     // Explicit teardown. The framework also auto-removes handlers on release; this
     // is intentional belt-and-suspenders so the contract is obvious locally.
     uimanager.onRelease.subscribe(() => {
+      released = true;
       for (const event of events) {
         player.off(event, update);
       }

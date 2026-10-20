@@ -23,6 +23,7 @@ internal fun configurationCode(source: SourceSettings, player: PlayerSettings, u
     val title = source.title.takeIf { it.isNotBlank() }?.let(::kotlinString) ?: "null"
     val poster = source.posterUrl.takeIf { it.isNotBlank() }?.let(::kotlinString) ?: "null"
     val reference = source.offsetReference?.let { "TimelineReferencePoint.${it.name}" } ?: "null"
+    val live = source.liveTargetLatency?.let { "SourceLiveConfig(targetLatency = $it)" } ?: "null"
     val view = uiMode.factoryFunction?.let { factory ->
         """PlayerViewConfig(uiConfig = UiConfig.WebUi(
     jsLocation = "file:///android_asset/bitmovinplayer-ui.js",
@@ -32,6 +33,7 @@ internal fun configurationCode(source: SourceSettings, player: PlayerSettings, u
     } ?: "PlayerViewConfig()"
     return """import com.bitmovin.player.api.*
 import com.bitmovin.player.api.buffer.*
+import com.bitmovin.player.api.live.SourceLiveConfig
 import com.bitmovin.player.api.media.AdaptationConfig
 import com.bitmovin.player.api.source.*
 import com.bitmovin.player.api.ui.*
@@ -54,6 +56,7 @@ val sourceConfig = SourceConfig(
     url = ${kotlinString(source.url)}, type = SourceType.${source.type.name},
     title = $title, posterSource = $poster, isPosterPersistent = ${source.posterPersistent},
     options = SourceOptions(${source.startOffset ?: "null"}, $reference),
+    liveConfig = $live,
 )
 val playerViewConfig = $view
 

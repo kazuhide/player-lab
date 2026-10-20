@@ -36,6 +36,7 @@ vi.mock("@amazon-devices/react-native-w3cmedia", () => ({
   HTMLMediaElement: class NativeHTMLMediaElement {},
   WebCrypto: { subtle: {} },
   VideoPlayer: class {
+    src = "";
     constructor() { runtime.videos.push(this); }
     initialize = vi.fn(() => { const gate = runtime.initialization; runtime.initialization = null; return gate ?? Promise.resolve(); });
     deinitializeSync = vi.fn(() => "success");
@@ -120,6 +121,23 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(code()).toContain("APPLIED_SOURCE_TITLE");
     expect(code()).toContain('"ui": false');
     expect(code()).toContain("native media initialization");
+  });
+
+  it("makes each TV switch focusable without applying its configuration draft", async () => {
+    await mount();
+    const player = current();
+    expect(element("Switch", { accessibilityLabel: "Allow DVR" }).props.focusable).toBe(true);
+    await press("Show configuration");
+    for (const accessibilityLabel of ["Autoplay", "Mute on startup"]) {
+      const control = element("Switch", { accessibilityLabel });
+      expect(control.props.focusable).toBe(true);
+      await act(async () => control.props.onValueChange(!control.props.value));
+    }
+    expect(current()).toBe(player);
+    expect(runtime.players).toHaveLength(1);
+    await press("Reset draft");
+    expect(element("Switch", { accessibilityLabel: "Autoplay" }).props.value).toBe(true);
+    expect(element("Switch", { accessibilityLabel: "Mute on startup" }).props.value).toBe(true);
   });
 
   it("uses a local URL parser when the legacy native URL getters are unavailable", async () => {
@@ -286,6 +304,11 @@ describe("Vega configuration in the mounted App and media session", () => {
     const appliedSource = old.load.mock.calls[0]![0];
     const retiredCallback = [...old.listeners.get(PlayerEvent.SourceLoaded)!][0]!;
     const retiredSurface = element("KeplerVideoSurfaceView").props.onSurfaceViewCreated;
+    const oldVideo = runtime.videos[runtime.videos.length - 1]!;
+    let attached = true;
+    const reset = vi.fn(() => { attached = false; retiredCallback(); });
+    Object.defineProperty(oldVideo, "src", { set: reset });
+    oldVideo.deinitializeSync.mockImplementation(() => attached ? "timedout" : "success");
     let released!: () => void;
     runtime.destruction = new Promise<void>((resolve) => { released = resolve; });
 
@@ -293,6 +316,9 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(old.destroy).not.toHaveBeenCalled();
     await appState("background");
     await appState("background");
+    expect(reset).toHaveBeenCalledExactlyOnceWith("");
+    expect(oldVideo.deinitializeSync.mock.results[0]!.value).toBe("success");
+    expect(oldVideo.deinitializeSync.mock.invocationCallOrder[0]).toBeLessThan(old.destroy.mock.invocationCallOrder[0]!);
     expect(old.destroy).toHaveBeenCalledTimes(1);
     expect(screen.root.findAll((node) => String(node.type) === "KeplerVideoSurfaceView")).toHaveLength(0);
     expect([...old.listeners.values()].every((listeners) => listeners.size === 0)).toBe(true);

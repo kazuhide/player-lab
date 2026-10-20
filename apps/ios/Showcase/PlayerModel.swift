@@ -60,6 +60,9 @@ final class PlayerModel: ObservableObject {
     private let licenseKey: String
     private let analyticsLicenseKey: String
     private var cancellables = Set<AnyCancellable>()
+    private var sourceCompletionCancellables = Set<AnyCancellable>()
+    private weak var completionSource: Source?
+    private var liveSourceFinalized = false
     private var lastSnapshot: PlayerSnapshot?
 
     init(licenseKey: String, analyticsLicenseKey: String = "") {
@@ -107,6 +110,7 @@ final class PlayerModel: ObservableObject {
     private func recreatePlayer() {
         let previous = player
         cancellables.removeAll()
+        resetSourceCompletion()
         lastSnapshot = nil
         let next = PlayerModel.makePlayer(
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
@@ -165,15 +169,26 @@ final class PlayerModel: ObservableObject {
 
     private func reloadCurrentSource() {
         guard let sourceSettings else { return }
+        resetSourceCompletion()
         player.load(sourceConfig: sourceSettings.makeSourceConfig())
     }
 
     func goToLiveEdge() {
+        guard !liveSourceFinalized else { return }
         player.timeShift = 0
+    }
+
+    /// Inline tvOS System UI does not expose AVKit's fullscreen transport controls.
+    func togglePlayback() {
+        let player = self.player
+        guard !player.isDestroyed, player.source != nil else { return }
+        if player.isPlaying { player.pause() }
+        else { player.play() }
     }
 
     /// Seek to an offset relative to the live edge (timeShift semantics), clamped.
     func seek(toOffsetFromEdge offset: TimeInterval) {
+        guard !liveSourceFinalized else { return }
         guard timeShiftEnabled && playerSettings.sdkTimeShiftEnabled else {
             player.timeShift = 0
             return
@@ -189,7 +204,8 @@ final class PlayerModel: ObservableObject {
             duration: player.duration,
             maxTimeShift: player.maxTimeShift,
             timeShift: player.timeShift,
-            currentTime: player.currentTime
+            currentTime: player.currentTime,
+            liveSourceFinalized: liveSourceFinalized
         )
     }
 
@@ -210,6 +226,32 @@ final class PlayerModel: ObservableObject {
         if log.count > 80 { log.removeLast() }
     }
 
+    private func resetSourceCompletion() {
+        sourceCompletionCancellables.removeAll()
+        completionSource = nil
+        liveSourceFinalized = false
+    }
+
+    private func bindSourceCompletion(_ player: Player) {
+        guard let source = player.source else { return }
+        resetSourceCompletion()
+        completionSource = source
+        let loadedAsLive = player.isLive
+        player.events.on(PlaybackFinishedEvent.self)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, weak player, weak source] _ in
+                guard let self, let player, let source,
+                      self.player === player, self.completionSource === source,
+                      player.source === source else { return }
+                // Some ended HLS streams keep the native live/infinite getters.
+                // Completion is authoritative; retain this source fact across replay.
+                if loadedAsLive { self.liveSourceFinalized = true }
+                self.append("PlaybackFinished")
+                self.refresh()
+            }
+            .store(in: &sourceCompletionCancellables)
+    }
+
     private func bindEvents() {
         // Bind against a local (not the @Published `player` property): repeated property-wrapper
         // access across these four Combine chains pushes the Swift type-checker past its
@@ -226,6 +268,7 @@ final class PlayerModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self, weak player] _ in
                 guard let self, let player, self.player === player else { return }
+                self.bindSourceCompletion(player)
                 self.append("SourceLoaded"); self.refresh()
             }
             .store(in: &cancellables)
@@ -240,7 +283,8 @@ final class PlayerModel: ObservableObject {
         player.events.on(DvrWindowExceededEvent.self)
             .receive(on: DispatchQueue.main)
             .sink { [weak self, weak player] _ in
-                guard let self, let player, self.player === player else { return }
+                guard let self, let player, self.player === player,
+                      !self.liveSourceFinalized else { return }
                 self.append("DVRWindowExceeded → recover")
                 player.timeShift = 0
             }

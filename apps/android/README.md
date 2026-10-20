@@ -95,13 +95,20 @@ directional focus; focused configuration switches show an outline.
 Configuration changes remain drafts until Apply. **Apply source (reload)** builds
 a fresh source configuration and reloads the existing player. It exposes a custom
 HTTP/HTTPS stream URL, DASH/HLS/Smooth/Progressive type, optional title and poster
-URL, persistent poster, start offset in seconds, and Start/End/SDK-default offset
-reference. HTTP requests still depend on the device's cleartext network policy.
+URL, persistent poster, start offset in seconds, Start/End/SDK-default offset
+reference, and optional live target latency in seconds. HTTP requests still depend on the device's cleartext network policy.
 The SDK-default reference is the start for VOD and the end for live streams;
 out-of-window offsets are corrected by the SDK. A blank offset uses the SDK
 default. **Reset source draft** returns to the currently applied source without
 reloading. Selecting any catalog source, including the same preset again, replaces
-the source draft and clears custom metadata and offsets.
+the source draft and clears custom metadata, offsets, and live target latency.
+
+A blank **Live target latency (s)** keeps the original SDK defaults (`liveConfig = null`).
+An explicit finite value maps to `SourceLiveConfig.targetLatency`, changes the SDK's
+definition of the live edge, and asks the SDK to approach that latency while avoiding
+stalls. It is ignored for VOD. Apply reloads the source; player recreation retains the
+applied value. This policy does not guarantee convergence within a deadline and is
+not a qualification of stable return to the moving live edge.
 
 **Apply & restart player** creates a new player and reloads the currently applied
 source, retaining its metadata/options, selected UI mode, Allow DVR setting, and
@@ -126,8 +133,16 @@ range. The field definitions and defaults follow the pinned
 [PlaybackConfig](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-playback-config/index.html),
 [BufferConfig](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.buffer/-buffer-config/index.html),
 [AdaptationConfig](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.media/-adaptation-config/index.html), and
-[SourceOptions](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.source/-source-options/index.html)
+[SourceOptions](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.source/-source-options/index.html), and
+[SourceLiveConfig.targetLatency](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.live/-source-live-config/target-latency.html)
 references. Keys continue to come from build configuration.
+
+**Show applied code** displays Kotlin `PlayerConfig`, `SourceConfig`, and
+`PlayerViewConfig` values for the applied settings and current UI. Draft edits are
+excluded. **Copy code** writes that text to the Android clipboard; license keys
+are placeholders. The source's optional live target latency is included. The
+example is SDK configuration, so the integrating app must still attach the view,
+forward its lifecycle, and supply its own keys.
 
 The draft validation and mapping tests run with `:app:testDebugUnitTest`.
 `PlayerConfigurationInstrumentedTest` drives the real Compose editor and SDK with
@@ -150,12 +165,31 @@ expires. Android TV and Fire TV also need remote-control checks; the app declare
 a `LEANBACK_LAUNCHER` entry for TV launchers. Use your own license and reachable
 test streams.
 
-With an emulator or device connected, run the real playback tests from
-`apps/android`:
+The full instrumented suite also uses a local 60-second HLS/DASH finalization
+fixture. Generate the [local test media](../../docs/local-test-media.md), then
+start its server from the repository root with Node 24:
 
 ```sh
-./gradlew :app:connectedDebugAndroidTest
+python3 encoding/test-streams/local.py
+node apps/android/runtime-fixture.mjs .cache/test-streams/vod-baseline
 ```
+
+In another terminal, connect the owned emulator or device and forward the two
+loopback ports before running the suite from `apps/android`:
+
+```sh
+adb reverse tcp:5272 tcp:5272
+adb reverse tcp:5273 tcp:5273
+cd apps/android
+./gradlew :app:connectedDebugAndroidTest
+# Remove these forwards and stop the fixture server after testing.
+adb reverse --remove tcp:5272
+adb reverse --remove tcp:5273
+```
+
+The debug build permits HTTP only for `localhost` and `127.0.0.1`; release network
+policy is unchanged. The fixture and authorized license are required for the full
+suite. Select individual test classes when checking only their documented scope.
 
 `PlayerDvrInstrumentedTest` checks the real library's source loading and finite
 on-demand duration. `PlayerControlsInstrumentedTest` uses the app's actual Compose
@@ -174,6 +208,31 @@ muted at the applied 10-second offset and advances automatically after applying
 player settings. The configuration-only tests do not establish media playback or
 completion of all SDK resource cleanup; `Player.isDestroyed` reports API
 invalidation, and the recording test counts the app's destroy calls.
+The start-offset check captures the first `TimeChanged` after both `Ready` and
+`RenderFirstFrame` for the newly applied source and player. It retains the
+9.0–13.0-second range and 40-second deadline, including zero samples. Loaded and
+`isPlaying` alone can precede those readiness events.
+
+The standard UI checks drive Play, Pause, Mute, Unmute, the seek bar, 1.5x speed,
+and audio/subtitle/video-quality choices, then verify native state or fresh native
+completion events. A seek-bar hover reaches the native thumbnail query; the
+reference asset returns no thumbnail image. The SDK's deprecated
+`Player.getThumbnail` delegates to the active `Source.getThumbnail`. On the tested
+phone, fullscreen and picture-in-picture have no configured handlers or visible
+buttons, and the mobile volume slider is hidden. Those routes are recorded as
+unavailable rather than playback successes.
+
+`PlayerFinalizationInstrumentedTest` changes HLS to ENDLIST and DASH to static
+at the same URL. It checks fresh `PlaybackFinished`, finite native duration and
+position, retained source/player, disabled DVR/live commands, visible Replay and
+replay-clock progress, fresh VOD seek completion, a new live generation, and an
+explicit VOD switch. Shared live labels stay hidden during Replay and return for
+the new live load. This sample derives VOD from the SDK's finite duration; it does
+not replace native getter values.
+
+`PlayerConfigurationCodeInstrumentedTest` checks draft exclusion, applied source
+and live policy, current UI selection, Copy feedback, and exact text in the real
+Android clipboard. It does not require successful media playback.
 
 `PlayerUiHandoffInstrumentedTest` keeps the same player playing VOD while cycling
 through Sports, Live (DVR), Cinema and Default three times. It checks that each
@@ -203,7 +262,17 @@ offset just before seeking, then checks that the next `TimeShifted` event lands
 within three seconds of the resulting target. It also requires a negative live
 offset and the visible behind-live state. The return-to-live check requires a new
 completion event, an SDK-reported offset within one second of zero, and visible
-`LIVE` text and button state.
+`LIVE` text and button state within the same 40-second deadline. The native
+predicate is checked again after the visible UI check.
+
+`LowLatencyApi.latency - targetLatency` is recorded separately: it measures distance
+from the configured latency target, which the SDK approaches while avoiding
+stalls. It is not a promised sub-second convergence deadline. The SDK can classify
+playback as live (`timeShift == 0`) while that distance remains nonzero.
+[Source.seekableRange](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.source/-source/seekable-range.html)
+returns `(0, 0)` for live sources and cannot provide a separate live media endpoint.
+Request-time targets, current position, latency, configured/effective targets,
+forward audio/video buffers and seekable range remain numeric diagnostics.
 
 If that check fails, its report includes monotonic request/completion times,
 the requested media target, completion position and offset, native-ready poll
@@ -213,61 +282,36 @@ It does not include SDK error messages or configuration dumps.
 The app's event log also retains startup error codes, so a failed initial request
 can be distinguished from a source that is still loading.
 
-On 2026-10-20, Player 3.171.0 passed all 14 JVM tests (six DVR, six
-configuration and two lifecycle tests) and debug app/instrumentation builds.
-The final authorized-license group on an Android 16/API 36.1 ARM64 phone
-emulator passed eight of nine checks in 149.519 seconds. Configuration/ownership,
-configured VOD autoplay/mute/10-second offset, finite VOD duration, 12 UI handoffs,
-and two background/resume/UI-replacement cycles with explicit Play all passed.
-The lifecycle regression tests first failed with missing forwarding, then passed
-with host callbacks and resumed-view catch-up implemented.
+On 2026-10-21, Player 3.171.0 passed 18 JVM tests (six DVR, ten configuration
+and two lifecycle tests) and debug app/instrumentation builds. The authorized
+Android 16/API 36.1 ARM64 phone-emulator group passed all 16 checks in 237.139
+seconds: configuration/ownership, configured VOD autoplay/mute/start offset,
+strict live return, standard SDK UI actions and availability, HLS/DASH
+finalization, applied-code/clipboard behavior, finite VOD duration, 12 UI
+handoffs, and two background/resume/UI-replacement cycles with explicit Play.
+Normal live return completed in 157 ms, within +0.002 s of its requested target;
+native zero offset and genuinely visible LIVE agreed 206 ms after the request.
+No automatic seek retry is included.
 
-The unchanged strict return-to-live check failed without Player or Source errors.
-Its fresh completion arrived 3.070 seconds after the request and only 0.011
-seconds past the requested media target, but the offset was still -3.059 seconds.
-The UI truthfully reported behind-live state; auto-hidden controls did not satisfy
-the visible-LIVE condition. Earlier comparisons of base `2c90983` and main
-`09e0a37`, using the same SDK, shared UI bundle and emulator, showed the same
-request-target versus moving-edge distinction:
+The configured VOD check captured 10.256 s after fresh Ready and first-frame
+events for the applied source. The final HLS/DASH follow-up passed both cases in
+69.860 s, explicitly checking a fresh VOD Seeked event and visible live controls
+restored by a new load. The optional 30-second target-latency policy also passed
+the coupled completion/native-offset/visible-LIVE check under a controlled
+emulator delay. These recorded runs do not establish a seek-completion or
+latency-convergence SLA. The optional policy keeps the SDK synchronization
+defaults; temporary catch-up adjustments are not reported by Player.playbackSpeed.
 
-| App revision | Return completion latency | Completion minus requested target | Offset at completion |
-| --- | --- | --- | --- |
-| `2c90983` | 6.598 s | +0.057 s | -6.573 s |
-| `09e0a37` | 4.439 s | +0.367 s | -4.116 s |
-
-An additional diagnostic required advancing playback before both the rewind and
-return requests. A fresh return completion took 4.253 seconds, reached the exact
-requested target, and still reported -4.270 seconds from the moving edge.
-The 14.009-second jump was beyond the 11.811-second forward video buffer; those
-measurements do not identify the specific operation responsible for the delay.
-The pinned SDK defines [isStalled](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player/is-stalled.html)
-as false during time shifting. A zero offset was also observed before a fresh
-completion, so neither field alone establishes a completed return. The app keeps
-its actual behind-live display and the existing strict checks; it does not add
-automatic seek retries.
-
-The lifecycle correction follows the SDK integration contract. It does not
-establish resolution of timeout 1004: a separate focused background/resume run
-completed both playback cycles but recorded 1004 during Activity close. Its
-specific timed-out operation was not captured. The final grouped run did not
-reproduce it. Failure diagnostics now classify an available surface/release
-message or cause and record the current test phase without printing opaque SDK
-messages. No timeout, seek, visibility or playback condition was relaxed.
-
-An earlier eight-check group passed seven in 97.328 seconds but failed the
-configured-VOD first-observed-position range (`9.0..13.0` seconds for a 10-second
-start offset). That report omitted the sampled position, so late observation
-and an incorrect starting position cannot be distinguished. The assertion now
-reports the number with the same range and timing. Its later pass does not
-establish stable grouped startup-offset behavior. Live-return stability,
-startup-offset qualification and timeout 1004 remain open independently.
-Physical devices, Android TV, Fire TV, offline, casting, Analytics receipt and
-completed SDK resource cleanup remain outside these checks.
+These checks use an Android phone emulator. Physical-device, Android TV, Fire TV,
+offline, casting and Analytics delivery require their respective environments.
+The recorded native observations establish playback and control behavior; they
+do not measure complete internal SDK resource reclamation.
 
 ## Applied configuration code
 
 Open **Configuration → Show applied code** to read the Player, Source and selected
 UI settings sent to the SDK. Draft edits do not change this output. **Copy code**
 writes the code to the Android clipboard; you can also select the text. License
-values are excluded and the Player key is a placeholder. The app’s Allow DVR
+values are excluded and the Player key is a placeholder. The app's Allow DVR
 switch remains separate from the SDK configuration.
+
