@@ -1,7 +1,7 @@
 # Measuring Web playback and UI changes
 
 The lifecycle measurement runs the existing Web app with the local 60-second
-Big Buck Bunny HLS and DASH fixtures. It plays video, switches all 14 themes
+Big Buck Bunny HLS and DASH fixtures. It plays video, switches all available themes
 three times, changes the seek-preview setting, switches between HLS and DASH,
 applies source settings three times, recreates the player through Player
 settings and the DVR control three times each, and releases the UI and player. It checks that only one player and media element are active at each

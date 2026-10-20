@@ -25,7 +25,7 @@ stream URLs you configure there.
 ## Pages version
 
 The Pages build targets the [Web app](https://kazuhide.github.io/player-lab/web/)
-and keeps the existing controls, 14 themes and customization guide. Playback on
+and keeps the existing controls, themes and customization guide. Playback on
 that host requires a Player license allowing the hostname. Both the public
 Player license and configured Analytics license must allow `kazuhide.github.io`.
 These client keys are delivered to the browser. The keyless `localhost` exception
