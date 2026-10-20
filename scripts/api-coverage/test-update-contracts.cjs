@@ -73,3 +73,15 @@ test('a union branch cannot overwrite another branch property contract', () => {
     assert.deepEqual(changed(after, reordered), []);
   });
 });
+
+test('moving a property contract between named union branches is a change', () => {
+  withFixture(extract => {
+    const before = extract('1.0.0', `interface A { kind: 'a'; readonly value: boolean }
+      interface B { kind: 'b'; value: boolean }
+      export interface Config { choice: A | B }`);
+    const after = extract('1.0.1', `interface A { kind: 'a'; value: boolean }
+      interface B { kind: 'b'; readonly value: boolean }
+      export interface Config { choice: A | B }`);
+    assert.deepEqual(changed(before, after), ['Config.choice.value']);
+  });
+});

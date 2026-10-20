@@ -137,7 +137,15 @@ function createExtractor({ packageRoot, entryFile, dependencies = {}, checkedAt 
     if (boundary) { add(boundary); return; }
     if (t.flags & (TYPE_FLAGS.Undefined | TYPE_FLAGS.Null | TYPE_FLAGS.Never)) return;
     if (t.flags & TYPE_FLAGS.EnumLike) { add('scalar'); return; }
-    if (t.isUnion()) { for (const part of t.types) configWalk(part, id, ancestors, symbol, origin, options, contracts); return; }
+    if (t.isUnion()) {
+      for (const part of t.types) {
+        // Keep the association with a named/discriminated branch. Otherwise
+        // swapping readonly/optional facts between branches looks unchanged.
+        const branch = { path: id, branchType: text(part) };
+        configWalk(part, id, ancestors, symbol, origin, options, [...contracts, branch]);
+      }
+      return;
+    }
     if (t.flags & (TYPE_FLAGS.Any | TYPE_FLAGS.Unknown)) { add('opaque'); return; }
     if (t.getCallSignatures().length) { add('callback'); return; }
     if (!(t.flags & TYPE_FLAGS.Object)) { add('scalar'); return; }
