@@ -36,6 +36,71 @@ function configField(page: Page, label: RegExp) {
   });
 }
 
+test("@public live wall-clock text becomes hidden when the source becomes VOD", async ({ page }, testInfo) => {
+  await captureAppPlayer(page);
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await page.getByRole("button", { name: "Sports", exact: true }).click();
+  const url = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/src/components/WallClockLabel.ts")}`;
+  const fixture = await page.evaluateHandle(async (url) => {
+    const { WallClockLabel } = await import(/* @vite-ignore */ url);
+    const { PlayerEvent } = window.player!.exports;
+    const listeners = new Map<string, Set<() => void>>();
+    const releases: (() => void)[] = [];
+    let live = true;
+    // Drive the real component with source events without replacing SDK getters.
+    const player = {
+      exports: { PlayerEvent },
+      isLive: () => live,
+      getCurrentTime: () => 1_700_000_000,
+      on: (event: string, callback: () => void) => {
+        const callbacks = listeners.get(event) ?? new Set<() => void>();
+        callbacks.add(callback);
+        listeners.set(event, callbacks);
+      },
+      off: (event: string, callback: () => void) => listeners.get(event)?.delete(callback),
+    };
+    const dispatch = { dispatch: () => {} };
+    const manager = {
+      onComponentShow: dispatch, onComponentHide: dispatch, onComponentViewModeChanged: dispatch,
+      onRelease: { subscribe: (callback: () => void) => releases.push(callback) },
+    };
+    const label = new WallClockLabel({ id: "wall-clock-transition-fixture" });
+    label.initialize();
+    label.configure(player, manager);
+    const element = label.getDomElement().get(0);
+    document.querySelector("#player .bmpui-ui-controlbar")!.append(element);
+    return {
+      setLive(value: boolean) {
+        live = value;
+        for (const callback of listeners.get(PlayerEvent.SourceLoaded) ?? []) callback();
+      },
+      release() {
+        releases.forEach((callback) => callback());
+        label.release();
+        element.remove();
+      },
+    };
+  }, url);
+  const label = page.locator("#wall-clock-transition-fixture");
+  try {
+    await expect(label).toBeVisible();
+    await expect(label).toHaveText(/^\d{2}:\d{2}:\d{2}$/);
+    const liveText = await label.innerText();
+    await fixture.evaluate((fixture) => fixture.setLive(false));
+    await expect(label).toHaveClass(/bmpui-hidden/);
+    // Retained nonempty live text must not remain painted on the VOD controls.
+    await expect(label).toHaveText(liveText);
+    await expect(label).toHaveCSS("display", "none");
+    await expect(label).toBeHidden();
+    await fixture.evaluate((fixture) => fixture.setLive(true));
+    await expect(label).not.toHaveClass(/bmpui-hidden/);
+    await expect(label).toBeVisible();
+  } finally {
+    await fixture.evaluate((fixture) => fixture.release());
+    await fixture.dispose();
+  }
+});
+
 for (const language of ["en", "ja"] as const) {
   test(`@public construction code and applied UI settings remain readable across widths (${language})`, async ({ page }) => {
     await page.goto(`${APP}/`);

@@ -95,7 +95,19 @@
     },
     {
       "type": "p",
+      "text": "To read the final manifest as finite VOD, keep the URL and player settings, change only Title under Configure source and playback, and Apply when the action says Reload source. This creates a new Source on the same Player and exact URL; playback position resets. The controlled iOS/tvOS checks require finite duration, a fresh Seeked at 30 seconds and subsequent native playback progress. This manual reload is separate from completion or replay of the original Source."
+    },
+    {
+      "type": "p",
+      "text": "The Sports UI contains a live-only WallClockLabel and a seek bar, rather than a VOD elapsed-time label. Its custom CSS class needs an explicit hidden rule so the SDK's hide operation removes the live clock outside live playback. The iOS ending check confirms the visible marker halfway through the 60-second clip and hides the live clock. The tvOS hosted check uses the public SDK seek API with visible native video; it does not qualify remote VOD seeking."
+    },
+    {
+      "type": "p",
       "text": "On October 21, 2026, the controlled HLS ending checks passed once each on iOS 26.4 and tvOS 26.4 with Player 3.128.0, in 20.875 and 21.362 seconds. They retained the same Player and source through ENDLIST, observed PlaybackFinished, advanced replay, kept app live commands disabled, and checked reset on a new source. Separate Android Player 3.171.0 HLS and DASH cases obtained finite duration and completed VOD seeking on the same source. These are simulator/emulator checks with real media, separate from licensed physical-device behavior."
+    },
+    {
+      "type": "p",
+      "text": "The extended check passed on October 21, 2026 on iPad / iOS 26.4 in 65.726 seconds and Apple TV / tvOS 26.4 in 65.579 seconds, one test each with zero failures. Both retained live/infinite getters on the completed Source, then reloaded the same URL on the same Player into finite VOD, completed a fresh Seeked at 30 seconds and advanced through native TimeChanged events. The iPad showed the middle seek marker with its live clock hidden; the TV display reached 00:31 / remaining 00:29. These are hosted SDK checks, separate from GUI Apply and remote VOD seeking."
     },
     {
       "type": "p",
@@ -128,7 +140,7 @@
     },
     {
       "path": "apps/ios/README.md",
-      "line": 212,
+      "line": 214,
       "label": "Native HLS completion and source ownership"
     }
   ]

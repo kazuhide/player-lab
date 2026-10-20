@@ -291,7 +291,7 @@
       "label": "Official Expo 57 tooling and native template"
     },
     {
-      "url": "https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0",
+      "url": "https://github.com/charpeni/react-native-url-polyfill/blob/v4.0.0/README.md",
       "label": "Local URL parser 4.0.0"
     },
     {

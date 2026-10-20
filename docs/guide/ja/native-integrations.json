@@ -291,7 +291,7 @@
       "label": "Expo 57 の公式ツール要件とネイティブテンプレート"
     },
     {
-      "url": "https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0",
+      "url": "https://github.com/charpeni/react-native-url-polyfill/blob/v4.0.0/README.md",
       "label": "ローカル URL パーサー 4.0.0"
     },
     {

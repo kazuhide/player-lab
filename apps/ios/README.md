@@ -154,6 +154,13 @@ Replay overlay. Replay can advance the same source again without restoring live
 commands; a new source load clears the completion state. Native SDK timing
 values remain unchanged.
 
+For finite VOD seeking after this completion, open **Configure source and
+playback**, keep the URL and player settings, change only the title, and choose
+**Apply** when the pending action says **Reload source**. This explicitly loads
+the finalized HLS manifest into a new Source on the same Player. It resets the
+playback position; it is not an automatic reload. `seek(time:)` is a VOD API and
+has no effect while the SDK still classifies the retained source as live.
+
 The opt-in `Showcase-iOS-Runtime` scheme runs a hosted test against the real
 library and shared Web UI. After the setup/build steps above, select an available
 iOS simulator in Xcode or run this command from `apps/ios`, replacing the simulator
@@ -232,11 +239,20 @@ xcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-Finalization \
 These hosted tests need the app's allowed Player license. They play actual media,
 check fresh native rewind completion against the requested media time, then add
 HLS `ENDLIST` without replacing the source. They require native playback
-completion, advancing replay on the same player/source, disabled app live commands
-during replay, reset on a new live load, and an explicit VOD source switch. The
+completion, advancing replay on the same player/source, and disabled app live commands
+during replay. They then change only the title through the existing Apply path,
+require the same Player and exact URL with a new finite VOD Source, and check a
+fresh `Seeked` at 30 seconds followed by advancing `TimeChanged` positions.
+Reset on a new live load and an explicit VOD source switch are also checked. The
 iOS test also clicks the visible shared Web UI Replay button and checks its LIVE
-controls' own hidden state and rendered visibility. tvOS uses native System UI;
-the hosted test starts/replays through the public SDK API and does not establish
+controls' own hidden state and rendered visibility. Its Sports UI shows the
+completed VOD seek at the middle of the seek bar and hides the live-only clock.
+Sports has a `WallClockLabel` and seek bar, rather than a VOD elapsed-time label;
+the test compares the marker with native relative time instead of expecting
+`00:30` text. The custom clock class needs its own `.bmpui-hidden` rule so the
+SDK's hide operation also hides it outside live playback.
+tvOS uses native System UI; the hosted test starts, replays and seeks
+through the public SDK API with visible video and does not establish
 remote-command or GUI Apply behavior. The server uses ports 5198 and 5199 and
 is intended for simulators on the same Mac. Stop it with Ctrl-C after testing.
 
@@ -250,6 +266,15 @@ switching to the bundled Sports UI; tvOS used the remote Play/Pause command.
 These checks used the public 734-second Tears of Steel VOD preset, separate from
 the 60-second ending fixture. They do not measure bitrate enforcement, buffering
 performance, or physical-device behavior.
+
+The extended ending checks passed later that day on iPad / iOS 26.4 in
+65.726 seconds and Apple TV / tvOS 26.4 in 65.579 seconds, one test each with
+zero failures. The completed Source retained live/infinite getters and did not
+complete a VOD seek. Title-only Apply then loaded a new finite 60-second Source
+on the same Player and URL. Both completed a fresh seek at 30 seconds and
+advanced through native TimeChanged events. The iPad showed the middle seek
+marker with its live clock hidden; the TV display reached 00:31 / remaining
+00:29. These are hosted SDK checks, separate from GUI Apply and remote seeking.
 
 ### Local HLS and progressive MP4 configuration playback
 
