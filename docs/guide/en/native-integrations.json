@@ -321,6 +321,10 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#31240",
       "label": "Android +jason resource isolation and IMA dependency changes"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#3510",
+      "label": "Android +jason resource-prefix isolation"
     }
   ]
 }

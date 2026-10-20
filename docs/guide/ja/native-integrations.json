@@ -321,6 +321,10 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#31240",
       "label": "Android の +jason によるリソース衝突回避と IMA の依存変更"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#3510",
+      "label": "Android +jason のリソース名の衝突回避"
     }
   ]
 }
