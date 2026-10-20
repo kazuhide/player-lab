@@ -19,7 +19,7 @@ export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
   config, source, onDvr, controllerRef, timeShiftEnabled,
 }) => {
   const teardown = useRef<Promise<void>>(Promise.resolve());
-  const ownedSession = useRef<{ dispose: () => Promise<void> } | null>(null);
+  const ownedSession = useRef<{ dispose: (background?: boolean) => Promise<void> } | null>(null);
   const enabled = useRef(timeShiftEnabled);
   const [surfaceHandle, setSurfaceHandle] = useState<string | null>(null);
   const lifecycleRef = useRef({ active: AppState.currentState !== "background", generation: 0 });
@@ -33,7 +33,7 @@ export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
         // Retire callbacks and native media synchronously; the barrier owns remaining SDK cleanup.
         const session = ownedSession.current;
         ownedSession.current = null;
-        if (session) teardown.current = session.dispose();
+        if (session) teardown.current = session.dispose(true);
         // A current waiter reuses the retiring owner's barrier, so it is flushed too.
         releaseVegaBackgroundMedia(teardown.current);
         setSurfaceHandle(null);

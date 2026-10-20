@@ -11,10 +11,18 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextReplacement
+import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.bitmovin.player.PlayerView
+import com.bitmovin.player.api.ExperimentalBitmovinApi
+import com.bitmovin.player.api.buffer.BufferType
+import com.bitmovin.player.api.media.MediaType
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.showcase.dvr.PlaybackMode
+import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -29,14 +37,26 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 
 /** Licensed runtime checks against the actual app controls, SDK and shared Web UI. */
+@OptIn(ExperimentalBitmovinApi::class)
 @RunWith(AndroidJUnit4::class)
 class PlayerControlsInstrumentedTest {
     @get:Rule val ui = createAndroidComposeRule<MainActivity>()
     private val errors = CopyOnWriteArrayList<Int>()
+    private val timeShiftRequests = AtomicInteger()
     private val timeShiftCompletions = AtomicInteger()
     private val completedTimeShiftPosition = AtomicReference(Double.NaN)
     private val timeShiftObservations = CopyOnWriteArrayList<TimeShiftObservation>()
     private var pointerSide = false
+    private var lastProbeUptime = 0L
+    private val rewindSeconds = InstrumentationRegistry.getArguments().getString("liveRewindSeconds")?.let {
+        require(it in listOf("10", "30", "60")) { "liveRewindSeconds must name an existing rewind control" }
+        it.toInt()
+    } ?: 10
+
+    private val liveTargetLatency = InstrumentationRegistry.getArguments().getString("liveTargetLatency")?.let {
+        require(it.toDoubleOrNull()?.isFinite() == true) { "liveTargetLatency must be finite" }
+        it
+    }
 
     private data class TimeShiftObservation(
         val phase: String,
@@ -54,9 +74,12 @@ class PlayerControlsInstrumentedTest {
             player.on(PlayerEvent.Error::class) { errors.add(it.code.value) }
             player.on(SourceEvent.Error::class) { errors.add(it.code.value) }
             player.on(PlayerEvent.TimeShift::class) {
+                timeShiftRequests.incrementAndGet()
                 timeShiftObservations.add(
                     TimeShiftObservation("request", SystemClock.uptimeMillis(), it.position, it.target, player.timeShift),
                 )
+                println("LIVE_SYNC_EVENT phase=request ms=${SystemClock.uptimeMillis()} position=${it.position} target=${it.target} offset=${player.timeShift}")
+                probeSync("request")
             }
             player.on(PlayerEvent.TimeShifted::class) {
                 val position = player.currentTime
@@ -65,6 +88,8 @@ class PlayerControlsInstrumentedTest {
                     TimeShiftObservation("completed", SystemClock.uptimeMillis(), position, null, player.timeShift),
                 )
                 timeShiftCompletions.incrementAndGet()
+                println("LIVE_SYNC_EVENT phase=completed ms=${SystemClock.uptimeMillis()} position=$position offset=${player.timeShift}")
+                probeSync("completed")
             }
             player.mute()
         }
@@ -100,17 +125,31 @@ class PlayerControlsInstrumentedTest {
         await("shared UI starts advancing playback") { player.isPlaying && player.currentTime > start + 1 }
 
         ui.onNodeWithText("Live DASH + DVR").performScrollTo().performClick()
+        liveTargetLatency?.let { latency ->
+            ui.onNodeWithTag("configuration-toggle").performScrollTo().performClick()
+            ui.onNodeWithTag("source-live-target").performScrollTo().performTextReplacement(latency)
+            closeSoftKeyboard()
+            ui.onNodeWithTag("apply-source").performScrollTo().performClick()
+            ui.runOnUiThread {
+                assertEquals(latency.toDouble(), requireNotNull(controller.configuredSource?.config?.liveConfig?.targetLatency), 0.0)
+                assertTrue("Source policy must retain the player", player === controller.player)
+            }
+            ui.onNodeWithTag("configuration-toggle").performScrollTo().performClick()
+        }
         await("live source loads") { player.isLive }
         ui.runOnUiThread { player.play() }
         await("live source supplies a rewind window") {
-            controller.dvr.dvrAvailable && controller.dvr.windowDuration > 10
+            controller.dvr.dvrAvailable && controller.dvr.windowDuration > rewindSeconds
         }
-        val rewindButton = ui.onNodeWithText("-10s").performScrollTo()
+        var liveClock = 0.0
+        ui.runOnUiThread { liveClock = player.currentTime }
+        await("live playback advances before rewind") { player.currentTime > liveClock + 1 }
+        val rewindButton = ui.onNodeWithText("-${rewindSeconds}s").performScrollTo()
         var beforeRewind = 0
         var rewindTarget = Double.NaN
         ui.runOnUiThread {
             beforeRewind = timeShiftCompletions.get()
-            rewindTarget = player.currentTime - player.timeShift - 10
+            rewindTarget = player.currentTime - player.timeShift - rewindSeconds
         }
         assertTrue("Rewind target must be finite", rewindTarget.isFinite())
         rewindButton.performClick()
@@ -119,10 +158,13 @@ class PlayerControlsInstrumentedTest {
             timeShiftCompletions.get() > beforeRewind && offset.isFinite() && offset < 0 &&
                 abs(completedTimeShiftPosition.get() - rewindTarget) <= 3
         }
+        ui.runOnUiThread { liveClock = player.currentTime }
+        await("rewound playback advances before return") { player.currentTime > liveClock + 1 }
         val beforeReturn = timeShiftCompletions.get()
         ui.onNodeWithText("Live edge").performScrollTo().performClick()
         awaitJavascript(webView, sharedLiveUiScript(atEdge = true), "return to live completes in the SDK and shared UI", revealControls = true) {
-            timeShiftCompletions.get() > beforeReturn && abs(player.timeShift) < 1
+            timeShiftCompletions.get() > beforeReturn && timeShiftCompletions.get() == timeShiftRequests.get() &&
+                abs(player.timeShift) < 1
         }
         ui.onNodeWithTag("allow-dvr").performScrollTo().performClick()
         ui.runOnUiThread { assertFalse(controller.dvr.dvrAvailable) }
@@ -133,10 +175,247 @@ class PlayerControlsInstrumentedTest {
         assertTrue("Player/Source error codes: $errors", errors.isEmpty())
     }
 
+
+    @Test
+    fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {
+        val controller = ui.activity.controller
+        val player = controller.player
+        observeErrors()
+        ui.onNodeWithText("Sports").performScrollTo().performClick()
+        ui.onNodeWithText("VOD HLS").performScrollTo().performClick()
+        await("standard UI VOD loads") { player.duration.isFinite() && player.duration > 20 }
+        var web = attachedWebView()
+        var start = 0.0
+        ui.runOnUiThread { start = player.currentTime; assertFalse(player.isMuted) }
+        clickWeb(web, ".bmpui-ui-playbacktogglebutton")
+        await("standard UI Play advances native playback") { player.isPlaying && player.currentTime > start + 1 }
+        clickWeb(web, ".bmpui-ui-playbacktogglebutton")
+        await("standard UI Pause reaches native pause") { player.isPaused }
+        clickWeb(web, ".bmpui-ui-volumetogglebutton")
+        await("standard UI Mute reaches native mute") { player.isMuted }
+        clickWeb(web, ".bmpui-ui-volumetogglebutton")
+        await("standard UI Unmute reaches native unmute") { !player.isMuted }
+        val seeked = AtomicInteger()
+        var target = 0.0
+        ui.runOnUiThread { player.on(PlayerEvent.Seeked::class) { seeked.incrementAndGet() }; target = player.duration * 0.25 }
+        mouseSeek(web, ".bmpui-ui-seekbar .bmpui-seekbar", 0.25)
+        await("standard UI seek finishes at its native media target") {
+            seeked.get() > 0 && abs(player.currentTime - target) <= 3 && player.isPaused
+        }
+        ui.onNodeWithText("Default").performScrollTo().performClick()
+        web = attachedWebView()
+        chooseSetting(web, "Speed", label = "1.5x")
+        await("standard speed option reaches the native property") { player.playbackSpeed == 1.5f }
+        ui.runOnUiThread {
+            assertTrue("Standard UI changes retain the player", player === controller.player)
+            println("NATIVE_UI_SAFE action=vod-controls play=true pause=true mute=true unmute=true seeked=${seeked.get()} playbackSpeed=${player.playbackSpeed}")
+        }
+    }
+
+    @Test
+    fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {
+        val player = ui.activity.controller.player
+        observeErrors()
+        ui.onNodeWithText("Live DASH + Multi-audio").performScrollTo().performClick()
+        await("native reference source exposes tracks and video qualities") {
+            val source = player.source
+            player.isLive && source != null && source.availableAudioTracks.size >= 2 &&
+                source.availableSubtitleTracks.isNotEmpty() && source.availableVideoQualities.size >= 2
+        }
+        val web = attachedWebView()
+        clickWeb(web, ".bmpui-ui-playbacktogglebutton")
+        var start = 0.0
+        ui.runOnUiThread { start = player.currentTime }
+        await("reference playback advances before settings changes") { player.isPlaying && player.currentTime > start + 1 }
+        val audioChanged = AtomicInteger()
+        val subtitleChanged = AtomicInteger()
+        val qualityChanged = AtomicInteger()
+        val source = requireNotNull(player.source)
+        var audioId = ""
+        var subtitleId = ""
+        var qualityId = ""
+        var audioIndex = 0
+        var subtitleIndex = 0
+        var qualityIndex = 0
+        ui.runOnUiThread {
+            source.on(SourceEvent.AudioTrackChanged::class) { audioChanged.incrementAndGet() }
+            source.on(SourceEvent.SubtitleTrackChanged::class) { subtitleChanged.incrementAndGet() }
+            source.on(SourceEvent.VideoQualityChanged::class) { qualityChanged.incrementAndGet() }
+            audioIndex = source.availableAudioTracks.indexOfFirst { it.id != source.selectedAudioTrack?.id }
+            subtitleIndex = source.availableSubtitleTracks.indexOfFirst { !it.isForced }
+            qualityIndex = source.availableVideoQualities.indexOfLast { it.id != source.selectedVideoQuality?.id }
+            assertTrue(audioIndex >= 0 && subtitleIndex >= 0 && qualityIndex >= 0)
+            audioId = source.availableAudioTracks[audioIndex].id
+            subtitleId = source.availableSubtitleTracks[subtitleIndex].id
+            qualityId = source.availableVideoQualities[qualityIndex].id
+        }
+        chooseSetting(web, "Audio Track", index = audioIndex)
+        await("standard audio choice reaches the native source") { audioChanged.get() > 0 && source.selectedAudioTrack?.id == audioId }
+        chooseSetting(web, "Subtitles", index = subtitleIndex + 1)
+        await("standard subtitle choice reaches the native source") { subtitleChanged.get() > 0 && source.selectedSubtitleTrack?.id == subtitleId }
+        chooseSetting(web, "Video Quality", index = qualityIndex + 1)
+        await("standard quality choice reaches the native source") { qualityChanged.get() > 0 && source.selectedVideoQuality?.id == qualityId }
+        ui.runOnUiThread {
+            assertTrue("Track choices retain source ownership", source === player.source)
+            println("NATIVE_UI_SAFE action=source-choices audioChanged=${audioChanged.get()} subtitleChanged=${subtitleChanged.get()} qualityChanged=${qualityChanged.get()} audioMatch=true subtitleMatch=true qualityMatch=true")
+        }
+    }
+
+    @Test
+    fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {
+        val player = ui.activity.controller.player
+        observeErrors()
+        ui.onNodeWithText("Sports").performScrollTo().performClick()
+        ui.onNodeWithText("VOD HLS").performScrollTo().performClick()
+        await("reference VOD metadata loads") { player.duration.isFinite() && player.duration > 20 }
+        val web = attachedWebView()
+        awaitJavascript(web, """
+            (() => {
+              $visibleElementScript
+              return !!visible('.bmpui-ui-playbacktogglebutton') &&
+                !visible('.bmpui-ui-fullscreentogglebutton') &&
+                !visible('.bmpui-ui-piptogglebutton,.bmpui-ui-pictureinpicturetogglebutton') &&
+                !visible('.bmpui-ui-volumeslider');
+            })()
+        """.trimIndent(), "standard control availability is visible", revealControls = true)
+        val view = descendants(ui.activity.window.decorView).filterIsInstance<PlayerView>().single { it.player === player }
+        ui.runOnUiThread {
+            assertFalse("No fullscreen handler is configured by this app", view.isFullscreen())
+            assertFalse("No PiP handler is configured by this app", view.isPictureInPictureAvailable())
+            assertFalse(view.isPictureInPicture())
+            println("NATIVE_UI_SAFE action=unavailable-routes fullscreenButton=false fullscreen=false pipAvailable=false pip=false mobileVolumeSlider=false nativeVolume=${player.volume}")
+        }
+        // Pass through the actual published native method and record only numeric/null results.
+        // The request itself must originate from hovering the standard seek bar.
+        assertEquals("Native thumbnail bridge can be observed", "true", javascript(web, """
+            (() => {
+              const original = Android;
+              window.__thumbnailQuery = {calls: 0, present: false, time: 0};
+              window.__nativeAndroidBeforeThumbnailProbe = original;
+              window.Android = new Proxy(original, {get(target, key) {
+                if (key === 'getThumbnail') return time => {
+                  const result = target.getThumbnail(time);
+                  window.__thumbnailQuery = {calls: window.__thumbnailQuery.calls + 1,
+                    present: result !== null && result !== 'null', time};
+                  return result;
+                };
+                const value = target[key];
+                return typeof value === 'function' ? value.bind(target) : value;
+              }});
+              return Android !== original;
+            })()
+        """.trimIndent()))
+        try {
+            awaitJavascript(web, """
+                (() => {
+                  $visibleElementScript
+                  const bar = visible('.bmpui-ui-seekbar .bmpui-seekbar');
+                  if (!bar) return false;
+                  const rect = bar.getBoundingClientRect();
+                  bar.dispatchEvent(new MouseEvent('mousemove', {bubbles: true,
+                    clientX: rect.left + rect.width * 0.4, clientY: rect.top + rect.height / 2}));
+                  return true;
+                })()
+            """.trimIndent(), "standard seek bar receives hover input", revealControls = true)
+            awaitJavascript(web, "window.__thumbnailQuery.calls > 0", "standard hover invokes the actual native thumbnail query")
+            val thumbnail = javascript(web, "JSON.stringify(window.__thumbnailQuery)")
+            println("NATIVE_UI_SAFE action=thumbnail-query result=$thumbnail")
+        } finally {
+            javascript(web, "window.Android = window.__nativeAndroidBeforeThumbnailProbe; true")
+        }
+    }
+
+    private fun observeErrors() {
+        val player = ui.activity.controller.player
+        ui.runOnUiThread {
+            player.on(PlayerEvent.Error::class) { errors += it.code.value }
+            player.on(SourceEvent.Error::class) { errors += it.code.value }
+        }
+    }
+
+    private fun attachedWebView(): WebView {
+        ui.waitForIdle()
+        var web: WebView? = null
+        await("active WebView attaches") {
+            val player = ui.activity.controller.player
+            val active = descendants(ui.activity.window.decorView).filterIsInstance<PlayerView>()
+                .singleOrNull { it.player === player }
+            web = active?.let { descendants(it).filterIsInstance<WebView>().firstOrNull() }
+            web != null
+        }
+        return requireNotNull(web)
+    }
+
+    private fun clickWeb(view: WebView, selector: String) = awaitJavascript(view, """
+        (() => { $visibleElementScript
+          const element = visible(${JSONObject.quote(selector)});
+          if (!element) return false;
+          element.click(); return true;
+        })()
+    """.trimIndent(), "visible standard UI control $selector", revealControls = true)
+
+    private fun mouseSeek(view: WebView, selector: String, fraction: Double) = awaitJavascript(view, """
+        (() => { $visibleElementScript
+          const bar = visible(${JSONObject.quote(selector)});
+          if (!bar) return false;
+          const rect = bar.getBoundingClientRect();
+          const input = {bubbles:true, clientX:rect.left+rect.width*$fraction, clientY:rect.top+rect.height/2, button:0};
+          bar.dispatchEvent(new MouseEvent('mousedown', input));
+          document.dispatchEvent(new MouseEvent('mouseup', input));
+          return true;
+        })()
+    """.trimIndent(), "visible standard seek control", revealControls = true)
+
+    private fun chooseSetting(view: WebView, title: String, index: Int? = null, label: String? = null) {
+        val root = ".bmpui-ui-settings-panel-item:not(.bmpui-ui-settings-panel-item-select-option)"
+        val titleJson = JSONObject.quote(title)
+        val rootVisible = javascript(view, """
+            (() => { $visibleElementScript
+              return [...document.querySelectorAll('$root')].some(element =>
+                element.textContent.trim().startsWith($titleJson) && visible('#' + element.id));
+            })()
+        """.trimIndent()) == "true"
+        if (!rootVisible) clickWeb(view, ".bmpui-ui-settingstogglebutton")
+        awaitJavascript(view, """
+            (() => { $visibleElementScript
+              const element = [...document.querySelectorAll('$root')].find(item => item.textContent.trim().startsWith($titleJson));
+              if (!element) return false;
+              element.scrollIntoView({block:'nearest'});
+              if (!visible('#' + element.id)) return false;
+              element.click(); return true;
+            })()
+        """.trimIndent(), "visible $title settings page", revealControls = true)
+        awaitJavascript(view, """
+            (() => { $visibleElementScript
+              const options = [...document.querySelectorAll('.bmpui-ui-settings-panel-item-select-option')];
+              const option = ${if (label != null) "options.find(item => item.textContent.trim() === ${JSONObject.quote(label)})" else "options[$index]"};
+              if (!option) return false;
+              option.scrollIntoView({block:'nearest'});
+              if (!visible('#' + option.id)) return false;
+              option.click(); return true;
+            })()
+        """.trimIndent(), "visible $title option", revealControls = true)
+        clickWeb(view, ".bmpui-ui-settingspanelpagebackbutton")
+    }
+
+    private fun probeSync(phase: String) {
+        val player = ui.activity.controller.player
+        if (!player.isLive) return
+        val now = SystemClock.uptimeMillis()
+        lastProbeUptime = now
+        println("LIVE_SYNC_SAFE phase=$phase ms=$now position=${player.currentTime} offset=${player.timeShift} latency=${player.lowLatency.latency} target=${player.lowLatency.targetLatency} videoBuffer=${player.buffer.getLevel(BufferType.ForwardDuration, MediaType.Video).level} audioBuffer=${player.buffer.getLevel(BufferType.ForwardDuration, MediaType.Audio).level} playing=${player.isPlaying} seekableStart=${player.source?.seekableRange?.start} seekableEnd=${player.source?.seekableRange?.end} userPlaybackSpeed=${player.playbackSpeed} catchupRate=${player.lowLatency.catchupConfig?.playbackRate} catchupSeek=${player.lowLatency.catchupConfig?.seekThreshold} fallbackRate=${player.lowLatency.fallbackConfig?.playbackRate}")
+        player.lowLatency.getTargetPlaybackLatency { effective ->
+            println("LIVE_SYNC_SAFE phase=$phase referenceMs=$now effectiveTarget=$effective callbackMs=${SystemClock.uptimeMillis()}")
+        }
+    }
+
     private fun await(label: String, predicate: () -> Boolean) {
         ui.waitUntil(timeoutMillis = 40_000) {
             var ready = false
-            ui.runOnUiThread { ready = predicate() }
+            ui.runOnUiThread {
+                ready = predicate()
+                if (SystemClock.uptimeMillis() - lastProbeUptime >= 1000) probeSync("poll")
+            }
             ready || errors.isNotEmpty() || ui.activity.controller.lastErrorCode != null
         }
         assertTrue("$label; Player/Source error codes: $errors", errors.isEmpty())
@@ -162,26 +441,40 @@ class PlayerControlsInstrumentedTest {
         var readyPolls = 0
         while (System.nanoTime() < deadline && errors.isEmpty() && ui.activity.controller.lastErrorCode == null) {
             var ready = false
-            ui.runOnUiThread { ready = predicate() }
+            ui.runOnUiThread {
+                ready = predicate()
+                if (SystemClock.uptimeMillis() - lastProbeUptime >= 1000) probeSync("poll")
+            }
             if (ready) {
                 readyPolls++
                 if (revealControls) movePointerInside(view)
-                if (javascript(view, script) == "true") return
+                if (javascript(view, script) == "true") {
+                    ui.runOnUiThread { ready = predicate() && errors.isEmpty() && ui.activity.controller.lastErrorCode == null }
+                    if (ready) {
+                        if (label == "return to live completes in the SDK and shared UI") ui.runOnUiThread {
+                            val player = ui.activity.controller.player
+                            probeSync("accepted")
+                            println("LIVE_RETURN_ACCEPTED ms=${SystemClock.uptimeMillis()} position=${player.currentTime} offset=${player.timeShift} latency=${player.lowLatency.latency} target=${player.lowLatency.targetLatency} requests=${timeShiftRequests.get()} completions=${timeShiftCompletions.get()} visibleLive=true")
+                        }
+                        return
+                    }
+                }
             }
             Thread.sleep(100)
         }
         var native = ""
         ui.runOnUiThread {
             val player = ui.activity.controller.player
-            native = "completions=${timeShiftCompletions.get()} readyPolls=$readyPolls " +
+            native = "requests=${timeShiftRequests.get()} completions=${timeShiftCompletions.get()} readyPolls=$readyPolls " +
                 "position=${player.currentTime} completedPosition=${completedTimeShiftPosition.get()} " +
                 "offset=${player.timeShift} maxOffset=${player.maxTimeShift} playing=${player.isPlaying} " +
+                "latency=${player.lowLatency.latency} targetLatency=${player.lowLatency.targetLatency} " +
                 "observations=${timeShiftObservations.takeLast(8)}"
         }
         // Diagnose a missed native condition separately from hidden or stale Web UI state.
         // Only live-control text, numeric playback state and CSS visibility are captured.
         val dom = runCatching { javascript(view, """
-            JSON.stringify([...document.querySelectorAll('.bmpui-ui-label-behindlive,.bmpui-ui-livebutton')].map(element => {
+            JSON.stringify([...document.querySelectorAll('.bmpui-ui-label-behindlive,.bmpui-ui-livebutton,.bmpui-ui-settings-panel-item,.bmpui-ui-settingspanelpagebackbutton,.bmpui-ui-settingstogglebutton')].slice(0, 24).map(element => {
               const rect = element.getBoundingClientRect();
               return {text:element.textContent.trim(), classes:element.className, rect:{x:rect.x,y:rect.y,w:rect.width,h:rect.height},
                 hiddenBy:[element,...(function*(){for(let n=element.parentElement;n;n=n.parentElement)yield n;})()].flatMap(node => {

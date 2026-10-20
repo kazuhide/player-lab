@@ -118,6 +118,14 @@ current source configuration while recreating the player.
 On iOS, the "Player UI" picker selects the default Web UI or Sports, Live, and
 Cinema factories. tvOS keeps its native System UI.
 
+The tvOS player is inline beside the app controls. Use the remote's **Play/Pause**
+button to start or pause the current player; the app handles this command even
+while a source or configuration button has focus. AVKit's transport controls need
+full-screen video, as shown in the
+[official tvOS sample](https://github.com/bitmovin/bitmovin-player-ios-samples/blob/main/BasicPlaybackTV/BasicPlaybackTV/ContentView.swift).
+The command uses SwiftUI's
+[`onPlayPauseCommand`](https://developer.apple.com/documentation/swiftui/view/onplaypausecommand(perform:)).
+
 Custom modes point `config.styleConfig.playerUiJs` and `playerUiCss` at bundled
 `WebUI/bitmovinplayer-ui.*` files. They set
 `config.styleConfig.userInterfaceConfig = BitmovinUserInterfaceConfig()` and a
@@ -137,6 +145,14 @@ license and a running live source, check seeking within the window, returning to
 live, recovery when paused media expires, and a live stream becoming on-demand.
 The app also checks for the latter transition from `TimeChanged` snapshots,
 because relying only on `DurationChanged` can miss it.
+
+Some completed HLS streams keep the native `isLive == true` and infinite duration
+after [`PlaybackFinished`](https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerlistener/onplaybackfinished(_:player:)).
+The app shows `ended-live` and disables its live-seek commands for that loaded
+source. The shared Live and Sports UIs hide LIVE controls and show the SDK's
+Replay overlay. Replay can advance the same source again without restoring live
+commands; a new source load clears the completion state. Native SDK timing
+values remain unchanged.
 
 The opt-in `Showcase-iOS-Runtime` scheme runs a hosted test against the real
 library and shared Web UI. After the setup/build steps above, select an available
@@ -187,6 +203,131 @@ repository's cleanup patch: one test, zero failures, 11.670 seconds. The shared
 Sports UI was also inspected in the retained image. This is simulator evidence;
 physical-device, tvOS, remote-control, casting, and offline playback checks remain
 separate.
+
+### Controlled HLS ending
+
+The `Showcase-iOS-Finalization` and `Showcase-tvOS-Finalization` schemes use real
+SDK playback and a local 60-second media fixture. Generate the public media as
+described in [local test media](../../docs/local-test-media.md), then start this
+loopback-only server from the repository root with Node 24.19.0:
+
+```sh
+python3 encoding/test-streams/local.py --output .cache/apple-runtime-media
+node apps/ios/runtime-fixture.mjs .cache/apple-runtime-media/vod-baseline
+```
+
+Keep the server running and run one scheme at a time from `apps/ios`:
+
+```sh
+xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Finalization \
+  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \
+  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO test
+xcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-Finalization \
+  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \
+  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO test
+```
+
+These hosted tests need the app's allowed Player license. They play actual media,
+check fresh native rewind completion against the requested media time, then add
+HLS `ENDLIST` without replacing the source. They require native playback
+completion, advancing replay on the same player/source, disabled app live commands
+during replay, reset on a new live load, and an explicit VOD source switch. The
+iOS test also clicks the visible shared Web UI Replay button and checks its LIVE
+controls' own hidden state and rendered visibility. tvOS uses native System UI;
+the hosted test starts/replays through the public SDK API and does not establish
+remote-command or GUI Apply behavior. The server uses ports 5198 and 5199 and
+is intended for simulators on the same Mac. Stop it with Ctrl-C after testing.
+
+On 2026-10-21, the controlled ending test passed on iOS 26.4 and tvOS 26.4
+simulators with Player 3.128.0: one test each, in 20.875 and 21.362 seconds.
+Separate checks used the normal app's actual configuration controls and native
+read-only observations. They verified Reset, source-only Apply on the same
+player, recreation Apply destroying the old player, retained source options and
+app DVR selection, and advancing video. iOS also retained these settings when
+switching to the bundled Sports UI; tvOS used the remote Play/Pause command.
+These checks used the public 734-second Tears of Steel VOD preset, separate from
+the 60-second ending fixture. They do not measure bitrate enforcement, buffering
+performance, or physical-device behavior.
+
+### Local HLS and progressive MP4 configuration playback
+
+On 2026-10-21, the normal app's configuration GUI also played the generated
+60-second Big Buck Bunny HLS and progressive MP4 on iPhone, iPad and Apple TV
+simulators with Player 3.128.0. The MP4 checks entered the source URL, progressive
+type, title, five-second start offset, autoplay, 2,500,000 bit/s maximum bitrate
+and eight-second forward buffer through the actual editor. Native read-only
+observations confirmed the applied values, a new Player, destruction of the old
+Player, advancing positions and visible video.
+
+| MP4 destination | Result | Case duration | Native playback samples |
+| --- | --- | --- | --- |
+| iPhone 17 Pro / iOS 26.4 | 1 passed, 0 failed | 47.026 s | 6.113 → 10.513 s |
+| iPad Pro 11-inch (M5) / iOS 26.4 | 1 passed, 0 failed | 52.502 s | 6.118 → 10.518 s |
+| Apple TV 4K (3rd generation) / tvOS 26.4 | 1 passed, 0 failed | 104.280 s | 6.017 → 10.418 s |
+
+The remuxed MP4 reports a container duration of 60.021333 seconds. Its video has
+a 60-second span starting at 0.021322 seconds; audio starts at zero and spans
+60.021333 seconds. The input HLS audio starts at -0.021333 seconds while video
+starts at zero. The remux shifts the file origin while retaining that track
+offset, consistent with FFmpeg's [timestamp-shift handling](https://ffmpeg.org/ffmpeg-formats.html#Format-Options).
+The nearly identical output track endpoints show that this is not audio trailing
+21 milliseconds beyond the video. Compare track starts and endpoints as well
+as container duration; the [AAC frame and presentation-time notes](../../docs/local-test-media.md)
+explain why rounding every track to an exact frame boundary can mislead.
+The bitrate and buffer observations establish configuration delivery, not
+bandwidth enforcement or buffering performance.
+
+To create an equivalent MP4 without re-encoding, use a separate output directory
+after generating the local media. Run from the repository root:
+
+```sh
+mkdir -p .cache/apple-mp4
+ffmpeg -v error -n -i .cache/apple-runtime-media/vod-baseline/master.m3u8 \
+  -map 0:v:0 -map 0:a:0 -c copy -movflags +faststart \
+  .cache/apple-mp4/vod-60s.mp4
+```
+
+The remux command was checked separately on 2026-10-21. Serve the MP4 using an
+HTTP server with byte-range support, enter that reachable URL in Configuration,
+select Progressive MP4, and apply the settings above. The HLS ending server
+serves its playlist fixture; it is not the MP4 server. Keep this test input local
+and use the app's normally allowed Player license.
+
+### SDK Default UI controls
+
+On 2026-10-21, two real-app GUI cases passed on an iPhone 17 Pro / iOS 26.4
+simulator with Player 3.128.0, in 55.381 and 48.599 seconds. They used the
+generated 60-second multi-audio HLS, actual touch input, read-only native
+getters/listeners and visible video. The SDK bridge and stock UI resource bytes
+matched the installed app. The [recorded API results](../../docs/api-coverage/apple/stock-ui-qualification.json)
+include values and public resource references.
+
+| API | Actual control and native result | Coverage |
+| --- | --- | --- |
+| `Player.pause()` | Pause held the native position at 10.095 seconds across three samples. | Direct |
+| `Player.play()` | Play advanced the same native player from 10.583 to 14.982 seconds. | Direct |
+| `Player.seek(time:)` | Dragging the visible timeline completed a fresh native `Seeked` at 30 seconds. | Direct |
+| `Player.setAudio(trackIdentifier:)` | Selecting German test track changed the native selection from track 0 to track 1. | Direct |
+| `Player.playbackSpeed` | Selecting 2x set the native speed to 2. | Preset |
+| `Player.volume` | Speaker touch changed mute; volume stayed at 100 and no touch volume slider was offered. | Missing |
+| `UserInterfaceApi.enterFullscreen()` / `exitFullscreen()` | The host has no fullscreen handler or visible fullscreen control. | Missing, two API rows |
+
+The audio menu dynamically lists all `Player.availableAudio` IDs, covering the
+public valid argument domain. Its two fixture labels are test metadata, not
+translations of the soundtrack. Speed offers only 0.25x, 0.5x, normal, 1.5x and
+2x; the GUI does not accept other SDK speed values. The missing controls remain
+available SDK APIs in the denominator. No candidate is left unverified in this
+eight-item audit; the recorded touch results apply to this iPhone simulator host.
+
+To repeat the GUI workflow, select **Default**, configure the generated
+`vod-multiaudio/master.m3u8` URL and autoplay, then Apply. Reveal the video
+controls, Pause, Play, pause again, and drag **Video timeline** to the middle.
+Open **Settings → Speed**, scroll to **2x** and select it. Scroll back and choose
+**Back**, then **Audio Track → German test track**. Scroll within the menu when
+an option is below its visible viewport. Hardware volume changes and hidden
+markup do not demonstrate an app API route.
 
 ## Configuration tests
 

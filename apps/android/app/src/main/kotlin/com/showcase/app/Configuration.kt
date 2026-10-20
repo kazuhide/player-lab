@@ -4,6 +4,7 @@ import com.bitmovin.player.api.PlaybackConfig
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.buffer.BufferConfig
 import com.bitmovin.player.api.buffer.BufferMediaTypeConfig
+import com.bitmovin.player.api.live.SourceLiveConfig
 import com.bitmovin.player.api.media.AdaptationConfig
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceOptions
@@ -22,6 +23,7 @@ internal data class SourceSettings(
     val posterPersistent: Boolean = false,
     val startOffset: Double? = null,
     val offsetReference: TimelineReferencePoint? = null,
+    val liveTargetLatency: Double? = null,
 ) {
     fun toSourceConfig() = SourceConfig(
         url = url,
@@ -30,6 +32,7 @@ internal data class SourceSettings(
         posterSource = posterUrl.ifBlank { null },
         isPosterPersistent = posterPersistent,
         options = SourceOptions(startOffset, offsetReference),
+        liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },
     )
 
     companion object {
@@ -45,6 +48,7 @@ internal data class SourceDraft(
     val posterPersistent: Boolean = false,
     val startOffset: String = "",
     val offsetReference: TimelineReferencePoint? = null,
+    val liveTargetLatency: String = "",
 ) {
     fun validate(): ValidatedDraft<SourceSettings> {
         val errors = mutableMapOf<String, String>()
@@ -53,11 +57,12 @@ internal data class SourceDraft(
             errors["posterUrl"] = "Enter an HTTP or HTTPS poster URL, or leave blank."
         }
         val offset = if (startOffset.isBlank()) null else finiteNumber(startOffset, "startOffset", errors)
+        val latency = if (liveTargetLatency.isBlank()) null else finiteNumber(liveTargetLatency, "liveTargetLatency", errors)
         // The SDK corrects out-of-bound offsets rather than rejecting their sign.
         // https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.source/-source-options/index.html
         return ValidatedDraft(
             if (errors.isEmpty()) SourceSettings(
-                url.trim(), type, title.trim(), posterUrl.trim(), posterPersistent, offset, offsetReference,
+                url.trim(), type, title.trim(), posterUrl.trim(), posterPersistent, offset, offsetReference, latency,
             ) else null,
             errors,
         )
@@ -67,6 +72,7 @@ internal data class SourceDraft(
         fun from(settings: SourceSettings) = SourceDraft(
             settings.url, settings.type, settings.title, settings.posterUrl, settings.posterPersistent,
             settings.startOffset?.toString().orEmpty(), settings.offsetReference,
+            settings.liveTargetLatency?.toString().orEmpty(),
         )
     }
 }

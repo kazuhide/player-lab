@@ -7,6 +7,7 @@ import Foundation
 
 public enum PlaybackMode: String {
     case vod
+    case endedLive = "ended-live"
     case liveDvr = "live-dvr"
     case liveNoDvr = "live-no-dvr"
 }
@@ -21,19 +22,24 @@ public struct PlayerSnapshot {
     /// Current offset in `[maxTimeShift, 0]`; `0` is the live edge.
     public let timeShift: TimeInterval
     public let currentTime: TimeInterval
+    /// A native completion finalized this loaded live source. Replaying the same
+    /// source does not make its live edge move again.
+    public let liveSourceFinalized: Bool
 
     public init(
         isLive: Bool,
         duration: TimeInterval,
         maxTimeShift: TimeInterval,
         timeShift: TimeInterval,
-        currentTime: TimeInterval
+        currentTime: TimeInterval,
+        liveSourceFinalized: Bool = false
     ) {
         self.isLive = isLive
         self.duration = duration
         self.maxTimeShift = maxTimeShift
         self.timeShift = timeShift
         self.currentTime = currentTime
+        self.liveSourceFinalized = liveSourceFinalized
     }
 }
 
@@ -101,16 +107,17 @@ public enum Dvr {
     }
 
     public static func deriveState(_ s: PlayerSnapshot, config: DvrConfig) -> DvrState {
-        let live = isLiveStream(s)
+        let endedLive = isLiveStream(s) && s.liveSourceFinalized
+        let live = isLiveStream(s) && !endedLive
         let win = windowDuration(s.maxTimeShift)
         let dvrAvailable = live && config.timeShiftEnabled && win > 0
-        let mode: PlaybackMode = !live ? .vod : (dvrAvailable ? .liveDvr : .liveNoDvr)
+        let mode: PlaybackMode = endedLive ? .endedLive : (!live ? .vod : (dvrAvailable ? .liveDvr : .liveNoDvr))
         let offset = clampToWindow(s.timeShift, maxTimeShift: s.maxTimeShift)
         return DvrState(
             mode: mode,
             isLive: live,
             dvrAvailable: dvrAvailable,
-            windowDuration: win,
+            windowDuration: live ? win : 0,
             behindLive: live ? behindLive(offset) : 0,
             atLiveEdge: live ? isAtLiveEdge(offset, epsilon: config.liveEdgeEpsilon) : false,
             seekProgress: live ? seekProgress(offset, maxTimeShift: s.maxTimeShift) : 1

@@ -19,6 +19,9 @@ struct ContentView: View {
         .onAppear {
             model.loadInitialSource()
         }
+        #if os(tvOS)
+        .onPlayPauseCommand { model.togglePlayback() }
+        #endif
     }
 }
 
@@ -48,6 +51,10 @@ struct ControlPanel: View {
                         .accessibilityIdentifier("configuration.open")
                     Text(model.configurationStatus).font(.caption).foregroundStyle(.secondary)
                         .accessibilityIdentifier("configuration.status")
+                    #if os(tvOS)
+                    Text("Use Play/Pause on the remote to start or pause this source.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    #endif
                 }
 
                 #if !os(tvOS)
@@ -66,6 +73,7 @@ struct ControlPanel: View {
                 labeled("Seek") {
                     HStack {
                         Button("Go to live edge") { model.goToLiveEdge() }
+                            .disabled(!model.dvr.isLive)
                         ForEach(quickOffsets, id: \.self) { offset in
                             Button("\(Int(offset))s") { model.seek(toOffsetFromEdge: offset) }
                                 .disabled(!model.dvr.dvrAvailable)

@@ -11,6 +11,15 @@ import org.junit.Test
 
 class ConfigurationTest {
     @Test
+    fun exportedLivePolicyRetainsTheAppliedValueAndNullDefault() {
+        val source = SourceSettings("https://example.com/live.m3u8", SourceType.Hls)
+        assertTrue(configurationCode(source, PlayerSettings(), UiMode.DEFAULT).contains("liveConfig = null,"))
+        val applied = source.copy(liveTargetLatency = 30.0)
+        assertTrue(configurationCode(applied, PlayerSettings(), UiMode.SPORTS)
+            .contains("liveConfig = SourceLiveConfig(targetLatency = 30.0),"))
+    }
+
+    @Test
     fun exportedSourceTextEscapesKotlinInterpolationAndNewlines() {
         val title = "A \"quoted\" title ${'$'}{mustStayText}\nnext line"
         val source = SourceSettings("https://example.com/movie.m3u8", SourceType.Hls, title = title)
@@ -81,6 +90,35 @@ class ConfigurationTest {
         assertNull(invalid.value)
         assertTrue(invalid.errors.keys.containsAll(listOf("url", "posterUrl", "startOffset")))
         assertTrue(SourceDraft(url = "https://example.com/video.mpd?token=sample").validate().errors.isEmpty())
+    }
+
+    @Test
+    fun liveTargetLatencyIsOptionalAndSurvivesDraftAndSdkConfigurationRoundTrips() {
+        val draft = SourceDraft(url = "https://example.com/live.mpd")
+        assertNull(requireNotNull(draft.validate().value).toSourceConfig().liveConfig)
+        val settings = requireNotNull(draft.copy(liveTargetLatency = "30.25").validate().value)
+        assertEquals(30.25, requireNotNull(settings.liveTargetLatency), 0.0)
+        assertEquals(settings, SourceDraft.from(settings).validate().value)
+        val first = requireNotNull(settings.toSourceConfig().liveConfig)
+        val second = requireNotNull(settings.toSourceConfig().liveConfig)
+        assertEquals(30.25, requireNotNull(first.targetLatency), 0.0)
+        assertNotSame(first, second)
+        first.targetLatency = 45.0
+        assertEquals(30.25, requireNotNull(second.targetLatency), 0.0)
+        assertNull(requireNotNull(SourceDraft.from(settings).copy(liveTargetLatency = " ").validate().value).toSourceConfig().liveConfig)
+    }
+
+    @Test
+    fun liveTargetLatencyRejectsNonFiniteInputWithoutInventingSdkRangeLimits() {
+        val draft = SourceDraft(url = "https://example.com/live.mpd")
+        for (number in listOf("NaN", "Infinity", "-Infinity", "1e999", "bad")) {
+            val invalid = draft.copy(liveTargetLatency = number).validate()
+            assertNull(number, invalid.value)
+            assertTrue(number, invalid.errors.containsKey("liveTargetLatency"))
+        }
+        for (number in listOf("0", "-2.5", "100000")) {
+            assertTrue(number, draft.copy(liveTargetLatency = number).validate().errors.isEmpty())
+        }
     }
 
     @Test

@@ -139,6 +139,121 @@
     },
     {
       "type": "h2",
+      "text": "Current local configuration and playback checks"
+    },
+    {
+      "type": "p",
+      "text": "On October 21, 2026, the normal app GUI played generated 60-second Big Buck Bunny HLS and progressive MP4 on iPhone, iPad and Apple TV simulators with Player 3.128.0. The MP4 workflow entered URL, progressive type, title, start offset 5 seconds, autoplay, maximum bitrate 2,500,000 bit/s and forward buffer 8 seconds through the editor. Native observations confirmed configuration values, Player replacement and previous destruction, advancing positions and visible video."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "MP4 destination",
+        "Result and case duration",
+        "Native playback samples"
+      ],
+      "rows": [
+        [
+          "iPhone 17 Pro / iOS 26.4",
+          "1 passed, 0 failed / 47.026 s",
+          "6.113 → 10.513 s"
+        ],
+        [
+          "iPad Pro 11-inch (M5) / iOS 26.4",
+          "1 passed, 0 failed / 52.502 s",
+          "6.118 → 10.518 s"
+        ],
+        [
+          "Apple TV 4K (3rd generation) / tvOS 26.4",
+          "1 passed, 0 failed / 104.280 s",
+          "6.017 → 10.418 s"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The copied MP4 reports a container duration of 60.021333 seconds. Video spans 60 seconds from 0.021322; audio starts at zero and spans 60.021333. Input HLS audio starts at -0.021333 while video starts at zero. Remuxing shifts the file origin and retains that track offset; it does not add 21 milliseconds of audio beyond the video endpoint. Compare track starts and endpoints, not only container duration. Bitrate and buffer readings establish configuration delivery, not bandwidth enforcement or buffering performance. These actual simulator results are separate from hostless logic and build checks."
+    },
+    {
+      "type": "p",
+      "text": "After generating .cache/apple-runtime-media as described in the Apple README, create an equivalent progressive file with the following command from the repository root. The remux recipe was verified separately on October 21, 2026. It copies the existing encoded video and audio; it does not overwrite the generated media."
+    },
+    {
+      "type": "code",
+      "text": "mkdir -p .cache/apple-mp4\nffmpeg -v error -n -i .cache/apple-runtime-media/vod-baseline/master.m3u8 \\\n  -map 0:v:0 -map 0:a:0 -c copy -movflags +faststart \\\n  .cache/apple-mp4/vod-60s.mp4"
+    },
+    {
+      "type": "p",
+      "text": "Serve this file with an HTTP server that supports byte ranges. Enter its reachable URL under Configure source and playback and select Progressive MP4. Apply the values above and check the visible video and advancing position. The HLS ending fixture server does not serve this MP4. The source must be reachable from the selected simulator and the app needs its allowed Player license."
+    },
+    {
+      "type": "h2",
+      "text": "SDK Default UI operation coverage"
+    },
+    {
+      "type": "p",
+      "text": "On October 21, 2026, two actual iPhone 17 Pro / iOS 26.4 Simulator GUI cases passed with Player 3.128.0 in 55.381 and 48.599 seconds. They used the generated 60-second multi-audio HLS, real touches, visible video and read-only native getters/listeners. The public SDK bridge and stock UI resources matched the installed app. All eight audited candidates now have a result: four direct, one preset and three missing in this host."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "API",
+        "Observed control and native result",
+        "Coverage"
+      ],
+      "rows": [
+        [
+          "Player.pause()",
+          "Pause held position 10.095 seconds across three samples.",
+          "Direct"
+        ],
+        [
+          "Player.play()",
+          "Play advanced the same player from 10.583 to 14.982 seconds.",
+          "Direct"
+        ],
+        [
+          "Player.seek(time:)",
+          "Actual timeline drag completed a fresh Seeked at 30 seconds.",
+          "Direct"
+        ],
+        [
+          "Player.setAudio(trackIdentifier:)",
+          "German test track changed the native audio index from 0 to 1.",
+          "Direct"
+        ],
+        [
+          "Player.playbackSpeed",
+          "Actual 2x selection set native speed to 2.",
+          "Preset"
+        ],
+        [
+          "Player.volume",
+          "Speaker touch changed mute; volume remained 100 and no touch slider was offered.",
+          "Missing"
+        ],
+        [
+          "UserInterfaceApi.enterFullscreen() / exitFullscreen()",
+          "The host has no fullscreen handler or visible control.",
+          "Missing, two API rows"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The audio menu dynamically lists all availableAudio IDs, covering the valid public argument domain. English test track and German test track are fixture metadata, not translations. Speed offers only 0.25x, 0.5x, normal, 1.5x and 2x, so it is a preset. The three missing routes remain available SDK APIs in the denominator. These results apply to the tested iPhone simulator host, separate from tvOS or physical-device UI."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select Default. Configure a reachable generated vod-multiaudio/master.m3u8 URL and autoplay, then Apply.",
+        "Reveal the controls, Pause, Play, pause again and drag Video timeline to the middle.",
+        "Open Settings → Speed, scroll to 2x and select it. Scroll back and choose Back.",
+        "Open Audio Track, scroll to German test track and select it. Options below the menu viewport require scrolling."
+      ]
+    },
+    {
+      "type": "h2",
       "text": "Applied configuration code"
     },
     {
@@ -205,6 +320,20 @@
     {
       "url": "https://github.com/bitmovin/bitmovin-player-ios-samples#available-sample-apps",
       "label": "Official Bitmovin Apple formats and license setup"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 262,
+      "label": "Current 60-second HLS/MP4 configuration and playback"
+    },
+    {
+      "url": "https://ffmpeg.org/ffmpeg-formats.html#Format-Options",
+      "label": "FFmpeg timestamp-shift options"
+    },
+    {
+      "path": "docs/api-coverage/apple/stock-ui-qualification.json",
+      "line": 1,
+      "label": "Recorded SDK Default UI results and public bridge/resource bindings"
     }
   ]
 }

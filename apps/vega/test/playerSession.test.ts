@@ -10,6 +10,7 @@ function deferred<T = void>() {
 
 function fixture() {
   const video = {
+    src: "",
     initialize: vi.fn(async () => {}),
     deinitializeSync: vi.fn((_timeout: number): "success" | "timedout" | "invalid" => "success"),
     setSurfaceHandle: vi.fn(),
@@ -36,6 +37,8 @@ function fixture() {
 describe("Vega session ownership", () => {
   it("keeps native media valid until ordinary foreground SDK destruction fulfills", async () => {
     const { options, video, player } = fixture();
+    const reset = vi.fn();
+    Object.defineProperty(video, "src", { set: reset });
     const destroyed = deferred();
     player.destroy.mockReturnValueOnce(destroyed.promise);
     const session = startVegaSession(options);
@@ -53,11 +56,55 @@ describe("Vega session ownership", () => {
     expect(video.deinitializeSync).toHaveBeenCalledWith(1000);
     expect(player.destroy.mock.invocationCallOrder[0]).toBeLessThan(video.clearSurfaceHandle.mock.invocationCallOrder[0]!);
     expect(video.clearSurfaceHandle.mock.invocationCallOrder[0]).toBeLessThan(video.deinitializeSync.mock.invocationCallOrder[0]!);
+    expect(reset).not.toHaveBeenCalled();
+    await replacement.dispose();
+  });
+
+  it("resets retired media before synchronous background release and waits for the SDK acknowledgement", async () => {
+    const old = fixture();
+    const destroyed = deferred();
+    old.player.destroy.mockReturnValueOnce(destroyed.promise);
+    let attached = true;
+    let active!: () => boolean;
+    const reset = vi.fn((value: string) => {
+      expect(value).toBe("");
+      expect(active()).toBe(false);
+      attached = false;
+    });
+    Object.defineProperty(old.video, "src", { set: reset });
+    old.video.deinitializeSync.mockImplementation(() => attached ? "timedout" : "success");
+    const session = startVegaSession({ ...old.options, createController: (_player, isActive) => {
+      active = isActive;
+      return old.controller;
+    } });
+    await session.ready;
+    const cleanup = session.dispose(true);
+    expect(reset).toHaveBeenCalledExactlyOnceWith("");
+    expect(old.video.deinitializeSync).toHaveBeenCalledExactlyOnceWith(1000);
+    expect(old.video.deinitializeSync.mock.results[0]!.value).toBe("success");
+    expect(reset.mock.invocationCallOrder[0]).toBeLessThan(old.video.deinitializeSync.mock.invocationCallOrder[0]!);
+    expect(old.video.deinitializeSync.mock.invocationCallOrder[0]).toBeLessThan(old.controller.dispose.mock.invocationCallOrder[0]!);
+    expect(old.controller.dispose.mock.invocationCallOrder[0]).toBeLessThan(old.player.destroy.mock.invocationCallOrder[0]!);
+    expect(old.options.removePolyfills).not.toHaveBeenCalled();
+    const next = fixture();
+    const replacement = startVegaSession({ ...next.options, after: cleanup });
+    await Promise.resolve();
+    expect(next.options.createVideo).not.toHaveBeenCalled();
+    destroyed.resolve();
+    await replacement.ready;
+    expect(old.options.onError).not.toHaveBeenCalled();
+    expect(old.options.source).toEqual({ hls: "https://example.com/live.m3u8" });
+    expect(old.options.removePolyfills).toHaveBeenCalledWith(old.video);
+    expect(cleanup).not.toHaveProperty("retainedOwner");
     await replacement.dispose();
   });
 
   it("synchronously releases the retiring owner through a cancelled waiter's barrier on background", async () => {
     const old = fixture();
+    let attached = true;
+    const reset = vi.fn(() => { attached = false; });
+    Object.defineProperty(old.video, "src", { set: reset });
+    old.video.deinitializeSync.mockImplementation(() => attached ? "timedout" : "success");
     const destroyed = deferred();
     old.player.destroy.mockReturnValueOnce(destroyed.promise);
     const a = startVegaSession(old.options);
@@ -70,8 +117,10 @@ describe("Vega session ownership", () => {
     expect(old.video.deinitializeSync).not.toHaveBeenCalled();
     releaseVegaBackgroundMedia(waitingCleanup);
     releaseVegaBackgroundMedia(waitingCleanup);
+    expect(reset).toHaveBeenCalledExactlyOnceWith("");
     expect(old.video.clearSurfaceHandle).toHaveBeenCalledWith("surface");
     expect(old.video.deinitializeSync).toHaveBeenCalledTimes(1);
+    expect(old.video.deinitializeSync.mock.results[0]!.value).toBe("success");
     expect(old.player.destroy).toHaveBeenCalledTimes(1);
     const next = fixture();
     const c = startVegaSession({ ...next.options, after: waitingCleanup });
@@ -89,7 +138,7 @@ describe("Vega session ownership", () => {
     else video.deinitializeSync.mockReturnValueOnce(status);
     const session = startVegaSession(options);
     await session.ready;
-    const cleanup = session.dispose();
+    const cleanup = session.dispose(true);
     expect(session.dispose()).toBe(cleanup);
     const next = fixture();
     startVegaSession({ ...next.options, after: cleanup });
@@ -99,6 +148,36 @@ describe("Vega session ownership", () => {
     expect(options.removePolyfills).not.toHaveBeenCalled();
     expect(cleanup).toHaveProperty("retainedOwner", { video, player, controller: expect.anything() });
     expect(video.deinitializeSync).toHaveBeenCalledTimes(1);
+  });
+
+  it("reuses the installed owner barrier when the background source reset reenters disposal", async () => {
+    const { options, video, player } = fixture();
+    const session = startVegaSession(options);
+    await session.ready;
+    const reentrant: Promise<void>[] = [];
+    const reset = vi.fn(() => { reentrant.push(session.dispose(true)); });
+    Object.defineProperty(video, "src", { set: reset });
+    const cleanup = session.dispose(true);
+    expect(reset).toHaveBeenCalledExactlyOnceWith("");
+    expect(reentrant).toEqual([cleanup]);
+    await cleanup;
+    expect(player.destroy).toHaveBeenCalledTimes(1);
+    expect(video.deinitializeSync).toHaveBeenCalledTimes(1);
+  });
+
+  it("still releases native media after a partial background source reset throws", async () => {
+    const { options, video, player } = fixture();
+    const session = startVegaSession(options);
+    await session.ready;
+    const reset = vi.fn(() => { throw new Error("source reset failed after mutation"); });
+    Object.defineProperty(video, "src", { set: reset });
+    const cleanup = session.dispose(true);
+    expect(reset).toHaveBeenCalledExactlyOnceWith("");
+    expect(video.deinitializeSync).toHaveBeenCalledExactlyOnceWith(1000);
+    await cleanup;
+    expect(player.destroy).toHaveBeenCalledTimes(1);
+    expect(options.onError).toHaveBeenCalledWith("Vega media source reset failed");
+    expect(cleanup).not.toHaveProperty("retainedOwner");
   });
 
   it("installs the cleanup barrier before synchronous reentrant disposal", async () => {

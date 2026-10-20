@@ -92,6 +92,11 @@
   text-align: right;
 }
 
+// Its custom cssClass replaces the SDK label class that normally owns hide().
+.bmpui-ui-label-behindlive.bmpui-hidden {
+  display: none;
+}
+
 // ---------------------------------------------------------------------------
 // "Neon" skin — a CSS-ONLY re-skin of the Default tree. The exact same component
 // tree built by DefaultUIFactory gets a wholly different look purely by adding the
