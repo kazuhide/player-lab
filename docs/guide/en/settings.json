@@ -7,7 +7,7 @@
     "The initial Adaptation fields are applied to both desktop and mobile configurations.",
     "Descriptions cover the app's 144 GUI fields. They do not establish device validation for every field or coverage of the SDK's entire configuration surface.",
     "The app_id editor field is not documented in this SDK's public declarations and is excluded from API coverage. A value editable in the form is not necessarily a supported public SDK setting.",
-    "The repository pins Web SDK 8.280.0. The Network fields and persistent poster were reviewed against that version. Earlier fields were originally reviewed against 8.263.0; updating a dependency does not establish new per-field behavior validation."
+    "The repository pins Web SDK 8.281.0. The Network fields and persistent poster were originally reviewed against 8.280.0. Earlier fields were originally reviewed against 8.263.0; updating a dependency does not establish new per-field behavior validation."
   ],
   "groups": [
     {
