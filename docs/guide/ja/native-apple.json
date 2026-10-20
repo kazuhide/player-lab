@@ -1,7 +1,7 @@
 {
   "id": "native-apple",
   "title": "iOS・iPadOS・tvOS",
-  "lead": "SwiftUI アプリで HLS のソース切り替えとライブの巻き戻しを試します。iOS と iPadOS は共有 Web UI を選択でき、tvOS は OS の System UI を使います。",
+  "lead": "SwiftUI アプリで HLS／progressive MP4 ソース、自動再生・ミュート、ビットレート上限、バッファーを設定し、ソース切り替えとライブの巻き戻しを試します。iOS／iPadOS は共有 Web UI を選択でき、tvOS は System UI を使います。",
   "blocks": [
     {
       "type": "h2",
@@ -53,6 +53,24 @@
     },
     {
       "type": "h2",
+      "text": "ソースと再生設定を編集する"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "ソースのプリセットの下にある Configure source and playback を選びます。iPhone／iPad はシート、tvOS は全画面のネイティブフォームを開きます。tvOS はリモコンでフォーカスを移動し、Select で操作します。文字入力は OS のキーボードを使います。",
+        "Source URL に絶対 HTTP(S) URL を入力し、HLS または Progressive MP4 を選びます。タイトルと HTTP(S) のポスター URL は任意です。空欄にすると解除します。DASH とオフラインパッケージは選択できません。",
+        "開始位置を指定する場合は Start offset に秒数を入力し、Automatic／Start／End を選びます。オフセットの空欄は SDK の既定値です。Automatic は VOD では先頭、ライブではライブ端を基準にします。正負の有限値を受け付け、SDK がストリームの範囲へ補正します。ライブのオフセットは再生開始時に適用されます。",
+        "Autoplay after source load、Start muted、SDK time shift / DVR を選びます。既定は順に無効・有効・有効です。別の Allow DVR controls (app) もアプリのクイックシークを制御します。Maximum bitrate は整数の bit/s（0 は上限なし）、Forward buffer は 0 以上の有限の秒数（0 は SDK に任せる）で入力します。",
+        "Apply の前に Reload source または Recreate player and reload source の表示を確認します。不正な入力には説明が表示され、Apply は無効になります。Reset to applied は編集中の値だけを適用済みの値へ戻し、Cancel は編集を破棄します。適用済み設定は現在のアプリ起動中に保持されます。"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "ソース情報と開始位置だけの変更は、同じ Player でソースを再ロードします。再生設定・ビットレート上限・バッファーの変更は Player と表示ビューを再生成し、タイトル・ポスター・開始位置を含む現在のソースを再ロードします。UI モード、アプリの DVR スイッチ、イベントログは保持します。再生位置と再生中状態は保持せず、開始位置と Autoplay の設定に従って再開します。ソースのプリセットを選ぶとソース固有の項目と開始位置はそのプリセットの既定値へ置き換わり、Player の設定は保持します。"
+    },
+    {
+      "type": "h2",
       "text": "動かない場合の確認"
     },
     {
@@ -68,6 +86,33 @@
     {
       "type": "h2",
       "text": "テストの実行と記録された結果"
+    },
+    {
+      "type": "p",
+      "text": "Showcase-iOS-Configuration と Showcase-tvOS-Configuration は、アプリと同じモデル・設定ソースを使うホストなしのテストです。Player ライセンスと共有 UI リソースは不要です。明示的に無効なテスト用の値は SDK オブジェクトの生成だけに使います。URL・数値の検証、SDK の項目への設定、無効入力／変更なしの Apply、ソース再ロード、ソースオプション・UI 選択・アプリの DVR スイッチを保持する Player 再生成を確認します。再生とネットワーク動作の証明にはなりません。シミュレーター名をインストール済みの実行先に置き換え、apps/ios から実行します。"
+    },
+    {
+      "type": "code",
+      "title": "ライセンス不要の設定テスト",
+      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Configuration \\\n  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test\nxcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-Configuration \\\n  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
+    },
+    {
+      "type": "p",
+      "text": "任意の ConfigurationUI スキームは実際のアプリを起動するため、許可済みの通常の Player ライセンス、ネットワーク、参照ソースが必要です。空のキーは SDK 起動時の precondition failure になります。iOS は不正な編集値、Reset、ソース情報の Apply、ソースを保持したミュート・ビットレート・バッファーの Apply を確認します。tvOS はリモコンのフォーカスと Select でソース形式と自動再生を編集して Reset します。Xcode の結果バンドルにスクリーンショットを保存します。"
+    },
+    {
+      "type": "code",
+      "title": "アプリ用ライセンスを使う設定 GUI テスト",
+      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-ConfigurationUI \\\n  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test\nxcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-ConfigurationUI \\\n  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
+    },
+    {
+      "type": "note",
+      "text": "この設定 GUI テストは SDK の既定 UI を使います。共有 Web UI、時間が進む実再生、開始オフセットの精度、ビットレート上限の実効性、物理端末、Casting、オフライン、Analytics の受信は検証範囲に含みません。共有 UI と再生動作は次の別スキーム Showcase-iOS-Runtime で確認します。"
+    },
+    {
+      "type": "note",
+      "title": "記録済みの設定テスト",
+      "text": "2026-10-20 に、ホストなしの設定テストは iOS／tvOS シミュレーターで各 6 件成功しました。設定 GUI テストは iPhone 17 Pro／iOS 26.4、iPad Pro 11-inch (M5)／iOS 26.4、Apple TV 4K (3rd generation)／tvOS 26.4 で各 1 件成功し、保存された iPhone と TV の設定画面を確認しました。SDK の既定 UI での設定操作を検証した結果であり、別途記載した 10 月 19 日の記録に物理端末や再生の検証を追加するものではありません。"
     },
     {
       "type": "code",
@@ -96,13 +141,23 @@
   "sources": [
     {
       "path": "apps/ios/README.md",
-      "line": 28,
+      "line": 29,
       "label": "ビルド・ライセンス・共有 UI"
     },
     {
       "path": "apps/ios/README.md",
-      "line": 104,
-      "label": "実 SDK テストと記録された結果"
+      "line": 80,
+      "label": "設定の編集手順と単位"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 191,
+      "label": "設定テストの実行方法と範囲"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 133,
+      "label": "共有 UI と再生を確認する別テスト"
     },
     {
       "path": "apps/ios/project.yml",
@@ -111,22 +166,37 @@
     },
     {
       "path": "apps/ios/Showcase/ContentView.swift",
-      "line": 32,
-      "label": "画面の実装"
+      "line": 25,
+      "label": "既存の画面操作と設定画面の表示"
+    },
+    {
+      "path": "apps/ios/Showcase/ConfigurationEditor.swift",
+      "line": 4,
+      "label": "ネイティブの設定項目と操作"
+    },
+    {
+      "path": "apps/ios/Showcase/Configuration.swift",
+      "line": 50,
+      "label": "ソース設定の SDK への反映"
+    },
+    {
+      "path": "apps/ios/Showcase/Configuration.swift",
+      "line": 122,
+      "label": "編集値の検証と単位"
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 68,
-      "label": "UI 再生成・再生設定・ライブ処理"
+      "line": 91,
+      "label": "Apply・Player の再生成・ソースの保持"
     },
     {
       "path": "apps/ios/Showcase/Sources.swift",
-      "line": 23,
-      "label": "HLS のソースカタログ"
+      "line": 27,
+      "label": "HLS のソースプリセット"
     },
     {
       "url": "https://github.com/bitmovin/bitmovin-player-ios-samples#available-sample-apps",
-      "label": "Bitmovin iOS 公式サンプルと形式・ライセンス設定"
+      "label": "Bitmovin Apple 公式の形式・ライセンス設定"
     }
   ]
 }

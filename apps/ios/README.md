@@ -5,8 +5,9 @@ shared Web UI from `@showcase/ui-shared`; tvOS uses the native System UI because
 the Web UI is unavailable there. DVR means the window of live media that a viewer
 can rewind.
 
-The Apple sample offers HLS sources. The pinned native library accepts HLS and
-progressive MP4; loading a DASH source violates its precondition and terminates
+The Apple sample offers HLS presets and a configuration editor for custom HLS
+and progressive MP4 sources. The pinned native library accepts these formats;
+loading a DASH source violates its precondition and terminates
 the app. DASH remains available in the Web and Android samples. See the
 [official Apple sample formats](https://github.com/bitmovin/bitmovin-player-ios-samples#available-sample-apps).
 
@@ -75,6 +76,42 @@ startup; it stores references, never credential values. The previously generated
 plist omitted these custom entries, so configured builds started with an empty
 key. Both app targets now use the explicit plist. CI rejects missing or unresolved
 entries while allowing empty values for compilation without credentials.
+
+## Configure a source and playback
+
+Choose **Configure source and playback** below the source presets. iPhone and
+iPad show a sheet; tvOS opens a full-screen native form with focusable fields,
+inline choices, and the system text keyboard. Edit the draft, check the pending
+action, then choose **Apply**. Invalid fields show an explanation and disable
+Apply. **Reset to applied** restores the current applied values in the draft;
+**Cancel** discards the draft. Neither action reloads or changes the player.
+Applied settings last for the current app session.
+
+| Field | Accepted value and behavior |
+| --- | --- |
+| Source URL | Absolute HTTP or HTTPS URL; HLS or progressive MP4 only. |
+| Source type | HLS or Progressive MP4. DASH and offline packages are not offered. |
+| Title, Poster URL | Optional title and optional absolute HTTP(S) poster URL. Empty values clear them. |
+| Start offset | Optional finite seconds, including negative values. Empty uses the SDK default. |
+| Offset reference | Automatic, Start, or End. Automatic uses the beginning for VOD and the live edge for live. The SDK corrects offsets to stream boundaries. A VOD offset applies on load; a live offset applies when playback starts. |
+| Autoplay after source load | Starts the source automatically after Apply or source selection when enabled. Default: off. |
+| Start muted | Initial mute setting when the player is created. Default: on. |
+| SDK time shift / DVR | Enables live DVR in the SDK. Default: on. The separate **Allow DVR controls (app)** switch also governs the app's quick-seek buttons. |
+| Maximum bitrate | Nonnegative whole bit/s; `0` means unlimited. |
+| Forward buffer | Nonnegative finite seconds; `0` lets the SDK choose. |
+
+Source fields and start position changes reload the source on the existing
+player. Playback, bitrate, or buffer changes recreate the player and its native
+view, then reload the full current source, including title, poster, and offset
+options. The selected iOS UI mode, app DVR switch, and event log remain in place.
+The pending action says which operation will run. Apply does not preserve the
+current playback position or playing state; playback starts from the configured
+offset or the SDK default, according to Autoplay.
+
+Selecting a source preset replaces the source URL, type, title, poster, and
+offset options with that preset's values. Player settings, UI mode, and the app
+DVR switch remain active. Changing the iOS UI mode also keeps the complete
+current source configuration while recreating the player.
 
 ## Shared player UI
 
@@ -150,6 +187,61 @@ repository's cleanup patch: one test, zero failures, 11.670 seconds. The shared
 Sports UI was also inspected in the retained image. This is simulator evidence;
 physical-device, tvOS, remote-control, casting, and offline playback checks remain
 separate.
+
+## Configuration tests
+
+After generating the project and restoring `Package.resolved`, the hostless
+configuration schemes run without a Player license or shared Web UI resources.
+They compile the exact app model/configuration sources and use an explicitly
+invalid synthetic key only to construct the SDK player. They check validation,
+SDK configuration mapping, no-op and rejected Apply, source reload, and player
+recreation retaining source options, UI selection, and the app DVR switch. They
+do not establish playback or network behavior. Run from `apps/ios`, replacing
+the simulator names with installed destinations:
+
+```sh
+xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Configuration \
+  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \
+  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO test
+xcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-Configuration \
+  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \
+  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO test
+```
+
+The opt-in GUI schemes launch the real app and therefore require its normal
+allowed Player license. An empty key is an SDK startup precondition failure.
+They also use the public reference source and require network access. Keep
+Analytics empty when collection is not intended. These tests retain screenshots
+in the Xcode result bundle:
+
+```sh
+xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-ConfigurationUI \
+  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \
+  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO test
+xcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-ConfigurationUI \
+  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \
+  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO test
+```
+
+The iOS GUI check edits invalid input, resets the draft, applies source metadata,
+and applies startup mute/bitrate/buffer settings while retaining the source. The
+tvOS check uses remote focus and Select to change a source type and autoplay,
+then restores the draft with Reset. These configuration checks use the SDK
+default UI and do not qualify the shared Web UI, advancing playback, stream
+offset accuracy, bitrate enforcement, physical devices, casting, offline
+playback, or Analytics receipt. The separate `Showcase-iOS-Runtime` scheme above
+checks the shared UI and playback behavior.
+
+On 2026-10-20, the configuration schemes passed six tests each on iOS and tvOS
+simulators. The GUI scheme passed one test each on iPhone 17 Pro / iOS 26.4,
+iPad Pro 11-inch (M5) / iOS 26.4, and Apple TV 4K (3rd generation) / tvOS 26.4.
+The retained iPhone and TV editor images were inspected. This verifies the
+configuration workflows described above, using the SDK default UI; it adds no
+physical-device or playback qualification to the separate October 19 record.
 
 ## Build without credentials
 
