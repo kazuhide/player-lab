@@ -235,6 +235,17 @@ request-target versus moving-edge distinction:
 | `2c90983` | 6.598 s | +0.057 s | -6.573 s |
 | `09e0a37` | 4.439 s | +0.367 s | -4.116 s |
 
+An additional diagnostic required advancing playback before both the rewind and
+return requests. A fresh return completion took 4.253 seconds, reached the exact
+requested target, and still reported -4.270 seconds from the moving edge.
+The 14.009-second jump was beyond the 11.811-second forward video buffer; those
+measurements do not identify the specific operation responsible for the delay.
+The pinned SDK defines [isStalled](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player/is-stalled.html)
+as false during time shifting. A zero offset was also observed before a fresh
+completion, so neither field alone establishes a completed return. The app keeps
+its actual behind-live display and the existing strict checks; it does not add
+automatic seek retries.
+
 The lifecycle correction follows the SDK integration contract. It does not
 establish resolution of timeout 1004: a separate focused background/resume run
 completed both playback cycles but recorded 1004 during Activity close. Its

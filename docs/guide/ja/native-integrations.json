@@ -1,7 +1,7 @@
 {
   "id": "native-integrations",
   "title": "React Native と Vega OS への組み込み",
-  "lead": "この 2 つのフォルダーは、外部のネイティブプロジェクトへ組み込むソースです。リポジトリの型検査や単体テストの成功だけで、そのアプリが端末でビルド・再生できることは確認できません。",
+  "lead": "React Nativeは外部のExpoプロジェクトを生成し、Vegaは同梱のKeplerアプリをビルドします。それぞれの実行手順と実再生の確認範囲を説明します。",
   "blocks": [
     {
       "type": "h2",
@@ -14,6 +14,10 @@
     {
       "type": "p",
       "text": "ラッパーは Swift Package Manager 経由で iOS Player／Player Core 3.126.0、Analytics 3.28.1、Google IMA 3.26.1 を解決します。Android Player は 3.165.0+jason です。同梱のネイティブ依存ロックで iOS の解決結果を保持します。単体サンプルの iOS 3.128.0、Android 3.171.0 は別の固定版であり、このラッパーへ強制適用しません。"
+    },
+    {
+      "type": "note",
+      "text": "+jason は、Media3／ExoPlayer との衝突を避けるため、メディア処理ライブラリの名前空間とリソース名を変更した Android SDK の構成です。Google IMA 3.37.0 以降との併用には、この構成と core-library desugaring（新しい Java ライブラリの API を古い Android でも使える形へ変換するビルド処理）が必要です。ラッパー 1.28.0 は Player と media-session 3.165.0+jason、IMA 3.38.0、desugar_jdk_libs 2.1.5 を選びます。Expo プラグインにはネイティブ Player SDK のバージョンを変更する項目がありません。依存関係はこの組み合わせで使用します。Player だけを更新した構成の動作は未検証です。"
     },
     {
       "type": "code",
@@ -43,6 +47,10 @@
         "共有 UI を編集したら再ビルドし、JS／CSS を外部プロジェクトの assets/webui へコピーして prebuild とネイティブ再ビルドを実行します。Metro の再読み込みだけではネイティブリソースを更新できません。",
         "外部プロジェクトから iOS または Android の開発ビルドを実行し、実際の SDK UI、VOD の進行、Apply／Reset とバックグラウンド復帰を確認します。"
       ]
+    },
+    {
+      "type": "note",
+      "text": "ジェネレーターは指定した環境ファイルを一度コピーします。既存の外部ホストのキーを更新する場合は、リポジトリのルートでscripts/sync-env.shを再実行し、apps/react-native/.envを外部ホストの.envへモード0600でコピーしてからMetroを再起動します。この生成ファイルがAppで使うEXPO_PUBLIC_形式の変数名を用意します。"
     },
     {
       "type": "note",
@@ -85,7 +93,11 @@
     },
     {
       "type": "note",
-      "text": "型検査は実際の App と生成ホストのエントリーポイントを含みます。App 操作テストは native／Player の代替オブジェクトを使います。ジェネレーターのテストは、ソース・アセットのコピー、固定入力、既存出力先の拒否、明示した環境ファイルの非公開コピーを別に確認します。iOS 26.4 シミュレーターで実際の SDK Default VOD 再生、同梱 Sports の INFO と Play／Pause、Reset／Apply、ソース・UI・ログ・Allow DVR の保持、バックグラウンド復帰後の VOD 進行を確認しました。iOS と ARM64 Android API 36.1 の開発ビルド、および同梱アセットのバイト一致も確認済みです。Android のライセンス付き実再生は未確認です。実機、Release アーカイブ、DRM、広告、全共有 UI ファクトリー、live／DVR 動作は今回の検証範囲に含みません。"
+      "text": "型検査は実際のAppと生成ホストのエントリーポイントを含みます。App操作テストはnative／Playerのモックを使います。ジェネレーターの検査は、ソース・アセットのコピー、固定入力、既存出力先の拒否、明示した環境ファイルの非公開コピーを別に確認します。iOS 26.4では実際のSDK Default VOD再生、同梱SportsのINFOとPlay／Pause、Reset／Applyとソース・UI・ログ・Allow DVRの保持を確認しました。iOSとARM64 Android API 36.1の開発ビルド、および同梱アセットのバイト一致も確認済みです。"
+    },
+    {
+      "type": "p",
+      "text": "Android API 36.1ではDefaultと同梱Sportsで映像表示とネイティブSDK位置の進行を確認しました。SportsはローカルのJS・CSSを読み込み、INFOを表示しています。実画面でReset、自動再生・ミュート・5秒の開始オフセットを含むApply、前の所有者の終了と新しい所有者、ソース・選択中のDefault UI・ログ・Allow DVRの保持を確認しました。背景化から復帰した後は画面の再生操作部品を確認し、適用済みの同じプレイヤーでVODの進行を確認しました。Playを押した場合と、すでに再開していた場合の分岐を記録していないため、操作なしの自動再開は個別に検証していません。開始オフセットの値はネイティブの設定から確認しましたが、開始位置の精度は測定していません。この検査はネイティブの長さが734秒の公開VOD HLSプリセットTears of Steelを使っており、60秒のBig Buck Bunny素材とは別です。物理端末、Releaseアーカイブ、DRM、広告、すべてのファクトリー、live／DVR、バッファ・ビットレートの定量的な効果は未確認です。"
     },
     {
       "type": "h2",
@@ -160,6 +172,10 @@
     {
       "type": "note",
       "text": "最終の背景化・復帰検査では、同じアプリインスタンスに未適用のタイトルの下書きと適用済みのビットレート設定が残りましたが、映像は黒いままで、SDK位置の5回の測定値はすべて57.6秒でした。この検査では復帰時の再生再開に失敗しています。アプリを完全に終了して起動し直すと、VODの位置が1.6秒から5.5秒へ進みました。プロセスのメモリとファイル記述子を測定しましたが、この値だけではメディア・映像表示面のネイティブ割り当て数やメモリリークの有無を判断できません。物理Fire TV、DRM・オフライン動作、音声の正確性、バッファやビットレートの定量的な効果も未確認です。仮想端末での結果と対象実機の互換性・性能の検査は分けて扱います。"
+    },
+    {
+      "type": "p",
+      "text": "別の診断用ビルドでは、同期解放に設定した1000 msの期限でdeinitializeSyncがtimedoutを返しました。SDKの終了と復帰後の新しい映像表示面の作成は完了しましたが、ネイティブ解放を確認できないため、セッションの置き換えは停止したままでした。別の対照検査で公開されたネイティブのpause()を同期解放の前に呼び出しても、このタイムアウトは解消しませんでした。停止した処理の箇所は絞れましたが、ネイティブSDK内部の原因は確定していません。"
     }
   ],
   "sources": [
@@ -201,7 +217,7 @@
     {
       "path": "apps/vega/README.md",
       "line": 3,
-      "label": "Vega の位置付けと別プロジェクトでの実行"
+      "label": "Vega アプリのビルド手順と検証範囲"
     },
     {
       "path": "apps/vega/src/App.tsx",
@@ -251,7 +267,7 @@
       "label": "React Native 1.28.0 の Apple SDK 既定版"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/build.gradle",
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/android/build.gradle#L98-L114",
       "label": "React Native 1.28.0 の Android SDK 既定版"
     },
     {
@@ -301,6 +317,26 @@
     {
       "url": "https://developer.amazon.com/docs/vega/0.24/acr-summary-report#reclaimmediaresource-crashes",
       "label": "背景化で処理が停止する前にメディアを解放するAmazonの指針"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/can-i-use-exoplayer-and-the-bitmovin-player-android-sdk-in-the-same-project",
+      "label": "Android のメディア処理ライブラリの衝突回避（+jason）"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-ima-android",
+      "label": "Google IMA の依存関係と Java API 互換処理の条件"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/plugin/src/withBitmovinConfig.ts#L14-L17",
+      "label": "React Native 1.28.0 の Expo プラグイン設定項目"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#31240",
+      "label": "Android の +jason によるリソース衝突回避と IMA の依存変更"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#3510",
+      "label": "Android +jason のリソース名の衝突回避"
     }
   ]
 }

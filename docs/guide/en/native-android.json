@@ -101,7 +101,11 @@
     },
     {
       "type": "p",
-      "text": "The final October 20 live-return failure reached the fixed media target within +0.011 seconds after 3.070 seconds, while the moving live edge remained 3.059 seconds ahead. The behind-live UI agreed with the SDK offset, and auto-hidden controls did not qualify as visible LIVE. Earlier comparisons of base 2c90983 and main 09e0a37 with the same Player 3.171.0 SDK, shared UI bundle and Android 16 emulator also reached their requested targets but remained -6.573 and -4.116 seconds behind the moving edge. Reaching the request-time target does not establish stable return to the current live edge. Production defaults and strict acceptance conditions remain unchanged."
+      "text": "The October 20 grouped live-return failure reached the fixed media target within +0.011 seconds after 3.070 seconds, while the moving live edge remained 3.059 seconds ahead. The behind-live UI agreed with the SDK offset, and auto-hidden controls did not qualify as visible LIVE. Earlier comparisons of base 2c90983 and main 09e0a37 with the same Player 3.171.0 SDK, shared UI bundle and Android 16 emulator also reached their requested targets but remained -6.573 and -4.116 seconds behind the moving edge. Reaching the request-time target does not establish stable return to the current live edge. Production defaults and strict acceptance conditions remain unchanged."
+    },
+    {
+      "type": "p",
+      "text": "An additional diagnostic required advancing playback before the rewind and again before the return request. Its fresh completion took 4.253 seconds, reached the exact requested media position, and still reported an offset of -4.270 seconds. The requested 14.009-second jump exceeded the 11.811-second forward video buffer; these values alone do not identify the operation responsible for the delay. During time shifting, isStalled is false by definition, and a zero offset was observed before completion. The tool therefore keeps the fresh-completion and visible-LIVE checks. It does not add automatic seek retries."
     },
     {
       "type": "note",
@@ -179,6 +183,18 @@
       "path": "apps/android/app/src/test/kotlin/com/showcase/app/PlayerViewLifecycleTest.kt",
       "line": 11,
       "label": "Host lifecycle regression checks"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player/is-stalled.html",
+      "label": "Player 3.171.0 stall reporting during seeking"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.event/-player-event/-time-shift/index.html",
+      "label": "Player 3.171.0 requested time-shift target"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.event/-player-event/-time-shifted/index.html",
+      "label": "Player 3.171.0 time-shift completion"
     }
   ]
 }

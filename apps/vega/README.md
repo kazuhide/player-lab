@@ -155,8 +155,8 @@ Cancelling native initialization also requires restarting the app. W3C Media
 2.3.2 acknowledges its abort synchronously, but destroys any late native
 allocation asynchronously without exposing its completion. The app therefore
 retains that unconfirmed owner instead of treating the abort acknowledgement as
-proof of release. Warm playback recovery is not guaranteed; the VVD limitation
-below remains open.
+proof of release. Playback did not resume after background return in the Vega
+Virtual Device check described below.
 
 ## Build the Kepler application
 
@@ -220,7 +220,7 @@ App entry. Allow `com.showcase.dvr.vega` on the player license. Generated
 configuration, packages, bundles and runtime logs can contain license values;
 keep them private and outside published artifacts.
 
-## Run and inspect on a Vega Virtual Device
+## Run and inspect on a Vega Virtual Device (VVD)
 
 Follow Amazon's [run instructions](https://developer.amazon.com/docs/vega/0.24/run-apps).
 Start the VVD, list transports and identify its OS/profile before installing:
@@ -268,22 +268,32 @@ instance, reset playback and advanced SDK position from about 1 to 5 seconds,
 with changing video frames. This qualifies that foreground Apply sequence, not
 quantitative bitrate adaptation or general format support.
 
-A documented LCM background/foreground sequence retained the same PID/instance
-for five seconds, sampled as `NOT_VISIBLE` at approximately 1, 3 and 5 seconds,
+The operating system's lifecycle manager retained the same process ID and app
+instance for five seconds through background/foreground transitions, sampled as `NOT_VISIBLE` at approximately 1, 3 and 5 seconds,
 then returned it to `VISIBLE`. The
 unapplied title draft and applied bitrate field survived. Video remained black
 and five displayed position samples stayed at the last known SDK value of
 57.6 seconds, so same-instance warm
 playback recovery failed this check. An explicit stop followed by a new launch
-created a different PID/instance and restored VOD progress from 1.6 to 5.5
+created a different process and app instance, restoring VOD progress from 1.6 to 5.5
 seconds. That was cold relaunch, not retained playback recovery. Earlier
 disappearing instances had no usable crash reason; they are not classified as
 normal shutdown or media-resource reclamation.
 
-Process RSS/PSS/USS and file-descriptor/socket counts were sampled separately
-before/after Apply and background. They are not exact native VideoPlayer,
-media-element or surface allocation counts, and the differing bitrate caps and
-sampling times do not establish leak-free behavior. Warm playback recovery and
+A separate instrumented VVD check observed deinitializeSync(1000) returning
+timedout. SDK destruction subsequently fulfilled and a fresh foreground surface
+was created, but the unconfirmed native release kept replacement blocked. A
+separate control that synchronously called public native pause() first still
+timed out. This identifies the blocked cleanup step; it does not establish the
+cause inside the native SDK.
+
+Process memory was sampled before/after Apply and background: resident set size
+(RSS, memory held in physical memory), proportional set size (PSS, with shared pages
+apportioned across processes), and unique set size (USS, memory exclusive to this
+process). Open file descriptors and sockets were also counted. These values do
+not establish exact native VideoPlayer, media-element or surface allocations,
+and the differing bitrate caps and sampling times do not establish leak-free
+behavior. Warm playback recovery and
 native allocation-count qualification remain open. No physical Fire TV,
 DRM/offline behavior, audio correctness or quantitative buffer/bitrate behavior
 is qualified here. A VVD result does not replace target-device compatibility

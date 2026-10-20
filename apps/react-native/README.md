@@ -130,6 +130,18 @@ The copied `.env` supplies `EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY` and optiona
 `EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY`. Do not commit that file or native
 build output.
 
+The generator copies the environment file once. To refresh an existing external
+host after changing the repository keys, run these commands from the repository
+root, then restart Metro in the external host:
+
+```bash
+bash scripts/sync-env.sh
+install -m 600 apps/react-native/.env ../player-lab-react-native/.env
+```
+
+The copied file uses the client-facing EXPO_PUBLIC_ variable names. Keep it
+outside version control.
+
 On macOS, install Xcode and CocoaPods for iOS. Android requires Java 17 and the
 Android SDK/toolchain selected by Expo 54. Restore the checked-in native locks
 after prebuild, before the first iOS build:
@@ -216,11 +228,25 @@ Packaged shared JS/CSS bytes matched the built assets on both platforms.
 Actual iOS native checks exercised SDK Default VOD playback, the packaged Sports
 factory's INFO control and Play/Pause, Reset draft, Apply with autoplay/mute and
 a start offset, source/UI/log/Allow DVR retention, and advancing VOD after
-background/foreground return. These simulator checks do not qualify a physical
-device, Release archive, DRM, advertisements, every shared factory, or live/DVR
-behavior. Android licensed playback is not yet qualified. The repository's App
-tests use native mocks; generator tests and TypeScript checks provide separate
-evidence and do not establish playback.
+background/foreground return.
+
+Android API 36.1 checks used the public VOD HLS preset, Tears of Steel, with a
+native duration of 734 seconds. Default and Sports showed visible video with
+advancing native SDK positions. Sports loaded the packaged JS/CSS and its custom
+factory, with the INFO control visible. Native UI actions exercised Reset and
+Apply. Native getters confirmed the title, start-offset value of 5 seconds,
+autoplay and startup mute. Apply
+destroyed the old player, created a new owner and retained the complete source,
+selected Default UI, log and Allow DVR state. After background/foreground return,
+the applied owner was retained and VOD advanced after checking the on-screen
+playback controls. The check did not record whether Play was tapped or playback
+had already resumed, so automatic resume without interaction remains unqualified.
+
+These checks do not qualify physical devices, Release archives, DRM,
+advertisements, every shared factory, live/DVR behavior, accuracy of the initial
+seek or quantitative buffer/bitrate effects. The repository's App tests use native mocks; generator
+tests and TypeScript checks provide separate evidence and do not establish
+playback.
 
 ## Player event handling
 

@@ -101,7 +101,11 @@
     },
     {
       "type": "p",
-      "text": "10 月 20 日の最終ライブ復帰の失敗では、要求時に固定したメディア目標の +0.011 秒以内へ 3.070 秒で到達しましたが、移動するライブ端からは 3.059 秒遅れていました。behind live の UI は SDK オフセットと一致し、自動非表示の操作部品は可視の LIVE 条件を満たしませんでした。それ以前に同じ Player 3.171.0、共有 UI バンドル、Android 16 エミュレーターで比較した 2c90983 と 09e0a37 も、要求時の目標へ到達しながら、移動する端からは -6.573 秒と -4.116 秒でした。要求時の目標への到達は、現在のライブ端へ安定して戻ることを意味しません。製品の既定値と厳密な検証条件は維持しています。"
+      "text": "10 月 20 日の一括実行でのライブ復帰の失敗では、要求時に固定したメディア目標の +0.011 秒以内へ 3.070 秒で到達しましたが、移動するライブ端からは 3.059 秒遅れていました。behind live の UI は SDK オフセットと一致し、自動非表示の操作部品は可視の LIVE 条件を満たしませんでした。それ以前に同じ Player 3.171.0、共有 UI バンドル、Android 16 エミュレーターで比較した 2c90983 と 09e0a37 も、要求時の目標へ到達しながら、移動する端からは -6.573 秒と -4.116 秒でした。要求時の目標への到達は、現在のライブ端へ安定して戻ることを意味しません。製品の既定値と厳密な検証条件は維持しています。"
+    },
+    {
+      "type": "p",
+      "text": "追加の診断では、巻き戻し前と復帰要求前の両方で、実際の再生時間が進むことを確認しました。新しい完了イベントは 4.253 秒後に要求したメディア位置へ正確に到達しましたが、オフセットは -4.270 秒でした。14.009 秒先への要求は 11.811 秒の映像先読みバッファを超えていました。ただし、この値だけで遅延した具体的な処理は特定できません。isStalled は time shifting 中に false を返す仕様で、完了前のゼロオフセットも観測されました。そのため、新しい完了イベントと可視状態の LIVE の両方を検証条件として維持しています。自動的なシークの再試行は追加していません。"
     },
     {
       "type": "note",
@@ -179,6 +183,18 @@
       "path": "apps/android/app/src/test/kotlin/com/showcase/app/PlayerViewLifecycleTest.kt",
       "line": 11,
       "label": "ホスト lifecycle の回帰検査"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player/is-stalled.html",
+      "label": "Player 3.171.0 のシーク中の停止状態"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.event/-player-event/-time-shift/index.html",
+      "label": "Player 3.171.0 のライブシーク目標"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.event/-player-event/-time-shifted/index.html",
+      "label": "Player 3.171.0 のライブシーク完了"
     }
   ]
 }

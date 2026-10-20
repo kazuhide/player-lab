@@ -1,7 +1,7 @@
 {
   "id": "native-integrations",
   "title": "React Native and Vega OS integration",
-  "lead": "These two directories provide source code for integration into external native projects. Passing the repository’s type checks and unit tests does not establish that the resulting apps build or play on a device.",
+  "lead": "The React Native sample generates an external Expo project, and the Vega sample includes a Kepler application host. This section describes how to build and run each app and which native playback behaviors have been checked.",
   "blocks": [
     {
       "type": "h2",
@@ -14,6 +14,10 @@
     {
       "type": "p",
       "text": "The wrapper resolves iOS Player and Player Core 3.126.0, Analytics 3.28.1, and Google IMA 3.26.1 through Swift Package Manager; Android Player is 3.165.0+jason. The included native dependency locks preserve the iOS resolution. The standalone iOS 3.128.0 and Android 3.171.0 samples use separate SDK pins; do not force those versions into this wrapper."
+    },
+    {
+      "type": "note",
+      "text": "The +jason suffix selects Bitmovin's Android build that renames media-library namespaces and resources to avoid conflicts with Media3/ExoPlayer. Google IMA 3.37.0 and later require this build and core-library desugaring, which adapts newer Java library APIs for older Android versions. Wrapper 1.28.0 selects Player and media-session 3.165.0+jason, IMA 3.38.0, and desugar_jdk_libs 2.1.5. Its Expo plugin has no native Player SDK version option. Keep these related dependencies together; changing only the Player version is not a verified wrapper upgrade."
     },
     {
       "type": "code",
@@ -43,6 +47,10 @@
         "After editing the shared UI, rebuild it, copy its JS/CSS into the external project assets/webui directory, rerun prebuild, and rebuild the native app. A Metro reload alone cannot update native resources.",
         "Run the iOS or Android development build from the external project and check the actual SDK UI, advancing VOD, Apply/Reset, and background/foreground return."
       ]
+    },
+    {
+      "type": "note",
+      "text": "The generator copies the selected environment file once. To refresh keys in an existing external host, run scripts/sync-env.sh again from the repository root, copy apps/react-native/.env into the external host as .env with mode 0600, and restart Metro. That generated file provides the EXPO_PUBLIC_ variable names used by the App."
     },
     {
       "type": "note",
@@ -85,7 +93,11 @@
     },
     {
       "type": "note",
-      "text": "Type checks include the actual App and generated host entry point. App interaction tests use native/player mocks; generator tests separately check source/asset copies, pinned inputs, existing-target rejection, and explicit private environment-file copying. Actual iOS 26.4 simulator checks exercised SDK Default VOD playback, packaged Sports INFO and Play/Pause, Reset/Apply, source/UI/log/Allow DVR retention, and advancing VOD after background/foreground return. iOS and ARM64 Android API 36.1 development builds and packaged asset equality passed. Android licensed playback is not yet qualified. Physical devices, Release archives, DRM, advertisements, every shared factory, and live/DVR behavior remain outside this qualification."
+      "text": "The type check includes the real App and generated host entry points. App interaction tests use native/player mocks; generator checks separately verify source/assets, pinned inputs, existing-target refusal and private copying of explicitly selected environment files. Native iOS 26.4 checks exercised SDK Default VOD playback, the packaged Sports INFO and Play/Pause controls, Reset/Apply and source/UI/log/Allow DVR retention. Both iOS and ARM64 Android API 36.1 development builds and packaged asset bytes were checked."
+    },
+    {
+      "type": "p",
+      "text": "On Android API 36.1, Default and the packaged Sports factory showed video and advancing native SDK positions. Sports loaded its local JS/CSS assets and displayed INFO. Native UI checks covered Reset, Apply with autoplay/mute and a start offset of 5 seconds, a new owner with the old owner destroyed, and retention of the source, selected Default UI, log and Allow DVR. After background/foreground return, the applied owner remained and VOD advanced after checking the on-screen playback controls. The check did not record whether Play was tapped or playback had already resumed, so automatic resume without interaction remains unqualified. The start-offset value was confirmed using native getters; initial seek accuracy was not measured. This run used the public Tears of Steel VOD HLS preset with a native duration of 734 seconds, separate from the 60-second Big Buck Bunny test fixture. Physical devices, Release archives, DRM, ads, all factories, live/DVR and quantitative buffer/bitrate effects remain unqualified."
     },
     {
       "type": "h2",
@@ -160,6 +172,10 @@
     {
       "type": "note",
       "text": "In the final background/foreground check, the same app instance retained the unapplied title draft and applied bitrate setting, but video remained black and all five SDK position samples stayed at 57.6 seconds. Playback recovery on foreground return failed this check. Fully terminating and relaunching the app restored VOD progress from 1.6 to 5.5 seconds. Process memory and file-descriptor samples were collected, but they do not establish native media/surface allocation counts or leak freedom. Physical Fire TV, DRM/offline behavior, audio correctness and quantitative buffer/bitrate behavior were not qualified. Virtual-device results do not replace target-device compatibility and performance checks."
+    },
+    {
+      "type": "p",
+      "text": "A separate instrumented Virtual Device check reported timedout from deinitializeSync at the app's 1000 ms deadline. SDK destruction completed and a new foreground surface was created, but native release remained unconfirmed, so the session kept replacement blocked. Calling the public native pause() synchronously before release did not resolve that timeout in a separate control. These observations identify the blocked step; they do not establish the cause inside the native SDK."
     }
   ],
   "sources": [
@@ -201,7 +217,7 @@
     {
       "path": "apps/vega/README.md",
       "line": 3,
-      "label": "Vega scope and execution in an external project"
+      "label": "Vega application host, build steps and verification limits"
     },
     {
       "path": "apps/vega/src/App.tsx",
@@ -251,7 +267,7 @@
       "label": "React Native 1.28.0 Apple SDK defaults"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/build.gradle",
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/android/build.gradle#L98-L114",
       "label": "React Native 1.28.0 Android SDK defaults"
     },
     {
@@ -301,6 +317,26 @@
     {
       "url": "https://developer.amazon.com/docs/vega/0.24/acr-summary-report#reclaimmediaresource-crashes",
       "label": "Amazon guidance on releasing media before background suspension"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/can-i-use-exoplayer-and-the-bitmovin-player-android-sdk-in-the-same-project",
+      "label": "Android media-library isolation (+jason)"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-ima-android",
+      "label": "Google IMA dependency and Java API compatibility requirements"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/plugin/src/withBitmovinConfig.ts#L14-L17",
+      "label": "React Native 1.28.0 Expo plugin options"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#31240",
+      "label": "Android +jason resource isolation and IMA dependency changes"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#3510",
+      "label": "Android +jason resource-prefix isolation"
     }
   ]
 }
