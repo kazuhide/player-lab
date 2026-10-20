@@ -1,0 +1,37 @@
+name: PlayerLabRuntime
+options:
+  bundleIdPrefix: com.playerlab
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    GENERATE_INFOPLIST_FILE: YES
+    CODE_SIGNING_ALLOWED: NO
+targets:
+  RuntimeDriver:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.4"
+    sources: [Driver.swift]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.runtime-driver
+  RuntimeChecks:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "16.4"
+    sources: [RuntimeChecks.swift]
+    dependencies:
+      - target: RuntimeDriver
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.runtimechecks
+        TEST_TARGET_NAME: RuntimeDriver
+schemes:
+  RuntimeChecks:
+    build:
+      targets:
+        RuntimeDriver: all
+        RuntimeChecks: [test]
+    test:
+      targets: [RuntimeChecks]
+      gatherCoverageData: false
