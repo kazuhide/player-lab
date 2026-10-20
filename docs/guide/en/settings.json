@@ -1747,7 +1747,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 102
           },
-          "description": "Maximum seconds to buffer before initial playback; downloads stop at this limit until playback starts. A finite value overrides the platform recommendation; Infinity disables this particular limit. Defaults depend on webOS/Tizen modules and device generation; other platforms have no limit from this setting. The configured forward-buffer limit still applies."
+          "description": "Maximum seconds to buffer before initial playback; downloads stop at this limit until playback starts. A finite value overrides the platform recommendation; Infinity disables this particular limit. Defaults vary with webOS/Tizen modules and device generation; Legacy Microsoft Edge defaults to 6 seconds. Other platforms have no limit from this setting. The configured forward-buffer limit still applies."
         },
         {
           "scope": "PlayerConfig",
