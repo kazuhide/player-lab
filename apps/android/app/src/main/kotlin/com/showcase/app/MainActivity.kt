@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
@@ -97,6 +98,7 @@ internal class PlayerController(
     private val analyticsLicenseKey: String = "",
     private val playerFactory: ((PlayerConfig) -> Player)? = null,
     private val sourceFactory: (SourceConfig) -> Source = { Source(it) },
+    lifecycle: Lifecycle,
 ) {
     // §15: the bundled analytics collector reports QoE to the Bitmovin dashboard
     // when a key is configured (repo-root .env → sync-env.sh → local.properties).
@@ -124,6 +126,7 @@ internal class PlayerController(
     internal var configurationStatus: String by mutableStateOf("")
         private set
     private val views = mutableSetOf<PlayerView>()
+    private val viewLifecycle = PlayerViewLifecycle(lifecycle)
     private val playerSubscriptions = mutableListOf<() -> Unit>()
     private var sourceSubscription: (() -> Unit)? = null
     internal var configuredSource: Source? = null
@@ -214,7 +217,7 @@ internal class PlayerController(
         playerSubscriptions.clear()
         val previous = player
         // Detach synchronously, even if another Apply occurs before Compose disposes the old view.
-        views.forEach { it.player = null }
+        views.forEach { viewLifecycle.detach(it); it.player = null }
         player = replacement
         playerSettings = settings
         observePlayer()
@@ -232,10 +235,15 @@ internal class PlayerController(
         playerSubscriptions += { owner.off(type, guarded) }
     }
 
-    internal fun attachView(view: PlayerView): PlayerView = view.also { views.add(it) }
+    internal fun attachView(view: PlayerView): PlayerView = view.also {
+        if (views.add(it) && !released && it.player === player) {
+            viewLifecycle.attach(it, it::onStart, it::onResume, it::onPause, it::onStop)
+        }
+    }
 
     internal fun releaseView(view: PlayerView) {
-        views.remove(view)
+        if (!views.remove(view)) return
+        viewLifecycle.detach(view)
         view.player = null
         view.onDestroy()
     }
@@ -266,6 +274,7 @@ internal class PlayerController(
         configuredSource = null
         playerSubscriptions.forEach { it() }
         playerSubscriptions.clear()
+        viewLifecycle.release()
         views.forEach { it.player = null }
         player.destroy()
     }
@@ -300,7 +309,7 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.BLACK),
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.BLACK),
         )
-        controller = PlayerController(this, licenseKey(), analyticsLicenseKey())
+        controller = PlayerController(this, licenseKey(), analyticsLicenseKey(), lifecycle = lifecycle)
         setContent { MaterialTheme { Surface(modifier = Modifier.fillMaxSize()) { ShowcaseScreen(controller) } } }
         Sources.all.firstOrNull()?.let { controller.load(it) }
     }

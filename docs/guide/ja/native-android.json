@@ -39,7 +39,7 @@
     },
     {
       "type": "p",
-      "text": "Android の UI 切り替えは Player を残して PlayerView を作り直します。Player 自体を作り直す iOS／React Native とは異なります。Sports、Live、Cinema の JavaScript と CSS は file:///android_asset/ から読み込みます。カスタム UI が表示されない場合は共有 UI のビルド・同期を行い、APK をビルドし直します。"
+      "text": "Android の UI 切り替えは Player を残して PlayerView を作り直します。Player 自体を作り直す iOS／React Native とは異なります。Sports、Live、Cinema の JavaScript と CSS は file:///android_asset/ から読み込みます。カスタム UI が表示されない場合は共有 UI のビルド・同期を行い、APK をビルドし直します。 Activity の start・resume・pause・stop を有効な PlayerView へ転送します。復帰済みの Activity でビューを交換した場合も現在の状態へ追従します。旧ビューの lifecycle observer は切り離し・破棄の前に解除し、UI 切り替え中も Player の所有権は controller が保持します。 記録した SDK 3.171.0 の電話向けエミュレーター検査では、フォアグラウンドへ戻っても paused 状態を保持しました。必要に応じてプレイヤーの再生ボタンから再開します。"
     },
     {
       "type": "note",
@@ -93,16 +93,20 @@
     },
     {
       "type": "p",
-      "text": "dvr:test は巻き戻し計算、app:testDebugUnitTest は下書き検証と正確な SDK 設定への変換を確認します。PlayerConfigurationInstrumentedTest は実際の Compose エディターと SDK 設定、Reset、ソース保持、ビューの切り離し、D-pad フォーカスを確認します。PlayerOwnershipInstrumentedTest は記録用 API 実装で destroy が各 1 回であること、購読の解除、旧 Player／ソースのコールバックの拒否を確認します。これらは有効な Player ライセンスなしでも実行でき、実再生や SDK 内部の全リソース解放完了を証明するものではありません。実再生テストにはネットワークと許可された Player ライセンスが必要です。PlayerDvrInstrumentedTest は読み込みと有限の VOD 長を、PlayerControlsInstrumentedTest は共有 WebView、UI からの再生、ソース切り替え、巻き戻し、ライブ復帰、DVR 状態を確認します。 PlayerConfigurationPlaybackInstrumentedTest は GUI で反映した設定により、VOD が 10 秒の開始位置からミュート・自動再生で進むことを確認します。"
+      "text": "DVR の JVM テストは巻き戻し計算、App の JVM テストは下書き検証、SDK 設定への変換、復帰済みビューへの追従と observer 解除を含む lifecycle 所有権を確認します。設定の端末テストは実際のエディターと D-pad を操作し、記録用の所有権テストは destroy が各 1 回であることと旧コールバックの拒否を確認します。これらは実再生の確認ではありません。ライセンス付きテストは有限の VOD 長、共有 WebView の操作、ソース切り替え、ライブシーク、設定した Autoplay・ミュート・開始オフセットを確認します。UI 切り替えテストは 12 回のビュー交換と実際の Activity の 2 回の停止・復帰、ソース・設定・UI・Allow DVR の保持、復帰後の明示的な再生要求、表示領域との交差、再生時間の進行、終了時の Player 無効化を確認します。SDK 内部リソースの全解放完了を証明するものではありません。"
     },
     {
       "type": "p",
-      "text": "共有 UI が存在しても、操作部品のレイアウトや自動非表示の状態は後から変わります。記録されたテストは表示寸法だけでなく祖先要素の可視性も確認します。ライブ端が移動するため、シーク完了位置は要求前に固定したメディア基準と比較します。テストの 3 秒の許容差は製品のシーク精度保証ではありません。"
+      "text": "共有 UI が存在しても、操作部品のレイアウトや自動非表示の状態は後から変わります。テストは表示寸法だけでなく祖先要素の可視性も確認します。巻き戻しの完了位置は要求前に固定したメディア目標の 3 秒以内を必要としますが、この許容差は製品の精度保証ではありません。ライブ復帰は引き続き、新しい完了イベント、ゼロから 1 秒以内の SDK オフセット、可視状態の LIVE テキストとボタン状態を必要とします。失敗時には単調増加時計での要求・完了時刻、目標・完了位置、オフセット、ネイティブ条件の成立回数、ライブ操作部品の可視性を記録し、SDK エラーメッセージや設定全体は出力しません。"
+    },
+    {
+      "type": "p",
+      "text": "10 月 20 日の最終ライブ復帰の失敗では、要求時に固定したメディア目標の +0.011 秒以内へ 3.070 秒で到達しましたが、移動するライブ端からは 3.059 秒遅れていました。behind live の UI は SDK オフセットと一致し、自動非表示の操作部品は可視の LIVE 条件を満たしませんでした。それ以前に同じ Player 3.171.0、共有 UI バンドル、Android 16 エミュレーターで比較した 2c90983 と 09e0a37 も、要求時の目標へ到達しながら、移動する端からは -6.573 秒と -4.116 秒でした。要求時の目標への到達は、現在のライブ端へ安定して戻ることを意味しません。製品の既定値と厳密な検証条件は維持しています。"
     },
     {
       "type": "note",
       "title": "2026-10-20 の検証範囲",
-      "text": "2026-10-20 に Player 3.171.0 で DVR の JVM テスト 6 件、設定の JVM テスト 6 件、アプリ・instrumentation APK のビルドが成功しました。Android 16 の電話向けエミュレーターではダミーライセンスで設定・所有権の 4 件が 41.737 秒で成功し、縦スワイプで両 Apply 領域へ到達、D-pad で下書きスイッチを変更できました。最終コードでは GUI 設定による 10 秒位置からの VOD 自動再生が許可済みライセンスで 18.342 秒で成功しました。それ以前の一括実行では、設定付き VOD 再生と既存 VOD 長の確認を含む 7 件中 6 件が 71.104 秒で成功しました。共有 UI／DVR 操作テストは一括実行で非ネットワークの timeout 1004 を報告しました。同じ SDK・バンドル・エミュレーターで base 2c90983 と変更後を個別に比較した場合も、両方でライブ復帰の検証が失敗しています。この共有 UI／ライブ端の経路は 3.171.0 で確認済みとは扱いません。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics の受信、SDK 内部リソースの全解放完了は未確認です。"
+      "text": "2026-10-20 に Player 3.171.0 で JVM テスト 14 件（DVR 6 件、設定 6 件、lifecycle 2 件）とアプリ・instrumentation APK のビルドが成功しました。Android 16/API 36.1 ARM64 の電話向けエミュレーターで、許可されたライセンスを使った最終一括実行は 149.519 秒で 9 件中 8 件が成功しました。設定付き VOD、12 回の UI 切り替え、明示的な再生要求を伴う 2 回の停止・復帰・UI 交換は成功しましたが、変更していない厳密なライブ復帰は Player/Source エラーなしで失敗しました。別の単独実行では両再生サイクルの完了後、Activity 終了中に timeout 1004 が発生しました。タイムアウトした具体的な操作は記録されておらず、最終一括実行では再現しませんでした。それ以前の一括実行では、設定付き VOD の最初の観測位置が従来の 9.0..13.0 秒を満たさず、実測値の記録もないため、観測の遅れと開始位置の誤りを区別できません。今後は実測値を出力しますが、範囲とタイミングは変えていません。安定したライブ復帰、一括実行での開始オフセット、timeout 1004 は未解決です。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics 受信、SDK 内部リソースの全解放完了は未確認です。"
     }
   ],
   "sources": [
@@ -113,7 +117,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 136,
+      "line": 145,
       "label": "実再生テストと記録された結果"
     },
     {
@@ -123,7 +127,7 @@
     },
     {
       "path": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
-      "line": 323,
+      "line": 332,
       "label": "実画面と PlayerView の再生成"
     },
     {
@@ -150,6 +154,31 @@
       "path": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
       "line": 17,
       "label": "ソース・Player 設定の検証と変換"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+      "line": 50,
+      "label": "厳密なライブ操作検証と失敗時診断"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerUiHandoffInstrumentedTest.kt",
+      "line": 38,
+      "label": "再生中 Player の UI 切り替え検査"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerConfigurationPlaybackInstrumentedTest.kt",
+      "line": 60,
+      "label": "設定付き VOD の最初の観測位置の検証"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/PlayerViewLifecycle.kt",
+      "line": 8,
+      "label": "ビューの lifecycle 所有権"
+    },
+    {
+      "path": "apps/android/app/src/test/kotlin/com/showcase/app/PlayerViewLifecycleTest.kt",
+      "line": 11,
+      "label": "ホスト lifecycle の回帰検査"
     }
   ]
 }

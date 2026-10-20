@@ -72,6 +72,15 @@ PlayerViewConfig(uiConfig = UiConfig.WebUi(
 The app recreates `PlayerView` when the mode changes. The build-and-sync command
 above writes the ignored assets under `app/src/main/assets/`.
 
+The Activity forwards start, resume, pause and stop to its active `PlayerView`,
+following the [SDK lifecycle contract](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-ui-web/com.bitmovin.player/-player-view/index.html).
+A replacement view catches up when the Activity is already resumed. Before a
+view is retired or its player is destroyed, its lifecycle observer is removed;
+the view detaches from the player before `PlayerView.onDestroy()`. The controller
+retains Player ownership across UI changes.
+In the SDK 3.171.0 phone-emulator check, foregrounding kept playback paused;
+use the player's Play control to resume when needed.
+
 The shared UI uses `bitmovin-player-ui` 4.x. A successful Android build does not
 establish that it renders correctly in the native player library's WebView;
 check rendering and input on each target.
@@ -166,6 +175,22 @@ player settings. The configuration-only tests do not establish media playback or
 completion of all SDK resource cleanup; `Player.isDestroyed` reports API
 invalidation, and the recording test counts the app's destroy calls.
 
+`PlayerUiHandoffInstrumentedTest` keeps the same player playing VOD while cycling
+through Sports, Live (DVR), Cinema and Default three times. It checks that each
+retired view detaches, one active view intersects the viewport, and playback time
+advances after every handoff. A separate check drives the real Activity through
+two stopped/resumed cycles, then replaces the UI while resumed. It checks source,
+settings, UI and Allow DVR retention, muted playback progress, viewport visibility,
+and Player invalidation with no recorded errors through Activity teardown. It
+requests playback explicitly after foregrounding. These
+checks require an authorized license; they do not prove that all SDK resources
+have completed release.
+
+`PlayerViewLifecycleTest` uses a real AndroidX lifecycle registry on the JVM. It
+checks host event order, immediate catch-up for a resumed replacement, observer
+removal and rejection of late views after release. The recording ownership test
+separately checks app-owned Player destruction.
+
 The shared UI can exist before its playback control becomes visible. The test
 waits for that control, then checks that native playback time advances. It reveals
 controls through WebView pointer input and checks element dimensions and the
@@ -180,27 +205,50 @@ offset and the visible behind-live state. The return-to-live check requires a ne
 completion event, an SDK-reported offset within one second of zero, and visible
 `LIVE` text and button state.
 
+If that check fails, its report includes monotonic request/completion times,
+the requested media target, completion position and offset, native-ready poll
+count, and the live controls' text, classes, dimensions and hidden ancestors.
+It does not include SDK error messages or configuration dumps.
+
 The app's event log also retains startup error codes, so a failed initial request
 can be distinguished from a source that is still loading.
 
-On 2026-10-20, Player 3.171.0 passed the six DVR JVM tests, six configuration JVM
-tests, and debug app/instrumentation builds. An Android 16 phone emulator passed
-all four configuration/ownership checks with a dummy license in 41.737 seconds.
-Touch swipes reached both Apply sections; D-pad Down/Center moved focus and
-changed a draft switch after entering remote input mode.
+On 2026-10-20, Player 3.171.0 passed all 14 JVM tests (six DVR, six
+configuration and two lifecycle tests) and debug app/instrumentation builds.
+The final authorized-license group on an Android 16/API 36.1 ARM64 phone
+emulator passed eight of nine checks in 149.519 seconds. Configuration/ownership,
+configured VOD autoplay/mute/10-second offset, finite VOD duration, 12 UI handoffs,
+and two background/resume/UI-replacement cycles with explicit Play all passed.
+The lifecycle regression tests first failed with missing forwarding, then passed
+with host callbacks and resumed-view catch-up implemented.
 
-The final configured VOD playback case passed with an authorized license in
-18.342 seconds. An earlier grouped authorized-license run passed six of seven
-checks in 71.104 seconds, including configured VOD playback and the existing
-VOD-duration check. The existing shared-UI/DVR controls check reported non-network timeout
-1004 in the grouped run. In separate comparisons, both base `2c90983` and the
-changed app failed the return-to-live assertion with the same SDK, shared UI
-bundle, and emulator. This does not qualify that shared-UI/live-edge path for
-3.171.0. No error or timing threshold was relaxed. Physical devices, Android TV,
-Fire TV, and completed SDK resource cleanup remain outside these checks.
+The unchanged strict return-to-live check failed without Player or Source errors.
+Its fresh completion arrived 3.070 seconds after the request and only 0.011
+seconds past the requested media target, but the offset was still -3.059 seconds.
+The UI truthfully reported behind-live state; auto-hidden controls did not satisfy
+the visible-LIVE condition. Earlier comparisons of base `2c90983` and main
+`09e0a37`, using the same SDK, shared UI bundle and emulator, showed the same
+request-target versus moving-edge distinction:
 
-On 2026-10-19, the debug app and instrumentation APK compiled with Player 3.155.0.
-An Android 16 emulator passed both real playback tests through the Gradle command
-above: 2 passed, 0 failed, 0 skipped in 29.294 seconds. The APK contained the final
-shared UI bundle. These checks used the catalog's public sample sources; physical
-devices, Android TV and Fire TV were not covered by this run.
+| App revision | Return completion latency | Completion minus requested target | Offset at completion |
+| --- | --- | --- | --- |
+| `2c90983` | 6.598 s | +0.057 s | -6.573 s |
+| `09e0a37` | 4.439 s | +0.367 s | -4.116 s |
+
+The lifecycle correction follows the SDK integration contract. It does not
+establish resolution of timeout 1004: a separate focused background/resume run
+completed both playback cycles but recorded 1004 during Activity close. Its
+specific timed-out operation was not captured. The final grouped run did not
+reproduce it. Failure diagnostics now classify an available surface/release
+message or cause and record the current test phase without printing opaque SDK
+messages. No timeout, seek, visibility or playback condition was relaxed.
+
+An earlier eight-check group passed seven in 97.328 seconds but failed the
+configured-VOD first-observed-position range (`9.0..13.0` seconds for a 10-second
+start offset). That report omitted the sampled position, so late observation
+and an incorrect starting position cannot be distinguished. The assertion now
+reports the number with the same range and timing. Its later pass does not
+establish stable grouped startup-offset behavior. Live-return stability,
+startup-offset qualification and timeout 1004 remain open independently.
+Physical devices, Android TV, Fire TV, offline, casting, Analytics receipt and
+completed SDK resource cleanup remain outside these checks.

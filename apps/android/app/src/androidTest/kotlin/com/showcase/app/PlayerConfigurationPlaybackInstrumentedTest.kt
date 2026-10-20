@@ -57,7 +57,7 @@ class PlayerConfigurationPlaybackInstrumentedTest {
         ui.runOnUiThread {
             val player = controller.player
             firstPosition = player.currentTime
-            assertTrue("First VOD position must honor the 10 s offset", firstPosition in 9.0..13.0)
+            assertTrue("First VOD position must honor the 10 s offset; observed=$firstPosition", firstPosition in 9.0..13.0)
             assertTrue("Playback must start muted", player.isMuted)
             assertEquals("Configured VOD", player.source?.config?.title)
             assertEquals(1_500_000, player.config.adaptationConfig.maxSelectableVideoBitrate)
