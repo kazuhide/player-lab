@@ -525,5 +525,36 @@
     "No CPU/network throttling. Ordinary samples do not force garbage collection; collection diagnostics are separate runs.",
     "RSS sums shared and private resident pages by process type; renderer values sum three processes, and GPU-process RSS measures system RAM rather than VRAM.",
     "CPU time and process RSS increased in these runs. Retained JavaScript-heap reduction does not establish total-memory or CPU savings, leak freedom, long-session behavior or results on other devices."
-  ]
+  ],
+  "correctnessWorkerSmoke": {
+    "recordedOn": "2026-10-21",
+    "results": [
+      {
+        "mode": "one",
+        "workers": 1,
+        "passed": 10,
+        "elapsedSecondsIncludingServers": 20.307549916993594,
+        "sampledPeakProcessTreeRssBytes": 2429599744,
+        "rssSamplingIntervalSeconds": 0.1,
+        "rssSamples": 129,
+        "retries": 0
+      },
+      {
+        "mode": "adaptive",
+        "workers": 2,
+        "passed": 10,
+        "elapsedSecondsIncludingServers": 11.513329000008525,
+        "sampledPeakProcessTreeRssBytes": 3701342208,
+        "rssSamplingIntervalSeconds": 0.1,
+        "rssSamples": 72,
+        "retries": 0
+      }
+    ],
+    "limits": [
+      "One execution per mode, not a repeated performance comparison. Other native qualification tasks ran on this host.",
+      "Elapsed time includes server startup and shared-UI build. Peak RSS is the sampled sum for the test runner and its observed descendants, including servers/browser processes; shared pages can be counted more than once.",
+      "The adaptive budget uses available CPU/memory at launch and does not guarantee a fixed worker count or speedup."
+    ],
+    "sourceRevision": "152ffd3"
+  }
 }

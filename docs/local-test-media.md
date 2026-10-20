@@ -33,6 +33,13 @@ The test runner starts local media, player-harness and application servers,
 uses a CPU/memory-based worker budget of one to four with zero retries, and
 stops its servers afterward. Set `E2E_WORKERS=1` to reduce concurrency. Performance
 measurements use their separate single-worker configuration.
+A 2026-10-21 smoke run of the ten feature checks passed with zero retries in
+both modes: 20.31 s with one worker and 11.51 s with the adaptive budget's two
+workers, including server startup and the shared-UI build. Sampled peak summed
+process-tree RSS was 2.43 GB and 3.70 GB respectively. This was one run per mode
+while native qualification also ran; it is an execution/resource record rather
+than a controlled speedup comparison. Shared pages may be counted more than
+once in that RSS sum. See [the individual results](web-performance-results.json).
 The default ports are 5180, 5174 and 5175. Set `E2E_MEDIA_PORT`,
 `E2E_HARNESS_PORT` and `E2E_APP_PORT` to use distinct ports for parallel runs.
 Google Chrome must be installed; continuous integration uses Playwright's

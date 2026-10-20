@@ -21,6 +21,10 @@
     },
     {
       "type": "p",
+      "text": "A separate correctness smoke run passed all ten feature checks with zero retries: one worker took 20.31 s with 2.43 GB sampled peak summed process-tree RSS; the automatic budget selected two workers and took 11.51 s with 3.70 GB. Times include server startup and shared-UI building. There was one run per mode with native qualification also running, so this records execution cost rather than a controlled speedup. Shared resident pages can be counted more than once."
+    },
+    {
+      "type": "p",
       "text": "Increasing the Player's forward buffer retains more media and can help tolerate temporary network interruptions. The rewind window, however, depends on the delivery manifest and media still available from the origin. A larger forward buffer cannot recover older segments already removed by the server."
     },
     {
