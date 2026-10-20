@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-21",
-  "sourceRevision": "a312c7547e580b4c97f8fbee025aec8df89b427d",
+  "sourceRevision": "75a8a2fb3354d50d713559e1e65ec9d017e3f82d",
   "sdks": [
     {
       "id": "web",
@@ -48781,14 +48781,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 81,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.maximumBitrate"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -50155,14 +50155,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 83,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.forwardBuffer"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -53472,14 +53472,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 71,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "$draft.autoplay"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -53558,14 +53558,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 73,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "$draft.startMuted"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -53627,14 +53627,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 75,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "$draft.sdkTimeShiftEnabled"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -54273,14 +54273,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 44,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.sourceURL"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -56989,14 +56989,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 55,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.posterURL"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -57075,14 +57075,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 53,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.title"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -57144,14 +57144,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 45,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "$draft.sourceType"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -57196,14 +57196,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 44,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.sourceURL"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -57607,14 +57607,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 60,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.startOffset"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -57659,14 +57659,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 61,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "$draft.timelineReference"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -60614,14 +60614,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 81,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.maximumBitrate"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -61195,14 +61195,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 83,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.forwardBuffer"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -63405,14 +63405,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 71,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "$draft.autoplay"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -63491,14 +63491,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 73,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "$draft.startMuted"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -63560,14 +63560,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 75,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "$draft.sdkTimeShiftEnabled"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -64206,14 +64206,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 44,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.sourceURL"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -66846,14 +66846,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 55,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.posterURL"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -66932,14 +66932,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 53,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.title"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -67001,14 +67001,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 45,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "$draft.sourceType"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -67053,14 +67053,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 44,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.sourceURL"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -67464,14 +67464,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 60,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "text: $draft.startOffset"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
@@ -67516,14 +67516,14 @@
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
               "line": 61,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "$draft.timelineReference"
             },
             {
               "file": "apps/ios/Showcase/ConfigurationEditor.swift",
               "kind": "app",
-              "line": 131,
-              "sha256": "555453a730760d685e0208c2e31c54a3f5e368e24bdc57f7b7369d1cd52605bd",
+              "line": 148,
+              "sha256": "d04bf11dcb9154a2e2e7826ba755c7fdc59d3e3f2ef161f654fed39c1cd24e40",
               "symbol": "Button(\"Apply\")"
             },
             {
