@@ -314,4 +314,3 @@ UI settings sent to the SDK. Draft edits do not change this output. **Copy code*
 writes the code to the Android clipboard; you can also select the text. License
 values are excluded and the Player key is a placeholder. The app's Allow DVR
 switch remains separate from the SDK configuration.
-
