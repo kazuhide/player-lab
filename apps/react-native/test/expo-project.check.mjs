@@ -1,0 +1,76 @@
+import assert from "node:assert/strict";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { test } from "node:test";
+import { createExpoProject } from "../scripts/create-expo-project.mjs";
+
+const appRoot = fileURLToPath(new URL("..", import.meta.url));
+
+function fixture(run) {
+  const root = mkdtempSync(join(tmpdir(), "player-lab-expo-"));
+  try {
+    const assets = join(root, "built-ui");
+    mkdirSync(assets);
+    writeFileSync(join(assets, "bitmovinplayer-ui.js"), "// public bundle fixture\n");
+    writeFileSync(join(assets, "bitmovinplayer-ui.css"), ".fixture {}\n");
+    run({ root, assets, target:join(root, "external-app") });
+  } finally { rmSync(root, { recursive:true, force:true }); }
+}
+
+test("generates the existing App and pinned native project inputs without a license", () => fixture(({ assets, target }) => {
+  createExpoProject({ target, assets });
+  assert.equal(readFileSync(join(target, "App.tsx"), "utf8"), readFileSync(join(appRoot, "App.tsx"), "utf8"));
+  assert.equal(readFileSync(join(target, "src/configuration.ts"), "utf8"), readFileSync(join(appRoot, "src/configuration.ts"), "utf8"));
+  const config = JSON.parse(readFileSync(join(target, "app.json"), "utf8")).expo;
+  assert.equal(config.ios.bundleIdentifier, "com.playerlab.reactnative");
+  assert.equal(config.android.package, "com.playerlab.reactnative");
+  assert.deepEqual(config.plugins[0], ["bitmovin-player-react-native", {}]);
+  const manifest = JSON.parse(readFileSync(join(target, "package.json"), "utf8"));
+  assert.equal(manifest.engines.node, "24.19.0");
+  assert.equal(readFileSync(join(target, ".nvmrc"), "utf8").trim(), "24.19.0");
+  assert.deepEqual(readFileSync(join(target, "pnpm-lock.yaml")), readFileSync(join(appRoot, "expo/pnpm-lock.yaml")));
+  for (const name of ["Podfile.lock", "Package.resolved"]) {
+    assert.deepEqual(readFileSync(join(target, "native-locks", name)), readFileSync(join(appRoot, "expo/native-locks", name)));
+  }
+  assert.equal(manifest.dependencies.expo, "54.0.35");
+  assert.equal(manifest.dependencies["expo-crypto"], "15.0.9");
+  assert.equal(manifest.dependencies["bitmovin-player-react-native"], "1.28.0");
+  assert.match(readFileSync(join(target, ".gitignore"), "utf8"), /^\.env$/m);
+  assert.throws(() => statSync(join(target, ".env")), { code:"ENOENT" });
+}));
+
+test("copies both built assets byte-for-byte", () => fixture(({ assets, target }) => {
+  createExpoProject({ target, assets });
+  for (const name of ["bitmovinplayer-ui.js", "bitmovinplayer-ui.css"]) {
+    assert.deepEqual(readFileSync(join(target, "assets/webui", name)), readFileSync(join(assets, name)));
+  }
+}));
+
+test("refuses an existing target without changing user files", () => fixture(({ assets, target }) => {
+  mkdirSync(target);
+  writeFileSync(join(target, "keep.txt"), "keep");
+  assert.throws(() => createExpoProject({ target, assets }), /new directory/);
+  assert.equal(readFileSync(join(target, "keep.txt"), "utf8"), "keep");
+}));
+
+test("missing built assets fail before creating the target", () => fixture(({ assets, target }) => {
+  rmSync(join(assets, "bitmovinplayer-ui.css"));
+  assert.throws(() => createExpoProject({ target, assets }), /Build the shared UI/);
+  assert.throws(() => statSync(target), { code:"ENOENT" });
+}));
+
+test("an explicitly selected environment file is copied privately without entering public manifests", () => fixture(({ root, assets, target }) => {
+  const envFrom = join(root, "fixture-input");
+  const contents = "EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY=placeholder-for-test-only\n";
+  writeFileSync(envFrom, contents);
+  createExpoProject({ target, assets, envFrom });
+  assert.equal(readFileSync(join(target, ".env"), "utf8"), contents);
+  assert.equal(statSync(join(target, ".env")).mode & 0o777, 0o600);
+  for (const name of ["app.json", "package.json"]) assert.doesNotMatch(readFileSync(join(target, name), "utf8"), /placeholder-for-test-only/);
+}));
+
+test("rejects targets inside the sample source", () => fixture(({ assets }) => {
+  assert.throws(() => createExpoProject({ target:resolve(appRoot, "generated"), assets }), /outside the sample/);
+}));

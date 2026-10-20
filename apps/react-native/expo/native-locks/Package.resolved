@@ -1,0 +1,42 @@
+{
+  "originHash" : "e2fcdbdec414e12017bb82284c12b23b925eab37b21f1b58c6a238ed0074406d",
+  "pins" : [
+    {
+      "identity" : "bitmovin-analytics-collector-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/bitmovin/bitmovin-analytics-collector-ios.git",
+      "state" : {
+        "revision" : "0c61761bb0f333a99dd21bd173f7fce0ee4c3ab7",
+        "version" : "3.28.1"
+      }
+    },
+    {
+      "identity" : "player-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/bitmovin/player-ios.git",
+      "state" : {
+        "revision" : "6e6683f603e4193e1d383e86ee278c092748e6f5",
+        "version" : "3.126.0"
+      }
+    },
+    {
+      "identity" : "player-ios-core",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/bitmovin/player-ios-core.git",
+      "state" : {
+        "revision" : "52d6538c6b4838e1e6a2bb72ddf5d2fcb05a6a37",
+        "version" : "3.126.0"
+      }
+    },
+    {
+      "identity" : "swift-package-manager-google-interactive-media-ads-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/googleads/swift-package-manager-google-interactive-media-ads-ios",
+      "state" : {
+        "revision" : "60c708f077d0d2aa02dfbfdeb60f2be8feb1c548",
+        "version" : "3.26.1"
+      }
+    }
+  ],
+  "version" : 3
+}

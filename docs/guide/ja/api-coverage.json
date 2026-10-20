@@ -379,24 +379,24 @@
         "text": "Allow DVRが変更するのはアプリのDVRヘルパーであり、PlayerConfigの再生プロパティではありません。ライセンス設定は環境の準備時に渡すため、GUIから編集できません。"
       },
       {
-        "source": "The embedded native/shared Web UI has not been qualified against this wrapper version; its controls receive no inferred coverage credit. Application-owned controls are source-mapped and mock-tested, not native playback qualification.",
-        "text": "組み込まれたネイティブ・共有Web UIは、このラッパー版での検証を行っていないため、その操作から対応件数を推定しません。アプリ自身の操作はソースとの対応と代替オブジェクトを使ったテストで確認しており、ネイティブでの再生確認を意味しません。"
+        "source": "The reproducible Expo host packages shared JS/CSS as native resources. iOS simulator checks exercised SDK Default playback and the Sports factory INFO and Play/Pause controls. Other factories and Android licensed playback remain unqualified; no SDK UI API credit is inferred from those checks.",
+        "text": "固定したExpoホストは共有JavaScript/CSSをネイティブのリソースとして組み込みます。iOSシミュレーターではSDK標準UIでの再生と、SportsのINFO・再生・一時停止操作を確認しました。他のUI構築関数とAndroidでの実再生は未確認です。この検査だけでSDK標準UIのAPI対応数は加算しません。"
       },
       {
         "source": "The latest wrapper pins Apple 3.126.0 and Android 3.165.0+jason. These supported wrapper defaults are not overridden to the newer standalone SDK versions.",
         "text": "最新版ラッパーが固定するネイティブSDKはApple 3.126.0とAndroid 3.165.0+jasonです。ラッパーがサポートするこの既定値を、より新しい単体SDKへ上書きしていません。"
       },
       {
-        "source": "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries; event payload fields are not exposed. onPlayerViewReady only triggers loading and is internal.",
-        "text": "onTimeChangedは表示中のDVR状態を更新します。onSourceLoaded・onTimeShifted・onPlayerError・onSourceErrorには名前付きログがあり、イベントのペイロード項目は公開しません。onPlayerViewReadyはロードを開始するためだけに使い、内部処理として数えます。"
+        "source": "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries. Player/Source errors additionally display a numeric code when supplied; other event payload details are not rendered. onPlayerViewReady only triggers loading and is internal.",
+        "text": "onTimeChangedは表示用のDVR状態を更新します。onSourceLoaded、onTimeShifted、onPlayerError、onSourceErrorはイベント名をログに表示します。Player/Sourceのエラーでは、数値コードが渡された場合にそのコードも表示します。その他のイベントの詳細は表示しません。onPlayerViewReadyは読み込み開始のきっかけとして内部で使います。"
       },
       {
         "source": "Player.load receives the edited SourceConfig. No Source instance lifecycle, read-only configuration observation, offline operation or unrelated nested property is inferred from those input controls.",
         "text": "Player.loadには編集したSourceConfigを渡します。この入力画面から、Sourceインスタンスのライフサイクル操作、読み取り専用の設定値の観測、オフライン操作、無関係な入れ子のプロパティの対応は推定しません。"
       },
       {
-        "source": "The actual App/configuration JSX and helpers are type-checked against installed declarations and tested with mocked native/player boundaries. Native Expo builds, WebView/native layout and device playback were not performed for this measurement.",
-        "text": "実際のApp・設定パネルのJSXと補助処理を、導入済みの型宣言に対して型検査し、native・Playerの代替オブジェクトでテストしています。この測定では、ネイティブExpoビルド、WebView・nativeの見た目、端末での再生は確認していません。"
+        "source": "The App/configuration JSX and helpers are type-checked against installed declarations and tested with mocked native/player boundaries. Separate generated-host checks built both native platforms and verified packaged asset bytes. iOS simulator checks covered VOD playback, Apply/Reset, retained configuration/UI/log/Allow DVR and advancing playback after background return. Android renders the screen but native Player error 1003 prevents licensed playback qualification. These checks do not qualify physical devices, Release archives or live/DVR playback.",
+        "text": "App本体、設定画面、補助処理はインストール済みの型定義に対して型検査し、ネイティブ処理とプレイヤーをモックしたテストでも検証しています。別途、生成したホストを両OS向けにビルドし、組み込まれたUIアセットのバイト一致を確認しました。iOSシミュレーターではVOD再生、Apply/Reset、設定・UI・ログ・Allow DVRの保持、バックグラウンド復帰後の再生時間の進行を確認しました。Androidは画面を表示できますが、ネイティブPlayerのエラー1003により実再生を確認できていません。物理端末、Releaseアーカイブ、ライブ/DVR再生は検証範囲に含みません。"
       }
     ],
     "vega": [

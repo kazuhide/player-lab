@@ -42,15 +42,15 @@ const ANALYTICS = ANALYTICS_LICENSE_KEY
   : {};
 
 // The shared @showcase/ui-shared bundle, synced to assets/webui by scripts/sync-webui-bundle.sh.
-// These point the Web UI at it for the custom modes; on-device the asset must be delivered to the
-// native app (Expo prebuild copies assets/) — see README. Placeholders until that wiring lands.
+// The generated Expo host's config plugin packages these native resources during prebuild.
+// React Native resolves relative iOS file URLs against the main application bundle.
 const WEBUI_JS = Platform.select({
   android: "file:///android_asset/webui/bitmovinplayer-ui.js",
-  default: "webui/bitmovinplayer-ui.js",
+  default: "bitmovinplayer-ui.js",
 });
 const WEBUI_CSS = Platform.select({
   android: "file:///android_asset/webui/bitmovinplayer-ui.css",
-  default: "webui/bitmovinplayer-ui.css",
+  default: "bitmovinplayer-ui.css",
 });
 
 /** A selectable player UI: the SDK default, or one of our shared custom factories (§12). */
@@ -206,8 +206,8 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
           append("TimeShifted");
           void refresh();
         }}
-        onPlayerError={() => { if (active.current) append("Player error"); }}
-        onSourceError={() => { if (active.current) append("Source error"); }}
+        onPlayerError={(event) => { if (active.current) append(typeof event?.code === "number" ? `Player error (${event.code})` : "Player error"); }}
+        onSourceError={(event) => { if (active.current) append(typeof event?.code === "number" ? `Source error (${event.code})` : "Source error"); }}
       />
 
       <View style={styles.row}>

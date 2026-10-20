@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-20",
-  "sourceRevision": "49f36de49b8964029df9d433dd6e1493bcb0ac90",
+  "sourceRevision": "3db9d41766d36680a3a63955136357e775c949ba",
   "sdks": [
     {
       "id": "web",
@@ -90753,7 +90753,7 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 165,
               "symbol": "player.destroy();"
             }
@@ -90896,7 +90896,7 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 246,
               "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
@@ -90935,7 +90935,7 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 246,
               "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
@@ -91028,7 +91028,7 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 246,
               "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
@@ -91326,7 +91326,7 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 90,
               "symbol": "const next = parseConfiguration(draft, platform);"
             },
@@ -91340,7 +91340,7 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 175,
               "symbol": "player.load(source);"
             }
@@ -91725,14 +91725,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 224,
               "symbol": "<Button title=\"Live edge\" onPress={() => player.timeShift(0)} />"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 225,
               "symbol": "{[-10, -30, -60].map((o) => ("
             },
@@ -91832,14 +91832,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 90,
               "symbol": "const next = parseConfiguration(draft, platform);"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 143,
               "symbol": "...playerConfig,"
             }
@@ -92602,14 +92602,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 41,
               "symbol": "? { analyticsConfig: { licenseKey: ANALYTICS_LICENSE_KEY } }"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 142,
               "symbol": "...ANALYTICS,"
             }
@@ -92684,14 +92684,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 90,
               "symbol": "const next = parseConfiguration(draft, platform);"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 143,
               "symbol": "...playerConfig,"
             }
@@ -92752,7 +92752,7 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 141,
               "symbol": "licenseKey: LICENSE_KEY,"
             }
@@ -92953,14 +92953,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 90,
               "symbol": "const next = parseConfiguration(draft, platform);"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 143,
               "symbol": "...playerConfig,"
             }
@@ -93017,14 +93017,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 90,
               "symbol": "const next = parseConfiguration(draft, platform);"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 143,
               "symbol": "...playerConfig,"
             }
@@ -93229,21 +93229,21 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 109,
               "symbol": "title={mode.label}"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 110,
               "symbol": "onPress={() => setUiMode(mode)}"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 147,
               "symbol": "playerUiCss: WEBUI_CSS,"
             }
@@ -93268,21 +93268,21 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 109,
               "symbol": "title={mode.label}"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 110,
               "symbol": "onPress={() => setUiMode(mode)}"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 146,
               "symbol": "playerUiJs: WEBUI_JS,"
             }
@@ -93343,7 +93343,7 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 145,
               "symbol": "userInterfaceType: UserInterfaceType.Bitmovin,"
             }
@@ -94646,14 +94646,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 209,
-              "symbol": "onPlayerError={() => { if (active.current) append(\"Player error\"); }}"
+              "symbol": "onPlayerError={(event) => { if (active.current) append(typeof event?.code === \"number\" ? `Player error (${event.code})` : \"Player error\"); }}"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 253,
               "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
@@ -94678,21 +94678,21 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 197,
               "symbol": "onPlayerViewReady={() => { if (active.current) setViewReady(true); }}"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 170,
               "symbol": "if (!viewReady || !active.current) return;"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 175,
               "symbol": "player.load(source);"
             }
@@ -94807,14 +94807,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 210,
-              "symbol": "onSourceError={() => { if (active.current) append(\"Source error\"); }}"
+              "symbol": "onSourceError={(event) => { if (active.current) append(typeof event?.code === \"number\" ? `Source error (${event.code})` : \"Source error\"); }}"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 253,
               "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
@@ -94857,21 +94857,21 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 199,
               "symbol": "onSourceLoaded={() => {"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 201,
               "symbol": "append(\"SourceLoaded\");"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 253,
               "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
@@ -95022,7 +95022,7 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 198,
               "symbol": "onTimeChanged={() => { if (active.current) void refresh(); }}"
             },
@@ -95036,7 +95036,7 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 246,
               "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
@@ -95079,21 +95079,21 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 204,
               "symbol": "onTimeShifted={() => {"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 206,
               "symbol": "append(\"TimeShifted\");"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 253,
               "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
@@ -96644,14 +96644,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 90,
               "symbol": "const next = parseConfiguration(draft, platform);"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 175,
               "symbol": "player.load(source);"
             }
@@ -96690,14 +96690,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 90,
               "symbol": "const next = parseConfiguration(draft, platform);"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 175,
               "symbol": "player.load(source);"
             }
@@ -96736,14 +96736,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 90,
               "symbol": "const next = parseConfiguration(draft, platform);"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 175,
               "symbol": "player.load(source);"
             }
@@ -96980,14 +96980,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 90,
               "symbol": "const next = parseConfiguration(draft, platform);"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 175,
               "symbol": "player.load(source);"
             }
@@ -97026,14 +97026,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 90,
               "symbol": "const next = parseConfiguration(draft, platform);"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 175,
               "symbol": "player.load(source);"
             }
@@ -97072,14 +97072,14 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 90,
               "symbol": "const next = parseConfiguration(draft, platform);"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 175,
               "symbol": "player.load(source);"
             }
@@ -97158,21 +97158,21 @@
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 109,
               "symbol": "title={mode.label}"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 110,
               "symbol": "onPress={() => setUiMode(mode)}"
             },
             {
               "kind": "app",
               "file": "apps/react-native/App.tsx",
-              "sha256": "b2dd517ced3e5be9950785813644d8f8def6ce265eb5903b0716efa1baa272ba",
+              "sha256": "d63a57b5b2342cf531460a1052d5a74c2af486ea5a149139290fb30ad498e2a3",
               "line": 188,
               "symbol": "? { uiConfig: { variant: new CustomUi(uiMode.factoryFunction) } satisfies WebUiConfig }"
             }
@@ -97334,11 +97334,11 @@
         "The UI picker exposes named factory/asset presets. Time-shift buttons expose 0, -10, -30 and -60 seconds with DVR-window clamping; they do not accept arbitrary offsets.",
         "isLive and getCurrentTime are read by the snapshot controller but are not consumed by the displayed derived state, so they receive no observation credit.",
         "Allow DVR changes the application DVR helper, not a PlayerConfig playback property. License configuration comes from environment setup and is not GUI editable.",
-        "The embedded native/shared Web UI has not been qualified against this wrapper version; its controls receive no inferred coverage credit. Application-owned controls are source-mapped and mock-tested, not native playback qualification.",
+        "The reproducible Expo host packages shared JS/CSS as native resources. iOS simulator checks exercised SDK Default playback and the Sports factory INFO and Play/Pause controls. Other factories and Android licensed playback remain unqualified; no SDK UI API credit is inferred from those checks.",
         "The latest wrapper pins Apple 3.126.0 and Android 3.165.0+jason. These supported wrapper defaults are not overridden to the newer standalone SDK versions.",
-        "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries; event payload fields are not exposed. onPlayerViewReady only triggers loading and is internal.",
+        "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries. Player/Source errors additionally display a numeric code when supplied; other event payload details are not rendered. onPlayerViewReady only triggers loading and is internal.",
         "Player.load receives the edited SourceConfig. No Source instance lifecycle, read-only configuration observation, offline operation or unrelated nested property is inferred from those input controls.",
-        "The actual App/configuration JSX and helpers are type-checked against installed declarations and tested with mocked native/player boundaries. Native Expo builds, WebView/native layout and device playback were not performed for this measurement."
+        "The App/configuration JSX and helpers are type-checked against installed declarations and tested with mocked native/player boundaries. Separate generated-host checks built both native platforms and verified packaged asset bytes. iOS simulator checks covered VOD playback, Apply/Reset, retained configuration/UI/log/Allow DVR and advancing playback after background return. Android renders the screen but native Player error 1003 prevents licensed playback qualification. These checks do not qualify physical devices, Release archives or live/DVR playback."
       ]
     },
     {

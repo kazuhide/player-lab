@@ -9,54 +9,54 @@
     },
     {
       "type": "p",
-      "text": "apps/react-native は App.tsx、ソース一覧、DVR ロジックと状態管理を提供します。依存関係は Expo ~54.0.0、React Native 0.81.5、React 19.1.0 と、バージョンを固定した bitmovin-player-react-native 1.28.0 です。完成した Expo アプリではないため、対応する外部プロジェクトに組み込みます。"
+      "text": "apps/react-native は既存の App.tsx、ソース一覧、DVR ロジック、設定画面と、外部 Expo 開発プロジェクトを作るジェネレーターを提供します。生成されるホストは Node 24.19.0、pnpm 10.33.0、Expo 54.0.35、React Native 0.81.5、React 19.1.0、bitmovin-player-react-native 1.28.0 と、Expo 54 に対応する expo-crypto 15.0.9 に固定されます。pnpm-lock.yaml で JavaScript の依存解決も保持します。"
     },
     {
       "type": "p",
-      "text": "このラッパーのネイティブ Player 既定版は、iOS／tvOS が Swift Package Manager 経由の 3.126.0、Android が 3.165.0+jason です。組み込み時はラッパーが定める組み合わせを使います。単体のネイティブサンプルは、それぞれ別の SDK バージョンを固定しています。"
+      "text": "ラッパーは Swift Package Manager 経由で iOS Player／Player Core 3.126.0、Analytics 3.28.1、Google IMA 3.26.1 を解決します。Android Player は 3.165.0+jason です。同梱のネイティブ依存ロックで iOS の解決結果を保持します。単体サンプルの iOS 3.128.0、Android 3.171.0 は別の固定版であり、このラッパーへ強制適用しません。"
     },
     {
       "type": "code",
-      "title": "README の外部プロジェクト作成例",
-      "text": "npx create-expo-app@latest dvr-showcase\ncd dvr-showcase\nnpx expo install bitmovin-player-react-native@1.28.0 expo-crypto react-native-url-polyfill@4.0.0"
+      "title": "リポジトリのルートから外部ホストを生成",
+      "text": "pnpm --filter @showcase/ui-shared build\nbash scripts/sync-env.sh\nnode apps/react-native/scripts/create-expo-project.mjs ../player-lab-react-native --env-from apps/react-native/.env"
     },
     {
       "type": "note",
-      "text": "@latest が生成する依存関係は時間とともに変わります。生成結果を apps/react-native/package.json のバージョンと照合します。ネイティブ Player モジュールが必要なため Expo Go では動作せず、開発用のネイティブビルドが必要です。"
+      "text": "ジェネレーターは create-expo-app@latest ではなく Expo 54 同梱のネイティブテンプレートを使います。出力先はチェックアウト外の新規ディレクトリにします。既存 App をコピーし、セーフエリアを付けてルート画面へ登録します。ネイティブ Player モジュールには開発用ビルドが必要で、Expo Go では動作しません。"
     },
     {
       "type": "p",
-      "text": "外部プロジェクトの app.json、または同等の app.config に Player の設定プラグインを登録します。既存のプラグインを残して、次の項目を追加します。"
+      "text": "生成アプリの表示名は Player Lab React Native、iOS と Android の識別子はともに com.playerlab.reactnative です。app.json には Player プラグインと同梱の共有 UI アセット用プラグインが登録されます。"
     },
     {
       "type": "code",
-      "title": "app.json の Player プラグイン設定",
-      "text": "{\n  \"expo\": {\n    \"plugins\": [\"bitmovin-player-react-native\"]\n  }\n}"
+      "title": "生成アプリの識別子とプラグイン",
+      "text": "{\n  \"expo\": {\n    \"name\": \"Player Lab React Native\",\n    \"ios\": {\n      \"bundleIdentifier\": \"com.playerlab.reactnative\"\n    },\n    \"android\": {\n      \"package\": \"com.playerlab.reactnative\"\n    },\n    \"plugins\": [\n      [\n        \"bitmovin-player-react-native\",\n        {}\n      ],\n      \"./plugins/withSharedPlayerUi.cjs\"\n    ]\n  }\n}"
     },
     {
       "type": "steps",
       "items": [
-        "リポジトリの共通準備で sync-env.sh と共有 UI のビルド・同期を実行します。",
-        "apps/react-native の App.tsx、src/、生成された .env を外部 Expo プロジェクトへコピーします。ライセンスは EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY、任意の Analytics は EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY から読まれます。",
-        "コピーしたApp.tsxのコンポーネントを、外部プロジェクトのエントリーポイントから表示するよう接続します。Expo Routerを使う構成では、プレイヤーを表示するルート画面に接続します。ファイルをコピーするだけでは、元の画面は置き換わりません。",
-        "外部アプリの bundle identifier または application ID を、自分の Player ライセンスと、利用する場合は Analytics ライセンスで許可します。固定の公開アプリ ID は用意されていません。",
-        "カスタム UI を使う場合は assets/webui/ の JavaScript と CSS を外部アプリの iOS／Android プロジェクトへ同梱し、App.tsx の WEBUI_JS／WEBUI_CSS が実際のファイルを指すようにします。現在のアドレスは統合用プレースホルダーです。",
-        "外部 Expo プロジェクトから iOS または Android の開発ビルドを実行します。"
+        "ルートのキーを設定し、上の準備コマンドを実行します。--env-from は生成済みで Git 管理対象外の apps/react-native/.env をモード 0600 で明示的にコピーします。キーなしのプロジェクトを作る場合は省略します。app.json へキーは書き込みません。",
+        "使用する Player ライセンスで com.playerlab.reactnative を許可します。任意の Analytics は別のライセンス・許可設定です。.env とネイティブビルド成果物はコミットしません。",
+        "固定された依存を導入し、Expo prebuild を実行します。iOS は下のコマンドで、pod install 前に同梱 Podfile.lock を、ビルド前に同梱ワークスペースの Package.resolved を復元します。",
+        "同梱プラグインが共有 JS／CSS を Android の app/src/main/assets/webui と iOS の Copy Bundle Resources へ追加します。App.tsx は Android のアセット URL と iOS メインバンドルのファイル名を直接参照し、配布用プレースホルダーは残りません。",
+        "共有 UI を編集したら再ビルドし、JS／CSS を外部プロジェクトの assets/webui へコピーして prebuild とネイティブ再ビルドを実行します。Metro の再読み込みだけではネイティブリソースを更新できません。",
+        "外部プロジェクトから iOS または Android の開発ビルドを実行し、実際の SDK UI、VOD の進行、Apply／Reset とバックグラウンド復帰を確認します。"
       ]
     },
     {
       "type": "note",
-      "text": "1.27 から、iOS の Player と Google IMA の依存管理が CocoaPods から Swift Package Manager に変わりました。既存アプリを更新する場合は、明示的に追加した Player、Player Core、Analytics、IMA の Pod 依存を削除し、ブリッジ、Expo、任意の Cast の Pod は残します。プラグインを登録したうえで、次の iOS prebuild を再実行します。必要に応じて Pod を導入し、生成された .xcworkspace を開きます。prebuild を使わない構成は、出典にある公式移行ガイドに従います。Player と IMA の固定版は、導入したパッケージの ios/dependencies.json で確認できます。組み込み後は再ビルドし、フレームワークの同梱と Release アーカイブも確認します。"
+      "text": "iOS は macOS の Xcode と CocoaPods を使います。Android は Java 17 と Expo 54 が選ぶ Android SDK・ツールチェーンが必要です。同梱の Podfile.lock は CocoaPods 1.17.0 で生成しました。ラッパー 1.27 以降、iOS の Player と Google IMA は Swift Package Manager、ブリッジと Expo は CocoaPods で管理します。既存の組み込みは公式移行ガイドに従います。Podfile.lock とワークスペースの Package.resolved を保持し、新規プロジェクト生成後は同梱のロックを復元します。"
     },
     {
       "type": "code",
-      "title": "導入・更新後に iOS のネイティブ構成を更新",
-      "text": "npx expo prebuild --platform ios"
+      "title": "依存導入・prebuild・iOS 依存ロック復元",
+      "text": "cd ../player-lab-react-native\npnpm install --frozen-lockfile\npnpm exec expo prebuild --no-install\ncp native-locks/Podfile.lock ios/Podfile.lock\n(cd ios && pod install)\nmkdir -p ios/PlayerLabReactNative.xcworkspace/xcshareddata/swiftpm\ncp native-locks/Package.resolved ios/PlayerLabReactNative.xcworkspace/xcshareddata/swiftpm/Package.resolved"
     },
     {
       "type": "code",
       "title": "外部 Expo プロジェクトで実行先に合うコマンドを選択",
-      "text": "npx expo run:ios\nnpx expo run:android"
+      "text": "pnpm exec expo run:ios\npnpm exec expo run:android"
     },
     {
       "type": "p",
@@ -85,7 +85,7 @@
     },
     {
       "type": "note",
-      "text": "型検査は App.tsx、設定パネル、ソース一覧と純粋なロジックが対象です。App の操作テストは native／Player の代替オブジェクトを使い、編集、入力検証、Apply／Reset、ソース保持と再生成を確認します。外部 Expo プロジェクトの生成、ネイティブビルド、native／WebView の見た目、実再生は検証しません。対応する外部 Expo プロジェクトと端末・シミュレーターでのビルドが引き続き必要です。"
+      "text": "型検査は実際の App と生成ホストのエントリーポイントを含みます。App 操作テストは native／Player の代替オブジェクトを使います。ジェネレーターのテストは、ソース・アセットのコピー、固定入力、既存出力先の拒否、明示した環境ファイルの非公開コピーを別に確認します。iOS 26.4 シミュレーターで実際の SDK Default VOD 再生、同梱 Sports の INFO と Play／Pause、Reset／Apply、ソース・UI・ログ・Allow DVR の保持、バックグラウンド復帰後の VOD 進行を確認しました。iOS と ARM64 Android API 36.1 の開発ビルド、および同梱アセットのバイト一致も確認済みです。Android のライセンス付き実再生は未確認です。実機、Release アーカイブ、DRM、広告、全共有 UI ファクトリー、live／DVR 動作は今回の検証範囲に含みません。"
     },
     {
       "type": "h2",
@@ -148,8 +148,18 @@
   "sources": [
     {
       "path": "apps/react-native/README.md",
-      "line": 97,
+      "line": 98,
       "label": "Expo への統合手順と限界"
+    },
+    {
+      "path": "apps/react-native/scripts/create-expo-project.mjs",
+      "line": 17,
+      "label": "外部 Expo ホストのジェネレーター"
+    },
+    {
+      "path": "apps/react-native/expo/app.json",
+      "line": 3,
+      "label": "固定アプリ識別子とネイティブプラグイン"
     },
     {
       "path": "apps/react-native/App.tsx",
@@ -236,8 +246,8 @@
       "label": "Vega 向け Player の公式リリース履歴"
     },
     {
-      "url": "https://docs.expo.dev/more/create-expo/",
-      "label": "Expoのプロジェクトテンプレートと画面構成"
+      "url": "https://expo.dev/changelog/sdk-54",
+      "label": "Expo 54 の公式ツール要件とネイティブテンプレート"
     },
     {
       "url": "https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0",

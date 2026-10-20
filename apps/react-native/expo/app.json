@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Player Lab React Native",
+    "slug": "player-lab-react-native",
+    "version": "0.1.0",
+    "newArchEnabled": true,
+    "jsEngine": "hermes",
+    "ios": {
+      "bundleIdentifier": "com.playerlab.reactnative",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.playerlab.reactnative"
+    },
+    "plugins": [
+      ["bitmovin-player-react-native", {}],
+      "./plugins/withSharedPlayerUi.cjs"
+    ]
+  }
+}
