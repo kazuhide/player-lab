@@ -61,6 +61,8 @@ jobs:
         run: pnpm typecheck
       - name: Test
         run: pnpm test
+      - name: Correctness worker budget tests
+        run: pnpm --filter @showcase/e2e test:workers
       - name: Test environment loading and bundle verification
         run: |
           bash scripts/test-env-lib.sh

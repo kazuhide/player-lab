@@ -8,7 +8,7 @@ packageExtensionsChecksum: sha256-ih8JGsrqJiP+q3bz64t6r+H7RDJ/Y7Nzf14z+m7G4io=
 
 patchedDependencies:
   bitmovin-player-ui@4.23.0:
-    hash: 92cf839f9c6a2f81bda8b908d8c344c1304f299fee4a2394d06a150d9d8942cb
+    hash: 2d4331ac846ba26dfa1c43839b6ac9504ae34d2b9042302ca71efb763ba93114
     path: patches/bitmovin-player-ui@4.23.0.patch
 
 importers:
@@ -137,8 +137,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui-shared
       bitmovin-player:
-        specifier: 8.280.0
-        version: 8.280.0
+        specifier: 8.281.0
+        version: 8.281.0
     devDependencies:
       typescript:
         specifier: ^5.9.0
@@ -154,11 +154,11 @@ importers:
     dependencies:
       bitmovin-player-ui:
         specifier: 4.23.0
-        version: 4.23.0(patch_hash=92cf839f9c6a2f81bda8b908d8c344c1304f299fee4a2394d06a150d9d8942cb)(bitmovin-player@8.280.0)
+        version: 4.23.0(patch_hash=2d4331ac846ba26dfa1c43839b6ac9504ae34d2b9042302ca71efb763ba93114)(bitmovin-player@8.281.0)
     devDependencies:
       bitmovin-player:
-        specifier: 8.280.0
-        version: 8.280.0
+        specifier: 8.281.0
+        version: 8.281.0
       sass:
         specifier: ^1.80.0
         version: 1.101.0
@@ -178,8 +178,8 @@ importers:
         specifier: ^1.49.0
         version: 1.61.0
       bitmovin-player:
-        specifier: 8.280.0
-        version: 8.280.0
+        specifier: 8.281.0
+        version: 8.281.0
       typescript:
         specifier: ^5.9.0
         version: 5.9.3
@@ -2419,8 +2419,8 @@ packages:
   bitmovin-player@8.138.0-beta.28:
     resolution: {integrity: sha512-+NEzbfqjYo9uxXx2Gxf8hRbiZ0Gl76+EZvsiU/s+amBU/11YxnHX85oO3eikeL6ll0aPgk/+yNI0VIsPVq3NDg==}
 
-  bitmovin-player@8.280.0:
-    resolution: {integrity: sha512-ZcqTbr9cgzlBuuAs1cHf762Q3Pled6Dc1xqxbI2naN8TtkpWcAEZpD7LvBpPyrxCe5cvTqRqMy/UDBzD50IxkA==}
+  bitmovin-player@8.281.0:
+    resolution: {integrity: sha512-1IgLMPZDR1cclP6G8T+CO3pLTS4V6HipF3fViW+12XAKHeBGNOGxI2XdO3b0byEHUj1WQnVFaNIgD39NJJ01fA==}
 
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
@@ -7965,13 +7965,13 @@ snapshots:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@react-native/metro-config@0.72.12(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0)
 
-  bitmovin-player-ui@4.23.0(patch_hash=92cf839f9c6a2f81bda8b908d8c344c1304f299fee4a2394d06a150d9d8942cb)(bitmovin-player@8.280.0):
+  bitmovin-player-ui@4.23.0(patch_hash=2d4331ac846ba26dfa1c43839b6ac9504ae34d2b9042302ca71efb763ba93114)(bitmovin-player@8.281.0):
     dependencies:
-      bitmovin-player: 8.280.0
+      bitmovin-player: 8.281.0
 
   bitmovin-player@8.138.0-beta.28: {}
 
-  bitmovin-player@8.280.0: {}
+  bitmovin-player@8.281.0: {}
 
   bl@4.1.0:
     dependencies:
