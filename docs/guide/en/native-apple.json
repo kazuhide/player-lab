@@ -254,6 +254,14 @@
     },
     {
       "type": "h2",
+      "text": "Updated shared UI on iPad"
+    },
+    {
+      "type": "p",
+      "text": "On October 21, 2026, an additional actual iPad / iOS 26.4 GUI case passed with Player 3.128.0 and the updated shared UI 4.23.0 ownership patch: one passed, zero failed or skipped, 116.240 seconds. Installed JavaScript/CSS matched the generated resources after execution. It applied 60-second HLS settings, switched to Sports, loaded progressive MP4 and applied a title-only change on the same Player with a new Source. Offset 5 seconds, autoplay, mute, maximum bitrate 2,500,000 bit/s, forward buffer 8 seconds, Sports and the disabled app DVR switch were retained. Visible MP4 playback advanced from 6.778 to 11.178 seconds. This playback/configuration check is separate from the Web heap measurements."
+    },
+    {
+      "type": "h2",
       "text": "Applied configuration code"
     },
     {
