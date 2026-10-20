@@ -239,32 +239,34 @@ dedicated emulator reports an Unknown Host error, Android documents an
 
 ## Native qualification
 
-The generated host has built successfully for an iPhone 17 Pro simulator on
-iOS 26.4 with Xcode 27.1, and for an ARM64 Android API 36.1 emulator with Java 17.
-Packaged shared JS/CSS bytes matched the built assets on both platforms.
+On 2026-10-21 the Expo 57 / wrapper 1.29.0 host built for an iPhone simulator
+with Xcode 27.1 and an ARM64 Android API 36.1 emulator with Java 17. The resolved
+native Players were 3.128.0 on iOS and 3.170.0+jason on Android. Packaged shared
+JS/CSS bytes matched the built assets on both platforms.
 
-Actual iOS native checks exercised SDK Default VOD playback, the packaged Sports
-factory's INFO control and Play/Pause, Reset draft, Apply with autoplay/mute and
-a start offset, source/UI/log/Allow DVR retention, and advancing VOD after
-background/foreground return.
+Native GUI checks used the local 60-second Big Buck Bunny HLS fixture on iOS
+and HLS/DASH on Android. SDK Default and packaged Sports showed advancing native
+positions and changing video frames; Sports exposed its INFO control. Apply
+destroyed the previous Player and created a new owner with the selected source,
+UI, log and Allow DVR state retained. The first native Playing event and current
+time were both 5.000 seconds for the configured five-second start. Native
+getters confirmed autoplay, startup mute, a 2,500,000-bit/s maximum selectable
+bitrate and a 12.5-second forward-buffer setting. This verifies the applied
+values, rather than quantitative buffering or network adaptation effects.
 
-Android API 36.1 checks used the public VOD HLS preset, Tears of Steel, with a
-native duration of 734 seconds. Default and Sports showed visible video with
-advancing native SDK positions. Sports loaded the packaged JS/CSS and its custom
-factory, with the INFO control visible. Native UI actions exercised Reset and
-Apply. Native getters confirmed the title, start-offset value of 5 seconds,
-autoplay and startup mute. Apply
-destroyed the old player, created a new owner and retained the complete source,
-selected Default UI, log and Allow DVR state. After background/foreground return,
-the applied owner was retained and VOD advanced after checking the on-screen
-playback controls. The check did not record whether Play was tapped or playback
-had already resumed, so automatic resume without interaction remains unqualified.
+The copied code matched the operating-system clipboard on both platforms and
+excluded unapplied edits and the actual license. Reset restored the applied
+draft without replacing the Player. After background/foreground return, the
+same owner was retained; tapping the visible SDK Play control resumed advancing
+VOD. This check exercises explicit playback after return. It does not promise
+automatic resume. The iOS settings scroll view follows the keyboard so its
+lower buffer and bitrate fields remain reachable while editing.
 
-These checks do not qualify physical devices, Release archives, DRM,
-advertisements, every shared factory, live/DVR behavior, accuracy of the initial
-seek or quantitative buffer/bitrate effects. The repository's App tests use native mocks; generator
-tests and TypeScript checks provide separate evidence and do not establish
-playback.
+These checks cover the named simulator/emulator and UI modes. Physical devices,
+Release archives, protected content, advertisements, other shared factories,
+live/DVR behavior and quantitative buffer/bitrate effects require their own
+test inputs. App tests with native mocks, generator tests and TypeScript checks
+provide separate evidence from native playback.
 
 ## Player event handling
 
