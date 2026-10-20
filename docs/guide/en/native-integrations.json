@@ -136,13 +136,17 @@
       "text": "Apply and recreate player validates the draft, waits for the previous player to close, and reloads the selected source from its start offset. Playback position resets and playback starts according to Autoplay; the selected/custom source, log and Allow DVR setting are retained. Invalid or unchanged settings do not recreate the player. Reset draft only discards edits. Preset source buttons still load immediately. The HTML Player UI remains disabled on Vega; Allow DVR controls an application helper."
     },
     {
+      "type": "p",
+      "text": "Vega requires playback resources to be released when the app enters the background. The AppState handler retires the current session and removes the video surface. On foreground return, it waits for cleanup and a new surface, then uses the applied source and player settings. Within a retained app instance, drafts, source, settings, logs and Allow DVR remain available; playback starts from the configured source offset according to Autoplay. Playback position is not restored. If the OS ends the app instance, a later launch is a fresh start."
+    },
+    {
       "type": "code",
       "title": "Check the screen and logic from the repository root",
       "text": "pnpm --filter @showcase/vega test\npnpm --filter @showcase/vega typecheck"
     },
     {
       "type": "note",
-      "text": "The 2026-10-20 run passed 53 unit tests and the full App type check, built all three Release packages and installed the arm64 package on a Vega Virtual Device. Native screenshots confirmed Live DASH and VOD HLS video with advancing SDK positions; the final VOD check advanced from 2.1 to 5.1 seconds. Native remote focus/scrolling, text entry, zero-bitrate validation and Reset were also exercised. Unit/session tests still mock native media/player boundaries and provide separate evidence."
+      "text": "The 2026-10-20 run passed 57 unit tests and the full App type check, built all three Release packages and installed the arm64 package on a Vega Virtual Device. Native screenshots confirmed Live DASH and VOD HLS video with advancing SDK positions; the final VOD check advanced from 2.1 to 5.1 seconds. Native remote focus/scrolling, text entry, zero-bitrate validation and Reset were also exercised. Unit/session tests still mock native media/player boundaries and provide separate evidence."
     },
     {
       "type": "p",
@@ -285,6 +289,14 @@
     {
       "url": "https://developer.amazon.com/docs/vega/0.24/mse-players",
       "label": "Official media-player integration"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/foreground-background",
+      "label": "Vega app state and background cleanup"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/media-player-requirements",
+      "label": "Vega media resource requirements"
     }
   ]
 }

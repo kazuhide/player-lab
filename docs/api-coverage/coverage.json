@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-20",
-  "sourceRevision": "741adf9a22ba264300ecef82e07eb7ec9e09ee5e",
+  "sourceRevision": "9dfe6a6d014f7cdf3e43a75025af74c00f87d665",
   "sdks": [
     {
       "id": "web",
@@ -100262,8 +100262,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "3474cf00dccf7a60a933bdbd43141f73619ca45c30e1ebe1360da2c040470697",
-              "line": 39,
+              "sha256": "4a4bbc9a97bc5ada1143aa90e5e55aa8fd8ca053f7a6c9e47ee75b71514d8a44",
+              "line": 64,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -104005,8 +104005,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "3474cf00dccf7a60a933bdbd43141f73619ca45c30e1ebe1360da2c040470697",
-              "line": 39,
+              "sha256": "4a4bbc9a97bc5ada1143aa90e5e55aa8fd8ca053f7a6c9e47ee75b71514d8a44",
+              "line": 64,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -104069,8 +104069,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "3474cf00dccf7a60a933bdbd43141f73619ca45c30e1ebe1360da2c040470697",
-              "line": 39,
+              "sha256": "4a4bbc9a97bc5ada1143aa90e5e55aa8fd8ca053f7a6c9e47ee75b71514d8a44",
+              "line": 64,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -105342,8 +105342,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "3474cf00dccf7a60a933bdbd43141f73619ca45c30e1ebe1360da2c040470697",
-              "line": 39,
+              "sha256": "4a4bbc9a97bc5ada1143aa90e5e55aa8fd8ca053f7a6c9e47ee75b71514d8a44",
+              "line": 64,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -105406,8 +105406,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "3474cf00dccf7a60a933bdbd43141f73619ca45c30e1ebe1360da2c040470697",
-              "line": 39,
+              "sha256": "4a4bbc9a97bc5ada1143aa90e5e55aa8fd8ca053f7a6c9e47ee75b71514d8a44",
+              "line": 64,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -114183,8 +114183,9 @@
         "isLive is read but not consumed by the displayed derived state and remains code-only. getCurrentTime now passes through DvrState.currentTime to the visible position in the existing state line and receives observation credit. Position is SDK media time in seconds and can use an absolute timeline for live sources.",
         "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
         "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed.",
-        "The App/control/configuration/video-surface JSX and helpers are type-checked against installed declarations. Separate native checks used Vega SDK 0.24.12112 and an arm64 Virtual Device: all 3 Release packages built, Live DASH and VOD HLS rendered frames and advancing SDK positions, and native focus/scrolling, text entry, invalid-bitrate validation and Reset were exercised. The 53 unit/session tests still mock native boundaries. Repeated valid Apply, retained-instance background recovery, resource counts/memory, physical devices, DRM/offline, audio correctness and quantitative buffer/bitrate behavior remain unqualified.",
-        "PlayerConfig.network.requestApi is fixed to Fetch by vegaPlayerConfig and used at SDK construction. This receives code-only configuration credit, not GUI credit; the existing network hooks and unrelated configuration fields are retained."
+        "The App/control/configuration/video-surface JSX and helpers are type-checked against installed declarations. Separate native checks used Vega SDK 0.24.12112 and an arm64 Virtual Device: all 3 Release packages built, Live DASH and VOD HLS rendered frames and advancing SDK positions, and native focus/scrolling, text entry, invalid-bitrate validation and Reset were exercised. The 57 unit/session tests still mock native boundaries. Repeated valid Apply, retained-instance background recovery, resource counts/memory, physical devices, DRM/offline, audio correctness and quantitative buffer/bitrate behavior remain unqualified.",
+        "PlayerConfig.network.requestApi is fixed to Fetch by vegaPlayerConfig and used at SDK construction. This receives code-only configuration credit, not GUI credit; the existing network hooks and unrelated configuration fields are retained.",
+        "On background transitions, AppState retires the media session and removes its surface; foreground acquisition waits for a new surface and the previous cleanup. Within a retained app instance, the applied source/player settings, drafts, logs and Allow DVR are preserved. Playback position retention is not implemented. This lifecycle integration adds no editable SDK field or GUI coverage credit."
       ]
     }
   ]

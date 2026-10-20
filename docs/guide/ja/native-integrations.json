@@ -136,13 +136,17 @@
       "text": "Apply and recreate player は下書きを検証し、前のプレイヤーの終了を待って、選択中ソースを開始オフセットから読み込みます。再生位置はリセットされ、Autoplay の設定に従って再生を開始します。プリセット・任意 URL のソース、ログと Allow DVR は保持します。無効な入力や変更のない設定では再生成しません。Reset draft は編集を戻すだけです。ソースのプリセットボタンは引き続き即時に読み込みます。Vega の HTML Player UI は無効のままで、Allow DVR はアプリの補助処理を操作します。"
     },
     {
+      "type": "p",
+      "text": "Vega ではバックグラウンドへ移る際に再生リソースの解放が必要です。AppState の通知で現在のセッションの終了処理を開始し、映像表示面を取り外します。フォアグラウンドへ戻ると、解放の完了と新しい表示面を待ち、適用中のソースとプレイヤー設定を使います。同じアプリインスタンスが維持される場合は、下書き、ソース、設定、ログ、Allow DVR を保持し、Autoplay に従って設定済みのソース開始位置から読み込みます。再生位置の復元は行いません。OS がアプリインスタンスを終了した場合は、新規起動になります。"
+    },
+    {
       "type": "code",
       "title": "リポジトリのルートから画面とロジックを確認",
       "text": "pnpm --filter @showcase/vega test\npnpm --filter @showcase/vega typecheck"
     },
     {
       "type": "note",
-      "text": "2026-10-20の検査では単体テスト53件とApp全体の型検査が成功し、3形式のReleaseパッケージをビルドしてarm64版をVega Virtual Deviceへインストールしました。ネイティブのスクリーンショットでLive DASHとVOD HLSの映像表示とSDK位置の進行を確認しています。最終VOD検査の位置は2.1秒から5.1秒へ進みました。リモコンのフォーカス移動・スクロール、文字入力、ビットレート0の検証エラー、Resetも確認しました。単体・セッションテストは引き続きネイティブのメディア・Player境界をモックしており、実再生とは別の検証結果です。"
+      "text": "2026-10-20の検査では単体テスト57件とApp全体の型検査が成功し、3形式のReleaseパッケージをビルドしてarm64版をVega Virtual Deviceへインストールしました。ネイティブのスクリーンショットでLive DASHとVOD HLSの映像表示とSDK位置の進行を確認しています。最終VOD検査の位置は2.1秒から5.1秒へ進みました。リモコンのフォーカス移動・スクロール、文字入力、ビットレート0の検証エラー、Resetも確認しました。単体・セッションテストは引き続きネイティブのメディア・Player境界をモックしており、実再生とは別の検証結果です。"
     },
     {
       "type": "p",
@@ -285,6 +289,14 @@
     {
       "url": "https://developer.amazon.com/docs/vega/0.24/mse-players",
       "label": "公式メディアプレイヤー統合手順"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/foreground-background",
+      "label": "Vega のアプリ状態とバックグラウンド時の解放"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/media-player-requirements",
+      "label": "Vega のメディアリソース要件"
     }
   ]
 }

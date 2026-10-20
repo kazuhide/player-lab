@@ -21603,8 +21603,9 @@
         "isLive is read but not consumed by the displayed derived state and remains code-only. getCurrentTime now passes through DvrState.currentTime to the visible position in the existing state line and receives observation credit. Position is SDK media time in seconds and can use an absolute timeline for live sources.",
         "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
         "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed.",
-        "The App/control/configuration/video-surface JSX and helpers are type-checked against installed declarations. Separate native checks used Vega SDK 0.24.12112 and an arm64 Virtual Device: all 3 Release packages built, Live DASH and VOD HLS rendered frames and advancing SDK positions, and native focus/scrolling, text entry, invalid-bitrate validation and Reset were exercised. The 53 unit/session tests still mock native boundaries. Repeated valid Apply, retained-instance background recovery, resource counts/memory, physical devices, DRM/offline, audio correctness and quantitative buffer/bitrate behavior remain unqualified.",
-        "PlayerConfig.network.requestApi is fixed to Fetch by vegaPlayerConfig and used at SDK construction. This receives code-only configuration credit, not GUI credit; the existing network hooks and unrelated configuration fields are retained."
+        "The App/control/configuration/video-surface JSX and helpers are type-checked against installed declarations. Separate native checks used Vega SDK 0.24.12112 and an arm64 Virtual Device: all 3 Release packages built, Live DASH and VOD HLS rendered frames and advancing SDK positions, and native focus/scrolling, text entry, invalid-bitrate validation and Reset were exercised. The 57 unit/session tests still mock native boundaries. Repeated valid Apply, retained-instance background recovery, resource counts/memory, physical devices, DRM/offline, audio correctness and quantitative buffer/bitrate behavior remain unqualified.",
+        "PlayerConfig.network.requestApi is fixed to Fetch by vegaPlayerConfig and used at SDK construction. This receives code-only configuration credit, not GUI credit; the existing network hooks and unrelated configuration fields are retained.",
+        "On background transitions, AppState retires the media session and removes its surface; foreground acquisition waits for a new surface and the previous cleanup. Within a retained app instance, the applied source/player settings, drafts, logs and Allow DVR are preserved. Playback position retention is not implemented. This lifecycle integration adds no editable SDK field or GUI coverage credit."
       ],
       "scopes": [
         {
@@ -22783,7 +22784,7 @@
     }
   ],
   "checkedAt": "2026-10-20",
-  "inputSha256": "26b26509e10c1be2568693083e3059d45ab54777881b212e5f9594b9fb7d5e86",
+  "inputSha256": "56b4b2fa78d899ff7a6731726d8da92b7273cf6d94956568e3326742fb452422",
   "schemaVersion": 1,
   "sdks": [
     {
@@ -22909,5 +22910,5 @@
       "version": "4.23.0"
     }
   ],
-  "sourceRevision": "741adf9a22ba264300ecef82e07eb7ec9e09ee5e"
+  "sourceRevision": "9dfe6a6d014f7cdf3e43a75025af74c00f87d665"
 }
