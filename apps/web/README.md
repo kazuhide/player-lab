@@ -1,7 +1,7 @@
 # Web player playground
 
 The existing Bitmovin Web Player app includes a source and API control panel,
-14 interface themes, PlayerConfig and SourceConfig settings, named Tweaks
+interface themes, PlayerConfig and SourceConfig settings, named Tweaks
 settings, theme construction code, playback observations, and a customization
 guide at `guide.html`. The English/Japanese switch applies to the interface
 and its displayed explanations.

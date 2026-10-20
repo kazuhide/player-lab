@@ -107,7 +107,7 @@ def validate_content(content):
         if len(controls) != 41 or len({item['id'] for item in controls}) != 41:
             raise ValueError('The reference must describe all 41 controls.')
         if tuple(item['id'] for item in themes) != THEMES:
-            raise ValueError('The theme reference must include all 14 themes in UI order.')
+            raise ValueError('The theme reference must include every theme in UI order.')
         for item in [*controls, *themes]:
             if not item.get('description'):
                 raise ValueError('A control or theme is missing its description.')

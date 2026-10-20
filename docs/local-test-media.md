@@ -63,7 +63,7 @@ available video qualities, seeking, two audio tracks and switching, subtitle
 cue delivery, thumbnail coordinates and image fetching, and the player's HTTP
 request callback. Three additional checks use the original Web application's
 source buttons, settings menus and seek-bar preview. The application keeps its
-the available themes, source presets, setting panels and construction-code display.
+themes, source presets, setting panels and construction-code display.
 
 On 2026-10-19, all ten feature browser checks passed on macOS with Google Chrome
 155.0.8059.85 and Node.js 24.19.0: one worker, zero retries, 16.7 seconds. The
