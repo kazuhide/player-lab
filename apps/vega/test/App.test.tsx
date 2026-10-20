@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const runtime = vi.hoisted(() => ({
   players: [] as Array<{ config: object; load: ReturnType<typeof vi.fn>; destroy: ReturnType<typeof vi.fn>; listeners: Map<string, Set<() => void>> }>,
-  videos: [] as Array<{ deinitialize: ReturnType<typeof vi.fn> }>,
+  videos: [] as Array<{ deinitializeSync: ReturnType<typeof vi.fn> }>,
   initialization: null as Promise<void> | null,
   destruction: null as Promise<void> | null,
   appState: "active",
@@ -38,7 +38,7 @@ vi.mock("@amazon-devices/react-native-w3cmedia", () => ({
   VideoPlayer: class {
     constructor() { runtime.videos.push(this); }
     initialize = vi.fn(() => { const gate = runtime.initialization; runtime.initialization = null; return gate ?? Promise.resolve(); });
-    deinitialize = vi.fn(async () => {});
+    deinitializeSync = vi.fn(() => "success");
     setSurfaceHandle = vi.fn();
     clearSurfaceHandle = vi.fn();
   },
@@ -150,7 +150,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(current().load).toHaveBeenCalledWith({ hls: "https://example.com/custom.m3u8", title: "Custom source", poster: "https://example.com/poster.jpg",
       options: { startOffset: -30, startOffsetTimelineReference: "end" } });
     expect(button("Apply and recreate player").props.disabled).toBe(true);
-    expect(runtime.videos[0]!.deinitialize).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
   });
 
   it.each([
@@ -244,7 +244,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     await act(async () => initialized());
     expect(runtime.players).toHaveLength(1);
     expect(current().load).toHaveBeenCalledWith(expect.objectContaining({ dash: "https://example.com/latest.mpd" }));
-    expect(runtime.videos[0]!.deinitialize).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
   });
 
   it("retires background media and resumes only after cleanup with applied settings and drafts intact", async () => {
@@ -287,7 +287,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     await act(async () => released());
 
     expect(runtime.players).toHaveLength(3);
-    expect(runtime.videos[1]!.deinitialize).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[1]!.deinitializeSync).toHaveBeenCalledTimes(1);
     expect(current().config).toEqual(old.config);
     expect(current().load).toHaveBeenCalledWith(appliedSource);
     expect(current().config).toMatchObject({ playback: { autoplay: false } });
@@ -313,7 +313,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     await act(async () => initialized());
     expect(runtime.players).toHaveLength(0);
     expect(runtime.videos).toHaveLength(1);
-    expect(runtime.videos[0]!.deinitialize).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
     await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("current-surface"));
     expect(runtime.players).toHaveLength(1);
     expect(runtime.videos).toHaveLength(2);
@@ -332,7 +332,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(runtime.appStateListeners.size).toBe(0);
     await appState("active");
     expect(runtime.players).toHaveLength(1);
-    expect(runtime.videos[0]!.deinitialize).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
   });
 
   it("keeps source/config changes while backgrounded without acquiring native resources", async () => {
@@ -351,7 +351,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(runtime.players).toHaveLength(1);
     expect(runtime.videos).toHaveLength(1);
     expect(old.destroy).toHaveBeenCalledTimes(1);
-    expect(runtime.videos[0]!.deinitialize).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
     await appState("active");
     expect(runtime.players).toHaveLength(1);
     await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("foreground-surface"));
@@ -361,5 +361,27 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(element("Switch", { accessibilityLabel: "Allow DVR" }).props.value).toBe(false);
     expect(button("Hide configuration")).toBeDefined();
     expect(button("Apply and recreate player").props.disabled).toBe(true);
+  });
+
+  it("has already released the retiring owner when the current Apply waiter backgrounds", async () => {
+    await mount();
+    const old = current();
+    let released!: () => void;
+    runtime.destruction = new Promise<void>((resolve) => { released = resolve; });
+    await press("Show configuration");
+    await text("Source URL", "https://example.com/latest.mpd");
+    await press("Apply and recreate player");
+    expect(runtime.videos).toHaveLength(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
+    await appState("background");
+    await appState("background");
+    expect(old.destroy).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
+    await act(async () => released());
+    expect(runtime.players).toHaveLength(1);
+    await appState("active");
+    await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("fresh-surface"));
+    expect(runtime.players).toHaveLength(2);
+    expect(current().load).toHaveBeenCalledWith(expect.objectContaining({ dash: "https://example.com/latest.mpd" }));
   });
 });

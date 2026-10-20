@@ -30,7 +30,7 @@ export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
       const previous = lifecycleRef.current;
       if (state === "background" && previous.active) {
         lifecycleRef.current = { active: false, generation: previous.generation + 1 };
-        // Retire callbacks immediately; the existing barrier owns asynchronous media cleanup.
+        // Retire callbacks and native media synchronously; the barrier owns remaining SDK cleanup.
         const session = ownedSession.current;
         ownedSession.current = null;
         if (session) teardown.current = session.dispose();
