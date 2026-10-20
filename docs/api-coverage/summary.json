@@ -22783,8 +22783,8 @@
       "sdkId": "web-ui"
     }
   ],
-  "checkedAt": "2026-10-20",
-  "inputSha256": "fb38a2985f0650bbf09c0bcea9fc2492fb3d14fe85c0696b9ec0b4b9a611493d",
+  "checkedAt": "2026-10-21",
+  "inputSha256": "168a552d29197e78d8ecb98b2016bd67591894ed530d7030eb5c2fb3228cc82a",
   "schemaVersion": 1,
   "sdks": [
     {
@@ -22910,5 +22910,5 @@
       "version": "4.23.0"
     }
   ],
-  "sourceRevision": "09195cce37f35496a686e3e2d175fe677c7635b2"
+  "sourceRevision": "a312c7547e580b4c97f8fbee025aec8df89b427d"
 }
