@@ -252,13 +252,14 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
   if (!Number.isInteger(measuredRuns) || measuredRuns < 1 || measuredRuns > 10) {
     throw new Error("PERF_RUNS must be an integer between 1 and 10");
   }
+  const root = resolve(testInfo.project.testDir, "../../..");
   const measuredInputs = ["apps/web", "packages/ui-shared", "patches", "pnpm-lock.yaml", "tests/e2e/performance/lifecycle.spec.ts"];
   const assertCommittedInputs = () => {
-    const changes = execFileSync("git", ["status", "--porcelain", "--untracked-files=normal", "--", ...measuredInputs], { encoding: "utf8" }).trim();
+    const changes = execFileSync("git", ["status", "--porcelain", "--untracked-files=normal", "--", ...measuredInputs], { cwd: root, encoding: "utf8" }).trim();
     if (changes) throw new Error("Commit measured application, dependency and harness inputs before recording a performance result");
   };
   assertCommittedInputs();
-  const measuredRevision = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+  const measuredRevision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
   const runs: Sample[][] = [];
   const collectionDiagnostics: Sample[] = [];
   const servedUiHashes = new Set<string>();
@@ -410,12 +411,11 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
       requestsInFlightMax: Math.max(...entries.map((entry) => entry.requestsInFlight)),
     };
   });
-  const root = resolve(testInfo.project.testDir, "../../..");
   const playerVersion = JSON.parse(readFileSync(resolve(root, "apps/web/package.json"), "utf8")).dependencies["bitmovin-player"];
   const uiVersion = JSON.parse(readFileSync(resolve(root, "packages/ui-shared/package.json"), "utf8")).dependencies["bitmovin-player-ui"];
   const uiPatch = resolve(root, `patches/bitmovin-player-ui@${uiVersion}.patch`);
   assertCommittedInputs();
-  expect(execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), "the measured source revision must stay fixed").toBe(measuredRevision);
+  expect(execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(), "the measured source revision must stay fixed").toBe(measuredRevision);
   const report = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
