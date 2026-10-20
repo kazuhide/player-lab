@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@showcase/ui-shared": "workspace:*",
-    "bitmovin-player": "8.280.0"
+    "bitmovin-player": "8.281.0"
   },
   "devDependencies": {
     "typescript": "^5.9.0",

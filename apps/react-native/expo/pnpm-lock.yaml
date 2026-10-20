@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       bitmovin-player-react-native:
-        specifier: 1.28.0
-        version: 1.28.0(expo-crypto@15.0.9(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2)))(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2))(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
+        specifier: 1.29.0
+        version: 1.29.0(expo-crypto@15.0.9(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2)))(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2))(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)
       expo:
         specifier: 54.0.35
         version: 54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2)
@@ -1008,11 +1008,11 @@ packages:
     resolution: {integrity: sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==}
     engines: {node: '>=0.6'}
 
-  bitmovin-player-react-native@1.28.0:
-    resolution: {integrity: sha512-keAfmOtDvhqWHqgFzsZm/H18mnWTj8KD4wgu7YoCW4iH4z5NMoS7wxmR6qZgE8+a/yqI+0S5VFH7dVr8ItmQHA==}
+  bitmovin-player-react-native@1.29.0:
+    resolution: {integrity: sha512-N93UrRXU1mRpAysqxGrnt9Qw/RtC5+h0S5T1dv2oOPL+SXHZ8oNtOeON8Ommv9LUyRAaFw8bwUknBH3/5+fuPQ==}
     peerDependencies:
-      expo: '>=54.0.0'
-      expo-crypto: '>=14.0.0'
+      expo: '>=57.0.0'
+      expo-crypto: '>=57.0.0'
       react: '*'
       react-native: '*'
 
@@ -1327,6 +1327,12 @@ packages:
 
   expo-keep-awake@15.0.8:
     resolution: {integrity: sha512-YK9M1VrnoH1vLJiQzChZgzDvVimVoriibiDIFLbQMpjYBnvyfUeHJcin/Gx1a+XgupNXy92EQJLgI/9ZuXajYQ==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+
+  expo-keep-awake@57.0.2:
+    resolution: {integrity: sha512-GqgH746wtJImmsbyHmCQoi7cOslKuWQBbJHXr53S35Bpf5UvxCAztvnitUEd7D0QvFN2rvkOhylbZpgZZfBLlQ==}
     peerDependencies:
       expo: '*'
       react: '*'
@@ -4000,11 +4006,11 @@ snapshots:
 
   big-integer@1.6.52: {}
 
-  bitmovin-player-react-native@1.28.0(expo-crypto@15.0.9(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2)))(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2))(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0):
+  bitmovin-player-react-native@1.29.0(expo-crypto@15.0.9(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2)))(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2))(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0):
     dependencies:
       expo: 54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2)
       expo-crypto: 15.0.9(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2))
-      expo-keep-awake: 15.0.8(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2))(react@19.1.0)
+      expo-keep-awake: 57.0.2(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2))(react@19.1.0)
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0)
 
@@ -4285,6 +4291,11 @@ snapshots:
       react-native: 0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0)
 
   expo-keep-awake@15.0.8(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2))(react@19.1.0):
+    dependencies:
+      expo: 54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2)
+      react: 19.1.0
+
+  expo-keep-awake@57.0.2(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2))(react@19.1.0):
     dependencies:
       expo: 54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@types/react@19.1.0)(react@19.1.0))(react@19.1.0)(typescript@5.9.2)
       react: 19.1.0

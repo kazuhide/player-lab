@@ -4,7 +4,10 @@
   "description": "Customized bitmovin-player-ui: DVR seek bar + LIVE / go-to-edge button",
   "private": true,
   "type": "module",
-  "sideEffects": ["*.scss", "*.css"],
+  "sideEffects": [
+    "*.scss",
+    "*.css"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -15,7 +18,10 @@
     },
     "./css": "./dist/bitmovinplayer-ui.css"
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsup && pnpm run build:css",
     "build:css": "node scripts/build-css.mjs",
@@ -31,7 +37,7 @@
     "bitmovin-player": "^8.19.0"
   },
   "devDependencies": {
-    "bitmovin-player": "8.280.0",
+    "bitmovin-player": "8.281.0",
     "sass": "^1.80.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.0",
