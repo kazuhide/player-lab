@@ -32,7 +32,7 @@
       "items": [
         "ソースボタンで Live DASH + DVR、Live HLS、複数音声または字幕付きの Live DASH、VOD HLS、VOD DASH を選びます。起動時は先頭の Live DASH + DVR が読み込まれます。",
         "プレイヤー内のコントロールで再生します。UI の Default、Sports、Live (DVR)、Cinema を切り替えて配置や表示を比較します。",
-        "−10s、−30s、−60s でライブ端からの指定位置へ移動します。Live edge でライブ位置へ戻ります。",
+        "−10s、−30s、−60s でライブ端からの指定位置へ移動します。Live edge でライブ位置へ戻ります。終了したライブソースを含む有限の VOD では、これらのライブ操作は無効になります。",
         "Allow DVR、mode、dvrAvailable、behindLive、window の表示と、下部のイベントログを確認します。狭い画面ではボタン列を横に、パネル全体を縦にスクロールできます。",
         "PlayerError または SourceError が記録されたら数値コードを確認します。まずライセンスの許可 application ID と参照ソースへの通信を確認します。"
       ]
@@ -75,6 +75,10 @@
       "text": "パネル全体を縦にスクロールして全項目へ移動します。既存のソース・UI・シーク列は横スクロールのまま、新しい設定の選択肢と操作ボタンは狭い幅で折り返します。操作部品はシステムバーやカットアウトの安全領域内に配置します。方向キーでフォーカスを移動でき、設定スイッチのフォーカスは枠線で表示します。"
     },
     {
+      "type": "p",
+      "text": "Show applied code は適用中の設定と現在の UI に対応する Kotlin の PlayerConfig・SourceConfig・PlayerViewConfig を表示し、任意のライブ目標遅延も含めます。未適用の下書きは含めません。Copy code は Android のクリップボードへ書き込み、Copied を表示します。ライセンスキーはプレースホルダーです。統合先では自身のキー、ビューの接続、lifecycle 転送を別途用意します。"
+    },
+    {
       "type": "h2",
       "text": "オフラインのコード例"
     },
@@ -91,6 +95,14 @@
       "text": "テストの実行と記録された結果"
     },
     {
+      "type": "p",
+      "text": "端末テスト全件には、許可されたライセンスと、ローカルの60秒 HLS／DASH 終了 fixture が必要です。Node 24 を使い、リポジトリのルートでテストメディアを生成してサーバーを起動します。別のターミナルで adb reverse により 5272・5273 番を転送してから、下のテストを実行します。終了後は両転送を解除し、サーバーを停止します。localhost・127.0.0.1 の HTTP を許可するのは debug ビルドだけで、release のネットワークポリシーは変更していません。"
+    },
+    {
+      "type": "code",
+      "text": "python3 encoding/test-streams/local.py\nnode apps/android/runtime-fixture.mjs .cache/test-streams/vod-baseline\n# 別のターミナルで実行:\nadb reverse tcp:5272 tcp:5272\nadb reverse tcp:5273 tcp:5273"
+    },
+    {
       "type": "code",
       "title": "apps/android で実行",
       "text": "./gradlew :dvr:test :app:testDebugUnitTest\n./gradlew :app:connectedDebugAndroidTest"
@@ -101,20 +113,24 @@
     },
     {
       "type": "p",
+      "text": "開始オフセットの検査は、新しい Player／Source の所有権に対応する新たな Ready と RenderFirstFrame の後、最初の TimeChanged をゼロ値も含めて採取します。従来の 9.0～13.0 秒の範囲と40秒の期限は維持し、Loaded と isPlaying だけでは準備完了を保証しない点を区別します。標準 UI の Play／Pause／Mute／Unmute、seek、1.5倍速、音声・字幕・映像品質の選択は native 状態または新しいイベントで確認します。標準 seek bar の hover は Player.getThumbnail と現在の Source.getThumbnail への委譲まで到達しましたが、参照素材は画像なしを返しました。検査した電話では fullscreen／PiP の handler と可視ボタンがなく、携帯向け volume slider も非表示で、不提供を確認しました。コード表示の検査は適用値と下書きの分離、UI 選択、通知、実 OS クリップボードの完全一致を確認します。"
+    },
+    {
+      "type": "p",
+      "text": "HLS ENDLIST と DASH static の検査は同じ URL・Source・Player を維持し、有限の末尾で新しい PlaybackFinished、VOD／DVR 無効状態、可視 Replay と再生時間の進行を確認します。新しい VOD seek 完了、Replay 中もライブ操作が非表示であること、新しいライブ世代で可視のライブ操作が戻ること、明示した VOD への切り替えも必要です。この Android fixture では SDK が有限 duration と isLive = false を返し、アプリが native getter を書き換えることはありません。"
+    },
+    {
+      "type": "p",
       "text": "共有 UI が存在しても、操作部品のレイアウトや自動非表示の状態は後から変わります。テストは表示寸法だけでなく祖先要素の可視性も確認します。巻き戻しの完了位置は要求前に固定したメディア目標の 3 秒以内を必要としますが、この許容差は製品の精度保証ではありません。ライブ復帰は引き続き、新しい完了イベント、ゼロから 1 秒以内の SDK オフセット、可視状態の LIVE テキストとボタン状態を必要とします。失敗時には単調増加時計での要求・完了時刻、目標・完了位置、オフセット、ネイティブ条件の成立回数、ライブ操作部品の可視性を記録し、SDK エラーメッセージや設定全体は出力しません。"
     },
     {
       "type": "p",
-      "text": "10 月 20 日の一括実行でのライブ復帰の失敗では、要求時に固定したメディア目標の +0.011 秒以内へ 3.070 秒で到達しましたが、移動するライブ端からは 3.059 秒遅れていました。behind live の UI は SDK オフセットと一致し、自動非表示の操作部品は可視の LIVE 条件を満たしませんでした。それ以前に同じ Player 3.171.0、共有 UI バンドル、Android 16 エミュレーターで比較した 2c90983 と 09e0a37 も、要求時の目標へ到達しながら、移動する端からは -6.573 秒と -4.116 秒でした。要求時の目標への到達は、現在のライブ端へ安定して戻ることを意味しません。製品の既定値と厳密な検証条件は維持しています。"
-    },
-    {
-      "type": "p",
-      "text": "追加の診断では、巻き戻し前と復帰要求前の両方で、実際の再生時間が進むことを確認しました。新しい完了イベントは 4.253 秒後に要求したメディア位置へ正確に到達しましたが、オフセットは -4.270 秒でした。14.009 秒先への要求は 11.811 秒の映像先読みバッファを超えていました。ただし、この値だけで遅延した具体的な処理は特定できません。isStalled は time shifting 中に false を返す仕様で、完了前のゼロオフセットも観測されました。そのため、新しい完了イベントと可視状態の LIVE の両方を検証条件として維持しています。自動的なシークの再試行は追加していません。"
+      "text": "ライブ復帰は、新しい TimeShifted、ゼロから 1 秒以内の SDK timeShift、実際に可視な LIVE の文字とボタン状態を、同じ 40 秒の期限内に満たすかで判定します。UI の確認後にも native 条件を再確認します。実際の latency と設定 targetLatency の差は別の診断値で、1 秒未満の同期を保証する SLA ではありません。Player 3.171.0 はこの差が残っていても timeShift = 0 を返す場合があります。Source.seekableRange はライブで (0, 0) を返すため、その end はライブメディアの端ではありません。現在時刻、raw latency、設定／実効 target、buffer、range は引き続き記録します。 time shifting中のisStalledは仕様によりfalseで、この値やoffset単独ではseek完了を証明しません。任意policyはSDK既定のcatch-up／fallback rate 1.2／0.95と無限大のseek thresholdを維持し、Player.playbackSpeedは一時的なcatch-up調整を含みません。"
     },
     {
       "type": "note",
-      "title": "2026-10-20 の検証範囲",
-      "text": "2026-10-20 に Player 3.171.0 で JVM テスト 14 件（DVR 6 件、設定 6 件、lifecycle 2 件）とアプリ・instrumentation APK のビルドが成功しました。Android 16/API 36.1 ARM64 の電話向けエミュレーターで、許可されたライセンスを使った最終一括実行は 149.519 秒で 9 件中 8 件が成功しました。設定付き VOD、12 回の UI 切り替え、明示的な再生要求を伴う 2 回の停止・復帰・UI 交換は成功しましたが、変更していない厳密なライブ復帰は Player/Source エラーなしで失敗しました。別の単独実行では両再生サイクルの完了後、Activity 終了中に timeout 1004 が発生しました。タイムアウトした具体的な操作は記録されておらず、最終一括実行では再現しませんでした。それ以前の一括実行では、設定付き VOD の最初の観測位置が従来の 9.0..13.0 秒を満たさず、実測値の記録もないため、観測の遅れと開始位置の誤りを区別できません。今後は実測値を出力しますが、範囲とタイミングは変えていません。安定したライブ復帰、一括実行での開始オフセット、timeout 1004 は未解決です。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics 受信、SDK 内部リソースの全解放完了は未確認です。"
+      "title": "2026-10-21 の記録された検証範囲",
+      "text": "Player 3.171.0 で JVM テスト18件（DVR 6件、設定10件、lifecycle 2件）とアプリ・instrumentation APK のビルドが成功しました。許可されたライセンスを使う Android 16/API 36.1 ARM64 の電話向けエミュレーター一括実行は237.139秒で16件すべて成功しました。設定付きVOD、厳密なLIVE、標準UIの操作と不提供、両形式の終了、実クリップボード、12回のUI交換、明示的な再生要求を伴う2回の停止・復帰を含みます。通常のライブ復帰は157 msで要求固定目標の誤差+0.002秒、206 ms後にnativeゼロoffsetと可視LIVEが一致しました。新たなReady/frame後の設定付きVODの最初の位置は10.256秒でした。新しいVOD seek完了と、新たなlive loadで可視のライブ操作が戻ることを明示した両終了検査も69.860秒で成功しました。任意の30秒遅延policyも制御したエミュレーター遅延下で結合した復帰条件を満たしました。SDK既定値の変更やseek再試行は追加しておらず、これらの実行はseek完了や遅延収束の時間保証ではありません。以前の単独終了時には具体的な操作不明のtimeout 1004を記録しました。最終groupでは再現せず、その解決も証明しません。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics受信、SDK内部リソースの全解放完了はこの範囲に含みません。"
     }
   ],
   "sources": [
@@ -125,7 +141,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 145,
+      "line": 160,
       "label": "実再生テストと記録された結果"
     },
     {
@@ -165,7 +181,7 @@
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
-      "line": 50,
+      "line": 70,
       "label": "厳密なライブ操作検証と失敗時診断"
     },
     {
@@ -175,7 +191,7 @@
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerConfigurationPlaybackInstrumentedTest.kt",
-      "line": 60,
+      "line": 38,
       "label": "設定付き VOD の最初の観測位置の検証"
     },
     {
@@ -203,6 +219,26 @@
     {
       "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.live/-source-live-config/target-latency.html",
       "label": "Player 3.171.0 のソース目標遅延とライブ端の定義"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerFinalizationInstrumentedTest.kt",
+      "line": 47,
+      "label": "同じURLのHLS／DASH終了とReplay検査"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerConfigurationCodeInstrumentedTest.kt",
+      "line": 32,
+      "label": "適用済みコードと実クリップボードの検査"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationCode.kt",
+      "line": 22,
+      "label": "適用済みSDK設定のコード例"
+    },
+    {
+      "path": "apps/android/runtime-fixture.mjs",
+      "line": 1,
+      "label": "Androidのローカル終了fixture"
     }
   ]
 }

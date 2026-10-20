@@ -11,6 +11,15 @@ import org.junit.Test
 
 class ConfigurationTest {
     @Test
+    fun exportedLivePolicyRetainsTheAppliedValueAndNullDefault() {
+        val source = SourceSettings("https://example.com/live.m3u8", SourceType.Hls)
+        assertTrue(configurationCode(source, PlayerSettings(), UiMode.DEFAULT).contains("liveConfig = null,"))
+        val applied = source.copy(liveTargetLatency = 30.0)
+        assertTrue(configurationCode(applied, PlayerSettings(), UiMode.SPORTS)
+            .contains("liveConfig = SourceLiveConfig(targetLatency = 30.0),"))
+    }
+
+    @Test
     fun exportedSourceTextEscapesKotlinInterpolationAndNewlines() {
         val title = "A \"quoted\" title ${'$'}{mustStayText}\nnext line"
         val source = SourceSettings("https://example.com/movie.m3u8", SourceType.Hls, title = title)
