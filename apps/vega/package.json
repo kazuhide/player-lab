@@ -5,11 +5,14 @@
   "description": "Vega OS / Fire TV build of the Bitmovin Player Playground — modular web player + Kepler UI",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "runtime:config": "node scripts/write-runtime-config.cjs",
+    "build:vega": "react-native build-vega --build-type Release --max-workers 2",
+    "build:vega:debug": "react-native build-vega --build-type Debug --max-workers 2"
   },
   "dependencies": {
-    "@amazon-devices/react-native-kepler": "^2.0.0",
-    "@amazon-devices/react-native-w3cmedia": "^2.2.20",
+    "@amazon-devices/react-native-kepler": "~2.1.0+rn0.72.0",
+    "@amazon-devices/react-native-w3cmedia": "~2.3.2",
     "@xmldom/xmldom": "0.9.12",
     "base-64": "1.0.0",
     "bitmovin-player": "8.138.0-beta.28",
@@ -18,11 +21,28 @@
     "react-native-url-polyfill": "4.0.0"
   },
   "devDependencies": {
+    "@amazon-devices/kepler-cli-platform": "0.22.14",
+    "@babel/core": "7.29.7",
+    "@babel/plugin-transform-react-jsx": "7.29.7",
+    "@babel/runtime": "7.29.7",
+    "@babel/traverse": "7.29.7",
+    "@react-native-community/cli": "11.4.1",
+    "@react-native-community/cli-tools": "11.4.1",
+    "@react-native/js-polyfills": "0.72.1",
+    "@react-native/metro-config": "0.72.12",
     "@types/base-64": "1.0.2",
     "@types/react": "~18.2.0",
     "@types/react-test-renderer": "18.3.1",
+    "metro-react-native-babel-preset": "0.76.9",
     "react-test-renderer": "18.2.0",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0"
+  },
+  "kepler": {
+    "projectType": "application",
+    "appName": "PlayerLabVega",
+    "targets": [
+      "tv"
+    ]
   }
 }

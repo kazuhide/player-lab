@@ -49,6 +49,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       <View style={styles.row}>
         <Text style={styles.label}>Allow DVR</Text>
         <Switch
+          style={styles.toggle}
           accessibilityLabel="Allow DVR"
           value={dvrAllowed}
           onValueChange={(v) => {
@@ -62,7 +63,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         {dvr
           ? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed(
               1,
-            )}s  window=${dvr.windowDuration.toFixed(0)}s`
+            )}s  window=${dvr.windowDuration.toFixed(0)}s  position=${dvr.currentTime.toFixed(1)}s`
           : "…"}
       </Text>
 
@@ -81,6 +82,7 @@ const styles = StyleSheet.create({
   panel: { padding: 12, gap: 8, backgroundColor: "#111111" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
   label: { color: "#ffffff", marginRight: 6 },
+  toggle: { width: 72, height: 36 },
   mono: { color: "#33ff66", fontFamily: "monospace", fontSize: 12 },
   log: { height: 140 },
 });

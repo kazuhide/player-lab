@@ -22,7 +22,7 @@ function fixture() {
     getDuration: () => Infinity,
     getMaxTimeShift: () => -300,
     getTimeShift: () => -30,
-    getCurrentTime: () => 1000,
+    getCurrentTime: vi.fn(() => 1000),
     timeShift: vi.fn(),
   };
   const update = vi.fn();
@@ -31,6 +31,19 @@ function fixture() {
 }
 
 describe("DVR controller ownership", () => {
+  it("publishes SDK playback progress and stops publishing after disposal", () => {
+    const { handlers, player, update, controller } = fixture();
+    const refresh = handlers.get("timechanged")!;
+    refresh();
+    expect(update).toHaveBeenLastCalledWith(expect.objectContaining({ currentTime: 1000 }), undefined);
+    player.getCurrentTime.mockReturnValue(1005);
+    refresh();
+    expect(update).toHaveBeenLastCalledWith(expect.objectContaining({ currentTime: 1005 }), undefined);
+    controller.dispose();
+    refresh();
+    expect(update).toHaveBeenCalledTimes(2);
+  });
+
   it("ignores events already queued when its session is disposed", () => {
     const { handlers, player, update, controller } = fixture();
     const refresh = handlers.get("timechanged")!;

@@ -1,7 +1,7 @@
 import type { PlayerConfig, SourceConfig } from "bitmovin-player";
 import { KeplerVideoSurfaceView, VideoPlayer } from "@amazon-devices/react-native-w3cmedia";
 import React, { useEffect, useRef, useState } from "react";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { DvrController, type DvrUpdate } from "./dvrController";
 import { createVegaPlayer } from "./vegaPlayer";
 import { installVegaPolyfills, removeVegaPolyfills } from "./polyfills";
@@ -49,8 +49,14 @@ export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
   }, [surfaceHandle, source, config, onDvr, controllerRef]);
 
   return (
-    <View>
-      <KeplerVideoSurfaceView onSurfaceViewCreated={(handle: string) => setSurfaceHandle(handle)} />
+    <View style={styles.video}>
+      <KeplerVideoSurfaceView testID="vega-video-surface" style={styles.surface} scalingmode="fit"
+        onSurfaceViewCreated={(handle: string) => setSurfaceHandle(handle)} />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  video: { height: "50%", backgroundColor: "#000000" },
+  surface: { width: "100%", height: "100%" },
+});
