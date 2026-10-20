@@ -668,9 +668,9 @@
       ]
     },
     "android:com.bitmovin.player.api.Player.playbackSpeed": {
-      "status": "direct_gui",
+      "status": "constrained_preset",
       "qualification": "observed",
-      "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
+      "limitation": "The standard selector offers 0.25, 0.5, 1, 1.5 and 2. The SDK accepts other positive finite speed values, but this GUI supplies only those presets. Native 1.5 playback was verified.",
       "evidence": [
         {
           "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",

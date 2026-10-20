@@ -233,8 +233,8 @@
         "text": "「対応するGUIなし」は、調査したアプリに提供経路がないことを示します。以下の標準SDK UI経路はAndroidの電話向けエミュレーターで別途操作して確認しました。Android TVやFire TVの端末動作を示す結果ではありません。"
       },
       {
-        "source": "Eleven standard UI routes were observed at the native boundary: play, pause, seek, mute/unmute, speed, audio/subtitle/video quality selection and both public thumbnail query entry points. The thumbnail query returned null; this does not establish thumbnail image rendering.",
-        "text": "標準UIからネイティブAPIとの境界まで、play、pause、seek、mute/unmute、再生速度、音声・字幕・映像品質の選択と二つの公開thumbnail問い合わせ経路、計十一件を確認しました。thumbnailの問い合わせはnullを返したため、画像表示を確認した結果ではありません。"
+        "source": "Eleven standard UI routes were observed at the native boundary: play, pause, seek, mute/unmute, speed, audio/subtitle/video quality selection and both public thumbnail query entry points. The thumbnail query returned null; this does not establish thumbnail image rendering. The speed selector offers only 0.25, 0.5, 1, 1.5 and 2, so that command receives preset credit.",
+        "text": "標準UIからネイティブAPIとの境界まで、play、pause、seek、mute/unmute、再生速度、音声・字幕・映像品質の選択と二つの公開thumbnail問い合わせ経路、計十一件を確認しました。thumbnailの問い合わせはnullを返したため、画像表示を確認した結果ではありません。 再生速度は0.25、0.5、1、1.5、2の固定選択なので、この操作はプリセットとして数えます。"
       },
       {
         "source": "Fullscreen/PiP entry, exit and state controls and the mobile volume slider were verified absent from the configured phone UI. They remain missing and receive no GUI credit; reading a false native getter in a test does not count as an app observation.",
