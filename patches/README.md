@@ -60,8 +60,9 @@ its remaining event handlers.
 
 These are version-specific ownership corrections, not a general memory fix.
 See [the measurement instructions and results](../docs/web-performance.md) for
-the retainer paths and numeric results recorded with 4.15.1 on 2026-10-19, and
-their remaining limitations. Those measurements do not validate 4.23.0. Recheck
+the retainer paths and the Player 8.281.0 / UI 4.23.0 comparison recorded on
+2026-10-21. Retained JavaScript heap decreased in that workload, while CPU time
+and process RSS increased. Recheck
 the upstream implementation and the public browser regression before upgrading
 the package.
 
