@@ -58,8 +58,8 @@ test("the native HLS subtitle rendition is selected in the existing settings men
   await page.locator(".bmpui-ui-settingstogglebutton").click();
   await page.getByRole("menuitem", { name: /^Subtitles/ }).click();
   await page.getByRole("menuitem", { name: "German test subtitles", exact: true }).click();
-  await page.locator(".bmpui-ui-settingstogglebutton").click();
   await page.locator("#player").scrollIntoViewIfNeeded();
+  await expectMovingVideo(page);
   const subtitle = page.locator(".bmpui-ui-subtitle-overlay");
   await expect(subtitle).toContainText("Deutscher Untertiteltest:");
   await expectVisiblePixels(subtitle);
