@@ -1,7 +1,7 @@
 {
   "id": "native-apple",
   "title": "iOS, iPadOS, and tvOS",
-  "lead": "Use the SwiftUI app to try HLS source switching and live rewind. iOS and iPadOS can select the shared Web UI; tvOS uses the system UI.",
+  "lead": "Use the SwiftUI app to configure HLS or progressive MP4 sources, startup playback, bitrate, and buffering, then try source switching and live rewind. iOS and iPadOS can select the shared Web UI; tvOS uses the system UI.",
   "blocks": [
     {
       "type": "h2",
@@ -53,6 +53,24 @@
     },
     {
       "type": "h2",
+      "text": "Edit source and playback configuration"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Choose Configure source and playback below the source presets. iPhone and iPad show a sheet; tvOS opens a full-screen native form. On tvOS, move focus with the remote and press Select; text fields use the system keyboard.",
+        "Enter an absolute HTTP(S) Source URL, select HLS or Progressive MP4, and optionally enter a title and HTTP(S) poster URL. Empty title or poster values clear them. DASH and offline packages are not offered.",
+        "Set an optional start offset in seconds and choose Automatic, Start, or End. Blank offset uses the SDK default. Automatic means the beginning for VOD and the live edge for live. Signed finite offsets are accepted and the SDK corrects them to stream boundaries; live offsets apply when playback starts.",
+        "Choose Autoplay after source load, Start muted, and SDK time shift / DVR. Defaults are off, on, and on. The separate Allow DVR controls (app) switch also governs the app quick-seek buttons. Enter maximum bitrate in whole bit/s (0 = unlimited) and forward buffer in finite nonnegative seconds (0 = SDK choice).",
+        "Read Reload source or Recreate player and reload source before selecting Apply. Invalid fields show an explanation and disable Apply. Reset to applied restores only the draft; Cancel discards it. Applied settings last for the current app session."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Source fields and start position changes reload the source on the existing player. Playback, bitrate, and buffer changes recreate the player and native view, then reload the complete current source including title, poster, and offset options. UI mode, the app DVR switch, and event log remain in place. Apply does not preserve playback position or playing state; the configured start position and Autoplay determine the restart. Selecting a source preset replaces source-specific fields and offsets with its defaults while keeping player settings."
+    },
+    {
+      "type": "h2",
       "text": "When something does not work"
     },
     {
@@ -68,6 +86,33 @@
     {
       "type": "h2",
       "text": "Running tests and reading recorded results"
+    },
+    {
+      "type": "p",
+      "text": "The Showcase-iOS-Configuration and Showcase-tvOS-Configuration schemes run hostless tests on the exact app model/configuration sources without a Player license or shared UI resources. A clearly invalid synthetic key permits SDK object construction only. The tests cover URL/number validation, SDK field mapping, rejected/no-op Apply, source reload, and player recreation retaining source options, UI selection, and the app DVR switch. They do not establish playback or network behavior. CI runs the iOS scheme on an available iPhone simulator and keeps a generic tvOS simulator build; the tvOS unit and remote GUI results below are separate recorded checks. Replace the simulator names with installed destinations and run from apps/ios."
+    },
+    {
+      "type": "code",
+      "title": "Hostless configuration tests without a license",
+      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Configuration \\\n  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test\nxcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-Configuration \\\n  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
+    },
+    {
+      "type": "p",
+      "text": "The opt-in ConfigurationUI schemes launch the real app, so they require the normal allowed Player license, network access, and reference source. An empty key is an SDK startup precondition failure. The iOS test covers invalid drafts, Reset, source metadata Apply, and mute/bitrate/buffer Apply with the source retained. The tvOS test uses remote focus and Select to edit source type and autoplay, then Reset. Screenshots are retained in the Xcode result bundle."
+    },
+    {
+      "type": "code",
+      "title": "Configuration GUI checks with the app license",
+      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-ConfigurationUI \\\n  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test\nxcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-ConfigurationUI \\\n  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
+    },
+    {
+      "type": "note",
+      "text": "These configuration GUI checks use the SDK default UI. They do not qualify the shared Web UI, advancing playback, start-offset accuracy, bitrate enforcement, physical devices, casting, offline playback, or Analytics receipt. The separate Showcase-iOS-Runtime scheme below checks the shared UI and playback behavior."
+    },
+    {
+      "type": "note",
+      "title": "Recorded configuration checks",
+      "text": "On October 20, 2026, the hostless configuration schemes passed six tests each on iOS and tvOS simulators. The GUI scheme passed one test each on iPhone 17 Pro / iOS 26.4, iPad Pro 11-inch (M5) / iOS 26.4, and Apple TV 4K (3rd generation) / tvOS 26.4. The retained iPhone and TV editor images were inspected. This verifies these configuration workflows in the SDK default UI; it does not add physical-device or playback qualification to the separate October 19 record."
     },
     {
       "type": "code",
@@ -96,13 +141,23 @@
   "sources": [
     {
       "path": "apps/ios/README.md",
-      "line": 28,
+      "line": 29,
       "label": "Build, licenses, and shared UI"
     },
     {
       "path": "apps/ios/README.md",
-      "line": 104,
-      "label": "Real-SDK tests and recorded results"
+      "line": 80,
+      "label": "Configuration workflow and units"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 191,
+      "label": "Configuration test commands and scope"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 133,
+      "label": "Separate shared-UI playback checks"
     },
     {
       "path": "apps/ios/project.yml",
@@ -111,22 +166,37 @@
     },
     {
       "path": "apps/ios/Showcase/ContentView.swift",
-      "line": 32,
-      "label": "Screen implementation"
+      "line": 25,
+      "label": "Existing screen controls and editor presentation"
+    },
+    {
+      "path": "apps/ios/Showcase/ConfigurationEditor.swift",
+      "line": 4,
+      "label": "Native configuration fields and actions"
+    },
+    {
+      "path": "apps/ios/Showcase/Configuration.swift",
+      "line": 50,
+      "label": "Source configuration mapping"
+    },
+    {
+      "path": "apps/ios/Showcase/Configuration.swift",
+      "line": 122,
+      "label": "Draft validation and units"
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 68,
-      "label": "UI recreation, playback settings, and live behavior"
+      "line": 91,
+      "label": "Apply, player generation, and retained source"
     },
     {
       "path": "apps/ios/Showcase/Sources.swift",
-      "line": 23,
-      "label": "HLS source catalog"
+      "line": 27,
+      "label": "HLS source presets"
     },
     {
       "url": "https://github.com/bitmovin/bitmovin-player-ios-samples#available-sample-apps",
-      "label": "Official Bitmovin iOS samples, formats, and license setup"
+      "label": "Official Bitmovin Apple formats and license setup"
     }
   ]
 }

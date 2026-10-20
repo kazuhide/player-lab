@@ -33,7 +33,7 @@
         "Use the source buttons to select Live DASH + DVR, Live HLS, Live DASH with multiple audio tracks or subtitles, VOD HLS, or VOD DASH. The first Live DASH + DVR source loads at startup.",
         "Start playback with the controls inside the player. Switch between Default, Sports, Live (DVR), and Cinema to compare layouts and displays.",
         "Use −10s, −30s, or −60s to seek to the specified distance behind the live edge. Use Live edge to return to live.",
-        "Check Allow DVR, mode, dvrAvailable, behindLive, window, and the event log below. Scroll the button rows horizontally on a narrow screen.",
+        "Check Allow DVR, mode, dvrAvailable, behindLive, window, and the event log below. Scroll the button rows horizontally on a narrow screen and the whole panel vertically.",
         "If PlayerError or SourceError appears, check its numeric code. First check the application ID allowed by the license and connectivity to the reference source."
       ]
     },
@@ -45,6 +45,30 @@
       "type": "note",
       "title": "Checking TV devices",
       "text": "The Manifest declares LEANBACK_LAUNCHER for Android TV and Fire TV. Focus navigation, button reachability, remote controls, and actual playback still need testing on each device. A successful phone-emulator test does not establish behavior on physical devices or TVs."
+    },
+    {
+      "type": "h2",
+      "text": "Configuration drafts and applying changes"
+    },
+    {
+      "type": "p",
+      "text": "Open Configuration to edit 17 settings. Source fields are a custom HTTP/HTTPS URL, DASH/HLS/Smooth/Progressive type, optional title, optional poster URL, persistent poster, start offset in seconds, and SDK-default/Start/End reference. Blank title, poster, and offset use SDK defaults. The default reference is the start for VOD and the end for live streams; the SDK corrects offsets outside stream boundaries. HTTP depends on the device network policy."
+    },
+    {
+      "type": "p",
+      "text": "Player fields are Autoplay (off), Start muted (off), SDK live time shifting (on), startup threshold (2.5 s), restart threshold (5 s), forward buffer (50 s), maximum automatic video bitrate (whole bps; blank means Int.MAX_VALUE / 2147483647, no ABR cap), preload (on), rebuffering (on), and live quality/stability balance (0–1; default 0.5). Thresholds must be nonnegative and at most forward buffer minus 0.5 s; forward buffer must be at least 0.5 s. Numeric fields reject non-finite values. The bitrate cap affects automatic selection; higher qualities remain available for manual selection. Balance applies near the live edge only."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Edit a draft, then choose Apply source (reload) to load it in the existing player. Invalid drafts leave the applied source and player unchanged.",
+        "Choose Apply & restart player for playback, buffer, or adaptation changes. It creates a new player with the current source and its metadata/options, keeping UI mode, Allow DVR, and the event log. Playback position resets according to the source start offset and autoplay settings.",
+        "Reset source draft returns to the applied source. Reset player draft restores SDK defaults. Neither button applies changes. Selecting any catalog preset, including the same one again, replaces the source draft and clears custom metadata and offsets."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Scroll the panel vertically to reach all fields. Existing source, UI, and seek rows still scroll horizontally; new editor choices and actions wrap on narrow screens. Controls stay within safe system-bar and cutout insets. Use directional keys to move focus; focused configuration switches show an outline."
     },
     {
       "type": "h2",
@@ -65,11 +89,11 @@
     {
       "type": "code",
       "title": "Run from apps/android",
-      "text": "./gradlew :dvr:test\n./gradlew :app:connectedDebugAndroidTest"
+      "text": "./gradlew :dvr:test :app:testDebugUnitTest\n./gradlew :app:connectedDebugAndroidTest"
     },
     {
       "type": "p",
-      "text": "dvr:test checks pure rewind calculations. connectedDebugAndroidTest requires a running emulator or connected device, network access, and an authorized Player license. PlayerDvrInstrumentedTest checks real-SDK loading and finite VOD duration. PlayerControlsInstrumentedTest checks actual Compose interactions and the shared WebView display, playback through the UI, source switching, rewind, return to live, and DVR state."
+      "text": "dvr:test checks pure rewind calculations; app:testDebugUnitTest checks draft validation and exact SDK configuration mapping. PlayerConfigurationInstrumentedTest drives the actual Compose editor and SDK configuration, reset, source retention, view detachment, and D-pad focus. PlayerOwnershipInstrumentedTest uses recording API implementations to verify exactly-once destroy calls, listener removal, and rejection of retired player/source callbacks. These checks can run without a valid Player license and do not prove playback or completed internal resource cleanup. The real playback tests require network access and an authorized Player license: PlayerDvrInstrumentedTest checks loading and finite VOD duration, and PlayerControlsInstrumentedTest checks shared WebView display, playback through the UI, source switching, rewind, return to live, and DVR state. PlayerConfigurationPlaybackInstrumentedTest verifies that the GUI-applied source and player configuration autoplays muted VOD from the 10-second start offset and advances."
     },
     {
       "type": "p",
@@ -77,19 +101,19 @@
     },
     {
       "type": "note",
-      "title": "Recorded verification scope",
-      "text": "The October 19, 2026 record reports two real-playback tests passing, with zero failures or skips, in 29.294 seconds on an Android 16 emulator with Player 3.155.0. Builds of the app with the final shared UI and the instrumentation APK were also checked. These are recorded results, not a new test run. They do not cover physical devices, Android TV, Fire TV, offline playback, casting, or Analytics receipt."
+      "title": "October 20 verification scope",
+      "text": "On October 20, 2026, Player 3.171.0 passed six DVR JVM tests, six configuration JVM tests, and app/instrumentation builds. Four configuration/ownership checks passed with a dummy license on an Android 16 phone emulator in 41.737 seconds; touch scrolling reached both Apply sections and D-pad navigation changed a draft switch. The final GUI-configured VOD autoplay case passed with an authorized license in 18.342 seconds. An earlier grouped authorized-license run passed six of seven checks in 71.104 seconds, including configured VOD playback and the existing VOD-duration check. The shared-UI/DVR controls check reported non-network timeout 1004 in the grouped run. Separate comparisons of base 2c90983 and the changed app both failed the return-to-live assertion with the same SDK, bundle, and emulator. That shared-UI/live-edge path remains unqualified for 3.171.0. Physical devices, Android TV, Fire TV, offline, casting, Analytics receipt, and completed SDK resource cleanup were not established."
     }
   ],
   "sources": [
     {
       "path": "apps/android/README.md",
-      "line": 22,
+      "line": 26,
       "label": "Build and licenses"
     },
     {
       "path": "apps/android/README.md",
-      "line": 72,
+      "line": 136,
       "label": "Real-playback tests and recorded results"
     },
     {
@@ -99,7 +123,7 @@
     },
     {
       "path": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
-      "line": 182,
+      "line": 323,
       "label": "Screen implementation and PlayerView recreation"
     },
     {
@@ -109,13 +133,23 @@
     },
     {
       "path": "apps/android/app/src/main/AndroidManifest.xml",
-      "line": 21,
+      "line": 29,
       "label": "Phone and TV launcher declarations"
     },
     {
       "path": "apps/android/app/src/main/kotlin/com/showcase/app/Sources.kt",
       "line": 20,
       "label": "Public reference source catalog"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+      "line": 37,
+      "label": "Configuration editor"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+      "line": 17,
+      "label": "Validated source and player settings"
     }
   ]
 }

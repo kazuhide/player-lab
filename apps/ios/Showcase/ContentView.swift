@@ -11,19 +11,20 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 12) {
             VideoPlayerView(player: model.player, playerViewConfig: PlayerViewConfig())
-                .id(model.uiMode) // rebuild the view when the UI factory (and thus player) changes
+                .id(model.playerGeneration) // a new player always needs a new native view
                 .aspectRatio(16.0 / 9.0, contentMode: .fit)
             ControlPanel(model: model)
         }
         .padding()
         .onAppear {
-            if let first = Sources.all.first { model.load(first) }
+            model.loadInitialSource()
         }
     }
 }
 
 struct ControlPanel: View {
     @ObservedObject var model: PlayerModel
+    @State private var showsConfiguration = false
     private let quickOffsets: [TimeInterval] = [-10, -30, -60, -120]
 
     var body: some View {
@@ -35,6 +36,18 @@ struct ControlPanel: View {
                             Button(source.label) { model.load(source) }
                         }
                     }
+                    if let source = model.sourceSettings {
+                        Text("Current: \(source.title.isEmpty ? "Custom source" : source.title)")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("source.current")
+                    }
+                }
+
+                labeled("Configuration") {
+                    Button("Configure source and playback") { showsConfiguration = true }
+                        .accessibilityIdentifier("configuration.open")
+                    Text(model.configurationStatus).font(.caption).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("configuration.status")
                 }
 
                 #if !os(tvOS)
@@ -60,8 +73,8 @@ struct ControlPanel: View {
                     }
                 }
 
-                labeled("Config") {
-                    Toggle("Allow DVR (timeShift)", isOn: $model.timeShiftEnabled)
+                labeled("DVR controls") {
+                    Toggle("Allow DVR controls (app)", isOn: $model.timeShiftEnabled)
                 }
 
                 labeled("DVR state") {
@@ -84,6 +97,12 @@ struct ControlPanel: View {
                 }
             }
         }
+        #if os(tvOS)
+        // A compact tvOS sheet collapses Form to its minimal height, hiding its focusable rows.
+        .fullScreenCover(isPresented: $showsConfiguration) { ConfigurationEditor(model: model) }
+        #else
+        .sheet(isPresented: $showsConfiguration) { ConfigurationEditor(model: model) }
+        #endif
     }
 
     private func labeled<Content: View>(_ title: String, @ViewBuilder _ content: () -> Content) -> some View {

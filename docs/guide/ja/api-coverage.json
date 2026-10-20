@@ -97,8 +97,8 @@
         "text": "「GUIで直接指定」は、アプリ独自の操作がサポートされる引数を任意に受け取るか、引数のない操作を呼び出す場合です。「限定プリセット」は、固定のソース・値・UI候補からの選択であり、任意の引数を指定できることは意味しません。"
       },
       {
-        "source": "Fixed construction values and namespace access are code-only. App DvrKit flags are excluded from SDK configuration counts; Allow DVR does not configure PlaybackConfig.isTimeShiftEnabled.",
-        "text": "生成時の固定値と名前空間へのアクセスは「コードのみ」です。アプリ側DvrKitのフラグはSDK設定に含めません。Allow DVRはPlaybackConfig.isTimeShiftEnabledを設定しません。"
+        "source": "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
+        "text": "名前空間のコンテナーは「コードのみ」とし、個別に対応付けた末端の項目だけをGUIの対応件数に含めます。Allow DVR controlsはアプリ側DvrKitのフラグを変更し、別のSDK time shift操作がPlaybackConfig.isTimeShiftEnabledを変更します。"
       },
       {
         "source": "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
@@ -113,20 +113,24 @@
         "text": "監視しているイベントIDは四件です。SourceLoaded・TimeShifted・DvrWindowExceededは名前付きログに記録し、TimeChangedはDVR表示の更新だけを行います。イベントのペイロードフィールドを表示するGUIはありません。"
       },
       {
-        "source": "Only app-owned GUI controls and derived displays are statically qualified. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
-        "text": "アプリが用意するGUI操作と派生表示だけを静的に確認しています。SDK提供のUIには、対応するAPIとの結び付けと実行時の証跡がない限り、直接指定・プリセットの対応件数を付けません。"
+        "source": "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
+        "text": "アプリ独自の設定操作と派生表示には、実際のソース上の結び付けがあります。SDK提供のUIには、対応するAPIとの結び付けと実行時の証跡がない限り、直接指定・プリセットの対応件数を付けません。"
       },
       {
-        "source": "No licensed playback, simulator, device, tvOS remote, casting, offline or bridge runtime validation was performed for this inventory.",
-        "text": "このインベントリの作成では、ライセンスを使った再生、シミュレーター、実機、tvOSリモコン、キャスト、オフライン、ブリッジの実行時検証は実施していません。"
+        "source": "The 2026-10-20 record reports 6 hostless configuration tests on each Apple simulator platform and 1 GUI test on each iPhone, iPad and Apple TV simulator, including tvOS remote focus and Reset. These checks do not qualify playback, offset accuracy, bitrate enforcement, physical devices, casting, offline playback or Analytics receipt; the 2026-10-19 iOS shared-UI playback record is documented separately.",
+        "text": "2026-10-20の記録では、Appleの各プラットフォームのシミュレーターでホストなしの設定テスト6件と、iPhone・iPad・Apple TVの各シミュレーターでGUIテスト1件が成功しています。tvOSのリモコンによるフォーカス移動とResetも含みます。再生、オフセット精度、ビットレート制御、実機、キャスト、オフライン再生、Analytics受信を検証した結果ではありません。iOSの共有UIと再生については、2026-10-19の記録を別途記載しています。"
+      },
+      {
+        "source": "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
+        "text": "設定11項目にアプリ独自の編集GUIがあります。ソースURL、HLS／MP4形式、タイトル、ポスターURL、秒単位の開始オフセットと基準、自動再生、起動時ミュート、SDKのタイムシフト、bit/s単位の最大ビットレート、秒単位の前方バッファーです。Applyは入力検証後、ソースだけの変更では再ロードし、起動時設定の変更ではプレイヤーを再生成します。ソースオプション、UIモード、ログ、アプリのDVRスイッチを保持し、再生位置はリセットします。Reset to appliedが戻すのはドラフトだけです。"
       },
       {
         "source": "The iOS application also covers iPadOS; both have identical audited API availability and app control paths.",
         "text": "iOSアプリにはiPadOSも含まれます。調査したAPIの利用可能範囲とアプリの操作経路は共通です。"
       },
       {
-        "source": "Five configuration fields are constrained presets: two fixed HLS source URLs and four UI variants backed by bundled JS/CSS resources. Missing custom resources fall back to the SDK UI.",
-        "text": "五つの設定フィールドが限定プリセットです。固定HLSソースURL二候補と、同梱JS・CSSを使うUI四候補に対応します。カスタムファイルが見つからない場合はSDK UIに戻ります。"
+        "source": "Four configuration fields remain constrained UI presets backed by bundled JS/CSS resources: uiManagerFactoryFunction, playerUiJs, playerUiCss and userInterfaceConfig. Missing custom resources fall back to the SDK UI; source URLs and HLS/MP4 type are editable.",
+        "text": "四つの設定フィールドは、同梱JS・CSSを使う限定UIプリセットです。uiManagerFactoryFunction、playerUiJs、playerUiCss、userInterfaceConfigが該当します。カスタムファイルが見つからない場合はSDK UIに戻ります。ソースURLとHLS／MP4形式は編集できます。"
       },
       {
         "source": "Eight runtime control candidates are sdk-ui-unverified; their evidence identifies only the native SDK UI container.",
@@ -159,8 +163,8 @@
         "text": "「GUIで直接指定」は、アプリ独自の操作がサポートされる引数を任意に受け取るか、引数のない操作を呼び出す場合です。「限定プリセット」は、固定のソース・値・UI候補からの選択であり、任意の引数を指定できることは意味しません。"
       },
       {
-        "source": "Fixed construction values and namespace access are code-only. App DvrKit flags are excluded from SDK configuration counts; Allow DVR does not configure PlaybackConfig.isTimeShiftEnabled.",
-        "text": "生成時の固定値と名前空間へのアクセスは「コードのみ」です。アプリ側DvrKitのフラグはSDK設定に含めません。Allow DVRはPlaybackConfig.isTimeShiftEnabledを設定しません。"
+        "source": "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
+        "text": "名前空間のコンテナーは「コードのみ」とし、個別に対応付けた末端の項目だけをGUIの対応件数に含めます。Allow DVR controlsはアプリ側DvrKitのフラグを変更し、別のSDK time shift操作がPlaybackConfig.isTimeShiftEnabledを変更します。"
       },
       {
         "source": "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
@@ -175,16 +179,20 @@
         "text": "監視しているイベントIDは四件です。SourceLoaded・TimeShifted・DvrWindowExceededは名前付きログに記録し、TimeChangedはDVR表示の更新だけを行います。イベントのペイロードフィールドを表示するGUIはありません。"
       },
       {
-        "source": "Only app-owned GUI controls and derived displays are statically qualified. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
-        "text": "アプリが用意するGUI操作と派生表示だけを静的に確認しています。SDK提供のUIには、対応するAPIとの結び付けと実行時の証跡がない限り、直接指定・プリセットの対応件数を付けません。"
+        "source": "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
+        "text": "アプリ独自の設定操作と派生表示には、実際のソース上の結び付けがあります。SDK提供のUIには、対応するAPIとの結び付けと実行時の証跡がない限り、直接指定・プリセットの対応件数を付けません。"
       },
       {
-        "source": "No licensed playback, simulator, device, tvOS remote, casting, offline or bridge runtime validation was performed for this inventory.",
-        "text": "このインベントリの作成では、ライセンスを使った再生、シミュレーター、実機、tvOSリモコン、キャスト、オフライン、ブリッジの実行時検証は実施していません。"
+        "source": "The 2026-10-20 record reports 6 hostless configuration tests on each Apple simulator platform and 1 GUI test on each iPhone, iPad and Apple TV simulator, including tvOS remote focus and Reset. These checks do not qualify playback, offset accuracy, bitrate enforcement, physical devices, casting, offline playback or Analytics receipt; the 2026-10-19 iOS shared-UI playback record is documented separately.",
+        "text": "2026-10-20の記録では、Appleの各プラットフォームのシミュレーターでホストなしの設定テスト6件と、iPhone・iPad・Apple TVの各シミュレーターでGUIテスト1件が成功しています。tvOSのリモコンによるフォーカス移動とResetも含みます。再生、オフセット精度、ビットレート制御、実機、キャスト、オフライン再生、Analytics受信を検証した結果ではありません。iOSの共有UIと再生については、2026-10-19の記録を別途記載しています。"
       },
       {
-        "source": "The UI variant picker is excluded on tvOS. The app always constructs System UI; only SourceConfig.url is a configuration preset.",
-        "text": "tvOSではUI候補を選ぶGUIがありません。常にSystem UIを生成し、設定のプリセットに数えるのはSourceConfig.urlだけです。"
+        "source": "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
+        "text": "設定11項目にアプリ独自の編集GUIがあります。ソースURL、HLS／MP4形式、タイトル、ポスターURL、秒単位の開始オフセットと基準、自動再生、起動時ミュート、SDKのタイムシフト、bit/s単位の最大ビットレート、秒単位の前方バッファーです。Applyは入力検証後、ソースだけの変更では再ロードし、起動時設定の変更ではプレイヤーを再生成します。ソースオプション、UIモード、ログ、アプリのDVRスイッチを保持し、再生位置はリセットします。Reset to appliedが戻すのはドラフトだけです。"
+      },
+      {
+        "source": "The UI variant picker is excluded on tvOS and System UI is fixed. The native full-screen editor exposes the same 11 configuration leaves as iOS; there are no configuration presets.",
+        "text": "tvOSにはUI候補を選ぶGUIがなく、System UIを固定で使用します。ネイティブの全画面エディターではiOSと同じ設定11項目を編集でき、設定の限定プリセットはありません。"
       },
       {
         "source": "Opaque native System UI controls have not been mapped to Core API members. No app-owned play, pause, volume, track or fullscreen control is credited.",
@@ -241,8 +249,8 @@
         "text": "Cast、IMA、DRM、オフライン、低遅延、VR、PiP、Analyticsは、素材・依存ライブラリ・ライセンス・ハードウェア・組み込み条件を満たせば利用できるSDK APIとして残しています。試験用の実機がないことを理由に分母から除外しません。"
       },
       {
-        "source": "OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig rather than an SDK configuration field.",
-        "text": "OfflineManagerはGUIに接続されていません。ヘルパー内の呼び出しは「コードのみ」です。Allow DVRが変更するのはアプリ側のDvrConfigであり、SDKの設定フィールドではありません。"
+        "source": "OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig; the separate SDK time shifting editor changes PlaybackConfig.isTimeShiftEnabled.",
+        "text": "OfflineManagerはGUIに接続されていません。ヘルパー内の呼び出しは「コードのみ」です。Allow DVRが変更するのはアプリ側のDvrConfigで、別のSDK time shifting編集項目がPlaybackConfig.isTimeShiftEnabledを変更します。"
       },
       {
         "source": "jsLocation/cssLocation remain constant and match SDK defaults, so the UI mode picker does not receive GUI field credit for them.",
@@ -253,8 +261,36 @@
         "text": "duration・maxTimeShift・timeShiftは画面上のDVR情報に使われます。isLiveとcurrentTimeはコピーされますが、Dvr.deriveStateでは使われないため、GUIの観測件数には含めません。"
       },
       {
-        "source": "Source evidence reads only four explicit public app source files. No environment files, native local properties, license values or device state are accessed.",
-        "text": "証跡の取得では、明示した四つの公開アプリソースだけを読み取ります。環境設定ファイル、ネイティブのローカル設定、ライセンス値、実機の状態は参照しません。"
+        "source": "Source evidence reads only six explicit public app source files, including Configuration.kt and ConfigurationPanel.kt. No environment files, native local properties, license values or device state are accessed.",
+        "text": "証跡の取得では、Configuration.ktとConfigurationPanel.ktを含む、明示した六つの公開アプリソースだけを読み取ります。環境設定ファイル、ネイティブのローカル設定、ライセンス値、実機の状態は参照しません。"
+      },
+      {
+        "source": "17 individual configuration leaves are editable: source URL, all four source types, title, poster URL, persistent poster, start offset and timeline reference; autoplay, startup mute, SDK time shifting; startup/restart thresholds and forward buffer; maximum automatic video bitrate, preload, rebuffering and live quality/stability balance.",
+        "text": "設定の末端17項目を編集できます。ソースURL、四つのソース形式、タイトル、ポスターURL、ポスターの継続表示、開始オフセットと基準、自動再生、起動時ミュート、SDKのタイムシフト、開始時・再バッファー時のしきい値と前方バッファー、自動画質選択の最大ビデオビットレート、プリロード、再バッファーの許可、ライブの画質と安定性の比重です。"
+      },
+      {
+        "source": "PlayerConfig.playbackConfig, PlayerConfig.bufferConfig, PlayerConfig.adaptationConfig, SourceConfig.options and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary configuration objects.",
+        "text": "PlayerConfig.playbackConfig、PlayerConfig.bufferConfig、PlayerConfig.adaptationConfig、SourceConfig.options、BufferConfig.audioAndVideoは所有する設定への結び付けであり、「コードのみ」です。任意の設定オブジェクトを編集するGUIではありません。"
+      },
+      {
+        "source": "Source Apply validates HTTP(S) URLs and finite offset seconds, constructs Source(SourceConfig) and invokes Player.load(Source). Only this load overload is an app GUI path. Player.config, Source.config and Player.isDestroyed reads in tests receive no observed GUI credit; Player.on/off and Source.on/off remain listener lifecycle code.",
+        "text": "ソースのApplyはHTTP(S) URLと有限の秒数オフセットを検証し、Source(SourceConfig)を生成してPlayer.load(Source)を呼びます。GUIにつながるloadのオーバーロードはこれだけです。テストで読むPlayer.config、Source.config、Player.isDestroyedにはGUIの観測件数を付けません。Player.on/offとSource.on/offはリスナーのライフサイクル処理です。"
+      },
+      {
+        "source": "Player Apply recreates the player and reloads the retained source options, preserving UI mode, log and app Allow DVR. Playback position resets. Source Reset restores the applied source draft; Player Reset restores SDK-default draft values. Reset alone does not apply either draft.",
+        "text": "プレイヤーのApplyは、UIモード、ログ、アプリのAllow DVRを保持して再生成し、保持したソースオプションで再ロードします。再生位置はリセットします。ソースのResetは適用済みソースのドラフトに、プレイヤーのResetはSDK既定値のドラフトに戻します。Resetだけではどちらも適用しません。"
+      },
+      {
+        "source": "Buffer durations are finite seconds: forward buffer is at least 0.5, and nonnegative startup/restart thresholds are at most forward minus 0.5, allowing 1 ULP of subtraction error. Automatic video bitrate is a nonnegative Int in bit/s; empty means 2147483647 with no ABR cap. Quality/stability balance is 0 through 1 and applies near the live edge.",
+        "text": "バッファーは有限の秒数です。前方バッファーは0.5以上、開始時・再バッファー時のしきい値は非負で、前方バッファーから0.5を引いた値以下とし、減算誤差を1 ULPまで許容します。自動画質選択のビデオビットレートはbit/s単位の非負のIntです。空欄は2147483647となり、ABRの上限を設けません。画質と安定性の比重は0から1で、ライブ端の近くに適用します。"
+      },
+      {
+        "source": "The 2026-10-20 record reports 12 JVM tests, 4 dummy-license configuration/ownership checks and 1 licensed configured-VOD check passing on an Android phone emulator. Configured VOD used a 10-second start offset, autoplay and mute. Touch and D-pad input were checked; physical Android TV, Fire TV, completed SDK resource cleanup, casting, offline playback and Analytics receipt remain unqualified.",
+        "text": "2026-10-20の記録では、JVMテスト12件、ダミーライセンスを使う設定・所有権テスト4件、許可済みライセンスを使う設定後のVODテスト1件がAndroidの電話エミュレーターで成功しています。VODでは開始オフセット10秒、自動再生、ミュートを適用しました。タッチとD-pad入力を確認していますが、Android TV・Fire TVの実機、SDK内部のリソース解放完了、キャスト、オフライン再生、Analytics受信は未検証です。"
+      },
+      {
+        "source": "An earlier licensed group passed 6 of 7 checks and reported non-network timeout 1004 in the existing shared-UI/DVR controls check. Separate base and changed-app runs both failed return-to-live; this does not establish the grouped timeout cause. The shared-UI/live-edge path remains unqualified for 3.171.0, with no relaxed error or timing thresholds.",
+        "text": "先行する許可済みライセンスのまとめ実行では7件中6件が成功し、既存の共有UI・DVR操作テストでネットワーク以外のタイムアウト1004を記録しました。別々の比較実行では変更前と変更後の両方がライブ復帰に失敗しましたが、まとめ実行のタイムアウトの原因が同じと証明したものではありません。共有UIとライブ復帰の経路は3.171.0で未検証のままとし、エラーや時間のしきい値は緩めていません。"
       },
       {
         "source": "configuration_named_types: 242 configuration, 5 observation.",

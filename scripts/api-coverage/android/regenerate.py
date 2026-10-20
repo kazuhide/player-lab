@@ -22,7 +22,9 @@ MAIN = 'apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt'
 SOURCE = 'apps/android/app/src/main/kotlin/com/showcase/app/Sources.kt'
 OFFLINE = 'apps/android/app/src/main/kotlin/com/showcase/app/OfflineManager.kt'
 DVR = 'apps/android/dvr/src/main/kotlin/com/showcase/dvr/Dvr.kt'
-APP_INPUTS = (MAIN, SOURCE, OFFLINE, DVR)
+CONFIG = 'apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt'
+EDITOR = 'apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt'
+APP_INPUTS = (MAIN, SOURCE, OFFLINE, DVR, CONFIG, EDITOR)
 GUI_STATUSES = {'direct', 'preset'}
 
 
@@ -37,7 +39,7 @@ def canonical_id(row):
     return 'android:' + row['owner'] + '.' + member + suffix
 
 
-def reference_evidence(repo, needle='PlayerView(context, controller.player, playerViewConfig(uiMode))', symbol='ShowcaseScreen'):
+def reference_evidence(repo, needle='PlayerView(context, displayedPlayer, playerViewConfig(uiMode))', symbol='ShowcaseScreen'):
     content = (repo / MAIN).read_bytes()
     line = next(i + 1 for i, text in enumerate(content.decode().splitlines()) if needle in text)
     return {'kind':'app', 'file':MAIN, 'sha256':sha256(content), 'line':line, 'symbol':symbol}
@@ -49,7 +51,7 @@ def portable_evidence(items):
         result = {'kind':'app', 'file':item['file'], 'sha256':item['source_sha256']}
         for key in ('line', 'symbol'):
             if key in item:
-                result[key] = item[key].split(' ')[0] if key == 'symbol' else item[key]
+                result[key] = item[key]
         if result not in evidence:
             evidence.append(result)
     return evidence
@@ -208,10 +210,17 @@ def normalize(scoped, all_public, inventory, repo):
         'Default UI configuration uses SDK defaults. Synced app assets have the same filenames as default Web UI assets; bundle provenance and native SDK UI actions remain unaudited.',
         'Current UI choices are Default/Sports/Live/Cinema. No TvUi/focus selector is exposed. Android TV/Fire TV remote input and device-only behavior were not tested.',
         'Cast, IMA, DRM, offline, low-latency, VR, PiP and Analytics remain SDK-available with their media, dependency, license, hardware or integration prerequisites; lack of a test device does not remove them.',
-        'OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig rather than an SDK configuration field.',
+        'OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig; the separate SDK time shifting editor changes PlaybackConfig.isTimeShiftEnabled.',
         'jsLocation/cssLocation remain constant and match SDK defaults, so the UI mode picker does not receive GUI field credit for them.',
         'duration/maxTimeShift/timeShift contribute to the rendered DVR text. isLive/currentTime are copied but unused by Dvr.deriveState and receive no observed GUI credit.',
-        'Source evidence reads only four explicit public app source files. No environment files, native local properties, license values or device state are accessed.',
+        'Source evidence reads only six explicit public app source files, including Configuration.kt and ConfigurationPanel.kt. No environment files, native local properties, license values or device state are accessed.',
+        '17 individual configuration leaves are editable: source URL, all four source types, title, poster URL, persistent poster, start offset and timeline reference; autoplay, startup mute, SDK time shifting; startup/restart thresholds and forward buffer; maximum automatic video bitrate, preload, rebuffering and live quality/stability balance.',
+        'PlayerConfig.playbackConfig, PlayerConfig.bufferConfig, PlayerConfig.adaptationConfig, SourceConfig.options and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary configuration objects.',
+        'Source Apply validates HTTP(S) URLs and finite offset seconds, constructs Source(SourceConfig) and invokes Player.load(Source). Only this load overload is an app GUI path. Player.config, Source.config and Player.isDestroyed reads in tests receive no observed GUI credit; Player.on/off and Source.on/off remain listener lifecycle code.',
+        'Player Apply recreates the player and reloads the retained source options, preserving UI mode, log and app Allow DVR. Playback position resets. Source Reset restores the applied source draft; Player Reset restores SDK-default draft values. Reset alone does not apply either draft.',
+        'Buffer durations are finite seconds: forward buffer is at least 0.5, and nonnegative startup/restart thresholds are at most forward minus 0.5, allowing 1 ULP of subtraction error. Automatic video bitrate is a nonnegative Int in bit/s; empty means 2147483647 with no ABR cap. Quality/stability balance is 0 through 1 and applies near the live edge.',
+        'The 2026-10-20 record reports 12 JVM tests, 4 dummy-license configuration/ownership checks and 1 licensed configured-VOD check passing on an Android phone emulator. Configured VOD used a 10-second start offset, autoplay and mute. Touch and D-pad input were checked; physical Android TV, Fire TV, completed SDK resource cleanup, casting, offline playback and Analytics receipt remain unqualified.',
+        'An earlier licensed group passed 6 of 7 checks and reported non-network timeout 1004 in the existing shared-UI/DVR controls check. Separate base and changed-app runs both failed return-to-live; this does not establish the grouped timeout cause. The shared-UI/live-edge path remains unqualified for 3.171.0, with no relaxed error or timing thresholds.',
     ] + count_notes + overload_notes
     result = {'id':'android', 'sdkId':'android', 'platform':'Android', 'rows':output_rows,
               'excluded':[{'id':identifier, 'reason':reason} for identifier, reason in sorted(excluded.items())],

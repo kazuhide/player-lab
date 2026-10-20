@@ -36,9 +36,17 @@ enum UiMode: String, CaseIterable, Identifiable {
 /// simulator; device playback needs a licensed app identifier.
 final class PlayerModel: ObservableObject {
     /// The UI is fixed at player-creation time (it lives on `PlayerConfig.styleConfig`), so
-    /// switching the factory recreates the player; SwiftUI rebuilds the view (keyed on `uiMode`).
+    /// switching the factory recreates the player; SwiftUI rebuilds the view for each generation.
     @Published private(set) var player: Player
     @Published private(set) var uiMode: UiMode = .default
+    @Published private(set) var playerGeneration = UUID()
+    @Published private(set) var sourceSettings: SourceSettings?
+    @Published private(set) var playerSettings = PlayerSettings()
+    @Published private(set) var configurationStatus = "Startup defaults active"
+
+    var configurationDraft: ConfigurationDraft {
+        ConfigurationDraft(source: sourceSettings, player: playerSettings)
+    }
 
     @Published private(set) var dvr: DvrState = Dvr.deriveState(
         PlayerSnapshot(isLive: false, duration: 0, maxTimeShift: 0, timeShift: 0, currentTime: 0),
@@ -51,7 +59,6 @@ final class PlayerModel: ObservableObject {
 
     private let licenseKey: String
     private let analyticsLicenseKey: String
-    private var currentSource: ShowcaseSource?
     private var cancellables = Set<AnyCancellable>()
     private var lastSnapshot: PlayerSnapshot?
 
@@ -59,7 +66,8 @@ final class PlayerModel: ObservableObject {
         self.licenseKey = licenseKey
         self.analyticsLicenseKey = analyticsLicenseKey
         player = PlayerModel.makePlayer(
-            licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey, uiMode: .default)
+            licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
+            uiMode: .default, settings: PlayerSettings())
         bindEvents()
     }
 
@@ -68,27 +76,55 @@ final class PlayerModel: ObservableObject {
     func setUiMode(_ mode: UiMode) {
         guard mode != uiMode else { return }
         uiMode = mode
+        recreatePlayer()
+        append("UI → \(mode.rawValue)")
+    }
+
+    func effect(for configuration: ValidatedConfiguration) -> ConfigurationEffect {
+        if configuration.player != playerSettings { return .recreatePlayer }
+        if configuration.source != sourceSettings { return .reloadSource }
+        return .none
+    }
+
+    /// Validation completes before touching either the active source or player.
+    @discardableResult
+    func apply(_ draft: ConfigurationDraft) throws -> ConfigurationEffect {
+        let configuration = try draft.validated()
+        let effect = effect(for: configuration)
+        guard effect != .none else { return .none }
+        sourceSettings = configuration.source
+        playerSettings = configuration.player
+        switch effect {
+        case .recreatePlayer: recreatePlayer()
+        case .reloadSource: reloadCurrentSource()
+        case .none: break
+        }
+        configurationStatus = effect.description
+        append(effect.description)
+        return effect
+    }
+
+    private func recreatePlayer() {
         let previous = player
         cancellables.removeAll()
         lastSnapshot = nil
         let next = PlayerModel.makePlayer(
-            licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey, uiMode: mode)
+            licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
+            uiMode: uiMode, settings: playerSettings)
         player = next
+        playerGeneration = UUID()
         bindEvents()
-        if let source = currentSource {
-            next.load(sourceConfig: SourceConfig(url: source.url, type: source.kind.bitmovinType))
-        }
+        reloadCurrentSource()
+        refresh()
         previous.destroy()
-        append("UI → \(mode.rawValue)")
     }
 
     private static func makePlayer(
-        licenseKey: String, analyticsLicenseKey: String, uiMode: UiMode
+        licenseKey: String, analyticsLicenseKey: String, uiMode: UiMode, settings: PlayerSettings
     ) -> Player {
         let config = PlayerConfig()
         config.key = licenseKey
-        config.playbackConfig.isAutoplayEnabled = false
-        config.playbackConfig.isMuted = true
+        settings.apply(to: config)
         #if os(tvOS)
         // tvOS: native System UI — the Web UI is unavailable here (§12).
         config.styleConfig.userInterfaceType = .system
@@ -117,9 +153,19 @@ final class PlayerModel: ObservableObject {
     }
 
     func load(_ source: ShowcaseSource) {
-        currentSource = source
+        sourceSettings = SourceSettings(source)
         append("load \(source.label)")
-        player.load(sourceConfig: SourceConfig(url: source.url, type: source.kind.bitmovinType))
+        reloadCurrentSource()
+    }
+
+    func loadInitialSource() {
+        guard sourceSettings == nil, let first = Sources.all.first else { return }
+        load(first)
+    }
+
+    private func reloadCurrentSource() {
+        guard let sourceSettings else { return }
+        player.load(sourceConfig: sourceSettings.makeSourceConfig())
     }
 
     func goToLiveEdge() {
@@ -128,7 +174,7 @@ final class PlayerModel: ObservableObject {
 
     /// Seek to an offset relative to the live edge (timeShift semantics), clamped.
     func seek(toOffsetFromEdge offset: TimeInterval) {
-        guard timeShiftEnabled else {
+        guard timeShiftEnabled && playerSettings.sdkTimeShiftEnabled else {
             player.timeShift = 0
             return
         }
@@ -155,7 +201,8 @@ final class PlayerModel: ObservableObject {
             append("live→VOD detected (poll)")
         }
         lastSnapshot = snap
-        dvr = Dvr.deriveState(snap, config: DvrConfig(timeShiftEnabled: timeShiftEnabled))
+        dvr = Dvr.deriveState(snap, config: DvrConfig(
+            timeShiftEnabled: timeShiftEnabled && playerSettings.sdkTimeShiftEnabled))
     }
 
     private func append(_ message: String) {
@@ -170,22 +217,32 @@ final class PlayerModel: ObservableObject {
         let player = self.player
         player.events.on(TimeChangedEvent.self)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.refresh() }
+            .sink { [weak self, weak player] _ in
+                guard let self, let player, self.player === player else { return }
+                self.refresh()
+            }
             .store(in: &cancellables)
         player.events.on(SourceLoadedEvent.self)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.append("SourceLoaded"); self?.refresh() }
+            .sink { [weak self, weak player] _ in
+                guard let self, let player, self.player === player else { return }
+                self.append("SourceLoaded"); self.refresh()
+            }
             .store(in: &cancellables)
         player.events.on(TimeShiftedEvent.self)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.append("TimeShifted"); self?.refresh() }
+            .sink { [weak self, weak player] _ in
+                guard let self, let player, self.player === player else { return }
+                self.append("TimeShifted"); self.refresh()
+            }
             .store(in: &cancellables)
         // §5.3: recover from DVRWindowExceeded by snapping to the live edge.
         player.events.on(DvrWindowExceededEvent.self)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.append("DVRWindowExceeded → recover")
-                self?.player.timeShift = 0
+            .sink { [weak self, weak player] _ in
+                guard let self, let player, self.player === player else { return }
+                self.append("DVRWindowExceeded → recover")
+                player.timeShift = 0
             }
             .store(in: &cancellables)
     }

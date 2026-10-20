@@ -5,32 +5,32 @@
         "command": {
           "byStatus": {
             "code-only": 3,
-            "direct": 0,
+            "direct": 1,
             "internal": 3,
             "missing": 81,
             "observed": 0,
-            "preset": 2,
+            "preset": 1,
             "sdk-ui-unverified": 14
           },
           "denominator": 103,
           "deprecated": 4,
-          "percentDirect": 0.0,
+          "percentDirect": 0.97,
           "percentDirectOrPreset": 1.94
         },
         "configuration": {
           "byStatus": {
-            "code-only": 5,
-            "direct": 0,
+            "code-only": 10,
+            "direct": 17,
             "internal": 0,
-            "missing": 284,
+            "missing": 264,
             "observed": 0,
-            "preset": 5,
+            "preset": 3,
             "sdk-ui-unverified": 0
           },
           "denominator": 294,
           "deprecated": 16,
-          "percentDirect": 0.0,
-          "percentDirectOrPreset": 1.7
+          "percentDirect": 5.78,
+          "percentDirectOrPreset": 6.8
         },
         "event": {
           "byStatus": {
@@ -6751,10 +6751,17 @@
         "Default UI configuration uses SDK defaults. Synced app assets have the same filenames as default Web UI assets; bundle provenance and native SDK UI actions remain unaudited.",
         "Current UI choices are Default/Sports/Live/Cinema. No TvUi/focus selector is exposed. Android TV/Fire TV remote input and device-only behavior were not tested.",
         "Cast, IMA, DRM, offline, low-latency, VR, PiP and Analytics remain SDK-available with their media, dependency, license, hardware or integration prerequisites; lack of a test device does not remove them.",
-        "OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig rather than an SDK configuration field.",
+        "OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig; the separate SDK time shifting editor changes PlaybackConfig.isTimeShiftEnabled.",
         "jsLocation/cssLocation remain constant and match SDK defaults, so the UI mode picker does not receive GUI field credit for them.",
         "duration/maxTimeShift/timeShift contribute to the rendered DVR text. isLive/currentTime are copied but unused by Dvr.deriveState and receive no observed GUI credit.",
-        "Source evidence reads only four explicit public app source files. No environment files, native local properties, license values or device state are accessed.",
+        "Source evidence reads only six explicit public app source files, including Configuration.kt and ConfigurationPanel.kt. No environment files, native local properties, license values or device state are accessed.",
+        "17 individual configuration leaves are editable: source URL, all four source types, title, poster URL, persistent poster, start offset and timeline reference; autoplay, startup mute, SDK time shifting; startup/restart thresholds and forward buffer; maximum automatic video bitrate, preload, rebuffering and live quality/stability balance.",
+        "PlayerConfig.playbackConfig, PlayerConfig.bufferConfig, PlayerConfig.adaptationConfig, SourceConfig.options and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary configuration objects.",
+        "Source Apply validates HTTP(S) URLs and finite offset seconds, constructs Source(SourceConfig) and invokes Player.load(Source). Only this load overload is an app GUI path. Player.config, Source.config and Player.isDestroyed reads in tests receive no observed GUI credit; Player.on/off and Source.on/off remain listener lifecycle code.",
+        "Player Apply recreates the player and reloads the retained source options, preserving UI mode, log and app Allow DVR. Playback position resets. Source Reset restores the applied source draft; Player Reset restores SDK-default draft values. Reset alone does not apply either draft.",
+        "Buffer durations are finite seconds: forward buffer is at least 0.5, and nonnegative startup/restart thresholds are at most forward minus 0.5, allowing 1 ULP of subtraction error. Automatic video bitrate is a nonnegative Int in bit/s; empty means 2147483647 with no ABR cap. Quality/stability balance is 0 through 1 and applies near the live edge.",
+        "The 2026-10-20 record reports 12 JVM tests, 4 dummy-license configuration/ownership checks and 1 licensed configured-VOD check passing on an Android phone emulator. Configured VOD used a 10-second start offset, autoplay and mute. Touch and D-pad input were checked; physical Android TV, Fire TV, completed SDK resource cleanup, casting, offline playback and Analytics receipt remain unqualified.",
+        "An earlier licensed group passed 6 of 7 checks and reported non-network timeout 1004 in the existing shared-UI/DVR controls check. Separate base and changed-app runs both failed return-to-live; this does not establish the grouped timeout cause. The shared-UI/live-edge path remains unqualified for 3.171.0, with no relaxed error or timing thresholds.",
         "configuration_named_types: 242 configuration, 5 observation.",
         "configuration_supporting_types: 50 configuration, 13 observation.",
         "events: 115 event.",
@@ -6789,18 +6796,18 @@
             },
             "configuration": {
               "byStatus": {
-                "code-only": 4,
-                "direct": 0,
+                "code-only": 9,
+                "direct": 17,
                 "internal": 0,
-                "missing": 233,
+                "missing": 213,
                 "observed": 0,
-                "preset": 5,
+                "preset": 3,
                 "sdk-ui-unverified": 0
               },
               "denominator": 242,
               "deprecated": 16,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 2.07
+              "percentDirect": 7.02,
+              "percentDirectOrPreset": 8.26
             },
             "event": {
               "byStatus": {
@@ -7035,16 +7042,16 @@
             "command": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 0,
+                "direct": 1,
                 "internal": 1,
                 "missing": 50,
                 "observed": 0,
-                "preset": 2,
+                "preset": 1,
                 "sdk-ui-unverified": 10
               },
               "denominator": 63,
               "deprecated": 4,
-              "percentDirect": 0.0,
+              "percentDirect": 1.59,
               "percentDirectOrPreset": 3.17
             },
             "configuration": {
@@ -7233,32 +7240,32 @@
         "command": {
           "byStatus": {
             "code-only": 3,
-            "direct": 0,
+            "direct": 1,
             "internal": 0,
             "missing": 133,
             "observed": 0,
-            "preset": 2,
+            "preset": 1,
             "sdk-ui-unverified": 8
           },
           "denominator": 146,
           "deprecated": 8,
-          "percentDirect": 0.0,
+          "percentDirect": 0.68,
           "percentDirectOrPreset": 1.37
         },
         "configuration": {
           "byStatus": {
-            "code-only": 6,
-            "direct": 0,
+            "code-only": 7,
+            "direct": 11,
             "internal": 0,
-            "missing": 198,
+            "missing": 187,
             "observed": 0,
-            "preset": 5,
+            "preset": 4,
             "sdk-ui-unverified": 0
           },
           "denominator": 209,
           "deprecated": 11,
-          "percentDirect": 0.0,
-          "percentDirectOrPreset": 2.39
+          "percentDirect": 5.26,
+          "percentDirectOrPreset": 7.18
         },
         "event": {
           "byStatus": {
@@ -7397,14 +7404,15 @@
         "Configuration counts public fields of the selected roots and nested input types. Initializers, enum cases, pure output data, inherited SwiftUI View APIs, and Analytics/Collector modules are outside this scope.",
         "Availability is the declared platform-family surface, not a guarantee that every member exists at the app minimum OS version. Per-symbol introduction metadata is retained in sdk-symbols.json.",
         "Direct means an app-owned control accepts arbitrary supported arguments or invokes an argumentless operation. Preset means a fixed set of sources, values or UI choices; it does not imply arbitrary argument support.",
-        "Fixed construction values and namespace access are code-only. App DvrKit flags are excluded from SDK configuration counts; Allow DVR does not configure PlaybackConfig.isTimeShiftEnabled.",
+        "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
         "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
         "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
         "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
-        "Only app-owned GUI controls and derived displays are statically qualified. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
-        "No licensed playback, simulator, device, tvOS remote, casting, offline or bridge runtime validation was performed for this inventory.",
+        "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
+        "The 2026-10-20 record reports 6 hostless configuration tests on each Apple simulator platform and 1 GUI test on each iPhone, iPad and Apple TV simulator, including tvOS remote focus and Reset. These checks do not qualify playback, offset accuracy, bitrate enforcement, physical devices, casting, offline playback or Analytics receipt; the 2026-10-19 iOS shared-UI playback record is documented separately.",
+        "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
         "The iOS application also covers iPadOS; both have identical audited API availability and app control paths.",
-        "Five configuration fields are constrained presets: two fixed HLS source URLs and four UI variants backed by bundled JS/CSS resources. Missing custom resources fall back to the SDK UI.",
+        "Four configuration fields remain constrained UI presets backed by bundled JS/CSS resources: uiManagerFactoryFunction, playerUiJs, playerUiCss and userInterfaceConfig. Missing custom resources fall back to the SDK UI; source URLs and HLS/MP4 type are editable.",
         "Eight runtime control candidates are sdk-ui-unverified; their evidence identifies only the native SDK UI container.",
         "SourceConfig.cmcdConfig requires OS 18 or later and TweaksConfig.includeMachineGeneratedSubtitles requires OS 27 or later; family-wide availability retains both."
       ],
@@ -7754,17 +7762,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 0,
+                "direct": 1,
                 "internal": 0,
-                "missing": 1,
+                "missing": 0,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 1,
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "event": {
               "byStatus": {
@@ -8338,10 +8346,10 @@
             },
             "configuration": {
               "byStatus": {
-                "code-only": 0,
+                "code-only": 1,
                 "direct": 0,
                 "internal": 0,
-                "missing": 1,
+                "missing": 0,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
@@ -8404,17 +8412,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 0,
+                "direct": 1,
                 "internal": 0,
-                "missing": 1,
+                "missing": 0,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 1,
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "event": {
               "byStatus": {
@@ -11133,18 +11141,18 @@
             },
             "configuration": {
               "byStatus": {
-                "code-only": 2,
-                "direct": 0,
+                "code-only": 0,
+                "direct": 3,
                 "internal": 0,
-                "missing": 4,
+                "missing": 3,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 6,
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 50.0,
+              "percentDirectOrPreset": 50.0
             },
             "event": {
               "byStatus": {
@@ -11184,16 +11192,16 @@
             "command": {
               "byStatus": {
                 "code-only": 1,
-                "direct": 0,
+                "direct": 1,
                 "internal": 0,
                 "missing": 19,
                 "observed": 0,
-                "preset": 2,
+                "preset": 1,
                 "sdk-ui-unverified": 6
               },
               "denominator": 28,
               "deprecated": 4,
-              "percentDirect": 0.0,
+              "percentDirect": 3.57,
               "percentDirectOrPreset": 7.14
             },
             "configuration": {
@@ -11263,10 +11271,10 @@
             },
             "configuration": {
               "byStatus": {
-                "code-only": 3,
+                "code-only": 5,
                 "direct": 0,
                 "internal": 0,
-                "missing": 10,
+                "missing": 8,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
@@ -12499,17 +12507,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 1,
-                "direct": 0,
+                "direct": 4,
                 "internal": 0,
-                "missing": 12,
+                "missing": 9,
                 "observed": 0,
-                "preset": 1,
+                "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 14,
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 7.14
+              "percentDirect": 28.57,
+              "percentDirectOrPreset": 28.57
             },
             "event": {
               "byStatus": {
@@ -13019,17 +13027,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 0,
+                "direct": 2,
                 "internal": 0,
-                "missing": 3,
+                "missing": 1,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 3,
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 66.67,
+              "percentDirectOrPreset": 66.67
             },
             "event": {
               "byStatus": {
@@ -15252,32 +15260,32 @@
         "command": {
           "byStatus": {
             "code-only": 3,
-            "direct": 0,
+            "direct": 1,
             "internal": 0,
             "missing": 103,
-            "observed": 0,
-            "preset": 2,
-            "sdk-ui-unverified": 0
-          },
-          "denominator": 108,
-          "deprecated": 6,
-          "percentDirect": 0.0,
-          "percentDirectOrPreset": 1.85
-        },
-        "configuration": {
-          "byStatus": {
-            "code-only": 7,
-            "direct": 0,
-            "internal": 0,
-            "missing": 172,
             "observed": 0,
             "preset": 1,
             "sdk-ui-unverified": 0
           },
+          "denominator": 108,
+          "deprecated": 6,
+          "percentDirect": 0.93,
+          "percentDirectOrPreset": 1.85
+        },
+        "configuration": {
+          "byStatus": {
+            "code-only": 8,
+            "direct": 11,
+            "internal": 0,
+            "missing": 161,
+            "observed": 0,
+            "preset": 0,
+            "sdk-ui-unverified": 0
+          },
           "denominator": 180,
           "deprecated": 10,
-          "percentDirect": 0.0,
-          "percentDirectOrPreset": 0.56
+          "percentDirect": 6.11,
+          "percentDirectOrPreset": 6.11
         },
         "event": {
           "byStatus": {
@@ -15836,13 +15844,14 @@
         "Configuration counts public fields of the selected roots and nested input types. Initializers, enum cases, pure output data, inherited SwiftUI View APIs, and Analytics/Collector modules are outside this scope.",
         "Availability is the declared platform-family surface, not a guarantee that every member exists at the app minimum OS version. Per-symbol introduction metadata is retained in sdk-symbols.json.",
         "Direct means an app-owned control accepts arbitrary supported arguments or invokes an argumentless operation. Preset means a fixed set of sources, values or UI choices; it does not imply arbitrary argument support.",
-        "Fixed construction values and namespace access are code-only. App DvrKit flags are excluded from SDK configuration counts; Allow DVR does not configure PlaybackConfig.isTimeShiftEnabled.",
+        "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
         "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
         "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
         "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
-        "Only app-owned GUI controls and derived displays are statically qualified. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
-        "No licensed playback, simulator, device, tvOS remote, casting, offline or bridge runtime validation was performed for this inventory.",
-        "The UI variant picker is excluded on tvOS. The app always constructs System UI; only SourceConfig.url is a configuration preset.",
+        "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
+        "The 2026-10-20 record reports 6 hostless configuration tests on each Apple simulator platform and 1 GUI test on each iPhone, iPad and Apple TV simulator, including tvOS remote focus and Reset. These checks do not qualify playback, offset accuracy, bitrate enforcement, physical devices, casting, offline playback or Analytics receipt; the 2026-10-19 iOS shared-UI playback record is documented separately.",
+        "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
+        "The UI variant picker is excluded on tvOS and System UI is fixed. The native full-screen editor exposes the same 11 configuration leaves as iOS; there are no configuration presets.",
         "Opaque native System UI controls have not been mapped to Core API members. No app-owned play, pause, volume, track or fullscreen control is credited.",
         "SDK APIs documented as no-op on tvOS remain in the available denominator when their Swift declaration permits tvOS."
       ],
@@ -16192,17 +16201,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 0,
+                "direct": 1,
                 "internal": 0,
-                "missing": 1,
+                "missing": 0,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 1,
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "event": {
               "byStatus": {
@@ -16581,10 +16590,10 @@
             },
             "configuration": {
               "byStatus": {
-                "code-only": 0,
+                "code-only": 1,
                 "direct": 0,
                 "internal": 0,
-                "missing": 1,
+                "missing": 0,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
@@ -16647,17 +16656,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 0,
+                "direct": 1,
                 "internal": 0,
-                "missing": 1,
+                "missing": 0,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 1,
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "event": {
               "byStatus": {
@@ -18531,18 +18540,18 @@
             },
             "configuration": {
               "byStatus": {
-                "code-only": 2,
-                "direct": 0,
+                "code-only": 0,
+                "direct": 3,
                 "internal": 0,
-                "missing": 4,
+                "missing": 3,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 6,
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 50.0,
+              "percentDirectOrPreset": 50.0
             },
             "event": {
               "byStatus": {
@@ -18582,16 +18591,16 @@
             "command": {
               "byStatus": {
                 "code-only": 1,
-                "direct": 0,
+                "direct": 1,
                 "internal": 0,
                 "missing": 25,
                 "observed": 0,
-                "preset": 2,
+                "preset": 1,
                 "sdk-ui-unverified": 0
               },
               "denominator": 28,
               "deprecated": 4,
-              "percentDirect": 0.0,
+              "percentDirect": 3.57,
               "percentDirectOrPreset": 7.14
             },
             "configuration": {
@@ -18661,10 +18670,10 @@
             },
             "configuration": {
               "byStatus": {
-                "code-only": 3,
+                "code-only": 5,
                 "direct": 0,
                 "internal": 0,
-                "missing": 9,
+                "missing": 7,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
@@ -19767,17 +19776,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 1,
-                "direct": 0,
+                "direct": 4,
                 "internal": 0,
-                "missing": 13,
+                "missing": 10,
                 "observed": 0,
-                "preset": 1,
+                "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 15,
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 6.67
+              "percentDirect": 26.67,
+              "percentDirectOrPreset": 26.67
             },
             "event": {
               "byStatus": {
@@ -20287,17 +20296,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 0,
+                "direct": 2,
                 "internal": 0,
-                "missing": 3,
+                "missing": 1,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
               "denominator": 3,
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 66.67,
+              "percentDirectOrPreset": 66.67
             },
             "event": {
               "byStatus": {
@@ -22772,7 +22781,7 @@
     }
   ],
   "checkedAt": "2026-10-20",
-  "inputSha256": "bbff978e8f9a881dd6e9d4d1450637a9ea3bb335881979fd0ad9913bc3bd25b4",
+  "inputSha256": "e37292e63aca18b626266acbb3c4dabb73bd852e0677efeaa777d9acc57bb083",
   "schemaVersion": 1,
   "sdks": [
     {
@@ -22898,5 +22907,5 @@
       "version": "4.23.0"
     }
   ],
-  "sourceRevision": "ba4d2460ed09fd034c3a011d74cff1ac4f273e1d"
+  "sourceRevision": "4171ec2d6af781c78f440bb69c716b0dd614b400"
 }
