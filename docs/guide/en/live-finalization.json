@@ -13,7 +13,7 @@
     },
     {
       "type": "p",
-      "text": "The app's shared rule treats a finite, positive duration as VOD and Infinity, zero, or NaN as live. This is an application rule for handling SDK snapshots, not a general definition of every media format."
+      "text": "The duration-based rule treats a finite, positive duration as VOD and Infinity, zero, or NaN as live. This is an application rule for interpreting SDK snapshots. Apple also records completion for the current live source because an ended HLS source can retain live/infinite SDK getters."
     },
     {
       "type": "table",
@@ -32,7 +32,7 @@
         ],
         [
           "iOS / tvOS",
-          "Read again on TimeChanged"
+          "TimeChanged and source-owned PlaybackFinished"
         ],
         [
           "React Native",
@@ -84,6 +84,22 @@
     {
       "type": "p",
       "text": "Wait for Seeked before reading relative time to check the completed movement. The app displays relative and absolute time separately. Interpret clock-based displays and latency carefully when the source lacks clock information or the device clock is inaccurate."
+    },
+    {
+      "type": "h2",
+      "text": "Apple HLS can end while its SDK duration remains infinite"
+    },
+    {
+      "type": "p",
+      "text": "On Player 3.128.0, actual HLS completion can leave isLive true and duration infinite. The app records PlaybackFinished only for the current Player and Source that loaded as live, displays ended-live, and disables its live-seek buttons. The shared Live and Sports UIs hide LIVE controls and retain the SDK Replay overlay. Replaying that source keeps its completion state; loading a new source clears it. The SDK timing getters are unchanged."
+    },
+    {
+      "type": "p",
+      "text": "On October 21, 2026, the controlled HLS ending checks passed once each on iOS 26.4 and tvOS 26.4 with Player 3.128.0, in 20.875 and 21.362 seconds. They retained the same Player and source through ENDLIST, observed PlaybackFinished, advanced replay, kept app live commands disabled, and checked reset on a new source. Separate Android Player 3.171.0 HLS and DASH cases obtained finite duration and completed VOD seeking on the same source. These are simulator/emulator checks with real media, separate from licensed physical-device behavior."
+    },
+    {
+      "type": "p",
+      "text": "To repeat native checks, use the fixture-server and Finalization scheme commands in the Apple README, or the Android runtime-fixture and PlayerFinalizationInstrumentedTest commands. The native apps require their allowed Player license. tvOS hosted finalization uses SDK start/replay; actual remote Pause/Play is a separate recorded GUI check."
     }
   ],
   "sources": [
@@ -94,7 +110,7 @@
     },
     {
       "path": "docs/live-to-vod-and-analytics.md",
-      "line": 31,
+      "line": 42,
       "label": "Controlled finalization and timeline origins"
     },
     {
@@ -109,6 +125,11 @@
     {
       "url": "https://dashif.org/DASH-IF-IOP/live2vod/",
       "label": "DASH-IF live-to-VOD transition guidance"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 212,
+      "label": "Native HLS completion and source ownership"
     }
   ]
 }

@@ -133,8 +133,8 @@
         "text": "四つの設定フィールドは、同梱JS・CSSを使う限定UIプリセットです。uiManagerFactoryFunction、playerUiJs、playerUiCss、userInterfaceConfigが該当します。カスタムファイルが見つからない場合はSDK UIに戻ります。ソースURLとHLS／MP4形式は編集できます。"
       },
       {
-        "source": "Eight runtime control candidates are sdk-ui-unverified; their evidence identifies only the native SDK UI container.",
-        "text": "実行時の操作候補八件は「SDK UIは未確認」です。証跡が示すのはネイティブSDK UIの入れ物だけです。"
+        "source": "All eight SDK Default UI candidates were checked on an iPhone simulator with Player 3.128.0 and the generated 60-second multi-audio HLS. Actual touch and read-only native observations qualified Play, Pause, seek and the dynamic available-audio menu as direct. The five fixed speed values receive preset credit; actual 2x and the second audio track reached the native SDK. Volume and enter/exit fullscreen are missing in this host: speaker touch only changes mute, no touch volume slider is offered, and no fullscreen handler or visible control is installed. The SDK bridge/UI resource bytes matched the installed app. The two recorded cases passed in 55.381 and 48.599 seconds. No candidate remains sdk-ui-unverified; these are iPhone simulator observations, not physical-device or tvOS UI results.",
+        "text": "Player 3.128.0のiPhoneシミュレーターと生成した60秒・複数音声のHLSで、SDK既定UIの八つの候補を確認しました。実タッチとSDKの読み取り値で、再生・一時停止・シーク・利用可能な音声を動的に列挙するメニューを直接操作として確認しました。速度は五つの固定値なのでプリセットとし、2倍速と第二音声がSDKへ反映されることを確認しました。このアプリ構成ではvolumeと全画面の開始・終了を提供しません。スピーカーボタンはミュートだけを変更し、タッチ用の音量スライダー、全画面ハンドラー、可視の全画面操作はありません。SDKのbridge・UIリソースは実アプリのバイトと一致しました。二つの試験は55.381秒・48.599秒で成功しました。sdk-ui-unverifiedの候補は残っていません。iPhoneシミュレーターの結果であり、物理端末やtvOSのUIを確認した結果ではありません。"
       },
       {
         "source": "SourceConfig.cmcdConfig requires OS 18 or later and TweaksConfig.includeMachineGeneratedSubtitles requires OS 27 or later; family-wide availability retains both.",
