@@ -79,6 +79,36 @@ targets:
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Showcase-iOS.app/Showcase-iOS"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
+  Showcase-iOSConfigurationTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "15.0"
+    # Hostless tests compile the exact shared app model files. Starting the app
+    # itself without a native license is a fatal SDK precondition.
+    sources:
+      - ShowcaseConfigurationTests
+      - Showcase/Configuration.swift
+      - Showcase/PlayerModel.swift
+      - Showcase/Sources.swift
+    dependencies:
+      - package: BitmovinPlayer
+        product: BitmovinPlayer
+      - package: DvrKit
+
+  Showcase-tvOSConfigurationTests:
+    type: bundle.unit-test
+    platform: tvOS
+    deploymentTarget: "15.0"
+    sources:
+      - ShowcaseConfigurationTests
+      - Showcase/Configuration.swift
+      - Showcase/PlayerModel.swift
+      - Showcase/Sources.swift
+    dependencies:
+      - package: BitmovinPlayer
+        product: BitmovinPlayer
+      - package: DvrKit
+
 # Keep app build schemes alongside the opt-in runtime scheme for command-line builds.
 schemes:
   Showcase-iOS:
@@ -95,3 +125,15 @@ schemes:
         Showcase-iOS: all
     test:
       targets: [Showcase-iOSRuntimeTests]
+  Showcase-iOS-Configuration:
+    build:
+      targets:
+        Showcase-iOS: all
+    test:
+      targets: [Showcase-iOSConfigurationTests]
+  Showcase-tvOS-Configuration:
+    build:
+      targets:
+        Showcase-tvOS: all
+    test:
+      targets: [Showcase-tvOSConfigurationTests]
