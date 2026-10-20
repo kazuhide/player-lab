@@ -258,4 +258,7 @@ provide a Player license or establish native playback. For a device run, use
 
 CI builds and syncs the shared UI before generating the project. It also checks
 that the resulting iOS app contains the exact generated JavaScript and CSS.
+The iOS job runs the hostless configuration scheme on an available iPhone
+simulator without a Player license. The tvOS job keeps its generic simulator
+build; the tvOS unit and remote GUI results above are separate recorded checks.
 This packaging check does not establish licensed playback on a device.

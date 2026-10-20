@@ -206,6 +206,31 @@ jobs:
         run: |
           mkdir -p apps/ios/Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
           cp apps/ios/Package.resolved apps/ios/Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+      - name: Test iOS configuration without an app license
+        run: |
+          simulator_id="$(python3 - <<'PY'
+          import json
+          import subprocess
+          inventory = json.loads(subprocess.check_output(
+              ['xcrun', 'simctl', 'list', 'devices', 'available', '-j'], text=True))
+          for runtime, devices in inventory['devices'].items():
+              if '.iOS-' not in runtime:
+                  continue
+              for device in devices:
+                  if device.get('isAvailable') and device.get('name', '').startswith('iPhone'):
+                      print(device['udid'])
+                      raise SystemExit(0)
+          raise SystemExit('No available iPhone simulator was found for the iOS configuration tests.')
+          PY
+          )"
+          cd apps/ios
+          xcodebuild \
+            -project Showcase.xcodeproj -scheme Showcase-iOS-Configuration \
+            -destination "platform=iOS Simulator,id=$simulator_id" \
+            -derivedDataPath "$RUNNER_TEMP/ios-configuration-tests" \
+            -onlyUsePackageVersionsFromResolvedFile \
+            -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=NO test
       - name: Build iOS app (simulator)
         run: |
           cd apps/ios && xcodebuild \
@@ -246,7 +271,7 @@ jobs:
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.0.0" >/dev/null
-      - name: Test DVR, build the app, compile the instrumented test
-        run: cd apps/android && ./gradlew :dvr:test :app:assembleDebug :app:assembleDebugAndroidTest -PbitmovinLicenseKey=dummy
+      - name: Test DVR and configuration, build the app, compile the instrumented test
+        run: cd apps/android && ./gradlew :dvr:test :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest -PbitmovinLicenseKey=dummy
       - name: Check packaged Android shared UI
         run: python3 scripts/check-native-ui.py apps/android/app/build/outputs/apk/debug/app-debug.apk

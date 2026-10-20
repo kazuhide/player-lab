@@ -89,7 +89,7 @@
     },
     {
       "type": "p",
-      "text": "The Showcase-iOS-Configuration and Showcase-tvOS-Configuration schemes run hostless tests on the exact app model/configuration sources without a Player license or shared UI resources. A clearly invalid synthetic key permits SDK object construction only. The tests cover URL/number validation, SDK field mapping, rejected/no-op Apply, source reload, and player recreation retaining source options, UI selection, and the app DVR switch. They do not establish playback or network behavior. Replace the simulator names with installed destinations and run from apps/ios."
+      "text": "The Showcase-iOS-Configuration and Showcase-tvOS-Configuration schemes run hostless tests on the exact app model/configuration sources without a Player license or shared UI resources. A clearly invalid synthetic key permits SDK object construction only. The tests cover URL/number validation, SDK field mapping, rejected/no-op Apply, source reload, and player recreation retaining source options, UI selection, and the app DVR switch. They do not establish playback or network behavior. CI runs the iOS scheme on an available iPhone simulator and keeps a generic tvOS simulator build; the tvOS unit and remote GUI results below are separate recorded checks. Replace the simulator names with installed destinations and run from apps/ios."
     },
     {
       "type": "code",
