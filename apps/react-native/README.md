@@ -91,7 +91,7 @@ including its [platform-specific buffer documentation](https://github.com/bitmov
 The public [Android](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/android/src/main/java/com/bitmovin/player/reactnative/converter/JsonConverter.kt#L163-L165)
 and [iOS](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/ios/RCTConvert%2BBitmovinPlayer.swift#L971-L972)
 converters explain the bitrate integer limits. The URL package documents
-[local imports without replacing global URL](https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0).
+[local imports without replacing global URL](https://github.com/charpeni/react-native-url-polyfill/blob/v4.0.0/README.md).
 Loop is not an exposed configuration property in this wrapper. Native rendering
 and playback require a development build with an authorized Player license.
 
