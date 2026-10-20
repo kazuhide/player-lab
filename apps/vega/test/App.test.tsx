@@ -105,6 +105,23 @@ afterEach(async () => {
 });
 
 describe("Vega configuration in the mounted App and media session", () => {
+  it("shows applied configuration code without exporting drafts or native credentials", async () => {
+    await mount();
+    await press("Show configuration");
+    await press("Show applied code");
+    const code = () => screen.root.findAll((node) => String(node.type) === "Text" &&
+      typeof node.props.children === "string" && node.props.children.includes("const playerConfig ="))[0]!.props.children as string;
+    const original = code();
+    expect(original).toContain("YOUR_PLAYER_KEY");
+    expect(original).not.toContain("licenseKey");
+    await text("Source title", "APPLIED_SOURCE_TITLE");
+    expect(code()).toBe(original);
+    await press("Apply and recreate player");
+    expect(code()).toContain("APPLIED_SOURCE_TITLE");
+    expect(code()).toContain('"ui": false');
+    expect(code()).toContain("native media initialization");
+  });
+
   it("uses a local URL parser when the legacy native URL getters are unavailable", async () => {
     class LegacyURL {
       get protocol(): string { throw new Error("URL.protocol is not implemented"); }

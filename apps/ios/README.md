@@ -262,3 +262,10 @@ The iOS job runs the hostless configuration scheme on an available iPhone
 simulator without a Player license. The workflow keeps its generic tvOS simulator
 build; the tvOS unit and remote GUI results above are separate recorded checks.
 This packaging check does not establish licensed playback on a device.
+
+## Applied configuration code
+
+In **Configuration**, open **Show applied code** to read the applied Player,
+Source and UI settings. Draft edits are excluded. iOS provides **Copy code** and
+text selection; tvOS displays the code without clipboard integration. The Player
+key is a placeholder, and Analytics license values are not included.

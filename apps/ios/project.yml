@@ -88,6 +88,7 @@ targets:
     sources:
       - ShowcaseConfigurationTests
       - Showcase/Configuration.swift
+      - Showcase/ConfigurationCode.swift
       - Showcase/PlayerModel.swift
       - Showcase/Sources.swift
     dependencies:
@@ -102,6 +103,7 @@ targets:
     sources:
       - ShowcaseConfigurationTests
       - Showcase/Configuration.swift
+      - Showcase/ConfigurationCode.swift
       - Showcase/PlayerModel.swift
       - Showcase/Sources.swift
     dependencies:

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const runtime = vi.hoisted(() => {
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY = "test-license";
   process.env.EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY = "";
-  return { os: "android", players: [] as Array<{
+  return { os: "android", clipboard: vi.fn(async (_code: string) => {}), players: [] as Array<{
     config: object;
     load: ReturnType<typeof vi.fn>;
     destroy: ReturnType<typeof vi.fn>;
@@ -21,6 +21,8 @@ vi.mock("react-native", () => ({
   StyleSheet: { create: <T,>(styles: T) => styles },
   NativeModules: {},
 }));
+
+vi.mock("expo-clipboard", () => ({ setStringAsync: runtime.clipboard }));
 
 vi.mock("bitmovin-player-react-native", async () => {
   const { useState } = await import("react");
@@ -62,6 +64,7 @@ async function ready() { await act(async () => element("PlayerView").props.onPla
 beforeEach(async () => {
   runtime.os = "android";
   runtime.players.length = 0;
+  runtime.clipboard.mockClear();
   actEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
   errors = vi.spyOn(console, "error");
 });
@@ -79,6 +82,48 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it("does not acknowledge an older clipboard request beside newly applied code", async () => {
+    let finish!: () => void;
+    runtime.clipboard.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
+    await mount();
+    await ready();
+    await press("Show configuration");
+    await press("Show applied code");
+    await press("Copy code");
+    await text("Source title", "NEW_APPLIED_CODE");
+    await press("Apply and recreate player");
+    await act(async () => finish());
+    const feedback = () => screen.root.findAll((node) => String(node.type) === "Text" && node.props.children === "Copied.");
+    expect(feedback()).toHaveLength(0);
+    await press("Copy code");
+    expect(feedback()).toHaveLength(1);
+    await text("Source title", "ANOTHER_APPLIED_CODE");
+    await press("Apply and recreate player");
+    expect(feedback()).toHaveLength(0);
+  });
+
+  it("exports the applied source and custom UI without copying draft edits or license values", async () => {
+    await mount();
+    await ready();
+    await press("Show configuration");
+    await press("Show applied code");
+    const original = input("Applied configuration code").props.value as string;
+    expect(original).toContain("YOUR_PLAYER_KEY");
+    expect(original).not.toContain("test-license");
+    await text("Source title", "ONLY_AFTER_APPLY");
+    await press("Copy code");
+    expect(runtime.clipboard).toHaveBeenLastCalledWith(original);
+    expect(input("Applied configuration code").props.value).not.toContain("ONLY_AFTER_APPLY");
+    await press("Apply and recreate player");
+    expect(input("Applied configuration code").props.value).toContain("ONLY_AFTER_APPLY");
+    await press("Sports");
+    await press("Copy code");
+    const copied = runtime.clipboard.mock.calls[runtime.clipboard.mock.calls.length - 1]?.[0];
+    expect(copied).toContain("bitmovin.playerui.UIFactory.buildSportsUI");
+    expect(copied).toContain("file:///android_asset/webui/bitmovinplayer-ui.js");
+    expect(copied).not.toContain("test-license");
+  });
+
   it("uses a local URL parser when the legacy native URL getters are unavailable", async () => {
     class LegacyURL {
       get protocol(): string { throw new Error("URL.protocol is not implemented"); }
