@@ -68,7 +68,7 @@ test("@public SDK UI settings release excluded setting controls once", async ({ 
   }
 });
 
-for (const scenario of ["released", "superseded", "active-failure", "active-abort", "released-failure", "released-intent", "pause", "released-pause", "external-source", "unload", "destroy", "play-failure", "superseded-unload-pending", "superseded-external-source", "superseded-unload", "destroy-before-notify", "destroy-notify-invalid", "external-source-play", "active-load-abort", "destroyed-failure", "pause-next-before-unload", "pause-next-after-unload", "pause-next-external-source", "pause-next-external-unload", "pause-next-after-external-unload", "pause-cancelled-load", "pause-receipt-destroy", "active-sdk-cancel", "active-destroy-cancel-message", "destroyed-sdk-cancel", "native-pause"] as const) {
+for (const scenario of ["released", "superseded", "active-failure", "active-abort", "released-failure", "released-intent", "pause", "released-pause", "external-source", "unload", "destroy", "play-failure", "superseded-unload-pending", "superseded-external-source", "superseded-unload", "destroy-before-notify", "destroy-notify-invalid", "external-source-play", "active-load-abort", "destroyed-failure", "pause-next-before-unload", "pause-next-after-unload", "pause-next-external-source", "pause-next-external-unload", "pause-next-after-external-unload", "pause-cancelled-load", "pause-receipt-destroy", "active-sdk-cancel", "active-destroy-cancel-message", "destroyed-sdk-cancel", "native-pause", "api-load-forwarding", "api-same-object", "api-unload-forwarding", "api-load-sync-throw", "api-unload-sync-throw", "api-successor", "api-genuine-failure"] as const) {
   test(`@public SDK recommendation promises retain ownership: ${scenario}`, async ({ page }, testInfo) => {
     await captureAppPlayer(page, scenario.startsWith("pause-"));
     if (scenario === "pause" || scenario === "released-pause" || scenario === "native-pause") {
@@ -81,11 +81,11 @@ for (const scenario of ["released", "superseded", "active-failure", "active-abor
       const module = await import(/* @vite-ignore */ url);
       return module.inspectRecommendationPromises(window.player!, scenario);
     }, { url: helper, scenario });
-    const clicks = scenario === "superseded-external-source" || scenario === "pause-next-external-source" ? 3
-      : scenario.startsWith("superseded") || scenario.startsWith("pause-next-") || scenario === "external-source" || scenario === "external-source-play" ? 2 : 1;
-    const plays = ["native-pause", "pause-next-before-unload", "pause-next-after-unload", "superseded", "superseded-unload-pending", "external-source-play", "active-abort", "released-intent", "play-failure"].includes(scenario) ? 1 : 0;
-    expect(result).toEqual({ loads: clicks, plays, listeners: 0, pauseRestored: true });
-    if (scenario === "active-failure" || scenario === "released-failure" || scenario === "destroyed-failure") {
+    const clicks = scenario === "superseded-external-source" || scenario === "pause-next-external-source" || scenario === "api-successor" ? 3
+      : ["api-load-forwarding", "api-same-object", "api-genuine-failure"].includes(scenario) || scenario.startsWith("superseded") || scenario.startsWith("pause-next-") || scenario === "external-source" || scenario === "external-source-play" ? 2 : 1;
+    const plays = ["api-load-sync-throw", "api-unload-sync-throw", "api-successor", "native-pause", "pause-next-before-unload", "pause-next-after-unload", "superseded", "superseded-unload-pending", "external-source-play", "active-abort", "released-intent", "play-failure"].includes(scenario) ? 1 : 0;
+    expect(result).toEqual({ loads: clicks, plays, listeners: 0, pauseRestored: true, loadRestored: true, unloadRestored: true });
+    if (scenario === "active-failure" || scenario === "released-failure" || scenario === "destroyed-failure" || scenario === "api-genuine-failure") {
       expect(errors).toEqual(["Recommendation fixture load failed"]);
     } else if (scenario === "play-failure") {
       expect(errors).toEqual(["Recommendation fixture play failed"]);
@@ -116,7 +116,7 @@ test("@public SDK recommendation promises survive real API invalidation before D
   expect(errors).toEqual([]);
 });
 
-for (const scenario of ["superseded", "paused-previous", "paused-current", "destroyed"] as const) {
+for (const scenario of ["superseded", "paused-previous", "paused-current", "destroyed", "external-load", "external-same-object", "external-unload"] as const) {
   test(`@public SDK real recommendation race: ${scenario}`, async ({ page }, testInfo) => {
     await captureAppPlayer(page, true);
     const errors: string[] = [];
@@ -133,10 +133,15 @@ for (const scenario of ["superseded", "paused-previous", "paused-current", "dest
         return module.startRealRecommendationRace(window.player!, scenario);
       }, { url: helper, scenario });
       expect(initial).toEqual({ autoplay: false, playing: scenario.startsWith("paused-") });
-      if (scenario !== "destroyed") {
-        await expect.poll(() => page.evaluate(() => window.player!.getSource()?.title)).toBe("Race recommendation B");
+      if (scenario === "external-unload") {
+        await expect.poll(() => page.evaluate(() => window.player!.getSource())).toBeNull();
+        expect(await page.evaluate(() => window.player!.isPlaying())).toBe(false);
+        await page.waitForTimeout(100); // Drain the retired recommendation rejection after unload.
+      } else if (scenario !== "destroyed") {
+        await expect.poll(() => page.evaluate(() => window.player!.getSource()?.title))
+          .toBe(scenario === "external-same-object" ? "Race recommendation A" : "Race recommendation B");
         await expect.poll(() => page.evaluate(() => window.player!.getVideoElement().readyState)).toBeGreaterThanOrEqual(3);
-        if (scenario === "paused-current") {
+        if (scenario === "paused-current" || scenario.startsWith("external-")) {
           const before = await page.evaluate(() => window.player!.getVideoElement().currentTime);
           await page.waitForTimeout(300); // Span queued Paused delivery and load/play settlement.
           expect(await page.evaluate(() => ({ paused: window.player!.getVideoElement().paused,

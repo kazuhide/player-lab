@@ -256,7 +256,7 @@ diff --git a/dist/js/framework/utils/RecommendationPlayback.js b/dist/js/framewo
 new file mode 100644
 --- /dev/null
 +++ b/dist/js/framework/utils/RecommendationPlayback.js
-@@ -0,0 +1,149 @@
+@@ -0,0 +1,168 @@
 +"use strict";
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.playRecommendation = playRecommendation;
@@ -333,10 +333,14 @@ new file mode 100644
 +    var cancelled = false;
 +    var playRequested = false;
 +    var originalPause = player.pause;
++    var originalLoad = player.load;
++    var originalUnload = player.unload;
 +    var action = { cancel: cancel };
 +    function cleanup() {
 +        try {
 +            if (player.pause === pause) player.pause = originalPause;
++            if (player.load === load) player.load = originalLoad;
++            if (player.unload === unload) player.unload = originalUnload;
 +        } finally {
 +            if (state.action === action) state.action = null;
 +            state.cleanup();
@@ -361,6 +365,18 @@ new file mode 100644
 +        cancel();
 +        return originalPause.apply(this, arguments);
 +    }
++    function load() {
++        // Synchronous rejection leaves the existing intent intact. An accepted
++        // external call retires only this captured action, preserving its result.
++        var result = originalLoad.apply(this, arguments);
++        cancel();
++        return result;
++    }
++    function unload() {
++        var result = originalUnload.apply(this, arguments);
++        cancel();
++        return result;
++    }
 +    function fail(error) {
 +        var browserCancellation = typeof DOMException !== 'undefined' && error instanceof DOMException && error.name === 'AbortError';
 +        // Web 8.280 rejects superseded/destroyed load promises with these
@@ -381,10 +397,13 @@ new file mode 100644
 +    }
 +    state.action = action;
 +    player.pause = pause;
++    player.load = load;
++    player.unload = unload;
 +    state.listen();
 +    var loading;
 +    try {
-+        loading = player.load(source);
++        // Bypass this action's external-load hook for its own initial request.
++        loading = originalLoad.call(player, source);
 +    } catch (error) {
 +        // A synchronous validation failure that leaves the previous source in
 +        // place did not initiate the teardown represented by this new receipt.

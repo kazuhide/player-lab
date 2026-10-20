@@ -195,7 +195,7 @@ export function inspectExcludedSettingsRelease(player: PlayerAPI) {
 // Exercise the actual SDK component, UI manager and DOM click with controlled
 // public load/play promises. The browser test observes genuine unhandled errors
 // through Playwright; this helper installs no rejection listener or suppressor.
-export async function inspectRecommendationPromises(player: PlayerAPI, scenario: "released" | "superseded" | "active-failure" | "active-abort" | "released-failure" | "released-intent" | "pause" | "released-pause" | "external-source" | "unload" | "destroy" | "play-failure" | "superseded-unload-pending" | "superseded-external-source" | "superseded-unload" | "destroy-before-notify" | "destroy-notify-invalid" | "external-source-play" | "active-load-abort" | "destroyed-failure" | "pause-next-before-unload" | "pause-next-after-unload" | "pause-next-external-source" | "pause-next-external-unload" | "pause-next-after-external-unload" | "pause-cancelled-load" | "pause-receipt-destroy" | "active-sdk-cancel" | "active-destroy-cancel-message" | "destroyed-sdk-cancel" | "native-pause") {
+export async function inspectRecommendationPromises(player: PlayerAPI, scenario: "released" | "superseded" | "active-failure" | "active-abort" | "released-failure" | "released-intent" | "pause" | "released-pause" | "external-source" | "unload" | "destroy" | "play-failure" | "superseded-unload-pending" | "superseded-external-source" | "superseded-unload" | "destroy-before-notify" | "destroy-notify-invalid" | "external-source-play" | "active-load-abort" | "destroyed-failure" | "pause-next-before-unload" | "pause-next-after-unload" | "pause-next-external-source" | "pause-next-external-unload" | "pause-next-after-external-unload" | "pause-cancelled-load" | "pause-receipt-destroy" | "active-sdk-cancel" | "active-destroy-cancel-message" | "destroyed-sdk-cancel" | "native-pause" | "api-load-forwarding" | "api-same-object" | "api-unload-forwarding" | "api-load-sync-throw" | "api-unload-sync-throw" | "api-successor" | "api-genuine-failure") {
   const deferred = () => {
     let resolve!: () => void;
     let reject!: (reason: unknown) => void;
@@ -204,7 +204,11 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
   };
   const loads: (ReturnType<typeof deferred> & { source: Parameters<PlayerAPI["load"]>[0] })[] = [];
   const plays: ReturnType<typeof deferred>[] = [];
+  const unloads: ReturnType<typeof deferred>[] = [];
+  const apiInvocations: { method: string; receiver: unknown; args: unknown[] }[] = [];
+  const externalError = new Error("External API rejected synchronously");
   const load = player.load;
+  const unload = player.unload;
   const play = player.play;
   const pause = player.pause;
   const getSource = player.getSource;
@@ -242,18 +246,34 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
     if (invalidated) throw new player.exports.PlayerAPINotAvailableError("getSource");
     return currentSource;
   };
-  player.load = (source) => {
+  player.load = function (this: unknown, source, ...extra: unknown[]) {
+    apiInvocations.push({ method: "load", receiver: this, args: [source, ...extra] });
+    if (scenario === "api-load-sync-throw" && loads.length === 1) throw externalError;
     const pending = { ...deferred(), source };
     loads.push(pending);
     const unloading = currentSource != null;
     currentSource = null;
     // Web 8.280 clears the receipt before asynchronous SourceUnloaded delivery.
     if (unloading) {
-      if (scenario.startsWith("superseded-") || scenario.startsWith("pause-") || (scenario === "external-source-play" && loads.length === 2)) deferredUnloads++;
+      if (scenario.startsWith("superseded-") || scenario.startsWith("pause-") || scenario.startsWith("api-") || (scenario === "external-source-play" && loads.length === 2)) deferredUnloads++;
       else emit(player.exports.PlayerEvent.SourceUnloaded);
     }
+    // An accepted external API can synchronously cause a newer recommendation.
+    if (scenario === "api-successor" && loads.length === 2) second.getDomElement().get(0).click();
     return pending.promise;
   };
+  const fixtureLoad = player.load;
+  player.unload = function (this: unknown, ...args: unknown[]) {
+    apiInvocations.push({ method: "unload", receiver: this, args });
+    if (scenario === "api-unload-sync-throw") throw externalError;
+    const pending = deferred();
+    unloads.push(pending);
+    const unloading = currentSource != null;
+    currentSource = null;
+    if (unloading) emit(player.exports.PlayerEvent.SourceUnloaded);
+    return pending.promise;
+  };
+  const fixtureUnload = player.unload;
   player.play = () => { const pending = deferred(); plays.push(pending); return pending.promise; };
   const finishLoad = async (index: number) => {
     currentSource = loads[index]!.source;
@@ -273,7 +293,73 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
     first.getDomElement().get(0).click();
     if (loads.length !== 1 || plays.length !== 0) throw new Error("Recommendation must wait for its load before playing");
     if (["released", "released-failure", "released-intent", "released-pause"].includes(scenario)) manager.release();
-    if (scenario.startsWith("pause-")) {
+    if (scenario.startsWith("api-")) {
+      const receiver = {};
+      const extra = {};
+      const replacement = { hls: "https://example.invalid/replacement.m3u8" };
+      const cancelledLoad = new Error("Load call was cancelled by another load or unload call");
+      const notifyInitialUnload = () => {
+        if (deferredUnloads !== 1) throw new Error("Only the initial source has an unload notification");
+        emit(player.exports.PlayerEvent.SourceUnloaded);
+        deferredUnloads--;
+      };
+      if (scenario === "api-load-sync-throw" || scenario === "api-unload-sync-throw") {
+        let caught: unknown;
+        try {
+          Reflect.apply(scenario === "api-load-sync-throw" ? player.load : player.unload,
+            receiver, [replacement, "forwarded", extra]);
+        } catch (error) { caught = error; }
+        if (caught !== externalError) throw new Error("External synchronous errors must preserve identity");
+        if (player.load === fixtureLoad || player.unload === fixtureUnload || player.pause === pause) {
+          throw new Error("A rejected external request must leave recommendation ownership active");
+        }
+        notifyInitialUnload();
+        await finishLoad(0);
+        plays[0]!.resolve();
+      } else if (scenario === "api-unload-forwarding") {
+        const result = Reflect.apply(player.unload, receiver, ["forwarded", extra]);
+        const call = apiInvocations[apiInvocations.length - 1]!;
+        if (result !== unloads[0]!.promise || call.receiver !== receiver || call.args.length !== 2 ||
+            call.args[0] !== "forwarded" || call.args[1] !== extra) throw new Error("Unload forwarding changed its contract");
+        loads[0]!.reject(cancelledLoad);
+        unloads[0]!.resolve();
+        await result;
+        notifyInitialUnload();
+      } else {
+        const requested = scenario === "api-same-object" ? resource : replacement;
+        const result = Reflect.apply(player.load, receiver, [requested, "forwarded", extra]);
+        const call = apiInvocations[1]!;
+        if (result !== loads[1]!.promise || call.receiver !== receiver || call.args.length !== 3 ||
+            call.args[0] !== requested || call.args[1] !== "forwarded" || call.args[2] !== extra) {
+          throw new Error("Load forwarding changed its contract");
+        }
+        if (scenario === "api-successor") {
+          const hooks = { load: player.load, unload: player.unload, pause: player.pause };
+          if (!loads[2] || hooks.load === fixtureLoad || hooks.unload === fixtureUnload) {
+            throw new Error("The reentrant recommendation must own its API hooks");
+          }
+          loads[0]!.reject(cancelledLoad);
+          loads[1]!.resolve();
+          await result;
+          await Promise.resolve();
+          await Promise.resolve();
+          if (player.load !== hooks.load || player.unload !== hooks.unload || player.pause !== hooks.pause) {
+            throw new Error("Old action settlement must not restore over successor hooks");
+          }
+          notifyInitialUnload();
+          await finishLoad(2);
+          plays[0]!.resolve();
+        } else {
+          currentSource = requested;
+          loads[1]!.resolve();
+          await result;
+          if (scenario === "api-same-object") loads[0]!.resolve();
+          else loads[0]!.reject(scenario === "api-genuine-failure"
+            ? new Error("Recommendation fixture load failed") : cancelledLoad);
+          notifyInitialUnload();
+        }
+      }
+    } else if (scenario.startsWith("pause-")) {
       if (player.getConfig(false).playback?.autoplay !== false || !player.getVideoElement().paused) {
         throw new Error("The autoplay=false SDK media element must be paused during teardown");
       }
@@ -416,9 +502,10 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
       }
     }
     await new Promise<void>((resolve) => setTimeout(resolve, 100));
-    return { loads: loads.length, plays: plays.length, listeners: [...listeners.values()].reduce((count, values) => count + values.size, 0), pauseRestored: player.pause === pause };
+    return { loads: loads.length, plays: plays.length, listeners: [...listeners.values()].reduce((count, values) => count + values.size, 0), pauseRestored: player.pause === pause, loadRestored: player.load === fixtureLoad, unloadRestored: player.unload === fixtureUnload };
   } finally {
     player.load = load;
+    player.unload = unload;
     player.play = play;
     player.pause = pause;
     player.getSource = getSource;
@@ -478,7 +565,7 @@ export async function inspectRealRecommendationDestroy() {
 
 // Real load/play promises preserve the SDK's own cancellation and event ordering.
 const realRecommendationRaces = new WeakMap<PlayerAPI, { manager: UIManager; host: HTMLElement }>();
-export async function startRealRecommendationRace(player: PlayerAPI, scenario: "superseded" | "paused-previous" | "paused-current" | "destroyed") {
+export async function startRealRecommendationRace(player: PlayerAPI, scenario: "superseded" | "paused-previous" | "paused-current" | "destroyed" | "external-load" | "external-same-object" | "external-unload") {
   const previous = player.getSource();
   if (!previous?.hls) throw new Error("The real race fixture needs the app's public HLS source");
   const sourceA = { hls: previous.hls, title: "Race recommendation A" };
@@ -498,6 +585,10 @@ export async function startRealRecommendationRace(player: PlayerAPI, scenario: "
   if (scenario === "destroyed") {
     releaseRealRecommendationRace(player);
     await player.destroy();
+  } else if (scenario === "external-load" || scenario === "external-same-object") {
+    await player.load(scenario === "external-same-object" ? sourceA : sourceB);
+  } else if (scenario === "external-unload") {
+    await player.unload();
   } else {
     b.getDomElement().get(0).click();
     if (scenario === "paused-current") player.pause("fixture-pause-current");

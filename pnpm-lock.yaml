@@ -8,7 +8,7 @@ packageExtensionsChecksum: sha256-ih8JGsrqJiP+q3bz64t6r+H7RDJ/Y7Nzf14z+m7G4io=
 
 patchedDependencies:
   bitmovin-player-ui@4.23.0:
-    hash: f6f1d4b7190c6284e2f07416916777cfe18292353481e86bcc5caf8fdabac16a
+    hash: 92cf839f9c6a2f81bda8b908d8c344c1304f299fee4a2394d06a150d9d8942cb
     path: patches/bitmovin-player-ui@4.23.0.patch
 
 importers:
@@ -94,7 +94,7 @@ importers:
     dependencies:
       bitmovin-player-ui:
         specifier: 4.23.0
-        version: 4.23.0(patch_hash=f6f1d4b7190c6284e2f07416916777cfe18292353481e86bcc5caf8fdabac16a)(bitmovin-player@8.280.0)
+        version: 4.23.0(patch_hash=92cf839f9c6a2f81bda8b908d8c344c1304f299fee4a2394d06a150d9d8942cb)(bitmovin-player@8.280.0)
     devDependencies:
       bitmovin-player:
         specifier: 8.280.0
@@ -7674,7 +7674,7 @@ snapshots:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0)
 
-  bitmovin-player-ui@4.23.0(patch_hash=f6f1d4b7190c6284e2f07416916777cfe18292353481e86bcc5caf8fdabac16a)(bitmovin-player@8.280.0):
+  bitmovin-player-ui@4.23.0(patch_hash=92cf839f9c6a2f81bda8b908d8c344c1304f299fee4a2394d06a150d9d8942cb)(bitmovin-player@8.280.0):
     dependencies:
       bitmovin-player: 8.280.0
 

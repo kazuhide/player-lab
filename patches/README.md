@@ -18,8 +18,13 @@ Loading a source can cancel a playback request issued before that load finishes.
 The action waits for loading, then plays only if the same source object still
 belongs to the originating Player. A later recommendation, source change,
 unload, pause request or destruction cancels that action. Changing only the UI
-preserves playback intent. Settling or cancelling an action restores its pause
-hook immediately, only while it still owns that method. Teardown receipts record
+preserves playback intent. Settling or cancelling an action restores its pause,
+load and unload hooks immediately, only while it still owns each method. An
+accepted external load or unload retires the captured action even while the
+source is null or the exact same source object is reused. The hook forwards the
+original receiver, arguments and return value; synchronous rejection preserves
+the existing action and rethrows the original error. The recommendation issues
+its own initial load through the captured method, bypassing its external hook. Teardown receipts record
 the concrete previous source and requested replacement for each recommendation
 load. Their lifetime belongs to the Player: they survive cancellation of the
 playback intent until the ordered `SourceUnloaded` notification or destruction.
