@@ -183,6 +183,19 @@ describe("React Native configuration in the mounted App", () => {
     expect(screen.root.findAll((node) => String(node.type) === "Text" && node.props.children === "Source error")).toHaveLength(1);
   });
 
+  it("logs numeric SDK error codes without copying SDK messages", async () => {
+    await mount();
+    await ready();
+    await act(async () => {
+      element("PlayerView").props.onPlayerError({ code: 1000, message: "opaque SDK detail" });
+      element("PlayerView").props.onSourceError({ code: 2000, message: "opaque SDK detail" });
+    });
+    const labels = screen.root.findAll((node) => String(node.type) === "Text").map((node) => node.props.children);
+    expect(labels).toContain("Player error (1000)");
+    expect(labels).toContain("Source error (2000)");
+    expect(labels).not.toContain("opaque SDK detail");
+  });
+
   it.each([
     ["Source URL", "https:example.com/movie.m3u8"],
     ["Source URL", "https://example.com/a b.m3u8"],
