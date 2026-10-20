@@ -9,15 +9,15 @@
     },
     {
       "type": "p",
-      "text": "apps/react-native は既存の App.tsx、ソース一覧、DVR ロジック、設定画面と、外部 Expo 開発プロジェクトを作るジェネレーターを提供します。生成されるホストは Node 24.19.0、pnpm 10.33.0、Expo 54.0.35、React Native 0.81.5、React 19.1.0、bitmovin-player-react-native 1.28.0 と、Expo 54 に対応する expo-crypto 15.0.9 に固定されます。pnpm-lock.yaml で JavaScript の依存解決も保持します。"
+      "text": "apps/react-native は既存の App.tsx、ソース一覧、DVR ロジック、設定画面と、外部 Expo 開発プロジェクトを作るジェネレーターを提供します。生成されるホストは Node 24.19.0、pnpm 10.33.0、Expo 57.0.30、React Native 0.86.3、React 19.2.3、bitmovin-player-react-native 1.29.0、expo-crypto 57.0.4、expo-clipboard 57.0.2 に固定されます。pnpm-lock.yaml で JavaScript の依存解決も保持します。"
     },
     {
       "type": "p",
-      "text": "ラッパーは Swift Package Manager 経由で iOS Player／Player Core 3.126.0、Analytics 3.28.1、Google IMA 3.26.1 を解決します。Android Player は 3.165.0+jason です。同梱のネイティブ依存ロックで iOS の解決結果を保持します。単体サンプルの iOS 3.128.0、Android 3.171.0 は別の固定版であり、このラッパーへ強制適用しません。"
+      "text": "ラッパーは Swift Package Manager 経由で iOS Player／Player Core 3.128.0、Analytics 3.28.1、Google IMA 3.26.1 を解決します。Android Player は 3.170.0+jason です。同梱のネイティブ依存ロックで iOS の解決結果を保持します。単体サンプルの SDK は独立した固定版です。単体 Android の 3.171.0 を強制適用せず、ラッパーがサポートするネイティブ依存の組み合わせを使用します。"
     },
     {
       "type": "note",
-      "text": "+jason は、Media3／ExoPlayer との衝突を避けるため、メディア処理ライブラリの名前空間とリソース名を変更した Android SDK の構成です。Google IMA 3.37.0 以降との併用には、この構成と core-library desugaring（新しい Java ライブラリの API を古い Android でも使える形へ変換するビルド処理）が必要です。ラッパー 1.28.0 は Player と media-session 3.165.0+jason、IMA 3.38.0、desugar_jdk_libs 2.1.5 を選びます。Expo プラグインにはネイティブ Player SDK のバージョンを変更する項目がありません。依存関係はこの組み合わせで使用します。Player だけを更新した構成の動作は未検証です。"
+      "text": "+jason は、Media3／ExoPlayer との衝突を避けるため、メディア処理ライブラリの名前空間とリソース名を変更した Android SDK の構成です。Google IMA 3.37.0 以降との併用には、この構成と core-library desugaring（新しい Java ライブラリの API を古い Android でも使える形へ変換するビルド処理）が必要です。ラッパー 1.29.0 は Player と media-session 3.170.0+jason、IMA 3.38.0、desugar_jdk_libs 2.1.5、okhttp-urlconnection 5.5.0 を選びます。Expo プラグインにはネイティブ Player SDK のバージョンを変更する項目がありません。依存関係はこの組み合わせで使用します。Player だけを更新した構成の動作は未検証です。"
     },
     {
       "type": "code",
@@ -26,7 +26,7 @@
     },
     {
       "type": "note",
-      "text": "ジェネレーターは create-expo-app@latest ではなく Expo 54 同梱のネイティブテンプレートを使います。出力先はチェックアウト外の新規ディレクトリにします。既存 App をコピーし、セーフエリアを付けてルート画面へ登録します。ネイティブ Player モジュールには開発用ビルドが必要で、Expo Go では動作しません。"
+      "text": "ジェネレーターは create-expo-app@latest ではなく Expo 57 同梱のネイティブテンプレートを使います。出力先はチェックアウト外の新規ディレクトリにします。既存 App をコピーし、セーフエリアを付けてルート画面へ登録します。ネイティブ Player モジュールには開発用ビルドが必要で、Expo Go では動作しません。"
     },
     {
       "type": "p",
@@ -54,7 +54,7 @@
     },
     {
       "type": "note",
-      "text": "iOS は macOS の Xcode と CocoaPods を使います。Android は Java 17 と Expo 54 が選ぶ Android SDK・ツールチェーンが必要です。同梱の Podfile.lock は CocoaPods 1.17.0 で生成しました。ラッパー 1.27 以降、iOS の Player と Google IMA は Swift Package Manager、ブリッジと Expo は CocoaPods で管理します。既存の組み込みは公式移行ガイドに従います。Podfile.lock とワークスペースの Package.resolved を保持し、新規プロジェクト生成後は同梱のロックを復元します。"
+      "text": "iOS は macOS の Xcode と CocoaPods を使い、ラッパー 1.29 は iOS 16.4 以降を必要とします。Android は Java 17 と Expo 57 が選ぶ Android SDK・ツールチェーンが必要です。ラッパーの Expo プラグインは compileSdk を 37 以上、Kotlin Gradle プラグインを 2.2.21 以上へ引き上げます。同梱の Podfile.lock は CocoaPods 1.17.0 で生成しました。ラッパー 1.27 以降、iOS の Player と Google IMA は Swift Package Manager、ブリッジと Expo は CocoaPods で管理します。既存の組み込みは公式移行ガイドに従います。Podfile.lock とワークスペースの Package.resolved を保持し、新規プロジェクト生成後は同梱のロックを復元します。"
     },
     {
       "type": "code",
@@ -93,11 +93,11 @@
     },
     {
       "type": "note",
-      "text": "型検査は実際のAppと生成ホストのエントリーポイントを含みます。App操作テストはnative／Playerのモックを使います。ジェネレーターの検査は、ソース・アセットのコピー、固定入力、既存出力先の拒否、明示した環境ファイルの非公開コピーを別に確認します。iOS 26.4では実際のSDK Default VOD再生、同梱SportsのINFOとPlay／Pause、Reset／Applyとソース・UI・ログ・Allow DVRの保持を確認しました。iOSとARM64 Android API 36.1の開発ビルド、および同梱アセットのバイト一致も確認済みです。"
+      "text": "型検査は実際の App と生成ホストのエントリーポイントを含みます。App 操作テストは native／Player のモックを使います。ジェネレーターの検査は、ソース・アセットのコピー、固定入力、既存出力先の拒否、明示した環境ファイルの非公開コピーを別に確認します。別の iPhone シミュレーター実測では、ラッパー 1.29.0、Expo 57.0.30、ネイティブ Player 3.128.0 を使用しました。Default と Sports で 60 秒の HLS 素材の映像表示とネイティブ位置の進行を確認しました。5 秒の開始オフセットを設定し、最初のネイティブ Playing イベントと同時の位置採取はともに 5.000 秒でした。自動再生・ミュート、バッファ・ビットレート設定、Apply での所有者の交代と前所有者の終了、Reset およびソース・UI・ログ・Allow DVR の保持を確認しました。OS クリップボードは表示中の適用済みコードと完全に一致し、下書きの変更は含みません。背景化から復帰後は、画面の SDK Play を明示的に押し、同じ所有者で再生位置の進行を確認しました。"
     },
     {
       "type": "p",
-      "text": "Android API 36.1ではDefaultと同梱Sportsで映像表示とネイティブSDK位置の進行を確認しました。SportsはローカルのJS・CSSを読み込み、INFOを表示しています。実画面でReset、自動再生・ミュート・5秒の開始オフセットを含むApply、前の所有者の終了と新しい所有者、ソース・選択中のDefault UI・ログ・Allow DVRの保持を確認しました。背景化から復帰した後は画面の再生操作部品を確認し、適用済みの同じプレイヤーでVODの進行を確認しました。Playを押した場合と、すでに再開していた場合の分岐を記録していないため、操作なしの自動再開は個別に検証していません。開始オフセットの値はネイティブの設定から確認しましたが、開始位置の精度は測定していません。この検査はネイティブの長さが734秒の公開VOD HLSプリセットTears of Steelを使っており、60秒のBig Buck Bunny素材とは別です。物理端末、Releaseアーカイブ、DRM、広告、すべてのファクトリー、live／DVR、バッファ・ビットレートの定量的な効果は未確認です。"
+      "text": "Android API 36.1 では、今回のラッパーで 60 秒の HLS／DASH 素材の映像表示とネイティブ SDK 位置の進行を確認しました。5 秒の開始オフセットを設定した最初の Playing で位置 5.0 秒を採取しましたが、フレーム単位の初期シーク時刻は測定していません。自動再生・ミュート、ビットレートとバッファの getter、Reset での所有者保持、Apply での所有者の交代と前所有者の終了を確認しました。Default と同梱 Sports は適用済みソースと設定を保持しました。OS クリップボードは表示中の設定コードと完全に一致し、下書きの変更は含みません。背景化から復帰後は、画面の SDK Play を明示的に押し、適用済みの同じ所有者で再生位置の進行を確認しました。これらのシミュレーター・エミュレーター実測は、操作なしの自動再開、物理端末や Release ビルド、DRM、広告、すべてのファクトリー、live／DVR、バッファ・ビットレートの定量的な効果を確認したものではありません。"
     },
     {
       "type": "h2",
@@ -267,16 +267,16 @@
       "label": "Bitmovin React Native のネイティブ開発環境と Expo Go の制限"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/docs/ios-dependencies.md",
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/docs/ios-dependencies.md",
       "label": "React Native の iOS 依存関係に関する公式移行手順"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/dependencies.json",
-      "label": "React Native 1.28.0 の Apple SDK 既定版"
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/ios/dependencies.json",
+      "label": "React Native 1.29.0 の Apple SDK 既定版"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/android/build.gradle#L98-L114",
-      "label": "React Native 1.28.0 の Android SDK 既定版"
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/android/build.gradle#L98-L114",
+      "label": "React Native 1.29.0 の Android SDK 既定版"
     },
     {
       "url": "https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/blob/0c7463104d3c18f56440aeec7beccd0d92c11aaa/README.md#features-and-limitations",
@@ -287,19 +287,19 @@
       "label": "Vega 向け Player の公式リリース履歴"
     },
     {
-      "url": "https://expo.dev/changelog/sdk-54",
-      "label": "Expo 54 の公式ツール要件とネイティブテンプレート"
+      "url": "https://expo.dev/changelog/sdk-57",
+      "label": "Expo 57 の公式ツール要件とネイティブテンプレート"
     },
     {
       "url": "https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0",
       "label": "ローカル URL パーサー 4.0.0"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/src/main/java/com/bitmovin/player/reactnative/converter/JsonConverter.kt#L163-L165",
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/android/src/main/java/com/bitmovin/player/reactnative/converter/JsonConverter.kt#L163-L165",
       "label": "Android のビットレート整数変換"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/RCTConvert%2BBitmovinPlayer.swift#L964-L965",
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/ios/RCTConvert%2BBitmovinPlayer.swift#L971-L972",
       "label": "iOS のビットレート整数変換"
     },
     {
@@ -335,8 +335,8 @@
       "label": "Google IMA の依存関係と Java API 互換処理の条件"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/plugin/src/withBitmovinConfig.ts#L14-L17",
-      "label": "React Native 1.28.0 の Expo プラグイン設定項目"
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/plugin/src/withBitmovinConfig.ts#L14-L17",
+      "label": "React Native 1.29.0 の Expo プラグイン設定項目"
     },
     {
       "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#31240",
@@ -345,6 +345,10 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#3510",
       "label": "Android +jason のリソース名の衝突回避"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v1.29.0",
+      "label": "React Native 1.29 のリリースとネイティブツールチェーン要件"
     }
   ]
 }
