@@ -65,8 +65,9 @@ Firefox profile.
 
 On macOS, the WebKit checks use Option-Tab to include links in keyboard
 navigation, following [Safari's keyboard shortcuts](https://support.apple.com/guide/safari/cpsh003/mac).
-They use Option-Right Arrow to scroll a focused wide table. These are actual
-keyboard inputs; the tests do not move focus or scroll positions by script.
+They use Option-Right Arrow to scroll a focused wide table. Link navigation uses
+actual keyboard input. Table cases focus the scroll region before sending the
+key; they do not set scroll positions by script.
 Other browser/platform combinations use Tab and Right Arrow.
 
 On macOS 27, Firefox 157 can fail before a test starts when its shared app-data
