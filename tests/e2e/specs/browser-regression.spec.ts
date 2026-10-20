@@ -127,8 +127,10 @@ test.describe("controlled live rewind through the existing application GUI", () 
       await expectCompletedSeek(page, edge, 0);
       await expect.poll(() => media.counts().mediaRequests).toBeGreaterThan(0);
       await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
+      await expect.poll(() => page.evaluate(() => window.__playbackObservation?.sourceLoaded ?? 0)).toBe(2);
       await expect(state).toContainText(/mode:\s*vod/);
       await expect(page.locator('#player [class*="livebutton"]')).toBeHidden();
+      await expectMovingVideo(page);
       await expect.poll(() => page.locator("#player video").evaluate((video: HTMLVideoElement) =>
         Number.isFinite(video.duration) && video.duration > 59 && video.duration < 61
         && !video.paused && video.currentTime > 0)).toBe(true);

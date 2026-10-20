@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import { expectMovingVideo } from "../src/playback-observation";
 
 type Language = "en" | "ja";
 interface Setting { scope: string; path: string }
@@ -128,6 +129,7 @@ for (const language of languages) {
       await expect(page).toHaveURL(/\/player-lab\/web\/$/);
       await page.getByRole("button", { name: language === "ja" ? "日本語" : "English", exact: true }).click();
       await expect(page.locator("html")).toHaveAttribute("lang", language);
+      await expectMovingVideo(page);
       const guide = page.locator("#user-guide-link");
       await expect(guide).toHaveAttribute("hreflang", language);
       await expect(guide).toHaveText(language === "ja" ? "ユーザーガイド" : "User guide");
@@ -141,6 +143,7 @@ for (const language of languages) {
       await page.locator(".guide-header nav a").first().click();
       await expect(page).toHaveURL(/\/player-lab\/web\/$/);
       await expect(page.locator("html")).toHaveAttribute("lang", language);
+      await expectMovingVideo(page);
     });
 
     test("all chapters and reference routes serve their own localized content", async ({ page }) => {
