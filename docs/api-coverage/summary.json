@@ -5,16 +5,16 @@
         "command": {
           "byStatus": {
             "code-only": 3,
-            "direct": 10,
+            "direct": 9,
             "internal": 7,
             "missing": 82,
             "observed": 0,
-            "preset": 1,
+            "preset": 2,
             "sdk-ui-unverified": 0
           },
           "denominator": 103,
           "deprecated": 4,
-          "percentDirect": 9.71,
+          "percentDirect": 8.74,
           "percentDirectOrPreset": 10.68
         },
         "configuration": {
@@ -6747,7 +6747,7 @@
         "Generated enum/Parcelable/Data helpers, constructors/builders, property getter/setter and interface aliases, callback contracts and optional-wrapper declarations have explicit exclusion reasons.",
         "Deprecated callable fields/methods/events remain included; deprecation alone never excludes an operational ID.",
         "Missing means no exposed route in the audited app. The standard SDK UI routes below were separately exercised on an Android phone emulator; no Android TV or Fire TV device behavior is inferred.",
-        "Eleven standard UI routes were observed at the native boundary: play, pause, seek, mute/unmute, speed, audio/subtitle/video quality selection and both public thumbnail query entry points. The thumbnail query returned null; this does not establish thumbnail image rendering.",
+        "Eleven standard UI routes were observed at the native boundary: play, pause, seek, mute/unmute, speed, audio/subtitle/video quality selection and both public thumbnail query entry points. The thumbnail query returned null; this does not establish thumbnail image rendering. The speed selector offers only 0.25, 0.5, 1, 1.5 and 2, so that command receives preset credit.",
         "Fullscreen/PiP entry, exit and state controls and the mobile volume slider were verified absent from the configured phone UI. They remain missing and receive no GUI credit; reading a false native getter in a test does not count as an app observation.",
         "Current UI choices are Default/Sports/Live/Cinema. Shared assets and custom factories were exercised in the native phone tests. No TvUi/focus selector is exposed.",
         "Cast, IMA, DRM, offline, low-latency, VR, PiP and Analytics remain SDK-available with their media, dependency, license, hardware or integration prerequisites; lack of a test device does not remove them.",
@@ -7043,16 +7043,16 @@
             "command": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 10,
+                "direct": 9,
                 "internal": 1,
                 "missing": 51,
                 "observed": 0,
-                "preset": 1,
+                "preset": 2,
                 "sdk-ui-unverified": 0
               },
               "denominator": 63,
               "deprecated": 4,
-              "percentDirect": 15.87,
+              "percentDirect": 14.29,
               "percentDirectOrPreset": 17.46
             },
             "configuration": {
@@ -22784,7 +22784,7 @@
     }
   ],
   "checkedAt": "2026-10-21",
-  "inputSha256": "92f4826c28d168490ce3ce03fcab3d1fef59e10f3e023c5f0921f35841581871",
+  "inputSha256": "3a8f98f9b77c19461eec4a30dc36be575b4ff60476cb7f4a72e839c9d8929eda",
   "schemaVersion": 1,
   "sdks": [
     {
