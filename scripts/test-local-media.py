@@ -11,6 +11,7 @@ import tempfile
 from threading import Barrier
 from types import SimpleNamespace
 import unittest
+import zipfile
 from unittest.mock import patch
 
 
@@ -54,6 +55,76 @@ def audio_fragment(sample_durations, default_duration=None):
 
 
 class LocalMediaTests(unittest.TestCase):
+    def test_video_and_sprite_share_one_input_decode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            archive = root / 'source.zip'
+            with zipfile.ZipFile(archive, 'w') as zipped:
+                zipped.writestr(MEDIA.SOURCE_MEMBER, b'encoded public fixture placeholder')
+            commands = []
+
+            def capture(command, **options):
+                commands.append(command)
+                raise ArchiveVerified()
+
+            with patch.object(MEDIA, 'SOURCE_SHA256', MEDIA.digest(archive)), \
+                 patch.object(MEDIA.shutil, 'which', return_value='/available-tool'), \
+                 patch.object(MEDIA, 'available_cpus', return_value=10), \
+                 patch.object(MEDIA, 'available_memory', return_value=8 * 1024 ** 3), \
+                 patch.object(MEDIA.subprocess, 'run', side_effect=capture):
+                with self.assertRaises(ArchiveVerified):
+                    MEDIA.build(root / 'output', archive)
+            command = commands[0]
+            self.assertEqual(command.count('-i'), 1)
+            graph = command[command.index('-filter_complex') + 1]
+            self.assertIn('tile=12x1', graph)
+            self.assertIn(str(root / 'output/vod-baseline/manifest.mpd'), command)
+            self.assertIn(str(root / 'output/vod-sprites/thumbnails/sprite-0.jpg'), command)
+            self.assertEqual(command[command.index('-seg_duration') + 1], '2')
+
+    def test_cpu_budget_is_shared_between_active_heavy_stages(self):
+        self.assertEqual(MEDIA.plan_threads(10, 8 * 1024 ** 3), 4)
+        self.assertEqual(MEDIA.plan_threads(8, 8 * 1024 ** 3), 4)
+        self.assertEqual(MEDIA.plan_threads(4, 8 * 1024 ** 3), 2)
+        self.assertEqual(MEDIA.plan_threads(64, 8 * 1024 ** 3), 4)
+
+    def test_small_cpu_allocations_use_one_thread_per_required_pool(self):
+        for cpus in (1, 2):
+            with self.subTest(cpus=cpus):
+                self.assertEqual(MEDIA.plan_threads(cpus, 8 * 1024 ** 3), 1)
+
+    def test_frame_queue_memory_budget_reduces_parallelism(self):
+        self.assertEqual(MEDIA.plan_threads(64, 128 * 1024 ** 2), 1)
+        self.assertEqual(MEDIA.plan_threads(64, 256 * 1024 ** 2), 2)
+
+    def test_unavailable_memory_information_uses_conservative_parallelism(self):
+        self.assertEqual(MEDIA.plan_threads(64, None), 1)
+
+    def test_cpu_count_honors_affinity_and_cgroup_quota(self):
+        with patch.object(MEDIA.os, 'process_cpu_count', return_value=64, create=True), \
+             patch.object(MEDIA.os, 'sched_getaffinity', return_value={0, 1, 2, 3}, create=True), \
+             patch.object(MEDIA.Path, 'read_text', return_value='250000 100000'):
+            self.assertEqual(MEDIA.available_cpus(), 2)
+
+    def test_available_memory_honors_remaining_container_memory(self):
+        with patch.object(MEDIA.Path, 'read_text', side_effect=[
+            'MemAvailable: 4096 kB\n', '10485760', '9437184',
+        ]):
+            self.assertEqual(MEDIA.available_memory(), 1024 ** 2)
+
+    def test_mac_memory_estimate_counts_reclaimable_pages(self):
+        values = ('Mach Virtual Memory Statistics: (page size of 16384 bytes)\n'
+                  'Pages free: 1.\nPages inactive: 2.\nPages speculative: 3.\n')
+        with patch.object(MEDIA.Path, 'read_text', side_effect=OSError), \
+             patch.object(MEDIA.sys, 'platform', 'darwin'), \
+             patch.object(MEDIA.subprocess, 'run', return_value=SimpleNamespace(stdout=values)):
+            self.assertEqual(MEDIA.available_memory(), 6 * 16384)
+
+    def test_missing_memory_information_is_explicit(self):
+        with patch.object(MEDIA.Path, 'read_text', side_effect=OSError), \
+             patch.object(MEDIA.sys, 'platform', 'unknown'):
+            self.assertIsNone(MEDIA.available_memory())
+
     def test_audio_tail_uses_the_serialized_partial_sample_duration(self):
         with tempfile.TemporaryDirectory() as directory:
             fragment = Path(directory) / 'last.m4s'

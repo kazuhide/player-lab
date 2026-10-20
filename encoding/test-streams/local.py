@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
@@ -23,6 +24,70 @@ SOURCE_SHA256 = "7118242b6728d40c871479c5b3c0f0fb27d748089df15d7f1b469f297c74a2d
 SOURCE_MEMBER = "BigBuckBunny_640x360.m4v"
 ATTRIBUTION = "(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org"
 LICENSE_URL = "https://creativecommons.org/licenses/by/3.0/"
+# Decoder, complex filter and two simultaneous video encoders share a budget.
+ENCODE_POOLS = 4
+# The fixed small ladder does not keep every configured pool busy together.
+# Decode/encode dominate measured CPU work; budget two active heavy pools.
+CPU_HEAVY_POOLS = 2
+AUDIO_ENCODERS = 2
+FRAME_QUEUE_BYTES = 640 * 360 * 3 // 2 * 48 * ENCODE_POOLS
+
+
+def available_cpus():
+    count = (getattr(os, 'process_cpu_count', os.cpu_count)() or 1)
+    try:
+        count = min(count, len(os.sched_getaffinity(0)))
+    except (AttributeError, OSError):
+        pass
+    try:
+        quota, period = Path('/sys/fs/cgroup/cpu.max').read_text().split()
+        if quota != 'max' and int(period) > 0:
+            count = min(count, max(1, int(quota) // int(period)))
+    except (OSError, ValueError):
+        pass
+    return max(1, count)
+
+
+def available_memory():
+    """Estimate reclaimable memory; unknown platforms use conservative threads."""
+    memory = None
+    try:
+        values = Path('/proc/meminfo').read_text()
+        match = re.search(r'^MemAvailable:\s+(\d+) kB$', values, re.MULTILINE)
+        if match:
+            memory = int(match[1]) * 1024
+    except OSError:
+        pass
+    if memory is None and sys.platform == 'darwin':
+        try:
+            values = subprocess.run(['vm_stat'], capture_output=True, text=True, check=True).stdout
+            page_size = int(re.search(r'page size of (\d+) bytes', values)[1])
+            pages = sum(int(re.search(rf'^Pages {kind}:\s+(\d+)', values, re.MULTILINE)[1])
+                        for kind in ('free', 'inactive', 'speculative'))
+            memory = page_size * pages
+        except (OSError, subprocess.CalledProcessError, TypeError, ValueError):
+            pass
+    try:
+        limit = Path('/sys/fs/cgroup/memory.max').read_text().strip()
+        current = int(Path('/sys/fs/cgroup/memory.current').read_text())
+        if limit != 'max':
+            remaining = max(0, int(limit) - current)
+            memory = min(memory, remaining) if memory is not None else remaining
+    except (OSError, ValueError):
+        pass
+    return memory
+
+
+def plan_threads(cpus, memory):
+    # Keep the existing four-thread ceiling for this fixed 360p/180p ladder.
+    # Configured pool sizes are not simultaneous CPU utilization: filter and
+    # encoder stages also wait for frames. Share CPU between the heavy stages.
+    cpu_limit = max(1, max(1, cpus) // CPU_HEAVY_POOLS)
+    # Budget a two-second frame queue per pool/thread, keeping half the
+    # available memory for libraries, audio and other work. This is a parallelism
+    # estimate, not an operating-system RSS or total-thread limit.
+    memory_limit = max(1, memory // (2 * FRAME_QUEUE_BYTES)) if memory else 1
+    return min(4, cpu_limit, memory_limit)
 
 
 def audio_master(master, prefix="", alternate=True):
@@ -215,36 +280,36 @@ def build(output, archive):
     prepare_output(output)
     baseline = output / 'vod-baseline'
     baseline.mkdir()
-    threads = min(4, os.cpu_count() or 1)
+    cpus = available_cpus()
+    memory = available_memory()
+    threads = plan_threads(cpus, memory)
     with tempfile.TemporaryDirectory(prefix='player-lab-media-') as scratch:
         source = Path(scratch) / SOURCE_MEMBER
         # Extract only the expected member, rather than trusting archive paths.
         with zipfile.ZipFile(archive) as zipped:
             with zipped.open(SOURCE_MEMBER) as reader, source.open('wb') as writer:
                 shutil.copyfileobj(reader, writer, length=1024 * 1024)
-        subprocess.run([
-            'ffmpeg', '-hide_banner', '-loglevel', 'error', '-nostdin',
-            '-threads', str(threads), '-i', str(source), '-t', '60',
-            '-filter_complex_threads', str(threads), '-filter_complex',
-            '[0:v]fps=24,split=2[hi][lo];[hi]scale=640:360[v0];'
-            '[lo]scale=320:180[v1];[0:a]asplit=2[a0][a1];[a1]volume=0.25[alt]',
-            '-map', '[v0]', '-map', '[v1]', '-map', '[a0]', '-map', '[alt]',
-            '-map_metadata', '-1', '-c:v', 'libx264', '-preset', 'veryfast',
-            '-crf', '25', '-pix_fmt', 'yuv420p', '-g', '48', '-keyint_min', '48',
-            '-sc_threshold', '0', '-bf', '0', '-threads:v', str(threads),
-            '-c:a', 'aac', '-b:a', '64k', '-ar', '48000', '-ac', '2',
-            '-metadata:s:a:0', 'language=en', '-metadata:s:a:1', 'language=de',
-            '-f', 'dash', '-seg_duration', '2', '-use_template', '1',
-            '-use_timeline', '1', '-hls_playlist', '1', '-hls_master_name', 'master.m3u8',
-            '-adaptation_sets', 'id=0,streams=v id=1,streams=2 id=2,streams=3',
-            str(baseline / 'manifest.mpd'),
-        ], check=True)
         thumbnails = output / 'vod-sprites/thumbnails'
         thumbnails.mkdir(parents=True)
         subprocess.run([
             'ffmpeg', '-hide_banner', '-loglevel', 'error', '-nostdin',
             '-threads', str(threads), '-i', str(source), '-t', '60',
-            '-vf', 'fps=1/5,scale=160:90,tile=12x1', '-frames:v', '1',
+            '-filter_complex_threads', str(threads), '-filter_complex',
+            '[0:v]split=2[encode][sprites];[encode]fps=24,split=2[hi][lo];'
+            '[hi]scale=640:360[v0];[lo]scale=320:180[v1];'
+            '[0:a]asplit=2[a0][a1];[a1]volume=0.25[alt];'
+            '[sprites]fps=1/5,scale=160:90,tile=12x1[sprite]',
+            '-map', '[v0]', '-map', '[v1]', '-map', '[a0]', '-map', '[alt]',
+            '-map_metadata', '-1', '-c:v', 'libx264', '-preset', 'veryfast',
+            '-crf', '25', '-pix_fmt', 'yuv420p', '-g', '48', '-keyint_min', '48',
+            '-sc_threshold', '0', '-bf', '0', '-threads:v', str(threads),
+            '-c:a', 'aac', '-threads:a', '1', '-b:a', '64k', '-ar', '48000', '-ac', '2',
+            '-metadata:s:a:0', 'language=en', '-metadata:s:a:1', 'language=de',
+            '-f', 'dash', '-seg_duration', '2', '-use_template', '1',
+            '-use_timeline', '1', '-hls_playlist', '1', '-hls_master_name', 'master.m3u8',
+            '-adaptation_sets', 'id=0,streams=v id=1,streams=2 id=2,streams=3',
+            str(baseline / 'manifest.mpd'),
+            '-map', '[sprite]', '-frames:v', '1', '-c:v', 'mjpeg',
             '-threads:v', '1', str(thumbnails / 'sprite-0.jpg'),
         ], check=True)
 
@@ -303,6 +368,15 @@ def build(output, archive):
         'source_url': SOURCE_URL, 'source_sha256': SOURCE_SHA256,
         'source_license': LICENSE_URL, 'attribution': ATTRIBUTION,
         'ffmpeg': version, 'ffprobe': probe_version, 'threads_per_stage': threads,
+        'thread_budget': {
+            'available_cpus': cpus, 'available_memory_bytes': memory,
+            'parallel_codec_filter_pools': ENCODE_POOLS,
+            'cpu_heavy_pool_estimate': CPU_HEAVY_POOLS,
+            'serial_audio_encoders': AUDIO_ENCODERS,
+            'serial_image_encoders': 1,
+            'frame_queue_bytes_per_worker_set': FRAME_QUEUE_BYTES,
+            'thumbnail_filter_threads': threads,
+        },
         'video_frames_per_second': 24, 'audio_sample_rate': 48000,
         'audio_samples_per_frame': 1024, 'streams': streams,
     }
