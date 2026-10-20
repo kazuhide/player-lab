@@ -13,6 +13,18 @@ Layout exclusions in 4.23.0 also release their removed components. The patch
 shares release tracking between that processor, the normal tree, and auxiliary
 owners so the same component is released once.
 
+Settings items also release their owned label when a subclass replaces the
+normal child list. Recommendation items release the title and duration labels
+they create outside that list, and the overlay releases old items before
+replacing recommendations. Otherwise language-change subscriptions can retain
+the removed elements and their released UI manager.
+
+The manager's source-loaded and source-unloaded subscriptions use its tracked
+player wrapper. This lets `UIManager.release()` remove them while the Player
+continues running, including repeated theme changes. Browser regressions observe
+the real public `on`/`off` calls and verify that removed controls stop receiving
+language changes and release exactly once.
+
 The patch also owns the asynchronous action started by a recommendation click.
 Loading a source can cancel a playback request issued before that load finishes.
 The action waits for loading, then plays only if the same source object still
@@ -48,8 +60,9 @@ its remaining event handlers.
 
 These are version-specific ownership corrections, not a general memory fix.
 See [the measurement instructions and results](../docs/web-performance.md) for
-the retainer paths and numeric results recorded with 4.15.1 on 2026-10-19, and
-their remaining limitations. Those measurements do not validate 4.23.0. Recheck
+the retainer paths and the Player 8.281.0 / UI 4.23.0 comparison recorded on
+2026-10-21. Retained JavaScript heap decreased in that workload, while CPU time
+and process RSS increased. Recheck
 the upstream implementation and the public browser regression before upgrading
 the package.
 

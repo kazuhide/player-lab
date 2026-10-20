@@ -37,6 +37,7 @@ interface Sample {
   droppedFrames: number;
   videoWidth: number;
   videoHeight: number;
+  processMemory: { rssMiBByType: Record<string, number>; countByType: Record<string, number>; retiredBeforeRss: number };
 }
 
 interface Probe {
@@ -157,7 +158,30 @@ function metric(metrics: { name: string; value: number }[], name: string): numbe
   return value;
 }
 
-async function sample(page: Page, session: CDPSession, phase: string, network: NetworkState): Promise<Sample> {
+async function processMemory(session: CDPSession): Promise<Sample["processMemory"]> {
+  const { processInfo } = await session.send("SystemInfo.getProcessInfo");
+  const ids = processInfo.map((entry) => entry.id);
+  if (!ids.length || ids.some((id) => !Number.isSafeInteger(id) || id <= 0)) throw new Error("Invalid browser process inventory");
+  if (!["darwin", "linux"].includes(platform())) throw new Error("Process RSS sampling requires macOS or Linux");
+  // RSS includes shared resident pages. Keep process categories separate; neither
+  // subtract JS heap nor describe a GPU process's system RAM as video RAM.
+  const output = execFileSync("ps", ["-o", "pid=,rss=", "-p", ids.join(",")], { encoding: "utf8", timeout: 5000 });
+  const rss = new Map(output.trim().split("\n").filter(Boolean).map((line) => {
+    const values = line.trim().split(/\s+/).map(Number);
+    if (values.length !== 2 || values.some((value) => !Number.isSafeInteger(value) || value < 0)) throw new Error("Invalid process RSS sample");
+    return [values[0]!, values[1]!] as const;
+  }));
+  const result: Sample["processMemory"] = { rssMiBByType: {}, countByType: {}, retiredBeforeRss: 0 };
+  for (const process of processInfo) {
+    const value = rss.get(process.id);
+    if (value === undefined) { result.retiredBeforeRss += 1; continue; }
+    result.rssMiBByType[process.type] = (result.rssMiBByType[process.type] ?? 0) + value / 1024;
+    result.countByType[process.type] = (result.countByType[process.type] ?? 0) + 1;
+  }
+  return result;
+}
+
+async function sample(page: Page, session: CDPSession, browserSession: CDPSession, phase: string, network: NetworkState): Promise<Sample> {
   const [{ metrics }, counters] = await Promise.all([
     session.send("Performance.getMetrics"), session.send("Memory.getDOMCounters"),
   ]);
@@ -199,6 +223,7 @@ async function sample(page: Page, session: CDPSession, phase: string, network: N
     requestsInFlight: network.pending.size,
     requestsStarted: network.started,
     requestsPeak: network.peak,
+    processMemory: await processMemory(browserSession),
   };
 }
 
@@ -227,6 +252,14 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
   if (!Number.isInteger(measuredRuns) || measuredRuns < 1 || measuredRuns > 10) {
     throw new Error("PERF_RUNS must be an integer between 1 and 10");
   }
+  const root = resolve(testInfo.project.testDir, "../../..");
+  const measuredInputs = ["apps/web", "packages/ui-shared", "patches", "pnpm-lock.yaml", "tests/e2e/performance/lifecycle.spec.ts"];
+  const assertCommittedInputs = () => {
+    const changes = execFileSync("git", ["status", "--porcelain", "--untracked-files=normal", "--", ...measuredInputs], { cwd: root, encoding: "utf8" }).trim();
+    if (changes) throw new Error("Commit measured application, dependency and harness inputs before recording a performance result");
+  };
+  assertCommittedInputs();
+  const measuredRevision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
   const runs: Sample[][] = [];
   const collectionDiagnostics: Sample[] = [];
   const servedUiHashes = new Set<string>();
@@ -234,6 +267,7 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
   const diagnosticCollection = process.env.PERF_DIAGNOSTIC_GC === "1";
   const baseURL = testInfo.project.use.baseURL;
   if (!baseURL) throw new Error("The performance config must provide baseURL");
+  const browserSession = await browser.newBrowserCDPSession();
   for (let run = 0; run <= measuredRuns; run += 1) {
     const context = await browser.newContext({ baseURL, viewport: { width: 1440, height: 900 } });
     try {
@@ -258,9 +292,9 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
       await page.getByRole("button", { name: "English", exact: true }).click();
       await expect(page.locator("#ui-theme-bar .theme-btn")).toHaveCount(14);
       await page.waitForTimeout(2000);
-      const samples = [await sample(page, session, "ready", network)];
+      const samples = [await sample(page, session, browserSession, "ready", network)];
       await page.waitForTimeout(3000);
-      samples.push(await sample(page, session, "playback", network));
+      samples.push(await sample(page, session, browserSession, "playback", network));
 
       for (let cycle = 1; cycle <= 3; cycle += 1) {
         for (let i = 0; i < 14; i += 1) {
@@ -268,14 +302,45 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
         }
         await page.getByRole("button", { name: "Live (DVR)", exact: true }).click();
         await page.waitForTimeout(500);
-        samples.push(await sample(page, session, `themes-${cycle}`, network));
+        samples.push(await sample(page, session, browserSession, `themes-${cycle}`, network));
       }
 
       for (let cycle = 1; cycle <= 3; cycle += 1) {
         const preview = page.getByRole("checkbox", { name: /^Seek scrub-preview/ });
         await preview.uncheck();
         await preview.check();
-        samples.push(await sample(page, session, `settings-${cycle}`, network));
+        samples.push(await sample(page, session, browserSession, `settings-${cycle}`, network));
+      }
+
+      const field = async (label: RegExp) => {
+        const row = page.locator("#config-panel .config-field").filter({ has: page.locator(".config-field-label", { hasText: label }) });
+        const group = row.locator("xpath=ancestor::details[1]");
+        if (!await group.evaluate((element) => (element as HTMLDetailsElement).open)) await group.locator(":scope > summary").click();
+        return row.locator("input");
+      };
+      for (let cycle = 1; cycle <= 3; cycle += 1) {
+        const created = await page.evaluate(() => window.__performanceProbe.created);
+        const title = `Performance source ${cycle}`;
+        const input = await field(/^title/);
+        await input.fill(title);
+        await input.blur();
+        await page.getByRole("button", { name: /Reload the source to apply/ }).click();
+        await expect.poll(() => page.evaluate(() => window.__performanceProbe.player?.getSource()?.title)).toBe(title);
+        await ready(page);
+        expect(await page.evaluate(() => window.__performanceProbe.created)).toBe(created);
+        samples.push(await sample(page, session, browserSession, `source-apply-${cycle}`, network));
+      }
+      for (let cycle = 1; cycle <= 3; cycle += 1) {
+        const created = await page.evaluate(() => window.__performanceProbe.created);
+        const duration = 8 + cycle * 2;
+        const input = await field(/^video\.forwardduration/);
+        await input.fill(String(duration));
+        await input.blur();
+        await page.getByRole("button", { name: /Recreate the player to apply/ }).click();
+        await expect.poll(() => page.evaluate(() => window.__performanceProbe.created)).toBe(created + 1);
+        await ready(page);
+        expect(await page.evaluate(() => window.__performanceProbe.player?.getConfig(false).buffer?.video?.forwardduration)).toBe(duration);
+        samples.push(await sample(page, session, browserSession, `player-apply-${cycle}`, network));
       }
 
       for (let cycle = 1; cycle <= 3; cycle += 1) {
@@ -285,7 +350,7 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
         await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
         await expect.poll(() => page.evaluate(() => window.__performanceProbe.player?.getSource()?.hls)).toBe(fixtureUrl("PERF_HLS_URL", "master.m3u8"));
         await ready(page);
-        samples.push(await sample(page, session, `sources-${cycle}`, network));
+        samples.push(await sample(page, session, browserSession, `sources-${cycle}`, network));
       }
 
       for (let cycle = 1; cycle <= 3; cycle += 1) {
@@ -293,13 +358,13 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
         await page.getByRole("checkbox", { name: /^Allow DVR/ }).click();
         await expect.poll(() => page.evaluate(() => window.__performanceProbe.created)).toBe(created + 1);
         await ready(page);
-        samples.push(await sample(page, session, `recreate-${cycle}`, network));
+        samples.push(await sample(page, session, browserSession, `recreate-${cycle}`, network));
       }
 
       await page.evaluate(() => window.__performanceProbe.dispose());
       await expect(page.locator("#player video, #player audio")).toHaveCount(0);
       await page.waitForTimeout(3000);
-      samples.push(await sample(page, session, "disposed", network));
+      samples.push(await sample(page, session, browserSession, "disposed", network));
       const end = samples[samples.length - 1]!;
       expect(end.livePlayers, "every created player must have emitted Destroy").toBe(0);
       expect(end.appMetricsTimer, "the app must stop its periodic metrics render").toBe(false);
@@ -316,7 +381,7 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
         // Separate from the normal samples: explicit collection can distinguish
         // retained objects from detached objects awaiting a natural collection.
         await session.send("HeapProfiler.collectGarbage");
-        collectionDiagnostics.push(await sample(page, session, "disposed-after-explicit-gc", network));
+        collectionDiagnostics.push(await sample(page, session, browserSession, "disposed-after-explicit-gc", network));
       }
       console.log(`Lifecycle ${run === 0 ? "warm-up (excluded)" : `sample ${run}/${measuredRuns}`}: ${samples.length} phases, ${end.playersCreated} players created and destroyed.`);
     } finally {
@@ -346,12 +411,20 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
       requestsInFlightMax: Math.max(...entries.map((entry) => entry.requestsInFlight)),
     };
   });
-  const uiPatch = resolve(testInfo.project.testDir, "../../../patches/bitmovin-player-ui@4.15.1.patch");
+  const playerVersion = JSON.parse(readFileSync(resolve(root, "apps/web/package.json"), "utf8")).dependencies["bitmovin-player"];
+  const uiVersion = JSON.parse(readFileSync(resolve(root, "packages/ui-shared/package.json"), "utf8")).dependencies["bitmovin-player-ui"];
+  const uiPatch = resolve(root, `patches/bitmovin-player-ui@${uiVersion}.patch`);
+  assertCommittedInputs();
+  expect(execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(), "the measured source revision must stay fixed").toBe(measuredRevision);
   const report = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     source: {
-      revision: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
+      revision: measuredRevision,
+      playerVersion, uiVersion,
+      trackedMeasuredInputsClean: true,
+      sharedUiBundleSha256: createHash("sha256").update(readFileSync(resolve(root, "packages/ui-shared/dist/bitmovinplayer-ui.js"))).digest("hex"),
+      harnessSha256: createHash("sha256").update(readFileSync(resolve(testInfo.project.testDir, "lifecycle.spec.ts"))).digest("hex"),
       sharedUiSha256: createHash("sha256").update(readFileSync(resolve(testInfo.project.testDir, "../../../packages/ui-shared/src/liveUi.ts"))).digest("hex"),
       playerAppSha256: createHash("sha256").update(readFileSync(resolve(testInfo.project.testDir, "../../../apps/web/src/main.ts"))).digest("hex"),
       servedSharedUiSha256: [...servedUiHashes],
@@ -370,7 +443,7 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
       forcedGarbageCollectionDuringSamples: false,
       explicitCollectionAfterSamples: diagnosticCollection,
       cpuThrottling: false, networkThrottling: false,
-      note: "Run on an otherwise idle machine. Renderer CPU excludes other browser processes; JavaScript heap excludes native media buffers and GPU memory.",
+      note: "Run on an otherwise idle machine. Renderer CPU excludes other browser processes. RSS is sampled by browser process type and includes shared pages, code, JavaScript and native allocations; it is not a private-allocation total. GPU-process RSS is system RAM, not VRAM. JavaScript heap excludes native media buffers and GPU memory.",
     },
     phases, runs, collectionDiagnostics,
   };
@@ -379,4 +452,5 @@ test("measure the real app's playback, theme, settings, source and destroy lifec
   await writeFile(output, `${JSON.stringify(report, null, 2)}\n`);
   await testInfo.attach("lifecycle-performance", { path: output, contentType: "application/json" });
   console.log(JSON.stringify({ measuredRuns, phases }, null, 2));
+  await browserSession.detach();
 });

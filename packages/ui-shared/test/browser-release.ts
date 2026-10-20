@@ -1,4 +1,4 @@
-import { Container, DynamicSettingsPanelItem, Icon, PlaybackSpeedSelectBox, RecommendationItem, SeekBar, SettingsPanelItem, UIContainer, UIFactory, UIManager, UIVariantIdentifier, Watermark, i18n, type Component, type ComponentConfig } from "bitmovin-player-ui";
+import { Container, DynamicSettingsPanelItem, Icon, PlaybackSpeedSelectBox, RecommendationItem, RecommendationOverlay, SeekBar, SettingsPanelItem, UIContainer, UIFactory, UIManager, UIVariantIdentifier, Watermark, i18n, type Component, type ComponentConfig } from "bitmovin-player-ui";
 import { Player, type PlayerAPI } from "bitmovin-player";
 import {
   BingeUIFactory, CinemaUIFactory, CompactUIFactory, CreatorUIFactory, DefaultUIFactory,
@@ -39,6 +39,7 @@ export async function inspectFactoryRelease(player: PlayerAPI) {
         (root.getComponents().length === expectedStockChildren.length &&
           root.getComponents().every((child, index) => child === expectedStockChildren[index]));
       const tracked: { releaseCalls: number; languageCalls: number }[] = [];
+      let unlistedSettingLabels = 0;
       const observed = new Set<Component<ComponentConfig>>();
       const observeSubtree = (component: Component<ComponentConfig>): void => {
         if (observed.has(component)) return;
@@ -55,6 +56,15 @@ export async function inspectFactoryRelease(player: PlayerAPI) {
         if (component instanceof Container) component.getComponents().forEach(observeSubtree);
       };
       const visit = (component: Component<ComponentConfig>): void => {
+        if (component instanceof SettingsPanelItem) {
+          // The published implementation owns this label even when a subclass
+          // replaces config.components after the base constructor created it.
+          const label = (component as unknown as { label?: Component<ComponentConfig> }).label;
+          if (label && !component.getComponents().includes(label)) {
+            unlistedSettingLabels += 1;
+            observeSubtree(label);
+          }
+        }
         if (component instanceof SeekBar) {
           const label = component.getLabel();
           if (label) observeSubtree(label);
@@ -103,6 +113,7 @@ export async function inspectFactoryRelease(player: PlayerAPI) {
         results.push({
           factory: name,
           auxiliaryComponents: tracked.length,
+          unlistedSettingLabels,
           releasedExactlyOnce: tracked.every((value) => value.releaseCalls === 1),
           localizedWhileActive: callsBeforeRelease.every((count) => count === 1),
           localizedAfterRelease: tracked.some((value, index) => value.languageCalls !== callsBeforeRelease[index]),
@@ -123,6 +134,80 @@ export async function inspectFactoryRelease(player: PlayerAPI) {
     i18n.setLanguage("en");
   }
   return { stockReleased, results };
+}
+
+// Observe the real public on/off boundary so a raw subscription cannot escape
+// the manager's tracked player wrapper and survive release.
+export function inspectManagerSourceSubscriptions(player: PlayerAPI) {
+  const on = player.on.bind(player);
+  const off = player.off.bind(player);
+  const originalOn = player.on;
+  const originalOff = player.off;
+  const pending = new Map<string, Set<unknown>>();
+  player.on = (event, callback) => {
+    const listeners = pending.get(event) ?? new Set<unknown>();
+    listeners.add(callback); pending.set(event, listeners);
+    return on(event, callback);
+  };
+  player.off = (event, callback) => {
+    pending.get(event)?.delete(callback);
+    return off(event, callback);
+  };
+  let manager: UIManager | undefined;
+  try {
+    manager = LiveUIFactory.buildLiveUI(player);
+    const events = [player.exports.PlayerEvent.SourceLoaded, player.exports.PlayerEvent.SourceUnloaded];
+    const registered = events.map((event) => pending.get(event)?.size ?? 0);
+    manager.release(); manager.release();
+    return { registered, remaining: events.map((event) => pending.get(event)?.size ?? 0) };
+  } finally {
+    manager?.release();
+    player.on = originalOn; player.off = originalOff;
+  }
+}
+
+// Dynamic recommendation items and their title/duration labels leave the normal
+// tree when metadata is replaced. Observe language events after that removal.
+export function inspectRecommendationControlRelease(player: PlayerAPI) {
+  const overlay = new RecommendationOverlay();
+  const recommendation = (title: string) => ({ title, duration: 12, resource: { hls: "http://localhost/ownership.m3u8" } });
+  const manager = new UIManager(player, [{ ui: new UIContainer({ components: [overlay] }), identifier: UIVariantIdentifier.main }], {
+    metadata: { recommendations: [recommendation("First")] },
+  });
+  const tracked: { releaseCalls: number; languageCalls: number; removed: boolean }[] = [];
+  const observed = new Set<Component<ComponentConfig>>();
+  const observe = (removed: boolean) => {
+    for (const item of overlay.recommendationContainer.getComponents()) {
+      const elements = item.getDomElement().get(0).querySelectorAll(".bmpui-title, .bmpui-duration");
+      for (const element of elements) {
+        const label = (element as HTMLElement & { component: Component<ComponentConfig> }).component;
+        if (!label || observed.has(label)) continue;
+        observed.add(label);
+        const counter = { releaseCalls: 0, languageCalls: 0, removed };
+        tracked.push(counter);
+        const release = label.release.bind(label);
+        label.release = () => { counter.releaseCalls += 1; release(); };
+        const localizable = label as unknown as { onLanguageChanged(): void };
+        const changed = localizable.onLanguageChanged.bind(label);
+        localizable.onLanguageChanged = () => { counter.languageCalls += 1; changed(); };
+      }
+    }
+  };
+  try {
+    observe(true);
+    i18n.setLanguage("de");
+    manager.recommendations.add(recommendation("Second"));
+    observe(false);
+    const before = tracked.map((value) => value.languageCalls);
+    manager.release(); manager.release();
+    i18n.setLanguage("en");
+    return {
+      labels: tracked.length, removedLabels: tracked.filter((value) => value.removed).length,
+      removedReleased: tracked.filter((value) => value.removed).every((value) => value.releaseCalls === 1),
+      allReleasedOnce: tracked.every((value) => value.releaseCalls === 1),
+      stoppedLocalizing: tracked.every((value, index) => value.languageCalls === before[index]),
+    };
+  } finally { manager.release(); i18n.setLanguage("en"); }
 }
 
 // Observe controls removed by the SDK's layout override processor before they are

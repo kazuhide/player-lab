@@ -329,6 +329,27 @@ Open **Settings → Speed**, scroll to **2x** and select it. Scroll back and cho
 an option is below its visible viewport. Hardware volume changes and hidden
 markup do not demonstrate an app API route.
 
+### Updated shared UI on iPad
+
+On 2026-10-21, the updated UI 4.23.0 ownership patch passed an additional normal-app
+GUI case on an iPad / iOS 26.4 simulator with Player 3.128.0: one passed, zero
+failed or skipped, 116.240 seconds. The installed JavaScript/CSS matched the
+generated resources after execution. The case applied 60-second HLS settings,
+switched to Sports, loaded progressive MP4 and changed its title through Apply.
+The title-only MP4 change kept the same Player and created a new Source, with
+offset 5 seconds, autoplay, mute, maximum bitrate 2,500,000 bit/s and forward
+buffer 8 seconds retained. Sports and the disabled app DVR switch also remained
+selected. Native MP4 positions advanced from 6.778 to 11.178 seconds with visible
+video. This is playback/configuration evidence; Web heap measurements are
+documented separately in [Web performance](../../docs/web-performance.md).
+
+Additional source-only MP4 checks passed on iPhone in 81.745 seconds and Apple TV
+in 109.539 seconds. Both changed **Start muted** from on to off through the GUI,
+then applied a title-only edit. Native observations confirmed the same Player,
+a new Source, a fresh `SourceLoaded` count from 1 to 2, retained startup settings,
+UI mode and app DVR selection, and advancing video. Together with the iPad case,
+these cover source-only MP4 reload and mute delivery on all three simulators.
+
 ## Configuration tests
 
 After generating the project and restoring `Package.resolved`, the hostless

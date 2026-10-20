@@ -3,8 +3,8 @@
 The lifecycle measurement runs the existing Web app with the local 60-second
 Big Buck Bunny HLS and DASH fixtures. It plays video, switches all 14 themes
 three times, changes the seek-preview setting, switches between HLS and DASH,
-recreates the player three times through the DVR control, and releases the UI
-and player. It checks that only one player and media element are active at each
+applies source settings three times, recreates the player through Player
+settings and the DVR control three times each, and releases the UI and player. It checks that only one player and media element are active at each
 settled step and that disposal stops the app's metrics timer.
 
 ## Run a measurement
@@ -90,47 +90,59 @@ the browser to collect garbage after each measured run's final sample. Those
 results are stored separately in `collectionDiagnostics`; they do not represent
 normal playback memory usage or establish a CPU improvement.
 
-## Recorded result: 2026-10-19
+## Recorded result: 2026-10-21
 
-The original public baseline (`dc43bc7`) and patched 4.15.1 ran sequentially on
-the same otherwise idle Apple M5 machine: 10 logical processors, 32 GiB memory,
-macOS with Darwin 27.0.0, Node 24.19.0, pnpm 10.33.0, and Chromium
-149.0.7827.55. Each used one excluded full warm-up and three measured contexts,
-the same local fixture and harness, and a 1440 × 900 viewport. Video selected
-both 320 × 180 and 640 × 360 renditions. The app's player lifecycle source was
-identical; the change was the UI ownership correction described below.
+Both conditions ran Player 8.281.0 and UI 4.23.0 on an Apple M5 with ten logical
+processors, 32 GiB RAM, Darwin 27.0.0, Node 24.19.0, pnpm 10.33.0 and Chrome
+155.0.8059.85. Each condition excluded one complete warm-up, then measured three
+fresh contexts serially with zero retries. No builds or emulators ran during
+the measured workload. Adaptive quality selected 320 × 180 through theme changes
+and 640 × 360 in the later recreation phases in both conditions.
 
-Values are medians with the observed minimum–maximum in parentheses. CPU time
-covers the workload from the settled starting sample through disposal, before
-the separate explicit collection diagnostic.
+The [machine-readable results](web-performance-results.json) include individual
+endpoint samples, medians, ranges, process counts and input hashes. The earlier
+condition records HEAD `80a02ed`, with temporary Web 8.281.0 package overrides and
+the measurement harness; it is not a clean checkout of that revision. The fixed
+condition records `dee205b`, with committed measured inputs checked clean before
+and after execution. Application and shared-UI source hashes match. Changes to
+the harness added provenance checks; the 21-phase workload and sampling remained
+the same. Served development responses have their own hashes for each run.
 
-| Normal measurement | Original baseline | Patched 4.15.1 |
+Values below are medians with observed minimum–maximum in parentheses.
+
+| Ordinary measurement | Before the ownership correction | After |
 | --- | --- | --- |
-| Renderer process CPU time | 1.811 s (1.758–1.923) | 1.979 s (1.667–2.031) |
-| Renderer main-thread CPU time | 1.103 s (1.042–1.152) | 1.166 s (1.042–1.242) |
-| JavaScript heap after disposal | 28.08 MiB (24.70–28.34) | 28.24 MiB (19.24–30.46) |
-| Highest sampled heap per run | 29.76 MiB (29.60–29.76) | 31.89 MiB (31.07–34.47) |
+| Renderer process CPU time | 2.333 s (2.160–2.343) | 2.924 s (2.892–2.929) |
+| Renderer main-thread CPU time | 1.349 s (1.288–1.382) | 1.785 s (1.778–1.799) |
+| JavaScript heap after disposal | 27.02 MiB (22.16–27.64) | 15.92 MiB (15.84–21.50) |
+| Highest sampled heap per run | 33.94 MiB (33.83–37.14) | 29.38 MiB (26.33–29.65) |
 
-CPU ranges overlap and the patched medians are higher. These runs demonstrate
-neither a CPU improvement nor a reduction in the highest sampled heap. Browser
-collection timing affects the ordinary heap samples; the patch specifically
-corrects ownership of objects that outlive their UI.
+The CPU times increased. Cleanup performs work, but this comparison does not
+isolate the cause of the CPU difference. Ordinary heap samples also depend on
+when the browser collects garbage.
 
-| Separate diagnostic after explicit collection | Original baseline | Patched 4.15.1 |
+| Separate diagnostic after explicit collection | Before | After |
 | --- | --- | --- |
-| JavaScript heap | 19.61 MiB (19.59–19.63) | 17.59 MiB (17.57–17.59) |
-| DOM nodes | 12,618 in all three runs | 10,535 in all three runs |
-| DOM event listeners | 14,333 in all three runs | 10,580 in all three runs |
+| JavaScript heap | 20.049 MiB (20.043–20.051) | 13.676 MiB (13.664–13.679) |
+| DOM nodes | 12,991 in every run | 2,560 in every run |
+| DOM event listeners | 14,469 in every run | 531 in every run |
+| Browser process RSS | 222.95 MiB (220.66–227.70) | 244.44 MiB (244.03–245.23) |
+| Three renderer processes, summed RSS | 607.61 MiB (533.84–674.36) | 661.89 MiB (660.38–664.56) |
+| GPU process RSS | 131.05 MiB (130.30–131.92) | 158.19 MiB (154.77–158.59) |
 
-This diagnostic shows about 10% less retained JavaScript heap, 17% fewer DOM
-nodes, and 26% fewer listeners for this workload. The connected page still had
-886 elements in both cases. Every run created and destroyed four players;
-disposal left zero media elements, zero pending requests, no pending app source
-load, and a stopped app metrics timer. One registered interval remained in the
-development page. No uncaught exception or error-level console message occurred
-in these measured runs. The 17 public browser checks also passed with zero
-retries. These short desktop measurements do not predict long sessions,
-other hardware, or native application memory use.
+The separate diagnostic showed approximately 32% less retained JavaScript heap,
+80% fewer DOM nodes and 96% fewer listeners. Process RSS did not decrease in this
+comparison. RSS includes resident code, native allocations and shared pages; it
+is not a private-allocation total. GPU-process RSS is system RAM, not graphics
+memory. These measurements establish neither total-memory savings nor a CPU
+improvement.
+
+Both conditions finished with 988 connected elements, zero media elements and
+live players, seven created and seven destroyed players, no pending source load
+or requests, and a stopped app metrics timer. One interval remained in the
+development page. The runs had no uncaught exceptions or error-level console
+messages. This short desktop workload does not establish long-session behavior,
+all SDK caches becoming collectible, or results on other hardware.
 
 ## Why auxiliary controls need explicit ownership
 
@@ -149,8 +161,17 @@ separate selectors. Icons, preview subtitles, and temporary subtitle sizing
 labels also need their creating component to release them. Upstream 4.23.0
 already calls the base release method in
 [`QuickSeekButton`](https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/components/buttons/QuickSeekButton.ts),
-so the rebased patch omits that older correction. The numeric measurements above
-remain results for 4.15.1; they do not establish performance for 4.23.0.
+so the rebased patch omits that older correction. The current measurements above apply to the corrected 4.23.0 patch.
+
+Further inspection of 4.23.0 found two ownership paths outside ordinary child
+traversal. Dynamic settings items replace their child list, leaving the item
+label outside `getComponents()`. Recommendation items similarly own title and
+duration labels separately; removing old recommendations must release them.
+The patch releases these owned controls exactly once, including labels outside
+the ordinary child tree. UI managers also registered source-change callbacks
+directly on the player. Registering them through the manager's wrapped player
+makes manager disposal remove those subscriptions. Regression checks reproduce
+each path before the correction and verify released controls after it.
 
 The [version-specific dependency patch](../patches/README.md) adds these ownership
 releases to the framework entry point used by both Web and the shared native UI

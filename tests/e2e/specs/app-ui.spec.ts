@@ -333,12 +333,13 @@ test("@public released factory controls stop localizing and release auxiliary ch
     const module = await import(/* @vite-ignore */ url);
     return module.inspectFactoryRelease(window.player!);
   }, helper) as { stockReleased: number; results: {
-    factory: string; auxiliaryComponents: number; releasedExactlyOnce: boolean;
+    factory: string; auxiliaryComponents: number; unlistedSettingLabels: number; releasedExactlyOnce: boolean;
     localizedWhileActive: boolean; localizedAfterRelease: boolean; adoptedChildren: boolean;
     icons: number; iconsReleasedExactlyOnce: boolean; iconsStoppedLocalizing: boolean;
   }[] };
   expect(result.results).toHaveLength(9);
   expect(result.stockReleased, "release the discarded stock root, preserving its adopted children").toBe(1);
+  expect(result.results.find((value) => value.factory === "Default")!.unlistedSettingLabels).toBeGreaterThan(0);
   for (const value of result.results) {
     expect(value.auxiliaryComponents, value.factory).toBeGreaterThan(0);
     expect(value.adoptedChildren, value.factory).toBe(true);
@@ -349,6 +350,28 @@ test("@public released factory controls stop localizing and release auxiliary ch
     expect(value.iconsReleasedExactlyOnce, JSON.stringify(value)).toBe(true);
     expect(value.iconsStoppedLocalizing, value.factory).toBe(true);
   }
+});
+
+test("@public UI managers remove all owned source subscriptions on release", async ({ page }, testInfo) => {
+  await captureAppPlayer(page);
+  const helper = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-release.ts")}`;
+  const result = await page.evaluate(async (url) => {
+    const module = await import(/* @vite-ignore */ url);
+    return module.inspectManagerSourceSubscriptions(window.player!);
+  }, helper) as { registered: number[]; remaining: number[] };
+  expect(result.registered).toHaveLength(2);
+  expect(result.registered.every((count) => count > 0)).toBe(true);
+  expect(result.remaining).toEqual([0, 0]);
+});
+
+test("@public removed recommendation labels stop localizing and release once", async ({ page }, testInfo) => {
+  await captureAppPlayer(page);
+  const helper = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-release.ts")}`;
+  const result = await page.evaluate(async (url) => {
+    const module = await import(/* @vite-ignore */ url);
+    return module.inspectRecommendationControlRelease(window.player!);
+  }, helper);
+  expect(result).toEqual({ labels: 6, removedLabels: 2, removedReleased: true, allReleasedOnce: true, stoppedLocalizing: true });
 });
 
 async function openConfigGroup(page: Page, title: string): Promise<void> {

@@ -150,9 +150,10 @@ These checks establish controlled local behavior; production live ingest,
 delivery infrastructure, physical devices, and cloud services remain separate
 verification tasks.
 
-The later [UI lifecycle regression](web-performance.md) brings the public
-browser subset to 17 cases. That guide records the separate processor and
-memory measurements and their limits.
+On 2026-10-21, the current `e2e:public` subset passed all 74 cases with zero
+retries, using Player 8.281.0 and UI 4.23.0 with the updated ownership patch.
+The [UI lifecycle measurements](web-performance.md) record the separate
+processor and memory comparison and its limits.
 
 ## Additional native runtime checks
 
@@ -298,3 +299,19 @@ READMEs for platform setup and the exact qualification scopes. These local check
 do not establish physical-device behavior, audible synchronization, quantitative
 bitrate/buffer effects, individual native resource counts or leak freedom,
 casting, offline playback, or Analytics receipt.
+
+### Updated shared UI on native hosts
+
+The updated UI ownership patch was also built into the native hosts and checked
+on 2026-10-21. Packaged JavaScript and CSS were read back and matched the same
+generated resources; a Web build alone was not used as native qualification.
+
+| Host | Actual playback and GUI result |
+| --- | --- |
+| Standalone Android, Player 3.171.0 | Two cases passed in 27.042 seconds: native transport/seek/mute/speed responses, plus three cycles through Sports, Live, Cinema and Default. All 12 view replacements detached the previous view and retained source, player settings and app DVR state. |
+| Standalone Swift, Player 3.128.0, iPad / iOS 26.4 | One case passed in 116.240 seconds. GUI-configured 60-second HLS, Sports recreation and progressive MP4 advanced visible video. A title-only MP4 Apply kept the same Player, created a new Source and retained offset/autoplay/mute/bitrate/buffer/UI/DVR settings; its native position advanced from 6.778 to 11.178 seconds. |
+| React Native 1.29.0 / Expo 57, iOS and Android | Both used Default and Sports with advancing native positions and visible video. UI recreation replaced the owner; background return retained it and resumed after actual visible Play. The additional iOS case passed in 48.759 seconds using the 734-second reference HLS. Separate full configuration/clipboard cases used the 60-second fixture; Android also checked 60-second DASH with the updated UI. |
+
+These checks qualify the recorded native resource/GUI combinations. The browser
+heap comparison and process RSS samples are separate measurements; they do not
+establish a reduction in native decoder, GPU or total application memory.

@@ -9,7 +9,7 @@
     },
     {
       "type": "p",
-      "text": "Local media generation uses the smaller of four and the detected CPU count for FFmpeg decoder, filter, and video-encoder settings. This is not a four-thread limit for the entire process. The different stages and the two video encoders can each run their own work."
+      "text": "Local media generation chooses FFmpeg decoder, filter and video-encoder settings from available CPU allocation and estimated reclaimable memory, capped at four threads per pool. One decode supplies both video renditions and the sprite. Audio and image encoders use one thread. This is a startup budget, not an operating-system RSS or total-thread limit."
     },
     {
       "type": "p",
@@ -17,7 +17,11 @@
     },
     {
       "type": "p",
-      "text": "These are the implemented controls. There is no continuous monitoring of RAM, CPU load, heat, or input complexity to adjust concurrency, nor a dedicated JSON artifact containing an automatic resource plan. The media generator writes measurements to fixture-report.json; the performance suite writes lifecycle-performance.json."
+      "text": "fixture-report.json records the detected CPU and memory resources, chosen budget and actual generation measurements. Unknown memory selects one thread. Browser correctness tests select one to four workers from available CPUs and memory, reserving one GiB and estimating two GiB per worker. E2E_WORKERS can reduce that budget. Performance measurements always use one worker. The fixed 180p/360p fixture determines the frame-memory estimate; the tool does not continuously monitor heat or resize arbitrary encoding ladders."
+    },
+    {
+      "type": "p",
+      "text": "A separate correctness smoke run passed all ten feature checks with zero retries: one worker took 20.31 s with 2.43 GB sampled peak summed process-tree RSS; the automatic budget selected two workers and took 11.51 s with 3.70 GB. Times include server startup and shared-UI building. There was one run per mode with native qualification also running, so this records execution cost rather than a controlled speedup. Shared resident pages can be counted more than once."
     },
     {
       "type": "p",
@@ -33,7 +37,7 @@
     },
     {
       "type": "p",
-      "text": "The workload cycles through all 14 themes three times, changes the seek-preview setting, switches HLS/DASH, recreates the Player through the DVR setting, and finally releases the Player and UI. At settled steps it checks that one Player and one media element are active, and that disposal stops the app's metrics timer."
+      "text": "The workload cycles through all 14 themes three times, changes the seek-preview setting, applies Source settings three times, recreates the Player through Player settings and DVR controls three times each, switches HLS/DASH three times, and finally releases the Player and UI. The 21 phases create and destroy seven Players per run. Settled states verify one active Player/media element and disposal stops the app timer."
     },
     {
       "type": "p",
@@ -97,6 +101,10 @@
         [
           "DOM / listeners",
           "Page objects and event handlers; may include detached objects awaiting collection"
+        ],
+        [
+          "Process RSS",
+          "Resident pages by browser process type; includes shared pages and native allocations"
         ]
       ]
     },
@@ -110,11 +118,11 @@
     },
     {
       "type": "h2",
-      "text": "Performance comparison recorded on 2026-10-19"
+      "text": "Performance comparison recorded on 2026-10-21"
     },
     {
       "type": "p",
-      "text": "The public documentation records sequential measurements of the original public baseline and the UI 4.15.1 ownership correction on the same Apple M5 machine: ten logical CPUs, 32 GiB RAM, Node 24.19.0, pnpm 10.33.0, and Chromium 149.0.7827.55. Each condition used one excluded warm-up and three measured runs."
+      "text": "Player 8.281.0 and UI 4.23.0 ran before and after the ownership correction on Apple M5, ten logical CPUs, 32 GiB RAM, Darwin 27.0.0, Node 24.19.0 and Chrome 155.0.8059.85. Each condition used one excluded full warm-up and three fresh contexts, one worker and zero retries. Adaptive quality selected the same 180p and 360p stages."
     },
     {
       "type": "table",
@@ -126,29 +134,29 @@
       "rows": [
         [
           "Renderer process CPU time",
-          "1.811 s",
-          "1.979 s"
+          "2.333 s",
+          "2.924 s"
         ],
         [
           "Main-thread CPU time",
-          "1.103 s",
-          "1.166 s"
+          "1.349 s",
+          "1.785 s"
         ],
         [
           "JavaScript heap after disposal",
-          "28.08 MiB",
-          "28.24 MiB"
+          "27.02 MiB",
+          "15.92 MiB"
         ],
         [
           "Highest sampled heap per run",
-          "29.76 MiB",
-          "31.89 MiB"
+          "33.94 MiB",
+          "29.38 MiB"
         ]
       ]
     },
     {
       "type": "p",
-      "text": "CPU-time ranges overlap and the patched medians are higher. These ordinary measurements demonstrate neither a CPU improvement nor a reduction in the highest sampled heap."
+      "text": "CPU times increased. The comparison does not isolate the cause of that increase. Ordinary heap samples depend on collection timing. Individual samples, ranges, hashes and process counts are in the linked measurement documentation."
     },
     {
       "type": "table",
@@ -160,24 +168,51 @@
       "rows": [
         [
           "JavaScript heap",
-          "19.61 MiB",
-          "17.59 MiB"
+          "20.049 MiB",
+          "13.676 MiB"
         ],
         [
           "DOM nodes",
-          "12,618",
-          "10,535"
+          "12,991",
+          "2,560"
         ],
         [
           "Event listeners",
-          "14,333",
-          "10,580"
+          "14,469",
+          "531"
+        ],
+        [
+          "Browser process RSS",
+          "222.95 MiB",
+          "244.44 MiB"
+        ],
+        [
+          "Three renderer processes, summed RSS",
+          "607.61 MiB",
+          "661.89 MiB"
+        ],
+        [
+          "GPU process RSS",
+          "131.05 MiB",
+          "158.19 MiB"
         ]
       ]
     },
     {
       "type": "p",
-      "text": "For this workload, the separate diagnostic showed approximately 10% less retained JavaScript heap, 17% fewer DOM nodes, and 26% fewer listeners. These are not total-memory savings during normal playback. Both conditions had 886 connected page elements; the results do not establish that every SDK object was collected. Short desktop measurements cannot predict long sessions, other devices, or native-app memory."
+      "text": "After explicit garbage collection, retained JavaScript heap fell about 32%, DOM nodes 80% and listeners 96%. Process RSS increased. RSS includes shared pages, code and native allocations; it is not a private-allocation total. GPU-process RSS is system RAM, not VRAM. Both conditions had 988 connected elements, no live Player/media element, seven created and destroyed Players, no pending source/request and a stopped app timer. This does not establish total-memory savings, CPU improvement, leak freedom or long-session behavior."
+    },
+    {
+      "type": "p",
+      "text": "Dynamic settings item labels and recommendation title/duration labels are owned outside the normal child tree. They now participate in exactly-once disposal. Source-change callbacks are registered through the UI manager’s wrapped Player so manager disposal also removes those callbacks. Regression checks reproduce each retention path and verify the correction."
+    },
+    {
+      "type": "p",
+      "text": "The earlier measurement records HEAD 80a02ed with temporary 8.281.0 package overrides and the harness; it is not a clean checkout of that revision. The corrected measurement records dee205b with clean committed measured inputs. Application/shared-UI source hashes match; harness changes added provenance checks without changing the workload. Each served development response has its own recorded hash."
+    },
+    {
+      "type": "p",
+      "text": "For the fixed 60-second fixture, three alternating pairs after excluded warm-ups reduced median generation time from 1.389 s to 1.146 s and child CPU time from 6.093 s to 5.694 s. Peak child RSS increased from 74.65 MB to 77.41 MB. All 25 generator checks passed. Media bytes matched except generated HLS program-date-time values and measurement reports. A two-CPU/128-MiB budget-input smoke run chose one thread and generated valid media; it did not impose an operating-system resource limit."
     },
     {
       "type": "h2",
@@ -255,7 +290,7 @@
     {
       "type": "note",
       "title": "Check the API documentation version",
-      "text": "Current Web dependencies are Bitmovin Player 8.281.0 and Player UI 4.23.0. The dated measurements above used earlier dependencies, including UI 4.15.1, and do not validate the updated versions. Check the matching API reference and repository types and implementation when using settings and APIs."
+      "text": "Current dependencies are Player 8.281.0 and UI 4.23.0. The 2026-10-21 comparison above uses those versions. Check matching API references and repository types before changing settings."
     }
   ],
   "sources": [
@@ -311,6 +346,16 @@
       "path": "apps/react-native/src/dvr/snapshotController.ts",
       "line": 28,
       "label": "Concurrent snapshots and coalesced refreshes"
+    },
+    {
+      "path": "docs/web-performance-results.json",
+      "line": 1,
+      "label": "2026-10-21 measurement samples and provenance"
+    },
+    {
+      "path": "tests/e2e/workerBudget.ts",
+      "line": 3,
+      "label": "CPU and memory worker budget"
     }
   ]
 }

@@ -1,5 +1,8 @@
 import { defineConfig } from "@playwright/test";
 import { resolve } from "node:path";
+import { availableParallelism } from "node:os";
+import { availableMemory } from "node:process";
+import { workerBudget } from "./workerBudget";
 
 function testPort(name: string, fallback: number): number {
   const port = Number(process.env[name] ?? fallback);
@@ -37,7 +40,7 @@ export default defineConfig({
   timeout: 90_000,
   expect: { timeout: 20_000 },
   fullyParallel: false,
-  workers: 1,
+  workers: workerBudget(availableParallelism(), availableMemory(), process.env.E2E_WORKERS),
   // These specs hit public third-party live streams (BBC R&D testcard, Unified Streaming), which
   // occasionally fail to start within a poll window — a transient environmental flake, not an app
   // bug (a real regression fails all attempts). Retry to keep the suite stable; the first attempt

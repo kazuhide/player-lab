@@ -87,7 +87,7 @@
     },
     {
       "type": "h2",
-      "text": "AppleではHLS終了後もSDKの再生時間が無限長になる場合があります"
+      "text": "AppleのHLS終了判定"
     },
     {
       "type": "p",
