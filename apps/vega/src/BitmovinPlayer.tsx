@@ -5,7 +5,7 @@ import { AppState, StyleSheet, View, type AppStateStatus } from "react-native";
 import { DvrController, type DvrUpdate } from "./dvrController";
 import { createVegaPlayer } from "./vegaPlayer";
 import { installVegaPolyfills, removeVegaPolyfills } from "./polyfills";
-import { startVegaSession } from "./playerSession";
+import { releaseVegaBackgroundMedia, startVegaSession } from "./playerSession";
 
 export interface BitmovinPlayerProps {
   config: PlayerConfig;
@@ -34,6 +34,8 @@ export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
         const session = ownedSession.current;
         ownedSession.current = null;
         if (session) teardown.current = session.dispose();
+        // A current waiter reuses the retiring owner's barrier, so it is flushed too.
+        releaseVegaBackgroundMedia(teardown.current);
         setSurfaceHandle(null);
         setLifecycle(lifecycleRef.current);
       } else if (state === "active" && !previous.active) {
@@ -72,8 +74,8 @@ export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
     });
     ownedSession.current = session;
     return () => {
-      if (ownedSession.current === session) ownedSession.current = null;
       teardown.current = session.dispose();
+      if (ownedSession.current === session) ownedSession.current = null;
     };
   }, [lifecycle.active, lifecycle.generation, surfaceHandle, source, config, onDvr, controllerRef]);
 

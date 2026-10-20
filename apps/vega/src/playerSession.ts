@@ -17,6 +17,14 @@ interface SessionController {
   setTimeShiftEnabled(enabled: boolean): void;
 }
 
+interface NativeReleaseBarrier extends Promise<void> {
+  releaseNativeSync?: () => boolean;
+}
+
+export function releaseVegaBackgroundMedia(cleanup: Promise<void>): void {
+  (cleanup as NativeReleaseBarrier).releaseNativeSync?.();
+}
+
 interface SessionOptions<V extends SessionMedia, P extends SessionPlayer, C extends SessionController> {
   handle: string;
   source: SourceConfig;
@@ -38,6 +46,7 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
   let player: P | null = null;
   let controller: C | null = null;
   let initializing: Promise<unknown> | null = null;
+  let initialized = false;
   let surfaceAttached = false;
   let cancelled = false;
   let cleanup: Promise<void> | null = null;
@@ -51,19 +60,45 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
       return cleanup;
     }
     let resolveCleanup!: () => void;
-    const barrier: Promise<void> & { retainedOwner?: { video: V; player: P | null; controller: C | null } } =
+    const barrier: NativeReleaseBarrier & { retainedOwner?: { video: V; player: P | null; controller: C | null } } =
       Object.assign(new Promise<void>((resolve) => { resolveCleanup = resolve; }), {
         retainedOwner: { video, player, controller },
       });
     // Install the owner-bearing barrier before native calls can synchronously reenter disposal.
     cleanup = barrier;
+    const retiringVideo = video;
+    const initializationConfirmed = initialized;
+    let nativeRelease: boolean | undefined;
+    barrier.releaseNativeSync = () => {
+      if (nativeRelease !== undefined) return nativeRelease;
+      nativeRelease = false;
+      try { if (surfaceAttached) retiringVideo.clearSurfaceHandle(options.handle); }
+      catch { options.onError("Vega surface cleanup failed"); }
+      // The 1000 ms deadline is this app's policy, not an SDK default.
+      let released = false;
+      try { released = retiringVideo.deinitializeSync(1000) === "success"; }
+      catch { /* A thrown native release is unconfirmed, just like a non-success status. */ }
+      if (!released) {
+        // A failed sync call may discard its handle, so retrying cannot confirm release.
+        options.onError("Vega media cleanup unconfirmed; restart the app before playing again");
+        return false;
+      }
+      if (!initializationConfirmed) {
+        // Abort success acknowledges cancellation. Late native allocation is destroyed
+        // asynchronously by the package without an exposed completion acknowledgement.
+        options.onError("Vega initialization cancellation unconfirmed; restart the app before playing again");
+        return false;
+      }
+      nativeRelease = true;
+      return true;
+    };
     // Clear only this effect's controller; an older cleanup cannot clear a newer owner.
     if (controller && options.controllerRef.current === controller) options.controllerRef.current = null;
     try { controller?.dispose(); }
     catch { options.onError("Vega controller cleanup failed"); }
 
-    // Start the Web SDK's stop sequence while its media is valid. Do not await it:
-    // native release must still finish in this call stack before background suspension.
+    // The Web SDK's asynchronous stop sequence still needs valid media during foreground Apply.
+    // Background explicitly escalates this same barrier before KeplerScript can suspend.
     const destroyFailed = () => {
       options.onError("Vega player cleanup unconfirmed; restart the app before playing again");
       return false;
@@ -71,30 +106,20 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
     let destroyed: Promise<boolean>;
     try { destroyed = Promise.resolve(player?.destroy()).then(() => true, destroyFailed); }
     catch { destroyed = Promise.resolve(destroyFailed()); }
-    try { if (surfaceAttached) video.clearSurfaceHandle(options.handle); }
-    catch { options.onError("Vega surface cleanup failed"); }
-    let released = false;
-    // KeplerScript can suspend at background. Release native media before the first await,
-    // including ordinary Apply teardown that may still be pending when background arrives.
-    // The 1000 ms deadline is this app's policy, not an SDK default. The API also aborts initialization.
-    try { released = video.deinitializeSync(1000) === "success"; }
-    catch { /* A thrown native release is unconfirmed, just like a non-success status. */ }
-    if (!released) {
-      // A failed sync call may have discarded its native handle. Retain the owner and block
-      // replacements rather than treating a retry or a swallowed error as confirmed release.
-      options.onError("Vega media cleanup unconfirmed; restart the app before playing again");
-      return barrier;
-    }
+    if (!initializationConfirmed) barrier.releaseNativeSync();
     void (async () => {
       await initializing?.catch(() => {});
       // Native release alone does not confirm that the Web SDK stopped using the global shim.
-      if (!await destroyed) return;
+      const sdkReleased = await destroyed;
+      const nativeReleased = barrier.releaseNativeSync!();
+      if (!sdkReleased || !nativeReleased) return;
       try { if (video) options.removePolyfills(video); }
       catch { options.onError("Vega media shim cleanup failed"); }
       controller = null;
       player = null;
       video = null;
       delete barrier.retainedOwner;
+      delete barrier.releaseNativeSync;
       resolveCleanup();
     })();
     return barrier;
@@ -107,6 +132,7 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
     video = options.createVideo();
     initializing = Promise.resolve(video.initialize());
     await initializing;
+    initialized = true;
     if (cancelled) return;
     // The native setter caches the handle before its bridge call, which can throw after mutation.
     surfaceAttached = true;

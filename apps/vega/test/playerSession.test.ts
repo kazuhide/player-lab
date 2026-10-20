@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { startVegaSession } from "../src/playerSession";
+import { releaseVegaBackgroundMedia, startVegaSession } from "../src/playerSession";
 
 function deferred<T = void>() {
   let resolve!: (value: T) => void;
@@ -34,24 +34,53 @@ function fixture() {
 }
 
 describe("Vega session ownership", () => {
-  it("starts SDK destruction with valid media and releases native resources without awaiting it", async () => {
+  it("keeps native media valid until ordinary foreground SDK destruction fulfills", async () => {
     const { options, video, player } = fixture();
     const destroyed = deferred();
     player.destroy.mockReturnValueOnce(destroyed.promise);
     const session = startVegaSession(options);
     await session.ready;
     const cleanup = session.dispose();
-    expect(video.clearSurfaceHandle).toHaveBeenCalledWith("surface");
-    expect(video.deinitializeSync).toHaveBeenCalledWith(1000);
-    expect(player.destroy.mock.invocationCallOrder[0]).toBeLessThan(video.clearSurfaceHandle.mock.invocationCallOrder[0]!);
-    expect(video.clearSurfaceHandle.mock.invocationCallOrder[0]).toBeLessThan(video.deinitializeSync.mock.invocationCallOrder[0]!);
+    expect(video.clearSurfaceHandle).not.toHaveBeenCalled();
+    expect(video.deinitializeSync).not.toHaveBeenCalled();
     const next = fixture();
     const replacement = startVegaSession({ ...next.options, after: cleanup });
     await Promise.resolve();
     expect(next.options.createVideo).not.toHaveBeenCalled();
     destroyed.resolve();
     await replacement.ready;
+    expect(video.clearSurfaceHandle).toHaveBeenCalledWith("surface");
+    expect(video.deinitializeSync).toHaveBeenCalledWith(1000);
+    expect(player.destroy.mock.invocationCallOrder[0]).toBeLessThan(video.clearSurfaceHandle.mock.invocationCallOrder[0]!);
+    expect(video.clearSurfaceHandle.mock.invocationCallOrder[0]).toBeLessThan(video.deinitializeSync.mock.invocationCallOrder[0]!);
     await replacement.dispose();
+  });
+
+  it("synchronously releases the retiring owner through a cancelled waiter's barrier on background", async () => {
+    const old = fixture();
+    const destroyed = deferred();
+    old.player.destroy.mockReturnValueOnce(destroyed.promise);
+    const a = startVegaSession(old.options);
+    await a.ready;
+    const cleanup = a.dispose();
+    const waiting = fixture();
+    const b = startVegaSession({ ...waiting.options, after: cleanup });
+    const waitingCleanup = b.dispose();
+    expect(waitingCleanup).toBe(cleanup);
+    expect(old.video.deinitializeSync).not.toHaveBeenCalled();
+    releaseVegaBackgroundMedia(waitingCleanup);
+    releaseVegaBackgroundMedia(waitingCleanup);
+    expect(old.video.clearSurfaceHandle).toHaveBeenCalledWith("surface");
+    expect(old.video.deinitializeSync).toHaveBeenCalledTimes(1);
+    expect(old.player.destroy).toHaveBeenCalledTimes(1);
+    const next = fixture();
+    const c = startVegaSession({ ...next.options, after: waitingCleanup });
+    await Promise.resolve();
+    expect(next.options.createVideo).not.toHaveBeenCalled();
+    destroyed.resolve();
+    await c.ready;
+    expect(waiting.options.createVideo).not.toHaveBeenCalled();
+    await c.dispose();
   });
 
   it.each(["timedout", "invalid", "throw"] as const)("retains an unconfirmed owner and blocks replacement after %s", async (status) => {
@@ -81,17 +110,17 @@ describe("Vega session ownership", () => {
     video.clearSurfaceHandle.mockImplementationOnce(() => { reentrant.push(session.dispose()); });
     video.deinitializeSync.mockImplementationOnce(() => { reentrant.push(session.dispose()); return "success"; });
     const cleanup = session.dispose();
-    expect(reentrant).toEqual([cleanup, cleanup, cleanup]);
     await cleanup;
+    expect(reentrant).toEqual([cleanup, cleanup, cleanup]);
     expect(video.deinitializeSync).toHaveBeenCalledTimes(1);
     expect(cleanup).not.toHaveProperty("retainedOwner");
   });
 
-  it("retains unconfirmed media even before installing the global shim", async () => {
+  it.each(["success", "invalid"] as const)("retains unconfirmed initialization cancellation (%s) before installing the global shim", async (status) => {
     const { options, video } = fixture();
     const initialized = deferred();
     video.initialize.mockReturnValueOnce(initialized.promise);
-    video.deinitializeSync.mockReturnValueOnce("invalid");
+    video.deinitializeSync.mockReturnValueOnce(status);
     const session = startVegaSession(options);
     const cleanup = session.dispose();
     expect(video.deinitializeSync).toHaveBeenCalledTimes(1);
@@ -104,7 +133,9 @@ describe("Vega session ownership", () => {
     expect(next.options.createVideo).not.toHaveBeenCalled();
     expect(options.installPolyfills).not.toHaveBeenCalled();
     expect(cleanup).toHaveProperty("retainedOwner", { video, player: null, controller: null });
-    expect(options.onError).toHaveBeenCalledWith("Vega media cleanup unconfirmed; restart the app before playing again");
+    expect(options.onError).toHaveBeenCalledWith(status === "success"
+      ? "Vega initialization cancellation unconfirmed; restart the app before playing again"
+      : "Vega media cleanup unconfirmed; restart the app before playing again");
   });
 
   it.each([false, true])("clears a partially attached surface and releases media when native attachment throws (clear fails: %s)", async (clearFails) => {
@@ -132,10 +163,11 @@ describe("Vega session ownership", () => {
     expect(video.deinitializeSync).toHaveBeenCalledTimes(1);
     expect(video.clearSurfaceHandle).not.toHaveBeenCalled();
     initialized.resolve();
-    await Promise.all([session.ready, disposed]);
+    await session.ready;
     expect(options.createPlayer).not.toHaveBeenCalled();
     expect(controllerRef.current).toBeNull();
     expect(video.deinitializeSync).toHaveBeenCalledTimes(1);
+    expect(disposed).toHaveProperty("retainedOwner", { video, player: null, controller: null });
   });
 
   it("releases each owned player and media object once", async () => {
@@ -149,7 +181,7 @@ describe("Vega session ownership", () => {
     expect(video.clearSurfaceHandle).toHaveBeenCalledTimes(1);
   });
 
-  it("cancels initialization synchronously and waits for it to settle before creating the replacement", async () => {
+  it("blocks replacement after initialization abort even when its promise later settles", async () => {
     const old = fixture();
     const next = fixture();
     const initialized = deferred();
@@ -163,11 +195,12 @@ describe("Vega session ownership", () => {
     initialized.resolve();
     await a.ready;
     expect(old.options.createPlayer).not.toHaveBeenCalled();
-    await b.ready;
-    expect(next.controllerRef.current).toBe(next.controller);
-    await a.dispose();
-    expect(next.controllerRef.current).toBe(next.controller);
-    await b.dispose();
+    await Promise.resolve();
+    expect(next.options.createVideo).not.toHaveBeenCalled();
+    expect(next.controllerRef.current).toBeNull();
+    expect(a.dispose()).toBe(cleanup);
+    expect(b.dispose()).toBe(cleanup);
+    expect(old.options.onError).toHaveBeenCalledWith("Vega initialization cancellation unconfirmed; restart the app before playing again");
   });
 
   it.each([true, false])("keeps the new owner when old load settles %s before destruction", async (loadFirst) => {
@@ -188,7 +221,7 @@ describe("Vega session ownership", () => {
       await a.ready;
       expect(next.options.createVideo).not.toHaveBeenCalled();
     }
-    expect(old.video.deinitializeSync).toHaveBeenCalledTimes(1);
+    expect(old.video.deinitializeSync).not.toHaveBeenCalled();
     destroyed.resolve();
     await b.ready;
     expect(old.controllerRef.current).toBe(next.controller);
@@ -203,7 +236,7 @@ describe("Vega session ownership", () => {
     await b.dispose();
   });
 
-  it("reuses the pending cleanup barrier for rapid cancelled source changes", async () => {
+  it("reuses the unconfirmed initialization barrier for rapid cancelled source changes", async () => {
     const first = fixture();
     const initialized = deferred();
     first.video.initialize.mockReturnValueOnce(initialized.promise);
@@ -218,10 +251,11 @@ describe("Vega session ownership", () => {
     const latest = fixture();
     const b = startVegaSession({ ...latest.options, after: cleanup });
     initialized.resolve();
-    await b.ready;
+    await a.ready;
+    await Promise.resolve();
     expect(first.options.createPlayer).not.toHaveBeenCalled();
-    expect(latest.options.createPlayer).toHaveBeenCalledTimes(1);
-    await b.dispose();
+    expect(latest.options.createVideo).not.toHaveBeenCalled();
+    expect(b.dispose()).toBe(cleanup);
   });
 
   it.each(["initialize", "load"] as const)("cleans up after a rejected %s", async (step) => {
@@ -230,8 +264,15 @@ describe("Vega session ownership", () => {
     if (step === "initialize") video.initialize.mockRejectedValueOnce(failure);
     else player.load.mockRejectedValueOnce(failure);
     const session = startVegaSession(options);
-    await expect(session.ready).resolves.toBeUndefined();
-    await session.dispose();
+    if (step === "load") {
+      await expect(session.ready).resolves.toBeUndefined();
+      await session.dispose();
+    } else {
+      for (let i = 0; i < 8; i++) await Promise.resolve();
+      const cleanup = session.dispose();
+      expect(cleanup).toHaveProperty("retainedOwner", { video, player: null, controller: null });
+      expect(options.onError).toHaveBeenCalledWith("Vega initialization cancellation unconfirmed; restart the app before playing again");
+    }
     expect(controllerRef.current).toBeNull();
     expect(options.onError).toHaveBeenCalledWith("Vega player setup failed");
     expect(video.deinitializeSync).toHaveBeenCalledTimes(1);

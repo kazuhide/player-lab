@@ -232,7 +232,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(current().load).toHaveBeenCalledWith({ progressive: "https://example.com/movie.mp4", options: { startOffset: 10.5, startOffsetTimelineReference: "start" } });
   });
 
-  it("cancels a not-yet-initialized App session before creating the latest configuration", async () => {
+  it("keeps the latest configuration but blocks replacement after unconfirmed initialization cancellation", async () => {
     let initialized!: () => void;
     runtime.initialization = new Promise<void>((resolve) => { initialized = resolve; });
     await mount();
@@ -242,8 +242,11 @@ describe("Vega configuration in the mounted App and media session", () => {
     await press("Apply and recreate player");
     expect(runtime.players).toHaveLength(0);
     await act(async () => initialized());
-    expect(runtime.players).toHaveLength(1);
-    expect(current().load).toHaveBeenCalledWith(expect.objectContaining({ dash: "https://example.com/latest.mpd" }));
+    expect(runtime.players).toHaveLength(0);
+    expect(runtime.videos).toHaveLength(1);
+    expect(input("Source URL").props.value).toBe("https://example.com/latest.mpd");
+    expect(warnings).toHaveBeenCalledExactlyOnceWith("Vega initialization cancellation unconfirmed; restart the app before playing again");
+    warnings.mockClear();
     expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
   });
 
@@ -315,9 +318,10 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(runtime.videos).toHaveLength(1);
     expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
     await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("current-surface"));
-    expect(runtime.players).toHaveLength(1);
-    expect(runtime.videos).toHaveLength(2);
-    expect(current().load).toHaveBeenCalledTimes(1);
+    expect(runtime.players).toHaveLength(0);
+    expect(runtime.videos).toHaveLength(1);
+    expect(warnings).toHaveBeenCalledExactlyOnceWith("Vega initialization cancellation unconfirmed; restart the app before playing again");
+    warnings.mockClear();
   });
 
   it("waits for foreground before creating native media and unsubscribes on unmount", async () => {
@@ -363,7 +367,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(button("Apply and recreate player").props.disabled).toBe(true);
   });
 
-  it("has already released the retiring owner when the current Apply waiter backgrounds", async () => {
+  it("synchronously releases the retiring owner when the current Apply waiter backgrounds", async () => {
     await mount();
     const old = current();
     let released!: () => void;
@@ -372,7 +376,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     await text("Source URL", "https://example.com/latest.mpd");
     await press("Apply and recreate player");
     expect(runtime.videos).toHaveLength(1);
-    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[0]!.deinitializeSync).not.toHaveBeenCalled();
     await appState("background");
     await appState("background");
     expect(old.destroy).toHaveBeenCalledTimes(1);
