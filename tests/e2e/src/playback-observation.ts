@@ -99,7 +99,7 @@ export async function seekObservation(page: Page, arm: Awaited<ReturnType<typeof
         && observation.log === document.querySelector(".panel-log") && observation.log.isConnected,
       sameSource: observation.sourceGeneration === arm.generation,
       sdkCompleted: Boolean(started && completed),
-      nativeCompleted: fresh.some(event => event.name === "native-seeked"),
+      nativeCompleted: fresh.some(event => event.name === "native-seeked" && event.sequence > (started?.sequence ?? Infinity)),
       offsetMatches: Number.isFinite(offset) && Math.abs(offset - target) <= (target === 0 ? 1 : 2),
       edgeMatches: atEdge === String(target === 0),
       labelMatches: target === 0 ? label === "LIVE" : /^-\d+(?:\.\d+)?s behind$/.test(label),
