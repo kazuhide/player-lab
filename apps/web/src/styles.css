@@ -172,6 +172,7 @@ body {
 
 /* --- Stage: player (left) + "how this UI is built" (right) --- */
 .stage {
+  container: player-stage / inline-size;
   display: flex;
   flex-wrap: wrap;
   gap: var(--gap);
@@ -196,28 +197,24 @@ body {
   min-width: 20rem;
 }
 
-.ui-construction .theme-diff {
+.construction-content {
   flex: 1;
+  min-width: 0;
+}
+
+.ui-construction .theme-diff {
   margin: 0;
 }
 
-/* On wide screens, pin the construction panel to the PLAYER's height and scroll its
-   content internally — so switching themes (whose "how it's built" content varies in
-   length) never changes the stage height. The player defines the row height via its
-   16:9 aspect-ratio; the panel's content is taken out of flow (absolute) so it can't
-   grow the row. Below this width the stage stacks and the panel flows naturally.
-   The breakpoint sits just above the side-by-side wrap point (#player 22rem +
-   .ui-construction 20rem + 1rem gap + #app's 2rem padding = 45rem) so the pin is only
-   ever active while the columns truly sit side-by-side — pinning a wrapped column would
-   collapse it to zero height (its only child is out of flow). */
-@media (min-width: 46rem) {
-  .stage {
-    align-items: stretch;
-  }
+/* Pin both code sections only when the stage itself can fit both columns:
+   60% player + 20rem panel minimum + 1rem gap needs at least 52.5rem.
+   Wrapped panels and browsers without container queries keep natural flow. */
+@container player-stage (min-width: 53rem) {
   .ui-construction {
     position: relative;
+    align-self: stretch;
   }
-  .ui-construction .theme-diff {
+  .construction-content {
     position: absolute;
     inset: 0;
     overflow-y: auto;

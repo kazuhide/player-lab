@@ -538,7 +538,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 608
           },
-          "description": "Configure automatic recovery from PLAYBACK_VIDEO_DECODING_ERROR. When enabled, the source reloads and resumes at the previous position. Recovery is normally attempted once at a given position; a repeated error or failed recovery produces an error."
+          "description": "Automatically recover from video decoding errors (default true). Recovery reloads the source and restores the position, tracks and other playback state. It is attempted once per position, within 0.1 seconds; a repeated error there or a failed reload surfaces an error."
         },
         {
           "scope": "PlayerConfig",
@@ -636,7 +636,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 625
           },
-          "description": "Set the allowed PSNR difference between selected qualities for sources carrying Quality Optimized Streaming Data. This does not affect every ordinary source."
+          "description": "Allowed PSNR difference for quality selection when the source carries Quality Optimized Streaming Data. PSNR measures differences between an original and compressed image. This does not affect every source; the SDK marks this field @hidden."
         },
         {
           "scope": "PlayerConfig",
@@ -649,7 +649,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 626
           },
-          "description": "Set a PSNR upper target used in quality selection. PSNR measures the difference between an original and compressed image; compatible quality data is required."
+          "description": "Upper PSNR target for quality selection with compatible quality data. PSNR measures differences between an original and compressed image. The SDK marks this field @hidden."
         },
         {
           "scope": "PlayerConfig",
@@ -739,7 +739,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 631
           },
-          "description": "Choose the adaptation logic. The default is v3; v1 and v2 are deprecated. The low-latency-v1 logic is for chunked-CMAF live streams and requires tweaks.chunked_cmaf_streaming. It is distinct from ordinary live-latency tracking settings."
+          "description": "Automatic quality-selection logic. Default: v3 (DOWNLOAD_PREDICTION). v1 and v2 are deprecated. low-latency-v1 is for low-latency live streams using CMAF chunks and requires tweaks.chunked_cmaf_streaming."
         },
         {
           "scope": "PlayerConfig",
@@ -765,7 +765,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 639
           },
-          "description": "Choose weightedaverage or median for estimating network round-trip time. This only applies with the v3 adaptation logic."
+          "description": "Estimate network round-trip time using weightedaverage (the default) or median. Applies only to v3 adaptation logic. The SDK notes that median may perform better on low-performance devices."
         }
       ]
     },
@@ -1019,7 +1019,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 81
           },
-          "description": "This legacy setting adjusts the buffer limit in seconds. It is deprecated; normally use buffer forwardduration. For live media it is limited by the smaller of its value and the HLS playlist length or DASH rewind window."
+          "description": "Maximum buffer amount in seconds (default 40). Deprecated; use buffer.audio.forwardduration and buffer.video.forwardduration instead. For live streams, the smaller of this value and the HLS playlist duration or DASH timeShiftBufferDepth limits the buffer."
         },
         {
           "scope": "PlayerConfig",
@@ -1032,7 +1032,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 81
           },
-          "description": "Set the seconds to buffer before initial playback. The SDK caps this at the maximum buffer amount minus 0.5 seconds. Increasing the input cannot make it wait beyond that cap."
+          "description": "Seconds to buffer before initial playback (default 0.9). The SDK caps this at the maximum buffer amount minus 0.5 seconds; a larger input cannot increase the wait beyond that cap."
         },
         {
           "scope": "PlayerConfig",
@@ -1045,7 +1045,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 81
           },
-          "description": "Set the seconds to buffer before resuming after a buffering interruption. The SDK caps this at the maximum buffer amount minus 0.5 seconds."
+          "description": "Seconds to buffer before resuming after a buffering interruption (default 0.9). The SDK caps this at the maximum buffer amount minus 0.5 seconds."
         },
         {
           "scope": "PlayerConfig",
@@ -1279,7 +1279,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 88
           },
-          "description": "This deprecated legacy setting has no effect in the pinned version: standard SDK buffering has handled it since 8.33.0. Do not treat it as an active switch for encryption-boundary behavior."
+          "description": "Deprecated legacy setting with no effect in the pinned SDK. Standard buffering has handled encryption transitions since 8.33.0."
         },
         {
           "scope": "PlayerConfig",
@@ -1305,7 +1305,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 89
           },
-          "description": "With true, resume live media at the same media position as before the ad. The default false advances by the ad duration to retain the previous distance from the live edge. This tweak is ignored when the ad specifies replaceContentDuration."
+          "description": "With true, resume live media at the same media position as before the ad. The default false advances by the ad duration to retain the previous distance from the live edge. Ignored when the ad sets replaceContentDuration."
         },
         {
           "scope": "PlayerConfig",
@@ -1331,7 +1331,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 90
           },
-          "description": "Rewrite Base Media Decode Time on Tizen or webOS devices with the corresponding module, whether or not it exceeds 32 bits. It can cause problems with short discontinuities; use it only when measurements show an improvement."
+          "description": "Rewrite every segment BaseMediaDecodeTime, even within 32 bits. Requires the matching Tizen or webOS module and platform. Streams with short discontinuities may develop problems; use it when testing demonstrates an improvement."
         },
         {
           "scope": "PlayerConfig",
@@ -1474,7 +1474,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 94
           },
-          "description": "Set the retry count for failed manifest requests. For HLS this covers both master and variant playlists."
+          "description": "Retry count for failed manifest requests (default 2). For HLS, this covers both master and variant playlists."
         },
         {
           "scope": "PlayerConfig",
@@ -1591,7 +1591,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 98
           },
-          "description": "Use fetch so complete CMAF chunks can reach the decoder while a request is still in progress. A compatible stream format is required."
+          "description": "Use fetch to pass complete CMAF chunks to the decoder while a request is still in progress. CMAF is a format for fragmented audio and video. Compatible content and HTTP chunked transfer can improve startup and seeking and support low-latency live playback; this switch alone does not make an ordinary stream low latency."
         },
         {
           "scope": "PlayerConfig",
@@ -1695,7 +1695,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 101
           },
-          "description": "Configure compatibility for older environments that cannot use Infinity as the live MediaSource duration."
+          "description": "Compatibility setting for older environments that cannot use Infinity as the live MediaSource duration (default Infinity). A finite value such as Number.MAX_SAFE_INTEGER may resolve startup issues on those platforms."
         },
         {
           "scope": "PlayerConfig",
@@ -1708,7 +1708,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 101
           },
-          "description": "Reduce parallel requests for audio/video or initialization/data segments. Compare it with the normal SDK request schedule."
+          "description": "With true, download audio/video and initialization/data segments sequentially, favoring video when buffer amounts are equal. The default false allows parallel downloads while favoring the media with less buffered data."
         },
         {
           "scope": "PlayerConfig",
@@ -1721,7 +1721,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 101
           },
-          "description": "On Chromium browsers, use volume zero instead of the media element muted flag to avoid muted-video suspension after switching tabs. Preserve SDK-reported mute and volume values. This may increase battery use and does not guarantee all background playback."
+          "description": "Use zero media-element volume instead of its muted flag to avoid Chromium pausing muted background playback (default false). The SDK still reports isMuted() and getVolume() as usual. Continuing background playback may consume more battery."
         },
         {
           "scope": "PlayerConfig",
@@ -1747,7 +1747,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 102
           },
-          "description": "Set the startup-buffer cap in seconds. Additional downloads stop at the cap until playback starts. A finite value overrides SDK defaults. Without an override, caps vary by environment; TV defaults require the corresponding module."
+          "description": "Maximum seconds to buffer before initial playback; downloads stop at this limit until playback starts. A finite value overrides the platform recommendation; Infinity disables this particular limit. Defaults depend on webOS/Tizen modules and device generation; other platforms have no limit from this setting. The configured forward-buffer limit still applies."
         },
         {
           "scope": "PlayerConfig",
@@ -1984,7 +1984,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 711
           },
-          "description": "Set the application ID of a custom Cast receiver. The current control panel uses the default receiver and does not set this value."
+          "description": "Application ID of a custom Cast receiver. Leaving it blank keeps the SDK default receiver without an application-specific ID."
         },
         {
           "scope": "PlayerConfig",
@@ -2102,7 +2102,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 733
           },
-          "description": "Set the Google IMA loading URL. This field is deprecated; use ImaAdvertisingConfig.sdkUrl for new integrations. This GUI does not provide a complete ad-configuration editor."
+          "description": "Loading URL for the Google IMA advertising library. Deprecated; use ImaAdvertisingConfig.sdkUrl for new integrations. This GUI does not edit a complete advertising configuration."
         },
         {
           "scope": "PlayerConfig",

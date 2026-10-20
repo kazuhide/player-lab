@@ -538,7 +538,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 608
           },
-          "description": "PLAYBACK_VIDEO_DECODING_ERRORからの自動復旧を指定します。有効時はソースを再読み込みして元の位置から再開します。同じ再生位置での復旧は原則1回で、再発や復旧失敗時はエラーになります。"
+          "description": "映像のデコードエラーから自動復旧するか（既定 true）。有効時はソースを再読み込みし、元の位置とトラックなどを復元します。同じ位置（許容差 0.1 秒）での復旧は 1 回までで、再発や再読み込み失敗時はエラーになります。"
         },
         {
           "scope": "PlayerConfig",
@@ -636,7 +636,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 625
           },
-          "description": "Quality Optimized Streaming Data を持つソースで、選択する品質に許容するPSNR差を指定します。通常の素材すべてに効く設定ではありません。"
+          "description": "Quality Optimized Streaming Data があるソースで、選択する品質に許容する PSNR 差。PSNR は元映像と圧縮映像の差を表す指標です。通常のソースすべてに効く設定ではなく、SDK の型定義でも非公開項目（@hidden）です。"
         },
         {
           "scope": "PlayerConfig",
@@ -649,7 +649,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 626
           },
-          "description": "画質選択で使うPSNRの上限目安です。PSNRは元映像と圧縮映像の差を表す指標で、適用には対応する品質データが必要です。"
+          "description": "対応する品質データを持つソースで、画質選択に使う PSNR の上限目安。PSNR は元映像と圧縮映像の差を表す指標です。SDK の型定義では非公開項目（@hidden）です。"
         },
         {
           "scope": "PlayerConfig",
@@ -739,7 +739,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 631
           },
-          "description": "画質の適応ロジックを選びます。既定はv3です。v1とv2は非推奨です。low-latency-v1はchunked CMAFのライブ向けで、tweaks.chunked_cmaf_streamingとの併用が必要です。通常のライブ遅延追従の設定とは区別します。"
+          "description": "画質を自動で選ぶロジック。既定は v3（DOWNLOAD_PREDICTION）です。v1 と v2 は非推奨です。low-latency-v1 は小さな CMAF チャンクを使う低遅延ライブ向けで、tweaks.chunked_cmaf_streaming との併用が必要です。"
         },
         {
           "scope": "PlayerConfig",
@@ -765,7 +765,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 639
           },
-          "description": "通信の往復時間の推定方法をweightedaverageまたはmedianから選びます。v3の適応ロジックを使う場合にのみ有効です。"
+          "description": "通信の往復時間の推定方法。weightedaverage（加重平均、既定）または median（中央値）を選びます。v3 の適応ロジックでのみ有効です。SDK では、性能の低い端末で median が適する場合があるとしています。"
         }
       ]
     },
@@ -1019,7 +1019,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 81
           },
-          "description": "バッファ上限を秒で調整する旧設定です。非推奨のため通常はbufferのforwarddurationを使います。ライブではHLSプレイリスト長やDASHの巻き戻し窓との小さい値に制限されます。"
+          "description": "最大バッファ量（秒、既定 40）。非推奨のため、新規設定では buffer.audio.forwardduration と buffer.video.forwardduration を使います。ライブではこの値と HLS プレイリストの長さ、または DASH の timeShiftBufferDepth の小さい方が上限になります。"
         },
         {
           "scope": "PlayerConfig",
@@ -1032,7 +1032,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 81
           },
-          "description": "初回再生前に蓄えるバッファ量を秒で指定します。SDKでは最大バッファ量から0.5秒を引いた値が上限です。入力値を増やしても、その上限を超えて待つ設定にはなりません。"
+          "description": "初回再生前に蓄えるバッファ量（秒、既定 0.9）。SDK は最大バッファ量から 0.5 秒を引いた値を上限にします。入力値を増やしても、この上限を超えて待つ設定にはなりません。"
         },
         {
           "scope": "PlayerConfig",
@@ -1045,7 +1045,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 81
           },
-          "description": "バッファ不足による停止から再開する前に蓄える量を秒で指定します。SDKでは最大バッファ量から0.5秒を引いた値が上限です。"
+          "description": "バッファ不足による停止から再開する前に蓄える量（秒、既定 0.9）。SDK は最大バッファ量から 0.5 秒を引いた値を上限にします。"
         },
         {
           "scope": "PlayerConfig",
@@ -1279,7 +1279,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 88
           },
-          "description": "非推奨の旧設定です。8.33.0以降はSDKの標準バッファ処理が対応するため、この固定版では効果がありません。暗号化境界の動作を切り替える有効なスイッチとしては扱いません。"
+          "description": "非推奨の旧設定で、現在の SDK では効果がありません。8.33.0 以降は暗号化状態が変わる境界を標準バッファ処理が扱います。"
         },
         {
           "scope": "PlayerConfig",
@@ -1305,7 +1305,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 89
           },
-          "description": "trueでは広告前と同じメディア位置からライブを再開します。既定のfalseでは広告時間分を進め、広告前と同じライブ端からの距離で再開します。広告のreplaceContentDurationを指定した場合、このTweakは無視されます。"
+          "description": "true では広告前と同じメディア位置からライブを再開します。既定の false では広告時間分を進め、広告前と同じライブ端からの距離で再開します。広告の replaceContentDuration が設定されている場合、この項目は無視されます。"
         },
         {
           "scope": "PlayerConfig",
@@ -1331,7 +1331,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 90
           },
-          "description": "TizenまたはwebOSの対応モジュールと実機で、32ビットを超えるかにかかわらずBase Media Decode Timeを書き換えます。短い不連続境界を持つ素材では問題を招く場合があり、実測で改善した場合にだけ使用する設定です。"
+          "description": "セグメント内のデコード開始時刻 BaseMediaDecodeTime を、32 ビットを超えない場合も書き換えます。Tizen または webOS の実行環境と対応モジュールが必要です。短い不連続区間があるストリームでは問題が起きる場合があるため、検証で改善を確認できた場合に使います。"
         },
         {
           "scope": "PlayerConfig",
@@ -1474,7 +1474,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 94
           },
-          "description": "マニフェスト取得失敗時の再試行回数を指定します。HLSではmasterとvariantの両方が対象です。"
+          "description": "マニフェスト取得失敗時の再試行回数（既定 2）。HLS では master と variant の両方のプレイリストが対象です。"
         },
         {
           "scope": "PlayerConfig",
@@ -1591,7 +1591,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 98
           },
-          "description": "取得途中でも完成したCMAFチャンクをデコーダーへ渡すためfetchを使います。対応する配信形式が必要です。"
+          "description": "fetch を使い、取得途中でも完成した CMAF チャンクをデコーダーへ渡します。CMAF は分割した映像・音声の形式です。対応するコンテンツと HTTP の分割転送との組み合わせで、再生開始やシークを早め、低遅延ライブに利用できます。有効にするだけで通常の配信が低遅延になるわけではありません。"
         },
         {
           "scope": "PlayerConfig",
@@ -1695,7 +1695,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 101
           },
-          "description": "ライブ時のMediaSourceのdurationにInfinityを使えない旧環境向けの互換性設定です。"
+          "description": "ライブ時の MediaSource の duration に Infinity を使えない旧環境向けの互換性設定（既定 Infinity）。そのような環境では Number.MAX_SAFE_INTEGER などの有限値で再生開始の問題を回避できる場合があります。"
         },
         {
           "scope": "PlayerConfig",
@@ -1708,7 +1708,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 101
           },
-          "description": "音声・映像、または初期化・データセグメントの並行取得を抑える設定です。通常のSDKの取得スケジュールと比較します。"
+          "description": "true では音声・映像と初期化・データセグメントの並列取得を止め、順に取得します。バッファ量が同じ場合は映像を優先します。既定 false では、バッファ量が少ない方を優先しながら並列取得します。"
         },
         {
           "scope": "PlayerConfig",
@@ -1721,7 +1721,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 101
           },
-          "description": "Chromium系で別タブへ移った際のミュート映像停止を避けるため、映像要素のmutedではなく音量0を使います。SDKが返すミュート・音量の値は維持します。電池消費が増える場合があり、すべてのバックグラウンド再生を保証しません。"
+          "description": "ミュート時にメディア要素の muted を設定する代わりに音量を 0 にし、Chromium 系ブラウザーによるバックグラウンド停止を避けます（既定 false）。SDK の isMuted() と getVolume() の報告は変えません。バックグラウンド再生を続けるため、電池消費が増える場合があります。"
         },
         {
           "scope": "PlayerConfig",
@@ -1747,7 +1747,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 102
           },
-          "description": "初回再生前に蓄えるバッファの上限秒数です。到達後は再生開始まで追加取得を止めます。有限値はSDKの既定を上書きします。未指定時の上限は環境ごとに異なり、TV用の既定は対応モジュールがある場合に適用されます。"
+          "description": "初回再生までに取得するバッファ量の上限（秒）。到達すると再生開始まで追加取得を止めます。有限値は端末別の推奨値を上書きし、Infinity はこの制限を無効にします。未指定時の制限は webOS・Tizen の対応モジュールと端末世代によって異なり、その他の端末ではこの項目による制限はありません。先読みバッファの上限は別途適用されます。"
         },
         {
           "scope": "PlayerConfig",
@@ -1984,7 +1984,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 711
           },
-          "description": "カスタムCastレシーバーのアプリケーションIDです。標準レシーバーを使う現在の操作パネルでは指定しません。"
+          "description": "カスタム Cast レシーバーのアプリケーション ID。空欄ではアプリ独自の ID を設定せず、SDK の標準レシーバーを使います。"
         },
         {
           "scope": "PlayerConfig",
@@ -2102,7 +2102,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 733
           },
-          "description": "Google IMAの読み込みURLです。この項目は非推奨で、新規統合にはImaAdvertisingConfig.sdkUrlを使います。このGUIに広告設定一式が用意されているという意味ではありません。"
+          "description": "Google IMA 広告ライブラリの読み込み URL。非推奨の項目で、新規統合には ImaAdvertisingConfig.sdkUrl を使います。この GUI は広告設定一式を編集するものではありません。"
         },
         {
           "scope": "PlayerConfig",
