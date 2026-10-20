@@ -50,6 +50,10 @@
     },
     {
       "type": "note",
+      "text": "ジェネレーターは指定した環境ファイルを一度コピーします。既存の外部ホストのキーを更新する場合は、リポジトリのルートでscripts/sync-env.shを再実行し、apps/react-native/.envを外部ホストの.envへモード0600でコピーしてからMetroを再起動します。この生成ファイルがAppで使うEXPO_PUBLIC_形式の変数名を用意します。"
+    },
+    {
+      "type": "note",
       "text": "iOS は macOS の Xcode と CocoaPods を使います。Android は Java 17 と Expo 54 が選ぶ Android SDK・ツールチェーンが必要です。同梱の Podfile.lock は CocoaPods 1.17.0 で生成しました。ラッパー 1.27 以降、iOS の Player と Google IMA は Swift Package Manager、ブリッジと Expo は CocoaPods で管理します。既存の組み込みは公式移行ガイドに従います。Podfile.lock とワークスペースの Package.resolved を保持し、新規プロジェクト生成後は同梱のロックを復元します。"
     },
     {
@@ -89,7 +93,11 @@
     },
     {
       "type": "note",
-      "text": "型検査は実際の App と生成ホストのエントリーポイントを含みます。App 操作テストは native／Player の代替オブジェクトを使います。ジェネレーターのテストは、ソース・アセットのコピー、固定入力、既存出力先の拒否、明示した環境ファイルの非公開コピーを別に確認します。iOS 26.4 シミュレーターで実際の SDK Default VOD 再生、同梱 Sports の INFO と Play／Pause、Reset／Apply、ソース・UI・ログ・Allow DVR の保持、バックグラウンド復帰後の VOD 進行を確認しました。iOS と ARM64 Android API 36.1 の開発ビルド、および同梱アセットのバイト一致も確認済みです。Android のライセンス付き実再生は未確認です。実機、Release アーカイブ、DRM、広告、全共有 UI ファクトリー、live／DVR 動作は今回の検証範囲に含みません。"
+      "text": "型検査は実際のAppと生成ホストのエントリーポイントを含みます。App操作テストはnative／Playerのモックを使います。ジェネレーターの検査は、ソース・アセットのコピー、固定入力、既存出力先の拒否、明示した環境ファイルの非公開コピーを別に確認します。iOS 26.4では実際のSDK Default VOD再生、同梱SportsのINFOとPlay／Pause、Reset／Applyとソース・UI・ログ・Allow DVRの保持を確認しました。iOSとARM64 Android API 36.1の開発ビルド、および同梱アセットのバイト一致も確認済みです。"
+    },
+    {
+      "type": "p",
+      "text": "Android API 36.1ではDefaultと同梱Sportsで映像表示とネイティブSDK位置の進行を確認しました。SportsはローカルのJS・CSSを読み込み、INFOを表示しています。実画面でReset、自動再生・ミュート・5秒の開始オフセットを含むApply、前の所有者の終了と新しい所有者、ソース・選択中のDefault UI・ログ・Allow DVRの保持を確認しました。背景化から復帰した後は画面の再生操作部品を確認し、適用済みの同じプレイヤーでVODの進行を確認しました。Playを押した場合と、すでに再開していた場合の分岐を記録していないため、操作なしの自動再開は個別に検証していません。開始オフセットの値はネイティブの設定から確認しましたが、開始位置の精度は測定していません。この検査はネイティブの長さが734秒の公開VOD HLSプリセットTears of Steelを使っており、60秒のBig Buck Bunny素材とは別です。物理端末、Releaseアーカイブ、DRM、広告、すべてのファクトリー、live／DVR、バッファ・ビットレートの定量的な効果は未確認です。"
     },
     {
       "type": "h2",

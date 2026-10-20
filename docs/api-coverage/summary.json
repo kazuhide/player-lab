@@ -14336,11 +14336,11 @@
         "The UI picker exposes named factory/asset presets. Time-shift buttons expose 0, -10, -30 and -60 seconds with DVR-window clamping; they do not accept arbitrary offsets.",
         "isLive and getCurrentTime are read by the snapshot controller but are not consumed by the displayed derived state, so they receive no observation credit.",
         "Allow DVR changes the application DVR helper, not a PlayerConfig playback property. License configuration comes from environment setup and is not GUI editable.",
-        "The reproducible Expo host packages shared JS/CSS as native resources. iOS simulator checks exercised SDK Default playback and the Sports factory INFO and Play/Pause controls. Other factories and Android licensed playback remain unqualified; no SDK UI API credit is inferred from those checks.",
+        "The reproducible Expo host packages shared JS/CSS as native resources. Separate iOS and Android checks exercised SDK Default VOD playback and the packaged Sports factory with a visible INFO control and advancing native playback positions. Other factories remain unqualified; no SDK UI API credit is inferred from those checks.",
         "The latest wrapper pins Apple 3.126.0 and Android 3.165.0+jason. These supported wrapper defaults are not overridden to the newer standalone SDK versions.",
         "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries. Player/Source errors additionally display a numeric code when supplied; other event payload details are not rendered. onPlayerViewReady only triggers loading and is internal.",
         "Player.load receives the edited SourceConfig. No Source instance lifecycle, read-only configuration observation, offline operation or unrelated nested property is inferred from those input controls.",
-        "The App/configuration JSX and helpers are type-checked against installed declarations and tested with mocked native/player boundaries. Separate generated-host checks built both native platforms and verified packaged asset bytes. iOS simulator checks covered VOD playback, Apply/Reset, retained configuration/UI/log/Allow DVR and advancing playback after background return. Android renders the screen but native Player error 1003 prevents licensed playback qualification. These checks do not qualify physical devices, Release archives or live/DVR playback."
+        "The App/configuration JSX and helpers are type-checked against installed declarations and tested with mocked native/player boundaries. Separate generated-host checks built both native platforms and verified packaged asset bytes. iOS simulator and Android emulator checks covered VOD playback, Apply/Reset and retained configuration/UI/log/Allow DVR. Android Apply confirmed a new native owner and destruction of the previous owner; after background return, the applied owner was retained and playback advanced after checking the on-screen playback controls. This does not isolate automatic resume without interaction. The start-offset value was confirmed in native configuration; initial seek accuracy was not measured. The Android run used the public Tears of Steel VOD HLS preset with a native duration of 734 seconds, separate from the 60-second Big Buck Bunny fixture. Current native playback is qualified within these checks; an earlier Android 1003 result is not carried forward. These checks do not qualify physical devices, Release archives, all shared factories or live/DVR playback."
       ],
       "scopes": [
         {
@@ -22784,7 +22784,7 @@
     }
   ],
   "checkedAt": "2026-10-20",
-  "inputSha256": "5c71709ee6e9b78ad05331f6af8760c4c6aed9af602dcb7b4ec301a06f7c9f78",
+  "inputSha256": "fb38a2985f0650bbf09c0bcea9fc2492fb3d14fe85c0696b9ec0b4b9a611493d",
   "schemaVersion": 1,
   "sdks": [
     {

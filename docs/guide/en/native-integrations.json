@@ -50,6 +50,10 @@
     },
     {
       "type": "note",
+      "text": "The generator copies the selected environment file once. To refresh keys in an existing external host, run scripts/sync-env.sh again from the repository root, copy apps/react-native/.env into the external host as .env with mode 0600, and restart Metro. That generated file provides the EXPO_PUBLIC_ variable names used by the App."
+    },
+    {
+      "type": "note",
       "text": "On macOS, use Xcode and CocoaPods for iOS; Android requires Java 17 and the Android SDK/toolchain selected by Expo 54. The supplied Podfile.lock was generated with CocoaPods 1.17.0. Since wrapper 1.27, iOS Player and Google IMA use Swift Package Manager, while the bridge and Expo use CocoaPods. Existing integrations should follow the official migration guide. Keep both Podfile.lock and the workspace Package.resolved; restore the supplied locks after generating a fresh project."
     },
     {
@@ -89,7 +93,11 @@
     },
     {
       "type": "note",
-      "text": "Type checks include the actual App and generated host entry point. App interaction tests use native/player mocks; generator tests separately check source/asset copies, pinned inputs, existing-target rejection, and explicit private environment-file copying. Actual iOS 26.4 simulator checks exercised SDK Default VOD playback, packaged Sports INFO and Play/Pause, Reset/Apply, source/UI/log/Allow DVR retention, and advancing VOD after background/foreground return. iOS and ARM64 Android API 36.1 development builds and packaged asset equality passed. Android licensed playback is not yet qualified. Physical devices, Release archives, DRM, advertisements, every shared factory, and live/DVR behavior remain outside this qualification."
+      "text": "The type check includes the real App and generated host entry points. App interaction tests use native/player mocks; generator checks separately verify source/assets, pinned inputs, existing-target refusal and private copying of explicitly selected environment files. Native iOS 26.4 checks exercised SDK Default VOD playback, the packaged Sports INFO and Play/Pause controls, Reset/Apply and source/UI/log/Allow DVR retention. Both iOS and ARM64 Android API 36.1 development builds and packaged asset bytes were checked."
+    },
+    {
+      "type": "p",
+      "text": "On Android API 36.1, Default and the packaged Sports factory showed video and advancing native SDK positions. Sports loaded its local JS/CSS assets and displayed INFO. Native UI checks covered Reset, Apply with autoplay/mute and a start offset of 5 seconds, a new owner with the old owner destroyed, and retention of the source, selected Default UI, log and Allow DVR. After background/foreground return, the applied owner remained and VOD advanced after checking the on-screen playback controls. The check did not record whether Play was tapped or playback had already resumed, so automatic resume without interaction remains unqualified. The start-offset value was confirmed using native getters; initial seek accuracy was not measured. This run used the public Tears of Steel VOD HLS preset with a native duration of 734 seconds, separate from the 60-second Big Buck Bunny test fixture. Physical devices, Release archives, DRM, ads, all factories, live/DVR and quantitative buffer/bitrate effects remain unqualified."
     },
     {
       "type": "h2",
