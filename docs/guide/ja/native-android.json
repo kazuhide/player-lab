@@ -33,7 +33,7 @@
         "ソースボタンで Live DASH + DVR、Live HLS、複数音声または字幕付きの Live DASH、VOD HLS、VOD DASH を選びます。起動時は先頭の Live DASH + DVR が読み込まれます。",
         "プレイヤー内のコントロールで再生します。UI の Default、Sports、Live (DVR)、Cinema を切り替えて配置や表示を比較します。",
         "−10s、−30s、−60s でライブ端からの指定位置へ移動します。Live edge でライブ位置へ戻ります。",
-        "Allow DVR、mode、dvrAvailable、behindLive、window の表示と、下部のイベントログを確認します。狭い画面ではボタン列を横にスクロールできます。",
+        "Allow DVR、mode、dvrAvailable、behindLive、window の表示と、下部のイベントログを確認します。狭い画面ではボタン列を横に、パネル全体を縦にスクロールできます。",
         "PlayerError または SourceError が記録されたら数値コードを確認します。まずライセンスの許可 application ID と参照ソースへの通信を確認します。"
       ]
     },
@@ -45,6 +45,30 @@
       "type": "note",
       "title": "TV 端末の確認",
       "text": "Manifest に Android TV／Fire TV 向けの LEANBACK_LAUNCHER 宣言があります。ただし TV 上のフォーカス移動、ボタン到達性、リモコン、実再生は各端末で確認が必要です。電話向けエミュレーターでの成功を、物理端末や TV の確認結果として扱わないでください。"
+    },
+    {
+      "type": "h2",
+      "text": "設定の下書きと適用"
+    },
+    {
+      "type": "p",
+      "text": "Configuration を開くと 17 項目を編集できます。ソース設定は HTTP／HTTPS URL、DASH／HLS／Smooth／Progressive、タイトル、ポスター URL、ポスターの継続表示、開始オフセット（秒）、SDK default／Start／End の基準です。タイトル・ポスター・オフセットの空欄は SDK 既定値です。既定の基準は VOD が先頭、ライブが末尾で、範囲外のオフセットは SDK が補正します。HTTP の可否は端末のネットワークポリシーに従います。"
+    },
+    {
+      "type": "p",
+      "text": "Player 設定は Autoplay（オフ）、Start muted（オフ）、SDK のライブ time shifting（オン）、開始バッファ閾値（2.5 秒）、再開閾値（5 秒）、先読みバッファ（50 秒）、自動選択の最大映像ビットレート（整数 bps、空欄は Int.MAX_VALUE＝2147483647 で上限なし）、preload（オン）、rebuffering（オン）、ライブの品質／安定性バランス（0～1、既定 0.5）です。閾値は 0 以上かつ先読みバッファから 0.5 秒を引いた値以下、先読みバッファは 0.5 秒以上にします。非有限の数値は適用できません。ビットレート上限を超える品質も手動選択は可能です。バランスはライブ端付近でのみ有効です。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "下書きを編集し、Apply source (reload) で現在の Player にソースを読み込み直します。入力に誤りがあれば、適用中のソースと Player は変わりません。",
+        "再生・バッファ・適応設定は Apply & restart player で新しい Player に反映します。現在のソースとメタデータ・オプション、UI モード、Allow DVR、イベントログを引き継ぎます。再生位置は開始オフセットと Autoplay の設定に従ってリセットされます。",
+        "Reset source draft は適用中のソースへ、Reset player draft は SDK 既定値へ下書きを戻します。いずれも適用はしません。カタログの同じプリセットを再選択した場合も、ソースの下書きを置き換えて独自のメタデータとオフセットを消去します。"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "パネル全体を縦にスクロールして全項目へ移動します。既存のソース・UI・シーク列は横スクロールのまま、新しい設定の選択肢と操作ボタンは狭い幅で折り返します。操作部品はシステムバーやカットアウトの安全領域内に配置します。方向キーでフォーカスを移動でき、設定スイッチのフォーカスは枠線で表示します。"
     },
     {
       "type": "h2",
@@ -65,11 +89,11 @@
     {
       "type": "code",
       "title": "apps/android で実行",
-      "text": "./gradlew :dvr:test\n./gradlew :app:connectedDebugAndroidTest"
+      "text": "./gradlew :dvr:test :app:testDebugUnitTest\n./gradlew :app:connectedDebugAndroidTest"
     },
     {
       "type": "p",
-      "text": "dvr:test は巻き戻しの純粋な計算を確認します。connectedDebugAndroidTest は起動済みエミュレーターまたは接続端末、ネットワーク、許可された Player ライセンスを必要とします。PlayerDvrInstrumentedTest は実 SDK の読み込みと有限の VOD 長を、PlayerControlsInstrumentedTest は実際の Compose 操作と共有 WebView の表示、UI からの再生、ソース切り替え、巻き戻し、ライブ復帰、DVR 状態を確認します。"
+      "text": "dvr:test は巻き戻し計算、app:testDebugUnitTest は下書き検証と正確な SDK 設定への変換を確認します。PlayerConfigurationInstrumentedTest は実際の Compose エディターと SDK 設定、Reset、ソース保持、ビューの切り離し、D-pad フォーカスを確認します。PlayerOwnershipInstrumentedTest は記録用 API 実装で destroy が各 1 回であること、購読の解除、旧 Player／ソースのコールバックの拒否を確認します。これらは有効な Player ライセンスなしでも実行でき、実再生や SDK 内部の全リソース解放完了を証明するものではありません。実再生テストにはネットワークと許可された Player ライセンスが必要です。PlayerDvrInstrumentedTest は読み込みと有限の VOD 長を、PlayerControlsInstrumentedTest は共有 WebView、UI からの再生、ソース切り替え、巻き戻し、ライブ復帰、DVR 状態を確認します。 PlayerConfigurationPlaybackInstrumentedTest は GUI で反映した設定により、VOD が 10 秒の開始位置からミュート・自動再生で進むことを確認します。"
     },
     {
       "type": "p",
@@ -77,19 +101,19 @@
     },
     {
       "type": "note",
-      "title": "記録済みの検証範囲",
-      "text": "2026-10-19 の記録では Android 16 エミュレーター、Player 3.155.0 で実再生テスト 2 件成功、失敗・スキップ 0、29.294 秒でした。最終の共有 UI を含むアプリと instrumentation APK のビルドも確認されています。ここでは記録済みの結果を示しており、再実行した結果ではありません。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics の受信はこの結果に含みません。"
+      "title": "2026-10-20 の検証範囲",
+      "text": "2026-10-20 に Player 3.171.0 で DVR の JVM テスト 6 件、設定の JVM テスト 6 件、アプリ・instrumentation APK のビルドが成功しました。Android 16 の電話向けエミュレーターではダミーライセンスで設定・所有権の 4 件が 41.737 秒で成功し、縦スワイプで両 Apply 領域へ到達、D-pad で下書きスイッチを変更できました。最終コードでは GUI 設定による 10 秒位置からの VOD 自動再生が許可済みライセンスで 18.342 秒で成功しました。それ以前の一括実行では、設定付き VOD 再生と既存 VOD 長の確認を含む 7 件中 6 件が 71.104 秒で成功しました。共有 UI／DVR 操作テストは一括実行で非ネットワークの timeout 1004 を報告しました。同じ SDK・バンドル・エミュレーターで base 2c90983 と変更後を個別に比較した場合も、両方でライブ復帰の検証が失敗しています。この共有 UI／ライブ端の経路は 3.171.0 で確認済みとは扱いません。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics の受信、SDK 内部リソースの全解放完了は未確認です。"
     }
   ],
   "sources": [
     {
       "path": "apps/android/README.md",
-      "line": 22,
+      "line": 26,
       "label": "ビルドとライセンス"
     },
     {
       "path": "apps/android/README.md",
-      "line": 72,
+      "line": 136,
       "label": "実再生テストと記録された結果"
     },
     {
@@ -99,7 +123,7 @@
     },
     {
       "path": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
-      "line": 182,
+      "line": 323,
       "label": "実画面と PlayerView の再生成"
     },
     {
@@ -109,13 +133,23 @@
     },
     {
       "path": "apps/android/app/src/main/AndroidManifest.xml",
-      "line": 21,
+      "line": 29,
       "label": "通常端末・TV のランチャー宣言"
     },
     {
       "path": "apps/android/app/src/main/kotlin/com/showcase/app/Sources.kt",
       "line": 20,
       "label": "公開参照ソースのカタログ"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+      "line": 37,
+      "label": "設定エディター"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+      "line": 17,
+      "label": "ソース・Player 設定の検証と変換"
     }
   ]
 }

@@ -77,7 +77,61 @@ establish that it renders correctly in the native player library's WebView;
 check rendering and input on each target.
 
 The control rows scroll horizontally on narrow displays, so all existing source,
-UI, and seek buttons remain reachable without changing the control layout.
+UI, and seek buttons remain reachable. The full panel scrolls vertically, including
+the collapsible **Configuration** editor. Its buttons, fields, and switches support
+directional focus; focused configuration switches show an outline.
+
+## Configuration editor
+
+Configuration changes remain drafts until Apply. **Apply source (reload)** builds
+a fresh source configuration and reloads the existing player. It exposes a custom
+HTTP/HTTPS stream URL, DASH/HLS/Smooth/Progressive type, optional title and poster
+URL, persistent poster, start offset in seconds, and Start/End/SDK-default offset
+reference. HTTP requests still depend on the device's cleartext network policy.
+The SDK-default reference is the start for VOD and the end for live streams;
+out-of-window offsets are corrected by the SDK. A blank offset uses the SDK
+default. **Reset source draft** returns to the currently applied source without
+reloading. Selecting any catalog source, including the same preset again, replaces
+the source draft and clears custom metadata and offsets.
+
+**Apply & restart player** creates a new player and reloads the currently applied
+source, retaining its metadata/options, selected UI mode, Allow DVR setting, and
+event log. Playback restarts according to autoplay and the source start offset.
+Used SDK configuration objects are never mutated. PlayerViews detach before the
+previous player is destroyed, and retired player/source callbacks cannot update
+the active controller. Invalid drafts leave the active player and source intact.
+
+| Player field | Unit / default |
+| --- | --- |
+| Autoplay / Start muted | Off / off |
+| Enable SDK live time shifting | On; separate from the app's Allow DVR switch |
+| Startup / restart threshold | Seconds; 2.5 / 5; nonnegative, at most forward buffer minus 0.5 |
+| Forward buffer | Seconds; 50; at least 0.5 to leave threshold headroom |
+| Maximum automatic video bitrate | Whole bits per second; blank uses `Int.MAX_VALUE` (2147483647, no ABR cap); higher qualities remain available for manual selection |
+| Preload content / Allow rebuffering | On / on |
+| Live quality / stability balance | 0 through 1; 0.5; relevant near the live edge only |
+
+**Reset player draft** restores these SDK defaults without applying them. All
+numeric fields reject non-finite values; bitrate uses the SDK's nonnegative `Int`
+range. The field definitions and defaults follow the pinned
+[PlaybackConfig](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-playback-config/index.html),
+[BufferConfig](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.buffer/-buffer-config/index.html),
+[AdaptationConfig](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.media/-adaptation-config/index.html), and
+[SourceOptions](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.source/-source-options/index.html)
+references. Keys continue to come from build configuration.
+
+The draft validation and mapping tests run with `:app:testDebugUnitTest`.
+`PlayerConfigurationInstrumentedTest` drives the real Compose editor and SDK with
+a dummy license to verify application, reset, source retention, player/view
+ownership, and D-pad focus without asserting successful media playback.
+`PlayerOwnershipInstrumentedTest` independently records API calls to check
+exactly-once destruction, listener removal, and retired callback rejection:
+
+```sh
+./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.showcase.app.PlayerConfigurationInstrumentedTest,com.showcase.app.PlayerOwnershipInstrumentedTest \
+  -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=
+```
 
 ## Playback checks
 
@@ -105,6 +159,13 @@ messages or license values. A failed license request is a failed playback check,
 even when compilation and packaging pass. Leave the optional Analytics key empty
 when no collection is intended.
 
+`PlayerConfigurationPlaybackInstrumentedTest` requires the authorized license
+and checks the new editor's actual playback effect: a custom VOD source starts
+muted at the applied 10-second offset and advances automatically after applying
+player settings. The configuration-only tests do not establish media playback or
+completion of all SDK resource cleanup; `Player.isDestroyed` reports API
+invalidation, and the recording test counts the app's destroy calls.
+
 The shared UI can exist before its playback control becomes visible. The test
 waits for that control, then checks that native playback time advances. It reveals
 controls through WebView pointer input and checks element dimensions and the
@@ -121,6 +182,22 @@ completion event, an SDK-reported offset within one second of zero, and visible
 
 The app's event log also retains startup error codes, so a failed initial request
 can be distinguished from a source that is still loading.
+
+On 2026-10-20, Player 3.171.0 passed the six DVR JVM tests, six configuration JVM
+tests, and debug app/instrumentation builds. An Android 16 phone emulator passed
+all four configuration/ownership checks with a dummy license in 41.737 seconds.
+Touch swipes reached both Apply sections; D-pad Down/Center moved focus and
+changed a draft switch after entering remote input mode.
+
+The final configured VOD playback case passed with an authorized license in
+18.342 seconds. An earlier grouped authorized-license run passed six of seven
+checks in 71.104 seconds, including configured VOD playback and the existing
+VOD-duration check. The existing shared-UI/DVR controls check reported non-network timeout
+1004 in the grouped run. In separate comparisons, both base `2c90983` and the
+changed app failed the return-to-live assertion with the same SDK, shared UI
+bundle, and emulator. This does not qualify that shared-UI/live-edge path for
+3.171.0. No error or timing threshold was relaxed. Physical devices, Android TV,
+Fire TV, and completed SDK resource cleanup remain outside these checks.
 
 On 2026-10-19, the debug app and instrumentation APK compiled with Player 3.155.0.
 An Android 16 emulator passed both real playback tests through the Gradle command
