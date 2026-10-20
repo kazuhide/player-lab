@@ -507,6 +507,9 @@ test("localized guide figures and representative theme images decode", async ({ 
       await expect(images).toHaveCount(slug === "themes" ? 2 : 1);
       for (const image of await images.all()) {
         await image.scrollIntoViewIfNeeded();
+        // Firefox can reject decode() before a lazy image request has started.
+        await expect.poll(() => image.evaluate((element: HTMLImageElement) =>
+          element.complete && element.naturalWidth > 0)).toBe(true);
         const decoded = await image.evaluate(async (element: HTMLImageElement) => {
           await element.decode();
           return { complete: element.complete, width: element.naturalWidth, height: element.naturalHeight, src: element.currentSrc };

@@ -43,6 +43,8 @@ async function videoState(page: Page) {
 }
 
 async function expectPlayback(page: Page): Promise<void> {
+  // Native HLS may suspend frame presentation while the player is offscreen.
+  await page.locator("#player").scrollIntoViewIfNeeded();
   await expect.poll(() => videoState(page)).toMatchObject({ ready: true });
   const initial = await videoState(page);
   expect(initial.duration).toBeGreaterThan(59);

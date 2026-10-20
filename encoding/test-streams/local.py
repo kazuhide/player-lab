@@ -112,8 +112,10 @@ def audio_master(master, prefix="", alternate=True):
     return '\n'.join(lines) + '\n'
 
 
-def add_hls_subtitles(master, directory):
+def add_hls_subtitles(master, directory, program_dates):
     """Add native HLS test cues without re-encoding or copying video/audio."""
+    if len(program_dates) != 30 or any(not value.strip() for value in program_dates):
+        raise ValueError("Subtitle segments require the thirty video program-date-times.")
     renditions = []
     for language, label, text in [
         ('en', 'English test subtitles', 'English subtitle test'),
@@ -128,7 +130,7 @@ def add_hls_subtitles(master, directory):
             (directory / name).write_text(
                 'WEBVTT\nX-TIMESTAMP-MAP=LOCAL:00:00:00.000,MPEGTS:0\n\n'
                 f'{stamp(start)} --> {stamp(end)}\n{text}: {start:02}s\n', encoding='utf-8')
-            playlist.extend(['#EXTINF:2.000,', name])
+            playlist.extend([f'#EXT-X-PROGRAM-DATE-TIME:{program_dates[number]}', '#EXTINF:2.000,', name])
         playlist.append('#EXT-X-ENDLIST')
         name = f'subtitle-{language}.m3u8'
         (directory / name).write_text('\n'.join(playlist) + '\n', encoding='utf-8')
@@ -351,8 +353,10 @@ def build(output, archive):
     (baseline / 'master.m3u8').write_text(audio_master(master, alternate=False))
     multi = output / 'vod-multiaudio'
     multi.mkdir()
+    program_dates = [line.split(':', 1)[1] for line in (baseline / 'media_0.m3u8').read_text().splitlines()
+                     if line.startswith('#EXT-X-PROGRAM-DATE-TIME:')]
     (multi / 'master.m3u8').write_text(add_hls_subtitles(
-        audio_master(master, prefix='../vod-baseline/'), multi))
+        audio_master(master, prefix='../vod-baseline/'), multi, program_dates))
     (output / 'vod-sprites/master.m3u8').write_text(
         audio_master(master, prefix='../vod-baseline/', alternate=False)
     )

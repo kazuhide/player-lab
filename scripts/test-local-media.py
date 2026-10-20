@@ -59,7 +59,8 @@ class LocalMediaTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             master = '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000,AUDIO="audio"\nvideo.m3u8\n'
-            result = MEDIA.add_hls_subtitles(master, root)
+            dates = [f'2026-01-01T00:00:{second:02}.000Z' for second in range(0, 60, 2)]
+            result = MEDIA.add_hls_subtitles(master, root, dates)
             self.assertIn('LANGUAGE="en"', result)
             self.assertIn('LANGUAGE="de"', result)
             self.assertIn('AUDIO="audio",SUBTITLES="subtitles"', result)
@@ -67,6 +68,8 @@ class LocalMediaTests(unittest.TestCase):
             for language, text in [('en', 'English subtitle test'), ('de', 'Deutscher Untertiteltest')]:
                 playlist = (root / f'subtitle-{language}.m3u8').read_text()
                 self.assertEqual(playlist.count('#EXTINF:2.000,'), 30)
+                self.assertEqual([line.split(':', 1)[1] for line in playlist.splitlines()
+                                  if line.startswith('#EXT-X-PROGRAM-DATE-TIME:')], dates)
                 self.assertTrue(playlist.endswith('#EXT-X-ENDLIST\n'))
                 segments = [root / value for value in playlist.splitlines() if value.endswith('.vtt')]
                 self.assertEqual(len(segments), 30)
@@ -75,6 +78,12 @@ class LocalMediaTests(unittest.TestCase):
                 self.assertIn('00:00:58.000 --> 00:01:00.000', segments[-1].read_text())
                 self.assertTrue(all('X-TIMESTAMP-MAP=LOCAL:00:00:00.000,MPEGTS:0' in p.read_text()
                                     and text in p.read_text() for p in segments))
+
+    def test_native_subtitles_reject_missing_video_timing_before_writing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaises(ValueError):
+                MEDIA.add_hls_subtitles('#EXTM3U\n', Path(directory), [])
+            self.assertEqual(list(Path(directory).iterdir()), [])
 
     def test_video_and_sprite_share_one_input_decode(self):
         with tempfile.TemporaryDirectory() as directory:
