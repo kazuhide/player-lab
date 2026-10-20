@@ -16,6 +16,10 @@
       "text": "The wrapper resolves iOS Player and Player Core 3.126.0, Analytics 3.28.1, and Google IMA 3.26.1 through Swift Package Manager; Android Player is 3.165.0+jason. The included native dependency locks preserve the iOS resolution. The standalone iOS 3.128.0 and Android 3.171.0 samples use separate SDK pins; do not force those versions into this wrapper."
     },
     {
+      "type": "note",
+      "text": "The +jason suffix selects Bitmovin's Android build that renames media-library namespaces and resources to avoid conflicts with Media3/ExoPlayer. Google IMA 3.37.0 and later require this build and core-library desugaring, which adapts newer Java library APIs for older Android versions. Wrapper 1.28.0 selects Player and media-session 3.165.0+jason, IMA 3.38.0, and desugar_jdk_libs 2.1.5. Its Expo plugin has no native Player SDK version option. Keep these related dependencies together; changing only the Player version is not a verified wrapper upgrade."
+    },
+    {
       "type": "code",
       "title": "Generate the external host from the repository root",
       "text": "pnpm --filter @showcase/ui-shared build\nbash scripts/sync-env.sh\nnode apps/react-native/scripts/create-expo-project.mjs ../player-lab-react-native --env-from apps/react-native/.env"
@@ -201,7 +205,7 @@
     {
       "path": "apps/vega/README.md",
       "line": 3,
-      "label": "Vega scope and execution in an external project"
+      "label": "Vega application host, build steps and verification limits"
     },
     {
       "path": "apps/vega/src/App.tsx",
@@ -251,7 +255,7 @@
       "label": "React Native 1.28.0 Apple SDK defaults"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/build.gradle",
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/android/build.gradle#L98-L114",
       "label": "React Native 1.28.0 Android SDK defaults"
     },
     {
@@ -301,6 +305,22 @@
     {
       "url": "https://developer.amazon.com/docs/vega/0.24/acr-summary-report#reclaimmediaresource-crashes",
       "label": "Amazon guidance on releasing media before background suspension"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/can-i-use-exoplayer-and-the-bitmovin-player-android-sdk-in-the-same-project",
+      "label": "Android media-library isolation (+jason)"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-ima-android",
+      "label": "Google IMA dependency and Java API compatibility requirements"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/plugin/src/withBitmovinConfig.ts#L14-L17",
+      "label": "React Native 1.28.0 Expo plugin options"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#31240",
+      "label": "Android +jason resource isolation and IMA dependency changes"
     }
   ]
 }

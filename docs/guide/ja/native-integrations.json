@@ -16,6 +16,10 @@
       "text": "ラッパーは Swift Package Manager 経由で iOS Player／Player Core 3.126.0、Analytics 3.28.1、Google IMA 3.26.1 を解決します。Android Player は 3.165.0+jason です。同梱のネイティブ依存ロックで iOS の解決結果を保持します。単体サンプルの iOS 3.128.0、Android 3.171.0 は別の固定版であり、このラッパーへ強制適用しません。"
     },
     {
+      "type": "note",
+      "text": "+jason は、Media3／ExoPlayer との衝突を避けるため、メディア処理ライブラリの名前空間とリソース名を変更した Android SDK の構成です。Google IMA 3.37.0 以降との併用には、この構成と core-library desugaring（新しい Java ライブラリの API を古い Android でも使える形へ変換するビルド処理）が必要です。ラッパー 1.28.0 は Player と media-session 3.165.0+jason、IMA 3.38.0、desugar_jdk_libs 2.1.5 を選びます。Expo プラグインにはネイティブ Player SDK のバージョンを変更する項目がありません。これらの依存関係を組み合わせたまま使い、Player の版だけを変えてラッパーの更新が検証できたとは扱いません。"
+    },
+    {
       "type": "code",
       "title": "リポジトリのルートから外部ホストを生成",
       "text": "pnpm --filter @showcase/ui-shared build\nbash scripts/sync-env.sh\nnode apps/react-native/scripts/create-expo-project.mjs ../player-lab-react-native --env-from apps/react-native/.env"
@@ -201,7 +205,7 @@
     {
       "path": "apps/vega/README.md",
       "line": 3,
-      "label": "Vega の位置付けと別プロジェクトでの実行"
+      "label": "Vega アプリのビルド手順と検証範囲"
     },
     {
       "path": "apps/vega/src/App.tsx",
@@ -251,7 +255,7 @@
       "label": "React Native 1.28.0 の Apple SDK 既定版"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/build.gradle",
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/android/build.gradle#L98-L114",
       "label": "React Native 1.28.0 の Android SDK 既定版"
     },
     {
@@ -301,6 +305,22 @@
     {
       "url": "https://developer.amazon.com/docs/vega/0.24/acr-summary-report#reclaimmediaresource-crashes",
       "label": "背景化で処理が停止する前にメディアを解放するAmazonの指針"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/can-i-use-exoplayer-and-the-bitmovin-player-android-sdk-in-the-same-project",
+      "label": "Android のメディア処理ライブラリの衝突回避（+jason）"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-ima-android",
+      "label": "Google IMA の依存関係と Java API 互換処理の条件"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/plugin/src/withBitmovinConfig.ts#L14-L17",
+      "label": "React Native 1.28.0 の Expo プラグイン設定項目"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#31240",
+      "label": "Android の +jason によるリソース衝突回避と IMA の依存変更"
     }
   ]
 }
