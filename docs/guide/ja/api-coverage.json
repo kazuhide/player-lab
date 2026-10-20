@@ -387,8 +387,8 @@
         "text": "最新版ラッパーが固定するネイティブSDKはApple 3.126.0とAndroid 3.165.0+jasonです。ラッパーがサポートするこの既定値を、より新しい単体SDKへ上書きしていません。"
       },
       {
-        "source": "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries; event payload fields are not exposed. onPlayerViewReady only triggers loading and is internal.",
-        "text": "onTimeChangedは表示中のDVR状態を更新します。onSourceLoaded・onTimeShifted・onPlayerError・onSourceErrorには名前付きログがあり、イベントのペイロード項目は公開しません。onPlayerViewReadyはロードを開始するためだけに使い、内部処理として数えます。"
+        "source": "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries. Player/Source errors additionally display a numeric code when supplied; other event payload details are not rendered. onPlayerViewReady only triggers loading and is internal.",
+        "text": "onTimeChangedは表示用のDVR状態を更新します。onSourceLoaded、onTimeShifted、onPlayerError、onSourceErrorはイベント名をログに表示します。Player/Sourceのエラーでは、数値コードが渡された場合にそのコードも表示します。その他のイベントの詳細は表示しません。onPlayerViewReadyは読み込み開始のきっかけとして内部で使います。"
       },
       {
         "source": "Player.load receives the edited SourceConfig. No Source instance lifecycle, read-only configuration observation, offline operation or unrelated nested property is inferred from those input controls.",
