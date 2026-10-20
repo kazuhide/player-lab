@@ -1,5 +1,21 @@
 # Player versions and API coverage
 
+The **SDK updates** GitHub Actions workflow checks the official release channels
+weekly and can also be started manually. It records version metadata and the
+current public declaration inventory. Available releases create a draft update
+PR with exact dependency edits, JavaScript declaration differences when they
+can be extracted, and the required validation steps. A failed download,
+dependency resolution or extraction is reported as a failure, never as a
+successful compatibility check. An existing update PR is left intact.
+
+The draft must resolve the workspace, Expo host and native dependency locks,
+refresh this inventory and review GUI mappings before it can be merged. Native
+wrapper dependencies and the version-specific UI ownership patch need their
+own compatibility review. The workflow dispatches CI explicitly and does not
+approve, mark ready or merge its update PR. Licensed device playback and the two
+independent code reviews remain required. The workflow uses repository-scoped
+GitHub permissions; it does not use Player or account keys.
+
 The bilingual user guide presents the version table, category totals, scope
 notes, full API lists, and exclusions. The JSON files in this directory are its
 data source. A software development kit (SDK) provides the player library and its
