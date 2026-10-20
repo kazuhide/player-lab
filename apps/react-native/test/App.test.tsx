@@ -82,6 +82,26 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it("does not acknowledge an older clipboard request beside newly applied code", async () => {
+    let finish!: () => void;
+    runtime.clipboard.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
+    await mount();
+    await ready();
+    await press("Show configuration");
+    await press("Show applied code");
+    await press("Copy code");
+    await text("Source title", "NEW_APPLIED_CODE");
+    await press("Apply and recreate player");
+    await act(async () => finish());
+    const feedback = () => screen.root.findAll((node) => String(node.type) === "Text" && node.props.children === "Copied.");
+    expect(feedback()).toHaveLength(0);
+    await press("Copy code");
+    expect(feedback()).toHaveLength(1);
+    await text("Source title", "ANOTHER_APPLIED_CODE");
+    await press("Apply and recreate player");
+    expect(feedback()).toHaveLength(0);
+  });
+
   it("exports the applied source and custom UI without copying draft edits or license values", async () => {
     await mount();
     await ready();

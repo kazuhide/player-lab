@@ -29,7 +29,7 @@ export interface ConfigurationCode {
 
 export function configurationCode(snapshot: ConfigurationCode): string {
   const player = Object.fromEntries(Object.entries(snapshot.player).filter(([name]) => name !== "key" && name !== "analytics"));
-  const sourceNames = new Set(["hls", "dash", "progressive", "title", "description", "poster", "options", "thumbnailTrack", "subtitles", "audioTracks"]);
+  const sourceNames = new Set(["hls", "dash", "progressive", "title", "description", "poster", "options", "thumbnailTrack", "subtitleTracks", "audioTracks"]);
   const source = Object.fromEntries(Object.entries(snapshot.source).filter(([name]) => sourceNames.has(name)));
   if (source.options && typeof source.options === "object") {
     const names = new Set(["persistentPoster", "startOffset", "startOffsetTimelineReference"]);

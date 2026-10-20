@@ -26,7 +26,9 @@ export function mountConfigurationCodeView(container: HTMLElement, snapshot: () 
   const refresh = document.createElement("button");
   refresh.type = "button";
   refresh.textContent = pick({ ja: "コードを更新", en: "Refresh code" });
+  let revision = 0;
   const capture = (): string | undefined => {
+    revision++;
     try {
       const current = snapshot();
       if (!current) throw new Error("Configuration is not ready.");
@@ -51,10 +53,12 @@ export function mountConfigurationCodeView(container: HTMLElement, snapshot: () 
   copy.addEventListener("click", () => {
     const code = capture();
     if (!code) return;
+    const copiedRevision = revision;
+    const current = (): boolean => details.isConnected && revision === copiedRevision && area.value === code;
     if (!navigator.clipboard) { select(); return; }
     void navigator.clipboard.writeText(code).then(() => {
-      status.textContent = pick({ ja: "コピーしました。", en: "Copied." });
-    }).catch(select);
+      if (current()) status.textContent = pick({ ja: "コピーしました。", en: "Copied." });
+    }).catch(() => { if (current()) select(); });
   });
   details.addEventListener("toggle", () => { if (details.open) capture(); });
   details.append(summary, help, refresh, copy, area, status);

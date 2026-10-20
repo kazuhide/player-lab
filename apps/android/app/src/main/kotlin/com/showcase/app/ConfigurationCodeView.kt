@@ -26,14 +26,14 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun ConfigurationCodeView(controller: PlayerController, uiMode: UiMode) {
     var expanded by remember { mutableStateOf(false) }
-    var copied by remember { mutableStateOf(false) }
-    Button(onClick = { expanded = !expanded; copied = false }, modifier = Modifier.testTag("configuration-code-toggle")) {
+    Button(onClick = { expanded = !expanded }, modifier = Modifier.testTag("configuration-code-toggle")) {
         Text(if (expanded) "Hide applied code" else "Show applied code")
     }
     if (!expanded) return
     val code = remember(controller.sourceRevision, controller.playerSettings, uiMode) {
         configurationCode(controller.sourceSettings, controller.playerSettings, uiMode)
     }
+    var copied by remember(code) { mutableStateOf(false) }
     val clipboard = LocalContext.current.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
     Text("Player, source and UI settings sent to the SDK. Draft edits are excluded and license keys use placeholders.", style = MaterialTheme.typography.bodySmall)
     Button(onClick = {

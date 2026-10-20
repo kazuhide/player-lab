@@ -10,7 +10,7 @@ struct ConfigurationEditor: View {
     @State private var draft: ConfigurationDraft
     @State private var applyError: String?
     @State private var showCode = false
-    @State private var copiedCode = false
+    @State private var copiedCode: String?
 
     init(model: PlayerModel) {
         self.model = model
@@ -89,9 +89,10 @@ struct ConfigurationEditor: View {
                         Text("Player, source and UI settings sent to the SDK. Draft edits are excluded and license keys use placeholders.")
                             .font(.caption)
                         #if os(iOS)
-                        Button(copiedCode ? "Copied" : "Copy code") {
-                            UIPasteboard.general.string = appliedCode
-                            copiedCode = true
+                        Button(copiedCode == appliedCode ? "Copied" : "Copy code") {
+                            let code = appliedCode
+                            UIPasteboard.general.string = code
+                            copiedCode = code
                         }
                         .accessibilityIdentifier("configuration.code.copy")
                         #else

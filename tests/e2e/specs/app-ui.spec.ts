@@ -941,6 +941,34 @@ test.describe("Web app UI", () => {
     await expect(code).toHaveValue(/player\.setVolume\(37\);/);
     await expect(page.locator(".config-code [role=status]")).toHaveText("Copied.");
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await code.inputValue());
+    await page.evaluate(() => {
+      const target = window as Window & {
+        finishConfigurationCopy?: () => void; pendingConfigurationCopy?: Promise<void>;
+        restoreConfigurationClipboard?: () => void;
+      };
+      const write = navigator.clipboard.writeText.bind(navigator.clipboard);
+      target.restoreConfigurationClipboard = () => Object.defineProperty(navigator.clipboard, "writeText", { configurable: true, value: write });
+      Object.defineProperty(navigator.clipboard, "writeText", { configurable: true, value: (text: string) => {
+        target.pendingConfigurationCopy = write(text).then(() => new Promise<void>((resolve) => { target.finishConfigurationCopy = resolve; }));
+        return target.pendingConfigurationCopy;
+      } });
+    });
+    await page.getByRole("button", { name: "Copy code", exact: true }).click();
+    await expect.poll(() => page.evaluate(() => typeof (window as Window & { finishConfigurationCopy?: () => void }).finishConfigurationCopy)).toBe("function");
+    await volume.fill("38");
+    await volume.blur();
+    await refresh.click();
+    await expect(code).toHaveValue(/player\.setVolume\(38\);/);
+    await page.evaluate(async () => {
+      const target = window as Window & {
+        finishConfigurationCopy?: () => void; pendingConfigurationCopy?: Promise<void>;
+        restoreConfigurationClipboard?: () => void;
+      };
+      target.finishConfigurationCopy!();
+      await target.pendingConfigurationCopy;
+      target.restoreConfigurationClipboard!();
+    });
+    await expect(page.locator(".config-code [role=status]")).toHaveText("");
     await page.setViewportSize({ width: 375, height: 900 });
     await expect.poll(() => page.evaluate(() => innerWidth)).toBe(375);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

@@ -24,4 +24,13 @@ describe("configuration code", () => {
   it("rejects invalid numeric data rather than silently exporting null", () => {
     expect(() => javascriptValue({ limit: Number.NaN })).toThrow("NaN");
   });
+
+  it("retains sideloaded subtitle tracks from the applied source", () => {
+    const code = configurationCode({ player: {}, ui: {}, runtime: [], source: {
+      hls: "https://example.com/movie.m3u8",
+      subtitleTracks: [{ id: "en", lang: "en", label: "English", url: "https://example.com/captions.vtt" }],
+    } });
+    expect(code).toContain('"subtitleTracks"');
+    expect(code).toContain("https://example.com/captions.vtt");
+  });
 });
