@@ -9,7 +9,7 @@ const APP = `http://localhost:${process.env.E2E_APP_PORT ?? "5175"}`;
 
 /** Expose the real SDK instance only in the test response. Optionally disable
  * autoplay on its first construction; SDK methods and sources remain unchanged. */
-async function captureAppPlayer(page: Page, autoplayFalse = false): Promise<void> {
+async function captureAppPlayer(page: Page, autoplayFalse = false, captureUi = false): Promise<void> {
   await page.route("**/src/main.ts", async (route) => {
     const response = await route.fetch();
     const body = await response.text();
@@ -17,14 +17,17 @@ async function captureAppPlayer(page: Page, autoplayFalse = false): Promise<void
     expect(body.match(constructor), "the app constructor must be captured exactly once").toHaveLength(1);
     const teardown = "const old = player;";
     expect(body.split(teardown), "the capture must clear the reference during teardown").toHaveLength(2);
+    const uiBuild = /uiManager = theme\.build\([^\n]+\);/g;
+    if (captureUi) expect(body.match(uiBuild), "the UI config must be captured at the actual SDK binding").toHaveLength(1);
     await route.fulfill({
       response,
       body: body.replace(constructor, `${autoplayFalse ? "if (!window.__initialAutoplayFalseApplied) { config.playback = { ...config.playback, autoplay: false }; window.__initialAutoplayFalseApplied = true; }\n" : ""}$&\nwindow.player = instance;`)
-        .replace(teardown, `${teardown}\nwindow.player = undefined;`),
+        .replace(teardown, `${teardown}\nwindow.player = undefined;`)
+        .replace(uiBuild, `$&${captureUi ? "\nwindow.__testUiConfig = uiManager.getConfig();" : ""}`),
     });
   });
   await page.goto(`${APP}/`);
-  await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toContain("Tears of Steel");
+  await expect.poll(() => page.evaluate(() => typeof window.player?.getSource === "function" ? window.player.getSource()?.title : undefined)).toContain("Tears of Steel");
 }
 
 function configField(page: Page, label: RegExp) {
@@ -32,6 +35,95 @@ function configField(page: Page, label: RegExp) {
     has: page.locator(".config-field-label", { hasText: label }),
   });
 }
+
+test("@public network configuration validates drafts and source poster changes preserve the player", async ({ page }) => {
+  await captureAppPlayer(page);
+  await page.getByRole("button", { name: "English", exact:true }).click();
+  const network = page.locator("#config-panel .config-group").filter({ has:page.getByText("Network", { exact:true }) });
+  await expect(network).toHaveCount(1);
+  await network.locator("summary").click();
+  const original = await page.evaluateHandle(() => window.player);
+  const baselineTimeout = await page.evaluate(() => window.player?.getConfig(false).network?.defaultRequestTimeout);
+  const defaultTimeout = configField(page, /^defaultRequestTimeout \(s\)/).locator("input");
+  await defaultTimeout.fill("12.5");
+  await defaultTimeout.blur();
+  await configField(page, /^requestApi$/).locator("select").selectOption("fetch");
+  const manifest = configField(page, /^requestTimeout\[manifest\/dash\]/).locator("input");
+  await manifest.fill("7.25");
+  await manifest.blur();
+  const video = configField(page, /^requestTimeout\[media\/video\]/).locator("input");
+  await video.fill("-1");
+  await video.blur();
+  const recreate = page.getByRole("button", { name:/Recreate the player to apply/ });
+  await expect(video).toHaveAttribute("aria-invalid", "true");
+  await expect(recreate).toBeDisabled();
+  expect(await original.evaluate((player) => player === window.player)).toBe(true);
+  await video.fill("9.5");
+  await video.blur();
+  await expect(video).not.toHaveAttribute("aria-invalid", "true");
+  await expect(recreate).toBeEnabled();
+  await recreate.click();
+  await expect.poll(() => original.evaluate((player) => player !== window.player)).toBe(true);
+  await expect.poll(() => page.evaluate(() => {
+    const config = window.player?.getConfig(false).network;
+    return { api:config?.requestApi, timeout:config?.defaultRequestTimeout,
+      dash:config?.requestTimeout?.["manifest/dash"], video:config?.requestTimeout?.["media/video"] };
+  })).toEqual({ api:"fetch", timeout:12.5, dash:7.25, video:9.5 });
+  await original.dispose();
+
+  const current = await page.evaluateHandle(() => window.player);
+  const persistentPoster = configField(page, /^options\.persistentPoster/).locator("input");
+  await persistentPoster.check();
+  await page.getByRole("button", { name:/Reload the source to apply/ }).click();
+  await expect.poll(() => page.evaluate(() => window.player?.getSource()?.options?.persistentPoster)).toBe(true);
+  expect(await current.evaluate((player) => player === window.player)).toBe(true);
+  await current.dispose();
+
+  if (await network.getAttribute("open") === null) await network.locator("summary").click();
+  await defaultTimeout.fill("");
+  await defaultTimeout.blur();
+  await recreate.click();
+  await expect.poll(() => page.evaluate(() => window.player?.getConfig(false).network?.defaultRequestTimeout)).toBe(baselineTimeout);
+  await expect.poll(() => page.evaluate(() => window.player?.getSource()?.options?.persistentPoster)).toBe(true);
+});
+
+test("@public UI language and preference settings reach the SDK without recreating the player", async ({ page }) => {
+  await captureAppPlayer(page, false, true);
+  await page.getByRole("button", { name:"English", exact:true }).click();
+  const original = await page.evaluateHandle(() => window.player);
+  const ui = page.locator("#control-panel .panel-section").filter({ has:page.getByRole("heading", { name:"UI settings", exact:true }) });
+  const language = ui.getByRole("textbox", { name:/Player UI language/ });
+  await language.fill("de");
+  await language.blur();
+  await expect(page.locator("#player .bmpui-ui-fullscreentogglebutton").first()).toHaveAttribute("aria-label", "Vollbild");
+  await ui.getByRole("checkbox", { name:/Follow subtitle language/ }).check();
+  await ui.getByRole("checkbox", { name:/Remember playback preferences/ }).check();
+  await ui.getByRole("checkbox", { name:/Resume VOD position/ }).check();
+  await ui.getByRole("checkbox", { name:/Read timestamp from URL/ }).uncheck();
+  await ui.getByRole("checkbox", { name:/Preference switch in default settings/ }).check();
+  expect(await page.evaluate(() => {
+    const config = window.__testUiConfig;
+    return { language:config?.localization?.language, follow:config?.localization?.adaptLocalizationToSubtitleLanguage,
+      preferences:config?.enablePersistentPreferences, resume:config?.enableResumeFromLastPosition,
+      timestamp:config?.enableTimestampDeepLink, toggle:config?.showPersistentPreferencesToggle };
+  })).toEqual({ language:"de", follow:true, preferences:true, resume:true, timestamp:false, toggle:true });
+  await expect(page.locator("#player .bmpui-ui-persistentpreferencestogglebutton")).toHaveCount(0);
+  await page.getByRole("button", { name:"Default (Bitmovin)", exact:true }).click();
+  await expect(page.locator("#player .bmpui-ui-persistentpreferencestogglebutton")).toHaveCount(1);
+  await page.getByRole("button", { name:"Neon", exact:true }).click();
+  await expect(page.locator("#player .bmpui-ui-persistentpreferencestogglebutton")).toHaveCount(1);
+  await expect(page.locator("#ui-construction .ui-config-preview code")).toContainText('"enablePersistentPreferences": true');
+  expect(await original.evaluate((player) => player === window.player)).toBe(true);
+  await language.fill("fr");
+  await language.blur();
+  expect(await page.evaluate(() => window.__testUiConfig?.localization)).toMatchObject({ language:"fr", adaptLocalizationToSubtitleLanguage:true });
+  await ui.getByRole("checkbox", { name:/Disable UI storage/ }).check();
+  await expect(page.locator("#player .bmpui-ui-persistentpreferencestogglebutton")).toHaveCount(0);
+  await page.getByRole("button", { name:"Creator", exact:true }).click();
+  expect(await page.evaluate(() => window.__testUiConfig?.localization)).toMatchObject({ language:"fr", adaptLocalizationToSubtitleLanguage:true });
+  expect(await original.evaluate((player) => player === window.player)).toBe(true);
+  await original.dispose();
+});
 
 test("@public SDK UI settings remove the speed control and preserve themed quick seek", async ({ page }) => {
   await page.goto(`${APP}/`);
@@ -628,12 +720,13 @@ test.describe("Web app UI", () => {
     // A dedicated UI settings card holds autohide and the other UIManager-level toggles.
     const uiSettings = page.locator("#control-panel .panel-section", { hasText: "UI 設定" });
     await expect(uiSettings).toHaveCount(1);
-    // autohide + 7 UIConfig booleans, 2 numeric UIConfig inputs, and the honest "not shown" note.
-    await expect(uiSettings.locator('input[type="checkbox"]')).toHaveCount(8);
+    // Autohide, 11 top-level UIConfig flags, subtitle-language adaptation and 2 numbers.
+    await expect(uiSettings.locator('input[type="checkbox"]')).toHaveCount(13);
     await expect(uiSettings.locator('input[type="number"]')).toHaveCount(2);
+    await expect(uiSettings.locator('input[type="text"]')).toHaveCount(1);
     await expect(uiSettings.locator(".panel-subnote")).toHaveCount(1);
-    // Every setting here carries a "?" chip (8 toggles + 2 numbers).
-    expect(await uiSettings.locator(".info-chip").count()).toBeGreaterThanOrEqual(10);
+    // Every setting carries guidance: 13 toggles, 2 numbers and the language input.
+    await expect(uiSettings.locator(".info-chip")).toHaveCount(16);
     // SDK defaults: scrub-preview + speed-item + snapping on, keep-on-hover off.
     await expect(page.getByRole("checkbox", { name: "シーク中のプレビュー" })).toBeChecked();
     await expect(page.getByRole("checkbox", { name: "シークをマーカーにスナップ" })).toBeChecked();
@@ -694,8 +787,8 @@ test.describe("Web app UI", () => {
     await expect(page.locator("#config-panel .config-band-static")).toBeVisible();
     // Dynamic band: Player API, Adaptation (dynamic), Low Latency (dynamic), Source.
     await expect(page.locator("#config-panel .config-band-dynamic .config-group")).toHaveCount(4);
-    // Static band: Playback, Adaptation (initial), Buffer, Tweaks, Logs, Style, Cast, Live, Location, Misc.
-    await expect(page.locator("#config-panel .config-band-static .config-group")).toHaveCount(10);
+    // Static band: Playback, Adaptation, Buffer, Network, Tweaks, Logs, Style, Cast, Live, Location, Misc.
+    await expect(page.locator("#config-panel .config-band-static .config-group")).toHaveCount(11);
     // The runtime Dynamic Adaptation group exposes limitToPlayerSize (the field that was missing).
     const limitField = page.locator("#config-panel .config-band-dynamic .config-field", {
       hasText: "limitToPlayerSize",

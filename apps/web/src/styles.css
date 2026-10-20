@@ -631,6 +631,16 @@ body {
   font-size: 0.7rem;
 }
 
+.config-error {
+  flex-basis: 100%;
+  color: #a11919;
+  font-size: 0.75rem;
+}
+
+#config-panel input[aria-invalid="true"] {
+  border-color: #a11919;
+}
+
 .config-apply-bar {
   display: flex;
   flex-wrap: wrap;

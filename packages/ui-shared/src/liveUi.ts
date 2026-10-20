@@ -119,7 +119,7 @@ function createUiManager(player: PlayerAPI, ui: UIContainer, config?: UIConfig, 
 }
 
 /**
- * The stock Bitmovin "modern" UI, rebuilt so ONLY the autohide delay is ours to set.
+ * The stock Bitmovin "modern" UI with UIConfig-aware settings and a configurable hide delay.
  *
  * `UIFactory.buildUI` gives no `hideDelay` hook, so to make the autohide toggle work on
  * the Default theme without forking the UI, we take the library's own desktop layout
@@ -133,8 +133,8 @@ function createUiManager(player: PlayerAPI, ui: UIContainer, config?: UIConfig, 
  * small-screen switch here. The "autohide on" delay is read from the stock container's
  * own config so it tracks the library default rather than a hardcoded literal.
  */
-export function buildDefaultUiContainer(options: LiveUiOptions = {}): UIContainer {
-  const stock = UIFactory.defaultLayouts.main();
+export function buildDefaultUiContainer(options: LiveUiOptions = {}, config?: UIConfig): UIContainer {
+  const stock = UIFactory.defaultLayouts.main(config);
   const cfg = stock.getConfig();
   // Adopt the children, but release the unused root's localization subscription.
   stock.release();
@@ -151,7 +151,7 @@ export function buildDefaultUiContainer(options: LiveUiOptions = {}): UIContaine
 /** Factory for the stock modern UI with a controllable autohide. Use with `ui: false`. */
 export const DefaultUIFactory = {
   buildDefaultUI(player: PlayerAPI, config?: UIConfig, options?: LiveUiOptions): UIManager {
-    return createUiManager(player, buildDefaultUiContainer(options), config);
+    return createUiManager(player, buildDefaultUiContainer(options, config), config);
   },
 };
 

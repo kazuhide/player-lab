@@ -372,7 +372,7 @@ function applyTheme(p: PlayerAPI, id: ThemeId): void {
   uiManager = theme.build(p, autohideEnabled ? undefined : -1, deepMerge(BASE_UICONFIG, uiConfig), castingButtons);
   currentThemeId = theme.id;
   renderThemeBar();
-  renderConstruction(constructionEl as HTMLElement, currentThemeId);
+  renderConstruction(constructionEl as HTMLElement, currentThemeId, uiConfig);
 }
 
 // DVR allow/forbid is a load-time PlayerConfig option (PlaybackConfig.timeShift),
@@ -604,7 +604,7 @@ function renderAll(): void {
   renderLangToggle();
   renderThemeBar();
   renderUiGuide(guideEl!);
-  renderConstruction(constructionEl!, currentThemeId);
+  renderConstruction(constructionEl!, currentThemeId, uiConfig);
   qoeSection.titleEl.textContent = pick(G.sideQoe);
   // The control panel doesn't re-mount on language change (that would clear its live event log /
   // telemetry), so re-localize its labels in place instead.
@@ -702,7 +702,7 @@ async function doBuild(): Promise<void> {
     },
     uiConfig,
     onUiConfigChange: (patch) => {
-      uiConfig = { ...uiConfig, ...patch };
+      uiConfig = deepMerge(uiConfig, patch);
       if (player) applyTheme(player, currentThemeId); // rebuild the active UI with the new UIConfig
     },
     casting: castingButtons,
@@ -734,7 +734,7 @@ async function doBuild(): Promise<void> {
     const request = appSourceLoad?.player === instance ? appSourceLoad : undefined;
     const appManaged = request !== undefined && [
       "hls", "dash", "title", "description", "poster",
-      "options.startOffset", "options.startOffsetTimelineReference",
+      "options.startOffset", "options.startOffsetTimelineReference", "options.persistentPoster",
     ].every((path) => configValue(request.source, path) === configValue(loaded, path));
     // SourceLoaded may be delivered after load() resolves. Consume the request
     // and retire its source-kind hint here, after the SDK has loaded the source.

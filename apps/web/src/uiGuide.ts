@@ -5,6 +5,7 @@
 // action; this panel is the "how". Prose is Japanese; code/paths stay as-is.
 
 import { pick, getLang, type L } from "./i18n";
+import type { UIConfig } from "@showcase/ui-shared";
 
 // The displayed code snippets carry Japanese *comments*; their identifiers/strings are all
 // ASCII, so the only Japanese in a snippet is in a comment. In English mode we translate
@@ -85,7 +86,7 @@ const THEME_DIFFS: Record<string, ThemeDiff> = {
     construction: {
       lang: "ts",
       code: `// Keep the standard modern UI tree and customize autohide.
-const stock = UIFactory.defaultLayouts.main();
+const stock = UIFactory.defaultLayouts.main(uiConfig);
 const stockConfig = stock.getConfig();
 stock.release();
 const container = new UIContainer({
@@ -531,9 +532,20 @@ function renderThemeDiff(activeThemeId: string): HTMLElement {
 
 /** Render the ACTIVE theme's "how it's built" (diff + construction code) into a
  *  container — used for the panel beside the player. Updated on every theme switch. */
-export function renderConstruction(container: HTMLElement, activeThemeId: string): void {
+export function renderConstruction(container: HTMLElement, activeThemeId: string, uiConfig: UIConfig = {}): void {
   container.innerHTML = "";
   container.appendChild(renderThemeDiff(activeThemeId));
+  const details = document.createElement("details");
+  details.className = "ui-config-preview";
+  const summary = document.createElement("summary");
+  summary.textContent = pick({ ja: "適用中のUIConfigの上書き値", en: "Applied UIConfig overrides" });
+  const pre = document.createElement("pre");
+  pre.className = "theme-diff-code";
+  const code = document.createElement("code");
+  code.textContent = `const uiConfig = ${JSON.stringify(uiConfig, null, 2)};`;
+  pre.appendChild(code);
+  details.append(summary, pre);
+  container.appendChild(details);
 }
 
 /** Render the general "how to customize the UI" levers (static, theme-independent). */

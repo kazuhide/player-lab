@@ -48,6 +48,8 @@ interface FieldDef {
   /** Read the applied value; absent values fall back to the field's default. */
   read?: () => unknown;
   apply: (raw: string | boolean) => void;
+  validate?: (raw: string | boolean) => string | undefined;
+  min?: number;
   hint?: string;
   /** Hover guidance ("?" chip overlay) — "what / when / default" for this field. For
    *  config-interface fields it's the SDK's own JSDoc (FIELD_DOC, bilingual); inline
@@ -139,6 +141,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   let playerOverrides: DeepPartial<PlayerConfig> = {};
   let sourceOverrides: DeepPartial<SourceConfig> = {};
   const staged = new Set<FieldDef>();
+  const invalid = new Map<FieldDef, Mode>();
   const readers: (() => void)[] = [];
   let recreateDirty = false;
   let reloadDirty = false;
@@ -147,11 +150,11 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
 
   function refreshButtons(): void {
     if (applyRecreateBtn) {
-      applyRecreateBtn.disabled = !recreateDirty;
+      applyRecreateBtn.disabled = !recreateDirty || [...invalid.values()].includes("recreate");
       applyRecreateBtn.classList.toggle("is-dirty", recreateDirty);
     }
     if (applyReloadBtn) {
-      applyReloadBtn.disabled = !reloadDirty;
+      applyReloadBtn.disabled = !reloadDirty || [...invalid.values()].includes("reload");
       applyReloadBtn.classList.toggle("is-dirty", reloadDirty);
     }
   }
@@ -223,6 +226,18 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     read: () => readPlayer(path),
     apply: (v) => stagePlayer(path, v === "" ? undefined : v),
     ...(FIELD_DOC[path] ? { doc: FIELD_DOC[path] } : {}),
+  });
+  const timeoutField = (label: string, path: string): FieldDef => ({
+    ...pNum(label, path),
+    min: 0,
+    validate: (raw) => raw !== "" && (!Number.isFinite(Number(raw)) || Number(raw) < 0)
+      ? pick({ ja: "0以上の有限の秒数を入力してください。", en: "Enter a finite number of seconds, zero or greater." })
+      : undefined,
+    hint: pick({ ja: "秒。空欄でこの上書きを削除。", en: "Seconds. Leave empty to remove this override." }),
+    doc: {
+      ja: "通信のタイムアウトを秒で指定します。個別のリクエスト種別の値は defaultRequestTimeout より優先されます。既定のタイムアウトは20秒です。",
+      en: "Network timeout in seconds. A request-type timeout overrides defaultRequestTimeout. The SDK default timeout is 20 seconds.",
+    },
   });
 
   // ⚡ player.adaptation.setConfig(DynamicAdaptationConfig) — runtime adaptation updates.
@@ -547,6 +562,14 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
           apply: (v) => stageSource("poster", v === "" ? undefined : v),
         },
         {
+          label: "options.persistentPoster",
+          kind: "bool",
+          initial: false,
+          doc: { ja: "再生中もポスター画像を表示します。音声のみのソースで画像を残したい場合に使います。", en: "Keep the poster visible during playback, for example when an audio-only source should retain an image." },
+          read: () => configValue(options.getSource(), "options.persistentPoster"),
+          apply: (v) => stageSource("options.persistentPoster", v),
+        },
+        {
           label: "options.startOffset (s)",
           kind: "number",
           initial: "",
@@ -629,6 +652,22 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         pNum("video.backwardduration (s)", "buffer.video.backwardduration"),
         pNum("audio.forwardduration (s)", "buffer.audio.forwardduration", 40),
         pNum("audio.backwardduration (s)", "buffer.audio.backwardduration"),
+      ],
+    },
+    {
+      title: "Network",
+      mode: "recreate",
+      blurb: pick({ ja: "通信方式とタイムアウト(NetworkConfig)。タイムアウトの単位は秒です。空欄で上書きを削除します。", en: "Request API and timeouts (NetworkConfig). Timeouts are in seconds. Empty fields remove their overrides." }),
+      fields: [
+        pEnum("requestApi", "network.requestApi", [
+          { value: "", label: pick({ ja: "（既定: xhr）", en: "(default: xhr)" }) },
+          { value: "xhr", label: "xhr" },
+          { value: "fetch", label: "fetch" },
+        ]),
+        timeoutField("defaultRequestTimeout (s)", "network.defaultRequestTimeout"),
+        ...["manifest/dash", "manifest/hls/master", "manifest/hls/variant", "media/video", "media/audio", "media/subtitles", "media/thumbnails"].map(
+          (type) => timeoutField(`requestTimeout[${type}] (s)`, `network.requestTimeout.${type}`),
+        ),
       ],
     },
     {
@@ -732,6 +771,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   head.append(h2, intro, note);
   container.appendChild(head);
 
+  let fieldId = 0;
   function field(def: FieldDef, mode: Mode): HTMLElement {
     const row = document.createElement("label");
     row.className = "config-field";
@@ -743,6 +783,12 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     // Hover guidance: a "?" chip carrying the SDK's own "what / when / default" note,
     // shown via the shared styled overlay (infoChip handles click-swallow + a11y).
     if (def.doc) name.appendChild(infoChip(def.doc));
+
+    const error = document.createElement("span");
+    error.className = "config-error";
+    error.id = `config-error-${fieldId++}`;
+    error.setAttribute("role", "alert");
+    error.hidden = true;
 
     let input: HTMLInputElement | HTMLSelectElement;
     if (def.kind === "bool") {
@@ -768,6 +814,9 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       inp.type = def.kind === "number" ? "number" : "text";
       inp.value = String(def.initial);
       inp.className = "config-input";
+      if (def.kind === "number") inp.step = "any";
+      if (def.min !== undefined) inp.min = String(def.min);
+      if (def.validate) inp.addEventListener("input", () => apply(inp.value));
       inp.addEventListener("change", () => apply(inp.value));
       input = inp;
     }
@@ -780,13 +829,31 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       else input.value = typeof value === "number" && !Number.isFinite(value) ? "" : String(value);
     }
     function apply(value: string | boolean): void {
+      if (mode !== "runtime") staged.add(def);
+      const message = def.validate?.(value) ?? (def.validate && input instanceof HTMLInputElement && input.validity.badInput
+        ? pick({ ja: "有効な数値を入力してください。", en: "Enter a valid number." }) : undefined);
+      if (message) {
+        invalid.set(def, mode);
+        input.setAttribute("aria-invalid", "true");
+        input.setAttribute("aria-describedby", error.id);
+        error.textContent = message;
+        error.hidden = false;
+        refreshButtons();
+        return;
+      }
+      invalid.delete(def);
+      input.removeAttribute("aria-invalid");
+      input.removeAttribute("aria-describedby");
+      error.textContent = "";
+      error.hidden = true;
       def.apply(value);
       if (mode === "runtime") sync();
-      else staged.add(def);
+      refreshButtons();
     }
     readers.push(sync);
     sync();
     row.appendChild(input);
+    if (def.validate) row.appendChild(error);
 
     if (def.hint) {
       const hint = document.createElement("span");
@@ -852,6 +919,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   }
   dynBand.appendChild(dynGrid);
   applyReloadBtn = applyButton(pick({ ja: "📥 ソースを再読み込みして適用", en: "📥 Reload the source to apply" }), () => {
+    if ([...invalid.values()].includes("reload")) return;
     options.onReload(sourceOverrides);
     sourceOverrides = {};
     for (const g of groups.filter((g) => g.mode === "reload")) for (const f of g.fields) staged.delete(f);
@@ -881,6 +949,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   }
   statBand.appendChild(statGrid);
   applyRecreateBtn = applyButton(pick({ ja: "🔁 プレイヤーを再生成して適用", en: "🔁 Recreate the player to apply" }), () => {
+    if ([...invalid.values()].includes("recreate")) return;
     options.onRecreate(playerOverrides);
     playerOverrides = {};
     for (const g of groups.filter((g) => g.mode === "recreate")) for (const f of g.fields) staged.delete(f);

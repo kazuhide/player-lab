@@ -22,6 +22,7 @@ export interface Harness {
 
 declare global {
   interface Window {
+    __testUiConfig?: import("@showcase/ui-shared").UIConfig;
     player?: PlayerAPI | undefined;
     harness: Harness;
     __events: string[];

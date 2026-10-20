@@ -272,7 +272,11 @@ export function mountControlPanel(
     | "seekbarSnappingEnabled"
     | "enterFullscreenOnInitialPlayback"
     | "forceSubtitlesIntoViewContainer"
-    | "disableStorageApi";
+    | "disableStorageApi"
+    | "enablePersistentPreferences"
+    | "enableResumeFromLastPosition"
+    | "enableTimestampDeepLink"
+    | "showPersistentPreferencesToggle";
   const UI_TOGGLES: { key: BoolKey; label: L; def: boolean; title: L }[] = [
     {
       key: "enableSeekPreview",
@@ -333,8 +337,44 @@ export function mountControlPanel(
       label: { ja: "UI のストレージを無効化", en: "Disable UI storage" },
       def: false,
       title: {
-        ja: "音量・画質/トラックの選択を localStorage に保存しません(効果はセッション跨ぎ)。(UIConfig.disableStorageApi)",
-        en: "Don’t persist UI choices (volume, quality, track) in localStorage (effect is across sessions). (UIConfig.disableStorageApi)",
+        ja: "Player UIによるlocalStorageの利用を無効にします。設定の保存と再開位置の保存も無効になります。(UIConfig.disableStorageApi)",
+        en: "Disable Player UI access to localStorage, including playback preferences and resume positions. (UIConfig.disableStorageApi)",
+      },
+    },
+    {
+      key: "enablePersistentPreferences",
+      label: { ja: "音量・ミュート・速度を保存", en: "Remember playback preferences" },
+      def: false,
+      title: {
+        ja: "音量・ミュート・再生速度をブラウザーに保存します。UIのストレージが有効な場合に動作します。設定歯車の保存スイッチで選択済みの場合は、その選択が優先されます。(UIConfig.enablePersistentPreferences)",
+        en: "Store volume, mute and playback speed in the browser when UI storage is enabled. An existing choice made with the preferences switch takes precedence. (UIConfig.enablePersistentPreferences)",
+      },
+    },
+    {
+      key: "enableResumeFromLastPosition",
+      label: { ja: "VODの再生位置を保存して再開", en: "Resume VOD position" },
+      def: false,
+      title: {
+        ja: "VODの再生位置をブラウザーに保存し、次回の読み込み時に再開します。UIのストレージが有効な場合に動作します。(UIConfig.enableResumeFromLastPosition)",
+        en: "Store a VOD playback position in the browser and resume it on a later load. Requires UI storage. (UIConfig.enableResumeFromLastPosition)",
+      },
+    },
+    {
+      key: "enableTimestampDeepLink",
+      label: { ja: "URLの再生位置を読み取る", en: "Read timestamp from URL" },
+      def: true,
+      title: {
+        ja: "URLのクエリまたはフラグメントの t=30 などからVODの開始位置を読み取ります。最初のソース読み込み時に適用されるため、切り替え後はソースを再読み込みしてください。(UIConfig.enableTimestampDeepLink)",
+        en: "Read a VOD start position such as t=30 from the URL query or fragment. Applied on the first source load after UI creation; reload the source after changing it. (UIConfig.enableTimestampDeepLink)",
+      },
+    },
+    {
+      key: "showPersistentPreferencesToggle",
+      label: { ja: "標準UIの歯車に保存スイッチを表示", en: "Preference switch in default settings" },
+      def: false,
+      title: {
+        ja: "標準UIとCSSテーマの設定歯車に、音量・ミュート・速度の保存スイッチを表示します。UIのストレージが有効な場合に表示されます。独自構成のテーマには追加しません。(UIConfig.showPersistentPreferencesToggle)",
+        en: "Add the preferences switch to the Default and CSS themes' settings gear when UI storage is enabled. Custom component layouts do not add this switch. (UIConfig.showPersistentPreferencesToggle)",
       },
     },
   ];
@@ -381,6 +421,34 @@ export function mountControlPanel(
     });
     return rowWithHint(n.label, n.title, input);
   });
+
+  const uiLanguage = document.createElement("input");
+  uiLanguage.type = "text";
+  uiLanguage.className = "seek-input";
+  uiLanguage.value = options.uiConfig.localization?.language ?? "auto";
+  uiLanguage.addEventListener("change", () => options.onUiConfigChange({
+    localization: { language: uiLanguage.value.trim() || "auto" },
+  }));
+  const uiLanguageRow = rowWithHint(
+    { ja: "Player UIの言語", en: "Player UI language" },
+    {
+      ja: "autoはブラウザーの言語を使用します。SDKの組み込み言語はen・de・es・fr・nl・ptです。未対応の言語は英語になります。アプリ自体の日英切替とは別の設定です。(UIConfig.localization.language)",
+      en: "auto follows the browser. Built-in SDK languages: en, de, es, fr, nl, pt. Unsupported languages fall back to English. Separate from the app's Japanese/English selector. (UIConfig.localization.language)",
+    },
+    uiLanguage,
+  );
+  const uiLanguageLabel = uiLanguageRow.querySelector<HTMLElement>(".panel-label")!;
+  uiLanguageLabel.id = "player-ui-language-label";
+  uiLanguage.setAttribute("aria-labelledby", uiLanguageLabel.id);
+  const followSubtitleLanguage = checkbox(
+    { ja: "字幕の言語にUIを合わせる", en: "Follow subtitle language" },
+    options.uiConfig.localization?.adaptLocalizationToSubtitleLanguage ?? false,
+    (checked) => options.onUiConfigChange({ localization: { adaptLocalizationToSubtitleLanguage: checked } }),
+    {
+      ja: "選択中の字幕の言語にPlayer UIを合わせます。対応する翻訳がない場合は既定のUI言語になります。(UIConfig.localization.adaptLocalizationToSubtitleLanguage)",
+      en: "Use the selected subtitle language for Player UI, falling back to the configured UI language if no translation is available. (UIConfig.localization.adaptLocalizationToSubtitleLanguage)",
+    },
+  );
 
   // Casting / remote-playback buttons (§6). These are component-tree additions, not UIConfig:
   // each toggle adds/removes the library button on the CUSTOM trees (the Default UI ships all
@@ -444,8 +512,8 @@ export function mountControlPanel(
   const uiNote = document.createElement("p");
   uiNote.className = "panel-subnote";
   binder.text(uiNote, {
-    ja: "未掲載(このデモのツリーでは効かない、またはコードで設定): ecoMode・includeWatermark(専用コンポーネントが必要)、shadowDom、autoUiVariantResolve、hidePlayerStateExceptions、UIContainer の hideImmediatelyOnMouseLeave・deferUiHideWhileSettingsOpen、metadata・localization。",
-    en: "Not shown (inert on this demo’s trees, or set in code): ecoMode + includeWatermark (need dedicated components), shadowDom, autoUiVariantResolve, hidePlayerStateExceptions, UIContainer hideImmediatelyOnMouseLeave + deferUiHideWhileSettingsOpen, metadata + localization.",
+    ja: "未掲載(このデモのツリーでは効かない、またはコードで設定): ecoMode・includeWatermark(専用コンポーネントが必要)、shadowDom、autoUiVariantResolve、hidePlayerStateExceptions、UIContainer の hideImmediatelyOnMouseLeave・deferUiHideWhileSettingsOpen、metadata・独自の翻訳辞書。",
+    en: "Not shown (inert on this demo’s trees, or set in code): ecoMode + includeWatermark (need dedicated components), shadowDom, autoUiVariantResolve, hidePlayerStateExceptions, UIContainer hideImmediatelyOnMouseLeave + deferUiHideWhileSettingsOpen, metadata + custom vocabularies.",
   });
 
   // Double-click behavior (custom themes): fullscreen (the stock default) or ±10s seek.
@@ -550,7 +618,7 @@ export function mountControlPanel(
       ),
       autoplayNextToggle,
     ),
-    section({ ja: "UI 設定", en: "UI settings" }, autohideToggle, ...uiToggles, ...uiNumbers, uiNote),
+    section({ ja: "UI 設定", en: "UI settings" }, autohideToggle, ...uiToggles, ...uiNumbers, uiLanguageRow, followSubtitleLanguage, uiNote),
     section({ ja: "キャスト・PiP", en: "Casting & PiP" }, ...castingToggles, castingNote),
   );
 
