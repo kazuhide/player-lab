@@ -180,7 +180,9 @@ final class TrackPreferenceUITests: XCTestCase {
         let row = element.exists && element.elementType == .switch
             ? app.cells.containing(.switch, identifier: element.identifier).firstMatch : element
         let target = row.exists ? row : element
-        let directions: [XCUIRemote.Button] = [.down, .up, .right, .left]
+        // Apply is to the right of Reset at the bottom. Check that axis before returning up the form.
+        let directions: [XCUIRemote.Button] = element.identifier == "configuration.apply"
+            ? [.down, .right, .up, .left] : [.down, .up, .right, .left]
         for direction in directions {
             for _ in 0..<50 {
                 if target.exists && (target.hasFocus || target.descendants(matching: .any)
