@@ -6,6 +6,19 @@ const { createRequire } = require('node:module');
 const compilerRepo = process.env.SDK_COVERAGE_REPO || path.resolve(__dirname, '../..');
 const ts = createRequire(path.join(compilerRepo, 'apps/web/package.json'))('typescript');
 const TYPE_FLAGS = ts.TypeFlags;
+// TypeScript's resolved mapped symbols can add or remove readonly without
+// changing their original declaration. Fail explicitly if this compiler hook changes.
+if (typeof ts.getCheckFlags !== 'function' || !ts.CheckFlags?.Mapped || !ts.CheckFlags?.Readonly) {
+  throw new Error('The installed TypeScript compiler cannot report resolved mapped-property modifiers');
+}
+const readonlyProperty = symbol => {
+  if (!symbol) return false;
+  const flags = ts.getCheckFlags(symbol);
+  if (flags & ts.CheckFlags.Mapped) return Boolean(flags & ts.CheckFlags.Readonly);
+  return Boolean(flags & ts.CheckFlags.Readonly)
+    || (symbol.declarations || []).some(d => ts.getCombinedModifierFlags(d) & ts.ModifierFlags.Readonly)
+    || Boolean(symbol.flags & ts.SymbolFlags.GetAccessor) && !(symbol.flags & ts.SymbolFlags.SetAccessor);
+};
 const sha256 = data => crypto.createHash('sha256').update(data).digest('hex');
 const append = (parent, key) => /^[A-Za-z_$][\w$]*$/.test(key) ? `${parent}.${key}` : `${parent}[${JSON.stringify(key)}]`;
 
@@ -134,7 +147,7 @@ function createExtractor({ packageRoot, entryFile, dependencies = {}, checkedAt 
       path: id, type: parents.length ? text(symbol ? symbolType(symbol) : t)
         : checker.typeToString(t, undefined, ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.InTypeAlias),
       optional: Boolean(symbol?.flags & ts.SymbolFlags.Optional),
-      readonly: (symbol?.declarations || []).some(d => ts.getCombinedModifierFlags(d) & ts.ModifierFlags.Readonly),
+      readonly: readonlyProperty(symbol),
     }];
     const add = (kind, extra = {}) => addConfig(id, t, kind, symbol, origin, { ...extra, contracts });
     if (options.omitPaths?.includes(id)) { excluded.push({ id, reason: 'reported in a separate configuration scope', declarations: origin }); return; }

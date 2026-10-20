@@ -109,3 +109,21 @@ test('dynamic index contracts retain each named union branch', () => {
     assert.deepEqual(changed(reordered, readonly), ['Config.choice']);
   });
 });
+
+test('mapped readonly inheritance contributes effective property contracts', () => {
+  withFixture(extract => {
+    const before = extract('1.0.0', `interface Base { value: number }
+      export interface Config extends Readonly<Base> {}`);
+    const after = extract('1.0.1', `interface Base { value: number }
+      export interface Config extends Base {}`);
+    assert.deepEqual(changed(before, after), ['Config.value']);
+    const locked = extract('1.0.2', `interface Base { readonly value: number }
+      export interface Config extends Base {}`);
+    assert.deepEqual(changed(after, locked), ['Config.value']);
+    const mutable = extract('1.0.3', `interface Base { readonly value: number }
+      type Mutable<T> = { -readonly [P in keyof T]: T[P] };
+      export interface Config extends Mutable<Base> {}`);
+    assert.deepEqual(changed(locked, mutable), ['Config.value']);
+    assert.deepEqual(changed(after, mutable), []);
+  });
+});
