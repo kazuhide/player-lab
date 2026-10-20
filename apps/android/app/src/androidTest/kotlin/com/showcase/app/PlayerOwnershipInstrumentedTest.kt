@@ -2,6 +2,8 @@ package com.showcase.app
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.deficiency.PlayerErrorCode
@@ -29,10 +31,12 @@ class PlayerOwnershipInstrumentedTest {
         instrumentation.runOnMainSync {
             val created = mutableListOf<RecordingPlayer>()
             val sources = mutableListOf<RecordingSource>()
+            val host = object : LifecycleOwner { override val lifecycle = LifecycleRegistry(this) }
             val controller = PlayerController(
                 instrumentation.targetContext, "dummy",
                 playerFactory = { config -> RecordingPlayer(config).also { created += it }.api },
                 sourceFactory = { config -> RecordingSource(config).also { sources += it }.api },
+                lifecycle = host.lifecycle,
             )
             controller.load(Sources.all.first())
             val original = created.single()

@@ -39,7 +39,7 @@
     },
     {
       "type": "p",
-      "text": "Changing the Android UI recreates PlayerView while keeping the Player. This differs from iOS and React Native, which recreate the Player. The Sports, Live, and Cinema JavaScript and CSS load from file:///android_asset/. If the custom UI does not appear, build and synchronize the shared UI, then rebuild the APK."
+      "text": "Changing the Android UI recreates PlayerView while keeping the Player. This differs from iOS and React Native, which recreate the Player. The Sports, Live, and Cinema JavaScript and CSS load from file:///android_asset/. If the custom UI does not appear, build and synchronize the shared UI, then rebuild the APK. The Activity forwards start, resume, pause and stop to the active PlayerView. A replacement catches up to an already resumed Activity. The lifecycle observer is removed before detaching and destroying a retired view; the controller retains Player ownership across UI changes. In the recorded SDK 3.171.0 phone-emulator check, foregrounding kept playback paused; use the player’s Play control to resume when needed."
     },
     {
       "type": "note",
@@ -93,7 +93,7 @@
     },
     {
       "type": "p",
-      "text": "dvr:test checks pure rewind calculations; app:testDebugUnitTest checks draft validation and exact SDK configuration mapping. PlayerConfigurationInstrumentedTest drives the actual Compose editor and SDK configuration, reset, source retention, view detachment, and D-pad focus. PlayerOwnershipInstrumentedTest uses recording API implementations to verify exactly-once destroy calls, listener removal, and rejection of retired player/source callbacks. These checks can run without a valid Player license and do not prove playback or completed internal resource cleanup. The real playback tests require network access and an authorized Player license: PlayerDvrInstrumentedTest checks loading and finite VOD duration, and PlayerControlsInstrumentedTest checks shared WebView display, playback through the UI, source switching, rewind, return to live, and DVR state. PlayerConfigurationPlaybackInstrumentedTest verifies that the GUI-applied source and player configuration autoplays muted VOD from the 10-second start offset and advances. PlayerUiHandoffInstrumentedTest checks 12 UI-mode handoffs during VOD playback: the same player remains active, retired views detach, the active view intersects the viewport, and playback time advances after every handoff."
+      "text": "The DVR JVM tests check rewind calculations. App JVM tests check draft validation, SDK mapping and lifecycle ownership, including catch-up for a resumed replacement and observer removal. Configuration instrumented tests drive the real editor and D-pad; recording ownership tests check exactly-once destroy calls and retired callback rejection. These checks do not establish media playback. Licensed tests check finite VOD duration, shared WebView controls, source switching, live seeking and configured autoplay/mute/start offset. The UI-handoff tests check 12 view replacements plus two real Activity stop/resume cycles, source/settings/UI/Allow DVR retention, explicit Play after foregrounding, viewport visibility, playback progress and Player invalidation through teardown. They do not establish completed release of all SDK resources."
     },
     {
       "type": "p",
@@ -101,12 +101,12 @@
     },
     {
       "type": "p",
-      "text": "A further October 20 comparison of 2c90983 and 09e0a37 used the same Player 3.171.0 SDK, shared UI bundle and Android 16 emulator. Both failed the unchanged current-edge check without Player/Source errors. In the recorded examples, completion landed within 0.057 and 0.367 seconds of the requested media target, but took 6.598 and 4.439 seconds; the edge moved and completion offsets were -6.573 and -4.116 seconds. The live controls’ text and button class matched the behind-live SDK offset. Alternating restart-threshold probes at 0.1 and 5 seconds each passed twice and failed once. Production defaults were kept; these results do not establish stable live-return behavior."
+      "text": "The final October 20 live-return failure reached the fixed media target within +0.011 seconds after 3.070 seconds, while the moving live edge remained 3.059 seconds ahead. The behind-live UI agreed with the SDK offset, and auto-hidden controls did not qualify as visible LIVE. Earlier comparisons of base 2c90983 and main 09e0a37 with the same Player 3.171.0 SDK, shared UI bundle and Android 16 emulator also reached their requested targets but remained -6.573 and -4.116 seconds behind the moving edge. Reaching the request-time target does not establish stable return to the current live edge. Production defaults and strict acceptance conditions remain unchanged."
     },
     {
       "type": "note",
       "title": "October 20 verification scope",
-      "text": "On October 20, 2026, Player 3.171.0 passed six DVR JVM tests, six configuration JVM tests, and app/instrumentation builds. Earlier, four configuration/ownership checks passed with a dummy license in 41.737 seconds; touch scrolling reached both Apply sections and D-pad navigation changed a draft switch. A configured-VOD run passed in 18.342 seconds. Follow-up runs passed the original seven grouped checks in 102.038 seconds and the separate 12-handoff playback check in 49.268 seconds. The final eight-check group passed seven in 97.328 seconds: strict live-return and viewport-aware UI handoffs passed, while the unchanged configured-VOD first-position check failed its 9.0..13.0-second range. Its sampled position was not recorded, so late observation and incorrect starting position cannot be distinguished. The assertion now reports that number without changing the range or timing. An earlier six-of-seven grouped run reported timeout 1004; follow-up runs did not reproduce it, and its cause remains separate and unresolved. Stable live return and grouped startup-offset qualification remain open. Physical devices, Android TV, Fire TV, offline, casting, Analytics receipt, and completed SDK resource cleanup were not established."
+      "text": "On October 20, 2026, Player 3.171.0 passed 14 JVM tests (six DVR, six configuration, two lifecycle) and app/instrumentation builds. The final authorized-license group on an Android 16/API 36.1 ARM64 phone emulator passed eight of nine checks in 149.519 seconds, including configured VOD, 12 UI handoffs and two stop/resume/UI-replacement cycles with explicit Play. The unchanged strict live-return check failed without Player/Source errors. A separate focused run completed both playback cycles but recorded timeout 1004 during Activity close; the exact timed-out operation was not captured. The final group did not reproduce it. An earlier group failed the unchanged configured-VOD 9.0..13.0-second first-position range without recording its sample, so late observation and an incorrect starting position remain indistinguishable. Its assertion now reports the number with unchanged timing/range. Stable live return, grouped startup-offset qualification and timeout 1004 remain open. Physical devices, Android TV, Fire TV, offline, casting, Analytics receipt and completed SDK resource cleanup remain unqualified."
     }
   ],
   "sources": [
@@ -117,7 +117,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 136,
+      "line": 145,
       "label": "Real-playback tests and recorded results"
     },
     {
@@ -127,7 +127,7 @@
     },
     {
       "path": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
-      "line": 323,
+      "line": 332,
       "label": "Screen implementation and PlayerView recreation"
     },
     {
@@ -162,13 +162,23 @@
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerUiHandoffInstrumentedTest.kt",
-      "line": 29,
+      "line": 38,
       "label": "Playing-player UI handoff check"
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerConfigurationPlaybackInstrumentedTest.kt",
       "line": 60,
       "label": "Configured VOD first-position assertion"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/showcase/app/PlayerViewLifecycle.kt",
+      "line": 8,
+      "label": "View lifecycle ownership"
+    },
+    {
+      "path": "apps/android/app/src/test/kotlin/com/showcase/app/PlayerViewLifecycleTest.kt",
+      "line": 11,
+      "label": "Host lifecycle regression checks"
     }
   ]
 }
