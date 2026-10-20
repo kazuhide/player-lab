@@ -1,7 +1,7 @@
 {
   "id": "native-integrations",
   "title": "React Native and Vega OS integration",
-  "lead": "These two directories provide source code for integration into external native projects. Passing the repository’s type checks and unit tests does not establish that the resulting apps build or play on a device.",
+  "lead": "The React Native sample generates an external Expo project, and the Vega sample includes a Kepler application host. This section describes how to build and run each app and which native playback behaviors have been checked.",
   "blocks": [
     {
       "type": "h2",
