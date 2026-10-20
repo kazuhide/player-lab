@@ -1,6 +1,6 @@
 name: Showcase
 options:
-  bundleIdPrefix: com.showcase.dvr
+  bundleIdPrefix: com.playerlab
   createIntermediateGroups: true
   # Local.xcconfig is generated (untracked) by scripts/sync-env.sh from the
   # repo-root .env; allow generating the project without it (CI builds licenseless).
@@ -44,6 +44,7 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Showcase/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.ios
         TARGETED_DEVICE_FAMILY: "1,2"
     dependencies:
       - package: BitmovinPlayer
@@ -59,6 +60,7 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Showcase/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.tvos
     dependencies:
       - package: BitmovinPlayer
         product: BitmovinPlayer
@@ -76,6 +78,7 @@ targets:
       - package: DvrKit
     settings:
       base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.ios.tests.runtime
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Showcase-iOS.app/Showcase-iOS"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
@@ -89,12 +92,46 @@ targets:
       - ShowcaseConfigurationTests
       - Showcase/Configuration.swift
       - Showcase/ConfigurationCode.swift
+      - Showcase/TrackPreferences.swift
       - Showcase/PlayerModel.swift
       - Showcase/Sources.swift
     dependencies:
       - package: BitmovinPlayer
         product: BitmovinPlayer
       - package: DvrKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.ios.tests.configuration
+
+  Showcase-iOSTrackRuntimeTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources: [ShowcaseTrackRuntimeTests]
+    dependencies:
+      - target: Showcase-iOS
+      - package: BitmovinPlayer
+        product: BitmovinPlayer
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.ios.tests.tracks
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Showcase-iOS.app/Showcase-iOS"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+  Showcase-tvOSTrackRuntimeTests:
+    type: bundle.unit-test
+    platform: tvOS
+    deploymentTarget: "15.0"
+    sources: [ShowcaseTrackRuntimeTests]
+    dependencies:
+      - target: Showcase-tvOS
+      - package: BitmovinPlayer
+        product: BitmovinPlayer
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.tvos.tests.tracks
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Showcase-tvOS.app/Showcase-tvOS"
+        BUNDLE_LOADER: "$(TEST_HOST)"
 
   Showcase-iOSFinalizationTests:
     type: bundle.unit-test
@@ -108,6 +145,7 @@ targets:
       - package: DvrKit
     settings:
       base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.ios.tests.finalization
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Showcase-iOS.app/Showcase-iOS"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
@@ -123,6 +161,7 @@ targets:
       - package: DvrKit
     settings:
       base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.tvos.tests.finalization
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Showcase-tvOS.app/Showcase-tvOS"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
@@ -134,12 +173,16 @@ targets:
       - ShowcaseConfigurationTests
       - Showcase/Configuration.swift
       - Showcase/ConfigurationCode.swift
+      - Showcase/TrackPreferences.swift
       - Showcase/PlayerModel.swift
       - Showcase/Sources.swift
     dependencies:
       - package: BitmovinPlayer
         product: BitmovinPlayer
       - package: DvrKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.tvos.tests.configuration
 
   Showcase-iOSConfigurationUITests:
     type: bundle.ui-testing
@@ -148,6 +191,9 @@ targets:
     sources: [ShowcaseConfigurationUITests]
     dependencies:
       - target: Showcase-iOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.ios.tests.configurationui
 
   Showcase-tvOSConfigurationUITests:
     type: bundle.ui-testing
@@ -156,6 +202,9 @@ targets:
     sources: [ShowcaseConfigurationUITests]
     dependencies:
       - target: Showcase-tvOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.tvos.tests.configurationui
 
 # Keep app build schemes alongside the opt-in runtime scheme for command-line builds.
 schemes:
@@ -209,3 +258,15 @@ schemes:
         Showcase-tvOS: all
     test:
       targets: [Showcase-tvOSConfigurationUITests]
+  Showcase-iOS-TrackQualification:
+    build:
+      targets:
+        Showcase-iOS: all
+    test:
+      targets: [Showcase-iOSTrackRuntimeTests, Showcase-iOSConfigurationUITests]
+  Showcase-tvOS-TrackQualification:
+    build:
+      targets:
+        Showcase-tvOS: all
+    test:
+      targets: [Showcase-tvOSTrackRuntimeTests, Showcase-tvOSConfigurationUITests]

@@ -22,6 +22,21 @@ enum OffsetReference: String, CaseIterable, Identifiable {
     }
 }
 
+enum VideoScaling: String, CaseIterable, Identifiable {
+    case fit = "Fit"
+    case fill = "Fill (crop)"
+    case stretch = "Stretch"
+    var id: Self { self }
+    var sdkValue: ScalingMode {
+        switch self {
+        case .fit: return .fit
+        case .fill: return .zoom
+        case .stretch: return .stretch
+        }
+    }
+    var sdkCode: String { self == .fill ? "zoom" : self == .fit ? "fit" : "stretch" }
+}
+
 struct SourceSettings: Equatable {
     var url: URL
     var type: SourceFormat
@@ -29,6 +44,7 @@ struct SourceSettings: Equatable {
     var posterURL: URL?
     var startOffset: TimeInterval?
     var timelineReference: OffsetReference = .automatic
+    var initialTracks = InitialTrackPreferences()
 
     init(_ source: ShowcaseSource) {
         url = source.url
@@ -38,13 +54,15 @@ struct SourceSettings: Equatable {
     }
 
     init(url: URL, type: SourceFormat, title: String, posterURL: URL?,
-         startOffset: TimeInterval?, timelineReference: OffsetReference) {
+         startOffset: TimeInterval?, timelineReference: OffsetReference,
+         initialTracks: InitialTrackPreferences = InitialTrackPreferences()) {
         self.url = url
         self.type = type
         self.title = title
         self.posterURL = posterURL
         self.startOffset = startOffset
         self.timelineReference = timelineReference
+        self.initialTracks = initialTracks
     }
 
     func makeSourceConfig() -> SourceConfig {
@@ -63,6 +81,7 @@ struct PlayerSettings: Equatable {
     var sdkTimeShiftEnabled = true
     var maximumBitrate: UInt = 0
     var forwardBuffer: TimeInterval = 0
+    var videoScaling: VideoScaling = .fit
 
     func apply(to config: PlayerConfig) {
         config.playbackConfig.isAutoplayEnabled = autoplay
@@ -70,6 +89,7 @@ struct PlayerSettings: Equatable {
         config.playbackConfig.isTimeShiftEnabled = sdkTimeShiftEnabled
         config.adaptationConfig.maxSelectableBitrate = maximumBitrate
         config.bufferConfig.audioAndVideo.forwardDuration = forwardBuffer
+        config.styleConfig.scalingMode = videoScaling.sdkValue
     }
 }
 
@@ -103,6 +123,10 @@ struct ConfigurationDraft: Equatable {
     var sdkTimeShiftEnabled: Bool
     var maximumBitrate: String
     var forwardBuffer: String
+    var videoScaling: VideoScaling
+    var audioLanguage: String
+    var subtitleMode: InitialSubtitleMode
+    var subtitleLanguage: String
 
     init(source: SourceSettings? = nil, player: PlayerSettings = PlayerSettings()) {
         let source = source ?? SourceSettings(Sources.all[0])
@@ -117,6 +141,10 @@ struct ConfigurationDraft: Equatable {
         sdkTimeShiftEnabled = player.sdkTimeShiftEnabled
         maximumBitrate = String(player.maximumBitrate)
         forwardBuffer = Self.numberText(player.forwardBuffer)
+        videoScaling = player.videoScaling
+        audioLanguage = source.initialTracks.audioLanguage ?? ""
+        subtitleMode = source.initialTracks.subtitleMode
+        subtitleLanguage = source.initialTracks.subtitleLanguage ?? ""
     }
 
     func validated() throws -> ValidatedConfiguration {
@@ -132,12 +160,18 @@ struct ConfigurationDraft: Equatable {
         guard buffer >= 0 else {
             throw ConfigurationValidationError(message: "Forward buffer must be zero or greater seconds.")
         }
+        let audio = try InitialTrackPreferences.language(audioLanguage, field: "Initial audio language")
+        let subtitle = subtitleMode == .language
+            ? try InitialTrackPreferences.language(subtitleLanguage, field: "Initial subtitle language", required: true)
+            : nil
         return ValidatedConfiguration(
             source: SourceSettings(url: url, type: sourceType, title: title,
-                                   posterURL: poster, startOffset: offset, timelineReference: timelineReference),
+                                   posterURL: poster, startOffset: offset, timelineReference: timelineReference,
+                                   initialTracks: InitialTrackPreferences(audioLanguage: audio,
+                                       subtitleMode: subtitleMode, subtitleLanguage: subtitle)),
             player: PlayerSettings(autoplay: autoplay, startMuted: startMuted,
                                    sdkTimeShiftEnabled: sdkTimeShiftEnabled,
-                                   maximumBitrate: bitrate, forwardBuffer: buffer))
+                                   maximumBitrate: bitrate, forwardBuffer: buffer, videoScaling: videoScaling))
     }
 
     private static func httpURL(_ text: String, field: String) throws -> URL {
