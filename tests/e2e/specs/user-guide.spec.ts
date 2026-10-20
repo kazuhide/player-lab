@@ -536,6 +536,40 @@ test.describe("guide without JavaScript", () => {
         [sdk.version, sdk.latestVersion, sdk.latestCheckedAt].join("|")).sort());
       expect(coverage.applications.map((app) => app.id).sort())
         .toEqual(["web", "web-ui", "ios", "tvos", "android", "react-native", "vega"].sort());
+      const expectConfigurationCounts = async (apps: typeof coverage.applications): Promise<void> => {
+        const table = page.getByRole("region", { name: language === "ja" ? "設定" : "Configuration", exact:true });
+        await expect(table.locator("thead th")).toHaveText(language === "ja"
+          ? ["アプリ", "対象API ID数", "設定APIの使用数", "GUIで個別変更", "GUIで候補選択", "コード内のみ"]
+          : ["Application", "Available IDs", "Configuration APIs used", "Individual GUI edit", "GUI preset", "Code only"]);
+        const cells = await table.locator("tbody tr").evaluateAll((rows) => rows.map((row) =>
+          Array.from(row.querySelectorAll("td")).slice(1).map((cell) => cell.textContent?.trim())));
+        expect(cells).toEqual(apps.map((app) => {
+          const rows = app.rows.filter((row) => row.category === "configuration");
+          const direct = rows.filter((row) => row.status === "direct").length;
+          const preset = rows.filter((row) => row.status === "preset").length;
+          const code = rows.filter((row) => row.status === "code-only").length;
+          const used = direct + preset + code;
+          return [String(rows.length), `${used} / ${rows.length} · ${(100 * used / rows.length).toFixed(2)}%`,
+            String(direct), String(preset), String(code)];
+        }));
+      };
+      await expectConfigurationCounts(coverage.applications);
+      for (const width of [375, 1440]) {
+        await page.setViewportSize({ width, height:900 });
+        const table = page.getByRole("region", { name: language === "ja" ? "設定" : "Configuration", exact:true });
+        const layout = await table.evaluate((element) => ({
+          scrollWidth:element.scrollWidth, clientWidth:element.clientWidth,
+          nowrap:Array.from(element.querySelectorAll("th, td")).every((cell) => getComputedStyle(cell).whiteSpace === "nowrap"),
+        }));
+        expect(layout.nowrap).toBe(true);
+        if (width === 375) {
+          expect(layout.scrollWidth).toBeGreaterThan(layout.clientWidth);
+          await table.focus();
+          await page.keyboard.press("ArrowRight");
+          await expect.poll(() => table.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+        }
+        await expectNoDocumentOverflow(page);
+      }
       for (const app of coverage.applications) {
         await test.step(app.id, async () => {
           const response = await page.goto(guidePath(language, `api-coverage/${app.id}`));
@@ -544,6 +578,7 @@ test.describe("guide without JavaScript", () => {
           await expect(page.locator("[data-api-id]:visible")).toHaveCount(app.rows.length);
           const sdk = coverage.sdks.find((item) => item.id === app.sdkId)!;
           await expect(page.locator("main > p code").first()).toHaveText(sdk.version);
+          await expectConfigurationCounts([app]);
           const rows = await page.locator("[data-api-id]").evaluateAll((elements) => elements.map((element) => {
             const row = element.closest("tr")!;
             const group = element.closest("details.guide-api-group")!;

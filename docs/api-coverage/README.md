@@ -19,9 +19,10 @@ official sample, rather than the general Web release.
 
 An application programming interface (API) is the set of settings, operations,
 and events that the SDK exposes to application code. Coverage here asks which
-of those interfaces the sample exposes through its graphical controls or visible
-output. The available API inventory is extracted from the public SDK before the
-GUI mapping is applied.
+of those interfaces the sample uses in configuration code, graphical controls or
+visible output. Configuration usage and GUI access are reported separately.
+The available API inventory is extracted from the public SDK before the app
+mapping is applied.
 
 Each platform has explicit scopes. Configuration, operations, state reads and
 events use different units and are never combined into one percentage. The
@@ -38,10 +39,19 @@ or a percentage of every symbol shipped in the SDK.
 | `sdk-ui-unverified` | A possible embedded SDK UI route has not been qualified through its native bridge. No credit is given. |
 | `missing` | No exposed route was found in the audited scope. |
 
-Configuration and operation tables show direct coverage and direct plus preset
-coverage separately. State and event tables show confirmed visible use. Fixed
-constructor values, environment settings, and unused reads do not earn GUI
-credit. A theme selector does not expose every constant in that theme's source.
+Configuration tables show the API entries used by application code: the sum of
+`direct`, `preset` and `code-only` configuration rows. Individual GUI edits, GUI
+presets and code-only entries are displayed separately. A zero direct count does
+not mean that the app has no `PlayerConfig` or `SourceConfig` implementation.
+These are SDK API entries, including configuration-object access and nested
+properties, rather than independent editable fields. Code-only entries include
+fixed values and helpers without GUI wiring; changing fixed values requires
+editing the source and rebuilding. SDK defaults are not counted as app settings.
+
+Operation tables show direct coverage and direct plus preset coverage separately.
+State and event tables show confirmed visible use. Fixed constructor values,
+environment settings, and unused reads do not earn GUI credit. A theme selector
+does not expose every constant in that theme's source.
 
 Configuration paths count array element shapes once, not individual array
 elements or JavaScript array methods. Dynamic maps, callbacks, and opaque
