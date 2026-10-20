@@ -204,6 +204,9 @@ def build_scope(inventory, repo, scratch, version):
         elif owner.endswith('.Player') and name=='destroy':
             result.update(status='code_only',evidence=[ev(MAIN,'player.destroy()','PlayerController.release','Lifecycle only.'),
                 ev(MAIN,'previous.destroy()','PlayerController.applyPlayerSettings','Cleanup after player replacement; no standalone destroy control.')])
+        elif owner.endswith('.PlayerView') and name in ('onStart','onResume','onPause','onStop'):
+            result.update(status='code_only',evidence=[ev(MAIN,'it::'+name,'PlayerController.attachView',
+                'View-owned host lifecycle forwarding, including resumed-state catch-up; not a GUI command.')])
         elif owner.endswith('.PlayerView') and name in ('player','setPlayer','onDestroy'):
             needle = 'view.onDestroy()' if name == 'onDestroy' else 'view.player = null'
             result.update(status='code_only',evidence=[ev(MAIN,needle,needle,'Detach/release lifecycle; not an API command control.')])

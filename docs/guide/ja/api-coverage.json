@@ -285,12 +285,16 @@
         "text": "バッファーは有限の秒数です。前方バッファーは0.5以上、開始時・再バッファー時のしきい値は非負で、前方バッファーから0.5を引いた値以下とし、減算誤差を1 ULPまで許容します。自動画質選択のビデオビットレートはbit/s単位の非負のIntです。空欄は2147483647となり、ABRの上限を設けません。画質と安定性の比重は0から1で、ライブ端の近くに適用します。"
       },
       {
-        "source": "The 2026-10-20 record reports 12 JVM tests, 4 dummy-license configuration/ownership checks and 1 licensed configured-VOD check passing on an Android phone emulator. Configured VOD used a 10-second start offset, autoplay and mute. Touch and D-pad input were checked; physical Android TV, Fire TV, completed SDK resource cleanup, casting, offline playback and Analytics receipt remain unqualified.",
-        "text": "2026-10-20の記録では、JVMテスト12件、ダミーライセンスを使う設定・所有権テスト4件、許可済みライセンスを使う設定後のVODテスト1件がAndroidの電話エミュレーターで成功しています。VODでは開始オフセット10秒、自動再生、ミュートを適用しました。タッチとD-pad入力を確認していますが、Android TV・Fire TVの実機、SDK内部のリソース解放完了、キャスト、オフライン再生、Analytics受信は未検証です。"
+        "source": "PlayerView onStart/onResume/onPause/onStop are internal host lifecycle calls. A view-owned observer catches up newly attached views in a resumed Activity and stops notifications before retirement. Detach precedes view.onDestroy, and the controller owns Player destruction. Foreground return can retain the SDK paused state; the regression explicitly requests Play rather than assuming automatic resume.",
+        "text": "PlayerViewのonStart/onResume/onPause/onStopは画面のライフサイクルに伴う内部呼び出しです。ビューごとのobserverは、Activityが復帰済みの場合にも新しいビューへ現在の状態を通知し、旧ビューへの通知は退役前に解除します。view.onDestroyの前にPlayerを切り離し、Playerの破棄はcontrollerが担当します。画面へ戻ってもSDKが一時停止状態を保持する場合があるため、回帰テストでは自動再開を仮定せず、明示的にPlayを要求します。"
       },
       {
-        "source": "An earlier licensed group passed 6 of 7 checks and reported non-network timeout 1004 in the existing shared-UI/DVR controls check. Separate base and changed-app runs both failed return-to-live; this does not establish the grouped timeout cause. The shared-UI/live-edge path remains unqualified for 3.171.0, with no relaxed error or timing thresholds.",
-        "text": "先行する許可済みライセンスのまとめ実行では7件中6件が成功し、既存の共有UI・DVR操作テストでネットワーク以外のタイムアウト1004を記録しました。別々の比較実行では変更前と変更後の両方がライブ復帰に失敗しましたが、まとめ実行のタイムアウトの原因が同じと証明したものではありません。共有UIとライブ復帰の経路は3.171.0で未検証のままとし、エラーや時間のしきい値は緩めていません。"
+        "source": "The final 2026-10-20 check passed 14 JVM tests and both app/test APK builds. The licensed Android phone emulator group passed 8 of 9 cases: configuration, ownership, DVR, configured VOD at a 10-second offset with autoplay/mute, 12 UI handoffs and background/resume with explicit Play passed. The unchanged strict shared-UI live-return case failed. Physical Android TV, Fire TV, completed SDK resource cleanup, casting, offline playback and Analytics receipt remain unqualified.",
+        "text": "2026-10-20の最終検査ではJVMテスト14件とアプリ・テストAPKのビルドが成功しました。ライセンスを使ったAndroid電話エミュレーターの一括検査は9件中8件が成功しました。設定、所有権、DVR、10秒位置からのautoplay・mute付きVOD、12回のUI切り替え、明示Playを伴うバックグラウンド復帰が成功し、既存の厳密な共有UIライブ復帰検査だけが失敗しました。物理Android TV、Fire TV、SDKリソース解放の完了、Cast、オフライン再生、Analyticsの受信は未確認です。"
+      },
+      {
+        "source": "A failed live return completed after 3.070 seconds within +0.011 seconds of its fixed requested media target, while the moving live edge left a -3.059-second offset. The UI correctly showed behind-live. This does not meet the unchanged current-edge/visible-LIVE condition. A separate focused background/UI test observed 1004 during Activity close after playback checks passed; its timed-out operation remains unknown, and the final group had no Player/Source errors. No live-return retry, buffer default, seek semantics, error threshold or visibility condition was changed. Stable live return, grouped startup-position reliability and the intermittent 1004 remain unqualified.",
+        "text": "失敗したライブ復帰は3.070秒で完了し、要求時に固定したメディア位置との差は+0.011秒でしたが、その間にライブ端が進み、現在のライブ端からは−3.059秒遅れていました。UIは正しく遅れを表示しており、現在のライブ端と可視LIVE表示を求める従来の条件を満たしていません。別の背景復帰・UI検査では再生確認の成功後、Activity終了時に1004を観測しましたが、タイムアウトした操作は未特定です。最終の一括検査にPlayer/Sourceエラーはありませんでした。ライブ復帰の再試行、バッファの既定値、seekの意味、エラーの閾値、可視性の条件は変更していません。安定したライブ復帰、一括実行時の開始位置の再現性、断続的な1004は未解決です。"
       },
       {
         "source": "configuration_named_types: 242 configuration, 5 observation.",
