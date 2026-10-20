@@ -176,6 +176,14 @@
     {
       "type": "p",
       "text": "A separate instrumented Virtual Device check reported timedout from deinitializeSync at the app's 1000 ms deadline. SDK destruction completed and a new foreground surface was created, but native release remained unconfirmed, so the session kept replacement blocked. Calling the public native pause() synchronously before release did not resolve that timeout in a separate control. These observations identify the blocked step; they do not establish the cause inside the native SDK."
+    },
+    {
+      "type": "h2",
+      "text": "Applied configuration code"
+    },
+    {
+      "type": "p",
+      "text": "Both configuration panels provide Show applied code. The output uses the applied configuration, includes no draft edits, and uses a Player-key placeholder. React Native includes the selected shared UI and provides Copy code through the pinned Expo Clipboard module. A native development build must include that module. Vega displays the configuration for its existing native media host; this TV sample has no clipboard integration. Keep the Vega host’s media and surface lifecycle when reusing the settings."
     }
   ],
   "sources": [

@@ -7,6 +7,7 @@ import type { DvrController } from "./dvrController";
 import type { DvrState } from "./dvr/state";
 import { SOURCES } from "./Sources";
 import { ConfigurationPanel } from "./ConfigurationPanel";
+import { configurationCode } from "./configurationCode";
 import { initialDraft, parseConfiguration, presetDraft, sameConfiguration } from "./configuration";
 
 // Vega has no dotenv toolchain: the Kepler entry sets these globals before the app
@@ -25,6 +26,7 @@ export const App: React.FC = () => {
   const [log, setLog] = useState<string[]>([]);
   const [dvrAllowed, setDvrAllowed] = useState(true);
   const controllerRef = useRef<DvrController | null>(null);
+  const appliedCode = useMemo(() => configurationCode(applied), [applied]);
 
   const onDvr = useCallback((state: DvrState, line?: string) => {
     setDvr(state);
@@ -91,7 +93,7 @@ export const App: React.FC = () => {
         />
         <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
           onReset={() => { setDraft(applied.draft); setError(null); }}
-          changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} />
+          changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} appliedCode={appliedCode} />
       </ScrollView>
     </View>
   );

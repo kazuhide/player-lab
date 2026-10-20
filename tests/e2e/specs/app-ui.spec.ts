@@ -916,6 +916,67 @@ test.describe("Web app UI", () => {
     await expect(page.locator(".bmpui-label-metadata-title")).toHaveText("E2E CONFIG TITLE", { timeout: 10000 });
   });
 
+  test("@public configuration code captures applied values and copies without draft edits", async ({ page }) => {
+    await captureAppPlayer(page);
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    await page.locator(".config-code > summary").click();
+    const code = page.getByRole("textbox", { name: "Applied configuration code", exact: true });
+    const refresh = page.getByRole("button", { name: "Refresh code", exact: true });
+    await expect(code).toHaveValue(/YOUR_PLAYER_KEY/);
+    const title = configField(page, /^title/).locator("input");
+    await title.fill("CODE_SNAPSHOT_APPLIED_TITLE");
+    await title.blur();
+    await refresh.click();
+    await expect(code).not.toHaveValue(/CODE_SNAPSHOT_APPLIED_TITLE/);
+    await page.getByRole("button", { name: /Reload the source to apply/ }).click();
+    await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toBe("CODE_SNAPSHOT_APPLIED_TITLE");
+    await refresh.click();
+    await expect(code).toHaveValue(/CODE_SNAPSHOT_APPLIED_TITLE/);
+    const volume = configField(page, /^volume \(0–100\)/).locator("input");
+    await volume.fill("37");
+    await volume.blur();
+    await expect.poll(() => page.evaluate(() => window.player?.getVolume())).toBe(37);
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.getByRole("button", { name: "Copy code", exact: true }).click();
+    await expect(code).toHaveValue(/player\.setVolume\(37\);/);
+    await expect(page.locator(".config-code [role=status]")).toHaveText("Copied.");
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await code.inputValue());
+    await page.evaluate(() => {
+      const target = window as Window & {
+        finishConfigurationCopy?: () => void; pendingConfigurationCopy?: Promise<void>;
+        restoreConfigurationClipboard?: () => void;
+      };
+      const write = navigator.clipboard.writeText.bind(navigator.clipboard);
+      target.restoreConfigurationClipboard = () => Object.defineProperty(navigator.clipboard, "writeText", { configurable: true, value: write });
+      Object.defineProperty(navigator.clipboard, "writeText", { configurable: true, value: (text: string) => {
+        target.pendingConfigurationCopy = write(text).then(() => new Promise<void>((resolve) => { target.finishConfigurationCopy = resolve; }));
+        return target.pendingConfigurationCopy;
+      } });
+    });
+    await page.getByRole("button", { name: "Copy code", exact: true }).click();
+    await expect.poll(() => page.evaluate(() => typeof (window as Window & { finishConfigurationCopy?: () => void }).finishConfigurationCopy)).toBe("function");
+    await volume.fill("38");
+    await volume.blur();
+    await refresh.click();
+    await expect(code).toHaveValue(/player\.setVolume\(38\);/);
+    await page.evaluate(async () => {
+      const target = window as Window & {
+        finishConfigurationCopy?: () => void; pendingConfigurationCopy?: Promise<void>;
+        restoreConfigurationClipboard?: () => void;
+      };
+      target.finishConfigurationCopy!();
+      await target.pendingConfigurationCopy;
+      target.restoreConfigurationClipboard!();
+    });
+    await expect(page.locator(".config-code [role=status]")).toHaveText("");
+    await page.setViewportSize({ width: 375, height: 900 });
+    await expect.poll(() => page.evaluate(() => innerWidth)).toBe(375);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.getByRole("button", { name: "日本語", exact: true }).click();
+    await page.locator(".config-code > summary").click();
+    await expect(page.getByRole("textbox", { name: "適用済み設定コード", exact: true })).toHaveValue(/CODE_SNAPSHOT_APPLIED_TITLE/);
+  });
+
   test("@public applied config overrides can be cleared without resetting other fields", async ({ page }) => {
     await captureAppPlayer(page);
     await page.getByRole("button", { name: "English", exact: true }).click();

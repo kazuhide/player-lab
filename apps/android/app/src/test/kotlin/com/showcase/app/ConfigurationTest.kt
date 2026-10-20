@@ -11,6 +11,19 @@ import org.junit.Test
 
 class ConfigurationTest {
     @Test
+    fun exportedSourceTextEscapesKotlinInterpolationAndNewlines() {
+        val title = "A \"quoted\" title ${'$'}{mustStayText}\nnext line"
+        val source = SourceSettings("https://example.com/movie.m3u8", SourceType.Hls, title = title)
+        val code = configurationCode(source, PlayerSettings(), UiMode.SPORTS)
+        val titleLine = code.lineSequence().single { it.trim().startsWith("title = ") }
+        assertTrue(titleLine.contains("\\\"quoted\\\""))
+        assertTrue(titleLine.contains("\\${'$'}{mustStayText}\\nnext line"))
+        assertFalse(code.contains(title))
+        assertTrue(code.contains("YOUR_PLAYER_KEY"))
+        assertFalse(code.contains("AnalyticsConfig("))
+    }
+
+    @Test
     fun defaultsKeepSdkPlaybackBufferAndAdaptationDefaults() {
         val settings = requireNotNull(PlayerDraft().validate().value)
         val config = settings.toPlayerConfig("dummy")
