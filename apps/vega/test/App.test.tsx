@@ -123,6 +123,23 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(code()).toContain("native media initialization");
   });
 
+  it("makes each TV switch focusable without applying its configuration draft", async () => {
+    await mount();
+    const player = current();
+    expect(element("Switch", { accessibilityLabel: "Allow DVR" }).props.focusable).toBe(true);
+    await press("Show configuration");
+    for (const accessibilityLabel of ["Autoplay", "Mute on startup"]) {
+      const control = element("Switch", { accessibilityLabel });
+      expect(control.props.focusable).toBe(true);
+      await act(async () => control.props.onValueChange(!control.props.value));
+    }
+    expect(current()).toBe(player);
+    expect(runtime.players).toHaveLength(1);
+    await press("Reset draft");
+    expect(element("Switch", { accessibilityLabel: "Autoplay" }).props.value).toBe(true);
+    expect(element("Switch", { accessibilityLabel: "Mute on startup" }).props.value).toBe(true);
+  });
+
   it("uses a local URL parser when the legacy native URL getters are unavailable", async () => {
     class LegacyURL {
       get protocol(): string { throw new Error("URL.protocol is not implemented"); }
