@@ -41,10 +41,10 @@ how to customize it. See the [Web instructions](apps/web/README.md).
 | Path | Contents |
 | --- | --- |
 | [Web](apps/web) | Player playground, settings, UI examples, and guide |
-| [iOS/tvOS](apps/ios) | Swift app and its DVR logic tests |
-| [Android/Fire TV](apps/android) | Kotlin app, DVR tests, and offline download example |
-| [React Native](apps/react-native) | Screen and controls for an Expo development build |
-| [Vega OS](apps/vega) | Modular player integration; requires the Vega toolchain |
+| [iOS/tvOS](apps/ios) | Swift app, source/playback configuration editor, and DVR tests |
+| [Android/Fire TV](apps/android) | Kotlin app, source/player configuration editors, DVR tests, and offline helper |
+| [React Native](apps/react-native) | Screen, configuration editor, and controls for an Expo development build |
+| [Vega OS](apps/vega) | Modular player integration and configuration editor; requires the Vega toolchain |
 | [Shared UI](packages/ui-shared) | Custom player components, themes, and UI factories |
 | [Encoding](encoding) | Optional scripts to create your own test streams |
 | `tests/e2e` | Browser tests that drive the existing Web app and player |

@@ -31,10 +31,10 @@ bundled. See [test stream configuration](test-streams-config.md).
 
 | Platform | Included implementation and limits |
 | --- | --- |
-| iOS/tvOS | Swift app, per-platform DVR handling, selectable Web UI on iOS and system UI on tvOS |
-| Android/Fire TV | Kotlin app, selectable Web UI, DVR handling, and offline download example |
-| React Native | Screen and controls for a development build; native media and shared UI delivery need the Expo toolchain |
-| Vega OS | Modular player and custom native controls; Vega tooling, full runtime polyfills, and device checks are separate |
+| iOS/tvOS | Swift app, source/playback configuration editor, per-platform DVR handling, selectable Web UI on iOS and system UI on tvOS |
+| Android/Fire TV | Kotlin app, source/player configuration editors, selectable Web UI, DVR handling, and an offline helper without a download GUI |
+| React Native | Screen, source/player configuration editor, and controls for a development build; native media and shared UI delivery need the Expo toolchain |
+| Vega OS | Modular player, source/player configuration editor, and custom native controls; Vega tooling, full runtime polyfills, and device checks are separate |
 
 The shared UI is in `packages/ui-shared`. Each platform keeps its own DVR logic.
 Read the platform README before attempting a build or device run.
