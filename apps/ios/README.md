@@ -295,6 +295,40 @@ select Progressive MP4, and apply the settings above. The HLS ending server
 serves its playlist fixture; it is not the MP4 server. Keep this test input local
 and use the app's normally allowed Player license.
 
+### SDK Default UI controls
+
+On 2026-10-21, two real-app GUI cases passed on an iPhone 17 Pro / iOS 26.4
+simulator with Player 3.128.0, in 55.381 and 48.599 seconds. They used the
+generated 60-second multi-audio HLS, actual touch input, read-only native
+getters/listeners and visible video. The SDK bridge and stock UI resource bytes
+matched the installed app. The [recorded API results](../../docs/api-coverage/apple/stock-ui-qualification.json)
+include values and public resource references.
+
+| API | Actual control and native result | Coverage |
+| --- | --- | --- |
+| `Player.pause()` | Pause held the native position at 10.095 seconds across three samples. | Direct |
+| `Player.play()` | Play advanced the same native player from 10.583 to 14.982 seconds. | Direct |
+| `Player.seek(time:)` | Dragging the visible timeline completed a fresh native `Seeked` at 30 seconds. | Direct |
+| `Player.setAudio(trackIdentifier:)` | Selecting German test track changed the native selection from track 0 to track 1. | Direct |
+| `Player.playbackSpeed` | Selecting 2x set the native speed to 2. | Preset |
+| `Player.volume` | Speaker touch changed mute; volume stayed at 100 and no touch volume slider was offered. | Missing |
+| `UserInterfaceApi.enterFullscreen()` / `exitFullscreen()` | The host has no fullscreen handler or visible fullscreen control. | Missing, two API rows |
+
+The audio menu dynamically lists all `Player.availableAudio` IDs, covering the
+public valid argument domain. Its two fixture labels are test metadata, not
+translations of the soundtrack. Speed offers only 0.25x, 0.5x, normal, 1.5x and
+2x; the GUI does not accept other SDK speed values. The missing controls remain
+available SDK APIs in the denominator. No candidate is left unverified in this
+eight-item audit; the recorded touch results apply to this iPhone simulator host.
+
+To repeat the GUI workflow, select **Default**, configure the generated
+`vod-multiaudio/master.m3u8` URL and autoplay, then Apply. Reveal the video
+controls, Pause, Play, pause again, and drag **Video timeline** to the middle.
+Open **Settings → Speed**, scroll to **2x** and select it. Scroll back and choose
+**Back**, then **Audio Track → German test track**. Scroll within the menu when
+an option is below its visible viewport. Hardware volume changes and hidden
+markup do not demonstrate an app API route.
+
 ## Configuration tests
 
 After generating the project and restoring `Package.resolved`, the hostless

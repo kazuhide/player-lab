@@ -188,6 +188,72 @@
     },
     {
       "type": "h2",
+      "text": "SDK既定UIの操作とAPI対応"
+    },
+    {
+      "type": "p",
+      "text": "2026年10月21日、Player 3.128.0のiPhone 17 Pro / iOS 26.4 Simulatorで実際のGUI試験が2件成功し、所要時間は55.381秒・48.599秒でした。生成した60秒・複数音声のHLS、実タッチ、可視映像、SDKの読み取り値と通知を使いました。公開SDKのbridgeと既定UIのリソースは、実アプリのバイトと一致しました。対象の八つは、直接操作四つ、プリセット一つ、この構成で不提供の三つとして確認済みです。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "API",
+        "実際の操作とSDKの応答",
+        "分類"
+      ],
+      "rows": [
+        [
+          "Player.pause()",
+          "Pause後の再生位置は3回とも10.095秒。",
+          "直接操作"
+        ],
+        [
+          "Player.play()",
+          "Play後、同じPlayerの位置が10.583秒から14.982秒へ進行。",
+          "直接操作"
+        ],
+        [
+          "Player.seek(time:)",
+          "タイムラインのドラッグ後、新しいSeekedで30秒への移動が完了。",
+          "直接操作"
+        ],
+        [
+          "Player.setAudio(trackIdentifier:)",
+          "German test trackを選び、SDKの音声選択が0番から1番へ変化。",
+          "直接操作"
+        ],
+        [
+          "Player.playbackSpeed",
+          "2xを選び、SDKの速度が2へ変化。",
+          "プリセット"
+        ],
+        [
+          "Player.volume",
+          "スピーカー操作はミュートを変更。音量は100のままでタッチ用スライダーなし。",
+          "不提供"
+        ],
+        [
+          "UserInterfaceApi.enterFullscreen() / exitFullscreen()",
+          "このアプリ構成には全画面ハンドラーと可視の操作がない。",
+          "不提供・API二つ"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "音声メニューはavailableAudioのIDをすべて動的に列挙し、公開APIの有効な引数を選択できます。English test trackとGerman test trackは検証用のラベルで、翻訳音声ではありません。速度は0.25x、0.5x、通常、1.5x、2xだけなのでプリセットです。不提供の三つも利用可能なSDK APIとして分母に残します。この結果は対象のiPhoneシミュレーターのものであり、tvOSや物理端末のUIとは区別します。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Defaultを選びます。生成したvod-multiaudio/master.m3u8の到達可能なURLと自動再生を設定し、Applyします。",
+        "コントロールを表示し、Pause、Play、再度Pauseを操作してからVideo timelineを中央へドラッグします。",
+        "Settings → Speedを開き、スクロールして2xを選びます。上へ戻ってBackを選びます。",
+        "Audio Trackを開き、スクロールしてGerman test trackを選びます。メニュー内の見えていない選択肢はスクロールして表示します。"
+      ]
+    },
+    {
+      "type": "h2",
       "text": "適用済み設定のコード"
     },
     {
@@ -263,6 +329,11 @@
     {
       "url": "https://ffmpeg.org/ffmpeg-formats.html#Format-Options",
       "label": "FFmpegの時刻シフト設定"
+    },
+    {
+      "path": "docs/api-coverage/apple/stock-ui-qualification.json",
+      "line": 1,
+      "label": "SDK既定UIの実測結果と公開bridge・リソースの対応"
     }
   ]
 }

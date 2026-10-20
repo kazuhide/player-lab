@@ -7241,17 +7241,17 @@
         "command": {
           "byStatus": {
             "code-only": 3,
-            "direct": 1,
+            "direct": 5,
             "internal": 0,
-            "missing": 133,
+            "missing": 136,
             "observed": 0,
-            "preset": 1,
-            "sdk-ui-unverified": 8
+            "preset": 2,
+            "sdk-ui-unverified": 0
           },
           "denominator": 146,
           "deprecated": 8,
-          "percentDirect": 0.68,
-          "percentDirectOrPreset": 1.37
+          "percentDirect": 3.42,
+          "percentDirectOrPreset": 4.79
         },
         "configuration": {
           "byStatus": {
@@ -7414,7 +7414,7 @@
         "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
         "The iOS application also covers iPadOS; both have identical audited API availability and app control paths.",
         "Four configuration fields remain constrained UI presets backed by bundled JS/CSS resources: uiManagerFactoryFunction, playerUiJs, playerUiCss and userInterfaceConfig. Missing custom resources fall back to the SDK UI; source URLs and HLS/MP4 type are editable.",
-        "Eight runtime control candidates are sdk-ui-unverified; their evidence identifies only the native SDK UI container.",
+        "All eight SDK Default UI candidates were checked on an iPhone simulator with Player 3.128.0 and the generated 60-second multi-audio HLS. Actual touch and read-only native observations qualified Play, Pause, seek and the dynamic available-audio menu as direct. The five fixed speed values receive preset credit; actual 2x and the second audio track reached the native SDK. Volume and enter/exit fullscreen are missing in this host: speaker touch only changes mute, no touch volume slider is offered, and no fullscreen handler or visible control is installed. The SDK bridge/UI resource bytes matched the installed app. The two recorded cases passed in 55.381 and 48.599 seconds. No candidate remains sdk-ui-unverified; these are iPhone simulator observations, not physical-device or tvOS UI results.",
         "SourceConfig.cmcdConfig requires OS 18 or later and TweaksConfig.includeMachineGeneratedSubtitles requires OS 27 or later; family-wide availability retains both."
       ],
       "scopes": [
@@ -11193,17 +11193,17 @@
             "command": {
               "byStatus": {
                 "code-only": 1,
-                "direct": 1,
+                "direct": 5,
                 "internal": 0,
-                "missing": 19,
+                "missing": 20,
                 "observed": 0,
-                "preset": 1,
-                "sdk-ui-unverified": 6
+                "preset": 2,
+                "sdk-ui-unverified": 0
               },
               "denominator": 28,
               "deprecated": 4,
-              "percentDirect": 3.57,
-              "percentDirectOrPreset": 7.14
+              "percentDirect": 17.86,
+              "percentDirectOrPreset": 25.0
             },
             "configuration": {
               "byStatus": {
@@ -13665,10 +13665,10 @@
                 "code-only": 0,
                 "direct": 0,
                 "internal": 0,
-                "missing": 5,
+                "missing": 7,
                 "observed": 0,
                 "preset": 0,
-                "sdk-ui-unverified": 2
+                "sdk-ui-unverified": 0
               },
               "denominator": 7,
               "deprecated": 0,
@@ -22784,7 +22784,7 @@
     }
   ],
   "checkedAt": "2026-10-21",
-  "inputSha256": "d7f80ebcfbdc84c110d989f2ce503edc62190330846035a90422ba78f9e4f47e",
+  "inputSha256": "06c6894acd15396bef260736a51aa80972c6c9161ae1aa11e6a08e7ade01c2a7",
   "schemaVersion": 1,
   "sdks": [
     {
