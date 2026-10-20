@@ -20,7 +20,10 @@ final class LiveFinalizationTests: XCTestCase {
     private var seeked = 0
     private var finished = 0
     private var durationChanges = 0
+    private var timeChanged = 0
     private var completedRewindTime: TimeInterval?
+    private var completedSeekTime: TimeInterval?
+    private var changedRelativeTime: TimeInterval?
     private var failureState: (() -> [String: Any])?
     #if !os(tvOS)
     private weak var observedWebView: WKWebView?
@@ -76,6 +79,8 @@ final class LiveFinalizationTests: XCTestCase {
         #else
         let webView = try await sharedWebView(in: view)
         observedWebView = webView
+        XCTAssertEqual(player.config.styleConfig.playerUiCss,
+                       Bundle.main.url(forResource: "bitmovinplayer-ui", withExtension: "css"))
         try await eventually("visible shared UI playback control") {
             try await self.webControl(webView, expression: """
                 const button = visible('.bmpui-ui-playbacktogglebutton');
@@ -179,12 +184,126 @@ final class LiveFinalizationTests: XCTestCase {
         try await Task.sleep(nanoseconds: 300_000_000)
         XCTAssertEqual(timeShifted, replayShifted)
 
+        // seek(time:) is a VOD API. Observe the completed source as reported by
+        // the SDK before explicitly reloading its final manifest as VOD.
+        player.pause()
+        let completedSource = try XCTUnwrap(player.source)
+        let completedUrl = completedSource.sourceConfig.url
+        let retainedWasLive = player.isLive
+        let retainedSeeked = seeked
+        player.seek(time: 30)
+        let retainedDeadline = Date().addingTimeInterval(40)
+        while Date() < retainedDeadline && seeked == retainedSeeked && errors.isEmpty {
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        let retainedSeekCompleted = seeked > retainedSeeked && completedSeekTime.map {
+            $0.isFinite && abs($0 - 30) <= 1
+        } == true
+        XCTAssertTrue(model.player === player && player.source === completedSource)
+        if !retainedWasLive { XCTAssertTrue(retainedSeekCompleted) }
+        XCTAssertTrue(errors.isEmpty, "Native Player/Source numeric error codes: \(errors)")
+        print("Native completed-source seek: nativeLive=\(player.isLive), durationFinite=\(player.duration.isFinite), freshSeekedAt30=\(retainedSeekCompleted)")
+
+        // A title-only Apply is the existing source-only path: same player and
+        // exact URL, a new Source reading the now-final HLS manifest.
+        var finalDraft = model.configurationDraft
+        finalDraft.title = "Completed HLS on demand"
+        XCTAssertEqual(try model.apply(finalDraft), .reloadSource)
+        try await eventually("same-URL source-only Apply loads finite VOD on the same player") {
+            self.sourceLoads == loadedBeforeEnd + 1 && model.player === player &&
+                player.source !== completedSource && player.source?.sourceConfig.url == completedUrl &&
+                !player.isLive && player.duration.isFinite && abs(player.duration - 60) < 1 &&
+                model.dvr.mode == .vod && !model.dvr.dvrAvailable
+        }
+        let finalSource = try XCTUnwrap(player.source)
+        player.play()
+        try await eventually("finite VOD starts on the reloaded final manifest") {
+            player.isPlaying && player.currentTime(.relativeTime) > 1
+        }
+        player.pause()
+        let beforeVodSeek = seeked
+        player.seek(time: 30)
+        try await eventually("fresh finite VOD Seeked completes at thirty seconds") {
+            self.seeked > beforeVodSeek && self.completedSeekTime.map {
+                $0.isFinite && abs($0 - 30) <= 1
+            } == true && abs(player.currentTime(.relativeTime) - 30) <= 1
+        }
+        XCTAssertTrue(model.player === player && player.source === finalSource)
+        XCTAssertEqual(finalSource.sourceConfig.url, completedUrl)
+        XCTAssertTrue(view.window === window && !view.isHidden && view.alpha > 0 &&
+                      view.convert(view.bounds, to: window).intersects(window.bounds))
+        #if !os(tvOS)
+        let clockStyles = try await webView.evaluateJavaScript("""
+            (() => {
+              const element = document.querySelector('.bmpui-ui-label-wallclock');
+              const matches = [];
+              let fixRulePresent = false, readableSheets = 0;
+              const visit = rules => {
+                for (const rule of rules) {
+                  if (rule.selectorText && rule.style) {
+                    if (rule.selectorText.includes('.bmpui-ui-label-wallclock.bmpui-hidden') &&
+                        rule.style.display === 'none') fixRulePresent = true;
+                    try {
+                      if (element?.matches(rule.selectorText) && rule.style.display)
+                        matches.push({ selector: rule.selectorText, display: rule.style.display,
+                          important: rule.style.getPropertyPriority('display') === 'important' });
+                    } catch {}
+                  } else if (rule.cssRules) {
+                    if (!rule.media || matchMedia(rule.conditionText).matches) visit(rule.cssRules);
+                  }
+                }
+              };
+              for (const sheet of document.styleSheets) {
+                try { visit(sheet.cssRules); readableSheets++; } catch {}
+              }
+              return { exists: !!element, ownHidden: !!element?.classList.contains('bmpui-hidden'),
+                display: element ? getComputedStyle(element).display : 'absent',
+                fixRulePresent, readableSheets, matchedDisplayRules: matches.slice(0, 10) };
+            })()
+            """)
+        if let data = try? JSONSerialization.data(withJSONObject: clockStyles, options: [.sortedKeys]),
+           let text = String(data: data, encoding: .utf8) { print("Native VOD clock CSS: \(text)") }
+        try await eventually("rendered VOD seek marker confirms the completed thirty-second seek") {
+            try await self.webControl(webView, expression: """
+                const bar = visible('.bmpui-seekbar');
+                const marker = visible('.bmpui-seekbar-playbackposition-marker');
+                if (!bar || !marker) return false;
+                const track = bar.getBoundingClientRect(), dot = marker.getBoundingClientRect();
+                const position = (dot.left + dot.width / 2 - track.left) / track.width;
+                return Math.abs(position - 0.5) < 0.03 &&
+                  dot.left >= 0 && dot.right <= innerWidth && dot.top >= 0 && dot.bottom <= innerHeight &&
+                  !visible('.bmpui-ui-livebutton') && !visible('.bmpui-ui-label-wallclock');
+                """)
+        }
+        #endif
+        let vodAttachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        })
+        vodAttachment.name = "same-player-same-url-finite-vod-seek-thirty"
+        vodAttachment.lifetime = .keepAlways
+        add(vodAttachment)
+        print("Native HLS finite VOD seek: samePlayer=true, sameUrl=true, newSource=true, freshSeekedAt30=true, visiblePlayer=true, relativeTimeSeconds=\(player.currentTime(.relativeTime))")
+        let beforeVodPlayback = timeChanged
+        player.play()
+        try await eventually("native VOD playback advances after the completed seek") {
+            player.isPlaying && self.timeChanged > beforeVodPlayback &&
+                self.changedRelativeTime.map { $0 > 31 } == true && player.currentTime(.relativeTime) > 31
+        }
+        let advancingAttachment = XCTAttachment(image: UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        })
+        advancingAttachment.name = "finite-vod-seek-completed-playback-advances"
+        advancingAttachment.lifetime = .keepAlways
+        add(advancingAttachment)
+        print("Native HLS post-seek playback: freshTimeChanged=true, relativeTimeSeconds=\(player.currentTime(.relativeTime))")
+        let loadedAfterFinalReload = sourceLoads
+
         // A new load generation clears finalization, even when the fixture is reused.
         _ = try await control("reset", method: "POST")
         model.load(ShowcaseSource(id: "next-local-live", label: "New live generation", kind: .liveHls,
                                  url: try XCTUnwrap(URL(string: "http://localhost:5198/master.m3u8?generation=2"))))
         try await eventually("new native live source resets completion") {
-            self.sourceLoads == loadedBeforeEnd + 1 && player.isLive
+            self.sourceLoads == loadedAfterFinalReload + 1 && player.isLive
         }
         player.play()
         try await eventually("new source restores ongoing live DVR state") {
@@ -199,11 +318,11 @@ final class LiveFinalizationTests: XCTestCase {
         #endif
         model.load(try XCTUnwrap(Sources.all.first { $0.kind == .vodHls }))
         try await eventually("explicit VOD source switch clears live and completion state") {
-            self.sourceLoads == loadedBeforeEnd + 2 && !player.isLive &&
+            self.sourceLoads == loadedAfterFinalReload + 2 && !player.isLive &&
                 player.duration.isFinite && player.duration > 0 && model.dvr.mode == .vod && !model.dvr.dvrAvailable
         }
         XCTAssertTrue(errors.isEmpty, "Native Player/Source numeric error codes: \(errors)")
-        print("Native HLS ending: PlaybackFinished=true, sameSourceReplayAdvances=true, liveCommandsStayDisabled=true, newSourceResets=true, vodSwitch=true")
+        print("Native HLS ending: PlaybackFinished=true, sameSourceReplayAdvances=true, liveCommandsStayDisabled=true, sameUrlFiniteVodSeek=true, newSourceResets=true, vodSwitch=true")
     }
 
     private func observe(_ player: Player) {
@@ -215,11 +334,19 @@ final class LiveFinalizationTests: XCTestCase {
                 self?.completedRewindTime = player?.currentTime
             }.store(in: &subscriptions)
         player.events.on(SeekedEvent.self).receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.seeked += 1 }.store(in: &subscriptions)
+            .sink { [weak self, weak player] _ in
+                self?.seeked += 1
+                self?.completedSeekTime = player?.currentTime(.relativeTime)
+            }.store(in: &subscriptions)
         player.events.on(PlaybackFinishedEvent.self).receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.finished += 1 }.store(in: &subscriptions)
         player.events.on(DurationChangedEvent.self).receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.durationChanges += 1 }.store(in: &subscriptions)
+        player.events.on(TimeChangedEvent.self).receive(on: DispatchQueue.main)
+            .sink { [weak self, weak player] _ in
+                self?.timeChanged += 1
+                self?.changedRelativeTime = player?.currentTime(.relativeTime)
+            }.store(in: &subscriptions)
         player.events.on(PlayerErrorEvent.self).receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.errors.append($0.errorCode) }.store(in: &subscriptions)
         player.events.on(SourceErrorEvent.self).receive(on: DispatchQueue.main)
@@ -248,6 +375,7 @@ final class LiveFinalizationTests: XCTestCase {
         state["TimeShifted"] = timeShifted
         state["Seeked"] = seeked
         state["DurationChanged"] = durationChanges
+        state["TimeChanged"] = timeChanged
         state["PlaybackFinished"] = finished
         if let counts = try? await control("state") { state["fixtureRequests"] = counts }
         if let data = try? JSONSerialization.data(withJSONObject: state, options: [.sortedKeys]),
@@ -276,6 +404,7 @@ final class LiveFinalizationTests: XCTestCase {
               };
               return { replay: state('.bmpui-ui-hugereplaybutton'),
                 overlay: state('.bmpui-ui-recommendation-overlay'),
+                wallClock: state('.bmpui-ui-label-wallclock'),
                 live: state('.bmpui-ui-livebutton'), label: state('.bmpui-ui-label-behindlive') };
             })()
             """),
