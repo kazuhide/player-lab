@@ -16,23 +16,20 @@ final class TrackPreferenceUITests: XCTestCase {
         let media = environment["PLAYER_LAB_TEST_MEDIA_URL"]
             ?? "http://127.0.0.1:5284/vod-multiaudio/master.m3u8"
         let expectedAudio = environment["PLAYER_LAB_TEST_EXPECT_AUDIO"] ?? "de"
-        try replace(app.textFields["configuration.sourceURL"], with: media, in: app)
-        try replace(app.textFields["configuration.title"], with: "Initial track preferences", in: app)
-        try replace(app.textFields["configuration.startOffset"], with: "5", in: app)
+        try replace("configuration.sourceURL", with: media, in: app)
+        try replace("configuration.title", with: "Initial track preferences", in: app)
+        try replace("configuration.startOffset", with: "5", in: app)
         let autoplay = app.switches["configuration.autoplay"]
         #if os(tvOS)
-        try focus(autoplay, in: app)
+        try focus(app.cells.containing(.switch, identifier: "configuration.autoplay").firstMatch, in: app)
         #else
         reveal(autoplay, in: app)
         #endif
         if autoplay.value as? String != "1" { try activate(autoplay, in: app) }
-        try replace(app.textFields["configuration.audioLanguage"], with: "de-AT", in: app)
-        capture(app, name: "guide-initial-audio-language")
+        try replace("configuration.audioLanguage", with: "de-AT", in: app)
         try choose("Preferred language", picker: "configuration.subtitleMode", in: app)
-        try replace(app.textFields["configuration.subtitleLanguage"], with: "de", in: app)
-        capture(app, name: "guide-initial-subtitle-language")
+        try replace("configuration.subtitleLanguage", with: "de", in: app)
         try choose("Fill (crop)", picker: "configuration.videoScaling", in: app)
-        capture(app, name: "guide-video-scaling-form")
         XCTAssertEqual(app.staticTexts["configuration.effect"].label, "Recreate player and reload source")
         try activate(app.buttons["configuration.apply"], in: app)
         try expectPlayback(audio: expectedAudio, subtitle: "de", app: app, stage: "German")
@@ -43,15 +40,27 @@ final class TrackPreferenceUITests: XCTestCase {
 
         // A subtitle-only change uses the existing player. The hosted SDK test checks identity.
         try activate(open, in: app)
+        #if os(tvOS)
+        try focus(app.cells.containing(.textField, identifier: "configuration.audioLanguage").firstMatch, in: app)
+        #else
+        reveal(app.textFields["configuration.audioLanguage"], in: app)
+        #endif
+        capture(app, name: "guide-initial-languages-form")
+        #if os(tvOS)
+        try focus(app.cells["Fill (crop)"].firstMatch, in: app)
+        #else
+        reveal(app.buttons["configuration.videoScaling"], in: app)
+        #endif
+        capture(app, name: "guide-video-scaling-form")
         try choose("Off", picker: "configuration.subtitleMode", in: app)
         XCTAssertEqual(app.staticTexts["configuration.effect"].label, "Reload source")
         try activate(app.buttons["configuration.apply"], in: app)
         try expectPlayback(audio: "de", subtitle: nil, app: app, stage: "Subtitles off")
 
         try activate(open, in: app)
-        try replace(app.textFields["configuration.audioLanguage"], with: "en", in: app)
+        try replace("configuration.audioLanguage", with: "en", in: app)
         try choose("Preferred language", picker: "configuration.subtitleMode", in: app)
-        try replace(app.textFields["configuration.subtitleLanguage"], with: "en", in: app)
+        try replace("configuration.subtitleLanguage", with: "en", in: app)
         try choose("Stretch", picker: "configuration.videoScaling", in: app)
         XCTAssertEqual(app.staticTexts["configuration.effect"].label, "Recreate player and reload source")
         try activate(app.buttons["configuration.apply"], in: app)
@@ -62,7 +71,7 @@ final class TrackPreferenceUITests: XCTestCase {
         #endif
 
         try activate(open, in: app)
-        try replace(app.textFields["configuration.audioLanguage"], with: "invalid language", in: app)
+        try replace("configuration.audioLanguage", with: "invalid language", in: app)
         XCTAssertFalse(app.buttons["configuration.apply"].isEnabled)
         try activate(app.buttons["configuration.reset"], in: app)
         XCTAssertEqual(app.textFields["configuration.audioLanguage"].value as? String, "en")
@@ -71,7 +80,7 @@ final class TrackPreferenceUITests: XCTestCase {
         #if os(tvOS)
         try activate(app.staticTexts["configuration.code.line.5"], in: app)
         #else
-        reveal(app.staticTexts["configuration.code.text"], in: app)
+        reveal(app.scrollViews.containing(.staticText, identifier: "configuration.code.text").firstMatch, in: app)
         #endif
         capture(app, name: "guide-applied-code-placeholders")
         try activate(app.buttons["configuration.cancel"], in: app)
@@ -80,17 +89,22 @@ final class TrackPreferenceUITests: XCTestCase {
     private func expectPlayback(audio: String, subtitle: String?, app: XCUIApplication, stage: String) throws {
         let audioLabel = app.staticTexts["playback.audio"]
         let subtitleLabel = app.staticTexts["playback.subtitles"]
-        let audioSelected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "[\(audio)]"), object: audioLabel)
-        let subtitleSelected = XCTNSPredicateExpectation(predicate: subtitle.map {
-            NSPredicate(format: "label CONTAINS %@", "[\($0)]")
-        } ?? NSPredicate(format: "label ==[c] 'Subtitles: Off'"), object: subtitleLabel)
-        XCTAssertEqual(XCTWaiter.wait(for: [audioSelected, subtitleSelected], timeout: 40), .completed, stage)
         let position = app.staticTexts["playback.position"]
+        let selected = {
+            audioLabel.exists && subtitleLabel.exists && audioLabel.label.contains("[\(audio)]")
+                && (subtitle.map { subtitleLabel.label.contains("[\($0)]") }
+                    ?? (subtitleLabel.label.lowercased() == "subtitles: off"))
+        }
+        let bothSelected = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            selected() && position.exists && self.seconds(position.label) >= 5
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [bothSelected], timeout: 40), .completed, stage)
         let initial = seconds(position.label)
         let advances = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            position.exists && self.seconds(position.label) > initial + 0.5
+            selected() && position.exists && self.seconds(position.label) > initial + 0.5
         }, object: position)
         XCTAssertEqual(XCTWaiter.wait(for: [advances], timeout: 15), .completed, stage)
+        XCTAssertTrue(selected(), "Current audio/subtitle selection at visible advancing position")
         capture(app, name: stage)
     }
 
@@ -112,10 +126,11 @@ final class TrackPreferenceUITests: XCTestCase {
         #endif
     }
 
-    private func replace(_ field: XCUIElement, with text: String, in app: XCUIApplication) throws {
+    private func replace(_ identifier: String, with text: String, in app: XCUIApplication) throws {
+        let field = app.textFields[identifier]
         #if os(tvOS)
-        let row = app.cells.containing(.textField, identifier: field.identifier).firstMatch
-        try activate(row.exists ? row : field, in: app)
+        let row = app.cells.containing(.textField, identifier: identifier).firstMatch
+        try activate(row, in: app)
         let current = field.value as? String ?? ""
         field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count + 5) + text)
         if app.keyboards.firstMatch.exists {
@@ -126,13 +141,24 @@ final class TrackPreferenceUITests: XCTestCase {
         #else
         reveal(field, in: app)
         field.tap()
+        _ = app.keyboards.firstMatch.waitForExistence(timeout: 2)
+        reveal(field, in: app)
         let current = field.value as? String ?? ""
         if !current.isEmpty && current != field.placeholderValue {
-            // Use the real hardware-keyboard shortcut; edit-menu commands vary
-            // with selection state and system language.
-            field.typeKey("a", modifierFlags: .command)
+            field.press(forDuration: 1.1)
+            let labels = NSPredicate(format: "label IN %@", ["Select All", "すべてを選択", "すべて選択", "全選択"])
+            let menu = app.menuItems.matching(labels).firstMatch
+            let button = app.buttons.matching(labels).firstMatch
+            if menu.waitForExistence(timeout: 1) { menu.tap() }
+            else {
+                let available = button.waitForExistence(timeout: 2)
+                if !available { capture(app, name: "diagnostic-edit-menu") }
+                XCTAssertTrue(available)
+                button.tap()
+            }
         }
-        field.typeText(text + "\n")
+        field.typeText(text)
+        field.typeText("\n")
         #endif
         XCTAssertEqual(field.value as? String, text)
     }
@@ -151,7 +177,7 @@ final class TrackPreferenceUITests: XCTestCase {
 
     #if os(tvOS)
     private func focus(_ element: XCUIElement, in app: XCUIApplication) throws {
-        let row = element.elementType == .switch
+        let row = element.exists && element.elementType == .switch
             ? app.cells.containing(.switch, identifier: element.identifier).firstMatch : element
         let target = row.exists ? row : element
         let directions: [XCUIRemote.Button] = [.down, .up, .right, .left]
@@ -171,15 +197,31 @@ final class TrackPreferenceUITests: XCTestCase {
 
     #if !os(tvOS)
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
-        for direction in [true, false] {
-            for _ in 0..<12 {
-                if element.exists && element.isHittable { return }
-                let form = app.collectionViews["configuration.form"]
-                let scroll: XCUIElement = form.exists ? form : app.scrollViews["controls.scroll"]
-                if direction { scroll.swipeUp() } else { scroll.swipeDown() }
+        let fixed = ["configuration.open", "configuration.apply", "configuration.cancel", "configuration.reset"]
+        if element.exists && element.isHittable && fixed.contains(element.identifier) { return }
+        let form = app.collectionViews["configuration.form"]
+        let scroll = form.exists ? form : app.scrollViews["controls.scroll"]
+        for _ in 0..<24 {
+            let keyboard = app.keyboards.firstMatch
+            let bottom = keyboard.exists ? min(scroll.frame.maxY, keyboard.frame.minY) : scroll.frame.maxY
+            let viewport = CGRect(x: scroll.frame.minX, y: scroll.frame.minY,
+                                  width: scroll.frame.width, height: bottom - scroll.frame.minY)
+            if element.exists {
+                let frame = element.frame
+                if frame.height > 0 && frame.intersection(viewport).height >= min(frame.height, viewport.height) * 0.85
+                    && viewport.contains(CGPoint(x: frame.midX, y: frame.midY)) && element.isHittable { return }
             }
+            let down = element.exists && element.frame.midY < viewport.minY
+            // Drag the scroll gutter, avoiding sliders, switches and inline picker controls.
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let start = origin.withOffset(CGVector(dx: viewport.maxX - 10,
+                dy: down ? viewport.minY + viewport.height * 0.3 : viewport.maxY - 30))
+            let end = origin.withOffset(CGVector(dx: viewport.maxX - 10,
+                dy: down ? viewport.maxY - 30 : viewport.minY + viewport.height * 0.3))
+            start.press(forDuration: 0.05, thenDragTo: end)
         }
-        XCTAssertTrue(element.exists && element.isHittable, "Control must be visible for actual input")
+        capture(app, name: "diagnostic-control-viewport")
+        XCTFail("Control must be visible for actual input")
     }
     #endif
     private func seconds(_ label: String) -> Double {

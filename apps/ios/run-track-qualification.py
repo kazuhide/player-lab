@@ -2,6 +2,7 @@
 """Run the licensed Apple track/scaling checks using only public app/test sources."""
 
 import argparse
+from contextlib import contextmanager, ExitStack
 import hashlib
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -12,6 +13,20 @@ import subprocess
 import sys
 import threading
 from urllib.parse import unquote, urlsplit
+
+
+@contextmanager
+def selected_test_plan(path, plan):
+    """Keep a selected xctestrun only for the lifetime of its owning invocation."""
+    # Exclusive creation rejects both a preexisting owner and a racing creator.
+    stream = path.open("xb")
+    try:
+        # Ownership begins immediately after open, including failed/partial writes.
+        with stream:
+            stream.write(plistlib.dumps(plan))
+        yield path
+    finally:
+        path.unlink(missing_ok=True)
 
 
 def main():
@@ -100,7 +115,7 @@ def main():
                   ["git", "status", "--porcelain", "--", "apps/ios"], cwd=root, text=True)),
               "sourceInputSha256": source_hashes(),
               "fixtureMasterSha256": hashlib.sha256(master.read_bytes()).hexdigest()}
-    selected = None
+    plans = ExitStack()
     try:
         report["projectGenerationExit"] = run(["xcodegen", "generate", "--spec", "project.yml"], "project")
         if report["projectGenerationExit"] != 0:
@@ -125,10 +140,8 @@ def main():
                 "PLAYER_LAB_TEST_MEDIA_URL": url,
                 "PLAYER_LAB_TEST_EXPECT_AUDIO": args.expected_audio,
             })
-        selected = products / f"PlayerLab-{platform}-Selected.xctestrun"
-        if selected.exists():
-            raise RuntimeError("A selected test plan already exists; do not overlap runs in one DerivedData")
-        selected.write_bytes(plistlib.dumps(plan))
+        selected = plans.enter_context(selected_test_plan(
+            products / f"PlayerLab-{platform}-Selected.xctestrun", plan))
         result = output / "qualification.xcresult"
         test = ["xcodebuild", "test-without-building", "-xctestrun", str(selected),
                 "-destination", f"id={args.destination}", "-parallel-testing-enabled", "NO",
@@ -155,15 +168,16 @@ def main():
                      and counts.get("failedTests") == 0 and counts.get("skippedTests") == 0
                      and report["sourceInputsUnchanged"]) else 1
     finally:
-        server.shutdown()
-        server.server_close()
-        thread.join()
-        if selected is not None:
-            selected.unlink(missing_ok=True)
-        (output / "safe-summary.json").write_text(json.dumps(report, indent=2) + "\n")
-        print(json.dumps({key: report[key] for key in ["platform", "sourceRevision", "workingTreeDirty",
-                         "expectedTests", "expectedAudio", "projectGenerationExit", "buildExit",
-                         "xcodebuildExit", "xcresult", "resourceSha256", "sourceInputsUnchanged"] if key in report}))
+        try:
+            plans.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+            (output / "safe-summary.json").write_text(json.dumps(report, indent=2) + "\n")
+            print(json.dumps({key: report[key] for key in ["platform", "sourceRevision", "workingTreeDirty",
+                             "expectedTests", "expectedAudio", "projectGenerationExit", "buildExit",
+                             "xcodebuildExit", "xcresult", "resourceSha256", "sourceInputsUnchanged"] if key in report}))
 
 
 if __name__ == "__main__":

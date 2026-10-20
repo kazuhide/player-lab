@@ -534,6 +534,17 @@ modes. The square viewport is a test surface, separate from the normal app GUI.
 Both tests fail on unavailable media or missing playback; no mock or
 success-on-skip path is used.
 
+The runner's selected-plan ownership checks need neither a license nor Xcode:
+
+```sh
+python3 -m unittest discover -s apps/ios -p test_track_qualification.py -v
+```
+
+They verify exclusive creation, preservation of an existing plan, and cleanup
+after successful use, serialization failure and partial writes. Each native
+case couples its current audio/subtitle selections with advancing position after
+the configured initial seek; a transient selection is insufficient.
+
 For a negative control, use a new artifacts directory and add
 `--ui-only --expected-audio en`. The GUI still requests German, so its real audio
 selection assertion must fail. This demonstrates that the entry checks native

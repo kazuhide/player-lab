@@ -102,7 +102,9 @@ final class TrackRuntimeTests: XCTestCase {
             XCTAssertEqual(nextView.scalingMode, scaling.sdkValue)
             XCTAssertEqual(model.player.config.styleConfig.scalingMode, scaling.sdkValue)
             XCTAssertFalse(model.timeShiftEnabled)
-            try await progress(model.player, stage: scaling.rawValue)
+            try await progress(model.player, stage: scaling.rawValue) {
+                model.player.audio?.language == "de" && model.player.subtitle.language == "de"
+            }
             let layer = try XCTUnwrap(videoLayer(nextView.layer))
             XCTAssertTrue(layer.isReadyForDisplay)
             XCTAssertFalse(layer.videoRect.isEmpty)
@@ -130,7 +132,9 @@ final class TrackRuntimeTests: XCTestCase {
         try await eventually("later selection remains available") {
             model.player.audio?.language == "en" && model.player.subtitle.language == "en"
         }
-        try await progress(model.player, stage: "later manual choice")
+        try await progress(model.player, stage: "later manual choice") {
+            model.player.audio?.language == "en" && model.player.subtitle.language == "en"
+        }
         XCTAssertEqual(model.player.audio?.language, "en")
         XCTAssertEqual(model.player.subtitle.language, "en")
 
@@ -147,7 +151,9 @@ final class TrackRuntimeTests: XCTestCase {
         }
         XCTAssertFalse(model.player.source === previousSource)
         XCTAssertFalse(try XCTUnwrap(previousSource).isAttachedToPlayer)
-        try await progress(model.player, stage: "source-only reload")
+        try await progress(model.player, stage: "source-only reload") {
+            model.player.audio?.language == "de" && model.player.subtitle.language == "de"
+        }
 
         draft.subtitleMode = .off
         let beforeOff = sourceLoads
@@ -163,7 +169,9 @@ final class TrackRuntimeTests: XCTestCase {
             item.currentMediaSelection.selectedMediaOption(in: legible) == nil
         }
         XCTAssertTrue(model.player === samePlayer)
-        try await progress(model.player, stage: "subtitle Off")
+        try await progress(model.player, stage: "subtitle Off") {
+            model.player.audio?.language == "de" && item.currentMediaSelection.selectedMediaOption(in: legible) == nil
+        }
         XCTAssertTrue(errors.isEmpty, "Player/Source error codes: \(errors)")
         print("Native initial-track qualification: source reload, player recreation, manual selection and subtitle Off passed")
     }
@@ -195,11 +203,26 @@ final class TrackRuntimeTests: XCTestCase {
             .sink { [weak self] in self?.errors.append($0.code.rawValue) }.store(in: &subscriptions)
     }
 
-    private func progress(_ player: Player, stage: String) async throws {
-        record(stage + " before progress", player: player)
-        let before = player.currentTime
-        try await eventually("real SDK playback advances") { player.isPlaying && player.currentTime > before + 1 }
-        record(stage + " after progress", player: player)
+    private func progress(_ player: Player, stage: String, selected: () -> Bool) async throws {
+        let deadline = Date().addingTimeInterval(40)
+        var baseline: TimeInterval?
+        while Date() < deadline {
+            // Couple both current selections with real progress after the initial
+            // seek. A transient language match or the zero-to-five seek is insufficient.
+            if player.isPlaying && player.currentTime >= 5 && selected() {
+                if let baseline, player.currentTime > baseline + 1 {
+                    XCTAssertTrue(selected(), "Current audio/subtitle selection at playback completion")
+                    record(stage + " after progress", player: player)
+                    return
+                } else if baseline == nil {
+                    baseline = player.currentTime
+                    record(stage + " before progress", player: player)
+                }
+            } else { baseline = nil }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        XCTFail("Real playback with the expected current audio/subtitle selection must advance")
+        throw QualificationFailure.deadline
     }
 
     private func record(_ stage: String, player: Player) {
