@@ -34,7 +34,7 @@ function fixture() {
 }
 
 describe("Vega session ownership", () => {
-  it("releases the attached native surface and media before waiting for SDK destruction", async () => {
+  it("starts SDK destruction with valid media and releases native resources without awaiting it", async () => {
     const { options, video, player } = fixture();
     const destroyed = deferred();
     player.destroy.mockReturnValueOnce(destroyed.promise);
@@ -43,8 +43,8 @@ describe("Vega session ownership", () => {
     const cleanup = session.dispose();
     expect(video.clearSurfaceHandle).toHaveBeenCalledWith("surface");
     expect(video.deinitializeSync).toHaveBeenCalledWith(1000);
+    expect(player.destroy.mock.invocationCallOrder[0]).toBeLessThan(video.clearSurfaceHandle.mock.invocationCallOrder[0]!);
     expect(video.clearSurfaceHandle.mock.invocationCallOrder[0]).toBeLessThan(video.deinitializeSync.mock.invocationCallOrder[0]!);
-    expect(video.deinitializeSync.mock.invocationCallOrder[0]).toBeLessThan(player.destroy.mock.invocationCallOrder[0]!);
     const next = fixture();
     const replacement = startVegaSession({ ...next.options, after: cleanup });
     await Promise.resolve();
@@ -105,6 +105,22 @@ describe("Vega session ownership", () => {
     expect(options.installPolyfills).not.toHaveBeenCalled();
     expect(cleanup).toHaveProperty("retainedOwner", { video, player: null, controller: null });
     expect(options.onError).toHaveBeenCalledWith("Vega media cleanup unconfirmed; restart the app before playing again");
+  });
+
+  it.each([false, true])("clears a partially attached surface and releases media when native attachment throws (clear fails: %s)", async (clearFails) => {
+    const { options, video } = fixture();
+    video.setSurfaceHandle.mockImplementationOnce(() => { throw new Error("native attachment failed after caching the handle"); });
+    if (clearFails) video.clearSurfaceHandle.mockImplementationOnce(() => { throw new Error("native clear failed"); });
+    const session = startVegaSession(options);
+    await session.ready;
+    await session.dispose();
+    expect(video.clearSurfaceHandle).toHaveBeenCalledWith("surface");
+    expect(video.deinitializeSync).toHaveBeenCalledTimes(1);
+    expect(video.clearSurfaceHandle.mock.invocationCallOrder[0]).toBeLessThan(video.deinitializeSync.mock.invocationCallOrder[0]!);
+    expect(options.createPlayer).not.toHaveBeenCalled();
+    expect(options.onError).toHaveBeenCalledWith("Vega player setup failed");
+    if (clearFails) expect(options.onError).toHaveBeenCalledWith("Vega surface cleanup failed");
+    expect(options.removePolyfills).toHaveBeenCalledWith(video);
   });
 
   it("never creates or publishes a player when initialization finishes after cleanup", async () => {

@@ -62,6 +62,15 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
     try { controller?.dispose(); }
     catch { options.onError("Vega controller cleanup failed"); }
 
+    // Start the Web SDK's stop sequence while its media is valid. Do not await it:
+    // native release must still finish in this call stack before background suspension.
+    const destroyFailed = () => {
+      options.onError("Vega player cleanup unconfirmed; restart the app before playing again");
+      return false;
+    };
+    let destroyed: Promise<boolean>;
+    try { destroyed = Promise.resolve(player?.destroy()).then(() => true, destroyFailed); }
+    catch { destroyed = Promise.resolve(destroyFailed()); }
     try { if (surfaceAttached) video.clearSurfaceHandle(options.handle); }
     catch { options.onError("Vega surface cleanup failed"); }
     let released = false;
@@ -70,13 +79,6 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
     // The 1000 ms deadline is this app's policy, not an SDK default. The API also aborts initialization.
     try { released = video.deinitializeSync(1000) === "success"; }
     catch { /* A thrown native release is unconfirmed, just like a non-success status. */ }
-    const destroyed = (async () => {
-      try { await player?.destroy(); return true; }
-      catch {
-        options.onError("Vega player cleanup unconfirmed; restart the app before playing again");
-        return false;
-      }
-    })();
     if (!released) {
       // A failed sync call may have discarded its native handle. Retain the owner and block
       // replacements rather than treating a retry or a swallowed error as confirmed release.
@@ -106,8 +108,9 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
     initializing = Promise.resolve(video.initialize());
     await initializing;
     if (cancelled) return;
-    video.setSurfaceHandle(options.handle);
+    // The native setter caches the handle before its bridge call, which can throw after mutation.
     surfaceAttached = true;
+    video.setSurfaceHandle(options.handle);
     options.installPolyfills(video);
     player = options.createPlayer();
     controller = options.createController(player, () => !cancelled);
