@@ -31,6 +31,8 @@ supported on Vega by that sample.
 - `src/App.tsx`, `src/ControlPanel.tsx`, `src/BitmovinPlayer.tsx`: Kepler controls
   and video surface, including `KeplerVideoSurfaceView` and `useTVEventHandler`.
 - `src/polyfills.ts`: minimal compatibility shim, not the full runtime setup.
+- `src/ConfigurationPanel.tsx`, `src/configuration.ts`: validated source and
+  creation-time playback/buffer/adaptation controls.
 
 ## Test and type-check without the Vega toolchain
 
@@ -41,11 +43,13 @@ pnpm --filter @showcase/vega test
 pnpm --filter @showcase/vega typecheck
 ```
 
-The type-check covers the rewind logic, source definitions, compatibility shim,
-and modular player wiring against the installed player types. As specified in
-`tsconfig.json`, it excludes the React/Kepler `.tsx` controls. Those components
-need to be built and checked in the Kepler project. Passing the commands above
-does not establish that the device app builds or plays.
+The type-check includes the actual App, configuration/control panels, video
+surface component, tests, rewind logic and modular player wiring against the
+installed SDK, React Native and Kepler declarations. `tsconfig.json` binds React
+declaration imports to this app's React 18 types; the workspace also contains
+React 19 for Expo. This resolves the earlier cross-app `ReactNode`/JSX mismatch
+without substituting native component declarations or suppressing errors.
+Passing these commands does not establish that the device app builds or plays.
 
 The session tests use delayed Promises with fake media and player objects. They
 check source changes during initialization and loading, cleanup ordering, and
@@ -54,6 +58,59 @@ player, surface handle, and media object once. A replacement waits for the old
 player and media cleanup before installing the global media shim. Late callbacks
 from a cancelled session cannot publish controls for a previous source. These
 tests do not exercise the Vega runtime, a device video surface, or playback.
+
+The App interaction tests also mount the real App, control panels, video-surface
+component, DVR controller and session owner. Native hosts, W3C media and player
+creation are mocked at their boundaries. Tests cover draft isolation, validation,
+Apply/Reset, direct SDK mapping, preset/source retention and rapid Apply during
+initialization or cleanup. The Vega core installs browser globals, so these
+App tests mock its event/timeline constants using the published declarations.
+Console errors/warnings fail these tests. No TV layout, focus behavior, software
+keyboard or playback is qualified by this renderer.
+
+## Configuration controls
+
+Open **Show configuration** to edit a source URL/type (HLS, DASH or progressive
+MP4), title, poster URL, signed start offset and timeline reference. The panel
+also exposes autoplay, startup mute, separate audio/video forward buffer targets
+and a video adaptation bitrate cap. Only HTTP/HTTPS URLs and finite decimal
+numbers are accepted. This form requires positive buffer/bitrate targets;
+blank omits the overrides. The SDK buffer default is 40 seconds per media type,
+and live media windows can constrain the effective buffer. Bitrates are in bits
+per second. Format/engine/device support still requires target-device testing.
+
+**Apply and recreate player** validates the entire draft, releases the previous
+session and creates a player that loads the selected source from its start
+offset. Playback position is reset. Unchanged/invalid input does not replace
+resources. **Reset draft** only restores applied values. Preset buttons continue
+to select sources immediately and replace draft source fields while preserving
+unapplied player-setting edits. Selected/custom source fields, logs and the
+**Allow DVR** helper setting survive Apply. The same React video component keeps
+the cleanup barrier, so rapid configuration changes cannot bypass the prior
+media/player teardown or publish callbacks from a retired owner.
+
+`ui:false` stays fixed because the HTML Player UI is unavailable on Vega. Source
+title/poster values are passed in the SDK source configuration; this Kepler screen does
+not add a poster-artwork renderer. There is no loop configuration in this
+published SDK surface. **Allow DVR** remains an application helper, separate
+from `PlayerConfig.playback.timeShift`.
+
+The direct editable mappings are:
+
+| GUI control | Public SDK configuration |
+| --- | --- |
+| URL / type | One of `SourceConfig.hls`, `.dash`, `.progressive` (string form) |
+| Title / poster | `SourceConfig.title`, `.poster` |
+| Start offset / reference | `SourceConfig.options.startOffset`, `.startOffsetTimelineReference` |
+| Autoplay / startup mute | `PlayerConfig.playback.autoplay`, `.muted` |
+| Video / audio forward buffer | `PlayerConfig.buffer.video.forwardduration`, `.audio.forwardduration` |
+| Video bitrate cap | `PlayerConfig.adaptation.bitrates.maxSelectableVideoBitrate` |
+
+These paths are checked against the installed public
+`bitmovin-player@8.138.0-beta.28/types/core/PlayerConfigAPI.d.ts`. They do not
+imply support for the general Web SDK or untested Vega feature parity. A Kepler
+build and on-device checks of source playback, buffers/adaptation and remote
+editing remain required for runtime qualification.
 
 ## Build in a Kepler project
 

@@ -9,17 +9,15 @@
     "allowSyntheticDefaultImports": true,
     "verbatimModuleSyntax": false,
     "isolatedModules": false,
+    "baseUrl": ".",
+    "paths": {
+      "react": ["./node_modules/@types/react"],
+      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"],
+      "react/jsx-dev-runtime": ["./node_modules/@types/react/jsx-dev-runtime"]
+    },
     "types": [],
     "noEmit": true
   },
-  "//": "CI type-checks the framework-agnostic core — DVR logic, sources, and the modular player wiring (dvrController/vegaPlayer) — against the real bitmovin-player types. The React/Kepler .tsx UI (App/ControlPanel/BitmovinPlayer) is excluded here because react-native 0.72 + @types/react + TS 5.9 hit a known JSX-component type skew; those are type-checked in the Kepler/Metro build. See README.",
-  "include": [
-    "src/dvr",
-    "src/Sources.ts",
-    "src/dvrController.ts",
-    "src/vegaPlayer.ts",
-    "src/playerSession.ts",
-    "src/polyfills.ts",
-    "test"
-  ]
+  "//": "Check every real JSX component and test against this app's React 18 declarations, including React imports inside the installed native/Kepler declarations. The workspace also contains React 19 for Expo; explicit declaration paths prevent cross-app ReactNode skew. No native component declarations are replaced.",
+  "include": ["src", "test"]
 }
