@@ -88,10 +88,15 @@ async function expectHeadingStructure(page: Page): Promise<void> {
 
 async function tabTo(page: Page, target: Locator): Promise<void> {
   for (let index = 0; index < 15; index++) {
-    await page.keyboard.press("Tab");
+    await page.keyboard.press(navigationKey("Tab"));
     if (await target.evaluate((element) => element === document.activeElement)) return;
   }
   await expect(target).toBeFocused();
+}
+
+function navigationKey(key: "Tab" | "ArrowRight"): string {
+  // macOS WebKit follows the platform's Option-key navigation behavior.
+  return process.platform === "darwin" && test.info().project.name === "webkit" ? `Alt+${key}` : key;
 }
 
 const errors = new WeakMap<Page, string[]>();
@@ -429,14 +434,14 @@ for (const language of languages) {
 
     test("skip navigation and the mobile contents work with the keyboard", async ({ page }) => {
       await page.goto(guidePath(language, "start"));
-      await page.keyboard.press("Tab");
+      await page.keyboard.press(navigationKey("Tab"));
       await expect(page.locator(".skip-link")).toBeFocused();
       await expect(page.locator(".skip-link")).toBeVisible();
       await page.keyboard.press("Enter");
       await expect(page.locator("main")).toBeFocused();
       await page.setViewportSize({ width: 375, height: 900 });
       await page.goto(guidePath(language));
-      await page.keyboard.press("Tab");
+      await page.keyboard.press(navigationKey("Tab"));
       const skip = page.locator(".skip-link");
       await expect(skip).toBeFocused();
       const hit = await skip.evaluate((element) => {
@@ -451,7 +456,7 @@ for (const language of languages) {
       await expect(summary).toHaveCSS("outline-style", "solid");
       await page.keyboard.press("Enter");
       await expect(page.locator(".guide-mobile-contents")).toHaveAttribute("open", "");
-      await page.keyboard.press("Tab");
+      await page.keyboard.press(navigationKey("Tab"));
       const firstChapter = page.locator(".guide-mobile-contents nav a").first();
       await expect(firstChapter).toBeFocused();
       await page.keyboard.press("Enter");
@@ -568,7 +573,7 @@ test.describe("guide without JavaScript", () => {
         if (width === 375) {
           expect(layout.scrollWidth).toBeGreaterThan(layout.clientWidth);
           await table.focus();
-          await page.keyboard.press("ArrowRight");
+          await page.keyboard.press(navigationKey("ArrowRight"));
           await expect.poll(() => table.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
         }
         await expectNoDocumentOverflow(page);
@@ -677,7 +682,7 @@ test("API search, bilingual fragments and table disclosure work with the keyboar
     const region = group.locator(".guide-coverage-table");
     expect(await region.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
     await region.focus();
-    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press(navigationKey("ArrowRight"));
     await expect.poll(() => region.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
     await expectNoDocumentOverflow(page);
     await page.locator("a[data-guide-language]").click();

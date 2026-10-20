@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { resolve } from "node:path";
 import { startFinalizationServer } from "../src/finalization-server";
+import { armSeek, expectCompletedSeek, expectMovingVideo, expectVisiblePixels, hasVisiblePixels, observePlayback, seekObservation } from "../src/playback-observation";
 
 const field = (page: Page, label: RegExp) => page.locator("#config-panel .config-field").filter({
   has: page.locator(".config-field-label", { hasText: label }),
@@ -57,7 +58,22 @@ test("the native HLS subtitle rendition is selected in the existing settings men
   await page.locator(".bmpui-ui-settingstogglebutton").click();
   await page.getByRole("menuitem", { name: /^Subtitles/ }).click();
   await page.getByRole("menuitem", { name: "German test subtitles", exact: true }).click();
-  await expect(page.locator(".bmpui-ui-subtitle-overlay")).toContainText("Deutscher Untertiteltest:");
+  await page.locator(".bmpui-ui-settingstogglebutton").click();
+  await page.locator("#player").scrollIntoViewIfNeeded();
+  const subtitle = page.locator(".bmpui-ui-subtitle-overlay");
+  await expect(subtitle).toContainText("Deutscher Untertiteltest:");
+  await expectVisiblePixels(subtitle);
+  // A text-only assertion would also accept a transparent ancestor.
+  const parent = subtitle.locator("..");
+  const originalStyle = await parent.getAttribute("style");
+  try {
+    await parent.evaluate(element => (element as HTMLElement).style.opacity = "0");
+    expect(await hasVisiblePixels(subtitle)).toBe(false);
+  } finally {
+    await parent.evaluate((element, style) => style === null ? element.removeAttribute("style") : element.setAttribute("style", style), originalStyle);
+  }
+  await expectVisiblePixels(subtitle);
+  await expectMovingVideo(page);
 });
 
 test.describe("controlled live rewind through the existing application GUI", () => {
@@ -86,13 +102,29 @@ test.describe("controlled live rewind through the existing application GUI", () 
       });
       await openApp(page);
       await page.getByRole("button", { name: "Live (DVR)", exact: true }).click();
+      await observePlayback(page);
       await page.getByRole("button", { name: format === "hls" ? "Live HLS" : "Live DASH + DVR", exact: true }).click();
+      await expect.poll(() => page.evaluate(() => window.__playbackObservation?.sourceLoaded ?? 0)).toBe(1);
       const state = page.locator(".panel-readout");
       await expect(state).toContainText(/mode:\s*live-dvr/);
+      await expectMovingVideo(page);
+      // A no-op click cannot reuse earlier completion events or an edge readout.
+      const negative = await armSeek(page);
+      const rewind = page.getByRole("button", { name: "-10s", exact: true });
+      await rewind.evaluate(button => button.addEventListener("click", event => {
+        event.stopImmediatePropagation();
+        button.setAttribute("data-blocked-test-click", "1");
+      }, { capture: true, once: true }));
+      await rewind.click();
+      await expect(rewind).toHaveAttribute("data-blocked-test-click", "1");
+      await expectMovingVideo(page);
+      expect(await seekObservation(page, negative, -10)).toMatchObject({ sdkCompleted: false, nativeCompleted: false });
+      const behind = await armSeek(page);
       await page.getByRole("button", { name: "-10s", exact: true }).click();
-      await expect(state).toContainText(/timeShift:\s*-\d/);
+      await expectCompletedSeek(page, behind, -10);
+      const edge = await armSeek(page);
       await page.getByRole("button", { name: "Go to live edge", exact: true }).click();
-      await expect(state).toContainText(/atLiveEdge:\s*true/);
+      await expectCompletedSeek(page, edge, 0);
       await expect.poll(() => media.counts().mediaRequests).toBeGreaterThan(0);
       await page.getByRole("button", { name: "VOD HLS", exact: true }).click();
       await expect(state).toContainText(/mode:\s*vod/);

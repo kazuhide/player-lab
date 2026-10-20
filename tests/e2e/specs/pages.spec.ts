@@ -179,6 +179,8 @@ test("the app and guide keep language, relative navigation and document width at
       await page.locator(".guide-back").click();
       await expect(page).toHaveURL(/\/player-lab\/web\/index\.html$/);
       await expect(page.locator("html")).toHaveAttribute("lang", language);
+      // Finish the returned app's initial load before the next navigation.
+      await expect.poll(() => videoState(page)).toMatchObject({ ready: true });
     }
   }
 });
