@@ -5,32 +5,32 @@
         "command": {
           "byStatus": {
             "code-only": 3,
-            "direct": 1,
+            "direct": 9,
             "internal": 7,
-            "missing": 77,
+            "missing": 82,
             "observed": 0,
-            "preset": 1,
-            "sdk-ui-unverified": 14
+            "preset": 2,
+            "sdk-ui-unverified": 0
           },
           "denominator": 103,
           "deprecated": 4,
-          "percentDirect": 0.97,
-          "percentDirectOrPreset": 1.94
+          "percentDirect": 8.74,
+          "percentDirectOrPreset": 10.68
         },
         "configuration": {
           "byStatus": {
-            "code-only": 10,
-            "direct": 17,
+            "code-only": 11,
+            "direct": 18,
             "internal": 0,
-            "missing": 264,
+            "missing": 262,
             "observed": 0,
             "preset": 3,
             "sdk-ui-unverified": 0
           },
           "denominator": 294,
           "deprecated": 16,
-          "percentDirect": 5.78,
-          "percentDirectOrPreset": 6.8
+          "percentDirect": 6.12,
+          "percentDirectOrPreset": 7.14
         },
         "event": {
           "byStatus": {
@@ -50,17 +50,17 @@
         "observation": {
           "byStatus": {
             "code-only": 4,
-            "direct": 0,
+            "direct": 2,
             "internal": 0,
-            "missing": 168,
+            "missing": 170,
             "observed": 3,
             "preset": 0,
-            "sdk-ui-unverified": 4
+            "sdk-ui-unverified": 0
           },
           "denominator": 179,
           "deprecated": 14,
-          "percentDirect": 0.0,
-          "percentDirectOrPreset": 0.0
+          "percentDirect": 1.12,
+          "percentDirectOrPreset": 1.12
         }
       },
       "excluded": [
@@ -6746,23 +6746,23 @@
         "Overloads count once by fully qualified method name; () distinguishes explicit methods from Kotlin properties. Exposed-overload counts are listed below.",
         "Generated enum/Parcelable/Data helpers, constructors/builders, property getter/setter and interface aliases, callback contracts and optional-wrapper declarations have explicit exclusion reasons.",
         "Deprecated callable fields/methods/events remain included; deprecation alone never excludes an operational ID.",
-        "Missing means absent from the audited custom MainActivity control panel and related app sources. It does not prove absence from embedded SDK UI. Reported GUI coverage is a lower bound.",
-        "sdk-ui-unverified identifies candidate SDK Web UI controls with an opaque native bridge/device path; these receive zero verified app-panel action credit.",
-        "Default UI configuration uses SDK defaults. Synced app assets have the same filenames as default Web UI assets; bundle provenance and native SDK UI actions remain unaudited.",
-        "Current UI choices are Default/Sports/Live/Cinema. No TvUi/focus selector is exposed. Android TV/Fire TV remote input and device-only behavior were not tested.",
+        "Missing means no exposed route in the audited app. The standard SDK UI routes below were separately exercised on an Android phone emulator; no Android TV or Fire TV device behavior is inferred.",
+        "Eleven standard UI routes were observed at the native boundary: play, pause, seek, mute/unmute, speed, audio/subtitle/video quality selection and both public thumbnail query entry points. The thumbnail query returned null; this does not establish thumbnail image rendering. The speed selector offers only 0.25, 0.5, 1, 1.5 and 2, so that command receives preset credit.",
+        "Fullscreen/PiP entry, exit and state controls and the mobile volume slider were verified absent from the configured phone UI. They remain missing and receive no GUI credit; reading a false native getter in a test does not count as an app observation.",
+        "Current UI choices are Default/Sports/Live/Cinema. Shared assets and custom factories were exercised in the native phone tests. No TvUi/focus selector is exposed.",
         "Cast, IMA, DRM, offline, low-latency, VR, PiP and Analytics remain SDK-available with their media, dependency, license, hardware or integration prerequisites; lack of a test device does not remove them.",
         "OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig; the separate SDK time shifting editor changes PlaybackConfig.isTimeShiftEnabled.",
         "jsLocation/cssLocation remain constant and match SDK defaults, so the UI mode picker does not receive GUI field credit for them.",
         "duration/maxTimeShift/timeShift contribute to the rendered DVR text. isLive/currentTime are copied but unused by Dvr.deriveState and receive no observed GUI credit.",
-        "Source evidence reads only six explicit public app source files, including Configuration.kt and ConfigurationPanel.kt. No environment files, native local properties, license values or device state are accessed.",
-        "17 individual configuration leaves are editable: source URL, all four source types, title, poster URL, persistent poster, start offset and timeline reference; autoplay, startup mute, SDK time shifting; startup/restart thresholds and forward buffer; maximum automatic video bitrate, preload, rebuffering and live quality/stability balance.",
-        "PlayerConfig.playbackConfig, PlayerConfig.bufferConfig, PlayerConfig.adaptationConfig, SourceConfig.options and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary configuration objects.",
+        "Source evidence reads seven explicit public app/control-test source files, including Configuration.kt and ConfigurationPanel.kt. No environment files, native local properties, license values or device state are read by this generator.",
+        "18 individual creation/source configuration leaves are editable, including optional source target latency. Blank target latency leaves SourceConfig.liveConfig unset; a finite value creates SourceLiveConfig(targetLatency=value) without changing SDK synchronization defaults.",
+        "PlayerConfig.playbackConfig, PlayerConfig.bufferConfig, PlayerConfig.adaptationConfig, SourceConfig.options, SourceConfig.liveConfig and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary configuration objects.",
         "Source Apply validates HTTP(S) URLs and finite offset seconds, constructs Source(SourceConfig) and invokes Player.load(Source). Only this load overload is an app GUI path. Player.config, Source.config and Player.isDestroyed reads in tests receive no observed GUI credit; Player.on/off and Source.on/off remain listener lifecycle code.",
         "Player Apply recreates the player and reloads the retained source options, preserving UI mode, log and app Allow DVR. Playback position resets. Source Reset restores the applied source draft; Player Reset restores SDK-default draft values. Reset alone does not apply either draft.",
         "Buffer durations are finite seconds: forward buffer is at least 0.5, and nonnegative startup/restart thresholds are at most forward minus 0.5, allowing 1 ULP of subtraction error. Automatic video bitrate is a nonnegative Int in bit/s; empty means 2147483647 with no ABR cap. Quality/stability balance is 0 through 1 and applies near the live edge.",
         "PlayerView onStart/onResume/onPause/onStop are internal host lifecycle calls. A view-owned observer catches up newly attached views in a resumed Activity and stops notifications before retirement. Detach precedes view.onDestroy, and the controller owns Player destruction. Foreground return can retain the SDK paused state; the regression explicitly requests Play rather than assuming automatic resume.",
-        "The final 2026-10-20 check passed 14 JVM tests and both app/test APK builds. The licensed Android phone emulator group passed 8 of 9 cases: configuration, ownership, DVR, configured VOD at a 10-second offset with autoplay/mute, 12 UI handoffs and background/resume with explicit Play passed. The unchanged strict shared-UI live-return case failed. Physical Android TV, Fire TV, completed SDK resource cleanup, casting, offline playback and Analytics receipt remain unqualified.",
-        "A failed live return completed after 3.070 seconds within +0.011 seconds of its fixed requested media target, while the moving live edge left a -3.059-second offset. The UI correctly showed behind-live. This does not meet the unchanged current-edge/visible-LIVE condition. A separate focused background/UI test observed 1004 during Activity close after playback checks passed; its timed-out operation remains unknown, and the final group had no Player/Source errors. No live-return retry, buffer default, seek semantics, error threshold or visibility condition was changed. Stable live return, grouped startup-position reliability and the intermittent 1004 remain unqualified.",
+        "The 2026-10-21 Android phone group passed all 16 cases, with 18 JVM tests and both app/test APK builds. It covered configuration, source-owned startup offset, standard UI/native controls, HLS/DASH live finalization, clipboard, ownership, UI handoffs and background return with explicit Play.",
+        "Live acceptance couples a fresh TimeShifted completion, native zero time-shift and genuinely visible LIVE within the same deadline. Raw live latency and effective target latency are separate diagnostics; no seek-completion or ideal-latency SLA is asserted, and no automatic seek retry is added.",
         "configuration_named_types: 242 configuration, 5 observation.",
         "configuration_supporting_types: 50 configuration, 13 observation.",
         "events: 115 event.",
@@ -6797,18 +6797,18 @@
             },
             "configuration": {
               "byStatus": {
-                "code-only": 9,
-                "direct": 17,
+                "code-only": 10,
+                "direct": 18,
                 "internal": 0,
-                "missing": 213,
+                "missing": 211,
                 "observed": 0,
                 "preset": 3,
                 "sdk-ui-unverified": 0
               },
               "denominator": 242,
               "deprecated": 16,
-              "percentDirect": 7.02,
-              "percentDirectOrPreset": 8.26
+              "percentDirect": 7.44,
+              "percentDirectOrPreset": 8.68
             },
             "event": {
               "byStatus": {
@@ -7043,17 +7043,17 @@
             "command": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 1,
+                "direct": 9,
                 "internal": 1,
-                "missing": 50,
+                "missing": 51,
                 "observed": 0,
-                "preset": 1,
-                "sdk-ui-unverified": 10
+                "preset": 2,
+                "sdk-ui-unverified": 0
               },
               "denominator": 63,
               "deprecated": 4,
-              "percentDirect": 1.59,
-              "percentDirectOrPreset": 3.17
+              "percentDirect": 14.29,
+              "percentDirectOrPreset": 17.46
             },
             "configuration": {
               "byStatus": {
@@ -7088,17 +7088,17 @@
             "observation": {
               "byStatus": {
                 "code-only": 2,
-                "direct": 0,
+                "direct": 2,
                 "internal": 0,
                 "missing": 53,
                 "observed": 3,
                 "preset": 0,
-                "sdk-ui-unverified": 2
+                "sdk-ui-unverified": 0
               },
               "denominator": 60,
               "deprecated": 9,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 3.33,
+              "percentDirectOrPreset": 3.33
             }
           },
           "scope": "runtime_playback"
@@ -7175,10 +7175,10 @@
                 "code-only": 3,
                 "direct": 0,
                 "internal": 6,
-                "missing": 18,
+                "missing": 22,
                 "observed": 0,
                 "preset": 0,
-                "sdk-ui-unverified": 4
+                "sdk-ui-unverified": 0
               },
               "denominator": 31,
               "deprecated": 0,
@@ -7220,10 +7220,10 @@
                 "code-only": 2,
                 "direct": 0,
                 "internal": 0,
-                "missing": 8,
+                "missing": 10,
                 "observed": 0,
                 "preset": 0,
-                "sdk-ui-unverified": 2
+                "sdk-ui-unverified": 0
               },
               "denominator": 12,
               "deprecated": 0,
@@ -7273,8 +7273,8 @@
             "code-only": 0,
             "direct": 0,
             "internal": 0,
-            "missing": 102,
-            "observed": 4,
+            "missing": 101,
+            "observed": 5,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
@@ -7288,8 +7288,8 @@
             "code-only": 3,
             "direct": 0,
             "internal": 0,
-            "missing": 96,
-            "observed": 2,
+            "missing": 95,
+            "observed": 3,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
@@ -7408,9 +7408,9 @@
         "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
         "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
         "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
-        "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
+        "Five event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged triggers DVR refresh. Event payload fields are not exposed.",
         "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
-        "The 2026-10-20 record reports 6 hostless configuration tests on each Apple simulator platform and 1 GUI test on each iPhone, iPad and Apple TV simulator, including tvOS remote focus and Reset. These checks do not qualify playback, offset accuracy, bitrate enforcement, physical devices, casting, offline playback or Analytics receipt; the 2026-10-19 iOS shared-UI playback record is documented separately.",
+        "On 2026-10-21, native GUI checks on iPhone, iPad and Apple TV simulators applied source/startup settings and played the local 60-second HLS and progressive MP4 fixtures with advancing native positions and visible video. Native getters checked the applied start offset, autoplay, bitrate cap and forward-buffer values. Controlled HLS completion checks on iPhone and Apple TV retained the same source and disabled app DVR after PlaybackFinished, even when SDK live/infinite getters persisted; replay and new-source resets were checked separately. These checks do not establish physical-device behavior, audible synchronization, network bitrate enforcement, casting, offline playback or Analytics receipt.",
         "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
         "The iOS application also covers iPadOS; both have identical audited API availability and app control paths.",
         "Four configuration fields remain constrained UI presets backed by bundled JS/CSS resources: uiManagerFactoryFunction, playerUiJs, playerUiCss and userInterfaceConfig. Missing custom resources fall back to the SDK UI; source URLs and HLS/MP4 type are editable.",
@@ -11240,8 +11240,8 @@
                 "code-only": 3,
                 "direct": 0,
                 "internal": 0,
-                "missing": 29,
-                "observed": 2,
+                "missing": 28,
+                "observed": 3,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
@@ -11615,8 +11615,8 @@
                 "code-only": 0,
                 "direct": 0,
                 "internal": 0,
-                "missing": 59,
-                "observed": 3,
+                "missing": 58,
+                "observed": 4,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
@@ -14153,12 +14153,12 @@
             "code-only": 0,
             "direct": 0,
             "internal": 1,
-            "missing": 71,
+            "missing": 74,
             "observed": 5,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
-          "denominator": 77,
+          "denominator": 80,
           "deprecated": 0,
           "percentDirect": 0.0,
           "percentDirectOrPreset": 0.0
@@ -14337,10 +14337,10 @@
         "isLive and getCurrentTime are read by the snapshot controller but are not consumed by the displayed derived state, so they receive no observation credit.",
         "Allow DVR changes the application DVR helper, not a PlayerConfig playback property. License configuration comes from environment setup and is not GUI editable.",
         "The reproducible Expo host packages shared JS/CSS as native resources. Separate iOS and Android checks exercised SDK Default VOD playback and the packaged Sports factory with a visible INFO control and advancing native playback positions. Other factories remain unqualified; no SDK UI API credit is inferred from those checks.",
-        "The latest wrapper pins Apple 3.126.0 and Android 3.165.0+jason. These supported wrapper defaults are not overridden to the newer standalone SDK versions.",
+        "Wrapper 1.29.0 pins Apple 3.128.0 and Android 3.170.0+jason. Its supported native dependency group is kept intact rather than overridden with the standalone Android SDK version.",
         "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries. Player/Source errors additionally display a numeric code when supplied; other event payload details are not rendered. onPlayerViewReady only triggers loading and is internal.",
         "Player.load receives the edited SourceConfig. No Source instance lifecycle, read-only configuration observation, offline operation or unrelated nested property is inferred from those input controls.",
-        "The App/configuration JSX and helpers are type-checked against installed declarations and tested with mocked native/player boundaries. Separate generated-host checks built both native platforms and verified packaged asset bytes. iOS simulator and Android emulator checks covered VOD playback, Apply/Reset and retained configuration/UI/log/Allow DVR. Android Apply confirmed a new native owner and destruction of the previous owner; after background return, the applied owner was retained and playback advanced after checking the on-screen playback controls. This does not isolate automatic resume without interaction. The start-offset value was confirmed in native configuration; initial seek accuracy was not measured. The Android run used the public Tears of Steel VOD HLS preset with a native duration of 734 seconds, separate from the 60-second Big Buck Bunny fixture. Current native playback is qualified within these checks; an earlier Android 1003 result is not carried forward. These checks do not qualify physical devices, Release archives, all shared factories or live/DVR playback."
+        "On 2026-10-21 the wrapper 1.29.0 / Expo 57.0.30 host built on both native platforms and packaged shared assets matched the installed bundles. iOS native 3.128.0 played the local 60-second HLS fixture; Android native 3.170.0+jason played HLS and DASH. Actual GUI Apply produced a new native owner and destroyed the previous owner. The first Playing event and native position were 5.000 seconds for the configured start; autoplay, mute, maximum bitrate 2500000 and forward buffer 12.5 matched native configuration. The OS clipboard matched displayed applied code and excluded drafts and the actual key. Reset preserved the owner and source/UI/log/Allow DVR state. After background return the same owner played advancing visible VOD following an explicit SDK Play tap; this does not promise automatic resume. These checks cover the named simulator/emulator and Default/Sports modes, not physical devices, Release archives, every factory, protected/advertising content, live/DVR playback or quantitative buffer/bitrate effects."
       ],
       "scopes": [
         {
@@ -15030,12 +15030,12 @@
                 "code-only": 0,
                 "direct": 0,
                 "internal": 1,
-                "missing": 62,
+                "missing": 65,
                 "observed": 5,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
-              "denominator": 68,
+              "denominator": 71,
               "deprecated": 0,
               "percentDirect": 0.0,
               "percentDirectOrPreset": 0.0
@@ -15261,17 +15261,17 @@
         "command": {
           "byStatus": {
             "code-only": 3,
-            "direct": 1,
+            "direct": 3,
             "internal": 0,
-            "missing": 103,
+            "missing": 101,
             "observed": 0,
             "preset": 1,
             "sdk-ui-unverified": 0
           },
           "denominator": 108,
           "deprecated": 6,
-          "percentDirect": 0.93,
-          "percentDirectOrPreset": 1.85
+          "percentDirect": 2.78,
+          "percentDirectOrPreset": 3.7
         },
         "configuration": {
           "byStatus": {
@@ -15293,8 +15293,8 @@
             "code-only": 0,
             "direct": 0,
             "internal": 0,
-            "missing": 90,
-            "observed": 4,
+            "missing": 89,
+            "observed": 5,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
@@ -15305,11 +15305,11 @@
         },
         "observation": {
           "byStatus": {
-            "code-only": 3,
+            "code-only": 5,
             "direct": 0,
             "internal": 0,
-            "missing": 70,
-            "observed": 2,
+            "missing": 67,
+            "observed": 3,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
@@ -15848,12 +15848,12 @@
         "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
         "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
         "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
-        "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
+        "Five event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged triggers DVR refresh. Event payload fields are not exposed.",
         "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
-        "The 2026-10-20 record reports 6 hostless configuration tests on each Apple simulator platform and 1 GUI test on each iPhone, iPad and Apple TV simulator, including tvOS remote focus and Reset. These checks do not qualify playback, offset accuracy, bitrate enforcement, physical devices, casting, offline playback or Analytics receipt; the 2026-10-19 iOS shared-UI playback record is documented separately.",
+        "On 2026-10-21, native GUI checks on iPhone, iPad and Apple TV simulators applied source/startup settings and played the local 60-second HLS and progressive MP4 fixtures with advancing native positions and visible video. Native getters checked the applied start offset, autoplay, bitrate cap and forward-buffer values. Controlled HLS completion checks on iPhone and Apple TV retained the same source and disabled app DVR after PlaybackFinished, even when SDK live/infinite getters persisted; replay and new-source resets were checked separately. These checks do not establish physical-device behavior, audible synchronization, network bitrate enforcement, casting, offline playback or Analytics receipt.",
         "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
         "The UI variant picker is excluded on tvOS and System UI is fixed. The native full-screen editor exposes the same 11 configuration leaves as iOS; there are no configuration presets.",
-        "Opaque native System UI controls have not been mapped to Core API members. No app-owned play, pause, volume, track or fullscreen control is credited.",
+        "The app-owned tvOS remote Play/Pause command maps to Player.play() and Player.pause(). Opaque System UI controls do not receive volume, track or fullscreen credit without exact binding and runtime evidence.",
         "SDK APIs documented as no-op on tvOS remain in the available denominator when their Swift declaration permits tvOS."
       ],
       "scopes": [
@@ -18592,17 +18592,17 @@
             "command": {
               "byStatus": {
                 "code-only": 1,
-                "direct": 1,
+                "direct": 3,
                 "internal": 0,
-                "missing": 25,
+                "missing": 23,
                 "observed": 0,
                 "preset": 1,
                 "sdk-ui-unverified": 0
               },
               "denominator": 28,
               "deprecated": 4,
-              "percentDirect": 3.57,
-              "percentDirectOrPreset": 7.14
+              "percentDirect": 10.71,
+              "percentDirectOrPreset": 14.29
             },
             "configuration": {
               "byStatus": {
@@ -18636,11 +18636,11 @@
             },
             "observation": {
               "byStatus": {
-                "code-only": 3,
+                "code-only": 5,
                 "direct": 0,
                 "internal": 0,
-                "missing": 29,
-                "observed": 2,
+                "missing": 26,
+                "observed": 3,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
@@ -19014,8 +19014,8 @@
                 "code-only": 0,
                 "direct": 0,
                 "internal": 0,
-                "missing": 58,
-                "observed": 3,
+                "missing": 57,
+                "observed": 4,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
@@ -21603,9 +21603,9 @@
         "isLive is read but not consumed by the displayed derived state and remains code-only. getCurrentTime now passes through DvrState.currentTime to the visible position in the existing state line and receives observation credit. Position is SDK media time in seconds and can use an absolute timeline for live sources.",
         "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
         "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed.",
-        "The App/control/configuration/video-surface JSX and helpers are type-checked against installed declarations. Native checks used Vega SDK 0.24.12112 and an arm64 Virtual Device: all 3 Release packages built, earlier Live DASH and VOD HLS checks rendered frames and advancing SDK positions, and native focus/scrolling, text entry, invalid-bitrate validation and Reset were exercised. The final lifecycle implementation passed 3 valid bitrate Apply cycles with changing VOD frames and advancing positions in the same app instance. Its 68 unit/session tests still mock native boundaries. After background/foreground, the same instance retained drafts and settings but playback did not resume; a full app restart restored VOD playback. Process memory/file-descriptor samples do not establish native media/surface allocation counts or leak freedom. Physical devices, DRM/offline, audio correctness and quantitative buffer/bitrate behavior remain unqualified.",
+        "On 2026-10-21, Vega SDK 0.24.12112 and an arm64 Virtual Device ran the final lifecycle implementation. All 3 Release architectures built. The same app instance passed 3 bitrate Apply cycles, 3 VOD HLS background/foreground cycles and 3 Live DASH cycles with advancing SDK clocks and changing video frames. Actual D-pad/Select controls changed autoplay, mute and the app DVR switch; applied settings, drafts, logs and code display were retained. All 73 unit/session cases and TypeScript checks passed, separately from native execution. Background release waits for native deinitialization success and SDK destruction before replacement. Process RSS and file-descriptor samples do not identify individual native media/surface allocations or establish leak freedom. Physical-device behavior, protected/offline content, audible synchronization and quantitative buffer/bitrate effects require separate inputs.",
         "PlayerConfig.network.requestApi is fixed to Fetch by vegaPlayerConfig and used at SDK construction. This receives code-only configuration credit, not GUI credit; the existing network hooks and unrelated configuration fields are retained.",
-        "Foreground Apply waits for fulfilled SDK destruction before synchronous native release because the SDK's asynchronous stop sequence still uses the media object. On background transitions, AppState cancels callbacks, requests synchronous native release before the handler yields, and removes the surface, including when a newer session is waiting for the retiring owner. Foreground acquisition waits for a new surface and confirmed prior cleanup. Unconfirmed release or SDK destruction retains the owner and blocks replacement. Pending-initialization abort success acknowledges cancellation without proving late native-allocation release, so replacement also remains blocked. The 1000 ms native release deadline is an app policy. Within a retained instance, applied source/player settings, drafts, logs and Allow DVR are preserved; playback position retention is not implemented. Playback can remain stopped after foreground return and requires a full app restart. A separate instrumented Virtual Device check reported a native release timeout while SDK destruction and creation of a fresh foreground surface completed; the unconfirmed native release kept replacement blocked. This lifecycle integration adds no editable SDK field or GUI coverage credit."
+        "Foreground Apply waits for fulfilled SDK destruction before synchronous native release because the SDK's asynchronous stop sequence still uses the media object. On background transitions, AppState cancels callbacks, clears the owned video surface, resets the public media src to an empty string, and requests synchronous native deinitialization before the handler yields. Replacement waits for the native success acknowledgment, fulfilled SDK destruction and a new foreground surface. Unconfirmed native release, SDK destruction failure or cancellation during pending initialization retains the retiring owner and blocks replacement; restarting the app is required in those failure cases. The 1000 ms native release deadline is an app policy. Within a retained instance, applied source/player settings, drafts, logs and Allow DVR are preserved; playback position retention is not implemented. This lifecycle integration adds no editable SDK field or GUI coverage credit."
       ],
       "scopes": [
         {
@@ -22784,7 +22784,7 @@
     }
   ],
   "checkedAt": "2026-10-21",
-  "inputSha256": "168a552d29197e78d8ecb98b2016bd67591894ed530d7030eb5c2fb3228cc82a",
+  "inputSha256": "1d8a85ab542f84ca71386d4c375a4cbe46f0ad5d14a8bdb418c0145d22f73433",
   "schemaVersion": 1,
   "sdks": [
     {
@@ -22842,29 +22842,29 @@
     {
       "channel": "stable-wrapper",
       "id": "react-native",
-      "latestCheckedAt": "2026-10-20",
-      "latestVersion": "1.28.0",
+      "latestCheckedAt": "2026-10-21",
+      "latestVersion": "1.29.0",
       "name": "Bitmovin Player React Native wrapper",
       "sources": [
         {
-          "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/build.gradle"
+          "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/android/build.gradle"
         },
         {
-          "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/dependencies.json"
+          "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/ios/dependencies.json"
         },
         {
-          "url": "https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v1.28.0"
+          "url": "https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v1.29.0"
         },
         {
-          "url": "https://registry.npmjs.org/bitmovin-player-react-native/1.28.0"
+          "url": "https://registry.npmjs.org/bitmovin-player-react-native/1.29.0"
         }
       ],
-      "version": "1.28.0"
+      "version": "1.29.0"
     },
     {
       "channel": "vega-supported-beta",
       "id": "vega",
-      "latestCheckedAt": "2026-10-20",
+      "latestCheckedAt": "2026-10-21",
       "latestVersion": "8.138.0-beta.28",
       "name": "Bitmovin Player Vega channel",
       "sources": [
@@ -22880,23 +22880,23 @@
     {
       "channel": "stable",
       "id": "web",
-      "latestCheckedAt": "2026-10-20",
-      "latestVersion": "8.280.0",
+      "latestCheckedAt": "2026-10-21",
+      "latestVersion": "8.281.0",
       "name": "Bitmovin Player Web",
       "sources": [
         {
           "url": "https://developer.bitmovin.com/playback/docs/release-notes-web"
         },
         {
-          "url": "https://registry.npmjs.org/bitmovin-player/8.280.0"
+          "url": "https://registry.npmjs.org/bitmovin-player/8.281.0"
         }
       ],
-      "version": "8.280.0"
+      "version": "8.281.0"
     },
     {
       "channel": "stable",
       "id": "web-ui",
-      "latestCheckedAt": "2026-10-20",
+      "latestCheckedAt": "2026-10-21",
       "latestVersion": "4.23.0",
       "name": "Bitmovin Player UI",
       "sources": [
@@ -22910,5 +22910,5 @@
       "version": "4.23.0"
     }
   ],
-  "sourceRevision": "a312c7547e580b4c97f8fbee025aec8df89b427d"
+  "sourceRevision": "2a6ca84f1dd28285a4404c5beeeec458fac749d7"
 }

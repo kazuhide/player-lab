@@ -86,10 +86,10 @@ The direct editable mappings are:
 | Forward buffer | `PlayerConfig.bufferConfig.audioAndVideo.forwardDuration` |
 | Bitrate cap | `PlayerConfig.adaptationConfig.maxSelectableBitrate` |
 
-These mappings use the [public wrapper 1.28.0 source declarations](https://github.com/bitmovin/bitmovin-player-react-native/tree/v1.28.0/src),
-including its [platform-specific buffer documentation](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/bufferConfig.ts).
-The public [Android](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/src/main/java/com/bitmovin/player/reactnative/converter/JsonConverter.kt#L163-L165)
-and [iOS](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/RCTConvert%2BBitmovinPlayer.swift#L964-L965)
+These mappings use the [public wrapper 1.29.0 source declarations](https://github.com/bitmovin/bitmovin-player-react-native/tree/v1.29.0/src),
+including its [platform-specific buffer documentation](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/src/bufferConfig.ts).
+The public [Android](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/android/src/main/java/com/bitmovin/player/reactnative/converter/JsonConverter.kt#L163-L165)
+and [iOS](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/ios/RCTConvert%2BBitmovinPlayer.swift#L971-L972)
 converters explain the bitrate integer limits. The URL package documents
 [local imports without replacing global URL](https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0).
 Loop is not an exposed configuration property in this wrapper. Native rendering
@@ -97,11 +97,15 @@ and playback require a development build with an authorized Player license.
 
 ## Build in an Expo project
 
-Use Node **24.19.0** and pnpm **10.33.0**. The generated host pins Expo **54.0.35**,
-React Native **0.81.5**, React **19.1.0**, wrapper **1.28.0**, and Expo Crypto
-**15.0.9**, the version required by Expo 54. Its standalone `pnpm-lock.yaml`
-preserves the resolved JavaScript dependency graph. Expo 54 supplies its native
+Use Node **24.19.0** and pnpm **10.33.0**. The generated host pins Expo **57.0.30**,
+React Native **0.86.3**, React **19.2.3**, wrapper **1.29.0**, Expo Crypto
+**57.0.4**, and Expo Clipboard **57.0.2**. Its standalone `pnpm-lock.yaml`
+preserves the resolved JavaScript dependency graph. Expo 57 supplies its native
 prebuild template; no moving `create-expo-app@latest` template is used.
+
+Wrapper 1.29 requires iOS/tvOS 16.4 or newer. Its Android plugin requires compile
+SDK 37 or newer and Kotlin Gradle plugin 2.2.21 or newer. The generated Expo 57
+host supplies compatible native toolchains.
 
 The display name is **Player Lab React Native**. Both the iOS bundle identifier
 and Android application ID are **`com.playerlab.reactnative`**, defined in
@@ -142,8 +146,22 @@ install -m 600 apps/react-native/.env ../player-lab-react-native/.env
 The copied file uses the client-facing EXPO_PUBLIC_ variable names. Keep it
 outside version control.
 
+If Android cannot connect to a Metro server bound to `localhost`, check
+`http://127.0.0.1:8081/status` on the Mac as well as `http://localhost:8081/status`.
+An IPv6-only listener does not accept Android's IPv4 connection. For a local
+server with Node 24, use:
+
+```bash
+NODE_OPTIONS=--dns-result-order=ipv4first pnpm exec expo start --localhost --port 8081
+adb reverse tcp:8081 tcp:8081
+```
+
+Stop the previous Metro process before starting the server for a different
+external host. Restarting the app after the server is ready avoids its bundled
+asset fallback when no development server was reachable at startup.
+
 On macOS, install Xcode and CocoaPods for iOS. Android requires Java 17 and the
-Android SDK/toolchain selected by Expo 54. Restore the checked-in native locks
+Android SDK/toolchain selected by Expo 57. Restore the checked-in native locks
 after prebuild, before the first iOS build:
 
 ```bash
@@ -165,16 +183,16 @@ The wrapper-supported native resolutions are:
 
 | Dependency | React Native host |
 | --- | --- |
-| iOS Player / Player Core | 3.126.0 / 3.126.0 |
+| iOS Player / Player Core | 3.128.0 / 3.128.0 |
 | iOS Analytics collector | 3.28.1 |
 | iOS Google IMA | 3.26.1 |
-| Android Player | 3.165.0+jason |
+| Android Player | 3.170.0+jason |
 
-The standalone iOS sample's Player 3.128.0 and standalone Android sample's Player
-3.171.0 are separate integrations. Do not force those versions into wrapper
-1.28.0. Since wrapper 1.27, Player and IMA use Swift Package Manager on iOS; the
+The standalone Android sample pins Player 3.171.0; wrapper 1.29.0 uses
+3.170.0+jason. Keep the wrapper-supported Android dependencies together. The
+iOS wrapper and standalone sample both use 3.128.0 through separate projects. Since wrapper 1.27, Player and IMA use Swift Package Manager on iOS; the
 bridge and Expo still use CocoaPods. Existing projects should follow the
-[official migration guide](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/docs/ios-dependencies.md).
+[official migration guide](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/docs/ios-dependencies.md).
 
 ## Shared player UI
 
@@ -212,7 +230,7 @@ should remain. Background the app, return, and check that VOD can advance again.
 
 The screen logs numeric Player/Source error codes without copying SDK error
 messages. Android Player error
-[1003](https://cdn.bitmovin.com/player/android/3.165.0/docs/player-core/com.bitmovin.player.api.deficiency/-player-error-code/-license-authentication-failed/index.html)
+[1003](https://cdn.bitmovin.com/player/android/3.170.0/docs/player-core/com.bitmovin.player.api.deficiency/-player-error-code/-license-authentication-failed/index.html)
 means the license request failed or was denied; it does not establish which
 cause occurred. Check the installed application ID and key configuration, device
 time, and network/TLS connectivity before changing license settings. If a
@@ -221,32 +239,34 @@ dedicated emulator reports an Unknown Host error, Android documents an
 
 ## Native qualification
 
-The generated host has built successfully for an iPhone 17 Pro simulator on
-iOS 26.4 with Xcode 27.1, and for an ARM64 Android API 36.1 emulator with Java 17.
-Packaged shared JS/CSS bytes matched the built assets on both platforms.
+On 2026-10-21 the Expo 57 / wrapper 1.29.0 host built for an iPhone simulator
+with Xcode 27.1 and an ARM64 Android API 36.1 emulator with Java 17. The resolved
+native Players were 3.128.0 on iOS and 3.170.0+jason on Android. Packaged shared
+JS/CSS bytes matched the built assets on both platforms.
 
-Actual iOS native checks exercised SDK Default VOD playback, the packaged Sports
-factory's INFO control and Play/Pause, Reset draft, Apply with autoplay/mute and
-a start offset, source/UI/log/Allow DVR retention, and advancing VOD after
-background/foreground return.
+Native GUI checks used the local 60-second Big Buck Bunny HLS fixture on iOS
+and HLS/DASH on Android. SDK Default and packaged Sports showed advancing native
+positions and changing video frames; Sports exposed its INFO control. Apply
+destroyed the previous Player and created a new owner with the selected source,
+UI, log and Allow DVR state retained. The first native Playing event and current
+time were both 5.000 seconds for the configured five-second start. Native
+getters confirmed autoplay, startup mute, a 2,500,000-bit/s maximum selectable
+bitrate and a 12.5-second forward-buffer setting. This verifies the applied
+values, rather than quantitative buffering or network adaptation effects.
 
-Android API 36.1 checks used the public VOD HLS preset, Tears of Steel, with a
-native duration of 734 seconds. Default and Sports showed visible video with
-advancing native SDK positions. Sports loaded the packaged JS/CSS and its custom
-factory, with the INFO control visible. Native UI actions exercised Reset and
-Apply. Native getters confirmed the title, start-offset value of 5 seconds,
-autoplay and startup mute. Apply
-destroyed the old player, created a new owner and retained the complete source,
-selected Default UI, log and Allow DVR state. After background/foreground return,
-the applied owner was retained and VOD advanced after checking the on-screen
-playback controls. The check did not record whether Play was tapped or playback
-had already resumed, so automatic resume without interaction remains unqualified.
+The copied code matched the operating-system clipboard on both platforms and
+excluded unapplied edits and the actual license. Reset restored the applied
+draft without replacing the Player. After background/foreground return, the
+same owner was retained; tapping the visible SDK Play control resumed advancing
+VOD. This check exercises explicit playback after return. It does not promise
+automatic resume. The iOS settings scroll view follows the keyboard so its
+lower buffer and bitrate fields remain reachable while editing.
 
-These checks do not qualify physical devices, Release archives, DRM,
-advertisements, every shared factory, live/DVR behavior, accuracy of the initial
-seek or quantitative buffer/bitrate effects. The repository's App tests use native mocks; generator
-tests and TypeScript checks provide separate evidence and do not establish
-playback.
+These checks cover the named simulator/emulator and UI modes. Physical devices,
+Release archives, protected content, advertisements, other shared factories,
+live/DVR behavior and quantitative buffer/bitrate effects require their own
+test inputs. App tests with native mocks, generator tests and TypeScript checks
+provide separate evidence from native playback.
 
 ## Player event handling
 
@@ -272,6 +292,6 @@ Verify these behaviors in the external Expo build with a valid player license.
 
 Open **Show configuration → Show applied code** to inspect the Player, Source and
 selected UI settings sent to the SDK. The output excludes draft edits and license
-values. **Copy code** uses Expo Clipboard 8.0.8, matched to Expo 54. Regenerate and
+values. **Copy code** uses Expo Clipboard 57.0.2, matched to Expo 57. Regenerate and
 build the external native host after changing native dependencies; refreshing
 JavaScript alone does not install a native module.

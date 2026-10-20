@@ -3,7 +3,7 @@
 
 Uses public version-pinned Dokka and official public source artifacts. SDK HTML,
 SDK source archives and intermediate data remain in temporary scratch storage.
-Only the explicitly named public app source files are read from --repo.
+Only explicitly named public app and control-test sources are read from --repo.
 """
 import argparse
 import collections
@@ -24,7 +24,8 @@ OFFLINE = 'apps/android/app/src/main/kotlin/com/showcase/app/OfflineManager.kt'
 DVR = 'apps/android/dvr/src/main/kotlin/com/showcase/dvr/Dvr.kt'
 CONFIG = 'apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt'
 EDITOR = 'apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt'
-APP_INPUTS = (MAIN, SOURCE, OFFLINE, DVR, CONFIG, EDITOR)
+CONTROL_TEST = 'apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt'
+APP_INPUTS = (MAIN, SOURCE, OFFLINE, DVR, CONFIG, EDITOR, CONTROL_TEST)
 GUI_STATUSES = {'direct', 'preset'}
 
 
@@ -161,7 +162,7 @@ def normalize(scoped, all_public, inventory, repo):
             if status == 'code-only' and ((row['owner'].endswith('.Player') and row['member'] == 'destroy')
                 or (row['owner'].endswith('.PlayerView') and row['member'] in ('player', 'onDestroy', 'onStart', 'onResume', 'onPause', 'onStop'))):
                 status = 'internal'
-            if status == 'missing' and sdk_ui_candidate(row):
+            if status == 'missing' and sdk_ui_candidate(row) and row['coverage'].get('sdk_ui_qualification') != 'not-exposed':
                 status = 'sdk-ui-unverified'
             statuses.append(status)
             evidence.extend(portable_evidence(row['coverage']['evidence']))
@@ -205,23 +206,23 @@ def normalize(scoped, all_public, inventory, repo):
         'Overloads count once by fully qualified method name; () distinguishes explicit methods from Kotlin properties. Exposed-overload counts are listed below.',
         'Generated enum/Parcelable/Data helpers, constructors/builders, property getter/setter and interface aliases, callback contracts and optional-wrapper declarations have explicit exclusion reasons.',
         'Deprecated callable fields/methods/events remain included; deprecation alone never excludes an operational ID.',
-        'Missing means absent from the audited custom MainActivity control panel and related app sources. It does not prove absence from embedded SDK UI. Reported GUI coverage is a lower bound.',
-        'sdk-ui-unverified identifies candidate SDK Web UI controls with an opaque native bridge/device path; these receive zero verified app-panel action credit.',
-        'Default UI configuration uses SDK defaults. Synced app assets have the same filenames as default Web UI assets; bundle provenance and native SDK UI actions remain unaudited.',
-        'Current UI choices are Default/Sports/Live/Cinema. No TvUi/focus selector is exposed. Android TV/Fire TV remote input and device-only behavior were not tested.',
+        'Missing means no exposed route in the audited app. The standard SDK UI routes below were separately exercised on an Android phone emulator; no Android TV or Fire TV device behavior is inferred.',
+        'Eleven standard UI routes were observed at the native boundary: play, pause, seek, mute/unmute, speed, audio/subtitle/video quality selection and both public thumbnail query entry points. The thumbnail query returned null; this does not establish thumbnail image rendering. The speed selector offers only 0.25, 0.5, 1, 1.5 and 2, so that command receives preset credit.',
+        'Fullscreen/PiP entry, exit and state controls and the mobile volume slider were verified absent from the configured phone UI. They remain missing and receive no GUI credit; reading a false native getter in a test does not count as an app observation.',
+        'Current UI choices are Default/Sports/Live/Cinema. Shared assets and custom factories were exercised in the native phone tests. No TvUi/focus selector is exposed.',
         'Cast, IMA, DRM, offline, low-latency, VR, PiP and Analytics remain SDK-available with their media, dependency, license, hardware or integration prerequisites; lack of a test device does not remove them.',
         'OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig; the separate SDK time shifting editor changes PlaybackConfig.isTimeShiftEnabled.',
         'jsLocation/cssLocation remain constant and match SDK defaults, so the UI mode picker does not receive GUI field credit for them.',
         'duration/maxTimeShift/timeShift contribute to the rendered DVR text. isLive/currentTime are copied but unused by Dvr.deriveState and receive no observed GUI credit.',
-        'Source evidence reads only six explicit public app source files, including Configuration.kt and ConfigurationPanel.kt. No environment files, native local properties, license values or device state are accessed.',
-        '17 individual configuration leaves are editable: source URL, all four source types, title, poster URL, persistent poster, start offset and timeline reference; autoplay, startup mute, SDK time shifting; startup/restart thresholds and forward buffer; maximum automatic video bitrate, preload, rebuffering and live quality/stability balance.',
-        'PlayerConfig.playbackConfig, PlayerConfig.bufferConfig, PlayerConfig.adaptationConfig, SourceConfig.options and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary configuration objects.',
+        'Source evidence reads seven explicit public app/control-test source files, including Configuration.kt and ConfigurationPanel.kt. No environment files, native local properties, license values or device state are read by this generator.',
+        '18 individual creation/source configuration leaves are editable, including optional source target latency. Blank target latency leaves SourceConfig.liveConfig unset; a finite value creates SourceLiveConfig(targetLatency=value) without changing SDK synchronization defaults.',
+        'PlayerConfig.playbackConfig, PlayerConfig.bufferConfig, PlayerConfig.adaptationConfig, SourceConfig.options, SourceConfig.liveConfig and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary configuration objects.',
         'Source Apply validates HTTP(S) URLs and finite offset seconds, constructs Source(SourceConfig) and invokes Player.load(Source). Only this load overload is an app GUI path. Player.config, Source.config and Player.isDestroyed reads in tests receive no observed GUI credit; Player.on/off and Source.on/off remain listener lifecycle code.',
         'Player Apply recreates the player and reloads the retained source options, preserving UI mode, log and app Allow DVR. Playback position resets. Source Reset restores the applied source draft; Player Reset restores SDK-default draft values. Reset alone does not apply either draft.',
         'Buffer durations are finite seconds: forward buffer is at least 0.5, and nonnegative startup/restart thresholds are at most forward minus 0.5, allowing 1 ULP of subtraction error. Automatic video bitrate is a nonnegative Int in bit/s; empty means 2147483647 with no ABR cap. Quality/stability balance is 0 through 1 and applies near the live edge.',
         'PlayerView onStart/onResume/onPause/onStop are internal host lifecycle calls. A view-owned observer catches up newly attached views in a resumed Activity and stops notifications before retirement. Detach precedes view.onDestroy, and the controller owns Player destruction. Foreground return can retain the SDK paused state; the regression explicitly requests Play rather than assuming automatic resume.',
-        'The final 2026-10-20 check passed 14 JVM tests and both app/test APK builds. The licensed Android phone emulator group passed 8 of 9 cases: configuration, ownership, DVR, configured VOD at a 10-second offset with autoplay/mute, 12 UI handoffs and background/resume with explicit Play passed. The unchanged strict shared-UI live-return case failed. Physical Android TV, Fire TV, completed SDK resource cleanup, casting, offline playback and Analytics receipt remain unqualified.',
-        'A failed live return completed after 3.070 seconds within +0.011 seconds of its fixed requested media target, while the moving live edge left a -3.059-second offset. The UI correctly showed behind-live. This does not meet the unchanged current-edge/visible-LIVE condition. A separate focused background/UI test observed 1004 during Activity close after playback checks passed; its timed-out operation remains unknown, and the final group had no Player/Source errors. No live-return retry, buffer default, seek semantics, error threshold or visibility condition was changed. Stable live return, grouped startup-position reliability and the intermittent 1004 remain unqualified.',
+        'The 2026-10-21 Android phone group passed all 16 cases, with 18 JVM tests and both app/test APK builds. It covered configuration, source-owned startup offset, standard UI/native controls, HLS/DASH live finalization, clipboard, ownership, UI handoffs and background return with explicit Play.',
+        'Live acceptance couples a fresh TimeShifted completion, native zero time-shift and genuinely visible LIVE within the same deadline. Raw live latency and effective target latency are separate diagnostics; no seek-completion or ideal-latency SLA is asserted, and no automatic seek retry is added.',
     ] + count_notes + overload_notes
     result = {'id':'android', 'sdkId':'android', 'platform':'Android', 'rows':output_rows,
               'excluded':[{'id':identifier, 'reason':reason} for identifier, reason in sorted(excluded.items())],

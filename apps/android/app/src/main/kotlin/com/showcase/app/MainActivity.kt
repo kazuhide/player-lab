@@ -249,7 +249,7 @@ internal class PlayerController(
     }
 
     fun goToLiveEdge() {
-        if (released) return
+        if (released || !dvr.isLive) return
         player.timeShift(0.0)
     }
 
@@ -375,7 +375,7 @@ private fun ShowcaseScreen(controller: PlayerController) {
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Button(onClick = { controller.goToLiveEdge() }) { Text("Live edge") }
+            Button(onClick = { controller.goToLiveEdge() }, enabled = controller.dvr.isLive) { Text("Live edge") }
             listOf(-10.0, -30.0, -60.0).forEach { offset ->
                 Button(onClick = { controller.seek(offset) }, enabled = controller.dvr.dvrAvailable) {
                     Text("${offset.toInt()}s")
