@@ -19,6 +19,19 @@ diff --git a/dist/js/framework/UIManager.js b/dist/js/framework/UIManager.js
          this.componentLayoutOverrideProcessor = new ComponentLayoutOverrideProcessor_1.ComponentLayoutOverrideProcessor(this.config);
          this.recommendationsApi = {
              add: function (recommendation) {
+@@ -292,10 +296,10 @@
+             _this.activeNonLinearAdStartedEvent = undefined;
+         });
+         var isSourceLoaded = player.getSource() != null;
+-        player.on(player.exports.PlayerEvent.SourceLoaded, function () {
++        wrappedPlayer.on(player.exports.PlayerEvent.SourceLoaded, function () {
+             isSourceLoaded = true;
+         });
+-        player.on(player.exports.PlayerEvent.SourceUnloaded, function () {
++        wrappedPlayer.on(player.exports.PlayerEvent.SourceUnloaded, function () {
+             isSourceLoaded = false;
+         });
+         // Dynamically select a UI variant that matches the current UI condition.
 @@ -1005,13 +1009,7 @@
          return this.released;
      };
@@ -37,15 +50,28 @@ diff --git a/dist/js/framework/UIManager.js b/dist/js/framework/UIManager.js
 diff --git a/dist/js/framework/components/RecommendationItem.js b/dist/js/framework/components/RecommendationItem.js
 --- a/dist/js/framework/components/RecommendationItem.js
 +++ b/dist/js/framework/components/RecommendationItem.js
-@@ -32,6 +32,7 @@
+@@ -32,6 +32,8 @@
  var DOM_1 = require("../DOM");
  var Label_1 = require("./labels/Label");
  var StringUtils_1 = require("../utils/StringUtils");
 +var RecommendationPlayback_1 = require("../utils/RecommendationPlayback");
++var ComponentDisposal_1 = require("../utils/ComponentDisposal");
  /**
   * An item of the {@link RecommendationOverlay}.
   */
-@@ -56,8 +57,7 @@
+@@ -49,6 +51,11 @@
+         }, _this.config);
+         return _this;
+     }
++    RecommendationItem.prototype.release = function () {
++        ComponentDisposal_1.releaseComponentTree(this.titleLabel);
++        ComponentDisposal_1.releaseComponentTree(this.durationLabel);
++        _super.prototype.release.call(this);
++    };
+     RecommendationItem.prototype.configure = function (player, uimanager) {
+         var _this = this;
+         _super.prototype.configure.call(this, player, uimanager);
+@@ -56,8 +63,7 @@
              return;
          }
          this.onClick.subscribe(function () {
@@ -55,6 +81,22 @@ diff --git a/dist/js/framework/components/RecommendationItem.js b/dist/js/framew
          });
      };
      RecommendationItem.prototype.toDomElement = function () {
+@@ -84,6 +90,7 @@
+             class: this.prefixCss('title-container'),
+         }, this);
+         var innerTitleElement = new Label_1.Label({ text: recommendationConfig.title, cssClass: 'title' });
++        this.titleLabel = innerTitleElement;
+         titleElement.append(innerTitleElement.getDomElement());
+         itemElement.append(titleElement);
+         if (recommendationConfig.duration != null) {
+@@ -91,6 +98,7 @@
+                 text: recommendationConfig.duration ? StringUtils_1.StringUtils.secondsToTime(recommendationConfig.duration) : '',
+                 cssClass: 'duration',
+             });
++            this.durationLabel = timeElement;
+             itemElement.append(timeElement.getDomElement());
+         }
+         if (!isExternalRecommendationLink(recommendationResource)) {
 diff --git a/dist/js/framework/components/buttons/Button.js b/dist/js/framework/components/buttons/Button.js
 --- a/dist/js/framework/components/buttons/Button.js
 +++ b/dist/js/framework/components/buttons/Button.js
@@ -115,6 +157,25 @@ diff --git a/dist/js/framework/components/labels/Label.js b/dist/js/framework/co
              switch (this.config.labelStyle) {
                  case LabelStyle.TextWithTrailingIcon:
                      wrapperElement.append(icon.getDomElement());
+diff --git a/dist/js/framework/components/overlays/RecommendationOverlay.js b/dist/js/framework/components/overlays/RecommendationOverlay.js
+--- a/dist/js/framework/components/overlays/RecommendationOverlay.js
++++ b/dist/js/framework/components/overlays/RecommendationOverlay.js
+@@ -19,6 +19,7 @@
+ var Container_1 = require("../Container");
+ var HugeReplayButton_1 = require("../buttons/HugeReplayButton");
+ var RecommendationItem_1 = require("../RecommendationItem");
++var ComponentDisposal_1 = require("../../utils/ComponentDisposal");
+ /**
+  * Overlays the player and displays recommended videos.
+  *
+@@ -50,6 +51,7 @@
+         var _this = this;
+         _super.prototype.configure.call(this, player, uimanager);
+         var clearRecommendations = function () {
++            _this.recommendationContainer.getComponents().slice().forEach(ComponentDisposal_1.releaseComponentTree);
+             _this.recommendationContainer.removeComponents();
+             _this.recommendationContainer.updateComponents();
+             _this.getDomElement().removeClass(_this.prefixCss(RecommendationOverlay.CLASS_HAS_RECOMMENDATIONS));
 diff --git a/dist/js/framework/components/overlays/SubtitleOverlay.js b/dist/js/framework/components/overlays/SubtitleOverlay.js
 --- a/dist/js/framework/components/overlays/SubtitleOverlay.js
 +++ b/dist/js/framework/components/overlays/SubtitleOverlay.js
@@ -191,7 +252,7 @@ diff --git a/dist/js/framework/utils/ComponentDisposal.js b/dist/js/framework/ut
 new file mode 100644
 --- /dev/null
 +++ b/dist/js/framework/utils/ComponentDisposal.js
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,20 @@
 +"use strict";
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.releaseComponentTree = releaseComponentTree;
@@ -205,6 +266,7 @@ new file mode 100644
 +    released.add(component);
 +    component.release();
 +    if (component instanceof SettingsPanelItem_1.SettingsPanelItem) {
++        releaseComponentTree(component.label);
 +        releaseComponentTree(component.getConfig().settingComponent);
 +    }
 +    if (component instanceof Container_1.Container) {

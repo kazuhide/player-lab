@@ -13,6 +13,18 @@ Layout exclusions in 4.23.0 also release their removed components. The patch
 shares release tracking between that processor, the normal tree, and auxiliary
 owners so the same component is released once.
 
+Settings items also release their owned label when a subclass replaces the
+normal child list. Recommendation items release the title and duration labels
+they create outside that list, and the overlay releases old items before
+replacing recommendations. Otherwise language-change subscriptions can retain
+the removed elements and their released UI manager.
+
+The manager's source-loaded and source-unloaded subscriptions use its tracked
+player wrapper. This lets `UIManager.release()` remove them while the Player
+continues running, including repeated theme changes. Browser regressions observe
+the real public `on`/`off` calls and verify that removed controls stop receiving
+language changes and release exactly once.
+
 The patch also owns the asynchronous action started by a recommendation click.
 Loading a source can cancel a playback request issued before that load finishes.
 The action waits for loading, then plays only if the same source object still
