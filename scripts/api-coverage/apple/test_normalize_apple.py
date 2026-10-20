@@ -129,15 +129,27 @@ class AppleAdapterTests(unittest.TestCase):
             with self.assertRaisesRegex(apple.report.CoverageError, "hash mismatch"):
                 docc.read(file)
 
-    def test_reviewed_commands_are_fixed_presets_and_construction_is_code_only(self):
+    def test_reviewed_leaf_editors_do_not_credit_config_containers_or_other_load_overloads(self):
         exposure = json.loads((apple.HERE / "exposure.json").read_text())
+        editable = {"SourceConfig.url", "SourceConfig.type", "SourceConfig.title", "SourceConfig.posterSource",
+                    "SourceOptions.startOffset", "SourceOptions.startOffsetTimelineReference",
+                    "PlaybackConfig.isAutoplayEnabled", "PlaybackConfig.isMuted", "PlaybackConfig.isTimeShiftEnabled",
+                    "AdaptationConfig.maxSelectableBitrate", "BufferMediaTypeConfig.forwardDuration"}
+        containers = {"SourceConfig.options", "BufferConfig.audioAndVideo", "PlayerConfig.playbackConfig",
+                      "PlayerConfig.adaptationConfig", "PlayerConfig.bufferConfig"}
         for app, mapping in exposure["applications"].items():
-            for member in ("Player.load(sourceConfig:)", "Player.timeShift"):
-                self.assertEqual(mapping["BitmovinPlayerCore." + member]["status"], "preset")
-            for member in ("PlaybackConfig.isAutoplayEnabled", "PlaybackConfig.isMuted", "PlayerConfig.key"):
+            direct = {member.removeprefix("BitmovinPlayerCore.") for member, row in mapping.items()
+                      if row["status"] == "direct"}
+            self.assertEqual(direct, editable | {"Player.load(sourceConfig:)"})
+            for member in containers | {"PlayerConfig.key"}:
                 self.assertEqual(mapping["BitmovinPlayerCore." + member]["status"], "code-only")
-            self.assertFalse(any(r["status"] == "direct" for r in mapping.values()))
-            self.assertNotIn("BitmovinPlayerCore.PlaybackConfig.isTimeShiftEnabled", mapping)
+            self.assertEqual(mapping["BitmovinPlayerCore.Player.timeShift"]["status"], "preset")
+            self.assertFalse(any(member.startswith("BitmovinPlayerCore.Player.load(")
+                                 and member != "BitmovinPlayerCore.Player.load(sourceConfig:)" for member in mapping))
+            for member in editable:
+                evidence = mapping["BitmovinPlayerCore." + member]["evidence"]
+                self.assertTrue(any(item["file"].endswith("ConfigurationEditor.swift") for item in evidence))
+                self.assertTrue(any(item["file"].endswith("Configuration.swift") for item in evidence))
         self.assertEqual(exposure["applications"]["ios"]["BitmovinPlayerCore.TimeChangedEvent"]["eventExposure"], "monitored")
         self.assertNotIn("BitmovinPlayerCore.StyleConfig.playerUiJs", exposure["applications"]["tvos"])
 

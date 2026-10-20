@@ -11,6 +11,7 @@ import zipfile
 from collections import Counter
 from pathlib import Path
 
+CONFIGURATION_EXPOSURE = json.loads((Path(__file__).with_name('exposure.json')).read_text())['configuration']
 
 
 def build_scope(inventory, repo, scratch, version):
@@ -23,6 +24,8 @@ def build_scope(inventory, repo, scratch, version):
     SOURCES = 'apps/android/app/src/main/kotlin/com/showcase/app/Sources.kt'
     OFFLINE = 'apps/android/app/src/main/kotlin/com/showcase/app/OfflineManager.kt'
     DVR = 'apps/android/dvr/src/main/kotlin/com/showcase/dvr/Dvr.kt'
+    CONFIG = 'apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt'
+    EDITOR = 'apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt'
 
 
     def qualified(r):
@@ -171,10 +174,14 @@ def build_scope(inventory, repo, scratch, version):
     def mapping(r,m,category):
         owner=r['qualified_owner']; name=m['name']; signature=m['signature']
         result={'status':'missing','evidence':[],'runtime_verified':False}
-        if owner.endswith('.PlayerConfig') and name=='key':
-            result.update(status='code_only',evidence=[ev(MAIN,'Player(context, PlayerConfig(key = licenseKey))','PlayerController.player','Initialized from app metadata, no GUI editor.')])
-        elif owner.endswith('.SourceConfig') and name in ('url','type'):
-            result.update(status='constrained_preset',evidence=[ev(SOURCES,'SourceConfig(url = url, type = type)','ShowcaseSource.toSourceConfig','Only six catalog choices; no arbitrary URL/type input.'),ev(MAIN,'controller.load(source)','ShowcaseScreen source button')])
+        member = 'android:' + owner + '.' + name
+        if m['kind'] == 'property' and member in CONFIGURATION_EXPOSURE:
+            exposed = CONFIGURATION_EXPOSURE[member]
+            result.update(status=exposed['status'], evidence=[
+                ev(item['file'], item['needle'], item['symbol'], exposed['limitation'])
+                for item in exposed['evidence']])
+        elif owner.endswith('.PlayerConfig') and name=='key':
+            result.update(status='code_only',evidence=[ev(CONFIG,'key = licenseKey,','key = licenseKey','Initialized from app metadata, no GUI editor.')])
         elif owner.endswith('.PlayerViewConfig') and name=='uiConfig':
             result.update(status='constrained_preset',evidence=[ev(MAIN,'uiConfig = UiConfig.WebUi(','playerViewConfig'),ev(MAIN,'uiMode = mode','ShowcaseScreen UI picker')])
         elif owner.endswith('.UiConfig.WebUi') and name=='variant':
@@ -183,8 +190,11 @@ def build_scope(inventory, repo, scratch, version):
             result.update(status='code_only',evidence=[ev(MAIN,name+' =','playerViewConfig','Constant path matches the SDK default across all modes. UI mode selection does not change this field.')])
         elif owner.endswith('.UiConfig.WebUi.Variant.Custom') and name=='uiManagerFactoryFunction':
             result.update(status='constrained_preset',evidence=[ev(MAIN,'Variant.Custom(mode.factoryFunction)','playerViewConfig','One of three hardcoded custom factory names.')])
-        elif owner.endswith('.Player') and name=='load' and 'sourceConfig: SourceConfig' in signature:
-            result.update(status='constrained_preset',evidence=[ev(MAIN,'player.load(source.toSourceConfig())','PlayerController.load'),ev(MAIN,'controller.load(source)','ShowcaseScreen source button')])
+        elif owner.endswith('.Player') and name=='load' and 'source: Source' in signature:
+            result.update(status='direct_gui',evidence=[
+                ev(EDITOR,'validated.value?.let { controller.applySource(it) }','controller.applySource(it)','Validated arbitrary HTTP(S) URL and all four source types.'),
+                ev(MAIN,'val source = sourceFactory(sourceSettings.toSourceConfig())','sourceFactory(sourceSettings.toSourceConfig())'),
+                ev(MAIN,'owner.load(source)','owner.load(source)','Only the Source overload is an app GUI path; SourceConfig and other overloads are not exposed.')])
         elif owner.endswith('.Player') and name=='timeShift' and m['kind']=='function':
             result.update(status='constrained_preset',evidence=[ev(MAIN,'player.timeShift(if','PlayerController.seek','Fixed offsets -10/-30/-60 with clamp; live edge passes 0.'),ev(MAIN,'controller.goToLiveEdge()','ShowcaseScreen live-edge button')])
         elif owner.endswith('.Player') and name in ('duration','maxTimeShift','timeShift') and m['kind']=='property':
@@ -192,13 +202,15 @@ def build_scope(inventory, repo, scratch, version):
         elif owner.endswith('.Player') and name in ('isLive','currentTime'):
             result.update(status='code_only',evidence=[ev(MAIN,name+' = player.'+name,'PlayerController.snapshot'),ev(DVR,'fun deriveState(','Dvr.deriveState','Snapshot copies the value but deriveState never reads it; no GUI observation credit.')])
         elif owner.endswith('.Player') and name=='destroy':
-            result.update(status='code_only',evidence=[ev(MAIN,'player.destroy()','PlayerController.release','Lifecycle only.')])
+            result.update(status='code_only',evidence=[ev(MAIN,'player.destroy()','PlayerController.release','Lifecycle only.'),
+                ev(MAIN,'previous.destroy()','PlayerController.applyPlayerSettings','Cleanup after player replacement; no standalone destroy control.')])
         elif owner.endswith('.PlayerView') and name in ('player','setPlayer','onDestroy'):
-            result.update(status='code_only',evidence=[ev(MAIN,'it.player = null','ShowcaseScreen AndroidView.onRelease','Detach/release lifecycle; not an API command control.')])
+            needle = 'view.onDestroy()' if name == 'onDestroy' else 'view.player = null'
+            result.update(status='code_only',evidence=[ev(MAIN,needle,needle,'Detach/release lifecycle; not an API command control.')])
         elif owner.endswith('.AnalyticsPlayerConfig.Enabled') and name=='analyticsConfig':
-            result.update(status='code_only',evidence=[ev(MAIN,'AnalyticsPlayerConfig.Enabled(','PlayerController.player','Enabled from optional app metadata license; no GUI editor.')])
+            result.update(status='code_only',evidence=[ev(MAIN,'AnalyticsPlayerConfig.Enabled(','PlayerController.createPlayer','Enabled from optional app metadata license; no GUI editor.')])
         elif owner=='com.bitmovin.player.api' and name=='Player' and m['kind']=='function':
-            result.update(status='code_only',evidence=[ev(MAIN,'Player(context, PlayerConfig(key = licenseKey))','PlayerController.player','Factory used at Activity creation; no factory/configuration GUI.')])
+            result.update(status='code_only',evidence=[ev(MAIN,'Player(context, config)','PlayerController.createPlayer','Factory used at player creation; its configuration leaves are mapped individually.')])
         elif owner.endswith('.OfflineContentManager') and name in ('getOptions','offlineSourceConfig','deleteAll','release','process'):
             needles={'getOptions':'manager.getOptions()','offlineSourceConfig':'manager.offlineSourceConfig','deleteAll':'manager.deleteAll()','release':'manager.release()','process':'manager.process(options)'}
             result.update(status='code_only',evidence=[ev(OFFLINE,needles[name],'OfflineManager','Helper exists but is never instantiated from MainActivity or GUI.')])
@@ -207,18 +219,25 @@ def build_scope(inventory, repo, scratch, version):
         elif owner.endswith('.OfflineOptionEntry') and name=='action':
             result.update(status='code_only',evidence=[ev(OFFLINE,'?.action = OfflineOptionEntryAction.Download','OfflineManager.onOptionsAvailable','Helper option mutation has no GUI path.')])
         elif owner.endswith('.PlayerEvent.Error') and name=='code':
-            result.update(status='observed',evidence=[ev(MAIN,'append("PlayerError ${it.code.value}")','PlayerController.init PlayerEvent.Error','Numeric error code is rendered in the event log.')])
+            result.update(status='observed',evidence=[ev(MAIN,'append("PlayerError ${it.code.value}")','PlayerController.observePlayer PlayerEvent.Error','Numeric error code is rendered in the event log.')])
         elif owner.endswith('.SourceEvent.Error') and name=='code':
-            result.update(status='observed',evidence=[ev(MAIN,'append("SourceError ${it.code.value}")','PlayerController.init SourceEvent.Error','Numeric error code is rendered in the event log.')])
+            result.update(status='observed',evidence=[ev(MAIN,'append("SourceError ${it.code.value}")','PlayerController.loadCurrentSource SourceEvent.Error','Numeric error code is rendered in the event log.')])
         elif owner.endswith('.PlayerErrorCode') and name=='value':
-            result.update(status='observed',evidence=[ev(MAIN,'append("PlayerError ${it.code.value}")','PlayerController.init PlayerEvent.Error','Numeric error value is rendered in the event log.')])
+            result.update(status='observed',evidence=[ev(MAIN,'append("PlayerError ${it.code.value}")','PlayerController.observePlayer PlayerEvent.Error','Numeric error value is rendered in the event log.')])
         elif owner.endswith('.SourceErrorCode') and name=='value':
-            result.update(status='observed',evidence=[ev(MAIN,'append("SourceError ${it.code.value}")','PlayerController.init SourceEvent.Error','Numeric error value is rendered in the event log.')])
+            result.update(status='observed',evidence=[ev(MAIN,'append("SourceError ${it.code.value}")','PlayerController.loadCurrentSource SourceEvent.Error','Numeric error value is rendered in the event log.')])
         if category=='event':
             family=owner.split('.')[-1]
             needle=family+'.'+name+'::class'
             if (family,name) in {('PlayerEvent','Error'),('SourceEvent','Error'),('PlayerEvent','TimeChanged'),('SourceEvent','Loaded'),('PlayerEvent','TimeShifted'),('PlayerEvent','DvrWindowExceeded')}:
-                result.update(status='observed',evidence=[ev(MAIN,needle,'PlayerController.init','Subscribed event drives log/derived DVR UI; not a writable/action control.')])
+                if family == 'SourceEvent':
+                    action = 'if (ownsSource()) { lastErrorCode = it.code.value; append("SourceError ${it.code.value}") }' if name == 'Error' else 'if (ownsSource()) { lastErrorCode = null; append("SourceLoaded"); refresh() }'
+                    evidence = [ev(MAIN,needle,'PlayerController.loadCurrentSource'), ev(MAIN,action,action)]
+                else:
+                    evidence = [ev(MAIN,needle,'PlayerController.observePlayer')]
+                evidence.append(ev(MAIN,'controller.log.take(12)' if name != 'TimeChanged' else '"mode=${dvr.mode.raw}',
+                                   'ShowcaseScreen event log' if name != 'TimeChanged' else 'ShowcaseScreen DVR text'))
+                result.update(status='observed',evidence=evidence)
         return result
 
 
@@ -242,7 +261,7 @@ def build_scope(inventory, repo, scratch, version):
         if scope.startswith('runtime'):
             candidates={'play','pause','seek','timeShift','mute','unmute','volume','playbackSpeed','setAudio','setAudioTrack','setVideoQuality','setSubtitle','setSubtitleTrack','enterFullscreen','exitFullscreen','enterPictureInPicture','exitPictureInPicture'}
             row['sdk_ui_coverage']={'status':'unaudited' if m['name'] in candidates else 'not_assessed',
-                'evidence':[ev(MAIN,'PlayerView(context, controller.player, playerViewConfig(uiMode))','ShowcaseScreen AndroidView')],
+                'evidence':[ev(MAIN,'PlayerView(context, displayedPlayer, playerViewConfig(uiMode))','ShowcaseScreen AndroidView')],
                 'note':'SDK Web UI and shared custom factories have their own controls. This inventory does not infer native bridge or device GUI coverage from API presence or compilation.'}
         return row
 
@@ -324,6 +343,10 @@ def build_scope(inventory, repo, scratch, version):
         'summary':summary,'rows':rows}
     (ART/'android-coverage-rows.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     (ART/'android-coverage-summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n')
+
+    unknown = set(CONFIGURATION_EXPOSURE) - {row['id'] for row in rows if row['category'] == 'configuration'}
+    if unknown:
+        raise RuntimeError('Configuration exposure references an unavailable scoped SDK field: ' + ', '.join(sorted(unknown)))
 
     # Exhaustive flattened declaration companion. No public callable is lost merely
     # because it is a builder, constructor/static alias, optional module or payload
