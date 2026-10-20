@@ -8,7 +8,7 @@ import { afterEach, expect, it, vi } from "vitest";
 const require = createRequire(resolve("scripts/write-runtime-config.cjs"));
 const fs = require("node:fs") as typeof import("node:fs");
 const { writeRuntimeConfig } = require("../scripts/write-runtime-config.cjs") as {
-  writeRuntimeConfig: (destination: string, environment: Record<string, string>, withoutCredentials?: boolean) => void;
+  writeRuntimeConfig: (destination: string, environment: Record<string, string>, withoutCredentials?: boolean, runtimeChecks?: boolean) => void;
 };
 const directories: string[] = [];
 function destination(): string {
@@ -63,7 +63,7 @@ it("sets runtime keys before evaluating the existing App and registers its compo
   context.require = (name: string) => {
     if (name === "./runtime.local.json") return { playerKey: "SYNTHETIC_PLAYER_KEY", analyticsKey: "" };
     if (name === "react-native") return { AppRegistry: { registerComponent: (name: string, component: () => unknown) => registrations.push([name, component]) } };
-    if (name === "./app.json") return { name: "com.showcase.dvr.vega.main" };
+    if (name === "./app.json") return { name: "com.playerlab.vega.main" };
     if (name === "./src/App") {
       expect(context.BITMOVIN_PLAYER_LICENSE_KEY).toBe("SYNTHETIC_PLAYER_KEY");
       expect(context.BITMOVIN_ANALYTICS_LICENSE_KEY).toBe("");
@@ -72,6 +72,23 @@ it("sets runtime keys before evaluating the existing App and registers its compo
     throw new Error("Unexpected entry import");
   };
   runInNewContext(readFileSync(resolve("index.js"), "utf8"), context);
-  expect(registrations[0]?.[0]).toBe("com.showcase.dvr.vega.main");
+  expect(registrations[0]?.[0]).toBe("com.playerlab.vega.main");
   expect(registrations[0]?.[1]()).toBe(App);
+});
+
+it("enables the public runtime entry only for an explicitly generated test configuration", () => {
+  const path = destination();
+  writeRuntimeConfig(path, {}, true, true);
+  expect(JSON.parse(readFileSync(path, "utf8"))).toEqual({ playerKey: "", analyticsKey: "", runtimeChecks: true });
+  const RuntimeCheckApp = () => null;
+  const registrations: Array<() => unknown> = [];
+  const context = { require: (name: string) => {
+    if (name === "./runtime.local.json") return { playerKey: "", analyticsKey: "", runtimeChecks: true };
+    if (name === "react-native") return { AppRegistry: { registerComponent: (_name: string, component: () => unknown) => registrations.push(component) } };
+    if (name === "./app.json") return { name: "com.playerlab.vega.main" };
+    if (name === "./src/RuntimeCheckApp") return { RuntimeCheckApp };
+    throw new Error("Normal App must be wrapped through the explicit runtime entry");
+  } };
+  runInNewContext(readFileSync(resolve("index.js"), "utf8"), context);
+  expect(registrations[0]?.()).toBe(RuntimeCheckApp);
 });

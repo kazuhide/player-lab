@@ -5,7 +5,7 @@ export function configurationCode(applied: Configuration): string {
   return [
     'import type { PlayerConfig, SourceConfig } from "bitmovin-player";',
     "",
-    `const playerConfig = ${JSON.stringify({ playback: applied.player.playback, buffer: applied.player.buffer, adaptation: applied.player.adaptation, key: "YOUR_PLAYER_KEY", ui: false, tweaks: { app_id: "com.showcase.dvr.vega" } }, null, 2)} as PlayerConfig;`,
+    `const playerConfig = ${JSON.stringify({ playback: applied.player.playback, buffer: applied.player.buffer, adaptation: applied.player.adaptation, key: "YOUR_PLAYER_KEY", ui: false, tweaks: { app_id: "com.playerlab.vega" } }, null, 2)} as PlayerConfig;`,
     `const sourceConfig = ${JSON.stringify(applied.source, null, 2)} as SourceConfig;`,
     "",
     "// Pass playerConfig and sourceConfig to this sample's BitmovinPlayer component.",

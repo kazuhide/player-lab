@@ -32,6 +32,7 @@ import { SOURCES, type ShowcaseSource } from "./src/sources";
 import { ConfigurationPanel } from "./src/ConfigurationPanel";
 import { configurationCode } from "./src/configurationCode";
 import { initialDraft, parseConfiguration, presetDraft, sameConfiguration, supportsSource, type Configuration } from "./src/configuration";
+import type { RuntimeAppState, RuntimeMonitor, RuntimeOwner } from "./src/runtimeObservation";
 
 // Both keys flow from the repo-root .env via scripts/sync-env.sh → this app's .env
 // (EXPO_PUBLIC_* = client-embedded; license keys are domain-locked, not secret).
@@ -56,7 +57,7 @@ const WEBUI_CSS = Platform.select({
 
 /** A selectable player UI: the SDK default, or one of our shared custom factories (§12). */
 interface UiMode {
-  label: string;
+  label: RuntimeAppState["ui"];
   factoryFunction: string | null;
 }
 const DEFAULT_MODE: UiMode = { label: "Default", factoryFunction: null };
@@ -67,7 +68,8 @@ const UI_MODES: UiMode[] = [
   { label: "Cinema", factoryFunction: "bitmovin.playerui.UIFactory.buildCinemaUI" },
 ];
 
-export default function App(): React.JSX.Element {
+/** The optional observer is supplied only by the generated runtime-check entry. */
+export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor } = {}): React.JSX.Element {
   const platform = Platform.OS === "ios" ? "ios" : "android";
   const sources = SOURCES.filter((source) => supportsSource(source, platform));
   const [uiMode, setUiMode] = useState<UiMode>(DEFAULT_MODE);
@@ -79,7 +81,16 @@ export default function App(): React.JSX.Element {
   const [timeShiftEnabled, setTimeShiftEnabled] = useState(true);
   const [log, setLog] = useState<string[]>([]);
   const appliedCode = useMemo(() => configurationCode(applied, platform, uiMode.factoryFunction), [applied, platform, uiMode]);
+  useEffect(() => { runtimeChecks?.appliedCode(appliedCode); }, [runtimeChecks, appliedCode]);
   const append = useCallback((message: string) => setLog((lines) => [message, ...lines].slice(0, 40)), []);
+  useEffect(() => {
+    runtimeChecks?.appState({ ui: uiMode.label, revision, dvrAllowed: timeShiftEnabled, logCount: log.length,
+      sourceType: applied.draft.type, startOffset: applied.source.options?.startOffset ?? null,
+      autoplay: applied.draft.autoplay, startupMuted: applied.draft.muted,
+      forwardBuffer: applied.player.bufferConfig?.audioAndVideo?.forwardDuration ?? null,
+      maxBitrate: applied.player.adaptationConfig?.maxSelectableBitrate ?? null,
+      externalSubtitleConfigured: Boolean(applied.source.subtitleTracks?.length) });
+  }, [runtimeChecks, uiMode.label, revision, timeShiftEnabled, log.length, applied]);
   const selectSource = (source: ShowcaseSource) => {
     const fields = presetDraft(source);
     const next = parseConfiguration({ ...applied.draft, ...fields }, platform);
@@ -101,7 +112,7 @@ export default function App(): React.JSX.Element {
     }
   };
   return (
-    <ScrollView contentContainerStyle={styles.container} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}>
+    <ScrollView testID="player-lab-screen" contentContainerStyle={styles.container} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}>
       {/* Player UI: the SDK default vs. our shared @showcase/ui-shared custom factories (§12). */}
       <View style={styles.row}>
         <Text style={styles.label}>UI:</Text>
@@ -116,7 +127,7 @@ export default function App(): React.JSX.Element {
       </View>
       <PlayerPane key={`${uiMode.label}:${revision}`} uiMode={uiMode} source={applied.source} playerConfig={applied.player}
         sources={sources} onSelectSource={selectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={setTimeShiftEnabled}
-        log={log} append={append} />
+        log={log} append={append} runtimeChecks={runtimeChecks} />
       <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
         onReset={() => { setDraft(applied.draft); setError(null); }}
         changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} appliedCode={appliedCode} />
@@ -134,9 +145,10 @@ interface PlayerPaneProps {
   onTimeShiftEnabled: (enabled: boolean) => void;
   log: string[];
   append: (message: string) => void;
+  runtimeChecks?: RuntimeMonitor | undefined;
 }
 
-function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append }: PlayerPaneProps): React.JSX.Element {
+function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks }: PlayerPaneProps): React.JSX.Element {
   const player = usePlayer(
     uiMode.factoryFunction
       ? {
@@ -155,26 +167,32 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
   const [viewReady, setViewReady] = useState(false);
   const snapshots = useRef<SnapshotController | null>(null);
   const active = useRef(true);
+  const observed = useRef<RuntimeOwner | null>(null);
 
   useEffect(() => {
     const controller = new SnapshotController(player, setDvr, append);
     active.current = true;
     snapshots.current = controller;
+    const owner = runtimeChecks?.attach(player) ?? null;
+    observed.current = owner;
     return () => {
       active.current = false;
       controller.dispose();
       if (snapshots.current === controller) snapshots.current = null;
-      player.destroy();
+      try { player.destroy(); }
+      finally { owner?.retire(); }
+      if (observed.current === owner) observed.current = null;
     };
-  }, [player, append]);
+  }, [player, append, runtimeChecks]);
 
   useEffect(() => {
     if (!viewReady || !active.current) return;
     snapshots.current?.sourceChanged();
     setDvr(null);
     append(`load ${source.title || "source"}`);
-    // Player.load is void in wrapper 1.28.0; native Source/Player error events report failures.
+    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.
     player.load(source);
+    observed.current?.sourceLoad();
   }, [source, player, viewReady, append]);
 
   useEffect(() => {
@@ -192,15 +210,18 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
 
   return (
     <>
+      <View testID="player-lab-player">
       <PlayerView
         player={player}
         style={styles.player}
         {...(viewConfig ? { config: viewConfig } : {})}
-        onPlayerViewReady={() => { if (active.current) setViewReady(true); }}
-        onTimeChanged={() => { if (active.current) void refresh(); }}
+        onPlayerViewReady={() => { if (active.current) { observed.current?.viewReady(); setViewReady(true); } }}
+        onTimeChanged={() => { if (active.current) { observed.current?.event("timeChanged"); void refresh(); } }}
+        onCueEnter={() => { if (active.current) observed.current?.event("cueEnter"); }}
         onSourceLoaded={() => {
           if (!active.current) return;
           append("SourceLoaded");
+          observed.current?.event("sourceLoaded");
           void refresh();
         }}
         onTimeShifted={() => {
@@ -208,9 +229,10 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
           append("TimeShifted");
           void refresh();
         }}
-        onPlayerError={(event) => { if (active.current) append(typeof event?.code === "number" ? `Player error (${event.code})` : "Player error"); }}
-        onSourceError={(event) => { if (active.current) append(typeof event?.code === "number" ? `Source error (${event.code})` : "Source error"); }}
+        onPlayerError={(event) => { if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Player error (${event.code})` : "Player error"); } }}
+        onSourceError={(event) => { if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Source error (${event.code})` : "Source error"); } }}
       />
+      </View>
 
       <View style={styles.row}>
         {sources.map((s) => (

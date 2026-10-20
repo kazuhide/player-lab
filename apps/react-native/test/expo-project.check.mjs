@@ -22,6 +22,7 @@ function fixture(run) {
 test("generates the existing App and pinned native project inputs without a license", () => fixture(({ assets, target }) => {
   createExpoProject({ target, assets });
   assert.equal(readFileSync(join(target, "App.tsx"), "utf8"), readFileSync(join(appRoot, "App.tsx"), "utf8"));
+  assert.doesNotMatch(readFileSync(join(target, "index.tsx"), "utf8"), /RuntimeCheckApp/);
   assert.equal(readFileSync(join(target, "src/configuration.ts"), "utf8"), readFileSync(join(appRoot, "src/configuration.ts"), "utf8"));
   const config = JSON.parse(readFileSync(join(target, "app.json"), "utf8")).expo;
   assert.equal(config.ios.bundleIdentifier, "com.playerlab.reactnative");
@@ -39,6 +40,13 @@ test("generates the existing App and pinned native project inputs without a lice
   assert.equal(manifest.dependencies["bitmovin-player-react-native"], "1.29.0");
   assert.match(readFileSync(join(target, ".gitignore"), "utf8"), /^\.env$/m);
   assert.throws(() => statSync(join(target, ".env")), { code:"ENOENT" });
+}));
+
+test("the explicit runtime-check entry retains the exact production App and pinned dependencies", () => fixture(({ assets, target }) => {
+  createExpoProject({ target, assets, runtimeChecks:true });
+  assert.match(readFileSync(join(target, "index.tsx"), "utf8"), /RuntimeCheckApp/);
+  assert.equal(readFileSync(join(target, "App.tsx"), "utf8"), readFileSync(join(appRoot, "App.tsx"), "utf8"));
+  assert.deepEqual(readFileSync(join(target, "package.json")), readFileSync(join(appRoot, "expo/package.json")));
 }));
 
 test("copies both built assets byte-for-byte", () => fixture(({ assets, target }) => {

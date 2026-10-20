@@ -28,6 +28,7 @@ export function configurationCode(applied: Configuration, platform: NativePlatfo
     "",
     "// Player and Analytics license values are not included.",
     "// The app's Allow DVR control is separate from SDK configuration.",
+    "// An external track's isDefault flag is metadata; choose subtitles in the player menu to enable them.",
   );
   return lines.join("\n");
 }

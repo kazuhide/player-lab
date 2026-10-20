@@ -58,6 +58,16 @@ positive Android buffer target: zero has no automatic-selection meaning there.
 Blank leaves the platform SDK default (iOS 0, Android 50 seconds) untouched.
 No startup/restart thresholds are overridden.
 
+The external subtitle fields add one WebVTT track: HTTP/HTTPS URL, menu label,
+IETF language tag (for example, `en` or `en-US`), and **Mark as default**.
+URL, label and language are required together; language tags are normalized.
+A blank subtitle URL removes the external track and clears its metadata.
+**Mark as default** sets the SDK track metadata; it does not promise that
+subtitles become enabled. Select the track through the normal Player subtitle
+menu. Reset, Apply, UI replacement and applied-code output use the same
+validated subtitle values as the other source fields. Choosing a source preset
+clears the external subtitle fields.
+
 URL validation uses the locally imported `URL` from `react-native-url-polyfill`
 4.0.0. Older React Native global URL implementations leave `protocol` and
 `hostname` unimplemented, which would reject valid sources before loading.
@@ -85,9 +95,13 @@ The direct editable mappings are:
 | Autoplay / startup mute | `PlayerConfig.playbackConfig.isAutoplayEnabled`, `.isMuted` |
 | Forward buffer | `PlayerConfig.bufferConfig.audioAndVideo.forwardDuration` |
 | Bitrate cap | `PlayerConfig.adaptationConfig.maxSelectableBitrate` |
+| External WebVTT URL / label / language / default metadata | `SubtitleTrack.url`, `.label`, `.language`, `.isDefault` |
 
 These mappings use the [public wrapper 1.29.0 source declarations](https://github.com/bitmovin/bitmovin-player-react-native/tree/v1.29.0/src),
 including its [platform-specific buffer documentation](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/src/bufferConfig.ts).
+The [public subtitle declarations](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/src/subtitleTrack.ts)
+define the track metadata. This screen fixes the external track format to WebVTT;
+the enclosing `SourceConfig.subtitleTracks` array is assembled by the app.
 The public [Android](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/android/src/main/java/com/bitmovin/player/reactnative/converter/JsonConverter.kt#L163-L165)
 and [iOS](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/ios/RCTConvert%2BBitmovinPlayer.swift#L971-L972)
 converters explain the bitrate integer limits. The URL package documents
@@ -133,6 +147,15 @@ omit it to create a project without keys. It never inserts keys into `app.json`.
 The copied `.env` supplies `EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY` and optional
 `EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY`. Do not commit that file or native
 build output.
+
+The generator also accepts **`--runtime-checks`** for a dedicated test host.
+That entry wraps the same production `App` with an explicit read-only report
+and a teardown button. The normal entry has neither. Its public SDK getters
+report finite playback clocks, playing/mute state and subtitle counts without
+serializing keys, URLs, native identifiers, cue text or SDK messages. Reported
+React Native destruction is the wrapper's `isDestroyed` flag; the wrapper's
+`destroy()` returns void and does not expose a native completion acknowledgement.
+Keep this entry out of ordinary app screenshots and distribution builds.
 
 The generator copies the environment file once. To refresh an existing external
 host after changing the repository keys, run these commands from the repository

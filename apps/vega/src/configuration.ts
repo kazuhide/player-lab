@@ -16,6 +16,10 @@ export interface ConfigurationDraft {
   videoForwardDuration: string;
   audioForwardDuration: string;
   maxVideoBitrate: string;
+  subtitleUrl: string;
+  subtitleLabel: string;
+  subtitleLanguage: string;
+  subtitleEnabled: boolean;
 }
 export interface Configuration {
   source: SourceConfig;
@@ -23,10 +27,11 @@ export interface Configuration {
   draft: ConfigurationDraft;
 }
 
-export function presetDraft(source: VegaSource): Pick<ConfigurationDraft, "url" | "type" | "title" | "poster" | "startOffset" | "timeline"> {
+export function presetDraft(source: VegaSource): Pick<ConfigurationDraft, "url" | "type" | "title" | "poster" | "startOffset" | "timeline" | "subtitleUrl" | "subtitleLabel" | "subtitleLanguage" | "subtitleEnabled"> {
   return {
     url: source.config.hls ?? source.config.dash ?? "", type: source.config.hls ? "hls" : "dash",
     title: source.config.title ?? source.label, poster: source.config.poster ?? "", startOffset: "", timeline: "default",
+    subtitleUrl: "", subtitleLabel: "", subtitleLanguage: "", subtitleEnabled: false,
   };
 }
 
@@ -57,6 +62,16 @@ export function parseConfiguration(draft: ConfigurationDraft): Configuration {
   if (!["hls", "dash", "progressive"].includes(draft.type)) throw new Error("Select a supported source type.");
   const title = draft.title.trim();
   const poster = draft.poster.trim() ? httpUrl(draft.poster, "Poster URL") : "";
+  const subtitleUrl = draft.subtitleUrl.trim() ? httpUrl(draft.subtitleUrl, "External WebVTT URL") : "";
+  const subtitleLabel = subtitleUrl ? draft.subtitleLabel.trim() : "";
+  let subtitleLanguage = "";
+  if (subtitleUrl) {
+    if (!subtitleLabel) throw new Error("Enter a label for the external subtitle track.");
+    try { subtitleLanguage = Intl.getCanonicalLocales(draft.subtitleLanguage.trim())[0] ?? ""; }
+    catch { /* Report the field error without forwarding invalid text to the SDK. */ }
+    if (!subtitleLanguage) throw new Error("Subtitle language must be an IETF language tag, such as en or en-US.");
+  }
+  const subtitleEnabled = Boolean(subtitleUrl && draft.subtitleEnabled);
   const startOffset = optionalNumber(draft.startOffset, "Start offset");
   const video = optionalNumber(draft.videoForwardDuration, "Video forward buffer");
   const audio = optionalNumber(draft.audioForwardDuration, "Audio forward buffer");
@@ -68,6 +83,8 @@ export function parseConfiguration(draft: ConfigurationDraft): Configuration {
   return {
     source: {
       ...media, ...(title ? { title } : {}), ...(poster ? { poster } : {}),
+      ...(subtitleUrl ? { subtitleTracks: [{ url: subtitleUrl, label: subtitleLabel, lang: subtitleLanguage,
+        id: "player-lab-external", kind: "subtitle", enabled: subtitleEnabled }] } : {}),
       ...(startOffset !== undefined || reference !== undefined ? { options: {
         ...(startOffset !== undefined ? { startOffset } : {}),
         ...(reference !== undefined ? { startOffsetTimelineReference: reference } : {}),
@@ -81,7 +98,8 @@ export function parseConfiguration(draft: ConfigurationDraft): Configuration {
       } } : {}),
       ...(maxVideoBitrate !== undefined ? { adaptation: { bitrates: { maxSelectableVideoBitrate: maxVideoBitrate } } } : {}),
     },
-    draft: { ...draft, url, title, poster, startOffset: startOffset === undefined ? "" : String(startOffset),
+    draft: { ...draft, url, title, poster, subtitleUrl, subtitleLabel, subtitleLanguage, subtitleEnabled,
+      startOffset: startOffset === undefined ? "" : String(startOffset),
       videoForwardDuration: video === undefined ? "" : String(video), audioForwardDuration: audio === undefined ? "" : String(audio),
       maxVideoBitrate: maxVideoBitrate === undefined ? "" : String(maxVideoBitrate) },
   };

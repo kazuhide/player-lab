@@ -14,7 +14,7 @@ function inside(parent, child) {
   return path === "" || (!path.startsWith(`..${sep}`) && path !== ".." && !isAbsolute(path));
 }
 
-export function createExpoProject({ target, assets = join(repoRoot, "packages/ui-shared/dist"), envFrom }) {
+export function createExpoProject({ target, assets = join(repoRoot, "packages/ui-shared/dist"), envFrom, runtimeChecks = false }) {
   target = resolve(target);
   if (inside(repoRoot, target)) throw new Error("Create the project outside the sample checkout.");
   if (existsSync(target)) throw new Error("The external project must be a new directory.");
@@ -31,6 +31,7 @@ export function createExpoProject({ target, assets = join(repoRoot, "packages/ui
   for (const name of ["app.json", "package.json", "pnpm-lock.yaml", "index.tsx", "tsconfig.json", ".gitignore", ".nvmrc"]) {
     copyFileSync(join(appRoot, "expo", name), join(target, name));
   }
+  if (runtimeChecks) copyFileSync(join(appRoot, "expo/index.runtime.tsx"), join(target, "index.tsx"));
   copyFileSync(join(appRoot, "App.tsx"), join(target, "App.tsx"));
   cpSync(join(appRoot, "src"), join(target, "src"), {
     recursive:true,
@@ -51,14 +52,14 @@ export function createExpoProject({ target, assets = join(repoRoot, "packages/ui
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const { values, positionals } = parseArgs({
     allowPositionals:true,
-    options:{ "env-from":{ type:"string" }, help:{ type:"boolean" } },
+    options:{ "env-from":{ type:"string" }, "runtime-checks":{ type:"boolean" }, help:{ type:"boolean" } },
   });
   if (values.help) {
-    console.log("node create-expo-project.mjs NEW_EXTERNAL_DIRECTORY [--env-from GENERATED_ENV_FILE]");
+    console.log("node create-expo-project.mjs NEW_EXTERNAL_DIRECTORY [--env-from GENERATED_ENV_FILE] [--runtime-checks]");
   } else {
     try {
       if (positionals.length !== 1) throw new Error("Supply one new external project directory.");
-      const target = createExpoProject({ target:positionals[0], envFrom:values["env-from"] });
+      const target = createExpoProject({ target:positionals[0], envFrom:values["env-from"], runtimeChecks:values["runtime-checks"] });
       console.log(`Created Player Lab React Native in ${target}. Install the pinned dependencies, then run Expo prebuild.`);
     } catch (error) {
       console.error(error instanceof Error ? error.message : "Project generation failed.");

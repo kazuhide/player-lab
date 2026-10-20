@@ -24,6 +24,7 @@ import HlsModule = require("bitmovin-player/modules/bitmovinplayer-hls");
 import AbrModule = require("bitmovin-player/modules/bitmovinplayer-abr");
 import ContainerTsModule = require("bitmovin-player/modules/bitmovinplayer-container-ts");
 import ContainerMp4Module = require("bitmovin-player/modules/bitmovinplayer-container-mp4");
+import SubtitlesModule = require("bitmovin-player/modules/bitmovinplayer-subtitles");
 
 let modulesRegistered = false;
 
@@ -43,6 +44,7 @@ export function registerVegaPlayerModules(): void {
   Player.addModule(AbrModule.default);
   Player.addModule(ContainerTsModule.default);
   Player.addModule(ContainerMp4Module.default);
+  Player.addModule(SubtitlesModule.default);
   modulesRegistered = true;
 }
 
