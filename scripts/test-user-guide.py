@@ -85,6 +85,10 @@ class GuideTests(unittest.TestCase):
             self.assertEqual(len(self.content[language]['controls']['controls']), 41)
             self.assertEqual(len(self.content[language]['themes']['themes']), 14)
 
+    def test_published_content_builds_with_the_actual_api_report(self):
+        pages = build(load_content(ROOT / 'docs/guide'))
+        self.assertEqual(set(pages), GUIDE_FILES)
+
     def test_every_local_link_and_fragment_resolves_under_the_project(self):
         parsed = {}
         for name, data in self.pages.items():

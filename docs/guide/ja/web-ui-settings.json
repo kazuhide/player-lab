@@ -181,7 +181,7 @@
     },
     {
       "path": "tests/e2e/specs/app-ui.spec.ts",
-      "line": 329
+      "line": 348
     },
     {
       "url": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html",

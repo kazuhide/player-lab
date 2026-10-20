@@ -41,7 +41,7 @@
         "text": "対応付けはソースの静的な証跡に基づきます。ブラウザーでの再生と対象を絞ったGUI回帰テストは別の確認であり、すべての設定候補・イベント・ブラウザー・機器・DRM・外部サービスの動作を保証しません。"
       },
       {
-        "source": "Network timeouts are edited in seconds: one default and seven explicit request types. Empty removes the selected override. These controls do not expose request callbacks or every network request type.",
+        "source": "Network timeouts are edited in seconds: a default and 7 explicit request types. Empty removes the selected override. These controls do not expose request callbacks or every network request type.",
         "text": "通信タイムアウトは秒単位で、全体の既定値と明示した7種類のリクエストを編集します。空欄で該当する上書きだけを削除します。リクエストのコールバックや全リクエスト種別を編集する画面ではありません。"
       }
     ],

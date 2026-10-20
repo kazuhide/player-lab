@@ -404,7 +404,7 @@
       "id": "localization.language",
       "label": "Player UI language",
       "kind": "text",
-      "description": "Use auto for the browser language, or en, de, es, fr, nl or pt. Other languages fall back to English. Separate from the app Japanese/English selector.",
+      "description": "Initially en (English). Use auto for the browser language, or en, de, es, fr, nl or pt. Other languages fall back to English. Separate from the app Japanese/English selector.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
         "line": 426

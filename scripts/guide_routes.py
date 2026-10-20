@@ -26,7 +26,7 @@ COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'veg
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = 'a95c28cf54b9ada4a08cf887ffd634526b6f4fa8'
+SOURCE_REVISION = 'f87f09b6d062b6d74628878e38c0baf34f92d991'
 CONTENT_REVIEW = '2026-10-20'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 

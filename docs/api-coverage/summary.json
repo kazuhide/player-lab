@@ -22069,7 +22069,7 @@
         "The 22 observed events comprise 14 named log entries, 6 displayed-state refresh triggers and 2 derived playback-quality metric updates. This does not expose every event payload field.",
         "10 shared adaptive-bitrate GUI controls write the same value to 20 desktop and mobile configuration paths. Those paths count as fields, but their desktop and mobile values cannot be edited independently.",
         "The mapping is static source evidence. Browser playback and targeted GUI regressions are separate checks and do not establish that every option, event, browser, device, DRM system or external service works.",
-        "Network timeouts are edited in seconds: one default and seven explicit request types. Empty removes the selected override. These controls do not expose request callbacks or every network request type."
+        "Network timeouts are edited in seconds: a default and 7 explicit request types. Empty removes the selected override. These controls do not expose request callbacks or every network request type."
       ],
       "scopes": [
         {
@@ -22765,7 +22765,7 @@
     }
   ],
   "checkedAt": "2026-10-20",
-  "inputSha256": "4f03d69d64c40ded7ed93df5b0e716f2c454fa1c40f78ec0c5f106f4cb463a22",
+  "inputSha256": "482d7d644a81867a9666d86b30193a5ba30384a9ca61214cc75b8eb962ef73df",
   "schemaVersion": 1,
   "sdks": [
     {
@@ -22891,5 +22891,5 @@
       "version": "4.23.0"
     }
   ],
-  "sourceRevision": "a95c28cf54b9ada4a08cf887ffd634526b6f4fa8"
+  "sourceRevision": "f87f09b6d062b6d74628878e38c0baf34f92d991"
 }

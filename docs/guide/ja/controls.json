@@ -404,7 +404,7 @@
       "id": "localization.language",
       "label": "Player UIの言語",
       "kind": "text",
-      "description": "autoはブラウザーの言語を使用します。組み込み言語はen・de・es・fr・nl・ptで、未対応の言語は英語になります。アプリ自体の日英切替とは別です。",
+      "description": "初期値はen（英語）です。autoはブラウザーの言語を使用します。組み込み言語はen・de・es・fr・nl・ptで、未対応の言語は英語になります。アプリ自体の日英切替とは別です。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
         "line": 426
