@@ -272,6 +272,7 @@ The configured VOD pass does not close this live-edge failure.
 
 These configuration checks do not qualify physical devices, Android TV/Fire TV,
 completed internal SDK resource cleanup, casting, offline playback, or Analytics
-receipt. React Native still needs an external Expo development build and shared
-UI delivery; Vega still needs its Kepler build and complete runtime compatibility
-setup. Neither has been qualified on a device by the mocked tests.
+receipt. The [React Native host instructions](../apps/react-native/README.md)
+and [Vega host instructions](../apps/vega/README.md) provide separate native build
+paths and record their simulator, emulator and virtual-device results and limits.
+Their mocked tests do not establish native playback or completed resource release.
