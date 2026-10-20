@@ -1197,7 +1197,7 @@
           "category": "observation",
           "scope": "PlayerAPI",
           "deprecated": false,
-          "status": "code-only",
+          "status": "observed",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerAPI.html#getSource",
           "evidence": [
             {
@@ -1213,6 +1213,13 @@
               "file": "apps/web/src/main.ts",
               "line": 728,
               "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 530,
+              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784",
+              "symbol": "Source.title.read via ConfigPanelOptions.getSource"
             }
           ]
         },

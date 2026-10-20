@@ -243,10 +243,18 @@ for (const language of languages) {
       await page.goto(path);
       await expectCompleteTweakCatalog(page);
       const search = page.locator("[data-guide-search]");
-      await search.fill("PlayerConfig.tweaks.stop_download_on_pause");
-      const result = page.locator("[data-search-results]").getByRole("link", {
-        name: "PlayerConfig.tweaks.stop_download_on_pause", exact: true,
-      });
+      const title = "PlayerConfig.tweaks.stop_download_on_pause";
+      await search.fill(title);
+      const matches = page.locator("[data-search-results]").getByRole("link", { name: title, exact: true });
+      await expect(matches).toHaveCount(1 + coverage.applications.filter((app) =>
+        app.rows.some((row) => row.id === title)).length);
+      const firstId = await page.locator("article[data-setting]").filter({
+        has: page.getByRole("heading", { name: "tweaks.stop_download_on_pause", exact: true }),
+      }).getAttribute("id");
+      expect(firstId).toBeTruthy();
+      const expected = new URL(`#${firstId}`, page.url());
+      const result = page.locator(`[data-search-results] a[href="${expected.href}"]`);
+      await expect(result).toHaveText(title);
       await expect(result).toBeVisible();
       const first = new URL((await result.getAttribute("href"))!, page.url());
       const secondId = await page.locator("article[data-setting]").filter({
@@ -319,7 +327,13 @@ for (const language of languages) {
           const selectSetting = async (field: string): Promise<URL> => {
             const title = `PlayerConfig.tweaks.${field}`;
             await search.fill(title);
-            const result = results.getByRole("link", { name: title, exact: true });
+            const id = await page.locator("article[data-setting]").filter({
+              has: page.getByRole("heading", { name: `tweaks.${field}`, exact: true }),
+            }).getAttribute("id");
+            expect(id).toBeTruthy();
+            const expected = new URL(`#${id}`, page.url());
+            const result = results.locator(`a[href="${expected.href}"]`);
+            await expect(result).toHaveText(title);
             await expect(result).toBeVisible();
             const destination = new URL((await result.getAttribute("href"))!, page.url());
             const oldURL = page.url();
