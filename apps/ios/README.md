@@ -118,6 +118,14 @@ current source configuration while recreating the player.
 On iOS, the "Player UI" picker selects the default Web UI or Sports, Live, and
 Cinema factories. tvOS keeps its native System UI.
 
+The tvOS player is inline beside the app controls. Use the remote's **Play/Pause**
+button to start or pause the current player; the app handles this command even
+while a source or configuration button has focus. AVKit's transport controls need
+full-screen video, as shown in the
+[official tvOS sample](https://github.com/bitmovin/bitmovin-player-ios-samples/blob/main/BasicPlaybackTV/BasicPlaybackTV/ContentView.swift).
+The command uses SwiftUI's
+[`onPlayPauseCommand`](https://developer.apple.com/documentation/swiftui/view/onplaypausecommand(perform:)).
+
 Custom modes point `config.styleConfig.playerUiJs` and `playerUiCss` at bundled
 `WebUI/bitmovinplayer-ui.*` files. They set
 `config.styleConfig.userInterfaceConfig = BitmovinUserInterfaceConfig()` and a
@@ -137,6 +145,14 @@ license and a running live source, check seeking within the window, returning to
 live, recovery when paused media expires, and a live stream becoming on-demand.
 The app also checks for the latter transition from `TimeChanged` snapshots,
 because relying only on `DurationChanged` can miss it.
+
+Some completed HLS streams keep the native `isLive == true` and infinite duration
+after [`PlaybackFinished`](https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerlistener/onplaybackfinished(_:player:)).
+The app shows `ended-live` and disables its live-seek commands for that loaded
+source. The shared Live and Sports UIs hide LIVE controls and show the SDK's
+Replay overlay. Replay can advance the same source again without restoring live
+commands; a new source load clears the completion state. Native SDK timing
+values remain unchanged.
 
 The opt-in `Showcase-iOS-Runtime` scheme runs a hosted test against the real
 library and shared Web UI. After the setup/build steps above, select an available
@@ -187,6 +203,53 @@ repository's cleanup patch: one test, zero failures, 11.670 seconds. The shared
 Sports UI was also inspected in the retained image. This is simulator evidence;
 physical-device, tvOS, remote-control, casting, and offline playback checks remain
 separate.
+
+### Controlled HLS ending
+
+The `Showcase-iOS-Finalization` and `Showcase-tvOS-Finalization` schemes use real
+SDK playback and a local 60-second media fixture. Generate the public media as
+described in [local test media](../../docs/local-test-media.md), then start this
+loopback-only server from the repository root with Node 24.19.0:
+
+```sh
+python3 encoding/test-streams/local.py --output .cache/apple-runtime-media
+node apps/ios/runtime-fixture.mjs .cache/apple-runtime-media/vod-baseline
+```
+
+Keep the server running and run one scheme at a time from `apps/ios`:
+
+```sh
+xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Finalization \
+  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \
+  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO test
+xcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-Finalization \
+  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \
+  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO test
+```
+
+These hosted tests need the app's allowed Player license. They play actual media,
+check fresh native rewind completion against the requested media time, then add
+HLS `ENDLIST` without replacing the source. They require native playback
+completion, advancing replay on the same player/source, disabled app live commands
+during replay, reset on a new live load, and an explicit VOD source switch. The
+iOS test also clicks the visible shared Web UI Replay button and checks its LIVE
+controls' own hidden state and rendered visibility. tvOS uses native System UI;
+the hosted test starts/replays through the public SDK API and does not establish
+remote-command or GUI Apply behavior. The server uses ports 5198 and 5199 and
+is intended for simulators on the same Mac. Stop it with Ctrl-C after testing.
+
+On 2026-10-21, the controlled ending test passed on iOS 26.4 and tvOS 26.4
+simulators with Player 3.128.0: one test each, in 20.875 and 21.362 seconds.
+Separate checks used the normal app's actual configuration controls and native
+read-only observations. They verified Reset, source-only Apply on the same
+player, recreation Apply destroying the old player, retained source options and
+app DVR selection, and advancing video. iOS also retained these settings when
+switching to the bundled Sports UI; tvOS used the remote Play/Pause command.
+These checks used the public 734-second Tears of Steel VOD preset, separate from
+the 60-second ending fixture. They do not measure bitrate enforcement, buffering
+performance, or physical-device behavior.
 
 ## Configuration tests
 
