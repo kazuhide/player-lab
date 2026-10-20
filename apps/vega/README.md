@@ -280,6 +280,13 @@ seconds. That was cold relaunch, not retained playback recovery. Earlier
 disappearing instances had no usable crash reason; they are not classified as
 normal shutdown or media-resource reclamation.
 
+A separate instrumented VVD check observed deinitializeSync(1000) returning
+timedout. SDK destruction subsequently fulfilled and a fresh foreground surface
+was created, but the unconfirmed native release kept replacement blocked. A
+separate control that synchronously called public native pause() first still
+timed out. This identifies the blocked cleanup step; it does not establish the
+cause inside the native SDK.
+
 Process RSS/PSS/USS and file-descriptor/socket counts were sampled separately
 before/after Apply and background. They are not exact native VideoPlayer,
 media-element or surface allocation counts, and the differing bitrate caps and
