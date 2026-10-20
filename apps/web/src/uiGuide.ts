@@ -534,7 +534,9 @@ function renderThemeDiff(activeThemeId: string): HTMLElement {
  *  container — used for the panel beside the player. Updated on every theme switch. */
 export function renderConstruction(container: HTMLElement, activeThemeId: string, uiConfig: UIConfig = {}): void {
   container.innerHTML = "";
-  container.appendChild(renderThemeDiff(activeThemeId));
+  const content = document.createElement("div");
+  content.className = "construction-content";
+  content.appendChild(renderThemeDiff(activeThemeId));
   const details = document.createElement("details");
   details.className = "ui-config-preview";
   const summary = document.createElement("summary");
@@ -545,7 +547,8 @@ export function renderConstruction(container: HTMLElement, activeThemeId: string
   code.textContent = `const uiConfig = ${JSON.stringify(uiConfig, null, 2)};`;
   pre.appendChild(code);
   details.append(summary, pre);
-  container.appendChild(details);
+  content.appendChild(details);
+  container.appendChild(content);
 }
 
 /** Render the general "how to customize the UI" levers (static, theme-independent). */

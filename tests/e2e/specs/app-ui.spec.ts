@@ -36,6 +36,46 @@ function configField(page: Page, label: RegExp) {
   });
 }
 
+for (const language of ["en", "ja"] as const) {
+  test(`@public construction code and applied UI settings remain readable across widths (${language})`, async ({ page }) => {
+    await page.goto(`${APP}/`);
+    if (language === "en") await page.getByRole("button", { name: "English", exact: true }).click();
+    for (const width of [760, 375, 880, 900, 1280]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.getByRole("button", { name: "Premiere", exact: true }).click();
+      const construction = page.locator("#ui-construction");
+      const snippet = construction.locator(".theme-diff .theme-diff-code");
+      await snippet.scrollIntoViewIfNeeded();
+      await expect(snippet, `construction code is clipped at ${width}px`).toBeInViewport({ ratio: 0.1 });
+      const layout = await page.evaluate(() => {
+        const player = document.querySelector("#player")!.getBoundingClientRect();
+        const panel = document.querySelector("#ui-construction")!.getBoundingClientRect();
+        const diff = document.querySelector("#ui-construction .theme-diff")!;
+        const controls = document.querySelector("#control-panel")!.getBoundingClientRect();
+        return { stacked: panel.top >= player.bottom - 1, playerHeight: player.height,
+          panelHeight: panel.height, panelBottom: panel.bottom, controlsTop: controls.top,
+          contentHeight: diff.scrollHeight, visibleContentHeight: diff.clientHeight };
+      });
+      if (layout.stacked) {
+        expect(layout.visibleContentHeight, `stacked code must flow at ${width}px`).toBeGreaterThanOrEqual(layout.contentHeight - 1);
+      } else {
+        expect(Math.abs(layout.panelHeight - layout.playerHeight)).toBeLessThanOrEqual(1);
+      }
+      expect(layout.panelBottom).toBeLessThanOrEqual(layout.controlsTop);
+      const preview = construction.locator(".ui-config-preview");
+      // A normal pointer click also rejects a summary covered by the theme card.
+      await preview.locator("summary").click({ timeout: 5000 });
+      await expect(preview).toHaveAttribute("open", "");
+      await preview.locator("code").scrollIntoViewIfNeeded();
+      await expect(preview.locator("code")).toBeInViewport();
+      await expect(preview.locator("code")).toHaveText("const uiConfig = {};");
+      const diffBottom = await construction.locator(".theme-diff").evaluate((el) => el.getBoundingClientRect().bottom);
+      const previewTop = await preview.evaluate((el) => el.getBoundingClientRect().top);
+      expect(previewTop, "the applied settings follow the theme construction code").toBeGreaterThanOrEqual(diffBottom - 1);
+    }
+  });
+}
+
 test("@public network configuration validates drafts and source poster changes preserve the player", async ({ page }) => {
   await captureAppPlayer(page);
   await page.getByRole("button", { name: "English", exact:true }).click();
@@ -682,7 +722,7 @@ test.describe("Web app UI", () => {
     // has the longest construction snippet — well taller than the ~428px player at this
     // viewport — so it must overflow the pinned panel.)
     const scrolls = await page.evaluate(() => {
-      const el = document.querySelector("#ui-construction .theme-diff")!;
+      const el = document.querySelector("#ui-construction .construction-content")!;
       return el.scrollHeight > el.clientHeight + 1;
     });
     expect(scrolls).toBe(true);

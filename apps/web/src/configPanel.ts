@@ -374,7 +374,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
           read: () => readRuntime("poster") ?? options.getSource().poster,
           kind: "text",
           initial: "",
-          doc: { ja: "再生前に表示する画像のURL。第2引数 true で再生中も保持します。", en: "Poster image URL shown before playback. Passing true (2nd arg) keeps it during playback too." },
+          doc: { ja: "この欄は setPosterImage(URL, true) を呼び、再生中も画像を保持します。音声のみのソースにも使えます。読み込み時だけ表示したい場合は SourceConfig の poster と options.persistentPoster を使います。", en: "This field calls setPosterImage(URL, true), keeping the image during playback, including audio-only sources. For a loading poster, use SourceConfig poster and options.persistentPoster." },
           apply: (v) => {
             const p = options.getPlayer();
             if (!p || v === "") return;
@@ -419,7 +419,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
           read: () => options.getPlayer()?.adaptation.getConfig().qualityStabilityBalance,
           kind: "number",
           initial: 0.5,
-          doc: { ja: "0–1。安定性(切替を減らす)と画質追従のバランス。低いほど安定重視、高いほど画質優先。既定 0.5。", en: "0–1. Balance between stability (fewer switches) and chasing quality. Lower = steadier, higher = sharper. Default 0.5." },
+          doc: { ja: "0 は画質優先、1 は停止を抑える安定性優先（既定 0.5）。Low Latency の適応ロジックを使う場合にのみ有効です。", en: "0 favors quality; 1 favors stability with fewer stalls (default 0.5). Only relevant with the Low Latency adaptation logic." },
           apply: (v) => dynAdapt((c) => ({ ...c, qualityStabilityBalance: num(v) ?? 0.5 })),
         },
         {
