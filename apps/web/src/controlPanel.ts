@@ -425,7 +425,7 @@ export function mountControlPanel(
   const uiLanguage = document.createElement("input");
   uiLanguage.type = "text";
   uiLanguage.className = "seek-input";
-  uiLanguage.value = options.uiConfig.localization?.language ?? "auto";
+  uiLanguage.value = options.uiConfig.localization?.language ?? "en";
   uiLanguage.addEventListener("change", () => options.onUiConfigChange({
     localization: { language: uiLanguage.value.trim() || "auto" },
   }));

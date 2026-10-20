@@ -87,6 +87,25 @@ test("@public network configuration validates drafts and source poster changes p
   await expect.poll(() => page.evaluate(() => window.player?.getSource()?.options?.persistentPoster)).toBe(true);
 });
 
+test("@public initial UI language matches the SDK default and auto follows the browser", async ({ browser }) => {
+  const context = await browser.newContext({ locale: "de-DE" });
+  try {
+    const page = await context.newPage();
+    await captureAppPlayer(page, false, true);
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    const language = page.getByRole("textbox", { name: /Player UI language/ });
+    const fullscreen = page.locator("#player .bmpui-ui-fullscreentogglebutton").first();
+    await expect(language).toHaveValue("en");
+    await expect(fullscreen).toHaveAttribute("aria-label", "Fullscreen");
+    await language.fill("auto");
+    await language.blur();
+    await expect(fullscreen).toHaveAttribute("aria-label", "Vollbild");
+    expect(await page.evaluate(() => window.__testUiConfig?.localization?.language)).toBe("auto");
+  } finally {
+    await context.close();
+  }
+});
+
 test("@public UI language and preference settings reach the SDK without recreating the player", async ({ page }) => {
   await captureAppPlayer(page, false, true);
   await page.getByRole("button", { name:"English", exact:true }).click();
