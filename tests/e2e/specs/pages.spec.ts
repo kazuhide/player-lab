@@ -98,6 +98,32 @@ test("the bundled DASH preset advances playback and decoded frames", async ({ pa
   await expectPlayback(page);
 });
 
+test("the app and customization guide decode their inline favicon under the project prefix", async ({ page, request }) => {
+  const siteIcon = await request.get("../assets/favicon.svg");
+  expect(siteIcon.status()).toBe(200);
+  const expectedSvg = await siteIcon.text();
+  for (const entry of ["./", "guide.html"]) {
+    await page.goto(entry);
+    const icon = page.locator('head link[rel~="icon"]');
+    expect(await icon.count(), entry).toBe(1);
+    await expect(icon).toHaveAttribute("type", "image/svg+xml");
+    const resolved = await icon.evaluate(async (element: HTMLLinkElement) => {
+      const url = new URL(element.href);
+      const response = await fetch(url.href);
+      const source = await response.text();
+      const svg = new DOMParser().parseFromString(source, "image/svg+xml");
+      const image = new Image();
+      image.src = url.href;
+      await image.decode();
+      return { source, protocol: url.protocol, status: response.status,
+        namespace: svg.documentElement.namespaceURI, root: svg.documentElement.localName,
+        width: image.naturalWidth, height: image.naturalHeight };
+    });
+    expect(resolved, entry).toEqual({ source: expectedSvg, protocol: "data:", status: 200,
+      namespace: "http://www.w3.org/2000/svg", root: "svg", width: 30, height: 30 });
+  }
+});
+
 test("all fourteen original themes render their UI and construction code", async ({ page }) => {
   await openApp(page);
   const themes = page.locator("#ui-theme-bar .theme-btn");
