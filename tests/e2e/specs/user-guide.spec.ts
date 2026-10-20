@@ -554,6 +554,22 @@ test.describe("guide without JavaScript", () => {
         }));
       };
       await expectConfigurationCounts(coverage.applications);
+      for (const width of [375, 1440]) {
+        await page.setViewportSize({ width, height:900 });
+        const table = page.getByRole("region", { name: language === "ja" ? "設定" : "Configuration", exact:true });
+        const layout = await table.evaluate((element) => ({
+          scrollWidth:element.scrollWidth, clientWidth:element.clientWidth,
+          nowrap:Array.from(element.querySelectorAll("th, td")).every((cell) => getComputedStyle(cell).whiteSpace === "nowrap"),
+        }));
+        expect(layout.nowrap).toBe(true);
+        if (width === 375) {
+          expect(layout.scrollWidth).toBeGreaterThan(layout.clientWidth);
+          await table.focus();
+          await page.keyboard.press("ArrowRight");
+          await expect.poll(() => table.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+        }
+        await expectNoDocumentOverflow(page);
+      }
       for (const app of coverage.applications) {
         await test.step(app.id, async () => {
           const response = await page.goto(guidePath(language, `api-coverage/${app.id}`));

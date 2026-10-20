@@ -19,9 +19,10 @@ official sample, rather than the general Web release.
 
 An application programming interface (API) is the set of settings, operations,
 and events that the SDK exposes to application code. Coverage here asks which
-of those interfaces the sample exposes through its graphical controls or visible
-output. The available API inventory is extracted from the public SDK before the
-GUI mapping is applied.
+of those interfaces the sample uses in configuration code, graphical controls or
+visible output. Configuration usage and GUI access are reported separately.
+The available API inventory is extracted from the public SDK before the app
+mapping is applied.
 
 Each platform has explicit scopes. Configuration, operations, state reads and
 events use different units and are never combined into one percentage. The

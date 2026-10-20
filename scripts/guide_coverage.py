@@ -225,11 +225,13 @@ def validate_coverage(data, summary, documents):
         raise ValueError('Incomplete coverage report or translations.') from error
 
 
-def table(headers, rows, caption, *, coverage=False):
+def table(headers, rows, caption, *, coverage=False, configuration=False):
     head = ''.join(f'<th scope="col">{esc(label)}</th>' for label in headers)
     body = ''.join('<tr>' + ''.join(f'<th scope="row">{cell}</th>' if coverage and index == 0 else f'<td>{cell}</td>'
                                    for index, cell in enumerate(row)) + '</tr>' for row in rows)
     kind = ' guide-coverage-table' if coverage else ''
+    if configuration:
+        kind += ' guide-configuration-summary'
     return (f'<div class="guide-table{kind}" tabindex="0" role="region" aria-label="{esc(caption)}">'
             f'<table><caption>{esc(caption)}</caption><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>')
 
@@ -272,7 +274,7 @@ def category_metrics(apps, category, language, page, document):
         else:
             cells.append(fraction(counts['direct'] + counts['preset'] + counts['observed'], total, labels))
         rows.append(cells)
-    return table(headers, rows, labels[category])
+    return table(headers, rows, labels[category], configuration=category == 'configuration')
 
 
 def versions_table(data, language, document):
