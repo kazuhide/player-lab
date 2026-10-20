@@ -95,13 +95,20 @@ directional focus; focused configuration switches show an outline.
 Configuration changes remain drafts until Apply. **Apply source (reload)** builds
 a fresh source configuration and reloads the existing player. It exposes a custom
 HTTP/HTTPS stream URL, DASH/HLS/Smooth/Progressive type, optional title and poster
-URL, persistent poster, start offset in seconds, and Start/End/SDK-default offset
-reference. HTTP requests still depend on the device's cleartext network policy.
+URL, persistent poster, start offset in seconds, Start/End/SDK-default offset
+reference, and optional live target latency in seconds. HTTP requests still depend on the device's cleartext network policy.
 The SDK-default reference is the start for VOD and the end for live streams;
 out-of-window offsets are corrected by the SDK. A blank offset uses the SDK
 default. **Reset source draft** returns to the currently applied source without
 reloading. Selecting any catalog source, including the same preset again, replaces
-the source draft and clears custom metadata and offsets.
+the source draft and clears custom metadata, offsets, and live target latency.
+
+A blank **Live target latency (s)** keeps the original SDK defaults (`liveConfig = null`).
+An explicit finite value maps to `SourceLiveConfig.targetLatency`, changes the SDK's
+definition of the live edge, and asks the SDK to approach that latency while avoiding
+stalls. It is ignored for VOD. Apply reloads the source; player recreation retains the
+applied value. This policy does not guarantee convergence within a deadline and is
+not a qualification of stable return to the moving live edge.
 
 **Apply & restart player** creates a new player and reloads the currently applied
 source, retaining its metadata/options, selected UI mode, Allow DVR setting, and
@@ -126,7 +133,8 @@ range. The field definitions and defaults follow the pinned
 [PlaybackConfig](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-playback-config/index.html),
 [BufferConfig](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.buffer/-buffer-config/index.html),
 [AdaptationConfig](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.media/-adaptation-config/index.html), and
-[SourceOptions](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.source/-source-options/index.html)
+[SourceOptions](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.source/-source-options/index.html), and
+[SourceLiveConfig.targetLatency](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.live/-source-live-config/target-latency.html)
 references. Keys continue to come from build configuration.
 
 The draft validation and mapping tests run with `:app:testDebugUnitTest`.

@@ -84,6 +84,35 @@ class ConfigurationTest {
     }
 
     @Test
+    fun liveTargetLatencyIsOptionalAndSurvivesDraftAndSdkConfigurationRoundTrips() {
+        val draft = SourceDraft(url = "https://example.com/live.mpd")
+        assertNull(requireNotNull(draft.validate().value).toSourceConfig().liveConfig)
+        val settings = requireNotNull(draft.copy(liveTargetLatency = "30.25").validate().value)
+        assertEquals(30.25, requireNotNull(settings.liveTargetLatency), 0.0)
+        assertEquals(settings, SourceDraft.from(settings).validate().value)
+        val first = requireNotNull(settings.toSourceConfig().liveConfig)
+        val second = requireNotNull(settings.toSourceConfig().liveConfig)
+        assertEquals(30.25, requireNotNull(first.targetLatency), 0.0)
+        assertNotSame(first, second)
+        first.targetLatency = 45.0
+        assertEquals(30.25, requireNotNull(second.targetLatency), 0.0)
+        assertNull(requireNotNull(SourceDraft.from(settings).copy(liveTargetLatency = " ").validate().value).toSourceConfig().liveConfig)
+    }
+
+    @Test
+    fun liveTargetLatencyRejectsNonFiniteInputWithoutInventingSdkRangeLimits() {
+        val draft = SourceDraft(url = "https://example.com/live.mpd")
+        for (number in listOf("NaN", "Infinity", "-Infinity", "1e999", "bad")) {
+            val invalid = draft.copy(liveTargetLatency = number).validate()
+            assertNull(number, invalid.value)
+            assertTrue(number, invalid.errors.containsKey("liveTargetLatency"))
+        }
+        for (number in listOf("0", "-2.5", "100000")) {
+            assertTrue(number, draft.copy(liveTargetLatency = number).validate().errors.isEmpty())
+        }
+    }
+
+    @Test
     fun decimalBufferBoundaryAcceptsRoundingWithoutRelaxingTheHeadroomRule() {
         val draft = PlayerDraft(forwardDuration = "0.6", startupThreshold = "0.1", restartThreshold = "0.1")
         val settings = requireNotNull(draft.validate().value)

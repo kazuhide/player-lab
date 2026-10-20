@@ -29,6 +29,7 @@ import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.api.source.TimelineReferencePoint
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -39,6 +40,47 @@ import java.io.File
 @RunWith(AndroidJUnit4::class)
 class PlayerConfigurationInstrumentedTest {
     @get:Rule val ui = createAndroidComposeRule<MainActivity>()
+
+    @Test
+    fun liveTargetLatencyDraftValidatesReloadsRetainsAndClearsWithoutChangingDefaults() {
+        val controller = ui.activity.controller
+        val original = controller.player
+        val originalSource = controller.configuredSource
+        openConfiguration()
+        field("source-live-target", "NaN")
+        click("apply-source")
+        ui.runOnUiThread {
+            assertTrue(original === controller.player)
+            assertTrue("Invalid latency must not reload", originalSource === controller.configuredSource)
+            assertNull(controller.sourceSettings.liveTargetLatency)
+        }
+        field("source-live-target", "30")
+        click("apply-source")
+        ui.runOnUiThread {
+            assertTrue("Source policy must retain player", original === controller.player)
+            assertEquals(30.0, requireNotNull(controller.configuredSource?.config?.liveConfig?.targetLatency), 0.0)
+        }
+        field("source-live-target", "45")
+        val applied = controller.configuredSource
+        click("reset-source")
+        ui.onNodeWithTag("source-live-target").assert(editable("30.0"))
+        ui.runOnUiThread {
+            assertTrue("Reset is draft-only", applied === controller.configuredSource)
+            controller.applyPlayerSettings(controller.playerSettings.copy(muted = true))
+            assertTrue(original !== controller.player)
+            assertEquals(30.0, requireNotNull(controller.configuredSource?.config?.liveConfig?.targetLatency), 0.0)
+        }
+        val replacement = controller.player
+        field("source-live-target", "")
+        click("apply-source")
+        ui.runOnUiThread {
+            assertTrue(replacement === controller.player)
+            assertNull("Blank must preserve SDK defaults", controller.configuredSource?.config?.liveConfig)
+        }
+        scrollToTop()
+        ui.onNodeWithText("Live DASH + DVR").performScrollTo().performClick()
+        ui.onNodeWithTag("source-live-target").assert(editable(""))
+    }
 
     @Test
     fun sourceApplyValidatesReloadsAndSamePresetClearsDraft() {

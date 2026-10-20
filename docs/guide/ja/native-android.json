@@ -52,7 +52,11 @@
     },
     {
       "type": "p",
-      "text": "Configuration を開くと 17 項目を編集できます。ソース設定は HTTP／HTTPS URL、DASH／HLS／Smooth／Progressive、タイトル、ポスター URL、ポスターの継続表示、開始オフセット（秒）、SDK default／Start／End の基準です。タイトル・ポスター・オフセットの空欄は SDK 既定値です。既定の基準は VOD が先頭、ライブが末尾で、範囲外のオフセットは SDK が補正します。HTTP の可否は端末のネットワークポリシーに従います。"
+      "text": "Configuration を開くと 18 項目を編集できます。ソース設定は HTTP／HTTPS URL、DASH／HLS／Smooth／Progressive、タイトル、ポスター URL、ポスターの継続表示、開始オフセット（秒）、SDK default／Start／End の基準、任意のライブ目標遅延（秒）です。タイトル・ポスター・オフセットの空欄は SDK 既定値です。既定の基準は VOD が先頭、ライブが末尾で、範囲外のオフセットは SDK が補正します。HTTP の可否は端末のネットワークポリシーに従います。"
+    },
+    {
+      "type": "p",
+      "text": "Live target latency は SourceLiveConfig.targetLatency に対応します。空欄では従来の SDK 既定値（liveConfig = null）を維持します。有限数を明示すると SDK のライブ端の定義が変わり、stall を避けながらその遅延に近づけます。VOD では無視されます。Apply source でソースを再読込し、Player 再生成でも適用値を保持します。Reset source draft は適用せずに下書きを戻します。期限内の同期や、移動するライブ端への安定した復帰を保証する設定ではありません。"
     },
     {
       "type": "p",
@@ -63,7 +67,7 @@
       "items": [
         "下書きを編集し、Apply source (reload) で現在の Player にソースを読み込み直します。入力に誤りがあれば、適用中のソースと Player は変わりません。",
         "再生・バッファ・適応設定は Apply & restart player で新しい Player に反映します。現在のソースとメタデータ・オプション、UI モード、Allow DVR、イベントログを引き継ぎます。再生位置は開始オフセットと Autoplay の設定に従ってリセットされます。",
-        "Reset source draft は適用中のソースへ、Reset player draft は SDK 既定値へ下書きを戻します。いずれも適用はしません。カタログの同じプリセットを再選択した場合も、ソースの下書きを置き換えて独自のメタデータとオフセットを消去します。"
+        "Reset source draft は適用中のソースへ、Reset player draft は SDK 既定値へ下書きを戻します。いずれも適用はしません。カタログの同じプリセットを再選択した場合も、ソースの下書きを置き換えて独自のメタデータ・オフセット・ライブ目標遅延を消去します。"
       ]
     },
     {
@@ -195,6 +199,10 @@
     {
       "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.event/-player-event/-time-shifted/index.html",
       "label": "Player 3.171.0 のライブシーク完了"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.live/-source-live-config/target-latency.html",
+      "label": "Player 3.171.0 のソース目標遅延とライブ端の定義"
     }
   ]
 }

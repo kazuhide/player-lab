@@ -52,7 +52,11 @@
     },
     {
       "type": "p",
-      "text": "Open Configuration to edit 17 settings. Source fields are a custom HTTP/HTTPS URL, DASH/HLS/Smooth/Progressive type, optional title, optional poster URL, persistent poster, start offset in seconds, and SDK-default/Start/End reference. Blank title, poster, and offset use SDK defaults. The default reference is the start for VOD and the end for live streams; the SDK corrects offsets outside stream boundaries. HTTP depends on the device network policy."
+      "text": "Open Configuration to edit 18 settings. Source fields are a custom HTTP/HTTPS URL, DASH/HLS/Smooth/Progressive type, optional title, optional poster URL, persistent poster, start offset in seconds, SDK-default/Start/End reference, and optional live target latency in seconds. Blank title, poster, and offset use SDK defaults. The default reference is the start for VOD and the end for live streams; the SDK corrects offsets outside stream boundaries. HTTP depends on the device network policy."
+    },
+    {
+      "type": "p",
+      "text": "Live target latency maps to SourceLiveConfig.targetLatency. Blank keeps the original SDK defaults (liveConfig = null). An explicit finite value changes the SDK’s definition of the live edge and asks it to approach that latency while avoiding stalls; VOD ignores it. Apply source reloads the source, player recreation retains the applied value, and Reset source draft restores it without applying. This setting does not guarantee convergence within a deadline or establish stable return to the moving live edge."
     },
     {
       "type": "p",
@@ -63,7 +67,7 @@
       "items": [
         "Edit a draft, then choose Apply source (reload) to load it in the existing player. Invalid drafts leave the applied source and player unchanged.",
         "Choose Apply & restart player for playback, buffer, or adaptation changes. It creates a new player with the current source and its metadata/options, keeping UI mode, Allow DVR, and the event log. Playback position resets according to the source start offset and autoplay settings.",
-        "Reset source draft returns to the applied source. Reset player draft restores SDK defaults. Neither button applies changes. Selecting any catalog preset, including the same one again, replaces the source draft and clears custom metadata and offsets."
+        "Reset source draft returns to the applied source. Reset player draft restores SDK defaults. Neither button applies changes. Selecting any catalog preset, including the same one again, replaces the source draft and clears custom metadata, offsets, and live target latency."
       ]
     },
     {
@@ -195,6 +199,10 @@
     {
       "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.event/-player-event/-time-shifted/index.html",
       "label": "Player 3.171.0 time-shift completion"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.live/-source-live-config/target-latency.html",
+      "label": "Player 3.171.0 source target latency and live-edge definition"
     }
   ]
 }

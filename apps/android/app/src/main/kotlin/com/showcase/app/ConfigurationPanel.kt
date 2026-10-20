@@ -65,6 +65,12 @@ internal fun ConfigurationPanel(controller: PlayerController, uiMode: UiMode = U
             source.offsetReference, "source-reference",
         ) { source = source.copy(offsetReference = it) }
         Text("The default reference is the start for VOD and the end for live streams.", style = MaterialTheme.typography.bodySmall)
+        ConfigField(
+            "Live target latency (s)", source.liveTargetLatency, { source = source.copy(liveTargetLatency = it) },
+            "source-live-target", sourceErrors["liveTargetLatency"],
+            "Blank keeps SDK defaults. An explicit value moves the SDK's live edge. The SDK tries to approach it while avoiding stalls, without a deadline guarantee. Ignored for VOD.",
+            KeyboardType.Decimal,
+        )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Button(onClick = {
                 val validated = source.validate()
