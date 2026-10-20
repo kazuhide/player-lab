@@ -15,7 +15,7 @@
  * The screen and helpers type-check against the installed React Native and player
  * types. Native playback requires an external Expo development build; see README.
  */
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Platform, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import {
   CustomUi,
@@ -30,6 +30,7 @@ import type { DvrState } from "./src/dvr/state";
 import { SnapshotController } from "./src/dvr/snapshotController";
 import { SOURCES, type ShowcaseSource } from "./src/sources";
 import { ConfigurationPanel } from "./src/ConfigurationPanel";
+import { configurationCode } from "./src/configurationCode";
 import { initialDraft, parseConfiguration, presetDraft, sameConfiguration, supportsSource, type Configuration } from "./src/configuration";
 
 // Both keys flow from the repo-root .env via scripts/sync-env.sh → this app's .env
@@ -77,6 +78,7 @@ export default function App(): React.JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [timeShiftEnabled, setTimeShiftEnabled] = useState(true);
   const [log, setLog] = useState<string[]>([]);
+  const appliedCode = useMemo(() => configurationCode(applied, platform, uiMode.factoryFunction), [applied, platform, uiMode]);
   const append = useCallback((message: string) => setLog((lines) => [message, ...lines].slice(0, 40)), []);
   const selectSource = (source: ShowcaseSource) => {
     const fields = presetDraft(source);
@@ -117,7 +119,7 @@ export default function App(): React.JSX.Element {
         log={log} append={append} />
       <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
         onReset={() => { setDraft(applied.draft); setError(null); }}
-        changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} />
+        changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} appliedCode={appliedCode} />
     </ScrollView>
   );
 }

@@ -4,7 +4,9 @@
   "private": true,
   "packageManager": "pnpm@10.33.0",
   "main": "index.tsx",
-  "engines": { "node": "24.19.0" },
+  "engines": {
+    "node": "24.19.0"
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
@@ -14,6 +16,7 @@
   "dependencies": {
     "bitmovin-player-react-native": "1.28.0",
     "expo": "54.0.35",
+    "expo-clipboard": "8.0.8",
     "expo-crypto": "15.0.9",
     "react": "19.1.0",
     "react-native": "0.81.5",

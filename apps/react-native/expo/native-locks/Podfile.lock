@@ -28,6 +28,8 @@ PODS:
     - Yoga
   - ExpoAsset (12.0.13):
     - ExpoModulesCore
+  - ExpoClipboard (8.0.8):
+    - ExpoModulesCore
   - ExpoCrypto (15.0.9):
     - ExpoModulesCore
   - ExpoFileSystem (19.0.24):
@@ -1769,6 +1771,7 @@ DEPENDENCIES:
   - "EXConstants (from `../node_modules/.pnpm/expo-constants@18.0.14_expo@54.0.35_@babel+core@7.29.7_react-native@0.81.5_@babel+core@_b3fd43d44f8dc08b5d41a575e19affae/node_modules/expo-constants/ios`)"
   - "Expo (from `../node_modules/.pnpm/expo@54.0.35_@babel+core@7.29.7_react-native@0.81.5_@babel+core@7.29.7_@types+react@19._7ed70a646397acdf31c35b9dc5cca9e0/node_modules/expo`)"
   - "ExpoAsset (from `../node_modules/.pnpm/expo-asset@12.0.13_expo@54.0.35_@babel+core@7.29.7_react-native@0.81.5_@babel+core@7.29_f80a3952f56be30a706b852e6dd36893/node_modules/expo-asset/ios`)"
+  - "ExpoClipboard (from `../node_modules/.pnpm/expo-clipboard@8.0.8_expo@54.0.35_@babel+core@7.29.7_react-native@0.81.5_@babel+core@7._18663fd99abab83093ead8263aed6a8a/node_modules/expo-clipboard/ios`)"
   - "ExpoCrypto (from `../node_modules/.pnpm/expo-crypto@15.0.9_expo@54.0.35_@babel+core@7.29.7_react-native@0.81.5_@babel+core@7.29_b296dbabd0a01f8b77c3ca62ccc8fdb5/node_modules/expo-crypto/ios`)"
   - "ExpoFileSystem (from `../node_modules/.pnpm/expo-file-system@19.0.24_expo@54.0.35_@babel+core@7.29.7_react-native@0.81.5_@babel+cor_fe4ac9d1d1af2f75a0256c9ed6a670f5/node_modules/expo-file-system/ios`)"
   - "ExpoFont (from `../node_modules/.pnpm/expo-font@14.0.12_expo@54.0.35_@babel+core@7.29.7_react-native@0.81.5_@babel+core@7.29._a77505eeddc2a3a31681baf0cbf6b135/node_modules/expo-font/ios`)"
@@ -1852,6 +1855,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/.pnpm/expo@54.0.35_@babel+core@7.29.7_react-native@0.81.5_@babel+core@7.29.7_@types+react@19._7ed70a646397acdf31c35b9dc5cca9e0/node_modules/expo"
   ExpoAsset:
     :path: "../node_modules/.pnpm/expo-asset@12.0.13_expo@54.0.35_@babel+core@7.29.7_react-native@0.81.5_@babel+core@7.29_f80a3952f56be30a706b852e6dd36893/node_modules/expo-asset/ios"
+  ExpoClipboard:
+    :path: "../node_modules/.pnpm/expo-clipboard@8.0.8_expo@54.0.35_@babel+core@7.29.7_react-native@0.81.5_@babel+core@7._18663fd99abab83093ead8263aed6a8a/node_modules/expo-clipboard/ios"
   ExpoCrypto:
     :path: "../node_modules/.pnpm/expo-crypto@15.0.9_expo@54.0.35_@babel+core@7.29.7_react-native@0.81.5_@babel+core@7.29_b296dbabd0a01f8b77c3ca62ccc8fdb5/node_modules/expo-crypto/ios"
   ExpoFileSystem:
@@ -2006,6 +2011,7 @@ SPEC CHECKSUMS:
   EXConstants: 18ac927605517285307ea8f7ffe6fe7ca538eb5d
   Expo: edf5879dd9f83d2aa5b05d012412c810bc182ac1
   ExpoAsset: 9e5a7c9c0a9fb83ad5b2bb365141f2bd7f289b66
+  ExpoClipboard: b36b287d8356887844bb08ed5c84b5979bb4dd1e
   ExpoCrypto: e2a2c4c748aac8485e5675f027b7901f511d43ff
   ExpoFileSystem: 8e87545aef1d8d31f244edbfdd0780df4e5bac2e
   ExpoFont: dfb7c572372b610da45b41e3b436321fd6a97215

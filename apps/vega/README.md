@@ -298,3 +298,10 @@ native allocation-count qualification remain open. No physical Fire TV,
 DRM/offline behavior, audio correctness or quantitative buffer/bitrate behavior
 is qualified here. A VVD result does not replace target-device compatibility
 and performance testing.
+
+## Applied configuration code
+
+Open **Show configuration → Show applied code** to inspect the validated Player
+and Source settings sent to the existing native media host. Draft edits and
+license values are excluded. This TV sample has no clipboard integration. When
+reusing the settings, retain the host’s initialization, surface and release logic.

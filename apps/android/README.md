@@ -263,3 +263,11 @@ establish stable grouped startup-offset behavior. Live-return stability,
 startup-offset qualification and timeout 1004 remain open independently.
 Physical devices, Android TV, Fire TV, offline, casting, Analytics receipt and
 completed SDK resource cleanup remain outside these checks.
+
+## Applied configuration code
+
+Open **Configuration → Show applied code** to read the Player, Source and selected
+UI settings sent to the SDK. Draft edits do not change this output. **Copy code**
+writes the code to the Android clipboard; you can also select the text. License
+values are excluded and the Player key is a placeholder. The app’s Allow DVR
+switch remains separate from the SDK configuration.

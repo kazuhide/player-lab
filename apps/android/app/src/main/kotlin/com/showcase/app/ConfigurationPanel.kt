@@ -34,7 +34,7 @@ import com.bitmovin.player.api.source.TimelineReferencePoint
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
-internal fun ConfigurationPanel(controller: PlayerController) {
+internal fun ConfigurationPanel(controller: PlayerController, uiMode: UiMode = UiMode.DEFAULT) {
     var expanded by remember { mutableStateOf(false) }
     var source by remember(controller.sourceRevision) { mutableStateOf(SourceDraft.from(controller.sourceSettings)) }
     var sourceErrors by remember(controller.sourceRevision) { mutableStateOf(emptyMap<String, String>()) }
@@ -111,6 +111,7 @@ internal fun ConfigurationPanel(controller: PlayerController) {
         if (controller.configurationStatus.isNotEmpty()) {
             Text(controller.configurationStatus, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("configuration-status"))
         }
+        ConfigurationCodeView(controller, uiMode)
     }
 }
 

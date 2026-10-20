@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 /// A native editor on both Apple platforms; tvOS uses the focus engine and system text keyboard.
 struct ConfigurationEditor: View {
@@ -6,6 +9,8 @@ struct ConfigurationEditor: View {
     @Environment(\.dismiss) private var dismiss
     @State private var draft: ConfigurationDraft
     @State private var applyError: String?
+    @State private var showCode = false
+    @State private var copiedCode = false
 
     init(model: PlayerModel) {
         self.model = model
@@ -77,6 +82,32 @@ struct ConfigurationEditor: View {
                     field("Forward buffer (seconds)", placeholder: "0",
                           text: $draft.forwardBuffer, id: "configuration.forwardBuffer")
                 }
+                Section(header: Text("Applied configuration code")) {
+                    Button(showCode ? "Hide applied code" : "Show applied code") { showCode.toggle() }
+                        .accessibilityIdentifier("configuration.code.toggle")
+                    if showCode {
+                        Text("Player, source and UI settings sent to the SDK. Draft edits are excluded and license keys use placeholders.")
+                            .font(.caption)
+                        #if os(iOS)
+                        Button(copiedCode ? "Copied" : "Copy code") {
+                            UIPasteboard.general.string = appliedCode
+                            copiedCode = true
+                        }
+                        .accessibilityIdentifier("configuration.code.copy")
+                        #else
+                        Text("This TV host has no clipboard integration.").font(.caption)
+                        #endif
+                        ScrollView([.horizontal, .vertical]) {
+                            Text(appliedCode).font(.system(.caption, design: .monospaced))
+                                .fixedSize(horizontal: true, vertical: false)
+                                #if os(iOS)
+                                .textSelection(.enabled)
+                                #endif
+                                .accessibilityIdentifier("configuration.code.text")
+                        }
+                        .frame(height: 260)
+                    }
+                }
             }
             .accessibilityIdentifier("configuration.form")
 
@@ -116,6 +147,10 @@ struct ConfigurationEditor: View {
         .background(.background)
         #endif
         .onChange(of: draft) { _ in applyError = nil }
+    }
+
+    private var appliedCode: String {
+        configurationCode(source: model.sourceSettings, player: model.playerSettings, uiMode: model.uiMode)
     }
 
     private func field(_ title: String, placeholder: String,

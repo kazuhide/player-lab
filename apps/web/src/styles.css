@@ -1042,3 +1042,7 @@ body {
   white-space: pre-wrap;
   overflow: auto;
 }
+.config-code { margin-top: 1rem; min-width: 0; }
+.config-code summary { cursor: pointer; }
+.config-code button { margin: 0 .5rem .5rem 0; }
+.config-code textarea { display: block; box-sizing: border-box; width: 100%; max-width: 100%; resize: vertical; overflow: auto; font: 12px/1.5 ui-monospace, monospace; }

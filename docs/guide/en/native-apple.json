@@ -136,6 +136,14 @@
       "type": "note",
       "title": "Recorded verification scope",
       "text": "The October 19, 2026 record reports one pass, zero failures, and 11.670 seconds on an iPhone 17 Pro / iOS 26.4 simulator, using Player 3.128.0 and shared UI 4.15.1. These are recorded results, not a new test run. They do not cover physical devices, tvOS playback, TV remotes, casting, offline playback, or Analytics receipt. Successful iOS/tvOS builds in CI are also separate from actual playback."
+    },
+    {
+      "type": "h2",
+      "text": "Applied configuration code"
+    },
+    {
+      "type": "p",
+      "text": "In Configuration, open Show applied code to read the Player, Source and UI settings already sent to the SDK. Editing the draft does not change the code until Apply. iOS provides Copy code and text selection. tvOS displays the code and has no clipboard integration in this sample. License values are omitted; the Player key is shown as a placeholder."
     }
   ],
   "sources": [

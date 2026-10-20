@@ -136,6 +136,14 @@
       "type": "note",
       "title": "記録済みの検証範囲",
       "text": "2026-10-19 の記録では、iPhone 17 Pro／iOS 26.4 シミュレーター、Player 3.128.0、共有 UI 4.15.1 で 1 件成功、失敗 0、11.670 秒でした。ここでは記録済みの結果を示しており、再実行した結果ではありません。物理端末、tvOS の再生、TV リモコン、Casting、オフライン、Analytics の受信はこの結果に含みません。CI の iOS／tvOS ビルド成功も実再生とは別です。"
+    },
+    {
+      "type": "h2",
+      "text": "適用済み設定のコード"
+    },
+    {
+      "type": "p",
+      "text": "ConfigurationでShow applied codeを開くと、SDKへ渡したPlayer・Source・UI設定を確認できます。編集中の値はApplyするまでコードへ反映しません。iOSではCopy codeとテキスト選択でコピーできます。tvOSではコードを表示しますが、このサンプルにクリップボード連携はありません。ライセンス値は出力せず、Playerキーは置き換え用の文字列で表示します。"
     }
   ],
   "sources": [

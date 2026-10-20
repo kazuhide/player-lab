@@ -223,6 +223,18 @@
       "type": "figure",
       "file": "config",
       "caption": "The six SourceConfig fields. The Apply button is below the complete configuration panel."
+    },
+    {
+      "type": "h2",
+      "text": "Copy applied configuration"
+    },
+    {
+      "type": "p",
+      "text": "Open Show applied configuration code below the configuration bands. The snapshot reads the current Player configuration and source, plus GUI-controlled runtime values and UI overrides. Unapplied draft edits are excluded. Refresh code captures later changes; Copy code refreshes and copies the snapshot. If browser clipboard access is unavailable, select the text and use the device copy command."
+    },
+    {
+      "type": "note",
+      "text": "License values are replaced or omitted. The export covers this screen’s settings, rather than all SDK options. Use the existing construction example beside the player for the selected UI. Fullscreen and external-display actions still need a user gesture and a supported device."
     }
   ],
   "sources": [

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import type { ConfigurationDraft, NativePlatform } from "./configuration";
+import { ConfigurationCodeView } from "./ConfigurationCodeView";
 
 interface Props {
   draft: ConfigurationDraft;
@@ -10,10 +11,11 @@ interface Props {
   changed: boolean;
   error: string | null;
   platform: NativePlatform;
+  appliedCode: string;
 }
 
 /** Creation-time settings stay in the draft until Apply. Existing playback controls remain separate. */
-export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed, error, platform }: Props): React.JSX.Element {
+export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed, error, platform, appliedCode }: Props): React.JSX.Element {
   const [expanded, setExpanded] = useState(false);
   const update = <K extends keyof ConfigurationDraft>(key: K, value: ConfigurationDraft[K]) => onChange({ ...draft, [key]: value });
   const field = (label: string, key: "url" | "title" | "poster" | "startOffset" | "forwardDuration" | "maxBitrate", numeric = false) => (
@@ -59,6 +61,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
           <Button title="Apply and recreate player" onPress={onApply} disabled={!changed} />
           <Button title="Reset draft" onPress={onReset} disabled={!changed && !error} />
         </View>
+        <ConfigurationCodeView code={appliedCode} />
       </>}
     </View>
   );

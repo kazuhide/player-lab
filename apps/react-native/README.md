@@ -267,3 +267,11 @@ playback.
   it does not rely on a `DvrWindowExceeded` event prop.
 
 Verify these behaviors in the external Expo build with a valid player license.
+
+## Applied configuration code
+
+Open **Show configuration → Show applied code** to inspect the Player, Source and
+selected UI settings sent to the SDK. The output excludes draft edits and license
+values. **Copy code** uses Expo Clipboard 8.0.8, matched to Expo 54. Regenerate and
+build the external native host after changing native dependencies; refreshing
+JavaScript alone does not install a native module.

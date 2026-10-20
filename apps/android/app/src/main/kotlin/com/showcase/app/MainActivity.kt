@@ -398,7 +398,7 @@ private fun ShowcaseScreen(controller: PlayerController) {
             style = MaterialTheme.typography.bodySmall,
         )
 
-        ConfigurationPanel(controller)
+        ConfigurationPanel(controller, uiMode)
 
         Column(modifier = Modifier.height(140.dp).verticalScroll(rememberScrollState())) {
             controller.log.take(12).forEach { line ->

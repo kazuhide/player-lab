@@ -23,6 +23,8 @@ import { pick, type L } from "./i18n";
 import { FIELD_DOC } from "./configDocs";
 import { infoChip } from "./infoChip";
 import { configValue } from "./configState";
+import { javascriptValue } from "./configurationCode";
+import { mountConfigurationCodeView } from "./configurationCodeView";
 
 /** A minimal recursive partial — PlayerConfig is deeply nested (playback, tweaks, …). */
 export type DeepPartial<T> = { [K in keyof T]?: (T[K] extends object ? DeepPartial<T[K]> : T[K]) | undefined };
@@ -32,6 +34,8 @@ export interface ConfigPanelOptions {
   getPlayer: () => PlayerAPI | undefined;
   /** The source with its applied overrides, also available while the player rebuilds. */
   getSource: () => SourceConfig;
+  /** Only the app's applied UI overrides, never license or account configuration. */
+  getUiConfig: () => Record<string, unknown>;
   /** Commit staged 🔁 PlayerConfig overrides — `main.ts` rebuilds the player with them. */
   onRecreate: (overrides: DeepPartial<PlayerConfig>) => void;
   /** Commit staged 📥 SourceConfig overrides — `main.ts` reloads the current source. */
@@ -41,6 +45,7 @@ export interface ConfigPanelOptions {
 type Mode = "recreate" | "reload" | "runtime";
 
 interface FieldDef {
+  configPath?: string;
   label: string;
   kind: "bool" | "number" | "text" | "enum";
   options?: { value: string; label: string }[];
@@ -195,6 +200,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
    *  hover tooltip, so every config knob carries its official "what / when / default" note. */
   const pBool = (label: string, path: string, initial: boolean): FieldDef => ({
     label,
+    configPath: path,
     kind: "bool",
     initial,
     read: () => readPlayer(path),
@@ -203,6 +209,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   });
   const pNum = (label: string, path: string, initial: number | string = ""): FieldDef => ({
     label,
+    configPath: path,
     kind: "number",
     initial,
     read: () => readPlayer(path),
@@ -211,6 +218,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   });
   const pText = (label: string, path: string, hint?: string): FieldDef => ({
     label,
+    configPath: path,
     kind: "text",
     initial: "",
     ...(hint ? { hint } : {}),
@@ -220,6 +228,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   });
   const pEnum = (label: string, path: string, opts: { value: string; label: string }[], initial = ""): FieldDef => ({
     label,
+    configPath: path,
     kind: "enum",
     options: opts,
     initial,
@@ -961,6 +970,45 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   statBar.appendChild(applyRecreateBtn);
   statBand.appendChild(statBar);
   container.appendChild(statBand);
+
+  mountConfigurationCodeView(container, () => {
+    const p = options.getPlayer();
+    const source = p?.getSource();
+    if (!p || !source) return undefined;
+    const actual = p.getConfig(false);
+    const playerConfig: Record<string, unknown> = { playback: { ...actual.playback } };
+    for (const group of groups) for (const def of group.fields) {
+      if (!def.configPath) continue;
+      const paths = def.configPath.startsWith("adaptation.")
+        ? [def.configPath.replace("adaptation.", "adaptation.desktop."), def.configPath.replace("adaptation.", "adaptation.mobile.")]
+        : [def.configPath];
+      for (const path of paths) {
+        const value = configValue(actual, path);
+        if (value !== undefined) setPath(playerConfig, path, value);
+      }
+    }
+    const runtime = [
+      `player.setVolume(${javascriptValue(p.getVolume())});`,
+      p.isMuted() ? "player.mute();" : "player.unmute();",
+      `player.setPlaybackSpeed(${javascriptValue(p.getPlaybackSpeed())});`,
+      `player.setAspectRatio(${javascriptValue(p.getAspectRatio())});`,
+      `player.adaptation.setConfig(${javascriptValue(p.adaptation.getConfig())});`,
+    ];
+    const forward = p.buffer.getLevel(p.exports.BufferType.ForwardDuration, p.exports.MediaType.Video).targetLevel;
+    if (forward !== undefined) runtime.push(`player.buffer.setTargetLevel(player.exports.BufferType.ForwardDuration, ${javascriptValue(forward)}, player.exports.MediaType.Video);`);
+    const poster = readRuntime("poster");
+    if (poster !== undefined) runtime.push(`player.setPosterImage(${javascriptValue(poster)}, true);`);
+    const logLevel = readRuntime("logLevel");
+    if (logLevel !== undefined) runtime.push(`player.setLogLevel(${javascriptValue(logLevel)} as Parameters<typeof player.setLogLevel>[0]);`);
+    if (p.isLive()) {
+      runtime.push(`player.lowlatency.setTargetLatency(${javascriptValue(p.lowlatency.getTargetLatency())});`);
+      const catchup = p.lowlatency.getCatchupConfig();
+      const fallback = p.lowlatency.getFallbackConfig();
+      if (catchup) runtime.push(`player.lowlatency.setCatchupConfig(${javascriptValue(catchup)});`);
+      if (fallback) runtime.push(`player.lowlatency.setFallbackConfig(${javascriptValue(fallback)});`);
+    }
+    return { player: playerConfig, source: { ...source }, ui: options.getUiConfig(), runtime };
+  });
 
   refreshButtons();
   return { refresh: () => readers.forEach((read) => read()) };

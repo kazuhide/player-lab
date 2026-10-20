@@ -2,6 +2,19 @@ import BitmovinPlayer
 import XCTest
 
 final class ConfigurationTests: XCTestCase {
+    func testExportedSourceTextStaysDataInsteadOfSwiftInterpolation() throws {
+        var source = SourceSettings(Sources.all[0])
+        source.title = "A \"quoted\" title\\(mustStayText)\nnext line"
+        let code = configurationCode(source: source, player: PlayerSettings(), uiMode: .sports)
+        let line = try XCTUnwrap(code.components(separatedBy: "\n").first { $0.hasPrefix("sourceConfig.title = ") })
+        let literal = String(line.dropFirst("sourceConfig.title = ".count))
+        // These escapes are shared by Swift and JSON, so decoding checks the exact data round trip.
+        let decoded = try JSONSerialization.jsonObject(with: Data("[\(literal)]".utf8)) as? [String]
+        XCTAssertEqual(decoded, [source.title])
+        XCTAssertTrue(code.contains("YOUR_PLAYER_KEY"))
+        XCTAssertFalse(code.contains("analyticsConfig:"))
+    }
+
     func testDraftPreservesStartupDefaultsAndAutomaticSourceOffset() throws {
         let settings = try ConfigurationDraft().validated()
         let source = settings.source.makeSourceConfig()

@@ -584,6 +584,7 @@ function wireMetrics(p: PlayerAPI): void {
 const configOptions: ConfigPanelOptions = {
   getPlayer: () => player,
   getSource: () => currentSource,
+  getUiConfig: () => ({ ...uiConfig }),
   onRecreate: (overrides) => {
     playerOverrides = deepMerge(playerOverrides, overrides);
     void build();
