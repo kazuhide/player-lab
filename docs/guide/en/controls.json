@@ -1,7 +1,7 @@
 {
   "id": "controls",
-  "title": "All 35 control-panel items",
-  "lead": "These 35 controls are separate from theme selection, Player Config, and track menus inside the Player. Check each control's input type and the resulting behavior.",
+  "title": "All 41 control-panel items",
+  "lead": "These 41 controls are separate from theme selection, Player Config, and track menus inside the Player. Check each control's input type and the resulting behavior.",
   "controls": [
     {
       "group": "source",
@@ -88,7 +88,7 @@
       "description": "Move to the current live edge. This does not move to the start or end of an on-demand clip.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 509
+        "line": 577
       }
     },
     {
@@ -176,7 +176,7 @@
       "description": "Choose fullscreen toggling, or ten-second backward/forward seeking on the left/right half. This applies to themes other than Default.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 452
+        "line": 520
       }
     },
     {
@@ -187,7 +187,7 @@
       "description": "Set the start position after reloading. The initial display is -20 and the reference is explicitly end.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 469
+        "line": 537
       }
     },
     {
@@ -198,7 +198,7 @@
       "description": "Reload the source at the specified start position. Unlike a seek, this also restarts local QoE session measurements.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 474
+        "line": 542
       }
     },
     {
@@ -209,7 +209,7 @@
       "description": "The forward video-buffer target. The initial display is 40 seconds.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 479
+        "line": 547
       }
     },
     {
@@ -220,7 +220,7 @@
       "description": "Apply the entered value through player.buffer.setTargetLevel. It does not change the live rewind window.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 484
+        "line": 552
       }
     },
     {
@@ -231,7 +231,7 @@
       "description": "Show video in a separate small window where supported. Availability depends on the browser and operating system.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 492
+        "line": 560
       }
     },
     {
@@ -242,7 +242,7 @@
       "description": "Toggle the Binge theme's end-of-clip countdown and automatic advance. It starts enabled.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 423
+        "line": 491
       }
     },
     {
@@ -264,7 +264,7 @@
       "description": "Choose between moving video during a drag and seeking only on release. This is separate from image thumbnails.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 278
+        "line": 282
       }
     },
     {
@@ -275,7 +275,7 @@
       "description": "When autohide is enabled, keep the bar visible while the pointer is over the Player.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 287
+        "line": 291
       }
     },
     {
@@ -286,7 +286,7 @@
       "description": "Show playback-speed choices in the settings menu. Check a theme with its own gear, such as Premiere, Creator, or Studio.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 296
+        "line": 300
       }
     },
     {
@@ -297,7 +297,7 @@
       "description": "Snap a seek near a marker to that position. Sample markers start at 120 seconds, so the 60-second Pages media cannot demonstrate this.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 305
+        "line": 309
       }
     },
     {
@@ -308,7 +308,7 @@
       "description": "Enter fullscreen when the play button starts initial playback. The app's default autoplay makes this difficult to observe.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 314
+        "line": 318
       }
     },
     {
@@ -319,7 +319,7 @@
       "description": "Keep overflowing subtitles within the display area. Compare using a source with subtitles.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 323
+        "line": 327
       }
     },
     {
@@ -327,10 +327,10 @@
       "id": "disableStorageApi",
       "label": "Disable UI storage",
       "kind": "checkbox",
-      "description": "Disable persistence of UI choices such as volume, quality, and tracks. This is separate from PlayerConfig storage.",
+      "description": "Disable Player UI localStorage access, including playback preferences and resume positions. Separate from PlayerConfig storage.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 332
+        "line": 336
       }
     },
     {
@@ -341,7 +341,7 @@
       "description": "Set how close a seek must be to a marker, as a percentage of seek-bar width. The initial display is 1.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 353
+        "line": 393
       }
     },
     {
@@ -352,7 +352,73 @@
       "description": "Set the height at which small-player caption placement changes. The initial display is 360 pixels and applies to CEA-608 captions.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 362
+        "line": 402
+      }
+    },
+    {
+      "group": "ui",
+      "id": "enablePersistentPreferences",
+      "label": "Remember playback preferences",
+      "kind": "checkbox",
+      "description": "Store volume, mute and playback speed in the browser. Initially off. Requires UI storage; a choice already made with the preferences switch takes precedence.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 345
+      }
+    },
+    {
+      "group": "ui",
+      "id": "enableResumeFromLastPosition",
+      "label": "Resume VOD position",
+      "kind": "checkbox",
+      "description": "Store VOD positions and resume on a later source load. Initially off. Requires UI storage; live streams are excluded.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 354
+      }
+    },
+    {
+      "group": "ui",
+      "id": "enableTimestampDeepLink",
+      "label": "Read timestamp from URL",
+      "kind": "checkbox",
+      "description": "Read a VOD start position such as t=30 from the query or fragment. Initially on. Reload the source after changing this setting because it applies on the first source load after UI creation.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 363
+      }
+    },
+    {
+      "group": "ui",
+      "id": "showPersistentPreferencesToggle",
+      "label": "Preference switch in default settings",
+      "kind": "checkbox",
+      "description": "Show the playback-preferences switch in Default and CSS themes. Initially off. Hidden when UI storage is disabled. Custom component layouts do not add this switch.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 372
+      }
+    },
+    {
+      "group": "ui",
+      "id": "localization.language",
+      "label": "Player UI language",
+      "kind": "text",
+      "description": "Initially en (English). Use auto for the browser language, or en, de, es, fr, nl or pt. Other languages fall back to English. Separate from the app Japanese/English selector.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 426
+      }
+    },
+    {
+      "group": "ui",
+      "id": "localization.adaptLocalizationToSubtitleLanguage",
+      "label": "Follow subtitle language",
+      "kind": "checkbox",
+      "description": "Use the selected subtitle language for Player UI. Initially off. If its translation is unavailable, use the configured UI language.",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 445
       }
     },
     {
@@ -363,7 +429,7 @@
       "description": "Add a Picture-in-Picture button to a custom UI. Default and CSS themes already include the stock button and are not changed by this addition.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 390
+        "line": 458
       }
     },
     {
@@ -374,7 +440,7 @@
       "description": "Add an AirPlay button to a custom UI. It appears only in supported Safari environments.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 398
+        "line": 466
       }
     },
     {
@@ -385,7 +451,7 @@
       "description": "Add a Cast button to a custom UI. This recreates the Player to enable remotecontrol and requires a compatible receiver.",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 406
+        "line": 474
       }
     }
   ]

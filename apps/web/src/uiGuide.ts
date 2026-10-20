@@ -5,6 +5,7 @@
 // action; this panel is the "how". Prose is Japanese; code/paths stay as-is.
 
 import { pick, getLang, type L } from "./i18n";
+import type { UIConfig } from "@showcase/ui-shared";
 
 // The displayed code snippets carry Japanese *comments*; their identifiers/strings are all
 // ASCII, so the only Japanese in a snippet is in a comment. In English mode we translate
@@ -80,12 +81,12 @@ const THEME_DIFFS: Record<string, ThemeDiff> = {
   default: {
     label: "Default (Bitmovin)",
     base: null,
-    effort: { ja: "標準の bitmovin-player-ui のモダンUI。構成は無変更、autohide(hideDelay)だけ切替できる出発点です。", en: "The stock bitmovin-player-ui modern UI. Structure unchanged — only autohide (hideDelay) is switchable; the starting point." },
+    effort: { ja: "標準のbitmovin-player-uiのモダンUIです。UIConfigを標準の構築処理へ渡し、バーの自動非表示も切り替えられます。", en: "The stock bitmovin-player-ui modern UI, with UIConfig passed to the standard layout builder and a configurable autohide delay." },
     changes: [],
     construction: {
       lang: "ts",
       code: `// Keep the standard modern UI tree and customize autohide.
-const stock = UIFactory.defaultLayouts.main();
+const stock = UIFactory.defaultLayouts.main(uiConfig);
 const stockConfig = stock.getConfig();
 stock.release();
 const container = new UIContainer({
@@ -95,7 +96,7 @@ const container = new UIContainer({
     stockConfig.hidePlayerStateExceptions,
   hideDelay,  // Use -1 to keep the UI visible.
 });
-new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }]);`,
+new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }], uiConfig);`,
       source: "packages/ui-shared/src/liveUi.ts → buildDefaultUiContainer",
     },
   },
@@ -531,9 +532,20 @@ function renderThemeDiff(activeThemeId: string): HTMLElement {
 
 /** Render the ACTIVE theme's "how it's built" (diff + construction code) into a
  *  container — used for the panel beside the player. Updated on every theme switch. */
-export function renderConstruction(container: HTMLElement, activeThemeId: string): void {
+export function renderConstruction(container: HTMLElement, activeThemeId: string, uiConfig: UIConfig = {}): void {
   container.innerHTML = "";
   container.appendChild(renderThemeDiff(activeThemeId));
+  const details = document.createElement("details");
+  details.className = "ui-config-preview";
+  const summary = document.createElement("summary");
+  summary.textContent = pick({ ja: "適用中のUIConfigの上書き値", en: "Applied UIConfig overrides" });
+  const pre = document.createElement("pre");
+  pre.className = "theme-diff-code";
+  const code = document.createElement("code");
+  code.textContent = `const uiConfig = ${JSON.stringify(uiConfig, null, 2)};`;
+  pre.appendChild(code);
+  details.append(summary, pre);
+  container.appendChild(details);
 }
 
 /** Render the general "how to customize the UI" levers (static, theme-independent). */

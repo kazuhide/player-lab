@@ -126,15 +126,15 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 474
+      "line": 542
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 584
+      "line": 652
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 641
+      "line": 709
     },
     {
       "path": "apps/web/src/dvr/state.ts",
@@ -146,7 +146,7 @@
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 445
+      "line": 460
     },
     {
       "path": "docs/dvr-time-and-start-config.md",

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-20",
-  "sourceRevision": "8576f28945ad7bd4a7bb7be97c3990f929386c16",
+  "sourceRevision": "f87f09b6d062b6d74628878e38c0baf34f92d991",
   "sdks": [
     {
       "id": "web",
@@ -151,8 +151,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 234,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 249,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -175,8 +175,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 234,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 249,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -541,8 +541,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 309,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 324,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -565,14 +565,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 319,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 334,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             },
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 486,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 554,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -604,7 +604,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 137,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -636,7 +636,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 137,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -678,7 +678,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 655,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -719,8 +719,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 346,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 361,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -887,8 +887,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 180,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 183,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -929,14 +929,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 579,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 647,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 569,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             },
             {
               "kind": "app",
@@ -1019,8 +1019,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 576,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 644,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
@@ -1068,7 +1068,7 @@
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
               "line": 194,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
@@ -1115,8 +1115,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 299,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 314,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -1212,13 +1212,13 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 728,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 530,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784",
+              "line": 545,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0",
               "symbol": "Source.title.read via ConfigPanelOptions.getSource"
             }
           ]
@@ -1314,8 +1314,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 578,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 646,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
@@ -1416,14 +1416,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 324,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 339,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             },
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 493,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 561,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
@@ -1452,8 +1452,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 278,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 293,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -1585,13 +1585,13 @@
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
               "line": 41,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 542,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             },
             {
               "kind": "app",
@@ -1620,8 +1620,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 286,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 301,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -1723,7 +1723,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 440,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -1746,8 +1746,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 257,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 272,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -1770,8 +1770,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 257,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 272,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -1795,13 +1795,13 @@
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
               "line": 43,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 544,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -1824,8 +1824,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 454,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 469,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -1848,8 +1848,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 259,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 274,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -1872,8 +1872,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 260,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 275,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -1896,8 +1896,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 463,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 478,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -2010,8 +2010,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 293,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 308,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -2052,14 +2052,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 640,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 708,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 553,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -2107,7 +2107,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 460,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             },
             {
               "kind": "app",
@@ -2177,7 +2177,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 186,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -2200,8 +2200,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 354,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 369,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -2233,7 +2233,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 137,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -2265,7 +2265,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 137,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -2306,8 +2306,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 380,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 395,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -2330,8 +2330,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 303,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 318,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -2354,8 +2354,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 366,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 381,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -2423,7 +2423,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 137,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -2446,14 +2446,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 341,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 356,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             },
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 494,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 562,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
@@ -2482,8 +2482,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 282,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 297,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -2569,7 +2569,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 137,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -2655,7 +2655,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 137,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -2687,7 +2687,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 137,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -2763,7 +2763,7 @@
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
               "line": 194,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
@@ -2775,7 +2775,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 186,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -2816,8 +2816,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 294,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 309,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3416,8 +3416,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 606,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 629,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3440,8 +3440,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 604,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 627,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3464,8 +3464,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 607,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 630,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3488,8 +3488,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 605,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 628,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3512,8 +3512,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 601,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 624,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3572,8 +3572,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 608,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 631,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3596,8 +3596,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 599,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 622,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3656,8 +3656,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 600,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 623,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3770,8 +3770,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 616,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 639,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3794,8 +3794,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 598,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 621,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3908,8 +3908,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 606,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 629,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3932,8 +3932,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 604,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 627,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3956,8 +3956,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 607,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 630,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -3980,8 +3980,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 605,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 628,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -4004,8 +4004,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 601,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 624,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -4064,8 +4064,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 608,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 631,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -4088,8 +4088,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 599,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 622,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -4148,8 +4148,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 600,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 623,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -4262,8 +4262,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 616,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 639,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -4286,8 +4286,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 598,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 621,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7065,7 +7065,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 664,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -7178,8 +7178,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 631,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 654,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7202,8 +7202,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 630,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 653,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7226,8 +7226,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 629,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 652,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7250,8 +7250,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 628,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 651,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7274,8 +7274,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 672,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 711,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7298,8 +7298,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 671,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 710,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7322,8 +7322,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 673,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 712,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7346,8 +7346,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 674,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 713,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7515,7 +7515,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 658,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -7538,8 +7538,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 703,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 742,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7562,8 +7562,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 682,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 721,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7694,8 +7694,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 683,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 722,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7754,8 +7754,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 693,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 732,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7778,8 +7778,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 694,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 733,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7802,8 +7802,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 695,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 734,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7826,8 +7826,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 691,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 730,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7850,8 +7850,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 692,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 731,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7874,8 +7874,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 653,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 692,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7898,8 +7898,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 653,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 692,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7926,7 +7926,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html#defaultRequestTimeout",
           "evidence": [
             {
@@ -7936,6 +7936,27 @@
               "file": "types/core/NetworkAPI.d.ts",
               "line": 343,
               "sha256": "0f4d5d4481dc63bc82b23dc1eee165fcfb26af62dcb23f61d6214e0fe49ba6d3"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 667,
+              "symbol": "timeoutField(\"defaultRequestTimeout (s)\"",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 231,
+              "symbol": "...pNum(label, path),",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 209,
+              "symbol": "apply: (v) => stagePlayer(path, num(v)),",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -7980,7 +8001,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html#requestApi",
           "evidence": [
             {
@@ -7990,6 +8011,27 @@
               "file": "types/core/NetworkAPI.d.ts",
               "line": 226,
               "sha256": "0f4d5d4481dc63bc82b23dc1eee165fcfb26af62dcb23f61d6214e0fe49ba6d3"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 662,
+              "symbol": "pEnum(\"requestApi\",",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 221,
+              "symbol": "const pEnum = (label:",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/main.ts",
+              "line": 674,
+              "symbol": "const config = deepMerge(baseConfig, structuredClone(playerOverrides));",
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -8214,7 +8256,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html#requestTimeout",
           "evidence": [
             {
@@ -8224,6 +8266,27 @@
               "file": "types/core/NetworkAPI.d.ts",
               "line": 360,
               "sha256": "0f4d5d4481dc63bc82b23dc1eee165fcfb26af62dcb23f61d6214e0fe49ba6d3"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 668,
+              "symbol": "...[\"manifest/dash\",",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 669,
+              "symbol": "(type) => timeoutField(",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 209,
+              "symbol": "apply: (v) => stagePlayer(path, num(v)),",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8232,7 +8295,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html#requestTimeout",
           "evidence": [
             {
@@ -8242,6 +8305,27 @@
               "file": "types/core/NetworkAPI.d.ts",
               "line": 360,
               "sha256": "0f4d5d4481dc63bc82b23dc1eee165fcfb26af62dcb23f61d6214e0fe49ba6d3"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 668,
+              "symbol": "...[\"manifest/dash\",",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 669,
+              "symbol": "(type) => timeoutField(",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 209,
+              "symbol": "apply: (v) => stagePlayer(path, num(v)),",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8250,7 +8334,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html#requestTimeout",
           "evidence": [
             {
@@ -8260,6 +8344,27 @@
               "file": "types/core/NetworkAPI.d.ts",
               "line": 360,
               "sha256": "0f4d5d4481dc63bc82b23dc1eee165fcfb26af62dcb23f61d6214e0fe49ba6d3"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 668,
+              "symbol": "...[\"manifest/dash\",",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 669,
+              "symbol": "(type) => timeoutField(",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 209,
+              "symbol": "apply: (v) => stagePlayer(path, num(v)),",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8304,7 +8409,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html#requestTimeout",
           "evidence": [
             {
@@ -8314,6 +8419,27 @@
               "file": "types/core/NetworkAPI.d.ts",
               "line": 360,
               "sha256": "0f4d5d4481dc63bc82b23dc1eee165fcfb26af62dcb23f61d6214e0fe49ba6d3"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 668,
+              "symbol": "...[\"manifest/dash\",",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 669,
+              "symbol": "(type) => timeoutField(",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 209,
+              "symbol": "apply: (v) => stagePlayer(path, num(v)),",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8340,7 +8466,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html#requestTimeout",
           "evidence": [
             {
@@ -8350,6 +8476,27 @@
               "file": "types/core/NetworkAPI.d.ts",
               "line": 360,
               "sha256": "0f4d5d4481dc63bc82b23dc1eee165fcfb26af62dcb23f61d6214e0fe49ba6d3"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 668,
+              "symbol": "...[\"manifest/dash\",",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 669,
+              "symbol": "(type) => timeoutField(",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 209,
+              "symbol": "apply: (v) => stagePlayer(path, num(v)),",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8358,7 +8505,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html#requestTimeout",
           "evidence": [
             {
@@ -8368,6 +8515,27 @@
               "file": "types/core/NetworkAPI.d.ts",
               "line": 360,
               "sha256": "0f4d5d4481dc63bc82b23dc1eee165fcfb26af62dcb23f61d6214e0fe49ba6d3"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 668,
+              "symbol": "...[\"manifest/dash\",",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 669,
+              "symbol": "(type) => timeoutField(",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 209,
+              "symbol": "apply: (v) => stagePlayer(path, num(v)),",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8376,7 +8544,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html#requestTimeout",
           "evidence": [
             {
@@ -8386,6 +8554,27 @@
               "file": "types/core/NetworkAPI.d.ts",
               "line": 360,
               "sha256": "0f4d5d4481dc63bc82b23dc1eee165fcfb26af62dcb23f61d6214e0fe49ba6d3"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 668,
+              "symbol": "...[\"manifest/dash\",",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 669,
+              "symbol": "(type) => timeoutField(",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 209,
+              "symbol": "apply: (v) => stagePlayer(path, num(v)),",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8516,8 +8705,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 585,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 608,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8558,8 +8747,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 586,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 609,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8582,8 +8771,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 580,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 603,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8624,8 +8813,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 581,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 604,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8648,8 +8837,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 583,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 606,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8726,8 +8915,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 584,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 607,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8750,8 +8939,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 587,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 610,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8775,7 +8964,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 663,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -8816,8 +9005,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 582,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 605,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -8975,7 +9164,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 669,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -9016,8 +9205,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 704,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 743,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9040,8 +9229,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 660,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 699,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9082,8 +9271,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 662,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 701,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9124,8 +9313,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 661,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 700,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9148,8 +9337,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 82,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 84,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9172,8 +9361,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 102,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 104,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9196,8 +9385,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 97,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 99,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9220,8 +9409,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 96,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 98,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9244,8 +9433,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 101,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 103,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9268,8 +9457,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 103,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 105,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9292,8 +9481,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 101,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 103,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9316,8 +9505,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 99,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 101,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9376,8 +9565,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 88,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 90,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9400,8 +9589,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 99,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 101,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9424,8 +9613,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 102,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 104,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9448,8 +9637,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 87,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 89,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9472,8 +9661,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 102,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 104,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9496,8 +9685,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 85,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 87,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9520,8 +9709,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 88,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 90,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9544,8 +9733,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 92,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 94,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9568,8 +9757,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 81,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 83,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9592,8 +9781,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 96,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 98,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9616,8 +9805,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 95,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 97,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9640,8 +9829,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 95,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 97,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9664,8 +9853,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 97,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 99,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9688,8 +9877,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 94,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 96,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9712,8 +9901,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 84,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 86,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9736,8 +9925,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 81,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 83,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9760,8 +9949,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 98,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 100,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9784,8 +9973,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 81,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 83,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9808,8 +9997,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 643,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 682,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9832,8 +10021,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 79,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 81,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9856,8 +10045,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 92,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 94,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9880,8 +10069,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 93,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 95,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9904,8 +10093,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 92,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 94,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9928,8 +10117,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 99,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 101,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9952,8 +10141,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 100,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 102,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -9976,8 +10165,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 91,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 93,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10000,8 +10189,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 98,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 100,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10024,8 +10213,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 93,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 95,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10048,8 +10237,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 93,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 95,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10072,8 +10261,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 80,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 82,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10096,8 +10285,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 80,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 82,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10120,8 +10309,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 86,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 88,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10144,8 +10333,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 94,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 96,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10168,8 +10357,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 96,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 98,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10246,8 +10435,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 100,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 102,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10270,8 +10459,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 97,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 99,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10294,8 +10483,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 84,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 86,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10318,8 +10507,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 91,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 93,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10360,8 +10549,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 79,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 81,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10384,8 +10573,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 87,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 89,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10426,8 +10615,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 86,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 88,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10450,8 +10639,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 85,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 87,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10474,8 +10663,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 103,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 105,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10498,8 +10687,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 79,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 81,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10522,8 +10711,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 80,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 82,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10546,8 +10735,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 89,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 91,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10570,8 +10759,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 89,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 91,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10594,8 +10783,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 89,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 91,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10618,8 +10807,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 90,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 92,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -10733,7 +10922,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 659,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -11369,7 +11558,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 555,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -11428,8 +11617,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 634,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 702,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -11452,8 +11641,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 633,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 701,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -11476,14 +11665,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 637,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 705,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 561,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -11615,7 +11804,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 753,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -11710,14 +11899,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 628,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 696,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 558,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -11776,8 +11965,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 626,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 694,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -11801,7 +11990,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 556,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -11825,7 +12014,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 754,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -11866,14 +12055,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 627,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 695,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 557,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -11932,14 +12121,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 629,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 697,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 562,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -11962,14 +12151,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 630,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 698,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 563,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -12046,14 +12235,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 624,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 692,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 553,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -12076,14 +12265,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 625,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 693,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 554,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -12106,14 +12295,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 636,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 704,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 560,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -12136,14 +12325,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 635,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 703,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 559,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -12293,13 +12482,13 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 566,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             },
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 648,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 716,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -12322,14 +12511,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 631,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 699,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 564,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -12352,14 +12541,14 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 632,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 700,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 565,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -12383,7 +12572,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 753,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -12533,7 +12722,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 754,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -12557,7 +12746,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 753,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -14872,8 +15061,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 539,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 554,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -16562,7 +16751,7 @@
           "category": "configuration",
           "scope": "SourceConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfigOptions.html#persistentPoster",
           "evidence": [
             {
@@ -16572,6 +16761,27 @@
               "file": "types/core/PlayerConfigAPI.d.ts",
               "line": 71,
               "sha256": "12090c9fd46bea19883ba52fc62b3984334b02c0138b85c603581917fea5ac73"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 565,
+              "symbol": "label: \"options.persistentPoster\"",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/configPanel.ts",
+              "line": 570,
+              "symbol": "apply: (v) => stageSource(\"options.persistentPoster\", v)",
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/main.ts",
+              "line": 591,
+              "symbol": "onReload: (srcOverrides) => {",
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -16612,8 +16822,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 556,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 579,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -16636,8 +16846,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 569,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 592,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -16714,8 +16924,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 547,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 562,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             }
           ]
         },
@@ -17224,8 +17434,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
-              "line": 531,
-              "sha256": "8b6c2d136c11aa40ea7fcf6426988cad421eda45075d8b3407cd71978c636784"
+              "line": 546,
+              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
             },
             {
               "kind": "app",
@@ -17940,12 +18150,13 @@
         "The denominator covers PlayerConfig and SourceConfig leaf paths, PlayerAPI callable members including nested operational namespaces, and named PlayerEvent values. It is not a percentage of every exported SDK type, static constructor, utility, or event payload field.",
         "SDK declarations are extracted independently of the GUI inventory. Configuration arrays count element shapes once, maps and callbacks have explicit boundaries, and overloads count by method name. Available deprecated APIs remain counted.",
         "Direct means an app control can edit the field or invoke the operation with its supported GUI arguments. Preset means fixed source, value or theme choices; it does not mean every possible argument is exposed.",
-        "The Player Config editor includes 134 GUI fields, but app helpers and paths absent from the public SDK declarations are not counted as public API coverage.",
+        "The Player Config editor includes 144 GUI fields, but app helpers and paths absent from the public SDK declarations are not counted as public API coverage.",
         "Audited standard UI action routes include video/audio quality, audio and subtitle track selection, Cast and AirPlay. Player Insights details, VR, advertising controls and every standard UI getter have not been qualified; their absence from this mapping is not proof that the SDK UI cannot call them.",
         "Observed APIs contribute only to display/log coverage. Metric collection and lifecycle calls do not become configurable merely because application code calls them.",
         "The 22 observed events comprise 14 named log entries, 6 displayed-state refresh triggers and 2 derived playback-quality metric updates. This does not expose every event payload field.",
         "10 shared adaptive-bitrate GUI controls write the same value to 20 desktop and mobile configuration paths. Those paths count as fields, but their desktop and mobile values cannot be edited independently.",
-        "The mapping is static source evidence. Browser playback and targeted GUI regressions are separate checks and do not establish that every option, event, browser, device, DRM system or external service works."
+        "The mapping is static source evidence. Browser playback and targeted GUI regressions are separate checks and do not establish that every option, event, browser, device, DRM system or external service works.",
+        "Network timeouts are edited in seconds: a default and 7 explicit request types. Empty removes the selected override. These controls do not expose request callbacks or every network request type."
       ]
     },
     {
@@ -24273,7 +24484,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 184,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -24315,7 +24526,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 195,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -24771,7 +24982,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 181,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -32211,7 +32422,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 192,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -32307,7 +32518,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 184,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -32439,7 +32650,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 184,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -33795,7 +34006,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 201,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -34773,7 +34984,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 186,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -35445,7 +35656,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 321,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -35541,7 +35752,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 329,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -35907,7 +36118,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 323,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -35967,7 +36178,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 323,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -36045,7 +36256,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 323,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -42387,7 +42598,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 142,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -42429,7 +42640,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 143,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -42524,17 +42735,17 @@
             {
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             },
             {
               "kind": "app",
               "file": "apps/web/src/main.ts",
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             },
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -46050,7 +46261,7 @@
               "kind": "app",
               "file": "packages/ui-shared/src/liveUi.ts",
               "line": 114,
-              "sha256": "3c65d59d0e68d37d84af8f60ecdef088f46c5b075bee7d4f7daea0265e61ddb7"
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -46631,8 +46842,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 361,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 401,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -46673,8 +46884,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 286,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 290,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -46697,8 +46908,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 331,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 335,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -46725,7 +46936,7 @@
           "category": "configuration",
           "scope": "UIConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html#enablepersistentpreferences",
           "evidence": [
             {
@@ -46735,6 +46946,27 @@
               "file": "dist/js/framework/UIConfig.d.ts",
               "line": 211,
               "sha256": "73b3062e80aed18796aca477ce5e3c3cc061c5f6200060413905496a103b98d2"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 345,
+              "symbol": "key: \"enablePersistentPreferences\"",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 385,
+              "symbol": "(checked) => options.onUiConfigChange({ [t.key]: checked })",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/main.ts",
+              "line": 705,
+              "symbol": "uiConfig = deepMerge(uiConfig, patch);",
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -46743,7 +46975,7 @@
           "category": "configuration",
           "scope": "UIConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html#enableresumefromlastposition",
           "evidence": [
             {
@@ -46753,6 +46985,27 @@
               "file": "dist/js/framework/UIConfig.d.ts",
               "line": 197,
               "sha256": "73b3062e80aed18796aca477ce5e3c3cc061c5f6200060413905496a103b98d2"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 354,
+              "symbol": "key: \"enableResumeFromLastPosition\"",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 385,
+              "symbol": "(checked) => options.onUiConfigChange({ [t.key]: checked })",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/main.ts",
+              "line": 705,
+              "symbol": "uiConfig = deepMerge(uiConfig, patch);",
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -46775,8 +47028,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 277,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 281,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -46785,7 +47038,7 @@
           "category": "configuration",
           "scope": "UIConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html#enabletimestampdeeplink",
           "evidence": [
             {
@@ -46795,6 +47048,27 @@
               "file": "dist/js/framework/UIConfig.d.ts",
               "line": 231,
               "sha256": "73b3062e80aed18796aca477ce5e3c3cc061c5f6200060413905496a103b98d2"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 363,
+              "symbol": "key: \"enableTimestampDeepLink\"",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 385,
+              "symbol": "(checked) => options.onUiConfigChange({ [t.key]: checked })",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/main.ts",
+              "line": 705,
+              "symbol": "uiConfig = deepMerge(uiConfig, patch);",
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -46817,8 +47091,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 313,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 317,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -46859,8 +47133,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 322,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 326,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -46887,7 +47161,7 @@
           "category": "configuration",
           "scope": "UIConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/LocalizationConfig.html#adaptlocalizationtosubtitlelanguage",
           "evidence": [
             {
@@ -46897,6 +47171,27 @@
               "file": "dist/js/framework/UIManager.d.ts",
               "line": 42,
               "sha256": "a9969b7a1eae7de64436fe62366a690e8fcee0268280195888dec74a2a6dd815"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 445,
+              "symbol": "options.uiConfig.localization?.adaptLocalizationToSubtitleLanguage ?? false",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 446,
+              "symbol": "(checked) => options.onUiConfigChange({ localization: { adaptLocalizationToSubtitleLanguage: checked } })",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/main.ts",
+              "line": 705,
+              "symbol": "uiConfig = deepMerge(uiConfig, patch);",
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -46923,7 +47218,7 @@
           "category": "configuration",
           "scope": "UIConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/LocalizationConfig.html#language",
           "evidence": [
             {
@@ -46933,6 +47228,27 @@
               "file": "dist/js/framework/UIManager.d.ts",
               "line": 23,
               "sha256": "a9969b7a1eae7de64436fe62366a690e8fcee0268280195888dec74a2a6dd815"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 426,
+              "symbol": "uiLanguage.type = \"text\"",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 430,
+              "symbol": "localization: { language: uiLanguage.value.trim() || \"auto\" }",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/main.ts",
+              "line": 705,
+              "symbol": "uiConfig = deepMerge(uiConfig, patch);",
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -47046,7 +47362,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 146,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -47070,7 +47386,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 146,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -47112,7 +47428,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 133,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -47172,7 +47488,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 133,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -47213,8 +47529,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 295,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 299,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -47237,8 +47553,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 304,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 308,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -47261,8 +47577,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/controlPanel.ts",
-              "line": 352,
-              "sha256": "cc8b0f74ba28279041da76d44fdeb0cc5346e491299b1894b429f33c0212d5f3"
+              "line": 392,
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
             }
           ]
         },
@@ -47343,7 +47659,7 @@
           "category": "configuration",
           "scope": "UIConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "direct",
           "officialReference": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html#showpersistentpreferencestoggle",
           "evidence": [
             {
@@ -47353,6 +47669,41 @@
               "file": "dist/js/framework/UIConfig.d.ts",
               "line": 222,
               "sha256": "73b3062e80aed18796aca477ce5e3c3cc061c5f6200060413905496a103b98d2"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 372,
+              "symbol": "key: \"showPersistentPreferencesToggle\"",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/controlPanel.ts",
+              "line": 385,
+              "symbol": "(checked) => options.onUiConfigChange({ [t.key]: checked })",
+              "sha256": "f4169f8799cab9c0a40669d1f9234ec149cce6b47c831a055ff8e6d194214295"
+            },
+            {
+              "kind": "app",
+              "file": "apps/web/src/main.ts",
+              "line": 705,
+              "symbol": "uiConfig = deepMerge(uiConfig, patch);",
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
+            },
+            {
+              "kind": "app",
+              "file": "packages/ui-shared/src/liveUi.ts",
+              "line": 137,
+              "symbol": "const stock = UIFactory.defaultLayouts.main(config);",
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
+            },
+            {
+              "kind": "app",
+              "file": "packages/ui-shared/src/liveUi.ts",
+              "line": 154,
+              "symbol": "buildDefaultUiContainer(options, config)",
+              "sha256": "7ff8fd1dcd4b83b89909aa0cc5517fc695831dab505169197ee8482f9908b5a6"
             }
           ]
         },
@@ -47574,7 +47925,7 @@
               "kind": "app",
               "file": "apps/web/src/main.ts",
               "line": 370,
-              "sha256": "f0c6525056ccf644fa3d4e8c4409873d68430131e76717e5bd59359253bf49af"
+              "sha256": "b2e754d911a30dee9c1b5b53aa82ba6e13b758af96327e085292a32a4fdec62d"
             }
           ]
         },
@@ -47781,9 +48132,10 @@
         "The denominator covers core UIConfig fields, canonical component configuration fields, component layout overrides, UIManager callable members and its two named dispatcher events. It excludes each individual component class method, component event payload and exported utility type.",
         "UIComponentConfigMap is counted once per component/property path. The global context and nine variant contexts do not multiply the same parameter into ten APIs. UIConfig override containers are represented by their canonical configuration scopes.",
         "A theme picker does not make every constructor constant GUI configurable. Constructor-only values receive code-only status. The Autohide switch supplies constrained UIContainer.hideDelay choices, and custom layouts supply a constrained QuickSeekButton inclusion choice.",
-        "The nine directly editable core UIConfig fields and fixed recommendation metadata are separate from individual component override editing. No arbitrary componentConfigOverrides or componentLayoutOverrides editor is present.",
+        "The 15 directly editable core UIConfig fields and fixed recommendation metadata are separate from individual component override editing. No arbitrary componentConfigOverrides or componentLayoutOverrides editor is present.",
         "These figures describe the Web application. Reusing the bundle in a native app does not transfer all Web controls or measured coverage to the native bridge.",
-        "The local compatibility patch changes component release and recommendation action ownership. It does not add public declarations or increase the SDK API denominator."
+        "The local compatibility patch changes component release and recommendation action ownership. It does not add public declarations or increase the SDK API denominator.",
+        "Language and subtitle-language adaptation are separate nested fields. The preferences switch is constructed only for Default and CSS themes and requires UI storage. Storage and resume defaults remain off; editing a flag is separate from proving cross-session persistence."
       ]
     },
     {

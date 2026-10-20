@@ -93,8 +93,8 @@ def validate_content(content):
         if tuple(g['id'] for g in groups[language]) != SETTING_GROUPS:
             raise ValueError('The settings groups are incomplete or out of order.')
         fields = [f for g in groups[language] for f in g['fields']]
-        if len(fields) != 134 or len({(f['scope'],f['path']) for f in fields}) != 134:
-            raise ValueError('The reference must describe all 134 distinct settings.')
+        if len(fields) != 144 or len({(f['scope'],f['path']) for f in fields}) != 144:
+            raise ValueError('The reference must describe all 144 distinct settings.')
         for group in groups[language]:
             if group['mode'] not in {'runtime','reload','recreate'}:
                 raise ValueError('The settings application mode is unknown.')
@@ -104,8 +104,8 @@ def validate_content(content):
                 source_url(field['source'])
         controls = content[language]['controls']['controls']
         themes = content[language]['themes']['themes']
-        if len(controls) != 35 or len({item['id'] for item in controls}) != 35:
-            raise ValueError('The reference must describe all 35 controls.')
+        if len(controls) != 41 or len({item['id'] for item in controls}) != 41:
+            raise ValueError('The reference must describe all 41 controls.')
         if tuple(item['id'] for item in themes) != THEMES:
             raise ValueError('The theme reference must include all 14 themes in UI order.')
         for item in [*controls, *themes]:

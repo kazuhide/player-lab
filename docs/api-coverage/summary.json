@@ -21872,17 +21872,17 @@
         "configuration": {
           "byStatus": {
             "code-only": 3,
-            "direct": 113,
+            "direct": 123,
             "internal": 0,
-            "missing": 531,
+            "missing": 521,
             "observed": 0,
             "preset": 9,
             "sdk-ui-unverified": 0
           },
           "denominator": 656,
           "deprecated": 7,
-          "percentDirect": 17.23,
-          "percentDirectOrPreset": 18.6
+          "percentDirect": 18.75,
+          "percentDirectOrPreset": 20.12
         },
         "event": {
           "byStatus": {
@@ -22063,12 +22063,13 @@
         "The denominator covers PlayerConfig and SourceConfig leaf paths, PlayerAPI callable members including nested operational namespaces, and named PlayerEvent values. It is not a percentage of every exported SDK type, static constructor, utility, or event payload field.",
         "SDK declarations are extracted independently of the GUI inventory. Configuration arrays count element shapes once, maps and callbacks have explicit boundaries, and overloads count by method name. Available deprecated APIs remain counted.",
         "Direct means an app control can edit the field or invoke the operation with its supported GUI arguments. Preset means fixed source, value or theme choices; it does not mean every possible argument is exposed.",
-        "The Player Config editor includes 134 GUI fields, but app helpers and paths absent from the public SDK declarations are not counted as public API coverage.",
+        "The Player Config editor includes 144 GUI fields, but app helpers and paths absent from the public SDK declarations are not counted as public API coverage.",
         "Audited standard UI action routes include video/audio quality, audio and subtitle track selection, Cast and AirPlay. Player Insights details, VR, advertising controls and every standard UI getter have not been qualified; their absence from this mapping is not proof that the SDK UI cannot call them.",
         "Observed APIs contribute only to display/log coverage. Metric collection and lifecycle calls do not become configurable merely because application code calls them.",
         "The 22 observed events comprise 14 named log entries, 6 displayed-state refresh triggers and 2 derived playback-quality metric updates. This does not expose every event payload field.",
         "10 shared adaptive-bitrate GUI controls write the same value to 20 desktop and mobile configuration paths. Those paths count as fields, but their desktop and mobile values cannot be edited independently.",
-        "The mapping is static source evidence. Browser playback and targeted GUI regressions are separate checks and do not establish that every option, event, browser, device, DRM system or external service works."
+        "The mapping is static source evidence. Browser playback and targeted GUI regressions are separate checks and do not establish that every option, event, browser, device, DRM system or external service works.",
+        "Network timeouts are edited in seconds: a default and 7 explicit request types. Empty removes the selected override. These controls do not expose request callbacks or every network request type."
       ],
       "scopes": [
         {
@@ -22156,17 +22157,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 3,
-                "direct": 108,
+                "direct": 117,
                 "internal": 0,
-                "missing": 262,
+                "missing": 253,
                 "observed": 0,
                 "preset": 1,
                 "sdk-ui-unverified": 0
               },
               "denominator": 374,
               "deprecated": 4,
-              "percentDirect": 28.88,
-              "percentDirectOrPreset": 29.14
+              "percentDirect": 31.28,
+              "percentDirectOrPreset": 31.55
             },
             "event": {
               "byStatus": {
@@ -22286,17 +22287,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 0,
-                "direct": 5,
+                "direct": 6,
                 "internal": 0,
-                "missing": 269,
+                "missing": 268,
                 "observed": 0,
                 "preset": 8,
                 "sdk-ui-unverified": 0
               },
               "denominator": 282,
               "deprecated": 3,
-              "percentDirect": 1.77,
-              "percentDirectOrPreset": 4.61
+              "percentDirect": 2.13,
+              "percentDirectOrPreset": 4.96
             },
             "event": {
               "byStatus": {
@@ -22354,17 +22355,17 @@
         "configuration": {
           "byStatus": {
             "code-only": 17,
-            "direct": 9,
+            "direct": 15,
             "internal": 0,
-            "missing": 1593,
+            "missing": 1587,
             "observed": 0,
             "preset": 4,
             "sdk-ui-unverified": 0
           },
           "denominator": 1623,
           "deprecated": 3,
-          "percentDirect": 0.55,
-          "percentDirectOrPreset": 0.8
+          "percentDirect": 0.92,
+          "percentDirectOrPreset": 1.17
         },
         "event": {
           "byStatus": {
@@ -22493,9 +22494,10 @@
         "The denominator covers core UIConfig fields, canonical component configuration fields, component layout overrides, UIManager callable members and its two named dispatcher events. It excludes each individual component class method, component event payload and exported utility type.",
         "UIComponentConfigMap is counted once per component/property path. The global context and nine variant contexts do not multiply the same parameter into ten APIs. UIConfig override containers are represented by their canonical configuration scopes.",
         "A theme picker does not make every constructor constant GUI configurable. Constructor-only values receive code-only status. The Autohide switch supplies constrained UIContainer.hideDelay choices, and custom layouts supply a constrained QuickSeekButton inclusion choice.",
-        "The nine directly editable core UIConfig fields and fixed recommendation metadata are separate from individual component override editing. No arbitrary componentConfigOverrides or componentLayoutOverrides editor is present.",
+        "The 15 directly editable core UIConfig fields and fixed recommendation metadata are separate from individual component override editing. No arbitrary componentConfigOverrides or componentLayoutOverrides editor is present.",
         "These figures describe the Web application. Reusing the bundle in a native app does not transfer all Web controls or measured coverage to the native bridge.",
-        "The local compatibility patch changes component release and recommendation action ownership. It does not add public declarations or increase the SDK API denominator."
+        "The local compatibility patch changes component release and recommendation action ownership. It does not add public declarations or increase the SDK API denominator.",
+        "Language and subtitle-language adaptation are separate nested fields. The preferences switch is constructed only for Default and CSS themes and requires UI storage. Storage and resume defaults remain off; editing a flag is separate from proving cross-session persistence."
       ],
       "scopes": [
         {
@@ -22648,17 +22650,17 @@
             "configuration": {
               "byStatus": {
                 "code-only": 2,
-                "direct": 9,
+                "direct": 15,
                 "internal": 0,
-                "missing": 25,
+                "missing": 19,
                 "observed": 0,
                 "preset": 2,
                 "sdk-ui-unverified": 0
               },
               "denominator": 38,
               "deprecated": 3,
-              "percentDirect": 23.68,
-              "percentDirectOrPreset": 28.95
+              "percentDirect": 39.47,
+              "percentDirectOrPreset": 44.74
             },
             "event": {
               "byStatus": {
@@ -22763,7 +22765,7 @@
     }
   ],
   "checkedAt": "2026-10-20",
-  "inputSha256": "5bf9a1776cdaf585ded8dc37ddf7c39f00f52c914d0c503948a4b7eb660ff94b",
+  "inputSha256": "482d7d644a81867a9666d86b30193a5ba30384a9ca61214cc75b8eb962ef73df",
   "schemaVersion": 1,
   "sdks": [
     {
@@ -22889,5 +22891,5 @@
       "version": "4.23.0"
     }
   ],
-  "sourceRevision": "8576f28945ad7bd4a7bb7be97c3990f929386c16"
+  "sourceRevision": "f87f09b6d062b6d74628878e38c0baf34f92d991"
 }

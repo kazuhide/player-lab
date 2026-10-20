@@ -5,7 +5,7 @@
   "blocks": [
     {
       "type": "h2",
-      "text": "Ten UI settings"
+      "text": "Sixteen UI settings"
     },
     {
       "type": "table",
@@ -44,7 +44,7 @@
         ],
         [
           "Disable UI storage",
-          "Stop persisting UI selections such as volume, quality and tracks in the browser."
+          "Disable Player UI localStorage access, including preferences and resume positions."
         ],
         [
           "Snap range (%)",
@@ -53,6 +53,30 @@
         [
           "CEA-608 small-player px",
           "Set the player-height threshold for small-player placement of compatible captions."
+        ],
+        [
+          "Remember playback preferences",
+          "Store volume, mute and playback speed in the browser. Initially off. Requires UI storage; a choice already made with the preferences switch takes precedence."
+        ],
+        [
+          "Resume VOD position",
+          "Store VOD positions and resume on a later source load. Initially off. Requires UI storage; live streams are excluded."
+        ],
+        [
+          "Read timestamp from URL",
+          "Read a VOD start position such as t=30 from the query or fragment. Initially on. Reload the source after changing this setting because it applies on the first source load after UI creation."
+        ],
+        [
+          "Preference switch in default settings",
+          "Show the playback-preferences switch in Default and CSS themes. Initially off. Hidden when UI storage is disabled. Custom component layouts do not add this switch."
+        ],
+        [
+          "Player UI language",
+          "Use auto for the browser language, or en, de, es, fr, nl or pt. Other languages fall back to English. Separate from the app Japanese/English selector."
+        ],
+        [
+          "Follow subtitle language",
+          "Use the selected subtitle language for Player UI. Initially off. If its translation is unavailable, use the configured UI language."
         ]
       ],
       "widths": [
@@ -67,6 +91,10 @@
     {
       "type": "p",
       "text": "Changing a checkbox or number rebuilds the active theme UI. Settings that do not recreate the player retain the current playback session. Changing a value on media that cannot exercise the feature is not evidence that the feature worked."
+    },
+    {
+      "type": "p",
+      "text": "The construction panel also shows applied UIConfig overrides as code. Its Player UI language is separate from the app language. Changes rebuild the UI without recreating the Player; source-load settings such as timestamp links require a subsequent source load."
     },
     {
       "type": "h2",
@@ -129,11 +157,11 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 373
+      "line": 413
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 418
+      "line": 486
     },
     {
       "path": "apps/web/src/main.ts",
@@ -153,7 +181,15 @@
     },
     {
       "path": "tests/e2e/specs/app-ui.spec.ts",
-      "line": 237
+      "line": 348
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html",
+      "label": "UIConfig"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/LocalizationConfig.html",
+      "label": "LocalizationConfig"
     }
   ]
 }

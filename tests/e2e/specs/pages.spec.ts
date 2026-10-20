@@ -116,15 +116,17 @@ test("all fourteen original themes render their UI and construction code", async
       const skin = label === "Live (DVR)" ? "live" : label.toLowerCase();
       await expect(page.locator(`#player .bmpui-ui-skin-${skin}`)).toHaveCount(1);
     }
-    const code = await page.locator("#ui-construction .theme-diff-code").textContent();
+    const construction = page.locator("#ui-construction .theme-diff");
+    const code = await construction.locator(".theme-diff-code").textContent();
     expect(code?.trim().length, label).toBeGreaterThan(30);
     expect(code, label).not.toMatch(/[぀-ヿ一-龯]/);
-    sources.add((await page.locator("#ui-construction .theme-diff-codesrc").textContent())!);
+    sources.add((await construction.locator(".theme-diff-codesrc").textContent())!);
+    await expect(page.locator("#ui-construction .ui-config-preview code")).toHaveText("const uiConfig = {};");
     await expect(page.locator(".ui-theme-bar-code")).not.toBeEmpty();
   }
   expect(sources.size).toBeGreaterThanOrEqual(8);
   await expect(page.locator("#config-panel .config-band-dynamic .config-group")).toHaveCount(4);
-  await expect(page.locator("#config-panel .config-band-static .config-group")).toHaveCount(10);
+  await expect(page.locator("#config-panel .config-band-static .config-group")).toHaveCount(11);
   await expectPlayback(page);
 });
 

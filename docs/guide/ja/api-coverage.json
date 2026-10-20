@@ -17,8 +17,8 @@
         "text": "「GUIで直接指定」は、アプリの操作部品からフィールドを編集するか、GUIがサポートする引数で操作を呼び出す場合です。「限定プリセット」は固定のソース・値・テーマ候補からの選択であり、任意の引数を指定できることは意味しません。"
       },
       {
-        "source": "The Player Config editor includes 134 GUI fields, but app helpers and paths absent from the public SDK declarations are not counted as public API coverage.",
-        "text": "Player Configエディターには134件のGUIフィールドがありますが、アプリ独自のヘルパーと公開SDK宣言に存在しないパスは、公開APIの対応件数に含めません。"
+        "source": "The Player Config editor includes 144 GUI fields, but app helpers and paths absent from the public SDK declarations are not counted as public API coverage.",
+        "text": "Player Configエディターには144件のGUIフィールドがありますが、アプリ独自のヘルパーと公開SDK宣言に存在しないパスは、公開APIの対応件数に含めません。"
       },
       {
         "source": "Audited standard UI action routes include video/audio quality, audio and subtitle track selection, Cast and AirPlay. Player Insights details, VR, advertising controls and every standard UI getter have not been qualified; their absence from this mapping is not proof that the SDK UI cannot call them.",
@@ -39,6 +39,10 @@
       {
         "source": "The mapping is static source evidence. Browser playback and targeted GUI regressions are separate checks and do not establish that every option, event, browser, device, DRM system or external service works.",
         "text": "対応付けはソースの静的な証跡に基づきます。ブラウザーでの再生と対象を絞ったGUI回帰テストは別の確認であり、すべての設定候補・イベント・ブラウザー・機器・DRM・外部サービスの動作を保証しません。"
+      },
+      {
+        "source": "Network timeouts are edited in seconds: a default and 7 explicit request types. Empty removes the selected override. These controls do not expose request callbacks or every network request type.",
+        "text": "通信タイムアウトは秒単位で、全体の既定値と明示した7種類のリクエストを編集します。空欄で該当する上書きだけを削除します。リクエストのコールバックや全リクエスト種別を編集する画面ではありません。"
       }
     ],
     "web-ui": [
@@ -55,8 +59,8 @@
         "text": "テーマを選べることだけで、コンストラクターの全定数をGUIで設定可能とは判断しません。生成時にだけ指定する値は「コードのみ」です。AutohideスイッチはUIContainer.hideDelayの限定候補を渡し、カスタムレイアウトはQuickSeekButtonを含めるかどうかの限定候補を渡します。"
       },
       {
-        "source": "The nine directly editable core UIConfig fields and fixed recommendation metadata are separate from individual component override editing. No arbitrary componentConfigOverrides or componentLayoutOverrides editor is present.",
-        "text": "直接編集できる基本UIConfigの九フィールドと固定のおすすめ情報は、個別のコンポーネント設定の上書きと区別します。componentConfigOverridesやcomponentLayoutOverridesを任意に編集するGUIはありません。"
+        "source": "The 15 directly editable core UIConfig fields and fixed recommendation metadata are separate from individual component override editing. No arbitrary componentConfigOverrides or componentLayoutOverrides editor is present.",
+        "text": "GUIから直接変更できる基本のUIConfigの15項目と、固定の推薦メタデータは、コンポーネントごとの上書き編集とは別です。componentConfigOverridesやcomponentLayoutOverridesを任意に編集する画面はありません。"
       },
       {
         "source": "These figures describe the Web application. Reusing the bundle in a native app does not transfer all Web controls or measured coverage to the native bridge.",
@@ -65,6 +69,10 @@
       {
         "source": "The local compatibility patch changes component release and recommendation action ownership. It does not add public declarations or increase the SDK API denominator.",
         "text": "ローカルの互換パッチが変更するのは、コンポーネント解放とおすすめ操作の所有関係です。公開宣言を追加するものではなく、SDK APIの分母も増やしません。"
+      },
+      {
+        "source": "Language and subtitle-language adaptation are separate nested fields. The preferences switch is constructed only for Default and CSS themes and requires UI storage. Storage and resume defaults remain off; editing a flag is separate from proving cross-session persistence.",
+        "text": "UI言語と字幕言語への追従は、入れ子の設定の別項目です。設定保存スイッチを組み込むのは標準UIとCSSテーマだけで、UIのストレージが必要です。設定保存と再開位置の保存は初期状態でオフです。フラグの変更と、セッションをまたいだ保存動作の実証は分けています。"
       }
     ],
     "ios": [

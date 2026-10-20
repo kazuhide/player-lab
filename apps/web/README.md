@@ -59,6 +59,20 @@ Select a theme to inspect its actual UI and construction code. The configuration
 panels distinguish settings that recreate the player, reload the source, or
 apply immediately. Unapplied changes do not prove that the SDK accepted them.
 
+Network settings select XMLHttpRequest or Fetch and set default or request-type
+timeouts in **seconds**. Decimal values are accepted. A request-type timeout
+overrides the default; clearing a field removes only that override. Invalid or
+negative values disable Apply. Recreate the player to apply these settings.
+Source `options.persistentPoster` keeps a configured image visible during playback,
+which can be useful for audio-only media; apply it with a source reload.
+
+UI settings also expose playback-preference storage, VOD resume positions,
+timestamp links, and Player UI language. UI changes rebuild the theme without
+recreating the player. The preferences switch is available in Default and CSS
+themes when UI storage is enabled. The construction panel shows applied UIConfig
+overrides as code. Player UI language is independent of the app language; the
+SDK includes English, German, Spanish, French, Dutch and Portuguese translations.
+
 Source edits retain other applied source settings. Selecting a preset, including
 that same preset from a recommendation, clears earlier source overrides.
 The SDK's `SourceLoaded` notification can arrive after the asynchronous `load()`

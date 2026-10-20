@@ -23,12 +23,12 @@
         [
           "リロード",
           "SourceConfigのタイトル、説明、画像、開始位置。ソースを再読み込みして適用します。",
-          "5"
+          "6"
         ],
         [
           "再生成",
           "PlayerConfigの初期設定。プレイヤーを作り直して適用します。",
-          "108"
+          "117"
         ]
       ],
       "widths": [
@@ -39,7 +39,7 @@
     },
     {
       "type": "p",
-      "text": "合計は14グループ、134項目です。別に操作パネルのDVR、UI設定、キャストなどがあります。各グループは見出しで開閉します。動的グループは初期状態で開き、再生成のグループは閉じています。"
+      "text": "合計は15グループ、144項目です。別に操作パネルのDVR、UI設定、キャストなどがあります。各グループは見出しで開閉します。動的グループは初期状態で開き、再生成のグループは閉じています。"
     },
     {
       "type": "h2",
@@ -121,7 +121,7 @@
         ],
         [
           "Source",
-          "5",
+          "6",
           "タイトル、説明、画像、開始位置と基準"
         ],
         [
@@ -138,6 +138,11 @@
           "Buffer 初期",
           "4",
           "音声・映像それぞれの前方と後方のバッファ"
+        ],
+        [
+          "Network",
+          "9",
+          "通信方式とリクエスト種別ごとのタイムアウト秒数"
         ],
         [
           "Tweaks",
@@ -186,6 +191,10 @@
       "text": "設定一覧の初期表示値は、適用値を取得できない場合にフォームが使う値です。SDKの既定値、現在の実効値、推奨値とは区別してください。例えばTweaksのチェックがfalseと記載されても、SDKの本来の既定がfalseとは限りません。"
     },
     {
+      "type": "p",
+      "text": "Networkのタイムアウトは小数を含む秒数で指定します。ミリ秒ではありません。リクエスト種別ごとの値は全体の既定値より優先されます。不正な値や負値を入力すると適用ボタンが無効になり、再生中のプレイヤーは変わりません。空欄で該当する上書きだけを削除します。音声のみのソースなどで再生中も画像を残す場合は、options.persistentPosterを使います。"
+    },
+    {
       "type": "h2",
       "text": "設定を戻すとき"
     },
@@ -213,45 +222,53 @@
     {
       "type": "figure",
       "file": "config",
-      "caption": "SourceConfigの5項目。適用ボタンは設定パネル全体の下にあります。"
+      "caption": "SourceConfigの6項目です。適用ボタンは設定パネル全体の下にあります。"
     }
   ],
   "sources": [
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 65
+      "line": 67
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 144
+      "line": 147
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 269
+      "line": 284
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 576
+      "line": 599
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 721
+      "line": 760
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 735
+      "line": 775
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 853
+      "line": 920
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 883
+      "line": 951
     },
     {
       "path": "apps/web/test/configState.test.ts",
       "line": 5
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html",
+      "label": "NetworkConfig"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfigOptions.html",
+      "label": "SourceConfigOptions"
     }
   ]
 }
