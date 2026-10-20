@@ -96,7 +96,7 @@
   "sources": [
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 629
+      "line": 697
     },
     {
       "path": "apps/web/src/main.ts",

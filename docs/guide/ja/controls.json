@@ -1,7 +1,7 @@
 {
   "id": "controls",
-  "title": "操作パネルの全35項目",
-  "lead": "テーマ選択、Player Config、映像内のトラック選択とは別に、操作パネルの35項目を一覧にしています。表示形式と反映後の動作を確認してください。",
+  "title": "操作パネルの全41項目",
+  "lead": "テーマ選択、Player Config、映像内のトラック選択とは別に、操作パネルの41項目を一覧にしています。表示形式と反映後の動作を確認してください。",
   "controls": [
     {
       "group": "source",
@@ -88,7 +88,7 @@
       "description": "現在のライブ端へ移動します。VODの先頭や終端へ移動する操作ではありません。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 509
+        "line": 577
       }
     },
     {
@@ -176,7 +176,7 @@
       "description": "全画面切り替え、または左半分で10秒戻る・右半分で10秒進む操作を選びます。Default以外が対象です。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 452
+        "line": 520
       }
     },
     {
@@ -187,7 +187,7 @@
       "description": "再読み込み後の開始位置です。初期表示は-20、基準は明示的にendとなります。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 469
+        "line": 537
       }
     },
     {
@@ -198,7 +198,7 @@
       "description": "指定した開始位置でソースを読み込み直します。単なるシークとは異なり、QoEのセッション計測も始め直します。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 474
+        "line": 542
       }
     },
     {
@@ -209,7 +209,7 @@
       "description": "前方の映像バッファ目標です。初期表示は40秒です。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 479
+        "line": 547
       }
     },
     {
@@ -220,7 +220,7 @@
       "description": "入力値をplayer.buffer.setTargetLevelで反映します。ライブの巻き戻し可能時間は変えません。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 484
+        "line": 552
       }
     },
     {
@@ -231,7 +231,7 @@
       "description": "対応するブラウザーで映像を独立した小窓に表示します。利用可否はブラウザーとOSに依存します。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 492
+        "line": 560
       }
     },
     {
@@ -242,7 +242,7 @@
       "description": "Bingeテーマの終盤のカウントダウンと自動送りを切り替えます。初期状態はオンです。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 423
+        "line": 491
       }
     },
     {
@@ -264,7 +264,7 @@
       "description": "ドラッグ中に映像も移動させるか、指を離した後にシークするかを切り替えます。画像サムネイルの有無とは別です。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 278
+        "line": 282
       }
     },
     {
@@ -275,7 +275,7 @@
       "description": "自動非表示がオンの場合に、プレイヤー上のポインターを理由にバーを表示し続けます。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 287
+        "line": 291
       }
     },
     {
@@ -286,7 +286,7 @@
       "description": "設定メニューに再生速度の選択を表示します。独自の歯車を持つPremiere、Creator、Studioなどで確認します。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 296
+        "line": 300
       }
     },
     {
@@ -297,7 +297,7 @@
       "description": "マーカー付近へシークした際に位置を合わせます。現在のサンプルマーカーは120秒以降のため、60秒のPages素材では確認できません。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 305
+        "line": 309
       }
     },
     {
@@ -308,7 +308,7 @@
       "description": "再生ボタンで初回再生を始めるときに全画面化します。既定の自動再生中には動作を確認しにくい項目です。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 314
+        "line": 318
       }
     },
     {
@@ -319,7 +319,7 @@
       "description": "はみ出す字幕を表示領域内に収めるための設定です。字幕のあるソースで比較します。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 323
+        "line": 327
       }
     },
     {
@@ -327,10 +327,10 @@
       "id": "disableStorageApi",
       "label": "UI のストレージを無効化",
       "kind": "checkbox",
-      "description": "音量や画質、トラックなどのUI選択の保存を無効にします。PlayerConfig側のstorageとは別項目です。",
+      "description": "Player UIによるlocalStorageの利用を無効にします。再生設定と再開位置の保存も無効になります。PlayerConfig側のstorageとは別です。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 332
+        "line": 336
       }
     },
     {
@@ -341,7 +341,7 @@
       "description": "シークバー幅に対して何%以内をマーカーへ合わせるかを指定します。初期表示は1です。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 353
+        "line": 393
       }
     },
     {
@@ -352,7 +352,73 @@
       "description": "小型プレイヤーの字幕配置を切り替える高さです。初期表示は360pxで、CEA-608字幕が対象です。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 362
+        "line": 402
+      }
+    },
+    {
+      "group": "ui",
+      "id": "enablePersistentPreferences",
+      "label": "音量・ミュート・速度を保存",
+      "kind": "checkbox",
+      "description": "音量・ミュート・再生速度をブラウザーに保存します。初期状態はオフです。UIのストレージが必要で、保存スイッチで選択済みの場合はその選択が優先されます。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 345
+      }
+    },
+    {
+      "group": "ui",
+      "id": "enableResumeFromLastPosition",
+      "label": "VODの再生位置を保存して再開",
+      "kind": "checkbox",
+      "description": "VODの再生位置を保存し、次回のソース読み込みで再開します。初期状態はオフです。UIのストレージが必要で、ライブには適用されません。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 354
+      }
+    },
+    {
+      "group": "ui",
+      "id": "enableTimestampDeepLink",
+      "label": "URLの再生位置を読み取る",
+      "kind": "checkbox",
+      "description": "URLのクエリまたはフラグメントのt=30などからVODの開始位置を読み取ります。初期状態はオンです。UI生成後の最初のソース読み込みで適用されるため、変更後はソースを再読み込みします。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 363
+      }
+    },
+    {
+      "group": "ui",
+      "id": "showPersistentPreferencesToggle",
+      "label": "標準UIの歯車に保存スイッチを表示",
+      "kind": "checkbox",
+      "description": "標準UIとCSSテーマの設定歯車に、再生設定の保存スイッチを表示します。初期状態はオフです。UIのストレージを無効にすると表示されません。独自構成のテーマには追加しません。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 372
+      }
+    },
+    {
+      "group": "ui",
+      "id": "localization.language",
+      "label": "Player UIの言語",
+      "kind": "text",
+      "description": "autoはブラウザーの言語を使用します。組み込み言語はen・de・es・fr・nl・ptで、未対応の言語は英語になります。アプリ自体の日英切替とは別です。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 426
+      }
+    },
+    {
+      "group": "ui",
+      "id": "localization.adaptLocalizationToSubtitleLanguage",
+      "label": "字幕の言語にUIを合わせる",
+      "kind": "checkbox",
+      "description": "選択中の字幕の言語にPlayer UIを合わせます。初期状態はオフです。対応する翻訳がない場合は、設定したUI言語になります。",
+      "source": {
+        "path": "apps/web/src/controlPanel.ts",
+        "line": 445
       }
     },
     {
@@ -363,7 +429,7 @@
       "description": "カスタムUIへPiPボタンを追加します。DefaultとCSSテーマは標準のボタンを内蔵しており、追加操作の対象ではありません。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 390
+        "line": 458
       }
     },
     {
@@ -374,7 +440,7 @@
       "description": "カスタムUIへAirPlayボタンを追加します。対応するSafari環境でのみ表示されます。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 398
+        "line": 466
       }
     },
     {
@@ -385,7 +451,7 @@
       "description": "カスタムUIへCastボタンを追加します。remotecontrolを有効にするためプレイヤーを再生成し、対応する受信機が必要です。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
-        "line": 406
+        "line": 474
       }
     }
   ]

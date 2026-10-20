@@ -157,7 +157,7 @@ for (const language of languages) {
       }
     });
 
-    test("all 134 setting identifiers can be found and lead to existing setting articles", async ({ page, request }) => {
+    test("all 144 setting identifiers can be found and lead to existing setting articles", async ({ page, request }) => {
       const response = await request.get(`${guidePath(language)}search-index.json`);
       expect(response.status()).toBe(200);
       const index = await response.json() as SearchEntry[];
@@ -165,7 +165,7 @@ for (const language of languages) {
       const expected = groups(language).flatMap((group) => group.fields.map((field) => ({
         title: `${field.scope}.${field.path}`, group: group.id, path: field.path,
       })));
-      expect(settings).toHaveLength(134);
+      expect(settings).toHaveLength(144);
       expect(settings.map((entry) => entry.title).sort()).toEqual(expected.map((field) => field.title).sort());
       await page.goto(guidePath(language));
       const input = page.locator("[data-guide-search]");

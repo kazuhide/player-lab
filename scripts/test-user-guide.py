@@ -78,11 +78,11 @@ class GuideTests(unittest.TestCase):
 
     def test_all_chapters_and_reference_groups_are_public_in_both_languages(self):
         self.assertEqual(set(self.pages), GUIDE_FILES)
-        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 92)
+        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 94)
         for language in ('en', 'ja'):
             fields = [field for group in self.content[language]['settings']['groups'] for field in group['fields']]
-            self.assertEqual(len(fields), 134)
-            self.assertEqual(len(self.content[language]['controls']['controls']), 35)
+            self.assertEqual(len(fields), 144)
+            self.assertEqual(len(self.content[language]['controls']['controls']), 41)
             self.assertEqual(len(self.content[language]['themes']['themes']), 14)
 
     def test_every_local_link_and_fragment_resolves_under_the_project(self):
@@ -127,7 +127,7 @@ class GuideTests(unittest.TestCase):
         for language in ('en', 'ja'):
             name = 'ja/guide/search-index.json' if language == 'ja' else 'guide/search-index.json'
             index = json.loads(self.pages[name])
-            self.assertEqual(len([entry for entry in index if entry['kind'] == 'setting']), 134)
+            self.assertEqual(len([entry for entry in index if entry['kind'] == 'setting']), 144)
             self.assertEqual(len([entry for entry in index if entry['kind'] == 'api']),
                              sum(len(app['rows']) for app in self.report['applications']))
             for entry in index:

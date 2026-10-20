@@ -19,7 +19,7 @@ TEXT = {
         'previous': 'Previous', 'next': 'Next', 'overview': 'Guide overview',
         'start': 'Getting started', 'native': 'Native examples', 'media': 'Media and measurements',
         'reference': 'Reference', 'web_group': 'Web controls and UI',
-        'settings': 'Player Config reference', 'controls': 'All 35 controls', 'themes': 'All 14 themes',
+        'settings': 'Player Config reference', 'controls': 'All 41 controls', 'themes': 'All 14 themes',
         'api-coverage': 'Public API coverage',
         'kind': 'Input', 'fallback': 'Form fallback', 'options': 'Choices', 'api': 'Player API',
         'field': 'Setting', 'description': 'Meaning and use', 'mode': 'Applies',
@@ -45,7 +45,7 @@ TEXT = {
         'previous': '前の章', 'next': '次の章', 'overview': 'ガイドの概要',
         'start': '利用の準備', 'native': 'ネイティブ版', 'media': '素材と測定',
         'reference': 'リファレンス', 'web_group': 'Webの操作とUI',
-        'settings': 'Player Configの全設定', 'controls': '全35操作', 'themes': '全14テーマ',
+        'settings': 'Player Configの全設定', 'controls': '全41操作', 'themes': '全14テーマ',
         'api-coverage': '公開APIの対応状況',
         'kind': '入力形式', 'fallback': '代替表示値', 'options': '選択肢', 'api': 'Player API',
         'field': '設定名', 'description': '意味と使い方', 'mode': '適用方法',
@@ -66,7 +66,7 @@ TEXT = {
 FIGURE_DIMENSIONS = {
     'overview': {'en': (1650, 1425), 'ja': (1650, 1425)},
     'source-controls': {'en': (492, 260), 'ja': (492, 269)},
-    'config': {'en': (507, 465), 'ja': (507, 470)},
+    'config': {'en': (293, 368), 'ja': (293, 353)},
 }
 
 
