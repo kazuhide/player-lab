@@ -4,6 +4,10 @@ Kotlin sample using the Bitmovin Player library, with a Compose control panel an
 `PlayerView`. The app targets phones, tablets, Android TV, and Android-based Fire
 TV devices. DVR means the window of live media that a viewer can rewind.
 
+The app pins Bitmovin Player Android **3.171.0**, released on 2026-10-16
+([official release notes](https://developer.bitmovin.com/playback/docs/release-notes-android)).
+Android TV and Fire TV use the same Android SDK dependency.
+
 ## Layout
 
 - `dvr/`: Kotlin module with rewind-window calculations and tests for the Java
@@ -22,6 +26,12 @@ cd apps/android && ./gradlew :dvr:test
 ## Build the app
 
 Use Java 17 and an Android SDK matching the requirements in `app/build.gradle.kts`.
+The build uses Gradle 9.3.1, Android Gradle plugin 9.1.1 with built-in Kotlin,
+Kotlin/Compose plugins 2.4.20, and Android SDK Platform 37.0. These plugin versions
+fit the [Kotlin Gradle compatibility table](https://kotlinlang.org/docs/gradle-configure-project.html).
+The Player's OkHttp dependency requires
+`compileSdk` 37; `targetSdk` remains 36 and `minSdk` remains 23. AGP 9.1.1 is
+the [minimum officially supported AGP for API 37](https://developer.android.com/build/releases/about-agp).
 `settings.gradle.kts` includes the app module when `ANDROID_HOME`,
 `ANDROID_SDK_ROOT`, or `local.properties` supplies an SDK context. Player
 artifacts are resolved from `artifacts.bitmovin.com`.

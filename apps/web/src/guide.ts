@@ -91,13 +91,17 @@ const SECTIONS: Section[] = [
           en: "Turn off the player's built-in UI, then attach your own. This is where everything starts.",
         },
         code: `import { Player } from "bitmovin-player";
-import { UIManager, UIFactory } from "bitmovin-player-ui";
+import { UIManager, UIFactory, UIVariantIdentifier, UIComponentLayoutOverride, type UIContainer } from "bitmovin-player-ui";
 
 const player = new Player(el, { key, ui: false }); // ui:false is essential
-const ui = new UIManager(player, myUiContainer);    // or UIFactory.buildUI(player)
+const createUi = (container: UIContainer) => new UIManager(player,
+  [{ ui: container, identifier: UIVariantIdentifier.main }],
+  { componentLayoutOverrides: { QuickSeekButton: UIComponentLayoutOverride.Include } },
+);
+const ui = createUi(myUiContainer);    // or UIFactory.buildUI(player)
 // later, swap just the UI (the player stays):
 ui.release();
-const ui2 = new UIManager(player, anotherContainer);`,
+const ui2 = createUi(anotherContainer);`,
       },
       {
         kind: "callout",
@@ -124,7 +128,7 @@ const ui2 = new UIManager(player, anotherContainer);`,
           ja: "A) プリセットをそのまま使う — 自分で組まない。レスポンシブな標準 UI。",
           en: "A) Use a preset as-is — compose nothing. The stock, responsive UI.",
         },
-        code: `new UIManager(player, UIFactory.buildUI(player));`,
+        code: `const ui = UIFactory.buildUI(player);`,
       },
       {
         kind: "code",
@@ -133,7 +137,7 @@ const ui2 = new UIManager(player, anotherContainer);`,
           ja: "B) ツリーを組む — 部品を選んで並べる。1行消せば操作が消え、1行足せば増える。",
           en: "B) Compose a tree — pick and arrange parts. Delete a line to drop a control, add one to gain it.",
         },
-        code: `new UIManager(player, new UIContainer({ components: [
+        code: `const container = new UIContainer({ components: [
   new PlaybackToggleOverlay(),
   new ControlBar({ components: [
     new PlaybackToggleButton(),
@@ -141,7 +145,8 @@ const ui2 = new UIManager(player, anotherContainer);`,
     new PlaybackTimeLabel(),
     new FullscreenToggleButton(),
   ] }),
-] }));`,
+] });
+new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }]);`,
       },
       {
         kind: "code",
@@ -519,10 +524,11 @@ npm install && npm run build   # → dist/bitmovinplayer-ui.js + .css
           ja: "UIManager 全体 — メタデータ・推薦・シークプレビュー・速度選択・ローカライズなど。",
           en: "UIManager-wide — metadata, recommendations, seek preview, speed selection, localization, …",
         },
-        code: `new UIManager(player, container, {
+        code: `new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }], {
   metadata: { title, description, recommendations: [{ title, resource }] },
   enableSeekPreview: false,            // stop real-time follow while scrubbing
   playbackSpeedSelectionEnabled: false,
+  componentLayoutOverrides: { QuickSeekButton: UIComponentLayoutOverride.Include },
   disableAutoHideWhenHovered: true,
 });`,
       },
@@ -563,9 +569,9 @@ new QuickSeekButton({ seekSeconds: 30 });`,
           en: "UIVariant[] — the first matching condition wins; the last is the fallback.",
         },
         code: `new UIManager(player, [
-  { ui: adsUi,    condition: (ctx) => ctx.isAd },
-  { ui: mobileUi, condition: (ctx) => ctx.documentWidth < 600 },
-  { ui: desktopUi },                       // no condition = fallback
+  { ui: adsUi, identifier: UIVariantIdentifier.ads, condition: (ctx) => ctx.isAd },
+  { ui: mobileUi, identifier: UIVariantIdentifier.smallScreen, condition: (ctx) => ctx.documentWidth < 600 },
+  { ui: desktopUi, identifier: UIVariantIdentifier.main }, // no condition = fallback
 ]);`,
       },
       {
@@ -575,13 +581,13 @@ new QuickSeekButton({ seekSeconds: 30 });`,
           ja: "TV(10フィート / リモコン)— 公式 playerUi/tv サンプルはこの SpatialNavigation で上下左右フォーカス移動を足しています。",
           en: "TV (10-foot / remote) — the official playerUi/tv samples add arrow-key focus movement with SpatialNavigation.",
         },
-        code: `import { UIManager, SpatialNavigation, RootNavigationGroup } from "bitmovin-player-ui";
+        code: `import { UIManager, UIVariantIdentifier, SpatialNavigation, RootNavigationGroup } from "bitmovin-player-ui";
 
 const spatialNavigation = new SpatialNavigation(
   new RootNavigationGroup(uiContainer, /* focusable: */ playButton, settingsButton),
 );
 // { ui, spatialNavigation } is a UIVariant — pass it in an ARRAY (like the tv samples):
-new UIManager(player, [{ ui: uiContainer, spatialNavigation }]);`,
+new UIManager(player, [{ ui: uiContainer, identifier: UIVariantIdentifier.tv, spatialNavigation }]);`,
       },
       {
         kind: "callout",
@@ -675,8 +681,8 @@ player.load({ hls: url, title: "My title", description: "My description" });`,
         title: { ja: "「次の動画」を出す", en: "Show “up next” recommendations" },
         note: { ja: "RecommendationOverlay を最後に置き、UIConfig.metadata.recommendations を渡す。終了時に表示。", en: "Put a RecommendationOverlay last and pass UIConfig.metadata.recommendations. Shows at playback end." },
         lang: "ts",
-        code: `new UIContainer({ components: [/* …, */ new RecommendationOverlay()] });
-new UIManager(player, container, {
+        code: `const container = new UIContainer({ components: [/* …, */ new RecommendationOverlay()] });
+new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }], {
   metadata: { recommendations: [{ title: "Next", resource: { hls: nextUrl } }] },
 });`,
       },

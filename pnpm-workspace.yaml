@@ -3,4 +3,10 @@ packages:
   - "apps/*"
   - "tests/*"
 patchedDependencies:
-  bitmovin-player-ui@4.15.1: patches/bitmovin-player-ui@4.15.1.patch
+  bitmovin-player-ui@4.23.0: patches/bitmovin-player-ui@4.23.0.patch
+packageExtensions:
+  # Published UI declarations import Player types without declaring their peer.
+  # Bind them to the host SDK, rather than the separately pinned Vega build.
+  bitmovin-player-ui@4.23.0:
+    peerDependencies:
+      bitmovin-player: ^8.237.0

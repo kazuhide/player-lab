@@ -43,8 +43,8 @@ import com.showcase.dvr.DvrState
 import com.showcase.dvr.PlayerSnapshot
 
 /**
- * Which UI renders over the player. `DEFAULT` is the SDK's own Web UI (loaded from Bitmovin's
- * CDN); the rest load our shared `@showcase/ui-shared` bundle (synced into assets/ — see
+ * Which UI renders over the player. `DEFAULT` uses the SDK's default Web UI configuration; the rest load
+ * our shared `@showcase/ui-shared` bundle (synced into assets/ — see
  * scripts/sync-webui-bundle.sh) and pick one of its custom factories by name, demonstrating
  * the §12 "build the UI once, reuse it across web-capable targets" story. Android renders the
  * player UI as a Web UI in a WebView, so the same bundle the web app uses runs here unchanged.
@@ -57,7 +57,7 @@ enum class UiMode(val label: String, val factoryFunction: String?) {
 }
 
 /**
- * Build a [PlayerViewConfig] for a [UiMode]. `DEFAULT` uses the SDK default (CDN Web UI); the
+ * Build a [PlayerViewConfig] for a [UiMode]. `DEFAULT` keeps the SDK's UI configuration defaults; the
  * custom modes point the Web UI at our synced bundle and select the factory by name.
  */
 private fun playerViewConfig(mode: UiMode): PlayerViewConfig =
@@ -75,7 +75,7 @@ private fun playerViewConfig(mode: UiMode): PlayerViewConfig =
 
 /**
  * Holds the Bitmovin Player and exposes DVR state (via the `:dvr` Kotlin module)
- * as Compose state. Compiles against Bitmovin Player 3.155.0 — `:app:assembleDebug`
+ * as Compose state. Compiles against Bitmovin Player 3.171.0 — `:app:assembleDebug`
  * produces a debug APK (built in CI). On-device DVR behaviour still needs a real
  * device and a license-allow-listed build.
  */

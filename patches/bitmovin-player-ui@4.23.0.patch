@@ -1,0 +1,427 @@
+diff --git a/dist/js/framework/UIManager.js b/dist/js/framework/UIManager.js
+--- a/dist/js/framework/UIManager.js
++++ b/dist/js/framework/UIManager.js
+@@ -59,6 +59,7 @@
+ var ComponentLayoutOverrideProcessor_1 = require("./utils/ComponentLayoutOverrideProcessor");
+ var UIComponentLayoutOverrides_1 = require("./UIComponentLayoutOverrides");
+ var NonLinearAdEvents_1 = require("./utils/NonLinearAdEvents");
++var ComponentDisposal_1 = require("./utils/ComponentDisposal");
+ /**
+  * Identifier for the different {@link UIVariant}s.
+  */
+@@ -112,6 +113,9 @@
+             })), uiconfig.componentLayoutOverrides), events: {
+                 onUpdated: new EventDispatcher_1.EventDispatcher(),
+             }, volumeController: new VolumeController_1.VolumeController(this.managerPlayerWrapper.getPlayer()), adBreakTracker: new AdBreakTracker_1.AdBreakTracker(this.managerPlayerWrapper.getPlayer()) });
++        // Pending recommendation actions observe the original public API, independently
++        // of UI wrappers whose listeners are removed when a theme is released.
++        this.config.recommendationPlayer = player;
+         this.componentLayoutOverrideProcessor = new ComponentLayoutOverrideProcessor_1.ComponentLayoutOverrideProcessor(this.config);
+         this.recommendationsApi = {
+             add: function (recommendation) {
+@@ -1005,13 +1009,7 @@
+         return this.released;
+     };
+     InternalUIInstanceManager.prototype.releaseControlsTree = function (component) {
+-        component.release();
+-        if (component instanceof Container_1.Container) {
+-            for (var _i = 0, _a = component.getComponents(); _i < _a.length; _i++) {
+-                var childComponent = _a[_i];
+-                this.releaseControlsTree(childComponent);
+-            }
+-        }
++        ComponentDisposal_1.releaseComponentTree(component);
+     };
+     InternalUIInstanceManager.prototype.clearEventHandlers = function () {
+         _super.prototype.clearEventHandlers.call(this);
+diff --git a/dist/js/framework/components/RecommendationItem.js b/dist/js/framework/components/RecommendationItem.js
+--- a/dist/js/framework/components/RecommendationItem.js
++++ b/dist/js/framework/components/RecommendationItem.js
+@@ -32,6 +32,7 @@
+ var DOM_1 = require("../DOM");
+ var Label_1 = require("./labels/Label");
+ var StringUtils_1 = require("../utils/StringUtils");
++var RecommendationPlayback_1 = require("../utils/RecommendationPlayback");
+ /**
+  * An item of the {@link RecommendationOverlay}.
+  */
+@@ -56,8 +57,7 @@
+             return;
+         }
+         this.onClick.subscribe(function () {
+-            player.load(_this.config.recommendationConfig.resource);
+-            player.play();
++            RecommendationPlayback_1.playRecommendation(uimanager.getConfig().recommendationPlayer || player, _this.config.recommendationConfig.resource);
+         });
+     };
+     RecommendationItem.prototype.toDomElement = function () {
+diff --git a/dist/js/framework/components/buttons/Button.js b/dist/js/framework/components/buttons/Button.js
+--- a/dist/js/framework/components/buttons/Button.js
++++ b/dist/js/framework/components/buttons/Button.js
+@@ -21,6 +21,7 @@
+ var EventDispatcher_1 = require("../../EventDispatcher");
+ var i18n_1 = require("../../localization/i18n");
+ var Icon_1 = require("../Icon");
++var ComponentDisposal_1 = require("../../utils/ComponentDisposal");
+ /**
+  * Configures the style of a {@link Button} component.
+  */
+@@ -71,6 +72,10 @@
+             this.setText(this.config.text);
+         }
+     };
++    Button.prototype.release = function () {
++        ComponentDisposal_1.releaseComponentTree(this.iconComponent);
++        _super.prototype.release.call(this);
++    };
+     Button.prototype.toDomElement = function () {
+         var _this = this;
+         var buttonElementAttributes = {
+@@ -87,6 +92,7 @@
+         var buttonElement = new DOM_1.DOM('button', buttonElementAttributes, this);
+         var addIconElement = function () {
+             var icon = new Icon_1.Icon();
++            _this.iconComponent = icon;
+             buttonElement.append(icon.getDomElement());
+         };
+         var addLabelElement = function () {
+diff --git a/dist/js/framework/components/labels/Label.js b/dist/js/framework/components/labels/Label.js
+--- a/dist/js/framework/components/labels/Label.js
++++ b/dist/js/framework/components/labels/Label.js
+@@ -21,6 +21,7 @@
+ var EventDispatcher_1 = require("../../EventDispatcher");
+ var i18n_1 = require("../../localization/i18n");
+ var Icon_1 = require("../Icon");
++var ComponentDisposal_1 = require("../../utils/ComponentDisposal");
+ var LabelStyle;
+ (function (LabelStyle) {
+     /**
+@@ -74,6 +75,10 @@
+             this.setText(this.config.text);
+         }
+     };
++    Label.prototype.release = function () {
++        ComponentDisposal_1.releaseComponentTree(this.iconComponent);
++        _super.prototype.release.call(this);
++    };
+     Label.prototype.toDomElement = function () {
+         var _this = this;
+         var tagName = this.config.for != null ? 'label' : 'span';
+@@ -93,6 +98,7 @@
+         });
+         if (this.config.labelStyle !== LabelStyle.Text) {
+             var icon = new Icon_1.Icon();
++            this.iconComponent = icon;
+             switch (this.config.labelStyle) {
+                 case LabelStyle.TextWithTrailingIcon:
+                     wrapperElement.append(icon.getDomElement());
+diff --git a/dist/js/framework/components/overlays/SubtitleOverlay.js b/dist/js/framework/components/overlays/SubtitleOverlay.js
+--- a/dist/js/framework/components/overlays/SubtitleOverlay.js
++++ b/dist/js/framework/components/overlays/SubtitleOverlay.js
+@@ -23,6 +23,7 @@
+ var DOM_1 = require("../../DOM");
+ var i18n_1 = require("../../localization/i18n");
+ var VttUtils_1 = require("../../utils/VttUtils");
++var ComponentDisposal_1 = require("../../utils/ComponentDisposal");
+ /**
+  * Overlays the player to display subtitles.
+  *
+@@ -155,6 +156,10 @@
+         else {
+             this.getDomElement().removeClass(this.prefixCss(SubtitleOverlay.CLASS_CEA608_PUSHUP_DISABLED));
+         }
++    };
++    SubtitleOverlay.prototype.release = function () {
++        ComponentDisposal_1.releaseComponentTree(this.previewSubtitle);
++        _super.prototype.release.call(this);
+     };
+     SubtitleOverlay.prototype.setFontSizeFactor = function (factor) {
+         // We only allow range from 50% to 200% as suggested by spec
+@@ -300,6 +305,7 @@
+             var fontSizeRatio = dummyLabelCharWidth / dummyLabelCharHeight;
+             _this.removeComponent(dummyLabel);
+             _this.updateComponents();
++            ComponentDisposal_1.releaseComponentTree(dummyLabel);
+             if (!_this.subtitleManager.hasCues) {
+                 _this.hide();
+             }
+diff --git a/dist/js/framework/components/seekbar/SeekBar.js b/dist/js/framework/components/seekbar/SeekBar.js
+--- a/dist/js/framework/components/seekbar/SeekBar.js
++++ b/dist/js/framework/components/seekbar/SeekBar.js
+@@ -28,6 +28,7 @@
+ var BrowserUtils_1 = require("../../utils/BrowserUtils");
+ var TimelineMarkersHandler_1 = require("../../utils/TimelineMarkersHandler");
+ var getMinBufferLevel_1 = require("../../utils/getMinBufferLevel");
++var ComponentDisposal_1 = require("../../utils/ComponentDisposal");
+ /**
+  * A seek bar to seek within the player's media. It displays the current playback position, amount of buffed data, seek
+  * target, and keeps status about an ongoing seek.
+@@ -530,6 +531,7 @@
+         return PlayerUtils_1.PlayerUtils.getCurrentTimeRelativeToSeekableRange(this.player);
+     };
+     SeekBar.prototype.release = function () {
++        ComponentDisposal_1.releaseComponentTree(this.label);
+         _super.prototype.release.call(this);
+         if (this.smoothPlaybackPositionUpdater) {
+             // object must not necessarily exist, e.g. in volume slider subclass
+diff --git a/dist/js/framework/components/settings/DynamicSettingsPanelItem.js b/dist/js/framework/components/settings/DynamicSettingsPanelItem.js
+--- a/dist/js/framework/components/settings/DynamicSettingsPanelItem.js
++++ b/dist/js/framework/components/settings/DynamicSettingsPanelItem.js
+@@ -23,6 +23,7 @@
+ var SettingsPanelPageBackButton_1 = require("./SettingsPanelPageBackButton");
+ var SubtitleSettingSelectBox_1 = require("./subtitlesettings/SubtitleSettingSelectBox");
+ var InteractiveSettingsPanelItem_1 = require("./InteractiveSettingsPanelItem");
++var ComponentDisposal_1 = require("../../utils/ComponentDisposal");
+ /**
+  * A dynamic settings panel item which can build a sub page with the items of a {@link ListSelector}.
+  * The page will be dynamically added and removed from the {@link SettingsPanel}.
+@@ -58,6 +59,11 @@
+         }, _this.config);
+         return _this;
+     }
++    DynamicSettingsPanelItem.prototype.release = function () {
++        ComponentDisposal_1.releaseComponentTree(this.settingComponent);
++        ComponentDisposal_1.releaseComponentTree(this.backNavigationRightComponent);
++        _super.prototype.release.call(this);
++    };
+     DynamicSettingsPanelItem.prototype.configure = function (player, uimanager) {
+         var _this = this;
+         _super.prototype.configure.call(this, player, uimanager);
+diff --git a/dist/js/framework/utils/ComponentDisposal.js b/dist/js/framework/utils/ComponentDisposal.js
+new file mode 100644
+--- /dev/null
++++ b/dist/js/framework/utils/ComponentDisposal.js
+@@ -0,0 +1,19 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.releaseComponentTree = releaseComponentTree;
++var Container_1 = require("../components/Container");
++var SettingsPanelItem_1 = require("../components/settings/SettingsPanelItem");
++// Components may be reachable through both a normal tree and an auxiliary owner.
++// Weak keys make disposal idempotent without retaining released components.
++var released = new WeakSet();
++function releaseComponentTree(component) {
++    if (!component || released.has(component)) return;
++    released.add(component);
++    component.release();
++    if (component instanceof SettingsPanelItem_1.SettingsPanelItem) {
++        releaseComponentTree(component.getConfig().settingComponent);
++    }
++    if (component instanceof Container_1.Container) {
++        component.getComponents().forEach(releaseComponentTree);
++    }
++}
+diff --git a/dist/js/framework/utils/ComponentLayoutOverrideProcessor.js b/dist/js/framework/utils/ComponentLayoutOverrideProcessor.js
+--- a/dist/js/framework/utils/ComponentLayoutOverrideProcessor.js
++++ b/dist/js/framework/utils/ComponentLayoutOverrideProcessor.js
+@@ -5,6 +5,7 @@
+ var Container_1 = require("../components/Container");
+ var SettingsPanelItem_1 = require("../components/settings/SettingsPanelItem");
+ var ConstructorUtils_1 = require("./ConstructorUtils");
++var ComponentDisposal_1 = require("./ComponentDisposal");
+ var ComponentLayoutOverrideProcessor = /** @class */ (function () {
+     function ComponentLayoutOverrideProcessor(config) {
+         this.config = config;
+@@ -58,27 +59,8 @@
+         }
+         return override;
+     };
+-    ComponentLayoutOverrideProcessor.prototype.releaseComponentTree = function (component, releasedComponents) {
+-        if (releasedComponents === void 0) { releasedComponents = []; }
+-        // Guard against shared or circular component references causing duplicate release calls.
+-        if (releasedComponents.indexOf(component) !== -1) {
+-            return;
+-        }
+-        releasedComponents.push(component);
+-        if (component instanceof SettingsPanelItem_1.SettingsPanelItem) {
+-            var settingComponent = component.getConfig().settingComponent;
+-            if (settingComponent != null) {
+-                this.releaseComponentTree(settingComponent, releasedComponents);
+-            }
+-        }
+-        if (component instanceof Container_1.Container) {
+-            var childComponents = component.getComponents().slice();
+-            for (var _i = 0, childComponents_1 = childComponents; _i < childComponents_1.length; _i++) {
+-                var childComponent = childComponents_1[_i];
+-                this.releaseComponentTree(childComponent, releasedComponents);
+-            }
+-        }
+-        component.release();
++    ComponentLayoutOverrideProcessor.prototype.releaseComponentTree = function (component) {
++        ComponentDisposal_1.releaseComponentTree(component);
+     };
+     return ComponentLayoutOverrideProcessor;
+ }());
+diff --git a/dist/js/framework/utils/RecommendationPlayback.js b/dist/js/framework/utils/RecommendationPlayback.js
+new file mode 100644
+--- /dev/null
++++ b/dist/js/framework/utils/RecommendationPlayback.js
+@@ -0,0 +1,168 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.playRecommendation = playRecommendation;
++var recommendationStates = new WeakMap();
++function createState(player) {
++    var events = player.exports.PlayerEvent;
++    var PlayerAPINotAvailableError = player.exports.PlayerAPINotAvailableError;
++    var state = { action: null, unloads: [], listening: false, disposed: false };
++    state.isUnavailable = function (error) { return error instanceof PlayerAPINotAvailableError; };
++    state.cleanup = function () {
++        if (!state.disposed && (state.action || state.unloads.length)) return;
++        try {
++            if (state.listening) {
++                state.listening = false;
++                try {
++                    player.off(events.SourceUnloaded, onSourceUnloaded);
++                    player.off(events.Paused, onPaused);
++                    player.off(events.Destroy, onDestroy);
++                } catch (error) {
++                    // destroy() invalidates off() before notifying Destroy and
++                    // owns disposal of all remaining SDK event handlers.
++                    if (!state.isUnavailable(error)) throw error;
++                    state.disposed = true;
++                }
++            }
++        } finally {
++            if (state.disposed) state.unloads.length = 0;
++            if (recommendationStates.get(player) === state) recommendationStates.delete(player);
++        }
++    };
++    function onSourceUnloaded() {
++        // Each receipt identifies a concrete source our load requested to tear
++        // down. Its notification can outlive pause, action failure or a new click.
++        if (state.unloads.length) state.unloads.shift();
++        else if (state.action) state.action.cancel();
++        state.cleanup();
++    }
++    function onPaused() {
++        if (!state.action) return;
++        try {
++            // Paused is queued. A later load resets the SDK pause state before
++            // an old source's notification arrives; it must not cancel new intent.
++            if (player.isPaused()) state.action.cancel();
++        } catch (error) {
++            if (!state.isUnavailable(error)) throw error;
++            onDestroy();
++        }
++    }
++    function onDestroy() {
++        state.disposed = true;
++        state.unloads.length = 0;
++        if (state.action) state.action.cancel();
++        state.cleanup();
++    }
++    state.destroy = onDestroy;
++    state.listen = function () {
++        if (state.listening) return;
++        state.listening = true;
++        player.on(events.SourceUnloaded, onSourceUnloaded);
++        player.on(events.Paused, onPaused);
++        player.on(events.Destroy, onDestroy);
++    };
++    return state;
++}
++function playRecommendation(player, source) {
++    var previousSource = player.getSource();
++    var state = recommendationStates.get(player) || createState(player);
++    if (state.action) state.action.cancel();
++    // Action cleanup may detach an idle state; pending teardown receipts keep
++    // this player-owned coordinator alive independently of playback intent.
++    recommendationStates.set(player, state);
++    var receipt = previousSource == null ? null : { source: previousSource, request: source };
++    if (receipt) state.unloads.push(receipt);
++    var cancelled = false;
++    var playRequested = false;
++    var originalPause = player.pause;
++    var originalLoad = player.load;
++    var originalUnload = player.unload;
++    var action = { cancel: cancel };
++    function cleanup() {
++        try {
++            if (player.pause === pause) player.pause = originalPause;
++            if (player.load === load) player.load = originalLoad;
++            if (player.unload === unload) player.unload = originalUnload;
++        } finally {
++            if (state.action === action) state.action = null;
++            state.cleanup();
++        }
++    }
++    function sourceMatches(expectedSource) {
++        try {
++            return player.getSource() === expectedSource;
++        } catch (error) {
++            if (!state.isUnavailable(error)) throw error;
++            state.destroy();
++            cancelled = true;
++            return false;
++        }
++    }
++    function cancel() {
++        cancelled = true;
++        cleanup();
++    }
++    function pause() {
++        // pause() emits no event when already paused, but still cancels intent.
++        cancel();
++        return originalPause.apply(this, arguments);
++    }
++    function load() {
++        // Synchronous rejection leaves the existing intent intact. An accepted
++        // external call retires only this captured action, preserving its result.
++        var result = originalLoad.apply(this, arguments);
++        cancel();
++        return result;
++    }
++    function unload() {
++        var result = originalUnload.apply(this, arguments);
++        cancel();
++        return result;
++    }
++    function fail(error) {
++        var browserCancellation = typeof DOMException !== 'undefined' && error instanceof DOMException && error.name === 'AbortError';
++        // Web 8.280 rejects superseded/destroyed load promises with these
++        // ordinary Errors. The message alone never establishes cancellation.
++        var sdkLoadCancellation = !playRequested && error instanceof Error &&
++            (error.message === 'Load call was cancelled by another load or unload call' ||
++                error.message === 'Load was cancelled as the player is being destroyed');
++        // Only the exported disposed-API error confirms destruction before its
++        // notification; a live action with the same load error stays observable.
++        if (sdkLoadCancellation && !cancelled) sourceMatches(source);
++        // An external load can replace the receipt and reject pending play before
++        // SourceUnloaded is delivered. Active load and same-source aborts stay visible.
++        if (browserCancellation && playRequested && !cancelled && !sourceMatches(source)) cancelled = true;
++        cleanup();
++        if (cancelled && (browserCancellation || sdkLoadCancellation)) return;
++        // Keep genuine failures visible once, including failures after cancellation.
++        throw error;
++    }
++    state.action = action;
++    player.pause = pause;
++    player.load = load;
++    player.unload = unload;
++    state.listen();
++    var loading;
++    try {
++        // Bypass this action's external-load hook for its own initial request.
++        loading = originalLoad.call(player, source);
++    } catch (error) {
++        // A synchronous validation failure that leaves the previous source in
++        // place did not initiate the teardown represented by this new receipt.
++        if (receipt && sourceMatches(receipt.source)) {
++            var index = state.unloads.indexOf(receipt);
++            if (index !== -1) state.unloads.splice(index, 1);
++        }
++        cleanup();
++        throw error;
++    }
++    // No UI/component is retained. A theme release preserves playback intent;
++    // another source, pause, recommendation or player destruction cancels it.
++    return loading.then(function () {
++        if (cancelled || state.action !== action) return;
++        // Web 8.280 retains the exact SourceConfig passed to load(). A different
++        // source receipt cannot acquire this action's delayed play intent.
++        if (!sourceMatches(source)) { cancel(); return; }
++        playRequested = true;
++        return player.play();
++    }).then(cleanup, fail);
++}

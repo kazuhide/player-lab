@@ -255,7 +255,7 @@
     {
       "type": "note",
       "title": "Check the API documentation version",
-      "text": "The repository's Web dependency is Bitmovin Player 8.263.0. The online Web 8 API documentation displayed 8.280.0 when consulted. Do not treat the online latest version as identical to the locked dependency; also check repository types and implementation when using settings and APIs."
+      "text": "Current Web dependencies are Bitmovin Player 8.280.0 and Player UI 4.23.0. The dated measurements above used earlier dependencies, including UI 4.15.1, and do not validate the updated versions. Check the matching API reference and repository types and implementation when using settings and APIs."
     }
   ],
   "sources": [

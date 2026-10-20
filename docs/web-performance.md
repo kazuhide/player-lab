@@ -134,19 +134,23 @@ other hardware, or native application memory use.
 
 ## Why auxiliary controls need explicit ownership
 
-With the locked `bitmovin-player-ui` 4.15.1, theme changes removed the old UI
-from the page while shared language-change subscriptions retained some controls
+The ownership issue was recorded on 2026-10-19 with `bitmovin-player-ui` 4.15.1:
+theme changes removed the old UI from the page while shared language-change
+subscriptions retained some controls
 and their UI trees. This also reproduced without the benchmark's app hook.
 Local heap snapshots traced references through `SeekBarLabel` and subtitle
 settings controls such as `WindowOpacitySelectBox` to a released UI manager.
 
-These objects are configured separately from the normal container children.
-The upstream [seek-bar release](https://github.com/bitmovin/bitmovin-player-ui/blob/v4.15.1/src/ts/components/seekbar/SeekBar.ts)
+The current locked version is 4.23.0. These objects are configured separately
+from the normal container children. The upstream
+[seek-bar release](https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/components/seekbar/SeekBar.ts)
 does not release its label subtree, and dynamic settings items similarly own
 separate selectors. Icons, preview subtitles, and temporary subtitle sizing
-labels also need their creating component to release them. `QuickSeekButton`
-must call its base release method to remove its localization subscription and
-release its icon.
+labels also need their creating component to release them. Upstream 4.23.0
+already calls the base release method in
+[`QuickSeekButton`](https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/components/buttons/QuickSeekButton.ts),
+so the rebased patch omits that older correction. The numeric measurements above
+remain results for 4.15.1; they do not establish performance for 4.23.0.
 
 The [version-specific dependency patch](../patches/README.md) adds these ownership
 releases to the framework entry point used by both Web and the shared native UI
@@ -164,7 +168,7 @@ that is reachable through the normal tree and checks that the Default theme
 preserves its adopted child instances. Run
 `pnpm --filter @showcase/e2e e2e:public` to include this check. Recheck these
 ownership paths before upgrading the UI library; the patch applies only to
-4.15.1 and preserves its MIT notice.
+4.23.0 and preserves its MIT notice.
 
 This correction does not establish that every SDK object becomes collectible.
 Some objects remain after explicit collection, so the measured reduction must

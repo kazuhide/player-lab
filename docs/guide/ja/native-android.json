@@ -9,7 +9,7 @@
     },
     {
       "type": "p",
-      "text": "Java 17 と Android SDK が必要です。現行構成は compileSdk 36、targetSdk 36、minSdk 23、Player 3.155.0 です。CI は SDK 36 と Build Tools 36.0.0 を使います。SDK の場所は ANDROID_HOME、ANDROID_SDK_ROOT、または apps/android/local.properties で設定します。共通準備でライセンスと共有 UI を同期した後、リポジトリのルートから次を実行します。"
+      "text": "Java 17 と Android SDK が必要です。Player 3.171.0 は compileSdk 37 を必要とするため、AGP 9.1.1 と Gradle 9.3.1 を使います。targetSdk 36、minSdk 23 は維持しています。CI と同じ platform 37.0（platforms;android-37.0）と Build Tools 36.0.0（build-tools;36.0.0）を導入します。SDK の場所は ANDROID_HOME、ANDROID_SDK_ROOT、または apps/android/local.properties で設定します。共通準備でライセンスと共有 UI を同期した後、リポジトリのルートから次を実行します。"
     },
     {
       "type": "code",

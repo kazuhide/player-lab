@@ -7,9 +7,9 @@ import { resolve } from "node:path";
 // the UI theme selector, and the live→VOD UI switch.
 const APP = `http://localhost:${process.env.E2E_APP_PORT ?? "5175"}`;
 
-/** Expose the real SDK instance only in the test response. The constructor,
- * configuration, source and SDK behavior are unchanged; production has no hook. */
-async function captureAppPlayer(page: Page): Promise<void> {
+/** Expose the real SDK instance only in the test response. Optionally disable
+ * autoplay on its first construction; SDK methods and sources remain unchanged. */
+async function captureAppPlayer(page: Page, autoplayFalse = false): Promise<void> {
   await page.route("**/src/main.ts", async (route) => {
     const response = await route.fetch();
     const body = await response.text();
@@ -19,7 +19,7 @@ async function captureAppPlayer(page: Page): Promise<void> {
     expect(body.split(teardown), "the capture must clear the reference during teardown").toHaveLength(2);
     await route.fulfill({
       response,
-      body: body.replace(constructor, "$&\nwindow.player = instance;")
+      body: body.replace(constructor, `${autoplayFalse ? "if (!window.__initialAutoplayFalseApplied) { config.playback = { ...config.playback, autoplay: false }; window.__initialAutoplayFalseApplied = true; }\n" : ""}$&\nwindow.player = instance;`)
         .replace(teardown, `${teardown}\nwindow.player = undefined;`),
     });
   });
@@ -31,6 +31,148 @@ function configField(page: Page, label: RegExp) {
   return page.locator("#config-panel .config-field").filter({
     has: page.locator(".config-field-label", { hasText: label }),
   });
+}
+
+test("@public SDK UI settings remove the speed control and preserve themed quick seek", async ({ page }) => {
+  await page.goto(`${APP}/`);
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await page.getByRole("button", { name: "Premiere", exact: true }).click();
+  const speed = page.locator("#player .bmpui-ui-playbackspeedselectbox");
+  await expect(speed).toHaveCount(1);
+  await expect(page.locator("#player .bmpui-ui-quickseekbutton")).toHaveCount(2);
+  const toggle = page.getByRole("checkbox", { name: /Speed item in settings gear/ });
+  await toggle.uncheck();
+  await expect(speed).toHaveCount(0, { timeout: 5000 });
+  await expect(page.locator("#player .bmpui-ui-quickseekbutton")).toHaveCount(2);
+  await toggle.check();
+  await expect(speed).toHaveCount(1);
+  await page.getByRole("button", { name: "Default (Bitmovin)", exact: true }).click();
+  await expect(page.locator("#player .bmpui-ui-quickseekbutton")).toHaveCount(0);
+  await expect(page.locator("#player .bmpui-ui-captiontogglebutton")).toHaveCount(0);
+  await expect(page.locator("#player .bmpui-ui-watermark")).toHaveCount(0);
+});
+
+test("@public SDK UI settings release excluded setting controls once", async ({ page }, testInfo) => {
+  await captureAppPlayer(page);
+  const helper = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-release.ts")}`;
+  const results = await page.evaluate(async (url) => {
+    const module = await import(/* @vite-ignore */ url);
+    return module.inspectExcludedSettingsRelease(window.player!);
+  }, helper) as { factory: string; remainingSpeedControls: number; excludedSpeedControls: number; releasedExactlyOnce: boolean; stoppedLocalizing: boolean }[];
+  expect(results).toHaveLength(4);
+  for (const result of results) {
+    expect(result.remainingSpeedControls, result.factory).toBe(0);
+    expect(result.excludedSpeedControls, result.factory).toBe(1);
+    expect(result.releasedExactlyOnce, JSON.stringify(result)).toBe(true);
+    expect(result.stoppedLocalizing, result.factory).toBe(true);
+  }
+});
+
+for (const scenario of ["released", "superseded", "active-failure", "active-abort", "released-failure", "released-intent", "pause", "released-pause", "external-source", "unload", "destroy", "play-failure", "superseded-unload-pending", "superseded-external-source", "superseded-unload", "destroy-before-notify", "destroy-notify-invalid", "external-source-play", "active-load-abort", "destroyed-failure", "pause-next-before-unload", "pause-next-after-unload", "pause-next-external-source", "pause-next-external-unload", "pause-next-after-external-unload", "pause-cancelled-load", "pause-receipt-destroy", "active-sdk-cancel", "active-destroy-cancel-message", "destroyed-sdk-cancel", "native-pause", "api-load-forwarding", "api-same-object", "api-unload-forwarding", "api-load-sync-throw", "api-unload-sync-throw", "api-successor", "api-genuine-failure"] as const) {
+  test(`@public SDK recommendation promises retain ownership: ${scenario}`, async ({ page }, testInfo) => {
+    await captureAppPlayer(page, scenario.startsWith("pause-"));
+    if (scenario === "pause" || scenario === "released-pause" || scenario === "native-pause") {
+      await expect.poll(() => page.evaluate(() => window.player!.isPlaying())).toBe(true);
+    }
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    const helper = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-release.ts")}`;
+    const result = await page.evaluate(async ({ url, scenario }) => {
+      const module = await import(/* @vite-ignore */ url);
+      return module.inspectRecommendationPromises(window.player!, scenario);
+    }, { url: helper, scenario });
+    const clicks = scenario === "superseded-external-source" || scenario === "pause-next-external-source" || scenario === "api-successor" ? 3
+      : ["api-load-forwarding", "api-same-object", "api-genuine-failure"].includes(scenario) || scenario.startsWith("superseded") || scenario.startsWith("pause-next-") || scenario === "external-source" || scenario === "external-source-play" ? 2 : 1;
+    const plays = ["api-load-sync-throw", "api-unload-sync-throw", "api-successor", "native-pause", "pause-next-before-unload", "pause-next-after-unload", "superseded", "superseded-unload-pending", "external-source-play", "active-abort", "released-intent", "play-failure"].includes(scenario) ? 1 : 0;
+    expect(result).toEqual({ loads: clicks, plays, listeners: 0, pauseRestored: true, loadRestored: true, unloadRestored: true });
+    if (scenario === "active-failure" || scenario === "released-failure" || scenario === "destroyed-failure" || scenario === "api-genuine-failure") {
+      expect(errors).toEqual(["Recommendation fixture load failed"]);
+    } else if (scenario === "play-failure") {
+      expect(errors).toEqual(["Recommendation fixture play failed"]);
+    } else if (scenario === "active-sdk-cancel") {
+      expect(errors).toEqual(["Load call was cancelled by another load or unload call"]);
+    } else if (scenario === "active-destroy-cancel-message") {
+      expect(errors).toEqual(["Load was cancelled as the player is being destroyed"]);
+    } else if (scenario === "active-load-abort") {
+      expect(errors).toEqual(["Active recommendation load abort"]);
+    } else if (scenario === "active-abort") {
+      expect(errors).toEqual(["Active recommendation abort"]);
+    } else {
+      expect(errors).toEqual([]);
+    }
+  });
+}
+
+test("@public SDK recommendation promises survive real API invalidation before Destroy", async ({ page }, testInfo) => {
+  await captureAppPlayer(page);
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  const helper = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-release.ts")}`;
+  const result = await page.evaluate(async (url) => {
+    const module = await import(/* @vite-ignore */ url);
+    return module.inspectRealRecommendationDestroy();
+  }, helper);
+  expect(result).toEqual({ plays: 0, invalidatedSynchronously: true, notifiedSynchronously: false, destroyNotified: true });
+  expect(errors).toEqual([]);
+});
+
+for (const scenario of ["superseded", "paused-previous", "paused-current", "destroyed", "external-load", "external-same-object", "external-unload"] as const) {
+  test(`@public SDK real recommendation race: ${scenario}`, async ({ page }, testInfo) => {
+    await captureAppPlayer(page, true);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await expect.poll(() => page.evaluate(() => window.player!.getVideoElement().readyState)).toBeGreaterThanOrEqual(3);
+    if (scenario.startsWith("paused-")) {
+      await page.evaluate(() => window.player!.play());
+      await expectDecodedPlayback(page);
+    }
+    const helper = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-release.ts")}`;
+    try {
+      const initial = await page.evaluate(async ({ url, scenario }) => {
+        const module = await import(/* @vite-ignore */ url);
+        return module.startRealRecommendationRace(window.player!, scenario);
+      }, { url: helper, scenario });
+      expect(initial).toEqual({ autoplay: false, playing: scenario.startsWith("paused-") });
+      if (scenario === "external-unload") {
+        await expect.poll(() => page.evaluate(() => window.player!.getSource())).toBeNull();
+        expect(await page.evaluate(() => window.player!.isPlaying())).toBe(false);
+        await page.waitForTimeout(100); // Drain the retired recommendation rejection after unload.
+      } else if (scenario !== "destroyed") {
+        await expect.poll(() => page.evaluate(() => window.player!.getSource()?.title))
+          .toBe(scenario === "external-same-object" ? "Race recommendation A" : "Race recommendation B");
+        await expect.poll(() => page.evaluate(() => window.player!.getVideoElement().readyState)).toBeGreaterThanOrEqual(3);
+        if (scenario === "paused-current" || scenario.startsWith("external-")) {
+          const before = await page.evaluate(() => window.player!.getVideoElement().currentTime);
+          await page.waitForTimeout(300); // Span queued Paused delivery and load/play settlement.
+          expect(await page.evaluate(() => ({ paused: window.player!.getVideoElement().paused,
+            playing: window.player!.isPlaying(), time: window.player!.getVideoElement().currentTime })))
+            .toEqual({ paused: true, playing: false, time: before });
+        } else {
+          await expectDecodedPlayback(page);
+        }
+      } else {
+        await page.waitForTimeout(100); // Allow the retired real load promise to reject after Destroy.
+      }
+      expect(errors).toEqual([]);
+    } finally {
+      await page.evaluate(async (url) => {
+        const module = await import(/* @vite-ignore */ url);
+        module.releaseRealRecommendationRace(window.player!);
+      }, helper);
+    }
+  });
+}
+
+async function expectDecodedPlayback(page: Page): Promise<void> {
+  const before = await page.evaluate(() => {
+    const video = document.querySelector<HTMLVideoElement>("#player video")!;
+    return { time: video.currentTime, frames: video.getVideoPlaybackQuality().totalVideoFrames };
+  });
+  await expect.poll(() => page.evaluate((before) => {
+    const video = document.querySelector<HTMLVideoElement>("#player video");
+    return !!video && !video.paused && video.currentTime > before.time + 0.2 &&
+      video.getVideoPlaybackQuality().totalVideoFrames > before.frames;
+  }, before)).toBe(true);
 }
 
 test("@public released factory controls stop localizing and release auxiliary children once", async ({ page }, testInfo) => {
@@ -751,7 +893,10 @@ test.describe("Web app UI", () => {
 
   for (const theme of ["Premiere", "Creator", "Studio"]) {
     test(`@public ${theme} settings clicks preserve playback and recommendations load their source`, async ({ page }) => {
-      await captureAppPlayer(page);
+      await captureAppPlayer(page, true);
+      expect(await page.evaluate(() => window.player!.getConfig(false).playback?.autoplay)).toBe(false);
+      const errors: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
       await page.getByRole("button", { name: theme, exact: true }).click();
       await expect.poll(() => page.evaluate(() => document.querySelector<HTMLVideoElement>("#player video")?.readyState ?? 0)).toBeGreaterThanOrEqual(3);
       await page.evaluate(() => window.player!.pause());
@@ -773,15 +918,24 @@ test.describe("Web app UI", () => {
       await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toContain("Big Buck Bunny");
       await expect.poll(() => page.evaluate(() => document.querySelector<HTMLVideoElement>("#player video")?.readyState ?? 0))
         .toBeGreaterThanOrEqual(3);
+      // The SDK recommendation itself must start decoded playback with autoplay off.
+      await expectDecodedPlayback(page);
       // Source selection made inside the SDK UI also becomes the app's rebuild source.
       await page.getByRole("checkbox", { name: /DVR.*timeShift/ }).uncheck();
       await expect.poll(() => page.evaluate(() => window.player?.getConfig(false).playback?.timeShift)).toBe(false);
       await expect.poll(() => page.evaluate(() => window.player?.getSource()?.title)).toContain("Big Buck Bunny");
       expect(await page.evaluate(() => window.player?.getSource()?.dash)).toContain("bbb_30fps.mpd");
+      // The recreated Player uses the app default autoplay=true; the first
+      // recommendation above independently proves autoplay=false behavior.
+      // Check decoded output and clock progression after source recreation too.
+      await expectDecodedPlayback(page);
+      expect(errors).toEqual([]);
     });
   }
 
   test("@public selecting the current preset recommendation clears previous source overrides", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
     await captureAppPlayer(page);
     await page.getByRole("button", { name: "English", exact: true }).click();
     // Observe actual SDK completion without altering its load or event behavior.
@@ -830,6 +984,8 @@ test.describe("Web app UI", () => {
     await offset.blur();
     await loadAndWait(() => reload.click());
     expect(await page.evaluate(() => window.player?.getSource()?.description)).toBe("New description only");
+    await expectDecodedPlayback(page);
+    expect(errors).toEqual([]);
   });
 
   test("info-chip overlays follow the language toggle", async ({ page }) => {

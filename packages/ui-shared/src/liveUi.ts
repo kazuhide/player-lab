@@ -24,8 +24,10 @@ import {
   SubtitleOverlay,
   TitleBar,
   UIContainer,
+  UIComponentLayoutOverride,
   UIFactory,
   UIManager,
+  UIVariantIdentifier,
   VideoQualitySelectBox,
   VolumeSlider,
   VolumeToggleButton,
@@ -102,6 +104,20 @@ function castingComponents(casting?: CastingButtons): Component<ComponentConfig>
   return out;
 }
 
+// UI v4.23 applies layout settings (including the legacy speed-setting flag) to
+// identified variants. Custom layouts intentionally include their quick-seek
+// buttons; the stock layout keeps the SDK's default component exclusions.
+function createUiManager(player: PlayerAPI, ui: UIContainer, config?: UIConfig, custom = false): UIManager {
+  const appliedConfig = custom ? {
+    ...config,
+    componentLayoutOverrides: {
+      QuickSeekButton: UIComponentLayoutOverride.Include,
+      ...config?.componentLayoutOverrides,
+    },
+  } : config;
+  return new UIManager(player, [{ ui, identifier: UIVariantIdentifier.main }], appliedConfig);
+}
+
 /**
  * The stock Bitmovin "modern" UI, rebuilt so ONLY the autohide delay is ours to set.
  *
@@ -135,7 +151,7 @@ export function buildDefaultUiContainer(options: LiveUiOptions = {}): UIContaine
 /** Factory for the stock modern UI with a controllable autohide. Use with `ui: false`. */
 export const DefaultUIFactory = {
   buildDefaultUI(player: PlayerAPI, config?: UIConfig, options?: LiveUiOptions): UIManager {
-    return new UIManager(player, buildDefaultUiContainer(options), config);
+    return createUiManager(player, buildDefaultUiContainer(options), config);
   },
 };
 
@@ -206,7 +222,7 @@ export function buildLiveUiContainer(options: LiveUiOptions = {}): UIContainer {
 export const LiveUIFactory = {
   /** Build a {@link UIManager} wired with the DVR UI for `player`. */
   buildLiveUI(player: PlayerAPI, config?: UIConfig, options?: LiveUiOptions): UIManager {
-    return new UIManager(player, buildLiveUiContainer(options), config);
+    return createUiManager(player, buildLiveUiContainer(options), config, true);
   },
 };
 
@@ -249,7 +265,7 @@ export function buildCinemaUiContainer(options: LiveUiOptions = {}): UIContainer
 /** Factory for the immersive "cinema" custom UI. Use with `ui: false`. */
 export const CinemaUIFactory = {
   buildCinemaUI(player: PlayerAPI, config?: UIConfig, options?: LiveUiOptions): UIManager {
-    return new UIManager(player, buildCinemaUiContainer(options), config);
+    return createUiManager(player, buildCinemaUiContainer(options), config, true);
   },
 };
 
@@ -284,7 +300,7 @@ export function buildCompactUiContainer(options: LiveUiOptions = {}): UIContaine
 /** Factory for the compact custom UI. Use with `ui: false`. */
 export const CompactUIFactory = {
   buildCompactUI(player: PlayerAPI, config?: UIConfig, options?: LiveUiOptions): UIManager {
-    return new UIManager(player, buildCompactUiContainer(options), config);
+    return createUiManager(player, buildCompactUiContainer(options), config, true);
   },
 };
 
@@ -363,7 +379,7 @@ export function buildPremiereUiContainer(options: LiveUiOptions = {}): UIContain
 export const PremiereUIFactory = {
   buildPremiereUI(player: PlayerAPI, config?: UIConfig, options?: LiveUiOptions): UIManager {
     // Enable the playback-speed item in the settings panel (UIConfig defaults it off).
-    return new UIManager(player, buildPremiereUiContainer(options), { playbackSpeedSelectionEnabled: true, ...config });
+    return createUiManager(player, buildPremiereUiContainer(options), { playbackSpeedSelectionEnabled: true, ...config }, true);
   },
 };
 
@@ -413,7 +429,7 @@ export function buildCreatorUiContainer(options: LiveUiOptions = {}): UIContaine
 /** Factory for the Creator-style custom UI. Use with `ui: false`. */
 export const CreatorUIFactory = {
   buildCreatorUI(player: PlayerAPI, config?: UIConfig, options?: LiveUiOptions): UIManager {
-    return new UIManager(player, buildCreatorUiContainer(options), { playbackSpeedSelectionEnabled: true, ...config });
+    return createUiManager(player, buildCreatorUiContainer(options), { playbackSpeedSelectionEnabled: true, ...config }, true);
   },
 };
 
@@ -463,7 +479,7 @@ export function buildStudioUiContainer(options: LiveUiOptions = {}): UIContainer
 /** Factory for the Studio-style custom UI. Use with `ui: false`. */
 export const StudioUIFactory = {
   buildStudioUI(player: PlayerAPI, config?: UIConfig, options?: LiveUiOptions): UIManager {
-    return new UIManager(player, buildStudioUiContainer(options), { playbackSpeedSelectionEnabled: true, ...config });
+    return createUiManager(player, buildStudioUiContainer(options), { playbackSpeedSelectionEnabled: true, ...config }, true);
   },
 };
 
@@ -526,7 +542,7 @@ export function buildSportsUiContainer(options: LiveUiOptions = {}): UIContainer
 /** Factory for the sports-broadcast custom UI. Use with `ui: false`. */
 export const SportsUIFactory = {
   buildSportsUI(player: PlayerAPI, config?: UIConfig, options?: LiveUiOptions): UIManager {
-    return new UIManager(player, buildSportsUiContainer(options), config);
+    return createUiManager(player, buildSportsUiContainer(options), config, true);
   },
 };
 
@@ -589,7 +605,7 @@ export function buildBingeUiContainer(options: LiveUiOptions = {}): UIContainer 
 /** Factory for the binge / continuous-play custom UI. Use with `ui: false`. */
 export const BingeUIFactory = {
   buildBingeUI(player: PlayerAPI, config?: UIConfig, options?: LiveUiOptions): UIManager {
-    return new UIManager(player, buildBingeUiContainer(options), config);
+    return createUiManager(player, buildBingeUiContainer(options), config, true);
   },
 };
 

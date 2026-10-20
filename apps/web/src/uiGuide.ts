@@ -84,14 +84,18 @@ const THEME_DIFFS: Record<string, ThemeDiff> = {
     changes: [],
     construction: {
       lang: "ts",
-      code: `// 標準のモダンUIツリーをそのまま使い、autohide だけ差し替え
+      code: `// Keep the standard modern UI tree and customize autohide.
 const stock = UIFactory.defaultLayouts.main();
-new UIContainer({
-  components: stock.getConfig().components,  // 標準構成そのまま
+const stockConfig = stock.getConfig();
+stock.release();
+const container = new UIContainer({
+  components: stockConfig.components,  // Retain the standard components.
+  cssClasses: stockConfig.cssClasses,
   hidePlayerStateExceptions:
-    stock.getConfig().hidePlayerStateExceptions,
-  hideDelay,  // ← Autohide オフで -1（常時表示）
-});`,
+    stockConfig.hidePlayerStateExceptions,
+  hideDelay,  // Use -1 to keep the UI visible.
+});
+new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }]);`,
       source: "packages/ui-shared/src/liveUi.ts → buildDefaultUiContainer",
     },
   },
@@ -354,32 +358,33 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
     ],
     construction: {
       lang: "ts",
-      code: `new UIContainer({ components: [
+      code: `const container = new UIContainer({ components: [
   new SubtitleOverlay(),
   new BufferingOverlay(),
   new PlaybackToggleOverlay(),
-  new TitleBar(),                  // タイトル＋説明(既定で MetadataLabel 内蔵)
+  new TitleBar(),                  // Includes title and description metadata.
   new ControlBar({ components: [
-    new Container({ components: [   // 上段 = 全幅シーク
+    new Container({ components: [   // Top row: full-width seek bar.
       new SeekBar({ label: new SeekBarLabel() }),
     ] }),
-    new Container({ components: [   // 下段
+    new Container({ components: [   // Bottom row.
       new PlaybackToggleButton(),
       new QuickSeekButton({ seekSeconds: -10 }),
       new QuickSeekButton({ seekSeconds: 10 }),
       new Spacer(),
-      new PlaybackTimeLabel({        // 残り時間
+      new PlaybackTimeLabel({        // Remaining time.
         timeLabelMode: PlaybackTimeLabelMode.RemainingTime,
       }),
       new SettingsToggleButton({ settingsPanel }),
       new FullscreenToggleButton(),
     ] }),
   ] }),
-  settingsPanel,                   // 歯車で開く設定
-  new RecommendationOverlay(),     // 公式 tv 由来: 終了時の「次の動画」。最後＝最前面に描画
+  settingsPanel,                   // Opened by the settings button.
+  new RecommendationOverlay(),     // Last in the tree: recommendations appear above other controls.
 ] });
-// recommendations は UIConfig.metadata.recommendations で渡す:
-new UIManager(player, container, {
+// Supply recommendations through UIConfig.metadata.recommendations:
+new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }], {
+  componentLayoutOverrides: { QuickSeekButton: UIComponentLayoutOverride.Include },
   metadata: { recommendations: [{ title, resource }] },
 });`,
       source: "packages/ui-shared/src/liveUi.ts → buildPremiereUiContainer",

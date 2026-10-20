@@ -25,13 +25,13 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "bitmovin-player-ui": "^4.15.1"
+    "bitmovin-player-ui": "4.23.0"
   },
   "peerDependencies": {
     "bitmovin-player": "^8.19.0"
   },
   "devDependencies": {
-    "bitmovin-player": "^8.263.0",
+    "bitmovin-player": "8.280.0",
     "sass": "^1.80.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.0",

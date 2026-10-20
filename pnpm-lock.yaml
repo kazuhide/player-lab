@@ -4,10 +4,12 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+packageExtensionsChecksum: sha256-ih8JGsrqJiP+q3bz64t6r+H7RDJ/Y7Nzf14z+m7G4io=
+
 patchedDependencies:
-  bitmovin-player-ui@4.15.1:
-    hash: c8bc1aa77aeeca4dd777d0c8675cc9b304aa24f501337b7ed95eac11514e65e7
-    path: patches/bitmovin-player-ui@4.15.1.patch
+  bitmovin-player-ui@4.23.0:
+    hash: 92cf839f9c6a2f81bda8b908d8c344c1304f299fee4a2394d06a150d9d8942cb
+    path: patches/bitmovin-player-ui@4.23.0.patch
 
 importers:
 
@@ -16,8 +18,8 @@ importers:
   apps/react-native:
     dependencies:
       bitmovin-player-react-native:
-        specifier: ^1.20.1
-        version: 1.20.1(expo-crypto@14.0.2(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)))(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)
+        specifier: 1.28.0
+        version: 1.28.0(expo-crypto@14.0.2(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)))(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)
       expo:
         specifier: ~54.0.0
         version: 54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
@@ -75,8 +77,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/ui-shared
       bitmovin-player:
-        specifier: ^8.263.0
-        version: 8.263.0
+        specifier: 8.280.0
+        version: 8.280.0
     devDependencies:
       typescript:
         specifier: ^5.9.0
@@ -91,12 +93,12 @@ importers:
   packages/ui-shared:
     dependencies:
       bitmovin-player-ui:
-        specifier: ^4.15.1
-        version: 4.15.1(patch_hash=c8bc1aa77aeeca4dd777d0c8675cc9b304aa24f501337b7ed95eac11514e65e7)
+        specifier: 4.23.0
+        version: 4.23.0(patch_hash=92cf839f9c6a2f81bda8b908d8c344c1304f299fee4a2394d06a150d9d8942cb)(bitmovin-player@8.280.0)
     devDependencies:
       bitmovin-player:
-        specifier: ^8.263.0
-        version: 8.263.0
+        specifier: 8.280.0
+        version: 8.280.0
       sass:
         specifier: ^1.80.0
         version: 1.101.0
@@ -116,8 +118,8 @@ importers:
         specifier: ^1.49.0
         version: 1.61.0
       bitmovin-player:
-        specifier: ^8.263.0
-        version: 8.263.0
+        specifier: 8.280.0
+        version: 8.280.0
       typescript:
         specifier: ^5.9.0
         version: 5.9.3
@@ -2280,22 +2282,24 @@ packages:
     resolution: {integrity: sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==}
     engines: {node: '>=0.6'}
 
-  bitmovin-player-react-native@1.20.1:
-    resolution: {integrity: sha512-ayORrMidDNgcNU5+0Xdq4hKOGzC1xaNDdZsh4DJwWGOSmwT+bKtYxGE9rz9wRkZoa00UtLC/3FzH1A0V6ioKgw==}
+  bitmovin-player-react-native@1.28.0:
+    resolution: {integrity: sha512-keAfmOtDvhqWHqgFzsZm/H18mnWTj8KD4wgu7YoCW4iH4z5NMoS7wxmR6qZgE8+a/yqI+0S5VFH7dVr8ItmQHA==}
     peerDependencies:
       expo: '>=54.0.0'
       expo-crypto: '>=14.0.0'
       react: '*'
       react-native: '*'
 
-  bitmovin-player-ui@4.15.1:
-    resolution: {integrity: sha512-1BIYLg3rl2wUg10sVI+BIRiYqRN893LfGt1UXTCqCDKOEy1kvEXi8hAFpCCUecUV9KfCKB9pQsn/12iTV9cLVA==}
+  bitmovin-player-ui@4.23.0:
+    resolution: {integrity: sha512-voH+pEjI1XBcksbklD2+4PHUhUnTCujElBJ+cJ82RBXGWBVsE3rDTRUsaYZZdaHihKflfBbj0iZDbPy90n6Ayw==}
+    peerDependencies:
+      bitmovin-player: ^8.237.0
 
   bitmovin-player@8.138.0-beta.28:
     resolution: {integrity: sha512-+NEzbfqjYo9uxXx2Gxf8hRbiZ0Gl76+EZvsiU/s+amBU/11YxnHX85oO3eikeL6ll0aPgk/+yNI0VIsPVq3NDg==}
 
-  bitmovin-player@8.263.0:
-    resolution: {integrity: sha512-8tYBvhVZff2aB5NtSNpx/XO6NTU71Nkl46Cy4TFKwbLYAfLl9DU+uTW/JRugKI5zcjUGNo5jvwZyYSgfKpuLBw==}
+  bitmovin-player@8.280.0:
+    resolution: {integrity: sha512-ZcqTbr9cgzlBuuAs1cHf762Q3Pled6Dc1xqxbI2naN8TtkpWcAEZpD7LvBpPyrxCe5cvTqRqMy/UDBzD50IxkA==}
 
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
@@ -7662,7 +7666,7 @@ snapshots:
 
   big-integer@1.6.52: {}
 
-  bitmovin-player-react-native@1.20.1(expo-crypto@14.0.2(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)))(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0):
+  bitmovin-player-react-native@1.28.0(expo-crypto@14.0.2(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)))(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0):
     dependencies:
       expo: 54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
       expo-crypto: 14.0.2(expo@54.0.35(@babel/core@7.29.7)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3))
@@ -7670,11 +7674,13 @@ snapshots:
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0)
 
-  bitmovin-player-ui@4.15.1(patch_hash=c8bc1aa77aeeca4dd777d0c8675cc9b304aa24f501337b7ed95eac11514e65e7): {}
+  bitmovin-player-ui@4.23.0(patch_hash=92cf839f9c6a2f81bda8b908d8c344c1304f299fee4a2394d06a150d9d8942cb)(bitmovin-player@8.280.0):
+    dependencies:
+      bitmovin-player: 8.280.0
 
   bitmovin-player@8.138.0-beta.28: {}
 
-  bitmovin-player@8.263.0: {}
+  bitmovin-player@8.280.0: {}
 
   bl@4.1.0:
     dependencies:

@@ -1,14 +1,13 @@
 import java.util.Properties
 
 plugins {
-    id("com.android.application") version "8.10.0"
-    id("org.jetbrains.kotlin.android") version "2.2.21"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.2.21"
+    id("com.android.application")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
     namespace = "com.showcase.app"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.showcase.dvr"
@@ -34,14 +33,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true }
 }
 
 dependencies {
     implementation(project(":dvr"))
     // Pin to the current Bitmovin Player v3 release (§18).
-    implementation("com.bitmovin.player:player:3.155.0")
+    implementation("com.bitmovin.player:player:3.171.0")
 
     val composeBom = platform("androidx.compose:compose-bom:2024.10.00")
     implementation(composeBom)

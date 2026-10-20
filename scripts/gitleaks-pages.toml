@@ -4,7 +4,7 @@
 useDefault = true
 
 [[allowlists]]
-description = "Bitmovin 8.263.0 undefined export initialization"
+description = "Bitmovin Player undefined export initialization"
 targetRules = ["generic-api-key"]
 condition = "AND"
 paths = ['''(?:^|/)web/assets/main-[A-Za-z0-9_-]{8,}\.js$''']
