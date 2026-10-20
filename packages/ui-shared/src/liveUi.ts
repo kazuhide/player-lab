@@ -125,7 +125,7 @@ function createUiManager(player: PlayerAPI, ui: UIContainer, config?: UIConfig, 
  * the Default theme without forking the UI, we take the library's own desktop layout
  * (`UIFactory.defaultLayouts.main()`) and re-wrap its EXACT component tree in a
  * `UIContainer` whose `hideDelay` we control. Same components, same player-state hide
- * exceptions, same classes — the genuine default UI, just with the autohide lever exposed.
+ * exceptions and classes. UIConfig also reaches the stock settings-panel builder.
  * Scope: only the `main`/desktop variant is reproduced — `buildUI` also composes
  * empty-state, small-screen (<800px), TV and ad variants, which this drops. The demo
  * player is always desktop-width and the custom themes are single-container too, so it's

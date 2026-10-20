@@ -714,7 +714,7 @@ test.describe("Web app UI", () => {
     await expect.poll(cbOpacity, { timeout: 4000 }).toBe(0);
   });
 
-  test("UI settings section exposes the UIConfig toggles and they take effect", async ({ page }) => {
+  test("@public UI settings section exposes the UIConfig toggles and they take effect", async ({ page }) => {
     await page.goto(`${APP}/`);
     // Control-panel labels are bilingual; the app defaults to Japanese, so match JA labels.
     // A dedicated UI settings card holds autohide and the other UIManager-level toggles.
@@ -735,12 +735,12 @@ test.describe("Web app UI", () => {
     // playbackSpeedSelectionEnabled has a real, visible effect on a gear theme: the speed
     // item in the settings panel hides when the flag is off, and returns when on.
     await page.getByRole("button", { name: "Creator", exact: true }).click();
-    const speedItem = page.locator(".bmpui-ui-settings-panel-item").filter({ hasText: "再生速度" });
-    await expect(speedItem).not.toHaveClass(/bmpui-hidden/);
+    const speedItem = page.locator("#player .bmpui-ui-playbackspeedselectbox");
+    await expect(speedItem).toHaveCount(1);
     await page.getByRole("checkbox", { name: "設定歯車に再生速度を表示" }).uncheck();
-    await expect(speedItem).toHaveClass(/bmpui-hidden/); // rebuilt with playbackSpeedSelectionEnabled:false
+    await expect(speedItem).toHaveCount(0);
     await page.getByRole("checkbox", { name: "設定歯車に再生速度を表示" }).check();
-    await expect(speedItem).not.toHaveClass(/bmpui-hidden/);
+    await expect(speedItem).toHaveCount(1);
 
     // The setting persists across a theme switch (it lives in the app's UIConfig, not the theme).
     await page.getByRole("checkbox", { name: "シーク中のプレビュー" }).uncheck();
@@ -781,6 +781,7 @@ test.describe("Web app UI", () => {
 
   test("the Player Config panel applies recreate / reload / runtime changes", async ({ page }) => {
     await page.goto(`${APP}/`);
+    await expect(page.locator("#config-panel .config-field")).toHaveCount(144);
     // Dynamic config (runtime + reload) leads in its own band; recreate config follows.
     // Per-band counts document the split and survive additive growth of the static groups.
     await expect(page.locator("#config-panel .config-band-dynamic")).toBeVisible();

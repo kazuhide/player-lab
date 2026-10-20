@@ -81,7 +81,7 @@ const THEME_DIFFS: Record<string, ThemeDiff> = {
   default: {
     label: "Default (Bitmovin)",
     base: null,
-    effort: { ja: "標準の bitmovin-player-ui のモダンUI。構成は無変更、autohide(hideDelay)だけ切替できる出発点です。", en: "The stock bitmovin-player-ui modern UI. Structure unchanged — only autohide (hideDelay) is switchable; the starting point." },
+    effort: { ja: "標準のbitmovin-player-uiのモダンUIです。UIConfigを標準の構築処理へ渡し、バーの自動非表示も切り替えられます。", en: "The stock bitmovin-player-ui modern UI, with UIConfig passed to the standard layout builder and a configurable autohide delay." },
     changes: [],
     construction: {
       lang: "ts",
@@ -96,7 +96,7 @@ const container = new UIContainer({
     stockConfig.hidePlayerStateExceptions,
   hideDelay,  // Use -1 to keep the UI visible.
 });
-new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }]);`,
+new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }], uiConfig);`,
       source: "packages/ui-shared/src/liveUi.ts → buildDefaultUiContainer",
     },
   },
