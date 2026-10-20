@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-20",
-  "sourceRevision": "d5c0ad3dc1e0dd481aaf773d9befc6b8c6802fc0",
+  "sourceRevision": "49f36de49b8964029df9d433dd6e1493bcb0ac90",
   "sdks": [
     {
       "id": "web",
@@ -152,7 +152,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 249,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -176,7 +176,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 249,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -542,7 +542,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 324,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -566,7 +566,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 334,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
@@ -720,7 +720,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 361,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -888,7 +888,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 183,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -1116,7 +1116,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 314,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -1218,7 +1218,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 545,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0",
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304",
               "symbol": "Source.title.read via ConfigPanelOptions.getSource"
             }
           ]
@@ -1417,7 +1417,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 339,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
@@ -1453,7 +1453,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 293,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -1621,7 +1621,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 301,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -1747,7 +1747,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 272,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -1771,7 +1771,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 272,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -1825,7 +1825,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 469,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -1849,7 +1849,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 274,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -1873,7 +1873,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 275,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -1897,7 +1897,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 478,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -2011,7 +2011,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 308,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -2201,7 +2201,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 369,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -2307,7 +2307,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 395,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -2331,7 +2331,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 318,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -2355,7 +2355,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 381,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -2447,7 +2447,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 356,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
@@ -2483,7 +2483,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 297,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -2817,7 +2817,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 309,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3417,7 +3417,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 629,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3441,7 +3441,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 627,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3465,7 +3465,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 630,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3489,7 +3489,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 628,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3513,7 +3513,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 624,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3573,7 +3573,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 631,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3597,7 +3597,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 622,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3657,7 +3657,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 623,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3771,7 +3771,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 639,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3795,7 +3795,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 621,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3909,7 +3909,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 629,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3933,7 +3933,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 627,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3957,7 +3957,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 630,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -3981,7 +3981,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 628,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -4005,7 +4005,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 624,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -4065,7 +4065,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 631,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -4089,7 +4089,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 622,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -4149,7 +4149,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 623,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -4263,7 +4263,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 639,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -4287,7 +4287,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 621,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7179,7 +7179,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 654,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7203,7 +7203,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 653,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7227,7 +7227,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 652,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7251,7 +7251,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 651,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7275,7 +7275,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 711,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7299,7 +7299,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 710,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7323,7 +7323,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 712,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7347,7 +7347,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 713,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7539,7 +7539,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 742,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7563,7 +7563,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 721,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7695,7 +7695,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 722,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7755,7 +7755,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 732,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7779,7 +7779,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 733,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7803,7 +7803,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 734,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7827,7 +7827,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 730,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7851,7 +7851,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 731,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7875,7 +7875,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 692,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7899,7 +7899,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 692,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -7942,21 +7942,21 @@
               "file": "apps/web/src/configPanel.ts",
               "line": 667,
               "symbol": "timeoutField(\"defaultRequestTimeout (s)\"",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 231,
               "symbol": "...pNum(label, path),",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 209,
               "symbol": "apply: (v) => stagePlayer(path, num(v)),",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8017,14 +8017,14 @@
               "file": "apps/web/src/configPanel.ts",
               "line": 662,
               "symbol": "pEnum(\"requestApi\",",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 221,
               "symbol": "const pEnum = (label:",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
@@ -8272,21 +8272,21 @@
               "file": "apps/web/src/configPanel.ts",
               "line": 668,
               "symbol": "...[\"manifest/dash\",",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 669,
               "symbol": "(type) => timeoutField(",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 209,
               "symbol": "apply: (v) => stagePlayer(path, num(v)),",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8311,21 +8311,21 @@
               "file": "apps/web/src/configPanel.ts",
               "line": 668,
               "symbol": "...[\"manifest/dash\",",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 669,
               "symbol": "(type) => timeoutField(",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 209,
               "symbol": "apply: (v) => stagePlayer(path, num(v)),",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8350,21 +8350,21 @@
               "file": "apps/web/src/configPanel.ts",
               "line": 668,
               "symbol": "...[\"manifest/dash\",",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 669,
               "symbol": "(type) => timeoutField(",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 209,
               "symbol": "apply: (v) => stagePlayer(path, num(v)),",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8425,21 +8425,21 @@
               "file": "apps/web/src/configPanel.ts",
               "line": 668,
               "symbol": "...[\"manifest/dash\",",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 669,
               "symbol": "(type) => timeoutField(",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 209,
               "symbol": "apply: (v) => stagePlayer(path, num(v)),",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8482,21 +8482,21 @@
               "file": "apps/web/src/configPanel.ts",
               "line": 668,
               "symbol": "...[\"manifest/dash\",",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 669,
               "symbol": "(type) => timeoutField(",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 209,
               "symbol": "apply: (v) => stagePlayer(path, num(v)),",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8521,21 +8521,21 @@
               "file": "apps/web/src/configPanel.ts",
               "line": 668,
               "symbol": "...[\"manifest/dash\",",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 669,
               "symbol": "(type) => timeoutField(",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 209,
               "symbol": "apply: (v) => stagePlayer(path, num(v)),",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8560,21 +8560,21 @@
               "file": "apps/web/src/configPanel.ts",
               "line": 668,
               "symbol": "...[\"manifest/dash\",",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 669,
               "symbol": "(type) => timeoutField(",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 209,
               "symbol": "apply: (v) => stagePlayer(path, num(v)),",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8706,7 +8706,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 608,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8748,7 +8748,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 609,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8772,7 +8772,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 603,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8814,7 +8814,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 604,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8838,7 +8838,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 606,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8916,7 +8916,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 607,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -8940,7 +8940,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 610,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9006,7 +9006,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 605,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9206,7 +9206,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 743,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9230,7 +9230,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 699,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9272,7 +9272,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 701,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9314,7 +9314,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 700,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9338,7 +9338,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 84,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9362,7 +9362,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 104,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9386,7 +9386,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 99,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9410,7 +9410,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 98,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9434,7 +9434,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 103,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9458,7 +9458,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 105,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9482,7 +9482,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 103,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9506,7 +9506,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 101,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9566,7 +9566,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 90,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9590,7 +9590,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 101,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9614,7 +9614,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 104,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9638,7 +9638,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 89,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9662,7 +9662,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 104,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9686,7 +9686,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 87,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9710,7 +9710,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 90,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9734,7 +9734,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 94,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9758,7 +9758,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 83,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9782,7 +9782,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 98,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9806,7 +9806,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 97,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9830,7 +9830,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 97,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9854,7 +9854,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 99,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9878,7 +9878,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 96,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9902,7 +9902,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 86,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9926,7 +9926,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 83,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9950,7 +9950,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 100,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9974,7 +9974,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 83,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -9998,7 +9998,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 682,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10022,7 +10022,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 81,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10046,7 +10046,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 94,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10070,7 +10070,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 95,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10094,7 +10094,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 94,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10118,7 +10118,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 101,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10142,7 +10142,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 102,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10166,7 +10166,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 93,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10190,7 +10190,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 100,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10214,7 +10214,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 95,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10238,7 +10238,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 95,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10262,7 +10262,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 82,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10286,7 +10286,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 82,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10310,7 +10310,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 88,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10334,7 +10334,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 96,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10358,7 +10358,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 98,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10436,7 +10436,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 102,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10460,7 +10460,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 99,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10484,7 +10484,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 86,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10508,7 +10508,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 93,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10550,7 +10550,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 81,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10574,7 +10574,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 89,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10616,7 +10616,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 88,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10640,7 +10640,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 87,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10664,7 +10664,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 105,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10688,7 +10688,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 81,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10712,7 +10712,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 82,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10736,7 +10736,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 91,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10760,7 +10760,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 91,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10784,7 +10784,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 91,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -10808,7 +10808,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 92,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -15062,7 +15062,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 554,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -16767,14 +16767,14 @@
               "file": "apps/web/src/configPanel.ts",
               "line": 565,
               "symbol": "label: \"options.persistentPoster\"",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 570,
               "symbol": "apply: (v) => stageSource(\"options.persistentPoster\", v)",
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
@@ -16823,7 +16823,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 579,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -16847,7 +16847,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 592,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -16925,7 +16925,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 562,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             }
           ]
         },
@@ -17435,7 +17435,7 @@
               "kind": "app",
               "file": "apps/web/src/configPanel.ts",
               "line": 546,
-              "sha256": "e422dd5fc9f75e179b06f9a33f087fe1a078ea67849c494d6428a257a290fac0"
+              "sha256": "829a522adb9c39389aa4910e9b9b77ccea5cbeedee774b76d98b0ba342f51304"
             },
             {
               "kind": "app",
