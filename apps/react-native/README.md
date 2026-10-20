@@ -28,9 +28,8 @@ The type-check includes `App.tsx`, the source definitions, and the pure logic,
 using the installed React Native and player types. It does not build the native
 app or verify playback.
 
-The App interaction tests mount the actual screen with mocked native hosts and
-the SDK boundary. They exercise form edits, Apply/Reset, source selection,
-view readiness, retired callbacks/snapshots and player recreation. React 19
+The App interaction tests mount the screen with mocked native hosts and player
+objects. They exercise form edits, Apply/Reset, source selection and recreation. React 19
 deprecates `react-test-renderer`; that expected warning is retained in test output,
 and other console errors fail the tests. These tests do not render native layout,
 the Web UI, a video surface, or a stream.
@@ -58,13 +57,10 @@ the player. **Reset draft** only restores the currently applied values. Source
 preset buttons still load immediately and replace the draft's source fields;
 unapplied playback/buffer/adaptation edits remain in the draft.
 
-The complete applied source, chosen UI factory, log and **Allow DVR** helper
-setting survive recreation. Loading waits for `onPlayerViewReady`; callbacks
-and snapshot completions owned by a retired pane cannot update the new display.
-The wrapper's `load` returns `void`, so this screen does not claim cancellation
-of the SDK's internal source initialization. Source/player error callbacks add
-log entries. **Allow DVR** remains an application helper, separate from the
-SDK's creation-time `isTimeShiftEnabled` property.
+The complete applied source, chosen UI, log and **Allow DVR** setting survive
+recreation. Playback starts according to the Autoplay setting. Source/player
+errors add log entries. **Allow DVR** controls the application's DVR helper;
+it does not edit the SDK's creation-time `isTimeShiftEnabled` property.
 
 The direct editable mappings are:
 

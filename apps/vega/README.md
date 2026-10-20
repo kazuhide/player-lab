@@ -45,10 +45,7 @@ pnpm --filter @showcase/vega typecheck
 
 The type-check includes the actual App, configuration/control panels, video
 surface component, tests, rewind logic and modular player wiring against the
-installed SDK, React Native and Kepler declarations. `tsconfig.json` binds React
-declaration imports to this app's React 18 types; the workspace also contains
-React 19 for Expo. This resolves the earlier cross-app `ReactNode`/JSX mismatch
-without substituting native component declarations or suppressing errors.
+installed SDK, React Native and Kepler declarations using the app's React 18 types.
 Passing these commands does not establish that the device app builds or plays.
 
 The session tests use delayed Promises with fake media and player objects. They
@@ -59,12 +56,10 @@ player and media cleanup before installing the global media shim. Late callbacks
 from a cancelled session cannot publish controls for a previous source. These
 tests do not exercise the Vega runtime, a device video surface, or playback.
 
-The App interaction tests also mount the real App, control panels, video-surface
-component, DVR controller and session owner. Native hosts, W3C media and player
-creation are mocked at their boundaries. Tests cover draft isolation, validation,
+The App interaction tests mount the App components with mocked native hosts,
+W3C media and player objects. Tests cover draft isolation, validation,
 Apply/Reset, direct SDK mapping, preset/source retention and rapid Apply during
-initialization or cleanup. The Vega core installs browser globals, so these
-App tests mock its event/timeline constants using the published declarations.
+initialization or cleanup.
 Console errors/warnings fail these tests. No TV layout, focus behavior, software
 keyboard or playback is qualified by this renderer.
 
@@ -85,9 +80,9 @@ offset. Playback position is reset. Unchanged/invalid input does not replace
 resources. **Reset draft** only restores applied values. Preset buttons continue
 to select sources immediately and replace draft source fields while preserving
 unapplied player-setting edits. Selected/custom source fields, logs and the
-**Allow DVR** helper setting survive Apply. The same React video component keeps
-the cleanup barrier, so rapid configuration changes cannot bypass the prior
-media/player teardown or publish callbacks from a retired owner.
+**Allow DVR** setting survive Apply. Playback starts according to Autoplay.
+Rapid Apply operations wait for the previous player's cleanup before loading
+the latest selected configuration.
 
 `ui:false` stays fixed because the HTML Player UI is unavailable on Vega. Source
 title/poster values are passed in the SDK source configuration; this Kepler screen does

@@ -60,7 +60,19 @@
     },
     {
       "type": "p",
-      "text": "The screen includes Default, Sports, Live (DVR), and Cinema UI choices; source buttons; Live edge; −10/−30/−60-second controls; Allow DVR; state; and an event log. Changing the UI recreates PlayerPane and reloads the selected source. Source selection is preserved, but playback position and playing state are not guaranteed to continue. A DASH entry in the catalog does not mean it works on every target OS, including iOS."
+      "text": "The screen includes Default, Sports, Live (DVR), and Cinema UI choices; source buttons; Live edge; −10/−30/−60-second controls; Allow DVR; state; an event log; and Show configuration. iOS starts with HLS and offers HLS/progressive MP4; DASH types and presets are hidden there. Android also offers DASH."
+    },
+    {
+      "type": "p",
+      "text": "Show configuration edits the required HTTP/HTTPS source URL, type, optional title/poster URL, start offset in seconds, and its Start/End/SDK default reference. Signed offsets are allowed: Start refers to the beginning of the media/DVR window, End to the end/live edge. The SDK default is Start for VOD and End for live. Blank title/poster/offset fields remove those optional values."
+    },
+    {
+      "type": "p",
+      "text": "Autoplay and Mute on startup apply at player creation. Forward buffer is in seconds: blank keeps the SDK default (iOS 0, Android 50); iOS 0 lets the SDK choose a duration. This form requires a positive Android buffer target because zero is not its automatic setting. Maximum bitrate is in bits per second; enter a positive cap or leave it blank for no cap. Numbers must be finite decimals."
+    },
+    {
+      "type": "note",
+      "text": "Apply and recreate player validates the whole draft, recreates the player, and reloads the selected source from its start offset. Playback position resets and playback starts according to Autoplay. The complete source, chosen UI, log, and Allow DVR setting are retained. Invalid or unchanged settings do not recreate the player. Reset draft only discards edits; it does not change playback. Preset source buttons still load immediately. Allow DVR remains an application helper rather than an editable SDK playback property."
     },
     {
       "type": "code",
@@ -69,7 +81,7 @@
     },
     {
       "type": "note",
-      "text": "Type checking covers App.tsx, the source list, and pure logic. It does not verify external Expo project generation, native builds, WebView rendering, or actual playback. Automated native playback tests are not included."
+      "text": "Type checking covers App.tsx, the configuration panel, the source list, and pure logic. App interaction tests use mocked native/player objects to check edits, validation, Apply/Reset, source retention, and recreation. They do not verify external Expo project generation, native builds, native/WebView layout, or playback. A compatible external Expo project and device/simulator build are still required."
     },
     {
       "type": "h2",
@@ -101,28 +113,50 @@
     },
     {
       "type": "p",
-      "text": "The screen includes source selection, Live edge, −10/−30/−60-second controls, Allow DVR, state, and logs. The example enables autoplay and mute. It does not provide dedicated play/pause buttons, audio/subtitle/quality selection, or TV remote key-event handling. DRM modules are also excluded."
+      "text": "The screen includes source selection, Live edge, −10/−30/−60-second controls, Allow DVR, state, logs, and Show configuration. Autoplay and mute are initially enabled. It does not provide dedicated play/pause buttons, audio/subtitle/quality selection, or TV remote key-event handling. DRM modules are also excluded."
+    },
+    {
+      "type": "p",
+      "text": "Show configuration edits an HTTP/HTTPS source URL, HLS/DASH/progressive MP4 type, optional title/poster URL, signed start offset in seconds and Start/End/SDK default reference. Start means beginning of media/DVR window, End means end/live edge; the SDK default is Start for VOD and End for live. Blank title/poster/offset fields remove those optional values. The Kepler screen has no artwork overlay, so a poster value is stored with the source without adding a visible poster."
+    },
+    {
+      "type": "p",
+      "text": "Autoplay and Mute on startup apply at player creation. Separate audio/video forward buffer targets are in seconds; this form accepts positive values, and blank keeps the SDK default of 40 seconds per media type. Live windows can limit the effective buffer. Maximum video bitrate is a positive adaptation cap in bits per second; blank means no cap. Numbers must be finite decimals. Format, buffering and adaptation support still depends on the stream, engine and target device."
+    },
+    {
+      "type": "note",
+      "text": "Apply and recreate player validates the draft, waits for the previous player to close, and reloads the selected source from its start offset. Playback position resets and playback starts according to Autoplay; the selected/custom source, log and Allow DVR setting are retained. Invalid or unchanged settings do not recreate the player. Reset draft only discards edits. Preset source buttons still load immediately. The HTML Player UI remains disabled on Vega; Allow DVR controls an application helper."
     },
     {
       "type": "code",
-      "title": "Check the core logic from the repository root",
+      "title": "Check the screen and logic from the repository root",
       "text": "pnpm --filter @showcase/vega test\npnpm --filter @showcase/vega typecheck"
     },
     {
       "type": "note",
-      "text": "Vega type checking covers the core logic and excludes React/Kepler .tsx screens. Session tests use fake media and Player objects. Successful Kepler builds, screen behavior, remote control behavior, and actual playback have not been recorded."
+      "text": "Vega type checking includes the actual App, settings/control panels and video-surface JSX against installed SDK, React Native and Kepler declarations. App/session tests use mocked native/media/player objects to check edits, validation, Apply/Reset, retained settings and changes during initialization/cleanup. They do not verify native layout, TV focus or keyboard input, Kepler builds, or playback. Build and test these controls in a configured Kepler project on the target device."
     }
   ],
   "sources": [
     {
       "path": "apps/react-native/README.md",
-      "line": 29,
+      "line": 81,
       "label": "Expo integration steps and limits"
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 71,
+      "line": 69,
       "label": "Screen implementation and UI switching"
+    },
+    {
+      "path": "apps/react-native/src/ConfigurationPanel.tsx",
+      "line": 16,
+      "label": "React Native editable fields, units and Apply/Reset"
+    },
+    {
+      "path": "apps/react-native/src/configuration.ts",
+      "line": 57,
+      "label": "React Native validation and SDK field mappings"
     },
     {
       "path": "apps/react-native/src/dvr/snapshotController.ts",
@@ -136,7 +170,7 @@
     },
     {
       "path": "apps/vega/src/App.tsx",
-      "line": 29,
+      "line": 34,
       "label": "Application ID, playback settings, and Analytics"
     },
     {
@@ -151,8 +185,18 @@
     },
     {
       "path": "apps/vega/tsconfig.json",
-      "line": 15,
-      "label": "TSX screens excluded from type checking"
+      "line": 22,
+      "label": "Complete source and JSX type-check scope"
+    },
+    {
+      "path": "apps/vega/src/ConfigurationPanel.tsx",
+      "line": 14,
+      "label": "Vega editable fields, units and Apply/Reset"
+    },
+    {
+      "path": "apps/vega/src/configuration.ts",
+      "line": 53,
+      "label": "Vega validation and SDK field mappings"
     },
     {
       "path": "docs/e2e-testing.md",
