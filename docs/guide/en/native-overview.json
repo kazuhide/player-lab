@@ -1,7 +1,7 @@
 {
   "id": "native-overview",
   "title": "Native sample scope and preparation",
-  "lead": "The native samples demonstrate source switching, live rewind, returning to the live edge, and sharing UI resources. They do not reproduce the Web app’s full configuration panel. Use the Web app to compare a broad range of settings, and the native samples to inspect platform integration and playback behavior.",
+  "lead": "The native samples include source and playback configuration editors alongside source switching, live rewind, returning to live, and shared UI examples. The editors expose a focused set of SDK settings; the Web app provides the broader configuration panel. Use the platform chapters for formats, defaults, and integration limits.",
   "blocks": [
     {
       "type": "h2",
@@ -66,27 +66,27 @@
         [
           "iOS / iPadOS",
           "Default, Sports, Live (DVR), Cinema",
-          "Source selection, live-edge-relative seeking, DVR setting, state, and logs"
+          "Source/player editors, source selection, live-edge-relative seeking, Allow DVR, state, and logs"
         ],
         [
           "tvOS",
           "System UI; no Web UI selector",
-          "The source and DVR panel shared with iOS"
+          "Focusable native source/player editor, source selection, DVR controls, state, and logs"
         ],
         [
           "Android / Android-based Fire TV",
           "Default, Sports, Live (DVR), Cinema",
-          "Source selection, live-edge-relative seeking, DVR setting, state, and logs"
+          "Source/player editors, source selection, live-edge-relative seeking, Allow DVR, state, and logs"
         ],
         [
           "React Native",
           "Four UI choices; delivery of the shared UI assets requires integration",
-          "Source selection, live-edge-relative seeking, DVR setting, state, and logs"
+          "Source/player editors, source selection, live-edge-relative seeking, Allow DVR, state, and logs"
         ],
         [
           "Vega OS",
           "Kepler components rather than browser UI",
-          "Source selection, live-edge-relative seeking, DVR setting, state, and logs"
+          "Source/player editors, source selection, live-edge-relative seeking, Allow DVR, state, and logs"
         ]
       ],
       "widths": [
@@ -97,7 +97,22 @@
     },
     {
       "type": "p",
-      "text": "The native helper panels do not provide the Web app’s PlayerConfig, SourceConfig, or TweakConfig lists, or audio, subtitle, and quality selectors. Features in the SDK’s standard UI depend on the source, OS, device, and SDK support. A source button for multi-audio or subtitles does not mean that track selection has been verified."
+      "text": "The editors expose selected SourceConfig and PlayerConfig fields. For the broader configuration lists, including TweaksConfig, use the Web app. Common editable fields are:"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "Source: HTTP/HTTPS URL and type, optional title and poster URL, start offset in seconds, and offset reference.",
+        "Player: autoplay, startup mute, forward buffer in seconds, and bitrate cap in bits per second. Supported formats, blank/default meanings, and numeric limits differ by platform."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Invalid input leaves the applied configuration unchanged. Reset changes only the draft: Apple, React Native, and Vega restore applied values; Android restores the applied source or SDK player defaults, depending on the Reset button. Android accepts a valid Apply again even with the same values, repeating the source reload or player restart. Applying unchanged settings does nothing on Apple, React Native, and Vega."
+    },
+    {
+      "type": "p",
+      "text": "The native helper panels do not add dedicated audio, subtitle, or quality selectors. Features in the SDK standard UI depend on the source, OS, device, and SDK support. A source button for multi-audio or subtitles does not establish verified track selection."
     },
     {
       "type": "table",
@@ -107,6 +122,16 @@
         "Usage and verification limits"
       ],
       "rows": [
+        [
+          "Source editor",
+          "Custom source, metadata, and start position",
+          "Apple and Android reload the source on the existing player. React Native and Vega recreate the player whenever Apply changes the configuration, including source-only edits."
+        ],
+        [
+          "Player editor",
+          "Creation-time playback, buffer, and bitrate settings",
+          "Recreates the player and reloads the complete applied source, retaining Allow DVR, logs, and any UI selection. Position resets to the configured start offset or SDK default; Autoplay determines whether playback starts."
+        ],
         [
           "Offline",
           "An OfflineManager helper class for Android",
@@ -252,7 +277,7 @@
     {
       "type": "note",
       "title": "What Allow DVR controls",
-      "text": "This switch controls the sample’s state calculation and helper rewind buttons. It does not change a global SDK DVR setting or guarantee that all seeking, including the shared UI’s seek bar, is disabled. Toggling it also does not move playback to the live edge. Use Live edge or Go to live edge to return to live."
+      "text": "This switch controls the sample’s state calculation and helper rewind buttons. It does not change a global SDK DVR setting or guarantee that all seeking, including the shared UI’s seek bar, is disabled. Toggling it also does not move playback to the live edge. Use Live edge or Go to live edge to return to live. Apple and Android expose a separate SDK live time-shifting setting in the player editor; Allow DVR does not edit that setting."
     },
     {
       "type": "h2",

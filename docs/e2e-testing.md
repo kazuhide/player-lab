@@ -192,3 +192,86 @@ true, and `MediaCapabilities.decodingInfo` returned `supported`, `smooth`, and
 These [capability estimates](https://www.w3.org/TR/media-capabilities/) do not
 establish actual decoding, audible synchronization, or hardware measurements.
 The local fixture checks played H.264; HEVC playback remains unverified.
+
+## Configuration editor checks (2026-10-20)
+
+The source/player editors have separate validation, application, and lifecycle
+checks. These recorded results extend the earlier native checks; they do not
+replace the playback limits above. The React Native and Vega type checks now
+include the App and configuration panels; Vega also includes its video-surface
+TSX, extending the earlier DVR-only/type-check entry.
+
+| Check | Recorded result and scope |
+| --- | --- |
+| Android JVM | Six DVR and six configuration tests passed without a valid Player license; validation and exact SDK mapping, not playback. |
+| Apple logic and hostless configuration | Six DvrKit tests, six iOS configuration tests, and six local tvOS configuration tests passed without a valid Player license. The hostless schemes compile the app's model/configuration sources and use a synthetic key to construct SDK objects. |
+| Apple configuration GUI | One test each passed on iPhone 17 Pro / iOS 26.4, iPad Pro 11-inch (M5) / iOS 26.4, and Apple TV 4K (3rd generation) / tvOS 26.4. These use the SDK default UI and check editor operations, retained configuration, and tvOS remote focus/Select; they do not assert advancing playback. |
+| Android configuration and ownership | Four checks passed on an Android 16 phone emulator with a dummy license in 41.737 seconds, covering the Compose editor, scrolling, D-pad focus, source retention, view detachment, and recording-API ownership checks. A separate licensed, GUI-configured VOD autoplay case passed in 18.342 seconds, checking mute, the 10-second start offset, and advancing playback. |
+| React Native / Vega | 57 / 42 tests passed, respectively. App interaction and lifecycle tests use mocked native hosts and player/media objects; type checks passed against the installed declarations. They do not qualify native layout, TV focus, keyboards, device builds, or playback. |
+
+To repeat the license-free checks, install the locked workspace dependencies and
+follow the platform README's toolchain setup. Android app tests need the Android
+SDK and Java 17. Apple hostless tests need Xcode, the generated project and pinned
+packages; create an empty ignored `Local.xcconfig` for that setup rather than
+providing a playback license. From the repository root:
+
+```sh
+swift test --package-path apps/ios/DvrKit
+pnpm --filter @showcase/react-native test
+pnpm --filter @showcase/react-native typecheck
+pnpm --filter @showcase/vega test
+pnpm --filter @showcase/vega typecheck
+(cd apps/android && ./gradlew :dvr:test :app:testDebugUnitTest \
+  -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=)
+```
+
+After the [Apple project setup](../apps/ios/README.md#build-the-app), run the
+following from `apps/ios`, replacing each destination with an installed simulator:
+
+```sh
+xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Configuration \
+  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \
+  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO test
+xcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-Configuration \
+  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \
+  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \
+  CODE_SIGNING_ALLOWED=NO test
+```
+
+CI runs the hostless iOS scheme; its generic tvOS simulator build does not run the
+local tvOS configuration or GUI tests. For licensed Apple GUI checks, follow the
+[Configuration tests](../apps/ios/README.md#configuration-tests) instructions for
+`Showcase-iOS-ConfigurationUI` on iPhone and iPad and
+`Showcase-tvOS-ConfigurationUI` on Apple TV. They launch the real app and require
+an allowed Player license, a reachable reference source, and network access. Their
+SDK-default-UI results do not establish shared Web UI behavior, stream-offset
+accuracy, bitrate enforcement, or physical-device input.
+
+For the Android configuration/ownership checks, connect an emulator and run from
+`apps/android`:
+
+```sh
+./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.showcase.app.PlayerConfigurationInstrumentedTest,com.showcase.app.PlayerOwnershipInstrumentedTest \
+  -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=
+```
+
+The separate `PlayerConfigurationPlaybackInstrumentedTest` needs the app's normal
+allowed license and network access. Follow the
+[Android playback setup](../apps/android/README.md#playback-checks), then select
+that class with the same instrumentation runner argument. Do not retain the dummy
+license override for a playback run.
+
+On Player Android 3.171.0, the existing shared-UI/DVR check reported non-network
+timeout 1004 in a grouped run. Separate comparisons of base `2c90983` and the
+changed app both failed the return-to-live assertion with the same SDK, shared UI,
+and emulator. No threshold was relaxed; that shared-UI/live-edge path remains
+unqualified for this version. The October 19 result above used Player 3.155.0.
+The configured VOD pass does not close this live-edge failure.
+
+These configuration checks do not qualify physical devices, Android TV/Fire TV,
+completed internal SDK resource cleanup, casting, offline playback, or Analytics
+receipt. React Native still needs an external Expo development build and shared
+UI delivery; Vega still needs its Kepler build and complete runtime compatibility
+setup. Neither has been qualified on a device by the mocked tests.
