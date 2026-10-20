@@ -1,0 +1,134 @@
+import SwiftUI
+
+/// A native editor on both Apple platforms; tvOS uses the focus engine and system text keyboard.
+struct ConfigurationEditor: View {
+    @ObservedObject var model: PlayerModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var draft: ConfigurationDraft
+    @State private var applyError: String?
+
+    init(model: PlayerModel) {
+        self.model = model
+        _draft = State(initialValue: model.configurationDraft)
+    }
+
+    private var pendingEffect: ConfigurationEffect? {
+        guard let configuration = try? draft.validated() else { return nil }
+        return model.effect(for: configuration)
+    }
+
+    private var validationMessage: String? {
+        do { _ = try draft.validated(); return applyError }
+        catch { return error.localizedDescription }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Configuration").font(.title2).bold()
+                Spacer()
+                Button("Cancel") { dismiss() }
+                    .accessibilityIdentifier("configuration.cancel")
+            }
+            Text("Edit a draft, then apply it. Applying restarts the source at its configured start position.")
+                .font(.caption).foregroundStyle(.secondary)
+
+            Form {
+                Section(header: Text("Source · reloads source")) {
+                    field("Source URL", placeholder: "https://example.com/stream.m3u8",
+                          text: $draft.sourceURL, id: "configuration.sourceURL")
+                    Picker("Source type", selection: $draft.sourceType) {
+                        ForEach(SourceFormat.allCases) { Text($0.rawValue).tag($0) }
+                    }
+                    #if os(tvOS)
+                    .pickerStyle(.inline)
+                    #endif
+                    .accessibilityIdentifier("configuration.sourceType")
+                    field("Title (optional)", placeholder: "Video title",
+                          text: $draft.title, id: "configuration.title")
+                    field("Poster URL (optional)", placeholder: "https://example.com/poster.jpg",
+                          text: $draft.posterURL, id: "configuration.posterURL")
+                }
+                Section(header: Text("Start position · reloads source"), footer:
+                    Text("Blank offset uses the SDK default. Automatic uses the start for VOD and the live edge for live. End accepts a negative offset to start behind the edge. The SDK corrects offsets to the stream boundaries; live offsets apply when playback starts.")) {
+                    field("Start offset (seconds, optional)", placeholder: "Default",
+                          text: $draft.startOffset, id: "configuration.startOffset")
+                    Picker("Offset reference", selection: $draft.timelineReference) {
+                        ForEach(OffsetReference.allCases) { Text($0.rawValue).tag($0) }
+                    }
+                    #if os(tvOS)
+                    .pickerStyle(.inline)
+                    #endif
+                    .accessibilityIdentifier("configuration.timelineReference")
+                }
+                Section(header: Text("Playback · recreates player"), footer:
+                    Text("Mute is a startup setting. SDK time shift enables live DVR in the player; the app's Allow DVR controls switch also governs its quick-seek buttons.")) {
+                    Toggle("Autoplay after source load", isOn: $draft.autoplay)
+                        .accessibilityIdentifier("configuration.autoplay")
+                    Toggle("Start muted", isOn: $draft.startMuted)
+                        .accessibilityIdentifier("configuration.startMuted")
+                    Toggle("SDK time shift / DVR", isOn: $draft.sdkTimeShiftEnabled)
+                        .accessibilityIdentifier("configuration.sdkTimeShift")
+                }
+                Section(header: Text("Adaptation and buffer · recreates player"), footer:
+                    Text("Maximum bitrate: 0 means unlimited. Forward buffer: 0 lets the SDK choose. Both settings remain active when selecting another source.")) {
+                    field("Maximum bitrate (bit/s)", placeholder: "0",
+                          text: $draft.maximumBitrate, id: "configuration.maximumBitrate")
+                    field("Forward buffer (seconds)", placeholder: "0",
+                          text: $draft.forwardBuffer, id: "configuration.forwardBuffer")
+                }
+            }
+            .accessibilityIdentifier("configuration.form")
+
+            if let validationMessage {
+                Text(validationMessage).font(.caption).foregroundStyle(.red)
+                    .accessibilityIdentifier("configuration.error")
+            } else {
+                Text(pendingEffect?.description ?? "No configuration changes")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("configuration.effect")
+            }
+            HStack {
+                Button("Reset to applied") {
+                    draft = model.configurationDraft
+                    applyError = nil
+                }
+                .accessibilityIdentifier("configuration.reset")
+                .accessibilityHint("Restores the draft without changing playback")
+                Spacer()
+                Button("Apply") {
+                    do {
+                        try model.apply(draft)
+                        dismiss()
+                    } catch {
+                        applyError = error.localizedDescription
+                    }
+                }
+                .disabled(pendingEffect == nil || pendingEffect == ConfigurationEffect.none)
+                .accessibilityIdentifier("configuration.apply")
+            }
+        }
+        .padding()
+        #if os(tvOS)
+        .frame(maxWidth: 1400, maxHeight: .infinity)
+        .padding(40)
+        .frame(maxWidth: .infinity)
+        .background(.background)
+        #endif
+        .onChange(of: draft) { _ in applyError = nil }
+    }
+
+    private func field(_ title: String, placeholder: String,
+                       text: Binding<String>, id: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            TextField(placeholder, text: text)
+                .disableAutocorrection(true)
+                #if !os(tvOS)
+                .textInputAutocapitalization(.never)
+                #endif
+                .accessibilityLabel(title)
+                .accessibilityIdentifier(id)
+        }
+    }
+}

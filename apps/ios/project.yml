@@ -109,6 +109,22 @@ targets:
         product: BitmovinPlayer
       - package: DvrKit
 
+  Showcase-iOSConfigurationUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources: [ShowcaseConfigurationUITests]
+    dependencies:
+      - target: Showcase-iOS
+
+  Showcase-tvOSConfigurationUITests:
+    type: bundle.ui-testing
+    platform: tvOS
+    deploymentTarget: "15.0"
+    sources: [ShowcaseConfigurationUITests]
+    dependencies:
+      - target: Showcase-tvOS
+
 # Keep app build schemes alongside the opt-in runtime scheme for command-line builds.
 schemes:
   Showcase-iOS:
@@ -137,3 +153,15 @@ schemes:
         Showcase-tvOS: all
     test:
       targets: [Showcase-tvOSConfigurationTests]
+  Showcase-iOS-ConfigurationUI:
+    build:
+      targets:
+        Showcase-iOS: all
+    test:
+      targets: [Showcase-iOSConfigurationUITests]
+  Showcase-tvOS-ConfigurationUI:
+    build:
+      targets:
+        Showcase-tvOS: all
+    test:
+      targets: [Showcase-tvOSConfigurationUITests]
