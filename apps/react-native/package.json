@@ -2,7 +2,7 @@
   "name": "@showcase/react-native",
   "version": "0.1.0",
   "private": true,
-  "description": "React Native (Expo) build of the Bitmovin Player Playground — async player API",
+  "description": "React Native (Expo) build of the Bitmovin Player Playground \u2014 async player API",
   "scripts": {
     "test": "vitest run && node --test test/expo-project.check.mjs",
     "typecheck": "tsc --noEmit",
@@ -10,16 +10,17 @@
   },
   "dependencies": {
     "bitmovin-player-react-native": "1.29.0",
-    "expo": "~54.0.0",
-    "expo-crypto": "15.0.9",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
+    "expo": "57.0.30",
+    "expo-clipboard": "57.0.2",
+    "expo-crypto": "57.0.4",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
     "react-native-url-polyfill": "4.0.0"
   },
   "devDependencies": {
-    "@types/react": "^19.1.0",
+    "@types/react": "19.3.0",
     "@types/react-test-renderer": "19.1.0",
-    "react-test-renderer": "19.1.0",
+    "react-test-renderer": "19.2.3",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0"
   }

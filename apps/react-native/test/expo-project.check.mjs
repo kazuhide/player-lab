@@ -34,9 +34,9 @@ test("generates the existing App and pinned native project inputs without a lice
   for (const name of ["Podfile.lock", "Package.resolved"]) {
     assert.deepEqual(readFileSync(join(target, "native-locks", name)), readFileSync(join(appRoot, "expo/native-locks", name)));
   }
-  assert.equal(manifest.dependencies.expo, "54.0.35");
-  assert.equal(manifest.dependencies["expo-crypto"], "15.0.9");
-  assert.equal(manifest.dependencies["bitmovin-player-react-native"], "1.28.0");
+  assert.equal(manifest.dependencies.expo, "57.0.30");
+  assert.equal(manifest.dependencies["expo-crypto"], "57.0.4");
+  assert.equal(manifest.dependencies["bitmovin-player-react-native"], "1.29.0");
   assert.match(readFileSync(join(target, ".gitignore"), "utf8"), /^\.env$/m);
   assert.throws(() => statSync(join(target, ".env")), { code:"ENOENT" });
 }));

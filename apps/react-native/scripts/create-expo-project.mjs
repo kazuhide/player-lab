@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Create a new external Expo 54 host using the existing showcase screen. */
+/** Create a pinned external Expo host using the existing showcase screen. */
 import { copyFileSync, cpSync, existsSync, lstatSync, mkdirSync, chmodSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
