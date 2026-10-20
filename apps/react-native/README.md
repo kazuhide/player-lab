@@ -1,7 +1,7 @@
 # Bitmovin Player sample for React Native and Expo
 
-This folder contains a React Native screen and rewind-window logic using
-`bitmovin-player-react-native`. It is not a complete generated Expo app.
+This folder contains the React Native showcase screen, rewind-window logic, and
+a generator for an external Expo development project using that same screen.
 The player library bridges to native iOS and Android players. Its reads return
 Promises, so the screen awaits a snapshot before calculating the live window.
 DVR means the window of live media that a viewer can rewind.
@@ -14,6 +14,8 @@ DVR means the window of live media that a viewer can rewind.
 - `App.tsx`: player, control panel, and snapshot refresh on `onTimeChanged`.
 - `src/ConfigurationPanel.tsx`, `src/configuration.ts`: draft configuration controls
   and validation before player creation/source loading.
+- `expo/`, `scripts/create-expo-project.mjs`: pinned Expo host, native asset plugin,
+  and dependency locks. Generated native projects stay outside this checkout.
 
 ## Test and type-check
 
@@ -90,71 +92,77 @@ The public [Android](https://github.com/bitmovin/bitmovin-player-react-native/bl
 and [iOS](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/RCTConvert%2BBitmovinPlayer.swift#L964-L965)
 converters explain the bitrate integer limits. The URL package documents
 [local imports without replacing global URL](https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0).
-Loop is not an exposed configuration property in this wrapper. Native Expo
-integration, artwork/UI rendering and playback on iOS/Android still need a
-device or simulator build.
+Loop is not an exposed configuration property in this wrapper. Native rendering
+and playback require a development build with an authorized Player license.
 
 ## Build in an Expo project
 
-Use an Expo project compatible with this folder's `package.json`: Expo 54,
-React Native 0.81.5, React 19.1.0, and `bitmovin-player-react-native` 1.28.0.
-The wrapper defaults to native Player 3.126.0 through Swift Package Manager on
-iOS/tvOS and 3.165.0+jason on Android. Keep this wrapper-supported combination;
-the standalone native samples have separate SDK pins.
+Use Node **24.19.0** and pnpm **10.33.0**. The generated host pins Expo **54.0.35**,
+React Native **0.81.5**, React **19.1.0**, wrapper **1.28.0**, and Expo Crypto
+**15.0.9**, the version required by Expo 54. Its standalone `pnpm-lock.yaml`
+preserves the resolved JavaScript dependency graph. Expo 54 supplies its native
+prebuild template; no moving `create-expo-app@latest` template is used.
 
-The following creates an external project; check its generated dependency
-versions against the manifest because `@latest` can change:
+The display name is **Player Lab React Native**. Both the iOS bundle identifier
+and Android application ID are **`com.playerlab.reactnative`**, defined in
+`expo/app.json`. Authorize this identifier on the Player license you supply.
+Analytics uses its own optional license and authorization settings.
 
-```bash
-npx create-expo-app@latest dvr-showcase
-cd dvr-showcase
-npx expo install bitmovin-player-react-native@1.28.0 expo-crypto react-native-url-polyfill@4.0.0
-# Copy this folder's App.tsx, src/, and generated .env into the Expo project.
-```
-
-Register the Player config plugin in the external project's `app.json` or
-equivalent `app.config`, preserving any existing plugins:
-
-```json
-{
-  "expo": {
-    "plugins": ["bitmovin-player-react-native"]
-  }
-}
-```
-
-Version 1.27 migrated iOS Player and Google IMA dependencies from CocoaPods to
-Swift Package Manager. When upgrading an existing app, remove explicit Player,
-Player Core, Analytics, and IMA pod dependencies; keep the React Native bridge,
-Expo, and optional Cast pods. With the plugin registered, rerun iOS prebuild:
+From the repository root, after configuring the keys described in
+[`docs/SETUP.md`](../../docs/SETUP.md):
 
 ```bash
-npx expo prebuild --platform ios
+pnpm install --frozen-lockfile
+pnpm --filter @showcase/ui-shared build
+bash scripts/sync-env.sh
+node apps/react-native/scripts/create-expo-project.mjs ../player-lab-react-native --env-from apps/react-native/.env
+cd ../player-lab-react-native
+pnpm install --frozen-lockfile
+pnpm exec expo prebuild --no-install
 ```
 
-Install pods if prebuild did not do so, then open the generated `.xcworkspace`.
-For projects maintained without prebuild, follow the
-[official iOS dependency migration guide](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/docs/ios-dependencies.md).
-The installed package's `ios/dependencies.json` defines the exact Player and IMA
-versions. Rebuild and check framework embedding and Release archives after
-integration; the repository's type checks do not verify them.
+The target must be a new directory outside this checkout. The generator copies
+the existing `App.tsx` and TypeScript sources, registers that screen with a safe
+area, and includes both native config plugins and built shared UI assets.
+`--env-from` explicitly copies the ignored generated key file with mode `0600`;
+omit it to create a project without keys. It never inserts keys into `app.json`.
+The copied `.env` supplies `EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY` and optional
+`EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY`. Do not commit that file or native
+build output.
 
-At the repository root, `bash scripts/sync-env.sh` generates this folder's ignored
-`.env` with `EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY` and optional
-`EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY`. Set the source keys in the root
-`.env` first; see `docs/SETUP.md`. Allow the external app's bundle ID or package
-name on your player license. If supplied, the analytics key enables playback-quality
-reporting to your account. Do not commit the generated key file.
-
-The player has native modules and needs a development build. From the Expo project:
+On macOS, install Xcode and CocoaPods for iOS. Android requires Java 17 and the
+Android SDK/toolchain selected by Expo 54. Restore the checked-in native locks
+after prebuild, before the first iOS build:
 
 ```bash
-npx expo run:ios
-# Or:
-npx expo run:android
+cp native-locks/Podfile.lock ios/Podfile.lock
+(cd ios && pod install)
+mkdir -p ios/PlayerLabReactNative.xcworkspace/xcshareddata/swiftpm
+cp native-locks/Package.resolved ios/PlayerLabReactNative.xcworkspace/xcshareddata/swiftpm/Package.resolved
+pnpm exec expo run:ios
+# Or, for Android:
+pnpm exec expo run:android
 ```
 
-Expo Go does not provide the required native player modules.
+The supplied CocoaPods lock was generated with CocoaPods **1.17.0**. Keep
+`Podfile.lock` and the workspace's `Package.resolved` when maintaining the
+generated project. A subsequent prebuild can refresh native files; restore the
+locks again if generating a fresh project. Expo Go cannot load the native Player.
+
+The wrapper-supported native resolutions are:
+
+| Dependency | React Native host |
+| --- | --- |
+| iOS Player / Player Core | 3.126.0 / 3.126.0 |
+| iOS Analytics collector | 3.28.1 |
+| iOS Google IMA | 3.26.1 |
+| Android Player | 3.165.0+jason |
+
+The standalone iOS sample's Player 3.128.0 and standalone Android sample's Player
+3.171.0 are separate integrations. Do not force those versions into wrapper
+1.28.0. Since wrapper 1.27, Player and IMA use Swift Package Manager on iOS; the
+bridge and Expo still use CocoaPods. Existing projects should follow the
+[official migration guide](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/docs/ios-dependencies.md).
 
 ## Shared player UI
 
@@ -165,18 +173,54 @@ and use `PlayerView` with `uiConfig.variant = new CustomUi("…buildSportsUI")`.
 The configuration applies when the player is created, so changing it remounts the
 keyed `PlayerPane`.
 
-From the repository root, build and sync the assets:
+The generator consumes the repository's built shared UI. After editing that UI,
+rebuild it and copy the two updated files into an existing external project:
 
 ```bash
-pnpm --filter @showcase/ui-shared build && pnpm sync:webui
+pnpm --filter @showcase/ui-shared build
+cp packages/ui-shared/dist/bitmovinplayer-ui.{js,css} ../player-lab-react-native/assets/webui/
+# In the external project, refresh native resources and rebuild:
+# pnpm exec expo prebuild --no-install
 ```
 
-This writes ignored files under `assets/webui/`. They still need to be copied into
-the generated native iOS and Android projects, and `WEBUI_JS` / `WEBUI_CSS` in
-`App.tsx` must resolve to those files. The current addresses are placeholders for
-that integration. The shared UI uses `bitmovin-player-ui` 4.x; check its rendering
-in the native WebView after integrating it. Type-checking does not verify asset
-delivery or rendering.
+The config plugin copies JS/CSS into Android's `app/src/main/assets/webui/` and
+adds the two files to iOS Copy Bundle Resources. `App.tsx` uses
+`file:///android_asset/webui/…` on Android and relative main-bundle filenames on
+iOS. The SDK default UI continues to use the SDK's bundled assets. Rebuild the
+native app after changing packaged UI files; a Metro reload alone cannot replace
+native resources.
+
+For a short runtime check, select **VOD HLS** and use the SDK Default UI to play
+until its media clock advances. Select **Sports**, confirm its INFO control, and
+play again. In configuration, edit the title and choose **Reset draft**; the
+applied title should return without interrupting playback. Then edit the title,
+start offset, autoplay and mute, apply, and confirm that the source and chosen
+UI are retained while the position restarts. **Allow DVR** and the existing log
+should remain. Background the app, return, and check that VOD can advance again.
+
+The screen logs numeric Player/Source error codes without copying SDK error
+messages. Android Player error
+[1003](https://cdn.bitmovin.com/player/android/3.165.0/docs/player-core/com.bitmovin.player.api.deficiency/-player-error-code/-license-authentication-failed/index.html)
+means the license request failed or was denied; it does not establish which
+cause occurred. Check the installed application ID and key configuration, device
+time, and network/TLS connectivity before changing license settings. If a
+dedicated emulator reports an Unknown Host error, Android documents an
+[AVD-specific `-dns-server` launch option](https://developer.android.com/studio/run/emulator-networking-dns).
+
+## Native qualification
+
+The generated host has built successfully for an iPhone 17 Pro simulator on
+iOS 26.4 with Xcode 27.1, and for an ARM64 Android API 36.1 emulator with Java 17.
+Packaged shared JS/CSS bytes matched the built assets on both platforms.
+
+Actual iOS native checks exercised SDK Default VOD playback, the packaged Sports
+factory's INFO control and Play/Pause, Reset draft, Apply with autoplay/mute and
+a start offset, source/UI/log/Allow DVR retention, and advancing VOD after
+background/foreground return. These simulator checks do not qualify a physical
+device, Release archive, DRM, advertisements, every shared factory, or live/DVR
+behavior. Android licensed playback is not yet qualified. The repository's App
+tests use native mocks; generator tests and TypeScript checks provide separate
+evidence and do not establish playback.
 
 ## Player event handling
 
