@@ -93,27 +93,27 @@
     },
     {
       "type": "p",
-      "text": "Vega OS is a separate runtime from Android-based Fire TV. apps/vega connects the modular Web Player to a W3C media element and uses React Native/Kepler screen components. It does not use bitmovin-player-ui, which requires a browser document. Dependencies include Player 8.138.0-beta.28, React Native 0.72.0, React 18.2.0, and Amazon device packages. As of 2026-10-20, the official Vega sample supports only the 8.138.0-beta.XX channel; beta.28 is its latest listed release and remains pinned here. General Web releases are not declared supported by that sample."
+      "text": "Vega OS is separate from Android-based Fire TV. The included apps/vega host connects the modular Web Player to W3C Media and retains the existing React Native/Kepler controls. It does not use the browser-based bitmovin-player-ui. The tested combination is Player 8.138.0-beta.28, React Native 0.72.0, React 18.2.0, Kepler 2.1.0+rn0.72.0 and W3C Media 2.3.2, with Vega SDK 0.24.12112 and Kepler CLI platform 0.22.14. The official Vega sample supports the beta.XX channel; the general Web stable release is not a supported substitute."
     },
     {
       "type": "steps",
       "items": [
-        "Prepare the Amazon Vega/Kepler development tools and a compatible Fire TV device or Vega simulator. Check each provider’s terms for the CLI, SDK, and device packages.",
-        "Integrate the sources into a configured Kepler project. This repository alone does not provide a standalone device build.",
-        "Replace src/polyfills.ts with the compatibility layer required by the runtime. Base64, DOMParser, W3C media, and WebCrypto are needed; the minimal template alone cannot provide playback.",
-        "Set your licenses in globals in the entry point before registering the app. App.tsx itself does not read .env. The Player’s tweaks.app_id example is com.showcase.dvr.vega; align it with your own configuration and license permissions.",
-        "Build, install, and launch from the Kepler project. Check video output, seeking, return to live, recovery after a position expires, and remote controls on the device."
+        "Install the official Vega SDK and documented prerequisites. Normal JavaScript installation, unit tests and type checks do not require the native SDK or a license.",
+        "Use the included application host. Generate its ignored runtime configuration before bundling; the build-only example below omits credentials.",
+        "For licensed playback, load the repository-root .env with scripts/env-lib.sh and rerun runtime:config before rebuilding. It copies only the Player and optional Analytics licenses; index.js installs them before evaluating App. Authorize com.showcase.dvr.vega on the Player license. Keep generated configuration, bundles, packages and logs private.",
+        "Run build:vega through the Vega SDK environment. It creates JS/Hermes bundles and aarch64, armv7 and x86_64 Release packages. The generic workspace build does not run the native SDK.",
+        "Start a Vega Virtual Device or connect a compatible device, verify its OS/profile, select its serial explicitly and launch the matching package. Check changing video frames and advancing SDK position together; a CLI ready message alone does not prove that the OS or app booted."
       ]
     },
     {
       "type": "code",
-      "title": "Kepler entry-point configuration example",
-      "text": "globalThis.BITMOVIN_PLAYER_LICENSE_KEY = \"<YOUR_PLAYER_LICENSE_KEY>\";\nglobalThis.BITMOVIN_ANALYTICS_LICENSE_KEY = \"\";"
+      "title": "Build without including license credentials",
+      "text": "pnpm install --frozen-lockfile\npnpm --filter @showcase/vega runtime:config --without-credentials\nvega exec pnpm --filter @showcase/vega build:vega"
     },
     {
       "type": "code",
-      "title": "Run from a configured Kepler project",
-      "text": "react-native build-kepler --build-type Debug\nkepler device install-app --dir .\nkepler device launch-app"
+      "title": "Inspect and run on a Vega Virtual Device",
+      "text": "vega virtual-device start --timeout 120\nvega exec vda devices -l\nvega device info --device <VVD_SERIAL>\nvega run-app apps/vega/build/aarch64-release/vega_aarch64.vpkg \\\n  com.showcase.dvr.vega.main --deviceId <VVD_SERIAL>"
     },
     {
       "type": "p",
@@ -125,7 +125,7 @@
     },
     {
       "type": "p",
-      "text": "URL validation uses a local URL import from react-native-url-polyfill 4.0.0 because React Native 0.72 leaves the global protocol and hostname getters unimplemented. The local parser leaves global URL and the Vega SDK media shims unchanged. Include the dependency from apps/vega/package.json in the external Kepler project."
+      "text": "URL validation uses a local import from react-native-url-polyfill 4.0.0 because React Native 0.72 does not implement all global URL getters. The native global URL and media object URLs are preserved. The dependency is already declared in apps/vega/package.json."
     },
     {
       "type": "p",
@@ -142,7 +142,20 @@
     },
     {
       "type": "note",
-      "text": "Vega type checking includes the actual App, settings/control panels and video-surface JSX against installed SDK, React Native and Kepler declarations. App/session tests use mocked native/media/player objects to check edits, validation, Apply/Reset, retained settings and changes during initialization/cleanup. They do not verify native layout, TV focus or keyboard input, Kepler builds, or playback. Build and test these controls in a configured Kepler project on the target device."
+      "text": "The 2026-10-20 run passed 52 unit tests and the full App type check, built all three Release packages and installed the arm64 package on a Vega Virtual Device. Native screenshots confirmed Live DASH and VOD HLS video with advancing SDK positions; the final VOD check advanced from 2.1 to 5.1 seconds. Native remote focus/scrolling, text entry, zero-bitrate validation and Reset were also exercised. Unit/session tests still mock native media/player boundaries and provide separate evidence."
+    },
+    {
+      "type": "p",
+      "text": "Before player construction, the runtime connects the published Amazon media/WebCrypto APIs, @xmldom/xmldom 0.9.12 and base-64 1.0.0. PlayerConfig.network.requestApi is fixed to Fetch as required by the integration; it is a code setting, not a GUI selector. Other supplied network hooks remain. Native media and crypto implementations stay in their installed packages. The state line displays PlayerAPI.getCurrentTime() in seconds; live sources can use an absolute media timeline."
+    },
+    {
+      "type": "code",
+      "title": "Load local licenses before rebuilding",
+      "text": "source scripts/env-lib.sh\nload_env_defaults .env\npnpm --filter @showcase/vega runtime:config\nvega exec pnpm --filter @showcase/vega build:vega"
+    },
+    {
+      "type": "note",
+      "text": "Repeated valid Apply, retained-instance background recovery, native resource counts and memory remain unqualified. A background attempt left no instance available for foreground-by-instance; one app relaunch restored final VOD playback. Physical Fire TV, DRM/offline behavior, audio correctness and quantitative buffer/bitrate behavior were not qualified. Virtual-device results do not replace target-device compatibility and performance checks."
     }
   ],
   "sources": [
@@ -260,6 +273,18 @@
     {
       "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/RCTConvert%2BBitmovinPlayer.swift#L964-L965",
       "label": "iOS bitrate integer conversion"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/install-vega-sdk",
+      "label": "Official Vega SDK installation"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/run-apps",
+      "label": "Official device launch instructions"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/mse-players",
+      "label": "Official media-player integration"
     }
   ]
 }

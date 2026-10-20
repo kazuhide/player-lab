@@ -93,27 +93,27 @@
     },
     {
       "type": "p",
-      "text": "Vega OS は Android 系 Fire TV とは別の実行環境です。apps/vega はモジュール版 Web Player を W3C media element へ接続し、React Native／Kepler の画面部品を使います。ブラウザーの document が必要な bitmovin-player-ui は使いません。依存関係は Player 8.138.0-beta.28、React Native 0.72.0、React 18.2.0 と Amazon のデバイスパッケージです。2026-10-20 時点の公式 Vega サンプルは 8.138.0-beta.XX 系のみを対応対象としています。最新の掲載版 beta.28 を引き続き固定し、一般向け Web 版を Vega 対応版として扱いません。"
+      "text": "Vega OSはAndroid系Fire TVとは別の実行環境です。apps/vegaの実行用プロジェクトはモジュール版Web PlayerをW3C Mediaへ接続し、既存のReact Native/Kepler操作画面を使います。ブラウザー向けのbitmovin-player-uiは使いません。確認した構成はPlayer 8.138.0-beta.28、React Native 0.72.0、React 18.2.0、Kepler 2.1.0+rn0.72.0、W3C Media 2.3.2、Vega SDK 0.24.12112、Kepler CLI platform 0.22.14です。公式Vegaサンプルの対応系統はbeta.XXで、一般Web版の安定リリースへの置き換えはサポートされていません。"
     },
     {
       "type": "steps",
       "items": [
-        "Amazon の Vega／Kepler 開発ツールと、対応する Fire TV 端末または Vega シミュレーターを準備します。CLI、SDK、デバイスパッケージの利用条件は各提供元で確認します。",
-        "設定済み Kepler プロジェクトへソースを組み込みます。リポジトリ内だけで完結するスタンドアロンの端末ビルドではありません。",
-        "src/polyfills.ts を実行環境用の互換レイヤーへ置き換えます。Base64、DOMParser、W3C media、WebCrypto が必要で、最小のひな型だけでは再生できません。",
-        "アプリ登録前のエントリーポイントで自分のライセンスを globals へ設定します。App.tsx 自身は .env を読みません。Player の tweaks.app_id は com.showcase.dvr.vega の設定例なので、自分の設定とライセンス許可を合わせます。",
-        "Kepler プロジェクトでビルド・導入・起動し、映像、シーク、ライブ復帰、位置失効時の回復とリモコンを端末で確認します。"
+        "公式Vega SDKと前提ツールを導入します。通常のJavaScript依存のインストール、単体テスト、型検査にはネイティブSDKやライセンスは不要です。",
+        "同梱のアプリ実行用プロジェクトを使い、バンドル生成前にGit管理対象外の実行設定を作ります。下のビルド確認例には認証情報を含めません。",
+        "ライセンスを使って再生する場合は、scripts/env-lib.shでルートの.envを読み込み、ビルド前にruntime:configを再実行します。コピーするのはPlayerと任意のAnalyticsライセンスだけで、index.jsがAppの評価前に設定します。Playerの許可リストにはcom.showcase.dvr.vegaを登録してください。生成した設定、バンドル、パッケージ、ログは公開しないでください。",
+        "Vega SDKの環境でbuild:vegaを実行します。JavaScript/Hermesバンドルとaarch64・armv7・x86_64のReleaseパッケージを生成します。通常のワークスペースのbuildはネイティブSDKを実行しません。",
+        "Vega Virtual Deviceを起動するか対応端末を接続し、OSとプロファイルを確認してシリアル番号を指定します。対応するパッケージを起動し、映像フレームの変化とSDK位置の進行を併せて確認します。CLIのready表示だけではOSやアプリの起動を確認したことにはなりません。"
       ]
     },
     {
       "type": "code",
-      "title": "Kepler エントリーポイントの設定例",
-      "text": "globalThis.BITMOVIN_PLAYER_LICENSE_KEY = \"<YOUR_PLAYER_LICENSE_KEY>\";\nglobalThis.BITMOVIN_ANALYTICS_LICENSE_KEY = \"\";"
+      "title": "ライセンスを含めずにビルドする",
+      "text": "pnpm install --frozen-lockfile\npnpm --filter @showcase/vega runtime:config --without-credentials\nvega exec pnpm --filter @showcase/vega build:vega"
     },
     {
       "type": "code",
-      "title": "設定済み Kepler プロジェクトで実行",
-      "text": "react-native build-kepler --build-type Debug\nkepler device install-app --dir .\nkepler device launch-app"
+      "title": "Vega Virtual Deviceの確認と起動",
+      "text": "vega virtual-device start --timeout 120\nvega exec vda devices -l\nvega device info --device <VVD_SERIAL>\nvega run-app apps/vega/build/aarch64-release/vega_aarch64.vpkg \\\n  com.showcase.dvr.vega.main --deviceId <VVD_SERIAL>"
     },
     {
       "type": "p",
@@ -125,7 +125,7 @@
     },
     {
       "type": "p",
-      "text": "URL の検証には react-native-url-polyfill 4.0.0 の URL をローカルに読み込みます。React Native 0.72 のグローバル URL は protocol と hostname が未実装なためです。グローバル URL と Vega SDK のメディア用シムは変更しません。外部 Kepler プロジェクトにも apps/vega/package.json の依存を追加してください。"
+      "text": "URL検証にはreact-native-url-polyfill 4.0.0をローカルに読み込みます。React Native 0.72ではグローバルURLの一部の取得処理が未実装のためです。メディア用オブジェクトURLを含むネイティブのグローバルURLは保持します。依存関係はapps/vega/package.jsonに定義済みです。"
     },
     {
       "type": "p",
@@ -142,7 +142,20 @@
     },
     {
       "type": "note",
-      "text": "Vega の型検査は App、設定・操作パネル、映像表示用 JSX を含め、導入済み SDK、React Native、Kepler の型と照合します。App／セッションのテストは native／media／Player の代替オブジェクトを使い、編集、入力検証、Apply／Reset、設定保持と初期化・終了処理中の変更を確認します。native の見た目、TV のフォーカスや文字入力、Kepler ビルド、実再生は検証しません。設定済み Kepler プロジェクトと対象端末で操作を確認してください。"
+      "text": "2026-10-20の検査では単体テスト52件とApp全体の型検査が成功し、3形式のReleaseパッケージをビルドしてarm64版をVega Virtual Deviceへインストールしました。ネイティブのスクリーンショットでLive DASHとVOD HLSの映像表示とSDK位置の進行を確認しています。最終VOD検査の位置は2.1秒から5.1秒へ進みました。リモコンのフォーカス移動・スクロール、文字入力、ビットレート0の検証エラー、Resetも確認しました。単体・セッションテストは引き続きネイティブのメディア・Player境界をモックしており、実再生とは別の検証結果です。"
+    },
+    {
+      "type": "p",
+      "text": "プレイヤー生成前に、公開されているAmazonのメディア・WebCrypto API、@xmldom/xmldom 0.9.12、base-64 1.0.0を接続します。統合に必要なためPlayerConfig.network.requestApiはFetchに固定しています。これはコード上の設定で、GUIの選択項目ではありません。呼び出し側が渡したその他の通信フックは保持します。ネイティブのメディア・暗号処理はインストール済みパッケージの実装を使います。状態欄のpositionはPlayerAPI.getCurrentTime()の秒単位の値で、ライブでは絶対メディア時刻になる場合があります。"
+    },
+    {
+      "type": "code",
+      "title": "ローカルのライセンス設定を読み込んで再ビルドする",
+      "text": "source scripts/env-lib.sh\nload_env_defaults .env\npnpm --filter @showcase/vega runtime:config\nvega exec pnpm --filter @showcase/vega build:vega"
+    },
+    {
+      "type": "note",
+      "text": "有効な設定を繰り返しApplyする動作、同じインスタンスでのバックグラウンド復帰、ネイティブリソース数とメモリは未確認です。背景化を試した際は前景へ戻す対象インスタンスが見つからず、アプリを一度起動し直して最終VODの再生を確認しました。物理Fire TV、DRM・オフライン動作、音声の正確性、バッファやビットレート設定の定量的な効果も未確認です。仮想端末での結果と対象実機の互換性・性能の検査は分けて扱います。"
     }
   ],
   "sources": [
@@ -260,6 +273,18 @@
     {
       "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/RCTConvert%2BBitmovinPlayer.swift#L964-L965",
       "label": "iOS のビットレート整数変換"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/install-vega-sdk",
+      "label": "公式Vega SDKの導入"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/run-apps",
+      "label": "端末・仮想端末での公式起動手順"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/mse-players",
+      "label": "公式メディアプレイヤー統合手順"
     }
   ]
 }
