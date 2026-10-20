@@ -5,28 +5,39 @@ video on demand (VOD), and surfacing playback quality of experience (QoE).
 
 ## Live → VOD
 
-When a live event ends and the manifest finalizes, the stream becomes VOD. Every
-app classifies this the same way, from one shared rule implemented per language:
+When a live event ends, its manifest can become a finite presentation. The
+duration-based rule implemented in each language is:
 
 > `isLiveStream(snapshot)` → a **finite, positive** duration means VOD; `Infinity`,
 > `0`, or `NaN` means live. `detectLiveToVod(prev, next)` fires once, on the
 > transition.
 
-This is unit-tested in all five DVR modules (`apps/web` & `apps/vega` `src/dvr`,
-`apps/react-native` `src/dvr`, iOS `DvrKit`, Android `:dvr`). What differs is only
-the **trigger** that re-evaluates the snapshot:
+This calculation is unit-tested in the Web, Vega, React Native, Apple `DvrKit`
+and Android `:dvr` modules. The apps refresh their snapshots at these points:
 
 | App | Trigger | Note |
 | --- | --- | --- |
 | Web | `DurationChanged` (≥ v8.19.0) | duration starts `Infinity`; don't trust `isLive()` alone |
 | Vega | `DurationChanged` (modular web player) | same as web — `DvrController` re-evaluates |
-| iOS / tvOS | poll on `TimeChanged` | `DurationChanged` can be missing on AVPlayer |
-| Android | `SourceEvent.DurationChanged` (or poll) | event exists on v3 |
+| iOS / tvOS | `TimeChanged` and source-owned `PlaybackFinished` | completion also handles live/infinite SDK getters that persist after the last frame |
+| Android | `TimeChanged`, source load and seek completion | live-return acceptance waits for a fresh native completion and visible LIVE state |
 | React Native | poll on `onTimeChanged` | **no `onDurationChanged` event** at all |
 
-So three apps get an event and two (iOS, RN) poll — but all feed the same
-`detectLiveToVod`, and on the transition the UI swaps from live mode (DVR seek bar,
-"behind live" label) to VOD mode (plain seek bar).
+On Apple Player 3.128.0, a completed HLS source can retain `isLive == true` and
+infinite duration. A duration-only classifier therefore cannot establish that
+the source has ended. The app records `PlaybackFinished` for the currently owned
+Player and Source when that source loaded as live. It displays `ended-live` and
+disables its live-seek commands without changing the SDK timing getters. The
+shared Live and Sports UIs hide LIVE controls and retain the SDK Replay overlay.
+Replay of the same source keeps this completion fact; a new load clears it.
+Callbacks from a replaced Player or Source cannot complete the current source.
+
+Finite duration and source completion are different observations. The controlled
+Android HLS/DASH checks obtain finite duration, VOD seeking and disabled live
+commands; the Apple HLS checks require actual completion and advancing replay
+even when the duration remains infinite. The platform READMEs describe the
+separate [Apple](../apps/ios/README.md#controlled-hls-ending) and
+[Android](../apps/android/README.md#playback-checks) commands and results.
 
 ### Run a controlled Web finalization check
 

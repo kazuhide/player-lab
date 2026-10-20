@@ -38,7 +38,7 @@
     {
       "channel": "stable",
       "id": "apple",
-      "latestCheckedAt": "2026-10-20",
+      "latestCheckedAt": "2026-10-21",
       "latestVersion": "3.128.0",
       "name": "Bitmovin Player iOS/tvOS (scoped Core API)",
       "sources": [
@@ -72,7 +72,7 @@
       "version": "3.171.0",
       "channel": "stable",
       "latestVersion": "3.171.0",
-      "latestCheckedAt": "2026-10-20",
+      "latestCheckedAt": "2026-10-21",
       "sources": [
         {
           "url": "https://developer.bitmovin.com/playback/docs/release-notes-android"
@@ -54449,7 +54449,7 @@
           "id": "BitmovinPlayerCore.Player.pause()",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/pause()",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "sdk-ui-unverified"
+          "status": "direct"
         },
         {
           "category": "command",
@@ -54473,7 +54473,7 @@
           "id": "BitmovinPlayerCore.Player.play()",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/play()",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "sdk-ui-unverified"
+          "status": "direct"
         },
         {
           "category": "command",
@@ -54497,7 +54497,7 @@
           "id": "BitmovinPlayerCore.Player.playbackSpeed",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/playbackspeed",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "sdk-ui-unverified"
+          "status": "preset"
         },
         {
           "category": "observation",
@@ -54623,7 +54623,7 @@
           "id": "BitmovinPlayerCore.Player.seek(time:)",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/seek(time:)",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "sdk-ui-unverified"
+          "status": "direct"
         },
         {
           "category": "command",
@@ -54647,7 +54647,7 @@
           "id": "BitmovinPlayerCore.Player.setAudio(trackIdentifier:)",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/setaudio(trackidentifier:)",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "sdk-ui-unverified"
+          "status": "direct"
         },
         {
           "category": "command",
@@ -55016,7 +55016,7 @@
           "id": "BitmovinPlayerCore.Player.volume",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/volume",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "sdk-ui-unverified"
+          "status": "missing"
         },
         {
           "category": "event",
@@ -59018,7 +59018,7 @@
           "id": "BitmovinPlayerCore.UserInterfaceApi.enterFullscreen()",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/userinterfaceapi/enterfullscreen()",
           "scope": "BitmovinPlayerCore.UserInterfaceApi",
-          "status": "sdk-ui-unverified"
+          "status": "missing"
         },
         {
           "category": "command",
@@ -59059,7 +59059,7 @@
           "id": "BitmovinPlayerCore.UserInterfaceApi.exitFullscreen()",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/userinterfaceapi/exitfullscreen()",
           "scope": "BitmovinPlayerCore.UserInterfaceApi",
-          "status": "sdk-ui-unverified"
+          "status": "missing"
         },
         {
           "category": "command",
@@ -59595,7 +59595,7 @@
         "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
         "The iOS application also covers iPadOS; both have identical audited API availability and app control paths.",
         "Four configuration fields remain constrained UI presets backed by bundled JS/CSS resources: uiManagerFactoryFunction, playerUiJs, playerUiCss and userInterfaceConfig. Missing custom resources fall back to the SDK UI; source URLs and HLS/MP4 type are editable.",
-        "Eight runtime control candidates are sdk-ui-unverified; their evidence identifies only the native SDK UI container.",
+        "All eight SDK Default UI candidates were checked on an iPhone simulator with Player 3.128.0 and the generated 60-second multi-audio HLS. Actual touch and read-only native observations qualified Play, Pause, seek and the dynamic available-audio menu as direct. The five fixed speed values receive preset credit; actual 2x and the second audio track reached the native SDK. Volume and enter/exit fullscreen are missing in this host: speaker touch only changes mute, no touch volume slider is offered, and no fullscreen handler or visible control is installed. The SDK bridge/UI resource bytes matched the installed app. The two recorded cases passed in 55.381 and 48.599 seconds. No candidate remains sdk-ui-unverified; these are iPhone simulator observations, not physical-device or tvOS UI results.",
         "SourceConfig.cmcdConfig requires OS 18 or later and TweaksConfig.includeMachineGeneratedSubtitles requires OS 27 or later; family-wide availability retains both."
       ],
       "sdkId": "apple"

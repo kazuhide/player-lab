@@ -360,8 +360,8 @@
             "symbol": "VideoPlayerView(player: model.player, playerViewConfig: PlayerViewConfig())"
           }
         ],
-        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
-        "status": "sdk-ui-unverified"
+        "limitation": "Actual visible SDK Default Pause touch held the same native clock across three samples.",
+        "status": "direct"
       },
       "BitmovinPlayerCore.Player.play()": {
         "evidence": [
@@ -371,8 +371,8 @@
             "symbol": "VideoPlayerView(player: model.player, playerViewConfig: PlayerViewConfig())"
           }
         ],
-        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
-        "status": "sdk-ui-unverified"
+        "limitation": "Actual visible SDK Default Play touch advanced the same native player across five samples.",
+        "status": "direct"
       },
       "BitmovinPlayerCore.Player.playbackSpeed": {
         "evidence": [
@@ -382,8 +382,8 @@
             "symbol": "VideoPlayerView(player: model.player, playerViewConfig: PlayerViewConfig())"
           }
         ],
-        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
-        "status": "sdk-ui-unverified"
+        "limitation": "The SDK Default menu offers only 0.25, 0.5, 1, 1.5 and 2. Actual 2x selection reached native playbackSpeed 2; arbitrary positive SDK values have no input.",
+        "status": "preset"
       },
       "BitmovinPlayerCore.Player.seek(time:)": {
         "evidence": [
@@ -393,8 +393,8 @@
             "symbol": "VideoPlayerView(player: model.player, playerViewConfig: PlayerViewConfig())"
           }
         ],
-        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
-        "status": "sdk-ui-unverified"
+        "limitation": "The visible timeline supports positions within the source seekable range. A physical drag on the 60-second fixture completed a fresh native Seeked at 30 seconds.",
+        "status": "direct"
       },
       "BitmovinPlayerCore.Player.setAudio(trackIdentifier:)": {
         "evidence": [
@@ -404,8 +404,8 @@
             "symbol": "VideoPlayerView(player: model.player, playerViewConfig: PlayerViewConfig())"
           }
         ],
-        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
-        "status": "sdk-ui-unverified"
+        "limitation": "The SDK Default menu dynamically enumerates all Player.availableAudio identifiers, covering the public valid non-null ID domain. Actual second-track selection changed the native audio index from 0 to 1.",
+        "status": "direct"
       },
       "BitmovinPlayerCore.Player.timeShift": {
         "evidence": [
@@ -451,8 +451,8 @@
             "symbol": "VideoPlayerView(player: model.player, playerViewConfig: PlayerViewConfig())"
           }
         ],
-        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
-        "status": "sdk-ui-unverified"
+        "limitation": "The tested touch host offers a mute button, not a touch volume slider. Actual speaker touch changed mute while volume stayed 100; hardware volume is not an app API route.",
+        "status": "missing"
       },
       "BitmovinPlayerCore.PlayerConfig.adaptationConfig": {
         "evidence": [
@@ -880,8 +880,8 @@
             "symbol": "VideoPlayerView(player: model.player, playerViewConfig: PlayerViewConfig())"
           }
         ],
-        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
-        "status": "sdk-ui-unverified"
+        "limitation": "No fullscreen handler or visible fullscreen control is provided by this app host. The SDK API remains available in the denominator.",
+        "status": "missing"
       },
       "BitmovinPlayerCore.UserInterfaceApi.exitFullscreen()": {
         "evidence": [
@@ -891,8 +891,8 @@
             "symbol": "VideoPlayerView(player: model.player, playerViewConfig: PlayerViewConfig())"
           }
         ],
-        "limitation": "SDK UI is embedded; exact control rendering, supported arguments and native API binding were not qualified.",
-        "status": "sdk-ui-unverified"
+        "limitation": "No fullscreen handler or visible fullscreen control is provided by this app host. The SDK API remains available in the denominator.",
+        "status": "missing"
       },
       "BitmovinPlayerCore.PlaybackFinishedEvent": {
         "status": "observed",
@@ -1787,7 +1787,7 @@
     "ios": [
       "The iOS application also covers iPadOS; both have identical audited API availability and app control paths.",
       "Four configuration fields remain constrained UI presets backed by bundled JS/CSS resources: uiManagerFactoryFunction, playerUiJs, playerUiCss and userInterfaceConfig. Missing custom resources fall back to the SDK UI; source URLs and HLS/MP4 type are editable.",
-      "Eight runtime control candidates are sdk-ui-unverified; their evidence identifies only the native SDK UI container.",
+      "All eight SDK Default UI candidates were checked on an iPhone simulator with Player 3.128.0 and the generated 60-second multi-audio HLS. Actual touch and read-only native observations qualified Play, Pause, seek and the dynamic available-audio menu as direct. The five fixed speed values receive preset credit; actual 2x and the second audio track reached the native SDK. Volume and enter/exit fullscreen are missing in this host: speaker touch only changes mute, no touch volume slider is offered, and no fullscreen handler or visible control is installed. The SDK bridge/UI resource bytes matched the installed app. The two recorded cases passed in 55.381 and 48.599 seconds. No candidate remains sdk-ui-unverified; these are iPhone simulator observations, not physical-device or tvOS UI results.",
       "SourceConfig.cmcdConfig requires OS 18 or later and TweaksConfig.includeMachineGeneratedSubtitles requires OS 27 or later; family-wide availability retains both."
     ],
     "tvos": [

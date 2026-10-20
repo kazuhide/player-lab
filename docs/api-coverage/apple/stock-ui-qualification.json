@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-21",
+  "sourceRevision": "274a2bb638b8e592a180d2d2be68694e71ff6015",
+  "nativePlayerVersion": "3.128.0",
+  "destination": "iPhone 17 Pro / iOS 26.4 Simulator",
+  "appHost": {
+    "file": "apps/ios/Showcase/ContentView.swift",
+    "line": 13,
+    "mode": "SDK Default"
+  },
+  "fixture": {
+    "name": "Big Buck Bunny, generated vod-multiaudio HLS",
+    "videoSeconds": 60,
+    "audioTracks": 2
+  },
+  "cases": [
+    {
+      "name": "Transport controls",
+      "passed": 1,
+      "failed": 0,
+      "xcodebuildExit": 0,
+      "seconds": 55.381
+    },
+    {
+      "name": "Speed and audio selection",
+      "passed": 1,
+      "failed": 0,
+      "xcodebuildExit": 0,
+      "seconds": 48.599
+    }
+  ],
+  "counts": {
+    "direct": 4,
+    "preset": 1,
+    "missing": 3
+  },
+  "sdkUiUnverified": 0,
+  "publicSdkResources": [
+    {
+      "file": "BitmovinPlayerCore.framework/main-release.js",
+      "sha256": "4c734dcaee3188622e2197e54e846b6e094dcea7dbe1a55277a227edc29ec8c8"
+    },
+    {
+      "file": "BitmovinPlayerCore.framework/bitmovinplayer-ui.js",
+      "sha256": "da5310d89d12fb28023f77a9de46be83fb7d63dafef12ebef690d21662e6d00a"
+    }
+  ],
+  "resourceBytesMatchedInstalledApp": true,
+  "audioMenuBinding": {
+    "publicHeader": "BMPPlayer.h",
+    "lines": [
+      407,
+      412,
+      414
+    ],
+    "argumentDomain": "Non-null ID from Player.availableAudio after SourceLoaded",
+    "publicUiResource": "bitmovinplayer-ui.js",
+    "line": 1,
+    "utf8ByteOffsets": {
+      "allAvailableAudio": 357859,
+      "selectionToSetAudio": 358179,
+      "idAndLabel": 359022
+    },
+    "menuChoices": "All available tracks are populated dynamically; the application does not hardcode the two fixture tracks."
+  },
+  "observations": [
+    {
+      "apiId": "BitmovinPlayerCore.Player.pause()",
+      "classification": "direct",
+      "actualGuiInput": "Visible SDK Default Pause control, physical XCTest touch",
+      "nativeEvidence": {
+        "paused": true,
+        "playing": false,
+        "clockSeconds": [
+          10.095413523,
+          10.095413523,
+          10.095413523
+        ],
+        "sameNormalAppOwner": true
+      }
+    },
+    {
+      "apiId": "BitmovinPlayerCore.Player.play()",
+      "classification": "direct",
+      "actualGuiInput": "Visible SDK Default Play control, physical XCTest touch",
+      "nativeEvidence": {
+        "playing": true,
+        "paused": false,
+        "clockSeconds": [
+          10.583196351,
+          11.982887768,
+          12.983580019,
+          13.982551352,
+          14.982063019
+        ],
+        "sameNormalAppOwner": true
+      }
+    },
+    {
+      "apiId": "BitmovinPlayerCore.Player.seek(time:)",
+      "classification": "direct",
+      "actualGuiInput": "Visible Video timeline physically dragged from native18.013s to50%",
+      "nativeEvidence": {
+        "nativeSeekedEventCountBefore": 0,
+        "nativeSeekedEventCountAfter": 3,
+        "nativeCompletionTimeSeconds": 30,
+        "nativeCurrentTimeSeconds": 30,
+        "sameNormalAppOwner": true
+      }
+    },
+    {
+      "apiId": "BitmovinPlayerCore.Player.playbackSpeed",
+      "classification": "preset",
+      "actualGuiInput": "Settings > Speed > physical scroll >2x, actual visible option touch",
+      "nativeEvidence": {
+        "playbackSpeed": 2,
+        "sameNormalAppOwner": true
+      },
+      "offeredMenuValues": [
+        0.25,
+        0.5,
+        1,
+        1.5,
+        2
+      ]
+    },
+    {
+      "apiId": "BitmovinPlayerCore.Player.setAudio(trackIdentifier:)",
+      "classification": "direct",
+      "actualGuiInput": "Settings > Audio Track > physical scroll >German test track, actual visible option touch",
+      "nativeEvidence": {
+        "availableAudioCount": 2,
+        "selectedAudioIndexBefore": 0,
+        "selectedAudioIndexAfter": 1,
+        "sameNormalAppOwner": true
+      },
+      "offeredMenuLabels": [
+        "English test track",
+        "German test track"
+      ]
+    },
+    {
+      "apiId": "BitmovinPlayerCore.Player.volume",
+      "classification": "missing",
+      "actualGuiInput": "Visible speaker/mute control physically touched; no touch volume slider offered",
+      "nativeEvidence": {
+        "nativeMutedBefore": true,
+        "nativeMutedAfter": false,
+        "volumeBefore": 100,
+        "volumeAfter": 100,
+        "volumeSliderVisibleAfterActualTouch": false
+      }
+    },
+    {
+      "apiId": "BitmovinPlayerCore.UserInterfaceApi.enterFullscreen()",
+      "classification": "missing",
+      "nativeEvidence": {
+        "fullscreenHandlerPresent": false,
+        "visibleFullscreenControl": false,
+        "fullscreenButtonWidthAndHeightZero": true
+      }
+    },
+    {
+      "apiId": "BitmovinPlayerCore.UserInterfaceApi.exitFullscreen()",
+      "classification": "missing",
+      "nativeEvidence": {
+        "fullscreenHandlerPresent": false,
+        "visibleFullscreenControl": false,
+        "fullscreenButtonWidthAndHeightZero": true
+      }
+    }
+  ],
+  "reproduce": [
+    "Build and launch the normal iOS showcase with its documented license configuration and SDK Default UI.",
+    "Serve the generated 60-second vod-multiaudio fixture. Configure its HLS URL, an optional identifying title, and Autoplay. Apply through the real form.",
+    "Reveal the video controls, tap Pause, then Play; pause again and drag Video timeline to the middle. Native completion is 30 seconds for this fixture.",
+    "Open Settings > Speed, scroll the existing menu to 2x and tap it. The offered presets are 0.25x, 0.5x, normal, 1.5x, 2x. Scroll back and use Back.",
+    "Open Audio Track, scroll to German test track and tap it. The other offered source track is English test track.",
+    "The touch speaker control toggles mute. This host offers no touch volume slider or visible fullscreen control; these three API rows remain missing."
+  ],
+  "method": "Actual GUI touches, read-only native getters/listeners, visible video, and public SDK bridge/resource inspection. No diagnostic playback setters or JavaScript click fallback.",
+  "scope": "Recorded simulator checks; this does not claim physical-device or tvOS SDK UI behavior. Repeat with the documented normal app and an allowed Player license."
+}

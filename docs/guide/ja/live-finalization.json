@@ -13,7 +13,7 @@
     },
     {
       "type": "p",
-      "text": "このアプリの共通判定は、再生時間が有限の正数ならVOD、Infinity、0、NaNならライブです。これは各SDKから得た状態をアプリ内で扱うためのルールです。すべての映像形式についてライブを定義する一般式ではありません。"
+      "text": "再生時間による基本判定は、有限の正数ならVOD、Infinity、0、NaNならライブです。SDKの状態をアプリ内で解釈するためのルールです。Appleでは終了済みHLSでもSDKがライブ・無限長を返す場合があるため、現在のライブソースの再生完了も記録します。"
     },
     {
       "type": "table",
@@ -32,7 +32,7 @@
         ],
         [
           "iOS／tvOS",
-          "TimeChanged時の読み直し"
+          "TimeChangedと現在のソースのPlaybackFinished"
         ],
         [
           "React Native",
@@ -84,6 +84,22 @@
     {
       "type": "p",
       "text": "Seeked通知を待ってから相対時刻を読み、実際の移動結果を確かめます。アプリは相対時刻と絶対時刻を別々に表示します。配信側の時計情報がない場合や端末の時計がずれている場合は、実時刻に基づく表示や遅延値の意味にも注意してください。"
+    },
+    {
+      "type": "h2",
+      "text": "AppleではHLS終了後もSDKの再生時間が無限長になる場合があります"
+    },
+    {
+      "type": "p",
+      "text": "Player 3.128.0ではHLSの再生が完了してもisLiveがtrue、durationが無限長のまま残る場合があります。アプリはライブとして読み込んだ現在のPlayerとSourceに対するPlaybackFinishedだけを記録し、ended-liveを表示してライブ用シークボタンを無効にします。共有のLive・Sports UIではLIVE操作を隠し、SDKのReplay表示を使います。同じソースを再再生しても終了状態を保持し、新しいソースの読み込みで解除します。SDKが返す時刻や再生時間は書き換えません。"
+    },
+    {
+      "type": "p",
+      "text": "2026年10月21日、Player 3.128.0のiOS 26.4・tvOS 26.4でHLS終了試験が各1件成功し、所要時間は20.875秒・21.362秒でした。ENDLIST追加の前後で同じPlayerとソースを保ち、PlaybackFinished、再再生の進行、アプリのライブ操作の無効化、新しいソースでの状態解除を確認しました。別のAndroid Player 3.171.0のHLS・DASH試験では、同じソースが有限長となり、VODシークが完了することを確認しました。いずれも実メディアを使ったシミュレーター・エミュレーターでの結果です。物理端末での再生は別の確認範囲です。"
+    },
+    {
+      "type": "p",
+      "text": "nativeの再試験は、Apple READMEの素材サーバーとFinalizationスキーム、またはAndroidのruntime-fixtureとPlayerFinalizationInstrumentedTestの手順で実行します。各nativeアプリを許可したPlayerライセンスが必要です。tvOSのホスト付き終了試験はSDKから開始・再再生し、実リモコンの一時停止・再生は別のGUI試験で確認しています。"
     }
   ],
   "sources": [
@@ -94,7 +110,7 @@
     },
     {
       "path": "docs/live-to-vod-and-analytics.md",
-      "line": 31,
+      "line": 42,
       "label": "制御された終了テストと時刻の原点"
     },
     {
@@ -109,6 +125,11 @@
     {
       "url": "https://dashif.org/DASH-IF-IOP/live2vod/",
       "label": "DASH-IFのライブからVODへの移行指針"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 212,
+      "label": "nativeのHLS終了とソースの所有関係"
     }
   ]
 }
