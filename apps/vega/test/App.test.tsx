@@ -5,15 +5,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const runtime = vi.hoisted(() => ({
   players: [] as Array<{ config: object; load: ReturnType<typeof vi.fn>; destroy: ReturnType<typeof vi.fn>; listeners: Map<string, Set<() => void>> }>,
-  videos: [] as Array<{ deinitialize: ReturnType<typeof vi.fn> }>,
+  videos: [] as Array<{ deinitializeSync: ReturnType<typeof vi.fn> }>,
   initialization: null as Promise<void> | null,
   destruction: null as Promise<void> | null,
+  appState: "active",
+  appStateListeners: new Set<(state: string) => void>(),
 }));
 vi.mock("react-native", () => ({
   Button: "Button", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View",
   StyleSheet: { create: <T,>(styles: T) => styles },
   NativeModules: {},
   Platform: { OS: "android", Version: 36 },
+  AppState: {
+    get currentState() { return runtime.appState; },
+    addEventListener: (_event: string, callback: (state: string) => void) => {
+      runtime.appStateListeners.add(callback);
+      return { remove: () => runtime.appStateListeners.delete(callback) };
+    },
+  },
 }));
 // The Vega core installs browser shims when imported. Mock that native boundary, while
 // retaining the real application controller/session and the SDK's declared event names.
@@ -23,10 +32,13 @@ vi.mock("bitmovin-player/modules/bitmovinplayer-core", () => ({
 }));
 vi.mock("@amazon-devices/react-native-w3cmedia", () => ({
   KeplerVideoSurfaceView: "KeplerVideoSurfaceView",
+  MediaSource: class NativeMediaSource {},
+  HTMLMediaElement: class NativeHTMLMediaElement {},
+  WebCrypto: { subtle: {} },
   VideoPlayer: class {
     constructor() { runtime.videos.push(this); }
     initialize = vi.fn(() => { const gate = runtime.initialization; runtime.initialization = null; return gate ?? Promise.resolve(); });
-    deinitialize = vi.fn(async () => {});
+    deinitializeSync = vi.fn(() => "success");
     setSurfaceHandle = vi.fn();
     clearSurfaceHandle = vi.fn();
   },
@@ -60,15 +72,24 @@ const button = (title: string) => element("Button", { title });
 const input = (label: string) => element("TextInput", { accessibilityLabel: label });
 async function press(title: string) { await act(async () => button(title).props.onPress()); }
 async function text(label: string, value: string) { await act(async () => input(label).props.onChangeText(value)); }
+async function appState(state: string) {
+  await act(async () => {
+    runtime.appState = state;
+    for (const listener of runtime.appStateListeners) listener(state);
+  });
+}
 async function mount() {
   await act(async () => { screen = create(<App />); });
   await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("surface"));
 }
 beforeEach(() => {
+  vi.stubGlobal("crypto", undefined);
   runtime.players.length = 0;
   runtime.videos.length = 0;
   runtime.initialization = null;
   runtime.destruction = null;
+  runtime.appState = "active";
+  runtime.appStateListeners.clear();
   errors = vi.spyOn(console, "error");
   warnings = vi.spyOn(console, "warn");
 });
@@ -78,6 +99,7 @@ afterEach(async () => {
   const unexpectedWarnings = [...warnings.mock.calls];
   errors.mockRestore();
   warnings.mockRestore();
+  vi.unstubAllGlobals();
   expect(unexpectedErrors).toEqual([]);
   expect(unexpectedWarnings).toEqual([]);
 });
@@ -128,7 +150,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(current().load).toHaveBeenCalledWith({ hls: "https://example.com/custom.m3u8", title: "Custom source", poster: "https://example.com/poster.jpg",
       options: { startOffset: -30, startOffsetTimelineReference: "end" } });
     expect(button("Apply and recreate player").props.disabled).toBe(true);
-    expect(runtime.videos[0]!.deinitialize).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
   });
 
   it.each([
@@ -210,7 +232,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(current().load).toHaveBeenCalledWith({ progressive: "https://example.com/movie.mp4", options: { startOffset: 10.5, startOffsetTimelineReference: "start" } });
   });
 
-  it("cancels a not-yet-initialized App session before creating the latest configuration", async () => {
+  it("keeps the latest configuration but blocks replacement after unconfirmed initialization cancellation", async () => {
     let initialized!: () => void;
     runtime.initialization = new Promise<void>((resolve) => { initialized = resolve; });
     await mount();
@@ -220,8 +242,150 @@ describe("Vega configuration in the mounted App and media session", () => {
     await press("Apply and recreate player");
     expect(runtime.players).toHaveLength(0);
     await act(async () => initialized());
+    expect(runtime.players).toHaveLength(0);
+    expect(runtime.videos).toHaveLength(1);
+    expect(input("Source URL").props.value).toBe("https://example.com/latest.mpd");
+    expect(warnings).toHaveBeenCalledExactlyOnceWith("Vega initialization cancellation unconfirmed; restart the app before playing again");
+    warnings.mockClear();
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
+  });
+
+  it("retires background media and resumes only after cleanup with applied settings and drafts intact", async () => {
+    await mount();
+    await press("Show configuration");
+    await text("Source URL", "https://example.com/movie.m3u8");
+    await press("HLS");
+    await text("Source title", "Applied title");
+    await text("Poster URL", "https://example.com/poster.jpg");
+    await text("Start offset (seconds)", "-30");
+    await press("End");
+    await act(async () => {
+      element("Switch", { accessibilityLabel: "Autoplay" }).props.onValueChange(false);
+      element("Switch", { accessibilityLabel: "Allow DVR" }).props.onValueChange(false);
+    });
+    await press("Apply and recreate player");
+    await text("Source title", "Unapplied title");
+    const old = current();
+    const appliedSource = old.load.mock.calls[0]![0];
+    const retiredCallback = [...old.listeners.get(PlayerEvent.SourceLoaded)!][0]!;
+    const retiredSurface = element("KeplerVideoSurfaceView").props.onSurfaceViewCreated;
+    let released!: () => void;
+    runtime.destruction = new Promise<void>((resolve) => { released = resolve; });
+
+    await appState("inactive");
+    expect(old.destroy).not.toHaveBeenCalled();
+    await appState("background");
+    await appState("background");
+    expect(old.destroy).toHaveBeenCalledTimes(1);
+    expect(screen.root.findAll((node) => String(node.type) === "KeplerVideoSurfaceView")).toHaveLength(0);
+    expect([...old.listeners.values()].every((listeners) => listeners.size === 0)).toBe(true);
+    await act(async () => retiredCallback());
+    expect(screen.root.findAll((node) => String(node.type) === "Text" && node.props.children === "SourceLoaded")).toHaveLength(0);
+    await act(async () => retiredSurface("background-surface"));
+    await appState("active");
+    await act(async () => retiredSurface("retired-surface"));
+    expect(runtime.players).toHaveLength(2);
+    await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("resumed-surface"));
+    expect(runtime.videos).toHaveLength(2);
+    await act(async () => released());
+
+    expect(runtime.players).toHaveLength(3);
+    expect(runtime.videos[1]!.deinitializeSync).toHaveBeenCalledTimes(1);
+    expect(current().config).toEqual(old.config);
+    expect(current().load).toHaveBeenCalledWith(appliedSource);
+    expect(current().config).toMatchObject({ playback: { autoplay: false } });
+    expect(input("Source title").props.value).toBe("Unapplied title");
+    expect(element("Switch", { accessibilityLabel: "Allow DVR" }).props.value).toBe(false);
+    expect(button("Apply and recreate player").props.disabled).toBe(false);
+  });
+
+  it("cancels initialization and rejects retired surface events during a batched background/active transition", async () => {
+    let initialized!: () => void;
+    runtime.initialization = new Promise<void>((resolve) => { initialized = resolve; });
+    await mount();
+    const retiredSurface = element("KeplerVideoSurfaceView").props.onSurfaceViewCreated;
+    await act(async () => {
+      runtime.appState = "background";
+      for (const listener of runtime.appStateListeners) listener("background");
+      runtime.appState = "active";
+      for (const listener of runtime.appStateListeners) listener("active");
+    });
+    await act(async () => retiredSurface("retired-surface"));
+    expect(runtime.players).toHaveLength(0);
+    expect(runtime.videos).toHaveLength(1);
+    await act(async () => initialized());
+    expect(runtime.players).toHaveLength(0);
+    expect(runtime.videos).toHaveLength(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
+    await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("current-surface"));
+    expect(runtime.players).toHaveLength(0);
+    expect(runtime.videos).toHaveLength(1);
+    expect(warnings).toHaveBeenCalledExactlyOnceWith("Vega initialization cancellation unconfirmed; restart the app before playing again");
+    warnings.mockClear();
+  });
+
+  it("waits for foreground before creating native media and unsubscribes on unmount", async () => {
+    runtime.appState = "background";
+    await act(async () => { screen = create(<App />); });
+    expect(screen.root.findAll((node) => String(node.type) === "KeplerVideoSurfaceView")).toHaveLength(0);
+    expect(runtime.videos).toHaveLength(0);
+    await appState("active");
+    await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("foreground-surface"));
     expect(runtime.players).toHaveLength(1);
+    await act(async () => screen.unmount());
+    expect(runtime.appStateListeners.size).toBe(0);
+    await appState("active");
+    expect(runtime.players).toHaveLength(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps source/config changes while backgrounded without acquiring native resources", async () => {
+    await mount();
+    const old = current();
+    const retiredSurface = element("KeplerVideoSurfaceView").props.onSurfaceViewCreated;
+    await appState("background");
+    await press("Show configuration");
+    await text("Source URL", "https://example.com/first.mpd");
+    await press("Apply and recreate player");
+    await text("Source URL", "https://example.com/latest.mpd");
+    await text("Video forward buffer (seconds)", "12");
+    await act(async () => element("Switch", { accessibilityLabel: "Allow DVR" }).props.onValueChange(false));
+    await press("Apply and recreate player");
+    await act(async () => retiredSurface("background-surface"));
+    expect(runtime.players).toHaveLength(1);
+    expect(runtime.videos).toHaveLength(1);
+    expect(old.destroy).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
+    await appState("active");
+    expect(runtime.players).toHaveLength(1);
+    await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("foreground-surface"));
+    expect(runtime.players).toHaveLength(2);
     expect(current().load).toHaveBeenCalledWith(expect.objectContaining({ dash: "https://example.com/latest.mpd" }));
-    expect(runtime.videos[0]!.deinitialize).toHaveBeenCalledTimes(1);
+    expect(current().config).toMatchObject({ buffer: { video: { forwardduration: 12 } } });
+    expect(element("Switch", { accessibilityLabel: "Allow DVR" }).props.value).toBe(false);
+    expect(button("Hide configuration")).toBeDefined();
+    expect(button("Apply and recreate player").props.disabled).toBe(true);
+  });
+
+  it("synchronously releases the retiring owner when the current Apply waiter backgrounds", async () => {
+    await mount();
+    const old = current();
+    let released!: () => void;
+    runtime.destruction = new Promise<void>((resolve) => { released = resolve; });
+    await press("Show configuration");
+    await text("Source URL", "https://example.com/latest.mpd");
+    await press("Apply and recreate player");
+    expect(runtime.videos).toHaveLength(1);
+    expect(runtime.videos[0]!.deinitializeSync).not.toHaveBeenCalled();
+    await appState("background");
+    await appState("background");
+    expect(old.destroy).toHaveBeenCalledTimes(1);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledTimes(1);
+    await act(async () => released());
+    expect(runtime.players).toHaveLength(1);
+    await appState("active");
+    await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("fresh-surface"));
+    expect(runtime.players).toHaveLength(2);
+    expect(current().load).toHaveBeenCalledWith(expect.objectContaining({ dash: "https://example.com/latest.mpd" }));
   });
 });

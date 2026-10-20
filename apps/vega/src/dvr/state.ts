@@ -27,6 +27,7 @@ export interface DvrState {
   behindLive: number;
   atLiveEdge: boolean;
   seekProgress: number;
+  currentTime: number;
 }
 
 export function isLiveStream(s: PlayerSnapshot): boolean {
@@ -49,6 +50,7 @@ export function deriveDvrState(s: PlayerSnapshot, config: DvrConfig): DvrState {
     behindLive: live ? behindLive(offset) : 0,
     atLiveEdge: live ? isAtLiveEdge(offset, epsilon) : false,
     seekProgress: live ? seekProgress(offset, s.maxTimeShift) : 1,
+    currentTime: s.currentTime,
   };
 }
 

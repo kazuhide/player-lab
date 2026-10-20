@@ -2,7 +2,7 @@ import type { SourceConfig } from "bitmovin-player";
 
 interface SessionMedia {
   initialize(): void | Promise<unknown>;
-  deinitialize(): void | Promise<unknown>;
+  deinitializeSync(timeoutInMs: number): "success" | "timedout" | "invalid";
   setSurfaceHandle(handle: string): void;
   clearSurfaceHandle(handle: string): void;
 }
@@ -15,6 +15,14 @@ interface SessionPlayer {
 interface SessionController {
   dispose(): void;
   setTimeShiftEnabled(enabled: boolean): void;
+}
+
+interface NativeReleaseBarrier extends Promise<void> {
+  releaseNativeSync?: () => boolean;
+}
+
+export function releaseVegaBackgroundMedia(cleanup: Promise<void>): void {
+  (cleanup as NativeReleaseBarrier).releaseNativeSync?.();
 }
 
 interface SessionOptions<V extends SessionMedia, P extends SessionPlayer, C extends SessionController> {
@@ -38,37 +46,83 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
   let player: P | null = null;
   let controller: C | null = null;
   let initializing: Promise<unknown> | null = null;
+  let initialized = false;
+  let surfaceAttached = false;
   let cancelled = false;
   let cleanup: Promise<void> | null = null;
 
   function dispose(): Promise<void> {
     if (cleanup) return cleanup;
     cancelled = true;
-    // Clear only this effect's controller; an older cleanup cannot clear a newer owner.
-    if (controller && options.controllerRef.current === controller) options.controllerRef.current = null;
-    try { controller?.dispose(); }
-    catch { options.onError("Vega controller cleanup failed"); }
     // A cancelled waiter owns no resources. Reuse the previous barrier instead of extending a queue.
     if (!video) {
       cleanup = options.after ?? Promise.resolve();
       return cleanup;
     }
-    cleanup = (async () => {
-      // Initialization cannot be cancelled. Release its media only after that call settles.
-      await initializing?.catch(() => {});
-      try { await player?.destroy(); }
-      catch { options.onError("Vega player cleanup failed"); }
-      try { await video?.deinitialize(); }
-      catch { options.onError("Vega media cleanup failed"); }
-      try { video?.clearSurfaceHandle(""); }
+    let resolveCleanup!: () => void;
+    const barrier: NativeReleaseBarrier & { retainedOwner?: { video: V; player: P | null; controller: C | null } } =
+      Object.assign(new Promise<void>((resolve) => { resolveCleanup = resolve; }), {
+        retainedOwner: { video, player, controller },
+      });
+    // Install the owner-bearing barrier before native calls can synchronously reenter disposal.
+    cleanup = barrier;
+    const retiringVideo = video;
+    const initializationConfirmed = initialized;
+    let nativeRelease: boolean | undefined;
+    barrier.releaseNativeSync = () => {
+      if (nativeRelease !== undefined) return nativeRelease;
+      nativeRelease = false;
+      try { if (surfaceAttached) retiringVideo.clearSurfaceHandle(options.handle); }
       catch { options.onError("Vega surface cleanup failed"); }
+      // The 1000 ms deadline is this app's policy, not an SDK default.
+      let released = false;
+      try { released = retiringVideo.deinitializeSync(1000) === "success"; }
+      catch { /* A thrown native release is unconfirmed, just like a non-success status. */ }
+      if (!released) {
+        // A failed sync call may discard its handle, so retrying cannot confirm release.
+        options.onError("Vega media cleanup unconfirmed; restart the app before playing again");
+        return false;
+      }
+      if (!initializationConfirmed) {
+        // Abort success acknowledges cancellation. Late native allocation is destroyed
+        // asynchronously by the package without an exposed completion acknowledgement.
+        options.onError("Vega initialization cancellation unconfirmed; restart the app before playing again");
+        return false;
+      }
+      nativeRelease = true;
+      return true;
+    };
+    // Clear only this effect's controller; an older cleanup cannot clear a newer owner.
+    if (controller && options.controllerRef.current === controller) options.controllerRef.current = null;
+    try { controller?.dispose(); }
+    catch { options.onError("Vega controller cleanup failed"); }
+
+    // The Web SDK's asynchronous stop sequence still needs valid media during foreground Apply.
+    // Background explicitly escalates this same barrier before KeplerScript can suspend.
+    const destroyFailed = () => {
+      options.onError("Vega player cleanup unconfirmed; restart the app before playing again");
+      return false;
+    };
+    let destroyed: Promise<boolean>;
+    try { destroyed = Promise.resolve(player?.destroy()).then(() => true, destroyFailed); }
+    catch { destroyed = Promise.resolve(destroyFailed()); }
+    if (!initializationConfirmed) barrier.releaseNativeSync();
+    void (async () => {
+      await initializing?.catch(() => {});
+      // Native release alone does not confirm that the Web SDK stopped using the global shim.
+      const sdkReleased = await destroyed;
+      const nativeReleased = barrier.releaseNativeSync!();
+      if (!sdkReleased || !nativeReleased) return;
       try { if (video) options.removePolyfills(video); }
       catch { options.onError("Vega media shim cleanup failed"); }
       controller = null;
       player = null;
       video = null;
+      delete barrier.retainedOwner;
+      delete barrier.releaseNativeSync;
+      resolveCleanup();
     })();
-    return cleanup;
+    return barrier;
   }
 
   const ready = (async () => {
@@ -78,7 +132,10 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
     video = options.createVideo();
     initializing = Promise.resolve(video.initialize());
     await initializing;
+    initialized = true;
     if (cancelled) return;
+    // The native setter caches the handle before its bridge call, which can throw after mutation.
+    surfaceAttached = true;
     video.setSurfaceHandle(options.handle);
     options.installPolyfills(video);
     player = options.createPlayer();

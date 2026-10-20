@@ -10,6 +10,7 @@
  */
 import type { PlayerAPI, PlayerConfig } from "bitmovin-player";
 import { Player } from "bitmovin-player/modules/bitmovinplayer-core";
+import { vegaPlayerConfig } from "./playerConfig";
 
 import PolyfillModule = require("bitmovin-player/modules/bitmovinplayer-polyfill");
 import AnalyticsModule = require("bitmovin-player/modules/bitmovinplayer-analytics");
@@ -51,5 +52,5 @@ export function registerVegaPlayerModules(): void {
  */
 export function createVegaPlayer(config: PlayerConfig): PlayerAPI {
   registerVegaPlayerModules();
-  return new Player(undefined as unknown as HTMLElement, config);
+  return new Player(undefined as unknown as HTMLElement, vegaPlayerConfig(config));
 }

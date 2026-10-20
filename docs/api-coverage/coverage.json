@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-20",
-  "sourceRevision": "be1c74648d9ee4b4e34aae78bca4c23b78d46bda",
+  "sourceRevision": "3fb00d86326b9f316528ae7415d8919a1f2e0ac5",
   "sdks": [
     {
       "id": "web",
@@ -97816,9 +97816,9 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 59,
-              "symbol": "try { await player?.destroy(); }"
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 107,
+              "symbol": "try { destroyed = Promise.resolve(player?.destroy()).then(() => true, destroyFailed); }"
             }
           ]
         },
@@ -98043,7 +98043,7 @@
           "category": "observation",
           "scope": "PlayerAPI",
           "deprecated": false,
-          "status": "code-only",
+          "status": "observed",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerAPI.html#getCurrentTime",
           "evidence": [
             {
@@ -98064,9 +98064,16 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvr/state.ts",
-              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24",
-              "line": 32,
-              "symbol": "export function isLiveStream(s: PlayerSnapshot): boolean {"
+              "sha256": "12b26c2f0ce79d21c451c7c393130ab0109f660057ccb9d596889dfd0c1c857b",
+              "line": 53,
+              "symbol": "currentTime: s.currentTime,"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/ControlPanel.tsx",
+              "sha256": "c8bb7daeb782a82afe92e09a1272593e507b09b060f39c3360c9044e017bbc70",
+              "line": 66,
+              "symbol": "position="
             }
           ]
         },
@@ -98150,15 +98157,15 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvr/state.ts",
-              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24",
-              "line": 42,
+              "sha256": "12b26c2f0ce79d21c451c7c393130ab0109f660057ccb9d596889dfd0c1c857b",
+              "line": 43,
               "symbol": "const mode: PlaybackMode = !live ? \"vod\" : dvrAvailable ? \"live-dvr\" : \"live-no-dvr\";"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
-              "line": 63,
+              "sha256": "c8bb7daeb782a82afe92e09a1272593e507b09b060f39c3360c9044e017bbc70",
+              "line": 64,
               "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
@@ -98207,15 +98214,15 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvr/state.ts",
-              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24",
-              "line": 40,
+              "sha256": "12b26c2f0ce79d21c451c7c393130ab0109f660057ccb9d596889dfd0c1c857b",
+              "line": 41,
               "symbol": "const win = windowDuration(s.maxTimeShift);"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
-              "line": 63,
+              "sha256": "c8bb7daeb782a82afe92e09a1272593e507b09b060f39c3360c9044e017bbc70",
+              "line": 64,
               "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
@@ -98444,15 +98451,15 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvr/state.ts",
-              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24",
-              "line": 49,
+              "sha256": "12b26c2f0ce79d21c451c7c393130ab0109f660057ccb9d596889dfd0c1c857b",
+              "line": 50,
               "symbol": "behindLive: live ? behindLive(offset) : 0,"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
-              "line": 63,
+              "sha256": "c8bb7daeb782a82afe92e09a1272593e507b09b060f39c3360c9044e017bbc70",
+              "line": 64,
               "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
@@ -98699,8 +98706,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/dvr/state.ts",
-              "sha256": "3f3df0b5d8ed4ee57adf1421a3a7ff16c49e6a58da8c37ba3c06274269cf0c24",
-              "line": 32,
+              "sha256": "12b26c2f0ce79d21c451c7c393130ab0109f660057ccb9d596889dfd0c1c857b",
+              "line": 33,
               "symbol": "export function isLiveStream(s: PlayerSnapshot): boolean {"
             }
           ]
@@ -98814,7 +98821,7 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 58,
               "symbol": "<Button title=\"Apply and recreate player\" onPress={onApply} disabled={!changed} />"
             },
@@ -98835,8 +98842,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -99630,14 +99637,14 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "sha256": "c8bb7daeb782a82afe92e09a1272593e507b09b060f39c3360c9044e017bbc70",
               "line": 38,
               "symbol": "<Button title=\"Live edge\" onPress={() => controllerRef.current?.goToLiveEdge()} />"
             },
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
+              "sha256": "c8bb7daeb782a82afe92e09a1272593e507b09b060f39c3360c9044e017bbc70",
               "line": 39,
               "symbol": "{[-10, -30, -60].map((offset) => ("
             },
@@ -100234,7 +100241,7 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 54,
               "symbol": "{field(\"Maximum video bitrate (bits per second)\", \"maxVideoBitrate\", true)}"
             },
@@ -100255,8 +100262,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "8bd6a681925968dc0e3b94b4981880a597e79e3707a7644bb957c551ea6470be",
-              "line": 39,
+              "sha256": "2f11e3d21ae13bdb87439d1efd3f01a6c9be84f71f53b64f33112606fff43b13",
+              "line": 66,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -103977,7 +103984,7 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 52,
               "symbol": "{field(\"Audio forward buffer (seconds)\", \"audioForwardDuration\", true)}"
             },
@@ -103998,8 +104005,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "8bd6a681925968dc0e3b94b4981880a597e79e3707a7644bb957c551ea6470be",
-              "line": 39,
+              "sha256": "2f11e3d21ae13bdb87439d1efd3f01a6c9be84f71f53b64f33112606fff43b13",
+              "line": 66,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -104041,7 +104048,7 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 51,
               "symbol": "{field(\"Video forward buffer (seconds)\", \"videoForwardDuration\", true)}"
             },
@@ -104062,8 +104069,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "8bd6a681925968dc0e3b94b4981880a597e79e3707a7644bb957c551ea6470be",
-              "line": 39,
+              "sha256": "2f11e3d21ae13bdb87439d1efd3f01a6c9be84f71f53b64f33112606fff43b13",
+              "line": 66,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -104710,7 +104717,7 @@
           "category": "configuration",
           "scope": "PlayerConfig",
           "deprecated": false,
-          "status": "missing",
+          "status": "code-only",
           "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html#requestApi",
           "evidence": [
             {
@@ -104720,6 +104727,20 @@
               "file": "types/core/NetworkAPI.d.ts",
               "sha256": "0f4d5d4481dc63bc82b23dc1eee165fcfb26af62dcb23f61d6214e0fe49ba6d3",
               "line": 226
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/playerConfig.ts",
+              "sha256": "9ab120a431e798c53ea49a591e31592e4f64bd94b96f2fa8137d5a45e665f1d6",
+              "line": 6,
+              "symbol": "requestApi: NetworkRequestApi.Fetch"
+            },
+            {
+              "kind": "app",
+              "file": "apps/vega/src/vegaPlayer.ts",
+              "sha256": "abf00ae9bd02397243e329d88ffa42546448f8dca78bbba6b580f552180fe28b",
+              "line": 55,
+              "symbol": "return new Player(undefined as unknown as HTMLElement, vegaPlayerConfig(config));"
             }
           ]
         },
@@ -105300,9 +105321,9 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 48,
-              "symbol": "<Text style={styles.label}>Autoplay</Text><Switch accessibilityLabel=\"Autoplay\" value={draft.autoplay} onValueChange={(value) => update(\"autoplay\", value)} />"
+              "symbol": "<Text style={styles.label}>Autoplay</Text><Switch style={styles.toggle} accessibilityLabel=\"Autoplay\" value={draft.autoplay} onValueChange={(value) => update(\"autoplay\", value)} />"
             },
             {
               "kind": "app",
@@ -105321,8 +105342,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "8bd6a681925968dc0e3b94b4981880a597e79e3707a7644bb957c551ea6470be",
-              "line": 39,
+              "sha256": "2f11e3d21ae13bdb87439d1efd3f01a6c9be84f71f53b64f33112606fff43b13",
+              "line": 66,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -105364,9 +105385,9 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 49,
-              "symbol": "<Text style={styles.label}>Mute on startup</Text><Switch accessibilityLabel=\"Mute on startup\" value={draft.muted} onValueChange={(value) => update(\"muted\", value)} />"
+              "symbol": "<Text style={styles.label}>Mute on startup</Text><Switch style={styles.toggle} accessibilityLabel=\"Mute on startup\" value={draft.muted} onValueChange={(value) => update(\"muted\", value)} />"
             },
             {
               "kind": "app",
@@ -105385,8 +105406,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/BitmovinPlayer.tsx",
-              "sha256": "8bd6a681925968dc0e3b94b4981880a597e79e3707a7644bb957c551ea6470be",
-              "line": 39,
+              "sha256": "2f11e3d21ae13bdb87439d1efd3f01a6c9be84f71f53b64f33112606fff43b13",
+              "line": 66,
               "symbol": "createPlayer: () => createVegaPlayer(config),"
             }
           ]
@@ -107743,8 +107764,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
-              "line": 70,
+              "sha256": "c8bb7daeb782a82afe92e09a1272593e507b09b060f39c3360c9044e017bbc70",
+              "line": 71,
               "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
@@ -107789,8 +107810,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
-              "line": 70,
+              "sha256": "c8bb7daeb782a82afe92e09a1272593e507b09b060f39c3360c9044e017bbc70",
+              "line": 71,
               "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
@@ -108260,8 +108281,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
-              "line": 70,
+              "sha256": "c8bb7daeb782a82afe92e09a1272593e507b09b060f39c3360c9044e017bbc70",
+              "line": 71,
               "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
@@ -108486,8 +108507,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
-              "line": 63,
+              "sha256": "c8bb7daeb782a82afe92e09a1272593e507b09b060f39c3360c9044e017bbc70",
+              "line": 64,
               "symbol": "? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed("
             }
           ]
@@ -108543,8 +108564,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ControlPanel.tsx",
-              "sha256": "871b8f481e929b19360854455999a8b9b5b15effb926313c4541b3f39d721ac9",
-              "line": 70,
+              "sha256": "c8bb7daeb782a82afe92e09a1272593e507b09b060f39c3360c9044e017bbc70",
+              "line": 71,
               "symbol": "{log.slice(0, 12).map((line, i) => ("
             }
           ]
@@ -111016,7 +111037,7 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 33,
               "symbol": "<Button title=\"DASH\" onPress={() => update(\"type\", \"dash\")} disabled={draft.type === \"dash\"} />"
             },
@@ -111037,8 +111058,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -112322,7 +112343,7 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 29,
               "symbol": "{field(\"Source URL\", \"url\")}"
             },
@@ -112343,8 +112364,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -112818,7 +112839,7 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 39,
               "symbol": "{field(\"Start offset (seconds)\", \"startOffset\", true)}"
             },
@@ -112839,8 +112860,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -112864,7 +112885,7 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 43,
               "symbol": "<Button title=\"Start\" onPress={() => update(\"timeline\", \"start\")} disabled={draft.timeline === \"start\"} />"
             },
@@ -112885,8 +112906,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -112964,7 +112985,7 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 37,
               "symbol": "{field(\"Poster URL\", \"poster\")}"
             },
@@ -112985,8 +113006,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -113010,7 +113031,7 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 34,
               "symbol": "<Button title=\"Progressive MP4\" onPress={() => update(\"type\", \"progressive\")} disabled={draft.type === \"progressive\"} />"
             },
@@ -113031,8 +113052,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -113488,7 +113509,7 @@
             {
               "kind": "app",
               "file": "apps/vega/src/ConfigurationPanel.tsx",
-              "sha256": "9cfd57691313a23e5eccc66b7fd58ab3047eff3993e4fcd2900a737f0e65ccde",
+              "sha256": "629be4ca1c283593d07b8e24b02eeb20d488db33e3631babf734decba76d8b85",
               "line": 36,
               "symbol": "{field(\"Source title\", \"title\")}"
             },
@@ -113509,8 +113530,8 @@
             {
               "kind": "app",
               "file": "apps/vega/src/playerSession.ts",
-              "sha256": "db5227be078b360c5736210f977861e7659fcfefe28894561c22d1e3a05569bd",
-              "line": 88,
+              "sha256": "33302a2f7d15ce1dbfeaa40d6c738dd1c749a26654469136080aa5dbf6e56086",
+              "line": 145,
               "symbol": "await player.load(options.source);"
             }
           ]
@@ -114159,10 +114180,12 @@
         "The source editor exposes HLS/DASH/progressive string URLs, title/poster and startOffset/reference. Player controls expose autoplay/mute, separate audio/video forwardduration targets and the adaptation video bitrate cap. Only those leaf paths receive direct configuration credit; progressive array fields and unrelated object members remain unexposed.",
         "Apply validates the draft, recreates the SDK player through the serialized session and reloads the source; unchanged/invalid Apply and Reset draft do not replace resources. The selected/custom source, logs and Allow DVR helper state persist while playback position resets. Time-shift buttons remain fixed at 0, -10, -30 and -60 seconds with window clamping.",
         "Allow DVR changes the application DVR helper, not PlayerConfig.playback.timeShift. License/authentication, ui:false and module registration remain setup constants, not GUI settings. Title/poster are passed in SourceConfig, but the Kepler screen has no poster overlay or HTML Player UI.",
-        "isLive and getCurrentTime are read but not consumed by the displayed derived state, so they receive no observation credit.",
+        "isLive is read but not consumed by the displayed derived state and remains code-only. getCurrentTime now passes through DvrState.currentTime to the visible position in the existing state line and receives observation credit. Position is SDK media time in seconds and can use an absolute timeline for live sources.",
         "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
         "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed.",
-        "The actual App/control/configuration/video-surface JSX and helpers are type-checked against installed SDK, React Native and Kepler declarations. App/session tests mock native/media/player boundaries, including initialization and cleanup changes. Kepler builds, native layout, TV focus/keyboard input and real Vega playback were not performed for this measurement."
+        "The App/control/configuration/video-surface JSX and helpers are type-checked against installed declarations. Native checks used Vega SDK 0.24.12112 and an arm64 Virtual Device: all 3 Release packages built, earlier Live DASH and VOD HLS checks rendered frames and advancing SDK positions, and native focus/scrolling, text entry, invalid-bitrate validation and Reset were exercised. The final lifecycle implementation passed 3 valid bitrate Apply cycles with changing VOD frames and advancing positions in the same app instance. Its 68 unit/session tests still mock native boundaries. After background/foreground, the same instance retained drafts and settings but playback did not resume; a full app restart restored VOD playback. Process memory/file-descriptor samples do not establish native media/surface allocation counts or leak freedom. Physical devices, DRM/offline, audio correctness and quantitative buffer/bitrate behavior remain unqualified.",
+        "PlayerConfig.network.requestApi is fixed to Fetch by vegaPlayerConfig and used at SDK construction. This receives code-only configuration credit, not GUI credit; the existing network hooks and unrelated configuration fields are retained.",
+        "Foreground Apply waits for fulfilled SDK destruction before synchronous native release because the SDK's asynchronous stop sequence still uses the media object. On background transitions, AppState cancels callbacks, requests synchronous native release before the handler yields, and removes the surface, including when a newer session is waiting for the retiring owner. Foreground acquisition waits for a new surface and confirmed prior cleanup. Unconfirmed release or SDK destruction retains the owner and blocks replacement. Pending-initialization abort success acknowledges cancellation without proving late native-allocation release, so replacement also remains blocked. The 1000 ms native release deadline is an app policy. Within a retained instance, applied source/player settings, drafts, logs and Allow DVR are preserved; playback position retention is not implemented. Playback can remain stopped after foreground return and requires a full app restart. This lifecycle integration adds no editable SDK field or GUI coverage credit."
       ]
     }
   ]

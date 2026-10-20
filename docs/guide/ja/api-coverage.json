@@ -429,8 +429,8 @@
         "text": "Allow DVRが変えるのはアプリのDVR補助処理であり、PlayerConfig.playback.timeShiftではありません。ライセンス・認証、ui:false、モジュール登録は設定コード内の固定値で、GUI設定ではありません。タイトル・ポスターはSourceConfigに渡しますが、Kepler画面にはポスターの重ね表示やHTML Player UIはありません。"
       },
       {
-        "source": "isLive and getCurrentTime are read but not consumed by the displayed derived state, so they receive no observation credit.",
-        "text": "isLiveとgetCurrentTimeは読み取られますが、表示する派生状態には使われないため、観測件数には含めません。"
+        "source": "isLive is read but not consumed by the displayed derived state and remains code-only. getCurrentTime now passes through DvrState.currentTime to the visible position in the existing state line and receives observation credit. Position is SDK media time in seconds and can use an absolute timeline for live sources.",
+        "text": "isLiveは読み取りますが表示用の派生状態には使わないため、code-onlyのままです。getCurrentTimeはDvrState.currentTimeを通って既存の状態欄のpositionへ表示されるため、観測として数えます。値はSDKのメディア時刻を秒で示し、ライブでは絶対時刻のタイムラインになる場合があります。"
       },
       {
         "source": "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
@@ -441,8 +441,16 @@
         "text": "TimeChangedは表示中のDVR状態を更新します。SourceLoaded・TimeShifted・DurationChanged・DVRWindowExceededには名前付きログもあります。イベントのペイロード項目は公開しません。"
       },
       {
-        "source": "The actual App/control/configuration/video-surface JSX and helpers are type-checked against installed SDK, React Native and Kepler declarations. App/session tests mock native/media/player boundaries, including initialization and cleanup changes. Kepler builds, native layout, TV focus/keyboard input and real Vega playback were not performed for this measurement.",
-        "text": "実際のApp・操作パネル・設定パネル・映像表示用JSXと補助処理を、導入済みSDK・React Native・Keplerの型宣言に対して型検査しています。App・セッションのテストはnative・media・Playerの代替オブジェクトを使い、初期化中・終了処理中の変更も対象にします。この測定ではKeplerビルド、nativeの見た目、TVのフォーカス・文字入力、Vega端末での実再生は確認していません。"
+        "source": "The App/control/configuration/video-surface JSX and helpers are type-checked against installed declarations. Native checks used Vega SDK 0.24.12112 and an arm64 Virtual Device: all 3 Release packages built, earlier Live DASH and VOD HLS checks rendered frames and advancing SDK positions, and native focus/scrolling, text entry, invalid-bitrate validation and Reset were exercised. The final lifecycle implementation passed 3 valid bitrate Apply cycles with changing VOD frames and advancing positions in the same app instance. Its 68 unit/session tests still mock native boundaries. After background/foreground, the same instance retained drafts and settings but playback did not resume; a full app restart restored VOD playback. Process memory/file-descriptor samples do not establish native media/surface allocation counts or leak freedom. Physical devices, DRM/offline, audio correctness and quantitative buffer/bitrate behavior remain unqualified.",
+        "text": "App・操作部品・設定・映像表示面のJSXと補助処理は、導入済みの型定義で検査しています。Vega SDK 0.24.12112とarm64仮想端末でネイティブ検査を行い、3形式のReleaseパッケージのビルド、先行するLive DASH・VOD HLSの映像とSDK位置の進行、フォーカス・スクロール・文字入力、無効なビットレートの拒否、Resetを確認しました。最終ライフサイクル実装では、同じアプリインスタンスで有効なビットレートのApplyを3回行い、各回でVODの映像と位置の進行を確認しています。単体・セッションテスト68件は引き続きネイティブ境界をモックします。背景化から復帰すると同じインスタンスの下書きと設定は残りましたが、再生は再開しませんでした。アプリを完全に終了して起動し直すとVODの再生が戻りました。プロセスのメモリ・ファイル記述子の測定値だけでは、メディア・映像表示面のネイティブ割り当て数やメモリリークの有無を判断できません。物理端末、DRM・オフライン、音声の正確性、バッファ・ビットレートの定量的な効果は未確認です。"
+      },
+      {
+        "source": "PlayerConfig.network.requestApi is fixed to Fetch by vegaPlayerConfig and used at SDK construction. This receives code-only configuration credit, not GUI credit; the existing network hooks and unrelated configuration fields are retained.",
+        "text": "PlayerConfig.network.requestApiはvegaPlayerConfigでFetchに固定し、SDKの生成時に使います。GUI対応には加えず、コード上の設定として数えます。既存の通信フックと関係のない設定項目は保持します。"
+      },
+      {
+        "source": "Foreground Apply waits for fulfilled SDK destruction before synchronous native release because the SDK's asynchronous stop sequence still uses the media object. On background transitions, AppState cancels callbacks, requests synchronous native release before the handler yields, and removes the surface, including when a newer session is waiting for the retiring owner. Foreground acquisition waits for a new surface and confirmed prior cleanup. Unconfirmed release or SDK destruction retains the owner and blocks replacement. Pending-initialization abort success acknowledges cancellation without proving late native-allocation release, so replacement also remains blocked. The 1000 ms native release deadline is an app policy. Within a retained instance, applied source/player settings, drafts, logs and Allow DVR are preserved; playback position retention is not implemented. Playback can remain stopped after foreground return and requires a full app restart. This lifecycle integration adds no editable SDK field or GUI coverage credit.",
+        "text": "通常のApplyでは、SDKの非同期の停止処理がメディアを使い終えるまで待つ必要があるため、SDKの終了成功後にネイティブの同期解放を実行します。背景化時はAppStateの処理内でコールバックを無効にし、処理を中断する前にネイティブの同期解放を要求して映像表示面を外します。新しいセッションが前の所有者の終了を待つ場合も同じ処理を行います。復帰後の取得は、新しい表示面と前の終了確認を待ちます。解放やSDKの終了が確認できなければ所有者を保持して置き換えを止めます。初期化中止の成功はキャンセルの受付を示すだけで、後から確保されるネイティブ資源の解放を証明しないため、この場合も置き換えを止めます。同期解放の期限1000 msはアプリ側の方針です。同じインスタンスでは適用済みのソース・設定、下書き、ログ、Allow DVRを保持しますが、再生位置は復元しません。復帰後も再生が停止したままになる場合は、アプリを完全に終了して起動し直す必要があります。この処理による編集項目やGUI対応率の加算はありません。"
       }
     ]
   },

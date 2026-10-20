@@ -21469,10 +21469,10 @@
         },
         "configuration": {
           "byStatus": {
-            "code-only": 3,
+            "code-only": 4,
             "direct": 12,
             "internal": 0,
-            "missing": 638,
+            "missing": 637,
             "observed": 0,
             "preset": 0,
             "sdk-ui-unverified": 0
@@ -21499,11 +21499,11 @@
         },
         "observation": {
           "byStatus": {
-            "code-only": 2,
+            "code-only": 1,
             "direct": 0,
             "internal": 0,
             "missing": 77,
-            "observed": 3,
+            "observed": 4,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
@@ -21600,10 +21600,12 @@
         "The source editor exposes HLS/DASH/progressive string URLs, title/poster and startOffset/reference. Player controls expose autoplay/mute, separate audio/video forwardduration targets and the adaptation video bitrate cap. Only those leaf paths receive direct configuration credit; progressive array fields and unrelated object members remain unexposed.",
         "Apply validates the draft, recreates the SDK player through the serialized session and reloads the source; unchanged/invalid Apply and Reset draft do not replace resources. The selected/custom source, logs and Allow DVR helper state persist while playback position resets. Time-shift buttons remain fixed at 0, -10, -30 and -60 seconds with window clamping.",
         "Allow DVR changes the application DVR helper, not PlayerConfig.playback.timeShift. License/authentication, ui:false and module registration remain setup constants, not GUI settings. Title/poster are passed in SourceConfig, but the Kepler screen has no poster overlay or HTML Player UI.",
-        "isLive and getCurrentTime are read but not consumed by the displayed derived state, so they receive no observation credit.",
+        "isLive is read but not consumed by the displayed derived state and remains code-only. getCurrentTime now passes through DvrState.currentTime to the visible position in the existing state line and receives observation credit. Position is SDK media time in seconds and can use an absolute timeline for live sources.",
         "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
         "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed.",
-        "The actual App/control/configuration/video-surface JSX and helpers are type-checked against installed SDK, React Native and Kepler declarations. App/session tests mock native/media/player boundaries, including initialization and cleanup changes. Kepler builds, native layout, TV focus/keyboard input and real Vega playback were not performed for this measurement."
+        "The App/control/configuration/video-surface JSX and helpers are type-checked against installed declarations. Native checks used Vega SDK 0.24.12112 and an arm64 Virtual Device: all 3 Release packages built, earlier Live DASH and VOD HLS checks rendered frames and advancing SDK positions, and native focus/scrolling, text entry, invalid-bitrate validation and Reset were exercised. The final lifecycle implementation passed 3 valid bitrate Apply cycles with changing VOD frames and advancing positions in the same app instance. Its 68 unit/session tests still mock native boundaries. After background/foreground, the same instance retained drafts and settings but playback did not resume; a full app restart restored VOD playback. Process memory/file-descriptor samples do not establish native media/surface allocation counts or leak freedom. Physical devices, DRM/offline, audio correctness and quantitative buffer/bitrate behavior remain unqualified.",
+        "PlayerConfig.network.requestApi is fixed to Fetch by vegaPlayerConfig and used at SDK construction. This receives code-only configuration credit, not GUI credit; the existing network hooks and unrelated configuration fields are retained.",
+        "Foreground Apply waits for fulfilled SDK destruction before synchronous native release because the SDK's asynchronous stop sequence still uses the media object. On background transitions, AppState cancels callbacks, requests synchronous native release before the handler yields, and removes the surface, including when a newer session is waiting for the retiring owner. Foreground acquisition waits for a new surface and confirmed prior cleanup. Unconfirmed release or SDK destruction retains the owner and blocks replacement. Pending-initialization abort success acknowledges cancellation without proving late native-allocation release, so replacement also remains blocked. The 1000 ms native release deadline is an app policy. Within a retained instance, applied source/player settings, drafts, logs and Allow DVR are preserved; playback position retention is not implemented. Playback can remain stopped after foreground return and requires a full app restart. This lifecycle integration adds no editable SDK field or GUI coverage credit."
       ],
       "scopes": [
         {
@@ -21655,11 +21657,11 @@
             },
             "observation": {
               "byStatus": {
-                "code-only": 2,
+                "code-only": 1,
                 "direct": 0,
                 "internal": 0,
                 "missing": 77,
-                "observed": 3,
+                "observed": 4,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
@@ -21690,10 +21692,10 @@
             },
             "configuration": {
               "byStatus": {
-                "code-only": 3,
+                "code-only": 4,
                 "direct": 5,
                 "internal": 0,
-                "missing": 363,
+                "missing": 362,
                 "observed": 0,
                 "preset": 0,
                 "sdk-ui-unverified": 0
@@ -22782,7 +22784,7 @@
     }
   ],
   "checkedAt": "2026-10-20",
-  "inputSha256": "badd4948d2d8f096512ac72997ba21a8bbd4c2fc355440ea49fee7fec4a2bec0",
+  "inputSha256": "ac1cd16f9cb6241de0fba3c8392f416b6419b57bcc292216729fbebc500529cf",
   "schemaVersion": 1,
   "sdks": [
     {
@@ -22908,5 +22910,5 @@
       "version": "4.23.0"
     }
   ],
-  "sourceRevision": "be1c74648d9ee4b4e34aae78bca4c23b78d46bda"
+  "sourceRevision": "3fb00d86326b9f316528ae7415d8919a1f2e0ac5"
 }

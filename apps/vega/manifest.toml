@@ -1,0 +1,51 @@
+schema-version = 1
+
+[package]
+title = "Player Lab"
+version = "0.1.0"
+id = "com.showcase.dvr.vega"
+
+# RN 0.72 remains supported by Vega SDK 0.24 on OS 1.2.
+# https://developer.amazon.com/docs/vega/0.24/target-os-version
+[os.version]
+min = "1.2"
+target = "1.2"
+
+[needs]
+[[needs.module]]
+id = "/com.amazon.vega.os@IVega_1_2"
+
+[[needs.module]]
+id = "/com.amazon.kepler.keplerscript_2@IKeplerScript_1"
+
+[[needs.module]]
+id = "/com.amazon.kepler.w3cmedia_2@IW3cmedia_3"
+
+
+
+[components]
+[[components.interactive]]
+id = "com.showcase.dvr.vega.main"
+runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
+launch-type = "singleton"
+categories = ["com.amazon.category.main", "com.amazon.category.kepler.media"]
+
+# Public W3C Media service requirements; the CLI generates library-module needs.
+# https://developer.amazon.com/docs/vega/0.24/media-player-setup#add-permissions
+[wants]
+[[wants.service]]
+id = "com.amazon.mediametrics.service"
+[[wants.service]]
+id = "com.amazon.mediabuffer.service"
+[[wants.service]]
+id = "com.amazon.mediatransform.service"
+[[wants.service]]
+id = "com.amazon.audio.stream"
+[[wants.service]]
+id = "com.amazon.audio.control"
+[[wants.service]]
+id = "com.amazon.media.server"
+[[wants.service]]
+id = "com.amazon.media.playersession.service"
+[[wants.privilege]]
+id = "com.amazon.devconf.privilege.accessibility"

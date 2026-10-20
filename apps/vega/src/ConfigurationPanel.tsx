@@ -45,8 +45,8 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         </View>
         <Text style={styles.help}>Start means beginning of the media or DVR window; End means end or live edge. SDK defaults: Start for VOD, End for live. Offsets may be signed.</Text>
         <View style={styles.row}>
-          <Text style={styles.label}>Autoplay</Text><Switch accessibilityLabel="Autoplay" value={draft.autoplay} onValueChange={(value) => update("autoplay", value)} />
-          <Text style={styles.label}>Mute on startup</Text><Switch accessibilityLabel="Mute on startup" value={draft.muted} onValueChange={(value) => update("muted", value)} />
+          <Text style={styles.label}>Autoplay</Text><Switch style={styles.toggle} accessibilityLabel="Autoplay" value={draft.autoplay} onValueChange={(value) => update("autoplay", value)} />
+          <Text style={styles.label}>Mute on startup</Text><Switch style={styles.toggle} accessibilityLabel="Mute on startup" value={draft.muted} onValueChange={(value) => update("muted", value)} />
         </View>
         {field("Video forward buffer (seconds)", "videoForwardDuration", true)}
         {field("Audio forward buffer (seconds)", "audioForwardDuration", true)}
@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
   field: { gap: 4 },
   input: { color: "#ffffff", borderWidth: 1, borderColor: "#888888", borderRadius: 4, padding: 8, minHeight: 44 },
   label: { color: "#ffffff" },
+  toggle: { width: 72, height: 36 },
   help: { color: "#dddddd", fontSize: 12 },
   error: { color: "#ffb3b3" },
 });
