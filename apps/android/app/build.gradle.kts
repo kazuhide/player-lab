@@ -6,11 +6,12 @@ plugins {
 }
 
 android {
-    namespace = "com.showcase.app"
+    namespace = "com.playerlab.android"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.showcase.dvr"
+        applicationId = "com.playerlab.android"
+        testApplicationId = "com.playerlab.android.test"
         minSdk = 23
         targetSdk = 36
         versionCode = 1
