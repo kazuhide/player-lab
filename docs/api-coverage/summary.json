@@ -7273,8 +7273,8 @@
             "code-only": 0,
             "direct": 0,
             "internal": 0,
-            "missing": 102,
-            "observed": 4,
+            "missing": 101,
+            "observed": 5,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
@@ -7288,8 +7288,8 @@
             "code-only": 3,
             "direct": 0,
             "internal": 0,
-            "missing": 96,
-            "observed": 2,
+            "missing": 95,
+            "observed": 3,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
@@ -7408,7 +7408,7 @@
         "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
         "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
         "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
-        "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
+        "Five event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged triggers DVR refresh. Event payload fields are not exposed.",
         "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
         "The 2026-10-20 record reports 6 hostless configuration tests on each Apple simulator platform and 1 GUI test on each iPhone, iPad and Apple TV simulator, including tvOS remote focus and Reset. These checks do not qualify playback, offset accuracy, bitrate enforcement, physical devices, casting, offline playback or Analytics receipt; the 2026-10-19 iOS shared-UI playback record is documented separately.",
         "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
@@ -11240,8 +11240,8 @@
                 "code-only": 3,
                 "direct": 0,
                 "internal": 0,
-                "missing": 29,
-                "observed": 2,
+                "missing": 28,
+                "observed": 3,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
@@ -11615,8 +11615,8 @@
                 "code-only": 0,
                 "direct": 0,
                 "internal": 0,
-                "missing": 59,
-                "observed": 3,
+                "missing": 58,
+                "observed": 4,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
@@ -15261,17 +15261,17 @@
         "command": {
           "byStatus": {
             "code-only": 3,
-            "direct": 1,
+            "direct": 3,
             "internal": 0,
-            "missing": 103,
+            "missing": 101,
             "observed": 0,
             "preset": 1,
             "sdk-ui-unverified": 0
           },
           "denominator": 108,
           "deprecated": 6,
-          "percentDirect": 0.93,
-          "percentDirectOrPreset": 1.85
+          "percentDirect": 2.78,
+          "percentDirectOrPreset": 3.7
         },
         "configuration": {
           "byStatus": {
@@ -15293,8 +15293,8 @@
             "code-only": 0,
             "direct": 0,
             "internal": 0,
-            "missing": 90,
-            "observed": 4,
+            "missing": 89,
+            "observed": 5,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
@@ -15305,11 +15305,11 @@
         },
         "observation": {
           "byStatus": {
-            "code-only": 3,
+            "code-only": 5,
             "direct": 0,
             "internal": 0,
-            "missing": 70,
-            "observed": 2,
+            "missing": 67,
+            "observed": 3,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
@@ -15848,12 +15848,12 @@
         "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
         "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
         "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
-        "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
+        "Five event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged triggers DVR refresh. Event payload fields are not exposed.",
         "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
         "The 2026-10-20 record reports 6 hostless configuration tests on each Apple simulator platform and 1 GUI test on each iPhone, iPad and Apple TV simulator, including tvOS remote focus and Reset. These checks do not qualify playback, offset accuracy, bitrate enforcement, physical devices, casting, offline playback or Analytics receipt; the 2026-10-19 iOS shared-UI playback record is documented separately.",
         "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
         "The UI variant picker is excluded on tvOS and System UI is fixed. The native full-screen editor exposes the same 11 configuration leaves as iOS; there are no configuration presets.",
-        "Opaque native System UI controls have not been mapped to Core API members. No app-owned play, pause, volume, track or fullscreen control is credited.",
+        "The app-owned tvOS remote Play/Pause command maps to Player.play() and Player.pause(). Opaque System UI controls do not receive volume, track or fullscreen credit without exact binding and runtime evidence.",
         "SDK APIs documented as no-op on tvOS remain in the available denominator when their Swift declaration permits tvOS."
       ],
       "scopes": [
@@ -18592,17 +18592,17 @@
             "command": {
               "byStatus": {
                 "code-only": 1,
-                "direct": 1,
+                "direct": 3,
                 "internal": 0,
-                "missing": 25,
+                "missing": 23,
                 "observed": 0,
                 "preset": 1,
                 "sdk-ui-unverified": 0
               },
               "denominator": 28,
               "deprecated": 4,
-              "percentDirect": 3.57,
-              "percentDirectOrPreset": 7.14
+              "percentDirect": 10.71,
+              "percentDirectOrPreset": 14.29
             },
             "configuration": {
               "byStatus": {
@@ -18636,11 +18636,11 @@
             },
             "observation": {
               "byStatus": {
-                "code-only": 3,
+                "code-only": 5,
                 "direct": 0,
                 "internal": 0,
-                "missing": 29,
-                "observed": 2,
+                "missing": 26,
+                "observed": 3,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
@@ -19014,8 +19014,8 @@
                 "code-only": 0,
                 "direct": 0,
                 "internal": 0,
-                "missing": 58,
-                "observed": 3,
+                "missing": 57,
+                "observed": 4,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
@@ -22784,7 +22784,7 @@
     }
   ],
   "checkedAt": "2026-10-21",
-  "inputSha256": "af2c2123113c131c2f37dc5040a33fc9862065c1ce8cb5e61ed28f034a29354d",
+  "inputSha256": "8b8c98ac050e7d520cbe92b796c266683bc2c11dbe298595a8e5290ed954f7a2",
   "schemaVersion": 1,
   "sdks": [
     {

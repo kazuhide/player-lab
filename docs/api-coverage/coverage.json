@@ -53681,12 +53681,33 @@
               "package": "bitmovin-player-ios-core",
               "sha256": "7cb0c52742c27bdeeffefdfac08d164d7c6d98edcff29288f2bfa2c3db506eca",
               "version": "3.128.0"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 240,
+              "symbol": "player.events.on(PlaybackFinishedEvent.self)",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 249,
+              "symbol": "self.append(\"PlaybackFinished\")",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
+            },
+            {
+              "file": "apps/ios/Showcase/ContentView.swift",
+              "line": 101,
+              "symbol": "model.log.prefix",
+              "kind": "app",
+              "sha256": "5ed29347fb2bb654545a108d8580f328818317694536d495e36ef751df620581"
             }
           ],
           "id": "BitmovinPlayerCore.PlaybackFinishedEvent",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/playbackfinishedevent",
           "scope": "BitmovinPlayerCore.PlayerListener",
-          "status": "missing"
+          "status": "observed"
         },
         {
           "category": "event",
@@ -54121,23 +54142,37 @@
             },
             {
               "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 239,
+              "symbol": "let loadedAsLive = player.isLive",
               "kind": "app",
-              "line": 203,
-              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb",
-              "symbol": "isLive: player.isLive"
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 248,
+              "symbol": "if loadedAsLive { self.liveSourceFinalized = true }",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
             },
             {
               "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+              "line": 110,
+              "symbol": "let endedLive = isLiveStream(s) && s.liveSourceFinalized",
               "kind": "app",
-              "line": 104,
-              "sha256": "20f18057ac17d857e0e801cc44eeb43e4ad70a1c9362db4b6661bf67abe6ca26",
-              "symbol": "func isLiveStream"
+              "sha256": "20f18057ac17d857e0e801cc44eeb43e4ad70a1c9362db4b6661bf67abe6ca26"
+            },
+            {
+              "file": "apps/ios/Showcase/ContentView.swift",
+              "line": 90,
+              "symbol": "dvr.mode",
+              "kind": "app",
+              "sha256": "5ed29347fb2bb654545a108d8580f328818317694536d495e36ef751df620581"
             }
           ],
           "id": "BitmovinPlayerCore.Player.isLive",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/islive",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "code-only"
+          "status": "observed"
         },
         {
           "category": "observation",
@@ -54709,12 +54744,26 @@
               "package": "bitmovin-player-ios-core",
               "sha256": "0e17f8d92177795982d3610ef2a999c6192d30e47a114a7642d319eff99a2d2d",
               "version": "3.128.0"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 236,
+              "symbol": "guard let source = player.source else",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 245,
+              "symbol": "player.source === source else",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
             }
           ],
           "id": "BitmovinPlayerCore.Player.source",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/source",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "missing"
+          "status": "code-only"
         },
         {
           "category": "observation",
@@ -59540,7 +59589,7 @@
         "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
         "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
         "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
-        "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
+        "Five event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged triggers DVR refresh. Event payload fields are not exposed.",
         "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
         "The 2026-10-20 record reports 6 hostless configuration tests on each Apple simulator platform and 1 GUI test on each iPhone, iPad and Apple TV simulator, including tvOS remote focus and Reset. These checks do not qualify playback, offset accuracy, bitrate enforcement, physical devices, casting, offline playback or Analytics receipt; the 2026-10-19 iOS shared-UI playback record is documented separately.",
         "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
@@ -63614,12 +63663,33 @@
               "package": "bitmovin-player-ios-core",
               "sha256": "7cb0c52742c27bdeeffefdfac08d164d7c6d98edcff29288f2bfa2c3db506eca",
               "version": "3.128.0"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 240,
+              "symbol": "player.events.on(PlaybackFinishedEvent.self)",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 249,
+              "symbol": "self.append(\"PlaybackFinished\")",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
+            },
+            {
+              "file": "apps/ios/Showcase/ContentView.swift",
+              "line": 101,
+              "symbol": "model.log.prefix",
+              "kind": "app",
+              "sha256": "5ed29347fb2bb654545a108d8580f328818317694536d495e36ef751df620581"
             }
           ],
           "id": "BitmovinPlayerCore.PlaybackFinishedEvent",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/playbackfinishedevent",
           "scope": "BitmovinPlayerCore.PlayerListener",
-          "status": "missing"
+          "status": "observed"
         },
         {
           "category": "event",
@@ -64034,12 +64104,19 @@
               "package": "bitmovin-player-ios-core",
               "sha256": "ee570b2e52b9f146a555e0f558f7dc10ded78714507b9eeebe627670d0c6f1cc",
               "version": "3.128.0"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 184,
+              "symbol": "guard !player.isDestroyed, player.source != nil",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
             }
           ],
           "id": "BitmovinPlayerCore.Player.isDestroyed",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/isdestroyed",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "missing"
+          "status": "code-only"
         },
         {
           "category": "observation",
@@ -64054,23 +64131,37 @@
             },
             {
               "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 239,
+              "symbol": "let loadedAsLive = player.isLive",
               "kind": "app",
-              "line": 203,
-              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb",
-              "symbol": "isLive: player.isLive"
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 248,
+              "symbol": "if loadedAsLive { self.liveSourceFinalized = true }",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
             },
             {
               "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+              "line": 110,
+              "symbol": "let endedLive = isLiveStream(s) && s.liveSourceFinalized",
               "kind": "app",
-              "line": 104,
-              "sha256": "20f18057ac17d857e0e801cc44eeb43e4ad70a1c9362db4b6661bf67abe6ca26",
-              "symbol": "func isLiveStream"
+              "sha256": "20f18057ac17d857e0e801cc44eeb43e4ad70a1c9362db4b6661bf67abe6ca26"
+            },
+            {
+              "file": "apps/ios/Showcase/ContentView.swift",
+              "line": 90,
+              "symbol": "dvr.mode",
+              "kind": "app",
+              "sha256": "5ed29347fb2bb654545a108d8580f328818317694536d495e36ef751df620581"
             }
           ],
           "id": "BitmovinPlayerCore.Player.isLive",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/islive",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "code-only"
+          "status": "observed"
         },
         {
           "category": "observation",
@@ -64133,12 +64224,19 @@
               "package": "bitmovin-player-ios-core",
               "sha256": "7936a21911c1acff4630a3b6e58d02c7322392eb4085f752e9c92208c891e750",
               "version": "3.128.0"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 185,
+              "symbol": "if player.isPlaying { player.pause() }",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
             }
           ],
           "id": "BitmovinPlayerCore.Player.isPlaying",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/isplaying",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "missing"
+          "status": "code-only"
         },
         {
           "category": "observation",
@@ -64335,12 +64433,33 @@
               "package": "bitmovin-player-ios-core",
               "sha256": "148dbbbbb59c34e5eb3ef15f18e23997940acac00958d825e478fa3695da1bbe",
               "version": "3.128.0"
+            },
+            {
+              "file": "apps/ios/Showcase/ContentView.swift",
+              "line": 23,
+              "symbol": ".onPlayPauseCommand { model.togglePlayback() }",
+              "kind": "app",
+              "sha256": "5ed29347fb2bb654545a108d8580f328818317694536d495e36ef751df620581"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 182,
+              "symbol": "func togglePlayback()",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 185,
+              "symbol": "if player.isPlaying { player.pause() }",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
             }
           ],
           "id": "BitmovinPlayerCore.Player.pause()",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/pause()",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "missing"
+          "status": "direct"
         },
         {
           "category": "command",
@@ -64352,12 +64471,33 @@
               "package": "bitmovin-player-ios-core",
               "sha256": "fc4bf58be19e5f1ba99bfb6761bbf2a0ac87dca394d9f696cca0e65bc22bfeec",
               "version": "3.128.0"
+            },
+            {
+              "file": "apps/ios/Showcase/ContentView.swift",
+              "line": 23,
+              "symbol": ".onPlayPauseCommand { model.togglePlayback() }",
+              "kind": "app",
+              "sha256": "5ed29347fb2bb654545a108d8580f328818317694536d495e36ef751df620581"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 182,
+              "symbol": "func togglePlayback()",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 186,
+              "symbol": "else { player.play() }",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
             }
           ],
           "id": "BitmovinPlayerCore.Player.play()",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/play()",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "missing"
+          "status": "direct"
         },
         {
           "category": "command",
@@ -64607,12 +64747,26 @@
               "package": "bitmovin-player-ios-core",
               "sha256": "0e17f8d92177795982d3610ef2a999c6192d30e47a114a7642d319eff99a2d2d",
               "version": "3.128.0"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 236,
+              "symbol": "guard let source = player.source else",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
+            },
+            {
+              "file": "apps/ios/Showcase/PlayerModel.swift",
+              "line": 245,
+              "symbol": "player.source === source else",
+              "kind": "app",
+              "sha256": "b490f08d99ff2634575a52b3840e225549a88280ebd16abad29e6a9fdf4c40cb"
             }
           ],
           "id": "BitmovinPlayerCore.Player.source",
           "officialReference": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/player/source",
           "scope": "BitmovinPlayerCore.Player",
-          "status": "missing"
+          "status": "code-only"
         },
         {
           "category": "observation",
@@ -69392,12 +69546,12 @@
         "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
         "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
         "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
-        "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
+        "Five event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged triggers DVR refresh. Event payload fields are not exposed.",
         "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
         "The 2026-10-20 record reports 6 hostless configuration tests on each Apple simulator platform and 1 GUI test on each iPhone, iPad and Apple TV simulator, including tvOS remote focus and Reset. These checks do not qualify playback, offset accuracy, bitrate enforcement, physical devices, casting, offline playback or Analytics receipt; the 2026-10-19 iOS shared-UI playback record is documented separately.",
         "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
         "The UI variant picker is excluded on tvOS and System UI is fixed. The native full-screen editor exposes the same 11 configuration leaves as iOS; there are no configuration presets.",
-        "Opaque native System UI controls have not been mapped to Core API members. No app-owned play, pause, volume, track or fullscreen control is credited.",
+        "The app-owned tvOS remote Play/Pause command maps to Player.play() and Player.pause(). Opaque System UI controls do not receive volume, track or fullscreen credit without exact binding and runtime evidence.",
         "SDK APIs documented as no-op on tvOS remain in the available denominator when their Swift declaration permits tvOS."
       ],
       "sdkId": "apple"

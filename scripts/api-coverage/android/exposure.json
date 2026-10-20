@@ -584,7 +584,7 @@
     },
     "android:com.bitmovin.player.api.live.SourceLiveConfig.targetLatency": {
       "status": "direct_gui",
-      "limitation": "Optional finite nonnegative source target latency in seconds. Blank leaves liveConfig unset and preserves SDK defaults; no ideal-latency or seek-completion guarantee.",
+      "limitation": "Optional finite source target latency in seconds. Blank leaves liveConfig unset and preserves SDK defaults; no ideal-latency or seek-completion guarantee.",
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",

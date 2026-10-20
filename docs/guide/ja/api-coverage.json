@@ -109,8 +109,8 @@
         "text": "型付きリスナー四系統が通知する具体的なEvent型を、個別のイベントIDとして数えます。汎用コールバックと抽象イベント基底型は除外し、公開リスナー登録APIは実行時の独立した行として残します。"
       },
       {
-        "source": "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
-        "text": "監視しているイベントIDは四件です。SourceLoaded・TimeShifted・DvrWindowExceededは名前付きログに記録し、TimeChangedはDVR表示の更新だけを行います。イベントのペイロードフィールドを表示するGUIはありません。"
+        "source": "Five event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged triggers DVR refresh. Event payload fields are not exposed.",
+        "text": "五つのイベントを監視します。SourceLoaded、TimeShifted、DvrWindowExceeded、PlaybackFinishedは名前付きログへ記録し、TimeChangedはDVR表示を更新します。イベントのペイロードフィールドは公開していません。"
       },
       {
         "source": "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
@@ -175,8 +175,8 @@
         "text": "型付きリスナー四系統が通知する具体的なEvent型を、個別のイベントIDとして数えます。汎用コールバックと抽象イベント基底型は除外し、公開リスナー登録APIは実行時の独立した行として残します。"
       },
       {
-        "source": "Four event identities are monitored: SourceLoaded, TimeShifted and DvrWindowExceeded have named log entries; TimeChanged only triggers DVR refresh. Event payload fields are not exposed.",
-        "text": "監視しているイベントIDは四件です。SourceLoaded・TimeShifted・DvrWindowExceededは名前付きログに記録し、TimeChangedはDVR表示の更新だけを行います。イベントのペイロードフィールドを表示するGUIはありません。"
+        "source": "Five event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged triggers DVR refresh. Event payload fields are not exposed.",
+        "text": "五つのイベントを監視します。SourceLoaded、TimeShifted、DvrWindowExceeded、PlaybackFinishedは名前付きログへ記録し、TimeChangedはDVR表示を更新します。イベントのペイロードフィールドは公開していません。"
       },
       {
         "source": "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
@@ -195,8 +195,8 @@
         "text": "tvOSにはUI候補を選ぶGUIがなく、System UIを固定で使用します。ネイティブの全画面エディターではiOSと同じ設定11項目を編集でき、設定の限定プリセットはありません。"
       },
       {
-        "source": "Opaque native System UI controls have not been mapped to Core API members. No app-owned play, pause, volume, track or fullscreen control is credited.",
-        "text": "内部構造を確認していないネイティブSystem UIの操作は、Core APIのメンバーに対応付けていません。アプリ独自の再生・一時停止・音量・トラック・全画面の操作には対応件数を付けません。"
+        "source": "The app-owned tvOS remote Play/Pause command maps to Player.play() and Player.pause(). Opaque System UI controls do not receive volume, track or fullscreen credit without exact binding and runtime evidence.",
+        "text": "アプリのtvOSリモコン再生・一時停止操作はPlayer.play()とPlayer.pause()に対応します。System UIの操作は、正確な呼び出し経路と実行結果を確認できなければ音量・トラック・全画面の対応件数へ加えません。"
       },
       {
         "source": "SDK APIs documented as no-op on tvOS remain in the available denominator when their Swift declaration permits tvOS.",

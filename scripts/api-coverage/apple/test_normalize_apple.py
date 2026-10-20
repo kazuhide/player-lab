@@ -139,8 +139,9 @@ class AppleAdapterTests(unittest.TestCase):
                       "PlayerConfig.adaptationConfig", "PlayerConfig.bufferConfig"}
         for app, mapping in exposure["applications"].items():
             direct = {member.removeprefix("BitmovinPlayerCore.") for member, row in mapping.items()
-                      if row["status"] == "direct"}
-            self.assertEqual(direct, editable | {"Player.load(sourceConfig:)"})
+                      if row["status"] == "direct" and not member.startswith("BitmovinPlayerCore.Player.")}
+            self.assertEqual(direct, editable)
+            self.assertEqual(mapping["BitmovinPlayerCore.Player.load(sourceConfig:)"]["status"], "direct")
             for member in containers | {"PlayerConfig.key"}:
                 self.assertEqual(mapping["BitmovinPlayerCore." + member]["status"], "code-only")
             self.assertEqual(mapping["BitmovinPlayerCore.Player.timeShift"]["status"], "preset")
