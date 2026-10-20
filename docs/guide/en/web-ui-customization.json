@@ -142,6 +142,22 @@
     },
     {
       "type": "h2",
+      "text": "Hide custom labels"
+    },
+    {
+      "type": "p",
+      "text": "Label.hide() adds the bmpui-hidden class. In UI 4.23.0, the standard label's hidden style is scoped to its ui-label class. Setting cssClass replaces that base class, so a custom label needs a matching hidden style. Use cssClasses to add styling classes while retaining the base class, or include an explicit rule when replacing it. The shared stylesheet includes this rule for WallClockLabel and BehindLiveLabel."
+    },
+    {
+      "type": "code",
+      "text": ".bmpui-ui-label-wallclock.bmpui-hidden,\n.bmpui-ui-label-behindlive.bmpui-hidden {\n  display: none;\n}"
+    },
+    {
+      "type": "p",
+      "text": "Test the transition from live to on-demand playback after the clock has displayed text. A label that is empty on a fresh on-demand source can have zero height even when its hidden style is missing. Check retained clock text, the hidden class, actual CSS display and showing the label again. This stylesheet is used by the Web app, custom UIs on iOS and Android, and both React Native hosts. tvOS uses native System UI and Vega uses Kepler controls."
+    },
+    {
+      "type": "h2",
       "text": "Release custom components"
     },
     {
@@ -158,6 +174,14 @@
     }
   ],
   "sources": [
+    {
+      "path": "packages/ui-shared/src/components/WallClockLabel.ts",
+      "line": 14
+    },
+    {
+      "path": "packages/ui-shared/src/styles/ui-shared.scss",
+      "line": 96
+    },
     {
       "path": "apps/web/src/uiGuide.ts",
       "line": 536

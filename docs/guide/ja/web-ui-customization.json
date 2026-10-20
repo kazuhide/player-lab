@@ -142,6 +142,22 @@
     },
     {
       "type": "h2",
+      "text": "独自ラベルの非表示"
+    },
+    {
+      "type": "p",
+      "text": "Label.hide()はbmpui-hiddenクラスを付けます。UI 4.23.0の標準ラベルでは、非表示のスタイルはui-labelクラスに適用されます。cssClassを指定すると基底のクラスが置き換わるため、独自ラベルにも対応する非表示スタイルが必要です。基底のクラスを残して装飾を加える場合はcssClassesを使います。cssClassで置き換える場合は、下記のようなルールを用意します。共有のスタイルシートではWallClockLabelとBehindLiveLabelに適用しています。"
+    },
+    {
+      "type": "code",
+      "text": ".bmpui-ui-label-wallclock.bmpui-hidden,\n.bmpui-ui-label-behindlive.bmpui-hidden {\n  display: none;\n}"
+    },
+    {
+      "type": "p",
+      "text": "時計に文字が表示された状態から、ライブをオンデマンド再生へ切り替えて確認します。最初からオンデマンドのソースではラベルが空になり、非表示スタイルが欠けていても高さがゼロになる場合があるためです。確認時は、保持された時計の文字、非表示クラス、CSSの実際のdisplay、再表示まで確かめます。このスタイルシートはWeb、iOS・Androidの独自UI、React Nativeの両OS版で使用します。tvOSはネイティブのSystem UI、VegaはKeplerの操作画面を使用します。"
+    },
+    {
+      "type": "h2",
       "text": "自作部品の後片付け"
     },
     {
@@ -158,6 +174,14 @@
     }
   ],
   "sources": [
+    {
+      "path": "packages/ui-shared/src/components/WallClockLabel.ts",
+      "line": 14
+    },
+    {
+      "path": "packages/ui-shared/src/styles/ui-shared.scss",
+      "line": 96
+    },
     {
       "path": "apps/web/src/uiGuide.ts",
       "line": 536
