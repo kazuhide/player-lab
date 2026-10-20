@@ -98,15 +98,32 @@ struct ConfigurationEditor: View {
                         #else
                         Text("This TV host has no clipboard integration.").font(.caption)
                         #endif
+                        #if os(tvOS)
+                        // Separate focus targets let the remote read every line without horizontal panning.
+                        ScrollView(.vertical) {
+                            VStack(alignment: .leading, spacing: 0) {
+                                ForEach(Array(appliedCode.components(separatedBy: "\n").enumerated()), id: \.offset) { line in
+                                    Text(line.element.isEmpty ? " " : line.element)
+                                        .font(.system(.caption, design: .monospaced))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .focusable()
+                                        .accessibilityIdentifier("configuration.code.line.\(line.offset)")
+                                }
+                            }
+                            .padding(.horizontal, 24)
+                        }
+                        .frame(height: 260)
+                        .accessibilityIdentifier("configuration.code.scroll")
+                        #else
                         ScrollView([.horizontal, .vertical]) {
                             Text(appliedCode).font(.system(.caption, design: .monospaced))
                                 .fixedSize(horizontal: true, vertical: false)
-                                #if os(iOS)
                                 .textSelection(.enabled)
-                                #endif
                                 .accessibilityIdentifier("configuration.code.text")
                         }
                         .frame(height: 260)
+                        #endif
                     }
                 }
             }
