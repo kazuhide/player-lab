@@ -63,6 +63,11 @@ incomplete native global URL getters, and rapid Apply during initialization or c
 Console errors/warnings fail these tests. No TV layout, focus behavior, software
 keyboard or playback is qualified by this renderer.
 
+The runtime adapter tests execute the real XML DOM and Base64 packages while
+mocking only the Amazon native boundary. They check the installed media/crypto
+providers, media attribute operations, native URL preservation, and removal of
+only the session's own media element. These checks do not run a Vega media engine.
+
 ## Configuration controls
 
 Open **Show configuration** to edit a source URL/type (HLS, DASH or progressive
@@ -127,10 +132,19 @@ react-native build-kepler --build-type Debug
 kepler device install-app --dir . && kepler device launch-app
 ```
 
-Replace the minimal `src/polyfills.ts` shim with the runtime compatibility setup
-from the Bitmovin Vega sample available to you. It must provide Base64 helpers,
-`DOMParser`, W3C media integration, and WebCrypto. The minimal file in this folder
-alone is not sufficient for playback.
+`src/polyfills.ts` connects the published Amazon W3C Media and WebCrypto APIs,
+`@xmldom/xmldom` 0.9.12, and `base-64` 1.0.0 before player construction. It also
+adapts the session's native video properties to the attribute calls expected by
+the modular Player. The SDK's ReactNative module supplies its document adapter;
+the app supplies only the current session's `gvideo` and removes it only when
+that session still owns it. The native global URL is preserved, including media
+object-URL support. Form validation continues to use its separate local parser.
+Native media and crypto implementations remain in the installed Amazon package.
+
+This wiring follows the
+[public Bitmovin Vega sample](https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/tree/0c7463104d3c18f56440aeec7beccd0d92c11aaa/src/polyfills)
+and Amazon's [MSE integration guide](https://developer.amazon.com/docs/vega/0.24/mse-players).
+The adapters and mocked tests do not establish that a native app builds or plays.
 
 The entry point must set the following globals before the app mounts; `App.tsx`
 does not load a `.env` file itself. Use your keys from the repository-root `.env`

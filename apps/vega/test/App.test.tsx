@@ -23,6 +23,9 @@ vi.mock("bitmovin-player/modules/bitmovinplayer-core", () => ({
 }));
 vi.mock("@amazon-devices/react-native-w3cmedia", () => ({
   KeplerVideoSurfaceView: "KeplerVideoSurfaceView",
+  MediaSource: class NativeMediaSource {},
+  HTMLMediaElement: class NativeHTMLMediaElement {},
+  WebCrypto: { subtle: {} },
   VideoPlayer: class {
     constructor() { runtime.videos.push(this); }
     initialize = vi.fn(() => { const gate = runtime.initialization; runtime.initialization = null; return gate ?? Promise.resolve(); });
@@ -65,6 +68,7 @@ async function mount() {
   await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("surface"));
 }
 beforeEach(() => {
+  vi.stubGlobal("crypto", undefined);
   runtime.players.length = 0;
   runtime.videos.length = 0;
   runtime.initialization = null;
@@ -78,6 +82,7 @@ afterEach(async () => {
   const unexpectedWarnings = [...warnings.mock.calls];
   errors.mockRestore();
   warnings.mockRestore();
+  vi.unstubAllGlobals();
   expect(unexpectedErrors).toEqual([]);
   expect(unexpectedWarnings).toEqual([]);
 });
