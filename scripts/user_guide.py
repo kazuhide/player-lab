@@ -7,6 +7,14 @@ import stat
 from guide_html import (TEXT, anchor, esc, field_anchor, page_html, relative,
                         render_block, settings_group, source_url, sources_html, themes_html)
 from guide_routes import CHAPTERS, DOCUMENTS, GUIDE_FILES, LANGUAGES, SETTING_GROUPS, THEMES, route_file
+from guide_coverage import coverage_pages, validate_coverage
+
+
+class GuideContent(dict):
+    """Language documents with their explicitly loaded coverage inputs."""
+    def __init__(self, documents, coverage):
+        super().__init__(documents)
+        self.coverage = coverage
 
 
 def unique_object(pairs):
@@ -18,16 +26,16 @@ def unique_object(pairs):
     return result
 
 
-def read_document(path):
+def read_document(path, *, limit=512 * 1024):
     descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     with os.fdopen(descriptor, 'rb') as reader:
         metadata = os.fstat(reader.fileno())
-        if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1 or metadata.st_size > 512 * 1024:
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1 or metadata.st_size > limit:
             raise ValueError('Guide inputs must be bounded regular files without links.')
         return json.loads(reader.read().decode('utf-8'), object_pairs_hook=unique_object)
 
 
-def load_content(root):
+def load_content(root, *, coverage=None):
     if root.is_symlink() or not root.is_dir():
         raise ValueError('The guide input must be a real directory.')
     result = {}
@@ -37,7 +45,13 @@ def load_content(root):
             raise ValueError('Both real language directories are required.')
         result[language] = {name:read_document(folder / (name + '.json')) for name in DOCUMENTS}
     validate_content(result)
-    return result
+    if coverage is None:
+        folder = root.parent / 'api-coverage'
+        if folder.is_symlink() or not folder.is_dir():
+            raise ValueError('The public API coverage input directory is required.')
+        coverage = tuple(read_document(folder / name, limit=10 * 1024 * 1024)
+                         for name in ('coverage.json', 'summary.json'))
+    return GuideContent(result, coverage)
 
 
 def block_shape(block):
@@ -146,8 +160,13 @@ def search_text(block):
     return block.get('text') or block.get('caption') or ''
 
 
-def build(content):
+def build(content, *, coverage=None):
     validate_content(content)
+    coverage = coverage if coverage is not None else getattr(content, 'coverage', None)
+    if not isinstance(coverage, (tuple, list)) or len(coverage) != 2:
+        raise ValueError('The guide requires an explicitly loaded coverage report and summary.')
+    report, summary = coverage
+    validate_coverage(report, summary, content)
     pages = {}
     headings = {name:section_ids(content['en'][name]) for name in CHAPTERS}
     for language in LANGUAGES:
@@ -199,13 +218,16 @@ def build(content):
         for theme in document['themes']:
             search.append({'kind':'theme','title':theme['label'],'url':'themes/#'+theme['id'],
                            'excerpt':theme['description'],'text':theme['description']+' '+theme['code']})
+        generated, targets = coverage_pages(content, report, summary, language)
+        pages.update(generated)
+        search.extend(targets)
         page = route_file(language)
         groups = []
         for category in ('start', 'web', 'native', 'media', 'reference'):
             title = labels['web_group'] if category == 'web' else labels[category]
             entries = [key for key, group in CHAPTERS.items() if group == category]
             if category == 'reference':
-                entries = ['settings','controls','themes',*entries]
+                entries = ['settings','controls','themes','api-coverage',*entries]
             links = ''.join(f'<li><a href="{relative(page, route_file(language, key))}">{esc(documents[key]["title"])}</a>'
                             f'<p>{esc(documents[key]["lead"])}</p></li>' for key in entries)
             groups.append(f'<section class="guide-topic-group"><h2>{esc(title)}</h2><ul class="guide-topic-list">{links}</ul></section>')

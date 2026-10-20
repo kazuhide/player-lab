@@ -1,0 +1,6 @@
+docs/api-coverage/coverage.json linguist-generated=true
+docs/api-coverage/inventory.json linguist-generated=true
+docs/api-coverage/summary.json linguist-generated=true
+docs/api-coverage/apple/sdk-symbols.json linguist-generated=true
+docs/api-coverage/android/*.json linguist-generated=true
+scripts/api-coverage/apple/docc-manifest.json linguist-generated=true

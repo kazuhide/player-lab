@@ -40,6 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
@@ -50,6 +51,12 @@ jobs:
           cache: pnpm
       - name: Install
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check SDK versions and API coverage
+        run: |
+          python3 scripts/test-api-coverage.py
+          node --test scripts/api-coverage/extract-sdk-surface.test.cjs
+          python3 scripts/api-coverage/apple/test_normalize_apple.py
+          python3 scripts/check-api-coverage.py
       - name: Type-check
         run: pnpm typecheck
       - name: Test
@@ -85,6 +92,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:

@@ -7,6 +7,16 @@ interface Setting { scope: string; path: string }
 interface SettingGroup { id: string; title: string; fields: Setting[] }
 interface GuideDocument { id: string; title: string; groups?: SettingGroup[] }
 interface SearchEntry { kind: string; title: string; url: string }
+interface CoverageRow {
+  id: string; category: string; scope: string; status: string; deprecated: boolean; officialReference: string;
+  evidence: { kind: string; file: string; sha256: string; package?: string; version?: string }[];
+}
+interface CoverageApplication { id: string; sdkId: string; rows: CoverageRow[] }
+interface CoverageReport {
+  sourceRevision: string;
+  sdks: { id: string; version: string; latestVersion: string; latestCheckedAt: string }[];
+  applications: CoverageApplication[];
+}
 interface HeldHashChanges {
   pending: { oldURL: string; newURL: string }[];
   releaseNext: () => void;
@@ -17,6 +27,10 @@ declare global {
 
 const languages: Language[] = ["en", "ja"];
 const contentRoot = resolve(__dirname, "../../../docs/guide");
+const coverage = JSON.parse(readFileSync(resolve(contentRoot, "../api-coverage/coverage.json"), "utf8")) as CoverageReport;
+const uiCoverage = coverage.applications.find((app) => app.id === "web-ui")!;
+const longUIField = uiCoverage.rows.filter((row) => row.category === "configuration")
+  .reduce((longest, row) => row.id.length > longest.id.length ? row : longest);
 const content = Object.fromEntries(languages.map((language) => [language,
   Object.fromEntries(readdirSync(resolve(contentRoot, language)).filter((name) => name.endsWith(".json"))
     .map((name) => {
@@ -130,7 +144,7 @@ for (const language of languages) {
         ...Object.values(content[language]).map((document) => ({ slug: document.id, title: document.title })),
         ...groups(language).map((group) => ({ slug: `settings/${group.id}`, title: group.title })),
       ];
-      expect(routes).toHaveLength(38);
+      expect(new Set(routes.map((route) => route.slug)).size).toBe(routes.length);
       for (const route of routes) {
         await test.step(route.slug || "overview", async () => {
           const response = await page.goto(guidePath(language, route.slug));
@@ -229,10 +243,18 @@ for (const language of languages) {
       await page.goto(path);
       await expectCompleteTweakCatalog(page);
       const search = page.locator("[data-guide-search]");
-      await search.fill("PlayerConfig.tweaks.stop_download_on_pause");
-      const result = page.locator("[data-search-results]").getByRole("link", {
-        name: "PlayerConfig.tweaks.stop_download_on_pause", exact: true,
-      });
+      const title = "PlayerConfig.tweaks.stop_download_on_pause";
+      await search.fill(title);
+      const matches = page.locator("[data-search-results]").getByRole("link", { name: title, exact: true });
+      await expect(matches).toHaveCount(1 + coverage.applications.filter((app) =>
+        app.rows.some((row) => row.id === title)).length);
+      const firstId = await page.locator("article[data-setting]").filter({
+        has: page.getByRole("heading", { name: "tweaks.stop_download_on_pause", exact: true }),
+      }).getAttribute("id");
+      expect(firstId).toBeTruthy();
+      const expected = new URL(`#${firstId}`, page.url());
+      const result = page.locator(`[data-search-results] a[href="${expected.href}"]`);
+      await expect(result).toHaveText(title);
       await expect(result).toBeVisible();
       const first = new URL((await result.getAttribute("href"))!, page.url());
       const secondId = await page.locator("article[data-setting]").filter({
@@ -305,7 +327,13 @@ for (const language of languages) {
           const selectSetting = async (field: string): Promise<URL> => {
             const title = `PlayerConfig.tweaks.${field}`;
             await search.fill(title);
-            const result = results.getByRole("link", { name: title, exact: true });
+            const id = await page.locator("article[data-setting]").filter({
+              has: page.getByRole("heading", { name: `tweaks.${field}`, exact: true }),
+            }).getAttribute("id");
+            expect(id).toBeTruthy();
+            const expected = new URL(`#${id}`, page.url());
+            const result = results.locator(`a[href="${expected.href}"]`);
+            await expect(result).toHaveText(title);
             await expect(result).toBeVisible();
             const destination = new URL((await result.getAttribute("href"))!, page.url());
             const oldURL = page.url();
@@ -434,15 +462,33 @@ for (const language of languages) {
     for (const width of [320, 375, 768, 1024, 1440]) {
       test(`long text, code, tables and images fit a ${width}px document`, async ({ page }, testInfo) => {
         await page.setViewportSize({ width, height: 900 });
-        for (const slug of ["start", "native-apple", "cloud-encoding", "settings/tweaks", "controls", "themes"]) {
+        for (const slug of ["start", "native-apple", "cloud-encoding", "settings/tweaks", "controls", "themes",
+          "api-coverage", "api-coverage/web-ui"]) {
           await test.step(slug, async () => {
             await page.goto(guidePath(language, slug));
             await expectNoDocumentOverflow(page);
             await expectHeadingStructure(page);
-            if (slug === "settings/tweaks" && [320, 1440].includes(width)) {
-              const image = testInfo.outputPath(`guide-${language}-${width}.png`);
+            if ((slug === "settings/tweaks" && [320, 1440].includes(width))
+                || (slug === "api-coverage" && width === 1440)
+                || (slug === "api-coverage/web-ui" && width === 320)) {
+              if (slug === "api-coverage/web-ui") {
+                const anchor = await page.locator("[data-api-id]").evaluateAll((elements, id) =>
+                  elements.find((element) => element.getAttribute("data-api-id") === id)?.id, longUIField.id);
+                expect(anchor).toMatch(/^api-[a-f0-9]+$/);
+                await page.goto(`${guidePath(language, slug)}#${anchor}`);
+                await expect(page.locator(`#${anchor}`)).toHaveText(longUIField.id);
+                const lines = await page.locator(`#${anchor}`).evaluate((element) => {
+                  const range = document.createRange();
+                  range.selectNodeContents(element);
+                  return new Set(Array.from(range.getClientRects(), (rect) => Math.round(rect.top))).size;
+                });
+                expect(lines, "Long API identifiers remain on one line inside the scrollable table").toBe(1);
+                await expectNoDocumentOverflow(page);
+              }
+              const name = `guide-${language}-${width}-${slug.replaceAll("/", "-")}`;
+              const image = testInfo.outputPath(`${name}.png`);
               await page.screenshot({ path: image });
-              await testInfo.attach(`guide-${language}-${width}`, { path: image, contentType: "image/png" });
+              await testInfo.attach(name, { path: image, contentType: "image/png" });
             }
           });
         }
@@ -477,6 +523,73 @@ test("localized guide figures and representative theme images decode", async ({ 
 test.describe("guide without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
   for (const language of languages) {
+    test(`${language} API inventories contain every report row and native evidence without JavaScript`, async ({ page }, testInfo) => {
+      await page.goto(guidePath(language, "api-coverage"));
+      await expect(page.locator("[data-guide-search-container]")).toBeHidden();
+      const revision = page.getByRole("link", { name: coverage.sourceRevision, exact: true });
+      await expect(revision).toHaveAttribute("href", `https://github.com/kazuhide/player-lab/tree/${coverage.sourceRevision}`);
+      const versions = await page.locator("#versions + .guide-table tbody tr").evaluateAll((rows) => rows.map((row) => {
+        const cells = row.querySelectorAll("td");
+        return [cells[1]?.textContent?.trim(), cells[2]?.textContent?.trim(), cells[4]?.textContent?.trim()].join("|");
+      }));
+      expect(versions.sort()).toEqual(coverage.sdks.map((sdk) =>
+        [sdk.version, sdk.latestVersion, sdk.latestCheckedAt].join("|")).sort());
+      expect(coverage.applications.map((app) => app.id).sort())
+        .toEqual(["web", "web-ui", "ios", "tvos", "android", "react-native", "vega"].sort());
+      for (const app of coverage.applications) {
+        await test.step(app.id, async () => {
+          const response = await page.goto(guidePath(language, `api-coverage/${app.id}`));
+          expect(response?.status()).toBe(200);
+          await expect(page.locator("html")).toHaveAttribute("lang", language);
+          await expect(page.locator("[data-api-id]:visible")).toHaveCount(app.rows.length);
+          const sdk = coverage.sdks.find((item) => item.id === app.sdkId)!;
+          await expect(page.locator("main > p code").first()).toHaveText(sdk.version);
+          const rows = await page.locator("[data-api-id]").evaluateAll((elements) => elements.map((element) => {
+            const row = element.closest("tr")!;
+            const group = element.closest("details.guide-api-group")!;
+            let heading = group.previousElementSibling;
+            while (heading && heading.tagName !== "H2") heading = heading.previousElementSibling;
+            return { id:element.getAttribute("data-api-id")!, anchor:element.id, category:heading?.id,
+              scope:row.children[1]?.textContent?.trim(), status:row.querySelector("[data-api-status]")?.getAttribute("data-api-status"),
+              deprecated:row.children[3]?.textContent?.trim(),
+              reference:row.querySelector("td:last-child > a")?.getAttribute("href") };
+          }));
+          expect(new Set(rows.map((row) => row.id)).size).toBe(app.rows.length);
+          expect(Object.fromEntries(rows.map(({ anchor, ...row }) => [row.id, row])))
+            .toEqual(Object.fromEntries(app.rows.map((row) => [row.id,
+              { id:row.id, category:row.category, scope:row.scope, status:row.status,
+                deprecated:language === "ja" ? (row.deprecated ? "該当" : "非該当") : (row.deprecated ? "Yes" : "No"),
+                reference:row.officialReference }])));
+          for (const category of new Set(app.rows.map((row) => row.category))) {
+            await expect(page.locator(`main > h2[id="${category}"]`)).toHaveCount(1);
+          }
+          const scopeRows = await page.locator("#scopes + .guide-table tbody tr").evaluateAll((elements) =>
+            elements.map((row) => row.querySelector("td:first-child code")?.textContent));
+          expect(scopeRows.sort()).toEqual([...new Set(app.rows.map((row) => row.scope))].sort());
+          for (const row of rows) expect(row.anchor).toMatch(/^api-[a-f0-9]+$/);
+          await expectNoDocumentOverflow(page);
+          if (app.id === "ios") {
+            const image = testInfo.outputPath(`api-coverage-${language}-native.png`);
+            await page.screenshot({ path: image });
+            await testInfo.attach(`api-coverage-${language}-native`, { path: image, contentType: "image/png" });
+            const native = app.rows.flatMap((row) => row.evidence.filter((item) =>
+              item.kind === "sdk" && item.file.includes("%3A")).map((evidence) => ({ row, evidence })))[0]!;
+            const anchor = rows.find((row) => row.id === native.row.id)!.anchor;
+            const proof = page.locator(`#${anchor}`).locator("xpath=ancestor::tr").locator("details.guide-evidence");
+            await proof.locator("summary").focus();
+            await page.keyboard.press("Enter");
+            await expect(proof).toHaveAttribute("open", "");
+            await expect(proof.getByText(`${native.evidence.package}@${native.evidence.version} / ${native.evidence.file}`,
+              { exact:true })).toBeVisible();
+            await expect(proof.getByText(native.evidence.sha256, { exact:true })).toBeVisible();
+            const proofLinks = await proof.locator("a").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+            expect(proofLinks.every((href) => href?.startsWith(
+              `https://github.com/kazuhide/player-lab/blob/${coverage.sourceRevision}/`))).toBe(true);
+          }
+        });
+      }
+    });
+
     test(`${language} content and references remain navigable`, async ({ page }) => {
       await page.goto(guidePath(language));
       await expect(page.locator("noscript p")).toContainText(messages[language].noScript);
@@ -491,5 +604,52 @@ test.describe("guide without JavaScript", () => {
       await expectHeadingStructure(page);
       await expectNoDocumentOverflow(page);
     });
+  }
+});
+
+test("API search, bilingual fragments and table disclosure work with the keyboard", async ({ page }) => {
+  await page.setViewportSize({ width:375, height:900 });
+  const android = coverage.applications.find((app) => app.id === "android")!;
+  const targetRow = android.rows.filter((row) => row.category === "configuration")
+    .reduce((longest, row) => row.id.length > longest.id.length ? row : longest);
+  for (const language of languages) {
+    await page.goto(guidePath(language, "api-coverage"));
+    await page.locator("[data-guide-search]").fill(targetRow.id);
+    const result = page.locator("[data-search-results]").getByRole("link", { name:targetRow.id, exact:true });
+    await expect(result).toBeVisible();
+    const destination = new URL((await result.getAttribute("href"))!, page.url());
+    expect(destination.pathname).toBe(guidePath(language, "api-coverage/android"));
+    expect(destination.hash).toMatch(/^#api-[a-f0-9]+$/);
+    await result.click();
+    await expect(page).toHaveURL(destination.href);
+    const target = page.locator(destination.hash);
+    await expect(target).toHaveAttribute("data-api-id", targetRow.id);
+    await expect.poll(() => target.evaluate((element) => {
+      const top = element.getBoundingClientRect().top;
+      return top >= document.querySelector(".guide-header")!.getBoundingClientRect().bottom - 1 && top < innerHeight;
+    })).toBe(true);
+    const group = target.locator("xpath=ancestor::details[contains(@class, 'guide-api-group')]");
+    await group.locator(":scope > summary").focus();
+    await page.keyboard.press("Enter");
+    await expect(group).not.toHaveAttribute("open", "");
+    await expect(target).toBeHidden();
+    await page.keyboard.press("Enter");
+    await expect(group).toHaveAttribute("open", "");
+    await expect(target).toBeVisible();
+    const region = group.locator(".guide-coverage-table");
+    expect(await region.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+    await region.focus();
+    await page.keyboard.press("ArrowRight");
+    await expect.poll(() => region.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+    await expectNoDocumentOverflow(page);
+    await page.locator("a[data-guide-language]").click();
+    const other = language === "en" ? "ja" : "en";
+    await expect(page).toHaveURL((url) => url.pathname === guidePath(other, "api-coverage/android")
+      && url.hash === destination.hash);
+    await expect(target).toHaveAttribute("data-api-id", targetRow.id);
+    await expect.poll(() => target.evaluate((element) => {
+      const top = element.getBoundingClientRect().top;
+      return top >= document.querySelector(".guide-header")!.getBoundingClientRect().bottom - 1 && top < innerHeight;
+    })).toBe(true);
   }
 });

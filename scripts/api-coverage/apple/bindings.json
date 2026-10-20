@@ -1,0 +1,10 @@
+{
+  "apple": {
+    "file": "apps/ios/Package.resolved",
+    "pointer": "/pins/0/state/version"
+  },
+  "bitmovin-player-ios-core": {
+    "file": "apps/ios/Package.resolved",
+    "pointer": "/pins/1/state/version"
+  }
+}

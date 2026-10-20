@@ -20,6 +20,7 @@ TEXT = {
         'start': 'Getting started', 'native': 'Native examples', 'media': 'Media and measurements',
         'reference': 'Reference', 'web_group': 'Web controls and UI',
         'settings': 'Player Config reference', 'controls': 'All 35 controls', 'themes': 'All 14 themes',
+        'api-coverage': 'Public API coverage',
         'kind': 'Input', 'fallback': 'Form fallback', 'options': 'Choices', 'api': 'Player API',
         'field': 'Setting', 'description': 'Meaning and use', 'mode': 'Applies',
         'runtime': 'Immediately', 'reload': 'Reload the source', 'recreate': 'Recreate the player',
@@ -45,6 +46,7 @@ TEXT = {
         'start': '利用の準備', 'native': 'ネイティブ版', 'media': '素材と測定',
         'reference': 'リファレンス', 'web_group': 'Webの操作とUI',
         'settings': 'Player Configの全設定', 'controls': '全35操作', 'themes': '全14テーマ',
+        'api-coverage': '公開APIの対応状況',
         'kind': '入力形式', 'fallback': '代替表示値', 'options': '選択肢', 'api': 'Player API',
         'field': '設定名', 'description': '意味と使い方', 'mode': '適用方法',
         'runtime': '即時に適用', 'reload': 'ソースを再読み込み', 'recreate': 'Playerを再生成',
@@ -145,7 +147,8 @@ def navigation(content, language, page, current):
         title = labels['web_group'] if category == 'web' else labels[category]
         entries = [(key, content[key]['title']) for key, group in CHAPTERS.items() if group == category]
         if category == 'reference':
-            entries = [('settings', labels['settings']), ('controls', labels['controls']), ('themes', labels['themes']), *entries]
+            entries = [('settings', labels['settings']), ('controls', labels['controls']),
+                       ('themes', labels['themes']), ('api-coverage', labels['api-coverage']), *entries]
         links = ''.join(f'<li><a href="{esc(relative(page, route_file(language, key)))}"'
                         + (' aria-current="page"' if current == key or current.startswith(key + '/') else '')
                         + f'>{esc(title)}</a></li>' for key, title in entries)
