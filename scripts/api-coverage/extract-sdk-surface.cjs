@@ -113,13 +113,18 @@ function createExtractor({ packageRoot, entryFile, dependencies = {}, checkedAt 
     const refs = locations(symbol); if (!refs.length) refs.push(...origin);
     for (const ref of refs) if (!old.declarations.some(x => x.file === ref.file && x.line === ref.line)) old.declarations.push(ref);
     old.deprecated ||= tags(symbol).includes('deprecated');
-    const { contracts, ...facts } = extra;
+    const { contracts, indices } = extra;
     if (contracts) {
       const chains = [...(old.contracts || [])];
       if (!chains.some(chain => JSON.stringify(chain) === JSON.stringify(contracts))) chains.push(contracts);
       old.contracts = chains.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
     }
-    Object.assign(old, facts); old.officialReference = memberRef(id, old.declarations); members.set(id, old);
+    if (indices) {
+      const all = [...(old.indices || [])];
+      for (const index of indices) if (!all.some(item => JSON.stringify(item) === JSON.stringify(index))) all.push(index);
+      old.indices = all.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    }
+    old.officialReference = memberRef(id, old.declarations); members.set(id, old);
   }
   function configWalk(t, id, ancestors, symbol, origin, options, parents = []) {
     const ownOrigin = locations(symbol); if (ownOrigin.length) origin = ownOrigin;
@@ -159,7 +164,17 @@ function createExtractor({ packageRoot, entryFile, dependencies = {}, checkedAt 
       return;
     }
     const properties = t.getProperties(); const indices = checker.getIndexInfosOfType(t);
-    if (indices.length) { addConfig(id + (properties.length ? '{*}' : ''), t, 'dynamic-map', symbol, origin, { contracts, indices: indices.map(i => ({ key: text(i.keyType), value: text(i.type) })) }); if (!properties.length) return; }
+    if (indices.length) {
+      const mapId = id + (properties.length ? '{*}' : '');
+      const indexFacts = indices.map(i => ({ key: text(i.keyType), value: text(i.type), readonly: i.isReadonly }))
+        .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+      // Associate index contracts with their branch, rather than only retaining
+      // a flat union whose values could move between named branches unnoticed.
+      addConfig(mapId, t, 'dynamic-map', symbol, origin, {
+        contracts: [...contracts, { path: mapId, indices: indexFacts }], indices: indexFacts,
+      });
+      if (!properties.length) return;
+    }
     const owner = t.aliasSymbol || t.symbol; const declarations = owner?.declarations || [];
     if (declarations.some(ts.isClassDeclaration)) { add('instance-boundary'); return; }
     if (declarations.length && declarations.every(d => !d.getSourceFile().fileName.startsWith(packageRoot)) && !['Partial', 'Required', 'Readonly', 'Record', 'Pick', 'Omit'].includes(owner?.name)) { add('external-boundary'); return; }

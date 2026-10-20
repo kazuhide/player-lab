@@ -85,3 +85,27 @@ test('moving a property contract between named union branches is a change', () =
     assert.deepEqual(changed(before, after), ['Config.choice.value']);
   });
 });
+
+test('dynamic index contracts retain each named union branch', () => {
+  withFixture(extract => {
+    const before = extract('1.0.0', `interface A { [key: string]: boolean }
+      interface B { [key: string]: number }
+      export interface Config { choice: A | B }`);
+    const after = extract('1.0.1', `interface A { [key: string]: string }
+      interface B { [key: string]: number }
+      export interface Config { choice: A | B }`);
+    assert.deepEqual(changed(before, after), ['Config.choice']);
+    const swapped = extract('1.0.2', `interface A { [key: string]: number }
+      interface B { [key: string]: string }
+      export interface Config { choice: A | B }`);
+    assert.deepEqual(changed(after, swapped), ['Config.choice']);
+    const reordered = extract('1.0.3', `interface A { [key: string]: number }
+      interface B { [key: string]: string }
+      export interface Config { choice: B | A }`);
+    assert.deepEqual(changed(swapped, reordered), []);
+    const readonly = extract('1.0.4', `interface A { readonly [key: string]: number }
+      interface B { [key: string]: string }
+      export interface Config { choice: B | A }`);
+    assert.deepEqual(changed(reordered, readonly), ['Config.choice']);
+  });
+});
