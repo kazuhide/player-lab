@@ -10,7 +10,7 @@ import unittest
 from urllib.parse import unquote, urlsplit
 
 from coverage_report import summarize
-from guide_coverage import api_anchor
+from guide_coverage import api_anchor, category_metrics
 from guide_routes import COVERAGE_APPS, GUIDE_ASSETS, GUIDE_FILES, route_file
 from user_guide import build, load_content, render_block, source_url
 
@@ -196,8 +196,7 @@ class GuideTests(unittest.TestCase):
 
     def test_metrics_are_derived_and_observations_do_not_earn_action_credit(self):
         overview = self.pages[route_file('en', 'api-coverage')].decode()
-        self.assertIn('1 / 3 · 33.33%', overview)
-        self.assertIn('2 / 3 · 66.67%', overview)
+        self.assertIn('<td>3</td><td>2 / 3 · 66.67%</td><td>1</td><td>1</td><td>0</td>', overview)
         self.assertNotIn('Overall coverage', overview)
         changed = copy.deepcopy(self.report)
         row = copy.deepcopy(changed['applications'][0]['rows'][0])
@@ -205,8 +204,44 @@ class GuideTests(unittest.TestCase):
         changed['applications'][0]['rows'].append(row)
         pages = build(self.content, coverage=(changed, summarize(changed)))
         updated = pages[route_file('en', 'api-coverage')].decode()
-        self.assertIn('1 / 4 · 25.00%', updated)
-        self.assertIn('3 / 4 · 75.00%', updated)
+        self.assertIn('<td>4</td><td>3 / 4 · 75.00%</td><td>1</td><td>2</td><td>0</td>', updated)
+
+    def test_code_configuration_is_counted_without_claiming_a_gui_editor(self):
+        report = copy.deepcopy(self.report)
+        app = next(a for a in report['applications'] if a['id'] == 'ios')
+        app['rows'][0]['status'] = 'code-only'
+        for status in ('internal', 'sdk-ui-unverified', 'missing'):
+            row = copy.deepcopy(app['rows'][0])
+            row.update(id='ios:Fixture.' + status, status=status)
+            app['rows'].append(row)
+        pages = build(self.content, coverage=(report, summarize(report)))
+        for language, labels in [('en', ('Configuration APIs used', 'Individual GUI edit', 'GUI preset', 'Code only')),
+                                 ('ja', ('設定APIの使用数', 'GUIで個別変更', 'GUIで候補選択', 'コード内のみ'))]:
+            table = category_metrics([app], 'configuration', language, route_file(language, 'api-coverage'),
+                                     self.content[language]['api-coverage'])
+            for label in labels:
+                self.assertIn('<th scope="col">' + label + '</th>', table)
+            cells = '<td>6</td><td>2 / 6 · 33.33%</td><td>0</td><td>1</td><td>1</td>'
+            self.assertIn(cells, table)
+            for slug in ('api-coverage', 'api-coverage/ios'):
+                self.assertIn(cells, pages[route_file(language, slug)].decode())
+
+    def test_native_configuration_totals_include_audited_code_only_entries(self):
+        report = json.loads((ROOT / 'docs/api-coverage/coverage.json').read_text())
+        expected = {'ios': (209, '11 / 209 · 5.26%', 5, 6),
+                    'tvos': (180, '8 / 180 · 4.44%', 1, 7),
+                    'android': (294, '10 / 294 · 3.40%', 5, 5),
+                    'react-native': (267, '8 / 267 · 3.00%', 5, 3),
+                    'vega': (653, '8 / 653 · 1.23%', 3, 5)}
+        for app in report['applications']:
+            if app['id'] not in expected:
+                continue
+            total, used, preset, code = expected[app['id']]
+            for language in ('en', 'ja'):
+                with self.subTest(app=app['id'], language=language):
+                    table = category_metrics([app], 'configuration', language, route_file(language, 'api-coverage'),
+                                             self.content[language]['api-coverage'])
+                    self.assertIn(f'<td>{total}</td><td>{used}</td><td>0</td><td>{preset}</td><td>{code}</td>', table)
 
     def test_zero_denominators_have_no_invented_percentage(self):
         changed = copy.deepcopy(self.report)

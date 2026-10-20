@@ -16,7 +16,8 @@ LABELS = {
         'direct': 'Direct GUI', 'preset': 'Constrained preset', 'observed': 'Observed in GUI',
         'internal': 'Internal use', 'code-only': 'Code only', 'missing': 'No mapped GUI control',
         'sdk-ui-unverified': 'SDK UI unverified', 'app': 'Application', 'total': 'Available IDs',
-        'direct_count': 'Direct', 'combined': 'Direct + preset', 'seen': 'Visible in GUI',
+        'direct_count': 'Individual GUI edit', 'combined': 'Direct + preset', 'seen': 'Visible in GUI',
+        'used_config': 'Configuration APIs used', 'preset_config': 'GUI preset', 'code_config': 'Code only',
         'direct_command': 'Direct operation', 'combined_command': 'Direct + preset',
         'versions': 'SDK versions and latest checks', 'sdk': 'SDK', 'pinned': 'Pinned version',
         'latest': 'Latest checked version', 'checked': 'Checked', 'sources': 'Official sources',
@@ -28,8 +29,9 @@ LABELS = {
         'not_applicable': 'Not applicable', 'applications': 'Application inventories',
         'overview': 'API coverage overview', 'channel': 'Channel', 'hash': 'SHA-256',
         'status_key': 'How to read the statuses',
-        'metric_note': 'Each category has its own denominator. Direct controls and constrained presets stay separate. Observation and event visibility includes direct, preset and observed statuses. A zero denominator has no percentage.',
-        'limit_note': 'These are source-backed mappings of app GUI controls. SDK UI marked unverified receives no verified credit. Scope notes qualify each inventory; counts do not establish playback or device testing. There is no combined coverage percentage.',
+        'metric_note': 'Each category has its own denominator. Configuration APIs used is the sum of individual GUI edits, GUI presets and code-only configuration entries. A zero individual GUI count does not mean the app has no configuration code. Observation and event visibility includes direct, preset and observed statuses. A zero denominator has no percentage.',
+        'configuration_note': 'Configuration counts use SDK API entries, including configuration-object access and nested properties, rather than independent editable fields. Code-only entries include fixed values and helper code without a GUI; changing these values requires editing the source and rebuilding. SDK defaults are not counted as app configuration. Source mappings do not prove that a setting has been applied on a device.',
+        'limit_note': 'These are source-backed mappings of app configuration, GUI controls and visible output. SDK UI marked unverified receives no verified credit. Scope notes qualify each inventory; counts do not establish playback or device testing. There is no combined coverage percentage.',
         'status_note': 'Internal use and code-only entries are not GUI controls. “No mapped GUI control” describes the audited app scope. It does not establish that an opaque SDK UI lacks the feature.',
         'excluded_note': 'Excluded IDs do not enter the category denominators. Deprecated operational APIs remain included.',
         'notes_language': 'Scope notes are supplied by the public inventory.',
@@ -39,7 +41,8 @@ LABELS = {
         'direct': 'GUIから直接利用', 'preset': '限定プリセット', 'observed': 'GUIで観測',
         'internal': '内部で使用', 'code-only': 'コードのみ', 'missing': '対応するGUIなし',
         'sdk-ui-unverified': 'SDK UIは未確認', 'app': 'アプリ', 'total': '対象API ID数',
-        'direct_count': '直接指定', 'combined': '直接指定＋プリセット', 'seen': 'GUIで確認できる項目',
+        'direct_count': 'GUIで個別変更', 'combined': '直接指定＋プリセット', 'seen': 'GUIで確認できる項目',
+        'used_config': '設定APIの使用数', 'preset_config': 'GUIで候補選択', 'code_config': 'コード内のみ',
         'direct_command': '直接操作', 'combined_command': '直接操作＋プリセット',
         'versions': 'SDKバージョンと最新版の確認', 'sdk': 'SDK', 'pinned': '固定バージョン',
         'latest': '確認した最新版', 'checked': '確認日', 'sources': '公式資料',
@@ -51,8 +54,9 @@ LABELS = {
         'not_applicable': '対象なし', 'applications': 'アプリ別の全API一覧',
         'overview': 'API対応状況の概要', 'channel': '提供区分', 'hash': 'SHA-256',
         'status_key': '対応状況の読み方',
-        'metric_note': '設定・操作・観測値・イベントは、それぞれ別の分母で集計します。直接利用と限定プリセットを分けて表示します。観測値とイベントの表示件数は、直接利用・プリセット・GUIでの観測を合計したものです。分母が0の場合、割合は表示しません。',
-        'limit_note': 'アプリのGUIと公開コードの対応を示す一覧です。未確認のSDK UIは確認済みの件数に含めません。アプリごとの対象範囲と制限も確認してください。件数は実再生や実機試験の結果を示すものではありません。全区分を混ぜた対応率は算出しません。',
+        'metric_note': '設定・操作・観測値・イベントは、それぞれ別の分母で集計します。設定APIの使用数は、GUIで個別変更・GUIで候補選択・コード内のみの合計です。GUIで個別変更できる件数が0でも、設定コードがないという意味ではありません。観測値とイベントの表示件数は、直接利用・プリセット・GUIでの観測を合計したものです。分母が0の場合、割合は表示しません。',
+        'configuration_note': '設定はSDKのAPI単位で数えます。設定オブジェクトへのアクセスと、その中のプロパティを含むため、独立して編集できる項目数とは異なります。「コード内のみ」には固定値やGUIにつないでいない補助コードも含み、値の変更にはソースの編集と再ビルドが必要です。SDKの既定値はアプリの設定件数に加えません。コード上の対応付けは、実機での設定適用を確認した結果ではありません。',
+        'limit_note': 'アプリの設定・GUI操作・表示と公開コードの対応を示す一覧です。未確認のSDK UIは確認済みの件数に含めません。アプリごとの対象範囲と制限も確認してください。件数は実再生や実機試験の結果を示すものではありません。全区分を混ぜた対応率は算出しません。',
         'status_note': '内部使用とコードのみの項目はGUI操作に含めません。「対応するGUIなし」は調査したアプリの範囲での判定です。内部構造を確認していないSDK UIの機能有無を示すものではありません。',
         'excluded_note': '除外したIDは各区分の分母に含めません。利用可能な非推奨APIは集計対象に残します。',
         'notes_language': '対象範囲の説明は、公開インベントリに対応する日本語訳です。',
@@ -246,16 +250,24 @@ def sdk_label(sdk, document, language):
 
 def category_metrics(apps, category, language, page, document):
     labels = LABELS[language]
-    action = category in {'configuration', 'command'}
-    direct_key, combined_key = ('direct_command', 'combined_command') if category == 'command' else ('direct_count', 'combined')
-    headers = [labels['app'], labels['total'], labels[direct_key], labels[combined_key]] if action else [labels['app'], labels['total'], labels['seen']]
+    if category == 'configuration':
+        columns = ('used_config', 'direct_count', 'preset_config', 'code_config')
+    elif category == 'command':
+        columns = ('direct_command', 'combined_command')
+    else:
+        columns = ('seen',)
+    headers = [labels['app'], labels['total'], *(labels[key] for key in columns)]
     rows = []
     for app in apps:
         selected = [r for r in app['rows'] if r['category'] == category]
         counts, total = Counter(r['status'] for r in selected), len(selected)
         href = relative(page, route_file(language, 'api-coverage/' + app['id'])) + '#' + category
         cells = [f'<a href="{esc(href)}">{esc(app_label(app, document, language))}</a>', str(total)]
-        if action:
+        if category == 'configuration':
+            used = counts['direct'] + counts['preset'] + counts['code-only']
+            cells.extend([fraction(used, total, labels), str(counts['direct']),
+                          str(counts['preset']), str(counts['code-only'])])
+        elif category == 'command':
             cells.extend([fraction(counts['direct'], total, labels), fraction(counts['direct'] + counts['preset'], total, labels)])
         else:
             cells.append(fraction(counts['direct'] + counts['preset'] + counts['observed'], total, labels))
@@ -352,6 +364,8 @@ def app_body(app, data, document, language, page):
     output.append(f'<p class="guide-note">{labels["metric_note"]}</p>')
     for category in CATEGORIES:
         output.append(f'<h2 id="{category}">{labels[category]}</h2>')
+        if category == 'configuration':
+            output.append(f'<p class="guide-note">{labels["configuration_note"]}</p>')
         output.append(category_metrics([app], category, language, page, document))
         output.append(rows_table(app, category, data, language))
     output.append(f'<h2 id="exclusions">{labels["excluded"]} ({len(app["excluded"])})</h2><p>{labels["excluded_note"]}</p>')
@@ -377,7 +391,10 @@ def coverage_pages(documents, data, summary, language):
         output.append(f'<li><a href="{esc(href)}">{esc(app_label(app, document, language))}</a></li>')
     output.append('</ul>')
     for category in CATEGORIES:
-        output.extend([f'<h2 id="{category}">{labels[category]}</h2>', category_metrics(apps, category, language, page, document)])
+        output.append(f'<h2 id="{category}">{labels[category]}</h2>')
+        if category == 'configuration':
+            output.append(f'<p class="guide-note">{labels["configuration_note"]}</p>')
+        output.append(category_metrics(apps, category, language, page, document))
     pages = {page:page_html(documents[language], language, 'api-coverage', document['title'], document['lead'], ''.join(output)).encode()}
     search = [{'kind':'chapter', 'title':document['title'], 'url':'api-coverage/', 'excerpt':document['lead'], 'text':document['lead']}]
     for app in apps:

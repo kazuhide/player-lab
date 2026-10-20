@@ -1,5 +1,5 @@
 {
   "id": "api-coverage",
   "title": "Public API coverage",
-  "lead": "Compare the SDK APIs available in each application with the controls and displays supported by its public source code. Open an application inventory for every qualified API ID and its evidence."
+  "lead": "Compare the SDK APIs available in each application with the configuration code, GUI controls and displays in its public source. Configuration totals include code-only settings and show GUI access separately. Open an application inventory for every qualified API ID and its evidence."
 }
