@@ -24,6 +24,12 @@ STABLE = re.compile(r'(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)\Z')
 VEGA = re.compile(r'8\.138\.0-beta\.(0|[1-9]\d*)\Z')
 
 
+def managed_update_prs(rows):
+    """Preserve same-repository update drafts targeting the main branch."""
+    return [row for row in rows if not row['isCrossRepository'] and row['baseRefName'] == 'main'
+            and row['headRefName'].startswith('automation/player-sdk-update-')]
+
+
 def version_key(value, sdk_id):
     pattern = VEGA if sdk_id == 'vega' else STABLE
     if not isinstance(value, str) or not pattern.fullmatch(value):
@@ -108,7 +114,8 @@ def api_delta(before, after):
         b = {row['id']: row for row in new[sdk_id]['rows']}
         if len(a) != len(old[sdk_id]['rows']) or len(b) != len(new[sdk_id]['rows']):
             raise UpdateError('Duplicate extracted API member.')
-        facts = ('category', 'scope', 'deprecated', 'kinds', 'types', 'type', 'signatures', 'readonly', 'writable', 'value')
+        facts = ('category', 'scope', 'deprecated', 'kinds', 'types', 'type', 'signatures',
+                 'readonly', 'writable', 'value', 'optional', 'contracts', 'indices')
         changed = sorted(key for key in a.keys() & b.keys()
                          if any(a[key].get(fact) != b[key].get(fact) for fact in facts))
         result.append({'id': sdk_id, 'beforeVersion': old[sdk_id]['version'],

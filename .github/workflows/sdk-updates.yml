@@ -33,6 +33,7 @@ jobs:
       - name: Verify the current inventory and release-channel parser
         run: |
           python3 scripts/test-sdk-updates.py
+          node --test scripts/api-coverage/test-update-contracts.cjs
           python3 scripts/check-api-coverage.py
       - name: Inspect official release channels
         id: report
@@ -76,12 +77,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr list --state open --limit 1000 --json headRefName,url > "$RUNNER_TEMP/open-prs.json"
+          gh pr list --state open --limit 1000 --json headRefName,url,isCrossRepository,baseRefName > "$RUNNER_TEMP/open-prs.json"
           python3 - <<'PY'
-          import json, os
+          import json, os, sys
           from pathlib import Path
-          pending = [row for row in json.loads((Path(os.environ['RUNNER_TEMP']) / 'open-prs.json').read_text())
-                     if row['headRefName'].startswith('automation/player-sdk-update-')]
+          sys.path.insert(0, 'scripts')
+          from sdk_updates import managed_update_prs
+          pending = managed_update_prs(json.loads((Path(os.environ['RUNNER_TEMP']) / 'open-prs.json').read_text()))
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write('exists=' + str(bool(pending)).lower() + '\n')
           if pending:

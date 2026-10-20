@@ -115,36 +115,44 @@ function createExtractor({ packageRoot, entryFile, dependencies = {}, checkedAt 
     old.deprecated ||= tags(symbol).includes('deprecated');
     Object.assign(old, extra); old.officialReference = memberRef(id, old.declarations); members.set(id, old);
   }
-  function configWalk(t, id, ancestors, symbol, origin, options) {
+  function configWalk(t, id, ancestors, symbol, origin, options, parents = []) {
     const ownOrigin = locations(symbol); if (ownOrigin.length) origin = ownOrigin;
+    // Scalar rows omit null/undefined. Retain the full property and enclosing
+    // property contracts so release comparisons still detect breaking changes.
+    const contracts = parents.at(-1)?.path === id ? parents : [...parents, {
+      path: id, type: text(symbol ? symbolType(symbol) : t),
+      optional: Boolean(symbol?.flags & ts.SymbolFlags.Optional),
+      readonly: (symbol?.declarations || []).some(d => ts.getCombinedModifierFlags(d) & ts.ModifierFlags.Readonly),
+    }];
+    const add = (kind, extra = {}) => addConfig(id, t, kind, symbol, origin, { ...extra, contracts });
     if (options.omitPaths?.includes(id)) { excluded.push({ id, reason: 'reported in a separate configuration scope', declarations: origin }); return; }
     const boundary = options.boundaries?.[id];
-    if (boundary) { addConfig(id, t, boundary, symbol, origin); return; }
+    if (boundary) { add(boundary); return; }
     if (t.flags & (TYPE_FLAGS.Undefined | TYPE_FLAGS.Null | TYPE_FLAGS.Never)) return;
-    if (t.flags & TYPE_FLAGS.EnumLike) { addConfig(id, t, 'scalar', symbol, origin); return; }
-    if (t.isUnion()) { for (const part of t.types) configWalk(part, id, ancestors, symbol, origin, options); return; }
-    if (t.flags & (TYPE_FLAGS.Any | TYPE_FLAGS.Unknown)) { addConfig(id, t, 'opaque', symbol, origin); return; }
-    if (t.getCallSignatures().length) { addConfig(id, t, 'callback', symbol, origin); return; }
-    if (!(t.flags & TYPE_FLAGS.Object)) { addConfig(id, t, 'scalar', symbol, origin); return; }
-    if (ancestors.includes(t)) { addConfig(id, t, 'recursive-boundary', symbol, origin); return; }
+    if (t.flags & TYPE_FLAGS.EnumLike) { add('scalar'); return; }
+    if (t.isUnion()) { for (const part of t.types) configWalk(part, id, ancestors, symbol, origin, options, contracts); return; }
+    if (t.flags & (TYPE_FLAGS.Any | TYPE_FLAGS.Unknown)) { add('opaque'); return; }
+    if (t.getCallSignatures().length) { add('callback'); return; }
+    if (!(t.flags & TYPE_FLAGS.Object)) { add('scalar'); return; }
+    if (ancestors.includes(t)) { add('recursive-boundary'); return; }
     if (arrayLike(t)) {
       const element = checker.getIndexTypeOfType(t, ts.IndexKind.Number);
       const parts = element?.isUnion() ? element.types : [element];
-      if (parts.every(x => x && !(x.flags & TYPE_FLAGS.Object))) addConfig(id, t, 'scalar-array', symbol, origin);
-      else if (element) configWalk(element, `${id}[]`, [...ancestors, t], symbol, origin, options);
-      else addConfig(id, t, 'opaque-array', symbol, origin);
+      if (parts.every(x => x && !(x.flags & TYPE_FLAGS.Object))) add('scalar-array');
+      else if (element) configWalk(element, `${id}[]`, [...ancestors, t], symbol, origin, options, contracts);
+      else add('opaque-array');
       return;
     }
     const properties = t.getProperties(); const indices = checker.getIndexInfosOfType(t);
-    if (indices.length) { addConfig(id + (properties.length ? '{*}' : ''), t, 'dynamic-map', symbol, origin, { indices: indices.map(i => ({ key: text(i.keyType), value: text(i.type) })) }); if (!properties.length) return; }
+    if (indices.length) { addConfig(id + (properties.length ? '{*}' : ''), t, 'dynamic-map', symbol, origin, { contracts, indices: indices.map(i => ({ key: text(i.keyType), value: text(i.type) })) }); if (!properties.length) return; }
     const owner = t.aliasSymbol || t.symbol; const declarations = owner?.declarations || [];
-    if (declarations.some(ts.isClassDeclaration)) { addConfig(id, t, 'instance-boundary', symbol, origin); return; }
-    if (declarations.length && declarations.every(d => !d.getSourceFile().fileName.startsWith(packageRoot)) && !['Partial', 'Required', 'Readonly', 'Record', 'Pick', 'Omit'].includes(owner?.name)) { addConfig(id, t, 'external-boundary', symbol, origin); return; }
-    if (!properties.length) { addConfig(id, t, 'opaque-object', symbol, origin); return; }
+    if (declarations.some(ts.isClassDeclaration)) { add('instance-boundary'); return; }
+    if (declarations.length && declarations.every(d => !d.getSourceFile().fileName.startsWith(packageRoot)) && !['Partial', 'Required', 'Readonly', 'Record', 'Pick', 'Omit'].includes(owner?.name)) { add('external-boundary'); return; }
+    if (!properties.length) { add('opaque-object'); return; }
     for (const property of properties) {
       const next = append(id, property.name);
       if (hidden(property)) { excluded.push({ id: next, reason: 'hidden/internal/private/protected', declarations: locations(property) }); continue; }
-      configWalk(symbolType(property), next, [...ancestors, t], property, origin, options);
+      configWalk(symbolType(property), next, [...ancestors, t], property, origin, options, contracts);
     }
   }
   function configuration(roots, options = {}) {

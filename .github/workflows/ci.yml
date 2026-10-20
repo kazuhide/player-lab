@@ -54,6 +54,7 @@ jobs:
       - name: Check SDK versions and API coverage
         run: |
           python3 scripts/test-sdk-updates.py
+          node --test scripts/api-coverage/test-update-contracts.cjs
           python3 scripts/test-api-coverage.py
           node --test scripts/api-coverage/extract-sdk-surface.test.cjs
           python3 scripts/api-coverage/apple/test_normalize_apple.py

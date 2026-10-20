@@ -7,7 +7,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from sdk_updates import SOURCES, UpdateError, api_delta, inspect_releases, latest_version
+from sdk_updates import SOURCES, UpdateError, api_delta, inspect_releases, latest_version, managed_update_prs
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,6 +33,14 @@ def metadata(url):
 
 
 class ReleaseTests(unittest.TestCase):
+    def test_only_same_repository_main_update_prs_suppress_a_new_draft(self):
+        own = {'headRefName': 'automation/player-sdk-update-123', 'isCrossRepository': False, 'baseRefName': 'main'}
+        fork = {**own, 'isCrossRepository': True}
+        other_base = {**own, 'baseRefName': 'release'}
+        unrelated = {**own, 'headRefName': 'feature/unrelated'}
+        self.assertEqual(managed_update_prs([fork, other_base, unrelated]), [])
+        self.assertEqual(managed_update_prs([fork, own, other_base]), [own])
+
     def test_numeric_versions_and_supported_vega_channel(self):
         report = inspect_releases(coverage(), 'a' * 40, metadata)
         self.assertEqual(len(report['sdks']), 6)
