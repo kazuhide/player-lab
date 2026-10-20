@@ -20,15 +20,17 @@ import { Button, Platform, ScrollView, StyleSheet, Switch, Text, View } from "re
 import {
   CustomUi,
   PlayerView,
-  SourceType,
   UserInterfaceType,
   usePlayer,
+  type SourceConfig,
   type PlayerViewConfig,
   type WebUiConfig,
 } from "bitmovin-player-react-native";
 import type { DvrState } from "./src/dvr/state";
 import { SnapshotController } from "./src/dvr/snapshotController";
 import { SOURCES, type ShowcaseSource } from "./src/sources";
+import { ConfigurationPanel } from "./src/ConfigurationPanel";
+import { initialDraft, parseConfiguration, presetDraft, sameConfiguration, supportsSource, type Configuration } from "./src/configuration";
 
 // Both keys flow from the repo-root .env via scripts/sync-env.sh → this app's .env
 // (EXPO_PUBLIC_* = client-embedded; license keys are domain-locked, not secret).
@@ -64,17 +66,40 @@ const UI_MODES: UiMode[] = [
   { label: "Cinema", factoryFunction: "bitmovin.playerui.UIFactory.buildCinemaUI" },
 ];
 
-function sdkType(kind: ShowcaseSource["kind"]): SourceType {
-  return kind === "live-hls" || kind === "vod-hls" ? SourceType.HLS : SourceType.DASH;
-}
-
 export default function App(): React.JSX.Element {
+  const platform = Platform.OS === "ios" ? "ios" : "android";
+  const sources = SOURCES.filter((source) => supportsSource(source, platform));
   const [uiMode, setUiMode] = useState<UiMode>(DEFAULT_MODE);
-  // The selected source lives here (not in PlayerPane) so it survives a UI-mode switch, which
-  // remounts the pane — otherwise every switch would snap back to the first source.
-  const [source, setSource] = useState<ShowcaseSource | undefined>(SOURCES[0]);
+  // Keep the complete applied source and control state outside the keyed player owner.
+  const [applied, setApplied] = useState(() => parseConfiguration(initialDraft(sources[0]!), platform));
+  const [draft, setDraft] = useState(applied.draft);
+  const [revision, setRevision] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [timeShiftEnabled, setTimeShiftEnabled] = useState(true);
+  const [log, setLog] = useState<string[]>([]);
+  const append = useCallback((message: string) => setLog((lines) => [message, ...lines].slice(0, 40)), []);
+  const selectSource = (source: ShowcaseSource) => {
+    const fields = presetDraft(source);
+    const next = parseConfiguration({ ...applied.draft, ...fields }, platform);
+    setApplied(next);
+    setDraft((current) => ({ ...current, ...fields }));
+    setError(null);
+  };
+  const apply = () => {
+    try {
+      const next = parseConfiguration(draft, platform);
+      setDraft(next.draft);
+      setError(null);
+      if (sameConfiguration(applied, next)) return;
+      setApplied(next);
+      setRevision((value) => value + 1);
+      append("Configuration applied; player recreated");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Invalid configuration.");
+    }
+  };
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {/* Player UI: the SDK default vs. our shared @showcase/ui-shared custom factories (§12). */}
       <View style={styles.row}>
         <Text style={styles.label}>UI:</Text>
@@ -87,63 +112,73 @@ export default function App(): React.JSX.Element {
           />
         ))}
       </View>
-      {/* Remount on UI change — styleConfig is fixed at player creation (like iOS). */}
-      <PlayerPane key={uiMode.label} uiMode={uiMode} source={source} onSelectSource={setSource} />
-    </View>
+      <PlayerPane key={`${uiMode.label}:${revision}`} uiMode={uiMode} source={applied.source} playerConfig={applied.player}
+        sources={sources} onSelectSource={selectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={setTimeShiftEnabled}
+        log={log} append={append} />
+      <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
+        onReset={() => { setDraft(applied.draft); setError(null); }}
+        changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} />
+    </ScrollView>
   );
 }
 
 interface PlayerPaneProps {
   uiMode: UiMode;
-  source: ShowcaseSource | undefined;
+  source: SourceConfig;
+  playerConfig: Configuration["player"];
+  sources: ShowcaseSource[];
   onSelectSource: (source: ShowcaseSource) => void;
+  timeShiftEnabled: boolean;
+  onTimeShiftEnabled: (enabled: boolean) => void;
+  log: string[];
+  append: (message: string) => void;
 }
 
-function PlayerPane({ uiMode, source, onSelectSource }: PlayerPaneProps): React.JSX.Element {
+function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append }: PlayerPaneProps): React.JSX.Element {
   const player = usePlayer(
     uiMode.factoryFunction
       ? {
           licenseKey: LICENSE_KEY,
           ...ANALYTICS,
+          ...playerConfig,
           styleConfig: {
             userInterfaceType: UserInterfaceType.Bitmovin,
             playerUiJs: WEBUI_JS,
             playerUiCss: WEBUI_CSS,
           },
         }
-      : { licenseKey: LICENSE_KEY, ...ANALYTICS },
+      : { licenseKey: LICENSE_KEY, ...ANALYTICS, ...playerConfig },
   );
-  const [timeShiftEnabled, setTimeShiftEnabled] = useState(true);
   const [dvr, setDvr] = useState<DvrState | null>(null);
-  const [log, setLog] = useState<string[]>([]);
+  const [viewReady, setViewReady] = useState(false);
   const snapshots = useRef<SnapshotController | null>(null);
-
-  const append = useCallback((m: string) => setLog((l) => [m, ...l].slice(0, 40)), []);
-
-  const load = useCallback(
-    (s: ShowcaseSource) => {
-      snapshots.current?.sourceChanged();
-      setDvr(null);
-      append(`load ${s.label}`);
-      player.load({ url: s.url, type: sdkType(s.kind) });
-    },
-    [player, append],
-  );
+  const active = useRef(true);
 
   useEffect(() => {
     const controller = new SnapshotController(player, setDvr, append);
+    active.current = true;
     snapshots.current = controller;
-    // Load the currently-selected source on mount/remount (a UI-mode switch remounts this pane),
-    // so playback continues under the new UI instead of resetting to the first source.
-    if (source) load(source);
     return () => {
+      active.current = false;
       controller.dispose();
       if (snapshots.current === controller) snapshots.current = null;
       player.destroy();
     };
-    // `player` identity is stable from usePlayer; `source` is read once per mount intentionally.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [player, append]);
+
+  useEffect(() => {
+    if (!viewReady || !active.current) return;
+    snapshots.current?.sourceChanged();
+    setDvr(null);
+    append(`load ${source.title || "source"}`);
+    // Player.load is void in wrapper 1.28.0; native Source/Player error events report failures.
+    player.load(source);
+  }, [source, player, viewReady, append]);
+
+  useEffect(() => {
+    snapshots.current?.setTimeShiftEnabled(timeShiftEnabled);
+    if (viewReady) void snapshots.current?.refresh();
+  }, [timeShiftEnabled, viewReady]);
 
   const refresh = useCallback(() => snapshots.current?.refresh(), []);
   const seek = useCallback((offset: number) => snapshots.current?.seek(offset), []);
@@ -159,26 +194,28 @@ function PlayerPane({ uiMode, source, onSelectSource }: PlayerPaneProps): React.
         player={player}
         style={styles.player}
         {...(viewConfig ? { config: viewConfig } : {})}
-        onTimeChanged={refresh}
+        onPlayerViewReady={() => { if (active.current) setViewReady(true); }}
+        onTimeChanged={() => { if (active.current) void refresh(); }}
         onSourceLoaded={() => {
+          if (!active.current) return;
           append("SourceLoaded");
           void refresh();
         }}
         onTimeShifted={() => {
+          if (!active.current) return;
           append("TimeShifted");
           void refresh();
         }}
+        onPlayerError={() => { if (active.current) append("Player error"); }}
+        onSourceError={() => { if (active.current) append("Source error"); }}
       />
 
       <View style={styles.row}>
-        {SOURCES.map((s) => (
+        {sources.map((s) => (
           <Button
             key={s.id}
             title={s.label}
-            onPress={() => {
-              onSelectSource(s); // remember it so a UI-mode switch keeps this source
-              load(s);
-            }}
+            onPress={() => onSelectSource(s)}
           />
         ))}
       </View>
@@ -193,11 +230,12 @@ function PlayerPane({ uiMode, source, onSelectSource }: PlayerPaneProps): React.
       <View style={styles.row}>
         <Text style={styles.label}>Allow DVR</Text>
         <Switch
+          accessibilityLabel="Allow DVR"
           value={timeShiftEnabled}
           onValueChange={(v) => {
             // Update the controller before a refresh, including when playback is paused.
             snapshots.current?.setTimeShiftEnabled(v);
-            setTimeShiftEnabled(v);
+            onTimeShiftEnabled(v);
             void refresh();
           }}
         />
@@ -223,7 +261,7 @@ function PlayerPane({ uiMode, source, onSelectSource }: PlayerPaneProps): React.
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 12, gap: 10 },
+  container: { padding: 12, gap: 10 },
   player: { width: "100%", height: 220, backgroundColor: "#000" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
   label: { marginRight: 6 },
