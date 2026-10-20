@@ -27,7 +27,8 @@ supported on Vega by that sample.
 - `src/dvrController.ts`: player events, clamped live seeking, live-to-on-demand
   transition handling, and expired-position recovery.
 - `src/vegaPlayer.ts`: modular player registration and construction.
-- `src/playerSession.ts`: asynchronous media/player ownership and cleanup.
+- `src/playerSession.ts`: session ownership, foreground teardown and synchronous
+  background media release.
 - `src/Sources.ts`: player source configurations.
 - `src/App.tsx`, `src/ControlPanel.tsx`, `src/BitmovinPlayer.tsx`: Kepler controls
   and video surface, including `KeplerVideoSurfaceView` and native TV focus.
@@ -52,18 +53,22 @@ installed SDK, React Native and Kepler declarations using the app's React 18 typ
 Passing these commands does not establish that the device app builds or plays.
 
 The session tests use delayed Promises with fake media and player objects. They
-check source changes during initialization and loading, cleanup ordering, and
-the current "Allow DVR" setting. Each session releases its own controller,
-player, surface handle, and media object once. A replacement waits for the old
-player and media cleanup before installing the global media shim. Late callbacks
-from a cancelled session cannot publish controls for a previous source. These
-tests do not exercise the Vega runtime, a device video surface, or playback.
+check source changes during initialization and loading, foreground/background
+cleanup ordering, reentrant disposal, partial native surface attachment, release
+failures and the current "Allow DVR" setting. Retirement invalidates callbacks
+once. A replacement waits for confirmed native release and fulfilled SDK
+destruction before installing the global media shim. Unconfirmed owners remain
+held behind the same barrier, including a cancelled waiter behind an earlier
+Apply. These tests do not exercise the Vega runtime, a device video surface, or
+playback.
 
 The App interaction tests mount the App components with mocked native hosts,
 W3C media and player objects. Tests cover draft isolation, validation,
 Apply/Reset, direct SDK mapping, preset/source retention, URL validation with
 incomplete native global URL getters, and rapid Apply during initialization or cleanup.
-Console errors/warnings fail these tests. No TV layout, focus behavior, software
+They also cover background source/config changes, retained settings/drafts,
+retired surface generations and both foreground/surface event arrival orders.
+Unexpected console errors/warnings fail these tests. No TV layout, focus behavior, software
 keyboard or playback is qualified by this renderer.
 
 The runtime adapter tests execute the real XML DOM and Base64 packages while
@@ -125,6 +130,33 @@ These paths are checked against the installed public
 imply support for the general Web SDK or untested Vega feature parity. A Kepler
 build and target-specific checks remain necessary for formats, buffers,
 adaptation and remote editing beyond the validation scope below.
+
+## Background behavior
+
+Foreground Apply keeps the native media valid until the Bitmovin player's
+`destroy()` fulfills, then detaches the owned surface and calls
+`deinitializeSync(1000)`. During background transition, the AppState handler
+retires callbacks and synchronously releases native media through the same
+owner-bearing cleanup barrier, including media still retiring from an earlier
+Apply. Amazon's [background guidance](https://developer.amazon.com/docs/vega/0.24/foreground-background)
+and [ACR explanation](https://developer.amazon.com/docs/vega/0.24/acr-summary-report#reclaimmediaresource-crashes)
+require release before JavaScript can suspend; waiting for SDK destruction first
+in that handler could leave media resources allocated. The 1000 ms sync deadline
+is an application policy, not an SDK default.
+
+Foreground return requires a fresh surface generation and confirmed cleanup
+before acquiring a replacement. Applied source/player settings, unapplied drafts,
+logs and **Allow DVR** remain in the existing App state while the instance lives.
+Playback-position restoration is not implemented. A rejected SDK destruction,
+native timeout/invalid status or thrown release keeps the owner and blocks
+replacement, with a constant restart-needed diagnostic.
+
+Cancelling native initialization also requires restarting the app. W3C Media
+2.3.2 acknowledges its abort synchronously, but destroys any late native
+allocation asynchronously without exposing its completion. The app therefore
+retains that unconfirmed owner instead of treating the abort acknowledgement as
+proof of release. Warm playback recovery is not guaranteed; the VVD limitation
+below remains open.
 
 ## Build the Kepler application
 
@@ -222,19 +254,37 @@ position together with changing video frames.
 ## Validation scope
 
 Validation on 2026-10-20 used macOS on Apple silicon, Vega SDK 0.24.12112 and an
-arm64 VVD. The 57 unit tests and full App type-check passed. The native toolchain
-produced JS/Hermes bundles and all three Release packages; the arm64 package was
+arm64 VVD. The integrated 68 license-free unit tests and full App type-check
+passed. The native toolchain produced JS/Hermes bundles and all three Release
+packages; the arm64 package was
 installed and launched on VVD. Native screenshots showed changing Live DASH and
 VOD HLS video frames together with advancing SDK playback positions. Native
 remote focus/scrolling, text entry, an invalid zero bitrate, and Reset were also
 exercised. The renderer tests remain mocked at the native media/player boundary.
 
-Repeated valid Apply, background/foreground recovery and native resource-count
-checks are not qualified by this run. VDA/Appium reconnection after redeployment
-required restarting the isolated VDA server. A background attempt left no
-instance available for foreground-by-instance; the app was relaunched before
-the final VOD check. Build success or a lifecycle-manager status alone is
-insufficient to close the remaining checks. No physical Fire TV,
+The final lifecycle implementation passed three changed, valid bitrate-cap
+Applies on VOD HLS. Each retained the selected source and the same native app
+instance, reset playback and advanced SDK position from about 1 to 5 seconds,
+with changing video frames. This qualifies that foreground Apply sequence, not
+quantitative bitrate adaptation or general format support.
+
+A documented LCM background/foreground sequence retained the same PID/instance
+for five seconds, sampled as `NOT_VISIBLE` at approximately 1, 3 and 5 seconds,
+then returned it to `VISIBLE`. The
+unapplied title draft and applied bitrate field survived. Video remained black
+and five displayed position samples stayed at the last known SDK value of
+57.6 seconds, so same-instance warm
+playback recovery failed this check. An explicit stop followed by a new launch
+created a different PID/instance and restored VOD progress from 1.6 to 5.5
+seconds. That was cold relaunch, not retained playback recovery. Earlier
+disappearing instances had no usable crash reason; they are not classified as
+normal shutdown or media-resource reclamation.
+
+Process RSS/PSS/USS and file-descriptor/socket counts were sampled separately
+before/after Apply and background. They are not exact native VideoPlayer,
+media-element or surface allocation counts, and the differing bitrate caps and
+sampling times do not establish leak-free behavior. Warm playback recovery and
+native allocation-count qualification remain open. No physical Fire TV,
 DRM/offline behavior, audio correctness or quantitative buffer/bitrate behavior
-is qualified here. A VVD result does not replace target-device compatibility and
-performance testing.
+is qualified here. A VVD result does not replace target-device compatibility
+and performance testing.
