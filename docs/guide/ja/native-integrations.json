@@ -18,7 +18,7 @@
     {
       "type": "code",
       "title": "README の外部プロジェクト作成例",
-      "text": "npx create-expo-app@latest dvr-showcase\ncd dvr-showcase\nnpx expo install bitmovin-player-react-native@1.28.0 expo-crypto"
+      "text": "npx create-expo-app@latest dvr-showcase\ncd dvr-showcase\nnpx expo install bitmovin-player-react-native@1.28.0 expo-crypto react-native-url-polyfill@4.0.0"
     },
     {
       "type": "note",
@@ -68,7 +68,11 @@
     },
     {
       "type": "p",
-      "text": "Autoplay と Mute on startup はプレイヤー生成時の設定です。Forward buffer の単位は秒で、空欄なら SDK 既定値（iOS は 0、Android は 50）を使います。iOS の 0 は SDK による自動選択です。Android の 0 は自動選択を意味しないため、このフォームでは正の値を入力します。Maximum bitrate は bit/s の正の上限値で、空欄は上限なしです。数値は有限の十進数で入力します。"
+      "text": "URL の検証には react-native-url-polyfill 4.0.0 の URL をローカルに読み込みます。古いネイティブ環境のグローバル URL は protocol と hostname が未実装で、有効なソースでも読み込み前に拒否されるためです。ローカルのパーサーを使うことで、グローバル URL と SDK のメディア用シムは変更しません。"
+    },
+    {
+      "type": "p",
+      "text": "Autoplay と Mute on startup はプレイヤー生成時の設定です。開始オフセットとバッファ時間は有限の十進数（秒）で入力します。バッファの空欄は SDK 既定値（iOS は 0、Android は 50）で、iOS の 0 は自動選択です。Android の 0 は自動選択ではないため、このフォームでは正の値を入力します。Maximum bitrate は整数の bit/s で、Android は 1〜2,147,483,647、iOS は 1〜9,007,199,254,740,991、空欄は上限なしです。ネイティブブリッジはビットレートを整数へ変換し、Android は符号付き 32 ビット値を使います。また JavaScript の安全な整数の上限を超えると値を正確に表現できません。整数でない値と範囲外の値は再生成前に拒否します。"
     },
     {
       "type": "note",
@@ -121,6 +125,10 @@
     },
     {
       "type": "p",
+      "text": "URL の検証には react-native-url-polyfill 4.0.0 の URL をローカルに読み込みます。React Native 0.72 のグローバル URL は protocol と hostname が未実装なためです。グローバル URL と Vega SDK のメディア用シムは変更しません。外部 Kepler プロジェクトにも apps/vega/package.json の依存を追加してください。"
+    },
+    {
+      "type": "p",
       "text": "Autoplay と Mute on startup はプレイヤー生成時の設定です。音声・映像それぞれの Forward buffer は秒単位で、このフォームでは正の値を入力します。空欄はメディア種別ごとに SDK 既定値の 40 秒を使い、ライブの範囲によって有効なバッファは制限されます。Maximum video bitrate は bit/s の正の適応上限で、空欄は上限なしです。数値は有限の十進数で入力します。形式、バッファと適応の対応は、ソース、再生エンジン、端末にも依存します。"
     },
     {
@@ -140,7 +148,7 @@
   "sources": [
     {
       "path": "apps/react-native/README.md",
-      "line": 81,
+      "line": 97,
       "label": "Expo への統合手順と限界"
     },
     {
@@ -155,7 +163,7 @@
     },
     {
       "path": "apps/react-native/src/configuration.ts",
-      "line": 57,
+      "line": 59,
       "label": "React Native の入力検証と SDK 項目への対応"
     },
     {
@@ -195,7 +203,7 @@
     },
     {
       "path": "apps/vega/src/configuration.ts",
-      "line": 53,
+      "line": 55,
       "label": "Vega の入力検証と SDK 項目への対応"
     },
     {
@@ -230,6 +238,18 @@
     {
       "url": "https://docs.expo.dev/more/create-expo/",
       "label": "Expoのプロジェクトテンプレートと画面構成"
+    },
+    {
+      "url": "https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0",
+      "label": "ローカル URL パーサー 4.0.0"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/src/main/java/com/bitmovin/player/reactnative/converter/JsonConverter.kt#L163-L165",
+      "label": "Android のビットレート整数変換"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/RCTConvert%2BBitmovinPlayer.swift#L964-L965",
+      "label": "iOS のビットレート整数変換"
     }
   ]
 }

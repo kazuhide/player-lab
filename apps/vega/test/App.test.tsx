@@ -12,6 +12,8 @@ const runtime = vi.hoisted(() => ({
 vi.mock("react-native", () => ({
   Button: "Button", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View",
   StyleSheet: { create: <T,>(styles: T) => styles },
+  NativeModules: {},
+  Platform: { OS: "android", Version: 36 },
 }));
 // The Vega core installs browser shims when imported. Mock that native boundary, while
 // retaining the real application controller/session and the SDK's declared event names.
@@ -81,6 +83,22 @@ afterEach(async () => {
 });
 
 describe("Vega configuration in the mounted App and media session", () => {
+  it("uses a local URL parser when the legacy native URL getters are unavailable", async () => {
+    class LegacyURL {
+      get protocol(): string { throw new Error("URL.protocol is not implemented"); }
+      get hostname(): string { throw new Error("URL.hostname is not implemented"); }
+    }
+    vi.stubGlobal("URL", LegacyURL);
+    try {
+      await mount();
+      await press("Show configuration");
+      await text("Source URL", "HTTPS://example.com/movie.m3u8");
+      await press("HLS");
+      await press("Apply and recreate player");
+      expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ hls: "HTTPS://example.com/movie.m3u8" }));
+      expect(globalThis.URL).toBe(LegacyURL);
+    } finally { vi.unstubAllGlobals(); }
+  });
   it("isolates drafts and maps validated source/player fields through the real session path", async () => {
     await mount();
     expect(runtime.players).toHaveLength(1);

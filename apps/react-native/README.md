@@ -29,7 +29,9 @@ using the installed React Native and player types. It does not build the native
 app or verify playback.
 
 The App interaction tests mount the screen with mocked native hosts and player
-objects. They exercise form edits, Apply/Reset, source selection and recreation. React 19
+objects. They exercise form edits, Apply/Reset, source selection, recreation,
+bitrate integer boundaries and URL validation with incomplete native global URL
+getters. React 19
 deprecates `react-test-renderer`; that expected warning is retained in test output,
 and other console errors fail the tests. These tests do not render native layout,
 the Web UI, a video surface, or a stream.
@@ -43,12 +45,22 @@ DASH. Android retains the existing HLS and DASH presets.
 
 The same panel exposes autoplay, startup mute, forward buffer duration and the
 adaptation bitrate cap. URL fields accept HTTP/HTTPS; optional fields can be
-cleared. Numeric fields accept finite decimal values. The bitrate cap is in
-bits per second and must be positive; blank means no cap. The buffer field
+cleared. Start offsets and buffer durations accept finite decimal seconds.
+The bitrate cap uses whole bits per second: 1–2,147,483,647 on Android, and
+1–9,007,199,254,740,991 on iOS. The native bridge converts bitrate to an integer;
+fractions would lose precision, Android uses a signed 32-bit integer, and values
+above JavaScript's safe-integer limit cannot be represented exactly. Invalid
+input leaves the active player unchanged. Blank means no cap. The buffer field
 accepts zero on iOS to let the SDK choose a duration. This screen requires a
 positive Android buffer target: zero has no automatic-selection meaning there.
 Blank leaves the platform SDK default (iOS 0, Android 50 seconds) untouched.
 No startup/restart thresholds are overridden.
+
+URL validation uses the locally imported `URL` from `react-native-url-polyfill`
+4.0.0. Older React Native global URL implementations leave `protocol` and
+`hostname` unimplemented, which would reject valid sources before loading.
+The local import leaves global URL and the SDK's media shims unchanged; it does
+not install the package's global polyfill.
 
 **Apply and recreate player** validates the whole draft, recreates the player
 and reloads the selected source from its configured start offset. Playback
@@ -74,6 +86,10 @@ The direct editable mappings are:
 
 These mappings use the [public wrapper 1.28.0 source declarations](https://github.com/bitmovin/bitmovin-player-react-native/tree/v1.28.0/src),
 including its [platform-specific buffer documentation](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/src/bufferConfig.ts).
+The public [Android](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/src/main/java/com/bitmovin/player/reactnative/converter/JsonConverter.kt#L163-L165)
+and [iOS](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/RCTConvert%2BBitmovinPlayer.swift#L964-L965)
+converters explain the bitrate integer limits. The URL package documents
+[local imports without replacing global URL](https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0).
 Loop is not an exposed configuration property in this wrapper. Native Expo
 integration, artwork/UI rendering and playback on iOS/Android still need a
 device or simulator build.
@@ -92,7 +108,7 @@ versions against the manifest because `@latest` can change:
 ```bash
 npx create-expo-app@latest dvr-showcase
 cd dvr-showcase
-npx expo install bitmovin-player-react-native@1.28.0 expo-crypto
+npx expo install bitmovin-player-react-native@1.28.0 expo-crypto react-native-url-polyfill@4.0.0
 # Copy this folder's App.tsx, src/, and generated .env into the Expo project.
 ```
 

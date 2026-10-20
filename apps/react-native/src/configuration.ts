@@ -1,4 +1,6 @@
 import { SourceType, TimelineReferencePoint, type PlayerConfig, type SourceConfig } from "bitmovin-player-react-native";
+// Older native URL implementations omit the protocol and hostname getters used below.
+import { URL } from "react-native-url-polyfill";
 import type { ShowcaseSource } from "./sources";
 
 export type NativePlatform = "ios" | "android";
@@ -68,7 +70,14 @@ export function parseConfiguration(draft: ConfigurationDraft, platform: NativePl
     throw new Error(platform === "ios" ? "Forward buffer must be zero or positive." : "Forward buffer must be positive on Android; leave blank for the SDK default.");
   }
   const maxBitrate = optionalNumber(draft.maxBitrate, "Maximum bitrate");
-  if (maxBitrate !== undefined && maxBitrate <= 0) throw new Error("Maximum bitrate must be positive; leave blank for no cap.");
+  // Android consumes an Int; iOS uses an unsigned value that JavaScript must represent exactly.
+  // Check the text too: Number can round fractional input to a safe integer.
+  const wholeBitrate = /^\+?\d+(?:\.0*)?$/.test(draft.maxBitrate.trim());
+  if (maxBitrate !== undefined && (!wholeBitrate || !Number.isSafeInteger(maxBitrate) || maxBitrate <= 0 || (platform === "android" && maxBitrate > 2147483647))) {
+    throw new Error(platform === "android"
+      ? "Maximum bitrate must be a whole number from 1 to 2147483647 bit/s; leave blank for no cap."
+      : "Maximum bitrate must be a whole number from 1 to 9007199254740991 bit/s; leave blank for no cap.");
+  }
   const reference = draft.timeline === "start" ? TimelineReferencePoint.START : draft.timeline === "end" ? TimelineReferencePoint.END : undefined;
   const source: SourceConfig = {
     url, type, ...(title ? { title } : {}), ...(poster ? { poster } : {}),

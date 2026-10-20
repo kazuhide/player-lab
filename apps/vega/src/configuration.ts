@@ -1,4 +1,6 @@
 import type { PlayerConfig, SourceConfig } from "bitmovin-player";
+// Older native URL implementations omit the protocol and hostname getters used below.
+import { URL } from "react-native-url-polyfill";
 import { TimelineReferencePoint } from "bitmovin-player/modules/bitmovinplayer-core";
 import type { VegaSource } from "./Sources";
 

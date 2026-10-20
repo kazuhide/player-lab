@@ -53,7 +53,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         {field("Forward buffer (seconds)", "forwardDuration", true)}
         <Text style={styles.help}>{platform === "ios" ? "Blank uses the SDK default (0); zero lets the SDK choose a duration." : "Enter a positive duration. Blank uses the Android SDK default (50 seconds); zero is not an automatic setting on Android."}</Text>
         {field("Maximum bitrate (bits per second)", "maxBitrate", true)}
-        <Text style={styles.help}>A positive bitrate caps adaptation; blank leaves it unlimited. Buffering and adaptation depend on the stream and device.</Text>
+        <Text style={styles.help}>{platform === "android" ? "Enter a whole number from 1 to 2147483647 bit/s (Android integer limit)." : "Enter a whole number from 1 to 9007199254740991 bit/s (JavaScript exact-integer limit)."} Blank leaves it unlimited. Buffering and adaptation depend on the stream and device.</Text>
         {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
         <View style={styles.row}>
           <Button title="Apply and recreate player" onPress={onApply} disabled={!changed} />

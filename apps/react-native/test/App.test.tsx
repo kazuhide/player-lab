@@ -17,8 +17,9 @@ const runtime = vi.hoisted(() => {
 
 vi.mock("react-native", () => ({
   Button: "Button", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View",
-  Platform: { get OS() { return runtime.os; }, select: (options: Record<string, string>) => options[runtime.os] ?? options.default },
+  Platform: { get OS() { return runtime.os; }, get Version() { return runtime.os === "ios" ? "15.1" : 36; }, select: (options: Record<string, string>) => options[runtime.os] ?? options.default },
   StyleSheet: { create: <T,>(styles: T) => styles },
+  NativeModules: {},
 }));
 
 vi.mock("bitmovin-player-react-native", async () => {
@@ -78,6 +79,23 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it("uses a local URL parser when the legacy native URL getters are unavailable", async () => {
+    class LegacyURL {
+      get protocol(): string { throw new Error("URL.protocol is not implemented"); }
+      get hostname(): string { throw new Error("URL.hostname is not implemented"); }
+    }
+    vi.stubGlobal("URL", LegacyURL);
+    try {
+      await mount();
+      await ready();
+      await press("Show configuration");
+      await text("Source URL", "HTTPS://example.com/movie.m3u8");
+      await press("Apply and recreate player");
+      await ready();
+      expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ url: "HTTPS://example.com/movie.m3u8" }));
+      expect(globalThis.URL).toBe(LegacyURL);
+    } finally { vi.unstubAllGlobals(); }
+  });
   it("waits for the native view and applies validated drafts to a replacement player", async () => {
     await mount();
     expect(current().load).not.toHaveBeenCalled();
@@ -175,6 +193,10 @@ describe("React Native configuration in the mounted App", () => {
     ["Forward buffer (seconds)", "-5"],
     ["Maximum bitrate (bits per second)", "0"],
     ["Maximum bitrate (bits per second)", "2mbps"],
+    ["Maximum bitrate (bits per second)", "0.5"],
+    ["Maximum bitrate (bits per second)", "2147483648"],
+    ["Maximum bitrate (bits per second)", "2147483646.99999999"],
+    ["Maximum bitrate (bits per second)", "9007199254740992"],
   ])("rejects invalid %s input %s without replacing the active SDK owner", async (label, value) => {
     await mount();
     await ready();
@@ -184,6 +206,34 @@ describe("React Native configuration in the mounted App", () => {
     expect(element("Text", { accessibilityRole: "alert" })).toBeDefined();
     expect(runtime.players).toHaveLength(1);
     expect(current().load).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["0.5", "9007199254740992", "9007199254740990.5", "1.0000000000000000001"])("rejects iOS bitrate bridge input %s without recreating", async (value) => {
+    runtime.os = "ios";
+    await mount();
+    await ready();
+    await press("Show configuration");
+    await text("Maximum bitrate (bits per second)", value);
+    await press("Apply and recreate player");
+    expect(element("Text", { accessibilityRole: "alert" })).toBeDefined();
+    expect(runtime.players).toHaveLength(1);
+    expect(current().load).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["android", "2147483647", 2147483647],
+    ["android", "2500000.0", 2500000],
+    ["ios", "2147483648", 2147483648],
+    ["ios", "9007199254740991", 9007199254740991],
+  ])("preserves the exact %s bitrate bridge boundary %s", async (platform, value, expected) => {
+    runtime.os = String(platform);
+    await mount();
+    await ready();
+    await press("Show configuration");
+    await text("Maximum bitrate (bits per second)", String(value));
+    await press("Apply and recreate player");
+    expect(runtime.players).toHaveLength(2);
+    expect(current().config).toMatchObject({ adaptationConfig: { maxSelectableBitrate: expected } });
   });
 
   it("loads presets immediately and retains the chosen source through subsequent recreation", async () => {

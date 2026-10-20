@@ -58,8 +58,8 @@ tests do not exercise the Vega runtime, a device video surface, or playback.
 
 The App interaction tests mount the App components with mocked native hosts,
 W3C media and player objects. Tests cover draft isolation, validation,
-Apply/Reset, direct SDK mapping, preset/source retention and rapid Apply during
-initialization or cleanup.
+Apply/Reset, direct SDK mapping, preset/source retention, URL validation with
+incomplete native global URL getters, and rapid Apply during initialization or cleanup.
 Console errors/warnings fail these tests. No TV layout, focus behavior, software
 keyboard or playback is qualified by this renderer.
 
@@ -73,6 +73,14 @@ numbers are accepted. This form requires positive buffer/bitrate targets;
 blank omits the overrides. The SDK buffer default is 40 seconds per media type,
 and live media windows can constrain the effective buffer. Bitrates are in bits
 per second. Format/engine/device support still requires target-device testing.
+
+URL validation imports `URL` locally from `react-native-url-polyfill` 4.0.0.
+React Native 0.72's global URL leaves `protocol` and `hostname` unimplemented,
+which would reject valid sources before loading. The local parser leaves global
+URL and the Vega SDK's media shims unchanged; it does not install a global
+polyfill. Include this dependency from `package.json` in the Kepler project.
+The package documents [local imports](https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0);
+the older native implementation is [public](https://github.com/facebook/react-native/blob/v0.72.0/packages/react-native/Libraries/Blob/URL.js#L177-L202).
 
 **Apply and recreate player** validates the entire draft, releases the previous
 session and creates a player that loads the selected source from its start

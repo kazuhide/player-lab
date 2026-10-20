@@ -32,6 +32,9 @@ importers:
       react-native:
         specifier: 0.81.5
         version: 0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0)
+      react-native-url-polyfill:
+        specifier: 4.0.0
+        version: 4.0.0(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0))
     devDependencies:
       '@types/react':
         specifier: ^19.1.0
@@ -66,6 +69,9 @@ importers:
       react-native:
         specifier: 0.72.0
         version: 0.72.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0)
+      react-native-url-polyfill:
+        specifier: 4.0.0
+        version: 4.0.0(react-native@0.72.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0))
     devDependencies:
       '@types/react':
         specifier: ~18.2.0
@@ -4077,6 +4083,11 @@ packages:
 
   react-is@19.3.1:
     resolution: {integrity: sha512-RRieF6IyxQBkcK6pP8xOHprLTPW6QjRkbGdImtqNme+/hYVwCZkLQLdlZGOhUqXwkS9IEynaGvPJtv6XB/cz0Q==}
+
+  react-native-url-polyfill@4.0.0:
+    resolution: {integrity: sha512-eqYM3wBAA0eL1sPYbBAoNfbES3+NkgcxUdelQ7QzmoVtqKB5qGG0U13MPTRUroAWK+y2EoJFS3MZUK0fwTf0pA==}
+    peerDependencies:
+      react-native: '*'
 
   react-native@0.72.0:
     resolution: {integrity: sha512-BP2qq5f05pl3zV+eYgW7nmjCV+3zLXs/Vm69xMTCLD34U2bvRhuWbuUhqpauw7fyk5c8+LrY9NKcnARCkqKXcw==}
@@ -10011,6 +10022,14 @@ snapshots:
   react-is@18.3.1: {}
 
   react-is@19.3.1: {}
+
+  react-native-url-polyfill@4.0.0(react-native@0.72.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0)):
+    dependencies:
+      react-native: 0.72.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0)
+
+  react-native-url-polyfill@4.0.0(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0)):
+    dependencies:
+      react-native: 0.81.5(@babel/core@7.29.7)(@react-native-community/cli@11.4.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.1.0)
 
   react-native@0.72.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react@18.2.0):
     dependencies:
