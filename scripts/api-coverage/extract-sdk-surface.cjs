@@ -6,6 +6,20 @@ const { createRequire } = require('node:module');
 const compilerRepo = process.env.SDK_COVERAGE_REPO || path.resolve(__dirname, '../..');
 const ts = createRequire(path.join(compilerRepo, 'apps/web/package.json'))('typescript');
 const TYPE_FLAGS = ts.TypeFlags;
+// Resolved mapped/intersection symbols can differ from their original declarations.
+// Use the compiler's modifier resolution, and fail if these compiler hooks change.
+if (typeof ts.getCheckFlags !== 'function' || typeof ts.getDeclarationModifierFlagsFromSymbol !== 'function'
+    || !ts.CheckFlags?.Readonly) {
+  throw new Error('The installed TypeScript compiler cannot report resolved mapped-property modifiers');
+}
+const readonlyProperty = symbol => {
+  if (!symbol) return false;
+  const flags = ts.getCheckFlags(symbol);
+  return Boolean(flags & ts.CheckFlags.Readonly)
+    || Boolean(symbol.flags & ts.SymbolFlags.Property)
+      && Boolean(ts.getDeclarationModifierFlagsFromSymbol(symbol) & ts.ModifierFlags.Readonly)
+    || Boolean(symbol.flags & ts.SymbolFlags.GetAccessor) && !(symbol.flags & ts.SymbolFlags.SetAccessor);
+};
 const sha256 = data => crypto.createHash('sha256').update(data).digest('hex');
 const append = (parent, key) => /^[A-Za-z_$][\w$]*$/.test(key) ? `${parent}.${key}` : `${parent}[${JSON.stringify(key)}]`;
 
@@ -113,38 +127,76 @@ function createExtractor({ packageRoot, entryFile, dependencies = {}, checkedAt 
     const refs = locations(symbol); if (!refs.length) refs.push(...origin);
     for (const ref of refs) if (!old.declarations.some(x => x.file === ref.file && x.line === ref.line)) old.declarations.push(ref);
     old.deprecated ||= tags(symbol).includes('deprecated');
-    Object.assign(old, extra); old.officialReference = memberRef(id, old.declarations); members.set(id, old);
+    const { contracts, indices } = extra;
+    if (contracts) {
+      const chains = [...(old.contracts || [])];
+      if (!chains.some(chain => JSON.stringify(chain) === JSON.stringify(contracts))) chains.push(contracts);
+      old.contracts = chains.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    }
+    if (indices) {
+      const all = [...(old.indices || [])];
+      for (const index of indices) if (!all.some(item => JSON.stringify(item) === JSON.stringify(index))) all.push(index);
+      old.indices = all.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    }
+    old.officialReference = memberRef(id, old.declarations); members.set(id, old);
   }
-  function configWalk(t, id, ancestors, symbol, origin, options) {
+  function configWalk(t, id, ancestors, symbol, origin, options, parents = []) {
     const ownOrigin = locations(symbol); if (ownOrigin.length) origin = ownOrigin;
+    // Scalar rows omit null/undefined. Retain the full property and enclosing
+    // property contracts so release comparisons still detect breaking changes.
+    const contracts = parents.at(-1)?.path === id ? parents : [...parents, {
+      path: id, type: parents.length ? text(symbol ? symbolType(symbol) : t)
+        : checker.typeToString(t, undefined, ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.InTypeAlias),
+      optional: Boolean(symbol?.flags & ts.SymbolFlags.Optional),
+      readonly: readonlyProperty(symbol),
+    }];
+    const add = (kind, extra = {}) => addConfig(id, t, kind, symbol, origin, { ...extra, contracts });
     if (options.omitPaths?.includes(id)) { excluded.push({ id, reason: 'reported in a separate configuration scope', declarations: origin }); return; }
     const boundary = options.boundaries?.[id];
-    if (boundary) { addConfig(id, t, boundary, symbol, origin); return; }
+    if (boundary) { add(boundary); return; }
     if (t.flags & (TYPE_FLAGS.Undefined | TYPE_FLAGS.Null | TYPE_FLAGS.Never)) return;
-    if (t.flags & TYPE_FLAGS.EnumLike) { addConfig(id, t, 'scalar', symbol, origin); return; }
-    if (t.isUnion()) { for (const part of t.types) configWalk(part, id, ancestors, symbol, origin, options); return; }
-    if (t.flags & (TYPE_FLAGS.Any | TYPE_FLAGS.Unknown)) { addConfig(id, t, 'opaque', symbol, origin); return; }
-    if (t.getCallSignatures().length) { addConfig(id, t, 'callback', symbol, origin); return; }
-    if (!(t.flags & TYPE_FLAGS.Object)) { addConfig(id, t, 'scalar', symbol, origin); return; }
-    if (ancestors.includes(t)) { addConfig(id, t, 'recursive-boundary', symbol, origin); return; }
+    if (t.flags & TYPE_FLAGS.EnumLike) { add('scalar'); return; }
+    if (t.isUnion()) {
+      for (const part of t.types) {
+        // Keep the association with a named/discriminated branch. Otherwise
+        // swapping readonly/optional facts between branches looks unchanged.
+        const branch = { path: id, branchType: text(part) };
+        configWalk(part, id, ancestors, symbol, origin, options, [...contracts, branch]);
+      }
+      return;
+    }
+    if (t.flags & (TYPE_FLAGS.Any | TYPE_FLAGS.Unknown)) { add('opaque'); return; }
+    if (t.getCallSignatures().length) { add('callback'); return; }
+    if (!(t.flags & TYPE_FLAGS.Object)) { add('scalar'); return; }
+    if (ancestors.includes(t)) { add('recursive-boundary'); return; }
     if (arrayLike(t)) {
       const element = checker.getIndexTypeOfType(t, ts.IndexKind.Number);
       const parts = element?.isUnion() ? element.types : [element];
-      if (parts.every(x => x && !(x.flags & TYPE_FLAGS.Object))) addConfig(id, t, 'scalar-array', symbol, origin);
-      else if (element) configWalk(element, `${id}[]`, [...ancestors, t], symbol, origin, options);
-      else addConfig(id, t, 'opaque-array', symbol, origin);
+      if (parts.every(x => x && !(x.flags & TYPE_FLAGS.Object))) add('scalar-array');
+      else if (element) configWalk(element, `${id}[]`, [...ancestors, t], symbol, origin, options, contracts);
+      else add('opaque-array');
       return;
     }
     const properties = t.getProperties(); const indices = checker.getIndexInfosOfType(t);
-    if (indices.length) { addConfig(id + (properties.length ? '{*}' : ''), t, 'dynamic-map', symbol, origin, { indices: indices.map(i => ({ key: text(i.keyType), value: text(i.type) })) }); if (!properties.length) return; }
+    if (indices.length) {
+      const mapId = id + (properties.length ? '{*}' : '');
+      const indexFacts = indices.map(i => ({ key: text(i.keyType), value: text(i.type), readonly: i.isReadonly }))
+        .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+      // Associate index contracts with their branch, rather than only retaining
+      // a flat union whose values could move between named branches unnoticed.
+      addConfig(mapId, t, 'dynamic-map', symbol, origin, {
+        contracts: [...contracts, { path: mapId, indices: indexFacts }], indices: indexFacts,
+      });
+      if (!properties.length) return;
+    }
     const owner = t.aliasSymbol || t.symbol; const declarations = owner?.declarations || [];
-    if (declarations.some(ts.isClassDeclaration)) { addConfig(id, t, 'instance-boundary', symbol, origin); return; }
-    if (declarations.length && declarations.every(d => !d.getSourceFile().fileName.startsWith(packageRoot)) && !['Partial', 'Required', 'Readonly', 'Record', 'Pick', 'Omit'].includes(owner?.name)) { addConfig(id, t, 'external-boundary', symbol, origin); return; }
-    if (!properties.length) { addConfig(id, t, 'opaque-object', symbol, origin); return; }
+    if (declarations.some(ts.isClassDeclaration)) { add('instance-boundary'); return; }
+    if (declarations.length && declarations.every(d => !d.getSourceFile().fileName.startsWith(packageRoot)) && !['Partial', 'Required', 'Readonly', 'Record', 'Pick', 'Omit'].includes(owner?.name)) { add('external-boundary'); return; }
+    if (!properties.length) { add('opaque-object'); return; }
     for (const property of properties) {
       const next = append(id, property.name);
       if (hidden(property)) { excluded.push({ id: next, reason: 'hidden/internal/private/protected', declarations: locations(property) }); continue; }
-      configWalk(symbolType(property), next, [...ancestors, t], property, origin, options);
+      configWalk(symbolType(property), next, [...ancestors, t], property, origin, options, contracts);
     }
   }
   function configuration(roots, options = {}) {
