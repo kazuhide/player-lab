@@ -101,7 +101,7 @@ export default function App(): React.JSX.Element {
     }
   };
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}>
       {/* Player UI: the SDK default vs. our shared @showcase/ui-shared custom factories (§12). */}
       <View style={styles.row}>
         <Text style={styles.label}>UI:</Text>
