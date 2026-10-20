@@ -36,6 +36,7 @@ vi.mock("@amazon-devices/react-native-w3cmedia", () => ({
   HTMLMediaElement: class NativeHTMLMediaElement {},
   WebCrypto: { subtle: {} },
   VideoPlayer: class {
+    src = "";
     constructor() { runtime.videos.push(this); }
     initialize = vi.fn(() => { const gate = runtime.initialization; runtime.initialization = null; return gate ?? Promise.resolve(); });
     deinitializeSync = vi.fn(() => "success");
@@ -286,6 +287,11 @@ describe("Vega configuration in the mounted App and media session", () => {
     const appliedSource = old.load.mock.calls[0]![0];
     const retiredCallback = [...old.listeners.get(PlayerEvent.SourceLoaded)!][0]!;
     const retiredSurface = element("KeplerVideoSurfaceView").props.onSurfaceViewCreated;
+    const oldVideo = runtime.videos[runtime.videos.length - 1]!;
+    let attached = true;
+    const reset = vi.fn(() => { attached = false; retiredCallback(); });
+    Object.defineProperty(oldVideo, "src", { set: reset });
+    oldVideo.deinitializeSync.mockImplementation(() => attached ? "timedout" : "success");
     let released!: () => void;
     runtime.destruction = new Promise<void>((resolve) => { released = resolve; });
 
@@ -293,6 +299,9 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(old.destroy).not.toHaveBeenCalled();
     await appState("background");
     await appState("background");
+    expect(reset).toHaveBeenCalledExactlyOnceWith("");
+    expect(oldVideo.deinitializeSync.mock.results[0]!.value).toBe("success");
+    expect(oldVideo.deinitializeSync.mock.invocationCallOrder[0]).toBeLessThan(old.destroy.mock.invocationCallOrder[0]!);
     expect(old.destroy).toHaveBeenCalledTimes(1);
     expect(screen.root.findAll((node) => String(node.type) === "KeplerVideoSurfaceView")).toHaveLength(0);
     expect([...old.listeners.values()].every((listeners) => listeners.size === 0)).toBe(true);

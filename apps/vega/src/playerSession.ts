@@ -1,6 +1,7 @@
 import type { SourceConfig } from "bitmovin-player";
 
 interface SessionMedia {
+  src: string;
   initialize(): void | Promise<unknown>;
   deinitializeSync(timeoutInMs: number): "success" | "timedout" | "invalid";
   setSurfaceHandle(handle: string): void;
@@ -18,11 +19,11 @@ interface SessionController {
 }
 
 interface NativeReleaseBarrier extends Promise<void> {
-  releaseNativeSync?: () => boolean;
+  releaseNativeSync?: (resetMedia?: boolean) => boolean;
 }
 
 export function releaseVegaBackgroundMedia(cleanup: Promise<void>): void {
-  (cleanup as NativeReleaseBarrier).releaseNativeSync?.();
+  (cleanup as NativeReleaseBarrier).releaseNativeSync?.(true);
 }
 
 interface SessionOptions<V extends SessionMedia, P extends SessionPlayer, C extends SessionController> {
@@ -41,7 +42,7 @@ interface SessionOptions<V extends SessionMedia, P extends SessionPlayer, C exte
 
 export function startVegaSession<V extends SessionMedia, P extends SessionPlayer, C extends SessionController>(
   options: SessionOptions<V, P, C>,
-): { ready: Promise<void>; dispose: () => Promise<void> } {
+): { ready: Promise<void>; dispose: (background?: boolean) => Promise<void> } {
   let video: V | null = null;
   let player: P | null = null;
   let controller: C | null = null;
@@ -51,7 +52,7 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
   let cancelled = false;
   let cleanup: Promise<void> | null = null;
 
-  function dispose(): Promise<void> {
+  function dispose(background = false): Promise<void> {
     if (cleanup) return cleanup;
     cancelled = true;
     // A cancelled waiter owns no resources. Reuse the previous barrier instead of extending a queue.
@@ -69,11 +70,17 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
     const retiringVideo = video;
     const initializationConfirmed = initialized;
     let nativeRelease: boolean | undefined;
-    barrier.releaseNativeSync = () => {
+    barrier.releaseNativeSync = (resetMedia = false) => {
       if (nativeRelease !== undefined) return nativeRelease;
       nativeRelease = false;
       try { if (surfaceAttached) retiringVideo.clearSurfaceHandle(options.handle); }
       catch { options.onError("Vega surface cleanup failed"); }
+      if (resetMedia && initializationConfirmed) {
+        // The public source setter synchronously detaches MSE before native release.
+        // Its empty-source event belongs to the already-retired owner, not the current UI.
+        try { retiringVideo.src = ""; }
+        catch { options.onError("Vega media source reset failed"); }
+      }
       // The 1000 ms deadline is this app's policy, not an SDK default.
       let released = false;
       try { released = retiringVideo.deinitializeSync(1000) === "success"; }
@@ -92,6 +99,7 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
       nativeRelease = true;
       return true;
     };
+    if (background) barrier.releaseNativeSync(true);
     // Clear only this effect's controller; an older cleanup cannot clear a newer owner.
     if (controller && options.controllerRef.current === controller) options.controllerRef.current = null;
     try { controller?.dispose(); }
