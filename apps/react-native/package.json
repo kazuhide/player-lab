@@ -13,10 +13,13 @@
     "expo": "~54.0.0",
     "expo-crypto": "~14.0.0",
     "react": "19.1.0",
-    "react-native": "0.81.5"
+    "react-native": "0.81.5",
+    "react-native-url-polyfill": "4.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.0",
+    "@types/react-test-renderer": "19.1.0",
+    "react-test-renderer": "19.1.0",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0"
   }

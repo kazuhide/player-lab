@@ -323,8 +323,16 @@
         "text": "静的な生成ヘルパー、汎用のReact参照・スタイル、名前空間の入れ物、汎用のonEventコールバックは除外します。データ受け渡し用のフィールドとenum値は、独立した実行時操作には数えません。"
       },
       {
-        "source": "The source and UI pickers expose fixed presets. Time-shift buttons expose 0, -10, -30 and -60 seconds with DVR-window clamping; they do not accept arbitrary arguments.",
-        "text": "ソースとUIの選択は固定プリセットです。タイムシフトボタンは0・-10・-30・-60秒に限られ、DVRウィンドウ内に補正されます。任意の引数を入力することはできません。"
+        "source": "The source editor exposes URL/type/title/poster and startOffset/reference; the player editor exposes autoplay/mute, audioAndVideo.forwardDuration and maxSelectableBitrate. Only those leaf paths receive direct configuration credit. Apply validates the draft, recreates the player and reloads the source; unchanged/invalid Apply and Reset draft do not replace the player.",
+        "text": "ソースの編集画面はURL・形式・タイトル・ポスター・startOffsetと基準を、プレイヤーの編集画面は自動再生・ミュート・audioAndVideo.forwardDuration・maxSelectableBitrateを扱います。直接操作の対応件数は、これらの末端パスだけです。Applyは下書きを検証し、プレイヤーを再生成してソースを読み込みます。変更のないApply、無効なApply、Reset draftではプレイヤーを置き換えません。"
+      },
+      {
+        "source": "iOS offers HLS and progressive; Android also offers DASH. Buffer 0 selects automatically only on iOS; this form requires positive Android targets. Maximum bitrate accepts whole bit/s values: 1–2147483647 on Android and 1–9007199254740991 on iOS, matching the native integer conversion and JavaScript exact-integer limit. Blank buffer/cap fields omit SDK overrides. The complete applied source, chosen UI, log and Allow DVR helper state survive recreation; playback position resets.",
+        "text": "iOSではHLSとprogressive、AndroidではさらにDASHを選べます。バッファの0が自動選択を意味するのはiOSだけで、Androidではこのフォームに正の値を入力します。最大ビットレートは整数のbit/sで、Androidは1〜2147483647、iOSは1〜9007199254740991です。ネイティブの整数変換とJavaScriptで正確に表現できる範囲に合わせます。バッファ・ビットレート上限の空欄はSDKへの上書き指定を省略します。適用済みソースの全編集値、UIの選択、ログとAllow DVRの補助処理設定は再生成後も保持され、再生位置はリセットされます。"
+      },
+      {
+        "source": "The UI picker exposes named factory/asset presets. Time-shift buttons expose 0, -10, -30 and -60 seconds with DVR-window clamping; they do not accept arbitrary offsets.",
+        "text": "UIの選択は名前付きのファクトリー・アセットのプリセットです。タイムシフトボタンは0・-10・-30・-60秒に限られ、DVRウィンドウ内に補正されます。任意のオフセットは入力できません。"
       },
       {
         "source": "isLive and getCurrentTime are read by the snapshot controller but are not consumed by the displayed derived state, so they receive no observation credit.",
@@ -335,16 +343,24 @@
         "text": "Allow DVRが変更するのはアプリのDVRヘルパーであり、PlayerConfigの再生プロパティではありません。ライセンス設定は環境の準備時に渡すため、GUIから編集できません。"
       },
       {
-        "source": "The embedded native/shared Web UI has not been qualified against this wrapper version; its controls receive no inferred coverage credit. This is confirmed application-owned GUI coverage, not a full SDK UI claim.",
-        "text": "組み込みのネイティブUI・共有Web UIは、このラッパーバージョンでの動作を確認していません。対応件数を推測で加算しません。アプリが用意するGUIの確認済み範囲を示すもので、SDK UI全体の対応状況ではありません。"
+        "source": "The embedded native/shared Web UI has not been qualified against this wrapper version; its controls receive no inferred coverage credit. Application-owned controls are source-mapped and mock-tested, not native playback qualification.",
+        "text": "組み込まれたネイティブ・共有Web UIは、このラッパー版での検証を行っていないため、その操作から対応件数を推定しません。アプリ自身の操作はソースとの対応と代替オブジェクトを使ったテストで確認しており、ネイティブでの再生確認を意味しません。"
       },
       {
         "source": "The latest wrapper pins Apple 3.126.0 and Android 3.165.0+jason. These supported wrapper defaults are not overridden to the newer standalone SDK versions.",
         "text": "最新版ラッパーが固定するネイティブSDKはApple 3.126.0とAndroid 3.165.0+jasonです。ラッパーがサポートするこの既定値を、より新しい単体SDKへ上書きしていません。"
       },
       {
-        "source": "TimeChanged only triggers refresh; SourceLoaded and TimeShifted also have named log entries. Event payload fields are not exposed. The screen and helpers are type-checked and unit-tested. Native playback and Expo prebuild/device integration were not performed for this measurement.",
-        "text": "TimeChangedは表示の更新だけを行い、SourceLoadedとTimeShiftedは名前付きログにも記録します。イベントのペイロードフィールドを表示するGUIはありません。画面とヘルパーは型検査と単体テストを実施しています。この測定では、ネイティブの実再生とExpo prebuild・実機への組み込みは実施していません。"
+        "source": "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries; event payload fields are not exposed. onPlayerViewReady only triggers loading and is internal.",
+        "text": "onTimeChangedは表示中のDVR状態を更新します。onSourceLoaded・onTimeShifted・onPlayerError・onSourceErrorには名前付きログがあり、イベントのペイロード項目は公開しません。onPlayerViewReadyはロードを開始するためだけに使い、内部処理として数えます。"
+      },
+      {
+        "source": "Player.load receives the edited SourceConfig. No Source instance lifecycle, read-only configuration observation, offline operation or unrelated nested property is inferred from those input controls.",
+        "text": "Player.loadには編集したSourceConfigを渡します。この入力画面から、Sourceインスタンスのライフサイクル操作、読み取り専用の設定値の観測、オフライン操作、無関係な入れ子のプロパティの対応は推定しません。"
+      },
+      {
+        "source": "The actual App/configuration JSX and helpers are type-checked against installed declarations and tested with mocked native/player boundaries. Native Expo builds, WebView/native layout and device playback were not performed for this measurement.",
+        "text": "実際のApp・設定パネルのJSXと補助処理を、導入済みの型宣言に対して型検査し、native・Playerの代替オブジェクトでテストしています。この測定では、ネイティブExpoビルド、WebView・nativeの見た目、端末での再生は確認していません。"
       }
     ],
     "vega": [
@@ -361,20 +377,32 @@
         "text": "公開宣言には、モジュール・素材・機器・プラットフォームの前提条件を持つAPIも含まれます。宣言があることだけで、すべてのWeb機能がVegaで動作するとは判断しません。未検証の機能は未対応の状態で残し、分母から取り除きません。"
       },
       {
-        "source": "Source selection supplies fixed HLS/DASH URLs and titles. Time-shift buttons expose 0, -10, -30 and -60 seconds with window clamping; arbitrary SDK arguments are not editable.",
-        "text": "ソース選択では、固定のHLS・DASH URLとタイトルを渡します。タイムシフトボタンは0・-10・-30・-60秒に限られ、ウィンドウ内に補正されます。任意のSDK引数は編集できません。"
+        "source": "The source editor exposes HLS/DASH/progressive string URLs, title/poster and startOffset/reference. Player controls expose autoplay/mute, separate audio/video forwardduration targets and the adaptation video bitrate cap. Only those leaf paths receive direct configuration credit; progressive array fields and unrelated object members remain unexposed.",
+        "text": "ソースの編集画面はHLS・DASH・progressiveの文字列URL、タイトル・ポスター、startOffsetと基準を扱います。プレイヤーの操作は自動再生・ミュート、音声・映像それぞれのforwardduration、適応時の映像ビットレート上限に対応します。直接操作の件数はこれらの末端パスだけで、progressiveの配列要素や無関係なオブジェクト項目は未対応のままです。"
       },
       {
-        "source": "Allow DVR changes the application DVR helper. Player configuration, authentication and module registration are source/setup constants, not editable GUI settings.",
-        "text": "Allow DVRが変更するのはアプリのDVRヘルパーです。Player設定、認証、モジュール登録はソースや準備段階の定数であり、GUIから編集できる設定ではありません。"
+        "source": "Apply validates the draft, recreates the SDK player through the serialized session and reloads the source; unchanged/invalid Apply and Reset draft do not replace resources. The selected/custom source, logs and Allow DVR helper state persist while playback position resets. Time-shift buttons remain fixed at 0, -10, -30 and -60 seconds with window clamping.",
+        "text": "Applyは下書きを検証し、順番を管理するセッション経由でSDKプレイヤーを再生成してソースを読み込みます。変更のないApply、無効なApply、Reset draftではリソースを置き換えません。選択したプリセット・任意URLのソース、ログ、Allow DVRの補助処理設定は保持され、再生位置はリセットされます。タイムシフトボタンは引き続き0・-10・-30・-60秒に固定され、ウィンドウ内に補正されます。"
+      },
+      {
+        "source": "Allow DVR changes the application DVR helper, not PlayerConfig.playback.timeShift. License/authentication, ui:false and module registration remain setup constants, not GUI settings. Title/poster are passed in SourceConfig, but the Kepler screen has no poster overlay or HTML Player UI.",
+        "text": "Allow DVRが変えるのはアプリのDVR補助処理であり、PlayerConfig.playback.timeShiftではありません。ライセンス・認証、ui:false、モジュール登録は設定コード内の固定値で、GUI設定ではありません。タイトル・ポスターはSourceConfigに渡しますが、Kepler画面にはポスターの重ね表示やHTML Player UIはありません。"
       },
       {
         "source": "isLive and getCurrentTime are read but not consumed by the displayed derived state, so they receive no observation credit.",
         "text": "isLiveとgetCurrentTimeは読み取られますが、表示する派生状態には使われないため、観測件数には含めません。"
       },
       {
-        "source": "TimeChanged only triggers refresh; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed. Only the controller and helper code are type-checked/unit-tested in this repository. The Kepler TSX screen and real Vega playback were not built or device-tested for this measurement.",
-        "text": "TimeChangedは表示の更新だけを行い、SourceLoaded・TimeShifted・DurationChanged・DVRWindowExceededは名前付きログにも記録します。イベントのペイロードフィールドを表示するGUIはありません。このリポジトリではコントローラーとヘルパーの型検査・単体テストだけを実施しています。この測定ではKepler TSX画面のビルドとVega実機での再生試験は実施していません。"
+        "source": "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
+        "text": "PlayerAPI.loadの公開シグネチャは一件です。GUIは編集したSourceConfigを渡しますが、任意引数のforceTechnologyとdisableSeekingは操作できません。読み取り専用のPlayerAPI.getConfig・getSourceの観測や、内部を展開しないオブジェクト全体のGUI対応は推定しません。非公開のapp_idに固定値を渡しても、公開されたtweaks項目の対応とは数えません。"
+      },
+      {
+        "source": "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed.",
+        "text": "TimeChangedは表示中のDVR状態を更新します。SourceLoaded・TimeShifted・DurationChanged・DVRWindowExceededには名前付きログもあります。イベントのペイロード項目は公開しません。"
+      },
+      {
+        "source": "The actual App/control/configuration/video-surface JSX and helpers are type-checked against installed SDK, React Native and Kepler declarations. App/session tests mock native/media/player boundaries, including initialization and cleanup changes. Kepler builds, native layout, TV focus/keyboard input and real Vega playback were not performed for this measurement.",
+        "text": "実際のApp・操作パネル・設定パネル・映像表示用JSXと補助処理を、導入済みSDK・React Native・Keplerの型宣言に対して型検査しています。App・セッションのテストはnative・media・Playerの代替オブジェクトを使い、初期化中・終了処理中の変更も対象にします。この測定ではKeplerビルド、nativeの見た目、TVのフォーカス・文字入力、Vega端末での実再生は確認していません。"
       }
     ]
   },

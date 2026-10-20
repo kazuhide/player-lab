@@ -18,7 +18,7 @@
     {
       "type": "code",
       "title": "README の外部プロジェクト作成例",
-      "text": "npx create-expo-app@latest dvr-showcase\ncd dvr-showcase\nnpx expo install bitmovin-player-react-native@1.28.0 expo-crypto"
+      "text": "npx create-expo-app@latest dvr-showcase\ncd dvr-showcase\nnpx expo install bitmovin-player-react-native@1.28.0 expo-crypto react-native-url-polyfill@4.0.0"
     },
     {
       "type": "note",
@@ -60,7 +60,23 @@
     },
     {
       "type": "p",
-      "text": "画面には Default、Sports、Live (DVR)、Cinema の UI 選択、ソースボタン、Live edge、−10／−30／−60 秒、Allow DVR、状態とイベントログがあります。UI 変更時に PlayerPane を作り直し、選択中ソースを再ロードします。ソースの選択は保持されますが、再生位置や再生中状態の継続は保証しません。カタログに DASH が含まれていても、実行先の iOS を含む全 OS で使えることを意味しません。"
+      "text": "画面には Default、Sports、Live (DVR)、Cinema の UI 選択、ソースボタン、Live edge、−10／−30／−60 秒、Allow DVR、状態、イベントログと Show configuration があります。iOS は HLS で開始し、HLS／progressive MP4 を選べます。iOS では DASH の形式選択とプリセットを表示せず、Android では DASH も選べます。"
+    },
+    {
+      "type": "p",
+      "text": "Show configuration では、必須の HTTP／HTTPS ソース URL、形式、任意のタイトル・ポスター URL、開始オフセット（秒）、基準の Start／End／SDK default を編集します。オフセットは符号付きで入力できます。Start はメディアまたは DVR 範囲の先頭、End は末尾またはライブ端です。SDK default は VOD が Start、ライブが End です。タイトル・ポスター・オフセットの空欄は、その任意値を省略します。"
+    },
+    {
+      "type": "p",
+      "text": "URL の検証には react-native-url-polyfill 4.0.0 の URL をローカルに読み込みます。古いネイティブ環境のグローバル URL は protocol と hostname が未実装で、有効なソースでも読み込み前に拒否されるためです。ローカルのパーサーを使うことで、グローバル URL と SDK のメディア用シムは変更しません。"
+    },
+    {
+      "type": "p",
+      "text": "Autoplay と Mute on startup はプレイヤー生成時の設定です。開始オフセットとバッファ時間は有限の十進数（秒）で入力します。バッファの空欄は SDK 既定値（iOS は 0、Android は 50）で、iOS の 0 は自動選択です。Android の 0 は自動選択ではないため、このフォームでは正の値を入力します。Maximum bitrate は整数の bit/s で、Android は 1〜2,147,483,647、iOS は 1〜9,007,199,254,740,991、空欄は上限なしです。ネイティブブリッジはビットレートを整数へ変換し、Android は符号付き 32 ビット値を使います。また JavaScript の安全な整数の上限を超えると値を正確に表現できません。整数でない値と範囲外の値は再生成前に拒否します。"
+    },
+    {
+      "type": "note",
+      "text": "Apply and recreate player は下書き全体を検証し、プレイヤーを作り直して開始オフセットから選択中ソースを読み込みます。再生位置はリセットされ、Autoplay の設定に従って再生を開始します。ソースの全編集値、UI の選択、ログと Allow DVR は保持します。無効な入力や変更のない設定では再生成しません。Reset draft は編集を戻すだけで、再生は変えません。ソースのプリセットボタンは引き続き即時に読み込みます。Allow DVR はアプリの補助処理を操作し、SDK の再生設定自体を編集するものではありません。"
     },
     {
       "type": "code",
@@ -69,7 +85,7 @@
     },
     {
       "type": "note",
-      "text": "型検査はApp.tsx、ソース一覧、純粋なロジックが対象です。外部Expoプロジェクトの生成、ネイティブビルド、WebViewの描画、実再生を確認するものではなく、端末で実再生する自動テストも未収録です。"
+      "text": "型検査は App.tsx、設定パネル、ソース一覧と純粋なロジックが対象です。App の操作テストは native／Player の代替オブジェクトを使い、編集、入力検証、Apply／Reset、ソース保持と再生成を確認します。外部 Expo プロジェクトの生成、ネイティブビルド、native／WebView の見た目、実再生は検証しません。対応する外部 Expo プロジェクトと端末・シミュレーターでのビルドが引き続き必要です。"
     },
     {
       "type": "h2",
@@ -101,28 +117,54 @@
     },
     {
       "type": "p",
-      "text": "画面にはソース、Live edge、−10／−30／−60 秒、Allow DVR、状態とログが含まれます。設定例は自動再生有効・ミュート有効です。専用の再生／一時停止ボタン、音声・字幕・画質選択、TV リモコンのキーイベント処理まで用意されたアプリではありません。DRM 用モジュールも対象外です。"
+      "text": "画面にはソース、Live edge、−10／−30／−60 秒、Allow DVR、状態、ログと Show configuration があります。初期状態は自動再生・ミュートが有効です。専用の再生／一時停止ボタン、音声・字幕・画質選択、TV リモコンのキーイベント処理まで用意されたアプリではありません。DRM 用モジュールも対象外です。"
+    },
+    {
+      "type": "p",
+      "text": "Show configuration では HTTP／HTTPS ソース URL、HLS／DASH／progressive MP4 の形式、任意のタイトル・ポスター URL、符号付きの開始オフセット（秒）、基準の Start／End／SDK default を編集します。Start はメディアまたは DVR 範囲の先頭、End は末尾またはライブ端です。SDK default は VOD が Start、ライブが End です。タイトル・ポスター・オフセットの空欄は、その任意値を省略します。Kepler 画面に画像表示は追加されないため、ポスター値を保存してもこの画面に画像は重なりません。"
+    },
+    {
+      "type": "p",
+      "text": "URL の検証には react-native-url-polyfill 4.0.0 の URL をローカルに読み込みます。React Native 0.72 のグローバル URL は protocol と hostname が未実装なためです。グローバル URL と Vega SDK のメディア用シムは変更しません。外部 Kepler プロジェクトにも apps/vega/package.json の依存を追加してください。"
+    },
+    {
+      "type": "p",
+      "text": "Autoplay と Mute on startup はプレイヤー生成時の設定です。音声・映像それぞれの Forward buffer は秒単位で、このフォームでは正の値を入力します。空欄はメディア種別ごとに SDK 既定値の 40 秒を使い、ライブの範囲によって有効なバッファは制限されます。Maximum video bitrate は bit/s の正の適応上限で、空欄は上限なしです。数値は有限の十進数で入力します。形式、バッファと適応の対応は、ソース、再生エンジン、端末にも依存します。"
+    },
+    {
+      "type": "note",
+      "text": "Apply and recreate player は下書きを検証し、前のプレイヤーの終了を待って、選択中ソースを開始オフセットから読み込みます。再生位置はリセットされ、Autoplay の設定に従って再生を開始します。プリセット・任意 URL のソース、ログと Allow DVR は保持します。無効な入力や変更のない設定では再生成しません。Reset draft は編集を戻すだけです。ソースのプリセットボタンは引き続き即時に読み込みます。Vega の HTML Player UI は無効のままで、Allow DVR はアプリの補助処理を操作します。"
     },
     {
       "type": "code",
-      "title": "リポジトリのルートからコア部分を確認",
+      "title": "リポジトリのルートから画面とロジックを確認",
       "text": "pnpm --filter @showcase/vega test\npnpm --filter @showcase/vega typecheck"
     },
     {
       "type": "note",
-      "text": "Vegaの型検査はコア処理が対象で、React／Keplerの.tsx画面は除外します。セッションテストも偽のmedia／Playerを使います。Keplerビルド、画面、リモコン、実再生の成功は記録されていません。"
+      "text": "Vega の型検査は App、設定・操作パネル、映像表示用 JSX を含め、導入済み SDK、React Native、Kepler の型と照合します。App／セッションのテストは native／media／Player の代替オブジェクトを使い、編集、入力検証、Apply／Reset、設定保持と初期化・終了処理中の変更を確認します。native の見た目、TV のフォーカスや文字入力、Kepler ビルド、実再生は検証しません。設定済み Kepler プロジェクトと対象端末で操作を確認してください。"
     }
   ],
   "sources": [
     {
       "path": "apps/react-native/README.md",
-      "line": 29,
+      "line": 97,
       "label": "Expo への統合手順と限界"
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 71,
+      "line": 69,
       "label": "実画面と UI 切り替え"
+    },
+    {
+      "path": "apps/react-native/src/ConfigurationPanel.tsx",
+      "line": 16,
+      "label": "React Native の編集項目・単位・Apply／Reset"
+    },
+    {
+      "path": "apps/react-native/src/configuration.ts",
+      "line": 59,
+      "label": "React Native の入力検証と SDK 項目への対応"
     },
     {
       "path": "apps/react-native/src/dvr/snapshotController.ts",
@@ -136,7 +178,7 @@
     },
     {
       "path": "apps/vega/src/App.tsx",
-      "line": 29,
+      "line": 34,
       "label": "app ID・再生設定・Analytics"
     },
     {
@@ -151,8 +193,18 @@
     },
     {
       "path": "apps/vega/tsconfig.json",
-      "line": 15,
-      "label": "型検査から除外される TSX"
+      "line": 22,
+      "label": "全ソース・JSX を含む型検査の範囲"
+    },
+    {
+      "path": "apps/vega/src/ConfigurationPanel.tsx",
+      "line": 14,
+      "label": "Vega の編集項目・単位・Apply／Reset"
+    },
+    {
+      "path": "apps/vega/src/configuration.ts",
+      "line": 55,
+      "label": "Vega の入力検証と SDK 項目への対応"
     },
     {
       "path": "docs/e2e-testing.md",
@@ -186,6 +238,18 @@
     {
       "url": "https://docs.expo.dev/more/create-expo/",
       "label": "Expoのプロジェクトテンプレートと画面構成"
+    },
+    {
+      "url": "https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0",
+      "label": "ローカル URL パーサー 4.0.0"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/src/main/java/com/bitmovin/player/reactnative/converter/JsonConverter.kt#L163-L165",
+      "label": "Android のビットレート整数変換"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/RCTConvert%2BBitmovinPlayer.swift#L964-L965",
+      "label": "iOS のビットレート整数変換"
     }
   ]
 }

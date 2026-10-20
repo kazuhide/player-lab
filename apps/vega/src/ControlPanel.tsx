@@ -49,6 +49,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       <View style={styles.row}>
         <Text style={styles.label}>Allow DVR</Text>
         <Switch
+          accessibilityLabel="Allow DVR"
           value={dvrAllowed}
           onValueChange={(v) => {
             onDvrAllowedChange(v);
