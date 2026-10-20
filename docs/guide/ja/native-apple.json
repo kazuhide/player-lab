@@ -139,6 +139,55 @@
     },
     {
       "type": "h2",
+      "text": "現行版でのローカル素材と設定適用の確認"
+    },
+    {
+      "type": "p",
+      "text": "2026年10月21日、Player 3.128.0の通常アプリのGUIから、生成した60秒のBig Buck BunnyのHLS・プログレッシブMP4をiPhone・iPad・Apple TVのシミュレーターで再生しました。MP4ではURL、プログレッシブ形式、タイトル、開始オフセット5秒、自動再生、最大ビットレート2,500,000 bit/s、前方バッファー8秒を編集画面から入力しました。SDKの読み取り値で設定の適用、新しいPlayerと旧Playerの破棄を確認し、再生位置の進行と映像を確認しました。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "MP4の実行先",
+        "結果と所要時間",
+        "SDKの再生位置"
+      ],
+      "rows": [
+        [
+          "iPhone 17 Pro / iOS 26.4",
+          "成功1件・失敗0件 / 47.026秒",
+          "6.113 → 10.513秒"
+        ],
+        [
+          "iPad Pro 11-inch (M5) / iOS 26.4",
+          "成功1件・失敗0件 / 52.502秒",
+          "6.118 → 10.518秒"
+        ],
+        [
+          "Apple TV 4K (3rd generation) / tvOS 26.4",
+          "成功1件・失敗0件 / 104.280秒",
+          "6.017 → 10.418秒"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "コピーしたMP4のファイル全体の長さは60.021333秒です。映像は0.021322秒から60秒間、音声は0秒から60.021333秒間です。入力HLSでは音声の始点が-0.021333秒、映像が0秒でした。MP4への詰め替えでファイルの原点が移動し、トラック間の時刻差が残ります。映像の終端より音声が21ミリ秒余計に続くという意味ではありません。ファイル全体の長さに加え、各トラックの始点と終点を比較します。ビットレートとバッファーの読み取り値は設定が渡ったことを示し、通信時の上限やバッファー性能の測定ではありません。実際のシミュレーターによる結果であり、ホストなしのロジック検査・ビルドとは別です。"
+    },
+    {
+      "type": "p",
+      "text": "Apple READMEの手順で.cache/apple-runtime-mediaを生成した後、リポジトリのルートから次のコマンドを実行すると同等のプログレッシブファイルを作れます。この変換手順も2026年10月21日に別途確認しました。映像と音声は再エンコードせずにコピーし、生成済みメディアを上書きしません。"
+    },
+    {
+      "type": "code",
+      "text": "mkdir -p .cache/apple-mp4\nffmpeg -v error -n -i .cache/apple-runtime-media/vod-baseline/master.m3u8 \\\n  -map 0:v:0 -map 0:a:0 -c copy -movflags +faststart \\\n  .cache/apple-mp4/vod-60s.mp4"
+    },
+    {
+      "type": "p",
+      "text": "バイト範囲の取得に対応するHTTPサーバーでこのファイルを配信します。Configure source and playbackへ到達可能なURLを入力し、Progressive MP4を選びます。上記の値をApplyして映像と再生位置の進行を確認します。HLS終了試験用のサーバーはこのMP4を配信しません。選択したシミュレーターから素材へ接続できることと、アプリを許可したPlayerライセンスが必要です。"
+    },
+    {
+      "type": "h2",
       "text": "適用済み設定のコード"
     },
     {
@@ -205,6 +254,15 @@
     {
       "url": "https://github.com/bitmovin/bitmovin-player-ios-samples#available-sample-apps",
       "label": "Bitmovin Apple 公式の形式・ライセンス設定"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 262,
+      "label": "現行の60秒HLS・MP4の設定と再生"
+    },
+    {
+      "url": "https://ffmpeg.org/ffmpeg-formats.html#Format-Options",
+      "label": "FFmpegの時刻シフト設定"
     }
   ]
 }

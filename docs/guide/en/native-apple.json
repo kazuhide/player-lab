@@ -139,6 +139,55 @@
     },
     {
       "type": "h2",
+      "text": "Current local configuration and playback checks"
+    },
+    {
+      "type": "p",
+      "text": "On October 21, 2026, the normal app GUI played generated 60-second Big Buck Bunny HLS and progressive MP4 on iPhone, iPad and Apple TV simulators with Player 3.128.0. The MP4 workflow entered URL, progressive type, title, start offset 5 seconds, autoplay, maximum bitrate 2,500,000 bit/s and forward buffer 8 seconds through the editor. Native observations confirmed configuration values, Player replacement and previous destruction, advancing positions and visible video."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "MP4 destination",
+        "Result and case duration",
+        "Native playback samples"
+      ],
+      "rows": [
+        [
+          "iPhone 17 Pro / iOS 26.4",
+          "1 passed, 0 failed / 47.026 s",
+          "6.113 → 10.513 s"
+        ],
+        [
+          "iPad Pro 11-inch (M5) / iOS 26.4",
+          "1 passed, 0 failed / 52.502 s",
+          "6.118 → 10.518 s"
+        ],
+        [
+          "Apple TV 4K (3rd generation) / tvOS 26.4",
+          "1 passed, 0 failed / 104.280 s",
+          "6.017 → 10.418 s"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The copied MP4 reports a container duration of 60.021333 seconds. Video spans 60 seconds from 0.021322; audio starts at zero and spans 60.021333. Input HLS audio starts at -0.021333 while video starts at zero. Remuxing shifts the file origin and retains that track offset; it does not add 21 milliseconds of audio beyond the video endpoint. Compare track starts and endpoints, not only container duration. Bitrate and buffer readings establish configuration delivery, not bandwidth enforcement or buffering performance. These actual simulator results are separate from hostless logic and build checks."
+    },
+    {
+      "type": "p",
+      "text": "After generating .cache/apple-runtime-media as described in the Apple README, create an equivalent progressive file with the following command from the repository root. The remux recipe was verified separately on October 21, 2026. It copies the existing encoded video and audio; it does not overwrite the generated media."
+    },
+    {
+      "type": "code",
+      "text": "mkdir -p .cache/apple-mp4\nffmpeg -v error -n -i .cache/apple-runtime-media/vod-baseline/master.m3u8 \\\n  -map 0:v:0 -map 0:a:0 -c copy -movflags +faststart \\\n  .cache/apple-mp4/vod-60s.mp4"
+    },
+    {
+      "type": "p",
+      "text": "Serve this file with an HTTP server that supports byte ranges. Enter its reachable URL under Configure source and playback and select Progressive MP4. Apply the values above and check the visible video and advancing position. The HLS ending fixture server does not serve this MP4. The source must be reachable from the selected simulator and the app needs its allowed Player license."
+    },
+    {
+      "type": "h2",
       "text": "Applied configuration code"
     },
     {
@@ -205,6 +254,15 @@
     {
       "url": "https://github.com/bitmovin/bitmovin-player-ios-samples#available-sample-apps",
       "label": "Official Bitmovin Apple formats and license setup"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 262,
+      "label": "Current 60-second HLS/MP4 configuration and playback"
+    },
+    {
+      "url": "https://ffmpeg.org/ffmpeg-formats.html#Format-Options",
+      "label": "FFmpeg timestamp-shift options"
     }
   ]
 }
