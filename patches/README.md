@@ -27,8 +27,14 @@ The coordinator's temporary SDK listeners detach when neither an action nor a
 teardown receipt remains. This allows a new recommendation after pause to own
 its playback intent without inheriting an unrelated future unload.
 
-Expected browser cancellations of retired actions are consumed, while active
-cancellations and genuine failures remain observable. A source receipt replaced
+Queued `Paused` notifications cancel intent only while the current SDK state
+is paused. A new load resets that state, so a notification from the previous
+source does not cancel the new recommendation. Explicit public pause requests
+still cancel immediately through the owned hook, including already-paused media.
+
+Expected browser cancellations and the two SDK 8.280 superseded/destroyed load
+cancellation Errors are consumed only for confirmed retired actions. Active
+same-message errors and genuine failures remain observable. A source receipt replaced
 during pending playback also identifies cancellation before that notification
 arrives. Disposal recognizes only the SDK's exported
 `PlayerAPINotAvailableError`; local ownership is cleared even when the destroyed

@@ -256,7 +256,7 @@ diff --git a/dist/js/framework/utils/RecommendationPlayback.js b/dist/js/framewo
 new file mode 100644
 --- /dev/null
 +++ b/dist/js/framework/utils/RecommendationPlayback.js
-@@ -0,0 +1,133 @@
+@@ -0,0 +1,149 @@
 +"use strict";
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.playRecommendation = playRecommendation;
@@ -295,7 +295,15 @@ new file mode 100644
 +        state.cleanup();
 +    }
 +    function onPaused() {
-+        if (state.action) state.action.cancel();
++        if (!state.action) return;
++        try {
++            // Paused is queued. A later load resets the SDK pause state before
++            // an old source's notification arrives; it must not cancel new intent.
++            if (player.isPaused()) state.action.cancel();
++        } catch (error) {
++            if (!state.isUnavailable(error)) throw error;
++            onDestroy();
++        }
 +    }
 +    function onDestroy() {
 +        state.disposed = true;
@@ -355,11 +363,19 @@ new file mode 100644
 +    }
 +    function fail(error) {
 +        var browserCancellation = typeof DOMException !== 'undefined' && error instanceof DOMException && error.name === 'AbortError';
++        // Web 8.280 rejects superseded/destroyed load promises with these
++        // ordinary Errors. The message alone never establishes cancellation.
++        var sdkLoadCancellation = !playRequested && error instanceof Error &&
++            (error.message === 'Load call was cancelled by another load or unload call' ||
++                error.message === 'Load was cancelled as the player is being destroyed');
++        // Only the exported disposed-API error confirms destruction before its
++        // notification; a live action with the same load error stays observable.
++        if (sdkLoadCancellation && !cancelled) sourceMatches(source);
 +        // An external load can replace the receipt and reject pending play before
 +        // SourceUnloaded is delivered. Active load and same-source aborts stay visible.
 +        if (browserCancellation && playRequested && !cancelled && !sourceMatches(source)) cancelled = true;
 +        cleanup();
-+        if (cancelled && browserCancellation) return;
++        if (cancelled && (browserCancellation || sdkLoadCancellation)) return;
 +        // Keep genuine failures visible once, including failures after cancellation.
 +        throw error;
 +    }

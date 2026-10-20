@@ -195,7 +195,7 @@ export function inspectExcludedSettingsRelease(player: PlayerAPI) {
 // Exercise the actual SDK component, UI manager and DOM click with controlled
 // public load/play promises. The browser test observes genuine unhandled errors
 // through Playwright; this helper installs no rejection listener or suppressor.
-export async function inspectRecommendationPromises(player: PlayerAPI, scenario: "released" | "superseded" | "active-failure" | "active-abort" | "released-failure" | "released-intent" | "pause" | "released-pause" | "external-source" | "unload" | "destroy" | "play-failure" | "superseded-unload-pending" | "superseded-external-source" | "superseded-unload" | "destroy-before-notify" | "destroy-notify-invalid" | "external-source-play" | "active-load-abort" | "destroyed-failure" | "pause-next-before-unload" | "pause-next-after-unload" | "pause-next-external-source" | "pause-next-external-unload" | "pause-next-after-external-unload" | "pause-cancelled-load" | "pause-receipt-destroy") {
+export async function inspectRecommendationPromises(player: PlayerAPI, scenario: "released" | "superseded" | "active-failure" | "active-abort" | "released-failure" | "released-intent" | "pause" | "released-pause" | "external-source" | "unload" | "destroy" | "play-failure" | "superseded-unload-pending" | "superseded-external-source" | "superseded-unload" | "destroy-before-notify" | "destroy-notify-invalid" | "external-source-play" | "active-load-abort" | "destroyed-failure" | "pause-next-before-unload" | "pause-next-after-unload" | "pause-next-external-source" | "pause-next-external-unload" | "pause-next-after-external-unload" | "pause-cancelled-load" | "pause-receipt-destroy" | "active-sdk-cancel" | "active-destroy-cancel-message" | "destroyed-sdk-cancel" | "native-pause") {
   const deferred = () => {
     let resolve!: () => void;
     let reject!: (reason: unknown) => void;
@@ -330,7 +330,7 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
       emit(player.exports.PlayerEvent.SourceUnloaded);
       deferredUnloads--;
       if (scenario === "superseded-unload") emit(player.exports.PlayerEvent.SourceUnloaded);
-      loads[0]!.reject(new DOMException("Superseded load", "AbortError"));
+      loads[0]!.reject(new Error("Load call was cancelled by another load or unload call"));
       if (scenario === "superseded-unload-pending") {
         await finishLoad(1);
         const latestPlay = plays[0];
@@ -351,12 +351,13 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
       currentSource = replacement;
       loads[1]!.resolve();
       await loading;
-    } else if (scenario === "destroy-before-notify" || scenario === "destroy-notify-invalid" || scenario === "destroyed-failure") {
+    } else if (scenario === "destroy-before-notify" || scenario === "destroy-notify-invalid" || scenario === "destroyed-failure" || scenario === "destroyed-sdk-cancel") {
       manager.release();
       // destroy() invalidates public APIs before its asynchronous Destroy event.
       invalidated = true;
       if (scenario !== "destroy-before-notify") emit(player.exports.PlayerEvent.Destroy);
       if (scenario === "destroyed-failure") loads[0]!.reject(new Error("Recommendation fixture load failed"));
+      else if (scenario === "destroyed-sdk-cancel") loads[0]!.reject(new Error("Load was cancelled as the player is being destroyed"));
       else loads[0]!.resolve();
       await new Promise<void>((resolve) => setTimeout(resolve, 30));
       if (player.pause !== pause) throw new Error("Disposed action must restore its pause hook before notification");
@@ -374,6 +375,19 @@ export async function inspectRecommendationPromises(player: PlayerAPI, scenario:
       plays[0]!.resolve();
     } else if (scenario === "active-failure" || scenario === "released-failure") {
       loads[0]!.reject(new Error("Recommendation fixture load failed"));
+    } else if (scenario === "active-sdk-cancel" || scenario === "active-destroy-cancel-message") {
+      loads[0]!.reject(new Error(scenario === "active-sdk-cancel"
+        ? "Load call was cancelled by another load or unload call"
+        : "Load was cancelled as the player is being destroyed"));
+    } else if (scenario === "native-pause") {
+      await finishLoad(0);
+      await new Promise<void>((resolve) => {
+        const paused = () => { boundOff(player.exports.PlayerEvent.Paused, paused); resolve(); };
+        boundOn(player.exports.PlayerEvent.Paused, paused);
+        player.getVideoElement().pause();
+      });
+      if (!player.isPaused()) throw new Error("A current native pause must be reflected in the SDK state");
+      plays[0]!.reject(new DOMException("Current media paused", "AbortError"));
     } else if (scenario === "active-load-abort") {
       loads[0]!.reject(new DOMException("Active recommendation load abort", "AbortError"));
     } else if (scenario === "active-abort" || scenario === "play-failure") {
@@ -460,4 +474,40 @@ export async function inspectRealRecommendationDestroy() {
     if (!released) checked("final release", () => manager.release());
     host.remove();
   }
+}
+
+// Real load/play promises preserve the SDK's own cancellation and event ordering.
+const realRecommendationRaces = new WeakMap<PlayerAPI, { manager: UIManager; host: HTMLElement }>();
+export async function startRealRecommendationRace(player: PlayerAPI, scenario: "superseded" | "paused-previous" | "paused-current" | "destroyed") {
+  const previous = player.getSource();
+  if (!previous?.hls) throw new Error("The real race fixture needs the app's public HLS source");
+  const sourceA = { hls: previous.hls, title: "Race recommendation A" };
+  const sourceB = { dash: "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd", title: "Race recommendation B" };
+  const a = new RecommendationItem({ recommendationConfig: { title: sourceA.title, resource: sourceA } });
+  const b = new RecommendationItem({ recommendationConfig: { title: sourceB.title, resource: sourceB } });
+  const host = document.createElement("div");
+  document.body.append(host);
+  const manager = new UIManager(player, [{ identifier: UIVariantIdentifier.main,
+    ui: new UIContainer({ components: [a, b] }),
+  }], { container: host });
+  realRecommendationRaces.set(player, { manager, host });
+  const initial = { autoplay: player.getConfig(false).playback?.autoplay, playing: player.isPlaying() };
+  // Keep every action in one task so earlier SDK notifications remain queued.
+  a.getDomElement().get(0).click();
+  if (scenario === "paused-previous") player.pause("fixture-pause-previous");
+  if (scenario === "destroyed") {
+    releaseRealRecommendationRace(player);
+    await player.destroy();
+  } else {
+    b.getDomElement().get(0).click();
+    if (scenario === "paused-current") player.pause("fixture-pause-current");
+  }
+  return initial;
+}
+export function releaseRealRecommendationRace(player: PlayerAPI) {
+  const owned = realRecommendationRaces.get(player);
+  if (!owned) return;
+  realRecommendationRaces.delete(player);
+  owned.manager.release();
+  owned.host.remove();
 }

@@ -68,10 +68,10 @@ test("@public SDK UI settings release excluded setting controls once", async ({ 
   }
 });
 
-for (const scenario of ["released", "superseded", "active-failure", "active-abort", "released-failure", "released-intent", "pause", "released-pause", "external-source", "unload", "destroy", "play-failure", "superseded-unload-pending", "superseded-external-source", "superseded-unload", "destroy-before-notify", "destroy-notify-invalid", "external-source-play", "active-load-abort", "destroyed-failure", "pause-next-before-unload", "pause-next-after-unload", "pause-next-external-source", "pause-next-external-unload", "pause-next-after-external-unload", "pause-cancelled-load", "pause-receipt-destroy"] as const) {
+for (const scenario of ["released", "superseded", "active-failure", "active-abort", "released-failure", "released-intent", "pause", "released-pause", "external-source", "unload", "destroy", "play-failure", "superseded-unload-pending", "superseded-external-source", "superseded-unload", "destroy-before-notify", "destroy-notify-invalid", "external-source-play", "active-load-abort", "destroyed-failure", "pause-next-before-unload", "pause-next-after-unload", "pause-next-external-source", "pause-next-external-unload", "pause-next-after-external-unload", "pause-cancelled-load", "pause-receipt-destroy", "active-sdk-cancel", "active-destroy-cancel-message", "destroyed-sdk-cancel", "native-pause"] as const) {
   test(`@public SDK recommendation promises retain ownership: ${scenario}`, async ({ page }, testInfo) => {
     await captureAppPlayer(page, scenario.startsWith("pause-"));
-    if (scenario === "pause" || scenario === "released-pause") {
+    if (scenario === "pause" || scenario === "released-pause" || scenario === "native-pause") {
       await expect.poll(() => page.evaluate(() => window.player!.isPlaying())).toBe(true);
     }
     const errors: string[] = [];
@@ -83,12 +83,16 @@ for (const scenario of ["released", "superseded", "active-failure", "active-abor
     }, { url: helper, scenario });
     const clicks = scenario === "superseded-external-source" || scenario === "pause-next-external-source" ? 3
       : scenario.startsWith("superseded") || scenario.startsWith("pause-next-") || scenario === "external-source" || scenario === "external-source-play" ? 2 : 1;
-    const plays = ["pause-next-before-unload", "pause-next-after-unload", "superseded", "superseded-unload-pending", "external-source-play", "active-abort", "released-intent", "play-failure"].includes(scenario) ? 1 : 0;
+    const plays = ["native-pause", "pause-next-before-unload", "pause-next-after-unload", "superseded", "superseded-unload-pending", "external-source-play", "active-abort", "released-intent", "play-failure"].includes(scenario) ? 1 : 0;
     expect(result).toEqual({ loads: clicks, plays, listeners: 0, pauseRestored: true });
     if (scenario === "active-failure" || scenario === "released-failure" || scenario === "destroyed-failure") {
       expect(errors).toEqual(["Recommendation fixture load failed"]);
     } else if (scenario === "play-failure") {
       expect(errors).toEqual(["Recommendation fixture play failed"]);
+    } else if (scenario === "active-sdk-cancel") {
+      expect(errors).toEqual(["Load call was cancelled by another load or unload call"]);
+    } else if (scenario === "active-destroy-cancel-message") {
+      expect(errors).toEqual(["Load was cancelled as the player is being destroyed"]);
     } else if (scenario === "active-load-abort") {
       expect(errors).toEqual(["Active recommendation load abort"]);
     } else if (scenario === "active-abort") {
@@ -111,6 +115,48 @@ test("@public SDK recommendation promises survive real API invalidation before D
   expect(result).toEqual({ plays: 0, invalidatedSynchronously: true, notifiedSynchronously: false, destroyNotified: true });
   expect(errors).toEqual([]);
 });
+
+for (const scenario of ["superseded", "paused-previous", "paused-current", "destroyed"] as const) {
+  test(`@public SDK real recommendation race: ${scenario}`, async ({ page }, testInfo) => {
+    await captureAppPlayer(page, true);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await expect.poll(() => page.evaluate(() => window.player!.getVideoElement().readyState)).toBeGreaterThanOrEqual(3);
+    if (scenario.startsWith("paused-")) {
+      await page.evaluate(() => window.player!.play());
+      await expectDecodedPlayback(page);
+    }
+    const helper = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-release.ts")}`;
+    try {
+      const initial = await page.evaluate(async ({ url, scenario }) => {
+        const module = await import(/* @vite-ignore */ url);
+        return module.startRealRecommendationRace(window.player!, scenario);
+      }, { url: helper, scenario });
+      expect(initial).toEqual({ autoplay: false, playing: scenario.startsWith("paused-") });
+      if (scenario !== "destroyed") {
+        await expect.poll(() => page.evaluate(() => window.player!.getSource()?.title)).toBe("Race recommendation B");
+        await expect.poll(() => page.evaluate(() => window.player!.getVideoElement().readyState)).toBeGreaterThanOrEqual(3);
+        if (scenario === "paused-current") {
+          const before = await page.evaluate(() => window.player!.getVideoElement().currentTime);
+          await page.waitForTimeout(300); // Span queued Paused delivery and load/play settlement.
+          expect(await page.evaluate(() => ({ paused: window.player!.getVideoElement().paused,
+            playing: window.player!.isPlaying(), time: window.player!.getVideoElement().currentTime })))
+            .toEqual({ paused: true, playing: false, time: before });
+        } else {
+          await expectDecodedPlayback(page);
+        }
+      } else {
+        await page.waitForTimeout(100); // Allow the retired real load promise to reject after Destroy.
+      }
+      expect(errors).toEqual([]);
+    } finally {
+      await page.evaluate(async (url) => {
+        const module = await import(/* @vite-ignore */ url);
+        module.releaseRealRecommendationRace(window.player!);
+      }, helper);
+    }
+  });
+}
 
 async function expectDecodedPlayback(page: Page): Promise<void> {
   const before = await page.evaluate(() => {
