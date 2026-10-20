@@ -14153,12 +14153,12 @@
             "code-only": 0,
             "direct": 0,
             "internal": 1,
-            "missing": 71,
+            "missing": 74,
             "observed": 5,
             "preset": 0,
             "sdk-ui-unverified": 0
           },
-          "denominator": 77,
+          "denominator": 80,
           "deprecated": 0,
           "percentDirect": 0.0,
           "percentDirectOrPreset": 0.0
@@ -14337,10 +14337,10 @@
         "isLive and getCurrentTime are read by the snapshot controller but are not consumed by the displayed derived state, so they receive no observation credit.",
         "Allow DVR changes the application DVR helper, not a PlayerConfig playback property. License configuration comes from environment setup and is not GUI editable.",
         "The reproducible Expo host packages shared JS/CSS as native resources. Separate iOS and Android checks exercised SDK Default VOD playback and the packaged Sports factory with a visible INFO control and advancing native playback positions. Other factories remain unqualified; no SDK UI API credit is inferred from those checks.",
-        "The latest wrapper pins Apple 3.126.0 and Android 3.165.0+jason. These supported wrapper defaults are not overridden to the newer standalone SDK versions.",
+        "Wrapper 1.29.0 pins Apple 3.128.0 and Android 3.170.0+jason. Its supported native dependency group is kept intact rather than overridden with the standalone Android SDK version.",
         "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries. Player/Source errors additionally display a numeric code when supplied; other event payload details are not rendered. onPlayerViewReady only triggers loading and is internal.",
         "Player.load receives the edited SourceConfig. No Source instance lifecycle, read-only configuration observation, offline operation or unrelated nested property is inferred from those input controls.",
-        "The App/configuration JSX and helpers are type-checked against installed declarations and tested with mocked native/player boundaries. Separate generated-host checks built both native platforms and verified packaged asset bytes. iOS simulator and Android emulator checks covered VOD playback, Apply/Reset and retained configuration/UI/log/Allow DVR. Android Apply confirmed a new native owner and destruction of the previous owner; after background return, the applied owner was retained and playback advanced after checking the on-screen playback controls. This does not isolate automatic resume without interaction. The start-offset value was confirmed in native configuration; initial seek accuracy was not measured. The Android run used the public Tears of Steel VOD HLS preset with a native duration of 734 seconds, separate from the 60-second Big Buck Bunny fixture. Current native playback is qualified within these checks; an earlier Android 1003 result is not carried forward. These checks do not qualify physical devices, Release archives, all shared factories or live/DVR playback."
+        "On 2026-10-21 the wrapper 1.29.0 / Expo 57.0.30 host built on both native platforms and packaged shared assets matched the installed bundles. iOS native 3.128.0 played the local 60-second HLS fixture; Android native 3.170.0+jason played HLS and DASH. Actual GUI Apply produced a new native owner and destroyed the previous owner. The first Playing event and native position were 5.000 seconds for the configured start; autoplay, mute, maximum bitrate 2500000 and forward buffer 12.5 matched native configuration. The OS clipboard matched displayed applied code and excluded drafts and the actual key. Reset preserved the owner and source/UI/log/Allow DVR state. After background return the same owner played advancing visible VOD following an explicit SDK Play tap; this does not promise automatic resume. These checks cover the named simulator/emulator and Default/Sports modes, not physical devices, Release archives, every factory, protected/advertising content, live/DVR playback or quantitative buffer/bitrate effects."
       ],
       "scopes": [
         {
@@ -15030,12 +15030,12 @@
                 "code-only": 0,
                 "direct": 0,
                 "internal": 1,
-                "missing": 62,
+                "missing": 65,
                 "observed": 5,
                 "preset": 0,
                 "sdk-ui-unverified": 0
               },
-              "denominator": 68,
+              "denominator": 71,
               "deprecated": 0,
               "percentDirect": 0.0,
               "percentDirectOrPreset": 0.0
@@ -22784,7 +22784,7 @@
     }
   ],
   "checkedAt": "2026-10-21",
-  "inputSha256": "66c0392c427ea770bf6f5c9805c75c3175bd35021e753bdf3cfb14e201176b48",
+  "inputSha256": "fa4f38e18edb122c1892a0433489355d87238cea4951f629846e72b6a546bbe9",
   "schemaVersion": 1,
   "sdks": [
     {
@@ -22847,19 +22847,19 @@
       "name": "Bitmovin Player React Native wrapper",
       "sources": [
         {
-          "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/build.gradle"
+          "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/android/build.gradle"
         },
         {
-          "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/dependencies.json"
+          "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/ios/dependencies.json"
         },
         {
-          "url": "https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v1.28.0"
+          "url": "https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v1.29.0"
         },
         {
-          "url": "https://registry.npmjs.org/bitmovin-player-react-native/1.28.0"
+          "url": "https://registry.npmjs.org/bitmovin-player-react-native/1.29.0"
         }
       ],
-      "version": "1.28.0"
+      "version": "1.29.0"
     },
     {
       "channel": "vega-supported-beta",
@@ -22888,10 +22888,10 @@
           "url": "https://developer.bitmovin.com/playback/docs/release-notes-web"
         },
         {
-          "url": "https://registry.npmjs.org/bitmovin-player/8.280.0"
+          "url": "https://registry.npmjs.org/bitmovin-player/8.281.0"
         }
       ],
-      "version": "8.280.0"
+      "version": "8.281.0"
     },
     {
       "channel": "stable",
@@ -22910,5 +22910,5 @@
       "version": "4.23.0"
     }
   ],
-  "sourceRevision": "a3d897361c93f83784b674bc7a8e52a5f5559e8a"
+  "sourceRevision": "8ff0502556c0827e127535a9f1c893346ac9a205"
 }

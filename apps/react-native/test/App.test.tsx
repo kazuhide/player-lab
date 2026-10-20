@@ -82,6 +82,26 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it("places the iOS configuration inputs inside the ScrollView that adjusts for the keyboard", async () => {
+    runtime.os = "ios";
+    await mount();
+    await ready();
+    await press("Show configuration");
+    const controls = [
+      ...["Source URL", "Source title", "Start offset (seconds)", "Forward buffer (seconds)", "Maximum bitrate (bits per second)"].map(input),
+      element("Switch", { accessibilityLabel: "Autoplay" }),
+      element("Switch", { accessibilityLabel: "Mute on startup" }),
+    ];
+    const scrolls = controls.map((control) => {
+      let parent = control.parent;
+      while (parent && String(parent.type) !== "ScrollView") parent = parent.parent;
+      return parent;
+    });
+    expect(scrolls[0]).not.toBeNull();
+    expect(new Set(scrolls).size).toBe(1);
+    expect(scrolls[0]!.props.automaticallyAdjustKeyboardInsets).toBe(true);
+  });
+
   it("does not acknowledge an older clipboard request beside newly applied code", async () => {
     let finish!: () => void;
     runtime.clipboard.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));

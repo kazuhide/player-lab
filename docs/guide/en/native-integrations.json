@@ -9,15 +9,15 @@
     },
     {
       "type": "p",
-      "text": "apps/react-native provides the existing showcase App.tsx, source list, DVR logic, configuration controls, and a generator for an external Expo development project. The generated host pins Node 24.19.0, pnpm 10.33.0, Expo 54.0.35, React Native 0.81.5, React 19.1.0, bitmovin-player-react-native 1.28.0, and the Expo 54-compatible expo-crypto 15.0.9. Its pnpm-lock.yaml preserves the JavaScript dependency resolution."
+      "text": "apps/react-native provides the existing showcase App.tsx, source list, DVR logic, configuration controls, and a generator for an external Expo development project. The generated host pins Node 24.19.0, pnpm 10.33.0, Expo 57.0.30, React Native 0.86.3, React 19.2.3, bitmovin-player-react-native 1.29.0, expo-crypto 57.0.4, and expo-clipboard 57.0.2. Its pnpm-lock.yaml preserves the JavaScript dependency resolution."
     },
     {
       "type": "p",
-      "text": "The wrapper resolves iOS Player and Player Core 3.126.0, Analytics 3.28.1, and Google IMA 3.26.1 through Swift Package Manager; Android Player is 3.165.0+jason. The included native dependency locks preserve the iOS resolution. The standalone iOS 3.128.0 and Android 3.171.0 samples use separate SDK pins; do not force those versions into this wrapper."
+      "text": "The wrapper resolves iOS Player and Player Core 3.128.0, Analytics 3.28.1, and Google IMA 3.26.1 through Swift Package Manager; Android Player is 3.170.0+jason. The included native dependency locks preserve the iOS resolution. The standalone samples have independent SDK pins. Keep the wrapper's supported native dependencies together rather than overriding them with the standalone Android 3.171.0 pin."
     },
     {
       "type": "note",
-      "text": "The +jason suffix selects Bitmovin's Android build that renames media-library namespaces and resources to avoid conflicts with Media3/ExoPlayer. Google IMA 3.37.0 and later require this build and core-library desugaring, which adapts newer Java library APIs for older Android versions. Wrapper 1.28.0 selects Player and media-session 3.165.0+jason, IMA 3.38.0, and desugar_jdk_libs 2.1.5. Its Expo plugin has no native Player SDK version option. Keep these related dependencies together; changing only the Player version is not a verified wrapper upgrade."
+      "text": "The +jason suffix selects Bitmovin's Android build that renames media-library namespaces and resources to avoid conflicts with Media3/ExoPlayer. Google IMA 3.37.0 and later require this build and core-library desugaring, which adapts newer Java library APIs for older Android versions. Wrapper 1.29.0 selects Player and media-session 3.170.0+jason, IMA 3.38.0, desugar_jdk_libs 2.1.5, and okhttp-urlconnection 5.5.0. Its Expo plugin has no native Player SDK version option. Keep these related dependencies together; changing only the Player version is not a verified wrapper upgrade."
     },
     {
       "type": "code",
@@ -26,7 +26,7 @@
     },
     {
       "type": "note",
-      "text": "The generator uses the native template included in Expo 54 rather than create-expo-app@latest. Its target must be a new directory outside the checkout. It copies the existing App and registers it as the root screen with a safe area. Native Player modules require a development build; Expo Go cannot run them."
+      "text": "The generator uses the native template included in Expo 57 rather than create-expo-app@latest. Its target must be a new directory outside the checkout. It copies the existing App and registers it as the root screen with a safe area. Native Player modules require a development build; Expo Go cannot run them."
     },
     {
       "type": "p",
@@ -54,7 +54,7 @@
     },
     {
       "type": "note",
-      "text": "On macOS, use Xcode and CocoaPods for iOS; Android requires Java 17 and the Android SDK/toolchain selected by Expo 54. The supplied Podfile.lock was generated with CocoaPods 1.17.0. Since wrapper 1.27, iOS Player and Google IMA use Swift Package Manager, while the bridge and Expo use CocoaPods. Existing integrations should follow the official migration guide. Keep both Podfile.lock and the workspace Package.resolved; restore the supplied locks after generating a fresh project."
+      "text": "On macOS, use Xcode and CocoaPods for iOS; wrapper 1.29 requires iOS 16.4 or later. Android requires Java 17 and the Android SDK/toolchain selected by Expo 57. The wrapper's Expo plugin raises compileSdk to at least 37 and the Kotlin Gradle plugin to at least 2.2.21. The supplied Podfile.lock was generated with CocoaPods 1.17.0. Since wrapper 1.27, iOS Player and Google IMA use Swift Package Manager, while the bridge and Expo use CocoaPods. Existing integrations should follow the official migration guide. Keep both Podfile.lock and the workspace Package.resolved; restore the supplied locks after generating a fresh project."
     },
     {
       "type": "code",
@@ -93,11 +93,11 @@
     },
     {
       "type": "note",
-      "text": "The type check includes the real App and generated host entry points. App interaction tests use native/player mocks; generator checks separately verify source/assets, pinned inputs, existing-target refusal and private copying of explicitly selected environment files. Native iOS 26.4 checks exercised SDK Default VOD playback, the packaged Sports INFO and Play/Pause controls, Reset/Apply and source/UI/log/Allow DVR retention. Both iOS and ARM64 Android API 36.1 development builds and packaged asset bytes were checked."
+      "text": "The type check includes the real App and generated host entry points. App interaction tests use native/player mocks; generator checks separately verify source/assets, pinned inputs, existing-target refusal and private copying of explicitly selected environment files. Separate iPhone-simulator checks used wrapper 1.29.0, Expo 57.0.30 and native Player 3.128.0. Default and Sports rendered the 60-second HLS fixture with advancing native positions. For a configured 5-second start offset, the native first Playing event and current-time sample both reported 5.000 seconds. Native checks confirmed autoplay/mute, buffer/bitrate settings, Apply replacing the owner with the previous owner destroyed, and Reset/source/UI/log/Allow DVR retention. The OS clipboard exactly matched the visible applied code and excluded draft edits. After background/foreground return, the same owner advanced after an explicit on-screen SDK Play action."
     },
     {
       "type": "p",
-      "text": "On Android API 36.1, Default and the packaged Sports factory showed video and advancing native SDK positions. Sports loaded its local JS/CSS assets and displayed INFO. Native UI checks covered Reset, Apply with autoplay/mute and a start offset of 5 seconds, a new owner with the old owner destroyed, and retention of the source, selected Default UI, log and Allow DVR. After background/foreground return, the applied owner remained and VOD advanced after checking the on-screen playback controls. The check did not record whether Play was tapped or playback had already resumed, so automatic resume without interaction remains unqualified. The start-offset value was confirmed using native getters; initial seek accuracy was not measured. This run used the public Tears of Steel VOD HLS preset with a native duration of 734 seconds, separate from the 60-second Big Buck Bunny test fixture. Physical devices, Release archives, DRM, ads, all factories, live/DVR and quantitative buffer/bitrate effects remain unqualified."
+      "text": "On Android API 36.1, the current wrapper rendered the 60-second HLS and DASH fixtures with advancing native SDK positions. The first Playing position was sampled at 5.0 seconds for the configured 5-second start offset; frame-accurate initial seek timing was not measured. Native checks confirmed autoplay/mute, the bitrate and buffer getters, Reset retaining the owner, and Apply replacing the owner with the previous owner destroyed. Default and the packaged Sports factory retained the applied source and settings. The OS clipboard exactly matched the visible configuration code and excluded draft edits. After background/foreground return, the same applied owner advanced after an explicit on-screen SDK Play action. These simulator/emulator checks do not establish automatic resume without interaction, physical-device or Release behavior, DRM, ads, all factories, live/DVR or quantitative buffer/bitrate effects."
     },
     {
       "type": "h2",
@@ -267,16 +267,16 @@
       "label": "Bitmovin React Native environment and Expo Go limitation"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/docs/ios-dependencies.md",
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/docs/ios-dependencies.md",
       "label": "Official React Native iOS dependency migration"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/dependencies.json",
-      "label": "React Native 1.28.0 Apple SDK defaults"
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/ios/dependencies.json",
+      "label": "React Native 1.29.0 Apple SDK defaults"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/android/build.gradle#L98-L114",
-      "label": "React Native 1.28.0 Android SDK defaults"
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/android/build.gradle#L98-L114",
+      "label": "React Native 1.29.0 Android SDK defaults"
     },
     {
       "url": "https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/blob/0c7463104d3c18f56440aeec7beccd0d92c11aaa/README.md#features-and-limitations",
@@ -287,19 +287,19 @@
       "label": "Official Vega Player release history"
     },
     {
-      "url": "https://expo.dev/changelog/sdk-54",
-      "label": "Official Expo 54 tooling and native template"
+      "url": "https://expo.dev/changelog/sdk-57",
+      "label": "Official Expo 57 tooling and native template"
     },
     {
       "url": "https://www.npmjs.com/package/react-native-url-polyfill/v/4.0.0",
       "label": "Local URL parser 4.0.0"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/android/src/main/java/com/bitmovin/player/reactnative/converter/JsonConverter.kt#L163-L165",
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/android/src/main/java/com/bitmovin/player/reactnative/converter/JsonConverter.kt#L163-L165",
       "label": "Android bitrate integer conversion"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.28.0/ios/RCTConvert%2BBitmovinPlayer.swift#L964-L965",
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/ios/RCTConvert%2BBitmovinPlayer.swift#L971-L972",
       "label": "iOS bitrate integer conversion"
     },
     {
@@ -335,8 +335,8 @@
       "label": "Google IMA dependency and Java API compatibility requirements"
     },
     {
-      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/1d06241340047dbd5e78bc9a60a533cce4bde33e/plugin/src/withBitmovinConfig.ts#L14-L17",
-      "label": "React Native 1.28.0 Expo plugin options"
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/plugin/src/withBitmovinConfig.ts#L14-L17",
+      "label": "React Native 1.29.0 Expo plugin options"
     },
     {
       "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#31240",
@@ -345,6 +345,10 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/release-notes-android#3510",
       "label": "Android +jason resource-prefix isolation"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v1.29.0",
+      "label": "React Native 1.29 release and native toolchain requirements"
     },
     {
       "url": "https://www.developer.amazon.com/docs/vega-api/0.24/classes.HTMLMediaElement.amazon-devices_react-native-w3cmedia#src",
