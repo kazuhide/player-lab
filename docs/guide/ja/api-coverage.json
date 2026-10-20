@@ -229,20 +229,20 @@
         "text": "呼び出し可能な非推奨のフィールド・メソッド・イベントも対象です。非推奨であることだけを理由にAPI IDを除外しません。"
       },
       {
-        "source": "Missing means absent from the audited custom MainActivity control panel and related app sources. It does not prove absence from embedded SDK UI. Reported GUI coverage is a lower bound.",
-        "text": "「対応するGUIなし」は、調査したMainActivityのカスタム操作パネルと関連コードに対応するGUIがないことを示します。組み込みSDK UIに機能がないことは意味しません。確認済みのGUI件数は下限値です。"
+        "source": "Missing means no exposed route in the audited app. The standard SDK UI routes below were separately exercised on an Android phone emulator; no Android TV or Fire TV device behavior is inferred.",
+        "text": "「対応するGUIなし」は、調査したアプリに提供経路がないことを示します。以下の標準SDK UI経路はAndroidの電話向けエミュレーターで別途操作して確認しました。Android TVやFire TVの端末動作を示す結果ではありません。"
       },
       {
-        "source": "sdk-ui-unverified identifies candidate SDK Web UI controls with an opaque native bridge/device path; these receive zero verified app-panel action credit.",
-        "text": "「SDK UIは未確認」は、ネイティブブリッジや実機での経路を確認できていないSDK Web UIの候補操作を示します。確認済みのアプリ操作件数には含めません。"
+        "source": "Eleven standard UI routes were observed at the native boundary: play, pause, seek, mute/unmute, speed, audio/subtitle/video quality selection and both public thumbnail query entry points. The thumbnail query returned null; this does not establish thumbnail image rendering.",
+        "text": "標準UIからネイティブAPIとの境界まで、play、pause、seek、mute/unmute、再生速度、音声・字幕・映像品質の選択と二つの公開thumbnail問い合わせ経路、計十一件を確認しました。thumbnailの問い合わせはnullを返したため、画像表示を確認した結果ではありません。"
       },
       {
-        "source": "Default UI configuration uses SDK defaults. Synced app assets have the same filenames as default Web UI assets; bundle provenance and native SDK UI actions remain unaudited.",
-        "text": "標準UIにはSDKの既定設定を使用します。同期したアプリ側のファイルと標準Web UIのファイル名が同じため、実際に採用されるファイルの由来とネイティブSDK UIの操作は未確認です。"
+        "source": "Fullscreen/PiP entry, exit and state controls and the mobile volume slider were verified absent from the configured phone UI. They remain missing and receive no GUI credit; reading a false native getter in a test does not count as an app observation.",
+        "text": "検査した電話向けUIでは、Fullscreen/PiPの開始・終了・状態表示と携帯向けvolume sliderが提供されていないことを確認しました。これらは「対応するGUIなし」のままとし、確認済みGUI件数には含めません。テストでnative getterのfalseを読むだけでは、アプリで観測値を表示したとは数えません。"
       },
       {
-        "source": "Current UI choices are Default/Sports/Live/Cinema. No TvUi/focus selector is exposed. Android TV/Fire TV remote input and device-only behavior were not tested.",
-        "text": "UIの選択肢はDefault・Sports・Live・Cinemaです。TvUiやフォーカス方式の選択GUIはありません。Android TV・Fire TVのリモコン入力と実機固有の動作は試験していません。"
+        "source": "Current UI choices are Default/Sports/Live/Cinema. Shared assets and custom factories were exercised in the native phone tests. No TvUi/focus selector is exposed.",
+        "text": "UIの選択肢はDefault・Sports・Live・Cinemaです。電話向けのネイティブテストで共有アセットとカスタムfactoryを実行しました。TvUiやフォーカス方式の選択GUIはありません。"
       },
       {
         "source": "Cast, IMA, DRM, offline, low-latency, VR, PiP and Analytics remain SDK-available with their media, dependency, license, hardware or integration prerequisites; lack of a test device does not remove them.",
@@ -261,16 +261,16 @@
         "text": "duration・maxTimeShift・timeShiftは画面上のDVR情報に使われます。isLiveとcurrentTimeはコピーされますが、Dvr.deriveStateでは使われないため、GUIの観測件数には含めません。"
       },
       {
-        "source": "Source evidence reads only six explicit public app source files, including Configuration.kt and ConfigurationPanel.kt. No environment files, native local properties, license values or device state are accessed.",
-        "text": "証跡の取得では、Configuration.ktとConfigurationPanel.ktを含む、明示した六つの公開アプリソースだけを読み取ります。環境設定ファイル、ネイティブのローカル設定、ライセンス値、実機の状態は参照しません。"
+        "source": "Source evidence reads seven explicit public app/control-test source files, including Configuration.kt and ConfigurationPanel.kt. No environment files, native local properties, license values or device state are read by this generator.",
+        "text": "証跡の生成では、Configuration.ktとConfigurationPanel.ktを含む、明示した七つの公開アプリ／操作テストのソースファイルを読み取ります。このgeneratorは、環境設定ファイル、ネイティブのローカル設定、ライセンス値、端末の状態を参照しません。"
       },
       {
-        "source": "17 individual configuration leaves are editable: source URL, all four source types, title, poster URL, persistent poster, start offset and timeline reference; autoplay, startup mute, SDK time shifting; startup/restart thresholds and forward buffer; maximum automatic video bitrate, preload, rebuffering and live quality/stability balance.",
-        "text": "設定の末端17項目を編集できます。ソースURL、四つのソース形式、タイトル、ポスターURL、ポスターの継続表示、開始オフセットと基準、自動再生、起動時ミュート、SDKのタイムシフト、開始時・再バッファー時のしきい値と前方バッファー、自動画質選択の最大ビデオビットレート、プリロード、再バッファーの許可、ライブの画質と安定性の比重です。"
+        "source": "18 individual creation/source configuration leaves are editable, including optional source target latency. Blank target latency leaves SourceConfig.liveConfig unset; a finite value creates SourceLiveConfig(targetLatency=value) without changing SDK synchronization defaults.",
+        "text": "生成時・ソース設定の末端18項目を個別に編集でき、任意のソース目標遅延も含みます。目標遅延が空欄ならSourceConfig.liveConfigを設定せず、有限数を明示するとSourceLiveConfig(targetLatency=value)を生成します。SDKの同期制御の既定値は変更しません。"
       },
       {
-        "source": "PlayerConfig.playbackConfig, PlayerConfig.bufferConfig, PlayerConfig.adaptationConfig, SourceConfig.options and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary configuration objects.",
-        "text": "PlayerConfig.playbackConfig、PlayerConfig.bufferConfig、PlayerConfig.adaptationConfig、SourceConfig.options、BufferConfig.audioAndVideoは所有する設定への結び付けであり、「コードのみ」です。任意の設定オブジェクトを編集するGUIではありません。"
+        "source": "PlayerConfig.playbackConfig, PlayerConfig.bufferConfig, PlayerConfig.adaptationConfig, SourceConfig.options, SourceConfig.liveConfig and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary configuration objects.",
+        "text": "PlayerConfig.playbackConfig、PlayerConfig.bufferConfig、PlayerConfig.adaptationConfig、SourceConfig.options、SourceConfig.liveConfig、BufferConfig.audioAndVideoは、編集項目を所有する設定オブジェクトへの結び付けとして「コードのみ」に分類します。任意の設定オブジェクトを編集するGUIではありません。"
       },
       {
         "source": "Source Apply validates HTTP(S) URLs and finite offset seconds, constructs Source(SourceConfig) and invokes Player.load(Source). Only this load overload is an app GUI path. Player.config, Source.config and Player.isDestroyed reads in tests receive no observed GUI credit; Player.on/off and Source.on/off remain listener lifecycle code.",
@@ -289,12 +289,12 @@
         "text": "PlayerViewのonStart/onResume/onPause/onStopは画面のライフサイクルに伴う内部呼び出しです。ビューごとのobserverは、Activityが復帰済みの場合にも新しいビューへ現在の状態を通知し、旧ビューへの通知は退役前に解除します。view.onDestroyの前にPlayerを切り離し、Playerの破棄はcontrollerが担当します。画面へ戻ってもSDKが一時停止状態を保持する場合があるため、回帰テストでは自動再開を仮定せず、明示的にPlayを要求します。"
       },
       {
-        "source": "The final 2026-10-20 check passed 14 JVM tests and both app/test APK builds. The licensed Android phone emulator group passed 8 of 9 cases: configuration, ownership, DVR, configured VOD at a 10-second offset with autoplay/mute, 12 UI handoffs and background/resume with explicit Play passed. The unchanged strict shared-UI live-return case failed. Physical Android TV, Fire TV, completed SDK resource cleanup, casting, offline playback and Analytics receipt remain unqualified.",
-        "text": "2026-10-20の最終検査ではJVMテスト14件とアプリ・テストAPKのビルドが成功しました。ライセンスを使ったAndroid電話エミュレーターの一括検査は9件中8件が成功しました。設定、所有権、DVR、10秒位置からのautoplay・mute付きVOD、12回のUI切り替え、明示Playを伴うバックグラウンド復帰が成功し、既存の厳密な共有UIライブ復帰検査だけが失敗しました。物理Android TV、Fire TV、SDKリソース解放の完了、Cast、オフライン再生、Analyticsの受信は未確認です。"
+        "source": "The 2026-10-21 Android phone group passed all 16 cases, with 18 JVM tests and both app/test APK builds. It covered configuration, source-owned startup offset, standard UI/native controls, HLS/DASH live finalization, clipboard, ownership, UI handoffs and background return with explicit Play.",
+        "text": "2026-10-21のAndroid電話向けエミュレーター一括実行は16件すべて成功し、JVMテスト18件とアプリ・テストAPKのビルドも成功しました。設定、対象ソースの準備完了後の開始オフセット、標準UIとネイティブ操作、HLS/DASHライブ終了、クリップボード、所有権、UI切り替え、明示的なPlayを伴うバックグラウンド復帰を確認しました。"
       },
       {
-        "source": "A failed live return completed after 3.070 seconds within +0.011 seconds of its fixed requested media target, while the moving live edge left a -3.059-second offset. The UI correctly showed behind-live. This does not meet the unchanged current-edge/visible-LIVE condition. A separate focused background/UI test observed 1004 during Activity close after playback checks passed; its timed-out operation remains unknown, and the final group had no Player/Source errors. No live-return retry, buffer default, seek semantics, error threshold or visibility condition was changed. Stable live return, grouped startup-position reliability and the intermittent 1004 remain unqualified.",
-        "text": "失敗したライブ復帰は3.070秒で完了し、要求時に固定したメディア位置との差は+0.011秒でしたが、その間にライブ端が進み、現在のライブ端からは−3.059秒遅れていました。UIは正しく遅れを表示しており、現在のライブ端と可視LIVE表示を求める従来の条件を満たしていません。別の背景復帰・UI検査では再生確認の成功後、Activity終了時に1004を観測しましたが、タイムアウトした操作は未特定です。最終の一括検査にPlayer/Sourceエラーはありませんでした。ライブ復帰の再試行、バッファの既定値、seekの意味、エラーの閾値、可視性の条件は変更していません。安定したライブ復帰、一括実行時の開始位置の再現性、断続的な1004は未解決です。"
+        "source": "Live acceptance couples a fresh TimeShifted completion, native zero time-shift and genuinely visible LIVE within the same deadline. Raw live latency and effective target latency are separate diagnostics; no seek-completion or ideal-latency SLA is asserted, and no automatic seek retry is added.",
+        "text": "ライブ復帰は、新しいTimeShifted完了イベント、nativeのゼロtimeShift、実際に可視なLIVEを同じ期限内に満たすかで判定します。raw live latencyと実効target latencyは別の診断値です。seek完了や理想遅延のSLAを主張せず、自動seek再試行も追加していません。"
       },
       {
         "source": "configuration_named_types: 242 configuration, 5 observation.",

@@ -56,7 +56,7 @@
     },
     {
       "type": "p",
-      "text": "Live target latency は SourceLiveConfig.targetLatency に対応します。空欄では従来の SDK 既定値（liveConfig = null）を維持します。有限数を明示すると SDK のライブ端の定義が変わり、stall を避けながらその遅延に近づけます。VOD では無視されます。Apply source でソースを再読込し、Player 再生成でも適用値を保持します。Reset source draft は適用せずに下書きを戻します。期限内の同期や、移動するライブ端への安定した復帰を保証する設定ではありません。"
+      "text": "Live target latency は SourceLiveConfig.targetLatency に対応します。空欄では従来の SDK 既定値（liveConfig = null）を維持します。有限数を明示すると SDK のライブ端の定義が変わり、stall を避けながらその遅延に近づけます。VOD では無視されます。Apply source でソースを再読込し、Player 再生成でも適用値を保持します。Reset source draft は適用せずに下書きを戻します。この設定だけで seek 完了や遅延収束の期限を保証するものではありません。記録した検証範囲は後述します。"
     },
     {
       "type": "p",
@@ -100,7 +100,7 @@
     },
     {
       "type": "code",
-      "text": "python3 encoding/test-streams/local.py\nnode apps/android/runtime-fixture.mjs .cache/test-streams/vod-baseline\n# 別のターミナルで実行:\nadb reverse tcp:5272 tcp:5272\nadb reverse tcp:5273 tcp:5273"
+      "text": "python3 encoding/test-streams/local.py\nnode apps/android/runtime-fixture.mjs .cache/test-streams/vod-baseline\n# In another terminal:\nadb reverse tcp:5272 tcp:5272\nadb reverse tcp:5273 tcp:5273"
     },
     {
       "type": "code",
@@ -113,7 +113,7 @@
     },
     {
       "type": "p",
-      "text": "開始オフセットの検査は、新しい Player／Source の所有権に対応する新たな Ready と RenderFirstFrame の後、最初の TimeChanged をゼロ値も含めて採取します。従来の 9.0～13.0 秒の範囲と40秒の期限は維持し、Loaded と isPlaying だけでは準備完了を保証しない点を区別します。標準 UI の Play／Pause／Mute／Unmute、seek、1.5倍速、音声・字幕・映像品質の選択は native 状態または新しいイベントで確認します。標準 seek bar の hover は Player.getThumbnail と現在の Source.getThumbnail への委譲まで到達しましたが、参照素材は画像なしを返しました。検査した電話では fullscreen／PiP の handler と可視ボタンがなく、携帯向け volume slider も非表示で、不提供を確認しました。コード表示の検査は適用値と下書きの分離、UI 選択、通知、実 OS クリップボードの完全一致を確認します。"
+      "text": "開始オフセットの検査は、新しい Player／Source の所有権に対応する新たな Ready と RenderFirstFrame の後、最初の TimeChanged をゼロ値も含めて採取し、40 秒以内に 9.0～13.0 秒の範囲を満たすか確認します。Loaded と isPlaying は準備完了より先に成立する場合があります。標準 UI では Play／Pause／Mute／Unmute、seek、1.5 倍速、音声・字幕・映像品質の選択と二つの thumbnail 問い合わせ経路、計 11 件をネイティブ API との境界で確認しました。標準 seek bar の hover は Player.getThumbnail と現在の Source.getThumbnail への委譲まで到達しましたが、参照素材は null を返したため画像表示は確認していません。検査した電話向け構成では、fullscreen／PiP の開始・終了・状態表示と、非表示の携帯向け volume slider の計 7 経路を利用できません。API レポートでは「対応するGUIなし」のままとし、確認済み GUI 件数には含めません。物理端末や TV での利用可否を示す結果ではありません。コード表示の検査は適用値と下書きの分離、UI 選択、通知、実 OS クリップボードの完全一致を確認します。"
     },
     {
       "type": "p",
@@ -130,7 +130,7 @@
     {
       "type": "note",
       "title": "2026-10-21 の記録された検証範囲",
-      "text": "Player 3.171.0 で JVM テスト18件（DVR 6件、設定10件、lifecycle 2件）とアプリ・instrumentation APK のビルドが成功しました。許可されたライセンスを使う Android 16/API 36.1 ARM64 の電話向けエミュレーター一括実行は237.139秒で16件すべて成功しました。設定付きVOD、厳密なLIVE、標準UIの操作と不提供、両形式の終了、実クリップボード、12回のUI交換、明示的な再生要求を伴う2回の停止・復帰を含みます。通常のライブ復帰は157 msで要求固定目標の誤差+0.002秒、206 ms後にnativeゼロoffsetと可視LIVEが一致しました。新たなReady/frame後の設定付きVODの最初の位置は10.256秒でした。新しいVOD seek完了と、新たなlive loadで可視のライブ操作が戻ることを明示した両終了検査も69.860秒で成功しました。任意の30秒遅延policyも制御したエミュレーター遅延下で結合した復帰条件を満たしました。SDK既定値の変更やseek再試行は追加しておらず、これらの実行はseek完了や遅延収束の時間保証ではありません。以前の単独終了時には具体的な操作不明のtimeout 1004を記録しました。最終groupでは再現せず、その解決も証明しません。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics受信、SDK内部リソースの全解放完了はこの範囲に含みません。"
+      "text": "Player 3.171.0 で JVM テスト18件（DVR 6件、設定10件、lifecycle 2件）とアプリ・instrumentation APK のビルドが成功しました。許可されたライセンスを使う Android 16/API 36.1 ARM64 の電話向けエミュレーター一括実行は237.139秒で16件すべて成功しました。設定付きVOD、厳密なLIVE、標準UIの操作と不提供、両形式の終了、実クリップボード、12回のUI交換、明示的な再生要求を伴う2回の停止・復帰を含みます。通常のライブ復帰は157 msで要求固定目標の誤差+0.002秒、206 ms後にnativeゼロoffsetと可視LIVEが一致しました。新たなReady/frame後の設定付きVODの最初の位置は10.256秒でした。新しいVOD seek完了と、新たなlive loadで可視のライブ操作が戻ることを明示した両終了検査も69.860秒で成功しました。任意の30秒遅延policyも制御したエミュレーター遅延下で結合した復帰条件を満たしました。SDK既定値の変更やseek再試行は追加しておらず、これらの実行はseek完了や遅延収束の時間保証ではありません。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics受信、SDK内部リソースの全解放完了はこの範囲に含みません。"
     }
   ],
   "sources": [
