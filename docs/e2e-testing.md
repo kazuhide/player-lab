@@ -263,12 +263,10 @@ allowed license and network access. Follow the
 that class with the same instrumentation runner argument. Do not retain the dummy
 license override for a playback run.
 
-On Player Android 3.171.0, the existing shared-UI/DVR check reported non-network
-timeout 1004 in a grouped run. Separate comparisons of base `2c90983` and the
-changed app both failed the return-to-live assertion with the same SDK, shared UI,
-and emulator. No threshold was relaxed; that shared-UI/live-edge path remains
-unqualified for this version. The October 19 result above used Player 3.155.0.
-The configured VOD pass does not close this live-edge failure.
+The Android 3.171.0 shared-UI/live-return qualification was incomplete in the
+2026-10-20 comparisons. The 2026-10-21 checks below supersede that limitation for
+the tested phone paths. The October 19 result above remains a separate record
+using Player 3.155.0.
 
 These configuration checks do not qualify physical devices, Android TV/Fire TV,
 completed internal SDK resource cleanup, casting, offline playback, or Analytics
@@ -276,3 +274,27 @@ receipt. The [React Native host instructions](../apps/react-native/README.md)
 and [Vega host instructions](../apps/vega/README.md) provide separate native build
 paths and record their simulator, emulator and virtual-device results and limits.
 Their mocked tests do not establish native playback or completed resource release.
+
+## Native runtime qualification (2026-10-21)
+
+These local simulator, emulator and virtual-device runs used the real SDK and
+an allowed Player license. They are separate from CI compilation and mocked
+unit tests.
+
+| Platform | Recorded result and scope |
+| --- | --- |
+| Android phone, Player 3.171.0 | All 16 instrumented cases passed, covering configuration, source-owned startup position, standard UI/native controls, ownership, UI replacement, clipboard, background return with explicit Play, and live finalization. Separate focused HLS/DASH finalization checks passed 2/2. A later standalone check with the updated shared UI passed 2/2 in 27.042 seconds: standard VOD controls and 12 UI replacements retained source/configuration/DVR state with advancing native positions and visible video. |
+| iPhone, iPad and Apple TV simulators, Player 3.128.0 | GUI-configured local 60-second HLS and progressive MP4 played with advancing native positions and visible video. Native getters confirmed applied startup and buffering settings. Separate same-source HLS completion cases passed on iPhone in 20.875 seconds and Apple TV in 21.362 seconds. They checked PlaybackFinished, disabled app DVR, replay and reset on a new live source, including when the SDK retained live/infinite getters. Apple TV uses the system player UI. |
+| Vega SDK 0.24.12112, arm64 Virtual Device | The same app instance passed 3 bitrate Apply cycles, 3 VOD HLS background/foreground cycles and 3 Live DASH cycles with advancing SDK clocks and changing video frames. Remote controls and retained settings/drafts/logs/code display were checked. All 3 Release architectures built. The separate 73 unit/session tests use mocked native boundaries; TypeScript checks also passed. |
+
+Android live-return acceptance still requires fresh native TimeShifted completion,
+an SDK time shift within the live threshold, and genuinely visible LIVE under the
+same deadline. Raw live latency is a separate diagnostic, and no automatic seek
+retry or SDK seek-completion guarantee is asserted.
+
+See the [Android](../apps/android/README.md), [Apple](../apps/ios/README.md),
+[Vega](../apps/vega/README.md) and [React Native](../apps/react-native/README.md)
+READMEs for platform setup and the exact qualification scopes. These local checks
+do not establish physical-device behavior, audible synchronization, quantitative
+bitrate/buffer effects, individual native resource counts or leak freedom,
+casting, offline playback, or Analytics receipt.
