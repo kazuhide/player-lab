@@ -112,6 +112,19 @@ test.afterEach(({ page }) => {
 
 for (const language of languages) {
   test.describe(`user guide (${language})`, () => {
+    test("Analytics attribute names remain readable without splitting a word", async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto(guidePath(language, "analytics-metrics"));
+      const attribute = page.locator(".guide-table td").getByText("avg(VIDEO_STARTUPTIME)", { exact: true });
+      const lines = await attribute.evaluate((element) => {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        return new Set(Array.from(range.getClientRects(), (rect) => Math.round(rect.top))).size;
+      });
+      expect(lines, "A short API expression should fit on one line at desktop width").toBe(1);
+      await expectNoDocumentOverflow(page);
+    });
+
     test("retired workflow bookmarks open current help in the same language", async ({ page }) => {
       const routes = { measurement: "test-results", media: "web-sources-tracks",
         "cloud-encoding": "web-sources-tracks", "live-finalization": "troubleshooting" };
