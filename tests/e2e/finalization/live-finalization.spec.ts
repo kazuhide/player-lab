@@ -33,6 +33,7 @@ async function vodTimeline(page: Page) {
     const events = (window as unknown as { finalizationEvents: string[] }).finalizationEvents;
     return {
       time: player.getCurrentTime("relativetime" as TimeMode),
+      seekbarTime: player.getCurrentTime() - player.getSeekableRange().start,
       rangeStart: player.getSeekableRange().start,
       duration: player.getDuration(),
       seeked: events.filter(event => event === "Seeked").length,
@@ -96,9 +97,20 @@ async function expectVodTimelineControls(page: Page): Promise<void> {
   expect.soft(aria.text).not.toMatch(/Hours/i);
 
   const seek = (action: () => Promise<unknown>, target: number) => expectVodSeek(page, action, target);
-  await seek(() => slider.press("ArrowRight"), aria.now + 1);
-  const afterRight = Number(await slider.getAttribute("aria-valuenow"));
-  await seek(() => slider.press("ArrowLeft"), afterRight - 1);
+  const seekByKeyboard = async (key: "ArrowRight" | "ArrowLeft", step: number) => {
+    const current = await vodTimeline(page);
+    // Key handlers floor the SDK's seekable-relative clock; ARIA can still show
+    // the preceding seek. Convert that target to the SDK's relative time mode.
+    const target = Math.floor(current.seekbarTime) + step + current.time - current.seekbarTime;
+    await seek(() => slider.press(key), target);
+    await expect.poll(() => slider.evaluate(element => {
+      const player = window.player!;
+      const seekbarTime = player.getCurrentTime() - player.getSeekableRange().start;
+      return Number(element.getAttribute("aria-valuenow")) - Math.floor(seekbarTime);
+    }), { message: "accessible time must catch up with the completed VOD keyboard seek" }).toBe(0);
+  };
+  await seekByKeyboard("ArrowRight", 1);
+  await seekByKeyboard("ArrowLeft", -1);
   const afterLeft = await vodTimeline(page);
   await seek(() => page.locator('#player [data-bmpui-seek-direction="forward"]').click(), afterLeft.time + 10);
   const afterForward = await vodTimeline(page);
