@@ -4,6 +4,7 @@ import { URL } from "react-native-url-polyfill";
 import type { ShowcaseSource } from "./sources";
 import { applyNativeSettings, type NativeSettings, type SettingValues } from "./nativeSettings";
 import { applyNativeArrays, type NativeArrayDraft } from "./nativeArrays";
+import { validateNativeScripts, validateNativeScriptSettings, type NativeScriptDraft } from "./nativeScripts";
 
 export type NativePlatform = "ios" | "android";
 export type SourceFormat = "hls" | "dash" | "progressive";
@@ -24,6 +25,7 @@ export interface ConfigurationDraft {
   subtitleDefault: boolean;
   apiSettings?: SettingValues;
   arraySettings?: NativeArrayDraft;
+  scripts?: NativeScriptDraft;
 }
 export interface Configuration extends NativeSettings {
   draft: ConfigurationDraft;
@@ -64,6 +66,7 @@ function optionalNumber(value: string, label: string): number | undefined {
 
 /** The only boundary from editable text into SDK configuration objects. */
 export function parseConfiguration(draft: ConfigurationDraft, platform: NativePlatform): Configuration {
+  if (draft.scripts) validateNativeScripts(draft.scripts);
   const url = httpUrl(draft.url, "Source URL");
   if (platform === "ios" && draft.type === "dash") throw new Error("DASH is not supported by the native iOS player. Use HLS or progressive MP4.");
   const type = { hls: SourceType.HLS, dash: SourceType.DASH, progressive: SourceType.PROGRESSIVE }[draft.type];
@@ -112,6 +115,7 @@ export function parseConfiguration(draft: ConfigurationDraft, platform: NativePl
   };
   const settings = applyNativeSettings(source, player, draft.apiSettings ?? {});
   applyNativeArrays(settings, draft.arraySettings ?? {});
+  if (draft.scripts) validateNativeScriptSettings(settings, draft.scripts);
   return {
     ...settings,
     draft: { ...draft, url, title, poster, subtitleUrl, subtitleLabel, subtitleLanguage, subtitleDefault,
@@ -121,6 +125,6 @@ export function parseConfiguration(draft: ConfigurationDraft, platform: NativePl
 }
 
 export function sameConfiguration(left: Configuration, right: Configuration): boolean {
-  const values = (config: Configuration) => [config.source, config.player, config.view, config.webUi, config.props, config.offline, config.download, config.offlineOptions, config.cast];
+  const values = (config: Configuration) => [config.source, config.player, config.view, config.webUi, config.props, config.offline, config.download, config.offlineOptions, config.cast, config.draft.scripts];
   return JSON.stringify(values(left)) === JSON.stringify(values(right));
 }

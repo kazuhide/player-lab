@@ -1,10 +1,10 @@
-import { AnalyticsRetryPolicy, ForceReuseVideoCodecReason, PictureInPictureAction, ScalingMode, SourceType, SurfaceType, TimelineReferencePoint, UserInterfaceType, type PlayerConfig, type SourceConfig, type PlayerViewConfig, type PlayerViewProps, type WebUiConfig, type OfflineContentConfig, type OfflineDownloadRequest, type OfflineSourceOptions, type BitmovinCastManagerOptions } from "bitmovin-player-react-native";
+import { CustomUi, AnalyticsRetryPolicy, ForceReuseVideoCodecReason, PictureInPictureAction, ScalingMode, SourceType, SurfaceType, TimelineReferencePoint, UserInterfaceType, type PlayerConfig, type SourceConfig, type PlayerViewConfig, type PlayerViewProps, type WebUiConfig, type OfflineContentConfig, type OfflineDownloadRequest, type OfflineSourceOptions, type BitmovinCastManagerOptions } from "bitmovin-player-react-native";
 import { finiteNumber, stringEntries } from "./apiValues";
 
 export type SettingValues = Record<string, string>;
 export interface NativeSettings {
   player: PlayerConfig; source: SourceConfig; view: PlayerViewConfig; webUi: WebUiConfig;
-  props: Pick<PlayerViewProps, "isFullscreenRequested" | "isPictureInPictureEnabled" | "isPictureInPictureRequested" | "pictureInPictureActions" | "scalingMode">;
+  props: Pick<PlayerViewProps, "isFullscreenRequested" | "isPictureInPictureEnabled" | "isPictureInPictureRequested" | "pictureInPictureActions" | "scalingMode" | "fullscreenHandler" | "customMessageHandler">;
   offline: OfflineContentConfig; download: OfflineDownloadRequest; offlineOptions: OfflineSourceOptions; cast: BitmovinCastManagerOptions;
 }
 export interface NativeSettingField { id: string; kind: "text" | "number" | "boolean" | "list" | "map" | "enum"; choices?: readonly string[]; apply: (config: NativeSettings, value: string) => void; }
@@ -226,6 +226,7 @@ export const NATIVE_SETTING_FIELDS: readonly NativeSettingField[] = [
   { id: "WebUiConfig.enableWebViewInspecting", kind: "boolean", choices: ["true", "false"], apply: (config, raw) => {  config.webUi.enableWebViewInspecting = choice(raw, [true, false]); } },
   { id: "WebUiConfig.focusUiOnInitialization", kind: "boolean", choices: ["true", "false"], apply: (config, raw) => {  config.webUi.focusUiOnInitialization = choice(raw, [true, false]); } },
   { id: "WebUiConfig.playbackSpeedSelectionEnabled", kind: "boolean", choices: ["true", "false"], apply: (config, raw) => {  config.webUi.playbackSpeedSelectionEnabled = choice(raw, [true, false]); } },
+  { id: "WebUiConfig.variant", kind: "text", apply: (config, raw) => { config.webUi.variant = new CustomUi(raw); } },
 ];
 
 export function applyNativeSettings(source: SourceConfig, player: PlayerConfig, values: SettingValues): NativeSettings {

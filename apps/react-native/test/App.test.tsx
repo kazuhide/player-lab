@@ -3,12 +3,13 @@ import { act, create, type ReactTestInstance, type ReactTestRenderer } from "rea
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ts from "typescript";
 import path from "node:path";
+import { HttpRequestType, type PlayerConfig } from "bitmovin-player-react-native";
 
 const runtime = vi.hoisted(() => {
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY = "test-license";
   process.env.EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY = "";
   return { os: "android", clipboard: vi.fn(async (_code: string) => {}), players: [] as Array<{
-    config: object;
+    config: PlayerConfig;
     load: ReturnType<typeof vi.fn>;
     destroy: ReturnType<typeof vi.fn>;
     getMaxTimeShift: ReturnType<typeof vi.fn>;
@@ -20,7 +21,7 @@ const runtime = vi.hoisted(() => {
 });
 
 vi.mock("react-native", () => ({
-  Button: "Button", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View",
+  Button: "Button", Modal: "Modal", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View",
   Platform: { get OS() { return runtime.os; }, get Version() { return runtime.os === "ios" ? "15.1" : 36; }, select: (options: Record<string, string>) => options[runtime.os] ?? options.default },
   StyleSheet: { create: <T,>(styles: T) => styles },
   NativeModules: {},
@@ -33,6 +34,14 @@ vi.mock("bitmovin-player-react-native", async () => {
   return {
     CustomUi: class { constructor(public factoryFunction: string) {} },
     PlayerView: "PlayerView",
+    Source: class {},
+    CustomMessageHandler: class {
+      constructor(private readonly options: { onReceivedSynchronousMessage: (message: string, data: string | undefined) => string | undefined; onReceivedAsynchronousMessage: (message: string, data: string | undefined) => void }) {}
+      receivedSynchronousMessage(message: string, data: string | undefined) { return this.options.onReceivedSynchronousMessage(message, data); }
+      receivedAsynchronousMessage(message: string, data: string | undefined) { return this.options.onReceivedAsynchronousMessage(message, data); }
+      sendMessage() {}
+    },
+    HttpRequestType: { Unknown: "unknown" },
     SourceType: { NONE: "none", HLS: "hls", DASH: "dash", PROGRESSIVE: "progressive" },
     SubtitleFormat: { CEA: "cea", TTML: "ttml", VTT: "vtt", SRT: "srt" },
     AdSourceType: { BITMOVIN: "bitmovin", IMA: "ima", UNKNOWN: "unknown", PROGRESSIVE: "progressive" },
@@ -43,7 +52,7 @@ vi.mock("bitmovin-player-react-native", async () => {
     SurfaceType: { SurfaceView: "SurfaceView", TextureView: "TextureView" },
     ForceReuseVideoCodecReason: { ColorInfoMismatch: "ColorInfoMismatch", MaxInputSizeExceeded: "MaxInputSizeExceeded", MaxResolutionExceeded: "MaxResolutionExceeded" },
     PictureInPictureAction: { TogglePlayback: "TogglePlayback", Seek: "Seek" },
-    usePlayer: (config: object) => useState(() => {
+    usePlayer: (config: PlayerConfig) => useState(() => {
       const player = {
         config, load: vi.fn(), isDestroyed: false, destroy: vi.fn(() => { player.isDestroyed = true; }), timeShift: vi.fn(),
         isLive: vi.fn(async () => true), getDuration: vi.fn(async () => Infinity),
@@ -90,6 +99,17 @@ afterEach(async () => {
   expect(unexpected).toEqual([]);
 });
 
+function expectValidCode(code: string): void {
+  const file = path.resolve("test/generated-configuration-example.tsx");
+  const configFile = ts.readConfigFile("tsconfig.json", ts.sys.readFile);
+  const options = ts.parseJsonConfigFileContent(configFile.config, ts.sys, path.resolve(".")).options;
+  const host = ts.createCompilerHost(options);
+  const read = host.getSourceFile.bind(host);
+  host.getSourceFile = (name, language, onError, create) => name === file ? ts.createSourceFile(file, code, language, true, ts.ScriptKind.TSX) : read(name, language, onError, create);
+  const diagnostics = ts.getPreEmitDiagnostics(ts.createProgram([file], options, host));
+  expect(diagnostics.map((diagnostic) => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"))).toEqual([]);
+}
+
 async function mount() {
   await act(async () => { screen = create(<App />); });
 }
@@ -113,14 +133,7 @@ describe("React Native configuration in the mounted App", () => {
     expect(code).toContain("SDK.SurfaceType.TextureView");
     expect(code).toContain("Applied description");
     expect(code).not.toContain("as PlayerConfig");
-    const file = path.resolve("test/generated-configuration-example.tsx");
-    const configFile = ts.readConfigFile("tsconfig.json", ts.sys.readFile);
-    const options = ts.parseJsonConfigFileContent(configFile.config, ts.sys, path.resolve(".")).options;
-    const host = ts.createCompilerHost(options);
-    const read = host.getSourceFile.bind(host);
-    host.getSourceFile = (name, language, onError, create) => name === file ? ts.createSourceFile(file, code, language, true, ts.ScriptKind.TSX) : read(name, language, onError, create);
-    const diagnostics = ts.getPreEmitDiagnostics(ts.createProgram([file], options, host));
-    expect(diagnostics.map((diagnostic) => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"))).toEqual([]);
+    expectValidCode(code);
   });
 
   it("applies typed subtitle lists and roles from the mounted GUI and removes the complete list", async () => {
@@ -137,6 +150,27 @@ describe("React Native configuration in the mounted App", () => {
     }] }));
     await press("Remove list item"); await press("Apply and recreate player"); await ready();
     expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ subtitleTracks: [] }));
+  });
+
+  it("only installs edited callbacks after explicit approval and applies them to the real SDK configuration boundary", async () => {
+    await mount(); await ready(); await press("Show configuration");
+    await press("Edit this callback");
+    const id = "PlayerConfig.networkConfig.preprocessHttpRequest";
+    await text(`JavaScript body for ${id}`, 'return { ...request, url: request.url + "?lab=1" };');
+    await press("Apply and recreate player");
+    expect(runtime.players).toHaveLength(1);
+    expect(element("Text", { accessibilityRole: "alert" }).props.children).toContain("Enable execution");
+    await act(async () => element("Switch", { accessibilityLabel: "Allow edited JavaScript execution" }).props.onValueChange(true));
+    await press("Apply and recreate player"); await ready();
+    const callback = current().config.networkConfig?.preprocessHttpRequest;
+    expect(callback).toBeTypeOf("function");
+    const result = await callback!(HttpRequestType.Unknown, { method: "GET", url: "https://example.com/manifest.mpd", headers: {} });
+    expect(result.url).toBe("https://example.com/manifest.mpd?lab=1");
+    await press("Show applied code");
+    const code = input("Applied configuration code").props.value;
+    expect(code).toContain('return { ...request, url: request.url + "?lab=1" };');
+    expect(code).toContain("async (type, request)");
+    expectValidCode(code);
   });
 
   it("requires coherent DRM configuration, preserves its dictionary and masks header values in code", async () => {

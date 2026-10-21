@@ -16,7 +16,7 @@
  * types. Native playback requires an external Expo development build; see README.
  */
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Button, Platform, ScrollView, StyleSheet, Switch, Text, View, type GestureResponderEvent } from "react-native";
+import { Button, Modal, Platform, ScrollView, StyleSheet, Switch, Text, View, type GestureResponderEvent } from "react-native";
 import {
   CustomUi,
   PlayerView,
@@ -36,6 +36,7 @@ import type { RuntimeAppState, RuntimeMonitor, RuntimeOwner } from "./src/runtim
 import { ApiPanel } from "./src/ApiPanel";
 import { nativeEventProps } from "./src/apiEvents";
 import { apiValue } from "./src/apiValues";
+import { applyNativeScripts, NativeScriptOwner } from "./src/nativeScripts";
 
 // Both keys flow from the repo-root .env via scripts/sync-env.sh → this app's .env
 // (EXPO_PUBLIC_* = client-embedded; license keys are domain-locked, not secret).
@@ -105,6 +106,7 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
     setApplied(next);
     setDraft((current) => ({ ...current, ...fields }));
     setError(null);
+    if (Object.keys(next.draft.scripts?.bodies ?? {}).length || "isFullscreenRequested" in next.props) setRevision((value) => value + 1);
   };
   const apply = () => {
     try {
@@ -161,6 +163,33 @@ interface PlayerPaneProps {
 }
 
 function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange, onRecreate }: PlayerPaneProps): React.JSX.Element {
+  const [fullscreen, setFullscreen] = useState(() => Boolean(settings.props.isFullscreenRequested));
+  const recorder = useRef<(name: string, value: unknown) => void>(() => {});
+  const [runtime] = useState(() => {
+    const owner = new NativeScriptOwner((name, value) => recorder.current(name, value), setFullscreen);
+    try {
+      const configured = Boolean(Object.keys(settings.draft.scripts?.bodies ?? {}).length || "isFullscreenRequested" in settings.props);
+      const materialized = configured ? parseConfiguration(settings.draft, Platform.OS === "ios" ? "ios" : "android") : settings;
+      if (settings.draft.scripts) applyNativeScripts(materialized, settings.draft.scripts, owner);
+      if ("isFullscreenRequested" in materialized.props && !materialized.props.fullscreenHandler) materialized.props.fullscreenHandler = owner.defaultFullscreen();
+      return { owner, settings: materialized, configured, error: null };
+    } catch { owner.retire(); return { owner, settings, configured: false, error: "The approved handler factory could not be applied. Edit the callback and Apply again." }; }
+  });
+  useEffect(() => () => runtime.owner.retire(), [runtime]);
+  if (runtime.error) return <View><Text accessibilityRole="alert">{runtime.error}</Text><Button title="Recreate player after API experiments" onPress={onRecreate} /></View>;
+  const applied = runtime.configured ? runtime.settings : settings;
+  return <ActivePlayerPane uiMode={uiMode} source={runtime.configured ? applied.source : source} playerConfig={runtime.configured ? applied.player : playerConfig}
+    settings={applied} sources={sources} onSelectSource={onSelectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={onTimeShiftEnabled}
+    log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} onRecreate={onRecreate}
+    scriptOwner={runtime.owner} scriptRecorder={recorder} fullscreen={fullscreen} onExitFullscreen={() => {
+      try { applied.props.fullscreenHandler?.exitFullscreen(); }
+      catch { recorder.current("PlayerViewProps.fullscreenHandler", { error: "Fullscreen exit callback failed." }); }
+      setFullscreen(false);
+    }} />;
+}
+
+function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange, onRecreate,
+  scriptOwner, scriptRecorder, fullscreen, onExitFullscreen }: PlayerPaneProps & { scriptOwner: NativeScriptOwner; scriptRecorder: React.MutableRefObject<(name: string, value: unknown) => void>; fullscreen: boolean; onExitFullscreen: () => void }): React.JSX.Element {
   const analyticsConfig = playerConfig.analyticsConfig ? {
     ...playerConfig.analyticsConfig,
     licenseKey: Object.prototype.hasOwnProperty.call(settings.draft.apiSettings ?? {}, "PlayerConfig.analyticsConfig.licenseKey")
@@ -183,6 +212,7 @@ function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectS
       : { licenseKey: LICENSE_KEY, ...ANALYTICS, ...playerConfig, ...(analyticsConfig ? { analyticsConfig } : {}) },
   );
   const [dvr, setDvr] = useState<DvrState | null>(null);
+  scriptOwner.bind(player);
   const [viewReady, setViewReady] = useState(false);
   const snapshots = useRef<SnapshotController | null>(null);
   const active = useRef(true);
@@ -202,6 +232,7 @@ function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectS
     }, 125);
   }, []);
   const apiEventProps = useMemo(() => nativeEventProps(recordApiEvent), [recordApiEvent]);
+  scriptRecorder.current = recordApiEvent;
   useEffect(() => () => { if (eventFlush.current) clearTimeout(eventFlush.current); }, []);
   const observed = useRef<RuntimeOwner | null>(null);
   const touchOwner = useMemo(() => Symbol("player-touch"), []);
@@ -268,9 +299,7 @@ function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectS
     ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }
     : undefined;
 
-  return (
-    <>
-      <View testID="player-lab-player" {...(Platform.OS === "android" ? {
+  const playerView = <View testID="player-lab-player" style={fullscreen ? styles.fullscreen : undefined} {...(Platform.OS === "android" ? {
         // Let the embedded SDK menu consume video gestures before the outer form.
         onTouchStartCapture: startPlayerTouch,
         onTouchEndCapture: finishPlayerTouch,
@@ -279,8 +308,9 @@ function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectS
       <PlayerView
         {...apiEventProps}
         {...settings.props}
+        {...("isFullscreenRequested" in settings.props ? { isFullscreenRequested: fullscreen } : {})}
         player={player}
-        style={styles.player}
+        style={fullscreen ? styles.fullscreen : styles.player}
         {...(viewConfig ? { config: viewConfig } : {})}
         onPlayerViewReady={() => { if (active.current) { recordApiEvent("onPlayerViewReady", undefined); observed.current?.viewReady(); setViewReady(true); } }}
         onTimeChanged={(event) => { apiEventProps.onTimeChanged?.(event); if (active.current) { observed.current?.event("timeChanged"); void refresh(); } }}
@@ -301,7 +331,12 @@ function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectS
         onPlayerError={(event) => { apiEventProps.onPlayerError?.(event); if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Player error (${event.code})` : "Player error"); } }}
         onSourceError={(event) => { apiEventProps.onSourceError?.(event); if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Source error (${event.code})` : "Source error"); } }}
       />
-      </View>
+      </View>;
+  return (
+    <>
+      {fullscreen ? <Modal visible onRequestClose={onExitFullscreen} presentationStyle="fullScreen" supportedOrientations={["portrait", "landscape"]}>
+        {playerView}<Button title="Exit fullscreen experiment" onPress={onExitFullscreen} />
+      </Modal> : playerView}
 
       <View style={styles.row}>
         {sources.map((s) => (
@@ -359,6 +394,7 @@ function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectS
 const styles = StyleSheet.create({
   container: { padding: 12, gap: 10 },
   player: { width: "100%", height: 220, backgroundColor: "#000" },
+  fullscreen: { flex: 1, width: "100%", backgroundColor: "#000" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
   label: { marginRight: 6 },
   mono: { fontFamily: "monospace", fontSize: 12 },

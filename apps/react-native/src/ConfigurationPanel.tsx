@@ -4,6 +4,7 @@ import type { ConfigurationDraft, NativePlatform } from "./configuration";
 import { ConfigurationCodeView } from "./ConfigurationCodeView";
 import { NativeSettingsPanel } from "./NativeSettingsPanel";
 import { NativeArraysPanel } from "./NativeArraysPanel";
+import { NativeScriptsPanel } from "./NativeScriptsPanel";
 
 interface Props {
   draft: ConfigurationDraft;
@@ -67,6 +68,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         <Text style={styles.help}>{platform === "android" ? "Enter a whole number from 1 to 2147483647 bit/s (Android integer limit)." : "Enter a whole number from 1 to 9007199254740991 bit/s (JavaScript exact-integer limit)."} Blank leaves it unlimited. Buffering and adaptation depend on the stream and device.</Text>
         <NativeSettingsPanel values={draft.apiSettings ?? {}} onChange={(apiSettings) => onChange({ ...draft, apiSettings })} />
         <NativeArraysPanel values={draft.arraySettings ?? {}} onChange={(arraySettings) => onChange({ ...draft, arraySettings })} />
+        <NativeScriptsPanel value={draft.scripts ?? { allowed: false, bodies: {} }} onChange={(scripts) => onChange({ ...draft, scripts })} />
         {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
         <View style={styles.row}>
           <Button title="Apply and recreate player" onPress={onApply} disabled={!changed} />
