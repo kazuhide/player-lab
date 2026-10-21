@@ -89,6 +89,11 @@
       "caption": "React Native on Android: external WebVTT fields with Mark as default off."
     },
     {
+      "type": "note",
+      "title": "Scrolling menus inside the Android player",
+      "text": "The player menu and the surrounding settings form are separate scroll areas. Swipe inside the video menu to reach lower items; start a swipe outside the video to scroll the form. A parent scroll view can intercept a gesture intended for the embedded menu, so the app keeps player touches with the video until they end or are cancelled. Replacing the player also releases that touch ownership."
+    },
+    {
       "type": "p",
       "text": "URL validation uses the locally imported URL from react-native-url-polyfill 4.0.0. Older native global URL implementations leave protocol and hostname unimplemented, which would reject valid sources before loading. The local parser leaves global URL and the SDK media shims unchanged."
     },

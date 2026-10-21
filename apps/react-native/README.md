@@ -318,3 +318,11 @@ selected UI settings sent to the SDK. The output excludes draft edits and licens
 values. **Copy code** uses Expo Clipboard 57.0.2, matched to Expo 57. Regenerate and
 build the external native host after changing native dependencies; refreshing
 JavaScript alone does not install a native module.
+
+## Scrolling Android player menus
+
+Swipe inside the video menu to reach lower settings, and outside the video
+to scroll the configuration form. While a gesture started in the Android player
+is active, the app pauses the surrounding form's scrolling. The last player
+pointer ending or being cancelled releases it; replacing the player also
+releases the retired pane's touch state. iOS keeps its existing scroll handling.

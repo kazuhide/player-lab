@@ -79,6 +79,11 @@
       "text": "Show applied code は適用中の設定と現在の UI に対応する Kotlin の PlayerConfig・SourceConfig・PlayerViewConfig を表示し、任意のライブ目標遅延も含めます。未適用の下書きは含めません。Copy code は Android のクリップボードへ書き込み、Copied を表示します。ライセンスキーはプレースホルダーです。統合先では自身のキー、ビューの接続、lifecycle 転送を別途用意します。"
     },
     {
+      "type": "note",
+      "title": "Androidでのプレイヤーメニューのスクロール",
+      "text": "動画内の設定メニューとアプリの設定フォームは別々にスクロールします。メニューの下にある項目を表示するには動画内をスワイプし、フォームをスクロールするときは動画の外から操作してください。外側のスクロールが動画内のスワイプを取り込むことがあるため、アプリはプレイヤーで扱うタッチを動画側に保持します。指を離したとき、操作をキャンセルしたとき、プレイヤーを置き換えたときに解除します。"
+    },
+    {
       "type": "h2",
       "text": "音声の優先言語・外部字幕・通信の再試行"
     },
@@ -295,6 +300,10 @@
       "path": "apps/android/test-runtime-tests.py",
       "line": 1,
       "label": "結果の厳密な判定を確認するテスト"
+    },
+    {
+      "url": "https://developer.android.com/reference/android/view/ViewParent#requestDisallowInterceptTouchEvent(boolean)",
+      "label": "Androidのタッチ取り込み制御"
     }
   ]
 }

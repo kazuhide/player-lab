@@ -389,3 +389,24 @@ UI settings sent to the SDK. Draft edits do not change this output. **Copy code*
 writes the code to the Android clipboard; you can also select the text. License
 values are excluded and the Player key is a placeholder. The app's Allow DVR
 switch remains separate from the SDK configuration.
+
+## Scrolling player menus
+
+The embedded player menu and the surrounding Compose form can both scroll.
+Swipe inside the video menu to reach lower settings; swipe outside the video
+to move the form. A parent scroll container can intercept a gesture intended
+for the embedded menu. The host keeps a handled player gesture with the video
+until it ends or is cancelled, and releases it when the view is removed.
+This uses Android's public
+[touch interception contract](https://developer.android.com/reference/android/view/ViewParent#requestDisallowInterceptTouchEvent(boolean)).
+
+The license-free device fixture checks real WebView overflow scrolling, outer
+form scrolling and cancellation/release handling. From `apps/android`, run:
+
+```sh
+./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.playerlab.android.PlayerTouchHostInstrumentedTest \
+  -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=
+```
+
+Rebuild with your normal allowed key before running playback checks.

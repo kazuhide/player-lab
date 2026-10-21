@@ -79,6 +79,11 @@
       "text": "Show applied code displays Kotlin PlayerConfig, SourceConfig and PlayerViewConfig for the applied settings and current UI, including optional live target latency. Draft edits are excluded. Copy code writes the text to the Android clipboard and shows Copied; license keys use placeholders. The example still needs the integrating app’s keys, view attachment and lifecycle forwarding."
     },
     {
+      "type": "note",
+      "title": "Scrolling menus inside the Android player",
+      "text": "The player menu and the surrounding settings form are separate scroll areas. Swipe inside the video menu to reach lower items; start a swipe outside the video to scroll the form. A parent scroll view can intercept a gesture intended for the embedded menu, so the app keeps player touches with the video until they end or are cancelled. Replacing the player also releases that touch ownership."
+    },
+    {
       "type": "h2",
       "text": "Audio language, external subtitles and retries"
     },
@@ -295,6 +300,10 @@
       "path": "apps/android/test-runtime-tests.py",
       "line": 1,
       "label": "Strict result parser checks"
+    },
+    {
+      "url": "https://developer.android.com/reference/android/view/ViewParent#requestDisallowInterceptTouchEvent(boolean)",
+      "label": "Android touch interception contract"
     }
   ]
 }
