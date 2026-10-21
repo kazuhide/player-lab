@@ -76,6 +76,20 @@
     },
     {
       "type": "p",
+      "text": "External subtitles add 4 controls: External WebVTT URL, Subtitle label, Subtitle language and Mark as default. Supply URL, label and an IETF language tag together; en-us becomes en-US. Blank URL removes the track and clears its metadata. Mark as default sets native track metadata; choose the track in the SDK subtitle menu to enable it. Apply, Reset draft and code export use the same validated applied configuration."
+    },
+    {
+      "type": "figure",
+      "file": "rn-ios-subtitles",
+      "caption": "React Native on iOS: the four external WebVTT fields before Apply."
+    },
+    {
+      "type": "figure",
+      "file": "rn-android-subtitles",
+      "caption": "React Native on Android: external WebVTT fields with Mark as default off."
+    },
+    {
+      "type": "p",
       "text": "URL validation uses the locally imported URL from react-native-url-polyfill 4.0.0. Older native global URL implementations leave protocol and hostname unimplemented, which would reject valid sources before loading. The local parser leaves global URL and the SDK media shims unchanged."
     },
     {
@@ -96,6 +110,32 @@
       "text": "The type check includes the real App and generated host entry points. App interaction tests use native/player mocks; generator checks separately verify source/assets, pinned inputs, existing-target refusal and private copying of explicitly selected environment files. Separate iPhone-simulator checks used wrapper 1.29.0, Expo 57.0.30 and native Player 3.128.0. Default and Sports rendered the 60-second HLS fixture with advancing native positions. For a configured 5-second start offset, the native first Playing event and current-time sample both reported 5.000 seconds. Native checks confirmed autoplay/mute, buffer/bitrate settings, Apply replacing the owner with the previous owner destroyed, and Reset/source/UI/log/Allow DVR retention. The OS clipboard exactly matched the visible applied code and excluded draft edits. After background/foreground return, the same owner advanced after an explicit on-screen SDK Play action."
     },
     {
+      "type": "note",
+      "text": "The public device runners use an explicit --runtime-checks host around the same production App, owner and view-ready path. Normal form, SDK and OS clipboard operations require 5 fresh native samples, a 59–61-second duration and changing movie pixels. Settings must survive both Default/Sports owner replacements. Android pauses through the visible SDK control before Home and explicitly plays after return; this does not qualify automatic resume. The wrapper isDestroyed flag confirms wrapper retirement, but its public void destroy() API supplies no native completion acknowledgement. Keep reports/logs private and capture guide screens from the normal entry. Source loading waits for the actual native view-ready callback and rejects retired view/owner callbacks."
+    },
+    {
+      "type": "code",
+      "text": "python3 apps/react-native/runtime/run-ios.py --device <IOS_UDID> --media-url <60_SECOND_HLS_URL> --output ../rn-ios-result\npython3 apps/react-native/runtime/run-android.py --device <ANDROID_SERIAL> --media-url <60_SECOND_HLS_URL> --output ../rn-android-result"
+    },
+    {
+      "type": "p",
+      "text": "Use the external-subtitle scenarios to apply the 4 fields, select the track in the normal SDK menu and require a new native cue after selected-track confirmation on the same source. Earlier embedded/default cues do not count. Both OS scenarios passed with wrapper 1.29.0. Android additionally requires actual visible fixture text; iOS checks the selected track, fresh cue and moving native video. For the finite Android fixture, the runner pauses with the visible SDK control during menu traversal and explicitly plays after selection. Fresh same-owner native readback confirms these touches. Normal OS Tab input brings clipped SDK menu rows into view; it does not alter the track through a hidden setter."
+    },
+    {
+      "type": "figure",
+      "file": "rn-ios-caption",
+      "caption": "React Native on iOS: the selected external subtitle is drawn over the native video."
+    },
+    {
+      "type": "figure",
+      "file": "rn-android-caption",
+      "caption": "React Native on Android: the selected external subtitle over the native video."
+    },
+    {
+      "type": "code",
+      "text": "python3 apps/react-native/runtime/run-ios.py --device <IOS_UDID> --media-url <60_SECOND_HLS_URL> --subtitle-url <WEBVTT_URL> --output ../rn-ios-subtitles\npython3 apps/react-native/runtime/run-subtitles-android.py --adb <ADB_PATH> --device <ANDROID_SERIAL> --media-url <60_SECOND_HLS_URL> --subtitle-url <WEBVTT_URL> --output ../rn-android-subtitles"
+    },
+    {
       "type": "p",
       "text": "On Android API 36.1, the current wrapper rendered the 60-second HLS and DASH fixtures with advancing native SDK positions. The first Playing position was sampled at 5.0 seconds for the configured 5-second start offset; frame-accurate initial seek timing was not measured. Native checks confirmed autoplay/mute, the bitrate and buffer getters, Reset retaining the owner, and Apply replacing the owner with the previous owner destroyed. Default and the packaged Sports factory retained the applied source and settings. The OS clipboard exactly matched the visible configuration code and excluded draft edits. After background/foreground return, the same applied owner advanced after an explicit on-screen SDK Play action. These simulator/emulator checks do not establish automatic resume without interaction, physical-device or Release behavior, DRM, ads, all factories, live/DVR or quantitative buffer/bitrate effects."
     },
@@ -108,11 +148,15 @@
       "text": "Vega OS is separate from Android-based Fire TV. The included apps/vega host connects the modular Web Player to W3C Media and retains the existing React Native/Kepler controls. It does not use the browser-based bitmovin-player-ui. The tested combination is Player 8.138.0-beta.28, React Native 0.72.0, React 18.2.0, Kepler 2.1.0+rn0.72.0 and W3C Media 2.3.2, with Vega SDK 0.24.12112 and Kepler CLI platform 0.22.14. The official Vega sample supports the beta.XX channel; the general Web stable release is not a supported substitute."
     },
     {
+      "type": "p",
+      "text": "Player Lab Vega uses com.playerlab.vega and the com.playerlab.vega.main component. Authorize this identifier for the configured Player license before a licensed device run."
+    },
+    {
       "type": "steps",
       "items": [
         "Install the official Vega SDK and documented prerequisites. Normal JavaScript installation, unit tests and type checks do not require the native SDK or a license.",
         "Use the included application host. Generate its ignored runtime configuration before bundling; the build-only example below omits credentials.",
-        "For licensed playback, load the repository-root .env with scripts/env-lib.sh and rerun runtime:config before rebuilding. It copies only the Player and optional Analytics licenses; index.js installs them before evaluating App. Authorize com.showcase.dvr.vega on the Player license. Keep generated configuration, bundles, packages and logs private.",
+        "For licensed playback, load the repository-root .env with scripts/env-lib.sh and rerun runtime:config before rebuilding. It copies only the Player and optional Analytics licenses; index.js installs them before evaluating App. Authorize com.playerlab.vega on the Player license. Keep generated configuration, bundles, packages and logs private.",
         "Run build:vega through the Vega SDK environment. It creates JS/Hermes bundles and aarch64, armv7 and x86_64 Release packages. The generic workspace build does not run the native SDK.",
         "Start a Vega Virtual Device or connect a compatible device, verify its OS/profile, select its serial explicitly and launch the matching package. Check changing video frames and advancing SDK position together; a CLI ready message alone does not prove that the OS or app booted."
       ]
@@ -125,7 +169,7 @@
     {
       "type": "code",
       "title": "Inspect and run on a Vega Virtual Device",
-      "text": "vega virtual-device start --timeout 120\nvega exec vda devices -l\nvega device info --device <VVD_SERIAL>\nvega run-app apps/vega/build/aarch64-release/vega_aarch64.vpkg \\\n  com.showcase.dvr.vega.main --deviceId <VVD_SERIAL>"
+      "text": "vega virtual-device start --timeout 120\nvega exec vda devices -l\nvega device info --device <VVD_SERIAL>\nvega run-app apps/vega/build/aarch64-release/vega_aarch64.vpkg \\\n  com.playerlab.vega.main --deviceId <VVD_SERIAL>"
     },
     {
       "type": "p",
@@ -134,6 +178,20 @@
     {
       "type": "p",
       "text": "Show configuration edits an HTTP/HTTPS source URL, HLS/DASH/progressive MP4 type, optional title/poster URL, signed start offset in seconds and Start/End/SDK default reference. Start means beginning of media/DVR window, End means end/live edge; the SDK default is Start for VOD and End for live. Blank title/poster/offset fields remove those optional values. The Kepler screen has no artwork overlay, so a poster value is stored with the source without adding a visible poster."
+    },
+    {
+      "type": "p",
+      "text": "External subtitles add 4 controls: External WebVTT URL, Subtitle label, Subtitle language and Enable external subtitle on load. Supply URL, label and an IETF language tag together; en-us becomes en-US. Blank URL removes the track and clears its metadata. The public Subtitles and WebVTT parser modules deliver cue events to a native plain-text overlay, which clears on source/player retirement or background transition. HTML cue styling is not rendered. HTTPS delivery produced visible cues in the checked runtime; the same local HTTP fixture did not. Reset only restores the draft; Apply recreates through the existing release barrier, and code export contains applied values only."
+    },
+    {
+      "type": "figure",
+      "file": "vega-subtitles",
+      "caption": "Vega: the external WebVTT fields."
+    },
+    {
+      "type": "figure",
+      "file": "vega-caption",
+      "caption": "Vega: the native video with the external WebVTT cue drawn by the app."
     },
     {
       "type": "p",
@@ -158,7 +216,23 @@
     },
     {
       "type": "note",
-      "text": "The 2026-10-21 run passed 73 license-free tests and the full App type check. All three Release packages built; the aarch64 package ran on an aarch64 Vega Virtual Device. The uninstrumented package’s source map matched all 15 application source files. Three valid Applies with video bitrate caps of 2, 3 and 4 Mbit/s each showed changing VOD HLS frames and advancing SDK positions in the same app instance. Native D-pad/Select checks toggled all three switches off and on. Applied-code checks covered Show/Hide, draft exclusion, Apply updates and license placeholders. Unit/session tests still mock native media/player boundaries and remain separate evidence."
+      "text": "An earlier 2026-10-21 baseline run passed 73 license-free tests and the full App type check. All three Release packages built; the aarch64 package ran on an aarch64 Vega Virtual Device. The uninstrumented package’s source map matched all 15 application source files. Three valid Applies with video bitrate caps of 2, 3 and 4 Mbit/s each showed changing VOD HLS frames and advancing SDK positions in the same app instance. Native D-pad/Select checks toggled all three switches off and on. Applied-code checks covered Show/Hide, draft exclusion, Apply updates and license placeholders. Unit/session tests still mock native media/player boundaries and remain separate evidence."
+    },
+    {
+      "type": "note",
+      "text": "The public Vega runner needs a dedicated device, Vega SDK, loopback Appium/Kepler automation and an explicit --runtime-checks build. It drives normal controls and requires visible cues, 5 progressing native clock/decoded-frame samples and changing movie pixels. It checks draft/code isolation, retained settings, and a fresh session after background return. Cleanup requires fulfilled SDK destruction and successful native media release; an unconfirmed owner blocks replacement. This differs from the React Native wrapper’s unavailable native destroy completion. TypeScript/renderer tests remain separate from licensed OS checks. Begin after normal source-load readiness. Cancelling initial native allocation without a release acknowledgement requires restarting the app."
+    },
+    {
+      "type": "note",
+      "text": "The public Vega runner passed with the external HTTPS WebVTT track enabled: native clocks and decoded frames advanced while the cue overlay was visible. Source Apply retained the configured subtitle, playback, buffer, bitrate and DVR settings. The companion-app return retained the OS app instance, created a fresh foreground player and acknowledged player destruction and native release. These checks cover the documented virtual-device combination; they do not establish every WebVTT feature or physical-device behavior."
+    },
+    {
+      "type": "p",
+      "text": "The runner switches to a license-free companion through the documented app-to-app URI and returns to the same OS application instance. Home can clear the back stack; cold-launch state restoration is a separate behavior."
+    },
+    {
+      "type": "code",
+      "text": "python3 apps/vega/runtime/prepare-companion.py --output ../vega-runtime-companion\n(cd ../vega-runtime-companion && vega exec pnpm build)\nvega run-app ../vega-runtime-companion/build/aarch64-release/player-lab-runtime-companion_aarch64.vpkg com.playerlab.runtimecompanion.main --deviceId <VDA_DEVICE>\npython3 apps/vega/runtime/run.py --device <VDA_DEVICE> --vda-server-port <VDA_PORT> --media-url <60_SECOND_HLS_URL> --subtitle-url <HTTPS_WEBVTT_URL> --output ../vega-runtime-result"
     },
     {
       "type": "p",
@@ -171,7 +245,7 @@
     },
     {
       "type": "note",
-      "text": "The final uninstrumented package completed three measured warm returns on VOD HLS and three on Live DASH, all in the same process and app instance. Each used an application switch and at least five seconds in the background. Advancing SDK positions and changing video frames were checked together after playback began; SourceLoaded alone was not sufficient. VOD returns retained the selected source, applied bitrate cap, unapplied title draft, configuration log and Allow DVR off. Live returns retained the source and Allow DVR off; Select then re-enabled available DVR controls. Open descriptors fell from 149–152 to 72–74 in the background and returned to 149–153 during playback. Memory and descriptor samples do not establish exact native media/surface allocation counts or leak freedom. This is VVD qualification; physical Fire TV, DRM/offline behavior, audio correctness and quantitative buffer/bitrate effects require their own checks."
+      "text": "Before the external-subtitle changes, a normal-entry baseline package completed 3 measured warm returns on VOD HLS and 3 on Live DASH, all in the same process and app instance. Each used an application switch and at least 5 seconds in the background. Advancing SDK positions and changing video frames were checked together after playback began; SourceLoaded alone was not sufficient. VOD returns retained the selected source, applied bitrate cap, unapplied title draft, configuration log and Allow DVR off. Live returns retained the source and Allow DVR off; Select then re-enabled available DVR controls. Open descriptors fell from 149–152 to 72–74 in the background and returned to 149–153 during playback. Memory and descriptor samples do not establish exact native media/surface allocation counts or leak freedom. This is VVD qualification; physical Fire TV, DRM/offline behavior, audio correctness and quantitative buffer/bitrate effects require their own checks."
     },
     {
       "type": "p",
@@ -184,6 +258,16 @@
     {
       "type": "p",
       "text": "Both configuration panels provide Show applied code. The output uses the applied configuration, includes no draft edits, and uses a Player-key placeholder. React Native includes the selected shared UI and provides Copy code through the pinned Expo Clipboard module. A native development build must include that module. Vega displays the configuration for its existing native media host; this TV sample has no clipboard integration. Keep the Vega host’s media and surface lifecycle when reusing the settings."
+    },
+    {
+      "type": "figure",
+      "file": "rn-ios-code",
+      "caption": "React Native on iOS: applied configuration code and the license-key placeholder."
+    },
+    {
+      "type": "figure",
+      "file": "vega-code",
+      "caption": "Vega: remote-readable applied configuration code with a license-key placeholder."
     }
   ],
   "sources": [
