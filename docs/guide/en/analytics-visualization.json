@@ -165,20 +165,12 @@
       "label": "Bitmovin: Analytics fields and units"
     },
     {
-      "url": "https://bitmovin.com/video-observability-analytics",
-      "label": "Bitmovin: analysis screens, filters and breakdowns"
-    },
-    {
       "url": "https://developer.bitmovin.com/playback/docs/integrating-bitmovin-analytics-with-grafana",
       "label": "Bitmovin: Grafana Plugin configuration"
     },
     {
       "url": "https://developer.bitmovin.com/playback/docs/exporting-your-data",
       "label": "Bitmovin: raw data Export Tasks"
-    },
-    {
-      "url": "https://bitmovin.com/blog/custom-observability-dashboards-real-time-monitoring/",
-      "label": "Bitmovin: Custom Dashboarding proof of concept"
     }
   ]
 }

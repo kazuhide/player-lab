@@ -165,20 +165,12 @@
       "label": "Bitmovin: Analytics のフィールドと単位"
     },
     {
-      "url": "https://bitmovin.com/video-observability-analytics",
-      "label": "Bitmovin: 分析画面・フィルター・分類"
-    },
-    {
       "url": "https://developer.bitmovin.com/playback/docs/integrating-bitmovin-analytics-with-grafana",
       "label": "Bitmovin: Grafana Plugin の設定"
     },
     {
       "url": "https://developer.bitmovin.com/playback/docs/exporting-your-data",
       "label": "Bitmovin: 生データの Export Task"
-    },
-    {
-      "url": "https://bitmovin.com/blog/custom-observability-dashboards-real-time-monitoring/",
-      "label": "Bitmovin: Custom Dashboarding の概念実証"
     }
   ]
 }
