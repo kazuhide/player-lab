@@ -131,7 +131,6 @@ final class PlayerModel: ObservableObject {
     ) -> Player {
         let config = PlayerConfig()
         config.key = licenseKey
-        settings.apply(to: config)
         #if os(tvOS)
         // tvOS: native System UI — the Web UI is unavailable here (§12).
         config.styleConfig.userInterfaceType = .system
@@ -148,6 +147,8 @@ final class PlayerModel: ObservableObject {
             config.styleConfig.userInterfaceConfig = uiConfig
         }
         #endif
+        settings.apply(to: config)
+        settings.advanced.applyUI(to: config)
         // §15: the bundled analytics collector reports QoE to the Bitmovin dashboard
         // when a key is configured (repo-root .env → sync-env.sh → Local.xcconfig).
         guard !analyticsLicenseKey.isEmpty else {
@@ -163,6 +164,12 @@ final class PlayerModel: ObservableObject {
         sourceSettings = SourceSettings(source)
         append("load \(source.label)")
         reloadCurrentSource()
+    }
+
+    func makePlayerViewConfig() -> PlayerViewConfig {
+        let config = PlayerViewConfig()
+        playerSettings.advanced.apply(to: config)
+        return config
     }
 
     func loadInitialSource() {

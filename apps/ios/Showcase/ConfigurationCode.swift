@@ -1,6 +1,6 @@
 import Foundation
 
-private func swiftString(_ value: String) -> String {
+func swiftString(_ value: String) -> String {
     let body = value.unicodeScalars.map { scalar -> String in
         switch scalar.value {
         case 0x22: return "\\\""
@@ -58,6 +58,10 @@ func configurationCode(source: SourceSettings?, player: PlayerSettings, uiMode: 
     let reference = source.timelineReference == .automatic ? "auto" : source.timelineReference == .start ? "start" : "end"
     lines += [
         "sourceConfig.options.startOffsetTimelineReference = .\(reference)",
+        "let playerViewConfig = PlayerViewConfig()",
+    ]
+    lines += player.advanced.code + source.advanced.code
+    lines += [
         "",
         "let source = SourceFactory.createSource(from: sourceConfig)",
         "let player = PlayerFactory.createPlayer(playerConfig: playerConfig)",

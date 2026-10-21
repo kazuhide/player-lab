@@ -91,6 +91,7 @@ targets:
     sources:
       - ShowcaseConfigurationTests
       - Showcase/Configuration.swift
+      - Showcase/AdvancedConfiguration.swift
       - Showcase/ConfigurationCode.swift
       - Showcase/TrackPreferences.swift
       - Showcase/PlayerModel.swift
@@ -172,6 +173,7 @@ targets:
     sources:
       - ShowcaseConfigurationTests
       - Showcase/Configuration.swift
+      - Showcase/AdvancedConfiguration.swift
       - Showcase/ConfigurationCode.swift
       - Showcase/TrackPreferences.swift
       - Showcase/PlayerModel.swift
