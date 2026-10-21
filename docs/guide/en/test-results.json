@@ -64,7 +64,7 @@
     },
     {
       "type": "p",
-      "text": "These records cover the added configuration editors, API operations and owner replacement. Each row identifies its source and environment. The separate configuration, playback, GUI and build checks are reported individually; their case counts are not added together. Source labels that point to merged main commits identify identical app code. They do not mean that a test was rerun after merging."
+      "text": "These records cover the added configuration editors, API operations and owner replacement. Each row identifies its source and environment. The separate configuration, playback, GUI and build checks are reported individually; their case counts are not added together. Main source labels identify the corresponding app-specific source files. Their equality check does not establish that shared packages, generated assets or native app binaries match the recorded build. The labels do not indicate a post-merge test run."
     },
     {
       "type": "table",
@@ -85,7 +85,7 @@
           "React Native / wrapper 1.29.0; source 0bebab9f521c",
           "Normal app with an edited request callback, 60-second HLS, repeated load/unload, player recreation and advancing playback.",
           "1 iOS GUI check passed in 205.221 s. The edited callback changed volume to 17 and playback advanced after replacement.",
-          "iPhone 17 Pro Simulator, iOS 26.4.1; Expo 57.0.30, React Native 0.86.3, Hermes. The source label identifies the same app bytes as the recorded run."
+          "iPhone 17 Pro Simulator, iOS 26.4.1; Expo 57.0.30, React Native 0.86.3, Hermes. The main reference identifies matching React Native app-specific source files. The result belongs to the recorded build."
         ],
         [
           "React Native Android / wrapper 1.29.0; source 0bebab9f521c",
