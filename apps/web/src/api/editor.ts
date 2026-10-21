@@ -197,7 +197,8 @@ export function valueEditor(catalog: ApiSchema, id: string, resources: EditorRes
     select.append(option("", pick({ ja: "実体または生成方法を選択", en: "Choose an instance or factory" })));
     for (const name of schema.factories ?? []) select.append(option("factory:" + name, "new " + name));
     for (const resource of resources.list(schema)) select.append(option("resource:" + resource.id, resource.label));
-    const tag = schema.name === "HTMLVideoElement" ? "video" : schema.name === "HTMLElement" || schema.name === "Element" || schema.name === "Node" ? "div" : undefined;
+    const tag = schema.name === "HTMLVideoElement" ? "video" : schema.name === "HTMLImageElement" ? "img" : schema.name === "HTMLCanvasElement" ? "canvas"
+      : schema.name === "HTMLElement" || schema.name === "Element" || schema.name === "Node" ? "div" : undefined;
     if (tag) select.append(option("element:" + tag, `document.createElement(${JSON.stringify(tag)})`));
     const body = document.createElement("div");
     let args: ValueEditor[] = [];

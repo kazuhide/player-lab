@@ -141,6 +141,24 @@ configurations(xWeb, web, ['PlayerConfig', 'SourceConfig'], { boundaries: { 'Pla
 configurations(xUi, ui, ['UIConfig'], { omitPaths: ['UIConfig.componentConfigOverrides', 'UIConfig.componentLayoutOverrides'] });
 configurations(xUi, ui, ['UIComponentConfigMap']);
 configurations(xUi, ui, ['UIComponentLayoutOverrideMap']);
+// Required siblings, such as a technology's player and streaming fields, must
+// be submitted together. These containing forms supplement the leaf inventory.
+const configurationIds = new Set(rows.map(row => row.id));
+for (const row of [...rows]) {
+  if (row.blocked) continue;
+  const g = row.root === 'PlayerConfig' || row.root === 'SourceConfig' ? web : ui;
+  const tokens = [...row.id.replace(/\{\*\}/g, '').matchAll(/(?:^|\.)([A-Za-z_$][\w$]*)|\[("(?:[^"\\]|\\.)*")\]|(\[\])/g)];
+  for (let length = 2; length < tokens.length; length++) {
+    const id = tokens.slice(0, length).map(token => token[0]).join('');
+    if (configurationIds.has(id)) continue;
+    const schema = g.convert(g.resolve(id));
+    const node = nodes[schema];
+    const branches = node.kind === 'union' ? node.options.map(id => nodes[id]) : [node];
+    if (!branches.some(node => ['object', 'array', 'tuple'].includes(node.kind))) continue;
+    configurationIds.add(id);
+    rows.push({ id, category: 'configuration', root: row.root, schema, container: true, reference: row.reference });
+  }
+}
 for (const [x, g, root, options] of [[xWeb, web, 'PlayerAPI', { omitPaths: ['PlayerAPI.exports'] }],
   [xUi, ui, 'UIManager', { namespacePaths: ['UIManager.recommendations', 'UIManager.timelineMarkers'] }]]) {
   for (const row of x.methods([root], options).rows) rows.push({ id: row.id, category: row.category,

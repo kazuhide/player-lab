@@ -723,21 +723,25 @@ function build(): Promise<void> {
 
 async function destroyCurrentPlayer(): Promise<void> {
   playerGeneration++;
-  apiExplorer?.beginPlayerChange();
+  const cleanupInputs = apiExplorer?.beginPlayerChange();
   sdkUiManager = undefined; sdkUiOwner = undefined;
-  if (player) {
-    uiManager?.release();
-    uiManager = undefined;
-    // Clear the ref before the async destroy so the gesture's getPlayer() can't act
-    // on a tearing-down instance during the rebuild window.
-    const old = player;
-    if (appSourceLoad?.player === old) appSourceLoad = undefined;
-    player = undefined;
-    await old.destroy();
+  try {
+    if (player) {
+      uiManager?.release();
+      uiManager = undefined;
+      // Clear the ref before the async destroy so the gesture's getPlayer() can't act
+      // on a tearing-down instance during the rebuild window.
+      const old = player;
+      if (appSourceLoad?.player === old) appSourceLoad = undefined;
+      player = undefined;
+      await old.destroy();
+    }
+  } finally {
+    cleanupInputs?.();
+    controlPanel = undefined;
+    panelEl!.replaceChildren();
+    apiExplorer?.refresh();
   }
-  controlPanel = undefined;
-  panelEl!.replaceChildren();
-  apiExplorer?.refresh();
 }
 
 async function doBuild(): Promise<{ loaded: Promise<void> }> {
@@ -793,14 +797,19 @@ async function doBuild(): Promise<{ loaded: Promise<void> }> {
   else applyTheme(instance, currentThemeId);
   wireMetrics(instance);
   controlPanel = mountControlPanel(instance, panelEl as HTMLElement, SOURCES, {
-    timeShiftEnabled,
+    timeShiftEnabled: config.playback?.timeShift ?? true,
     onTimeShiftToggle: (enabled) => {
       timeShiftEnabled = enabled;
+      apiExplorer?.discardPatch("PlayerConfig", { playback: { timeShift: enabled } });
+      playerOverrides = deepMerge(playerOverrides, { playback: { timeShift: enabled } });
       void build();
     },
     currentSourceIsLive: SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false,
     onSourceSelected: selectSource,
     onReloadWithStartOffset: (offsetFromEdge) => {
+      apiExplorer?.discardPatch("SourceConfig", {
+        options: { startOffset: offsetFromEdge, startOffsetTimelineReference: END_REFERENCE },
+      });
       sourceOverrides = deepMerge(sourceOverrides, {
         options: { startOffset: offsetFromEdge, startOffsetTimelineReference: END_REFERENCE },
       });
@@ -814,6 +823,7 @@ async function doBuild(): Promise<{ loaded: Promise<void> }> {
     autohideEnabled,
     onAutohideToggle: (enabled) => {
       autohideEnabled = enabled;
+      apiExplorer?.discardPatch("UIConfig", { componentConfigOverrides: { UIContainer: { hideDelay: enabled ? 0 : -1 } } });
       if (sdkUiEnabled) void build();
       else if (player) applyTheme(player, currentThemeId); // Rebuild the active UI with the new hideDelay.
     },

@@ -112,6 +112,20 @@ it("exports callback rest parameters with the same argument grouping as the live
   expect(seen).toEqual([["first", 2], ["first", 2]]);
 });
 
+it("preserves actual callback argument counts and this without exposing lab as an SDK argument", () => {
+  const input = new CallbackInput('return arguments.length + "/" + String(value) + "/" + params.length + "/" + this.name + "/" + lab.suffix;', {
+    parameters: [{ name: "value", schema: "any", optional: true, rest: false },
+      { name: "params", schema: "any", optional: false, rest: true }], returns: "text" }, true);
+  const lab = { suffix: "end" };
+  const materializer = new ApiMaterializer(catalog, {}, new ResourcePool({}), lab, () => {});
+  const live = materializer.materialize(input) as (...args: unknown[]) => string;
+  const exported = new Function("lab", "return (" + inputCode(input) + ")")(lab) as typeof live;
+  const owner = { name: "owner" };
+  for (const args of [[], [undefined], [1, "first", "second"]]) {
+    expect(live.apply(owner, args)).toBe(exported.apply(owner, args));
+  }
+});
+
 it("exports constructor rest arguments with the same spreading as the live factory", () => {
   const typed: ApiSchema = { ...catalog, nodes: { ...catalog.nodes, numbers: { kind: "array", label: "number[]", item: "number" } },
     constructors: { Label: { signatures: [{ parameters: [{ name: "values", schema: "numbers", optional: false, rest: true }], returns: "label" }] } } };
@@ -139,4 +153,184 @@ it("selects SDK-returned structural array items without rebuilding their identit
   expect(args[0]).toBe(second);
   pool.retire(owner);
   expect(() => materializer.arguments({ parameters: [{ name: "variant", schema: "variant", optional: false, rest: false }], returns: "empty" }, [new ResourceInput(resource.id)])).toThrow(/expired/i);
+});
+
+it("releases an unused factory component after disposal without leaving its global subscription", async () => {
+  const subscribed = new Set<object>(); let released = 0;
+  class Label {
+    constructor(readonly text: string) { subscribed.add(this); }
+    release() { released++; subscribed.delete(this); }
+  }
+  const materializer = new ApiMaterializer(catalog, { Label }, new ResourcePool({ Label }), {}, () => {});
+  materializer.materialize(new FactoryInput("Label", ["Not adopted by a UI"]));
+  expect(subscribed.size).toBe(1);
+  materializer.dispose(); await Promise.resolve();
+  expect(subscribed.size).toBe(0); expect(released).toBe(1);
+});
+
+it("releases nested components once when SDK release and materializer cleanup share their ownership", async () => {
+  const released: string[] = [];
+  class Label { constructor(readonly text: string) {} release() { released.push(this.text); } }
+  class Parent { constructor(readonly child: Label) {} release() { released.push("parent"); this.child.release(); } }
+  const typed: ApiSchema = { ...catalog, nodes: { ...catalog.nodes, parent: { kind: "instance", label: "Parent", name: "Parent", factories: ["Parent"] } },
+    constructors: { ...catalog.constructors, Parent: { signatures: [{ parameters: [{ name: "child", schema: "label", optional: false, rest: false }], returns: "parent" }] } } };
+  const materializer = new ApiMaterializer(typed, { Label, Parent }, new ResourcePool({ Label, Parent }), {}, () => {});
+  const parent = materializer.materialize(new FactoryInput("Parent", [new FactoryInput("Label", ["child"])])) as Parent;
+  const cleanup = materializer.retire();
+  await Promise.resolve(); expect(released).toEqual([]);
+  parent.release(); cleanup(); cleanup(); materializer.dispose(); await Promise.resolve();
+  expect(released).toEqual(["parent", "child"]);
+});
+
+it("rolls back earlier constructor allocations on failure and rebuilds their memoized inputs on retry", () => {
+  const subscribed = new Set<object>(); let fail = true;
+  class Label { constructor(readonly text: string) { subscribed.add(this); } release() { subscribed.delete(this); } }
+  class Parent { constructor(readonly child: Label) { if (fail) throw new Error("constructor failed"); } release() { this.child.release(); } }
+  const typed: ApiSchema = { ...catalog, nodes: { ...catalog.nodes, parent: { kind: "instance", label: "Parent", name: "Parent", factories: ["Parent"] } },
+    constructors: { ...catalog.constructors, Parent: { signatures: [{ parameters: [{ name: "child", schema: "label", optional: false, rest: false }], returns: "parent" }] } } };
+  const pool = new ResourcePool({ Label, Parent });
+  const materializer = new ApiMaterializer(typed, { Label, Parent }, pool, {}, () => {});
+  const child = new FactoryInput("Label", ["child"]); const input = new FactoryInput("Parent", [child]);
+  expect(() => materializer.materialize(input)).toThrow("constructor failed");
+  expect(subscribed.size).toBe(0); expect(pool.list(typed.nodes.label!)).toEqual([]);
+  fail = false;
+  const parent = materializer.materialize(input) as Parent;
+  expect(subscribed.has(parent.child)).toBe(true);
+  const cleanup = materializer.retire(); cleanup(); expect(subscribed.size).toBe(0);
+});
+
+it("releases only new allocations after argument validation or a failed SDK invocation", () => {
+  let released = 0;
+  class Label { constructor(readonly text: string) {} release() { released++; } }
+  const pool = new ResourcePool({ Label });
+  const materializer = new ApiMaterializer(catalog, { Label }, pool, {}, () => {});
+  const existing = materializer.materialize(new FactoryInput("Label", ["retained"]));
+  const signature = { parameters: [{ name: "label", schema: "label", optional: false, rest: false }, { name: "size", schema: "number", optional: false, rest: false }], returns: "empty" };
+  expect(() => materializer.arguments(signature, [new FactoryInput("Label", ["invalid call"]), "wrong"])).toThrow("number");
+  expect(released).toBe(1); expect(pool.list(catalog.nodes.label!)).toHaveLength(1);
+  const checkpoint = materializer.checkpoint();
+  materializer.materialize(new FactoryInput("Label", ["SDK rejected"]));
+  materializer.rollback(checkpoint);
+  expect(released).toBe(2); expect(pool.list(catalog.nodes.label!)).toHaveLength(1);
+  expect(pool.get(pool.list(catalog.nodes.label!)[0]!.id)).toBe(existing);
+  materializer.retire()(); expect(released).toBe(3);
+});
+
+it("does not release an SDK-owned query instance merely because it was selected as an argument", async () => {
+  let released = 0;
+  class Label { release() { released++; } }
+  const pool = new ResourcePool({ Label }); const instance = new Label();
+  const id = pool.add(instance, "SDK result", "Label", {})!;
+  const materializer = new ApiMaterializer(catalog, { Label }, pool, {}, () => {});
+  expect(materializer.arguments({ parameters: [{ name: "label", schema: "label", optional: false, rest: false }], returns: "empty" }, [new ResourceInput(id)])).toEqual([instance]);
+  materializer.dispose(); await Promise.resolve(); expect(released).toBe(0); expect(pool.get(id)).toBe(instance);
+});
+
+it("recreates GUI-owned factory and callback recipes only for configuration while runtime references keep identity", async () => {
+  class Label { constructor(readonly text: string) {} release() {} }
+  const pool = new ResourcePool({ Label });
+  const first = new ApiMaterializer(catalog, { Label }, pool, {}, () => {});
+  const label = first.materialize(new FactoryInput("Label", ["current"]));
+  const labelId = pool.list(catalog.nodes.label!)[0]!.id;
+  const callback = first.materialize(new CallbackInput("return value;", { parameters: [{ name: "value", schema: "number", optional: false, rest: false }], returns: "number" }, true));
+  const functionType = { kind: "function", label: "Function" };
+  const callbackId = pool.list(functionType)[0]!.id;
+  expect(first.materialize(new ResourceInput(labelId))).toBe(label);
+  expect(first.materialize(new ResourceInput(callbackId))).toBe(callback);
+  const recipe = pool.forConfiguration({ label: new ResourceInput(labelId), callback: new ResourceInput(callbackId) });
+  first.dispose(); await Promise.resolve();
+  const second = new ApiMaterializer(catalog, { Label }, pool, {}, () => {});
+  const applied = second.materialize(recipe) as { label: Label; callback: (value: number) => number };
+  expect(applied.label).toEqual(label); expect(applied.label).not.toBe(label);
+  expect(applied.callback).not.toBe(callback); expect(applied.callback(4)).toBe(4);
+  expect((callback as (value: number) => unknown)(4)).toBeUndefined();
+  second.dispose(); await Promise.resolve();
+});
+
+
+it("preserves repeated recipe identity across a configuration replacement and rejects recipe cycles", () => {
+  class Label { constructor(readonly text: string) {} release() {} }
+  const pool = new ResourcePool({ Label });
+  const first = new ApiMaterializer(catalog, { Label }, pool, {}, () => {});
+  first.materialize(new FactoryInput("Label", ["shared"]));
+  const id = pool.list(catalog.nodes.label!)[0]!.id;
+  const recipe = pool.forConfiguration([new ResourceInput(id), new ResourceInput(id)]) as FactoryInput[];
+  expect(recipe[0]).toBe(recipe[1]);
+  first.retire()();
+  const second = new ApiMaterializer(catalog, { Label }, pool, {}, () => {});
+  const applied = second.materialize(recipe) as Label[];
+  expect(applied[0]).toBe(applied[1]);
+  second.retire()();
+  const cycle: unknown[] = []; cycle.push(cycle);
+  expect(() => pool.forConfiguration(cycle)).toThrow(/cycle/i);
+  expect(() => pool.forConfiguration(new ResourceInput("expired"))).toThrow(/expired/i);
+});
+
+it("unsubscribes only the materializer's exact dispatcher observer and retires rolled-back callbacks", () => {
+  class EventDispatcher {
+    readonly listeners = new Set<() => void>();
+    subscribe(listener: () => void) { this.listeners.add(listener); }
+    unsubscribe(listener: () => void) { return this.listeners.delete(listener); }
+  }
+  const typed: ApiSchema = { ...catalog, constructors: { ...catalog.constructors,
+    EventDispatcher: { signatures: [{ parameters: [], returns: "any" }] } } };
+  const notices: string[] = [];
+  const pool = new ResourcePool({ EventDispatcher });
+  const materializer = new ApiMaterializer(typed, { EventDispatcher }, pool, {}, text => notices.push(text));
+  const dispatcher = materializer.materialize(new FactoryInput("EventDispatcher", [])) as EventDispatcher;
+  const external = () => {}; dispatcher.subscribe(external);
+  expect(dispatcher.listeners.size).toBe(2);
+  const checkpoint = materializer.checkpoint();
+  const callbackInput = new CallbackInput("return value;", { parameters: [{ name: "value", schema: "number", optional: false, rest: false }], returns: "number" }, true);
+  const callback = materializer.materialize(callbackInput) as (value: number) => unknown;
+  materializer.rollback(checkpoint); expect(callback(3)).toBeUndefined(); expect(notices).toEqual([]);
+  const retried = materializer.materialize(callbackInput) as typeof callback;
+  expect(retried).not.toBe(callback); expect(retried(3)).toBe(3);
+  materializer.retire()(); expect(dispatcher.listeners).toEqual(new Set([external]));
+});
+
+it("continues releasing other inputs if a public SDK release throws", () => {
+  const released: string[] = []; const notices: string[] = [];
+  class Label {
+    constructor(readonly text: string) {}
+    release() { released.push(this.text); if (this.text === "fails") throw new Error("SDK release failed"); }
+  }
+  const materializer = new ApiMaterializer(catalog, { Label }, new ResourcePool({ Label }), {}, text => notices.push(text));
+  materializer.materialize(new FactoryInput("Label", ["retained"]));
+  const failing = materializer.materialize(new FactoryInput("Label", ["fails"])) as Label;
+  const cleanup = materializer.retire(); cleanup(); cleanup(); failing.release();
+  expect(released).toEqual(["fails", "retained"]);
+  expect(notices).toEqual(["An SDK input could not be fully released."]);
+});
+
+
+it("rolls back only the failed call's allocation range when a later SDK call has already created its inputs", () => {
+  const released: string[] = [];
+  class Label { constructor(readonly text: string) {} release() { released.push(this.text); } }
+  const pool = new ResourcePool({ Label });
+  const materializer = new ApiMaterializer(catalog, { Label }, pool, {}, () => {});
+  const before = materializer.checkpoint();
+  materializer.materialize(new FactoryInput("Label", ["failed call"]));
+  const through = materializer.checkpoint();
+  const later = materializer.materialize(new FactoryInput("Label", ["later call"]));
+  materializer.rollback(before, through);
+  expect(released).toEqual(["failed call"]);
+  expect(pool.list(catalog.nodes.label!)).toHaveLength(1);
+  expect(pool.get(pool.list(catalog.nodes.label!)[0]!.id)).toBe(later);
+  materializer.retire()(); expect(released).toEqual(["failed call", "later call"]);
+});
+
+it("keeps new pending API inputs out of selectors until SDK success without hiding existing resources", () => {
+  class Label { constructor(readonly text: string) {} release() {} }
+  const pool = new ResourcePool({ Label });
+  const materializer = new ApiMaterializer(catalog, { Label }, pool, {}, () => {});
+  const existing = materializer.materialize(new FactoryInput("Label", ["existing"]));
+  const before = materializer.checkpoint();
+  const pending = materializer.materialize(new FactoryInput("Label", ["pending"]));
+  const through = materializer.checkpoint();
+  materializer.publish(before, through, false);
+  expect(pool.list(catalog.nodes.label!).map(item => pool.get(item.id))).toEqual([existing]);
+  materializer.publish(before, through);
+  expect(pool.list(catalog.nodes.label!).map(item => pool.get(item.id))).toEqual([existing, pending]);
+  materializer.retire()();
 });

@@ -40,6 +40,24 @@ async function readApi(page: Page, id: string): Promise<string> {
   return (await page.locator(".api-result").textContent())!;
 }
 
+function objectField(page: Page, name: string) {
+  return page.locator(".api-explorer-form fieldset").filter({
+    has: page.locator("legend > label", { hasText: new RegExp("^\\s*" + name + "$") }),
+  }).last();
+}
+
+async function scriptedHls(page: Page): Promise<void> {
+  const id = "PlayerConfig.playback.preferredTech";
+  await selectApi(page, "configuration", id); await branch(page, id, "array");
+  await page.getByRole("button", { name: "Add item", exact: true }).click();
+  await objectField(page, "player").getByRole("combobox", { name: "Input type", exact: true }).selectOption({ label: "PlayerType.Html5" });
+  await objectField(page, "streaming").getByRole("combobox", { name: "Input type", exact: true }).selectOption({ label: "StreamType.Hls" });
+  await apply(page);
+  const config = JSON.parse(await readApi(page, "PlayerAPI.getConfig"));
+  expect(config.playback.preferredTech).toEqual([{ player: "html5", streaming: "hls" }]);
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+}
+
 test("typed source values reload the current source and API reads show the submitted value", async ({ page }) => {
   const id = "SourceConfig.title";
   await selectApi(page, "configuration", id); await branch(page, id, "string");
@@ -66,6 +84,8 @@ test("a codec priority array and query dictionary reach the recreated Player", a
 });
 
 test("a user-approved request callback runs in the real SDK after Player recreation", async ({ page }) => {
+  // Native HLS owns its HTTP requests; use the SDK's scripted HLS transport.
+  await scriptedHls(page);
   const id = "PlayerConfig.network.preprocessHttpRequest";
   await selectApi(page, "configuration", id); await branch(page, id, "function");
   await page.getByRole("textbox", { name: "JavaScript callback body" }).fill("return Promise.resolve(request);");
@@ -74,6 +94,29 @@ test("a user-approved request callback runs in the real SDK after Player recreat
   await expect(page.locator(".api-event-log")).toContainText("Callback invoked");
   await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
   await expect(page.locator(".api-explorer-content > pre").first()).toContainText("return Promise.resolve(request)");
+});
+
+test("a complete subtitle array applies required sibling fields in one SDK load", async ({ page }) => {
+  const id = "SourceConfig.subtitleTracks";
+  const url = new URL("./api-explorer-subtitle.vtt", page.url()).href;
+  await page.route(url, route => route.fulfill({ status: 200, contentType: "text/vtt",
+    body: "WEBVTT\n\n00:00:00.000 --> 00:01:00.000\nRequired subtitle fields applied together.\n" }));
+  await selectApi(page, "configuration", id); await branch(page, id, "array");
+  await page.getByRole("button", { name: "Add item", exact: true }).click();
+  for (const [name, value] of Object.entries({ id: "edited-track", lang: "en", kind: "subtitle", label: "Edited English" })) {
+    await objectField(page, name).locator('input[type="text"]').fill(value);
+  }
+  const location = objectField(page, "url");
+  await location.getByRole("checkbox", { name: "url", exact: true }).check();
+  await location.getByRole("combobox", { name: "Input type", exact: true }).selectOption({ label: "string" });
+  await location.locator('input[type="text"]').fill(url);
+  await apply(page);
+  expect(await readApi(page, "PlayerAPI.subtitles.list")).toContain("Edited English");
+  await selectApi(page, "command", "PlayerAPI.subtitles.enable");
+  await page.locator('.api-explorer-form input[type="text"]').fill("edited-track");
+  await page.getByRole("button", { name: "Run API", exact: true }).click();
+  await expect(page.locator("#player .bmpui-ui-subtitle-overlay")).toContainText("Required subtitle fields applied together.");
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
 });
 
 test("component constructor overrides apply through every original theme", async ({ page }) => {
@@ -111,9 +154,56 @@ test("a real language-change dispatcher is created and connected to UI localizat
   await selectApi(page, "configuration", id);
   await page.locator(".api-explorer-form > .api-value > select").selectOption("factory:EventDispatcher");
   await apply(page);
-  const config = await readApi(page, "UIManager.getConfig");
-  expect(config).toContain("EventDispatcher");
+  await expect(page.locator(".api-explorer-content > pre").first()).toContainText("new EventDispatcher()");
+  const config = JSON.parse(await readApi(page, "UIManager.getConfig"));
+  // Production minification renames classes. A real instance has an opaque
+  // preview, whereas an incorrectly cast plain object is serialized as data.
+  expect(config.localization.events.onLanguageChanged).toMatch(/^\[[^\]]+\]$/);
   await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+});
+
+test("a GUI-created dispatcher can be selected again when its configuration is rebuilt", async ({ page }) => {
+  const id = "UIConfig.localization.events.onLanguageChanged";
+  await selectApi(page, "configuration", id);
+  await page.locator(".api-explorer-form > .api-value > select").selectOption("factory:EventDispatcher");
+  await apply(page);
+  await selectApi(page, "configuration", id);
+  const picker = page.locator(".api-explorer-form > .api-value > select");
+  const reference = await picker.locator('option[value^="resource:"]').first().getAttribute("value");
+  expect(reference).toBeTruthy();
+  await picker.selectOption(reference!);
+  await apply(page);
+  await expect(page.locator(".api-explorer-content > pre").first()).toContainText("new EventDispatcher()");
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+});
+
+test("a visible Player element can be selected as the UI container across UI rebuilds", async ({ page }) => {
+  await selectApi(page, "configuration", "UIConfig.container");
+  await branch(page, "UIConfig.container", "instance");
+  const picker = page.locator(".api-explorer-form select").last();
+  const surface = await picker.locator("option").filter({ hasText: /^Player surface/ }).getAttribute("value");
+  await picker.selectOption(surface!);
+  await apply(page);
+  await expect(page.locator("#player .bmpui-ui-uicontainer:visible").first()).toBeVisible();
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+});
+
+test("the original live-rewind checkbox reflects detailed settings and can override them", async ({ page }) => {
+  const id = "PlayerConfig.playback.timeShift";
+  await selectApi(page, "configuration", id);
+  const entry = catalog.rows.find(row => row.id === id)!;
+  const type = catalog.nodes[entry.schema!]!;
+  await page.locator(".api-explorer-form > .api-value > select").selectOption(type.options!.find(id => catalog.nodes[id]!.value === false)!);
+  await apply(page);
+  const toggle = page.getByRole("checkbox", { name: /^Allow DVR \(timeShift\)/ });
+  await expect(toggle).not.toBeChecked();
+  const previous = await page.locator("#player video").elementHandle();
+  await toggle.check();
+  await expect.poll(() => previous!.evaluate(video => video.isConnected)).toBe(false);
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  const config = JSON.parse(await readApi(page, "PlayerAPI.getConfig"));
+  expect(config.playback.timeShift).toBe(true);
+  await expect(toggle).toBeChecked();
 });
 
 test("SDK-managed UI uses the configured factory and theme selection restores app ownership", async ({ page }) => {
@@ -136,6 +226,7 @@ test("SDK-managed UI uses the configured factory and theme selection restores ap
 });
 
 test("an unfinished request callback can be removed without waiting for its old load", async ({ page }) => {
+  await scriptedHls(page);
   const id = "PlayerConfig.network.preprocessHttpRequest";
   await selectApi(page, "configuration", id); await branch(page, id, "function");
   await page.getByRole("textbox", { name: "JavaScript callback body" }).fill("return new Promise(() => {});");
@@ -149,6 +240,7 @@ test("an unfinished request callback can be removed without waiting for its old 
 });
 
 test("a rejected older source load cannot roll back settings retained by a new Player", async ({ page }) => {
+  await scriptedHls(page);
   await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
   const source = JSON.parse(await readApi(page, "PlayerAPI.getSource")) as { hls: string };
   const hls = source.hls + (source.hls.includes("?") ? "&" : "?") + "slow_source=1";
@@ -190,6 +282,31 @@ test("SDK-owned UI variants and markers keep the identity required by switch and
   await expect(page.locator(".api-explorer > p[role=status]")).toHaveText("SDK call completed.");
   const after = JSON.parse(await readApi(page, "UIManager.getTimelineMarkers")) as typeof before;
   expect(after).toEqual(before.slice(1));
+});
+
+test("a marker selection remains valid when its collection exceeds the resource pool limit", async ({ page }) => {
+  let id = "PlayerConfig.style.uiManagerFactory";
+  await selectApi(page, "configuration", id); await branch(page, id, "function");
+  await page.getByRole("textbox", { name: "JavaScript callback body" }).fill(
+    'config.metadata = { markers: Array.from({ length: 65 }, (_, index) => ({ time: index, title: "item-" + index })) }; return lab.ui.UIFactory.buildUI(playerAPI, config);');
+  await page.getByRole("checkbox", { name: "Allow this callback to run in this page after Apply" }).check();
+  await apply(page);
+  id = "PlayerConfig.ui";
+  await selectApi(page, "configuration", id);
+  await page.getByRole("textbox", { name: "Data without an SDK type restriction" }).fill("{}");
+  await apply(page);
+  await expect(page.locator("#player .bmpui-ui-uicontainer:visible").first()).toBeVisible();
+  await expect.poll(async () => (await page.locator(".api-event-log").textContent())!.includes("Callback invoked")).toBe(true);
+  const before = JSON.parse(await readApi(page, "UIManager.getTimelineMarkers"));
+  expect(before[0].title).toBe("item-0");
+  await selectApi(page, "command", "UIManager.removeTimelineMarker");
+  const picker = page.getByRole("combobox", { name: "SDK object", exact: true });
+  await expect(picker.locator("option")).toHaveCount(65);
+  await picker.selectOption((await picker.locator("option").first().getAttribute("value"))!);
+  await page.getByRole("button", { name: "Run API", exact: true }).click();
+  await expect(page.locator(".api-explorer > p[role=status]")).toHaveText("SDK call completed.");
+  const after = JSON.parse(await readApi(page, "UIManager.getTimelineMarkers"));
+  expect(after[0].title).toBe("item-1");
 });
 
 test("runtime arguments change volume, state reads expose it, and event subscriptions record playback", async ({ page }) => {

@@ -138,13 +138,35 @@ function clone(value: unknown): unknown {
   return value;
 }
 
+function mergeValue(base: unknown, value: unknown): unknown {
+  if (!plain(base) || !plain(value)) return value;
+  const result = clone(base) as Record<string, unknown>;
+  for (const [key, input] of Object.entries(value)) { safeKey(key); result[key] = mergeValue(result[key], input); }
+  return result;
+}
+
+function pruneValue(value: unknown, path: PathPart[]): unknown {
+  const key = path[0];
+  if (!plain(value) || typeof key !== "string" || !Object.prototype.hasOwnProperty.call(value, key)) return value;
+  const result = { ...value };
+  if (path.length === 1) delete result[key];
+  else {
+    result[key] = pruneValue(value[key], path.slice(1));
+    if (plain(result[key]) && Object.keys(result[key]).length === 0) delete result[key];
+  }
+  return result;
+}
+
 function put(target: Record<string, unknown>, parts: PathPart[], value: unknown): void {
   let cursor: Record<string | number, unknown> | unknown[] = target;
   for (let index = 0; index < parts.length; index++) {
     const key = parts[index]!;
     if (typeof key === "string") safeKey(key);
     if (typeof key === "number" && (!Array.isArray(cursor) || key > cursor.length)) throw new Error("Add array entries in order; sparse arrays are not SDK inputs.");
-    if (index === parts.length - 1) { (cursor as Record<string | number, unknown>)[key] = value; break; }
+    if (index === parts.length - 1) {
+      const record = cursor as Record<string | number, unknown>;
+      record[key] = mergeValue(record[key], value); break;
+    }
     const current = (cursor as Record<string | number, unknown>)[key];
     const isArray = typeof parts[index + 1] === "number";
     if (isArray ? !Array.isArray(current) : !plain(current)) (cursor as Record<string | number, unknown>)[key] = isArray ? [] : {};
@@ -184,6 +206,11 @@ export class ApiOverrides {
       }
     };
     visit(patch, []);
-    for (const [key, item] of this.values.get(root) ?? []) if (paths.some(path => overlaps(path, item.path))) this.values.get(root)!.delete(key);
+    for (const [key, item] of this.values.get(root) ?? []) for (const path of paths) {
+      if (!overlaps(path, item.path)) continue;
+      if (path.length <= item.path.length) { this.values.get(root)!.delete(key); break; }
+      item.value = pruneValue(item.value, path.slice(item.path.length));
+      if (plain(item.value) && Object.keys(item.value).length === 0) { this.values.get(root)!.delete(key); break; }
+    }
   }
 }

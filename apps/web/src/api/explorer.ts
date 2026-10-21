@@ -166,14 +166,15 @@ export class ApiExplorer {
     return { key, ticket };
   }
 
-  beginPlayerChange(): void {
+  beginPlayerChange(): () => void {
     this.operation++; this.sourceGeneration++;
     this.unsubscribe.forEach(unsubscribe => { try { unsubscribe(); } catch { /* Already released. */ } });
     this.unsubscribe = [];
-    for (const context of this.contexts.values()) context.dispose();
+    const cleanups = [...this.contexts.values()].map(context => context.retire());
     this.contexts.clear(); this.resources.clear(); this.counts.clear(); this.events.length = 0;
     this.player = undefined; this.ui = undefined; this.preparingPlayer = true;
     this.result.textContent = ""; this.log.textContent = "";
+    return () => cleanups.forEach(cleanup => cleanup());
   }
 
   refresh(): void {
@@ -199,6 +200,8 @@ export class ApiExplorer {
     this.player = player; this.ui = ui;
     if (player) this.resources.add(player, "Current Player", "PlayerAPI", player);
     if (ui) this.resources.add(ui, "Current UIManager", "UIManager", ui);
+    const surface = document.getElementById("player");
+    if (surface && player) this.resources.add(surface, "Player surface", "HTMLElement", player);
     const video = document.querySelector("#player video");
     if (video) this.resources.add(video, "Current video", "HTMLVideoElement", player);
     this.resources.add(document, "Document", "Document");
@@ -263,6 +266,7 @@ export class ApiExplorer {
       const entry = catalog.rows.find(entry => entry.id === selection.value);
       if (!entry) return;
       form.append(node("h3", entry.id));
+      if (entry.container) form.append(node("p", pick({ ja: "このオブジェクト・配列をまとめて編集します。必須フィールドを揃えてから適用してください。", en: "Edit this object or array as a whole. Complete its required fields before applying it." })));
       if (entry.reference) { const link = node("a", pick({ ja: "公式APIリファレンス", en: "Official API reference" })); link.href = entry.reference; link.target = "_blank"; link.rel = "noopener noreferrer"; form.append(link); }
       if (entry.blocked) { form.append(node("p", pick({ ja: "このパスはSDK型定義のコンポーネント本体から列挙されたもので、コンストラクターの設定ではありません。設定として渡してもメソッドは実行されません。UIConstructorConfig.ToggleSettingsPanelItemで実際のコンストラクター入力を編集してください。", en: "This path was enumerated from the SDK component class, rather than its constructor configuration. Passing it as configuration does not invoke its method. Use UIConstructorConfig.ToggleSettingsPanelItem to edit the actual constructor input." }))); return; }
       if (entry.category === "event") { form.append(node("p", pick({ ja: "現在のインスタンスへの購読結果は下のイベント欄で確認できます。必要な素材・機能・端末の操作を行うと発生回数と内容が更新されます。", en: "Subscriptions for the current instance are shown in the event log below. Counts and payloads update when the required source, feature or device interaction produces the event." }))); return; }
@@ -291,7 +295,7 @@ export class ApiExplorer {
             const submittedPlayer = this.options.getPlayer();
             let submittedSourceGeneration = this.sourceGeneration;
             try {
-              const value = validateData(catalog, entry.schema!, editor.read());
+              const value = validateData(catalog, entry.schema!, this.resources.forConfiguration(editor.read()));
               this.context("preflight").preflight(value);
               write = this.markWrite(route.root, route.path);
               replaced = this.overrides.set(route.root, route.path, value);
@@ -340,14 +344,16 @@ export class ApiExplorer {
             let value: ValueEditor;
             const identities = index === 0 ? this.identityItems(entry.id) : undefined;
             if (identities) {
+              const owner = this.options.getUi();
               const select = node("select"); select.setAttribute("aria-label", pick({ ja: "SDKオブジェクト", en: "SDK object" }));
-              for (const [itemIndex, item] of identities.entries()) {
-                const id = this.resources.add(item, `${entry.id} item ${itemIndex}`, catalog.nodes[parameter.schema]!.label, this.options.getUi());
-                if (id) select.append(option("resource:" + id, `Current item [${itemIndex}] (${id})`));
-              }
+              identities.forEach((_, itemIndex) => select.append(option("resource:" + itemIndex, `Current item [${itemIndex}]`)));
               value = { element: select, read: () => {
                 if (!select.value) throw new Error("The current UI has no object for this operation.");
-                return new ResourceInput(select.value.slice(9));
+                if (owner !== this.options.getUi()) throw new Error("This UI has been replaced. Select the operation again.");
+                const itemIndex = Number(select.value.slice(9));
+                const id = this.resources.add(identities[itemIndex], `${entry.id} item ${itemIndex}`, catalog.nodes[parameter.schema]!.label, owner);
+                if (!id) throw new Error("Select a current SDK object.");
+                return new ResourceInput(id);
               } };
             } else value = valueEditor(catalog, parameter.schema, resources);
             const enabled = node("input"); enabled.type = "checkbox"; enabled.checked = !parameter.optional; enabled.disabled = !parameter.optional;
@@ -392,24 +398,38 @@ export class ApiExplorer {
     const root = entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi();
     if (!root) throw new Error("Create a player and UI first.");
     const context = this.context("runtime:" + entry.root);
-    const args = context.arguments(signature, inputs);
-    const identities = this.identityItems(entry.id);
-    if (identities && (!(inputs[0] instanceof ResourceInput) || !identities.includes(args[0]))) {
-      throw new Error("Select an object owned by the current UI. Read its current collection again if it has changed.");
-    }
-    const path = apiPath(entry.id);
-    const owner = readPath(root, path.slice(0, -1));
-    const fn = readPath(root, path);
-    if (typeof fn !== "function") throw new Error("This API is unavailable in the current SDK instance.");
-    if (root !== (entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi())) return;
-    this.code.textContent = `${entry.id.replace(/^PlayerAPI/, "player").replace(/^UIManager/, "uiManager")}(${inputs.map(input => inputCode(input)).join(", ")});`;
+    const checkpoint = context.checkpoint();
+    let through = checkpoint;
     let result: unknown;
     try {
+      const submitted = entry.id === "PlayerAPI.load" ? [this.resources.forConfiguration(inputs[0]), ...inputs.slice(1)] : inputs;
+      let args: unknown[];
+      if (entry.id === "PlayerAPI.load") {
+        // SourceConfig owns these callbacks. Validate now and construct them once
+        // in that source's context rather than creating unused runtime copies.
+        validateData(this.catalog!, signature.parameters[0]!.schema, submitted[0]);
+        context.preflight(submitted[0]);
+        args = [submitted[0], ...context.arguments({ ...signature, parameters: signature.parameters.slice(1) }, submitted.slice(1))];
+      } else args = context.arguments(signature, submitted);
+      through = context.checkpoint();
+      context.publish(checkpoint, through, false);
+      const identities = this.identityItems(entry.id);
+      if (identities && (!(submitted[0] instanceof ResourceInput) || !identities.includes(args[0]))) {
+        throw new Error("Select an object owned by the current UI. Read its current collection again if it has changed.");
+      }
+      const path = apiPath(entry.id);
+      const owner = readPath(root, path.slice(0, -1));
+      const fn = readPath(root, path);
+      if (typeof fn !== "function") throw new Error("This API is unavailable in the current SDK instance.");
+      if (root !== (entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi())) { context.rollback(checkpoint, through); return; }
+      this.code.textContent = `${entry.id.replace(/^PlayerAPI/, "player").replace(/^UIManager/, "uiManager")}(${submitted.map(input => inputCode(input)).join(", ")});`;
       if (entry.id === "PlayerAPI.destroy") result = await this.options.destroy();
-      else if (entry.id === "PlayerAPI.load") result = await this.options.load(inputs[0], args[1], args[2]);
+      else if (entry.id === "PlayerAPI.load") result = await this.options.load(submitted[0], args[1], args[2]);
       else if (entry.id === "UIManager.release") result = this.options.releaseUi();
       else result = await Reflect.apply(fn, owner, args);
+      context.publish(checkpoint, through);
     } catch (error) {
+      context.rollback(checkpoint, through);
       if (token !== this.operation || output !== this.outputGeneration || root !== (entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi())) return;
       throw error;
     }

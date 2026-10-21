@@ -93,6 +93,14 @@ describe("independent API overrides", () => {
     expect(overrides.apply("PlayerConfig", { playback: { autoplay: false } })).toEqual({ playback: { autoplay: false, muted: false }, live: { targetLatency: 5 } });
   });
 
+  it("retains unedited base fields and unrelated fields inside a parent override", () => {
+    const overrides = new ApiOverrides();
+    overrides.set("PlayerConfig", ["playback"], { autoplay: false, timeShift: true });
+    expect(overrides.apply("PlayerConfig", { playback: { muted: true } })).toEqual({ playback: { muted: true, autoplay: false, timeShift: true } });
+    overrides.discardPatch("PlayerConfig", { playback: { timeShift: false } });
+    expect(overrides.apply("PlayerConfig", { playback: { muted: true, timeShift: false } })).toEqual({ playback: { muted: true, timeShift: false, autoplay: false } });
+  });
+
   it("returns displaced child edits so a rejected parent edit can restore them without losing siblings", () => {
     const overrides = new ApiOverrides();
     overrides.set("PlayerConfig", ["playback", "autoplay"], true);
