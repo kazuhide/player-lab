@@ -18,6 +18,16 @@ const list = (raw: string): string[] => raw ? raw.split(/\r?\n/) : [];
 
 /** Each setter assigns to an installed SDK type; no arbitrary object or cast enters the SDK. */
 export const NATIVE_SETTING_FIELDS: readonly NativeSettingField[] = [
+  { id: "SourceConfig.url", kind: "text", apply: (config, raw) => { config.source.url = raw; } },
+  { id: "SourceConfig.type", kind: "enum", choices: Object.values(SourceType), apply: (config, raw) => { config.source.type = choice(raw, Object.values(SourceType)); } },
+  { id: "SourceConfig.title", kind: "text", apply: (config, raw) => { config.source.title = raw; } },
+  { id: "SourceConfig.poster", kind: "text", apply: (config, raw) => { config.source.poster = raw; } },
+  { id: "SourceConfig.options.startOffset", kind: "number", apply: (config, raw) => { config.source.options ??= {}; config.source.options.startOffset = finiteNumber(raw, "Start offset"); } },
+  { id: "SourceConfig.options.startOffsetTimelineReference", kind: "enum", choices: Object.values(TimelineReferencePoint), apply: (config, raw) => { config.source.options ??= {}; config.source.options.startOffsetTimelineReference = choice(raw, Object.values(TimelineReferencePoint)); } },
+  { id: "PlayerConfig.playbackConfig.isAutoplayEnabled", kind: "boolean", choices: ["true", "false"], apply: (config, raw) => { config.player.playbackConfig ??= {}; config.player.playbackConfig.isAutoplayEnabled = choice(raw, [true, false]); } },
+  { id: "PlayerConfig.playbackConfig.isMuted", kind: "boolean", choices: ["true", "false"], apply: (config, raw) => { config.player.playbackConfig ??= {}; config.player.playbackConfig.isMuted = choice(raw, [true, false]); } },
+  { id: "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration", kind: "number", apply: (config, raw) => { config.player.bufferConfig ??= {}; config.player.bufferConfig.audioAndVideo ??= {}; config.player.bufferConfig.audioAndVideo.forwardDuration = finiteNumber(raw, "Forward duration"); } },
+  { id: "PlayerConfig.adaptationConfig.maxSelectableBitrate", kind: "number", apply: (config, raw) => { config.player.adaptationConfig ??= {}; config.player.adaptationConfig.maxSelectableBitrate = finiteNumber(raw, "Maximum selectable bitrate"); } },
   { id: "BitmovinCastManagerOptions.applicationId", kind: "text", apply: (config, raw) => {  config.cast.applicationId = raw; } },
   { id: "BitmovinCastManagerOptions.messageNamespace", kind: "text", apply: (config, raw) => {  config.cast.messageNamespace = raw; } },
   { id: "OfflineContentConfig.identifier", kind: "text", apply: (config, raw) => {  config.offline.identifier = raw; } },

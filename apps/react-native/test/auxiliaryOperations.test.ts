@@ -1,12 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { OfflineContentManagerListener } from "bitmovin-player-react-native";
+import type { OfflineContentManagerListener, OnCompletedEvent } from "bitmovin-player-react-native";
 
 const native = vi.hoisted(() => ({
   nextInitialize: undefined as Promise<void> | undefined,
   managers: [] as Array<{ config: object; initialize: ReturnType<typeof vi.fn>; destroy: ReturnType<typeof vi.fn>; download: ReturnType<typeof vi.fn>; listener: OfflineContentManagerListener }>,
 }));
 vi.mock("bitmovin-player-react-native", () => ({
-  Player: class { unload = vi.fn(); loadSource = vi.fn(); loadOfflineContent = vi.fn(); },
+  Player: class { unload = vi.fn(); loadSource = vi.fn(); loadOfflineContent = vi.fn(); play = vi.fn(); },
   Source: class {},
   OfflineState: { Downloaded: "Downloaded" }, OfflineEventType: { onCompleted: "onCompleted" },
   BitmovinCastManager: { isInitialized: vi.fn(async () => false), initialize: vi.fn(async () => {}), updateContext: vi.fn(async () => {}), sendMessage: vi.fn(async () => {}) },
@@ -31,6 +31,22 @@ const settings = (): NativeSettings => ({ source: { url: "https://example.com/li
 beforeEach(() => { native.managers.length = 0; native.nextInitialize = undefined; });
 
 describe("Owned offline API experiments", () => {
+  it("attaches selected editable listener bodies only with approval and retires the previous callback identity", async () => {
+    const player = new Player(); const record = vi.fn();
+    const engine = new AuxiliaryOperations(player, settings, record);
+    const operations = engine.operations();
+    await operations.find((operation) => operation.id === "OfflineContentManager.initialize")!.run({});
+    const manager = native.managers[0]!; const old = manager.listener;
+    const add = operations.find((operation) => operation.id === "OfflineContentManager.addListener")!;
+    expect(() => add.run({ events: "onCompleted", body: "lab.getPlayer().play();", allow: "no" })).toThrow("Allow edited");
+    expect(manager.listener).toBe(old);
+    add.run({ events: "onCompleted", body: "lab.getPlayer().play();", allow: "yes" });
+    const event: OnCompletedEvent = { nativeId: "current", identifier: "sample-content", eventType: OfflineEventType.onCompleted, state: OfflineState.Downloaded };
+    old.onCompleted?.(event); expect(record).not.toHaveBeenCalled();
+    manager.listener.onCompleted?.(event); expect(player.play).toHaveBeenCalledOnce();
+    expect(record).toHaveBeenCalledOnce();
+    engine.dispose(); manager.listener.onCompleted?.(event); expect(player.play).toHaveBeenCalledOnce();
+  });
   it("uses the edited configuration and download request when explicitly invoked", async () => {
     const engine = new AuxiliaryOperations(new Player(), settings, vi.fn());
     const operations = engine.operations();

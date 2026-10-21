@@ -1,7 +1,8 @@
 import { BufferType, type CustomDataConfig, type Player, type SourceConfig } from "bitmovin-player-react-native";
 import { finiteNumber, stringEntries } from "./apiValues";
+import { EMPTY_METADATA, metadataValue } from "./metadataInput";
 
-export interface ApiArgument { name: string; label: string; initial: string; choices?: readonly string[]; }
+export interface ApiArgument { name: string; label: string; initial: string; choices?: readonly string[]; editor?: "metadata"; }
 export interface ApiOperation {
   id: string;
   arguments: ApiArgument[];
@@ -141,7 +142,7 @@ export function nativeOperations(player: Player, source: SourceConfig): ApiOpera
   property("Source.drm.isInitialized", () => drm().isInitialized);
   property("Source.drm.isDestroyed", () => drm().isDestroyed);
   one("Source.getThumbnail", time, (raw) => finiteNumber(raw, "Time", 0), (v) => activeSource().getThumbnail(v));
-  one("Source.setMetadata", { ...value, label: "Metadata (name=value per line; blank clears)" }, (raw) => raw.trim() ? stringEntries(raw) : null, (v) => activeSource().setMetadata(v));
+  one("Source.setMetadata", { ...value, label: "Source metadata", initial: EMPTY_METADATA, editor: "metadata" }, metadataValue, (v) => activeSource().setMetadata(v));
   one("Source.drm.fairplay.renewExpiringLicense", { ...value, label: "SKD URI from onFairplayLicenseAcquired" }, (raw) => {
     if (!raw.startsWith("skd://")) throw new Error("Enter the skd:// URI from the acquired content-key request.");
     return { skdUri: raw };

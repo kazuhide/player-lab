@@ -34,6 +34,7 @@ vi.mock("bitmovin-player-react-native", async () => {
   return {
     CustomUi: class { constructor(public factoryFunction: string) {} },
     PlayerView: "PlayerView",
+    OfflineEventType: { onCompleted: "onCompleted", onError: "onError", onProgress: "onProgress", onOptionsAvailable: "onOptionsAvailable", onDrmLicenseUpdated: "onDrmLicenseUpdated", onDrmLicenseExpired: "onDrmLicenseExpired", onSuspended: "onSuspended", onResumed: "onResumed", onCanceled: "onCanceled" },
     Source: class {},
     CustomMessageHandler: class {
       constructor(private readonly options: { onReceivedSynchronousMessage: (message: string, data: string | undefined) => string | undefined; onReceivedAsynchronousMessage: (message: string, data: string | undefined) => void }) {}
@@ -215,6 +216,17 @@ describe("React Native configuration in the mounted App", () => {
     await text("Volume (0–100)", "37.5"); await press("Run selected API");
     expect(current().setVolume).toHaveBeenLastCalledWith(37.5);
     expect(element("Text", { accessibilityLabel: "Executed API code" }).props.children).toBe("player.setVolume(37.5)");
+  });
+
+  it("builds typed source metadata through the GUI tree and rejects an invalid nested number", async () => {
+    await mount(); await ready(); await press("Show API experiments");
+    const setMetadata = vi.fn(); Object.assign(current(), { source: { setMetadata } });
+    await text("Filter API operations", "Source.setMetadata"); await press("Source.setMetadata");
+    await press("Metadata object"); await text("New metadata field name", "episode"); await press("Add metadata field");
+    await press("Edit metadata episode"); await press("Metadata number"); await text("Metadata scalar value", "7");
+    await press("Run selected API"); expect(setMetadata).toHaveBeenLastCalledWith({ episode: 7 });
+    await text("Metadata scalar value", "Infinity"); await press("Run selected API"); expect(setMetadata).toHaveBeenCalledOnce();
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).toContain("finite number");
   });
 
   it("does not publish a retired API query result into the replacement player", async () => {

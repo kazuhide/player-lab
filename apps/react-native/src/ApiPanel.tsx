@@ -5,6 +5,7 @@ import { nativeOperations } from "./apiOperations";
 import { apiValue } from "./apiValues";
 import { AuxiliaryOperations } from "./auxiliaryOperations";
 import type { NativeSettings } from "./nativeSettings";
+import { MetadataInput } from "./metadataInput";
 
 interface Props {
   player: Player;
@@ -58,6 +59,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
     let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
       const appliedCode = selected.code(values);
+      if (["Player.load", "Player.loadSource", "Player.loadOfflineContent", "Player.unload", "Player.destroy", "Source.destroy"].includes(selected.id)) auxiliary.sourceChanged();
       const value = await Promise.race([
         Promise.resolve(selected.run(values)),
         new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error("No response within 10 seconds. The native call may still complete; it has not been retried.")), 10000); }),
@@ -76,6 +78,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
     {expanded && <>
       <Text>Choose an operation, enter its arguments, then run it. A void result means the wrapper dispatched the call; use events and queries to check its effect. Platform and source requirements still apply.</Text>
       <Text>Offline inputs are edited under Additional SDK configuration. Initialize the offline manager, get options, then download; completion is an event. Delete and cancel affect only the chosen content identifier. Cast initialization requires the host Cast SDK; recreate the player afterwards.</Text>
+      <Text>Offline addListener replaces the app's current offline listener. Select its named callbacks and optionally edit a JavaScript body using event, name and lab.getPlayer()/getSource(). A nonempty body requires explicit execution permission; it runs inside this app on future matching SDK events.</Text>
       <TextInput accessibilityLabel="Filter API operations" value={filter} onChangeText={(value) => { setFilter(value); setLimit(12); }} autoCorrect={false} autoCapitalize="none" style={styles.input} />
       <View style={styles.row}>{matches.slice(0, limit).map((operation) => <Button key={operation.id} title={operation.id}
         disabled={busy || selected.id === operation.id} onPress={() => { setSelectedId(operation.id); setResult(""); setCode(""); }} />)}</View>
@@ -83,7 +86,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
       <Text style={styles.heading}>{selected.id}</Text>
       {selected.arguments.map((argument) => <View key={argument.name} style={styles.field}>
         <Text>{argument.label}</Text>
-        {argument.choices ? <View style={styles.row}>{argument.choices.map((choice) => <Button key={choice} title={choice} disabled={values[argument.name] === choice}
+        {argument.editor === "metadata" ? <MetadataInput key={selected.id + argument.name} value={values[argument.name] ?? argument.initial} onChange={(value) => setValues((current) => ({ ...current, [argument.name]: value }))} /> : argument.choices ? <View style={styles.row}>{argument.choices.map((choice) => <Button key={choice} title={choice} disabled={values[argument.name] === choice}
           onPress={() => setValues((current) => ({ ...current, [argument.name]: choice }))} />)}</View>
           : <TextInput accessibilityLabel={argument.label} value={values[argument.name] ?? ""} onChangeText={(value) => setValues((current) => ({ ...current, [argument.name]: value }))}
             autoCorrect={false} autoCapitalize="none" multiline style={styles.input} />}

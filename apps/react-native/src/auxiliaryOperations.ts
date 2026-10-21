@@ -1,9 +1,9 @@
-import { BitmovinCastManager, OfflineContentManager, Source, type OfflineContentManagerListener, type Player } from "bitmovin-player-react-native";
+import { BitmovinCastManager, OfflineContentManager, OfflineEventType, Source, type OfflineContentManagerListener, type Player } from "bitmovin-player-react-native";
 import type { ApiOperation } from "./apiOperations";
 import type { NativeSettings } from "./nativeSettings";
 import { finiteNumber } from "./apiValues";
 
-interface OfflineOwner { manager: OfflineContentManager; ready: Promise<void>; remove: () => void; released?: Promise<void>; }
+interface OfflineOwner { manager: OfflineContentManager; ready: Promise<void>; remove: () => void; initialized: boolean; released?: Promise<void>; }
 
 /** Native resources are retired only after their asynchronous initialization has settled. */
 export class AuxiliaryOperations {
@@ -13,23 +13,51 @@ export class AuxiliaryOperations {
   private revision = 0;
   private sourceRevision = 0;
   private retirement: Promise<void> = Promise.resolve();
+  private listenerRevision = 0;
   constructor(private readonly player: Player, private readonly settings: () => NativeSettings,
     private readonly record: (name: string, value: unknown) => void) {}
 
-  private listener(manager: OfflineContentManager): OfflineContentManagerListener {
+  private listener(manager: OfflineContentManager, names: readonly string[] = Object.values(OfflineEventType), body = ""): OfflineContentManagerListener {
+    const revision = ++this.listenerRevision;
+    const run = body ? new Function("event", "name", "lab", '"use strict";\n' + body) as (event: unknown, name: string, lab: { getPlayer: () => Player; getSource: () => Source | undefined }) => unknown : undefined;
+    const context = Object.freeze({
+      getPlayer: () => { if (!this.active || this.offline?.manager !== manager || revision !== this.listenerRevision) throw new Error("The listener owner has retired."); return this.player; },
+      getSource: () => { if (!this.active || this.offline?.manager !== manager || revision !== this.listenerRevision) throw new Error("The listener owner has retired."); return this.player.source; },
+    });
+    let calls = 0;
     const emit = (name: string, event: unknown) => {
-      if (this.active && this.offline?.manager === manager && !this.offline.released) this.record("OfflineContentManagerListener." + name, event);
+      if (!this.active || this.offline?.manager !== manager || this.offline.released || revision !== this.listenerRevision) return;
+      this.record("OfflineContentManagerListener." + name, event);
+      calls += 1;
+      try {
+        const result = run?.(event, name, context);
+        void Promise.resolve(result).catch(() => {
+          if (calls <= 20 && this.active && this.offline?.manager === manager && revision === this.listenerRevision) this.record("OfflineContentManagerListener." + name, { error: "Edited offline listener rejected." });
+        });
+      }
+      catch { if (calls <= 20) this.record("OfflineContentManagerListener." + name, { error: "Edited offline listener failed." }); }
     };
-    return {
+    const listener: OfflineContentManagerListener = {
       onCompleted: (e) => emit("onCompleted", e), onError: (e) => emit("onError", e),
       onProgress: (e) => emit("onProgress", e), onOptionsAvailable: (e) => emit("onOptionsAvailable", e),
       onDrmLicenseUpdated: (e) => emit("onDrmLicenseUpdated", e), onDrmLicenseExpired: (e) => emit("onDrmLicenseExpired", e),
       onSuspended: (e) => emit("onSuspended", e), onResumed: (e) => emit("onResumed", e), onCanceled: (e) => emit("onCanceled", e),
     };
+    if (!names.includes("onCompleted")) delete listener.onCompleted;
+    if (!names.includes("onError")) delete listener.onError;
+    if (!names.includes("onProgress")) delete listener.onProgress;
+    if (!names.includes("onOptionsAvailable")) delete listener.onOptionsAvailable;
+    if (!names.includes("onDrmLicenseUpdated")) delete listener.onDrmLicenseUpdated;
+    if (!names.includes("onDrmLicenseExpired")) delete listener.onDrmLicenseExpired;
+    if (!names.includes("onSuspended")) delete listener.onSuspended;
+    if (!names.includes("onResumed")) delete listener.onResumed;
+    if (!names.includes("onCanceled")) delete listener.onCanceled;
+    return listener;
   }
 
   private manager(): OfflineContentManager {
-    if (!this.offline) throw new Error("Run OfflineContentManager.initialize first.");
+    if (!this.offline || this.offline.released) throw new Error("Run OfflineContentManager.initialize first.");
+    if (!this.offline.initialized) throw new Error("Offline manager initialization is still pending.");
     return this.offline.manager;
   }
 
@@ -52,8 +80,8 @@ export class AuxiliaryOperations {
     const ready = Promise.resolve().then(() => {
       if (this.active && this.offline?.manager === manager) return manager.initialize();
       return undefined;
-    });
-    this.offline = { manager, ready, remove };
+    }).then(() => { if (this.active && this.offline?.manager === manager) this.offline.initialized = true; });
+    this.offline = { manager, ready, remove, initialized: false };
     await ready;
   }
 
@@ -66,12 +94,29 @@ export class AuxiliaryOperations {
       if (this.offline) this.retirement = this.release(this.offline);
       await this.retirement;
     }, "await offline.destroy();");
-    add("OfflineContentManager.addListener", () => {
-      if (!this.offline) throw new Error("Initialize the offline manager first.");
+    const listenerInput = (values: Record<string, string>) => {
+      const names = (values.events ?? "").split(/\s+/).filter(Boolean);
+      if (names.some((name) => !Object.values<string>(OfflineEventType).includes(name))) throw new Error("Enter named OfflineEventType callbacks, separated by whitespace.");
+      const body = values.body ?? "";
+      if (body.length > 100_000) throw new Error("A listener body must be at most 100000 characters.");
+      if (body && values.allow !== "yes") throw new Error("Allow edited listener JavaScript before running this operation.");
+      if (body) new Function("event", "name", "lab", '"use strict";\n' + body);
+      return { names, body };
+    };
+    operations.push({ id: "OfflineContentManager.addListener", arguments: [
+      { name: "events", label: "Offline listener names (one per line; blank attaches an empty listener)", initial: Object.values(OfflineEventType).join("\n") },
+      { name: "body", label: "Optional listener JavaScript body (event, name, lab)", initial: "" },
+      { name: "allow", label: "Allow edited listener JavaScript in this app", initial: "no", choices: ["no", "yes"] },
+    ], run: (values) => {
+      const input = listenerInput(values);
+      if (!this.offline || this.offline.released) throw new Error("Initialize the offline manager first.");
       this.offline.remove();
-      this.offline.remove = this.offline.manager.addListener(this.listener(this.offline.manager));
-      return "Named offline event listeners attached.";
-    }, "const removeListener = offline.addListener(listener);");
+      this.offline.remove = this.offline.manager.addListener(this.listener(this.offline.manager, input.names, input.body));
+      return "Selected offline listeners attached. Their bodies execute on SDK events.";
+    }, code: (values) => {
+      const input = listenerInput(values);
+      return "const lab = { getPlayer: () => player, getSource: () => player.source };\nconst listener = {\n" + input.names.map((name) => `  ${name}: (event) => { const name = ${JSON.stringify(name)};\n${input.body}\n  },`).join("\n") + "\n};\nconst removeListener = offline.addListener(listener);";
+    } });
     add("OfflineContentManager.state", () => this.manager().state(), "await offline.state();");
     add("OfflineContentManager.getOptions", () => this.manager().getOptions(), "await offline.getOptions(); // Inspect onOptionsAvailable.");
     add("OfflineContentManager.download", () => this.manager().download(this.settings().download), "await offline.download(downloadRequest); // Completion is reported by onCompleted.");

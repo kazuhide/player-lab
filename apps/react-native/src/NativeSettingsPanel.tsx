@@ -32,6 +32,7 @@ export function NativeSettingsPanel({ values, onChange }: { values: SettingValue
       <Button title="Remove this API override" onPress={remove} />
     </>}
     <Text>License fields start empty and do not reveal environment values. Analytics metadata needs an Analytics license. A nativeId reuses a native instance with that ID; leave it unset unless reuse is intended. Platform-specific settings may have no effect on the other platform.</Text>
+    <Text>These overrides are passed to their typed SDK fields after the basic form. The SDK validates platform, value and source support. WebUiConfig.variant accepts the name of any factory provided by the configured Web UI JavaScript file and creates a real CustomUi variant.</Text>
   </View>;
 }
 
