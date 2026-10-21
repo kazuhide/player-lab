@@ -135,6 +135,21 @@
 .guide-setting dd { min-width: 0; margin: 0; }
 .guide-mode { display: inline-block; border: 1px solid var(--line); padding: 0.125rem 0.5rem; font-size: 0.75rem; font-weight: 650; color: var(--muted); }
 .guide-metadata { color: var(--muted); font-size: 0.8125rem; }
+.guide-control-nav { display: block; margin-block: 1.25rem; }
+.guide-control-nav ul { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; padding: 0; list-style: none; }
+.guide-control-nav li + li { margin-top: 0; }
+.guide-control-nav a { display: block; padding-block: 0.375rem; color: var(--action); font-size: 0.875rem; text-decoration: underline; }
+.guide-controls { border-top: 1px solid var(--line); }
+.guide-controls > div {
+  display: grid;
+  grid-template-columns: minmax(0, 0.35fr) minmax(0, 0.65fr);
+  gap: 0.5rem 1.5rem;
+  padding-block: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.guide-controls dt { min-width: 0; font-size: 0.9375rem; font-weight: 650; }
+.guide-control-kind { display: block; margin-top: 0.25rem; color: var(--muted); font-size: 0.8125rem; font-weight: 400; }
+.guide-controls dd { min-width: 0; margin: 0; font-size: 0.9375rem; line-height: 1.7; }
 .guide-theme { min-width: 0; border-top: 1px solid var(--line); padding-block: 1rem; }
 .guide-search { margin-block: 1rem; padding: 1rem; background: var(--canvas); border: 1px solid var(--line); }
 .guide-page .guide-search label { display: block; font-size: 0.875rem; font-weight: 650; margin-bottom: 0.5rem; }
@@ -176,6 +191,7 @@
   .guide-search { padding: 0.75rem; }
   .guide-setting dl { grid-template-columns: minmax(0, 1fr); gap: 0.125rem; }
   .guide-setting dd { margin-bottom: 0.5rem; }
+  .guide-controls > div { grid-template-columns: minmax(0, 1fr); }
   .guide-note { padding: 0.75rem; }
 }
 

@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import stat
 
-from guide_html import (TEXT, anchor, esc, field_anchor, legacy_html, page_html, relative,
+from guide_html import (TEXT, anchor, controls_html, esc, field_anchor, legacy_html, page_html, relative,
                         render_block, settings_group, source_url, sources_html, themes_html)
 from guide_routes import CATEGORIES, CHAPTERS, DOCUMENTS, GUIDE_FILES, LANGUAGES, LEGACY_ROUTES, SETTING_GROUPS, THEMES, route_file
 from guide_coverage import coverage_pages, validate_coverage
@@ -207,7 +207,7 @@ def build(content, *, coverage=None):
                 + sources_html(document.get('sources', []), language))
         pages[page] = page_html(documents, language, 'settings', document['title'], document['lead'], body).encode()
         page, document = route_file(language, 'controls'), documents['controls']
-        body = '<dl class="guide-controls">' + ''.join(f'<div id="{esc(c["id"])}"><dt>{esc(c["label"])}</dt><dd>{esc(c["description"])}</dd></div>' for c in document['controls']) + '</dl>'
+        body = controls_html(document['controls'], language)
         pages[page] = page_html(documents, language, 'controls', document['title'], document['lead'], body).encode()
         for control in document['controls']:
             search.append({'kind':'control','title':control['label'],'url':'controls/#'+control['id'],

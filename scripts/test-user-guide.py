@@ -2,6 +2,7 @@
 """Check complete bilingual content, safe rendering, and navigation contracts."""
 import copy
 import json
+from html import escape
 from html.parser import HTMLParser
 from pathlib import Path
 import posixpath
@@ -125,6 +126,31 @@ class GuideTests(unittest.TestCase):
             self.assertLess(html.index('native-integrations/'), html.index('web-qoe-analytics/'))
             self.assertLess(html.index('test-results/'), html.index('web-qoe-analytics/'))
             self.assertLess(html.index('analytics-visualization/'), html.index('analytics-queries/'))
+
+    def test_grouped_controls_keep_every_existing_search_target_and_description(self):
+        groups = ('source', 'seek', 'playback', 'ui', 'casting')
+        for language in ('en', 'ja'):
+            html = self.pages[route_file(language, 'controls')].decode()
+            parser = Links()
+            parser.feed(html)
+            headings = []
+            for group in groups:
+                identity = 'controls-' + group
+                self.assertIn(identity, parser.ids)
+                self.assertIn('#' + identity, parser.links)
+                headings.append(html.index('id="' + identity + '"'))
+            self.assertEqual(headings, sorted(headings))
+            for control in self.content[language]['controls']['controls']:
+                identity = 'id="' + control['id'] + '"'
+                self.assertEqual(html.count(identity), 1)
+                start = html.index(identity)
+                row = html[start:html.index('</div>', start)]
+                self.assertIn(escape(control['label'], quote=True), row)
+                self.assertIn(escape(control['description'], quote=True), row)
+                group = groups.index(control['group'])
+                self.assertGreater(start, headings[group])
+                if group + 1 < len(groups):
+                    self.assertLess(start, headings[group + 1])
 
     def test_old_internal_workflow_urls_redirect_to_relevant_same_language_help(self):
         destinations = {'measurement': 'test-results', 'media': 'web-sources-tracks',
