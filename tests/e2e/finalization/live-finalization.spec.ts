@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import type { TimeMode } from "bitmovin-player";
 import { startFinalizationServer } from "../src/finalization-server";
+import { expectMovingVideo } from "../src/playback-observation";
 
 const APP = `http://localhost:${process.env.E2E_APP_PORT ?? 5175}`;
 let media: Awaited<ReturnType<typeof startFinalizationServer>>;
@@ -26,11 +27,104 @@ instance.on(instance.exports.PlayerEvent.SourceLoaded, () => { window.finalizati
   });
 }
 
+async function vodTimeline(page: Page) {
+  return page.evaluate(() => {
+    const player = window.player!;
+    const events = (window as unknown as { finalizationEvents: string[] }).finalizationEvents;
+    return {
+      time: player.getCurrentTime("relativetime" as TimeMode),
+      rangeStart: player.getSeekableRange().start,
+      duration: player.getDuration(),
+      seeked: events.filter(event => event === "Seeked").length,
+    };
+  });
+}
+
+async function expectVodSeek(page: Page, action: () => Promise<unknown>, target: number): Promise<void> {
+  const arm = await vodTimeline(page);
+  await action();
+  await expect.poll(async () => (await vodTimeline(page)).seeked, { timeout: 10_000 }).toBeGreaterThan(arm.seeked);
+  await expect.poll(async () => Math.abs((await vodTimeline(page)).time - target)).toBeLessThan(0.5);
+}
+
+async function expectBingeTimelineControls(page: Page): Promise<void> {
+  await page.evaluate(() => window.player!.pause());
+  await page.getByRole("button", { name: "Binge", exact: true }).click();
+  const skip = page.getByRole("button", { name: "Skip the intro", exact: true });
+  const next = page.getByRole("button", { name: "Play the next episode", exact: true });
+  const card = page.locator("#player .bmpui-ui-nextup-card");
+  await expect.soft(skip).toBeVisible();
+  await expect.soft(next).toBeHidden();
+  await expectVodSeek(page, () => skip.click(), 18);
+  await expect(skip).toBeHidden();
+  await expect(next).toBeHidden();
+  await expect(card).toBeHidden();
+  await expectVodSeek(page, () => page.evaluate(() => {
+    const player = window.player!;
+    player.seek(player.getSeekableRange().start + 55);
+  }), 55);
+  await expect(next).toBeVisible();
+  await expect(card).toBeVisible();
+  await expect(card).toContainText(/Playing in [4-6]s/);
+  await expectVodSeek(page, () => page.evaluate(() => {
+    const player = window.player!;
+    player.seek(player.getSeekableRange().start + 10);
+  }), 10);
+  await page.getByRole("button", { name: "Live (DVR)", exact: true }).click();
+}
+
+async function expectVodTimelineControls(page: Page): Promise<void> {
+  await page.evaluate(() => window.player!.pause());
+  await expect.poll(() => page.evaluate(() => window.player!.isPaused())).toBe(true);
+  const slider = page.locator("#player .bmpui-ui-seekbar");
+  await slider.hover();
+  await slider.focus();
+  await expect(slider).toBeFocused();
+  const before = await vodTimeline(page);
+  const aria = await slider.evaluate(element => ({
+    now: Number(element.getAttribute("aria-valuenow")),
+    min: Number(element.getAttribute("aria-valuemin")),
+    max: Number(element.getAttribute("aria-valuemax")),
+    text: element.getAttribute("aria-valuetext"),
+  }));
+  // Compare the integer readout with a rounding tolerance, rather than requiring
+  // the SDK's relative-clock origin to equal the seekable origin to the fraction.
+  expect.soft(Math.abs(aria.now - before.time), "accessible time must use the visible VOD timeline").toBeLessThan(1);
+  expect.soft(aria).toMatchObject({ min: 0, max: before.duration });
+  expect.soft(aria.now).toBeGreaterThanOrEqual(aria.min);
+  expect.soft(aria.now).toBeLessThanOrEqual(aria.max);
+  expect.soft(aria.text).not.toMatch(/Hours/i);
+
+  const seek = (action: () => Promise<unknown>, target: number) => expectVodSeek(page, action, target);
+  await seek(() => slider.press("ArrowRight"), aria.now + 1);
+  const afterRight = Number(await slider.getAttribute("aria-valuenow"));
+  await seek(() => slider.press("ArrowLeft"), afterRight - 1);
+  const afterLeft = await vodTimeline(page);
+  await seek(() => page.locator('#player [data-bmpui-seek-direction="forward"]').click(), afterLeft.time + 10);
+  const afterForward = await vodTimeline(page);
+  await seek(() => page.locator('#player [data-bmpui-seek-direction="rewind"]').click(), afterForward.time - 10);
+
+  await page.locator("#control-panel select").selectOption("seek");
+  const beforeGesture = await vodTimeline(page);
+  const box = (await page.locator("#player").boundingBox())!;
+  await seek(() => page.mouse.dblclick(box.x + box.width * 0.78, box.y + box.height * 0.42), beforeGesture.time + 10);
+  await seek(() => slider.press("Home"), 0);
+  await page.locator("#player .bmpui-ui-playbacktogglebutton").click();
+  await seek(() => slider.press("End"), before.duration);
+  // Completion exposes the existing Replay UI; no source reload rebases the clock.
+  await page.getByRole("button", { name: "Replay", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.player!.isPlaying())).toBe(true);
+  await expect.poll(async () => (await vodTimeline(page)).time).toBeGreaterThan(0);
+  await expect.poll(async () => (await vodTimeline(page)).time).toBeLessThan(5);
+  await expectMovingVideo(page);
+}
+
 for (const format of ["hls", "dash"] as const) {
   test(`${format.toUpperCase()} event finalizes in the existing app without reloading the source`, async ({ page }) => {
     await capturePlayer(page);
     await page.goto(`${APP}/`);
     await page.getByRole("button", { name: "English", exact: true }).click();
+    await page.getByRole("button", { name: "Live (DVR)", exact: true }).click();
     const label = format === "hls" ? "Live HLS" : "Live DASH + DVR";
     await page.getByRole("button", { name: label, exact: true }).click();
     const state = page.locator(".panel-readout");
@@ -59,10 +153,20 @@ for (const format of ["hls", "dash"] as const) {
       (window as unknown as { finalizationEvents: string[] }).finalizationEvents = events;
       player.on(player.exports.PlayerEvent.SourceLoaded, () => events.push("SourceLoaded"));
       player.on(player.exports.PlayerEvent.DurationChanged, () => events.push("DurationChanged"));
-      player.timeShift(-10);
+      player.on(player.exports.PlayerEvent.Seeked, () => events.push("Seeked"));
+      player.on(player.exports.PlayerEvent.TimeShifted, () => events.push("TimeShifted"));
       return player.getSource();
     });
+    await page.getByRole("button", { name: "-10s", exact: true }).click();
     await expect.poll(() => page.evaluate(() => window.player?.getTimeShift())).toBeLessThan(-5);
+    const liveSlider = page.locator("#player .bmpui-ui-seekbar");
+    const shifted = await page.evaluate(() => (window as unknown as { finalizationEvents: string[] }).finalizationEvents
+      .filter(event => event === "TimeShifted").length);
+    await liveSlider.press("ArrowLeft");
+    await expect.poll(() => page.evaluate(() => (window as unknown as { finalizationEvents: string[] }).finalizationEvents
+      .filter(event => event === "TimeShifted").length)).toBeGreaterThan(shifted);
+    await expect.poll(() => page.evaluate(() => window.player!.getTimeShift())).toBeLessThan(-5);
+    await expect.poll(async () => Number(await liveSlider.getAttribute("aria-valuenow"))).toBeLessThan(0);
 
     media.finalize();
     await expect.poll(() => media.counts().finalManifests).toBeGreaterThan(0);
@@ -110,6 +214,16 @@ for (const format of ["hls", "dash"] as const) {
     expect(Number.isFinite(seek.position)).toBe(true);
     expect(seek.position).toBeGreaterThan(8);
     expect(seek.position).toBeLessThan(16);
+    const finite = await vodTimeline(page);
+    if (format === "dash") expect(finite.rangeStart).toBeGreaterThan(1_000_000);
+    await expectBingeTimelineControls(page);
+    await expectVodTimelineControls(page);
+    const retained = await page.evaluate(() => ({
+      samePlayer: window.player === (window as unknown as { finalizingPlayer: unknown }).finalizingPlayer,
+      source: window.player!.getSource(),
+      sourceReloaded: (window as unknown as { finalizationEvents: string[] }).finalizationEvents.includes("SourceLoaded"),
+    }));
+    expect(retained).toEqual({ samePlayer: true, source: before, sourceReloaded: false });
     console.log(`${format}: real media, live/DVR recreation, manifest finalization, finite duration and VOD seek verified`);
     await page.evaluate(() => window.player!.pause());
   });

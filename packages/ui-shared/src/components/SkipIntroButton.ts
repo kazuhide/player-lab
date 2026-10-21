@@ -1,4 +1,4 @@
-import { Button, ButtonStyle } from "bitmovin-player-ui";
+import { Button, ButtonStyle, PlayerUtils } from "bitmovin-player-ui";
 import type { ButtonConfig, UIInstanceManager } from "bitmovin-player-ui";
 import type { PlayerAPI } from "bitmovin-player";
 
@@ -37,14 +37,14 @@ export class SkipIntroButton extends Button<SkipIntroButtonConfig> {
     const { PlayerEvent } = player.exports;
 
     const update = (): void => {
-      const t = player.getCurrentTime();
+      const t = PlayerUtils.getCurrentTimeRelativeToSeekableRange(player);
       const inRange = !player.isLive() && this.introEnd > this.introStart && t >= this.introStart && t < this.introEnd;
       if (inRange) this.show();
       else this.hide();
     };
 
     this.onClick.subscribe(() => {
-      player.seek(this.introEnd, "ui-skipintro");
+      player.seek(PlayerUtils.getSeekableRangeStart(player, 0) + this.introEnd, "ui-skipintro");
     });
 
     const events = [

@@ -1,4 +1,4 @@
-import { Component } from "bitmovin-player-ui";
+import { Component, PlayerUtils } from "bitmovin-player-ui";
 import type { ComponentConfig, UIInstanceManager } from "bitmovin-player-ui";
 import type { PlayerAPI } from "bitmovin-player";
 
@@ -57,7 +57,7 @@ export class NextUpCard extends Component<NextUpCardConfig> {
         this.hide();
         return;
       }
-      const remaining = duration - player.getCurrentTime();
+      const remaining = duration - PlayerUtils.getCurrentTimeRelativeToSeekableRange(player);
       const title = this.getNextTitle?.();
       if (title && remaining > 0 && remaining <= this.leadSeconds) {
         if (titleEl) titleEl.textContent = title;

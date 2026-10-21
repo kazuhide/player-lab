@@ -40,10 +40,10 @@ export {
   type ContinuousPlayOptions,
 } from "./liveUi";
 export { type GameScore, type AtBat, type LineupEntry } from "./sportsData";
-// Re-export the stock UI factory + manager so apps depend only on @showcase/ui-shared
+// Re-export the stock factory, manager and timing helpers so apps depend only on @showcase/ui-shared
 // (the UI layer) rather than bitmovin-player-ui directly. `UIFactory.buildUI` is the
 // default/stock theme used alongside the custom builds above.
-export { UIFactory, UIManager } from "bitmovin-player-ui";
+export { UIFactory, UIManager, PlayerUtils } from "bitmovin-player-ui";
 // Re-export the UIConfig type so apps can type their UI-settings overrides without
 // taking a direct dependency on bitmovin-player-ui.
 export type { UIConfig } from "bitmovin-player-ui";

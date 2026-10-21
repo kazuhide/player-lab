@@ -15,6 +15,7 @@
  * baseline, and the custom themes are where this customization is demonstrated.
  */
 import type { PlayerAPI } from "bitmovin-player";
+import { PlayerUtils } from "@showcase/ui-shared";
 import { clampToDuration, clampToWindow } from "./dvr/window";
 
 export type DoubleClickMode = "fullscreen" | "seek";
@@ -43,7 +44,9 @@ function seekBy(player: PlayerAPI, delta: number): void {
   if (player.isLive()) {
     player.timeShift(clampToWindow(player.getTimeShift() + delta, player.getMaxTimeShift()), "dblclick");
   } else {
-    player.seek(clampToDuration(player.getCurrentTime() + delta, player.getDuration()), "dblclick");
+    const start = PlayerUtils.getSeekableRangeStart(player, 0);
+    const target = clampToDuration(PlayerUtils.getCurrentTimeRelativeToSeekableRange(player) + delta, player.getDuration());
+    player.seek(start + target, "dblclick");
   }
 }
 
