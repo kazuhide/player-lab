@@ -1,7 +1,7 @@
 # Web player playground
 
 The existing Bitmovin Web Player app includes a source and API control panel,
-14 interface themes, PlayerConfig and SourceConfig settings, named Tweaks
+interface themes, PlayerConfig and SourceConfig settings, named Tweaks
 settings, theme construction code, playback observations, and a customization
 guide at `guide.html`. The English/Japanese switch applies to the interface
 and its displayed explanations.
@@ -25,7 +25,7 @@ stream URLs you configure there.
 ## Pages version
 
 The Pages build targets the [Web app](https://kazuhide.github.io/player-lab/web/)
-and keeps the existing controls, 14 themes and customization guide. Playback on
+and keeps the existing controls, themes and customization guide. Playback on
 that host requires a Player license allowing the hostname. Both the public
 Player license and configured Analytics license must allow `kazuhide.github.io`.
 These client keys are delivered to the browser. The keyless `localhost` exception

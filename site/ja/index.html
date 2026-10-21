@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Bitmovin Playerの検証用サンプル集。Web版の設定パネル、再生操作、14種類のテーマと構成コード例を説明しています。各アプリの起動手順と検証記録へのリンクも掲載しています。">
+    <meta name="description" content="Bitmovin Playerの検証用サンプル集。Web版の設定パネル、再生操作、テーマと構成コード例を説明しています。各アプリの起動手順と検証記録へのリンクも掲載しています。">
     <meta name="color-scheme" content="light">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'">
     <meta property="og:title" content="Player Lab — Bitmovin Playerの検証用サンプル">
@@ -43,7 +43,7 @@
         <h1 id="intro-title">Bitmovin Playerの検証用サンプル</h1>
         <div class="hero-copy">
           <p class="intro">Web版には設定パネルと再生操作用のボタンがあります。
-            操作画面は14種類のテーマから選択できます。選択したテーマの画面を構成するコード例も表示します。</p>
+            操作画面のテーマを選択し、その画面を構成するコード例を確認できます。</p>
           <div class="actions">
             <a class="button" href="../web/">Web版を開く</a>
             <a class="text-link" href="guide/">ユーザーガイド</a>
@@ -78,8 +78,8 @@
               適用方法は項目ごとに表示します。プレイヤーの再作成、動画の再読み込み、再生中の反映の3種類があります。</dd>
           </div>
           <div>
-            <dt>14種類のテーマとコード例</dt>
-            <dd>標準の操作画面1種類、CSSで外観を変更した5種類、部品の構成を変更した8種類があります。
+            <dt>テーマとコード例</dt>
+            <dd>標準の操作画面、CSSで外観を変更したテーマ、部品の構成を変更したテーマがあります。
               CSSは色や余白などの表示を指定するために使います。
               テーマを選択すると対応するコード例と説明をプレイヤーの横に表示します。</dd>
           </div>
@@ -121,9 +121,9 @@ pnpm --filter @showcase/web dev</code></pre>
             対応する機能や操作画面はプラットフォームごとに異なります。日英のユーザーガイドで操作手順と制限を説明しています。</p>
         </div>
         <div class="platform-list">
-          <a href="guide/web-screen-themes/"><span>Web</span><span>設定パネル、14種類のテーマ、構成コード例</span></a>
-          <a href="guide/native-apple/"><span>iOS / tvOS</span><span>iOSのWebベースの操作画面、tvOSの標準操作画面、ライブ配信の巻き戻し</span></a>
-          <a href="guide/native-android/"><span>Android / Fire TV</span><span>Kotlinによる実装。ライブ配信の巻き戻しとオフライン保存のサンプル</span></a>
+          <a href="guide/web-screen-themes/"><span>Web</span><span>設定パネル、テーマ、構成コード例</span></a>
+          <a href="guide/native-apple/"><span>iOS / tvOS</span><span>Swiftによるソース・再生・操作画面の設定</span></a>
+          <a href="guide/native-android/"><span>Android / Fire TV</span><span>Kotlinによる設定画面とオフライン保存のサンプル</span></a>
           <a href="guide/native-integrations/"><span>React Native</span><span>Expoの開発用ビルドに組み込むプレイヤー画面</span></a>
           <a href="guide/native-integrations/"><span>Vega OS</span><span>Vega OS向けのプレイヤーと独自の操作画面</span></a>
         </div>
