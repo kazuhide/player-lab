@@ -381,7 +381,7 @@
         "Wi-Fi制限と必要な空き容量を指定し、既定値またはOfflineConfigで初期化します。初期化はプロセス全体で共通になり、選択した起動設定は次回起動にも使います。",
         "Select applied HLS source as offline assetで対象を選びます。同じ素材を後から指定する場合は識別子を明示します。Fetch available audio and subtitle tracksでトラックを取得し、ダウンロードする音声と字幕を選びます。",
         "ダウンロード操作を選んでRun offline APIを押します。SDKの進行状況、offlineState、イベントを確認します。トラック取得や操作の送信だけではダウンロード完了を表しません。",
-        "完了後にCreate OfflineSourceConfigを選び、キャッシュ済みメディアだけに再生を制限するかを指定してLoad cached sourceを押します。現在のPlayerへ読み込みます。メイン設定を再びApplyすると、そちらに設定したリモートソースへ戻ります。"
+        "完了後にキャッシュ済みメディアだけに再生を制限するかを指定し、Create OfflineSourceConfig、Load cached sourceの順に押します。制限を変更した場合は、OfflineSourceConfigを再作成してから読み込みます。現在のPlayerへ読み込み、メイン設定を再びApplyすると、そちらのリモートソースへ戻ります。"
       ]
     },
     {

@@ -130,7 +130,7 @@ class AppleAdapterTests(unittest.TestCase):
             with self.assertRaisesRegex(apple.report.CoverageError, "hash mismatch"):
                 docc.read(file)
 
-    def test_reviewed_leaf_editors_do_not_credit_config_containers_or_other_load_overloads(self):
+    def test_reviewed_leaf_editors_and_typed_parent_consumers_remain_direct(self):
         exposure = json.loads((apple.HERE / "exposure.json").read_text())
         editable = {"SourceConfig.url", "SourceConfig.type", "SourceConfig.title", "SourceConfig.posterSource",
                     "SourceOptions.startOffset", "SourceOptions.startOffsetTimelineReference",
@@ -140,28 +140,114 @@ class AppleAdapterTests(unittest.TestCase):
         containers = {"SourceConfig.options", "BufferConfig.audioAndVideo", "PlayerConfig.playbackConfig",
                       "PlayerConfig.adaptationConfig", "PlayerConfig.bufferConfig", "PlayerConfig.styleConfig"}
         for app, mapping in exposure["applications"].items():
-            direct = {member.removeprefix("BitmovinPlayerCore.") for member, row in mapping.items()
-                      if row["status"] == "direct" and not member.startswith("BitmovinPlayerCore.Player.")}
-            self.assertEqual(direct, editable)
-            self.assertEqual(mapping["BitmovinPlayerCore.Player.load(source:)"]["status"], "direct")
-            self.assertNotIn("BitmovinPlayerCore.Player.load(sourceConfig:)", mapping)
-            for member in containers | {"PlayerConfig.key"}:
-                self.assertEqual(mapping["BitmovinPlayerCore." + member]["status"], "code-only")
-            self.assertEqual(mapping["BitmovinPlayerCore.Player.timeShift"]["status"], "preset")
-            self.assertFalse(any(member.startswith("BitmovinPlayerCore.Player.load(")
-                                 and member != "BitmovinPlayerCore.Player.load(source:)" for member in mapping))
+            for member in editable | containers | {"PlayerConfig.key", "Player.timeShift"}:
+                with self.subTest(app=app, member=member):
+                    self.assertEqual(mapping["BitmovinPlayerCore." + member]["status"], "direct")
             for member in editable:
                 evidence = mapping["BitmovinPlayerCore." + member]["evidence"]
                 self.assertTrue(any(item["file"].endswith("ConfigurationEditor.swift") for item in evidence))
                 self.assertTrue(any(item["file"].endswith("Configuration.swift") for item in evidence))
-            scaling = mapping["BitmovinPlayerCore.StyleConfig.scalingMode"]["evidence"]
-            self.assertTrue(any(item["file"].endswith("ConfigurationCode.swift") for item in scaling))
-            self.assertTrue(any(item["symbol"] == "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
-                                for item in mapping["BitmovinPlayerCore.Player.load(source:)"]["evidence"]))
-        self.assertEqual(exposure["applications"]["ios"]["BitmovinPlayerCore.TimeChangedEvent"]["eventExposure"], "monitored")
+            for member in containers:
+                evidence = mapping["BitmovinPlayerCore." + member]["evidence"]
+                self.assertTrue(any(" =" in item["symbol"] for item in evidence),
+                                "A parent needs an actual editable child assignment, not merely construction")
+            for overload in ["source:", "sourceConfig:", "playlistConfig:"]:
+                row = mapping["BitmovinPlayerCore.Player.load(" + overload + ")"]
+                self.assertEqual(row["status"], "direct")
+                self.assertTrue(any("player.load(" + overload in item["symbol"] for item in row["evidence"]))
+        repository = apple.HERE.parents[2]
+        player_model = (repository / "apps/ios/Showcase/PlayerModel.swift").read_text()
+        self.assertIn("SourceFactory.createSource(from: sourceSettings.makeSourceConfig(callbackJournal:", player_model)
+        scaling_code = (repository / "apps/ios/Showcase/ConfigurationCode.swift").read_text()
+        self.assertIn("playerConfig.styleConfig.scalingMode =", scaling_code)
+        operations = (repository / "apps/ios/Showcase/ApiOperations.swift").read_text()
+        self.assertIn("case .timeShift: player.timeShift = Double(value)!", operations)
+        self.assertEqual(exposure["applications"]["ios"]["BitmovinPlayerCore.TimeChangedEvent"]["status"], "observed")
         self.assertNotIn("BitmovinPlayerCore.StyleConfig.playerUiJs", exposure["applications"]["tvos"])
 
-    def test_current_load_route_leaves_the_config_overload_in_the_independent_denominator(self):
+    def test_reviewed_exposure_preserves_all_current_report_rows_and_notes(self):
+        exposure = json.loads((apple.HERE / "exposure.json").read_text())
+        repository = apple.HERE.parents[2]
+        reviewed = json.loads((repository / "docs/api-coverage/coverage.json").read_text())
+        inventory = json.loads((repository / "docs/api-coverage/inventory.json").read_text())
+        for application in reviewed["applications"]:
+            app = application["id"]
+            if app not in apple.PLATFORMS:
+                continue
+            mapping = exposure["applications"][app]
+            self.assertEqual(set(mapping), set(inventory[app]))
+            self.assertEqual(len(mapping), 562 if app == "ios" else 457)
+            expected = {row["id"]: {"status": row["status"], "evidence": [
+                {key: item[key] for key in ("file", "line", "symbol")} for item in row["evidence"]
+                if item["kind"] == "app"]} for row in application["rows"]}
+            self.assertEqual(mapping, expected)
+            self.assertEqual(exposure["scopeNotes"] + exposure["platformNotes"][app], application["scopeNotes"])
+        self.assertEqual(apple.REVISION, reviewed["sourceRevision"])
+
+    def test_regeneration_retains_reviewed_apple_coverage_from_independent_sdk_symbols(self):
+        repository = apple.HERE.parents[2]
+        symbols = json.loads((repository / "docs/api-coverage/apple/sdk-symbols.json").read_text())
+        exposure = json.loads((apple.HERE / "exposure.json").read_text())
+        reviewed = json.loads((repository / "docs/api-coverage/coverage.json").read_text())
+        independent_inventory = json.loads((repository / "docs/api-coverage/inventory.json").read_text())
+        with patch.object(apple.report, "_Repo") as source:
+            source.return_value.read.side_effect = lambda file: (repository / file).read_bytes()
+            generated, inventory = apple.normalize(symbols, exposure, repository, apple.REVISION,
+                                                   {"sources": []}, [])
+        for application in generated["applications"]:
+            app = application["id"]
+            self.assertEqual(inventory[app], independent_inventory[app])
+            expected = next(item for item in reviewed["applications"] if item["id"] == app)
+            self.assertEqual({row["id"]: row["status"] for row in application["rows"]},
+                             {row["id"]: row["status"] for row in expected["rows"]})
+            self.assertEqual(application["scopeNotes"], expected["scopeNotes"])
+
+    def test_os_constraints_do_not_credit_unavailable_children_or_system_callbacks(self):
+        exposure = json.loads((apple.HERE / "exposure.json").read_text())
+        ios, tvos = (exposure["applications"][app] for app in ("ios", "tvos"))
+        for member in ["AdvertisingConfig.ima", "PlayerViewConfig.tweaksConfig",
+                       "BitmovinUserInterfaceMetadata.title", "BitmovinUserInterfaceMetadata.sourceDescription"]:
+            self.assertEqual(ios["BitmovinPlayerCore." + member]["status"], "direct")
+            self.assertEqual(tvos["BitmovinPlayerCore." + member]["status"], "missing")
+        for member in ["AdvertisingConfig.ima", "BitmovinUserInterfaceMetadata.title",
+                       "BitmovinUserInterfaceMetadata.sourceDescription"]:
+            self.assertEqual(tvos["BitmovinPlayerCore." + member]["evidence"], [])
+        self.assertNotIn("BitmovinPlayerCore.PlayerConfig.remoteControlConfig", tvos)
+        self.assertEqual(ios["BitmovinPlayerCore.OfflineManager.add(completionHandler:for:)"]["status"], "code-only")
+        self.assertNotIn("BitmovinPlayerCore.OfflineManager.add(completionHandler:for:)", tvos)
+        for mapping in (ios, tvos):
+            for member in ["AdBreakConfig.identifier", "AdBreakConfig.position", "AdBreakConfig.skippableAfter",
+                           "AdConfig.replaceContentDuration", "AdTagConfig.tag", "AdTagConfig.fallbackTags"]:
+                self.assertEqual(mapping["BitmovinPlayerCore." + member]["status"], "missing")
+
+    def test_native_command_evidence_invokes_the_actual_request_and_correct_event_overloads(self):
+        exposure = json.loads((apple.HERE / "exposure.json").read_text())
+        for app, mapping in exposure["applications"].items():
+            setters = {
+                "Player.allowsAirPlay": "case .allowsAirPlay: player.allowsAirPlay =",
+                "Player.maxSelectableBitrate": "case .bitrate: player.maxSelectableBitrate =",
+                "Player.playbackSpeed": "player.playbackSpeed = speed",
+                "Player.timeShift": "case .timeShift: player.timeShift =",
+                "Player.volume": "case .volume: player.volume =",
+                "SourceLatencyApi.automaticallyPreservesLatency": "source.latency.automaticallyPreservesLatency =",
+                "UserInterfaceApi.scalingMode": "try requireApiView().scalingMode =",
+            }
+            for member, assignment in setters.items():
+                row = mapping["BitmovinPlayerCore." + member]
+                self.assertEqual(row["status"], "direct")
+                self.assertTrue(any(item["file"].endswith("ApiOperations.swift") and assignment in item["symbol"]
+                                    for item in row["evidence"]), "A state getter cannot replace the editable setter")
+            renewal = mapping["BitmovinPlayerCore.SourceDrmFairplayApi.renewExpiringLicense(for:)"]
+            self.assertEqual(renewal["status"], "direct")
+            self.assertTrue(any(item["symbol"].startswith("source.drm.fairplay.renewExpiringLicense(for: apiObjects.acquiredLicenses[index].request)")
+                                for item in renewal["evidence"]), "An exported string cannot stand in for native request renewal")
+            for suffix, event in [("141fj", "SourceLoadedEvent"), ("1mxxx", "AdBreakFinishedEvent")]:
+                row = mapping["BitmovinPlayerCore.PlayerEventsApi.on(_:)-" + suffix]
+                self.assertEqual(row["status"], "direct")
+                self.assertTrue(any("subscriptions.append(player.events.on(" + event + ".self).sink"
+                                    in item["symbol"] for item in row["evidence"]))
+
+    def test_sparse_selected_load_route_keeps_other_sdk_overload_in_inventory(self):
         docc, scope = self.fixture()
         symbols, generic = apple.extract_symbols(docc, scope)
         exposure = json.loads((apple.HERE / "exposure.json").read_text())
@@ -183,9 +269,8 @@ class AppleAdapterTests(unittest.TestCase):
             for member in ["Player.audio", "Player.subtitle", "Player.availableAudio", "Player.availableSubtitles",
                            "Player.currentTime", "ReadyEvent", "AudioChangedEvent", "SubtitleChangedEvent"]:
                 self.assertEqual(mapping["BitmovinPlayerCore." + member]["status"], "observed")
-            self.assertEqual(mapping["BitmovinPlayerCore.Player.setSubtitle(trackIdentifier:)"]["status"], "preset")
-            self.assertEqual(mapping["BitmovinPlayerCore.Player.setAudio(trackIdentifier:)"]["status"],
-                             "direct" if app == "ios" else "preset")
+            self.assertEqual(mapping["BitmovinPlayerCore.Player.setSubtitle(trackIdentifier:)"]["status"], "direct")
+            self.assertEqual(mapping["BitmovinPlayerCore.Player.setAudio(trackIdentifier:)"]["status"], "direct")
             self.assertFalse(any("Language" in member and ".PlaybackConfig." in member for member in mapping))
 
     def test_reviewed_source_bindings_point_to_the_current_application_symbols(self):

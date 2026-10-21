@@ -381,7 +381,7 @@
         "Set the Wi-Fi restriction and minimum free space. Initialize with SDK defaults or OfflineConfig. Initialization is process-wide and the selected startup settings are retained for the next launch.",
         "Select applied HLS source as offline asset. Use an explicit identifier to address that asset again. Fetch available audio and subtitle tracks and choose their download actions.",
         "Choose a download operation and Run offline API. Inspect progress, offlineState and events; track discovery or a submitted call is not download completion.",
-        "After completion, Create OfflineSourceConfig, choose whether playback must be restricted to cached media, then Load cached source. It uses the current player; applying the main configuration returns to its remote source."
+        "After completion, choose whether playback must be restricted to cached media, then Create OfflineSourceConfig and Load cached source. Changing the restriction requires creating OfflineSourceConfig again before loading it. It uses the current player; applying the main configuration returns to its remote source."
       ]
     },
     {
