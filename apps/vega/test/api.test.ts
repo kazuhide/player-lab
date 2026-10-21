@@ -51,6 +51,15 @@ describe("Vega typed API dispatch and session ownership", () => {
     expect(player.seek).toHaveBeenCalledTimes(1);
   });
 
+  it("reports actual current method availability without invoking APIs or presenting it as feature qualification", () => {
+    const { session, player } = fixture();
+    const present = session.availability();
+    expect(present.find(row => row.id === "PlayerAPI.seek")).toEqual({ id: "PlayerAPI.seek", callable: true });
+    expect(present.find(row => row.id === "PlayerAPI.ads.schedule")?.callable).toBe(false);
+    expect(player.seek).not.toHaveBeenCalled(); expect(player.getDuration).not.toHaveBeenCalled();
+    session.dispose(); expect(() => session.availability()).toThrow("no longer active");
+  });
+
   it("passes a real SDK-returned native media object and rejects a plain object or incompatible resource", async () => {
     const { session, player, video } = fixture();
     const query = await session.run(row("PlayerAPI.getVideoElement"), 0, []);

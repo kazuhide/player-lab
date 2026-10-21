@@ -1,33 +1,35 @@
-import React, { useEffect, useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { ScrollView, Text, TextInput, View } from "react-native";
 import type { SourceConfig } from "bitmovin-player";
 import { catalog } from "./catalog";
 import { Action, ArgumentsEditor, initialValue, styles } from "./InputEditor";
 import type { VegaSessionApi } from "./sessionApi";
 
 const operations = catalog.rows.filter((entry) => entry.category === "command" || entry.category === "observation");
+let nextArgumentOwner = 0;
 export function ApiPanel({ session, source, onRecreate }: { session: VegaSessionApi | null; source: SourceConfig; onRecreate: () => void }): React.JSX.Element {
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState("");
   const [selectedId, setSelectedId] = useState("PlayerAPI.getDuration");
   const [overload, setOverload] = useState(0);
-  const [values, setValues] = useState<unknown[]>([]);
+  const [argumentDraft, setArgumentDraft] = useState<{ key: string; values: unknown[] }>();
   const [result, setResult] = useState("");
   const [code, setCode] = useState("");
+  const [availability, setAvailability] = useState("");
   const [, refresh] = useState(0);
   const selected = operations.find((entry) => entry.id === selectedId)!;
   const signatures = catalog.nodes[selected.schema!]!.signatures!;
   const signature = signatures[overload] ?? signatures[0]!;
+  const argumentOwner = useMemo(() => ++nextArgumentOwner, [session, source]);
+  const argumentKey = argumentOwner + ":" + selected.id + ":" + overload;
+  const values = argumentDraft?.key === argumentKey ? argumentDraft.values : selected.id === "PlayerAPI.load" ? [source]
+    : signature.parameters.map(parameter => parameter.optional ? undefined : initialValue(catalog, parameter.schema));
   useEffect(() => {
     let active = true;
     const remove = session?.onChange(() => { if (active) refresh((value) => value + 1); });
-    setResult(""); setCode("");
+    setResult(""); setCode(""); setAvailability("");
     return () => { active = false; remove?.(); };
   }, [session]);
-  useEffect(() => {
-    setValues(signature.parameters.map((parameter) => parameter.optional ? undefined : initialValue(catalog, parameter.schema)));
-    if (selected.id === "PlayerAPI.load") setValues([source]);
-  }, [signature, selected.id, source]);
   const run = async () => {
     if (!session) return;
     try {
@@ -43,11 +45,17 @@ export function ApiPanel({ session, source, onRecreate }: { session: VegaSession
     <Action title={expanded ? "Hide SDK API experiments" : "Show SDK API experiments"} onPress={() => setExpanded(!expanded)} />
     {expanded && <>
       <Text style={styles.text}>Enter typed arguments and run a published SDK API. A dispatched call, a constant return or an empty result does not establish that its underlying feature is supported by the Vega integration. Read events and state to check the effect.</Text>
+      <Action title="Inspect current SDK API availability" disabled={!session?.isReady()} onPress={() => {
+        try { setAvailability(JSON.stringify(session?.availability(), null, 2)); }
+        catch { setAvailability("Wait for the current native player before inspecting public APIs."); }
+      }} />
+      <Text style={styles.text}>Availability checks whether the current public SDK exposes a callable method. It does not execute the method or establish platform feature support. A callable API can still return a constant, do nothing or require additional content and device capabilities.</Text>
+      {!!availability && <ScrollView focusable style={{ maxHeight: 240 }}><Text selectable accessibilityLabel="Vega SDK API availability" accessibilityValue={{ text: availability }} style={styles.text}>{availability}</Text></ScrollView>}
       <TextInput accessibilityLabel="Filter Vega API operations" value={filter} onChangeText={setFilter} autoCorrect={false} autoCapitalize="none" style={styles.input} />
       <View style={styles.row}>{operations.filter((entry) => entry.id.toLowerCase().includes(filter.toLowerCase())).slice(0, 12).map((entry) => <Action key={entry.id} title={entry.id} disabled={entry.id === selected.id || Boolean(session?.isBusy())} onPress={() => { setSelectedId(entry.id); setOverload(0); setResult(""); setCode(""); }} />)}</View>
       <Text style={styles.heading}>{selected.id}</Text>
       {signatures.length > 1 && <View style={styles.row}>{signatures.map((_, index) => <Action key={index} title={`Method signature ${index + 1}`} disabled={overload === index} onPress={() => setOverload(index)} />)}</View>}
-      {session && <ArgumentsEditor catalog={catalog} signature={signature} values={values} onChange={setValues} resources={session.resources} />}
+      {session && <ArgumentsEditor key={argumentKey} catalog={catalog} signature={signature} values={values} onChange={values => setArgumentDraft({ key: argumentKey, values })} resources={session.resources} />}
       {!session?.isReady() && <Text style={styles.text}>No loaded native player is active. A source may still be loading, or the previous session has been released. Recreate the player to start a new owner after destroy.</Text>}
       {selected.id === "PlayerAPI.destroy" && <Text style={styles.text}>This operation starts release of the current SDK player and native media owner. The inactive-session status means this owner no longer accepts calls; it does not report completion of native cleanup. Use Recreate Vega player to start a new owner after the cleanup barrier.</Text>}
       <View style={styles.row}>

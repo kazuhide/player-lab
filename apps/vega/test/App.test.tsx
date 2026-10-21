@@ -177,6 +177,26 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(element("Text", { accessibilityLabel: "Vega API result" }).props.children).toContain("Enter a number");
   });
 
+  it("resets argument editor ownership when switching from numeric seek to optional play arguments", async () => {
+    await mount(); await action("Show SDK API experiments");
+    await text("Filter Vega API operations", "PlayerAPI.seek"); await action("PlayerAPI.seek");
+    await text("SDK numeric value", "12.5");
+    await text("Filter Vega API operations", "PlayerAPI.play"); await action("PlayerAPI.play");
+    expect(element("Pressable", { accessibilityLabel: "Set issuer" })).toBeDefined();
+    await action("Set issuer"); await text("SDK text value", "GUI player command");
+    await text("Filter Vega API operations", "PlayerAPI.seek"); await action("PlayerAPI.seek");
+    expect(input("SDK numeric value").props.value).toBe("0");
+    await action("Run Vega SDK API"); expect(Reflect.get(current(), "seek")).toHaveBeenCalledWith(0);
+  });
+
+  it("lets users inspect the actual current SDK API availability from the normal screen", async () => {
+    await mount(); await action("Show SDK API experiments"); await action("Inspect current SDK API availability");
+    const value = JSON.parse(String(element("Text", { accessibilityLabel: "Vega SDK API availability" }).props.children));
+    expect(value.find((row: { id: string }) => row.id === "PlayerAPI.seek")).toEqual({ id: "PlayerAPI.seek", callable: true });
+    expect(value.find((row: { id: string }) => row.id === "PlayerAPI.ads.schedule")?.callable).toBe(false);
+    expect(Reflect.get(current(), "seek")).not.toHaveBeenCalled();
+  });
+
   it("shows redacted named SDK events and drops retired owner events after recreation", async () => {
     await mount(); await action("Show SDK API experiments");
     const old = current(); const callback = [...old.listeners.get(PlayerEvent.Play)!][0]! as (event: unknown) => void;

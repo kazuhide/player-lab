@@ -89,6 +89,29 @@ export class VegaSessionApi {
   setRecording(recording: boolean): void { this.recording = recording; this.notify(); }
   isRecording(): boolean { return this.recording; }
   clearEvents(): void { this.lines = []; this.notify(); }
+  availability(): { id: string; callable: boolean; reason?: string }[] {
+    const player = this.requirePlayer();
+    return catalog.rows.filter(entry => entry.category === "command" || entry.category === "observation").map(entry => {
+      try {
+        const { method } = this.resolveMethod(player, entry);
+        return { id: entry.id, callable: typeof method === "function" };
+      } catch {
+        return { id: entry.id, callable: false, reason: "This public API cannot be read in the current native SDK state." };
+      }
+    });
+  }
+  private resolveMethod(player: PlayerAPI, entry: ApiEntry): { owner: object | Function; method: Function } {
+    const parts = apiPath(entry.id);
+    let owner: unknown = player;
+    for (const part of parts.slice(0, -1)) {
+      if (!owner || (typeof owner !== "object" && typeof owner !== "function")) throw new Error("The selected SDK namespace is unavailable in this integration.");
+      owner = Reflect.get(owner, part);
+    }
+    if (!owner || (typeof owner !== "object" && typeof owner !== "function")) throw new Error("The selected SDK API is unavailable in this integration.");
+    const method: unknown = Reflect.get(owner, parts[parts.length - 1]!);
+    if (typeof method !== "function") throw new Error("The selected SDK method is unavailable in this integration.");
+    return { owner, method };
+  }
   signature(entry: ApiEntry, overload: number): Signature {
     const signature = catalog.nodes[entry.schema!]?.signatures?.[overload];
     if (!signature) throw new Error("Choose a published SDK method signature.");
@@ -112,15 +135,7 @@ export class VegaSessionApi {
     let work: Promise<unknown>;
     if (entry.id === "PlayerAPI.destroy" && this.retirement) work = this.retirement();
     else {
-      const parts = apiPath(entry.id);
-      let owner: unknown = player;
-      for (const part of parts.slice(0, -1)) {
-        if (!owner || (typeof owner !== "object" && typeof owner !== "function")) throw new Error("The selected SDK namespace is unavailable in this integration.");
-        owner = Reflect.get(owner, part);
-      }
-      if (!owner || (typeof owner !== "object" && typeof owner !== "function")) throw new Error("The selected SDK API is unavailable in this integration.");
-      const method: unknown = Reflect.get(owner, parts[parts.length - 1]!);
-      if (typeof method !== "function") throw new Error("The selected SDK method is unavailable in this integration.");
+      const { owner, method } = this.resolveMethod(player, entry);
       work = Promise.resolve(Reflect.apply(method, owner, args));
     }
     this.pending = work; this.notify();
