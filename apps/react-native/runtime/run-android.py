@@ -22,11 +22,14 @@ class Ui:
     def __init__(self, adb, serial):
         self.prefix = [adb, "-s", serial]
         self.last_report = None
+        self.last_control, self.last_action = None, None
         size = self.adb("shell", "wm", "size").decode()
         match = re.search(r"(\d+)x(\d+)", size)
         if not match:
             raise RuntimeError("Cannot determine the dedicated device viewport")
         self.width, self.height = map(int, match.groups())
+        self.scroll_top, self.bottom = 0, self.height
+        self.keyboard_visible = False
 
     def adb(self, *args, maximum=4 * 1024 * 1024):
         result = subprocess.run([*self.prefix, *args], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30)
@@ -36,7 +39,23 @@ class Ui:
 
     def tree(self):
         self.adb("shell", "uiautomator", "dump", "--compressed", "/sdcard/player-lab-runtime.xml")
-        return ET.fromstring(self.adb("exec-out", "cat", "/sdcard/player-lab-runtime.xml"))
+        tree = ET.fromstring(self.adb("exec-out", "cat", "/sdcard/player-lab-runtime.xml"))
+        self.scroll_top, self.bottom = 0, self.height
+        scroll = next((n for n in tree.iter("node") if n.get("resource-id", "").endswith("player-lab-screen")), None)
+        if scroll is not None:
+            bounds = self.bounds(scroll)
+            if len(bounds) == 4 and bounds[3] > bounds[1]: self.scroll_top, self.bottom = bounds[1], min(bounds[3], self.height)
+        # Edge-to-edge Android can retain full ScrollView bounds behind the IME,
+        # and uiautomator's compressed App tree omits the keyboard window.
+        display = self.adb("shell", "dumpsys", "window", "displays").decode(errors="replace")
+        ime_tops = []
+        for line in display.splitlines():
+            if "type=ime" in line.lower() and "visible=true" in line.lower():
+                match = re.search(r"frame=\[(\d+),(\d+)\]\[(\d+),(\d+)\]", line, re.IGNORECASE)
+                if match and 0 < int(match.group(2)) < self.height: ime_tops.append(int(match.group(2)))
+        self.keyboard_visible = bool(ime_tops)
+        if ime_tops: self.bottom = min(self.bottom, min(ime_tops))
+        return tree
 
     @staticmethod
     def bounds(node):
@@ -44,7 +63,7 @@ class Ui:
 
     def visible(self, node):
         bounds = self.bounds(node)
-        return len(bounds) == 4 and bounds[2] > bounds[0] and bounds[3] > bounds[1] and bounds[0] < self.width and bounds[1] < self.height
+        return len(bounds) == 4 and bounds[2] > bounds[0] and bounds[3] > bounds[1] and bounds[0] < self.width and 0 <= (bounds[1] + bounds[3]) / 2 < self.bottom
 
     def find(self, tree, label):
         # Form captions have the same visible text as their labelled EditText. Prefer the input's accessibility label.
@@ -69,8 +88,9 @@ class Ui:
 
     def swipe(self, down=False):
         start, end = (.35, .8) if down else (.8, .35)
-        self.adb("shell", "input", "swipe", str(int(self.width * .96)), str(int(self.height * start)),
-                 str(int(self.width * .96)), str(int(self.height * end)), "300")
+        available = self.bottom - self.scroll_top
+        self.adb("shell", "input", "swipe", str(self.width - 8), str(int(self.scroll_top + available * start)),
+                 str(self.width - 8), str(int(self.scroll_top + available * end)), "300")
 
     def reveal(self, label, upwards=False):
         for direction in [upwards, not upwards]:
@@ -95,19 +115,38 @@ class Ui:
         raise RuntimeError("The normal App header was unreachable")
 
     def edit(self, label, text):
+        self.last_control, self.last_action = label, "focus"
         self.tap(self.reveal(label, upwards=label in {"Source URL", "Source title"}))
+        keyboard_deadline = time.monotonic() + 2
+        while time.monotonic() < keyboard_deadline:
+            self.tree()
+            if self.keyboard_visible: break
+            time.sleep(.1)
+        # The target was visible when tapped. Edge-to-edge Android may cover it
+        # with the IME at the end of a form; OS typing still targets that input.
+        self.last_action = "clear"
         self.adb("shell", "input", "keycombination", "113", "29")
         self.adb("shell", "input", "keyevent", "67")
-        self.wait(lambda tree: (node := self.find(tree, label)) is not None and node.get("text", "") == "")
+        def acknowledged(tree, expected):
+            # Android can scroll a focused input during IME/layout animation.
+            # Read that exact focused input; typing still uses normal OS input.
+            return any(node.get("content-desc") == label and node.get("focused") == "true" and
+                       node.get("text", "") == expected for node in tree.iter("node"))
+        self.wait(lambda tree: acknowledged(tree, ""))
         # React controlled inputs must acknowledge each edit before the next one.
+        self.last_action = "type"
         for index, character in enumerate(text):
             self.adb("shell", "input text " + shlex.quote(character.replace(" ", "%s")))
             prefix = text[:index + 1]
             if index == 0:
-                self.wait(lambda tree: (node := self.find(tree, label)) is not None and node.get("text") == prefix)
+                self.wait(lambda tree: acknowledged(tree, prefix))
             time.sleep(.1)
-        self.wait(lambda tree: (node := self.find(tree, label)) is not None and node.get("text") == text)
-        self.adb("shell", "input", "keyevent", "4")
+        self.wait(lambda tree: acknowledged(tree, text))
+        self.tree()
+        if self.keyboard_visible:
+            self.adb("shell", "input", "keyevent", "4")
+            self.wait(lambda tree: not self.keyboard_visible)
+        self.last_action = "acknowledged"
 
     def switch(self, label, enabled):
         node = self.reveal(label)
@@ -142,19 +181,25 @@ class Ui:
         raise RuntimeError("Public SDK getter observation deadline exceeded")
 
     def play_visible(self):
+        self.playback_control(True)
+
+    def pause_visible(self):
+        self.playback_control(False)
+
+    def playback_control(self, play):
         self.top()
         for _ in range(2):
             tree = self.tree()
-            play = self.find(tree, "Play")
-            if play is None:
-                play = self.find(tree, "Play video")
-            if play is not None:
-                self.tap(play)
+            control = self.find(tree, "Play" if play else "Pause")
+            if control is None:
+                control = self.find(tree, "Play video" if play else "Pause video")
+            if control is not None:
+                self.tap(control)
                 return
             video = next((n for n in tree.iter("node") if n.get("resource-id", "").endswith("player-lab-player") and self.visible(n)), None)
             if video is not None:
                 self.tap(video)
-        raise RuntimeError("No visible SDK Play control was available")
+        raise RuntimeError("No visible SDK playback control was available")
 
     def frame(self, output):
         tree = self.tree()
@@ -259,6 +304,9 @@ def main():
         owner = stage["samples"][-1]["owner"]["generation"]
         if owner == sports_owner:
             raise RuntimeError("Returning to Default UI did not replace the native player owner")
+        # A paused one-minute fixture cannot finish while OS/accessibility
+        # commands collect the background/foreground observations.
+        ui.pause_visible()
         ui.adb("shell", "input", "keyevent", "3"); time.sleep(1)
         ui.adb("shell", "am", "start", "-W", "-n", PACKAGE + "/.MainActivity")
         phase("foreground-playback")
@@ -285,8 +333,14 @@ def main():
         result["failure"] = "Runtime qualification failed; completed safe observations are retained"
     finally:
         if ui is not None:
+            result["lastControl"], result["lastGuiAction"] = ui.last_control, ui.last_action
             if ui.last_report is not None:
                 result["lastReport"] = ui.last_report
+            if not result["passed"]:
+                try:
+                    (output / "failure.private.png").write_bytes(ui.adb("exec-out", "screencap", "-p", maximum=16 * 1024 * 1024))
+                    (output / "failure.private.xml").write_bytes(ui.adb("exec-out", "cat", "/sdcard/player-lab-runtime.xml"))
+                except (RuntimeError, subprocess.TimeoutExpired, OSError): pass
             try:
                 ui.adb("shell", "am", "force-stop", PACKAGE)
                 ui.adb("shell", "rm", "-f", "/sdcard/player-lab-runtime.xml")

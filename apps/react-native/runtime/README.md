@@ -10,11 +10,14 @@ The device check uses the normal form to Reset a draft and Apply a 60-second HLS
 source, offset 5 seconds, autoplay, startup mute, buffer 8 seconds and bitrate
 2,500,000 bits/second. It checks actual OS clipboard equality, draft isolation,
 Default → Sports → Default, retained source/settings/Allow DVR, foreground
-return with the visible SDK Play button when needed, and normal App unmount.
+return with an explicit visible SDK Play action when needed, and normal App unmount.
 Each playback stage requires five fresh public SDK samples from the same owner,
 a finite 59–61-second duration, a playing clock advancing over two seconds,
 zero observed SDK errors and changing pixels inside the visible native video.
 Screenshots alone and a Play/Pause label alone cannot pass.
+Android uses the actual SDK Pause control before Home so this short fixture
+cannot finish during slower OS observations. It then resumes through the actual
+SDK Play control. This does not qualify unprompted automatic resume.
 
 The configuration report records the values delivered by the App. It does not
 claim to read native buffer or adaptation internals. Cleanup checks the public
@@ -68,6 +71,19 @@ report. A finalized xcresult with exactly one passing test is mandatory.
 python3 -m unittest discover -s apps/react-native/runtime -p 'test_*.py'
 python3 apps/react-native/runtime/run-android.py --device <SERIAL> --media-url http://127.0.0.1:5260/vod-multiaudio/master.m3u8 --output ../runtime-android-result
 python3 apps/react-native/runtime/run-ios.py --device <UDID> --media-url http://127.0.0.1:5260/vod-multiaudio/master.m3u8 --output ../runtime-ios-result
+```
+
+The external-subtitle scenario uses the normal four-field WebVTT form, Apply,
+the stock SDK subtitle menu, native selected-track/cue observations, moving
+video, normalized language metadata, code/clipboard and draft Reset. **Mark as
+default** is track metadata, rather than a promise to enable the track. Menu
+selection is an actual user action. The iOS test handles UI 4.23's unlabeled
+WKWebView menu-item roles using its public SmallScreen menu structure and the
+fixture's track order; the native selected external track and cue remain required.
+
+```bash
+python3 apps/react-native/runtime/run-ios.py --device <UDID> --media-url http://127.0.0.1:5260/vod-multiaudio/master.m3u8 --subtitle-url http://127.0.0.1:5260/assets/sintel_en.vtt --output ../runtime-ios-subtitles
+python3 apps/react-native/runtime/run-subtitles-android.py --adb <ADB_PATH> --device <SERIAL> --media-url http://127.0.0.1:5260/vod-multiaudio/master.m3u8 --subtitle-url http://127.0.0.1:5260/assets/sintel_en.vtt --output ../runtime-android-subtitles
 ```
 
 The scripts return nonzero on an unmet gate and preserve completed safe

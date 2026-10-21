@@ -32,10 +32,15 @@ def main():
     parser.add_argument("--device", required=True, help="An already-booted, dedicated iOS simulator UDID")
     parser.add_argument("--media-url", required=True, help="The public/local 60-second HLS fixture, without credentials or a query")
     parser.add_argument("--output", required=True, type=Path, help="A new private directory outside the checkout")
+    parser.add_argument("--subtitle-url", help="Run the external-WebVTT GUI/menu scenario instead of the configuration scenario")
     args = parser.parse_args()
     url = urlsplit(args.media_url)
     if url.scheme not in {"http", "https"} or not url.hostname or url.username or url.password or url.query or url.fragment or len(args.media_url) > 512:
         parser.error("Use a credential-free HTTP(S) fixture URL without query/fragment")
+    if args.subtitle_url:
+        subtitle = urlsplit(args.subtitle_url)
+        if subtitle.scheme not in {"http", "https"} or not subtitle.hostname or subtitle.username or subtitle.password or subtitle.query or subtitle.fragment or len(args.subtitle_url) > 512:
+            parser.error("Use a credential-free HTTP(S) WebVTT URL without query/fragment")
     root = Path(__file__).resolve().parents[3]
     output = args.output.resolve()
     if output.exists() or output == root or root in output.parents:
@@ -58,9 +63,11 @@ def main():
         for name, target in data.items():
             if name != "__xctestrun_metadata__":
                 target.setdefault("EnvironmentVariables", {})["PLAYER_LAB_MEDIA_URL"] = args.media_url
+                if args.subtitle_url:
+                    target["EnvironmentVariables"]["PLAYER_LAB_SUBTITLE_URL"] = args.subtitle_url
         runs[0].write_bytes(plistlib.dumps(data))
         result_path = output / "Runtime.xcresult"
-        case = "testNormalConfigurationPlaybackAndCleanup"
+        case = "testExternalSubtitleConfigurationAndMenu" if args.subtitle_url else "testNormalConfigurationPlaybackAndCleanup"
         command(["xcodebuild", "test-without-building", "-xctestrun", str(runs[0]), "-destination", "platform=iOS Simulator,id=" + args.device,
                  "-resultBundlePath", str(result_path), "-parallel-testing-enabled", "NO", "-collect-test-diagnostics", "never",
                  "-only-testing:RuntimeChecks/RuntimeChecks/" + case],
@@ -74,7 +81,8 @@ def main():
             raise RuntimeError("Normal GUI runtime receipt did not pass")
         for stage in receipt["stages"]:
             playback_samples(stage["samples"])
-        configuration_stages(receipt["stages"])
+        if not args.subtitle_url:
+            configuration_stages(receipt["stages"])
         validate_report(receipt["final"])
         (output / "runtime-report.json").write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
         status.update(passed=True, finalizedTestsPassed=1, finalizedTestsFailed=0, stages=len(receipt["stages"]),

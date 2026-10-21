@@ -91,6 +91,104 @@ final class RuntimeChecks: XCTestCase {
         result["passed"] = true
     }
 
+    func testExternalSubtitleConfigurationAndMenu() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard let media = environment["PLAYER_LAB_MEDIA_URL"], let subtitle = environment["PLAYER_LAB_SUBTITLE_URL"] else { throw Failure.input }
+        app.launch()
+        _ = try waitReport { ($0["owner"] as? [String: Any])?["viewReady"] as? Bool == true }
+        result["phase"] = "external-subtitle-fields"
+        try tap("Show configuration")
+        try replace("Source URL", media)
+        if app.buttons["HLS"].isEnabled { try tap("HLS") }
+        try replace("Source title", "WebVTT example")
+        try replace("External WebVTT URL", subtitle)
+        try replace("Subtitle label", "External English")
+        try replace("Subtitle language", "EN-us")
+        try setSwitch("Mark as default", false)
+        try replace("Start offset (seconds)", "1")
+        try setSwitch("Autoplay", true)
+        try setSwitch("Mute on startup", true)
+        try tap("Apply and recreate player")
+        try tap("Hide configuration")
+        top()
+        result["phase"] = "external-subtitle-menu"
+        let available = try waitReport { value in
+            ((value["owner"] as? [String: Any])?["sample"] as? [String: Any])?["externalSubtitleAvailable"] as? Bool == true
+        }
+        let sdk = app.webViews.firstMatch
+        XCTAssertTrue(sdk.exists, "The normal SDK UI WebView must be present")
+        let settings = sdk.descendants(matching: .any).matching(NSPredicate(format: "label ==[c] 'Settings'")).firstMatch
+        if !settings.isHittable { tapVideoCenter() }
+        XCTAssertTrue(settings.waitForExistence(timeout: 5) && settings.isHittable, "Normal SDK Settings control must be visible")
+        let gear = app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: settings.frame.midX, dy: settings.frame.midY))
+        gear.tap()
+        let external = sdk.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS[c] 'External English'")).firstMatch
+        let subtitles = sdk.descendants(matching: .any).matching(NSPredicate(format: "label ==[c] 'Subtitles' OR label BEGINSWITH[c] 'Subtitles/' OR label BEGINSWITH[c] 'Subtitles /'")).firstMatch
+        // Hidden Web UI controls can remain in the accessibility tree: the first
+        // physical tap reveals the bar, then a second reaches the visible gear.
+        if !external.exists && !subtitles.exists { gear.tap() }
+        if !external.exists && !subtitles.exists { scrollSdkSettings() }
+        let menuImage = XCTAttachment(screenshot: app.screenshot()); menuImage.name = "normal-sdk-settings"; menuImage.lifetime = .keepAlways; add(menuImage)
+        if !external.waitForExistence(timeout: 2) {
+            if subtitles.exists {
+                subtitles.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            } else {
+                // SDK UI 4.23 exposes unlabeled menuitem roles in WKWebView.
+                // For this fixture the SmallScreen menu is Speed, Audio, Subtitles;
+                // its last row is visible after the real panel scroll above.
+                let rows = sdk.descendants(matching: .menuItem)
+                XCTAssertEqual(rows.count, 3, "The known fixture must expose the three normal SDK settings rows")
+                let row = rows.element(boundBy: 2)
+                XCTAssertTrue(row.isHittable, "The actual subtitle row must be inside the video viewport")
+                row.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
+        }
+        if !external.exists { scrollSdkSettings() }
+        if external.exists {
+            external.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        } else {
+            // The stock page adds a Back title row, then Off and source tracks.
+            // This fixture appends its one external track after the HLS tracks.
+            // Native selected-track + cue observations below remain mandatory.
+            let count = try XCTUnwrap(((available["owner"] as? [String: Any])?["sample"] as? [String: Any])?["subtitleCount"] as? Int)
+            let rows = sdk.descendants(matching: .menuItem)
+            XCTAssertEqual(rows.count, count + 2, "The normal menu must list Back, Off and every available track")
+            let row = rows.element(boundBy: count + 1)
+            let video = app.descendants(matching: .any).matching(identifier: "player-lab-player").firstMatch.frame
+            for _ in 0..<5 {
+                if row.isHittable && row.frame.midY >= video.minY + 30 && row.frame.midY < video.maxY - 55 { break }
+                scrollSdkSettings()
+            }
+            XCTAssertTrue(row.isHittable && row.frame.midY >= video.minY + 30 && row.frame.midY < video.maxY - 55,
+                          "The actual external track row must be visible inside the compact menu")
+            let image = XCTAttachment(screenshot: app.screenshot()); image.name = "normal-sdk-subtitle-tracks"; image.lifetime = .keepAlways; add(image)
+            row.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+        let selected = try waitReport { value in
+            let owner = value["owner"] as? [String: Any]
+            return (owner?["sample"] as? [String: Any])?["externalSubtitleSelected"] as? Bool == true && (owner?["cueEnter"] as? Int ?? 0) > 0
+        }
+        result["selectedExternalTrack"] = true
+        result["cueEventsObserved"] = (selected["owner"] as? [String: Any])?["cueEnter"]
+        gear.tap() // Close the actual Settings overlay before measuring movie pixels.
+        result["phase"] = "external-subtitle-playback"
+        _ = try playback("external-subtitles")
+        try tap("Show configuration")
+        XCTAssertEqual(app.textFields["Subtitle language"].value as? String, "en-US")
+        try tap("Show applied code"); try tap("Copy code"); try tap("Check copied code", scroll: false)
+        _ = try waitReport { (($0["code"] as? [String: Any])?["clipboardMatches"] as? Bool) == true }
+        try replace("Subtitle label", "Unapplied subtitle")
+        try tap("Reset draft")
+        XCTAssertEqual(app.textFields["Subtitle label"].value as? String, "External English")
+        try tap("Finish runtime checks", scroll: false)
+        let final = try waitReport { $0["owner"] is NSNull }
+        let retired = try XCTUnwrap(final["retired"] as? [[String: Any]])
+        XCTAssertEqual(retired.count, final["created"] as? Int)
+        XCTAssertTrue(retired.allSatisfy { $0["wrapperDestroyed"] as? Bool == true })
+        result["final"] = final; result["wrapperDestroyFlagsConfirmed"] = true
+        result["nativeReleaseAcknowledgementAvailable"] = false; result["passed"] = true
+    }
+
     private func report(refresh: Bool = true) throws -> [String: Any] {
         if refresh {
             let read = app.buttons["Read runtime report"]
@@ -202,6 +300,13 @@ final class RuntimeChecks: XCTestCase {
         // The native video container is not itself an accessibility hit target.
         app.descendants(matching: .any).matching(identifier: "player-lab-player").firstMatch
             .coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    }
+    private func scrollSdkSettings() {
+        // The compact Settings panel can show two rows at a time inside a short video.
+        let video = app.descendants(matching: .any).matching(identifier: "player-lab-player").firstMatch.frame
+        let origin = app.coordinate(withNormalizedOffset: .zero)
+        origin.withOffset(CGVector(dx: video.midX, dy: video.minY + video.height * 0.6)).press(forDuration: 0.05,
+            thenDragTo: origin.withOffset(CGVector(dx: video.midX, dy: video.minY + video.height * 0.22)))
     }
     private func top() {
         let scroll = mainScroll()
