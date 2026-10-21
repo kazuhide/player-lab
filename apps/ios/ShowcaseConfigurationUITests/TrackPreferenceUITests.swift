@@ -181,9 +181,16 @@ final class TrackPreferenceUITests: XCTestCase {
         let row = element.exists && (element.elementType == .switch || element.elementType == .button)
             ? app.cells.containing(element.elementType, identifier: element.identifier).firstMatch : element
         let target = row.exists ? row : element
-        // Apply is to the right of Reset at the bottom. Check that axis before returning up the form.
-        let directions: [XCUIRemote.Button] = element.identifier == "configuration.apply"
-            ? [.down, .right, .up, .left] : [.down, .up, .right, .left]
+        let directions: [XCUIRemote.Button]
+        if element.identifier == "configuration.apply" {
+            // Apply is to the right of Reset at the bottom, before returning up the form.
+            directions = [.down, .right, .up, .left]
+        } else if element.identifier == "configuration.cancel" {
+            // Return toward the header before traversing the long generated code listing.
+            directions = [.up, .down, .right, .left]
+        } else {
+            directions = [.down, .up, .right, .left]
+        }
         for direction in directions {
             for _ in 0..<50 {
                 if target.exists && (target.hasFocus || target.descendants(matching: .any)
