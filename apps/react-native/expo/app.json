@@ -29,7 +29,8 @@
           }
         }
       ],
-      "./plugins/withSharedPlayerUi.cjs"
+      "./plugins/withSharedPlayerUi.cjs",
+      "./plugins/withCastHost.cjs"
     ]
   }
 }

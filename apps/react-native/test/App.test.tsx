@@ -8,7 +8,7 @@ import { HttpRequestType, type PlayerConfig } from "bitmovin-player-react-native
 const runtime = vi.hoisted(() => {
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY = "test-license";
   process.env.EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY = "";
-  return { os: "android", keyboardDismiss: vi.fn(), clipboard: vi.fn(async (_code: string) => {}), players: [] as Array<{
+  return { castHost: undefined as undefined | { readOptions: ReturnType<typeof vi.fn>; saveOptions: ReturnType<typeof vi.fn> }, os: "android", keyboardDismiss: vi.fn(), clipboard: vi.fn(async (_code: string) => {}), players: [] as Array<{
     config: PlayerConfig;
     load: ReturnType<typeof vi.fn>;
     destroy: ReturnType<typeof vi.fn>;
@@ -25,7 +25,7 @@ vi.mock("react-native", () => ({
   Platform: { get OS() { return runtime.os; }, get Version() { return runtime.os === "ios" ? "15.1" : 36; }, select: (options: Record<string, string>) => options[runtime.os] ?? options.default },
   StyleSheet: { create: <T,>(styles: T) => styles },
   Keyboard: { dismiss: runtime.keyboardDismiss },
-  NativeModules: {},
+  NativeModules: { get PlayerLabCastHost() { return runtime.castHost; } },
 }));
 
 vi.mock("expo-clipboard", () => ({ setStringAsync: runtime.clipboard }));
@@ -88,6 +88,7 @@ async function ready() { await act(async () => element("PlayerView").props.onPla
 beforeEach(async () => {
   runtime.os = "android";
   runtime.players.length = 0;
+  runtime.castHost = undefined;
   runtime.clipboard.mockClear();
   runtime.keyboardDismiss.mockClear();
   actEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
@@ -243,7 +244,25 @@ describe("React Native configuration in the mounted App", () => {
     expect(element("Text", { accessibilityLabel: "API result" }).props.children).not.toContain("12345");
   });
 
-  it("exports Cast receiver inputs as native build configuration and explains the SDK initialize no-op", async () => {
+  it("saves edited Cast receiver and namespace independently, preserves the current player and distinguishes a pending process restart", async () => {
+    const state = { savedOptions: { applicationId: "", messageNamespace: "" }, startupOptions: { applicationId: "FFE417E5", messageNamespace: "urn:x-cast:com.bitmovin.player.caf" }, nativeInitialized: true, pendingRestart: false, startupEvidence: "Native test host" };
+    runtime.castHost = { readOptions: vi.fn(async () => state), saveOptions: vi.fn(async () => ({ ...state, pendingRestart: true })) };
+    await mount(); await ready(); await press("Show configuration");
+    await text("Filter configuration APIs", "BitmovinCastManagerOptions.applicationId");
+    await press("BitmovinCastManagerOptions.applicationId"); await press("Set this API value");
+    await text("Value for BitmovinCastManagerOptions.applicationId", "ABCDEF12");
+    await text("Filter configuration APIs", "BitmovinCastManagerOptions.messageNamespace");
+    await press("BitmovinCastManagerOptions.messageNamespace"); await press("Set this API value");
+    await text("Value for BitmovinCastManagerOptions.messageNamespace", "urn:x-cast:player.lab");
+    await press("Save Cast options for next launch");
+    expect(runtime.castHost.saveOptions).toHaveBeenCalledWith("ABCDEF12", "urn:x-cast:player.lab");
+    expect(runtime.players).toHaveLength(1);
+    expect(element("Text", { accessibilityLabel: "Native Cast startup state" }).props.children).toContain('"pendingRestart": true');
+    await press("Read native Cast startup state");
+    expect(runtime.castHost.readOptions).toHaveBeenCalledTimes(2);
+  });
+
+  it("exports the Cast startup adapter and native build alternative while explaining the SDK initialize no-op", async () => {
     await mount(); await press("Show configuration");
     await text("Filter configuration APIs", "BitmovinCastManagerOptions.applicationId");
     await press("BitmovinCastManagerOptions.applicationId"); await press("Set this API value");
@@ -251,6 +270,7 @@ describe("React Native configuration in the mounted App", () => {
     await press("Apply and recreate player"); await press("Show applied code");
     expect(input("Applied configuration code").props.value).toContain('"appId": "ABCDEF12"');
     expect(input("Applied configuration code").props.value).toContain("SDK 1.29 initialize does not read castOptions");
+    expect(input("Applied configuration code").props.value).toContain("PlayerLabCastHost.saveOptions");
     expect(input("Applied configuration code").props.value).toContain('"android": "21.3.0"');
     expect(input("Applied configuration code").props.value).toContain('"ios": "4.8.4"');
   });

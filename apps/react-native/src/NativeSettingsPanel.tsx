@@ -14,7 +14,7 @@ export function NativeSettingsPanel({ values, onChange }: { values: SettingValue
   const remove = () => { const next = { ...values }; delete next[selected.id]; onChange(next); };
   return <View style={styles.panel}>
     <Text style={styles.heading}>Additional SDK configuration</Text>
-    <Text>Choose an API and edit its value. Changes are staged until Apply. Removing an override restores the form value or SDK default. Offline settings are used by their API experiments. Cast receiver and namespace inputs generate native build configuration; SDK 1.29 does not apply them at runtime.</Text>
+    <Text>Choose an API and edit its value. Changes are staged until Apply. Removing an override restores the form value or SDK default. Offline settings are used by their API experiments. Save Cast receiver and namespace inputs in Cast startup configuration below, then fully close and reopen the app to apply them.</Text>
     <TextInput accessibilityLabel="Filter configuration APIs" value={filter} onChangeText={(text) => { setFilter(text); setLimit(10); }}
       autoCorrect={false} autoCapitalize="none" style={styles.input} />
     <View style={styles.row}>{matches.slice(0, limit).map((field) => <Button key={field.id} title={field.id} disabled={selected.id === field.id} onPress={() => setSelectedId(field.id)} />)}</View>
