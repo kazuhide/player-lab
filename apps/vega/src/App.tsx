@@ -93,7 +93,7 @@ export const App: React.FC<{ runtimeChecks?: RuntimeMonitor }> = ({ runtimeCheck
   return (
     <View style={styles.root}>
       <BitmovinPlayer
-        key={revision}
+        revision={revision}
         config={config}
         source={applied.source}
         onDvr={onDvr}

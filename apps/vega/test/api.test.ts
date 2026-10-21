@@ -171,6 +171,15 @@ describe("Vega applied configuration values and callbacks", () => {
     materializer.dispose(); expect(() => installed("manifest", request)).toThrow("retired Vega session");
   });
 
+  it("preserves a valid SDK request body beyond editor limits in an approved identity callback", async () => {
+    const materializer = new ApiMaterializer(catalog, {}, new ResourcePool({}), {}, () => {});
+    const callback = materializer.materialize(new CallbackInput("return request;", callbackSignature("PlayerConfig.network.preprocessHttpRequest"), true, true)) as (type: unknown, request: object) => Promise<object>;
+    const request = { method: "POST", url: "https://example.com/license", headers: {}, responseType: "text", credentials: "omit", body: "x".repeat(65537) };
+    await expect(callback("license", request)).resolves.toBe(request);
+    await expect(callback("license", { ...request, method: 4 })).rejects.toThrow("expected HttpRequestMethod");
+    materializer.dispose();
+  });
+
   it("preserves the SDK callback's exact argument count, this and rest values in the live and exported functions", () => {
     const sig: Signature = { parameters: [{ name: "value", schema: "any", optional: true, rest: false },
       { name: "remaining", schema: "any", optional: false, rest: true }], returns: "text" };

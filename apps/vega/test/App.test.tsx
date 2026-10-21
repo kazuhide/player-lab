@@ -117,6 +117,40 @@ afterEach(async () => {
 });
 
 describe("Vega configuration in the mounted App and media session", () => {
+  it("preserves the native cleanup barrier across explicit repeated recreation", async () => {
+    await mount();
+    const old = current();
+    let released!: () => void;
+    runtime.destruction = new Promise<void>((resolve) => { released = resolve; });
+    await action("Show SDK API experiments"); await action("Recreate Vega player");
+    // A stale surface callback can be delivered while the old SDK still owns gvideo.
+    await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("next-surface"));
+    await action("Recreate Vega player");
+    await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("latest-surface"));
+    expect(old.destroy).toHaveBeenCalledOnce();
+    expect(runtime.videos).toHaveLength(1);
+    expect(runtime.players).toHaveLength(1);
+    await act(async () => released());
+    expect(runtime.videos).toHaveLength(2);
+    expect(runtime.players).toHaveLength(2);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledOnce();
+  });
+
+  it("does not bypass unconfirmed native initialization cancellation through Recreate", async () => {
+    let initialized!: () => void;
+    runtime.initialization = new Promise<void>((resolve) => { initialized = resolve; });
+    await mount();
+    await action("Show SDK API experiments"); await action("Recreate Vega player");
+    await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("replacement-surface"));
+    await action("Recreate Vega player");
+    await act(async () => initialized());
+    expect(runtime.videos).toHaveLength(1);
+    expect(runtime.players).toHaveLength(0);
+    expect(runtime.videos[0]!.deinitializeSync).toHaveBeenCalledOnce();
+    expect(warnings).toHaveBeenCalledExactlyOnceWith("Vega initialization cancellation unconfirmed; restart the app before playing again");
+    warnings.mockClear();
+  });
+
   it("applies a typed advanced field from the normal GUI and exports only the applied value", async () => {
     await mount(); await press("Show configuration"); await action("Show all SDK configuration");
     await action("Set Vega API value");

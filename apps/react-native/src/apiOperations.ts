@@ -1,6 +1,7 @@
 import { BufferType, type CustomDataConfig, type Player, type SourceConfig } from "bitmovin-player-react-native";
 import { finiteNumber, stringEntries } from "./apiValues";
 import { EMPTY_METADATA, metadataValue } from "./metadataInput";
+import { loadOwnedSource, unloadOwnedSource, unloadSourceCode } from "./sourceOwnership";
 
 export interface ApiArgument { name: string; label: string; initial: string; choices?: readonly string[]; editor?: "metadata"; }
 export interface ApiOperation {
@@ -17,6 +18,9 @@ function selectedBuffer(value: string | undefined): BufferType {
   if (value === "forwardDuration") return BufferType.FORWARD_DURATION;
   if (value === "backwardDuration") return BufferType.BACKWARD_DURATION;
   throw new Error("Select a buffer type.");
+}
+function bufferCode(value: string | undefined): string {
+  return selectedBuffer(value) === BufferType.FORWARD_DURATION ? "SDK.BufferType.FORWARD_DURATION" : "SDK.BufferType.BACKWARD_DURATION";
 }
 const customKeys = [
   "customData1", "customData2", "customData3", "customData4", "customData5", "customData6", "customData7", "customData8", "customData9", "customData10",
@@ -53,13 +57,14 @@ export function nativeOperations(player: Player, source: SourceConfig): ApiOpera
   noArgs("Player.pause", () => player.pause());
   noArgs("Player.mute", () => player.mute());
   noArgs("Player.unmute", () => player.unmute());
-  noArgs("Player.unload", () => player.unload());
+  noArgs("Player.unload", () => unloadOwnedSource(player));
+  operations[operations.length - 1]!.code = () => unloadSourceCode;
   noArgs("Player.skipAd", () => player.skipAd());
   noArgs("Player.castVideo", () => player.castVideo());
   noArgs("Player.castStop", () => player.castStop());
   noArgs("Player.showAirPlayTargetPicker", () => player.showAirPlayTargetPicker());
-  noArgs("Player.load", () => player.load(source));
-  operations[operations.length - 1]!.code = () => "player.load(sourceConfig);";
+  noArgs("Player.load", () => loadOwnedSource(player, source));
+  operations[operations.length - 1]!.code = () => unloadSourceCode + "\nplayer.load(sourceConfig);";
   one("Player.seek", time, (raw) => finiteNumber(raw, "Time", 0), (v) => player.seek(v));
   one("Player.timeShift", time, (raw) => finiteNumber(raw, "Offset"), (v) => player.timeShift(v));
   one("Player.setVolume", { ...value, initial: "100", label: "Volume (0–100)" }, (raw) => finiteNumber(raw, "Volume", 0, 100), (v) => player.setVolume(v));
@@ -75,9 +80,10 @@ export function nativeOperations(player: Player, source: SourceConfig): ApiOpera
     return raw;
   }, (v) => player.getCurrentTime(v));
   one("Player.buffer.getLevel", bufferType, selectedBuffer, (v) => player.buffer.getLevel(v));
+  operations[operations.length - 1]!.code = (values) => `player.buffer.getLevel(${bufferCode(values.type)});`;
   operations.push({ id: "Player.buffer.setTargetLevel", arguments: [bufferType, { ...value, label: "Target duration (seconds)", initial: "40" }],
     run: (values) => player.buffer.setTargetLevel(selectedBuffer(values.type), finiteNumber(values.value ?? "", "Duration", 0)),
-    code: (values) => `player.buffer.setTargetLevel(${JSON.stringify(selectedBuffer(values.type))}, ${finiteNumber(values.value ?? "", "Duration", 0)});` });
+    code: (values) => `player.buffer.setTargetLevel(${bufferCode(values.type)}, ${finiteNumber(values.value ?? "", "Duration", 0)});` });
   one("Player.mediaControls.setEnabled", { ...value, label: "Enabled", initial: "true", choices: ["true", "false"] }, (raw) => {
     if (!["true", "false"].includes(raw)) throw new Error("Select true or false.");
     return raw === "true";
@@ -127,8 +133,8 @@ export function nativeOperations(player: Player, source: SourceConfig): ApiOpera
   noArgs("Source.metadata", () => activeSource().metadata());
   noArgs("Source.loadingState", () => activeSource().loadingState());
   noArgs("Source.initialize", () => activeSource().initialize());
-  noArgs("Source.destroy", () => { const source = activeSource(); player.unload(); source.destroy(); });
-  operations[operations.length - 1]!.code = () => "const source = player.source;\nplayer.unload();\nsource.destroy();";
+  noArgs("Source.destroy", () => { activeSource(); unloadOwnedSource(player); });
+  operations[operations.length - 1]!.code = () => unloadSourceCode;
   property("Source.config", () => activeSource().config);
   property("Source.nativeId", () => activeSource().nativeId);
   property("Source.isInitialized", () => activeSource().isInitialized);

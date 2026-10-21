@@ -15,6 +15,7 @@ const EMPTY_INPUTS: ConfigInput[] = [];
 
 export interface BitmovinPlayerProps {
   config: PlayerConfig;
+  revision?: number;
   source: SourceConfig;
   onDvr: DvrUpdate;
   controllerRef: React.MutableRefObject<DvrController | null>;
@@ -25,7 +26,7 @@ export interface BitmovinPlayerProps {
 }
 
 export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
-  config, source, onDvr, controllerRef, timeShiftEnabled, runtimeChecks, apiInputs = EMPTY_INPUTS, onApiSession,
+  config, source, onDvr, controllerRef, timeShiftEnabled, runtimeChecks, apiInputs = EMPTY_INPUTS, onApiSession, revision = 0,
 }) => {
   const teardown = useRef<Promise<void>>(Promise.resolve());
   const ownedSession = useRef<{ dispose: (background?: boolean) => Promise<void> } | null>(null);
@@ -113,7 +114,7 @@ export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
       void teardown.current.then(() => observed?.released());
       if (ownedSession.current === session) ownedSession.current = null;
     };
-  }, [lifecycle.active, lifecycle.generation, surfaceHandle, source, config, onDvr, controllerRef, runtimeChecks, apiInputs, onApiSession]);
+  }, [lifecycle.active, lifecycle.generation, surfaceHandle, source, config, onDvr, controllerRef, runtimeChecks, apiInputs, onApiSession, revision]);
 
   return (
     <View testID="player-lab-player" style={styles.video}>

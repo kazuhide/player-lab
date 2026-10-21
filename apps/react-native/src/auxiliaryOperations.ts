@@ -1,3 +1,4 @@
+import { unloadOwnedSource, unloadSourceCode } from "./sourceOwnership";
 import { BitmovinCastManager, OfflineContentManager, OfflineEventType, Source, type OfflineContentManagerListener, type Player } from "bitmovin-player-react-native";
 import type { ApiOperation } from "./apiOperations";
 import type { NativeSettings } from "./nativeSettings";
@@ -132,12 +133,14 @@ export class AuxiliaryOperations {
     add("OfflineContentManager.nativeId", () => this.manager().nativeId, "offline.nativeId");
     add("OfflineContentManager.isInitialized", () => this.manager().isInitialized, "offline.isInitialized");
     add("OfflineContentManager.isDestroyed", () => this.manager().isDestroyed, "offline.isDestroyed");
-    add("Player.loadOfflineContent", () => this.player.loadOfflineContent(this.manager(), this.settings().offlineOptions), "player.loadOfflineContent(offline, offlineOptions);");
+    add("Player.loadOfflineContent", () => {
+      const manager = this.manager();
+      unloadOwnedSource(this.player);
+      return this.player.loadOfflineContent(manager, this.settings().offlineOptions);
+    }, unloadSourceCode + "\nplayer.loadOfflineContent(offline, offlineOptions);");
     add("Player.loadSource", async () => {
       const revision = ++this.sourceRevision;
-      const previous = this.player.source;
-      this.player.unload();
-      previous?.destroy();
+      unloadOwnedSource(this.player);
       const source = new Source(this.settings().source);
       try {
         await source.initialize();
@@ -145,7 +148,7 @@ export class AuxiliaryOperations {
         this.player.loadSource(source);
         this.loadedSource = source;
       } catch (error) { source.destroy(); throw error; }
-    }, "const previous = player.source;\nplayer.unload();\nprevious?.destroy();\nconst source = new SDK.Source(sourceConfig);\nawait source.initialize();\nplayer.loadSource(source);");
+    }, unloadSourceCode + "\nconst source = new SDK.Source(sourceConfig);\nawait source.initialize();\nplayer.loadSource(source);");
     add("BitmovinCastManager.isInitialized", () => BitmovinCastManager.isInitialized());
     add("BitmovinCastManager.initialize", () => BitmovinCastManager.initialize(this.settings().cast), "await SDK.BitmovinCastManager.initialize(castOptions);\n// SDK 1.29: this deprecated method is a no-op. Use Cast startup configuration, save and fully restart the app.\n// Inspect the actual native state with BitmovinCastManager.isInitialized().");
     add("BitmovinCastManager.updateContext", () => BitmovinCastManager.updateContext());
@@ -169,7 +172,7 @@ export class AuxiliaryOperations {
     this.sourceRevision += 1;
     if (this.offline) { const owner = this.offline; this.offline = undefined; this.retirement = this.release(owner); }
     void this.retirement.catch(() => console.warn("Offline manager cleanup failed."));
-    if (this.loadedSource && this.player.source !== this.loadedSource) this.loadedSource.destroy();
+    if (this.loadedSource && !this.loadedSource.isDestroyed && this.player.source !== this.loadedSource) this.loadedSource.destroy();
     // The Player owns its currently attached source's native lifetime.
     this.loadedSource = undefined;
   }

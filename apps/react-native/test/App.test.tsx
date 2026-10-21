@@ -52,11 +52,12 @@ vi.mock("bitmovin-player-react-native", async () => {
     AnalyticsRetryPolicy: { NO_RETRY: "noRetry", LONG_TERM: "longTerm" },
     ScalingMode: { Fit: "Fit", Stretch: "Stretch", Zoom: "Zoom" },
     SurfaceType: { SurfaceView: "SurfaceView", TextureView: "TextureView" },
+    BufferType: { FORWARD_DURATION: "forwardDuration", BACKWARD_DURATION: "backwardDuration" },
     ForceReuseVideoCodecReason: { ColorInfoMismatch: "ColorInfoMismatch", MaxInputSizeExceeded: "MaxInputSizeExceeded", MaxResolutionExceeded: "MaxResolutionExceeded" },
     PictureInPictureAction: { TogglePlayback: "TogglePlayback", Seek: "Seek" },
     usePlayer: (config: PlayerConfig) => useState(() => {
       const player = {
-        config, load: vi.fn(), isDestroyed: false, destroy: vi.fn(() => { player.isDestroyed = true; }), timeShift: vi.fn(),
+        config, load: vi.fn(), unload: vi.fn(), buffer: { getLevel: vi.fn(async () => 5), setTargetLevel: vi.fn() }, isDestroyed: false, destroy: vi.fn(() => { player.isDestroyed = true; }), timeShift: vi.fn(),
         isLive: vi.fn(async () => true), getDuration: vi.fn(async () => Infinity),
         getMaxTimeShift: vi.fn(async () => -900), getTimeShift: vi.fn(async () => 0),
         getCurrentTime: vi.fn(async () => 0),
@@ -119,6 +120,66 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it("invalidates a pending legacy seek synchronously before each runtime source mutation", async () => {
+    await mount(); await ready(); await press("Show API experiments");
+    const player = current();
+    for (const id of ["Player.load", "Player.unload"]) {
+      let complete!: (value: number) => void;
+      player.getMaxTimeShift.mockImplementationOnce(() => new Promise<number>((resolve) => { complete = resolve; }));
+      let seeking: Promise<unknown> | undefined;
+      await act(async () => { seeking = button("-30s").props.onPress(); });
+      await text("Filter API operations", id); await press(id); await press("Run selected API");
+      await act(async () => { complete(-900); await seeking; });
+    }
+    expect(Reflect.get(player, "timeShift")).not.toHaveBeenCalled();
+  });
+
+  it("retires the native source before replacing it through Player.load", async () => {
+    await mount(); await ready(); await press("Show API experiments");
+    const player = current(); const previous = { destroy: vi.fn() };
+    Object.assign(player, { source: previous });
+    await text("Filter API operations", "Player.load"); await press("Player.load"); await press("Run selected API");
+    expect(previous.destroy).toHaveBeenCalledOnce();
+    expect(Reflect.get(player, "unload")).toHaveBeenCalledOnce();
+    expect(previous.destroy.mock.invocationCallOrder[0]).toBeLessThan(player.load.mock.invocationCallOrder[player.load.mock.invocationCallOrder.length - 1]!);
+  });
+
+  it("rejects a metadata child beyond the tree depth limit before storing or rendering it", async () => {
+    await mount(); await ready(); await press("Show API experiments");
+    await text("Filter API operations", "Source.setMetadata"); await press("Source.setMetadata");
+    await press("Metadata object");
+    for (let depth = 0; depth < 20; depth++) {
+      await text("New metadata field name", "child"); await press("Add metadata field");
+      await press("Edit metadata child"); await press("Metadata object");
+    }
+    await text("New metadata field name", "tooDeep"); await press("Add metadata field");
+    expect(element("Text", { accessibilityRole: "alert" }).props.children).toContain("20 nested levels");
+    expect(button("Edit metadata tooDeep")).toBeUndefined();
+    await press("Metadata parent");
+    expect(button("Edit metadata child")).toBeDefined();
+  });
+
+  it("exports buffer operations using the SDK enum expressions accepted by the pinned declarations", async () => {
+    await mount(); await ready(); await press("Show API experiments");
+    for (const id of ["Player.buffer.getLevel", "Player.buffer.setTargetLevel"]) {
+      await text("Filter API operations", id); await press(id);
+      for (const type of ["forwardDuration", "backwardDuration"]) {
+        await press(type); await press("Run selected API");
+        const code = String(element("Text", { accessibilityLabel: "Executed API code" }).props.children);
+        expect(code).toContain(type === "forwardDuration" ? "SDK.BufferType.FORWARD_DURATION" : "SDK.BufferType.BACKWARD_DURATION");
+        expectValidCode('import * as SDK from "bitmovin-player-react-native";\ndeclare const player: SDK.Player;\n' + code);
+      }
+    }
+  });
+
+  it("describes Cast option changes through the normal startup adapter without a native rebuild", async () => {
+    await mount(); await ready(); await press("Show API experiments");
+    const prose = screen.root.findAll((node) => String(node.type) === "Text").map((node) => String(node.props.children)).join("\n");
+    expect(prose).toContain("Save Cast options for next launch");
+    expect(prose).toContain("fully close and reopen");
+    expect(prose).not.toContain("Custom receiver and namespace settings require the generated app.json changes");
+  });
+
   it("applies individually edited SDK fields to Player, Source and PlayerView and exports the applied values", async () => {
     await mount(); await ready(); await press("Show configuration");
     await press("Set this API value"); await text("Value for SourceConfig.description", "Applied description");

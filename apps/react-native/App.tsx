@@ -35,6 +35,7 @@ import { initialDraft, parseConfiguration, presetDraft, sameConfiguration, suppo
 import type { RuntimeAppState, RuntimeMonitor, RuntimeOwner } from "./src/runtimeObservation";
 import { ApiPanel } from "./src/ApiPanel";
 import { nativeEventProps } from "./src/apiEvents";
+import { loadOwnedSource } from "./src/sourceOwnership";
 import { apiValue } from "./src/apiValues";
 import { applyNativeScripts, NativeScriptOwner } from "./src/nativeScripts";
 
@@ -283,7 +284,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
     setDvr(null);
     append(`load ${source.title || "source"}`);
     // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.
-    player.load(source);
+    loadOwnedSource(player, source);
     observed.current?.sourceLoad();
   }, [source, player, viewReady, append]);
 
@@ -294,6 +295,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
 
   const refresh = useCallback(() => snapshots.current?.refresh(), []);
   const seek = useCallback((offset: number) => snapshots.current?.seek(offset), []);
+  const sourceMutated = useCallback(() => { snapshots.current?.sourceChanged(); setDvr(null); }, []);
 
   // Select our custom factory by name; omitted for the SDK default UI.
   const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction || Object.keys(settings.view).length || Object.keys(settings.webUi).length
@@ -387,7 +389,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
       </ScrollView>
       <ApiPanel player={player} source={source} ready={viewReady} events={apiEvents} recording={recordingEvents}
         onRecording={setRecordingEvents} onClearEvents={() => { eventBuffer.current = []; setApiEvents([]); }} onRecreate={onRecreate}
-        settings={settings} onEvent={recordApiEvent} />
+        settings={settings} onEvent={recordApiEvent} onSourceMutation={sourceMutated} />
     </>
   );
 }

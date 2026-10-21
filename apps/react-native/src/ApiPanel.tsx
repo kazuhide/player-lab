@@ -16,12 +16,13 @@ interface Props {
   onRecording: (enabled: boolean) => void;
   onClearEvents: () => void;
   onRecreate: () => void;
+  onSourceMutation: () => void;
   settings: NativeSettings;
   onEvent: (name: string, value: unknown) => void;
 }
 
 /** The selected typed operation is dispatched only by an explicit user action. */
-export function ApiPanel({ player, source, ready, events, recording, onRecording, onClearEvents, onRecreate, settings, onEvent }: Props): React.JSX.Element {
+export function ApiPanel({ player, source, ready, events, recording, onRecording, onClearEvents, onRecreate, onSourceMutation, settings, onEvent }: Props): React.JSX.Element {
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState("");
   const [limit, setLimit] = useState(12);
@@ -59,7 +60,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
     let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
       const appliedCode = selected.code(values);
-      if (["Player.load", "Player.loadSource", "Player.loadOfflineContent", "Player.unload", "Player.destroy", "Source.destroy"].includes(selected.id)) auxiliary.sourceChanged();
+      if (["Player.load", "Player.loadSource", "Player.loadOfflineContent", "Player.unload", "Player.destroy", "Source.destroy"].includes(selected.id)) { auxiliary.sourceChanged(); onSourceMutation(); }
       const value = await Promise.race([
         Promise.resolve(selected.run(values)),
         new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error("No response within 10 seconds. The native call may still complete; it has not been retried.")), 10000); }),
@@ -77,7 +78,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
     <Button title={expanded ? "Hide API experiments" : "Show API experiments"} onPress={() => setExpanded(!expanded)} />
     {expanded && <>
       <Text>Choose an operation, enter its arguments, then run it. A void result means the wrapper dispatched the call; use events and queries to check its effect. Platform and source requirements still apply.</Text>
-      <Text>Offline inputs are edited under Additional SDK configuration. Initialize the offline manager, get options, then download; completion is an event. Delete and cancel affect only the chosen content identifier. The generated host includes the Google Cast SDK. SDK 1.29 initializes Cast through native build configuration; its deprecated initialize method does not apply edited options. Use isInitialized to inspect the native result. Custom receiver and namespace settings require the generated app.json changes and a native rebuild.</Text>
+      <Text>Offline inputs are edited under Additional SDK configuration. Initialize the offline manager, get options, then download; completion is an event. Delete and cancel affect only the chosen content identifier. The generated host includes the Google Cast SDK. SDK 1.29's deprecated initialize method does not apply edited options. Edit the receiver and namespace under Cast startup settings, select Save Cast options for next launch, then fully close and reopen the app. Use Read native Cast startup state to check the applied startup values and native initialization.</Text>
       <Text>Offline addListener replaces the app's current offline listener. Select its named callbacks and optionally edit a JavaScript body using event, name and lab.getPlayer()/getSource(). A nonempty body requires explicit execution permission; it runs inside this app on future matching SDK events.</Text>
       <TextInput accessibilityLabel="Filter API operations" value={filter} onChangeText={(value) => { setFilter(value); setLimit(12); }} autoCorrect={false} autoCapitalize="none" style={styles.input} />
       <View style={styles.row}>{matches.slice(0, limit).map((operation) => <Button key={operation.id} title={operation.id}

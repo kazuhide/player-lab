@@ -41,32 +41,51 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
 }
 
+/** Check SDK callback contracts without reapplying the editor's draft-size limits. */
 function runtimeValue(catalog: ApiSchema, id: string, value: unknown, resources: ResourcePool, depth = 0): unknown {
   if (depth > 32) throw new Error("Callback result is nested too deeply.");
-  const schema = catalog.nodes[id]!;
-  if (schema.kind === "unknown") return value;
-  if (schema.kind === "instance" && resources.matches(schema, value)) return value;
-  if (schema.kind === "union") {
-    for (const child of schema.options!) try { return runtimeValue(catalog, child, value, resources, depth + 1); } catch { /* Try another branch. */ }
-    throw new Error("Callback result: expected " + schema.label);
+  const schema = catalog.nodes[id];
+  if (!schema) throw new Error("Unknown SDK callback return type.");
+  const reject = (): never => { throw new Error("Callback result: expected " + schema.label); };
+  const next = (child: string, input: unknown) => runtimeValue(catalog, child, input, resources, depth + 1);
+  switch (schema.kind) {
+    case "unknown": case "void": return value;
+    case "never": return reject();
+    case "undefined": return value === undefined ? value : reject();
+    case "null": return value === null ? value : reject();
+    case "literal": return value === schema.value ? value : reject();
+    case "string": return typeof value === "string" ? value : reject();
+    case "number": return typeof value === "number" && !Number.isNaN(value) ? value : reject();
+    case "boolean": return typeof value === "boolean" ? value : reject();
+    case "function": return typeof value === "function" ? value : reject();
+    case "instance": return resources.matches(schema, value) ? value : reject();
+    case "binary": return value instanceof ArrayBuffer || ArrayBuffer.isView(value) ? value : reject();
+    case "promise": return value && typeof (value as PromiseLike<unknown>).then === "function" ? value : reject();
+    case "union":
+      for (const child of schema.options!) try { return next(child, value); } catch { /* Try another branch. */ }
+      return reject();
+    case "object":
+      if (value === null || typeof value !== "object") return reject();
+      // Runtime SDK objects can have private fields beyond their structural interface.
+      for (const property of schema.properties!) {
+        const input = (value as Record<string, unknown>)[property.name];
+        if (input !== undefined || !property.optional) next(property.schema, input);
+      }
+      if (schema.additional) for (const input of Object.values(value)) next(schema.additional, input);
+      return value;
+    case "array":
+      if (!Array.isArray(value)) return reject();
+      value.forEach(input => next(schema.item!, input));
+      return value;
+    case "tuple":
+      if (!Array.isArray(value) || value.length > schema.items!.length) return reject();
+      schema.items!.forEach((child, index) => {
+        if (index >= value.length && (schema.flags?.[index] ?? 0) & 2) return;
+        next(child, value[index]);
+      });
+      return value;
+    default: return reject();
   }
-  if (schema.kind === "object" && value !== null && typeof value === "object") {
-    // SDK objects can have private fields beyond their public structural interface.
-    for (const property of schema.properties!) {
-      const input = (value as Record<string, unknown>)[property.name];
-      if (input === undefined && property.optional) continue;
-      runtimeValue(catalog, property.schema, input, resources, depth + 1);
-    }
-    if (schema.additional) for (const [key, input] of Object.entries(value)) {
-      safeKey(key); runtimeValue(catalog, schema.additional, input, resources, depth + 1);
-    }
-    return value;
-  }
-  if (schema.kind === "array" && Array.isArray(value)) {
-    value.forEach(input => runtimeValue(catalog, schema.item!, input, resources, depth + 1));
-    return value;
-  }
-  return validateData(catalog, id, value, "callback result");
 }
 
 export function parameterNames(signature: Signature): string[] {

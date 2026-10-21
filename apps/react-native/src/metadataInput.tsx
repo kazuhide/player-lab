@@ -62,7 +62,11 @@ export function MetadataInput({ value, onChange }: { value: string; onChange: (v
   for (const index of path) { const next = current.children[index]; if (!next) break; current = next.node; validPath.push(index); }
   const replace = (next: Node) => {
     const update = (node: Node, remaining: number[]): Node => remaining.length ? { ...node, children: node.children.map((entry, index) => index === remaining[0] ? { ...entry, node: update(entry.node, remaining.slice(1)) } : entry) } : next;
-    onChange(JSON.stringify(update(root, validPath))); setError("");
+    try {
+      const serialized = JSON.stringify(update(root, validPath));
+      read(serialized);
+      onChange(serialized); setError("");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Invalid metadata editor state."); }
   };
   const add = () => {
     const key = current.kind === "array" ? String(current.children.length) : name;
