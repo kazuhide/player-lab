@@ -181,11 +181,13 @@ are normalized. A blank subtitle URL removes the track and clears its metadata.
 Reset changes only the draft. Apply uses the existing player/session recreation
 barrier, and applied-code output includes only validated applied values. A source
 preset clears the external subtitle fields.
+Use HTTPS for the external WebVTT delivery tested on Vega. The qualified HTTPS
+fixture rendered cues; the same bytes from a plain local HTTP server did not.
 
 The four leaves map to `TextTrack.url`, `MediaTrack.label`, `TextTrack.lang`, and
 `SubtitleTrack.enabled` in the pinned public SDK. The app supplies a fixed track
-ID and subtitle kind. Vega has no HTML UI: the public Subtitles module parses
-WebVTT, and public `CueEnter`/`CueExit` events drive a native text overlay. It
+ID and subtitle kind. Vega has no HTML UI: the public Subtitles and WebVTT parser
+modules parse WebVTT, and public `CueEnter`/`CueExit` events drive a native text overlay. It
 displays plain cue text; HTML subtitle styling is not rendered. Source/player
 retirement and background transitions clear that overlay and retire its event
 listeners. The enclosing track array is assembled by the app.

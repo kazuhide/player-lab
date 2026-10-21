@@ -31,7 +31,11 @@ export const App: React.FC<{ runtimeChecks?: RuntimeMonitor }> = ({ runtimeCheck
   useEffect(() => {
     runtimeChecks?.appState({ dvrAllowed, logCount: log.length, sourceType: applied.draft.type,
       startOffset: applied.source.options?.startOffset ?? null, autoplay: applied.draft.autoplay,
-      startupMuted: applied.draft.muted, externalSubtitleConfigured: Boolean(applied.source.subtitleTracks?.length) });
+      startupMuted: applied.draft.muted, videoForwardBuffer: applied.player.buffer?.video?.forwardduration ?? null,
+      audioForwardBuffer: applied.player.buffer?.audio?.forwardduration ?? null,
+      maxVideoBitrate: typeof applied.player.adaptation?.bitrates?.maxSelectableVideoBitrate === "number"
+        ? applied.player.adaptation.bitrates.maxSelectableVideoBitrate : null,
+      externalSubtitleConfigured: Boolean(applied.source.subtitleTracks?.length) });
     runtimeChecks?.appliedCode(appliedCode);
   }, [runtimeChecks, dvrAllowed, log.length, applied, appliedCode]);
 

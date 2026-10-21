@@ -8,6 +8,9 @@ export interface RuntimeAppState {
   startOffset: number | null;
   autoplay: boolean;
   startupMuted: boolean;
+  videoForwardBuffer: number | null;
+  audioForwardBuffer: number | null;
+  maxVideoBitrate: number | null;
   externalSubtitleConfigured: boolean;
 }
 interface OwnerReport {
@@ -19,7 +22,7 @@ interface OwnerReport {
   errorCodes: number[];
   readFailures: number;
   sample: null | { sequence: number; time: number | null; duration: number | null; live: boolean; playing: boolean;
-    muted: boolean; decodedFrames: number | null; subtitleCount: number; externalSubtitleAvailable: boolean };
+    muted: boolean; decodedFrames: number | null; subtitleCount: number; externalSubtitleAvailable: boolean; externalSubtitleEnabled: boolean };
 }
 export interface RuntimeReport {
   protocol: 1;
@@ -80,11 +83,14 @@ export function createRuntimeMonitor(): RuntimeMonitor {
         const tracks = player.subtitles.list();
         report.sample = { sequence: (report.sample?.sequence ?? 0) + 1, time: finite(player.getCurrentTime()), duration: finite(player.getDuration()),
           live: player.isLive(), playing: player.isPlaying(), muted: player.isMuted(), decodedFrames: finite(frames()),
-          subtitleCount: tracks.length, externalSubtitleAvailable: tracks.some((track) => track.id === "player-lab-external") };
+          subtitleCount: tracks.length, externalSubtitleAvailable: tracks.some((track) => track.id === "player-lab-external"),
+          externalSubtitleEnabled: tracks.some((track) => track.id === "player-lab-external" && track.enabled === true) };
       } catch { report.readFailures++; }
     },
     appState(app) { state.app = { dvrAllowed: app.dvrAllowed, logCount: app.logCount, sourceType: app.sourceType,
-      startOffset: app.startOffset, autoplay: app.autoplay, startupMuted: app.startupMuted, externalSubtitleConfigured: app.externalSubtitleConfigured }; },
+      startOffset: app.startOffset, autoplay: app.autoplay, startupMuted: app.startupMuted,
+      videoForwardBuffer: finite(app.videoForwardBuffer ?? undefined), audioForwardBuffer: finite(app.audioForwardBuffer ?? undefined),
+      maxVideoBitrate: finite(app.maxVideoBitrate ?? undefined), externalSubtitleConfigured: app.externalSubtitleConfigured }; },
     appliedCode(value) { if (value !== code) { code = value; state.codeGeneration++; } },
     setupError() { state.setupErrors++; },
     report() { return JSON.parse(JSON.stringify(state)) as RuntimeReport; },
