@@ -10,6 +10,21 @@ import org.junit.Test
 class ApiSettingsTest {
     private fun id(member: String) = "android:com.bitmovin.player.api.$member"
 
+    @Test fun signed_live_buffer_depth_reaches_legacy_and_source_sdk_configuration() {
+        assertEquals(-40.0, com.bitmovin.player.api.live.LiveConfig.DEFAULT_MIN_TIME_SHIFT_BUFFER_DEPTH, 0.0)
+        assertEquals(-40.0, com.bitmovin.player.api.live.SourceLiveConfig.DEFAULT_MIN_TIME_SHIFT_BUFFER_DEPTH, 0.0)
+        for (depth in listOf(-40.0, -120.5, 0.0)) {
+            val overrides = ApiOverrides.validate(mapOf(
+                id("live.LiveConfig.minTimeShiftBufferDepth") to depth.toString(),
+                id("live.SourceLiveConfig.minTimeShiftBufferDepth") to depth.toString(),
+            ))
+            assertEquals(depth, overrides.player(PlayerConfig()).liveConfig.minTimeShiftBufferDepth, 0.0)
+            val source = overrides.source(SourceConfig("https://example.invalid/live.m3u8", SourceType.Hls))
+            assertEquals(depth, source.liveConfig!!.minTimeShiftBufferDepth, 0.0)
+            assertTrue(overrides.code().contains("minTimeShiftBufferDepth = $depth"))
+        }
+    }
+
     @Test fun overrides_reach_fresh_typed_sdk_owners_and_preserve_the_base() {
         val base = PlayerConfig()
         val overrides = ApiOverrides.validate(mapOf(
