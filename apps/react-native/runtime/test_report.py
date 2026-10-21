@@ -1,6 +1,6 @@
 import copy
 import unittest
-from report import configuration_stages, playback_samples, validate_report
+from report import configuration_stages, external_cue_selection, playback_samples, validate_report
 
 
 def report():
@@ -13,6 +13,23 @@ def report():
 
 
 class SafeReportTests(unittest.TestCase):
+    def test_external_selection_requires_a_fresh_same_source_cue_after_selection(self):
+        before, selected, after = [copy.deepcopy(report()) for _ in range(3)]
+        for index, value in enumerate([before, selected, after]):
+            value["owner"]["cueEnter"] = [4, 4, 5][index]
+            value["owner"]["sample"].update(sequence=index + 1, externalSubtitleAvailable=True,
+                                            externalSubtitleSelected=index > 0)
+        external_cue_selection(before, selected, after)
+        for mutation in [lambda v: v[2]["owner"].update(cueEnter=4),
+                         lambda v: v[1]["owner"]["sample"].update(externalSubtitleSelected=False),
+                         lambda v: v[2]["owner"]["sample"].update(externalSubtitleSelected=False),
+                         lambda v: v[2]["owner"].update(generation=2),
+                         lambda v: v[2]["owner"].update(sourceLoads=2),
+                         lambda v: v[2]["owner"].update(sourceLoaded=2),
+                         lambda v: v[2]["owner"]["sample"].update(sequence=2)]:
+            values = copy.deepcopy([before, selected, after]); mutation(values)
+            with self.assertRaises(ValueError): external_cue_selection(*values)
+
     def test_unknown_fields_are_rejected_at_every_public_boundary(self):
         for path in [[], ["owner"], ["owner", "sample"], ["code"]]:
             value = report()

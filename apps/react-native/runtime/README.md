@@ -77,7 +77,10 @@ The external-subtitle scenario uses the normal four-field WebVTT form, Apply,
 the stock SDK subtitle menu, native selected-track/cue observations, moving
 video, normalized language metadata, code/clipboard and draft Reset. **Mark as
 default** is track metadata, rather than a promise to enable the track. Menu
-selection is an actual user action. The iOS test handles UI 4.23's unlabeled
+selection is an actual user action. A selection-boundary report binds the same
+owner and source-load epoch, followed by native external-track selection and a
+new cue after that selected-track observation. Earlier embedded/default cues
+cannot satisfy this gate. The iOS test handles UI 4.23's unlabeled
 WKWebView menu-item roles using its public SmallScreen menu structure and the
 fixture's track order; the native selected external track and cue remain required.
 

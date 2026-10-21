@@ -10,7 +10,7 @@ import subprocess
 import sys
 from urllib.parse import urlsplit
 
-from report import configuration_stages, playback_samples, validate_report
+from report import configuration_stages, external_cue_selection, playback_samples, validate_report
 
 
 def command(args, cwd=None, log=None, timeout=300):
@@ -83,6 +83,8 @@ def main():
             playback_samples(stage["samples"])
         if not args.subtitle_url:
             configuration_stages(receipt["stages"])
+        else:
+            external_cue_selection(*receipt["externalCueSelection"])
         validate_report(receipt["final"])
         (output / "runtime-report.json").write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
         status.update(passed=True, finalizedTestsPassed=1, finalizedTestsFailed=0, stages=len(receipt["stages"]),

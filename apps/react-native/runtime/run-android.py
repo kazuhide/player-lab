@@ -19,6 +19,9 @@ PACKAGE = "com.playerlab.reactnative"
 
 
 class Ui:
+    INPUT_LABELS = {"Source URL", "Source title", "Poster URL", "External WebVTT URL", "Subtitle label",
+                    "Subtitle language", "Start offset (seconds)", "Forward buffer (seconds)",
+                    "Maximum bitrate (bits per second)"}
     def __init__(self, adb, serial):
         self.prefix = [adb, "-s", serial]
         self.last_report = None
@@ -66,7 +69,13 @@ class Ui:
         return len(bounds) == 4 and bounds[2] > bounds[0] and bounds[3] > bounds[1] and bounds[0] < self.width and 0 <= (bounds[1] + bounds[3]) / 2 < self.bottom
 
     def find(self, tree, label):
-        # Form captions have the same visible text as their labelled EditText. Prefer the input's accessibility label.
+        # A caption can be visible while its EditText is clipped. It must never
+        # substitute for the input: a tap would leave the previous field focused.
+        if label in self.INPUT_LABELS:
+            return next((node for node in tree.iter("node") if node.get("class") == "android.widget.EditText" and
+                node.get("content-desc") == label and self.visible(node) and
+                self.bounds(node)[1] >= self.scroll_top and self.bounds(node)[3] <= self.bottom and
+                self.bounds(node)[3] - self.bounds(node)[1] >= 40), None)
         for key in ["content-desc", "text"]:
             match = next((node for node in tree.iter("node") if self.visible(node) and node.get(key, "").casefold() == label.casefold()), None)
             if match is not None:

@@ -109,6 +109,24 @@ def playback_samples(samples):
     return {"owner": owners[0], "times": times, "duration": samples[-1]["owner"]["sample"]["duration"]}
 
 
+def external_cue_selection(before, selected, after):
+    """Bind a new cue to the selected external track's current source epoch."""
+    identity = None
+    for index, value in enumerate([before, selected, after]):
+        validate_report(value)
+        owner = value["owner"]
+        if owner is None or owner["sample"] is None or owner["errors"] or owner["readFailures"] or owner["sourceLoaded"] < 1:
+            raise ValueError("The external cue requires a current successful source")
+        current = tuple(owner[key] for key in ["generation", "sourceLoads", "sourceLoaded"])
+        if identity is None: identity = current
+        if current != identity or not owner["sample"]["externalSubtitleAvailable"]:
+            raise ValueError("External subtitle selection crossed the owner or source epoch")
+        if index > 0 and not owner["sample"]["externalSubtitleSelected"]:
+            raise ValueError("The external track must remain natively selected")
+    if after["owner"]["cueEnter"] <= max(before["owner"]["cueEnter"], selected["owner"]["cueEnter"]) or after["owner"]["sample"]["sequence"] <= selected["owner"]["sample"]["sequence"]:
+        raise ValueError("A fresh native cue after selected-track observation is required")
+
+
 def configuration_stage(samples, ui, dvr_allowed, minimum_log_count=0):
     observation = playback_samples(samples)
     expected = {"ui": ui, "revision": 1, "sourceType": "hls", "startOffset": 5, "autoplay": True,

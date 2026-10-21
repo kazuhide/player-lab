@@ -166,10 +166,26 @@ final class RuntimeChecks: XCTestCase {
         }
         let selected = try waitReport { value in
             let owner = value["owner"] as? [String: Any]
-            return (owner?["sample"] as? [String: Any])?["externalSubtitleSelected"] as? Bool == true && (owner?["cueEnter"] as? Int ?? 0) > 0
+            return (owner?["sample"] as? [String: Any])?["externalSubtitleSelected"] as? Bool == true
         }
+        let availableOwner = try XCTUnwrap(available["owner"] as? [String: Any])
+        let selectedOwner = try XCTUnwrap(selected["owner"] as? [String: Any])
+        let selectedSample = try XCTUnwrap(selectedOwner["sample"] as? [String: Any])
+        for key in ["generation", "sourceLoads", "sourceLoaded"] {
+            XCTAssertEqual(availableOwner[key] as? Int, selectedOwner[key] as? Int)
+        }
+        let baseline = max(availableOwner["cueEnter"] as? Int ?? 0, selectedOwner["cueEnter"] as? Int ?? 0)
+        let freshCue = try waitReport { value in
+            guard let owner = value["owner"] as? [String: Any], let sample = owner["sample"] as? [String: Any] else { return false }
+            return ["generation", "sourceLoads", "sourceLoaded"].allSatisfy { owner[$0] as? Int == selectedOwner[$0] as? Int } &&
+                sample["externalSubtitleSelected"] as? Bool == true &&
+                (sample["sequence"] as? Int ?? 0) > (selectedSample["sequence"] as? Int ?? 0) &&
+                (owner["cueEnter"] as? Int ?? 0) > baseline
+        }
+        result["externalCueSelection"] = [available, selected, freshCue]
         result["selectedExternalTrack"] = true
-        result["cueEventsObserved"] = (selected["owner"] as? [String: Any])?["cueEnter"]
+        result["freshCueAfterNativeSelection"] = true
+        result["cueEventsObserved"] = (freshCue["owner"] as? [String: Any])?["cueEnter"]
         gear.tap() // Close the actual Settings overlay before measuring movie pixels.
         result["phase"] = "external-subtitle-playback"
         _ = try playback("external-subtitles")
