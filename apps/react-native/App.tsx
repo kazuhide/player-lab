@@ -33,6 +33,9 @@ import { ConfigurationPanel } from "./src/ConfigurationPanel";
 import { configurationCode } from "./src/configurationCode";
 import { initialDraft, parseConfiguration, presetDraft, sameConfiguration, supportsSource, type Configuration } from "./src/configuration";
 import type { RuntimeAppState, RuntimeMonitor, RuntimeOwner } from "./src/runtimeObservation";
+import { ApiPanel } from "./src/ApiPanel";
+import { nativeEventProps } from "./src/apiEvents";
+import { apiValue } from "./src/apiValues";
 
 // Both keys flow from the repo-root .env via scripts/sync-env.sh → this app's .env
 // (EXPO_PUBLIC_* = client-embedded; license keys are domain-locked, not secret).
@@ -77,6 +80,7 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
   const [applied, setApplied] = useState(() => parseConfiguration(initialDraft(sources[0]!), platform));
   const [draft, setDraft] = useState(applied.draft);
   const [revision, setRevision] = useState(0);
+  const recreate = useCallback(() => setRevision((value) => value + 1), []);
   const [error, setError] = useState<string | null>(null);
   const [timeShiftEnabled, setTimeShiftEnabled] = useState(true);
   const [log, setLog] = useState<string[]>([]);
@@ -132,7 +136,7 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
       </View>
       <PlayerPane key={`${uiMode.label}:${revision}`} uiMode={uiMode} source={applied.source} playerConfig={applied.player}
         sources={sources} onSelectSource={selectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={setTimeShiftEnabled}
-        log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} />
+        log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} onRecreate={recreate} />
       <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
         onReset={() => { setDraft(applied.draft); setError(null); }}
         changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} appliedCode={appliedCode} />
@@ -152,9 +156,10 @@ interface PlayerPaneProps {
   append: (message: string) => void;
   onPlayerTouchChange: (owner: symbol, touching: boolean) => void;
   runtimeChecks?: RuntimeMonitor | undefined;
+  onRecreate: () => void;
 }
 
-function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange }: PlayerPaneProps): React.JSX.Element {
+function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange, onRecreate }: PlayerPaneProps): React.JSX.Element {
   const player = usePlayer(
     uiMode.factoryFunction
       ? {
@@ -173,6 +178,23 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
   const [viewReady, setViewReady] = useState(false);
   const snapshots = useRef<SnapshotController | null>(null);
   const active = useRef(true);
+  const [apiEvents, setApiEvents] = useState<string[]>([]);
+  const [recordingEvents, setRecordingEvents] = useState(true);
+  const recording = useRef(recordingEvents);
+  recording.current = recordingEvents;
+  const eventBuffer = useRef<string[]>([]);
+  const eventFlush = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const recordApiEvent = useCallback((name: string, event: unknown) => {
+    if (!active.current || !recording.current) return;
+    eventBuffer.current = [`${name}: ${apiValue(event).slice(0, 2000)}`, ...eventBuffer.current].slice(0, 80);
+    // Batch high-frequency bridge events rather than rendering once per callback.
+    if (!eventFlush.current) eventFlush.current = setTimeout(() => {
+      eventFlush.current = undefined;
+      if (active.current) setApiEvents(eventBuffer.current);
+    }, 125);
+  }, []);
+  const apiEventProps = useMemo(() => nativeEventProps(recordApiEvent), [recordApiEvent]);
+  useEffect(() => () => { if (eventFlush.current) clearTimeout(eventFlush.current); }, []);
   const observed = useRef<RuntimeOwner | null>(null);
   const touchOwner = useMemo(() => Symbol("player-touch"), []);
   const playerPointers = useRef(new Set<string>());
@@ -247,25 +269,28 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
         onTouchCancelCapture: finishPlayerTouch,
       } : {})}>
       <PlayerView
+        {...apiEventProps}
         player={player}
         style={styles.player}
         {...(viewConfig ? { config: viewConfig } : {})}
-        onPlayerViewReady={() => { if (active.current) { observed.current?.viewReady(); setViewReady(true); } }}
-        onTimeChanged={() => { if (active.current) { observed.current?.event("timeChanged"); void refresh(); } }}
-        onCueEnter={() => { if (active.current) observed.current?.event("cueEnter"); }}
-        onSourceLoaded={() => {
+        onPlayerViewReady={() => { if (active.current) { recordApiEvent("onPlayerViewReady", undefined); observed.current?.viewReady(); setViewReady(true); } }}
+        onTimeChanged={(event) => { apiEventProps.onTimeChanged?.(event); if (active.current) { observed.current?.event("timeChanged"); void refresh(); } }}
+        onCueEnter={(event) => { apiEventProps.onCueEnter?.(event); if (active.current) observed.current?.event("cueEnter"); }}
+        onSourceLoaded={(event) => {
+          apiEventProps.onSourceLoaded?.(event);
           if (!active.current) return;
           append("SourceLoaded");
           observed.current?.event("sourceLoaded");
           void refresh();
         }}
-        onTimeShifted={() => {
+        onTimeShifted={(event) => {
+          apiEventProps.onTimeShifted?.(event);
           if (!active.current) return;
           append("TimeShifted");
           void refresh();
         }}
-        onPlayerError={(event) => { if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Player error (${event.code})` : "Player error"); } }}
-        onSourceError={(event) => { if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Source error (${event.code})` : "Source error"); } }}
+        onPlayerError={(event) => { apiEventProps.onPlayerError?.(event); if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Player error (${event.code})` : "Player error"); } }}
+        onSourceError={(event) => { apiEventProps.onSourceError?.(event); if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Source error (${event.code})` : "Source error"); } }}
       />
       </View>
 
@@ -315,6 +340,8 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
           </Text>
         ))}
       </ScrollView>
+      <ApiPanel player={player} source={source} ready={viewReady} events={apiEvents} recording={recordingEvents}
+        onRecording={setRecordingEvents} onClearEvents={() => { eventBuffer.current = []; setApiEvents([]); }} onRecreate={onRecreate} />
     </>
   );
 }

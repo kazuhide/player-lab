@@ -12,6 +12,8 @@ const runtime = vi.hoisted(() => {
     getMaxTimeShift: ReturnType<typeof vi.fn>;
     isLive: ReturnType<typeof vi.fn>;
     getDuration: ReturnType<typeof vi.fn>;
+    setVolume: ReturnType<typeof vi.fn>;
+    getVolume: ReturnType<typeof vi.fn>;
   }> };
 });
 
@@ -39,6 +41,7 @@ vi.mock("bitmovin-player-react-native", async () => {
         isLive: vi.fn(async () => true), getDuration: vi.fn(async () => Infinity),
         getMaxTimeShift: vi.fn(async () => -900), getTimeShift: vi.fn(async () => 0),
         getCurrentTime: vi.fn(async () => 0),
+        setVolume: vi.fn(), getVolume: vi.fn(async () => 100), play: vi.fn(), pause: vi.fn(),
       };
       runtime.players.push(player);
       return player;
@@ -84,6 +87,41 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it("dispatches typed API arguments only after validation and displays the executed call", async () => {
+    await mount(); await ready(); await press("Show API experiments");
+    await text("Filter API operations", "setVolume"); await press("Player.setVolume");
+    await text("Volume (0–100)", "101"); await press("Run selected API");
+    expect(current().setVolume).not.toHaveBeenCalled();
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).toContain("Volume must be");
+    await text("Volume (0–100)", "37.5"); await press("Run selected API");
+    expect(current().setVolume).toHaveBeenLastCalledWith(37.5);
+    expect(element("Text", { accessibilityLabel: "Executed API code" }).props.children).toBe("player.setVolume(37.5)");
+  });
+
+  it("does not publish a retired API query result into the replacement player", async () => {
+    let complete!: (value: number) => void;
+    await mount(); await ready(); await press("Show API experiments");
+    current().getVolume.mockImplementationOnce(() => new Promise<number>((resolve) => { complete = resolve; }));
+    await text("Filter API operations", "getVolume"); await press("Player.getVolume"); await press("Run selected API");
+    await press("Sports"); await ready(); await press("Show API experiments");
+    await act(async () => complete(12345));
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).not.toContain("12345");
+  });
+
+  it("shows named event payloads, redacts credentials and ignores retired event proxies", async () => {
+    vi.useFakeTimers();
+    try {
+      await mount(); await ready(); await press("Show API experiments");
+      const oldView = element("PlayerView").props;
+      await act(async () => { oldView.onCastAvailable({ type: "castAvailable", device: "receiver", licenseKey: "PRIVATE" }); vi.advanceTimersByTime(125); });
+      const eventLog = () => element("Text", { accessibilityLabel: "API event log" }).props.children as string;
+      expect(eventLog()).toContain("onCastAvailable"); expect(eventLog()).toContain("receiver"); expect(eventLog()).not.toContain("PRIVATE");
+      await press("Sports"); await ready(); await press("Show API experiments");
+      await act(async () => { oldView.onCastAvailable({ type: "castAvailable", device: "retired-device" }); vi.advanceTimersByTime(125); });
+      expect(eventLog()).not.toContain("retired-device");
+    } finally { vi.useRealTimers(); }
+  });
+
   it("keeps Android SDK touches inside the player until every player pointer ends or cancels", async () => {
     await mount(); await ready();
     const playerArea = () => element("View", { testID: "player-lab-player" });
