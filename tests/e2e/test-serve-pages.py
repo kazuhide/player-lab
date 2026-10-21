@@ -1,14 +1,16 @@
 """Check the static test server's public-root boundary with owned temporary files."""
 from functools import partial
 from http.client import HTTPConnection
-from http.server import ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
 import runpy
 import tempfile
 import unittest
+from unittest.mock import patch
 
-PagesHandler = runpy.run_path(str(Path(__file__).with_name('serve-pages.py')))['PagesHandler']
+server_types = runpy.run_path(str(Path(__file__).with_name('serve-pages.py')))
+PagesHandler = server_types['PagesHandler']
+PagesServer = server_types['PagesServer']
 
 
 class PagesServerTests(unittest.TestCase):
@@ -26,7 +28,7 @@ class PagesServerTests(unittest.TestCase):
         (self.public / 'linked.txt').symlink_to(self.outside)
         for name in ['manifest.mpd', 'master.m3u8', 'part.m4s', 'captions.vtt']:
             (self.public / name).write_text('public-fixture')
-        self.server = ThreadingHTTPServer(('127.0.0.1', 0), partial(PagesHandler, directory=str(self.public)))
+        self.server = PagesServer(('127.0.0.1', 0), partial(PagesHandler, directory=str(self.public)))
         self.thread = Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
         self.addCleanup(self.close_server)
@@ -44,6 +46,16 @@ class PagesServerTests(unittest.TestCase):
             return response.status, response.getheader('Content-Type'), response.read()
         finally:
             connection.close()
+
+    def test_startup_uses_bound_address_without_hostname_lookup(self):
+        with patch("socket.getfqdn", side_effect=AssertionError("Startup must not resolve hostnames.")):
+            server = PagesServer(("127.0.0.1", 0), partial(PagesHandler, directory=str(self.public)))
+        try:
+            self.assertEqual(server.server_name, "127.0.0.1")
+            self.assertEqual(server.server_port, server.server_address[1])
+            self.assertGreater(server.server_port, 0)
+        finally:
+            server.server_close()
 
     def test_repeated_slash_never_serves_an_absolute_file_outside_public_root(self):
         path = '/player-lab/' + self.outside.as_posix()
