@@ -399,7 +399,7 @@ offset 5 seconds, autoplay, mute, maximum bitrate 2,500,000 bit/s and forward
 buffer 8 seconds retained. Sports and the disabled app DVR switch also remained
 selected. Native MP4 positions advanced from 6.778 to 11.178 seconds with visible
 video. This is playback/configuration evidence; Web heap measurements are
-documented separately in [Web performance](../../docs/web-performance.md).
+summarized separately in [Test results](https://kazuhide.github.io/player-lab/guide/test-results/).
 
 Additional source-only MP4 checks passed on iPhone in 81.745 seconds and Apple TV
 in 109.539 seconds. Both changed **Start muted** from on to off through the GUI,

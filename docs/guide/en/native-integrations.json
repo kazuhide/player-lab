@@ -131,7 +131,7 @@
       "type": "steps",
       "items": [
         "Install the official Vega SDK and documented prerequisites. Normal JavaScript installation, unit tests and type checks do not require the native SDK or a license.",
-        "Use the included application host. Generate its ignored runtime configuration before bundling; the build-only example below omits credentials.",
+        "Use the included application host. Generate its ignored runtime configuration from your local licenses before bundling.",
         "For licensed playback, load the repository-root .env with scripts/env-lib.sh and rerun runtime:config before rebuilding. It copies only the Player and optional Analytics licenses; index.js installs them before evaluating App. Authorize com.playerlab.vega on the Player license. Keep generated configuration, bundles, packages and logs private.",
         "Run build:vega through the Vega SDK environment. It creates JS/Hermes bundles and aarch64, armv7 and x86_64 Release packages. The generic workspace build does not run the native SDK.",
         "Start a Vega Virtual Device or connect a compatible device, verify its OS/profile, select its serial explicitly and launch the matching package. Check changing video frames and advancing SDK position together; a CLI ready message alone does not prove that the OS or app booted."
