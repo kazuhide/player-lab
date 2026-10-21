@@ -53,6 +53,7 @@ class AppleAdapterTests(unittest.TestCase):
         docc.member("Player", "timeShift", "Instance Properties", setter=True)
         docc.member("Player", "duration", "Instance Properties")
         docc.member("Player", "load(sourceConfig:)", "Instance Methods")
+        docc.member("Player", "load(source:)", "Instance Methods")
         docc.member("PlaybackConfig", "isMuted", "Instance Properties", platforms=("iOS",), deprecated=True)
         docc.member("PlaybackConfig", "init()", "Initializers")
         docc.member("PlayerListener", "onPlayed(_:player:)", "Instance Methods", event="PlayedEvent")
@@ -74,7 +75,7 @@ class AppleAdapterTests(unittest.TestCase):
         docc, scope = self.fixture()
         symbols, generic = apple.extract_symbols(docc, scope)
         by_id = {s["id"]: s for s in symbols}
-        self.assertEqual(len(symbols), 5)
+        self.assertEqual(len(symbols), 6)
         self.assertEqual(by_id["BitmovinPlayerCore.Player.timeShift"]["category"], "command")
         self.assertEqual(by_id["BitmovinPlayerCore.Player.duration"]["category"], "observation")
         muted = by_id["BitmovinPlayerCore.PlaybackConfig.isMuted"]
@@ -109,8 +110,8 @@ class AppleAdapterTests(unittest.TestCase):
                     "platformNotes": {"ios": [], "tvos": []}}
         with patch.object(apple.report, "_Repo"):
             data, inventory = apple.normalize(symbols, exposure, ".", apple.REVISION, {"sources": []}, generic)
-        self.assertEqual(len(inventory["ios"]), 5)
-        self.assertEqual(len(inventory["tvos"]), 4)
+        self.assertEqual(len(inventory["ios"]), 6)
+        self.assertEqual(len(inventory["tvos"]), 5)
         self.assertTrue(all(r["status"] == "missing" for a in data["applications"] for r in a["rows"]))
 
     def test_pinned_cache_uses_checksum_records_and_rejects_mismatch(self):
@@ -134,25 +135,70 @@ class AppleAdapterTests(unittest.TestCase):
         editable = {"SourceConfig.url", "SourceConfig.type", "SourceConfig.title", "SourceConfig.posterSource",
                     "SourceOptions.startOffset", "SourceOptions.startOffsetTimelineReference",
                     "PlaybackConfig.isAutoplayEnabled", "PlaybackConfig.isMuted", "PlaybackConfig.isTimeShiftEnabled",
-                    "AdaptationConfig.maxSelectableBitrate", "BufferMediaTypeConfig.forwardDuration"}
+                    "AdaptationConfig.maxSelectableBitrate", "BufferMediaTypeConfig.forwardDuration",
+                    "StyleConfig.scalingMode"}
         containers = {"SourceConfig.options", "BufferConfig.audioAndVideo", "PlayerConfig.playbackConfig",
-                      "PlayerConfig.adaptationConfig", "PlayerConfig.bufferConfig"}
+                      "PlayerConfig.adaptationConfig", "PlayerConfig.bufferConfig", "PlayerConfig.styleConfig"}
         for app, mapping in exposure["applications"].items():
             direct = {member.removeprefix("BitmovinPlayerCore.") for member, row in mapping.items()
                       if row["status"] == "direct" and not member.startswith("BitmovinPlayerCore.Player.")}
             self.assertEqual(direct, editable)
-            self.assertEqual(mapping["BitmovinPlayerCore.Player.load(sourceConfig:)"]["status"], "direct")
+            self.assertEqual(mapping["BitmovinPlayerCore.Player.load(source:)"]["status"], "direct")
+            self.assertNotIn("BitmovinPlayerCore.Player.load(sourceConfig:)", mapping)
             for member in containers | {"PlayerConfig.key"}:
                 self.assertEqual(mapping["BitmovinPlayerCore." + member]["status"], "code-only")
             self.assertEqual(mapping["BitmovinPlayerCore.Player.timeShift"]["status"], "preset")
             self.assertFalse(any(member.startswith("BitmovinPlayerCore.Player.load(")
-                                 and member != "BitmovinPlayerCore.Player.load(sourceConfig:)" for member in mapping))
+                                 and member != "BitmovinPlayerCore.Player.load(source:)" for member in mapping))
             for member in editable:
                 evidence = mapping["BitmovinPlayerCore." + member]["evidence"]
                 self.assertTrue(any(item["file"].endswith("ConfigurationEditor.swift") for item in evidence))
                 self.assertTrue(any(item["file"].endswith("Configuration.swift") for item in evidence))
+            scaling = mapping["BitmovinPlayerCore.StyleConfig.scalingMode"]["evidence"]
+            self.assertTrue(any(item["file"].endswith("ConfigurationCode.swift") for item in scaling))
+            self.assertTrue(any(item["symbol"] == "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+                                for item in mapping["BitmovinPlayerCore.Player.load(source:)"]["evidence"]))
         self.assertEqual(exposure["applications"]["ios"]["BitmovinPlayerCore.TimeChangedEvent"]["eventExposure"], "monitored")
         self.assertNotIn("BitmovinPlayerCore.StyleConfig.playerUiJs", exposure["applications"]["tvos"])
+
+    def test_current_load_route_leaves_the_config_overload_in_the_independent_denominator(self):
+        docc, scope = self.fixture()
+        symbols, generic = apple.extract_symbols(docc, scope)
+        exposure = json.loads((apple.HERE / "exposure.json").read_text())
+        member = "BitmovinPlayerCore.Player.load(source:)"
+        exposure["applications"] = {app: {member: mapping[member]}
+                                    for app, mapping in exposure["applications"].items()}
+        with patch.object(apple.report, "_Repo") as repository:
+            repository.return_value.read.return_value = b"fixture source bytes"
+            data, inventory = apple.normalize(symbols, exposure, ".", apple.REVISION, {"sources": []}, generic)
+        for app in data["applications"]:
+            rows = {row["id"]: row for row in app["rows"]}
+            self.assertEqual(rows[member]["status"], "direct")
+            self.assertEqual(rows["BitmovinPlayerCore.Player.load(sourceConfig:)"]["status"], "missing")
+            self.assertIn("BitmovinPlayerCore.Player.load(sourceConfig:)", inventory[app["id"]])
+
+    def test_initial_track_preferences_credit_runtime_consumers_without_inventing_config_fields(self):
+        exposure = json.loads((apple.HERE / "exposure.json").read_text())
+        for app, mapping in exposure["applications"].items():
+            for member in ["Player.audio", "Player.subtitle", "Player.availableAudio", "Player.availableSubtitles",
+                           "Player.currentTime", "ReadyEvent", "AudioChangedEvent", "SubtitleChangedEvent"]:
+                self.assertEqual(mapping["BitmovinPlayerCore." + member]["status"], "observed")
+            self.assertEqual(mapping["BitmovinPlayerCore.Player.setSubtitle(trackIdentifier:)"]["status"], "preset")
+            self.assertEqual(mapping["BitmovinPlayerCore.Player.setAudio(trackIdentifier:)"]["status"],
+                             "direct" if app == "ios" else "preset")
+            self.assertFalse(any("Language" in member and ".PlaybackConfig." in member for member in mapping))
+
+    def test_reviewed_source_bindings_point_to_the_current_application_symbols(self):
+        exposure = json.loads((apple.HERE / "exposure.json").read_text())
+        repository = apple.HERE.parents[2]
+        for app, mapping in exposure["applications"].items():
+            for member, row in mapping.items():
+                for evidence in row["evidence"]:
+                    with self.subTest(app=app, member=member, evidence=evidence):
+                        lines = (repository / evidence["file"]).read_text().splitlines()
+                        self.assertGreater(evidence["line"], 0)
+                        self.assertLessEqual(evidence["line"], len(lines))
+                        self.assertIn(evidence["symbol"], lines[evidence["line"] - 1])
 
 
 if __name__ == "__main__":
