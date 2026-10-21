@@ -201,3 +201,38 @@ python3 scripts/check-api-coverage.py
 The guide reads these same inputs; no percentage is maintained separately in
 HTML. Update both language editions when scope notes or exclusions change, then
 run `python3 scripts/test-user-guide.py` and the Pages build.
+
+## Android binary flavor
+
+The Android app uses the vendor's `+jason` flavor for Google Interactive Media
+Ads (IMA). The release version remains the value in the SDK table. The flavor
+relocates Media3 Java packages; standard source-archive hashes remain attached to
+the standard source inventory.
+
+`android/variant-contract.json` records both published artifact coordinates,
+archive and class hashes, raw public JVM signatures, and the original API IDs.
+The checker derives member presence and signature equivalence again. It permits
+only the explicit Media3 package relocation, rejects missing or recategorized
+IDs, and binds the archive hashes to the canonical report. It also checks the
+actual Gradle flavor and the snapshot checksum. This is an offline snapshot
+check; it does not claim to download the binaries on every run.
+
+To reproduce the comparison, point to the standard release's public
+`player-core-VERSION-sources.jar` and an external output directory:
+
+```sh
+python3 scripts/api-coverage/android/compare-variants.py \
+  --coverage-report docs/api-coverage/coverage.json \
+  --standard-source-jar /path/to/public-sdk-cache/player-core-VERSION-sources.jar \
+  --output-dir /path/to/api-refresh/android-variants
+```
+
+The release is read from the report. By default the command reuses Gradle's
+public artifact cache and fails if an archive is missing. Add
+`--download-missing` to fetch missing files from the vendor's public Artifactory.
+`--gradle-cache` selects another artifact-cache directory and `--javap` selects
+the JDK's declaration-inspection executable. Keep downloaded SDK archives and
+intermediate class files outside the checkout.
+
+The flavor requirement follows the
+[official IMA sample](https://github.com/bitmovin/bitmovin-player-android-samples/blob/main/ImaAdsKotlin/build.gradle).

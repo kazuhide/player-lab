@@ -37,6 +37,12 @@ SHARED_FIGURES = {
     'android-source-settings': (1080, 2400),
     'android-player-settings': (1080, 2400),
     'android-applied-code': (1080, 2400),
+    'android-api-callback': (1080, 2400),
+    'android-api-operation': (1080, 2400),
+    'android-api-state': (1080, 2400),
+    'android-api-events': (1080, 2400),
+    'android-offline-tracks': (1080, 2400),
+    'android-media-session': (1080, 2400),
     'ios-playback-tracks': (1668, 2420),
     'ios-initial-tracks': (1668, 2420),
     'ios-video-scaling': (1668, 2420),
@@ -56,7 +62,13 @@ SHARED_FIGURES = {
 }
 FIGURE_EXTENSIONS = {
     name: 'png' for name in (
-        'analytics-dashboard-overview', 'analytics-dashboard-errors', 'analytics-session-errors')
+        'analytics-dashboard-overview', 'analytics-dashboard-errors', 'analytics-session-errors',
+        'android-api-callback',
+        'android-api-operation',
+        'android-api-state',
+        'android-api-events',
+        'android-offline-tracks',
+        'android-media-session',)
 }
 
 

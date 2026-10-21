@@ -12,6 +12,10 @@
       "text": "Java 17 と Android SDK が必要です。Player 3.171.0 は compileSdk 37 を必要とするため、AGP 9.1.1 と Gradle 9.3.1 を使います。targetSdk 36、minSdk 23 は維持しています。CI と同じ platform 37.0（platforms;android-37.0）と Build Tools 36.0.0（build-tools;36.0.0）を導入します。SDK の場所は ANDROID_HOME、ANDROID_SDK_ROOT、または apps/android/local.properties で設定します。共通準備でライセンスと共有 UI を同期した後、リポジトリのルートから次を実行します。"
     },
     {
+      "type": "p",
+      "text": "このアプリはPlayer 3.171.0の+jason版を使います。Googleの広告SDK（Interactive Media Ads、IMA）に合わせた配布形式で、Media3の依存関係の名前空間が分かれています。APIの対応表は元のリリースの一覧を維持し、両方の公開配布物を照合します。標準版のソースのハッシュを+jason版のバイナリーの証跡として扱うことはしません。"
+    },
+    {
       "type": "code",
       "text": "cd apps/android\n./gradlew :app:assembleDebug"
     },
@@ -176,15 +180,118 @@
     },
     {
       "type": "h2",
-      "text": "オフラインのコード例"
+      "text": "SDKの詳細設定"
     },
     {
       "type": "p",
-      "text": "OfflineManager は OfflineContentManager を包む補助クラスです。ダウンロード候補を取得し、最小ビットレートの映像と先頭音声を選んで処理し、完了後の OfflineSourceConfig を取得する流れを示します。状態、進捗、削除、リソース解放の呼び出しもあります。"
+      "text": "SDK API settingsを開き、公開SDKのフィールド名で検索します。型に沿って値を編集し、Use this overrideで登録してからApply SDK settings and restartで適用します。登録だけでは再生は変わりません。詳細設定は標準フォームより優先されます。Remove this overrideの後に再度適用すると、標準フォームの値またはSDKの既定値へ戻ります。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "入力",
+        "例",
+        "確認すること"
+      ],
+      "widths": [
+        0.22,
+        0.3,
+        0.48
+      ],
+      "rows": [
+        [
+          "配列",
+          "SourceConfig.subtitleTracks / PlaylistConfig.sources",
+          "項目を追加して子フィールドを編集し、配列全体を登録します。字幕のdefault属性は字幕を有効にする操作ではありません。プレイリストの先読みは通信量やメモリ使用量が増える場合があります。"
+        ],
+        [
+          "Androidの実体",
+          "広告の表示領域 / SimpleCache / Cronet",
+          "実際のAndroidオブジェクトを生成します。CronetはGoogle Play開発者サービスの準備を終えてから適用します。キャッシュ設定は既存データを読み取るもので、通常の再生によってキャッシュを蓄積する設定ではありません。"
+        ],
+        [
+          "関数本体",
+          "LabelingConfig.videoQualityLabeler",
+          "inputを使うJavaScript関数の本体を入力します。返す値の型は各フィールドに表示します。登録・適用後に呼び出され、実行件数と代替処理の結果を確認できます。"
+        ],
+        [
+          "起動時の設定",
+          "DebugConfig.isLoggingEnabled",
+          "保存後にアプリを完全に終了して起動し直します。現在のプロセスの値と次回起動用の保存値を分けて表示します。デバッグログには機密情報が含まれる場合があるため、ローカルだけで扱ってください。"
+        ]
+      ]
+    },
+    {
+      "type": "code",
+      "text": "return input.height + 'p (' + Math.round(input.bitrate / 1000) + ' kbps)';"
+    },
+    {
+      "type": "figure",
+      "file": "android-api-callback",
+      "caption": "画質名を作る関数の適用例です。登録した関数と有効な上書き項目が表示されています。Applyが無効な状態は、未適用の変更がないことを示します。"
     },
     {
       "type": "note",
-      "text": "このクラスは MainActivity から呼ばれておらず、ダウンロード・オフライン再生・削除の操作 GUI はありません。画面で使える完成機能ではなく、別途画面と接続するためのコード例です。必要なサービス設定、保存容量、コンテンツとライセンス、通信を切った実再生も統合先で確認します。コンパイル成功はダウンロードやオフライン再生の成功を示しません。"
+      "title": "関数の実行",
+      "text": "関数には値の写しを渡し、各フィールドで定めた型の結果を受け取ります。Java・Android・Player・ファイル・ネットワークの実体にはアクセスできません。インタープリターは命令数・経過時間・スタックの上限を確認し、無効な結果では本来の処理を維持します。アプリと同じプロセスで動作し、メモリが別に隔離される仕組みではありません。レスポンスの前処理では全体をメモリへ読み込む場合があるため、必要なリクエスト種別だけを選んでください。"
+    },
+    {
+      "type": "h2",
+      "text": "SDKの操作・状態・イベント"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "SDK API controlsのCommandsでPlayer.seekを検索し、timeに5を入力してRun SDK APIを押します。この表示は要求を送ったことを示すもので、到達した再生位置は別に確認します。",
+        "StateでPlayer.currentTimeを検索し、Refresh SDK stateでSDKの現在値を読み取ります。Cast・広告・暗号化再生・VRの操作には、対応する素材・機器・接続先サービスなどが必要です。",
+        "Eventsではイベントの発生件数とSDKの時刻を確認します。0はまだ記録がないことを示します。PlayerViewのUIイベントは別の接頭辞で表示し、再生イベントはPlayer、ソースのイベントはSourceで購読します。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "android-api-operation",
+      "caption": "再生位置の引数を入力してseekを実行する画面です。"
+    },
+    {
+      "type": "figure",
+      "file": "android-api-state",
+      "caption": "seekの後にPlayer.currentTimeを読み取った例です。要求の送信結果とSDKの現在値を分けて確認します。"
+    },
+    {
+      "type": "figure",
+      "file": "android-api-events",
+      "caption": "Playingイベントの記録です。発生していないイベントは0のまま表示します。"
+    },
+    {
+      "type": "p",
+      "text": "Viewの操作では、全画面表示・ピクチャーインピクチャー・カスタムWeb UIのメッセージ処理を接続できます。全画面表示から戻るときはBackを使い、編集中の値は保持します。MediaSessionはAndroidのメディア操作へPlayerを接続します。VRレンダラーは実際のデコード用Surfaceを使うため、対応するソースのVR種別を設定してから有効にしてください。いずれも接続後に再生と状態を確認します。"
+    },
+    {
+      "type": "figure",
+      "file": "android-media-session",
+      "caption": "MediaSessionの操作画面です。現在のPlayerをAndroidのメディア操作へ接続します。外部機器での動作は利用環境によって異なります。"
+    },
+    {
+      "type": "h2",
+      "text": "オフライン保存と再生"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Offline controlsを開き、現在のソースと保存項目のIDからマネージャーを作成します。保存とセグメント取得の並列数、ネットワーク条件、オフラインのライセンス処理を必要に応じて設定します。",
+        "Fetch SDK optionsで候補を取得し、各トラックにDownload・Delete・Noneを指定して処理します。現在のトラック状態に合わない指定はSDKが拒否する場合があります。自動では選択しません。",
+        "マネージャーの完了状態を待ち、Play downloaded sourceで再生します。通信を無効にして映像と音声を確認してください。トラックの選択やビルドの成功だけでは、オフライン再生の確認にはなりません。",
+        "終了後は削除と解放の操作を使います。保存データとオフラインのライセンスには、必要な容量・権限・コンテンツの利用条件があります。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "android-offline-tracks",
+      "caption": "保存する音声トラックの選択例です。この画面は選択段階で、保存完了を示すものではありません。"
+    },
+    {
+      "type": "p",
+      "text": "Advanced offline source constructorでは、公開OfflineSourceConfigの引数を編集できます。ライセンスのキーセットを識別するバイト列は隠して入力し、オフライン再生への制限などを指定します。この操作で管理済みの保存データを取り込んだり、ライセンスを発行したりすることはできません。SDKで保存した素材はPlay downloaded sourceを使い、マネージャーから対応するキャッシュとトラックの情報を受け取ってください。"
     }
   ],
   "sources": [

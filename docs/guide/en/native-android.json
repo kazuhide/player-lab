@@ -12,6 +12,10 @@
       "text": "Java 17 and the Android SDK are required. Player 3.171.0 requires compileSdk 37; the project uses AGP 9.1.1 and Gradle 9.3.1, with targetSdk 36 and minSdk 23. Install platform 37.0 (platforms;android-37.0) and Build Tools 36.0.0 (build-tools;36.0.0), matching CI. Set the SDK location with ANDROID_HOME, ANDROID_SDK_ROOT, or apps/android/local.properties. After synchronizing licenses and the shared UI in the common preparation, run the following from the repository root."
     },
     {
+      "type": "p",
+      "text": "This app uses Player release 3.171.0 with the vendor's +jason artifact, as required by Google's Interactive Media Ads SDK (IMA). The flavor separates its Media3 dependency namespace. The API table retains the original release inventory and compares both published flavors; it does not relabel standard source hashes as +jason binary evidence."
+    },
+    {
       "type": "code",
       "text": "cd apps/android\n./gradlew :app:assembleDebug"
     },
@@ -176,15 +180,118 @@
     },
     {
       "type": "h2",
-      "text": "Offline code example"
+      "text": "Additional SDK settings"
     },
     {
       "type": "p",
-      "text": "OfflineManager is a helper around OfflineContentManager. It demonstrates retrieving download candidates, selecting the lowest-bitrate video and first audio track, downloading, and obtaining the resulting OfflineSourceConfig. It also includes calls for state, progress, deletion, and resource release."
+      "text": "Open SDK API settings and search for the public SDK field name. Edit its typed value, choose Use this override, then Apply SDK settings and restart. Staging alone does not change playback. The override takes precedence over the standard form; Remove this override restores the standard value or SDK default on the next Apply."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Input",
+        "Example",
+        "What to check"
+      ],
+      "widths": [
+        0.22,
+        0.3,
+        0.48
+      ],
+      "rows": [
+        [
+          "Collections",
+          "SourceConfig.subtitleTracks or PlaylistConfig.sources",
+          "Add items and edit their child fields. Stage the entire list. Subtitle default metadata does not enable captions; playlist preloading may increase network and memory use."
+        ],
+        [
+          "Native resources",
+          "Companion ad container, SimpleCache or Cronet engine",
+          "These controls create real Android objects. Prepare the Google Play services Cronet provider before applying Cronet. The cache tweak reads existing cached media; ordinary playback does not fill it."
+        ],
+        [
+          "Callback body",
+          "LabelingConfig.videoQualityLabeler",
+          "Enter a JavaScript function body using input. The field explains the return type. Stage and Apply before it runs. Inspect callback counts and fallback results afterward."
+        ],
+        [
+          "Startup-only setting",
+          "DebugConfig.isLoggingEnabled",
+          "Save the setting, fully stop the app and reopen it. The current process value and saved next-launch value are shown separately. Debug logs can contain confidential information; keep them local."
+        ]
+      ]
+    },
+    {
+      "type": "code",
+      "text": "return input.height + 'p (' + Math.round(input.bitrate / 1000) + ' kbps)';"
+    },
+    {
+      "type": "figure",
+      "file": "android-api-callback",
+      "caption": "An applied video-quality label callback. The staged body and active override are visible; the disabled Apply button indicates no pending change."
     },
     {
       "type": "note",
-      "text": "MainActivity does not call this class, and there is no GUI for downloading, offline playback, or deletion. It is an integration example that needs to be connected to a screen, not a completed screen feature. In the integrating app, check the required service configuration, storage space, content and licenses, and actual playback with networking disabled. Successful compilation does not prove that downloading or offline playback works."
+      "title": "Callback execution",
+      "text": "Scripts receive plain value snapshots and return the field's documented type. They have no Java, Android, Player, file or network object access. The interpreter checks instruction, elapsed-time and stack budgets and retains native behavior on an invalid result. This runs inside the app process, with no separate memory isolation. Response preprocessing can buffer a whole response; select only the request types you need."
+    },
+    {
+      "type": "h2",
+      "text": "SDK operations, state and events"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open SDK API controls, choose Commands and search for Player.seek. Enter 5 for time and Run SDK API. This submits the request; it does not establish the resulting playback position.",
+        "Choose State, search for Player.currentTime and Refresh SDK state. Read the actual SDK result. Cast, advertising, encrypted media and VR operations need their matching content, device or connected service.",
+        "Choose Events to inspect occurrence counts and SDK timestamps. A zero means the event has not been recorded. PlayerView UI events use a separate prefix; playback events are observed on Player and source events on Source."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "android-api-operation",
+      "caption": "Submitting a seek with an editable time argument."
+    },
+    {
+      "type": "figure",
+      "file": "android-api-state",
+      "caption": "Reading Player.currentTime after the seek. This is SDK state, separate from the command-submission message."
+    },
+    {
+      "type": "figure",
+      "file": "android-api-events",
+      "caption": "Recorded Playing events. Events with no occurrence remain at zero."
+    },
+    {
+      "type": "p",
+      "text": "View commands install fullscreen, picture-in-picture and custom Web UI message handlers. Fullscreen keeps editor drafts and returns with Back. MediaSession connects the player to Android's media controls. The VR renderer uses a real decoding surface; set a compatible source VR content type before enabling it. Check playback and state after changing any host integration."
+    },
+    {
+      "type": "figure",
+      "file": "android-media-session",
+      "caption": "The native MediaSession command. Enabling it connects the current player to Android media controls; external-device behavior depends on the host system."
+    },
+    {
+      "type": "h2",
+      "text": "Offline downloads and playback"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Offline controls. Use the current source and an item ID to create an offline manager. Apply the desired download and segment concurrency, network requirements and offline DRM handling before starting.",
+        "Fetch SDK options. Select Download, Delete or None for each track, then process the selected actions. The SDK can reject an action that does not match its track state. Nothing is selected automatically.",
+        "Wait for the manager's completed state, then use Play downloaded source. Check video and audio with networking disabled. Track selection or successful compilation alone does not prove offline playback.",
+        "Use the manager's delete and release actions when finished. Downloaded files and offline licenses need the required space, permissions and content rights."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "android-offline-tracks",
+      "caption": "Selecting an audio track for download. This figure shows the selection step, before completion is established."
+    },
+    {
+      "type": "p",
+      "text": "Advanced offline source constructor edits the public OfflineSourceConfig inputs, including hidden DRM key-set bytes and the restriction to offline playback. It does not import a managed download or issue a license. For SDK-managed downloads, use Play downloaded source so the manager supplies the matching cache and track metadata."
     }
   ],
   "sources": [

@@ -847,5 +847,7 @@
     "player/com.bitmovin.player.api/-player-builder/index.html": "c82163a75c0a76e404ece9ccf56d77cd8e8bd184511e9680cd9466c316a014d2",
     "player/com.bitmovin.player.api/index.html": "a11806a01fbc89027275023c4d42ff0b80b33e0f668d1a07a701304debfcd401"
   },
-  "hashNote": "Document hashes cover normalized public declaration kind/name/signature/deprecation only; descriptions and mutable CDN markup are excluded. Official source-archive hashes cover original distribution bytes."
+  "hashNote": "Document hashes cover normalized public declaration kind/name/signature/deprecation only; descriptions and mutable CDN markup are excluded. Official source-archive hashes cover original distribution bytes.",
+  "appVariant": "+jason",
+  "variantContractSha256": "562130d36815b4f5e3ceaa15da18abf26972d869891f68154baae6162b615725"
 }
