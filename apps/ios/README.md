@@ -556,3 +556,22 @@ an existing public build/package cache; they are not required private helpers.
 These checks establish simulator configuration, track selection, rendering
 geometry and playback. They do not measure bitrate enforcement, buffering
 performance, physical devices, DRM, casting or Analytics receipt.
+
+On 2026-10-21, the public runner passed both cases on each destination below
+with Player 3.128.0 and the normal `com.playerlab.ios` / `com.playerlab.tvos`
+app identities. Xcode generation, build and test exited zero; each finalized
+result contained two passes, zero failures and zero skipped tests.
+
+| Destination | Hosted SDK case | Normal GUI case |
+| --- | --- | --- |
+| iPad Pro 11-inch (M5) / iPadOS 26.4 | 9.403 s | 172.160 s |
+| Apple TV 4K (3rd generation) / tvOS 26.4 | 9.981 s | 277.297 s |
+
+The hostless configuration schemes passed 14 tests each. The runner file-ownership
+suite passed four tests, and the exact generated Ready-based Swift examples
+typechecked for both platforms. The iPad negative control deliberately expected
+English while the GUI requested German: it failed the current-selection check
+in 101.448 seconds, with one failed case and no skips. The inspected normal-GUI
+captures show the new settings, native German subtitles and placeholder-only
+applied code. The separate square-viewport captures show Fit letterboxing,
+Fill cropping and Stretch distortion; they are test surfaces, not the app layout.
