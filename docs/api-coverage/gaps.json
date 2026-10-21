@@ -5449,12 +5449,7 @@
           "apis": [
             "Player.timeShift",
             "PlayerConfig.styleConfig.playerUiCss",
-            "PlayerConfig.styleConfig.playerUiJs"
-          ]
-        },
-        {
-          "reason": "native-sdk-object-adapter-not-implemented-780b4d492d",
-          "apis": [
+            "PlayerConfig.styleConfig.playerUiJs",
             "WebUiConfig.variant"
           ]
         }
