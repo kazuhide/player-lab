@@ -109,6 +109,29 @@ def playback_samples(samples):
     return {"owner": owners[0], "times": times, "duration": samples[-1]["owner"]["sample"]["duration"]}
 
 
+def external_subtitle_paused(loaded, paused):
+    """Bind the autoplay-off menu precondition to a fresh current-source sample."""
+    identity = None
+    for value in [loaded, paused]:
+        validate_report(value)
+        app, owner = value["app"], value["owner"]
+        expected = {"ui": "Default", "sourceType": "hls", "startOffset": 1,
+                    "autoplay": False, "startupMuted": True, "externalSubtitleConfigured": True}
+        if app is None or any(app[key] != expected_value for key, expected_value in expected.items()):
+            raise ValueError("The external subtitle fixture requires the applied autoplay-off form")
+        if owner is None or owner["sample"] is None or not owner["viewReady"] or owner["generation"] < 1 or owner["sourceLoads"] < 1 or owner["sourceLoaded"] < 1 or owner["errors"] or owner["readFailures"]:
+            raise ValueError("The paused subtitle menu requires a current successful source")
+        current = tuple(owner[key] for key in ["generation", "sourceLoads", "sourceLoaded"])
+        if identity is None: identity = current
+        if current != identity:
+            raise ValueError("The paused subtitle menu crossed the owner or source epoch")
+        sample = owner["sample"]
+        if not sample["externalSubtitleAvailable"] or sample["live"] or not sample["muted"] or sample["duration"] is None or not 59 < sample["duration"] < 61:
+            raise ValueError("The paused external subtitle fixture was not established")
+    if paused["owner"]["sample"]["playing"] or paused["owner"]["sample"]["sequence"] <= loaded["owner"]["sample"]["sequence"]:
+        raise ValueError("A fresh paused native sample after source readiness is required")
+
+
 def external_cue_selection(before, selected, after):
     """Bind a new cue to the selected external track's current source epoch."""
     identity = None

@@ -1,6 +1,6 @@
 import copy
 import unittest
-from report import configuration_stages, external_cue_selection, playback_samples, validate_report
+from report import configuration_stages, external_cue_selection, external_subtitle_paused, playback_samples, validate_report
 
 
 def report():
@@ -13,6 +13,34 @@ def report():
 
 
 class SafeReportTests(unittest.TestCase):
+    def test_external_menu_starts_paused_on_the_current_successful_source(self):
+        loaded, paused = [copy.deepcopy(report()) for _ in range(2)]
+        for index, value in enumerate([loaded, paused]):
+            value["app"] = {"ui": "Default", "revision": 1, "sourceType": "hls", "startOffset": 1,
+                            "autoplay": False, "startupMuted": True, "forwardBuffer": None,
+                            "maxBitrate": None, "dvrAllowed": True, "externalSubtitleConfigured": True,
+                            "logCount": 1}
+            value["owner"]["sample"].update(sequence=index + 1, time=1, playing=False,
+                                            externalSubtitleAvailable=True)
+        external_subtitle_paused(loaded, paused)
+        for mutation in [lambda v: v[1]["app"].update(autoplay=True),
+                         lambda v: v[0]["app"].update(autoplay=True),
+                         lambda v: v[1]["app"].update(externalSubtitleConfigured=False),
+                         lambda v: v[1]["owner"]["sample"].update(playing=True),
+                         lambda v: v[1]["owner"]["sample"].update(muted=False),
+                         lambda v: v[1]["owner"]["sample"].update(sequence=1),
+                         lambda v: v[1]["owner"]["sample"].update(externalSubtitleAvailable=False),
+                         lambda v: v[1]["owner"].update(generation=2),
+                         lambda v: v[1]["owner"].update(sourceLoads=2),
+                         lambda v: v[1]["owner"].update(sourceLoaded=2),
+                         lambda v: v[1]["owner"].update(viewReady=False),
+                         lambda v: v[0]["owner"].update(sourceLoads=0),
+                         lambda v: v[0]["owner"].update(sourceLoaded=0),
+                         lambda v: v[0]["owner"].update(errors=1),
+                         lambda v: v[1]["owner"].update(readFailures=1)]:
+            values = copy.deepcopy([loaded, paused]); mutation(values)
+            with self.assertRaises(ValueError): external_subtitle_paused(*values)
+
     def test_external_selection_requires_a_fresh_same_source_cue_after_selection(self):
         before, selected, after = [copy.deepcopy(report()) for _ in range(3)]
         for index, value in enumerate([before, selected, after]):

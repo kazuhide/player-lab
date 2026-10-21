@@ -13,7 +13,7 @@ import time
 import urllib.request
 from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
-from report import external_cue_selection
+from report import external_cue_selection, external_subtitle_paused
 
 
 def safe_url(value):
@@ -77,15 +77,22 @@ def main():
         edit("Subtitle language", "EN-us")
         ui.switch("Mark as default", True)
         edit("Start offset (seconds)", "1")
-        ui.switch("Autoplay", True); ui.switch("Mute on startup", True)
+        ui.switch("Autoplay", False); ui.switch("Mute on startup", True)
         ui.button("Apply and recreate player"); ui.button("Hide configuration"); ui.top()
         result["phase"] = "external-subtitle-menu"
-        before_selection = ui.wait_report(lambda v: v["owner"] is not None and v["owner"]["sample"] is not None and v["owner"]["sample"]["externalSubtitleAvailable"])
-        # Keep the finite fixture available during slower native menu traversal.
-        # Core checks separately qualify autoplay; this case uses actual SDK UI.
-        ui.pause_visible()
-        before_selection = ui.wait_report(lambda v: v["owner"] is not None and v["owner"]["sample"] is not None and not v["owner"]["sample"]["playing"])
-        result["subtitleMenuPausedByVisibleSdkControl"] = True
+        loaded = ui.wait_report(lambda v: v["owner"] is not None and v["owner"]["viewReady"] and
+                                v["owner"]["sourceLoads"] > 0 and v["owner"]["sourceLoaded"] > 0 and
+                                not v["owner"]["errors"] and not v["owner"]["readFailures"] and
+                                v["owner"]["sample"] is not None and v["owner"]["sample"]["externalSubtitleAvailable"])
+        # The normal form keeps the finite fixture paused during menu traversal.
+        # Core checks separately qualify autoplay and actual SDK Pause/Play.
+        def paused_current_source(value):
+            try: external_subtitle_paused(loaded, value); return True
+            except ValueError: return False
+        before_selection = ui.wait_report(paused_current_source)
+        external_subtitle_paused(loaded, before_selection)
+        result["subtitleMenuInitiallyPausedThroughForm"] = True
+        result["externalSubtitlePausedSource"] = [loaded, before_selection]
         def external(tree):
             return next((n for n in tree.iter("node") if ui.visible(n) and any("external english" in n.get(k, "").casefold() for k in ["text", "content-desc"])), None)
         def subtitles(tree):

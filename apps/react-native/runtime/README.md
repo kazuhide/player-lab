@@ -83,10 +83,12 @@ new cue after that selected-track observation. Earlier embedded/default cues
 cannot satisfy this gate. The iOS test handles UI 4.23's unlabeled
 WKWebView menu-item roles using its public SmallScreen menu structure and the
 fixture's track order; the native selected external track and cue remain required.
-Android pauses with the visible SDK control while traversing the finite
-fixture's menu, then explicitly plays after selecting the external track. Each
-playback touch requires fresh native state from the same owner: an opacity-hidden
-control may consume the first touch only to reveal the bar. If a compact menu
+Android applies **Autoplay OFF** through the normal form and requires a fresh
+paused native sample on that successful current owner/source before traversing
+the finite fixture's menu. It explicitly uses the visible SDK Play control after
+selecting the external track; this case does not qualify autoplay. Each playback
+touch requires fresh native state from the same owner: an opacity-hidden control
+may consume the first touch only to reveal the bar. If a compact menu
 row is clipped, normal OS Tab input moves focus until the actual row is fully
 inside its scrollable panel. Android additionally requires visible fixture text;
 iOS qualifies selected-track, fresh-cue and moving-video observations.
