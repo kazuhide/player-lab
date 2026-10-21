@@ -43,6 +43,19 @@ def coverage_fixture():
     return data, summarize(data)
 
 
+def gap_fixture(report):
+    from coverage_gaps import needs_gui_route
+    return {'schemaVersion': 1, 'checkedAt': report['checkedAt'],
+            'reportInputSha256': summarize(report)['inputSha256'],
+            'reasons': {'fixture-gap': {'kind': 'implementation',
+                'en': {'reason': 'The app has no editable or visible route.', 'action': 'Add a typed app control.'},
+                'ja': {'reason': '編集・表示の経路がありません。', 'action': '型に合う操作を追加します。'},
+                'references': []}},
+            'applications': [{'id': app['id'], 'groups': [{'reason': 'fixture-gap',
+                'apis': [row['id'] for row in app['rows'] if needs_gui_route(row)]}]}
+                for app in report['applications']]}
+
+
 class Links(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -95,6 +108,27 @@ class GuideTests(unittest.TestCase):
     def test_published_content_builds_with_the_actual_api_report(self):
         pages = build(load_content(ROOT / 'docs/guide'))
         self.assertEqual(set(pages), GUIDE_FILES)
+
+    def test_every_incomplete_api_route_has_a_static_bilingual_reason_and_action(self):
+        from coverage_gaps import validate_gaps
+        content = load_content(ROOT / 'docs/guide')
+        report, _ = content.coverage
+        gaps = json.loads((ROOT / 'docs/api-coverage/gaps.json').read_text())
+        assessments = validate_gaps(gaps, report)
+        pages = build(content)
+        for language in ('en', 'ja'):
+            search = json.loads(pages[f'{"ja/" if language == "ja" else ""}guide/search-index.json'])
+            api_search = {item['url']: item for item in search if item['kind'] == 'api'}
+            for app in report['applications']:
+                page = pages[route_file(language, 'api-coverage/' + app['id'])].decode()
+                self.assertEqual(page.count('data-api-gap='), len(assessments[app['id']]))
+                self.assertEqual(page.count('data-api-id='), len(app['rows']))
+                for api, reason in assessments[app['id']].items():
+                    self.assertIn(escape(reason[language]['reason']), page)
+                    self.assertIn(escape(reason[language]['action']), page)
+                    target = 'api-coverage/' + app['id'] + '/#' + api_anchor(api)
+                    self.assertIn(reason[language]['reason'], api_search[target]['text'])
+                    self.assertIn(reason[language]['action'], api_search[target]['text'])
 
     def test_reworded_player_headings_keep_their_published_bookmarks(self):
         bookmarks = {
@@ -432,7 +466,7 @@ class GuideTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build(self.content, coverage=(changed, summarize(changed)))
 
-    def test_default_loader_requires_report_and_summary_in_repository_context(self):
+    def test_default_loader_requires_report_summary_and_gap_reasons(self):
         with tempfile.TemporaryDirectory() as directory:
             docs = Path(directory) / 'docs'
             for language in ('en', 'ja'):
@@ -448,7 +482,16 @@ class GuideTests(unittest.TestCase):
             with self.assertRaises(FileNotFoundError):
                 load_content(docs / 'guide')
             (folder / 'summary.json').write_text(json.dumps(self.summary))
-            self.assertEqual(build(load_content(docs / 'guide')), self.pages)
+            with self.assertRaises(FileNotFoundError):
+                load_content(docs / 'guide')
+            gaps = gap_fixture(self.report)
+            (folder / 'gaps.json').write_text(json.dumps(gaps))
+            expected = build(self.content, gaps=gaps)
+            self.assertEqual(build(load_content(docs / 'guide')), expected)
+            gaps['reportInputSha256'] = '0' * 64
+            (folder / 'gaps.json').write_text(json.dumps(gaps))
+            with self.assertRaises(ValueError):
+                build(load_content(docs / 'guide'))
 
 
 if __name__ == '__main__':

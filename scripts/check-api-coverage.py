@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 
 from coverage_report import CoverageError, _load, check_summary, resolve_versions, validate
+from coverage_gaps import validate_gaps
 
 
 FACTS = ('id', 'category', 'scope', 'deprecated', 'officialReference')
@@ -70,6 +71,7 @@ def check(repo, directory):
     validate(data, repo, versions=versions, inventory_ids=inventory)
     check_native(data, directory)
     check_summary(data, _load(directory / 'summary.json'))
+    validate_gaps(_load(directory / 'gaps.json'), data)
     subprocess.run(['node', str(repo / 'scripts/api-coverage/extract-installed.cjs'),
                     '--repo', str(repo), '--check', str(directory / 'coverage.json')], check=True)
     return data

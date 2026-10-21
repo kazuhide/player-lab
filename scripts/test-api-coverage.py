@@ -467,5 +467,193 @@ class NativeSnapshotTests(unittest.TestCase):
                 self.check(snapshots=snapshots)
 
 
+class CoverageGapTests(unittest.TestCase):
+    def setUp(self):
+        from coverage_gaps import needs_gui_route, validate_gaps
+        self.needs_gui_route = needs_gui_route
+        self.validate_gaps = validate_gaps
+        rows = []
+        for name, category, status in [
+                ("autoplay", "configuration", "direct"),
+                ("theme", "configuration", "preset"),
+                ("callback", "configuration", "code-only"),
+                ("configRead", "configuration", "observed"),
+                ("play", "command", "direct"),
+                ("speed", "command", "preset"),
+                ("initialize", "command", "internal"),
+                ("volume", "command", "missing"),
+                ("time", "observation", "observed"),
+                ("state", "observation", "code-only"),
+                ("playing", "event", "observed"),
+                ("warning", "event", "missing")]:
+            rows.append({"id": "Player." + name, "category": category, "scope": "Player",
+                "deprecated": False, "status": status,
+                "officialReference": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerAPI.html",
+                "evidence": []})
+        self.report = {"schemaVersion": 1, "checkedAt": "2026-10-20", "sourceRevision": "a" * 40,
+            "sdks": [], "applications": [
+                {"id": "web", "sdkId": "web", "platform": "Web", "rows": rows,
+                 "excluded": [{"id": "Player.generated", "reason": "Generated helper alias."}], "scopeNotes": []},
+                {"id": "covered", "sdkId": "web", "platform": "Web", "rows": [rows[0]],
+                 "excluded": [], "scopeNotes": []}]}
+        self.gaps = {"schemaVersion": 1, "checkedAt": "2026-10-20",
+            "reportInputSha256": summarize(self.report)["inputSha256"],
+            "reasons": {
+                "editor-missing": {"kind": "implementation",
+                    "en": {"reason": "The app lacks an editor or visible route.", "action": "Add a typed user control."},
+                    "ja": {"reason": "編集・表示経路が未実装です。", "action": "型付きの操作経路を実装します。"},
+                    "references": []},
+                "callback-contract": {"kind": "input-contract",
+                    "en": {"reason": "The API accepts a function rather than JSON.", "action": "Provide a typed callback strategy."},
+                    "ja": {"reason": "JSON値ではなく関数を受け取ります。", "action": "型付き処理を選択できるようにします。"},
+                    "references": ["https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerAPI.html"]}},
+            "applications": [
+                {"id": "web", "groups": [
+                    {"reason": "editor-missing", "apis": ["Player.theme", "Player.configRead", "Player.speed",
+                        "Player.initialize", "Player.volume", "Player.state", "Player.warning"]},
+                    {"reason": "callback-contract", "apis": ["Player.callback"]}]},
+                {"id": "covered", "groups": []}]}
+
+    def test_complete_reasons_preserve_api_statuses_and_denominators(self):
+        before_report, before_gaps = copy.deepcopy(self.report), copy.deepcopy(self.gaps)
+        result = self.validate_gaps(self.gaps, self.report)
+        self.assertEqual(set(result), {"web", "covered"})
+        self.assertEqual(set(result["web"]), {"Player.theme", "Player.callback", "Player.configRead",
+            "Player.speed", "Player.initialize", "Player.volume", "Player.state", "Player.warning"})
+        self.assertEqual(result["covered"], {})
+        self.assertEqual(result["web"]["Player.callback"],
+            {"id": "callback-contract", **self.gaps["reasons"]["callback-contract"]})
+        self.assertIsNot(result["web"]["Player.callback"], self.gaps["reasons"]["callback-contract"])
+        self.assertEqual(self.report, before_report)
+        self.assertEqual(self.gaps, before_gaps)
+        self.assertEqual(summarize(self.report), summarize(before_report))
+
+    def test_route_requirement_distinguishes_value_inputs_from_visible_reads(self):
+        statuses = ("direct", "preset", "observed", "internal", "code-only", "missing", "sdk-ui-unverified")
+        for category in ("configuration", "command", "observation", "event"):
+            visible = {"direct"} if category in ("configuration", "command") else {"direct", "preset", "observed"}
+            for status in statuses:
+                with self.subTest(category=category, status=status):
+                    self.assertEqual(self.needs_gui_route({"category": category, "status": status}), status not in visible)
+        for row in ({"category": "invented", "status": "missing"}, {"category": "event", "status": "invented"}):
+            with self.subTest(row=row), self.assertRaises(CoverageError):
+                self.needs_gui_route(row)
+
+    def test_an_inventory_without_gaps_needs_no_invented_explanations(self):
+        self.report["applications"] = [self.report["applications"][1]]
+        self.gaps["reportInputSha256"] = summarize(self.report)["inputSha256"]
+        self.gaps["reasons"] = {}
+        self.gaps["applications"] = [{"id": "covered", "groups": []}]
+        self.assertEqual(self.validate_gaps(self.gaps, self.report), {"covered": {}})
+
+    def test_report_change_invalidates_the_bound_reason_inventory(self):
+        self.report["applications"][0]["rows"][0]["status"] = "missing"
+        with self.assertRaisesRegex(CoverageError, "hash|fingerprint|stale"):
+            self.validate_gaps(self.gaps, self.report)
+        self.gaps["reportInputSha256"] = summarize(self.report)["inputSha256"]
+        with self.assertRaisesRegex(CoverageError, "missing|match|complete"):
+            self.validate_gaps(self.gaps, self.report)
+
+    def test_missing_unknown_excluded_and_fully_exposed_members_are_rejected(self):
+        for change in ("missing", "unknown", "excluded", "direct", "visible-read", "visible-event"):
+            gaps = copy.deepcopy(self.gaps)
+            apis = gaps["applications"][0]["groups"][0]["apis"]
+            if change == "missing":
+                apis.remove("Player.volume")
+            else:
+                apis.append({"unknown": "Player.invented", "excluded": "Player.generated",
+                    "direct": "Player.play", "visible-read": "Player.time", "visible-event": "Player.playing"}[change])
+            with self.subTest(change=change), self.assertRaises(CoverageError):
+                self.validate_gaps(gaps, self.report)
+
+    def test_duplicate_member_within_or_across_groups_is_rejected(self):
+        for index in (0, 1):
+            gaps = copy.deepcopy(self.gaps)
+            gaps["applications"][0]["groups"][index]["apis"].append("Player.volume")
+            with self.subTest(group=index), self.assertRaisesRegex(CoverageError, "Duplicate|duplicate"):
+                self.validate_gaps(gaps, self.report)
+
+    def test_application_inventory_is_exact_even_when_an_app_has_no_gaps(self):
+        for change in ("missing", "extra", "duplicate"):
+            gaps = copy.deepcopy(self.gaps)
+            apps = gaps["applications"]
+            if change == "missing":
+                apps.pop()
+            elif change == "extra":
+                apps.append({"id": "unknown", "groups": []})
+            else:
+                apps.append(copy.deepcopy(apps[0]))
+            with self.subTest(change=change), self.assertRaises(CoverageError):
+                self.validate_gaps(gaps, self.report)
+
+    def test_reason_catalog_rejects_unknown_unused_and_unstable_ids(self):
+        for change in ("unknown", "unused", "unstable"):
+            gaps = copy.deepcopy(self.gaps)
+            if change == "unknown":
+                gaps["applications"][0]["groups"][0]["reason"] = "unknown"
+            elif change == "unused":
+                gaps["reasons"]["unused-reason"] = copy.deepcopy(gaps["reasons"]["editor-missing"])
+            else:
+                gaps["reasons"]["Unstable ID"] = gaps["reasons"].pop("editor-missing")
+                gaps["applications"][0]["groups"][0]["reason"] = "Unstable ID"
+            with self.subTest(change=change), self.assertRaises(CoverageError):
+                self.validate_gaps(gaps, self.report)
+
+    def test_reason_and_action_are_required_in_both_languages(self):
+        for language in ("en", "ja"):
+            for field in ("reason", "action"):
+                for invalid in (None, "", " \n", "invalid\x00value"):
+                    gaps = copy.deepcopy(self.gaps)
+                    gaps["reasons"]["editor-missing"][language][field] = invalid
+                    with self.subTest(language=language, field=field, invalid=invalid), self.assertRaises(CoverageError):
+                        self.validate_gaps(gaps, self.report)
+            gaps = copy.deepcopy(self.gaps)
+            del gaps["reasons"]["editor-missing"][language]
+            with self.subTest(missing_language=language), self.assertRaises(CoverageError):
+                self.validate_gaps(gaps, self.report)
+
+    def test_references_are_safe_primary_vendor_urls_and_required_arrays(self):
+        for references in (None, "https://cdn.bitmovin.com/player/", ["http://cdn.bitmovin.com/player/"],
+                ["https://example.invalid/"], ["https://cdn.bitmovin.com/player/../secret"],
+                ["https://user:secret@cdn.bitmovin.com/player/"], ["https://cdn.bitmovin.com/player/%252e%252e/secret"]):
+            gaps = copy.deepcopy(self.gaps)
+            gaps["reasons"]["editor-missing"]["references"] = references
+            with self.subTest(references=references), self.assertRaises(CoverageError):
+                self.validate_gaps(gaps, self.report)
+        gaps = copy.deepcopy(self.gaps)
+        del gaps["reasons"]["editor-missing"]["references"]
+        with self.assertRaises(CoverageError):
+            self.validate_gaps(gaps, self.report)
+
+    def test_unknown_schema_fields_kinds_and_invalid_dates_are_rejected(self):
+        for field, value in (("schemaVersion", 2), ("schemaVersion", True),
+                ("checkedAt", "2026-02-30"), ("checkedAt", "2026-10-19"), ("checkedAt", "2026-1-1"),
+                ("reportInputSha256", "not-a-hash"), ("unexpected", True)):
+            gaps = copy.deepcopy(self.gaps)
+            gaps[field] = value
+            with self.subTest(field=field, value=value), self.assertRaises(CoverageError):
+                self.validate_gaps(gaps, self.report)
+        gaps = copy.deepcopy(self.gaps)
+        gaps["reasons"]["editor-missing"]["kind"] = "sdk-impossible"
+        with self.assertRaises(CoverageError):
+            self.validate_gaps(gaps, self.report)
+
+    def test_nested_schema_cannot_hide_overrides_or_empty_reason_groups(self):
+        for location in ("reason", "translation", "application", "group", "empty-group"):
+            gaps = copy.deepcopy(self.gaps)
+            if location == "reason":
+                gaps["reasons"]["editor-missing"]["notes"] = "Unvalidated override"
+            elif location == "translation":
+                gaps["reasons"]["editor-missing"]["en"]["status"] = "direct"
+            elif location == "application":
+                gaps["applications"][0]["excluded"] = ["Player.volume"]
+            elif location == "group":
+                gaps["applications"][0]["groups"][0]["status"] = "direct"
+            else:
+                gaps["applications"][0]["groups"][0]["apis"] = []
+            with self.subTest(location=location), self.assertRaises(CoverageError):
+                self.validate_gaps(gaps, self.report)
+
+
 if __name__ == "__main__":
     unittest.main()

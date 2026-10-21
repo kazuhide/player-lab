@@ -19,6 +19,16 @@ interface CoverageReport {
   sdks: { id: string; version: string; latestVersion: string; latestCheckedAt: string }[];
   applications: CoverageApplication[];
 }
+interface GapReason {
+  kind: "implementation" | "input-contract";
+  en: { reason: string; action: string };
+  ja: { reason: string; action: string };
+  references: string[];
+}
+interface GapReport {
+  reasons: Record<string, GapReason>;
+  applications: { id: string; groups: { reason: string; apis: string[] }[] }[];
+}
 interface HeldHashChanges {
   pending: { oldURL: string; newURL: string }[];
   releaseNext: () => void;
@@ -30,6 +40,11 @@ declare global {
 const languages: Language[] = ["en", "ja"];
 const contentRoot = resolve(__dirname, "../../../docs/guide");
 const coverage = JSON.parse(readFileSync(resolve(contentRoot, "../api-coverage/coverage.json"), "utf8")) as CoverageReport;
+const gapReport = JSON.parse(readFileSync(resolve(contentRoot, "../api-coverage/gaps.json"), "utf8")) as GapReport;
+const gapAssessments = Object.fromEntries(gapReport.applications.map((app) => [app.id,
+  Object.fromEntries(app.groups.flatMap((group) => group.apis.map((api) =>
+    [api, { id: group.reason, ...gapReport.reasons[group.reason]! }]))),
+]));
 const uiCoverage = coverage.applications.find((app) => app.id === "web-ui")!;
 const longUIField = uiCoverage.rows.filter((row) => row.category === "configuration")
   .reduce((longest, row) => row.id.length > longest.id.length ? row : longest);
@@ -113,6 +128,26 @@ test.afterEach(({ page }) => {
 
 for (const language of languages) {
   test.describe(`user guide (${language})`, () => {
+    test("API gap reasons open with the keyboard and remain readable on narrow screens", async ({ page }) => {
+      await page.goto(guidePath(language, "api-coverage/web-ui"));
+      const [api, assessment] = Object.entries(gapAssessments["web-ui"]!)
+        .find(([, item]) => item.kind === "input-contract")!;
+      const row = page.getByText(api, { exact: true }).locator("xpath=ancestor::tr");
+      const panel = row.locator(".guide-api-gap");
+      await panel.locator("summary").focus();
+      await page.keyboard.press("Enter");
+      await expect(panel).toHaveAttribute("open", "");
+      await expect(panel.locator("dd").first()).toHaveText(assessment[language].reason);
+      await expect(panel.locator("dd").last()).toHaveText(assessment[language].action);
+      await expect(panel.locator("a").first()).toHaveAttribute("href", assessment.references[0]!);
+      for (const width of [320, 375, 768, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        await expectNoDocumentOverflow(page);
+        expect(await panel.locator("dd").first().evaluate((element) => getComputedStyle(element).whiteSpace)).toBe("normal");
+        expect(await row.locator("[data-api-id]").evaluate((element) => getComputedStyle(element).whiteSpace)).toBe("nowrap");
+      }
+    });
+
     test("controls remain readable by group on desktop and mobile", async ({ page }) => {
       await page.goto(guidePath(language, "controls"));
       const controls = content[language].controls!.controls!;
@@ -697,6 +732,16 @@ test.describe("guide without JavaScript", () => {
           expect(response?.status()).toBe(200);
           await expect(page.locator("html")).toHaveAttribute("lang", language);
           await expect(page.locator("[data-api-id]:visible")).toHaveCount(app.rows.length);
+          const assessments = gapAssessments[app.id]!;
+          await expect(page.locator(".guide-api-gap")).toHaveCount(Object.keys(assessments).length);
+          const reasonPanels = await page.locator(".guide-api-gap").evaluateAll((elements) => elements.map((element) => ({
+            api: element.closest("tr")?.querySelector("[data-api-id]")?.getAttribute("data-api-id"),
+            reason: element.querySelector("dd")?.textContent,
+            action: element.querySelector("dd:last-child")?.textContent,
+          })));
+          expect(Object.fromEntries(reasonPanels.map(({ api, ...reason }) => [api, reason])))
+            .toEqual(Object.fromEntries(Object.entries(assessments).map(([api, item]) =>
+              [api, { reason: item[language].reason, action: item[language].action }])));
           const sdk = coverage.sdks.find((item) => item.id === app.sdkId)!;
           await expect(page.locator("main > p code").first()).toHaveText(sdk.version);
           await expectConfigurationCounts([app]);
