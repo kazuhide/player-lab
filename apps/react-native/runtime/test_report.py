@@ -1,6 +1,6 @@
 import copy
 import unittest
-from report import playback_samples, validate_report
+from report import configuration_stages, playback_samples, validate_report
 
 
 def report():
@@ -31,11 +31,40 @@ class SafeReportTests(unittest.TestCase):
         for mutation in [lambda s: s[-1]["owner"].update(generation=2),
                          lambda s: s[-1]["owner"].update(errors=1),
                          lambda s: s[-1]["owner"]["sample"].update(time=5),
+                         lambda s: s[-1]["owner"]["sample"].update(muted=False),
                          lambda s: s[-1]["owner"]["sample"].update(playing=False)]:
             broken = copy.deepcopy(samples)
             mutation(broken)
             with self.assertRaises(ValueError):
                 playback_samples(broken)
+
+    def test_every_recreated_stage_requires_the_applied_settings_and_ui(self):
+        stages = []
+        for index, name in enumerate(["default", "sports", "default-return", "foreground"]):
+            samples = [copy.deepcopy(report()) for _ in range(5)]
+            for sequence, value in enumerate(samples):
+                value["created"] = 4
+                value["owner"]["generation"] = [2, 3, 4, 4][index]
+                value["owner"]["sample"].update(sequence=sequence + 1, time=5 + sequence)
+                value["app"] = {"ui": "Sports" if index == 1 else "Default", "revision": 1,
+                                "sourceType": "hls", "startOffset": 5, "autoplay": True, "startupMuted": True,
+                                "forwardBuffer": 8, "maxBitrate": 2500000, "dvrAllowed": index == 0,
+                                "externalSubtitleConfigured": False, "logCount": index + 1}
+            stages.append({"stage": name, "samples": samples})
+        configuration_stages(stages)
+        for key, wrong in {"ui": "Default", "sourceType": "dash", "startOffset": None,
+                           "autoplay": False, "startupMuted": False, "forwardBuffer": None,
+                           "maxBitrate": None, "dvrAllowed": True, "logCount": 0}.items():
+            broken = copy.deepcopy(stages)
+            broken[1]["samples"][2]["app"][key] = wrong
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                configuration_stages(broken)
+        for index, stale in [(1, 2), (2, 3), (3, 5)]:
+            broken = copy.deepcopy(stages)
+            for value in broken[index]["samples"]:
+                value["owner"]["generation"] = stale
+            with self.subTest(stage=index), self.assertRaises(ValueError):
+                configuration_stages(broken)
 
     def test_numeric_flags_nonfinite_values_and_fractional_counters_are_rejected(self):
         for mutation in [lambda v: v["code"].update(clipboardMatches=1),

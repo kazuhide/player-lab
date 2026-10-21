@@ -10,7 +10,7 @@ import subprocess
 import sys
 from urllib.parse import urlsplit
 
-from report import playback_samples, validate_report
+from report import configuration_stages, playback_samples, validate_report
 
 
 def command(args, cwd=None, log=None, timeout=300):
@@ -60,8 +60,10 @@ def main():
                 target.setdefault("EnvironmentVariables", {})["PLAYER_LAB_MEDIA_URL"] = args.media_url
         runs[0].write_bytes(plistlib.dumps(data))
         result_path = output / "Runtime.xcresult"
+        case = "testNormalConfigurationPlaybackAndCleanup"
         command(["xcodebuild", "test-without-building", "-xctestrun", str(runs[0]), "-destination", "platform=iOS Simulator,id=" + args.device,
-                 "-resultBundlePath", str(result_path), "-parallel-testing-enabled", "NO", "-collect-test-diagnostics", "never"],
+                 "-resultBundlePath", str(result_path), "-parallel-testing-enabled", "NO", "-collect-test-diagnostics", "never",
+                 "-only-testing:RuntimeChecks/RuntimeChecks/" + case],
                 log=output / "test.private.log", timeout=600)
         summary = json.loads(capture(["xcrun", "xcresulttool", "get", "test-results", "summary", "--path", str(result_path), "--format", "json"]))
         if summary.get("result") != "Passed" or summary.get("passedTests") != 1 or summary.get("failedTests") != 0:
@@ -72,6 +74,7 @@ def main():
             raise RuntimeError("Normal GUI runtime receipt did not pass")
         for stage in receipt["stages"]:
             playback_samples(stage["samples"])
+        configuration_stages(receipt["stages"])
         validate_report(receipt["final"])
         (output / "runtime-report.json").write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
         status.update(passed=True, finalizedTestsPassed=1, finalizedTestsFailed=0, stages=len(receipt["stages"]),

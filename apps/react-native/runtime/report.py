@@ -97,7 +97,7 @@ def playback_samples(samples):
         validate_report(value)
         owner = value["owner"]
         sample = owner and owner["sample"]
-        if not sample or owner["errors"] != 0 or owner["sourceLoaded"] < 1 or not sample["playing"] or sample["live"]:
+        if not sample or owner["errors"] != 0 or owner["sourceLoaded"] < 1 or not sample["playing"] or sample["live"] or sample["muted"] is not True:
             raise ValueError("Native finite playback was not established")
         if sample["duration"] is None or not 59 < sample["duration"] < 61 or sample["time"] is None:
             raise ValueError("The named 60-second fixture is required")
@@ -107,3 +107,29 @@ def playback_samples(samples):
     if len(set(owners)) != 1 or any(b <= a for a, b in zip(sequences, sequences[1:])) or any(b < a for a, b in zip(times, times[1:])) or times[-1] <= times[0] + 2:
         raise ValueError("Current-owner playback did not advance")
     return {"owner": owners[0], "times": times, "duration": samples[-1]["owner"]["sample"]["duration"]}
+
+
+def configuration_stage(samples, ui, dvr_allowed, minimum_log_count=0):
+    observation = playback_samples(samples)
+    expected = {"ui": ui, "revision": 1, "sourceType": "hls", "startOffset": 5, "autoplay": True,
+                "startupMuted": True, "forwardBuffer": 8, "maxBitrate": 2500000,
+                "externalSubtitleConfigured": False, "dvrAllowed": dvr_allowed}
+    for value in samples:
+        app = value["app"]
+        if app is None or any(app[key] != expected_value for key, expected_value in expected.items()):
+            raise ValueError("The recreated App did not retain the expected applied settings and UI")
+        if app["logCount"] < minimum_log_count:
+            raise ValueError("The recreated App lost its existing log")
+    return observation
+
+
+def configuration_stages(stages):
+    if [stage["stage"] for stage in stages] != ["default", "sports", "default-return", "foreground"]:
+        raise ValueError("The four expected native GUI playback stages were not completed")
+    owners, previous_logs = [], 0
+    for index, stage in enumerate(stages):
+        observation = configuration_stage(stage["samples"], "Sports" if index == 1 else "Default", index == 0, previous_logs)
+        previous_logs = stage["samples"][-1]["app"]["logCount"]
+        owners.append(observation["owner"])
+    if owners[0] == owners[1] or owners[1] == owners[2] or owners[2] != owners[3]:
+        raise ValueError("UI replacement and foreground ownership did not match the expected generations")

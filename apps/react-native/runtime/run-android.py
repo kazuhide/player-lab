@@ -13,7 +13,7 @@ import time
 from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 
-from report import batch_reports, playback_samples, validate_report
+from report import batch_reports, configuration_stage, configuration_stages, playback_samples, validate_report
 
 PACKAGE = "com.playerlab.reactnative"
 
@@ -213,7 +213,7 @@ def main():
         phase("launch-and-readiness")
         ui = Ui(args.adb, args.device)
         ui.adb("shell", "am", "force-stop", PACKAGE)
-        ui.adb("shell", "monkey", "-p", PACKAGE, "1")
+        ui.adb("shell", "am", "start", "-W", "-n", PACKAGE + "/.MainActivity")
         initial = ui.wait_report(lambda v: v["owner"] is not None and v["owner"]["viewReady"])
         ui.button("Show configuration")
         phase("reset-draft")
@@ -234,6 +234,7 @@ def main():
         ui.button("Apply and recreate player"); ui.button("Hide configuration")
         phase("default-playback")
         stage = ui.playback("default", output); result["stages"].append(stage)
+        configuration_stage(stage["samples"], "Default", True, initial["app"]["logCount"])
         old = stage["samples"][-1]["owner"]["generation"]
         if old == initial["owner"]["generation"]:
             raise RuntimeError("Apply did not replace the owner")
@@ -247,21 +248,28 @@ def main():
         ui.button("Hide configuration"); ui.switch("Allow DVR", False); ui.button("Sports")
         phase("sports-playback")
         sports = ui.playback("sports", output); result["stages"].append(sports)
-        if sports["samples"][-1]["app"]["dvrAllowed"] is not False:
-            raise RuntimeError("UI recreation lost Allow DVR")
+        configuration_stage(sports["samples"], "Sports", False, stage["samples"][-1]["app"]["logCount"])
+        sports_owner = sports["samples"][-1]["owner"]["generation"]
+        if sports_owner == old:
+            raise RuntimeError("Sports UI did not replace the native player owner")
         ui.button("Default")
         phase("default-return-playback")
         stage = ui.playback("default-return", output); result["stages"].append(stage)
+        configuration_stage(stage["samples"], "Default", False, sports["samples"][-1]["app"]["logCount"])
         owner = stage["samples"][-1]["owner"]["generation"]
+        if owner == sports_owner:
+            raise RuntimeError("Returning to Default UI did not replace the native player owner")
         ui.adb("shell", "input", "keyevent", "3"); time.sleep(1)
-        ui.adb("shell", "monkey", "-p", PACKAGE, "1")
+        ui.adb("shell", "am", "start", "-W", "-n", PACKAGE + "/.MainActivity")
         phase("foreground-playback")
         current = ui.wait_report(lambda v: v["lifecycle"] == "active" and v["owner"] is not None and v["owner"]["sample"] is not None)
         if not current["owner"]["sample"]["playing"]:
             ui.play_visible()
         stage = ui.playback("foreground", output); result["stages"].append(stage)
+        configuration_stage(stage["samples"], "Default", False, result["stages"][-2]["samples"][-1]["app"]["logCount"])
         if stage["samples"][-1]["owner"]["generation"] != owner:
             raise RuntimeError("Foreground unexpectedly replaced the React Native owner")
+        configuration_stages(result["stages"])
         ui.button("Finish runtime checks")
         phase("normal-owner-cleanup")
         final = ui.wait_report(lambda v: v["owner"] is None)

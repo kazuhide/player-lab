@@ -20,7 +20,7 @@ final class RuntimeChecks: XCTestCase {
     func testNormalConfigurationPlaybackAndCleanup() throws {
         guard let media = ProcessInfo.processInfo.environment["PLAYER_LAB_MEDIA_URL"] else { throw Failure.input }
         app.launch()
-        _ = try waitReport { ($0["owner"] as? [String: Any])?["viewReady"] as? Bool == true }
+        let beforeApply = try waitReport { ($0["owner"] as? [String: Any])?["viewReady"] as? Bool == true }
         result["screenIdentifierMatches"] = app.descendants(matching: .any).matching(identifier: "player-lab-screen").count
         result["nativeScrollViewCount"] = app.scrollViews.count
         result["phase"] = "reset-draft"
@@ -44,6 +44,8 @@ final class RuntimeChecks: XCTestCase {
         result["phase"] = "default-playback"
         let initial = try playback("default")
         let defaultOwner = try owner(initial)
+        XCTAssertNotEqual(defaultOwner, try owner(beforeApply), "GUI Apply must replace the actual player owner")
+        try assertApplied(initial, ui: "Default", dvr: true)
 
         try tap("Show configuration")
         result["phase"] = "clipboard-and-draft-isolation"
@@ -60,13 +62,15 @@ final class RuntimeChecks: XCTestCase {
         result["phase"] = "sports-playback"
         let sports = try playback("sports")
         XCTAssertNotEqual(try owner(sports), defaultOwner)
-        XCTAssertTrue((sports["app"] as? [String: Any])?["dvrAllowed"] as? Bool == false)
+        try assertApplied(sports, ui: "Sports", dvr: false)
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "game info overlays")).firstMatch.exists,
                       "Packaged Sports UI must expose its INFO control")
         try tap("Default")
         result["phase"] = "default-return-playback"
         let replacement = try playback("default-return")
         let retainedOwner = try owner(replacement)
+        XCTAssertNotEqual(retainedOwner, try owner(sports), "Returning to Default must replace the actual player owner")
+        try assertApplied(replacement, ui: "Default", dvr: false)
         XCUIDevice.shared.press(.home)
         Thread.sleep(forTimeInterval: 1)
         app.activate()
@@ -75,6 +79,7 @@ final class RuntimeChecks: XCTestCase {
         if try !playing(report()) { try playVisible() }
         let foreground = try playback("foreground")
         XCTAssertEqual(try owner(foreground), retainedOwner, "Foreground must retain this React Native owner")
+        try assertApplied(foreground, ui: "Default", dvr: false)
         try tap("Finish runtime checks", scroll: false)
         let finished = try waitReport { $0["owner"] is NSNull }
         let retired = try XCTUnwrap(finished["retired"] as? [[String: Any]])
@@ -107,6 +112,18 @@ final class RuntimeChecks: XCTestCase {
         throw Failure.deadline
     }
     private func owner(_ value: [String: Any]) throws -> Int { try XCTUnwrap((value["owner"] as? [String: Any])?["generation"] as? Int) }
+    private func assertApplied(_ value: [String: Any], ui: String, dvr: Bool) throws {
+        let applied = try XCTUnwrap(value["app"] as? [String: Any])
+        XCTAssertEqual(applied["ui"] as? String, ui)
+        XCTAssertEqual(applied["revision"] as? Int, 1)
+        XCTAssertEqual(applied["sourceType"] as? String, "hls")
+        XCTAssertEqual(applied["startOffset"] as? Double, 5)
+        XCTAssertEqual(applied["forwardBuffer"] as? Double, 8)
+        XCTAssertEqual(applied["maxBitrate"] as? Double, 2500000)
+        XCTAssertTrue(applied["autoplay"] as? Bool == true && applied["startupMuted"] as? Bool == true)
+        XCTAssertTrue(applied["externalSubtitleConfigured"] as? Bool == false)
+        XCTAssertEqual(applied["dvrAllowed"] as? Bool, dvr)
+    }
     private func playing(_ value: [String: Any]) throws -> Bool {
         try XCTUnwrap(((value["owner"] as? [String: Any])?["sample"] as? [String: Any])?["playing"] as? Bool)
     }
@@ -177,9 +194,14 @@ final class RuntimeChecks: XCTestCase {
     private func playVisible() throws {
         top()
         let button = app.buttons.matching(NSPredicate(format: "label ==[c] 'Play' OR label ==[c] 'Play video'")).firstMatch
-        if !button.isHittable { app.descendants(matching: .any).matching(identifier: "player-lab-player").firstMatch.tap() }
+        if !button.isHittable { tapVideoCenter() }
         XCTAssertTrue(button.waitForExistence(timeout: 5) && button.isHittable, "Visible SDK Play control is required")
         button.tap()
+    }
+    private func tapVideoCenter() {
+        // The native video container is not itself an accessibility hit target.
+        app.descendants(matching: .any).matching(identifier: "player-lab-player").firstMatch
+            .coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
     }
     private func top() {
         let scroll = mainScroll()
