@@ -387,16 +387,63 @@
     },
     {
       "type": "h2",
-      "text": "GUIで扱わない設定"
+      "text": "SDKの詳細設定・API・イベント"
     },
     {
-      "type": "bullets",
+      "type": "p",
+      "text": "従来のPlayer Configフォームの下にある「SDKの詳細設定・API・イベント」を開きます。公開APIの名前で検索し、設定・操作・状態の取得・イベントから種類を選びます。各項目から公式リファレンスを参照できます。"
+    },
+    {
+      "type": "steps",
       "items": [
-        "画質、音声、字幕などの選択肢はソースから決まるため、映像内のメニューを使います。",
-        "ネットワークのリクエスト加工、認証、映像要素の差し替えなど、関数やオブジェクトを渡すAPIはこのフォームに含まれません。",
-        "DRM、広告、VRのAPIや複雑な構成全体を編集する画面はありません。",
-        "Tweaksのquery_parameters、segmentLoader、disable_retry_for_response_status、wish_abr_params、playstation_5などのオブジェクトやコールバックは対象外です。"
+        "SourceConfig.titleなどの項目を選びます。型の選択肢があれば入力する型を選び、値を入れて「設定を適用」を押します。PlayerConfigはPlayerの再生成、SourceConfigはソースの再読み込み、UI設定はUIの再生成で反映します。",
+        "オブジェクトの任意項目は個別に有効にします。配列は「項目を追加」、辞書は「プロパティを追加」で編集します。配列要素のパスでは要素番号を指定します。存在しない要素の番号を飛ばさず、親の配列を順に追加してください。",
+        "「この上書きを解除」で対応する基本設定へ戻します。従来のフォームで同じ項目を変更した場合は重複する詳細設定を取り除き、無関係な設定は保持します。",
+        "メソッドは引数の形式を選び、必要な任意引数を有効にして値を入力し、「APIを実行」または「状態を取得」を押します。生成したコードの下に結果を表示します。破棄と再生成はアプリ内のほかの操作と共通の管理手順で行います。",
+        "イベント欄には現在のPlayerとUIManagerの購読対象を表示します。イベントが発生すると、回数と内容の抜粋を上限のあるログに表示します。Playerの再生成時に、古い購読と履歴を取り除きます。"
       ]
+    },
+    {
+      "type": "figure",
+      "file": "sdk-configuration",
+      "caption": "SDKのパスを検索して選んだ設定を編集します。この例ではソースのタイトルを変更しています。"
+    },
+    {
+      "type": "h2",
+      "text": "関数を編集する"
+    },
+    {
+      "type": "p",
+      "text": "コールバックはSDKが呼び出す関数です。入力の型で関数を選び、表示された引数名と戻り値の型に合わせてJavaScriptの関数本体を記述します。「Apply後にこの関数をこの画面内で実行する」を有効にして適用します。network.preprocessHttpRequestで、受け取ったリクエストを変更せず返す例は次のとおりです。"
+    },
+    {
+      "type": "code",
+      "text": "return Promise.resolve(request);"
+    },
+    {
+      "type": "p",
+      "text": "関数本体はこのページのJavaScriptとして動きます。lab.uiから読み込み済みのUIクラスを利用し、lab.getPlayer()で現在のPlayerを取得できます。関数の呼び出しと戻り値の型の不一致をログに記録します。通信を完了させない関数を設定した場合も、その上書きを解除してPlayerを再生成できます。"
+    },
+    {
+      "type": "figure",
+      "file": "sdk-callback",
+      "caption": "リクエストの関数本体、SDKが定める引数と戻り値、実行の許可を編集します。適用後にSDKから呼ばれます。"
+    },
+    {
+      "type": "h2",
+      "text": "SDKの実体を渡して状態を確認する"
+    },
+    {
+      "type": "p",
+      "text": "UI部品やEventDispatcherが必要な入力では、公開コンストラクターで生成するか、アプリが保持する現在のSDK実体を選びます。コンストラクターの引数と形式も編集できます。証明書のバッファには16進数またはBase64のバイト列を入力します。JSONはSDKがデータとして受け付ける箇所に使い、nativeやSDKクラスの実体を生成する代わりには使いません。"
+    },
+    {
+      "type": "p",
+      "text": "「状態の取得」でPlayerAPI.getConfigやPlayerAPI.getSourceを選ぶと、送信した設定値を確認できます。setVolumeなどの操作には任意の引数を入力します。取得したSDK実体や関数を後の呼び出しで選ぶこともできます。所有するPlayerなどが入れ替わった場合は取得し直します。コード例からライセンス値を除きます。選択した実体を参照する部分には、先の呼び出しで取得した同じオブジェクトを使ってください。"
+    },
+    {
+      "type": "p",
+      "text": "PlayerConfig.uiを有効にするとSDKがUIを生成します。アプリは使用中のUIバージョンに対応するスクリプトとスタイルの読み込み先を指定し、PlayerConfig.locationから変更できます。SDKは設定したstyle.uiManagerFactoryを呼び出します。従来のテーマを選ぶとアプリが生成するUIへ戻り、UIManagerが重複しないようにします。"
     },
     {
       "type": "note",
@@ -488,6 +535,18 @@
     {
       "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfigOptions.html",
       "label": "SourceConfigOptions"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/cb777ef103a24a66ea92daa13177601482448157/apps/web/src/api/explorer.ts",
+      "label": "SDK editor"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/cb777ef103a24a66ea92daa13177601482448157/apps/web/src/api/materialize.ts",
+      "label": "Callbacks and SDK constructors"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.StyleConfig.html",
+      "label": "StyleConfig"
     }
   ]
 }

@@ -387,16 +387,63 @@
     },
     {
       "type": "h2",
-      "text": "Settings outside this GUI"
+      "text": "SDK settings, APIs and events"
     },
     {
-      "type": "bullets",
+      "type": "p",
+      "text": "Open SDK settings, APIs and events below the original Player Config form. Search by the public API name and choose Configuration, Commands, Read state or Events. Each entry links to the official reference."
+    },
+    {
+      "type": "steps",
       "items": [
-        "Quality, audio and subtitle choices depend on the source. Use the menus inside the player.",
-        "APIs accepting functions or objects, such as request preprocessing, authentication or video-element replacement, are not included in this form.",
-        "The GUI does not edit complete DRM, advertising or VR configurations and APIs.",
-        "Object or callback tweaks such as query_parameters, segmentLoader, disable_retry_for_response_status, wish_abr_params and playstation_5 are excluded."
+        "For a setting such as SourceConfig.title, select its input type when alternatives are offered, enter a value, and choose Apply setting. PlayerConfig recreates the Player, SourceConfig reloads the source, and UI configuration rebuilds the UI.",
+        "Enable optional object fields individually. Use Add item for arrays and Add property for dictionaries. Array item paths have explicit indices; add missing parent entries in order rather than leaving holes.",
+        "Remove this override restores the corresponding base setting. A later edit in the original form replaces overlapping SDK-editor overrides while retaining unrelated values.",
+        "For a method, choose its signature, enable optional arguments where needed, enter values and choose Run API or Read state. The result appears below the generated code. Destroy and Recreate Player use the same ownership lifecycle as the rest of the app.",
+        "Events lists the subscriptions on the current Player and UIManager. The log shows counts and bounded payload previews when events occur. Recreating the Player retires the previous subscriptions and history."
       ]
+    },
+    {
+      "type": "figure",
+      "file": "sdk-configuration",
+      "caption": "The SDK editor searches public paths and provides inputs for the selected setting. This example edits the source title."
+    },
+    {
+      "type": "h2",
+      "text": "Edit a callback"
+    },
+    {
+      "type": "p",
+      "text": "A callback is a function that the SDK invokes. Select the function input type, use the displayed parameter names and return type, and enter its JavaScript body. Enable Allow this callback to run in this page after Apply, then apply the setting. For network.preprocessHttpRequest, this body returns the request unchanged:"
+    },
+    {
+      "type": "code",
+      "text": "return Promise.resolve(request);"
+    },
+    {
+      "type": "p",
+      "text": "The body runs as JavaScript in this page. lab.ui provides the imported UI classes and lab.getPlayer() returns the current Player. The callback log records invocation and return-contract errors. Removing an unfinished request callback can recreate the Player without waiting for that request to finish."
+    },
+    {
+      "type": "figure",
+      "file": "sdk-callback",
+      "caption": "The request callback has editable code, a published signature and an explicit execution control. The SDK invokes it after Apply."
+    },
+    {
+      "type": "h2",
+      "text": "Use SDK objects and inspect runtime state"
+    },
+    {
+      "type": "p",
+      "text": "Inputs that require a UI component or EventDispatcher use a public constructor or an owned SDK instance selected in the editor. Constructor arguments and overloads are editable. Certificate buffers accept hexadecimal or Base64 bytes. Arbitrary JSON is used only where the SDK type allows data; it does not create native or SDK class instances."
+    },
+    {
+      "type": "p",
+      "text": "Choose PlayerAPI.getConfig or PlayerAPI.getSource in Read state to inspect submitted values. Commands such as setVolume accept edited arguments. Returned SDK objects and callbacks can be selected in later calls; obtain them again after their owner is replaced. Generated code omits license values. References to selected instances must use the same objects obtained by earlier calls."
+    },
+    {
+      "type": "p",
+      "text": "PlayerConfig.ui can enable SDK-managed UI. The app supplies pinned UI script and style locations; these are editable through PlayerConfig.location. The SDK calls the configured style.uiManagerFactory. Selecting an original theme returns to the app-managed UI and avoids overlapping managers."
     },
     {
       "type": "note",
@@ -488,6 +535,18 @@
     {
       "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfigOptions.html",
       "label": "SourceConfigOptions"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/cb777ef103a24a66ea92daa13177601482448157/apps/web/src/api/explorer.ts",
+      "label": "SDK editor"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/cb777ef103a24a66ea92daa13177601482448157/apps/web/src/api/materialize.ts",
+      "label": "Callbacks and SDK constructors"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.StyleConfig.html",
+      "label": "StyleConfig"
     }
   ]
 }
