@@ -4,7 +4,7 @@ import { pick } from "../i18n";
 import { valueEditor, type ValueEditor } from "./editor";
 import { ApiMaterializer, ResourcePool, inputCode } from "./materialize";
 import { ApiOverrides, apiPath, validateData } from "./values";
-import { configurationCode } from "./code";
+import { configurationCode, uiConfigurationCode } from "./code";
 import { ResourceInput, type ApiEntry, type ApiSchema, type ConfigRoot, type PathPart, type Signature } from "./types";
 
 export interface ApiExplorerOptions {
@@ -137,6 +137,14 @@ export class ApiExplorer {
     if (root === "SourceConfig") { this.operation++; this.sourceGeneration++; }
     this.contexts.get(root)?.dispose(); this.contexts.delete(root);
     const context = this.context(root);
+    if (root === "UIConfig") {
+      const config = this.overrides.apply(root, base);
+      // GUI component factories run before UIManager's lazy layout. Install the
+      // same localization first so they subscribe to the configured dispatcher.
+      const localization = context.materialize((config as { localization?: unknown }).localization);
+      PlayerUI.i18n.setConfig(localization as Parameters<typeof PlayerUI.i18n.setConfig>[0] ?? {});
+      return context.materialize(config) as T;
+    }
     const materializedBase = context.materialize(base) as T;
     return this.overrides.apply(root, materializedBase, value => context.materialize(value));
   }
@@ -155,7 +163,10 @@ export class ApiExplorer {
     for (const key of this.writes.keys()) if (key.startsWith("SourceConfig")) this.writes.delete(key);
     this.overrides.entries("SourceConfig").forEach(entry => this.overrides.remove("SourceConfig", entry.path));
   }
-  uiCode(base: object): string { return inputCode(this.overrides.apply("UIConfig", base)); }
+  uiCode(base: object): string {
+    const config = this.overrides.apply("UIConfig", base);
+    return this.overrides.entries("UIConfig").length ? uiConfigurationCode(config) : inputCode(config);
+  }
 
   private markWrite(root: ConfigRoot, path: PathPart[]): { key: string; ticket: number } {
     for (const [key, prior] of this.writes) if (key.startsWith(root)

@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { ApiMaterializer, ResourcePool, inputCode } from "../src/api/materialize";
 import { BinaryInput, CallbackInput, FactoryInput, ResourceInput, type ApiSchema } from "../src/api/types";
 
@@ -333,4 +333,124 @@ it("keeps new pending API inputs out of selectors until SDK success without hidi
   materializer.publish(before, through);
   expect(pool.list(catalog.nodes.label!).map(item => pool.get(item.id))).toEqual([existing, pending]);
   materializer.retire()();
+});
+
+
+function componentLifecycleFixture() {
+  class Dispatcher {
+    readonly listeners = new Set<Function>();
+    subscribe(listener: Function) { this.listeners.add(listener); }
+    unsubscribe(listener: Function) { return this.listeners.delete(listener); }
+  }
+  const initial = new Dispatcher(); let current = initial;
+  const i18n = { getConfig: () => ({ events: { onLanguageChanged: current } }) };
+  const released: object[] = [];
+  class Component {
+    private readonly handler = () => {};
+    constructor() { i18n.getConfig().events.onLanguageChanged.subscribe(this.handler); }
+    release() { released.push(this); i18n.getConfig().events.onLanguageChanged.unsubscribe(this.handler); }
+  }
+  class Label extends Component { constructor(readonly text: string) { super(); } }
+  class Container extends Component {
+    protected readonly children: Component[] = [];
+    getComponents() { return this.children; }
+  }
+  class SettingsPanelItem extends Container {
+    constructor(private readonly config: { label?: string; settingComponent?: Component }) {
+      super();
+      if (config.label) this.children.push(new Label(config.label));
+    }
+    getConfig() { return this.config; }
+  }
+  const constructors = { Component, Label, Container, SettingsPanelItem, i18n };
+  const typed: ApiSchema = { ...catalog, nodes: { ...catalog.nodes,
+    panel: { kind: "instance", name: "SettingsPanelItem", label: "SettingsPanelItem" },
+    component: { kind: "instance", name: "Component", label: "Component" },
+    panelConfig: { kind: "object", label: "SettingsPanelItemConfig", properties: [
+      { name: "label", schema: "text", optional: true }, { name: "settingComponent", schema: "component", optional: true },
+    ] } }, constructors: { ...catalog.constructors,
+      SettingsPanelItem: { signatures: [{ parameters: [{ name: "config", schema: "panelConfig", optional: false, rest: false }], returns: "panel" }] },
+    } };
+  return { initial, released, constructors, typed, Label, SettingsPanelItem,
+    replaceDispatcher() { current = new Dispatcher(); return current; } };
+}
+
+it("unsubscribes unused components from their exact creation dispatcher after global localization changes", async () => {
+  const f = componentLifecycleFixture();
+  const materializer = new ApiMaterializer(f.typed, f.constructors, new ResourcePool(f.constructors), {}, () => {});
+  const label = materializer.materialize(new FactoryInput("Label", ["unused"])) as { release(): void };
+  expect(f.initial.listeners.size).toBe(1);
+  const originalSubscribe = f.initial.subscribe;
+  const replacement = f.replaceDispatcher();
+  const other = new f.Label("New SDK owner");
+  label.release();
+  expect(f.initial.listeners.size).toBe(0); expect(replacement.listeners.size).toBe(1);
+  expect(f.initial.subscribe).toBe(originalSubscribe);
+  expect(Object.prototype.hasOwnProperty.call(f.initial, "subscribe")).toBe(false);
+  materializer.dispose(); await Promise.resolve(); expect(f.released).toEqual([label]);
+  other.release(); expect(replacement.listeners.size).toBe(0);
+});
+
+it("releases internally constructed settings labels once while retaining borrowed SDK components", async () => {
+  const f = componentLifecycleFixture();
+  const pool = new ResourcePool(f.constructors);
+  const borrowed = new f.Label("SDK-owned"); const id = pool.add(borrowed, "SDK query", "Label", {})!;
+  const materializer = new ApiMaterializer(f.typed, f.constructors, pool, {}, () => {});
+  const panel = materializer.materialize(new FactoryInput("SettingsPanelItem", [{ label: "internally created", settingComponent: new ResourceInput(id) }])) as InstanceType<typeof f.SettingsPanelItem>;
+  const internal = panel.getComponents()[0]!;
+  expect(f.initial.listeners.size).toBe(3);
+  materializer.dispose(); await Promise.resolve();
+  expect(f.initial.listeners.size).toBe(1);
+  expect(f.released).toEqual([panel, internal]); expect(pool.get(id)).toBe(borrowed);
+  panel.release(); internal.release(); expect(f.released).toEqual([panel, internal]);
+  borrowed.release(); expect(f.initial.listeners.size).toBe(0);
+});
+
+it("cleans constructor-time subscriptions when a constructor throws before returning its instance", () => {
+  const f = componentLifecycleFixture();
+  class BrokenPanel extends f.SettingsPanelItem { constructor(config: { label: string }) { super(config); throw new Error("internal constructor failed"); } }
+  const typed: ApiSchema = { ...f.typed, constructors: { ...f.typed.constructors, BrokenPanel: f.typed.constructors.SettingsPanelItem! } };
+  const constructors = { ...f.constructors, BrokenPanel };
+  const materializer = new ApiMaterializer(typed, constructors, new ResourcePool(constructors), {}, () => {});
+  expect(() => materializer.materialize(new FactoryInput("BrokenPanel", [{ label: "private child" }]))).toThrow("internal constructor failed");
+  expect(f.initial.listeners.size).toBe(0);
+});
+
+
+it("retains an entire borrowed component subtree during cleanup of a newly created parent", () => {
+  const f = componentLifecycleFixture();
+  const borrowed = new f.SettingsPanelItem({ label: "SDK-owned internal label" });
+  const pool = new ResourcePool(f.constructors); const id = pool.add(borrowed, "SDK subtree", "Component", {})!;
+  const materializer = new ApiMaterializer(f.typed, f.constructors, pool, {}, () => {});
+  const panel = materializer.materialize(new FactoryInput("SettingsPanelItem", [{ label: "GUI label", settingComponent: new ResourceInput(id) }])) as InstanceType<typeof f.SettingsPanelItem>;
+  expect(f.initial.listeners.size).toBe(4);
+  materializer.retire()();
+  expect(f.initial.listeners.size).toBe(2); expect(f.released).toEqual([panel, panel.getComponents()[0]]);
+  borrowed.release(); borrowed.getComponents().forEach(child => child.release());
+  expect(f.initial.listeners.size).toBe(0);
+});
+
+it("uses the installed SDK's public subscriptions and component children after a dispatcher replacement", async () => {
+  const { PlayerUI, EventDispatcher } = await import("@showcase/ui-shared");
+  const previous = PlayerUI.i18n.getConfig();
+  type ChangeDispatcher = NonNullable<NonNullable<typeof previous.events>["onLanguageChanged"]>;
+  const original: ChangeDispatcher = new EventDispatcher();
+  const replacement: ChangeDispatcher = new EventDispatcher();
+  PlayerUI.i18n.setConfig({ ...previous, events: { onLanguageChanged: original } });
+  const subscribe = vi.spyOn(original, "subscribe"); const unsubscribe = vi.spyOn(original, "unsubscribe");
+  const constructors = { ...PlayerUI };
+  const typed: ApiSchema = { ...catalog, nodes: { ...catalog.nodes,
+    config: { kind: "object", label: "SettingsPanelItemConfig", properties: [{ name: "label", schema: "text", optional: true }] } },
+    constructors: { ...catalog.constructors, SettingsPanelItem: { signatures: [{ parameters: [{ name: "config", schema: "config", optional: false, rest: false }], returns: "any" }] } } };
+  const materializer = new ApiMaterializer(typed, constructors, new ResourcePool(constructors), {}, () => {});
+  try {
+    const panel = materializer.materialize(new FactoryInput("SettingsPanelItem", [{ label: "Actual SDK label" }])) as { release(): void; getComponents(): { release(): void }[] };
+    expect(panel.getComponents()).toHaveLength(1); expect(subscribe).toHaveBeenCalledTimes(2);
+    const handlers = subscribe.mock.calls.map(call => call[0]);
+    PlayerUI.i18n.setConfig({ ...previous, events: { onLanguageChanged: replacement } });
+    materializer.retire()();
+    for (const handler of handlers) expect(unsubscribe).toHaveBeenCalledWith(handler);
+    expect(unsubscribe).toHaveBeenCalledTimes(2);
+    panel.release(); panel.getComponents()[0]!.release(); expect(unsubscribe).toHaveBeenCalledTimes(2);
+  } finally { materializer.retire()(); PlayerUI.i18n.setConfig(previous); vi.restoreAllMocks(); }
 });

@@ -139,20 +139,25 @@ function clone(value: unknown): unknown {
 }
 
 function mergeValue(base: unknown, value: unknown): unknown {
-  if (!plain(base) || !plain(value)) return value;
-  const result = clone(base) as Record<string, unknown>;
-  for (const [key, input] of Object.entries(value)) { safeKey(key); result[key] = mergeValue(result[key], input); }
+  if (!plain(value)) return value;
+  const result = (plain(base) ? clone(base) : {}) as Record<string, unknown>;
+  for (const [key, input] of Object.entries(value)) {
+    safeKey(key);
+    if (input === undefined) delete result[key];
+    else result[key] = mergeValue(result[key], input);
+  }
   return result;
 }
 
 function pruneValue(value: unknown, path: PathPart[]): unknown {
   const key = path[0];
-  if (!plain(value) || typeof key !== "string" || !Object.prototype.hasOwnProperty.call(value, key)) return value;
+  if (!plain(value)) return undefined;
+  if (typeof key !== "string" || !Object.prototype.hasOwnProperty.call(value, key)) return value;
   const result = { ...value };
   if (path.length === 1) delete result[key];
   else {
     result[key] = pruneValue(value[key], path.slice(1));
-    if (plain(result[key]) && Object.keys(result[key]).length === 0) delete result[key];
+    if (result[key] === undefined || plain(result[key]) && Object.keys(result[key]).length === 0) delete result[key];
   }
   return result;
 }
@@ -165,7 +170,9 @@ function put(target: Record<string, unknown>, parts: PathPart[], value: unknown)
     if (typeof key === "number" && (!Array.isArray(cursor) || key > cursor.length)) throw new Error("Add array entries in order; sparse arrays are not SDK inputs.");
     if (index === parts.length - 1) {
       const record = cursor as Record<string | number, unknown>;
-      record[key] = mergeValue(record[key], value); break;
+      if (value === undefined && typeof key === "string") delete record[key];
+      else record[key] = mergeValue(record[key], value);
+      break;
     }
     const current = (cursor as Record<string | number, unknown>)[key];
     const isArray = typeof parts[index + 1] === "number";
@@ -210,7 +217,7 @@ export class ApiOverrides {
       if (!overlaps(path, item.path)) continue;
       if (path.length <= item.path.length) { this.values.get(root)!.delete(key); break; }
       item.value = pruneValue(item.value, path.slice(item.path.length));
-      if (plain(item.value) && Object.keys(item.value).length === 0) { this.values.get(root)!.delete(key); break; }
+      if (item.value === undefined || plain(item.value) && Object.keys(item.value).length === 0) { this.values.get(root)!.delete(key); break; }
     }
   }
 }

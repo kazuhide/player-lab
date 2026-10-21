@@ -101,6 +101,26 @@ describe("independent API overrides", () => {
     expect(overrides.apply("PlayerConfig", { playback: { muted: true, timeShift: false } })).toEqual({ playback: { muted: true, timeShift: false, autoplay: false } });
   });
 
+  it("removes undefined ancestors that would otherwise shadow a later ordinary GUI edit", () => {
+    const overrides = new ApiOverrides();
+    overrides.set("PlayerConfig", ["playback"], undefined);
+    overrides.discardPatch("PlayerConfig", { playback: { timeShift: false } });
+    expect(overrides.apply("PlayerConfig", { playback: { timeShift: false } })).toEqual({ playback: { timeShift: false } });
+    overrides.set("UIConfig", ["componentConfigOverrides"], { UIContainer: undefined, Label: { text: "retained" } });
+    overrides.discardPatch("UIConfig", { componentConfigOverrides: { UIContainer: { hideDelay: -1 } } });
+    expect(overrides.apply("UIConfig", { componentConfigOverrides: { UIContainer: { hideDelay: -1 } } })).toEqual({
+      componentConfigOverrides: { UIContainer: { hideDelay: -1 }, Label: { text: "retained" } },
+    });
+  });
+
+  it("omits explicitly unset optional properties instead of passing undefined containers to SDK setup", () => {
+    const overrides = new ApiOverrides();
+    overrides.set("PlayerConfig", ["playback"], undefined);
+    expect(overrides.apply("PlayerConfig", { playback: { autoplay: true } })).toStrictEqual({});
+    overrides.set("UIConfig", ["metadata"], { title: undefined, description: "retained" });
+    expect(overrides.apply("UIConfig", { metadata: { title: "base" } })).toStrictEqual({ metadata: { description: "retained" } });
+  });
+
   it("returns displaced child edits so a rejected parent edit can restore them without losing siblings", () => {
     const overrides = new ApiOverrides();
     overrides.set("PlayerConfig", ["playback", "autoplay"], true);

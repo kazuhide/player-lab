@@ -177,6 +177,34 @@ test("a GUI-created dispatcher can be selected again when its configuration is r
   await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
 });
 
+test("an eagerly created GUI component follows its configured localization dispatcher", async ({ page }) => {
+  let id = "UIConfig.localization.events.onLanguageChanged";
+  await selectApi(page, "configuration", id);
+  await page.locator(".api-explorer-form > .api-value > select").selectOption("factory:EventDispatcher");
+  await apply(page);
+  id = "UIComponentConfigMap.ControlBar.components";
+  await selectApi(page, "configuration", id); await branch(page, id, "array");
+  await page.getByRole("button", { name: "Add item", exact: true }).click();
+  await page.locator(".api-explorer-form select").filter({ has: page.locator('option[value="factory:Label"]') }).selectOption("factory:Label");
+  const config = page.getByRole("checkbox", { name: "config", exact: true });
+  await config.check();
+  await config.locator("../..").locator(":scope > .api-value > select").selectOption({ label: "Config" });
+  const text = objectField(page, "text");
+  await text.getByRole("checkbox", { name: "text", exact: true }).check();
+  await text.getByRole("combobox", { name: "Input type", exact: true }).selectOption({ label: "Localizer" });
+  await page.getByRole("textbox", { name: "JavaScript callback body" }).fill('return lab.ui.i18n.getLocalizer("play")();');
+  await page.getByRole("checkbox", { name: "Allow this callback to run in this page after Apply" }).check();
+  await apply(page);
+  const label = page.locator("#player .bmpui-ui-controlbar .bmpui-ui-label").filter({ hasText: /^Play$/ }).first();
+  await expect(label).toBeVisible();
+  await selectApi(page, "command", "PlayerAPI.on");
+  await page.locator(".api-explorer-form select").filter({ has: page.locator("option", { hasText: /^PlayerEvent.TimeChanged$/ }) }).selectOption({ label: "PlayerEvent.TimeChanged" });
+  await page.getByRole("textbox", { name: "JavaScript callback body" }).fill('lab.ui.i18n.setLanguage("de");');
+  await page.getByRole("checkbox", { name: "Allow this callback to run in this page after Apply" }).check();
+  await page.getByRole("button", { name: "Run API", exact: true }).click();
+  await expect(page.locator("#player .bmpui-ui-controlbar .bmpui-ui-label").filter({ hasText: /^Abspielen$/ }).first()).toBeVisible();
+});
+
 test("a visible Player element can be selected as the UI container across UI rebuilds", async ({ page }) => {
   await selectApi(page, "configuration", "UIConfig.container");
   await branch(page, "UIConfig.container", "instance");
@@ -223,6 +251,19 @@ test("SDK-managed UI uses the configured factory and theme selection restores ap
   await expect(page.locator(".ui-theme-bar-note")).not.toContainText("SDK-managed UI");
   await expect(page.locator("#player video")).toHaveCount(1);
   await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+});
+
+test("an unset playback parent does not block a later edit in the original controls", async ({ page }) => {
+  await selectApi(page, "configuration", "PlayerConfig.playback");
+  await branch(page, "PlayerConfig.playback", "undefined");
+  await apply(page);
+  const toggle = page.getByRole("checkbox", { name: /^Allow DVR \(timeShift\)/ });
+  await expect(toggle).toBeChecked();
+  await toggle.uncheck();
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  await expect(toggle).not.toBeChecked();
+  const config = JSON.parse(await readApi(page, "PlayerAPI.getConfig"));
+  expect(config.playback.timeShift).toBe(false);
 });
 
 test("an unfinished request callback can be removed without waiting for its old load", async ({ page }) => {

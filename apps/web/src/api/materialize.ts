@@ -9,7 +9,7 @@ type Allocation = { sequence: number; input: object; value: unknown; live: boole
 const releaseActions = new WeakMap<object, () => void>();
 
 /** Share the public release call with the SDK without releasing the same instance twice. */
-function releaseOnce(instance: object): (() => void) | undefined {
+function releaseOnce(instance: object, afterRelease?: () => void): (() => void) | undefined {
   const existing = releaseActions.get(instance);
   if (existing) return existing;
   const release = (instance as { release?: unknown }).release;
@@ -18,7 +18,7 @@ function releaseOnce(instance: object): (() => void) | undefined {
   const once = function(this: unknown, ...args: unknown[]): unknown {
     if (released) return undefined;
     released = true;
-    return Reflect.apply(release, this, args);
+    try { return Reflect.apply(release, this, args); } finally { afterRelease?.(); }
   };
   const cleanup = (): void => { once.call(instance); };
   const descriptor = Object.getOwnPropertyDescriptor(instance, "release");
@@ -32,6 +32,47 @@ function releaseOnce(instance: object): (() => void) | undefined {
   }
   releaseActions.set(instance, cleanup);
   return cleanup;
+}
+
+interface LocalizationDispatcher {
+  subscribe(listener: Function): unknown;
+  unsubscribe(listener: Function): unknown;
+}
+
+/** Capture public constructor subscriptions without depending on private SDK fields. */
+function constructorSubscriptions(constructors: Constructors, constructor: Function): { restore(): void; release(): void } {
+  const component = constructors.Component;
+  if (typeof component !== "function" || constructor !== component && !(constructor.prototype instanceof component)) return { restore() {}, release() {} };
+  const localization = constructors.i18n as { getConfig?: () => { events?: { onLanguageChanged?: LocalizationDispatcher } } } | undefined;
+  const dispatcher = localization?.getConfig?.().events?.onLanguageChanged;
+  if (!dispatcher || typeof dispatcher.subscribe !== "function" || typeof dispatcher.unsubscribe !== "function") {
+    throw new Error("The current UI localization dispatcher cannot track component subscriptions.");
+  }
+  const listeners: Function[] = [];
+  const descriptor = Object.getOwnPropertyDescriptor(dispatcher, "subscribe");
+  const subscribe = dispatcher.subscribe;
+  const tracked = function(this: unknown, ...args: unknown[]): unknown {
+    const result = Reflect.apply(subscribe, this, args);
+    if (typeof args[0] === "function") listeners.push(args[0]);
+    return result;
+  };
+  Object.defineProperty(dispatcher, "subscribe", { value: tracked, configurable: descriptor?.configurable ?? true,
+    enumerable: descriptor?.enumerable ?? false, writable: descriptor && "writable" in descriptor ? descriptor.writable : true });
+  let released = false;
+  return {
+    restore() {
+      if (descriptor) Object.defineProperty(dispatcher, "subscribe", descriptor);
+      else delete (dispatcher as Partial<LocalizationDispatcher>).subscribe;
+    },
+    release() {
+      if (released) return;
+      released = true;
+      let failure: unknown;
+      for (const listener of listeners) try { dispatcher.unsubscribe(listener); } catch (error) { failure ??= error; }
+      listeners.length = 0;
+      if (failure) throw failure;
+    },
+  };
 }
 
 /** Only objects actually owned by this generation can be selected as SDK inputs. */
@@ -227,6 +268,47 @@ export class ApiMaterializer {
     return allocation;
   }
 
+  private borrowedResources(value: unknown, into = new Set<object>()): Set<object> {
+    if (value instanceof ResourceInput) {
+      const resource = this.resources.get(value.id);
+      if (resource !== null && (typeof resource === "object" || typeof resource === "function")) into.add(resource);
+    } else if (value instanceof FactoryInput) value.args.forEach(input => this.borrowedResources(input, into));
+    else if (Array.isArray(value)) value.forEach(input => this.borrowedResources(input, into));
+    else if (isRecord(value)) Object.values(value).forEach(input => this.borrowedResources(input, into));
+    return into;
+  }
+
+  /** Only newly created component trees are ours; selected SDK subtrees remain borrowed. */
+  private ownComponentTree(instance: object, borrowed: Set<object>, releaseSubscriptions: () => void): () => void {
+    const releases: (() => void)[] = [];
+    const seen = new Set<object>();
+    const component = this.constructors.Component;
+    const container = this.constructors.Container;
+    const settingsItem = this.constructors.SettingsPanelItem;
+    const visit = (value: unknown): void => {
+      if (!value || typeof value !== "object" || seen.has(value) || borrowed.has(value)) return;
+      seen.add(value);
+      const release = releaseOnce(value, value === instance ? releaseSubscriptions : undefined);
+      if (release) releases.push(release);
+      if (typeof component !== "function" || !(value instanceof component)) return;
+      if (typeof container === "function" && value instanceof container) {
+        const children = (value as { getComponents(): unknown[] }).getComponents();
+        children.forEach(visit);
+      }
+      if (typeof settingsItem === "function" && value instanceof settingsItem) {
+        visit((value as { getConfig(): { settingComponent?: unknown } }).getConfig().settingComponent);
+      }
+    };
+    const cleanup = (): void => {
+      let failure: unknown;
+      for (const release of releases) try { release(); } catch (error) { failure ??= error; }
+      try { releaseSubscriptions(); } catch (error) { failure ??= error; }
+      if (failure) throw failure;
+    };
+    try { visit(instance); } catch (error) { try { cleanup(); } catch { /* Keep the construction failure. */ } throw error; }
+    return cleanup;
+  }
+
   preflight(value: unknown): void {
     if (value instanceof CallbackInput) {
       if (!value.approved) throw new Error("Allow this callback to run before applying it.");
@@ -297,16 +379,23 @@ export class ApiMaterializer {
       if (!definition || typeof constructor !== "function") throw new Error("This SDK constructor is not available: " + value.name);
       const signature = definition.signatures[value.overload];
       if (!signature) throw new Error("Choose a published constructor signature.");
+      const borrowed = this.borrowedResources(value.args);
       const args = this.arguments(signature, value.args);
-      const instance = Reflect.construct(constructor, args);
-      const release = releaseOnce(instance);
+      const subscriptions = constructorSubscriptions(this.constructors, constructor);
+      let instance: object;
+      try { instance = Reflect.construct(constructor, args); }
+      catch (error) { try { subscriptions.release(); } catch { /* Keep the constructor failure. */ } throw error; }
+      finally { subscriptions.restore(); }
+      const release = this.ownComponentTree(instance, borrowed, () => subscriptions.release());
       let unsubscribe: (() => void) | undefined;
-      const allocation = this.remember(value, instance, () => { try { unsubscribe?.(); } finally { release?.(); } });
+      const allocation = this.remember(value, instance, () => { try { unsubscribe?.(); } finally { release(); } });
       this.resources.add(instance, "new " + value.name, value.name, this, value);
       if (value.name === "EventDispatcher") {
+        const subscribe = Reflect.get(instance, "subscribe"); const remove = Reflect.get(instance, "unsubscribe");
+        if (typeof subscribe !== "function" || typeof remove !== "function") throw new Error("The SDK dispatcher does not expose its public subscription methods.");
         const listener = (): void => { if (this.active && allocation.live) this.notice("Language-change dispatcher fired"); };
-        unsubscribe = () => { instance.unsubscribe(listener); };
-        instance.subscribe(listener);
+        unsubscribe = () => { Reflect.apply(remove, instance, [listener]); };
+        Reflect.apply(subscribe, instance, [listener]);
       }
       return instance;
     }
