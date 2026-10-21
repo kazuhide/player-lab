@@ -407,6 +407,15 @@ function applyTheme(p: PlayerAPI, id: ThemeId): void {
   renderThemeBar();
   renderActiveConstruction();
   apiExplorer?.refresh();
+  refreshUiControls();
+}
+
+function refreshUiControls(): void {
+  const manager = sdkUiOwner === player ? sdkUiManager : uiManager;
+  if (!manager) return;
+  const config = manager.getConfig();
+  const delay = config.componentConfigOverrides?.UIContainer?.hideDelay;
+  controlPanel?.refreshUi(config, typeof delay === "number" ? delay >= 0 : autohideEnabled);
 }
 
 // DVR allow/forbid is a load-time PlayerConfig option (PlaybackConfig.timeShift),
@@ -786,7 +795,7 @@ async function doBuild(): Promise<{ loaded: Promise<void> }> {
       const manager: unknown = requestedFactory ? requestedFactory(owner, appliedUi) : PlayerUI.UIFactory.buildUI(owner, appliedUi);
       if (generation === playerGeneration && manager instanceof UIManager) {
         sdkUiOwner = owner; sdkUiManager = manager;
-        queueMicrotask(() => { if (generation === playerGeneration && player === owner) { apiExplorer?.refresh(); renderActiveConstruction(); } });
+        queueMicrotask(() => { if (generation === playerGeneration && player === owner) { apiExplorer?.refresh(); renderActiveConstruction(); refreshUiControls(); } });
       }
       return manager;
     } };
@@ -850,6 +859,7 @@ async function doBuild(): Promise<{ loaded: Promise<void> }> {
     },
     extraTelemetry: qoeSection.sec,
   });
+  refreshUiControls();
   // Runtime fields reset with a new player; source/static fields read the applied
   // config. Refresh the existing form so unrelated staged edits are not discarded.
   instance.on(PlayerEvent.SourceLoaded, () => {

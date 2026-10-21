@@ -163,6 +163,8 @@ function fmt(n: number): string {
 export interface ControlPanelHandle {
   /** Apply a temporary kind hint until this particular load settles. */
   beginSourceLoad: (isLive: boolean) => () => void;
+  /** Reflect detailed UI edits without replacing this panel's log or input drafts. */
+  refreshUi: (config: UIConfig, autohide: boolean) => void;
 }
 
 export function mountControlPanel(
@@ -719,6 +721,18 @@ export function mountControlPanel(
 
   refresh();
   return {
+    refreshUi: (config, autohide) => {
+      const sync = (input: HTMLInputElement, value: string | boolean) => {
+        if (document.activeElement === input) return;
+        if (input.type === "checkbox") input.checked = Boolean(value);
+        else input.value = String(value);
+      };
+      sync(autohideToggle.querySelector("input")!, autohide);
+      UI_TOGGLES.forEach((field, index) => sync(uiToggles[index]!.querySelector("input")!, config[field.key] ?? field.def));
+      UI_NUMBERS.forEach((field, index) => sync(uiNumbers[index]!.querySelector("input")!, String(config[field.key] ?? field.def)));
+      sync(uiLanguage, config.localization?.language ?? "en");
+      sync(followSubtitleLanguage.querySelector("input")!, config.localization?.adaptLocalizationToSubtitleLanguage ?? false);
+    },
     beginSourceLoad: (isLive) => {
       const token = sourceHint.begin(isLive);
       refresh();

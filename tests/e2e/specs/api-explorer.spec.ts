@@ -234,6 +234,38 @@ test("the original live-rewind checkbox reflects detailed settings and can overr
   await expect(toggle).toBeChecked();
 });
 
+test("the original UI controls reflect detailed edits and can replace them", async ({ page }) => {
+  let id = "UIConfig.seekbarSnappingEnabled";
+  await selectApi(page, "configuration", id);
+  const entry = catalog.rows.find(row => row.id === id)!;
+  await page.locator(".api-explorer-form > .api-value > select").selectOption(catalog.nodes[entry.schema!]!.options!.find(key => catalog.nodes[key]!.value === false)!);
+  await apply(page);
+  const toggle = page.getByRole("checkbox", { name: /^Snap seeks to markers/ });
+  await expect(toggle).not.toBeChecked();
+  id = "UIConfig.seekbarSnappingRange";
+  await selectApi(page, "configuration", id); await branch(page, id, "number");
+  await page.locator(".api-explorer-form input[inputmode=decimal]").fill("3");
+  await apply(page);
+  const range = page.locator(".panel-row").filter({ has: page.locator(".panel-label", { hasText: /^Snap range/ }) }).getByRole("spinbutton");
+  await expect(range).toHaveValue("3");
+  id = "UIConfig.localization.language";
+  await selectApi(page, "configuration", id); await branch(page, id, "string");
+  await page.locator(".api-explorer-form input[type=text]").fill("de");
+  await apply(page);
+  await expect(page.getByRole("textbox", { name: "Player UI language", exact: true })).toHaveValue("de");
+  await toggle.check();
+  expect(JSON.parse(await readApi(page, "UIManager.getConfig")).seekbarSnappingEnabled).toBe(true);
+  id = "UIComponentConfigMap.UIContainer.hideDelay";
+  await selectApi(page, "configuration", id); await branch(page, id, "number");
+  await page.locator(".api-explorer-form input[inputmode=decimal]").fill("5000");
+  await apply(page);
+  const autohide = page.getByRole("checkbox", { name: /^Autohide controls/ });
+  await expect(autohide).toBeChecked();
+  await autohide.uncheck();
+  expect(JSON.parse(await readApi(page, "UIManager.getConfig")).componentConfigOverrides?.UIContainer?.hideDelay).not.toBe(5000);
+  await expect(autohide).not.toBeChecked();
+});
+
 test("SDK-managed UI uses the configured factory and theme selection restores app ownership", async ({ page }) => {
   let id = "PlayerConfig.style.uiManagerFactory";
   await selectApi(page, "configuration", id); await branch(page, id, "function");

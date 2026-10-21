@@ -404,6 +404,10 @@
       ]
     },
     {
+      "type": "note",
+      "text": "Choosing undefined for an optional configuration property omits that property from the SDK input. Web SDK 8.281.0, for example, rejects an explicitly undefined playback object but accepts an omitted one. Remove this override restores the application's base value instead. This handling applies to configuration properties; callback arguments retain the values and argument count supplied by the SDK."
+    },
+    {
       "type": "figure",
       "file": "sdk-configuration",
       "caption": "The SDK editor searches public paths and provides inputs for the selected setting. This example edits the source title."
@@ -440,6 +444,10 @@
     {
       "type": "p",
       "text": "Inputs that require a UI component or EventDispatcher use a public constructor or an owned SDK instance selected in the editor. Constructor arguments and overloads are editable. Certificate buffers accept hexadecimal or Base64 bytes. Arbitrary JSON is used only where the SDK type allows data; it does not create native or SDK class instances."
+    },
+    {
+      "type": "note",
+      "text": "UI components subscribe to language changes when they are constructed. The app installs the selected localization configuration before creating GUI-defined components, so they use the same event dispatcher as the UIManager. The generated code preserves this order. Components created by the editor and their internal children are released when their owner is replaced; previously selected SDK-owned components remain borrowed."
     },
     {
       "type": "p",
@@ -541,16 +549,20 @@
       "label": "SourceConfigOptions"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/aae87e0a0faa55752286a42f7b41e512221a136e/apps/web/src/api/explorer.ts",
+      "url": "https://github.com/kazuhide/player-lab/blob/3f583561f23786ad623b1a2f24e1f05e46a12eaf/apps/web/src/api/explorer.ts",
       "label": "SDK editor"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/aae87e0a0faa55752286a42f7b41e512221a136e/apps/web/src/api/materialize.ts",
+      "url": "https://github.com/kazuhide/player-lab/blob/3f583561f23786ad623b1a2f24e1f05e46a12eaf/apps/web/src/api/materialize.ts",
       "label": "Callbacks and SDK constructors"
     },
     {
       "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.StyleConfig.html",
       "label": "StyleConfig"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/3f583561f23786ad623b1a2f24e1f05e46a12eaf/apps/web/src/api/values.ts",
+      "label": "Optional configuration properties"
     }
   ]
 }
