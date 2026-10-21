@@ -96,9 +96,11 @@ export function validateData(catalog: ApiSchema, id: string, value: unknown, pat
       });
     }
     case "array":
+      if (value instanceof ResourceInput) return value;
       if (!Array.isArray(value) || value.length > 256) return reject();
       return Array.from(value, (item, index) => next(type.item!, item, `${path}[${index}]`));
     case "object": {
+      if (value instanceof ResourceInput) return value;
       if (!plain(value) || Object.keys(value).length > 256) return reject();
       const output: Record<string, unknown> = {};
       const properties = new Map(type.properties!.map(property => [property.name, property]));

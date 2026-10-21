@@ -97,3 +97,46 @@ it("honours the selected constructor overload and keeps binary code on its actua
   expect(exported).toBeInstanceOf(DataView);
   expect([...new Uint8Array(exported.buffer)]).toEqual([0, 1, 254, 255]);
 });
+
+it("exports callback rest parameters with the same argument grouping as the live callback", () => {
+  const seen: unknown[][] = [];
+  const lab = { collect: (values: unknown[]) => { seen.push(values); } };
+  const input = new CallbackInput("lab.collect(params);", { parameters: [
+    { name: "message", schema: "any", optional: false, rest: false },
+    { name: "params", schema: "any", optional: false, rest: true },
+  ], returns: "empty" }, true);
+  const materializer = new ApiMaterializer(catalog, {}, new ResourcePool({}), lab, () => {});
+  const live = materializer.materialize(input) as (...args: unknown[]) => void;
+  const exported = new Function("lab", "return (" + inputCode(input) + ")")(lab) as typeof live;
+  live("message", "first", 2); exported("message", "first", 2);
+  expect(seen).toEqual([["first", 2], ["first", 2]]);
+});
+
+it("exports constructor rest arguments with the same spreading as the live factory", () => {
+  const typed: ApiSchema = { ...catalog, nodes: { ...catalog.nodes, numbers: { kind: "array", label: "number[]", item: "number" } },
+    constructors: { Label: { signatures: [{ parameters: [{ name: "values", schema: "numbers", optional: false, rest: true }], returns: "label" }] } } };
+  class Label { constructor(...values: number[]) { this.values = values; } readonly values: number[]; }
+  const input = new FactoryInput("Label", [[1, 2, 3]], 0, 0);
+  const materializer = new ApiMaterializer(typed, { Label }, new ResourcePool({ Label }), {}, () => {});
+  const live = materializer.materialize(input) as Label;
+  const exported = new Function("PlayerUI", "return " + inputCode(input))({ Label }) as Label;
+  expect(live.values).toEqual([1, 2, 3]);
+  expect(exported.values).toEqual(live.values);
+});
+
+it("selects SDK-returned structural array items without rebuilding their identity", () => {
+  const typed: ApiSchema = { ...catalog, nodes: { ...catalog.nodes,
+    variant: { kind: "object", label: "UIVariant", properties: [{ name: "id", schema: "text", optional: false }] },
+    variants: { kind: "array", label: "UIVariant[]", item: "variant" } } };
+  const owner = {};
+  const pool = new ResourcePool({});
+  const first = { id: "first" }; const second = { id: "second" };
+  pool.captureResult(typed, "variants", [first, second], "variants", owner);
+  const resource = pool.list(typed.nodes.variant!).find(item => pool.get(item.id) === second)!;
+  expect(resource).toBeDefined();
+  const materializer = new ApiMaterializer(typed, {}, pool, {}, () => {});
+  const args = materializer.arguments({ parameters: [{ name: "variant", schema: "variant", optional: false, rest: false }], returns: "empty" }, [new ResourceInput(resource.id)]);
+  expect(args[0]).toBe(second);
+  pool.retire(owner);
+  expect(() => materializer.arguments({ parameters: [{ name: "variant", schema: "variant", optional: false, rest: false }], returns: "empty" }, [new ResourceInput(resource.id)])).toThrow(/expired/i);
+});

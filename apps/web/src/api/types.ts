@@ -47,7 +47,7 @@ export class CallbackInput {
   constructor(readonly body: string, readonly signature: Signature, readonly approved: boolean) {}
 }
 export class FactoryInput {
-  constructor(readonly name: string, readonly args: unknown[], readonly overload = 0) {}
+  constructor(readonly name: string, readonly args: unknown[], readonly overload = 0, readonly restIndex = -1) {}
 }
 export class ResourceInput {
   constructor(readonly id: string) {}

@@ -148,6 +148,50 @@ test("an unfinished request callback can be removed without waiting for its old 
   await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
 });
 
+test("a rejected older source load cannot roll back settings retained by a new Player", async ({ page }) => {
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  const source = JSON.parse(await readApi(page, "PlayerAPI.getSource")) as { hls: string };
+  const hls = source.hls + (source.hls.includes("?") ? "&" : "?") + "slow_source=1";
+  let id = "PlayerConfig.network.preprocessHttpRequest";
+  await selectApi(page, "configuration", id); await branch(page, id, "function");
+  await page.getByRole("textbox", { name: "JavaScript callback body" }).fill('return request.url.includes("slow_source=1") ? new Promise(() => {}) : Promise.resolve(request);');
+  await page.getByRole("checkbox", { name: "Allow this callback to run in this page after Apply" }).check();
+  await apply(page);
+  await page.getByRole("button", { name: "Clear event history", exact: true }).click();
+  id = "SourceConfig.hls";
+  await selectApi(page, "configuration", id); await branch(page, id, "string");
+  await page.locator(".api-explorer-form input[type=text]").fill(hls);
+  await page.getByRole("button", { name: "Apply setting", exact: true }).click();
+  await expect.poll(async () => (await page.locator(".api-event-log").textContent())!.includes("Callback invoked")).toBe(true);
+  await selectApi(page, "configuration", "PlayerConfig.network.preprocessHttpRequest");
+  await page.getByRole("button", { name: "Remove this override", exact: true }).click();
+  await expect(page.locator(".api-explorer > p[role=status]")).toHaveText("Override removed.");
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  expect(JSON.parse(await readApi(page, "PlayerAPI.getSource")).hls).toBe(hls);
+});
+
+test("SDK-owned UI variants and markers keep the identity required by switch and remove", async ({ page }) => {
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  await readApi(page, "UIManager.getUiVariants");
+  await selectApi(page, "command", "UIManager.switchToUiVariant");
+  const picker = page.getByRole("combobox", { name: "SDK object", exact: true }).first();
+  await expect(picker).toBeVisible();
+  const first = await picker.locator('option[value^="resource:"]').first().getAttribute("value");
+  await picker.selectOption(first!);
+  await page.getByRole("button", { name: "Run API", exact: true }).click();
+  await expect(page.locator(".api-explorer > p[role=status]")).toHaveText("SDK call completed.");
+  await expect(page.locator("#player .bmpui-ui-uicontainer").first()).toBeVisible();
+  const before = JSON.parse(await readApi(page, "UIManager.getTimelineMarkers")) as { title: string }[];
+  expect(before.length).toBeGreaterThan(0);
+  await selectApi(page, "command", "UIManager.removeTimelineMarker");
+  const marker = page.getByRole("combobox", { name: "SDK object", exact: true }).first();
+  await marker.selectOption((await marker.locator('option[value^="resource:"]').first().getAttribute("value"))!);
+  await page.getByRole("button", { name: "Run API", exact: true }).click();
+  await expect(page.locator(".api-explorer > p[role=status]")).toHaveText("SDK call completed.");
+  const after = JSON.parse(await readApi(page, "UIManager.getTimelineMarkers")) as typeof before;
+  expect(after).toEqual(before.slice(1));
+});
+
 test("runtime arguments change volume, state reads expose it, and event subscriptions record playback", async ({ page }) => {
   await selectApi(page, "command", "PlayerAPI.setVolume");
   await page.locator(".api-explorer-form fieldset input[type=text]").first().fill("37");

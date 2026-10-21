@@ -239,7 +239,11 @@ export function valueEditor(catalog: ApiSchema, id: string, resources: EditorRes
     select.addEventListener("change", update); update();
     element.append(select, body);
     return { element, read: () => {
-      if (select.value.startsWith("factory:")) return new FactoryInput(select.value.slice(8), args.map(arg => arg.read()), overload);
+      if (select.value.startsWith("factory:")) {
+        const name = select.value.slice(8);
+        const restIndex = catalog.constructors[name]!.signatures[overload]!.parameters.findIndex(parameter => parameter.rest);
+        return new FactoryInput(name, args.map(arg => arg.read()), overload, restIndex);
+      }
       if (select.value.startsWith("resource:")) return new ResourceInput(select.value.slice(9));
       if (select.value.startsWith("element:")) return new ElementInput(select.value.slice(8));
       throw new Error("Choose a real SDK instance or a supported constructor.");

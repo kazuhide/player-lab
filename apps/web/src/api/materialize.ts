@@ -35,6 +35,33 @@ export class ResourcePool {
   }
   clear(): void { this.values.clear(); }
   retire(owner: object): void { for (const [id, entry] of this.values) if (entry.owner === owner) this.values.delete(id); }
+
+  captureResult(catalog: ApiSchema, id: string, value: unknown, label: string, owner: object): void {
+    const seen = new WeakSet<object>();
+    const visit = (key: string, input: unknown, name: string, depth: number): void => {
+      const schema = catalog.nodes[key];
+      if (!schema || depth > 4) return;
+      if (schema.kind === "promise") { visit(schema.value as string, input, name, depth); return; }
+      if ((!input || typeof input !== "object") && typeof input !== "function") return;
+      if (seen.has(input as object)) return;
+      if (schema.kind === "union") {
+        for (const branch of schema.options!) {
+          try { runtimeValue(catalog, branch, input, this); visit(branch, input, name, depth); return; } catch { /* Try the next public type. */ }
+        }
+        return;
+      }
+      seen.add(input as object);
+      this.add(input, name, schema.label, owner);
+      if (schema.kind === "array" && Array.isArray(input)) {
+        input.slice(0, 32).forEach((item, index) => visit(schema.item!, item, `${name}[${index}]`, depth + 1));
+      } else if (schema.kind === "object") {
+        for (const property of schema.properties!.slice(0, 64)) {
+          try { visit(property.schema, (input as Record<string, unknown>)[property.name], `${name}.${property.name}`, depth + 1); } catch { /* A public SDK getter may be unavailable in this state. */ }
+        }
+      }
+    };
+    visit(id, value, label, 0);
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -110,6 +137,7 @@ export class ApiMaterializer {
       if (value === undefined && parameter.optional) { output.push(undefined); return; }
       validateData(this.catalog, parameter.schema, value, parameter.name);
       const materialized = this.materialize(value);
+      runtimeValue(this.catalog, parameter.schema, materialized, this.resources);
       if (parameter.rest) {
         if (!Array.isArray(materialized)) throw new Error("A rest parameter must be an array.");
         output.push(...materialized);
@@ -188,8 +216,8 @@ export class ApiMaterializer {
 const sensitive = /^(?:key|licenseKey|apiKey|password|token|authorization|proxy-authorization)$/i;
 export function inputCode(value: unknown, path: string[] = []): string {
   if (sensitive.test(path[path.length - 1] ?? "")) return '"YOUR_VALUE"';
-  if (value instanceof CallbackInput) return `function(${parameterNames(value.signature).join(", ")}) {\n${value.body}\n}`;
-  if (value instanceof FactoryInput) return `new ${value.name === "EventDispatcher" ? "EventDispatcher" : value.name === "DOM" ? "PlayerUIDOM" : "PlayerUI." + value.name}(${value.args.map(item => inputCode(item)).join(", ")})`;
+  if (value instanceof CallbackInput) return `function(${parameterNames(value.signature).map((name, index) => (value.signature.parameters[index]!.rest ? "..." : "") + name).join(", ")}) {\n${value.body}\n}`;
+  if (value instanceof FactoryInput) return `new ${value.name === "EventDispatcher" ? "EventDispatcher" : value.name === "DOM" ? "PlayerUIDOM" : "PlayerUI." + value.name}(${value.args.map((item, index) => (index === value.restIndex ? "..." : "") + inputCode(item)).join(", ")})`;
   if (value instanceof ElementInput) return `document.createElement(${JSON.stringify(value.tag)})`;
   if (value instanceof ResourceInput) return `resources[${JSON.stringify(value.id)}]`;
   if (value instanceof BinaryInput) {
