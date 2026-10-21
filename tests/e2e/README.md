@@ -57,6 +57,17 @@ methods or clipboard writes; the collector is intercepted to avoid recording
 test sessions in an account. Browser installation requires Internet access;
 the generated media tests use local media.
 
+CI runs Chromium and Firefox on Linux and WebKit on macOS. WebKit's media
+implementation depends on the operating system; Playwright recommends macOS
+for [video tests closest to Safari](https://playwright.dev/docs/browsers#webkit).
+The macOS job downloads the same Pages artifact produced and checked on Linux,
+verifies its file manifest before and after the tests, and gates publication
+through the overall CI result. It does not rebuild the application. All engine
+projects retain the same playback, visibility and decoded-frame assertions.
+Linux WebKit was observed to retain buffered media at time zero after source
+changes even while the HTML video reported playing; that engine/platform
+combination is not the Safari playback target of this CI job.
+
 The Firefox project disables its browser-owned Picture-in-Picture hover button:
 that overlay can intercept clicks over the application's settings menu. The
 application's own Picture-in-Picture control remains available. Menu results
