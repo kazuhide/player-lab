@@ -1,6 +1,7 @@
 package com.playerlab.android
 
 import com.bitmovin.player.api.*
+import com.bitmovin.player.api.drm.*
 import com.bitmovin.player.api.decoder.DecoderConfig
 import com.bitmovin.player.api.live.*
 import com.bitmovin.player.api.media.MediaFilter
@@ -22,10 +23,11 @@ internal data class ApiSetting(
     val minimum: Double? = null,
     val maximum: Double? = null,
     val nullable: Boolean = false,
+    val drmParameter: Boolean = false,
     val player: ((PlayerConfig, String) -> PlayerConfig)? = null,
     val source: ((SourceConfig, String) -> Unit)? = null,
     val view: ((PlayerViewConfig, String) -> PlayerViewConfig)? = null,
-    val code: (String) -> String,
+    val code: ((String) -> String)? = null,
 ) {
     fun normalize(input: String): String {
         val value = if (kind == ApiValueKind.Text) input else input.trim()
@@ -66,11 +68,12 @@ internal data class ApiOverrides(val values: Map<String, String> = emptyMap()) {
     }
     fun source(base: SourceConfig): SourceConfig = base.also { config ->
         values.forEach { (id, value) -> ApiSettings.byId.getValue(id).source?.invoke(config, value) }
+        configureApiDrm(config, values.filterKeys { ApiSettings.byId.getValue(it).drmParameter })
     }
     fun view(base: PlayerViewConfig): PlayerViewConfig = values.entries.fold(base) { config, (id, value) ->
         ApiSettings.byId.getValue(id).view?.invoke(config, value) ?: config
     }
-    fun code(): String = values.entries.joinToString("\n") { (id, value) -> ApiSettings.byId.getValue(id).code(value) }
+    fun code(): String = values.entries.filterNot { ApiSettings.byId.getValue(it.key).drmParameter }.joinToString("\n") { (id, value) -> requireNotNull(ApiSettings.byId.getValue(id).code).invoke(value) } + apiDrmCode(values.filterKeys { ApiSettings.byId.getValue(it).drmParameter })
     companion object {
         fun validate(draft: Map<String, String>): ApiOverrides {
             val parsed = ApiOverrides(draft.mapValues { (id, value) ->
@@ -915,6 +918,113 @@ internal object ApiSettings {
             choices = listOf("Fit","Stretch","Zoom"),
             player = { c, v -> c.copy(styleConfig = c.styleConfig.copy(scalingMode = ScalingMode.valueOf(v))) },
             code = { v -> "playerConfig = playerConfig.copy(styleConfig = playerConfig.styleConfig.copy(scalingMode = ScalingMode.$v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.DrmConfig.licenseUrl",
+            owner = "drm.DrmConfig",
+            kind = ApiValueKind.Text,
+            help = "License endpoint. Preserves the current public DRM variant and common fields; defaults to Widevine when no DRM is configured. The URL is omitted from code export.",
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.DrmConfig.isLicenseRenewable",
+            owner = "drm.DrmConfig",
+            kind = ApiValueKind.Boolean,
+            help = "DRM settings require compatible encrypted content, a licensed endpoint and device support. Values remain local to this running app.",
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.DrmConfig.shouldKeepDrmSessionsAlive",
+            owner = "drm.DrmConfig",
+            kind = ApiValueKind.Boolean,
+            help = "DRM settings require compatible encrypted content, a licensed endpoint and device support. Values remain local to this running app.",
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.DrmConfig.immediateLicenseRequest",
+            owner = "drm.DrmConfig",
+            kind = ApiValueKind.Boolean,
+            help = "DRM settings require compatible encrypted content, a licensed endpoint and device support. Values remain local to this running app.",
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.DrmConfig.drmSessionKeepaliveMs",
+            owner = "drm.DrmConfig",
+            kind = ApiValueKind.LongInteger,
+            help = "DRM settings require compatible encrypted content, a licensed endpoint and device support. Values remain local to this running app.",
+            nullable = true,
+            minimum = 0.0,
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.DrmConfig.httpHeaders",
+            owner = "drm.DrmConfig",
+            kind = ApiValueKind.StringMap,
+            help = "DRM settings require compatible encrypted content, a licensed endpoint and device support. Values remain local to this running app.",
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.WidevineConfig.preferredSecurityLevel",
+            owner = "drm.WidevineConfig",
+            kind = ApiValueKind.Choice,
+            help = "DRM settings require compatible encrypted content, a licensed endpoint and device support. Values remain local to this running app.",
+            choices = listOf("L1","L3"),
+            nullable = true,
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.NagraConnectConfig.operatorVault",
+            owner = "drm.NagraConnectConfig",
+            kind = ApiValueKind.Text,
+            help = "DRM settings require compatible encrypted content, a licensed endpoint and device support. Values remain local to this running app.",
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.ClearKeyConfigEntry.key",
+            owner = "drm.ClearKeyConfigEntry",
+            kind = ApiValueKind.Text,
+            help = "DRM settings require compatible encrypted content, a licensed endpoint and device support. Values remain local to this running app.",
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.ClearKeyConfigEntry.kid",
+            owner = "drm.ClearKeyConfigEntry",
+            kind = ApiValueKind.Text,
+            help = "DRM settings require compatible encrypted content, a licensed endpoint and device support. Values remain local to this running app.",
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.WidevineConfig.prepareMessageCallback",
+            owner = "drm.WidevineConfig",
+            kind = ApiValueKind.Choice,
+            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            choices = listOf("Identity","Base64Encode","Base64Decode"),
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.WidevineConfig.prepareLicenseCallback",
+            owner = "drm.WidevineConfig",
+            kind = ApiValueKind.Choice,
+            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            choices = listOf("Identity","Base64Encode","Base64Decode"),
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.PlayReadyConfig.prepareMessageCallback",
+            owner = "drm.PlayReadyConfig",
+            kind = ApiValueKind.Choice,
+            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            choices = listOf("Identity","Base64Encode","Base64Decode"),
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.PlayReadyConfig.prepareLicenseCallback",
+            owner = "drm.PlayReadyConfig",
+            kind = ApiValueKind.Choice,
+            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            choices = listOf("Identity","Base64Encode","Base64Decode"),
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.NagraConnectConfig.prepareMessageCallback",
+            owner = "drm.NagraConnectConfig",
+            kind = ApiValueKind.Choice,
+            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            choices = listOf("Identity","Base64Encode","Base64Decode"),
+            drmParameter = true
+        ),        ApiSetting(
+            id = "android:com.bitmovin.player.api.drm.NagraConnectConfig.prepareLicenseCallback",
+            owner = "drm.NagraConnectConfig",
+            kind = ApiValueKind.Choice,
+            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            choices = listOf("Identity","Base64Encode","Base64Decode"),
+            drmParameter = true
         )
     )
     val byId: Map<String, ApiSetting> = fields.associateBy(ApiSetting::id)

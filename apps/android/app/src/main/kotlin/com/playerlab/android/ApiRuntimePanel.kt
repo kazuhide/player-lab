@@ -40,12 +40,12 @@ internal fun ApiRuntimePanel(controller: PlayerController) {
             modifier = Modifier.fillMaxWidth().testTag("api-runtime-search"), singleLine = true)
         when (section) {
             "Commands" -> {
-                ApiRuntime.commands.filter { it.id.contains(query, ignoreCase = true) }.forEach { item ->
+                ApiRuntime.commands.filter { it.id.contains(query, ignoreCase = true) || it.label.contains(query, ignoreCase = true) }.forEach { item ->
                     Button(onClick = { selected = item.id; result = "" }, modifier = Modifier.testTag("api-command-${item.id}")) {
-                        Text(item.id.removePrefix("android:com.bitmovin.player."))
+                        Text(item.label)
                     }
                 }
-                Text(command.id.removePrefix("android:"), style = MaterialTheme.typography.labelLarge)
+                Text(command.label, style = MaterialTheme.typography.labelLarge)
                 command.arguments.forEach { argument ->
                     OutlinedTextField(arguments[argument.name].orEmpty(), { value -> arguments = arguments + (argument.name to value) },
                         label = { Text(argument.name) }, modifier = Modifier.fillMaxWidth().testTag("api-argument-${argument.name}"), singleLine = true)
@@ -61,7 +61,7 @@ internal fun ApiRuntimePanel(controller: PlayerController) {
                 if (controller.apiAsyncResult.isNotEmpty()) Text(controller.apiAsyncResult, modifier = Modifier.testTag("api-async-result"))
             }
             "State" -> {
-                Text("Refresh reads SDK values once. Keys and opaque SDK request/configuration objects are not exported. Lists show the first entries and text is bounded for display.", style = MaterialTheme.typography.bodySmall)
+                Text("Refresh reads SDK values once. Keys and opaque SDK request/configuration objects are not exported. Lists show the first entries and text is bounded for display. Ad interface fields use the active client-side ad or the selected SSAI test object; activeAdBreak and activeLinearAd always read the actual SDK state.", style = MaterialTheme.typography.bodySmall)
                 Button(onClick = {
                     observations = ApiRuntime.reads.associate { field -> field.id to runCatching { apiValue(field.read(controller)) }
                         .getOrElse { "Unavailable (${it.javaClass.simpleName})" } }
@@ -77,10 +77,10 @@ internal fun ApiRuntimePanel(controller: PlayerController) {
                     Text("Record SDK events")
                     Switch(controller.apiEventRecording, { controller.apiEventRecording = it }, modifier = Modifier.testTag("api-event-recording"))
                 }
-                Text("Values are occurrence counts for this app session. Zero means no occurrence has been recorded. Event payloads, keys and request headers are not copied into this log.", style = MaterialTheme.typography.bodySmall)
-                Button(onClick = { controller.apiEvents.clear() }, modifier = Modifier.testTag("api-events-clear")) { Text("Clear event counts") }
+                Text("Values are occurrence counts for this app session. Zero means no occurrence has been recorded. The latest timestamp is read from SDK Event.timestamp in milliseconds since the Unix epoch. Keys, request headers and other payloads are not copied into this log.", style = MaterialTheme.typography.bodySmall)
+                Button(onClick = { controller.apiEvents.clear(); controller.apiEventTimes.clear() }, modifier = Modifier.testTag("api-events-clear")) { Text("Clear event counts") }
                 (ApiEvents.player.map { it.id } + ApiEvents.source.map { it.id }).filter { it.contains(query, ignoreCase = true) }.forEach { id ->
-                    Text("$id: ${controller.apiEvents[id] ?: 0}", modifier = Modifier.testTag("api-event-$id"), style = MaterialTheme.typography.bodySmall)
+                    Text("$id: ${controller.apiEvents[id] ?: 0}; latest timestamp=${controller.apiEventTimes[id] ?: "not recorded"}", modifier = Modifier.testTag("api-event-$id"), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

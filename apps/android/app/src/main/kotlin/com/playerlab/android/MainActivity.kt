@@ -132,26 +132,65 @@ internal class PlayerController(
     private val playerSubscriptions = mutableListOf<() -> Unit>()
     private var sourceSubscription: (() -> Unit)? = null
     private val apiMain = android.os.Handler(android.os.Looper.getMainLooper())
+    private var apiQuerySequence = 0L
+    private var apiQueryTimeout: Runnable? = null
     internal val apiEvents = androidx.compose.runtime.mutableStateMapOf<String, Int>()
+    internal val apiEventTimes = androidx.compose.runtime.mutableStateMapOf<String, Long>()
+    internal val apiSsaiAds = androidx.compose.runtime.mutableStateMapOf<String, com.bitmovin.player.api.ssai.SsaiAd>()
+    internal val apiSsaiBreaks = androidx.compose.runtime.mutableStateMapOf<String, com.bitmovin.player.api.ssai.SsaiAdBreak>()
+    internal var apiSelectedSsaiAd: String? by mutableStateOf(null)
+    internal var apiSelectedSsaiBreak: String? by mutableStateOf(null)
     internal var apiEventRecording by mutableStateOf(true)
     internal var apiAsyncResult by mutableStateOf("")
         private set
     internal fun currentView(): PlayerView? = views.firstOrNull { it.player === player }
+    private fun invalidateApiQuery() {
+        apiQuerySequence++
+        apiQueryTimeout?.let(apiMain::removeCallbacks)
+        apiQueryTimeout = null
+        apiAsyncResult = ""
+    }
     internal fun queryTargetPlaybackLatency() {
+        if (released) return
+        invalidateApiQuery()
         val owner = player
         val generation = playerGeneration
+        val source = sourceGeneration
+        val query = apiQuerySequence
+        fun ownsQuery() = !released && player === owner && generation == playerGeneration &&
+            source == sourceGeneration && query == apiQuerySequence
         apiAsyncResult = "Waiting for target playback latency."
-        owner.lowLatency.getTargetPlaybackLatency { value ->
-            apiMain.post {
-                if (!released && player === owner && generation == playerGeneration) {
-                    apiAsyncResult = "LowLatencyApi.getTargetPlaybackLatency: ${value ?: "null"}"
-                }
+        val timeout = Runnable {
+            if (ownsQuery()) {
+                apiQuerySequence++
+                apiQueryTimeout = null
+                apiAsyncResult = "No target playback latency result within 10 seconds. Try again after loading a source."
             }
         }
+        apiQueryTimeout = timeout
+        apiMain.postDelayed(timeout, 10_000L)
+        try {
+            owner.lowLatency.getTargetPlaybackLatency { value ->
+                apiMain.post {
+                    if (ownsQuery()) {
+                        apiMain.removeCallbacks(timeout)
+                        apiQueryTimeout = null
+                        apiQuerySequence++
+                        apiAsyncResult = "LowLatencyApi.getTargetPlaybackLatency: ${value ?: "null"}"
+                    }
+                }
+            }
+        } catch (failure: Exception) {
+            invalidateApiQuery()
+            throw failure
+        }
     }
-    private fun apiEvent(id: String, owns: () -> Boolean) {
+    private fun apiEvent(id: String, timestamp: Long, owns: () -> Boolean) {
         val record = {
-            if (owns() && apiEventRecording) apiEvents[id] = ((apiEvents[id] ?: 0).toLong() + 1).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+            if (owns() && apiEventRecording) {
+                apiEvents[id] = ((apiEvents[id] ?: 0).toLong() + 1).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+                apiEventTimes[id] = timestamp
+            }
         }
         if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) record() else apiMain.post { record() }
     }
@@ -177,8 +216,8 @@ internal class PlayerController(
         val owner = player
         val generation = playerGeneration
         ApiEvents.player.forEach { entry ->
-            playerSubscriptions += entry.subscribe(owner) { id ->
-                apiEvent(id) { !released && player === owner && generation == playerGeneration }
+            playerSubscriptions += entry.subscribe(owner) { id, timestamp ->
+                apiEvent(id, timestamp) { !released && player === owner && generation == playerGeneration }
             }
         }
         onPlayer(PlayerEvent.Error::class) { lastErrorCode = it.code.value; append("PlayerError ${it.code.value}") }
@@ -210,6 +249,7 @@ internal class PlayerController(
     }
 
     private fun loadCurrentSource() {
+        invalidateApiQuery()
         sourceSubscription?.invoke()
         val owner = player
         val generation = ++sourceGeneration
@@ -225,7 +265,7 @@ internal class PlayerController(
         source.on(SourceEvent.Error::class, error)
         source.on(SourceEvent.Loaded::class, loaded)
         val apiSubscriptions = ApiEvents.source.map { entry ->
-            entry.subscribe(source) { id -> apiEvent(id, ::ownsSource) }
+            entry.subscribe(source) { id, timestamp -> apiEvent(id, timestamp, ::ownsSource) }
         }
         sourceSubscription = {
             source.off(SourceEvent.Error::class, error)
@@ -258,7 +298,11 @@ internal class PlayerController(
         player = replacement
         playerSettings = settings
         apiOverrides = overrides
-        apiAsyncResult = ""
+        invalidateApiQuery()
+        apiSsaiAds.clear()
+        apiSsaiBreaks.clear()
+        apiSelectedSsaiAd = null
+        apiSelectedSsaiBreak = null
         observePlayer()
         previous.destroy()
         loadCurrentSource()
@@ -306,6 +350,12 @@ internal class PlayerController(
     fun release() {
         if (released) return
         released = true
+        invalidateApiQuery()
+        apiMain.removeCallbacksAndMessages(null)
+        apiSsaiAds.clear()
+        apiSsaiBreaks.clear()
+        apiSelectedSsaiAd = null
+        apiSelectedSsaiBreak = null
         playerGeneration++
         sourceGeneration++
         sourceSubscription?.invoke()

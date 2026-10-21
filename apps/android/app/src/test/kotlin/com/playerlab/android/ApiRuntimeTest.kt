@@ -24,5 +24,7 @@ class ApiRuntimeTest {
     @Test fun scaling_choices_match_the_installed_sdk_enum() {
         val command = ApiRuntime.commands.single { it.id == "android:com.bitmovin.player.PlayerView.scalingMode" }
         assertEquals(com.bitmovin.player.api.ui.ScalingMode.entries.map { it.name }, command.arguments.single().choices)
+        val quartile = ApiRuntime.commands.single { it.id == "android:com.bitmovin.player.api.ssai.SsaiApi.reportAdQuartile()" }
+        assertEquals(com.bitmovin.player.api.advertising.AdQuartile.entries.map { it.name }, quartile.arguments.single().choices)
     }
 }

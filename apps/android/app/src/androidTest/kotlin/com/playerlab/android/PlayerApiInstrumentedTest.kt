@@ -60,6 +60,26 @@ class PlayerApiInstrumentedTest {
         ui.runOnUiThread { assertNull("No SDK playback error", controller.lastErrorCode) }
     }
 
+    @Test fun ssaiTestObjectsAreEditableAndInspectedWithoutClaimingAdPlayback() {
+        val controller = ui.activity.controller
+        click("api-runtime-toggle")
+        field("api-runtime-search", "Create SSAI test ad")
+        click("api-command-app:ssai-ad")
+        field("api-argument-id", "example-ad")
+        field("api-argument-duration", "12.5")
+        field("api-argument-skippableAfter", "3")
+        click("api-command-run")
+        ui.runOnUiThread {
+            assertEquals(12.5, controller.apiSsaiAds["example-ad"]!!.duration, 0.0)
+            assertEquals(3.0, controller.apiSsaiAds["example-ad"]!!.skippableAfter!!, 0.0)
+            assertEquals("example-ad", controller.apiSelectedSsaiAd)
+        }
+        click("api-section-State")
+        field("api-runtime-search", "api.ssai.SsaiAd.duration")
+        click("api-state-refresh")
+        ui.onNodeWithTag("api-state-android:com.bitmovin.player.api.ssai.SsaiAd.duration").assertTextEquals("12.5")
+    }
+
     private fun choose(member: String) {
         field("api-runtime-search", member)
         click("api-command-android:com.bitmovin.player.$member")

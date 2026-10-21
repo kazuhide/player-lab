@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -46,6 +48,7 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
             }
         }
         OutlinedTextField(input, { input = it }, label = { Text("SDK field value") },
+            visualTransformation = if (field.drmParameter && field.kind in listOf(ApiValueKind.Text, ApiValueKind.StringMap)) PasswordVisualTransformation() else VisualTransformation.None,
             modifier = Modifier.fillMaxWidth().testTag("api-setting-value"))
         Button(onClick = {
             runCatching { field.normalize(input) }.onSuccess {

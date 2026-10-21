@@ -8,16 +8,16 @@ import com.bitmovin.player.api.event.SourceEvent
 import kotlin.reflect.KClass
 
 internal object ApiEvents {
-    data class PlayerEntry(val id: String, val subscribe: (Player, (String) -> Unit) -> (() -> Unit))
-    data class SourceEntry(val id: String, val subscribe: (Source, (String) -> Unit) -> (() -> Unit))
+    data class PlayerEntry(val id: String, val subscribe: (Player, (String, Long) -> Unit) -> (() -> Unit))
+    data class SourceEntry(val id: String, val subscribe: (Source, (String, Long) -> Unit) -> (() -> Unit))
     private fun <E : Event> playerEvent(id: String, type: KClass<E>) = PlayerEntry(id) { owner, report ->
-        val callback: (E) -> Unit = { report(id) }
+        val callback: (E) -> Unit = { report(id, it.timestamp) }
         owner.on(type, callback)
         val dispose: () -> Unit = { owner.off(type, callback) }
         dispose
     }
     private fun <E : SourceEvent> sourceEvent(id: String, type: KClass<E>) = SourceEntry(id) { owner, report ->
-        val callback: (E) -> Unit = { report(id) }
+        val callback: (E) -> Unit = { report(id, it.timestamp) }
         owner.on(type, callback)
         val dispose: () -> Unit = { owner.off(type, callback) }
         dispose

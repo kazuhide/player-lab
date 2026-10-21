@@ -1,0 +1,57 @@
+package com.playerlab.android
+
+import com.bitmovin.player.api.drm.*
+import com.bitmovin.player.api.source.*
+import org.junit.Assert.*
+import org.junit.Test
+
+class ApiDrmTest {
+    private fun id(name: String) = "android:com.bitmovin.player.api.drm.$name"
+    private fun source() = SourceConfig("https://example.invalid/stream.mpd", SourceType.Dash)
+
+    @Test fun typed_drm_composition_keeps_every_parameter_independent_of_input_order() {
+        val values = linkedMapOf(
+            id("DrmConfig.licenseUrl") to "https://example.invalid/license",
+            id("DrmConfig.drmSessionKeepaliveMs") to "750",
+            id("WidevineConfig.preferredSecurityLevel") to "L3",
+            id("DrmConfig.shouldKeepDrmSessionsAlive") to "true",
+            id("DrmConfig.httpHeaders") to "X-Test=public-fixture",
+            id("WidevineConfig.prepareLicenseCallback") to "Identity",
+        )
+        for (input in listOf(values, values.entries.reversed().associate { it.toPair() })) {
+            val config = ApiOverrides.validate(input).source(source()).drmConfig as WidevineConfig
+            assertEquals("https://example.invalid/license", config.licenseUrl)
+            assertEquals(750L, config.drmSessionKeepaliveMs)
+            assertEquals("L3", config.preferredSecurityLevel)
+            assertTrue(config.shouldKeepDrmSessionsAlive)
+            assertEquals("public-fixture", config.httpHeaders?.get("X-Test"))
+            assertArrayEquals(byteArrayOf(1, 2, 3), config.prepareLicenseCallback!!.prepareLicense(byteArrayOf(1, 2, 3)))
+        }
+    }
+
+    @Test fun variant_incompatibilities_fail_before_the_current_player_can_be_retired() {
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(
+            id("WidevineConfig.preferredSecurityLevel") to "L3",
+            id("PlayReadyConfig.prepareLicenseCallback") to "Identity",
+        )) }.isFailure)
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(
+            id("PlayReadyConfig.prepareLicenseCallback") to "Identity",
+            id("DrmConfig.drmSessionKeepaliveMs") to "750",
+        )) }.isFailure)
+    }
+
+    @Test fun clear_key_pairs_are_composed_together_and_secrets_are_omitted_from_export() {
+        val overrides = ApiOverrides.validate(mapOf(
+            id("ClearKeyConfigEntry.key") to "fixture-key-value",
+            id("ClearKeyConfigEntry.kid") to "fixture-key-id",
+        ))
+        val config = overrides.source(source()).drmConfig as ClearKeyConfig
+        assertEquals("fixture-key-value", config.entries.single().key)
+        assertEquals("fixture-key-id", config.entries.single().kid)
+        assertFalse(overrides.code().contains("fixture-key-value"))
+        assertFalse(overrides.code().contains("fixture-key-id"))
+        assertTrue(overrides.code().contains("YOUR_CLEAR_KEY"))
+        val license = ApiOverrides.validate(mapOf(id("DrmConfig.licenseUrl") to "https://example.invalid/private-license"))
+        assertFalse(license.code().contains("private-license"))
+    }
+}
