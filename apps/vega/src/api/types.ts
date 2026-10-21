@@ -32,6 +32,7 @@ export interface ApiEntry {
   name?: string;
   value?: string;
   blocked?: string;
+  container?: boolean;
 }
 
 export interface ApiSchema {

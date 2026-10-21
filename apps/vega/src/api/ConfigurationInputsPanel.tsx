@@ -31,7 +31,7 @@ export function ConfigurationInputsPanel({ values, onChange }: { values: ConfigI
   return <View style={styles.section}>
     <Action title={expanded ? "Hide all SDK configuration" : "Show all SDK configuration"} onPress={() => setExpanded(!expanded)} />
     {expanded && <>
-      <Text style={styles.text}>Select an API and edit its published value type. Set values override the basic form after Apply. Removing an override restores the form or SDK default. Lists, dictionaries, binary data and callbacks have dedicated inputs.</Text>
+      <Text style={styles.text}>Select an API and edit its published value type. Set values override the basic form after Apply. Removing an override restores the form or SDK default. Lists, dictionaries, binary data and callbacks have dedicated inputs. Parent object and list forms let you edit required sibling fields together before Apply.</Text>
       <TextInput accessibilityLabel="Filter Vega configuration APIs" value={filter} onChangeText={setFilter} autoCapitalize="none" autoCorrect={false} style={styles.input} />
       <View style={styles.row}>{entries.filter((entry) => entry.id.toLowerCase().includes(filter.toLowerCase())).slice(0, 12).map((entry) => <Action key={entry.id} title={entry.id} disabled={entry.id === selected.id} onPress={() => { setSelectedId(entry.id); setIndices([]); setError(""); }} />)}</View>
       <Text style={styles.heading}>{selected.id}</Text><Text style={styles.text}>{catalog.nodes[selected.schema!]!.label}</Text>

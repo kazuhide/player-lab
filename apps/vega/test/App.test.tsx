@@ -132,6 +132,21 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(current().load.mock.calls[0]?.[0]).not.toHaveProperty("description");
   });
 
+  it("edits required technology siblings together in a parent form before applying the player configuration", async () => {
+    await mount(); await press("Show configuration"); await action("Show all SDK configuration");
+    await text("Filter Vega configuration APIs", "PlayerConfig.playback.preferredTech");
+    await action("PlayerConfig.playback.preferredTech"); await action("Set Vega API value");
+    await action("Add SDK list item");
+    await action("player (set)"); await action("PlayerType.Html5");
+    await action("streaming (set)"); await action("StreamType.Hls");
+    expect(runtime.players).toHaveLength(1);
+    await press("Apply and recreate player");
+    expect(current().config).toEqual(expect.objectContaining({ playback: expect.objectContaining({ preferredTech: [{ player: "html5", streaming: "hls" }] }) }));
+    await press("Show applied code");
+    expect(appliedCode()).toContain('"preferredTech"');
+    expect(appliedCode()).toContain('"streaming": SDK.StreamType.Hls');
+  });
+
   it("connects an explicitly approved edited callback through the GUI to the SDK configuration boundary", async () => {
     await mount(); await press("Show configuration"); await action("Show all SDK configuration");
     await text("Filter Vega configuration APIs", "PlayerConfig.network.preprocessHttpRequest");

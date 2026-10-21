@@ -124,6 +124,22 @@ const rows = [];
 for (const row of x.configuration(['PlayerConfig', 'SourceConfig'], { boundaries: { 'PlayerConfig.events': 'event-map' } }).rows) {
   rows.push({ id: row.id, category: 'configuration', root: row.scope, schema: sdk.convert(sdk.resolve(row.id)), reference: row.officialReference });
 }
+// Parent forms let required siblings be edited together before one validated Apply.
+// These helper entries do not alter the measured SDK API inventory.
+const configurationIds = new Set(rows.map(row => row.id));
+for (const row of [...rows]) {
+  const tokens = [...row.id.replace(/\{\*\}/g, '').matchAll(/(?:^|\.)([A-Za-z_$][\w$]*)|\[("(?:[^"\\]|\\.)*")\]|(\[\])/g)];
+  for (let length = 2; length < tokens.length; length++) {
+    const id = tokens.slice(0, length).map(token => token[0]).join('');
+    if (configurationIds.has(id)) continue;
+    const schema = sdk.convert(sdk.resolve(id));
+    const node = nodes[schema];
+    const branches = node.kind === 'union' ? node.options.map(id => nodes[id]) : [node];
+    if (!branches.some(node => ['object', 'array', 'tuple'].includes(node.kind))) continue;
+    configurationIds.add(id);
+    rows.push({ id, category: 'configuration', root: row.root, schema, container: true, reference: row.reference });
+  }
+}
 for (const row of x.methods(['PlayerAPI'], { omitPaths: ['PlayerAPI.exports'] }).rows) {
   rows.push({ id: row.id, category: row.category, root: 'PlayerAPI', schema: sdk.convert(sdk.resolve(row.id)), reference: row.officialReference });
 }
