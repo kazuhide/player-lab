@@ -74,6 +74,14 @@ export function parameterNames(signature: Signature): string[] {
     && !["eval", "arguments", "lab"].includes(parameter.name) ? parameter.name : "arg" + index);
 }
 
+function callbackParameters(signature: Signature): string {
+  return parameterNames(signature).map((name, index) => (signature.parameters[index]!.rest ? "..." : "") + name).join(", ");
+}
+
+function callbackSource(value: CallbackInput): string {
+  return '"use strict";\nreturn ' + (value.asynchronous ? "async " : "") + "function(" + callbackParameters(value.signature) + ") {\n" + value.body + "\n};";
+}
+
 export class ApiMaterializer {
   private active = true;
   private readonly memo = new WeakMap<object, unknown>();
@@ -90,7 +98,7 @@ export class ApiMaterializer {
       new Function("lab", '"use strict";\n' + value.body);
     } else if (value instanceof CallbackInput) {
       if (!value.approved) throw new Error("Allow this callback to run before applying it.");
-      new Function("lab", `return ${value.asynchronous ? "async " : ""}function(${parameterNames(value.signature).join(", ")}) {\n"use strict";\n${value.body}\n};`);
+      new Function("lab", callbackSource(value));
     } else if (value instanceof FactoryInput) {
       const definition = this.catalog.constructors[value.name];
       if (!definition || typeof this.constructors[value.name] !== "function") throw new Error("This constructor is unavailable.");
@@ -160,10 +168,9 @@ export class ApiMaterializer {
     }
     if (value instanceof CallbackInput) {
       if (!value.approved) throw new Error("Allow this callback to run before applying it.");
-      const names = parameterNames(value.signature);
       // The body comes only from this editor after the user's explicit Apply action.
       // No URL, storage value, shared link or downloaded source is executed here.
-      const compiled: Function = new Function("lab", `return ${value.asynchronous ? "async " : ""}function(${names.join(", ")}) {\n"use strict";\n${value.body}\n};`)(this.lab);
+      const compiled: Function = new Function("lab", callbackSource(value))(this.lab);
       const owner = this;
       let calls = 0;
       const callback = function(this: unknown, ...args: unknown[]): unknown {
@@ -172,11 +179,10 @@ export class ApiMaterializer {
           const type = owner.catalog.nodes[parameter.schema];
           if (type?.kind === "instance") owner.resources.add(args[index], parameter.name, type.label, owner);
         });
-        const inputs = value.signature.parameters.map((parameter, index) => parameter.rest ? args.slice(index) : args[index]);
         calls += 1;
         if (calls <= 20 || calls % 100 === 0) owner.notice("Callback invoked (" + calls + ")");
         try {
-          const result = Reflect.apply(compiled, this, inputs);
+          const result = Reflect.apply(compiled, this, args);
           const returns = owner.catalog.nodes[value.signature.returns]!;
           const promise = returns.kind === "promise" ? returns : returns.kind === "union" ? returns.options?.map(id => owner.catalog.nodes[id]).find(type => type?.kind === "promise") : undefined;
           if (promise && result && typeof result.then === "function") {
@@ -203,7 +209,7 @@ export function inputCode(value: unknown, path: string[] = []): string {
   if (sensitive.test(path[path.length - 1] ?? "")) return '"YOUR_VALUE"';
   if (value instanceof NumericInput) return String(numericValue(value.raw));
   if (value instanceof ExpressionInput) return `(() => {\n${value.body}\n})()`;
-  if (value instanceof CallbackInput) return `${value.asynchronous ? "async " : ""}function(${parameterNames(value.signature).map((name, index) => value.signature.parameters[index]?.rest ? "..." + name : name).join(", ")}) {\n${value.body}\n}`;
+  if (value instanceof CallbackInput) return `${value.asynchronous ? "async " : ""}function(${callbackParameters(value.signature)}) {\n${value.body}\n}`;
   if (value instanceof FactoryInput) return `new ${value.name === "EventDispatcher" ? "EventDispatcher" : value.name === "DOM" ? "PlayerUIDOM" : "PlayerUI." + value.name}(${value.args.map(item => inputCode(item)).join(", ")})`;
   if (value instanceof ElementInput) return "/* Browser DOM elements are unavailable on Vega. */ undefined";
   if (value instanceof ResourceInput) return `resources[${JSON.stringify(value.id)}]`;

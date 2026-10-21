@@ -10,7 +10,7 @@ vi.mock("bitmovin-player/modules/bitmovinplayer-core", async () => {
 
 import { catalog } from "../src/api/catalog";
 import { VegaSessionApi } from "../src/api/sessionApi";
-import { ApiMaterializer, ResourcePool } from "../src/api/materialize";
+import { ApiMaterializer, ResourcePool, inputCode } from "../src/api/materialize";
 import { configurationOverrides, validateConfigurationShape, type ConfigInput } from "../src/api/configInputs";
 import { apiPath, parseBinary, validateData } from "../src/api/values";
 import { BinaryInput, CallbackInput, ExpressionInput, NumericInput, ResourceInput, type ApiEntry, type Signature } from "../src/api/types";
@@ -160,6 +160,20 @@ describe("Vega applied configuration values and callbacks", () => {
     expect(materializer.materialize(factory)).toBe(9); expect(called).toHaveBeenCalledTimes(2);
     expect(materializer.materialize(factory)).toBe(9); expect(called).toHaveBeenCalledTimes(2);
     materializer.dispose(); expect(() => installed("manifest", request)).toThrow("retired Vega session");
+  });
+
+  it("preserves the SDK callback's exact argument count, this and rest values in the live and exported functions", () => {
+    const sig: Signature = { parameters: [{ name: "value", schema: "any", optional: true, rest: false },
+      { name: "remaining", schema: "any", optional: false, rest: true }], returns: "text" };
+    const typed = { ...catalog, nodes: { ...catalog.nodes, any: { kind: "unknown", label: "any" }, text: { kind: "string", label: "string" } } };
+    const lab = { suffix: "end" };
+    const input = new CallbackInput('return arguments.length + "/" + String(value) + "/" + remaining.length + "/" + this.name + "/" + lab.suffix;', sig, true);
+    const materializer = new ApiMaterializer(typed, {}, new ResourcePool({}), lab, () => {});
+    materializer.preflight(input);
+    const live = materializer.materialize(input) as (...args: unknown[]) => string;
+    const exported = new Function("lab", "return (" + inputCode(input) + ")")(lab) as typeof live;
+    for (const args of [[], [undefined], [1, "second", "third"]]) expect(live.apply({ name: "owner" }, args)).toBe(exported.apply({ name: "owner" }, args));
+    materializer.dispose();
   });
 
   it("rejects a callback's invalid public return type and an asynchronous result after retirement", async () => {
