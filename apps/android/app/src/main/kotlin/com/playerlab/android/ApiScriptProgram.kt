@@ -5,18 +5,26 @@ import org.mozilla.javascript.ContextFactory
 import org.mozilla.javascript.Function
 import org.mozilla.javascript.NativeArray
 import org.mozilla.javascript.Scriptable
+import org.mozilla.javascript.Script
 import org.mozilla.javascript.ScriptableObject
 import org.mozilla.javascript.Undefined
 
+internal class ApiScriptBudgetException(val phase: String) : IllegalArgumentException("Callback exceeded its execution budget ($phase).")
+internal class ApiScriptExecutionException : IllegalArgumentException("Invalid JavaScript callback or return value.")
+
 /** Pure value callbacks. No SDK object, Java wrapper, file, URL or Android object enters the script scope. */
 internal class ApiScriptProgram(private val body: String) {
-    private class Limit : Error()
+    private class Limit(val phase: String) : Error()
     private class Budget {
         val deadline = System.nanoTime() + 75_000_000L
         var instructions = 50_000
+        var phase = "scope initialization"
     }
     private val budget = ThreadLocal<Budget>()
     private val factory = object : ContextFactory() {
+        // Callback inputs are plain values; disable E4X and its platform XML parser.
+        override fun hasFeature(context: Context, featureIndex: Int): Boolean =
+            if (featureIndex == Context.FEATURE_E4X) false else super.hasFeature(context, featureIndex)
         override fun makeContext(): Context = super.makeContext().apply {
             optimizationLevel = -1
             languageVersion = Context.VERSION_ES6
@@ -25,38 +33,51 @@ internal class ApiScriptProgram(private val body: String) {
             setClassShutter { false }
         }
         override fun observeInstructionCount(context: Context, count: Int) {
-            val current = budget.get() ?: throw Limit()
+            val current = budget.get() ?: throw Limit("missing budget")
             current.instructions -= count
-            if (current.instructions < 0 || System.nanoTime() > current.deadline) throw Limit()
+            if (current.instructions < 0 || System.nanoTime() > current.deadline) throw Limit(current.phase)
         }
     }
+    // Sealed standard objects are shared; each invocation receives its own writable global.
+    // https://rhino.github.io/docs/scopes_and_contexts/
+    private val standardScope = factory.call { context ->
+        context.initSafeStandardObjects(null, true).also { it.sealObject() }
+    }
+    private val compiled: Script
     init {
         require(body.length in 1..8192) { "Enter a JavaScript function body of at most 8192 characters." }
-        evaluate { context, scope -> compile(context, scope); Unit }
+        compiled = try {
+            factory.call { context -> context.compileString("(function(input) { 'use strict';\n$body\n})", "local-callback", 1, null) }
+        } catch (_: org.mozilla.javascript.RhinoException) {
+            throw ApiScriptExecutionException()
+        }
     }
-    private fun compile(context: Context, scope: Scriptable) = context.evaluateString(
-        scope, "(function(input) { 'use strict';\n$body\n})", "local-callback", 1, null) as Function
 
     private fun <T> evaluate(block: (Context, Scriptable) -> T): T {
         budget.set(Budget())
         try {
             return factory.call { context ->
-                val scope = context.initSafeStandardObjects(null, true)
+                val scope = context.newObject(standardScope).apply { prototype = standardScope; parentScope = null }
                 block(context, scope)
             }
-        } catch (_: Limit) {
-            throw IllegalArgumentException("Callback exceeded its execution budget.")
+        } catch (error: Limit) {
+            throw ApiScriptBudgetException(error.phase)
         } catch (_: org.mozilla.javascript.RhinoException) {
-            throw IllegalArgumentException("Invalid JavaScript callback or return value.")
+            throw ApiScriptExecutionException()
         } finally { budget.remove() }
     }
     fun run(input: Any?): Any? = evaluate { context, scope ->
-        val function = compile(context, scope)
-        fromScript(function.call(context, scope, scope, arrayOf(toScript(context, scope, input, 0))), 0)
+        val function = compiled.exec(context, scope) as Function
+        requireNotNull(budget.get()).phase = "input conversion"
+        val converted = toScript(context, scope, input, 0)
+        requireNotNull(budget.get()).phase = "script execution"
+        val returned = function.call(context, scope, scope, arrayOf(converted))
+        requireNotNull(budget.get()).phase = "output conversion"
+        fromScript(returned, 0)
     }
     private fun checkDepth(depth: Int) {
-        val current = budget.get() ?: throw Limit()
-        if (depth > 8 || System.nanoTime() > current.deadline) throw Limit()
+        val current = budget.get() ?: throw Limit("missing budget")
+        if (depth > 8 || System.nanoTime() > current.deadline) throw Limit(current.phase)
     }
     private fun toScript(context: Context, scope: Scriptable, value: Any?, depth: Int): Any? {
         checkDepth(depth)
@@ -107,15 +128,28 @@ internal class ApiCallbackContext {
     @Volatile var active = true
         private set
     private val counts = linkedMapOf<String, Pair<Int, Int>>()
+    private val failureKinds = linkedMapOf<String, String>()
+    private val byteCounts = linkedMapOf<String, Int>()
     fun close() { active = false }
     @Synchronized fun snapshot(): Map<String, Pair<Int, Int>> = counts.toMap()
+    @Synchronized fun fallbackReasons(): Map<String, String> = failureKinds.toMap()
+    @Synchronized fun byteInputSizes(): Map<String, Int> = byteCounts.toMap()
+    @Synchronized fun recordByteInput(id: String, size: Int) { if (active) byteCounts[id] = size }
     fun <T> apply(id: String, program: ApiScriptProgram, input: Any?, fallback: T, decode: (Any?) -> T): T {
         if (!active) return fallback
         return try {
             val result = decode(program.run(input))
             if (!active) fallback else { record(id, false); result }
-        } catch (_: Exception) {
-            if (active) record(id, true)
+        } catch (error: Exception) {
+            if (active) {
+                val kind = when (error) {
+                    is ApiScriptBudgetException -> "execution budget (${error.phase})"
+                    is ApiScriptExecutionException -> "script execution"
+                    else -> "return contract"
+                }
+                synchronized(this) { if (active) failureKinds[id] = kind }
+                record(id, true)
+            }
             fallback
         }
     }

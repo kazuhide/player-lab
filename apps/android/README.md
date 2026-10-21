@@ -185,9 +185,9 @@ Open **SDK API settings** to find additional public SDK configuration fields by
 name. Choose a typed value, stage the override, then apply it to recreate the
 player and reload its source. The applied Kotlin code appears below the editor.
 Removing an override restores the standard configuration or the SDK default on
-the next Apply. DRM secrets appear as placeholders in exported code. The DRM
-transformation choices are example callback strategies, rather than an editor
-for arbitrary executable callbacks.
+the next Apply. DRM secrets appear as placeholders in exported code. DRM callback
+fields accept editable JavaScript byte transformations as well as the Identity
+and Base64 examples. Their code uses the same callback editor described below.
 
 **SDK API controls** provides commands with named arguments, a refreshable state
 inspector, and event occurrence counts with SDK timestamps. Commands can require
@@ -232,7 +232,10 @@ keeps the original. Byte arrays use integers from 0 through 255, up to 65536
 bytes. Larger input bodies are omitted from the snapshot and retained unless
 explicitly replaced. Response preprocessing makes the SDK buffer whole responses;
 select only the needed `TweaksConfig.httpResponseTypesToPreprocess` request types
-to avoid buffering video segments.
+to avoid buffering video segments. Advertising scripts receive ad metadata and
+return a decision, retained item indexes, macro values or a media-file index, as
+specified by each field. The video adaptation hook returns an available quality
+ID. Cast media-info configuration runs only when a Cast session requests it.
 
 Only the explicitly applied body runs. Code remains in memory and is omitted from
 exports, where `<YOUR_CALLBACK_BODY>` marks the replacement point. The generated
@@ -249,6 +252,29 @@ not an isolated memory sandbox. The runtime uses the Android-compatible Java 8
 maintenance release [Rhino 1.7.15.1](https://github.com/mozilla/rhino/releases/tag/Rhino1_7_15_1_Release).
 Rhino's source and license links are included in the APK's
 [third-party notice](app/src/main/assets/third-party/rhino-notice.txt).
+
+## Android media session
+
+To publish metadata and transport controls to Android, stage
+`MediaSessionSourceConfig.Enabled.mediaMetadata` in the API settings. Enter one
+`key=value` per line, for example:
+
+```text
+displayTitle=Sample video
+subtitle=Playback configuration example
+artist=Sample artist
+mediaType=Movie
+duration=60000
+```
+
+The editor lists the supported metadata fields. Duration is in milliseconds;
+track and disc numbers are integers. Ratings use `Heart:true`, `Thumb:false`,
+`Percentage:75` or `Star:5:4.5`. Set a value to `null` to leave it unset.
+Apply the settings, then run **Enable Android media session** in SDK API controls.
+The session follows the current player when it is recreated. Disable the same
+control to release it. This optional integration uses the SDK's
+`player-media-session` module and does not request notification permission.
+Android decides where active session controls appear.
 
 ## Offline controls
 

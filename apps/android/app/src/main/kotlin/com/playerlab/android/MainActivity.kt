@@ -152,6 +152,13 @@ internal class PlayerController(
     internal var apiSelectedSsaiAd: String? by mutableStateOf(null)
     internal var apiSelectedSsaiBreak: String? by mutableStateOf(null)
     internal var apiVector: com.bitmovin.player.api.vr.orientation.Vector3? = null
+    internal var apiMediaSession: com.bitmovin.player.api.media.session.MediaSession? = null
+        private set
+    internal fun setApiMediaSessionActive(enabled: Boolean) {
+        check(!released)
+        if (!enabled) { apiMediaSession?.release(); apiMediaSession = null }
+        else if (apiMediaSession == null) apiMediaSession = com.bitmovin.player.api.media.session.MediaSession(context, android.os.Looper.getMainLooper(), player)
+    }
     internal val apiOriginalOrientations = mutableMapOf<String, com.bitmovin.player.api.vr.orientation.OrientationProvider?>()
     internal var apiEventRecording by mutableStateOf(true)
     internal var apiAsyncResult by mutableStateOf("")
@@ -390,7 +397,7 @@ internal class PlayerController(
         sourceSubscription?.invoke()
         val owner = player
         val generation = ++sourceGeneration
-        val source = sourceFactory?.invoke(sourceConfig) ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()))
+        val source = sourceFactory?.invoke(sourceConfig) ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), apiOverrides.mediaSession())
         apiSourceCallbacks.close()
         apiSourceCallbacks = callbacks
         configuredSource = source
@@ -446,6 +453,7 @@ internal class PlayerController(
         views.forEach { retireApiViewHandlers(it); apiSurfaces.clear(it); viewLifecycle.detach(it); it.player = null }
         apiDetachedView = null
         player = replacement
+        apiMediaSession?.player = replacement
         playerSettings = settings
         apiOverrides = overrides
         apiAnalyticsSettings = analytics
@@ -510,6 +518,8 @@ internal class PlayerController(
         released = true
         apiCallbacks.close()
         apiSourceCallbacks.close()
+        apiMediaSession?.release()
+        apiMediaSession = null
         invalidateApiQuery()
         apiMain.removeCallbacksAndMessages(null)
         apiSsaiAds.clear()

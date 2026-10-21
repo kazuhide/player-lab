@@ -4,12 +4,22 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ApiScriptProgramTest {
+    @Test fun cachedProgramCreatesAFreshScopeForEveryCallAndThread() {
+        val program = ApiScriptProgram("this.counter = (this.counter || 0) + 1; return [this.counter, input];")
+        assertEquals(listOf(1.0, 2.0), program.run(2))
+        assertEquals(listOf(1.0, 3.0), program.run(3))
+        val results = java.util.Collections.synchronizedList(mutableListOf<Any?>())
+        val threads = (4..5).map { value -> Thread { results.add(program.run(value)) }.apply { start() } }
+        threads.forEach { it.join(2000); assertFalse(it.isAlive) }
+        assertEquals(setOf(listOf(1.0, 4.0), listOf(1.0, 5.0)), results.toSet())
+    }
+
     @Test fun userBodyTransformsTypedValuesWithoutAJavaBridge() {
         val result = ApiScriptProgram("return {label: input.language.toUpperCase(), delays: input.delays.map(function(x) { return x * 2; })};")
             .run(mapOf("language" to "en", "delays" to listOf(0.25, 1))) as Map<*, *>
         assertEquals("EN", result["label"])
         assertEquals(listOf(0.5, 2.0), result["delays"])
-        assertEquals("undefined:undefined:undefined", ApiScriptProgram("return typeof Packages + ':' + typeof java + ':' + typeof JavaAdapter;").run(null))
+        assertEquals("undefined:undefined:undefined:undefined", ApiScriptProgram("return typeof Packages + ':' + typeof java + ':' + typeof JavaAdapter + ':' + typeof XML;").run(null))
     }
     @Test fun infiniteAndRecursiveProgramsTerminateAndCannotCatchTheInstructionLimit() {
         listOf("while(true) {}", "try { while(true) {} } catch(e) { while(true) {} }", "function recurse() { return recurse(); } return recurse();").forEach { body ->

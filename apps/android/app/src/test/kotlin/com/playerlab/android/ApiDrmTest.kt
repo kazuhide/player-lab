@@ -6,6 +6,28 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ApiDrmTest {
+    @Test fun editableCallbackBodyTransformsActualSdkBytesAndRetirementKeepsOriginal() {
+        val scope = ApiCallbackContext()
+        val values = ApiOverrides.validate(mapOf(id("WidevineConfig.prepareMessageCallback") to "return input.bytes.slice().reverse();",
+            id("WidevineConfig.prepareLicenseCallback") to "return input.bytes.map(function(b) { return (b + 1) % 256; });"))
+        val source = values.source(SourceConfig("https://example.invalid/drm.mpd", SourceType.Dash), scope)
+        val drm = source.drmConfig as WidevineConfig
+        assertArrayEquals(byteArrayOf(3, 2, 1), drm.prepareMessageCallback!!.prepareMessage(byteArrayOf(1, 2, 3)))
+        assertArrayEquals(byteArrayOf(0, 1), drm.prepareLicenseCallback!!.prepareLicense(byteArrayOf(-1, 0)))
+        assertFalse(values.code().contains("slice().reverse"))
+        assertTrue(values.code().contains("<YOUR_CALLBACK_BODY>"))
+        scope.close()
+        assertArrayEquals(byteArrayOf(1, 2, 3), drm.prepareMessageCallback!!.prepareMessage(byteArrayOf(1, 2, 3)))
+    }
+    @Test fun invalidByteResultsFallBackAndNullableCallbacksRemainAbsent() {
+        val scope = ApiCallbackContext()
+        val source = ApiOverrides.validate(mapOf(id("PlayReadyConfig.prepareMessageCallback") to "return [-1, 256];",
+            id("PlayReadyConfig.prepareLicenseCallback") to "null")).source(SourceConfig("https://example.invalid/drm.mpd", SourceType.Dash), scope)
+        val drm = source.drmConfig as PlayReadyConfig
+        assertArrayEquals(byteArrayOf(1), drm.prepareMessageCallback!!.prepareMessage(byteArrayOf(1)))
+        assertNull(drm.prepareLicenseCallback)
+        assertEquals(1 to 1, scope.snapshot()[id("PlayReadyConfig.prepareMessageCallback")])
+    }
     private fun id(name: String) = "android:com.bitmovin.player.api.drm.$name"
     private fun source() = SourceConfig("https://example.invalid/stream.mpd", SourceType.Dash)
 

@@ -12,6 +12,7 @@ internal object ApiAdditionalRuntime {
     private fun orientationArguments() = listOf(ApiArgument("mode", "Manual", listOf("Original", "Manual", "None")),
         ApiArgument("yaw", "0"), ApiArgument("pitch", "0"), ApiArgument("roll", "0"), ApiArgument("enabled", "true", listOf("true", "false")))
     val commands = listOf(
+        ApiCommand("app:media-session-enable", listOf(ApiArgument("enabled", "true", listOf("true", "false"))), "Enable Android media session") { c, i -> c.setApiMediaSessionActive(i.bool("enabled")) },
         ApiCommand("android:com.bitmovin.player.api.Player.onStart()", listOf()) { c, _ -> c.player.onStart() },
         ApiCommand("android:com.bitmovin.player.api.Player.onResume()", listOf()) { c, _ -> c.player.onResume() },
         ApiCommand("android:com.bitmovin.player.api.Player.onPause()", listOf()) { c, _ -> c.player.onPause() },
@@ -55,6 +56,7 @@ internal object ApiAdditionalRuntime {
         ApiCommand("android:com.bitmovin.player.api.vr.VrApi.touchOrientationProvider", orientationArguments()) { c, i -> setApiOrientation(c, "touch", i.text("mode"), ViewingDirection(i.number("yaw"), i.number("pitch"), i.number("roll")), i.bool("enabled")) },
     )
     val reads = listOf(
+        ApiRead("app:media-session") { c -> mapOf("enabled" to (c.apiMediaSession != null), "isReleased" to c.apiMediaSession?.isReleased, "ownsCurrentPlayer" to (c.apiMediaSession?.player === c.player)) },
         ApiRead("android:com.bitmovin.player.api.source.CmcdKey.key") { CmcdKey.Predefined.entries.associate { it.name to it.key } },
         ApiRead("android:com.bitmovin.player.api.vr.orientation.Vector3.getPhi()") { c -> c.apiVector?.getPhi() },
         ApiRead("android:com.bitmovin.player.api.vr.orientation.Vector3.getX()") { c -> c.apiVector?.getX() },

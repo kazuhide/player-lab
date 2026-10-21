@@ -19,11 +19,11 @@ import java.util.concurrent.FutureTask
 internal object ApiScriptSettings {
     private const val SDK = "android:com.bitmovin.player.api."
     private const val GUIDE = "Enter a JavaScript function body using input, or null to disable. Runs only after Apply. No Java, network, storage or Player/Source access is provided. Invalid results retain native behavior. "
-    private fun script(id: String, help: String, example: String,
+    internal fun script(id: String, help: String, example: String,
                        player: ((PlayerConfig, String, ApiCallbackContext) -> PlayerConfig)? = null,
                        source: ((com.bitmovin.player.api.source.SourceConfig, String, ApiCallbackContext) -> Unit)? = null) =
         ApiSetting(SDK + id, id.substringBeforeLast('.'), ApiValueKind.Script, GUIDE + help + " Example: " + example,
-            nullable = true, playerCallback = player, sourceCallback = source,
+            nullable = true, order = 100, playerCallback = player, sourceCallback = source,
             code = { value ->
                 val body = kotlinString(if (value == "null") "null" else "<YOUR_CALLBACK_BODY>")
                 if (player != null) "playerConfig = ApiScriptSettings.playerOverride(playerConfig, ${kotlinString(SDK + id)}, $body, callbackContext)"
@@ -180,5 +180,5 @@ internal object ApiScriptSettings {
             source = { c, v, scope -> val p = program(v); c.labelingConfig = c.labelingConfig.copy(audioQualityLabeler = p?.let { AudioQualityLabeler { item ->
                 scope.apply(SDK + "media.LabelingConfig.audioQualityLabeler", p, quality(item) + mapOf("channelCount" to item.channelCount), null as String?, ::text)
             } }) }),
-    )
+    ) + ApiAdvertisingScripts.fields
 }

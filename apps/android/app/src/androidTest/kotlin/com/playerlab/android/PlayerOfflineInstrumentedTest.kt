@@ -66,6 +66,8 @@ class PlayerOfflineInstrumentedTest {
                 val selected = controller.apiOffline.entries().filter { it.first == videoKey || it.first == audioKey }
                 controller.apiOffline.completed && selected.size == 2 && selected.all { it.second.state == OfflineOptionEntryState.Downloaded }
             }
+            ui.onNodeWithTag("offline-option-$audioKey").performScrollTo()
+            ApiGuideScreenshot.capture("android-offline-tracks")
             ui.runOnUiThread {
                 assertTrue(controller.apiOffline.requireManager().usedStorage > 0)
                 assertNotNull(controller.apiOffline.requireManager().offlineSourceConfig)

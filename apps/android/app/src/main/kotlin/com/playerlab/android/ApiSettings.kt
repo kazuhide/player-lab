@@ -10,6 +10,7 @@ import com.bitmovin.player.api.source.*
 import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.ui.*
 import com.bitmovin.player.api.vr.*
+import com.bitmovin.player.api.media.session.MediaSessionSourceConfig
 
 internal enum class ApiValueKind { Boolean, Integer, LongInteger, Decimal, FloatDecimal, Text, TextList, IntegerList, StringMap, Choice, Script }
 
@@ -30,6 +31,7 @@ internal data class ApiSetting(
     val source: ((SourceConfig, String) -> Unit)? = null,
     val playerCallback: ((PlayerConfig, String, ApiCallbackContext) -> PlayerConfig)? = null,
     val sourceCallback: ((SourceConfig, String, ApiCallbackContext) -> Unit)? = null,
+    val mediaSession: ((String) -> MediaSessionSourceConfig?)? = null,
     val view: ((PlayerViewConfig, String) -> PlayerViewConfig)? = null,
     val code: ((String) -> String)? = null,
 ) {
@@ -54,7 +56,7 @@ internal data class ApiSetting(
             }
             ApiValueKind.StringMap -> { parseApiStringMap(value); null }
             ApiValueKind.Text -> { require(value.length <= 8192) { "Text is limited to 8192 characters." }; null }
-            ApiValueKind.Script -> { ApiScriptProgram(value); null }
+            ApiValueKind.Script -> { if (value !in choices) ApiScriptProgram(value); null }
         }
         if (number != null) {
             require(minimum == null || number >= minimum) { "Value must be at least $minimum." }
@@ -82,11 +84,12 @@ internal data class ApiOverrides(val values: Map<String, String> = emptyMap()) {
             val field = ApiSettings.byId.getValue(id)
             field.sourceCallback?.invoke(config, value, callbacks) ?: field.source?.invoke(config, value)
         }
-        configureApiDrm(config, values.filterKeys { ApiSettings.byId.getValue(it).drmParameter })
+        configureApiDrm(config, values.filterKeys { ApiSettings.byId.getValue(it).drmParameter }, callbacks)
     }
     fun view(base: PlayerViewConfig): PlayerViewConfig = values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }.fold(base) { config, (id, value) ->
         ApiSettings.byId.getValue(id).view?.invoke(config, value) ?: config
     }
+    fun mediaSession(): MediaSessionSourceConfig? = values.entries.firstNotNullOfOrNull { (id, value) -> ApiSettings.byId.getValue(id).mediaSession?.invoke(value) }
     fun code(): String {
         val entries = values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }
         val context = if (entries.any { ApiSettings.byId.getValue(it.key).kind == ApiValueKind.Script }) "val callbackContext = ApiCallbackContext()\n" else ""
@@ -126,17 +129,20 @@ internal data class ApiOverrides(val values: Map<String, String> = emptyMap()) {
             parsed.player(PlayerConfig())
             parsed.source(SourceConfig("https://example.invalid/validation.m3u8", SourceType.Hls))
             parsed.view(PlayerViewConfig())
+            parsed.mediaSession()
             return parsed
         }
     }
 }
 
 internal fun parseApiStringMap(value: String): Map<String, String> {
+    require(value.length <= 16_384) { "A map is limited to 16384 characters." }
     val result = linkedMapOf<String, String>()
     value.lineSequence().filter(String::isNotBlank).forEach { line ->
         val parts = line.split('=', limit = 2)
         require(parts.size == 2 && parts[0].trim().isNotEmpty()) { "Use one name=value entry per line." }
         val key = parts[0].trim()
+        require(result.size < 128 && key.length <= 256 && parts[1].length <= 8192) { "Map entries exceed the supported size." }
         require(key !in result) { "Map entry names must be unique." }
         result[key] = parts[1]
     }
@@ -1018,46 +1024,57 @@ internal object ApiSettings {
         ),        ApiSetting(
             id = "android:com.bitmovin.player.api.drm.WidevineConfig.prepareMessageCallback",
             owner = "drm.WidevineConfig",
-            kind = ApiValueKind.Choice,
-            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            kind = ApiValueKind.Script,
+            help = "Enter a function body using input.bytes (unsigned bytes) and input.length. Return bytes, or null to retain the original. Example: return input.bytes; Identity/Base64 presets remain available. Binary license values and callback bodies are omitted from logs and exports. Inputs larger than 65536 bytes omit input.bytes.",
             choices = listOf("Identity","Base64Encode","Base64Decode"),
+            nullable = true,
             drmParameter = true
         ),        ApiSetting(
             id = "android:com.bitmovin.player.api.drm.WidevineConfig.prepareLicenseCallback",
             owner = "drm.WidevineConfig",
-            kind = ApiValueKind.Choice,
-            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            kind = ApiValueKind.Script,
+            help = "Enter a function body using input.bytes (unsigned bytes) and input.length. Return bytes, or null to retain the original. Example: return input.bytes; Identity/Base64 presets remain available. Binary license values and callback bodies are omitted from logs and exports. Inputs larger than 65536 bytes omit input.bytes.",
             choices = listOf("Identity","Base64Encode","Base64Decode"),
+            nullable = true,
             drmParameter = true
         ),        ApiSetting(
             id = "android:com.bitmovin.player.api.drm.PlayReadyConfig.prepareMessageCallback",
             owner = "drm.PlayReadyConfig",
-            kind = ApiValueKind.Choice,
-            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            kind = ApiValueKind.Script,
+            help = "Enter a function body using input.bytes (unsigned bytes) and input.length. Return bytes, or null to retain the original. Example: return input.bytes; Identity/Base64 presets remain available. Binary license values and callback bodies are omitted from logs and exports. Inputs larger than 65536 bytes omit input.bytes.",
             choices = listOf("Identity","Base64Encode","Base64Decode"),
+            nullable = true,
             drmParameter = true
         ),        ApiSetting(
             id = "android:com.bitmovin.player.api.drm.PlayReadyConfig.prepareLicenseCallback",
             owner = "drm.PlayReadyConfig",
-            kind = ApiValueKind.Choice,
-            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            kind = ApiValueKind.Script,
+            help = "Enter a function body using input.bytes (unsigned bytes) and input.length. Return bytes, or null to retain the original. Example: return input.bytes; Identity/Base64 presets remain available. Binary license values and callback bodies are omitted from logs and exports. Inputs larger than 65536 bytes omit input.bytes.",
             choices = listOf("Identity","Base64Encode","Base64Decode"),
+            nullable = true,
             drmParameter = true
         ),        ApiSetting(
             id = "android:com.bitmovin.player.api.drm.NagraConnectConfig.prepareMessageCallback",
             owner = "drm.NagraConnectConfig",
-            kind = ApiValueKind.Choice,
-            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            kind = ApiValueKind.Script,
+            help = "Enter a function body using input.bytes (unsigned bytes) and input.length. Return bytes, or null to retain the original. Example: return input.bytes; Identity/Base64 presets remain available. Binary license values and callback bodies are omitted from logs and exports. Inputs larger than 65536 bytes omit input.bytes.",
             choices = listOf("Identity","Base64Encode","Base64Decode"),
+            nullable = true,
             drmParameter = true
         ),        ApiSetting(
             id = "android:com.bitmovin.player.api.drm.NagraConnectConfig.prepareLicenseCallback",
             owner = "drm.NagraConnectConfig",
-            kind = ApiValueKind.Choice,
-            help = "Named callback strategies. These presets do not represent arbitrary native callback code. Binary license data is not displayed or logged.",
+            kind = ApiValueKind.Script,
+            help = "Enter a function body using input.bytes (unsigned bytes) and input.length. Return bytes, or null to retain the original. Example: return input.bytes; Identity/Base64 presets remain available. Binary license values and callback bodies are omitted from logs and exports. Inputs larger than 65536 bytes omit input.bytes.",
             choices = listOf("Identity","Base64Encode","Base64Decode"),
+            nullable = true,
             drmParameter = true
         )
-    ) + ApiStructuredSettings.fields + ApiScriptSettings.fields
+    ) + ApiStructuredSettings.fields + ApiScriptSettings.fields + listOf(
+        ApiSetting("android:com.bitmovin.player.api.media.session.MediaSessionSourceConfig.Enabled.mediaMetadata", "Media session", ApiValueKind.StringMap,
+            "Use one field=value per line. Text: artist, albumTitle, albumArtist, displayTitle, subtitle, writer, author, composer, conductor, genre, compilation, station. Integers: duration (milliseconds), trackNumber, totalTrackCount, recordingYear/Month/Day, releaseYear/Month/Day, discNumber, totalDiscCount. Booleans: isBrowsable, isPlayable. mediaType uses MediaMetadata.MediaType (for example Movie or Video). userRating/overallRating use Heart:true, Thumb:false, Percentage:75 or Star:5:4.5. null clears a value. Apply reloads Source with MediaSessionSourceConfig.Enabled; enable the host media session in SDK API controls to publish it to Android.",
+            mediaSession = { com.bitmovin.player.api.media.session.MediaSessionSourceConfig.Enabled(ApiMediaMetadata.parse(it)) },
+            code = { "mediaSessionConfig = MediaSessionSourceConfig.Enabled(ApiMediaMetadata.parse(${kotlinString(it)}))\n// Pass mediaSessionConfig as Source(..., mediaSessionConfig = mediaSessionConfig)." })
+    )
     val byId: Map<String, ApiSetting> = fields.associateBy(ApiSetting::id)
 }

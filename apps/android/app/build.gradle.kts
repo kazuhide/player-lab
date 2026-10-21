@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":dvr"))
     // Pin to the current Bitmovin Player v3 release (§18).
     implementation("com.bitmovin.player:player:3.171.0")
+    implementation("com.bitmovin.player:player-media-session:3.171.0")
     // Required by the SDK offline download service.
     // https://developer.bitmovin.com/playback/docs/working-with-offline-playback-android
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
