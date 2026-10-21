@@ -13,11 +13,13 @@
   },
   "apple": {
     "file": "apps/ios/Package.resolved",
-    "pointer": "/pins/0/state/version"
+    "pointer": "/state/version",
+    "identity": "player-ios"
   },
   "bitmovin-player-ios-core": {
     "file": "apps/ios/Package.resolved",
-    "pointer": "/pins/1/state/version"
+    "pointer": "/state/version",
+    "identity": "player-ios-core"
   },
   "android": {
     "file": "apps/android/app/build.gradle.kts",

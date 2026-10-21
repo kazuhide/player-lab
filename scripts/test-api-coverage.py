@@ -23,6 +23,10 @@ class CoverageTests(unittest.TestCase):
         (cls.repo / "package.json").write_text('{"dependencies":{"bitmovin-player":"8.280.0"}}\n')
         (cls.repo / "Package.resolved").write_text('{"pins":[{"state":{"version":"3.128.0"}}]}\n')
         (cls.repo / "build.gradle.kts").write_text('val playerVersion = "3.171.0"\n')
+        player = {"identity": "player-ios", "state": {"version": "3.128.0"}}
+        other = {"identity": "analytics", "state": {"version": "3.28.1"}}
+        for name, pins in [("reordered", [other, player]), ("ambiguous", [player, player]), ("missing", [other])]:
+            (cls.repo / ("Package." + name + ".resolved")).write_text(json.dumps({"pins": pins}))
         cls.git("init", "-q")
         cls.git("add", ".")
         cls.git("-c", "user.name=Coverage Fixture", "-c", "user.email=fixture@example.invalid",
@@ -183,6 +187,23 @@ class CoverageTests(unittest.TestCase):
             "apple": {"file": "Package.resolved", "pointer": "/pins/0/state/version"},
             "android": {"file": "build.gradle.kts", "pattern": 'playerVersion = "([^"]+)"'}})
         self.assertEqual(result, {"web": "8.280.0", "apple": "3.128.0", "android": "3.171.0"})
+
+
+    def test_swift_package_binding_selects_identity_independently_of_pin_order(self):
+        result = resolve_versions(self.repo, self.revision, {
+            "apple": {"file": "Package.reordered.resolved", "identity": "player-ios", "pointer": "/state/version"}})
+        self.assertEqual(result, {"apple": "3.128.0"})
+
+    def test_swift_package_identity_must_exist_exactly_once(self):
+        for file in ("Package.ambiguous.resolved", "Package.missing.resolved"):
+            with self.subTest(file=file), self.assertRaises(CoverageError):
+                resolve_versions(self.repo, self.revision,
+                    {"apple": {"file": file, "identity": "player-ios", "pointer": "/state/version"}})
+
+    def test_identity_selection_cannot_be_combined_with_a_regex(self):
+        with self.assertRaises(CoverageError):
+            resolve_versions(self.repo, self.revision, {
+                "apple": {"file": "Package.reordered.resolved", "identity": "player-ios", "pattern": 'version":"([^"]+)"'}})
 
     def test_ambiguous_version_binding_is_rejected(self):
         with self.assertRaises(CoverageError):

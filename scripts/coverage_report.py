@@ -300,11 +300,19 @@ def resolve_versions(repo, source_revision, bindings):
     _require(isinstance(bindings, dict), "Version bindings must be an object.")
     for sdk_id, binding in bindings.items():
         _id(sdk_id)
-        _object(binding, {"file"}, {"pointer", "pattern"})
+        _object(binding, {"file"}, {"pointer", "pattern", "identity"})
         _require(("pointer" in binding) != ("pattern" in binding), "Use exactly one version pointer or pattern.")
+        _require("identity" not in binding or "pointer" in binding, "Package identity requires a JSON pointer.")
         content = repository.read(binding["file"]).decode()
         if "pointer" in binding:
             value = json.loads(content, object_pairs_hook=_unique)
+            if "identity" in binding:
+                identity = _text(binding["identity"])
+                _require(isinstance(value, dict) and isinstance(value.get("pins"), list),
+                         "Package identity requires a Swift package pin array.")
+                selected = [pin for pin in value["pins"] if isinstance(pin, dict) and pin.get("identity") == identity]
+                _require(len(selected) == 1, "Package identity must match exactly one pin.")
+                value = selected[0]
             pointer = _text(binding["pointer"])
             _require(pointer.startswith("/"), "Expected a JSON pointer.")
             try:
