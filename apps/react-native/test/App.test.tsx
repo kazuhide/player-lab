@@ -84,6 +84,64 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it("keeps Android SDK touches inside the player until every player pointer ends or cancels", async () => {
+    await mount(); await ready();
+    const playerArea = () => element("View", { testID: "player-lab-player" });
+    const scroll = () => element("ScrollView", { testID: "player-lab-screen" });
+    const touch = (identifier: string, remaining: string[]) => ({ nativeEvent: {
+      identifier, touches: remaining.map((identifier) => ({ identifier })),
+    } });
+    expect(scroll().props.scrollEnabled).not.toBe(false);
+    expect(playerArea().props.onTouchStartCapture).toBeTypeOf("function");
+    await act(async () => playerArea().props.onTouchStartCapture(touch("one", ["one"])));
+    expect(scroll().props.scrollEnabled).toBe(false);
+    await act(async () => playerArea().props.onTouchStartCapture(touch("two", ["one", "two"])));
+    await act(async () => element("PlayerView").props.onSourceLoaded());
+    expect(scroll().props.scrollEnabled).toBe(false);
+    await act(async () => playerArea().props.onTouchEndCapture(touch("one", ["two"])));
+    expect(scroll().props.scrollEnabled).toBe(false);
+    await act(async () => playerArea().props.onTouchCancelCapture(touch("two", [])));
+    expect(scroll().props.scrollEnabled).toBe(true);
+    await act(async () => playerArea().props.onTouchStartCapture(touch("three", ["three", "outside"])));
+    await act(async () => playerArea().props.onTouchEndCapture(touch("three", ["outside"])));
+    expect(scroll().props.scrollEnabled).toBe(true);
+    // Form fingers that never started in the video must not keep it locked.
+    await press("Show configuration");
+    await text("Source title", "Form remains editable");
+    expect(input("Source title").props.value).toBe("Form remains editable");
+  });
+
+  it("releases an Android touch on player replacement and ignores the retired pane's notifications", async () => {
+    await mount(); await ready();
+    const playerArea = () => element("View", { testID: "player-lab-player" });
+    const scroll = () => element("ScrollView", { testID: "player-lab-screen" });
+    const touch = (identifier: string, remaining: string[]) => ({ nativeEvent: {
+      identifier, touches: remaining.map((identifier) => ({ identifier })),
+    } });
+    const retired = playerArea().props;
+    expect(retired.onTouchStartCapture).toBeTypeOf("function");
+    await act(async () => retired.onTouchStartCapture(touch("old", ["old"])));
+    await press("Sports");
+    expect(scroll().props.scrollEnabled).toBe(true);
+    await act(async () => playerArea().props.onTouchStartCapture(touch("new", ["new"])));
+    expect(scroll().props.scrollEnabled).toBe(false);
+    await act(async () => retired.onTouchCancelCapture(touch("old", [])));
+    await act(async () => retired.onTouchStartCapture(touch("late", ["late"])));
+    expect(scroll().props.scrollEnabled).toBe(false);
+    await act(async () => playerArea().props.onTouchEndCapture(touch("new", [])));
+    expect(scroll().props.scrollEnabled).toBe(true);
+  });
+
+  it("keeps the iOS player and form scroll handling unchanged", async () => {
+    runtime.os = "ios";
+    await mount(); await ready();
+    const playerArea = element("View", { testID: "player-lab-player" });
+    expect(playerArea.props.onTouchStartCapture).toBeUndefined();
+    expect(playerArea.props.onTouchEndCapture).toBeUndefined();
+    expect(playerArea.props.onTouchCancelCapture).toBeUndefined();
+    expect(element("ScrollView", { testID: "player-lab-screen" }).props.scrollEnabled).not.toBe(false);
+  });
+
   it("applies one validated WebVTT track and exports only its applied metadata", async () => {
     await mount();
     await ready();

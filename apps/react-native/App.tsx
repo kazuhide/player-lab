@@ -15,8 +15,8 @@
  * The screen and helpers type-check against the installed React Native and player
  * types. Native playback requires an external Expo development build; see README.
  */
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button, Platform, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Button, Platform, ScrollView, StyleSheet, Switch, Text, View, type GestureResponderEvent } from "react-native";
 import {
   CustomUi,
   PlayerView,
@@ -80,6 +80,10 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
   const [error, setError] = useState<string | null>(null);
   const [timeShiftEnabled, setTimeShiftEnabled] = useState(true);
   const [log, setLog] = useState<string[]>([]);
+  const [playerTouchOwner, setPlayerTouchOwner] = useState<symbol | null>(null);
+  const onPlayerTouchChange = useCallback((owner: symbol, touching: boolean) => {
+    setPlayerTouchOwner((current) => touching ? owner : current === owner ? null : current);
+  }, []);
   const appliedCode = useMemo(() => configurationCode(applied, platform, uiMode.factoryFunction), [applied, platform, uiMode]);
   useEffect(() => { runtimeChecks?.appliedCode(appliedCode); }, [runtimeChecks, appliedCode]);
   const append = useCallback((message: string) => setLog((lines) => [message, ...lines].slice(0, 40)), []);
@@ -112,7 +116,8 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
     }
   };
   return (
-    <ScrollView testID="player-lab-screen" contentContainerStyle={styles.container} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}>
+    <ScrollView testID="player-lab-screen" contentContainerStyle={styles.container} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+      scrollEnabled={Platform.OS !== "android" || playerTouchOwner === null}>
       {/* Player UI: the SDK default vs. our shared @showcase/ui-shared custom factories (§12). */}
       <View style={styles.row}>
         <Text style={styles.label}>UI:</Text>
@@ -127,7 +132,7 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
       </View>
       <PlayerPane key={`${uiMode.label}:${revision}`} uiMode={uiMode} source={applied.source} playerConfig={applied.player}
         sources={sources} onSelectSource={selectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={setTimeShiftEnabled}
-        log={log} append={append} runtimeChecks={runtimeChecks} />
+        log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} />
       <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
         onReset={() => { setDraft(applied.draft); setError(null); }}
         changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} appliedCode={appliedCode} />
@@ -145,10 +150,11 @@ interface PlayerPaneProps {
   onTimeShiftEnabled: (enabled: boolean) => void;
   log: string[];
   append: (message: string) => void;
+  onPlayerTouchChange: (owner: symbol, touching: boolean) => void;
   runtimeChecks?: RuntimeMonitor | undefined;
 }
 
-function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks }: PlayerPaneProps): React.JSX.Element {
+function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange }: PlayerPaneProps): React.JSX.Element {
   const player = usePlayer(
     uiMode.factoryFunction
       ? {
@@ -168,6 +174,30 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
   const snapshots = useRef<SnapshotController | null>(null);
   const active = useRef(true);
   const observed = useRef<RuntimeOwner | null>(null);
+  const touchOwner = useMemo(() => Symbol("player-touch"), []);
+  const playerPointers = useRef(new Set<string>());
+  const touchMounted = useRef(true);
+  useLayoutEffect(() => {
+    touchMounted.current = true;
+    return () => {
+      touchMounted.current = false;
+      playerPointers.current.clear();
+      onPlayerTouchChange(touchOwner, false);
+    };
+  }, [onPlayerTouchChange, touchOwner]);
+  const startPlayerTouch = (event: GestureResponderEvent) => {
+    if (!touchMounted.current) return;
+    playerPointers.current.add(event.nativeEvent.identifier);
+    onPlayerTouchChange(touchOwner, true);
+  };
+  const finishPlayerTouch = (event: GestureResponderEvent) => {
+    if (!touchMounted.current) return;
+    const remaining = new Set(event.nativeEvent.touches.map((touch) => touch.identifier));
+    for (const pointer of playerPointers.current) {
+      if (!remaining.has(pointer)) playerPointers.current.delete(pointer);
+    }
+    onPlayerTouchChange(touchOwner, playerPointers.current.size > 0);
+  };
 
   useEffect(() => {
     const controller = new SnapshotController(player, setDvr, append);
@@ -210,7 +240,12 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
 
   return (
     <>
-      <View testID="player-lab-player">
+      <View testID="player-lab-player" {...(Platform.OS === "android" ? {
+        // Let the embedded SDK menu consume video gestures before the outer form.
+        onTouchStartCapture: startPlayerTouch,
+        onTouchEndCapture: finishPlayerTouch,
+        onTouchCancelCapture: finishPlayerTouch,
+      } : {})}>
       <PlayerView
         player={player}
         style={styles.player}
