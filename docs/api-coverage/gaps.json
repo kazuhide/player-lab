@@ -159,6 +159,18 @@
       },
       "references": []
     },
+    "native-binary-input-not-implemented-09b9150191": {
+      "kind": "implementation",
+      "en": {
+        "reason": "This input is certificate bytes, not a JSON string. The app has no file or encoded-data input that creates the required ArrayBuffer.",
+        "action": "Add a local certificate file or base64 input, validate its size and encoding, and convert it to ArrayBuffer before applying SourceConfig. Do not publish the supplied certificate automatically."
+      },
+      "ja": {
+        "reason": "証明書のバイナリデータを渡す項目です。ファイルやエンコードした入力から必要なArrayBufferを作成する処理が未実装です。",
+        "action": "ローカルの証明書ファイルやbase64入力を検証し、ArrayBufferに変換してSourceConfigへ適用します。入力した証明書を自動公開しません。"
+      },
+      "references": []
+    },
     "native-callback-editor-not-implemented-c8be0ae318": {
       "kind": "implementation",
       "en": {
@@ -303,15 +315,15 @@
       },
       "references": []
     },
-    "native-sdk-object-adapter-not-implemented-780b4d492d": {
+    "native-structured-dictionary-editor-not-implemented-73bb3ff807": {
       "kind": "implementation",
       "en": {
-        "reason": "The declared value is a native/SDK/platform object, so a JSON text value is insufficient. A typed constructor/binary loader/host-object adapter and its GUI are implementable but currently absent.",
-        "action": "Add a typed constructor or binary/object adapter and expose the meaningful inputs; validate owner and disposal boundaries."
+        "reason": "This input is a structured key-system configuration dictionary. The app lacks an editor and validation for its fields. JSON-compatible object values can be used; no live native or SDK instance is required.",
+        "action": "Add a structured dictionary editor for the selected key system and apply it to SourceConfig. Keep device support and DRM license responses separate from input validation."
       },
       "ja": {
-        "reason": "SDK・プラットフォームの実体オブジェクトが必要です。生成・読込用アダプターとGUIが未実装です。",
-        "action": "型に合う生成処理、バイナリ読込またはオブジェクトの接続処理を追加します。入力をGUIから変更できるようにし、生成と破棄を管理します。"
+        "reason": "暗号化方式に関する辞書形式の設定ですが、構造に合う編集と検証が未実装です。JSONで表せるオブジェクトを使用でき、native・SDKの実体オブジェクトを生成する必要はありません。",
+        "action": "暗号化方式に合う辞書の編集を追加し、SourceConfigへ適用します。端末の対応状況やDRMライセンスの応答は、入力値の検証とは別に表示します。"
       },
       "references": []
     },
@@ -556,6 +568,18 @@
       "ja": {
         "reason": "この取得結果を表示する実装が確認されていません。",
         "action": "取得操作と結果表示を追加します。オブジェクト・DOM・バイナリ・非同期の結果を扱い、表示量と更新頻度に上限を設けます。"
+      },
+      "references": []
+    },
+    "web-missing-structured-browser-input-47c8f05767": {
+      "kind": "implementation",
+      "en": {
+        "reason": "This input is a browser key-system configuration dictionary. The app has no editor for its structured fields. It can be represented with JSON-compatible values; it does not require a live browser object.",
+        "action": "Add a structured field editor with validation for the selected key system and preserve unsupported-device errors separately from input validation."
+      },
+      "ja": {
+        "reason": "ブラウザーの暗号化方式に関する辞書形式の設定ですが、構造に合う編集GUIがありません。JSONで表せる値を使用でき、実行中のブラウザーオブジェクトを生成する必要はありません。",
+        "action": "暗号化方式に合う項目の編集と検証を追加します。端末が方式に非対応である場合のエラーは、入力値の検証とは別に表示します。"
       },
       "references": []
     },
@@ -976,15 +1000,6 @@
           ]
         },
         {
-          "reason": "web-missing-browser-object-input-38ff6614ad",
-          "apis": [
-            "SourceConfig.drm.playready.mediaKeySystemConfig",
-            "SourceConfig.drm.primetime.mediaKeySystemConfig",
-            "SourceConfig.drm.tvkey.mediaKeySystemConfig",
-            "SourceConfig.drm.widevine.mediaKeySystemConfig"
-          ]
-        },
-        {
           "reason": "web-missing-callback-editor-0cf93a045d",
           "apis": [
             "PlayerConfig.adaptation.desktop.onAudioAdaptation",
@@ -1247,6 +1262,15 @@
             "PlayerAPI.vr.isGyroscopeEnabled",
             "PlayerAPI.vr.isKeyboardControlEnabled",
             "PlayerAPI.vr.isMouseControlEnabled"
+          ]
+        },
+        {
+          "reason": "web-missing-structured-browser-input-47c8f05767",
+          "apis": [
+            "SourceConfig.drm.playready.mediaKeySystemConfig",
+            "SourceConfig.drm.primetime.mediaKeySystemConfig",
+            "SourceConfig.drm.tvkey.mediaKeySystemConfig",
+            "SourceConfig.drm.widevine.mediaKeySystemConfig"
           ]
         },
         {
@@ -1818,10 +1842,8 @@
             "UIComponentConfigMap.FontSizeSelectBox.overlay",
             "UIComponentConfigMap.FontStyleSelectBox.overlay",
             "UIComponentConfigMap.InteractiveContextMenuItem.components[]",
-            "UIComponentConfigMap.InteractiveContextMenuItem.label",
             "UIComponentConfigMap.InteractiveContextMenuItem.settingComponent",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.components[]",
-            "UIComponentConfigMap.InteractiveSettingsPanelItem.label",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.settingComponent",
             "UIComponentConfigMap.ListBox.components[]",
             "UIComponentConfigMap.ListBox.listSelector",
@@ -1840,7 +1862,6 @@
             "UIComponentConfigMap.SettingsPanelPageOpenButton.container",
             "UIComponentConfigMap.SettingsPanelPageOpenButton.targetPage",
             "UIComponentConfigMap.SettingsPanelSelectOption.components[]",
-            "UIComponentConfigMap.SettingsPanelSelectOption.label",
             "UIComponentConfigMap.SettingsPanelSelectOption.settingComponent",
             "UIComponentConfigMap.SettingsPanelSeparator.components[]",
             "UIComponentConfigMap.SettingsToggleButton.settingsPanel",
@@ -2358,6 +2379,7 @@
             "UIComponentConfigMap.InteractiveContextMenuItem.hidden",
             "UIComponentConfigMap.InteractiveContextMenuItem.id",
             "UIComponentConfigMap.InteractiveContextMenuItem.isSetting",
+            "UIComponentConfigMap.InteractiveContextMenuItem.label",
             "UIComponentConfigMap.InteractiveContextMenuItem.labelStyle",
             "UIComponentConfigMap.InteractiveContextMenuItem.role",
             "UIComponentConfigMap.InteractiveContextMenuItem.tabIndex",
@@ -2370,6 +2392,7 @@
             "UIComponentConfigMap.InteractiveSettingsPanelItem.hidden",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.id",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.isSetting",
+            "UIComponentConfigMap.InteractiveSettingsPanelItem.label",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.labelStyle",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.role",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.tabIndex",
@@ -2712,6 +2735,7 @@
             "UIComponentConfigMap.SettingsPanelSelectOption.hidden",
             "UIComponentConfigMap.SettingsPanelSelectOption.id",
             "UIComponentConfigMap.SettingsPanelSelectOption.isSetting",
+            "UIComponentConfigMap.SettingsPanelSelectOption.label",
             "UIComponentConfigMap.SettingsPanelSelectOption.labelStyle",
             "UIComponentConfigMap.SettingsPanelSelectOption.role",
             "UIComponentConfigMap.SettingsPanelSelectOption.settingsValue",
@@ -5459,6 +5483,13 @@
       "id": "vega",
       "groups": [
         {
+          "reason": "native-binary-input-not-implemented-09b9150191",
+          "apis": [
+            "SourceConfig.drm.fairplay.serverCertificate",
+            "SourceConfig.drm.widevine.serverCertificate"
+          ]
+        },
+        {
           "reason": "native-callback-editor-not-implemented-eb46487f45",
           "apis": [
             "PlayerConfig.adaptation.desktop.onAudioAdaptation",
@@ -6327,14 +6358,12 @@
           ]
         },
         {
-          "reason": "native-sdk-object-adapter-not-implemented-780b4d492d",
+          "reason": "native-structured-dictionary-editor-not-implemented-73bb3ff807",
           "apis": [
-            "SourceConfig.drm.fairplay.serverCertificate",
             "SourceConfig.drm.playready.mediaKeySystemConfig",
             "SourceConfig.drm.primetime.mediaKeySystemConfig",
             "SourceConfig.drm.tvkey.mediaKeySystemConfig",
-            "SourceConfig.drm.widevine.mediaKeySystemConfig",
-            "SourceConfig.drm.widevine.serverCertificate"
+            "SourceConfig.drm.widevine.mediaKeySystemConfig"
           ]
         },
         {
