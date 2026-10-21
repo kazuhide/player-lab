@@ -69,7 +69,7 @@ DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
 SOURCE_REVISION = '11b7ccac88b126c07fc3984b63af45fe36219c67'
-CONTENT_REVIEW = '2026-10-21'
+CONTENT_REVIEW = '2026-10-22'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 
 
@@ -88,5 +88,5 @@ GUIDE_ASSETS = {
     *(shared_figure_path(name) for name in SHARED_FIGURES),
     *(f'assets/guide/{name}.jpg' for name in THEMES),
     *(f'assets/guide/{name}-{language}.jpg'
-      for name in ('overview', 'source-controls', 'config') for language in LANGUAGES),
+      for name in ('overview', 'source-controls', 'config', 'sdk-configuration', 'sdk-callback') for language in LANGUAGES),
 }

@@ -532,11 +532,17 @@ function renderThemeDiff(activeThemeId: string): HTMLElement {
 
 /** Render the ACTIVE theme's "how it's built" (diff + construction code) into a
  *  container — used for the panel beside the player. Updated on every theme switch. */
-export function renderConstruction(container: HTMLElement, activeThemeId: string, uiConfig: UIConfig = {}): void {
+export function renderConstruction(container: HTMLElement, activeThemeId: string, uiConfig: UIConfig = {}, appliedUiCode?: string, sdkManaged = false): void {
   container.innerHTML = "";
   const content = document.createElement("div");
   content.className = "construction-content";
-  content.appendChild(renderThemeDiff(activeThemeId));
+  if (sdkManaged) {
+    const heading = document.createElement("h3");
+    heading.textContent = pick({ ja: "SDKが生成するUI", en: "SDK-managed UI" });
+    const note = document.createElement("p");
+    note.textContent = pick({ ja: "PlayerConfig.uiの設定を使用しています。SDKはUIファイルを読み込んだ後にstyle.uiManagerFactoryを呼び出します。設定した関数のコードは下の詳細設定欄で確認できます。", en: "PlayerConfig.ui is enabled. The SDK loads the UI files and then calls style.uiManagerFactory. The configured callback code is shown in the SDK editor below." });
+    content.append(heading, note);
+  } else content.appendChild(renderThemeDiff(activeThemeId));
   const details = document.createElement("details");
   details.className = "ui-config-preview";
   const summary = document.createElement("summary");
@@ -544,7 +550,7 @@ export function renderConstruction(container: HTMLElement, activeThemeId: string
   const pre = document.createElement("pre");
   pre.className = "theme-diff-code";
   const code = document.createElement("code");
-  code.textContent = `const uiConfig = ${JSON.stringify(uiConfig, null, 2)};`;
+  code.textContent = `const uiConfig = ${appliedUiCode ?? JSON.stringify(uiConfig, null, 2)};`;
   pre.appendChild(code);
   details.append(summary, pre);
   content.appendChild(details);

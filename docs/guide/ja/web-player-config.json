@@ -303,7 +303,7 @@
     },
     {
       "type": "note",
-      "text": "バッファを増やすとメモリ使用量が増え、一時的な取得の中断を吸収できる場合があります。配信側の巻き戻し範囲は広がらず、遅延が減ることも保証しません。アプリには音声・映像それぞれの実際の保持範囲を示す欄がないため、ブラウザーのメディア調査機能で確認します。入力例は比較用であり、推奨設定ではありません。"
+      "text": "バッファを増やすとメモリ使用量が増え、一時的な取得の中断を吸収できる場合があります。配信側の巻き戻し範囲は広がらず、遅延が減ることも保証しません。SDKの詳細欄の状態取得からPlayerAPI.buffer.getLevelを選び、対象のメディアとバッファ種別を指定して値を確認します。実際の保持範囲はブラウザーのメディア調査機能で確認します。入力例は比較用であり、推奨設定ではありません。"
     },
     {
       "type": "h2",
@@ -375,7 +375,7 @@
     },
     {
       "type": "note",
-      "text": "キャッシュ、ネイティブHLS、リクエストの種別により、どの通信が設定の対象になるかが変わります。再生エラーまでの総時間には複数の通信、再試行、待ち時間を含む場合があり、タイムアウト1回分と一致するとは限りません。GUIではretryHttpRequestなどのコールバック、認証ヘッダー、任意の通信処理は編集できません。"
+      "text": "ブラウザーのキャッシュ、ネイティブHLS、リクエストの種類によって設定が適用される通信は異なります。再生エラーになるまでの時間には複数の通信や再試行と待機時間が含まれます。下記のSDK詳細欄ではretryHttpRequestと通信の前処理の関数も編集できます。"
     },
     {
       "type": "h2",
@@ -387,16 +387,75 @@
     },
     {
       "type": "h2",
-      "text": "GUIで扱わない設定"
+      "text": "SDKの詳細設定・API・イベント"
     },
     {
-      "type": "bullets",
+      "type": "p",
+      "text": "従来のPlayer Configフォームの下にある「SDKの詳細設定・API・イベント」を開きます。公開APIの名前で検索し、設定・操作・状態の取得・イベントから種類を選びます。各項目から公式リファレンスを参照できます。"
+    },
+    {
+      "type": "steps",
       "items": [
-        "画質、音声、字幕などの選択肢はソースから決まるため、映像内のメニューを使います。",
-        "ネットワークのリクエスト加工、認証、映像要素の差し替えなど、関数やオブジェクトを渡すAPIはこのフォームに含まれません。",
-        "DRM、広告、VRのAPIや複雑な構成全体を編集する画面はありません。",
-        "Tweaksのquery_parameters、segmentLoader、disable_retry_for_response_status、wish_abr_params、playstation_5などのオブジェクトやコールバックは対象外です。"
+        "SourceConfig.titleなどの項目を選びます。型の選択肢があれば入力する型を選び、値を入れて「設定を適用」を押します。PlayerConfigはPlayerの再生成、SourceConfigはソースの再読み込み、UI設定はUIの再生成で反映します。",
+        "オブジェクトの任意項目は個別に有効にします。配列は「項目を追加」、辞書は「プロパティを追加」で編集します。必須項目を持つ要素を追加するときはPlayerConfig.playback.preferredTechやSourceConfig.subtitleTracksのような親のパスを選び、必要な項目を揃えて一度に適用してください。要素番号付きの末端パスは既存の要素の編集に使い、それより前の要素を保持してください。オブジェクトの編集では変更していない元の項目を保持し、配列の編集ではその配列全体を置き換えます。",
+        "「この上書きを解除」で対応する基本設定へ戻します。従来のフォームで同じ項目を変更した場合は重複する詳細設定を取り除き、無関係な設定は保持します。",
+        "メソッドは引数の形式を選び、必要な任意引数を有効にして値を入力し、「APIを実行」または「状態を取得」を押します。生成したコードの下に結果を表示します。破棄と再生成はアプリ内のほかの操作と共通の管理手順で行います。",
+        "イベント欄には現在のPlayerとUIManagerの購読対象を表示します。イベントが発生すると、回数と内容の抜粋を上限のあるログに表示します。Playerの再生成時に、古い購読と履歴を取り除きます。"
       ]
+    },
+    {
+      "type": "note",
+      "text": "任意の設定項目でundefinedを選ぶと、そのプロパティを省略してSDKへ渡します。たとえばWeb SDK 8.281.0では、playbackに明示的なundefinedを渡すと初期化に失敗しますが、プロパティを省略すれば初期化できます。「この上書きを解除」は、アプリの基本設定へ戻す操作です。この扱いは設定のプロパティに適用し、SDKが関数へ渡す引数の値や個数は変えません。"
+    },
+    {
+      "type": "figure",
+      "file": "sdk-configuration",
+      "caption": "SDKのパスを検索して選んだ設定を編集します。この例ではソースのタイトルを変更しています。"
+    },
+    {
+      "type": "h2",
+      "text": "関数を編集する"
+    },
+    {
+      "type": "p",
+      "text": "コールバックはSDKが呼び出す関数です。入力の型で関数を選び、表示された引数名と戻り値の型に合わせてJavaScriptの関数本体を記述します。「Apply後にこの関数をこの画面内で実行する」を有効にして適用します。network.preprocessHttpRequestで、受け取ったリクエストを変更せず返す例は次のとおりです。"
+    },
+    {
+      "type": "code",
+      "text": "return Promise.resolve(request);"
+    },
+    {
+      "type": "p",
+      "text": "関数本体はこのページのJavaScriptとして動きます。lab.uiから読み込み済みのUIクラスを利用し、lab.getPlayer()で現在のPlayerを取得できます。関数の呼び出しと戻り値の型の不一致をログに記録します。通信を完了させない関数を設定した場合も、その上書きを解除してPlayerを再生成できます。"
+    },
+    {
+      "type": "note",
+      "text": "ネイティブHLSではブラウザーがメディアを取得するため、SDKの通信コールバックが呼ばれない場合があります。SDK側のHLS通信を試すにはPlayerConfig.playback.preferredTechで配列を選んで要素を追加し、playerをPlayerType.Html5、streamingをStreamType.Hlsにして適用します。「状態の取得」とコールバックのログで使用した設定と呼び出しを確認してください。"
+    },
+    {
+      "type": "figure",
+      "file": "sdk-callback",
+      "caption": "リクエストの関数本体、SDKが定める引数と戻り値、実行の許可を編集します。適用後にSDKから呼ばれます。"
+    },
+    {
+      "type": "h2",
+      "text": "SDKの実体を渡して状態を確認する"
+    },
+    {
+      "type": "p",
+      "text": "UI部品やEventDispatcherが必要な入力では、公開コンストラクターで生成するか、アプリが保持する現在のSDK実体を選びます。コンストラクターの引数と形式も編集できます。証明書のバッファには16進数またはBase64のバイト列を入力します。JSONはSDKがデータとして受け付ける箇所に使い、nativeやSDKクラスの実体を生成する代わりには使いません。"
+    },
+    {
+      "type": "note",
+      "text": "UIの部品は生成時に言語変更を購読します。GUIから生成する部品とUIManagerが同じイベント通知先を使うよう、部品の生成前に言語設定を適用します。生成コードもこの順序を保ちます。エディターで生成した部品とその内部の子部品は、所有するUIを入れ替えるときに解放します。SDKから選択した既存の部品を、エディターの所有物として解放することはありません。"
+    },
+    {
+      "type": "p",
+      "text": "「状態の取得」でPlayerAPI.getConfigやPlayerAPI.getSourceを選ぶと、送信した設定値を確認できます。setVolumeなどの操作には任意の引数を入力します。取得したSDK実体や関数を後の呼び出しで選ぶこともできます。所有するPlayerなどが入れ替わった場合は取得し直します。コード例からライセンス値を除きます。選択した実体を参照する部分には、先の呼び出しで取得した同じオブジェクトを使ってください。"
+    },
+    {
+      "type": "p",
+      "text": "PlayerConfig.uiに空のオブジェクト{}を適用するとSDKがUIを生成します。アプリは使用中のUIバージョンに対応するスクリプトとスタイルの読み込み先を指定し、PlayerConfig.locationから変更できます。SDKは設定したstyle.uiManagerFactoryを呼び出します。従来のテーマを選ぶとアプリが生成するUIへ戻り、UIManagerが重複しないようにします。"
     },
     {
       "type": "note",
@@ -488,6 +547,22 @@
     {
       "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfigOptions.html",
       "label": "SourceConfigOptions"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/2e01393b86d0c3004114c5ed6474d856676bc90f/apps/web/src/api/explorer.ts",
+      "label": "SDK editor"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/2e01393b86d0c3004114c5ed6474d856676bc90f/apps/web/src/api/materialize.ts",
+      "label": "Callbacks and SDK constructors"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.StyleConfig.html",
+      "label": "StyleConfig"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/2e01393b86d0c3004114c5ed6474d856676bc90f/apps/web/src/api/values.ts",
+      "label": "Optional configuration properties"
     }
   ]
 }

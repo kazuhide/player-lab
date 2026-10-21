@@ -150,7 +150,11 @@ test("all fourteen original themes render their UI and construction code", async
     expect(code?.trim().length, label).toBeGreaterThan(30);
     expect(code, label).not.toMatch(/[぀-ヿ一-龯]/);
     sources.add((await construction.locator(".theme-diff-codesrc").textContent())!);
-    await expect(page.locator("#ui-construction .ui-config-preview code")).toHaveText("const uiConfig = {};");
+    const preview = (await page.locator("#ui-construction .ui-config-preview code").textContent())!;
+    const uiConfig = JSON.parse(preview.replace(/^const uiConfig = /, "").replace(/;$/, ""));
+    expect(uiConfig.metadata.markers).toEqual([
+      { time: 120, title: "Chapter 1" }, { time: 360, title: "Chapter 2" }, { time: 600, title: "Chapter 3" },
+    ]);
     await expect(page.locator(".ui-theme-bar-code")).not.toBeEmpty();
   }
   expect(sources.size).toBeGreaterThanOrEqual(8);

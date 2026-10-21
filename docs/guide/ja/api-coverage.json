@@ -1,78 +1,62 @@
 {
   "id": "api-coverage",
   "title": "公開APIの対応状況",
-  "lead": "利用できるSDK APIと、アプリの設定・操作・表示を比較します。全APIをGUIから試せる状態には達していません。アプリ別の一覧に、残る実装、入力の型と適用経路の問題、公式資料を示します。コード内で使用しているだけの項目をGUIの個別編集として数えません。",
+  "lead": "利用できるSDK APIと、アプリから設定・操作・表示できる項目を比較します。Webの各APIは詳細欄から利用できます。Web UIの型と適用経路の不一致、ほかのプラットフォームで残る実装は、アプリ別の一覧に理由と公式資料を示します。",
   "noteTranslations": {
     "web": [
       {
         "source": "The denominator covers PlayerConfig and SourceConfig leaf paths, PlayerAPI callable members including nested operational namespaces, and named PlayerEvent values. It is not a percentage of every exported SDK type, static constructor, utility, or event payload field.",
-        "text": "分母は、PlayerConfig・SourceConfigの末端パス、操作用の入れ子の名前空間を含むPlayerAPIの呼び出し可能なメンバー、名前付きのPlayerEvent値です。公開されたすべてのSDK型・静的コンストラクター・ユーティリティ・イベントのペイロードフィールドに対する割合ではありません。"
+        "text": "分母はPlayerConfigとSourceConfigの末端パス、入れ子の操作用名前空間を含むPlayerAPIのメソッド、名前付きPlayerEventです。SDKが公開する全型、静的な生成処理、補助機能、イベント内容の全フィールドに対する割合ではありません。"
       },
       {
         "source": "SDK declarations are extracted independently of the GUI inventory. Configuration arrays count element shapes once, maps and callbacks have explicit boundaries, and overloads count by method name. Available deprecated APIs remain counted.",
-        "text": "SDK宣言はGUI一覧とは独立して抽出しています。設定の配列は要素の型を一回だけ数え、マップとコールバックには対象の境界を明記します。オーバーロードはメソッド名ごとに一件と数え、利用可能な非推奨APIも残します。"
+        "text": "SDKの宣言はGUIの一覧とは独立して抽出します。配列の要素の型は一度だけ数え、辞書と関数は境界を明示し、引数形式が異なる同名メソッドは一件と数えます。利用可能な非推奨APIも対象に残します。"
       },
       {
         "source": "Direct means an app control can edit the field or invoke the operation with its supported GUI arguments. Preset means fixed source, value or theme choices; it does not mean every possible argument is exposed.",
-        "text": "「GUIで直接指定」は、アプリの操作部品からフィールドを編集するか、GUIがサポートする引数で操作を呼び出す場合です。「限定プリセット」は固定のソース・値・テーマ候補からの選択であり、任意の引数を指定できることは意味しません。"
+        "text": "個別編集は、GUIから値を変更するか、入力した引数で操作を呼び出せる状態です。固定候補は素材・値・テーマなどの選択肢です。全ての引数を編集できるという意味ではありません。"
       },
       {
-        "source": "The Player Config editor includes 144 GUI fields, but app helpers and paths absent from the public SDK declarations are not counted as public API coverage.",
-        "text": "Player Configエディターには144件のGUIフィールドがありますが、アプリ独自のヘルパーと公開SDK宣言に存在しないパスは、公開APIの対応件数に含めません。"
+        "source": "The SDK editor exposes typed settings, arrays, dictionaries, callback bodies and public runtime method signatures alongside the original controls. PlayerConfig recreates the Player; SourceConfig reloads the source. Applied inputs and results are separate from effective feature behavior.",
+        "text": "SDKの詳細欄では、従来の操作欄に加えて、型に沿った設定、配列、辞書、関数本体、実行時メソッドの引数を編集します。PlayerConfigはPlayerの再生成、SourceConfigはソースの再読み込みで適用します。入力値や取得結果と、機能が実際に有効になることは区別します。"
       },
       {
-        "source": "Audited standard UI action routes include video/audio quality, audio and subtitle track selection, Cast and AirPlay. Player Insights details, VR, advertising controls and every standard UI getter have not been qualified; their absence from this mapping is not proof that the SDK UI cannot call them.",
-        "text": "標準UIでは、映像・音声品質、音声・字幕トラック、Cast、AirPlayの操作経路を確認しています。Player Insightsの詳細、VR、広告操作、標準UIのすべてのgetterは確認していません。この一覧にないことだけで、SDK UIから呼び出せないとは判断しません。"
+        "source": "Callback bodies run only after explicit approval and Apply. Real SDK/browser objects are created by public constructors or selected from current owned instances; JSON data is not cast to those instances. Callback and query owners are retired when their Player, Source or UI is replaced.",
+        "text": "関数本体は実行を許可して適用した後にSDKから呼ばれます。SDKやブラウザーの実体は公開コンストラクターで生成するか、現在のインスタンスから選択します。JSONを実体として扱いません。Player・Source・UIの入れ替え後に古い処理結果を表示しないようにしています。"
       },
       {
-        "source": "Observed APIs contribute only to display/log coverage. Metric collection and lifecycle calls do not become configurable merely because application code calls them.",
-        "text": "表示やログに使うAPIは、それぞれの対応件数にだけ加算します。計測値の収集やライフサイクル処理をアプリのコードから呼び出しても、設定可能な項目には数えません。"
-      },
-      {
-        "source": "The 22 observed events comprise 14 named log entries, 6 displayed-state refresh triggers and 2 derived playback-quality metric updates. This does not expose every event payload field.",
-        "text": "イベントの対応22件は、イベント名をログに出す14件、表示状態を更新する6件、再生品質の指標を更新する2件です。イベントが持つ各データ項目をGUIで確認できるという意味ではありません。"
-      },
-      {
-        "source": "10 shared adaptive-bitrate GUI controls write the same value to 20 desktop and mobile configuration paths. Those paths count as fields, but their desktop and mobile values cannot be edited independently.",
-        "text": "適応型ビットレートの設定10操作は、デスクトップ用とモバイル用の計20フィールドへ同じ値を設定します。フィールドとしては数えますが、デスクトップ用とモバイル用の値を独立して変更する操作はありません。"
+        "source": "Named Player events are subscribed on the current Player and shown in a bounded log. A subscription route is not proof that every event was delivered. Runtime reads and controls remain dependent on SDK feature, media, device and service prerequisites.",
+        "text": "名前付きPlayerイベントは現在のPlayerで購読し、件数と内容を上限のあるログに表示します。購読経路があることは全イベントの発火確認を意味しません。状態取得や操作には、SDKの機能、素材、端末、外部サービスの条件があります。"
       },
       {
         "source": "The mapping is static source evidence. Browser playback and targeted GUI regressions are separate checks and do not establish that every option, event, browser, device, DRM system or external service works.",
-        "text": "対応付けはソースの静的な証跡に基づきます。ブラウザーでの再生と対象を絞ったGUI回帰テストは別の確認であり、すべての設定候補・イベント・ブラウザー・機器・DRM・外部サービスの動作を保証しません。"
-      },
-      {
-        "source": "Network timeouts are edited in seconds: a default and 7 explicit request types. Empty removes the selected override. These controls do not expose request callbacks or every network request type.",
-        "text": "通信タイムアウトは秒単位で、全体の既定値と明示した7種類のリクエストを編集します。空欄で該当する上書きだけを削除します。リクエストのコールバックや全リクエスト種別を編集する画面ではありません。"
+        "text": "対応付けはソースの静的な証跡に基づきます。ブラウザーでの再生と対象を絞ったGUI検証は別の確認です。全ての設定値・イベント・ブラウザー・機器・コンテンツ保護方式・外部サービスの動作確認を表すものではありません。"
       }
     ],
     "web-ui": [
       {
         "source": "The denominator covers core UIConfig fields, canonical component configuration fields, component layout overrides, UIManager callable members and its two named dispatcher events. It excludes each individual component class method, component event payload and exported utility type.",
-        "text": "分母は、基本のUIConfigフィールド、正規化したコンポーネント設定フィールド、コンポーネントレイアウトの上書き、UIManagerの呼び出し可能なメンバー、名前付きディスパッチャーイベント二件です。各コンポーネントクラスのメソッド、コンポーネントイベントのペイロード、公開ユーティリティ型は含めません。"
+        "text": "分母はUIConfig、正規化したコンポーネント設定、レイアウトの上書き、UIManagerのメソッド、名前付きディスパッチャーイベントです。各コンポーネントクラスのメソッドやイベント内容、補助型は対象外です。"
       },
       {
         "source": "UIComponentConfigMap is counted once per component/property path. The global context and nine variant contexts do not multiply the same parameter into ten APIs. UIConfig override containers are represented by their canonical configuration scopes.",
-        "text": "UIComponentConfigMapは、コンポーネントとプロパティのパスごとに一件と数えます。全体のコンテキストと九つの表示バリエーションによって、同じ引数を十件のAPIとして数えることはしません。UIConfigの上書き用コンテナーは、対応する正規の設定範囲で表します。"
+        "text": "UIComponentConfigMapはコンポーネントとプロパティのパスごとに数えます。表示バリエーションごとに同じ引数を重複して数えません。UIConfigの上書き用コンテナーは対応する正規の設定範囲で表します。"
       },
       {
-        "source": "A theme picker does not make every constructor constant GUI configurable. Constructor-only values receive code-only status. The Autohide switch supplies constrained UIContainer.hideDelay choices, and custom layouts supply a constrained QuickSeekButton inclusion choice.",
-        "text": "テーマを選べることだけで、コンストラクターの全定数をGUIで設定可能とは判断しません。生成時にだけ指定する値は「コードのみ」です。AutohideスイッチはUIContainer.hideDelayの限定候補を渡し、カスタムレイアウトはQuickSeekButtonを含めるかどうかの限定候補を渡します。"
+        "source": "The typed SDK editor maps component configuration and layout paths to UIConfig overrides. The existing theme factories construct components inside the SDK override scope. Component-instance inputs use real public constructors; EventDispatcher uses its own constructor rather than a Component.",
+        "text": "SDKの詳細欄からコンポーネント設定とレイアウト設定をUIConfigの上書き値へ渡します。既存テーマはSDKの上書き処理の中でコンポーネントを生成します。部品の実体は公開コンストラクターで生成し、EventDispatcherには専用のコンストラクターを使います。"
       },
       {
-        "source": "The 15 directly editable core UIConfig fields and fixed recommendation metadata are separate from individual component override editing. No arbitrary componentConfigOverrides or componentLayoutOverrides editor is present.",
-        "text": "GUIから直接変更できる基本のUIConfigの15項目と、固定の推薦メタデータは、コンポーネントごとの上書き編集とは別です。componentConfigOverridesやcomponentLayoutOverridesを任意に編集する画面はありません。"
+        "source": "Published UI 4.23.0 declares Partial<ToggleSettingsPanelItem> where constructor configuration is expected. Its 61 lifecycle-method and readonly-event paths remain incomplete rather than being counted as settings. The editor separately exposes the actual ToggleSettingsPanelItem constructor configuration.",
+        "text": "UI 4.23.0の公開型には、コンストラクター設定の代わりにPartial<ToggleSettingsPanelItem>を参照する箇所があります。そこから列挙されたメソッドと読み取り専用イベントの61パスは、設定として加点せず未対応に残します。実際のToggleSettingsPanelItemのコンストラクター設定は、別の入力として編集できます。"
+      },
+      {
+        "source": "UIManager methods accept edited arguments and expose results; its named dispatchers are subscribed on the current manager. Their availability does not establish that each event fired or every component/variant combination was exercised.",
+        "text": "UIManagerのメソッドは入力した引数で実行して結果を表示し、名前付きディスパッチャーは現在のUIManagerで購読します。全イベントの発火や、全ての部品・表示バリエーションの組み合わせを検証したという意味ではありません。"
       },
       {
         "source": "These figures describe the Web application. Reusing the bundle in a native app does not transfer all Web controls or measured coverage to the native bridge.",
-        "text": "この件数はWebアプリを対象とします。同じバンドルをネイティブアプリで使っても、Web側の全操作や測定した対応件数をネイティブブリッジに引き継ぐことはできません。"
-      },
-      {
-        "source": "The local compatibility patch changes component release, recommendation action ownership and finalized VOD timebase normalization. It does not add public declarations or increase the SDK API denominator.",
-        "text": "ローカルの互換パッチは、コンポーネント解放、おすすめ操作の所有関係、終了後のVODの時刻基準を修正します。公開宣言を追加するものではなく、SDK APIの分母も増やしません。"
-      },
-      {
-        "source": "Language and subtitle-language adaptation are separate nested fields. The preferences switch is constructed only for Default and CSS themes and requires UI storage. Storage and resume defaults remain off; editing a flag is separate from proving cross-session persistence.",
-        "text": "UI言語と字幕言語への追従は、入れ子の設定の別項目です。設定保存スイッチを組み込むのは標準UIとCSSテーマだけで、UIのストレージが必要です。設定保存と再開位置の保存は初期状態でオフです。フラグの変更と、セッションをまたいだ保存動作の実証は分けています。"
+        "text": "この件数はWebアプリを対象とします。同じバンドルをネイティブアプリで使っても、Webの全操作や対応件数をネイティブの操作画面へ引き継ぐことはできません。"
       }
     ],
     "ios": [
@@ -587,7 +571,7 @@
     "vega-supported-beta": "Vega対応ベータ版"
   },
   "coverageGoal": [
-    "対応する設定・操作・状態取得・イベントをアプリから試せることが目標です。現状は未達で、主因はアプリ側の未実装です。大半をSDKの制約による実装不可能な項目として説明することはできません。",
+    "対応する設定・操作・状態取得・イベントをアプリから試せることが目標です。Webには全項目のGUI経路を追加しました。全体の目標はまだ未達です。残るアプリ側の未実装とSDKの型・利用条件を区別し、分母と個別の区分を維持して示します。",
     "「設定APIの使用数」はGUIの個別編集・固定候補の選択・コード内のみの合計です。利用者が編集できる設定の割合ではありません。各APIの対応区分と分母は維持しています。理由欄には、個別編集や結果表示が不足している固定候補・コード内のみの項目も含めています。",
     "Web UIの設定一覧には、初期化用の設定型ではなくコンポーネント本体のPartial<ToggleSettingsPanelItem>から列挙されたパスが含まれます。これらはインスタンスのメソッドやイベント購読を表します。設定として渡してもメソッドの実行や購読にはなりません。該当行に型と適用経路の説明を付け、使われないプロパティを動作する設定として加点しません。",
     "値の入力だけでは、関数、nativeの画面部品、実行中のSDKオブジェクトは生成できません。型に合う処理や生成経路が必要です。固定のコールバック処理を選ぶ方式はプリセットとして数えます。端末・素材・外部サービスは実行の条件であり、GUIがない理由にはしません。効果がないとされるAPIも呼び出しや取得結果の表示は実装できるため、その事実だけではAPI対応率を上げられない理由になりません。",
