@@ -271,6 +271,7 @@ export class ApiExplorer {
         form.append(editor.element);
         const apply = button(pick({ ja: "設定を適用", en: "Apply setting" }), () => {
           const output = ++this.outputGeneration;
+          this.status.textContent = pick({ ja: "設定を適用しています。", en: "Applying setting." });
           void (async () => {
             apply.disabled = true;
             const route = configRoute(entry, indexInputs.map(input => Number(input.value)));
@@ -300,6 +301,7 @@ export class ApiExplorer {
         });
         form.append(apply, button(pick({ ja: "この上書きを解除", en: "Remove this override" }), () => {
           const output = ++this.outputGeneration;
+          this.status.textContent = pick({ ja: "上書きを解除しています。", en: "Removing override." });
           void (async () => {
             const route = configRoute(entry, indexInputs.map(input => Number(input.value)));
             this.markWrite(route.root, route.path);
@@ -355,6 +357,8 @@ export class ApiExplorer {
   private async invoke(entry: ApiEntry, signature: Signature, inputs: unknown[]): Promise<void> {
     const token = ++this.operation;
     const output = ++this.outputGeneration;
+    this.status.textContent = pick({ ja: "SDKを呼び出しています。", en: "Calling the SDK." });
+    this.result.textContent = "";
     const root = entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi();
     if (!root) throw new Error("Create a player and UI first.");
     const context = this.context("runtime:" + entry.root);
