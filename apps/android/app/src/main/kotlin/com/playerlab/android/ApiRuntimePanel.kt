@@ -46,6 +46,7 @@ internal fun ApiRuntimePanel(controller: PlayerController) {
                     }
                 }
                 Text(command.label, style = MaterialTheme.typography.labelLarge)
+                if (command.id in listOf("android:com.bitmovin.player.PlayerView.on()", "android:com.bitmovin.player.PlayerView.next()", "android:com.bitmovin.player.PlayerView.off()")) Text("PlayerView subscriptions receive view UI events, such as FullscreenEnter/Exit. Playback and source events are recorded on Player and Source in the Events tab; they are not forwarded by this view subscription.", style = MaterialTheme.typography.bodySmall)
                 command.arguments.forEach { argument ->
                     OutlinedTextField(arguments[argument.name].orEmpty(), { value -> arguments = arguments + (argument.name to value) },
                         label = { Text(argument.name) }, modifier = Modifier.fillMaxWidth().testTag("api-argument-${argument.name}"), singleLine = true)

@@ -1,0 +1,13 @@
+Rhino 1.7.15.1
+Copyright Mozilla contributors.
+
+Rhino is distributed under the Mozilla Public License 2.0, with additional
+license notices described in its LICENSE.txt. The app uses the unmodified Maven
+artifact org.mozilla:rhino:1.7.15.1.
+
+Source code and license notices:
+https://github.com/mozilla/rhino/tree/Rhino1_7_15_1_Release
+https://github.com/mozilla/rhino/blob/Rhino1_7_15_1_Release/LICENSE.txt
+
+Mozilla Public License 2.0:
+https://www.mozilla.org/MPL/2.0/

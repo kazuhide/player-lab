@@ -23,6 +23,7 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
     var values by remember(controller.apiOverrides) { mutableStateOf(controller.apiOverrides.values) }
     var input by remember(selected, controller.apiOverrides) { mutableStateOf(values[selected].orEmpty()) }
     var error by remember { mutableStateOf("") }
+    var callbackCounts by remember(controller.player, controller.sourceRevision) { mutableStateOf(emptyMap<String, Pair<Int, Int>>()) }
     Button(onClick = { expanded = !expanded }, modifier = Modifier.testTag("api-settings-toggle")) {
         Text(if (expanded) "Hide SDK API settings" else "SDK API settings")
     }
@@ -41,6 +42,7 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
         val field = ApiSettings.byId.getValue(selected)
         Text(field.id.removePrefix("android:"), style = MaterialTheme.typography.labelLarge)
         Text("${field.kind}. ${field.help}", style = MaterialTheme.typography.bodySmall)
+        if (field.kind == ApiValueKind.Script) Text("Callbacks accept a pure input value snapshot and return the documented value. Only your staged body is executed; code is kept in memory, with no Java/Android access. Budgets are 50000 interpreter instructions, 75 milliseconds checked at execution/conversion checkpoints, and a stack depth of 64. Native built-ins are not preempted. This is not a separate-process memory sandbox.", style = MaterialTheme.typography.bodySmall)
         if (field.choices.isNotEmpty() || field.kind == ApiValueKind.Boolean) {
             val choices = field.choices.ifEmpty { listOf("true", "false") } + if (field.nullable) listOf("null") else emptyList()
             choices.forEach { choice ->
@@ -72,5 +74,7 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
         Text("Apply these assignments to fresh configuration objects before creating Player, Source and PlayerView. Use mutable playerConfig and playerViewConfig variables for copy assignments. No license values are included.", style = MaterialTheme.typography.bodySmall)
         SelectionContainer { Text(controller.apiOverrides.code().ifEmpty { "// No additional SDK overrides." },
             style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-settings-code")) }
+        Button(onClick = { callbackCounts = controller.apiCallbacks.snapshot() + controller.apiSourceCallbacks.snapshot() }, modifier = Modifier.testTag("api-callback-refresh")) { Text("Refresh callback outcomes") }
+        callbackCounts.forEach { (id, count) -> Text("${id.removePrefix("android:com.bitmovin.player.api.")}: calls=${count.first}; fallback after invalid result=${count.second}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-callback-$id")) }
     }
 }

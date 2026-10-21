@@ -11,9 +11,9 @@ import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.ui.*
 import com.bitmovin.player.api.vr.*
 
-internal enum class ApiValueKind { Boolean, Integer, LongInteger, Decimal, FloatDecimal, Text, TextList, IntegerList, StringMap, Choice }
+internal enum class ApiValueKind { Boolean, Integer, LongInteger, Decimal, FloatDecimal, Text, TextList, IntegerList, StringMap, Choice, Script }
 
-/** Explicit typed setters; no reflection, script evaluation or arbitrary SDK mutation. */
+/** Explicit typed setters and callback adapters; no reflection or arbitrary SDK object mutation. */
 internal data class ApiSetting(
     val id: String,
     val owner: String,
@@ -28,11 +28,13 @@ internal data class ApiSetting(
     val secret: Boolean = false,
     val player: ((PlayerConfig, String) -> PlayerConfig)? = null,
     val source: ((SourceConfig, String) -> Unit)? = null,
+    val playerCallback: ((PlayerConfig, String, ApiCallbackContext) -> PlayerConfig)? = null,
+    val sourceCallback: ((SourceConfig, String, ApiCallbackContext) -> Unit)? = null,
     val view: ((PlayerViewConfig, String) -> PlayerViewConfig)? = null,
     val code: ((String) -> String)? = null,
 ) {
     fun normalize(input: String): String {
-        val value = if (kind == ApiValueKind.Text) input else input.trim()
+        val value = if (kind == ApiValueKind.Text || kind == ApiValueKind.Script) input else input.trim()
         if (nullable && value == "null") return value
         val number = when (kind) {
             ApiValueKind.Boolean -> { require(value == "true" || value == "false") { "Choose true or false." }; null }
@@ -52,6 +54,7 @@ internal data class ApiSetting(
             }
             ApiValueKind.StringMap -> { parseApiStringMap(value); null }
             ApiValueKind.Text -> { require(value.length <= 8192) { "Text is limited to 8192 characters." }; null }
+            ApiValueKind.Script -> { ApiScriptProgram(value); null }
         }
         if (number != null) {
             require(minimum == null || number >= minimum) { "Value must be at least $minimum." }
@@ -70,17 +73,27 @@ internal data class ApiSetting(
 }
 
 internal data class ApiOverrides(val values: Map<String, String> = emptyMap()) {
-    fun player(base: PlayerConfig): PlayerConfig = values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }.fold(base) { config, (id, value) ->
-        ApiSettings.byId.getValue(id).player?.invoke(config, value) ?: config
+    fun player(base: PlayerConfig, callbacks: ApiCallbackContext = ApiCallbackContext()): PlayerConfig = values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }.fold(base) { config, (id, value) ->
+        val field = ApiSettings.byId.getValue(id)
+        field.playerCallback?.invoke(config, value, callbacks) ?: field.player?.invoke(config, value) ?: config
     }
-    fun source(base: SourceConfig): SourceConfig = base.also { config ->
-        values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }.forEach { (id, value) -> ApiSettings.byId.getValue(id).source?.invoke(config, value) }
+    fun source(base: SourceConfig, callbacks: ApiCallbackContext = ApiCallbackContext()): SourceConfig = base.also { config ->
+        values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }.forEach { (id, value) ->
+            val field = ApiSettings.byId.getValue(id)
+            field.sourceCallback?.invoke(config, value, callbacks) ?: field.source?.invoke(config, value)
+        }
         configureApiDrm(config, values.filterKeys { ApiSettings.byId.getValue(it).drmParameter })
     }
     fun view(base: PlayerViewConfig): PlayerViewConfig = values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }.fold(base) { config, (id, value) ->
         ApiSettings.byId.getValue(id).view?.invoke(config, value) ?: config
     }
-    fun code(): String = values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }.filterNot { ApiSettings.byId.getValue(it.key).drmParameter }.joinToString("\n") { (id, value) -> requireNotNull(ApiSettings.byId.getValue(id).code).invoke(value) } + apiDrmCode(values.filterKeys { ApiSettings.byId.getValue(it).drmParameter })
+    fun code(): String {
+        val entries = values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }
+        val context = if (entries.any { ApiSettings.byId.getValue(it.key).kind == ApiValueKind.Script }) "val callbackContext = ApiCallbackContext()\n" else ""
+        return context + entries.filterNot { ApiSettings.byId.getValue(it.key).drmParameter }.joinToString("\n") { (id, value) ->
+            requireNotNull(ApiSettings.byId.getValue(id).code).invoke(value)
+        } + apiDrmCode(values.filterKeys { ApiSettings.byId.getValue(it).drmParameter })
+    }
     companion object {
         fun validate(draft: Map<String, String>): ApiOverrides {
             val parsed = ApiOverrides(draft.mapValues { (id, value) ->
@@ -98,6 +111,7 @@ internal data class ApiOverrides(val values: Map<String, String> = emptyMap()) {
             exclusive("UiConfig.WebUi.variant", "UiConfig.WebUi.Variant.Custom.uiManagerFactoryFunction")
             exclusive("TweaksConfig.devicesThatRequireSurfaceWorkaround", "DeviceDescription.")
             exclusive("AdaptationConfig.startupBitrate", "AdaptationConfig.initialBandwidthEstimateOverride")
+            exclusive("LoadErrorFallbackConfig.Custom.callback", "LoadErrorFallbackConfig.HttpStatusCode.statusCodes")
             val bandwidth = draft["android:com.bitmovin.player.api.TweaksConfig.bandwidthMeterType"]
             require(bandwidth != "Default" || draft.keys.none { it.contains("BandwidthMeterType.Experimental.") || it.contains("BandwidthEstimationMode.") }) { "Remove experimental bandwidth fields before choosing Default." }
             require(bandwidth != "Experimental" || draft.keys.none { it.contains("BandwidthMeterType.Default.") }) { "Remove default-estimator fields before choosing Experimental." }
@@ -1044,6 +1058,6 @@ internal object ApiSettings {
             choices = listOf("Identity","Base64Encode","Base64Decode"),
             drmParameter = true
         )
-    ) + ApiStructuredSettings.fields
+    ) + ApiStructuredSettings.fields + ApiScriptSettings.fields
     val byId: Map<String, ApiSetting> = fields.associateBy(ApiSetting::id)
 }

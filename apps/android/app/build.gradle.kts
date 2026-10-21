@@ -44,6 +44,9 @@ dependencies {
     // Required by the SDK offline download service.
     // https://developer.bitmovin.com/playback/docs/working-with-offline-playback-android
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+    // Interpreter-only execution of explicitly applied local callback programs.
+    // The Java 8 maintenance line supports this app's Android 23 minimum.
+    implementation("org.mozilla:rhino:1.7.15.1")
 
     val composeBom = platform("androidx.compose:compose-bom:2024.10.00")
     implementation(composeBom)

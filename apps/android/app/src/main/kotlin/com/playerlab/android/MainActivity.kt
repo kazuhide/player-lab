@@ -102,8 +102,12 @@ internal class PlayerController(
     // when a key is configured (repo-root .env → sync-env.sh → local.properties).
     internal var apiAnalyticsSettings by mutableStateOf(ApiAnalyticsSettings())
         private set
-    private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides(), analytics: ApiAnalyticsSettings = apiAnalyticsSettings): Player {
-        val config = overrides.player(settings.toPlayerConfig(licenseKey))
+    internal var apiCallbacks = ApiCallbackContext()
+        private set
+    internal var apiSourceCallbacks = ApiCallbackContext()
+        private set
+    private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides(), analytics: ApiAnalyticsSettings = apiAnalyticsSettings, callbacks: ApiCallbackContext = apiCallbacks): Player {
+        val config = overrides.player(settings.toPlayerConfig(licenseKey), callbacks)
         return playerFactory?.invoke(config) ?: Player(context, config, analytics.playerConfig(analyticsLicenseKey))
     }
 
@@ -134,6 +138,7 @@ internal class PlayerController(
     internal var apiPictureInPicture by mutableStateOf(false)
         private set
     internal val apiHostMessages = mutableStateListOf<String>()
+    internal var apiClearFocus: () -> Unit = {}
     private val viewLifecycle = PlayerViewLifecycle(lifecycle)
     private val playerSubscriptions = mutableListOf<() -> Unit>()
     private var sourceSubscription: (() -> Unit)? = null
@@ -164,7 +169,7 @@ internal class PlayerController(
         loadCurrentSource()
         configurationStatus = "SDK offline source loaded. Inspect playback and track states."
     }
-    private fun sourceConfiguration(overrides: ApiOverrides = apiOverrides): SourceConfig {
+    private fun sourceConfiguration(overrides: ApiOverrides = apiOverrides, callbacks: ApiCallbackContext = ApiCallbackContext()): SourceConfig {
         val offline = offlinePlayback
         val source = if (offline == null) sourceSettings.toSourceConfig() else {
             // Copy the SDK Parcelable so removing an override does not retain an earlier mutation.
@@ -175,7 +180,7 @@ internal class PlayerController(
                 com.bitmovin.player.api.offline.OfflineSourceConfig.CREATOR.createFromParcel(parcel)
             } finally { parcel.recycle() }
         }
-        return overrides.source(source)
+        return overrides.source(source, callbacks)
     }
     internal fun currentView(): PlayerView? = views.firstOrNull { it.player === player }
     internal fun setApiFullscreenHandler(enabled: Boolean) {
@@ -183,7 +188,7 @@ internal class PlayerController(
         val activity = requireNotNull(context.apiActivity()) { "A host Activity is required." }
         apiFullscreenHandlers.remove(view)?.close()
         val handler = if (!enabled) null else ApiFullscreenHandler(activity,
-            { !released && currentView() === view }, { apiFullscreen = it })
+            { !released && currentView() === view }, { apiClearFocus(); apiFullscreen = it })
         view.setFullscreenHandler(handler)
         if (handler != null) apiFullscreenHandlers[view] = handler
     }
@@ -224,6 +229,7 @@ internal class PlayerController(
     }
     internal fun pictureInPictureChanged(active: Boolean, configuration: android.content.res.Configuration) {
         if (released) return
+        apiClearFocus()
         apiPictureInPicture = active
         views.toList().forEach { it.onPictureInPictureModeChanged(active, configuration) }
     }
@@ -252,6 +258,7 @@ internal class PlayerController(
     }
     internal fun recreateApiView() {
         if (released) return
+        apiClearFocus()
         apiDetachedView = null
         apiViewRevision++
     }
@@ -377,12 +384,15 @@ internal class PlayerController(
         append("Source configuration applied")
     }
 
-    private fun loadCurrentSource(config: SourceConfig = sourceConfiguration()) {
+    private fun loadCurrentSource(config: SourceConfig? = null, callbacks: ApiCallbackContext = ApiCallbackContext()) {
+        val sourceConfig = config ?: sourceConfiguration(callbacks = callbacks)
         invalidateApiQuery()
         sourceSubscription?.invoke()
         val owner = player
         val generation = ++sourceGeneration
-        val source = sourceFactory?.invoke(config) ?: Source(config, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()))
+        val source = sourceFactory?.invoke(sourceConfig) ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()))
+        apiSourceCallbacks.close()
+        apiSourceCallbacks = callbacks
         configuredSource = source
         fun ownsSource() = !released && player === owner && sourceGeneration == generation
         val error: (SourceEvent.Error) -> Unit = {
@@ -408,13 +418,17 @@ internal class PlayerController(
 
     internal fun applyPlayerSettings(settings: PlayerSettings, overrides: ApiOverrides = apiOverrides, analytics: ApiAnalyticsSettings = apiAnalyticsSettings) {
         if (released) return
-        val sourceConfig = runCatching { sourceConfiguration(overrides) }.getOrElse {
+        val nextCallbacks = ApiCallbackContext()
+        val nextSourceCallbacks = ApiCallbackContext()
+        val sourceConfig = runCatching { sourceConfiguration(overrides, nextSourceCallbacks) }.getOrElse {
+            nextCallbacks.close(); nextSourceCallbacks.close()
             configurationStatus = "Unable to build source configuration; current settings kept."
             return
         }
         // PlayerConfig and its nested configs are fixed at construction time in SDK 3.171.0.
         // https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player-config/index.html
-        val replacement = runCatching { createPlayer(settings, overrides, analytics) }.getOrElse {
+        val replacement = runCatching { createPlayer(settings, overrides, analytics, nextCallbacks) }.getOrElse {
+            nextCallbacks.close(); nextSourceCallbacks.close()
             configurationStatus = "Unable to create a player; current settings kept."
             append("Player recreation failed")
             return
@@ -426,6 +440,7 @@ internal class PlayerController(
         playerSubscriptions.forEach { it() }
         playerSubscriptions.clear()
         val previous = player
+        apiCallbacks.close()
         // Detach synchronously, even if another Apply occurs before Compose disposes the old view.
         retireApiViewSubscriptions()
         views.forEach { retireApiViewHandlers(it); apiSurfaces.clear(it); viewLifecycle.detach(it); it.player = null }
@@ -434,6 +449,7 @@ internal class PlayerController(
         playerSettings = settings
         apiOverrides = overrides
         apiAnalyticsSettings = analytics
+        apiCallbacks = nextCallbacks
         invalidateApiQuery()
         apiSsaiAds.clear()
         apiSsaiBreaks.clear()
@@ -443,7 +459,7 @@ internal class PlayerController(
         apiOriginalOrientations.clear()
         observePlayer()
         previous.destroy()
-        loadCurrentSource(sourceConfig)
+        loadCurrentSource(sourceConfig, nextSourceCallbacks)
         configurationStatus = "Player settings applied; current source reloaded."
         append("Player recreated; source retained")
     }
@@ -492,6 +508,8 @@ internal class PlayerController(
     fun release() {
         if (released) return
         released = true
+        apiCallbacks.close()
+        apiSourceCallbacks.close()
         invalidateApiQuery()
         apiMain.removeCallbacksAndMessages(null)
         apiSsaiAds.clear()
@@ -574,6 +592,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun PlayerLabScreen(controller: PlayerController) {
     var uiMode by remember { mutableStateOf(UiMode.DEFAULT) }
+    val focus = androidx.compose.ui.platform.LocalFocusManager.current
+    androidx.compose.runtime.DisposableEffect(controller, focus) {
+        controller.apiClearFocus = { focus.clearFocus(force = true) }
+        onDispose { controller.apiClearFocus = {} }
+    }
     val videoOnly = controller.apiFullscreen || controller.apiPictureInPicture
     androidx.activity.compose.BackHandler(enabled = controller.apiFullscreen) { controller.currentView()?.exitFullscreen() }
 
@@ -601,7 +624,9 @@ private fun PlayerLabScreen(controller: PlayerController) {
                 modifier = if (videoOnly) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(220.dp),
             )
         }
-        if (videoOnly) return@Column
+        // Keep editors composed during fullscreen/PiP so returning does not discard their drafts.
+        Column(modifier = if (videoOnly) Modifier.height(0.dp) else Modifier,
+            verticalArrangement = Arrangement.spacedBy(10.dp)) {
 
         // Player UI: the SDK default vs. our shared @showcase/ui-shared custom factories (§12).
         Row(
@@ -660,6 +685,7 @@ private fun PlayerLabScreen(controller: PlayerController) {
             controller.log.take(12).forEach { line ->
                 Text(line, style = MaterialTheme.typography.bodySmall)
             }
+        }
         }
     }
 }

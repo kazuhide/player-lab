@@ -199,7 +199,9 @@ from the active SDK ad state and playback events.
 View event subscriptions accept an event name and a subscription ID. `on` keeps
 listening, `next` listens once, and `off` removes the matching ID. Subscriptions
 are retired when their view detaches or is recreated. Their counts appear with
-the `PlayerView.` prefix in Events.
+the `PlayerView.` prefix in Events. These are view UI events such as
+`FullscreenEnter` and `FullscreenExit`. Playback events are observed on Player,
+and source events on Source.
 
 The view-handler commands install host fullscreen, picture-in-picture, or custom
 Web UI message behavior. Fullscreen expands the video and hides the form; Back
@@ -211,6 +213,42 @@ Surface and texture commands use the actual attached rendering view. To change
 the rendering type, first apply `PlayerViewConfig.surfaceType`. Raw surfaces are
 cleared before their holder or owning view is retired. The destroy commands
 recreate the affected player or view so the controls remain usable.
+
+## Callback editor
+
+Fields marked **Script** accept the body of a JavaScript function whose argument
+is `input`. The field description shows its input and return contract. Stage the
+body and apply the settings before it runs. Enter `null` to disable the override.
+For example, a subtitle labeler can use:
+
+```javascript
+return input.language === 'en' ? 'English captions' : input.label;
+```
+
+The app converts the result back to the exact SDK return type. Decoder callbacks
+return indexes into the SDK-provided decoder list, retaining the original native
+decoder objects. HTTP callbacks return typed request/response values; `null`
+keeps the original. Byte arrays use integers from 0 through 255, up to 65536
+bytes. Larger input bodies are omitted from the snapshot and retained unless
+explicitly replaced. Response preprocessing makes the SDK buffer whole responses;
+select only the needed `TweaksConfig.httpResponseTypesToPreprocess` request types
+to avoid buffering video segments.
+
+Only the explicitly applied body runs. Code remains in memory and is omitted from
+exports, where `<YOUR_CALLBACK_BODY>` marks the replacement point. The generated
+assignments use [ApiScriptSettings](app/src/main/kotlin/com/playerlab/android/ApiScriptSettings.kt)
+and [ApiScriptProgram](app/src/main/kotlin/com/playerlab/android/ApiScriptProgram.kt)
+from this sample; create an `ApiCallbackContext` before applying those assignments
+and close it when retiring its Player or Source. The UI refresh shows invocation
+and fallback counts without recording callback arguments, headers or bodies.
+
+The interpreter has no Java/Android bridge, network, filesystem, Player or Source
+objects. Each invocation has an instruction, elapsed-time and stack limit;
+invalid results retain native behavior. It is an in-process development tool,
+not an isolated memory sandbox. The runtime uses the Android-compatible Java 8
+maintenance release [Rhino 1.7.15.1](https://github.com/mozilla/rhino/releases/tag/Rhino1_7_15_1_Release).
+Rhino's source and license links are included in the APK's
+[third-party notice](app/src/main/assets/third-party/rhino-notice.txt).
 
 ## Offline controls
 
