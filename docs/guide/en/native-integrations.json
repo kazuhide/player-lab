@@ -427,7 +427,7 @@
     {
       "type": "steps",
       "items": [
-        "Use an HLS source containing interstitial markers. In Show all SDK configuration, select PlayerConfig.tweaks.enable_sgai_handling. This SDK field is typed any: choose the boolean input type, set it to true, then Apply.",
+        "Use an HLS source containing interstitial markers. In Show all SDK configuration, select PlayerConfig.tweaks.enable_sgai_handling, choose true from its declared choices, then Apply.",
         "In Show SDK API experiments, run PlayerAPI.sgai.list to inspect the schedule. PlayerAPI.sgai.getActiveAd returns the current interstitial; an empty result outside an interstitial is expected.",
         "During an interstitial, use PlayerAPI.sgai.skip and check AdStarted, AdSkipped and AdBreakFinished together with the resulting playback state."
       ]

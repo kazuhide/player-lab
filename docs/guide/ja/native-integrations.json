@@ -427,7 +427,7 @@
     {
       "type": "steps",
       "items": [
-        "広告挿入のマーカーを持つHLSを使います。Show all SDK configurationでPlayerConfig.tweaks.enable_sgai_handlingを選びます。このSDK項目はany型なので、入力型にbooleanを選んでtrueにし、Applyします。",
+        "広告挿入のマーカーを持つHLSを使います。Show all SDK configurationでPlayerConfig.tweaks.enable_sgai_handlingを選び、選択肢のtrueを指定してApplyします。",
         "Show SDK API experimentsのPlayerAPI.sgai.listでスケジュールを確認します。PlayerAPI.sgai.getActiveAdは再生中の挿入コンテンツを返し、挿入区間外で空になるのは通常の状態です。",
         "挿入コンテンツの再生中にPlayerAPI.sgai.skipを実行し、AdStarted、AdSkipped、AdBreakFinishedと、その後の再生状態を確認します。"
       ]
