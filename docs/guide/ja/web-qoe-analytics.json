@@ -40,7 +40,7 @@
     {
       "type": "steps",
       "items": [
-        "Analyticsを設定したアプリで動画を再生します。比較したい設定、ソース、端末、再生した時刻を控えます。Web版ではAnalytics送信の通知も確認します。",
+        "Analyticsを設定したアプリで動画を再生します。比較したい設定、ソース、端末、再生した時刻を控えます。公開Pages版ではAnalytics送信の通知も確認します。",
         "Bitmovin Dashboardにログインし、Observabilityを開きます。コレクターの送信先と同じAnalyticsライセンスを選びます。",
         "再生した時刻を含む期間に変更します。画面のタイムゾーンを確かめ、コンテンツやブラウザーなどのフィルターで対象を絞ります。",
         "AudienceのPlaysやLatest Sessionsで再生を探します。再生品質を調べる場合はQuality of ExperienceでVideo Startup TimeやRebuffering Percentageを確認します。",

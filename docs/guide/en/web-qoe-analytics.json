@@ -40,7 +40,7 @@
     {
       "type": "steps",
       "items": [
-        "Play a video in an app configured for Analytics. Note the setting, source, device and playback time. In the Web app, also check the Analytics collection notice.",
+        "Play a video in an app configured for Analytics. Note the setting, source, device and playback time. On the public Pages demo, also check the Analytics collection notice.",
         "Sign in to Bitmovin Dashboard and open Observability. Select the same Analytics license used by the collector.",
         "Choose a period containing your playback. Check the displayed time zone, then narrow the view with content or browser filters.",
         "Find the playback through Plays or Latest Sessions under Audience. Use Quality of Experience to inspect Video Startup Time or Rebuffering Percentage.",

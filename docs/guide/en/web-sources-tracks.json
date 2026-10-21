@@ -179,7 +179,7 @@
       "type": "steps",
       "items": [
         "Choose VOD + Multi-audio and a theme with an audio menu, such as Premiere. In Playback, enter de for audioLanguage and press Recreate the player to apply. Check the selected audio track in the player menu, then unmute to compare its sound. The bundled language labels are test metadata, as explained above.",
-        "Choose VOD + Subtitles. In Playback, enter en for subtitleLanguage and recreate. At a time containing a cue, check the rendered text and the selected subtitle in the menu. In local development this preset needs its subtitle URL configured before use.",
+        "Switch to Default, which includes subtitle controls, then choose VOD + Subtitles. In Playback, enter en for subtitleLanguage and recreate. At a time containing a cue, check the rendered text and the selected subtitle in the menu. In local development this preset needs its subtitle URL configured before use.",
         "Refresh the applied code and inspect playerConfig.playback.audioLanguage or subtitleLanguage. A matching track must exist in the selected source; a preference does not add a missing language.",
         "Clear the language field and recreate to remove the preference override. To turn off the current subtitle immediately, choose the disabled option in the player's subtitle menu; removing a startup preference is a different action."
       ]
