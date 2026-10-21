@@ -61,6 +61,31 @@ private struct AdvancedConfigurationFieldView: View {
                 #if !os(tvOS)
                 .textInputAutocapitalization(.never)
                 #endif
+        case .secret:
+            SecureField("Local value", text: value)
+                .disableAutocorrection(true)
+                #if !os(tvOS)
+                .textInputAutocapitalization(.never)
+                #endif
+        case .json:
+            #if os(tvOS)
+            TextField("JSON value", text: value).disableAutocorrection(true)
+            #else
+            TextEditor(text: value).font(.system(.caption, design: .monospaced))
+                .frame(minHeight: 112).textInputAutocapitalization(.never).disableAutocorrection(true)
+            #endif
+        case .script:
+            Text("JavaScript function body; input contains the callback arguments.")
+                .font(.caption).foregroundStyle(.secondary)
+            #if os(tvOS)
+            TextField("Function body", text: value).disableAutocorrection(true)
+            #else
+            TextEditor(text: value)
+                .font(.system(.caption, design: .monospaced))
+                .frame(minHeight: 112)
+                .textInputAutocapitalization(.never)
+                .disableAutocorrection(true)
+            #endif
         }
     }
 }

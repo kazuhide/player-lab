@@ -49,11 +49,16 @@ final class PlayerModel: ObservableObject {
     @Published private(set) var apiEvents: [ApiEventRecord] = []
     @Published private(set) var apiEventsEnabled = true
     @Published private(set) var usesNativeApiHost = false
+    #if !os(tvOS)
+    let offlineWorkbench = OfflineWorkbench()
+    #endif
     private(set) weak var apiPlayerView: PlayerView?
     private var playerApiListener: PlayerApiEventListener?
     private var sourceApiListener: SourceApiEventListener?
     private var viewApiListener: ViewApiEventListener?
     private weak var apiSource: Source?
+    private(set) var playerCallbackJournal = NativeCallbackJournal()
+    private(set) var sourceCallbackJournal = NativeCallbackJournal()
 
     var configurationDraft: ConfigurationDraft {
         ConfigurationDraft(source: sourceSettings, player: playerSettings)
@@ -80,9 +85,11 @@ final class PlayerModel: ObservableObject {
     init(licenseKey: String, analyticsLicenseKey: String = "") {
         self.licenseKey = licenseKey
         self.analyticsLicenseKey = analyticsLicenseKey
+        let journal = NativeCallbackJournal()
+        playerCallbackJournal = journal
         player = PlayerModel.makePlayer(
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
-            uiMode: .default, settings: PlayerSettings())
+            uiMode: .default, settings: PlayerSettings(), callbackJournal: journal)
         bindEvents()
     }
 
@@ -127,9 +134,11 @@ final class PlayerModel: ObservableObject {
         resetSourceCompletion()
         initialTrackSelection.retire()
         lastSnapshot = nil
+        let journal = NativeCallbackJournal()
+        playerCallbackJournal = journal
         let next = PlayerModel.makePlayer(
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
-            uiMode: uiMode, settings: playerSettings)
+            uiMode: uiMode, settings: playerSettings, callbackJournal: journal)
         player = next
         playerGeneration = UUID()
         bindEvents()
@@ -139,7 +148,7 @@ final class PlayerModel: ObservableObject {
     }
 
     private static func makePlayer(
-        licenseKey: String, analyticsLicenseKey: String, uiMode: UiMode, settings: PlayerSettings
+        licenseKey: String, analyticsLicenseKey: String, uiMode: UiMode, settings: PlayerSettings, callbackJournal: NativeCallbackJournal
     ) -> Player {
         let config = PlayerConfig()
         config.key = licenseKey
@@ -159,7 +168,7 @@ final class PlayerModel: ObservableObject {
             config.styleConfig.userInterfaceConfig = uiConfig
         }
         #endif
-        settings.apply(to: config)
+        settings.apply(to: config, callbackJournal: callbackJournal)
         settings.advanced.applyUI(to: config)
         // §15: the bundled analytics collector reports QoE to the Bitmovin dashboard
         // when a key is configured (repo-root .env → sync-env.sh → Local.xcconfig).
@@ -195,7 +204,8 @@ final class PlayerModel: ObservableObject {
         resetSourceCompletion()
         initialTrackSelection.retire()
         trackStatus = PlaybackTrackStatus()
-        let source = SourceFactory.createSource(from: sourceSettings.makeSourceConfig())
+        sourceCallbackJournal = NativeCallbackJournal()
+        let source = SourceFactory.createSource(from: sourceSettings.makeSourceConfig(callbackJournal: sourceCallbackJournal))
         bindApiSourceEvents(source)
         // Bind the intended source before load: an older queued event can arrive
         // while the SDK still reports the old current source.
@@ -398,6 +408,18 @@ final class PlayerModel: ObservableObject {
     }
 
     func reloadFromApi() { reloadCurrentSource() }
+    func loadApiSourceConfig(_ config: SourceConfig) {
+        retireApiSourceEvents()
+        resetSourceCompletion()
+        initialTrackSelection.retire()
+        trackStatus = PlaybackTrackStatus()
+        player.load(sourceConfig: config)
+        if let source = player.source {
+            initialTrackSelection.bind(source)
+            bindApiSourceEvents(source)
+        }
+        refresh()
+    }
     func recreateFromApi() { recreatePlayer() }
     func setNativeApiHost(_ enabled: Bool) {
         guard usesNativeApiHost != enabled else { return }

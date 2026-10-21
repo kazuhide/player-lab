@@ -68,13 +68,13 @@ struct SourceSettings: Equatable {
         self.advanced = advanced
     }
 
-    func makeSourceConfig() -> SourceConfig {
+    func makeSourceConfig(callbackJournal: NativeCallbackJournal? = nil) -> SourceConfig {
         let config = SourceConfig(url: url, type: type.sdkType)
         config.title = title.isEmpty ? nil : title
         config.posterSource = posterURL
         if let startOffset { config.options.startOffset = startOffset }
         config.options.startOffsetTimelineReference = timelineReference.sdkValue
-        advanced.apply(to: config)
+        advanced.apply(to: config, callbackJournal: callbackJournal)
         return config
     }
 }
@@ -88,14 +88,14 @@ struct PlayerSettings: Equatable {
     var videoScaling: VideoScaling = .fit
     var advanced = AdvancedConfiguration.empty
 
-    func apply(to config: PlayerConfig) {
+    func apply(to config: PlayerConfig, callbackJournal: NativeCallbackJournal? = nil) {
         config.playbackConfig.isAutoplayEnabled = autoplay
         config.playbackConfig.isMuted = startMuted
         config.playbackConfig.isTimeShiftEnabled = sdkTimeShiftEnabled
         config.adaptationConfig.maxSelectableBitrate = maximumBitrate
         config.bufferConfig.audioAndVideo.forwardDuration = forwardBuffer
         config.styleConfig.scalingMode = videoScaling.sdkValue
-        advanced.apply(to: config)
+        advanced.apply(to: config, callbackJournal: callbackJournal)
     }
 }
 

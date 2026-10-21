@@ -21,6 +21,7 @@ func configurationCode(source: SourceSettings?, player: PlayerSettings, uiMode: 
     var lines = [
         "import Foundation",
         "import AVFoundation",
+        "import JavaScriptCore",
         "import BitmovinPlayer",
         "",
         "let playerConfig = PlayerConfig()",

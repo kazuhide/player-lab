@@ -94,9 +94,18 @@ targets:
       - Showcase/AdvancedConfiguration.swift
       - Showcase/SourceObjectConfiguration.swift
       - Showcase/SourceObjectCode.swift
+      - Showcase/NativeScriptRuntime.swift
+      - Showcase/NativeCallbackConfiguration.swift
+      - Showcase/NativeCallbackCode.swift
+      - Showcase/NativeNetworkConfiguration.swift
+      - Showcase/NativeNetworkCode.swift
+      - Showcase/NativeAdSchedule.swift
+      - Showcase/NativeAdvertisingConfiguration.swift
+      - Showcase/NativeAdvertisingCode.swift
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
       - Showcase/ApiState.swift
+      - Showcase/OfflineWorkbench.swift
       - Showcase/ConfigurationCode.swift
       - Showcase/TrackPreferences.swift
       - Showcase/PlayerModel.swift
@@ -181,9 +190,18 @@ targets:
       - Showcase/AdvancedConfiguration.swift
       - Showcase/SourceObjectConfiguration.swift
       - Showcase/SourceObjectCode.swift
+      - Showcase/NativeScriptRuntime.swift
+      - Showcase/NativeCallbackConfiguration.swift
+      - Showcase/NativeCallbackCode.swift
+      - Showcase/NativeNetworkConfiguration.swift
+      - Showcase/NativeNetworkCode.swift
+      - Showcase/NativeAdSchedule.swift
+      - Showcase/NativeAdvertisingConfiguration.swift
+      - Showcase/NativeAdvertisingCode.swift
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
       - Showcase/ApiState.swift
+      - Showcase/OfflineWorkbench.swift
       - Showcase/ConfigurationCode.swift
       - Showcase/TrackPreferences.swift
       - Showcase/PlayerModel.swift

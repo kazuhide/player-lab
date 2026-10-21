@@ -32,6 +32,9 @@ struct ControlPanel: View {
     @ObservedObject var model: PlayerModel
     @State private var showsConfiguration = false
     @State private var showsApiInspector = false
+    #if !os(tvOS)
+    @State private var showsOffline = false
+    #endif
     private let quickOffsets: [TimeInterval] = [-10, -30, -60, -120]
 
     var body: some View {
@@ -64,6 +67,10 @@ struct ControlPanel: View {
                 labeled("Public SDK APIs") {
                     Button("Open API inspector") { showsApiInspector = true }
                         .accessibilityIdentifier("api.open")
+                    #if !os(tvOS)
+                    Button("Open offline HLS inspector") { showsOffline = true }
+                        .accessibilityIdentifier("offline.open")
+                    #endif
                 }
 
                 #if !os(tvOS)
@@ -132,6 +139,7 @@ struct ControlPanel: View {
         #else
         .sheet(isPresented: $showsConfiguration) { ConfigurationEditor(model: model) }
         .sheet(isPresented: $showsApiInspector) { ApiInspector(model: model) }
+        .sheet(isPresented: $showsOffline) { OfflineInspector(player: model, workbench: model.offlineWorkbench) }
         #endif
     }
 

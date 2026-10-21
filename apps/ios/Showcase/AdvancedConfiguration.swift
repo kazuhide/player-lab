@@ -6,14 +6,15 @@ enum ConfigurationOwner: String, CaseIterable {
 }
 
 enum ConfigurationInput {
-    case boolean, number(minimum: Double), text, url, choice([String])
+    case boolean, number(minimum: Double), text, secret, url, choice([String]), script(initial: String), json(initial: String)
 
     var initial: String {
         switch self {
         case .boolean: return "false"
         case .number(let minimum): return String(minimum)
-        case .text, .url: return ""
+        case .text, .secret, .url: return ""
         case .choice(let choices): return choices[0]
+        case .script(let source), .json(let source): return source
         }
     }
 
@@ -34,7 +35,10 @@ enum ConfigurationInput {
                 ["https", "http", "file"].contains(url.scheme?.lowercased() ?? "") &&
                     (url.isFileURL || !(url.host ?? "").isEmpty)
             }) == true else { throw invalid(field, "must be an absolute HTTP, HTTPS or file URL") }
-        case .text: break
+        case .script: try NativeScriptRuntime.validate(value, id: field)
+        case .json:
+            guard (try? JSONSerialization.jsonObject(with: Data(value.utf8))) != nil else { throw invalid(field, "requires valid JSON") }
+        case .text, .secret: break
         }
         return value
     }
@@ -48,7 +52,9 @@ enum ConfigurationInput {
         case .boolean, .number: return value
         case .choice: return "." + value
         case .text: return value.isEmpty ? "nil" : swiftString(value)
+        case .secret: return value.isEmpty ? "nil" : "\"<LOCAL_VALUE>\""
         case .url: return value.isEmpty ? "nil" : "URL(string: \(swiftString(value)))"
+        case .script, .json: return swiftString(value)
         }
     }
 }
@@ -80,7 +86,7 @@ struct AdvancedConfiguration: Equatable {
                 throw ConfigurationValidationError(message: "Unknown or unavailable configuration API: \(id)")
             }
             if owner == nil || field.owner == owner || (owner == .player && field.owner == .view) {
-                self.values[id] = try Self.normalizeSourceObjectValue(field.input.validate(value, field: id), id: id)
+                self.values[id] = try Self.normalizeSourceObjectValue(field.input.validate(Self.nativeCallbackSource(value, id: id), field: id), id: id)
                 if ["StyleConfig.playerUiJs", "StyleConfig.playerUiCss"].contains(id) && self.values[id] == "" {
                     throw ConfigurationValidationError(message: "\(id) requires a resource URL when overridden.")
                 }
@@ -174,10 +180,10 @@ struct AdvancedConfiguration: Equatable {
         if #available(iOS 27, tvOS 27, *) {
             fields.append(.init("TweaksConfig.includeMachineGeneratedSubtitles", .player, "tweaksConfig.includeMachineGeneratedSubtitles", .boolean))
         }
-        return fields + Self.sourceObjectFields
+        return fields + Self.sourceObjectFields + Self.nativeCallbackFields + Self.nativeAdvertisingFields
     }
 
-    func apply(to config: SourceConfig) {
+    func apply(to config: SourceConfig, callbackJournal: NativeCallbackJournal? = nil) {
         for (id, value) in values {
             switch id {
             case "SourceConfig.sourceDescription": config.sourceDescription = value.isEmpty ? nil : value
@@ -191,9 +197,11 @@ struct AdvancedConfiguration: Equatable {
             }
         }
         applySourceObjects(to: config)
+        applyNativeSourceCallbacks(to: config, journal: callbackJournal)
     }
 
-    func apply(to config: PlayerConfig) {
+    func apply(to config: PlayerConfig, callbackJournal: NativeCallbackJournal? = nil) {
+        applyAdvertisingFields(to: config)
         for (id, value) in values {
             switch id {
             case "PlaybackConfig.isBackgroundPlaybackEnabled": config.playbackConfig.isBackgroundPlaybackEnabled = value == "true"
@@ -235,6 +243,7 @@ struct AdvancedConfiguration: Equatable {
             default: break
             }
         }
+        applyNativePlayerCallbacks(to: config, journal: callbackJournal)
     }
 
     /// Apply after the selected bundled UI factory, so explicit user overrides take precedence.
@@ -293,6 +302,8 @@ struct AdvancedConfiguration: Equatable {
         for field in Self.fields {
             guard let value = values[field.id] else { continue }
             if Self.sourceObjectFields.contains(where: { $0.id == field.id }) { continue }
+            if Self.nativeCallbackFields.contains(where: { $0.id == field.id }) { continue }
+            if Self.nativeAdvertisingFields.contains(where: { $0.id == field.id }) { continue }
             let root = field.owner == .source ? "sourceConfig" : field.owner == .view ? "playerViewConfig" : "playerConfig"
             var path = root + "." + field.path
             if field.id.hasPrefix("SystemUserInterfaceConfig.") { path = "systemUiConfig." + field.id.components(separatedBy: ".").last! }
@@ -306,6 +317,8 @@ struct AdvancedConfiguration: Equatable {
             lines.append(assignment)
         }
         lines += sourceObjectCode
+        lines += nativeAdvertisingCode
+        lines += nativeCallbackCode
         if values.keys.contains(where: { $0.hasPrefix("SystemUserInterfaceConfig.") }) { lines.append("playerConfig.styleConfig.userInterfaceConfig = systemUiConfig") }
         #if !os(tvOS)
         if values.keys.contains(where: { $0.hasPrefix("BitmovinUserInterface") }) { lines.append("playerConfig.styleConfig.userInterfaceConfig = webUiConfig") }

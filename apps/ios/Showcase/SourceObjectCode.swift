@@ -13,14 +13,6 @@ extension AdvancedConfiguration {
         } else if values["SourceConfig.thumbnailTrack"] != nil {
             lines.append("sourceConfig.thumbnailTrack = nil")
         }
-        for field in ["audioLabel", "subtitleLabel"] {
-            if let template = values["LabelingConfig." + field] {
-                lines += ["sourceConfig.labelingConfig.\(field) = { track in",
-                    "    \(swiftString(template)).replacingOccurrences(of: \"{label}\", with: track.label)",
-                    "        .replacingOccurrences(of: \"{language}\", with: track.language ?? \"und\")",
-                    "        .replacingOccurrences(of: \"{id}\", with: track.identifier)", "}"]
-            }
-        }
         switch values["SourceConfig.drmConfig"] {
         case "none": lines.append("sourceConfig.drmConfig = nil")
         case "clearKey":
@@ -34,16 +26,6 @@ extension AdvancedConfiguration {
                     lines += ["// Header values are excluded from exported code.", "fairplay.\(field) = \(Self.headersCode(headers))"]
                 }
             }
-            if let mode = values["FairplayConfig.prepareContentId"] {
-                lines.append(mode == "removeSkdScheme" ? "fairplay.prepareContentId = { $0.lowercased().hasPrefix(\"skd://\") ? String($0.dropFirst(6)) : $0 }" : "fairplay.prepareContentId = { $0 }")
-            }
-            for field in ["prepareMessage", "prepareSyncMessage"] {
-                if let mode = values["FairplayConfig." + field] { lines += spcCode(field: field, mode: mode) }
-            }
-            for field in ["prepareCertificate", "prepareLicense"] {
-                if let mode = values["FairplayConfig." + field] { lines += drmResponseCode(field: field, mode: mode) }
-            }
-            if let url = values["FairplayConfig.prepareLicenseServerUrl"] { lines.append("fairplay.prepareLicenseServerUrl = { \(url.isEmpty ? "$0" : swiftString(url)) }") }
             lines.append("sourceConfig.drmConfig = fairplay")
         default: break
         }

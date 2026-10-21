@@ -93,6 +93,8 @@ extension PlayerModel {
             put("PlayerView.videoBounds", String(describing: view.videoBounds))
             #endif
         }
+        for item in playerCallbackJournal.snapshot { put("Callback.Player." + item.id, item.value) }
+        for item in sourceCallbackJournal.snapshot { put("Callback.Source." + item.id, item.value) }
         setApiState(rows)
     }
 

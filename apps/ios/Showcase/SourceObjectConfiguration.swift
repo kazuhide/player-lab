@@ -12,16 +12,8 @@ extension AdvancedConfiguration {
             .init("FairplayConfig.certificateUrl", .source, "drmConfig.certificateUrl", .url),
             .init("FairplayConfig.licenseRequestHeaders", .source, "drmConfig.licenseRequestHeaders", .text, "JSON string dictionary, for example {\"X-Example\":\"value\"}. Values are redacted from exported code."),
             .init("FairplayConfig.certificateRequestHeaders", .source, "drmConfig.certificateRequestHeaders", .text, "JSON string dictionary. Values are redacted from exported code."),
-            .init("FairplayConfig.prepareContentId", .source, "drmConfig.prepareContentId", .choice(["identity", "removeSkdScheme"]), "Callback adapter choices; arbitrary provider-specific Swift callbacks still require code."),
-            .init("FairplayConfig.prepareMessage", .source, "drmConfig.prepareMessage", .choice(["identity", "base64", "formSpc", "jsonSpc"])),
-            .init("FairplayConfig.prepareSyncMessage", .source, "drmConfig.prepareSyncMessage", .choice(["identity", "base64", "formSpc", "jsonSpc"])),
-            .init("FairplayConfig.prepareCertificate", .source, "drmConfig.prepareCertificate", .choice(["identity", "base64"])),
-            .init("FairplayConfig.prepareLicense", .source, "drmConfig.prepareLicense", .choice(["identity", "base64", "jsonCkc"])),
-            .init("FairplayConfig.prepareLicenseServerUrl", .source, "drmConfig.prepareLicenseServerUrl", .url, "Replace the license request URL. A blank value returns the original URL."),
             .init("DecryptionKey.key", .source, "drmConfig.decryptionKeys[0].key", .text, "ClearKey content key in hexadecimal. Kept in memory and redacted from exported code."),
             .init("DecryptionKey.kid", .source, "drmConfig.decryptionKeys[0].kid", .text, "Optional key identifier in hexadecimal."),
-            .init("LabelingConfig.audioLabel", .source, "labelingConfig.audioLabel", .text, "Label template. Tokens: {label}, {language}, {id}. This is a template adapter, not arbitrary Swift code."),
-            .init("LabelingConfig.subtitleLabel", .source, "labelingConfig.subtitleLabel", .text, "Label template. Tokens: {label}, {language}, {id}."),
             .init("Track.url", .source, "tracks[0].url", .url, "External subtitle URL. Enabling any subtitle field creates one typed subtitle track."),
             .init("Track.identifier", .source, "tracks[0].identifier", .text),
             .init("Track.label", .source, "tracks[0].label", .text),
@@ -66,7 +58,7 @@ extension AdvancedConfiguration {
                 throw ConfigurationValidationError(message: "\(id) must contain complete hexadecimal byte pairs.")
             }
             return value.lowercased()
-        default: return value
+        default: return try normalizeAdvertisingValue(value, id: id)
         }
     }
 
@@ -126,12 +118,6 @@ extension AdvancedConfiguration {
                 isDefaultTrack: values["ThumbnailTrack.isDefaultTrack"] == "true")
             }
         }
-        if let template = values["LabelingConfig.audioLabel"] {
-            config.labelingConfig.audioLabel = { track in Self.label(template, label: track.label, language: track.language, id: track.identifier) }
-        }
-        if let template = values["LabelingConfig.subtitleLabel"] {
-            config.labelingConfig.subtitleLabel = { track in Self.label(template, label: track.label, language: track.language, id: track.identifier) }
-        }
         switch values["SourceConfig.drmConfig"] {
         case "none": config.drmConfig = nil
         case "fairplay":
@@ -139,14 +125,6 @@ extension AdvancedConfiguration {
                 certificateURL: URL(string: values["FairplayConfig.certificateUrl"]!)!)
             fairplay.licenseRequestHeaders = jsonValue("FairplayConfig.licenseRequestHeaders") as? [String: String]
             fairplay.certificateRequestHeaders = jsonValue("FairplayConfig.certificateRequestHeaders") as? [String: String]
-            if let mode = values["FairplayConfig.prepareContentId"] {
-                fairplay.prepareContentId = { mode == "removeSkdScheme" && $0.lowercased().hasPrefix("skd://") ? String($0.dropFirst(6)) : $0 }
-            }
-            if let mode = values["FairplayConfig.prepareMessage"] { fairplay.prepareMessage = { Self.prepareSpc($0, assetId: $1, mode: mode) } }
-            if let mode = values["FairplayConfig.prepareSyncMessage"] { fairplay.prepareSyncMessage = { Self.prepareSpc($0, assetId: $1, mode: mode) } }
-            if let mode = values["FairplayConfig.prepareCertificate"] { fairplay.prepareCertificate = { Self.prepareDrmResponse($0, mode: mode) } }
-            if let mode = values["FairplayConfig.prepareLicense"] { fairplay.prepareLicense = { Self.prepareDrmResponse($0, mode: mode) } }
-            if let url = values["FairplayConfig.prepareLicenseServerUrl"] { fairplay.prepareLicenseServerUrl = { url.isEmpty ? $0 : url } }
             config.drmConfig = fairplay
         case "clearKey":
             config.drmConfig = ClearKeyConfig(decryptionKeys: [DecryptionKey(kid: nonempty("DecryptionKey.kid"), key: values["DecryptionKey.key"]!)])

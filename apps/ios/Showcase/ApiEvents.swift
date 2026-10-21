@@ -376,7 +376,7 @@ final class ViewApiEventListener: ApiEventReceiver, UserInterfaceListener {
 }
 
 #if !os(tvOS)
-final class OfflineApiEventListener: ApiEventReceiver, OfflineContentManagerListener {
+class OfflineApiEventListener: ApiEventReceiver, OfflineContentManagerListener {
     #if !os(tvOS)
     func onAvailableTracksFetched(_ event: AvailableTracksFetchedEvent, offlineContentManager: OfflineContentManager) {
         send("BitmovinPlayerCore.AvailableTracksFetchedEvent", timestamp: event.timestamp)

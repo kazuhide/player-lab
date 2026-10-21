@@ -1,5 +1,5 @@
 import SwiftUI
-#if os(iOS)
+#if !os(tvOS)
 import UIKit
 #endif
 
@@ -201,6 +201,15 @@ struct ConfigurationEditor: View {
         .background(.background)
         #endif
         .onChange(of: draft) { _ in applyError = nil }
+        #if !os(tvOS)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+                    .accessibilityIdentifier("configuration.keyboard.done")
+            }
+        }
+        #endif
     }
 
     private var appliedCode: String {
