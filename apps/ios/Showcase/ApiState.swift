@@ -12,6 +12,8 @@ extension PlayerModel {
         let player = self.player
         var rows = [ApiStateValue(id: "Player.isDestroyed", value: String(player.isDestroyed))]
         guard !player.isDestroyed else { setApiState(rows); return }
+        let subtitleIdentifiers = Set(player.availableSubtitles.map(\.identifier))
+        apiObjects.enteredCues = apiObjects.enteredCues.filter { $0.value.source === player.source && subtitleIdentifiers.contains($0.key) }
         func put(_ id: String, _ value: String) { rows.append(.init(id: id, value: value)) }
         put("PlayerFactory.sdkVersion", PlayerFactory.sdkVersion)
         put("PlayerCoreFactory.sdkVersion", PlayerCoreFactory.sdkVersion)
@@ -49,6 +51,10 @@ extension PlayerModel {
         put("SharePlayApi.isSuspended", String(player.sharePlay.isSuspended))
         put("SharePlayApi.suspensionReasons", player.sharePlay.suspensionReasons.map { $0.rawValue }.joined(separator: ", "))
         put("Player.thumbnails", "Rendering mode: \(player.thumbnails.renderingMode)")
+        put("ThumbnailsApi.container", player.thumbnails.container.map { "UIView \(ObjectIdentifier($0).hashValue); frame=\($0.frame)" } ?? "Not attached")
+        put("ImaAdsManager.adCuePoints", playerCallbackJournal.adsManager.map { String(describing: $0.adCuePoints) } ?? "No current IMA ads manager")
+        put("SubtitleTrackController.manualCues", "\(apiObjects.enteredCues.count) retained cues on the current source")
+        put("CueParsedEvent.retainedCues", apiObjects.parsedCues.enumerated().map { "\($0.offset): \($0.element.startTime)–\($0.element.endTime)s; VTT=\($0.element.vtt != nil)" }.joined(separator: "\n"))
         put("Player.ads", "Active ad: \(player.ads.activeAd != nil); active break: \(player.ads.activeAdBreak != nil)")
         put("AdvertisingApi.activeAd", player.ads.activeAd == nil ? "None" : "Present")
         put("AdvertisingApi.activeAdBreak", player.ads.activeAdBreak == nil ? "None" : "Present")
@@ -89,6 +95,12 @@ extension PlayerModel {
             put("PlayerView.pictureInPicture", "Enabled: \(view.pictureInPicture.isEnabled)")
             put("PlayerView.events", "Object \(ObjectIdentifier(view.events).hashValue); typed listener recording: \(apiEventsEnabled)")
             put("PlayerView.contentOverlay", "Object \(ObjectIdentifier(view.contentOverlay).hashValue)")
+            put("ContentOverlayApi.view", "UIView \(ObjectIdentifier(view.contentOverlay.view).hashValue); frame=\(view.contentOverlay.view.frame)")
+            put("PlayerView.tweaks", "Object \(ObjectIdentifier(view.tweaks).hashValue)")
+            #if !os(tvOS)
+            put("PictureInPictureApi.showSkipControls", String(view.pictureInPicture.showSkipControls))
+            put("PlayerViewTweaksApi.hidePlaybackControlsInPictureInPicture", String(view.tweaks.hidePlaybackControlsInPictureInPicture))
+            #endif
             #if !os(tvOS)
             put("PlayerView.videoBounds", String(describing: view.videoBounds))
             #endif

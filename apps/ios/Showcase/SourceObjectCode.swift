@@ -4,8 +4,11 @@ extension AdvancedConfiguration {
     var sourceObjectCode: [String] {
         var lines: [String] = []
         if let value = values["SourceConfig.metadata"] { lines.append("sourceConfig.metadata = try! JSONSerialization.jsonObject(with: Data(\(swiftString(value)).utf8)) as! [String: Any]") }
+        if let json = values["SourceConfig.tracks"], let tracks = try? NativeSubtitleDraft.array(json) {
+            for track in tracks { lines.append("sourceConfig.add(subtitleTrack: \(track.code))") }
+        }
         if hasSubtitleFields {
-            lines.append("let subtitleTrack = SubtitleTrack(url: URL(string: \(quoted("Track.url"))), format: .\(values["SubtitleTrack.format"] ?? "webVtt"), label: \(quoted("Track.label", default: "External subtitles")), identifier: \(quoted("Track.identifier", default: "player-lab-external")), isDefaultTrack: \(values["Track.isDefaultTrack"] ?? "false"), language: \(optionalQuoted("SubtitleTrack.language")), forced: \(values["SubtitleTrack.isForced"] ?? "false"), associatedLanguage: \(optionalQuoted("SubtitleTrack.associatedLanguage")), characteristics: \(stringArrayCode("SubtitleTrack.characteristics")))")
+            lines.append("let subtitleTrack = SubtitleTrack(url: \(optionalUrl("Track.url")), format: .\(values["SubtitleTrack.format"] ?? "webVtt"), label: \(quoted("Track.label", default: "External subtitles")), identifier: \(quoted("Track.identifier", default: "player-lab-external")), isDefaultTrack: \(values["Track.isDefaultTrack"] ?? "false"), language: \(optionalQuoted("SubtitleTrack.language")), forced: \(values["SubtitleTrack.isForced"] ?? "false"), associatedLanguage: \(optionalQuoted("SubtitleTrack.associatedLanguage")), characteristics: \(stringArrayCode("SubtitleTrack.characteristics")))")
             lines.append("sourceConfig.add(subtitleTrack: subtitleTrack)")
         }
         if let url = nonempty("SourceConfig.thumbnailTrack") {

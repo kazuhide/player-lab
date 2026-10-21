@@ -266,6 +266,7 @@ final class PlayerApiEventListener: ApiEventReceiver, PlayerListener {
 }
 
 final class SourceApiEventListener: ApiEventReceiver, SourceListener {
+    var parsedCue: ((Cue) -> Void)?
     func onAudioAdded(_ event: AudioAddedEvent, source: Source) {
         send("BitmovinPlayerCore.AudioAddedEvent", timestamp: event.timestamp)
     }
@@ -276,6 +277,10 @@ final class SourceApiEventListener: ApiEventReceiver, SourceListener {
         send("BitmovinPlayerCore.AudioRemovedEvent", timestamp: event.timestamp)
     }
     func onCueParsed(_ event: CueParsedEvent, source: Source) {
+        let cue = Cue(startTime: event.startTime, endTime: event.endTime, html: event.html, text: event.text,
+            rawText: event.rawText, attributedText: event.attributedText, image: event.image, position: event.position,
+            region: event.region, regionStyle: event.regionStyle, vttProperties: event.vtt)
+        DispatchQueue.main.async { [weak self] in self?.parsedCue?(cue) }
         send("BitmovinPlayerCore.CueParsedEvent", timestamp: event.timestamp)
     }
     func onDrmDataParsed(_ event: DrmDataParsedEvent, source: Source) {

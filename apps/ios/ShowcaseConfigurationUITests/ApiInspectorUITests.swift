@@ -30,6 +30,8 @@ final class ApiInspectorUITests: XCTestCase {
         try focus(refresh)
         XCUIRemote.shared.press(.select)
         XCTAssertEqual(app.staticTexts["api.state.PlayerFactory.sdkVersion"].label, "3.128.0")
+        let versionCell = app.cells.containing(.staticText, identifier: "api.state.PlayerFactory.sdkVersion").firstMatch
+        try focus(versionCell)
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "tvOS-native-api-state"
         screenshot.lifetime = .keepAlways
@@ -77,6 +79,10 @@ final class ApiInspectorUITests: XCTestCase {
         dismissKeyboard(in: app)
         app.buttons["api.run"].tap()
         XCTAssertTrue(app.staticTexts["api.result"].label.contains("Player.volume invoked"))
+        let operationCapture = XCTAttachment(screenshot: app.screenshot())
+        operationCapture.name = "iOS-native-api-operation"
+        operationCapture.lifetime = .keepAlways
+        add(operationCapture)
         app.segmentedControls["api.pane"].buttons["State"].tap()
         let stateFilter = app.textFields["api.state.filter"]
         reveal(stateFilter, in: app)
@@ -85,9 +91,16 @@ final class ApiInspectorUITests: XCTestCase {
         dismissKeyboard(in: app)
         reveal(app.staticTexts["api.state.Player.volume"], in: app)
         XCTAssertEqual(app.staticTexts["api.state.Player.volume"].label, "42")
+        let stateCapture = XCTAttachment(screenshot: app.screenshot())
+        stateCapture.name = "iOS-native-api-volume-state"
+        stateCapture.lifetime = .keepAlways
+        add(stateCapture)
 
-        app.collectionViews["api.form"].swipeDown()
         let nativeHost = app.switches["api.nativeHost"]
+        for _ in 0..<8 {
+            if nativeHost.exists && nativeHost.isHittable { break }
+            app.collectionViews["api.form"].swipeDown()
+        }
         XCTAssertTrue(nativeHost.waitForExistence(timeout: 5))
         nativeHost.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
         app.segmentedControls["api.pane"].buttons["Operations"].tap()

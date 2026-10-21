@@ -57,7 +57,10 @@ struct NativeSourceEditor: View {
             .accessibilityIdentifier("playlist.source.save")
         }
         .padding()
-        #if !os(tvOS)
+        #if os(tvOS)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
+        #else
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()

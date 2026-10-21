@@ -6,6 +6,45 @@ final class NativeWorkbenchUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
     override func tearDownWithError() throws { XCUIApplication().terminate() }
 
+    func testSubtitleArrayEditorAppliesTypedSdkTracks() throws {
+        let app = XCUIApplication()
+        app.launch()
+        let open = app.buttons["configuration.open"]
+        XCTAssertTrue(open.waitForExistence(timeout: 20)); open.tap()
+        let form = app.collectionViews["configuration.form"]
+        replace(app.textFields["configuration.sourceURL"], with: "https://kazuhide.github.io/player-lab/web/media/vod-multiaudio/master.m3u8")
+        app.buttons["configuration.keyboard.done"].tap()
+        let advanced = app.switches["advanced.show"]
+        reveal(advanced, in: form); advanced.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        let filter = app.textFields["advanced.filter"]
+        reveal(filter, in: form); replace(filter, with: "SourceConfig.tracks")
+        app.buttons["configuration.keyboard.done"].tap()
+        let enabled = app.switches["advanced.SourceConfig.tracks.enabled"]
+        reveal(enabled, in: form); enabled.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        let body = app.textViews["advanced.SourceConfig.tracks.value"]
+        reveal(body, in: form)
+        replace(body, with: "[{\"identifier\":\"manual-example\",\"label\":\"Manual English\",\"language\":\"en\",\"url\":null}]")
+        app.buttons["configuration.keyboard.done"].tap()
+        capture(app, name: "iOS-source-subtitle-array-editor")
+        XCTAssertTrue(app.buttons["configuration.apply"].isEnabled); app.buttons["configuration.apply"].tap()
+        XCTAssertTrue(open.waitForExistence(timeout: 15))
+        app.buttons["api.open"].tap(); app.buttons["State"].tap()
+        let stateForm = app.collectionViews["api.form"]
+        let stateFilter = app.textFields["api.state.filter"]
+        reveal(stateFilter, in: stateForm); replace(stateFilter, with: "Player.availableSubtitles")
+        app.buttons["api.keyboard.done"].tap()
+        let refresh = app.buttons["api.refresh"]
+        reveal(refresh, in: stateForm)
+        let subtitles = app.staticTexts["api.state.Player.availableSubtitles"]
+        for _ in 0..<20 {
+            refresh.tap()
+            if subtitles.exists && subtitles.label.contains("manual-example") { break }
+        }
+        XCTAssertTrue(subtitles.label.contains("manual-example"), subtitles.label)
+        reveal(subtitles, in: stateForm)
+        capture(app, name: "iOS-source-subtitle-array-sdk-state")
+    }
+
     func testCallbackEditorAndOfflineTrackDiscoveryUseRealSdkObjects() throws {
         let app = XCUIApplication()
         app.launch()
@@ -76,7 +115,14 @@ final class NativeWorkbenchUITests: XCTestCase {
     private func replace(_ element: XCUIElement, with value: String) {
         XCTAssertTrue(element.waitForExistence(timeout: 10))
         element.tap()
-        element.typeKey("a", modifierFlags: .command)
+        element.press(forDuration: 1.2)
+        let selectAll = XCUIApplication().buttons["Select All"]
+        let menuSelectAll = XCUIApplication().menuItems["Select All"]
+        if selectAll.waitForExistence(timeout: 2) { selectAll.tap() }
+        else if menuSelectAll.exists { menuSelectAll.tap() }
+        else {
+            element.typeKey("a", modifierFlags: .command)
+        }
         element.typeText(value)
         XCTAssertEqual(element.value as? String, value, "The GUI must contain the exact intended input before applying it")
     }

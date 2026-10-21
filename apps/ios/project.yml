@@ -103,8 +103,11 @@ targets:
       - Showcase/NativeAdvertisingConfiguration.swift
       - Showcase/NativeAdvertisingCode.swift
       - Showcase/NativePlaylistWorkbench.swift
+      - Showcase/NativeSubtitleDraft.swift
+      - Showcase/NativeCueDraft.swift
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
+      - Showcase/NativeExtendedApi.swift
       - Showcase/ApiState.swift
       - Showcase/OfflineWorkbench.swift
       - Showcase/ConfigurationCode.swift
@@ -200,8 +203,11 @@ targets:
       - Showcase/NativeAdvertisingConfiguration.swift
       - Showcase/NativeAdvertisingCode.swift
       - Showcase/NativePlaylistWorkbench.swift
+      - Showcase/NativeSubtitleDraft.swift
+      - Showcase/NativeCueDraft.swift
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
+      - Showcase/NativeExtendedApi.swift
       - Showcase/ApiState.swift
       - Showcase/OfflineWorkbench.swift
       - Showcase/ConfigurationCode.swift

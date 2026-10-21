@@ -97,6 +97,8 @@ struct NativePlaylistInspector: View {
         .padding()
         .onAppear { workbench.refresh(model: model) }
         #if os(tvOS)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
         .fullScreenCover(item: $editing) { entry in NativeSourceEditor(source: entry.source) { workbench.save($0, for: entry.id) } }
         #else
         .sheet(item: $editing) { entry in NativeSourceEditor(source: entry.source) { workbench.save($0, for: entry.id) } }

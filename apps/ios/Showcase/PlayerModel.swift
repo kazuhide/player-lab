@@ -50,6 +50,7 @@ final class PlayerModel: ObservableObject {
     @Published private(set) var apiEventsEnabled = true
     @Published private(set) var usesNativeApiHost = false
     let playlistWorkbench = NativePlaylistWorkbench()
+    let apiObjects = NativeApiObjects()
     private var apiPlaylistContexts: [ObjectIdentifier: NativePlaylistSourceContext] = [:]
     private weak var apiPlaylistProgressSource: Source?
     private var apiPlaylistProgressTime: TimeInterval?
@@ -175,6 +176,11 @@ final class PlayerModel: ObservableObject {
         #endif
         settings.apply(to: config, callbackJournal: callbackJournal)
         settings.advanced.applyUI(to: config)
+        let configuredAdsManagerCallback = config.advertisingConfig.onAdsManagerAvailable
+        config.advertisingConfig.onAdsManagerAvailable = { [weak callbackJournal] manager in
+            callbackJournal?.setAdsManager(manager)
+            configuredAdsManagerCallback?(manager)
+        }
         // §15: the bundled analytics collector reports QoE to the Bitmovin dashboard
         // when a key is configured (repo-root .env → sync-env.sh → Local.xcconfig).
         guard !analyticsLicenseKey.isEmpty else {
@@ -440,6 +446,12 @@ final class PlayerModel: ObservableObject {
     }
 
     func reloadFromApi() { reloadCurrentSource() }
+    func loadConfiguredSourceConfigFromApi() throws {
+        guard let sourceSettings else { throw ConfigurationValidationError(message: "Apply source settings first.") }
+        let journal = NativeCallbackJournal()
+        sourceCallbackJournal = journal
+        loadApiSourceConfig(sourceSettings.makeSourceConfig(callbackJournal: journal))
+    }
     func loadApiSourceConfig(_ config: SourceConfig) {
         apiPlaylistContexts.removeAll()
         retireApiSourceEvents()
@@ -530,11 +542,16 @@ final class PlayerModel: ObservableObject {
             guard let self, let source, self.apiSource === source else { return }
             self.recordApiEvent(api, timestamp: timestamp, owner: "Source")
         }
+        listener.parsedCue = { [weak self, weak source] cue in
+            guard let self, let source, self.apiSource === source, self.player.source === source else { return }
+            self.apiObjects.appendParsedCue(cue, source: source)
+        }
         sourceApiListener = listener
         source.add(listener: listener)
     }
 
     private func retireApiSourceEvents() {
+        apiObjects.retireSource()
         if let listener = sourceApiListener { apiSource?.remove(listener: listener) }
         sourceApiListener = nil
         apiSource = nil

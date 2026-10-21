@@ -14,7 +14,8 @@ extension AdvancedConfiguration {
             .init("FairplayConfig.certificateRequestHeaders", .source, "drmConfig.certificateRequestHeaders", .text, "JSON string dictionary. Values are redacted from exported code."),
             .init("DecryptionKey.key", .source, "drmConfig.decryptionKeys[0].key", .text, "ClearKey content key in hexadecimal. Kept in memory and redacted from exported code."),
             .init("DecryptionKey.kid", .source, "drmConfig.decryptionKeys[0].kid", .text, "Optional key identifier in hexadecimal."),
-            .init("Track.url", .source, "tracks[0].url", .url, "External subtitle URL. Enabling any subtitle field creates one typed subtitle track."),
+            .init("SourceConfig.tracks", .source, "tracks", .json(initial: "[]"), "Array of subtitle objects. Fields: url (null for manual cues), format, label, identifier, isDefaultTrack, language, associatedLanguage, characteristics and forced. Each identifier must be unique."),
+            .init("Track.url", .source, "tracks[0].url", .url, "Enable this field and enter a URL for external subtitles, or leave it empty to create a manual cue track. The single-track editor can be combined with the array above using distinct identifiers."),
             .init("Track.identifier", .source, "tracks[0].identifier", .text),
             .init("Track.label", .source, "tracks[0].label", .text),
             .init("Track.isDefaultTrack", .source, "tracks[0].isDefaultTrack", .boolean),
@@ -34,6 +35,9 @@ extension AdvancedConfiguration {
 
     static func normalizeSourceObjectValue(_ value: String, id: String) throws -> String {
         switch id {
+        case "SourceConfig.tracks":
+            _ = try NativeSubtitleDraft.array(value)
+            return try normalizedJson(JSONSerialization.jsonObject(with: Data(value.utf8)))
         case "SourceConfig.metadata", "SystemUserInterfaceConfig.subtitleStyles", "SubtitleUserInterfaceConfig.subtitleStyles":
             let object = try parseJsonObject(value, id: id)
             if id.hasSuffix("subtitleStyles"), AVTextStyleRule(textMarkupAttributes: object) == nil {
@@ -77,8 +81,14 @@ extension AdvancedConfiguration {
         if drm == "clearKey" && (values["DecryptionKey.key"] ?? "").isEmpty {
             throw ConfigurationValidationError(message: "ClearKey requires DecryptionKey.key.")
         }
-        if hasSubtitleFields && (values["Track.url"] ?? "").isEmpty {
-            throw ConfigurationValidationError(message: "An external subtitle requires Track.url.")
+        if hasSubtitleFields && values["Track.url"] == nil {
+            throw ConfigurationValidationError(message: "Enable Track.url, then enter an external subtitle URL or leave it empty for a manual cue track.")
+        }
+        if let array = values["SourceConfig.tracks"] {
+            let tracks = try NativeSubtitleDraft.array(array)
+            if hasSubtitleFields, tracks.contains(where: { $0.identifier == (values["Track.identifier"] ?? "player-lab-external") }) {
+                throw ConfigurationValidationError(message: "Use distinct identifiers for the subtitle array and single-track editor.")
+            }
         }
         if values.keys.contains(where: { $0.hasPrefix("ThumbnailTrack.") }) && (values["SourceConfig.thumbnailTrack"] ?? "").isEmpty {
             throw ConfigurationValidationError(message: "Thumbnail track fields require SourceConfig.thumbnailTrack URL.")
@@ -91,7 +101,8 @@ extension AdvancedConfiguration {
     var hasSubtitleFields: Bool { values.keys.contains { $0.hasPrefix("Track.") || $0.hasPrefix("SubtitleTrack.") } }
 
     func makeSubtitleTrack() -> SubtitleTrack? {
-        guard hasSubtitleFields, let url = values["Track.url"].flatMap(URL.init(string:)) else { return nil }
+        guard hasSubtitleFields, values["Track.url"] != nil else { return nil }
+        let url = nonempty("Track.url").flatMap(URL.init(string:))
         let format: SubtitleFormat
         switch values["SubtitleTrack.format"] ?? "webVtt" {
         case "ttml": format = .ttml
@@ -110,6 +121,9 @@ extension AdvancedConfiguration {
 
     func applySourceObjects(to config: SourceConfig) {
         if let metadata = jsonValue("SourceConfig.metadata") as? [String: Any] { config.metadata = metadata }
+        if let json = values["SourceConfig.tracks"], let tracks = try? NativeSubtitleDraft.array(json) {
+            for track in tracks { config.add(subtitleTrack: track.make()) }
+        }
         if let track = makeSubtitleTrack() { config.add(subtitleTrack: track) }
         if values["SourceConfig.thumbnailTrack"] != nil {
             config.thumbnailTrack = nonempty("SourceConfig.thumbnailTrack").flatMap(URL.init(string:)).map { url in

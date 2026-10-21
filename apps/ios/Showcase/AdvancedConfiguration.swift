@@ -37,7 +37,7 @@ enum ConfigurationInput {
             }) == true else { throw invalid(field, "must be an absolute HTTP, HTTPS or file URL") }
         case .script: try NativeScriptRuntime.validate(value, id: field)
         case .json:
-            guard (try? JSONSerialization.jsonObject(with: Data(value.utf8))) != nil else { throw invalid(field, "requires valid JSON") }
+            guard (try? JSONSerialization.jsonObject(with: Data(value.utf8), options: [.fragmentsAllowed])) != nil else { throw invalid(field, "requires valid JSON") }
         case .text, .secret: break
         }
         return value

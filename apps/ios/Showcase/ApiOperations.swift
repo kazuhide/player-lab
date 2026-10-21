@@ -6,8 +6,9 @@ struct ApiArgument: Identifiable {
     let label: String
     let input: ConfigurationInput
     let initial: String
-    init(_ id: String, _ label: String, _ input: ConfigurationInput, initial: String? = nil) {
-        self.id = id; self.label = label; self.input = input; self.initial = initial ?? input.initial
+    let note: String
+    init(_ id: String, _ label: String, _ input: ConfigurationInput, initial: String? = nil, note: String = "") {
+        self.id = id; self.label = label; self.input = input; self.initial = initial ?? input.initial; self.note = note
     }
 }
 
@@ -34,6 +35,23 @@ enum ApiOperation: String, CaseIterable, Identifiable {
     case enterFullscreen = "UserInterfaceApi.enterFullscreen()", exitFullscreen = "UserInterfaceApi.exitFullscreen()"
     case enterPiP = "UserInterfaceApi.enterPictureInPicture()", exitPiP = "UserInterfaceApi.exitPictureInPicture()"
     case viewScaling = "UserInterfaceApi.scalingMode", enablePiP = "PictureInPictureApi.isEnabled"
+    case loadConfig = "Player.load(sourceConfig:)"
+    case sourceMetadata = "Source.metadata", subtitleAdd = "Player.addSubtitle(track:)"
+    case cueEnter = "SubtitleTrackController.cueEnter(_:)", cueExit = "SubtitleTrackController.cueExit(_:)"
+    case sourceThumbnail = "Source.thumbnail(forTime:)", legacyThumbnail = "Player.thumbnail(forTime:) (deprecated)"
+    case subtitleStyles = "Player.setSubtitleStyles(_:)", viewSubtitleStyles = "UserInterfaceApi.setSubtitleStyles(_:)"
+    case posterImage = "UserInterfaceApi.setPosterImage(url:keepPersistent:)"
+    case thumbnailContainer = "ThumbnailsApi.container"
+    case renderThumbnail = "ThumbnailsApi.renderThumbnail(forTime:toleranceBefore:toleranceAfter:)"
+    case renderSourceThumbnail = "ThumbnailsApi.renderThumbnail(for:time:toleranceBefore:toleranceAfter:)"
+    case playerAdSchedule = "Player.scheduleAd(adItem:)", advertisingSchedule = "AdvertisingApi.schedule(adItem:)"
+    case playerAdSkip = "Player.skipAd()", advertisingSkip = "AdvertisingApi.skip()"
+    case playerAdContainer = "Player.registerAdContainer(_:)", advertisingContainer = "AdvertisingApi.register(adContainer:)"
+    case imaClicked = "ImaAdsManager.clicked()", imaDiscard = "ImaAdsManager.discardAdBreak()"
+    #if !os(tvOS)
+    case pipSkipControls = "PictureInPictureApi.showSkipControls"
+    case hidePiPControls = "PlayerViewTweaksApi.hidePlaybackControlsInPictureInPicture"
+    #endif
 
     var id: String { rawValue }
 
@@ -54,7 +72,7 @@ enum ApiOperation: String, CaseIterable, Identifiable {
         case .thumbnail: return [.init("value", "Position (seconds)", .number(minimum: 0))]
         case .thumbnailMode: return [.init("value", "Rendering mode", .choice(["automatic", "trickPlay"]))]
         case .viewScaling: return [.init("value", "Scaling mode", .choice(["fit", "zoom", "stretch"]))]
-        default: return []
+        default: return extendedArguments
         }
     }
 
@@ -83,7 +101,7 @@ enum ApiOperation: String, CaseIterable, Identifiable {
 
     private func invalid(_ message: String) -> ConfigurationValidationError { .init(message: message) }
 
-    func code(arguments: [String: String]) throws -> String {
+    func code(arguments: [String: String], parsedCues: [Cue] = []) throws -> String {
         let arguments = try validated(arguments)
         let value = arguments["value"] ?? ""
         let literal = swiftString(value)
@@ -122,6 +140,7 @@ enum ApiOperation: String, CaseIterable, Identifiable {
         case .exitPiP: return "playerView.exitPictureInPicture()"
         case .viewScaling: return "playerView.scalingMode = .\(value)"
         case .enablePiP: return "playerView.pictureInPicture.isEnabled = \(value)"
+        default: return try extendedCode(arguments, parsedCues: parsedCues)
         }
     }
 }
@@ -152,7 +171,9 @@ extension PlayerModel {
         case .bitrate: player.maxSelectableBitrate = UInt(value)!
         case .audio: player.setAudio(trackIdentifier: value)
         case .subtitle: player.setSubtitle(trackIdentifier: value.isEmpty ? nil : value)
-        case .removeSubtitle: player.removeSubtitle(trackIdentifier: value)
+        case .removeSubtitle:
+            if let entered = apiObjects.enteredCues.removeValue(forKey: value), entered.source === player.source { entered.controller.cueExit(entered.cue) }
+            player.removeSubtitle(trackIdentifier: value)
         case .canPlay: result = "canPlay: \(player.canPlay(atPlaybackSpeed: Float(value)!))"
         case .currentTime: result = "currentTime: \(player.currentTime(value == "relativeTime" ? .relativeTime : .absoluteTime)) seconds"
         case .bufferLevel:
@@ -177,13 +198,14 @@ extension PlayerModel {
         case .viewScaling:
             try requireApiView().scalingMode = value == "fit" ? .fit : value == "zoom" ? .zoom : .stretch
         case .enablePiP: try requireApiView().pictureInPicture.isEnabled = value == "true"
+        default: result = try executeExtendedApi(operation, arguments: arguments)
         }
         setApiResult(result)
         refreshApiState()
     }
 
     @MainActor
-    private func requireApiView() throws -> PlayerView {
+    func requireApiView() throws -> PlayerView {
         guard let view = apiPlayerView, view.player === player else {
             throw ConfigurationValidationError(message: "Enable the native PlayerView host before invoking a view API.")
         }

@@ -64,9 +64,10 @@ struct ApiInspector: View {
                     .accessibilityIdentifier("api.run")
                     if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("api.error") }
                     Text(model.apiResult).font(.caption).accessibilityIdentifier("api.result")
+                    NativeApiObjectPreview(objects: model.apiObjects)
                     Toggle("Show operation code", isOn: $showsCode).accessibilityIdentifier("api.code.enabled")
                     if showsCode {
-                        Text((try? operation.code(arguments: arguments)) ?? "Correct the arguments to show valid code.")
+                        Text((try? operation.code(arguments: arguments, parsedCues: model.apiObjects.parsedCues)) ?? "Correct the arguments to show valid code.")
                             .font(.system(.caption, design: .monospaced))
                             .accessibilityIdentifier("api.code")
                             #if os(tvOS)
@@ -124,6 +125,8 @@ struct ApiInspector: View {
         .padding()
         #if os(tvOS)
         .padding(40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
         #endif
         .onAppear { model.refreshApiState() }
         .onChange(of: operation) { _ in arguments.removeAll(); error = nil }
@@ -156,6 +159,19 @@ struct ApiInspector: View {
                 .pickerStyle(.inline)
                 #endif
                 .accessibilityIdentifier("api.argument.\(argument.id)")
+        case .json, .script:
+            VStack(alignment: .leading, spacing: 4) {
+                Text(argument.label).font(.caption)
+                #if os(tvOS)
+                TextField("JSON or function body", text: binding).disableAutocorrection(true)
+                    .accessibilityIdentifier("api.argument.\(argument.id)")
+                #else
+                TextEditor(text: binding).font(.system(.caption, design: .monospaced)).frame(minHeight: 140)
+                    .textInputAutocapitalization(.never).disableAutocorrection(true)
+                    .accessibilityIdentifier("api.argument.\(argument.id)")
+                #endif
+                if !argument.note.isEmpty { Text(argument.note).font(.caption).foregroundStyle(.secondary) }
+            }
         default:
             VStack(alignment: .leading, spacing: 4) {
                 Text(argument.label).font(.caption)
@@ -191,6 +207,8 @@ private struct TvApiOperationSelector: View {
             }
         }
         .padding(60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
     }
 }
 #endif
