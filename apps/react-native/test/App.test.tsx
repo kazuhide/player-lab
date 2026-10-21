@@ -1,6 +1,8 @@
 import React from "react";
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import ts from "typescript";
+import path from "node:path";
 
 const runtime = vi.hoisted(() => {
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY = "test-license";
@@ -31,10 +33,15 @@ vi.mock("bitmovin-player-react-native", async () => {
   return {
     CustomUi: class { constructor(public factoryFunction: string) {} },
     PlayerView: "PlayerView",
-    SourceType: { HLS: "hls", DASH: "dash", PROGRESSIVE: "progressive" },
+    SourceType: { NONE: "none", HLS: "hls", DASH: "dash", PROGRESSIVE: "progressive" },
     SubtitleFormat: { VTT: "vtt" },
     TimelineReferencePoint: { START: "start", END: "end" },
-    UserInterfaceType: { Bitmovin: "bitmovin" },
+    UserInterfaceType: { Bitmovin: "Bitmovin", System: "System", Subtitle: "Subtitle" },
+    AnalyticsRetryPolicy: { NO_RETRY: "noRetry", LONG_TERM: "longTerm" },
+    ScalingMode: { Fit: "Fit", Stretch: "Stretch", Zoom: "Zoom" },
+    SurfaceType: { SurfaceView: "SurfaceView", TextureView: "TextureView" },
+    ForceReuseVideoCodecReason: { ColorInfoMismatch: "ColorInfoMismatch", MaxInputSizeExceeded: "MaxInputSizeExceeded", MaxResolutionExceeded: "MaxResolutionExceeded" },
+    PictureInPictureAction: { TogglePlayback: "TogglePlayback", Seek: "Seek" },
     usePlayer: (config: object) => useState(() => {
       const player = {
         config, load: vi.fn(), isDestroyed: false, destroy: vi.fn(() => { player.isDestroyed = true; }), timeShift: vi.fn(),
@@ -87,6 +94,67 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it("applies individually edited SDK fields to Player, Source and PlayerView and exports the applied values", async () => {
+    await mount(); await ready(); await press("Show configuration");
+    await press("Set this API value"); await text("Value for SourceConfig.description", "Applied description");
+    await text("Filter configuration APIs", "PlayerConfig.tweaksConfig.timeChangedInterval");
+    await press("PlayerConfig.tweaksConfig.timeChangedInterval"); await press("Set this API value");
+    await text("Value for PlayerConfig.tweaksConfig.timeChangedInterval", "0.25");
+    await text("Filter configuration APIs", "PlayerViewConfig.surfaceType");
+    await press("PlayerViewConfig.surfaceType"); await press("Set this API value"); await press("TextureView");
+    await press("Apply and recreate player"); await ready();
+    expect(current().config).toMatchObject({ tweaksConfig: { timeChangedInterval: 0.25 } });
+    expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ description: "Applied description" }));
+    expect(element("PlayerView").props.config).toMatchObject({ surfaceType: "TextureView" });
+    await press("Show applied code");
+    const code = input("Applied configuration code").props.value;
+    expect(code).toContain('"timeChangedInterval": 0.25');
+    expect(code).toContain("SDK.SurfaceType.TextureView");
+    expect(code).toContain("Applied description");
+    expect(code).not.toContain("as PlayerConfig");
+    const file = path.resolve("test/generated-configuration-example.tsx");
+    const configFile = ts.readConfigFile("tsconfig.json", ts.sys.readFile);
+    const options = ts.parseJsonConfigFileContent(configFile.config, ts.sys, path.resolve(".")).options;
+    const host = ts.createCompilerHost(options);
+    const read = host.getSourceFile.bind(host);
+    host.getSourceFile = (name, language, onError, create) => name === file ? ts.createSourceFile(file, code, language, true, ts.ScriptKind.TSX) : read(name, language, onError, create);
+    const diagnostics = ts.getPreEmitDiagnostics(ts.createProgram([file], options, host));
+    expect(diagnostics.map((diagnostic) => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"))).toEqual([]);
+  });
+
+  it("requires coherent DRM configuration, preserves its dictionary and masks header values in code", async () => {
+    await mount(); await ready(); await press("Show configuration");
+    await text("Filter configuration APIs", "SourceConfig.drmConfig.widevine.httpHeaders");
+    await press("SourceConfig.drmConfig.widevine.httpHeaders"); await press("Set this API value");
+    await text("Value for SourceConfig.drmConfig.widevine.httpHeaders", "Authorization=PRIVATE_HEADER");
+    await press("Apply and recreate player");
+    expect(runtime.players).toHaveLength(1);
+    expect(element("Text", { accessibilityRole: "alert" }).props.children).toContain("licenseUrl");
+    await text("Filter configuration APIs", "SourceConfig.drmConfig.widevine.licenseUrl");
+    await press("SourceConfig.drmConfig.widevine.licenseUrl"); await press("Set this API value");
+    await text("Value for SourceConfig.drmConfig.widevine.licenseUrl", "https://example.com/license");
+    await press("Apply and recreate player"); await ready(); await press("Show applied code");
+    expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ drmConfig: { widevine: {
+      licenseUrl: "https://example.com/license", httpHeaders: { Authorization: "PRIVATE_HEADER" },
+    } } }));
+    expect(input("Applied configuration code").props.value).not.toContain("PRIVATE_HEADER");
+  });
+
+  it("removes an applied SDK override and rejects invalid typed input before creating a player", async () => {
+    await mount(); await ready(); await press("Show configuration");
+    await press("Set this API value"); await text("Value for SourceConfig.description", "Temporary description");
+    await press("Apply and recreate player"); await ready();
+    await press("Remove this API override"); await press("Apply and recreate player"); await ready();
+    expect(current().load.mock.calls[current().load.mock.calls.length - 1]?.[0]).not.toHaveProperty("description");
+    const count = runtime.players.length;
+    await text("Filter configuration APIs", "PlayerConfig.tweaksConfig.timeChangedInterval");
+    await press("PlayerConfig.tweaksConfig.timeChangedInterval"); await press("Set this API value");
+    await text("Value for PlayerConfig.tweaksConfig.timeChangedInterval", "Infinity");
+    await press("Apply and recreate player");
+    expect(runtime.players).toHaveLength(count);
+    expect(element("Text", { accessibilityRole: "alert" }).props.children).toContain("finite number");
+  });
+
   it("dispatches typed API arguments only after validation and displays the executed call", async () => {
     await mount(); await ready(); await press("Show API experiments");
     await text("Filter API operations", "setVolume"); await press("Player.setVolume");

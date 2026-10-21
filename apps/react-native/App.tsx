@@ -134,7 +134,7 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
           />
         ))}
       </View>
-      <PlayerPane key={`${uiMode.label}:${revision}`} uiMode={uiMode} source={applied.source} playerConfig={applied.player}
+      <PlayerPane key={`${uiMode.label}:${revision}`} uiMode={uiMode} source={applied.source} playerConfig={applied.player} settings={applied}
         sources={sources} onSelectSource={selectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={setTimeShiftEnabled}
         log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} onRecreate={recreate} />
       <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
@@ -148,6 +148,7 @@ interface PlayerPaneProps {
   uiMode: UiMode;
   source: SourceConfig;
   playerConfig: Configuration["player"];
+  settings: Configuration;
   sources: ShowcaseSource[];
   onSelectSource: (source: ShowcaseSource) => void;
   timeShiftEnabled: boolean;
@@ -159,20 +160,27 @@ interface PlayerPaneProps {
   onRecreate: () => void;
 }
 
-function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange, onRecreate }: PlayerPaneProps): React.JSX.Element {
+function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange, onRecreate }: PlayerPaneProps): React.JSX.Element {
+  const analyticsConfig = playerConfig.analyticsConfig ? {
+    ...playerConfig.analyticsConfig,
+    licenseKey: Object.prototype.hasOwnProperty.call(settings.draft.apiSettings ?? {}, "PlayerConfig.analyticsConfig.licenseKey")
+      ? playerConfig.analyticsConfig.licenseKey : ANALYTICS_LICENSE_KEY,
+  } : ANALYTICS_LICENSE_KEY ? { licenseKey: ANALYTICS_LICENSE_KEY } : undefined;
   const player = usePlayer(
     uiMode.factoryFunction
       ? {
           licenseKey: LICENSE_KEY,
           ...ANALYTICS,
           ...playerConfig,
+          ...(analyticsConfig ? { analyticsConfig } : {}),
           styleConfig: {
             userInterfaceType: UserInterfaceType.Bitmovin,
             playerUiJs: WEBUI_JS,
             playerUiCss: WEBUI_CSS,
+            ...playerConfig.styleConfig,
           },
         }
-      : { licenseKey: LICENSE_KEY, ...ANALYTICS, ...playerConfig },
+      : { licenseKey: LICENSE_KEY, ...ANALYTICS, ...playerConfig, ...(analyticsConfig ? { analyticsConfig } : {}) },
   );
   const [dvr, setDvr] = useState<DvrState | null>(null);
   const [viewReady, setViewReady] = useState(false);
@@ -256,8 +264,8 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
   const seek = useCallback((offset: number) => snapshots.current?.seek(offset), []);
 
   // Select our custom factory by name; omitted for the SDK default UI.
-  const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction
-    ? { uiConfig: { variant: new CustomUi(uiMode.factoryFunction) } satisfies WebUiConfig }
+  const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction || Object.keys(settings.view).length || Object.keys(settings.webUi).length
+    ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }
     : undefined;
 
   return (
@@ -270,6 +278,7 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
       } : {})}>
       <PlayerView
         {...apiEventProps}
+        {...settings.props}
         player={player}
         style={styles.player}
         {...(viewConfig ? { config: viewConfig } : {})}
