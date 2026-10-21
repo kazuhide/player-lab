@@ -2,11 +2,15 @@ import SwiftUI
 
 struct AdvancedConfigurationFields: View {
     @Binding var values: [String: String]
+    @State private var filter = ""
 
     var body: some View {
+        TextField("Filter configuration API name", text: $filter)
+            .disableAutocorrection(true)
+            .accessibilityIdentifier("advanced.filter")
         ForEach(ConfigurationOwner.allCases, id: \.self) { owner in
             Text(owner.rawValue).font(.headline)
-            ForEach(AdvancedConfiguration.fields.filter { $0.owner == owner }) { field in
+            ForEach(AdvancedConfiguration.fields.filter { $0.owner == owner && (filter.isEmpty || $0.id.localizedCaseInsensitiveContains(filter)) }) { field in
                 AdvancedConfigurationFieldView(field: field, values: $values)
             }
         }

@@ -44,6 +44,16 @@ final class PlayerModel: ObservableObject {
     @Published private(set) var playerSettings = PlayerSettings()
     @Published private(set) var configurationStatus = "Startup defaults active"
     @Published private(set) var trackStatus = PlaybackTrackStatus()
+    @Published private(set) var apiState: [ApiStateValue] = []
+    @Published private(set) var apiResult = "Choose an API operation."
+    @Published private(set) var apiEvents: [ApiEventRecord] = []
+    @Published private(set) var apiEventsEnabled = true
+    @Published private(set) var usesNativeApiHost = false
+    private(set) weak var apiPlayerView: PlayerView?
+    private var playerApiListener: PlayerApiEventListener?
+    private var sourceApiListener: SourceApiEventListener?
+    private var viewApiListener: ViewApiEventListener?
+    private weak var apiSource: Source?
 
     var configurationDraft: ConfigurationDraft {
         ConfigurationDraft(source: sourceSettings, player: playerSettings)
@@ -111,6 +121,8 @@ final class PlayerModel: ObservableObject {
 
     private func recreatePlayer() {
         let previous = player
+        retireApiPlayerEvents()
+        retireApiSourceEvents()
         cancellables.removeAll()
         resetSourceCompletion()
         initialTrackSelection.retire()
@@ -179,10 +191,12 @@ final class PlayerModel: ObservableObject {
 
     private func reloadCurrentSource() {
         guard let sourceSettings else { return }
+        retireApiSourceEvents()
         resetSourceCompletion()
         initialTrackSelection.retire()
         trackStatus = PlaybackTrackStatus()
         let source = SourceFactory.createSource(from: sourceSettings.makeSourceConfig())
+        bindApiSourceEvents(source)
         // Bind the intended source before load: an older queued event can arrive
         // while the SDK still reports the old current source.
         initialTrackSelection.bind(source)
@@ -279,6 +293,7 @@ final class PlayerModel: ObservableObject {
     }
 
     private func bindEvents() {
+        bindApiPlayerEvents()
         // Bind against a local (not the @Published `player` property): repeated property-wrapper
         // access across these four Combine chains pushes the Swift type-checker past its
         // per-expression budget ("cannot infer closure parameter type" cascade).
@@ -366,6 +381,102 @@ final class PlayerModel: ObservableObject {
                 tracks: player.availableAudio.map { ($0.identifier, $0.language) }) {
                 player.setAudio(trackIdentifier: identifier)
             } else { append("Initial audio language unavailable; kept SDK choice") }
+        }
+    }
+
+    func setApiResult(_ message: String) { apiResult = message }
+    func setApiState(_ values: [ApiStateValue]) { apiState = values }
+    func clearApiEvents() { apiEvents.removeAll() }
+
+    func unloadFromApi() {
+        initialTrackSelection.retire()
+        resetSourceCompletion()
+        player.unload()
+        retireApiSourceEvents()
+        trackStatus = PlaybackTrackStatus()
+        refresh()
+    }
+
+    func reloadFromApi() { reloadCurrentSource() }
+    func recreateFromApi() { recreatePlayer() }
+    func setNativeApiHost(_ enabled: Bool) {
+        guard usesNativeApiHost != enabled else { return }
+        usesNativeApiHost = enabled
+        recreatePlayer()
+    }
+
+    private func recordApiEvent(_ api: String, timestamp: TimeInterval, owner: String) {
+        guard apiEventsEnabled else { return }
+        apiEvents.insert(.init(api: api, timestamp: timestamp, owner: owner), at: 0)
+        if apiEvents.count > 120 { apiEvents.removeLast(apiEvents.count - 120) }
+    }
+
+    private func bindApiPlayerEvents() {
+        guard apiEventsEnabled else { return }
+        let player = self.player
+        let listener = PlayerApiEventListener { [weak self, weak player] api, timestamp in
+            guard let self, let player, self.player === player else { return }
+            self.recordApiEvent(api, timestamp: timestamp, owner: "Player")
+        }
+        playerApiListener = listener
+        player.add(listener: listener)
+    }
+
+    private func retireApiPlayerEvents() {
+        if let listener = playerApiListener { player.remove(listener: listener) }
+        playerApiListener = nil
+    }
+
+    private func bindApiSourceEvents(_ source: Source) {
+        guard apiEventsEnabled else { return }
+        apiSource = source
+        let listener = SourceApiEventListener { [weak self, weak source] api, timestamp in
+            guard let self, let source, self.apiSource === source else { return }
+            self.recordApiEvent(api, timestamp: timestamp, owner: "Source")
+        }
+        sourceApiListener = listener
+        source.add(listener: listener)
+    }
+
+    private func retireApiSourceEvents() {
+        if let listener = sourceApiListener { apiSource?.remove(listener: listener) }
+        sourceApiListener = nil
+        apiSource = nil
+    }
+
+    @MainActor
+    func attachApiView(_ view: PlayerView) {
+        if let old = apiPlayerView, let listener = viewApiListener { old.remove(listener: listener) }
+        apiPlayerView = view
+        guard apiEventsEnabled else { return }
+        let listener = ViewApiEventListener { [weak self, weak view] api, timestamp in
+            guard let self, let view, self.apiPlayerView === view, view.player === self.player else { return }
+            self.recordApiEvent(api, timestamp: timestamp, owner: "Player view")
+        }
+        viewApiListener = listener
+        view.add(listener: listener)
+    }
+
+    @MainActor
+    func detachApiView(_ view: PlayerView) {
+        guard apiPlayerView === view else { return }
+        if let listener = viewApiListener { view.remove(listener: listener) }
+        viewApiListener = nil
+        apiPlayerView = nil
+    }
+
+    @MainActor
+    func setApiEventRecording(_ enabled: Bool) {
+        guard enabled != apiEventsEnabled else { return }
+        apiEventsEnabled = enabled
+        retireApiPlayerEvents()
+        retireApiSourceEvents()
+        if let view = apiPlayerView, let listener = viewApiListener { view.remove(listener: listener) }
+        viewApiListener = nil
+        if enabled {
+            bindApiPlayerEvents()
+            if let source = player.source { bindApiSourceEvents(source) }
+            if let view = apiPlayerView { attachApiView(view) }
         }
     }
 }

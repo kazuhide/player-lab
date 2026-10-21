@@ -10,7 +10,10 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            VideoPlayerView(player: model.player, playerViewConfig: model.makePlayerViewConfig())
+            Group {
+                if model.usesNativeApiHost { NativePlayerSurface(model: model) }
+                else { VideoPlayerView(player: model.player, playerViewConfig: model.makePlayerViewConfig()) }
+            }
                 .id(model.playerGeneration) // a new player always needs a new native view
                 .aspectRatio(16.0 / 9.0, contentMode: .fit)
             ControlPanel(model: model)
@@ -28,6 +31,7 @@ struct ContentView: View {
 struct ControlPanel: View {
     @ObservedObject var model: PlayerModel
     @State private var showsConfiguration = false
+    @State private var showsApiInspector = false
     private let quickOffsets: [TimeInterval] = [-10, -30, -60, -120]
 
     var body: some View {
@@ -55,6 +59,11 @@ struct ControlPanel: View {
                     Text("Use Play/Pause on the remote to start or pause this source.")
                         .font(.caption).foregroundStyle(.secondary)
                     #endif
+                }
+
+                labeled("Public SDK APIs") {
+                    Button("Open API inspector") { showsApiInspector = true }
+                        .accessibilityIdentifier("api.open")
                 }
 
                 #if !os(tvOS)
@@ -119,8 +128,10 @@ struct ControlPanel: View {
         #if os(tvOS)
         // A compact tvOS sheet collapses Form to its minimal height, hiding its focusable rows.
         .fullScreenCover(isPresented: $showsConfiguration) { ConfigurationEditor(model: model) }
+        .fullScreenCover(isPresented: $showsApiInspector) { ApiInspector(model: model) }
         #else
         .sheet(isPresented: $showsConfiguration) { ConfigurationEditor(model: model) }
+        .sheet(isPresented: $showsApiInspector) { ApiInspector(model: model) }
         #endif
     }
 

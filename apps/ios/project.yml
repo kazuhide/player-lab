@@ -92,6 +92,9 @@ targets:
       - ShowcaseConfigurationTests
       - Showcase/Configuration.swift
       - Showcase/AdvancedConfiguration.swift
+      - Showcase/ApiEvents.swift
+      - Showcase/ApiOperations.swift
+      - Showcase/ApiState.swift
       - Showcase/ConfigurationCode.swift
       - Showcase/TrackPreferences.swift
       - Showcase/PlayerModel.swift
@@ -174,6 +177,9 @@ targets:
       - ShowcaseConfigurationTests
       - Showcase/Configuration.swift
       - Showcase/AdvancedConfiguration.swift
+      - Showcase/ApiEvents.swift
+      - Showcase/ApiOperations.swift
+      - Showcase/ApiState.swift
       - Showcase/ConfigurationCode.swift
       - Showcase/TrackPreferences.swift
       - Showcase/PlayerModel.swift
