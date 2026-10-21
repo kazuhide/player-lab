@@ -370,7 +370,9 @@ defaults; temporary catch-up adjustments are not reported by Player.playbackSpee
 For the current `com.playerlab.android` identity, Player 3.171.0 passed
 24 JVM tests, app/instrumentation builds and seven configuration-only
 instrumentation checks. Separately, a fresh licensed Android 16/API 36.1 ARM64
-phone-emulator run passed all 20 instrumentation checks in 277.411 seconds.
+phone-emulator run after the menu touch correction passed all 20 instrumentation
+checks in 274.859 seconds. Both license-free touch fixture cases also passed
+separately; they do not load the Player SDK or establish playback.
 That group includes the existing playback, strict live, HLS/DASH finalization,
 standard UI, clipboard and lifecycle cases, plus language priority/source
 override, external WebVTT menu selection with a fresh native cue and visible
