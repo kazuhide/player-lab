@@ -104,6 +104,10 @@ export function configurationCode(applied: Configuration, platform: NativePlatfo
     `const downloadRequest: SDK.OfflineDownloadRequest = ${sdkCodeValue(applied.download, "OfflineDownloadRequest")};`,
     `const offlineOptions: SDK.OfflineSourceOptions = ${sdkCodeValue(applied.offlineOptions, "OfflineSourceOptions")};`,
     `const castOptions: SDK.BitmovinCastManagerOptions = ${sdkCodeValue(applied.cast, "BitmovinCastManagerOptions")};`,
+    "// SDK 1.29 initialize does not read castOptions. Change the Expo plugin in app.json and rebuild:",
+    ...JSON.stringify({ features: { googleCastSDK: { appId: applied.cast.applicationId ?? "FFE417E5",
+      ...(applied.cast.messageNamespace ? { messageNamespace: applied.cast.messageNamespace } : {}),
+      android: "21.3.0", ios: "4.8.4" } } }, null, 2).split("\n").map((line) => "// " + line),
   );
   lines.push("", "  const player = SDK.usePlayer(playerConfig);", "  current.current = player;",
     "  useEffect(() => () => { current.current = null; player.destroy(); }, [player]);",

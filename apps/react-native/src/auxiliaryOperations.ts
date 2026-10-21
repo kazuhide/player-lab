@@ -147,7 +147,7 @@ export class AuxiliaryOperations {
       } catch (error) { source.destroy(); throw error; }
     }, "const previous = player.source;\nplayer.unload();\nprevious?.destroy();\nconst source = new SDK.Source(sourceConfig);\nawait source.initialize();\nplayer.loadSource(source);");
     add("BitmovinCastManager.isInitialized", () => BitmovinCastManager.isInitialized());
-    add("BitmovinCastManager.initialize", () => BitmovinCastManager.initialize(this.settings().cast), "await SDK.BitmovinCastManager.initialize(castOptions);\n// Recreate the Player after initialization; the host must include the Cast SDK.");
+    add("BitmovinCastManager.initialize", () => BitmovinCastManager.initialize(this.settings().cast), "await SDK.BitmovinCastManager.initialize(castOptions);\n// SDK 1.29: this deprecated method is a no-op. Configure the Expo plugin and rebuild.\n// Inspect the actual native state with BitmovinCastManager.isInitialized().");
     add("BitmovinCastManager.updateContext", () => BitmovinCastManager.updateContext());
     operations.push({ id: "Player.scheduleAd", arguments: [{ name: "index", label: "Applied advertising schedule index (starting at 0)", initial: "0" }],
       run: (values) => {

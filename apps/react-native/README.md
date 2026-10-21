@@ -326,3 +326,7 @@ to scroll the configuration form. While a gesture started in the Android player
 is active, the app pauses the surrounding form's scrolling. The last player
 pointer ending or being cancelled releases it; replacing the player also
 releases the retired pane's touch state. iOS keeps its existing scroll handling.
+
+The generated host includes the Google Cast sender SDK and the native configuration for local network discovery, background playback, offline playback and picture-in-picture. The Cast versions follow the [SDK 1.29 example](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/example/app.config.ts): Android 21.3.0 and iOS 4.8.4. Cast discovery and receiver playback require a compatible receiver on the same network.
+
+In SDK 1.29, `BitmovinCastManager.initialize(options)` is a deprecated no-op. Use `isInitialized` to read the native initialization state. Changing the receiver application ID or message namespace in the GUI produces an `app.json` plugin example; apply it to the generated host and rebuild the native app. Calling `initialize` does not change those options at runtime.

@@ -27,7 +27,10 @@ test("generates the existing App and pinned native project inputs without a lice
   const config = JSON.parse(readFileSync(join(target, "app.json"), "utf8")).expo;
   assert.equal(config.ios.bundleIdentifier, "com.playerlab.reactnative");
   assert.equal(config.android.package, "com.playerlab.reactnative");
-  assert.deepEqual(config.plugins[0], ["bitmovin-player-react-native", {}]);
+  assert.deepEqual(config.plugins[0], ["bitmovin-player-react-native", { features: {
+    airPlay:true, backgroundPlayback:true, offline:true, pictureInPicture:true,
+    googleCastSDK:{ appId:"FFE417E5", android:"21.3.0", ios:"4.8.4" },
+  } }]);
   const manifest = JSON.parse(readFileSync(join(target, "package.json"), "utf8"));
   assert.equal(manifest.engines.node, "24.19.0");
   assert.equal(readFileSync(join(target, ".nvmrc"), "utf8").trim(), "24.19.0");

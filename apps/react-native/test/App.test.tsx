@@ -243,6 +243,18 @@ describe("React Native configuration in the mounted App", () => {
     expect(element("Text", { accessibilityLabel: "API result" }).props.children).not.toContain("12345");
   });
 
+  it("exports Cast receiver inputs as native build configuration and explains the SDK initialize no-op", async () => {
+    await mount(); await press("Show configuration");
+    await text("Filter configuration APIs", "BitmovinCastManagerOptions.applicationId");
+    await press("BitmovinCastManagerOptions.applicationId"); await press("Set this API value");
+    await text("Value for BitmovinCastManagerOptions.applicationId", "ABCDEF12");
+    await press("Apply and recreate player"); await press("Show applied code");
+    expect(input("Applied configuration code").props.value).toContain('"appId": "ABCDEF12"');
+    expect(input("Applied configuration code").props.value).toContain("SDK 1.29 initialize does not read castOptions");
+    expect(input("Applied configuration code").props.value).toContain('"android": "21.3.0"');
+    expect(input("Applied configuration code").props.value).toContain('"ios": "4.8.4"');
+  });
+
   it("shows named event payloads, redacts credentials and ignores retired event proxies", async () => {
     vi.useFakeTimers();
     try {
