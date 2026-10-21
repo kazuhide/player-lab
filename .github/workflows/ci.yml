@@ -57,6 +57,7 @@ jobs:
           node --test scripts/api-coverage/test-update-contracts.cjs
           python3 scripts/test-api-coverage.py
           node --test scripts/api-coverage/extract-sdk-surface.test.cjs
+          node scripts/generate-web-api-schema.cjs --check
           python3 scripts/api-coverage/apple/test_normalize_apple.py
           python3 scripts/check-api-coverage.py
       - name: Type-check

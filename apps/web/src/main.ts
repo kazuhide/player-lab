@@ -11,6 +11,7 @@ import {
   PremiereUIFactory,
   SportsUIFactory,
   StudioUIFactory,
+  PlayerUI,
   UIManager,
   type CastingButtons,
   type UIConfig,
@@ -26,6 +27,7 @@ import { createAnalyticsView } from "./analyticsView";
 import { installPlayerGesture, type DoubleClickMode } from "./gestures";
 import { installInfoOverlay, infoChip } from "./infoChip";
 import { pick, getLang, setLang, onLangChange, G, type L, type Lang } from "./i18n";
+import { ApiExplorer } from "./api/explorer";
 import "./styles.css";
 
 // TimelineReferencePoint ("end") is a string enum the SDK doesn't expose at
@@ -113,6 +115,7 @@ interface UiTheme {
   category: ThemeCategory;
   label: L;
   note: L;
+  config?: UIConfig;
   /** The one-line build call this theme runs — shown next to the selector so the
    *  live example is tied to the code that produced it. */
   code: string;
@@ -265,31 +268,50 @@ const THEMES: UiTheme[] = [
   // services; we keep the styling but not the company/service names).
   {
     id: "custom-premiere",
+    config: BRAND_UICONFIG,
     category: "custom",
     label: { ja: "Premiere", en: "Premiere" },
     note: { ja: "タイトルバー(タイトル＋説明)＋全幅シーク＋細い操作列。終了時の「次の動画」オーバーレイ入り、赤基調のシネマティック。", en: "A title bar (title + description) + a full-width scrubber over a slim row, with an end-of-playback “up next” overlay. Cinematic, red-accented." },
     code: "PremiereUIFactory.buildPremiereUI(player)",
-    build: (p, hd, cfg, casting) => PremiereUIFactory.buildPremiereUI(p, deepMerge(BRAND_UICONFIG, cfg ?? {}), { hideDelay: hd, casting }),
+    build: (p, hd, cfg, casting) => PremiereUIFactory.buildPremiereUI(p, cfg, { hideDelay: hd, casting }),
   },
   {
     id: "custom-creator",
+    config: BRAND_UICONFIG,
     category: "custom",
     label: { ja: "Creator", en: "Creator" },
     note: { ja: "最下部に全幅の赤いシークバー、その下に1列(再生・音量・時刻・設定)。タイトルバーと「次の動画」オーバーレイ入り。", en: "A full-width red scrubber at the bottom with one row below (play · volume · time · settings), plus a title bar and an “up next” overlay." },
     code: "CreatorUIFactory.buildCreatorUI(player)",
-    build: (p, hd, cfg, casting) => CreatorUIFactory.buildCreatorUI(p, deepMerge(BRAND_UICONFIG, cfg ?? {}), { hideDelay: hd, casting }),
+    build: (p, hd, cfg, casting) => CreatorUIFactory.buildCreatorUI(p, cfg, { hideDelay: hd, casting }),
   },
   {
     id: "custom-studio",
+    config: BRAND_UICONFIG,
     category: "custom",
     label: { ja: "Studio", en: "Studio" },
     note: { ja: "タイトル＋説明と、1列インライン(時刻ラベルに挟まれたシーク)。「次の動画」オーバーレイ入り、濃紺×青のプレミアム調。", en: "A title + description and a single inline row (the scrubber between time labels), with an “up next” overlay. Navy × blue, premium feel." },
     code: "StudioUIFactory.buildStudioUI(player)",
-    build: (p, hd, cfg, casting) => StudioUIFactory.buildStudioUI(p, deepMerge(BRAND_UICONFIG, cfg ?? {}), { hideDelay: hd, casting }),
+    build: (p, hd, cfg, casting) => StudioUIFactory.buildStudioUI(p, cfg, { hideDelay: hd, casting }),
   },
 ];
 let currentThemeId: ThemeId = "custom-live";
 let uiManager: UIManager | undefined;
+let sdkUiManager: UIManager | undefined;
+let sdkUiOwner: PlayerAPI | undefined;
+let sdkUiEnabled = false;
+let playerGeneration = 0;
+let apiExplorer: ApiExplorer | undefined;
+let activeUiBase: UIConfig | undefined;
+
+function themeConfig(id: ThemeId): UIConfig {
+  const theme = THEMES.find(theme => theme.id === id) ?? THEMES[0]!;
+  return deepMerge(deepMerge(theme.config ?? {}, BASE_UICONFIG), uiConfig);
+}
+
+function renderActiveConstruction(): void {
+  const baseUi = activeUiBase ?? themeConfig(currentThemeId);
+  renderConstruction(constructionEl as HTMLElement, currentThemeId, uiConfig, apiExplorer?.uiCode(baseUi), sdkUiEnabled);
+}
 
 // Categories are shown in this order — increasing customization depth, so the
 // selector reads as default → re-skin with CSS → rebuild the tree.
@@ -319,7 +341,11 @@ function renderThemeBar(): void {
       b.title = pick(theme.note);
       b.className = theme.id === currentThemeId ? "theme-btn active" : "theme-btn";
       b.addEventListener("click", () => {
-        if (player) applyTheme(player, theme.id);
+        if (sdkUiEnabled) {
+          currentThemeId = theme.id;
+          apiExplorer?.setExternal("PlayerConfig", ["ui"], false);
+          void build().catch(error => console.error("theme recreation failed", error));
+        } else if (player) applyTheme(player, theme.id);
       });
       group.appendChild(b);
     }
@@ -329,7 +355,7 @@ function renderThemeBar(): void {
   const active = THEMES.find((t) => t.id === currentThemeId);
   const note = document.createElement("span");
   note.className = "ui-theme-bar-note";
-  note.textContent = active ? pick(active.note) : "";
+  note.textContent = sdkUiEnabled ? pick({ ja: "PlayerConfig.uiでSDKのUIを使用しています。テーマを選ぶとアプリのUIへ切り替わります。", en: "PlayerConfig.ui enables SDK-managed UI. Selecting a theme switches to the app's UI." }) : active ? pick(active.note) : "";
   themeBarEl!.appendChild(note);
   const code = document.createElement("code");
   code.className = "ui-theme-bar-code";
@@ -367,18 +393,27 @@ function renderLangToggle(): void {
 /** Swap the UI theme without rebuilding the player — release the old UIManager,
  *  build the selected one against the same, still-playing player. */
 function applyTheme(p: PlayerAPI, id: ThemeId): void {
-  uiManager?.release();
+  if (sdkUiEnabled) return;
+  const previousUi = uiManager;
+  uiManager = undefined;
+  apiExplorer?.refresh();
+  previousUi?.release();
   const theme = THEMES.find((t) => t.id === id) ?? THEMES[0]!;
-  uiManager = theme.build(p, autohideEnabled ? undefined : -1, deepMerge(BASE_UICONFIG, uiConfig), castingButtons);
+  const baseUi = themeConfig(theme.id);
+  activeUiBase = baseUi;
+  const appliedUi = apiExplorer?.prepare("UIConfig", baseUi) ?? baseUi;
+  uiManager = theme.build(p, autohideEnabled ? undefined : -1, appliedUi, castingButtons);
   currentThemeId = theme.id;
   renderThemeBar();
-  renderConstruction(constructionEl as HTMLElement, currentThemeId, uiConfig);
+  renderActiveConstruction();
+  apiExplorer?.refresh();
 }
 
 // DVR allow/forbid is a load-time PlayerConfig option (PlaybackConfig.timeShift),
 // so toggling it rebuilds the player; source switching uses player.load().
 let timeShiftEnabled = true;
 let sourcePreset: SourceConfig = SOURCES[0]?.config ?? {};
+let apiSourceInput: object | undefined;
 let sourceOverrides: DeepPartial<SourceConfig> = {};
 let currentSource: SourceConfig = sourcePreset;
 // A preset loaded directly by the SDK UI replaces the prior overrides, even
@@ -431,13 +466,16 @@ function playNextEpisode(): void {
 
 /** Every load path announces the active source kind, including playlist advances
  * and config reloads. The hint belongs to this load, never to all future playback. */
-async function loadCurrentSource(instance: PlayerAPI): Promise<void> {
+async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, disableSeeking?: boolean): Promise<void> {
   const isLive = SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false;
   const settle = controlPanel?.beginSourceLoad(isLive);
-  const request = { player: instance, source: structuredClone(currentSource), settle };
+  const base = deepMerge((apiSourceInput ?? sourcePreset) as SourceConfig, sourceOverrides);
+  const source = apiExplorer?.prepare("SourceConfig", base) ?? structuredClone(base);
+  currentSource = source;
+  const request = { player: instance, source, settle };
   appSourceLoad = request;
   try {
-    await instance.load(request.source);
+    await instance.load(request.source, forceTechnology, disableSeeking);
   } catch (error) {
     if (appSourceLoad === request) appSourceLoad = undefined;
     if (player === instance) request.settle?.();
@@ -453,6 +491,8 @@ async function selectSource(source: ShowcaseSource): Promise<void> {
   const instance = player;
   if (!instance) return;
   sourcePreset = source.config;
+  apiSourceInput = undefined;
+  apiExplorer?.clearSource();
   sourceOverrides = {};
   currentSource = sourcePreset;
   currentSourceId = source.id;
@@ -586,10 +626,12 @@ const configOptions: ConfigPanelOptions = {
   getSource: () => currentSource,
   getUiConfig: () => ({ ...uiConfig }),
   onRecreate: (overrides) => {
+    apiExplorer?.discardPatch("PlayerConfig", overrides);
     playerOverrides = deepMerge(playerOverrides, overrides);
     void build();
   },
   onReload: (srcOverrides) => {
+    apiExplorer?.discardPatch("SourceConfig", srcOverrides);
     sourceOverrides = deepMerge(sourceOverrides, srcOverrides);
     currentSource = deepMerge(sourcePreset, sourceOverrides);
     if (player) void loadCurrentSource(player).catch((err: unknown) => console.error("config reload failed", err));
@@ -605,13 +647,14 @@ function renderAll(): void {
   renderLangToggle();
   renderThemeBar();
   renderUiGuide(guideEl!);
-  renderConstruction(constructionEl!, currentThemeId, uiConfig);
+  renderActiveConstruction();
   qoeSection.titleEl.textContent = pick(G.sideQoe);
   // The control panel doesn't re-mount on language change (that would clear its live event log /
   // telemetry), so re-localize its labels in place instead.
   relocalizeControlPanel();
   analyticsView.relocalize();
   configPanel = mountConfigPanel(configEl!, configOptions);
+  apiExplorer?.relocalize();
   // Keep the landmark aria-labels consistent with the visible language.
   themeBarEl!.setAttribute("aria-label", pick(G.themeBarLabel));
   constructionEl!.setAttribute("aria-label", pick(G.ariaConstruction));
@@ -619,6 +662,37 @@ function renderAll(): void {
   configEl!.setAttribute("aria-label", pick(G.ariaConfig));
   langToggleEl!.setAttribute("aria-label", pick(G.langLabel));
 }
+
+apiExplorer = new ApiExplorer(document.getElementById("api-explorer")!, {
+  getPlayer: () => player,
+  getUi: () => sdkUiOwner === player ? sdkUiManager : uiManager,
+  apply: async (root) => {
+    if (root === "PlayerConfig") await build();
+    else if (root === "SourceConfig") {
+      if (!player) throw new Error("Create a player first.");
+      await loadCurrentSource(player);
+    } else if (sdkUiEnabled) await build();
+    else if (player) applyTheme(player, currentThemeId);
+    else throw new Error("Create a player before applying UI settings.");
+  },
+  load: async (source, forceTechnology, disableSeeking) => {
+    if (!player || !source || typeof source !== "object") throw new Error("A source and current Player are required.");
+    if (forceTechnology !== undefined && typeof forceTechnology !== "string" || disableSeeking !== undefined && typeof disableSeeking !== "boolean") throw new Error("Invalid load options.");
+    apiSourceInput = source;
+    sourceOverrides = {}; apiExplorer?.clearSource(false); currentSourceId = "";
+    await loadCurrentSource(player, forceTechnology, disableSeeking);
+  },
+  destroy: async () => {
+    buildChain = buildChain.then(destroyCurrentPlayer, destroyCurrentPlayer);
+    await buildChain;
+  },
+  releaseUi: () => {
+    const previousUi = sdkUiOwner === player ? sdkUiManager : uiManager;
+    uiManager = undefined; sdkUiManager = undefined; sdkUiOwner = undefined;
+    apiExplorer?.refresh(); previousUi?.release();
+  },
+  recreate: () => build(),
+});
 
 renderMetrics();
 renderAll();
@@ -640,11 +714,17 @@ installPlayerGesture(playerEl, {
 // the shared `player` during the async destroy. A failed build doesn't block later ones.
 let buildChain: Promise<void> = Promise.resolve();
 function build(): Promise<void> {
-  buildChain = buildChain.then(doBuild, doBuild);
-  return buildChain;
+  const creation = buildChain.then(doBuild, doBuild);
+  // An unfinished source or user callback must not prevent a later rebuild
+  // from retiring the player. Only destruction and creation are serialized.
+  buildChain = creation.then(() => undefined, () => undefined);
+  return creation.then(result => result.loaded);
 }
 
-async function doBuild(): Promise<void> {
+async function destroyCurrentPlayer(): Promise<void> {
+  playerGeneration++;
+  apiExplorer?.beginPlayerChange();
+  sdkUiManager = undefined; sdkUiOwner = undefined;
   if (player) {
     uiManager?.release();
     uiManager = undefined;
@@ -655,9 +735,22 @@ async function doBuild(): Promise<void> {
     player = undefined;
     await old.destroy();
   }
+  controlPanel = undefined;
+  panelEl!.replaceChildren();
+  apiExplorer?.refresh();
+}
+
+async function doBuild(): Promise<{ loaded: Promise<void> }> {
+  await destroyCurrentPlayer();
   const baseConfig: PlayerConfig = {
     key: licenseKey,
     ui: false,
+    // SDK-managed UI loads its public distribution before calling the factory.
+    // Pin these optional assets to the same UI version as the app's factories.
+    location: {
+      ui: "https://cdn.jsdelivr.net/npm/bitmovin-player-ui@4.23.0/dist/js/bitmovinplayer-ui.js",
+      ui_css: "https://cdn.jsdelivr.net/npm/bitmovin-player-ui@4.23.0/dist/css/bitmovinplayer-ui.css",
+    },
     // autoplay (muted) so a switched source is analyzed immediately — otherwise the
     // duration stays Infinity until DurationChanged and the DVR UI lingers in "live"
     // mode for seconds after switching live→VOD.
@@ -672,10 +765,32 @@ async function doBuild(): Promise<void> {
   // Layer the config panel's 🔁 PlayerConfig overrides on top of the base. Clone the
   // overrides first so the live Player never shares a mutable sub-object with our stored
   // `playerOverrides` (the overrides are plain data — no functions — so this is safe).
-  const config = deepMerge(baseConfig, structuredClone(playerOverrides));
+  const configBase = deepMerge(baseConfig, structuredClone(playerOverrides));
+  const config = apiExplorer?.prepare("PlayerConfig", configBase) ?? configBase;
+  sdkUiEnabled = config.ui !== false;
+  if (sdkUiEnabled) {
+    const generation = playerGeneration;
+    const requestedFactory = config.style?.uiManagerFactory;
+    // The SDK owns this manager's release. Keep a separate reference for the
+    // inspector, and never release it again through the app's theme lifecycle.
+    config.style = { ...config.style, uiManagerFactory: (owner, supplied) => {
+      if (generation !== playerGeneration) return undefined;
+      const themeBase = autohideEnabled ? themeConfig(currentThemeId) : deepMerge(themeConfig(currentThemeId), { componentConfigOverrides: { UIContainer: { hideDelay: -1 } } });
+      const baseUi = deepMerge(themeBase, supplied && typeof supplied === "object" ? supplied : {});
+      activeUiBase = baseUi;
+      const appliedUi = apiExplorer?.prepare("UIConfig", baseUi) ?? baseUi;
+      const manager: unknown = requestedFactory ? requestedFactory(owner, appliedUi) : PlayerUI.UIFactory.buildUI(owner, appliedUi);
+      if (generation === playerGeneration && manager instanceof UIManager) {
+        sdkUiOwner = owner; sdkUiManager = manager;
+        queueMicrotask(() => { if (generation === playerGeneration && player === owner) { apiExplorer?.refresh(); renderActiveConstruction(); } });
+      }
+      return manager;
+    } };
+  }
   const instance = new Player(playerEl as HTMLElement, config);
   player = instance;
-  applyTheme(instance, currentThemeId);
+  if (sdkUiEnabled) { renderThemeBar(); renderActiveConstruction(); apiExplorer?.refresh(); }
+  else applyTheme(instance, currentThemeId);
   wireMetrics(instance);
   controlPanel = mountControlPanel(instance, panelEl as HTMLElement, SOURCES, {
     timeShiftEnabled,
@@ -699,12 +814,15 @@ async function doBuild(): Promise<void> {
     autohideEnabled,
     onAutohideToggle: (enabled) => {
       autohideEnabled = enabled;
-      if (player) applyTheme(player, currentThemeId); // rebuild the active UI with the new hideDelay
+      if (sdkUiEnabled) void build();
+      else if (player) applyTheme(player, currentThemeId); // Rebuild the active UI with the new hideDelay.
     },
     uiConfig,
     onUiConfigChange: (patch) => {
+      apiExplorer?.discardPatch("UIConfig", patch);
       uiConfig = deepMerge(uiConfig, patch);
-      if (player) applyTheme(player, currentThemeId); // rebuild the active UI with the new UIConfig
+      if (sdkUiEnabled) void build();
+      else if (player) applyTheme(player, currentThemeId); // Rebuild the active UI with the new UIConfig.
     },
     casting: castingButtons,
     onCastingChange: (patch) => {
@@ -743,9 +861,11 @@ async function doBuild(): Promise<void> {
       appSourceLoad = undefined;
       request.settle?.();
     }
-    if (selected && (!appManaged || selected.id !== currentSourceId)) {
+    if (selected && !appManaged) {
       currentSourceId = selected.id;
       sourcePreset = selected.config;
+      apiSourceInput = undefined;
+      apiExplorer?.clearSource();
       sourceOverrides = {};
     }
     currentSource = loaded;
@@ -756,7 +876,9 @@ async function doBuild(): Promise<void> {
     instance.on(event, refreshConfig);
   }
   refreshConfig();
-  await loadCurrentSource(instance).catch((err: unknown) => console.error("load failed", err));
+  return { loaded: loadCurrentSource(instance).catch((err: unknown) => {
+    if (player === instance) console.error("load failed", err);
+  }) };
 }
 
 void build();

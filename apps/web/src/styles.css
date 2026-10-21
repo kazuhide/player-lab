@@ -182,7 +182,7 @@ body {
 
 #player {
   flex: 1 1 60%;
-  min-width: 22rem;
+  min-width: min(22rem, 100%);
   aspect-ratio: 16 / 9;
   background: #000;
   border-radius: var(--radius);
@@ -194,7 +194,7 @@ body {
 .ui-construction {
   display: flex;
   flex: 1 1 36%;
-  min-width: 20rem;
+  min-width: min(20rem, 100%);
 }
 
 .construction-content {
@@ -1046,3 +1046,24 @@ body {
 .config-code summary { cursor: pointer; }
 .config-code button { margin: 0 .5rem .5rem 0; }
 .config-code textarea { display: block; box-sizing: border-box; width: 100%; max-width: 100%; resize: vertical; overflow: auto; font: 12px/1.5 ui-monospace, monospace; }
+/* Detailed SDK inputs share the original page without widening the document. */
+.api-explorer { margin: 1.25rem 0; border: 1px solid var(--border, #d7deea); border-radius: .5rem; padding: .9rem; min-width: 0; }
+.api-explorer > summary { cursor: pointer; font-weight: 650; }
+.api-explorer-content { margin-top: 1rem; min-width: 0; }
+.api-explorer-controls { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .8rem; }
+.api-explorer-layout { display: grid; grid-template-columns: minmax(15rem, 22rem) minmax(0, 1fr); gap: 1rem; }
+.api-explorer-list { display: flex; flex-direction: column; gap: .6rem; min-width: 0; }
+.api-explorer select, .api-explorer input:not([type="checkbox"]), .api-explorer textarea { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; padding: .5rem; font: inherit; }
+.api-explorer select[size] { min-height: 16rem; font-family: ui-monospace, monospace; font-size: .78rem; }
+.api-explorer-form { min-width: 0; }
+.api-explorer-form h3 { font: 600 .86rem ui-monospace, monospace; white-space: nowrap; overflow-x: auto; padding-bottom: .25rem; }
+.api-explorer-form > button { margin: .7rem .4rem .2rem 0; }
+.api-explorer fieldset { min-inline-size: 0; margin: .65rem 0; padding: .7rem; border: 1px solid #d7deea; border-radius: .3rem; }
+.api-explorer legend, .api-explorer label { overflow-wrap: anywhere; }
+.api-explorer legend { max-width: 100%; font-family: ui-monospace, monospace; font-size: .82rem; }
+.api-explorer .api-value > select { margin-bottom: .5rem; }
+.api-explorer textarea, .api-explorer pre { font: .78rem/1.55 ui-monospace, monospace; }
+.api-explorer pre { max-height: 24rem; overflow: auto; white-space: pre; padding: .75rem; border: 1px solid #d7deea; border-radius: .3rem; }
+.api-editor-field { display: block; margin: .6rem 0; }
+.api-editor-field > span { display: block; margin-bottom: .3rem; }
+@media (max-width: 720px) { .api-explorer-layout { grid-template-columns: minmax(0, 1fr); } .api-explorer { padding: .65rem; } }
