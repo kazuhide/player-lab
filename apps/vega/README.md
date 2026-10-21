@@ -203,6 +203,10 @@ public SDK clocks, playback state, cue counts/visibility and release-barrier
 acknowledgements, without keys, URLs, cue text or SDK messages. Keep this entry
 out of normal screenshots and distribution builds.
 
+The [public device runner](runtime/README.md) drives the real form and remote,
+checks moving video and native cue/clock observations, and uses a license-free
+companion for the documented app-to-app background/return path.
+
 Install Amazon's [Vega SDK](https://developer.amazon.com/docs/vega/0.24/install-vega-sdk)
 and its documented prerequisites. The checked profile uses SDK 0.24.12112 and
 `@amazon-devices/kepler-cli-platform` 0.22.14. Keep the RN 0.72 dependency set in
