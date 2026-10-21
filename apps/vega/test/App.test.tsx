@@ -71,6 +71,11 @@ function element(type: string, props: Record<string, unknown> = {}): ReactTestIn
 const current = () => runtime.players[runtime.players.length - 1]!;
 const button = (title: string) => element("Button", { title });
 const input = (label: string) => element("TextInput", { accessibilityLabel: label });
+function appliedCode(): string {
+  return screen.root.findAll((node) => String(node.type) === "View" &&
+    typeof node.props.testID === "string" && node.props.testID.startsWith("applied-code-line-"))
+    .map((row) => { const value = row.find((node) => String(node.type) === "Text").props.children; return value === "\u00a0" ? "" : value; }).join("\n");
+}
 async function press(title: string) { await act(async () => button(title).props.onPress()); }
 async function text(label: string, value: string) { await act(async () => input(label).props.onChangeText(value)); }
 async function appState(state: string) {
@@ -135,8 +140,7 @@ describe("Vega configuration in the mounted App and media session", () => {
       id: "player-lab-external", kind: "subtitle", enabled: true,
     }] }));
     await press("Show applied code");
-    const code = screen.root.findAll((node) => String(node.type) === "Text" &&
-      typeof node.props.children === "string" && node.props.children.includes("const playerConfig ="))[0]!.props.children;
+    const code = appliedCode();
     expect(code).toContain('"enabled": true');
     await text("Subtitle label", "Unapplied draft"); await press("Reset draft");
     expect(input("Subtitle label").props.value).toBe("English captions");
@@ -147,8 +151,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     await mount();
     await press("Show configuration");
     await press("Show applied code");
-    const code = () => screen.root.findAll((node) => String(node.type) === "Text" &&
-      typeof node.props.children === "string" && node.props.children.includes("const playerConfig ="))[0]!.props.children as string;
+    const code = appliedCode;
     const original = code();
     expect(original).toContain("YOUR_PLAYER_KEY");
     expect(original).not.toContain("licenseKey");
@@ -158,6 +161,15 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(code()).toContain("APPLIED_SOURCE_TITLE");
     expect(code()).toContain('"ui": false');
     expect(code()).toContain("native media initialization");
+  });
+
+  it("lets TV focus reach every applied-code line through the normal screen", async () => {
+    await mount(); await press("Show configuration"); await press("Show applied code");
+    const rows = screen.root.findAll((node) => String(node.type) === "View" &&
+      typeof node.props.testID === "string" && node.props.testID.startsWith("applied-code-line-"));
+    expect(rows.length).toBeGreaterThan(10);
+    expect(rows.every((row) => row.props.focusable === true && row.props.accessible === true)).toBe(true);
+    expect(rows[rows.length - 1]!.props.testID).toMatch(/-last$/);
   });
 
   it("makes each TV switch focusable without applying its configuration draft", async () => {

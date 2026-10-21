@@ -112,6 +112,10 @@ unapplied player-setting edits. Selected/custom source fields, logs and the
 Rapid Apply operations wait for the previous player's cleanup before loading
 the latest selected configuration.
 
+After **Show applied code**, use D-pad Down/Up to read the output. Each code line
+participates in TV focus so the normal ScrollView can reveal the complete code,
+including lines below the video. The code uses license placeholders.
+
 `ui:false` stays fixed because the HTML Player UI is unavailable on Vega. Source
 title/poster values are passed in the SDK source configuration; this Kepler screen does
 not add a poster-artwork renderer. There is no loop configuration in this
