@@ -92,22 +92,22 @@
   "sources": [
     {
       "path": "docs/local-test-media.md",
-      "line": 72,
+      "line": 109,
       "label": "音声境界の理由と実測表"
     },
     {
       "path": "docs/local-test-media.md",
-      "line": 107,
+      "line": 144,
       "label": "FFprobeの版の違い"
     },
     {
       "path": "encoding/test-streams/local.py",
-      "line": 77,
+      "line": 178,
       "label": "保存された最終サンプル時間の読み取り"
     },
     {
       "path": "encoding/test-streams/local.py",
-      "line": 142,
+      "line": 243,
       "label": "パケット測定と提示終了の検査"
     },
     {

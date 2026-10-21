@@ -269,15 +269,15 @@
     },
     {
       "path": "apps/web/src/guide.ts",
-      "line": 260
+      "line": 265
     },
     {
       "path": "apps/web/src/guide.ts",
-      "line": 551
+      "line": 557
     },
     {
       "path": "apps/web/src/guide.ts",
-      "line": 631
+      "line": 637
     },
     {
       "url": "https://kazuhide.github.io/player-lab/guide/test-results/",
@@ -289,15 +289,15 @@
     },
     {
       "path": "packages/ui-shared/src/liveUi.ts",
-      "line": 136
+      "line": 138
     },
     {
       "path": "packages/ui-shared/src/liveUi.ts",
-      "line": 278
+      "line": 280
     },
     {
       "path": "packages/ui-shared/src/liveUi.ts",
-      "line": 319
+      "line": 321
     },
     {
       "path": "packages/ui-shared/src/styles/ui-shared.scss",
@@ -313,11 +313,11 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 369
+      "line": 395
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 699
+      "line": 832
     },
     {
       "path": "apps/web/src/uiGuide.ts",
@@ -325,7 +325,7 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 298
+      "line": 300
     },
     {
       "url": "https://developer.bitmovin.com/playback/docs/bitmovin-player-ui",

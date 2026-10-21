@@ -213,55 +213,55 @@
   "sources": [
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 280
+      "line": 282
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 391
+      "line": 393
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 705
+      "line": 840
     },
     {
       "path": "tests/e2e/specs/app-ui.spec.ts",
-      "line": 214
+      "line": 222
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 254
+      "line": 256
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 274
+      "line": 276
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 413
+      "line": 415
     },
     {
       "path": "apps/web/src/controlPanel.ts",
+      "line": 488
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 149
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 448
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 743
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 834
+    },
+    {
+      "path": "tests/e2e/specs/app-ui.spec.ts",
       "line": 486
-    },
-    {
-      "path": "apps/web/src/main.ts",
-      "line": 146
-    },
-    {
-      "path": "apps/web/src/main.ts",
-      "line": 404
-    },
-    {
-      "path": "apps/web/src/main.ts",
-      "line": 652
-    },
-    {
-      "path": "apps/web/src/main.ts",
-      "line": 700
-    },
-    {
-      "path": "tests/e2e/specs/app-ui.spec.ts",
-      "line": 348
     },
     {
       "url": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html",

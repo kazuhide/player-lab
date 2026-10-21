@@ -92,22 +92,22 @@
   "sources": [
     {
       "path": "docs/local-test-media.md",
-      "line": 72,
+      "line": 109,
       "label": "Why audio boundaries differ and the recorded measurements"
     },
     {
       "path": "docs/local-test-media.md",
-      "line": 107,
+      "line": 144,
       "label": "Differences between FFprobe versions"
     },
     {
       "path": "encoding/test-streams/local.py",
-      "line": 77,
+      "line": 178,
       "label": "Reading the final sample's stored duration"
     },
     {
       "path": "encoding/test-streams/local.py",
-      "line": 142,
+      "line": 243,
       "label": "Packet inspection and presentation-end checks"
     },
     {

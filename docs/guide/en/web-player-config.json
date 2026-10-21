@@ -451,11 +451,11 @@
     },
     {
       "type": "p",
-      "text": "Choose PlayerAPI.getConfig or PlayerAPI.getSource in Read state to inspect submitted values. Commands such as setVolume accept edited arguments. Returned SDK objects and callbacks can be selected in later calls; obtain them again after their owner is replaced. Generated code omits license values. References to selected instances must use the same objects obtained by earlier calls."
+      "text": "Choose PlayerAPI.getConfig or PlayerAPI.getSource in Read state to inspect submitted values. Commands such as setVolume accept edited arguments. Returned SDK objects and callbacks can be selected in later calls; obtain them again after their owner is replaced. Generated code omits license values. References to selected instances must use the same objects obtained by earlier calls. The Events and callbacks panel shows cumulative counts for the current Player and a limited history of recent payloads. An earlier payload can disappear while its count remains. Use Read state to verify an applied value. Recreate Player or Clear event history resets these records."
     },
     {
       "type": "p",
-      "text": "Apply an empty object {} to PlayerConfig.ui to enable SDK-managed UI. The app supplies pinned UI script and style locations; these are editable through PlayerConfig.location. The SDK calls the configured style.uiManagerFactory. Selecting an original theme returns to the app-managed UI and avoids overlapping managers."
+      "text": "Apply an empty object {} to PlayerConfig.ui to enable SDK-managed UI. The app supplies pinned UI script and style locations; these are editable through PlayerConfig.location. The SDK calls the configured style.uiManagerFactory. Selecting an original theme returns to the app-managed UI and avoids overlapping managers. In Player UI 4.23.0, a nonempty SourceConfig.title or description takes precedence over UIConfig.metadata.title or description when the UI configuration is merged. To test metadata from UIConfig against a preset title or description, first apply an empty string to the corresponding SourceConfig field. To change source-specific text, edit SourceConfig."
     },
     {
       "type": "note",
@@ -506,35 +506,35 @@
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 67
+      "line": 72
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 147
+      "line": 152
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 284
+      "line": 293
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 599
+      "line": 608
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 760
+      "line": 769
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 775
+      "line": 784
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 920
+      "line": 929
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 951
+      "line": 960
     },
     {
       "path": "apps/web/test/configState.test.ts",
@@ -563,6 +563,25 @@
     {
       "url": "https://github.com/kazuhide/player-lab/blob/2e01393b86d0c3004114c5ed6474d856676bc90f/apps/web/src/api/values.ts",
       "label": "Optional configuration properties"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/UIManager.ts#L415",
+      "label": "Player UI metadata and source precedence (4.23.0)"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 238,
+      "label": "Event counts and recent-payload history"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 185,
+      "label": "Record reset on Player replacement"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 270,
+      "label": "Explicit event-history reset"
     }
   ]
 }

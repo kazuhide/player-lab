@@ -311,7 +311,7 @@
     },
     {
       "path": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
-      "line": 60,
+      "line": 66,
       "label": "Live coordinates and state calculation"
     },
     {
@@ -331,7 +331,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 115,
+      "line": 127,
       "label": "Android language, subtitle and retry settings"
     },
     {
@@ -341,12 +341,12 @@
     },
     {
       "path": "apps/vega/README.md",
-      "line": 179,
+      "line": 279,
       "label": "Included Vega host and runtime preparation"
     },
     {
       "path": "apps/ios/Showcase/ConfigurationEditor.swift",
-      "line": 42,
+      "line": 43,
       "label": "Apple editor groups, actions and draft reset"
     },
     {
@@ -356,12 +356,12 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 98,
+      "line": 104,
       "label": "React Native preset load, editor recreation and applied reset"
     },
     {
       "path": "apps/vega/src/App.tsx",
-      "line": 60,
+      "line": 68,
       "label": "Vega source presets, Apply and draft reset"
     }
   ]

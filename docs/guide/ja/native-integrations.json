@@ -478,17 +478,17 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 72,
+      "line": 77,
       "label": "実画面と UI 切り替え"
     },
     {
       "path": "apps/react-native/src/ConfigurationPanel.tsx",
-      "line": 18,
+      "line": 22,
       "label": "React Native の編集項目・単位・Apply／Reset"
     },
     {
       "path": "apps/react-native/src/configuration.ts",
-      "line": 59,
+      "line": 68,
       "label": "React Native の入力検証と SDK 項目への対応"
     },
     {
@@ -503,7 +503,7 @@
     },
     {
       "path": "apps/vega/src/App.tsx",
-      "line": 47,
+      "line": 55,
       "label": "app ID・再生設定・Analytics"
     },
     {
@@ -518,17 +518,17 @@
     },
     {
       "path": "apps/vega/tsconfig.json",
-      "line": 22,
+      "line": 23,
       "label": "全ソース・JSX を含む型検査の範囲"
     },
     {
       "path": "apps/vega/src/ConfigurationPanel.tsx",
-      "line": 16,
+      "line": 17,
       "label": "Vega の編集項目・単位・Apply／Reset"
     },
     {
       "path": "apps/vega/src/configuration.ts",
-      "line": 55,
+      "line": 63,
       "label": "Vega の入力検証と SDK 項目への対応"
     },
     {

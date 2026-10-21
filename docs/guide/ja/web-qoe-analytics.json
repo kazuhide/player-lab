@@ -144,11 +144,11 @@
   "sources": [
     {
       "path": "apps/web/src/main.ts",
-      "line": 486
+      "line": 535
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 508
+      "line": 557
     },
     {
       "path": "apps/web/src/analytics/metrics.ts",
@@ -156,11 +156,11 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 186
+      "line": 188
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 697
+      "line": 699
     },
     {
       "path": "apps/web/src/configurationCodeView.ts",

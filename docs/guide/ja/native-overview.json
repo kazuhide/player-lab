@@ -311,7 +311,7 @@
     },
     {
       "path": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
-      "line": 60,
+      "line": 66,
       "label": "ライブ座標と状態計算"
     },
     {
@@ -331,7 +331,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 115,
+      "line": 127,
       "label": "Androidの言語・字幕・再試行設定"
     },
     {
@@ -341,12 +341,12 @@
     },
     {
       "path": "apps/vega/README.md",
-      "line": 179,
+      "line": 279,
       "label": "同梱Vegaアプリと実行準備"
     },
     {
       "path": "apps/ios/Showcase/ConfigurationEditor.swift",
-      "line": 42,
+      "line": 43,
       "label": "Appleの設定グループ・適用操作・下書きのリセット"
     },
     {
@@ -356,12 +356,12 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 98,
+      "line": 104,
       "label": "React Nativeのプリセット読み込み・編集後の再作成・下書き復帰"
     },
     {
       "path": "apps/vega/src/App.tsx",
-      "line": 60,
+      "line": 68,
       "label": "Vegaのソースプリセット・適用・下書きのリセット"
     }
   ]

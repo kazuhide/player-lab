@@ -1,7 +1,7 @@
 {
  "schemaVersion": 1,
  "checkedAt": "2026-10-22",
- "sourceRevision": "40e79fbbcba888d6b83332a0da411bacf120cee1",
+ "sourceRevision": "640815f2f47126eeb2e70aaa490400f2b0a33fe0",
  "sdks": [
   {
    "id": "web",
@@ -9,7 +9,7 @@
    "version": "8.281.0",
    "channel": "stable",
    "latestVersion": "8.281.0",
-   "latestCheckedAt": "2026-10-21",
+   "latestCheckedAt": "2026-10-22",
    "sources": [
     {
      "url": "https://developer.bitmovin.com/playback/docs/release-notes-web"
@@ -25,7 +25,7 @@
    "version": "4.23.0",
    "channel": "stable",
    "latestVersion": "4.23.0",
-   "latestCheckedAt": "2026-10-21",
+   "latestCheckedAt": "2026-10-22",
    "sources": [
     {
      "url": "https://github.com/bitmovin/bitmovin-player-ui/releases/tag/v4.23.0"
@@ -38,7 +38,7 @@
   {
    "channel": "stable",
    "id": "apple",
-   "latestCheckedAt": "2026-10-21",
+   "latestCheckedAt": "2026-10-22",
    "latestVersion": "3.128.0",
    "name": "Bitmovin Player iOS/tvOS (scoped Core API)",
    "sources": [
@@ -72,7 +72,7 @@
    "version": "3.171.0",
    "channel": "stable",
    "latestVersion": "3.171.0",
-   "latestCheckedAt": "2026-10-21",
+   "latestCheckedAt": "2026-10-22",
    "sources": [
     {
      "url": "https://developer.bitmovin.com/playback/docs/release-notes-android"
@@ -141,7 +141,7 @@
    "version": "1.29.0",
    "channel": "stable-wrapper",
    "latestVersion": "1.29.0",
-   "latestCheckedAt": "2026-10-21",
+   "latestCheckedAt": "2026-10-22",
    "sources": [
     {
      "url": "https://github.com/bitmovin/bitmovin-player-react-native/releases/tag/v1.29.0"
@@ -163,7 +163,7 @@
    "version": "8.138.0-beta.28",
    "channel": "vega-supported-beta",
    "latestVersion": "8.138.0-beta.28",
-   "latestCheckedAt": "2026-10-21",
+   "latestCheckedAt": "2026-10-22",
    "sources": [
     {
      "url": "https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/blob/0c7463104d3c18f56440aeec7beccd0d92c11aaa/README.md"

@@ -60,6 +60,127 @@
     },
     {
       "type": "h2",
+      "text": "Native API and lifecycle checks recorded on 2026-10-22"
+    },
+    {
+      "type": "p",
+      "text": "These records cover the added configuration editors, API operations and owner replacement. Each row identifies its source and environment. The separate configuration, playback, GUI and build checks are reported individually; their case counts are not added together. Source labels that point to merged main commits identify identical app code. They do not mean that a test was rerun after merging."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Target / recorded source",
+        "Media and operations",
+        "Recorded result",
+        "Environment and scope"
+      ],
+      "rows": [
+        [
+          "iOS / tvOS / Player 3.128.0; source 640815f2f471",
+          "Licensed SDK playback, edited callbacks, Source replacement and event subscriptions, and native presentation/factory routes. The normal API inspector also sets volume and reads it back.",
+          "iOS: 4 SDK checks and 1 GUI check passed. tvOS: 4 SDK checks and 1 GUI check passed.",
+          "iPhone 18 Pro Simulator, iOS 27.0; Apple TV 4K (3rd generation) Simulator, tvOS 27.0. These runs do not establish remote receiver playback, a multi-device SharePlay session or DRM service behavior."
+        ],
+        [
+          "React Native / wrapper 1.29.0; source 0bebab9f521c",
+          "Normal app with an edited request callback, 60-second HLS, repeated load/unload, player recreation and advancing playback.",
+          "1 iOS GUI check passed in 205.221 s. The edited callback changed volume to 17 and playback advanced after replacement.",
+          "iPhone 17 Pro Simulator, iOS 26.4.1; Expo 57.0.30, React Native 0.86.3, Hermes. The source label identifies the same app bytes as the recorded run."
+        ],
+        [
+          "React Native Android / wrapper 1.29.0; source 0bebab9f521c",
+          "Normal app with the same 60-second HLS, edited callback, load/unload and recreation; seek/play followed by current-time queries.",
+          "Volume 17; duration 60 s before and after recreation; 2 load/unload cycles. Current time advanced from 13.805 to 19.955 s.",
+          "Android 16 / API 36 ARM64 emulator; Expo 57.0.30 and Hermes. The same normal app process was inspected in recorded phases with automation resumes; these values are not a single uninterrupted test-suite duration."
+        ],
+        [
+          "React Native Source ownership / source 0bebab9f521c",
+          "Separate read-only observations of actual wrapper Sources during load/unload and recreation on each OS.",
+          "Each OS: 5 Sources tracked, 1 current, 4 retired; no retired Source retained its native marker.",
+          "iOS 26.4.1 Simulator and Android 16 emulator. This observer samples only the Sources attached in this flow. It is not a count of all SDK-internal Sources or a long-session memory test."
+        ],
+        [
+          "Vega / Player 8.138.0-beta.28; source 0bebab9f521c",
+          "Normal app: an approved edited request callback, 60-second HLS, seek/play and native API queries.",
+          "Volume 17; duration 59.999993 s. Current time advanced from 12.190 to 14.503 s, a change of 2.313 s.",
+          "Vega virtual device, OS 1.2, development SDK 0.24.12112, W3C Media 2.3.2. This is the normal app flow, separate from the interstitial observation below."
+        ],
+        [
+          "Vega HLS interstitials / separate instrumented profile based on 07496d6",
+          "A compatible HLS source with an interstitial; schedule, active ad, skip and return to the main source.",
+          "The SDK reported a scheduled interstitial and active linear ad. Skip produced AdSkipped and AdBreakFinished, cleared the active ad and returned to main playback.",
+          "The same Vega virtual-device environment. This build includes the advertising modules and an observer that pauses at AdStarted so the active ad can be inspected. This SDK-effect result is separate from the normal app's configuration and API-availability check."
+        ],
+        [
+          "Android DRM / Player 3.171.0+jason; source b6368a41cd41",
+          "Separate cold process starts with actual Widevine playback and edited identity message/license callbacks.",
+          "3 cold runs passed; both callbacks were invoked with zero fallback calls.",
+          "ARM64 Android emulator. These runtime checks precede the later signed live-buffer-depth change. Their APK and source receipts remain separate from that build."
+        ],
+        [
+          "Android VR renderer / earlier APK-bound candidate",
+          "Actual decoded video through the custom GL renderer, view-direction changes on a paused decoded frame, callback removal and return to the normal PlayerView.",
+          "1 SDK instrumentation check passed in 39.744 s. Rendering continued after callback removal; the retired callback stopped, and normal playback advanced after restoration.",
+          "Android emulator; the input APK and source-file hashes identify this earlier run. It does not qualify every graphics driver, projection, protected source or context-loss sequence."
+        ]
+      ],
+      "widths": [
+        0.19,
+        0.28,
+        0.25,
+        0.28
+      ]
+    },
+    {
+      "type": "p",
+      "text": "A separate normal-app Vega check read back enable_sgai_handling=true from PlayerAPI.getConfig and found the public sgai.list, sgai.getActiveAd and sgai.skip methods callable. Its schedule was empty. That check establishes configuration delivery and method availability; the active-ad and skip effects above come from the instrumented profile."
+    },
+    {
+      "type": "h2",
+      "text": "Configuration, generated code and build checks"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Source and check",
+        "Recorded result",
+        "What this checks"
+      ],
+      "rows": [
+        [
+          "Apple 640815f2f471: configuration and callback contracts",
+          "iOS: 79 passed. tvOS: 70 passed. The separate Node interpreter suite passed 55 cases.",
+          "Typed SDK values, callback conversion/fallback and ownership, and supported interpreter behavior. These counts are separate suites; the Node checks do not execute native playback."
+        ],
+        [
+          "Apple 640815f2f471: exported Swift",
+          "61 user examples passed type checking. 2 generated fixtures also passed with the shared production source factory.",
+          "The generated calls compile against the pinned SDK. Callback examples still require the public bundled interpreter files described in the Apple guide."
+        ],
+        [
+          "React Native 0bebab9f521c",
+          "120 wrapper tests and 8 host-generator tests passed; type checking passed. The wrapper suite includes 13 tests using the actual SDK's asynchronous initialization code with a deferred native bridge.",
+          "Configuration, generated host contracts and Source ownership. The deferred bridge checks are part of the wrapper suite and are not native playback results."
+        ],
+        [
+          "Vega 0bebab9f521c",
+          "106 tests, type checking and generated-metadata checks passed. Release packages built for armv7, x86_64 and aarch64.",
+          "JavaScript configuration, API dispatch and package construction. Package builds are separate from the virtual-device playback row above."
+        ],
+        [
+          "Android signed-depth change 640815f2f471",
+          "78 JVM tests passed; debug app and instrumentation APKs built.",
+          "Signed live-buffer depth reaches the legacy Player configuration and SourceLiveConfig. The earlier licensed advertising, DRM and VR records retain their own source/APK attribution; they were not rerun as part of this small configuration change."
+        ]
+      ],
+      "widths": [
+        0.24,
+        0.33,
+        0.43
+      ]
+    },
+    {
+      "type": "h2",
       "text": "Read CPU and memory values in context"
     },
     {
@@ -96,7 +217,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 370,
+      "line": 660,
       "label": "Current Android phone-emulator results"
     },
     {
@@ -111,8 +232,53 @@
     },
     {
       "path": "apps/vega/README.md",
-      "line": 304,
+      "line": 403,
       "label": "Vega runtime validation scope"
+    },
+    {
+      "path": "apps/ios/ShowcaseConfigurationTests/NativeRemoteSourceTests.swift",
+      "line": 1,
+      "label": "Apple configuration and generated callback checks"
+    },
+    {
+      "path": "apps/ios/ShowcaseConfigurationUITests/ApiInspectorUITests.swift",
+      "line": 1,
+      "label": "Normal Apple API inspector checks"
+    },
+    {
+      "path": "apps/ios/ShowcaseTrackRuntimeTests/NativePresentationRuntimeTests.swift",
+      "line": 1,
+      "label": "Licensed Apple presentation runtime checks"
+    },
+    {
+      "path": "apps/ios/scripts/test-native-script-engine.cjs",
+      "line": 1,
+      "label": "Bounded callback interpreter checks"
+    },
+    {
+      "path": "apps/react-native/test/sourceOwnershipSdk.test.ts",
+      "line": 1,
+      "label": "React Native initialization checks using the SDK source"
+    },
+    {
+      "path": "apps/vega/test/api.test.ts",
+      "line": 1,
+      "label": "Vega typed API checks"
+    },
+    {
+      "path": "apps/android/app/src/test/kotlin/com/playerlab/android/ApiSettingsTest.kt",
+      "line": 1,
+      "label": "Android signed buffer-depth configuration checks"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerApiDrmInstrumentedTest.kt",
+      "line": 1,
+      "label": "Android actual DRM callback check"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerVrRendererInstrumentedTest.kt",
+      "line": 1,
+      "label": "Android decoded-frame renderer check"
     }
   ]
 }
