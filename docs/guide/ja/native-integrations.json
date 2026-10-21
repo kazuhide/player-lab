@@ -273,7 +273,7 @@
   "sources": [
     {
       "path": "apps/react-native/README.md",
-      "line": 98,
+      "line": 112,
       "label": "Expo への統合手順と限界"
     },
     {
@@ -288,12 +288,12 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 69,
+      "line": 72,
       "label": "実画面と UI 切り替え"
     },
     {
       "path": "apps/react-native/src/ConfigurationPanel.tsx",
-      "line": 16,
+      "line": 18,
       "label": "React Native の編集項目・単位・Apply／Reset"
     },
     {
@@ -313,7 +313,7 @@
     },
     {
       "path": "apps/vega/src/App.tsx",
-      "line": 34,
+      "line": 47,
       "label": "app ID・再生設定・Analytics"
     },
     {
@@ -333,7 +333,7 @@
     },
     {
       "path": "apps/vega/src/ConfigurationPanel.tsx",
-      "line": 14,
+      "line": 16,
       "label": "Vega の編集項目・単位・Apply／Reset"
     },
     {

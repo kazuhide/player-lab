@@ -507,7 +507,7 @@ for (const language of languages) {
 
 test("localized guide figures and representative theme images decode", async ({ page }) => {
   for (const language of languages) {
-    for (const slug of ["start", "web-sources-tracks", "web-player-config", "themes", "native-apple", "native-android"]) {
+    for (const slug of ["start", "web-sources-tracks", "web-player-config", "themes", "native-apple", "native-android", "native-integrations"]) {
       await page.goto(guidePath(language, slug));
       const images = slug === "themes"
         ? page.locator("#default img, #custom-premiere img")

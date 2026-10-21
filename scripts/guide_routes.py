@@ -34,6 +34,14 @@ SHARED_FIGURES = {
     'tvos-initial-tracks': (3840, 2160),
     'tvos-video-scaling': (3840, 2160),
     'tvos-applied-code': (3840, 2160),
+    'rn-ios-subtitles': (1206, 2622),
+    'rn-ios-caption': (1206, 2622),
+    'rn-ios-code': (1206, 2622),
+    'rn-android-subtitles': (1080, 2400),
+    'rn-android-caption': (1080, 2400),
+    'vega-subtitles': (1920, 1080),
+    'vega-caption': (1920, 1080),
+    'vega-code': (1920, 1080),
 }
 COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'vega')
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
