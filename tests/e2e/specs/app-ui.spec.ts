@@ -133,7 +133,15 @@ for (const language of ["en", "ja"] as const) {
       await expect(preview).toHaveAttribute("open", "");
       await preview.locator("code").scrollIntoViewIfNeeded();
       await expect(preview.locator("code")).toBeInViewport();
-      await expect(preview.locator("code")).toHaveText("const uiConfig = {};");
+      const appliedCode = await preview.locator("code").innerText();
+      expect(appliedCode).toMatch(/^const uiConfig = \{[\s\S]*\};$/);
+      const applied = JSON.parse(appliedCode.slice("const uiConfig = ".length, -1));
+      expect(applied).toStrictEqual({ metadata: {
+        recommendations: [{ title: "VOD DASH (Big Buck Bunny)", resource: {
+          dash: "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd", title: "VOD DASH (Big Buck Bunny)",
+        } }],
+        markers: [{ time: 120, title: "Chapter 1" }, { time: 360, title: "Chapter 2" }, { time: 600, title: "Chapter 3" }],
+      } });
       const diffBottom = await construction.locator(".theme-diff").evaluate((el) => el.getBoundingClientRect().bottom);
       const previewTop = await preview.evaluate((el) => el.getBoundingClientRect().top);
       expect(previewTop, "the applied settings follow the theme construction code").toBeGreaterThanOrEqual(diffBottom - 1);
