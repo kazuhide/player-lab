@@ -5,14 +5,14 @@ import BitmovinPlayer
 extension AdvancedConfiguration {
     static var sourceObjectFields: [AdvancedConfigurationField] {
         [
-            .init("SourceConfig.metadata", .source, "metadata", .text, "JSON object, for example {\"category\":\"sample\"}. This editor supports JSON values, not AVMetadataItem instances."),
-            .init("SourceConfig.drmConfig", .source, "drmConfig", .choice(["none", "fairplay", "clearKey"]), "Select DRM, then enter its fields below. FairPlay playback needs compatible encrypted HLS, a certificate and a license service."),
+            .init("SourceConfig.metadata", .source, "metadata", .json(initial: "{}"), "JSON metadata, with optional native values: {\"title\":{\"$avMetadataItem\":{\"identifier\":\"common/title\",\"value\":\"Example\",\"languageTag\":\"en\"}}}. Native fields also support key/keySpace, dataType, locale, time, duration, startDate and extraAttributes. Native key/value accepts text, numbers, null, {$base64: text} or {$date: ISO8601}. Locale is applied after languageTag; AVFoundation can normalize the tag from that locale. Ordinary JSON values remain JSON."),
+            .init("SourceConfig.drmConfig", .source, "drmConfig", .choice(["none", "fairplay", "clearKey", "widevine", "playReady"]), "Select DRM, then enter its fields below. FairPlay needs compatible encrypted HLS, a certificate and a license service. Widevine/PlayReady configure receiver DRM; they do not enable unsupported local Apple DRM playback."),
             .init("DrmConfig.licenseUrl", .source, "drmConfig.licenseUrl", .url),
             .init("DrmConfig.uuid", .source, "drmConfig.uuid", .text, "Optional UUID override. Leave this override disabled to keep the DRM system's UUID."),
             .init("FairplayConfig.certificateUrl", .source, "drmConfig.certificateUrl", .url),
             .init("FairplayConfig.licenseRequestHeaders", .source, "drmConfig.licenseRequestHeaders", .text, "JSON string dictionary, for example {\"X-Example\":\"value\"}. Values are redacted from exported code."),
             .init("FairplayConfig.certificateRequestHeaders", .source, "drmConfig.certificateRequestHeaders", .text, "JSON string dictionary. Values are redacted from exported code."),
-            .init("DecryptionKey.key", .source, "drmConfig.decryptionKeys[0].key", .text, "ClearKey content key in hexadecimal. Kept in memory and redacted from exported code."),
+            .init("DecryptionKey.key", .source, "drmConfig.decryptionKeys[0].key", .secret, "ClearKey content key in hexadecimal. Kept in memory and redacted from exported code."),
             .init("DecryptionKey.kid", .source, "drmConfig.decryptionKeys[0].kid", .text, "Optional key identifier in hexadecimal."),
             .init("SourceConfig.tracks", .source, "tracks", .json(initial: "[]"), "Array of subtitle objects. Fields: url (null for manual cues), format, label, identifier, isDefaultTrack, language, associatedLanguage, characteristics and forced. Each identifier must be unique."),
             .init("Track.url", .source, "tracks[0].url", .url, "Enable this field and enter a URL for external subtitles, or leave it empty to create a manual cue track. The single-track editor can be combined with the array above using distinct identifiers."),
@@ -28,8 +28,8 @@ extension AdvancedConfiguration {
             .init("ThumbnailTrack.label", .source, "thumbnailTrack.label", .text, "Inherited Track.label, for the thumbnail track."),
             .init("ThumbnailTrack.identifier", .source, "thumbnailTrack.identifier", .text, "Inherited Track.identifier, for the thumbnail track."),
             .init("ThumbnailTrack.isDefaultTrack", .source, "thumbnailTrack.isDefaultTrack", .boolean, "Inherited Track.isDefaultTrack, for the thumbnail track."),
-            .init("SystemUserInterfaceConfig.subtitleStyles", .player, "styleConfig.userInterfaceConfig.subtitleStyles", .text, "JSON text-markup attributes for one AVTextStyleRule. Requires System UI."),
-            .init("SubtitleUserInterfaceConfig.subtitleStyles", .player, "styleConfig.userInterfaceConfig.subtitleStyles", .text, "JSON text-markup attributes for one AVTextStyleRule. Requires Subtitle UI."),
+            .init("SystemUserInterfaceConfig.subtitleStyles", .player, "styleConfig.userInterfaceConfig.subtitleStyles", .json(initial: "null"), "null restores defaults; an array of AVTextStyleRule attribute dictionaries supplies multiple rules. A single dictionary is accepted as one rule. Requires System UI."),
+            .init("SubtitleUserInterfaceConfig.subtitleStyles", .player, "styleConfig.userInterfaceConfig.subtitleStyles", .json(initial: "null"), "null restores defaults; an array of AVTextStyleRule attribute dictionaries supplies multiple rules. A single dictionary is accepted as one rule. Requires Subtitle UI."),
         ]
     }
 
@@ -38,12 +38,14 @@ extension AdvancedConfiguration {
         case "SourceConfig.tracks":
             _ = try NativeSubtitleDraft.array(value)
             return try normalizedJson(JSONSerialization.jsonObject(with: Data(value.utf8)))
-        case "SourceConfig.metadata", "SystemUserInterfaceConfig.subtitleStyles", "SubtitleUserInterfaceConfig.subtitleStyles":
-            let object = try parseJsonObject(value, id: id)
-            if id.hasSuffix("subtitleStyles"), AVTextStyleRule(textMarkupAttributes: object) == nil {
-                throw ConfigurationValidationError(message: "\(id) contains invalid AVTextStyleRule attributes.")
-            }
-            return try normalizedJson(object)
+        case "SourceConfig.metadata":
+            _ = try NativeMetadataDraft(json: value)
+            return try normalizedJson(parseJsonObject(value, id: id))
+        case "SystemUserInterfaceConfig.subtitleStyles", "SubtitleUserInterfaceConfig.subtitleStyles":
+            let object = try JSONSerialization.jsonObject(with: Data(value.utf8), options: [.fragmentsAllowed])
+            let json = try normalizedJson(object is [String: Any] ? [object] : object)
+            _ = try NativeCueDraft.styles(json)
+            return json
         case "FairplayConfig.licenseRequestHeaders", "FairplayConfig.certificateRequestHeaders":
             guard let headers = try parseJsonObject(value, id: id) as? [String: String] else {
                 throw ConfigurationValidationError(message: "\(id) requires a JSON object with string values.")
@@ -69,7 +71,7 @@ extension AdvancedConfiguration {
     func validateSourceObjects() throws {
         let drm = values["SourceConfig.drmConfig"] ?? "none"
         let hasFairplay = values.keys.contains { $0.hasPrefix("FairplayConfig.") }
-        let hasKey = values.keys.contains { $0.hasPrefix("DecryptionKey.") }
+        let hasKey = values.keys.contains { $0.hasPrefix("DecryptionKey.") || $0.hasPrefix("ClearKeyConfig.") }
         if hasFairplay && drm != "fairplay" { throw ConfigurationValidationError(message: "Select FairPlay in SourceConfig.drmConfig before editing FairPlay fields.") }
         if hasKey && drm != "clearKey" { throw ConfigurationValidationError(message: "Select ClearKey in SourceConfig.drmConfig before editing a decryption key.") }
         if values.keys.contains(where: { $0.hasPrefix("DrmConfig.") }) && drm == "none" {
@@ -78,8 +80,11 @@ extension AdvancedConfiguration {
         if drm == "fairplay" && (values["FairplayConfig.certificateUrl"] ?? "").isEmpty {
             throw ConfigurationValidationError(message: "FairPlay requires FairplayConfig.certificateUrl.")
         }
-        if drm == "clearKey" && (values["DecryptionKey.key"] ?? "").isEmpty {
-            throw ConfigurationValidationError(message: "ClearKey requires DecryptionKey.key.")
+        if drm == "clearKey" && configuredClearKeys().isEmpty {
+            throw ConfigurationValidationError(message: "ClearKey requires a decryption key in its array or single-key editor.")
+        }
+        for (owner, kind) in [("WidevineConfig.", "widevine"), ("PlayReadyConfig.", "playReady")] {
+            if values.keys.contains(where: { $0.hasPrefix(owner) }), drm != kind { throw ConfigurationValidationError(message: "Select \(kind) in SourceConfig.drmConfig before editing its receiver DRM fields.") }
         }
         if hasSubtitleFields && values["Track.url"] == nil {
             throw ConfigurationValidationError(message: "Enable Track.url, then enter an external subtitle URL or leave it empty for a manual cue track.")
@@ -120,7 +125,7 @@ extension AdvancedConfiguration {
     }
 
     func applySourceObjects(to config: SourceConfig) {
-        if let metadata = jsonValue("SourceConfig.metadata") as? [String: Any] { config.metadata = metadata }
+        if let json = values["SourceConfig.metadata"] { config.metadata = try! NativeMetadataDraft(json: json).values }
         if let json = values["SourceConfig.tracks"], let tracks = try? NativeSubtitleDraft.array(json) {
             for track in tracks { config.add(subtitleTrack: track.make()) }
         }
@@ -141,7 +146,8 @@ extension AdvancedConfiguration {
             fairplay.certificateRequestHeaders = jsonValue("FairplayConfig.certificateRequestHeaders") as? [String: String]
             config.drmConfig = fairplay
         case "clearKey":
-            config.drmConfig = ClearKeyConfig(decryptionKeys: [DecryptionKey(kid: nonempty("DecryptionKey.kid"), key: values["DecryptionKey.key"]!)])
+            config.drmConfig = ClearKeyConfig(decryptionKeys: configuredClearKeys())
+        case "widevine", "playReady": config.drmConfig = makeReceiverDrm(values["SourceConfig.drmConfig"]!)
         default: break
         }
         if let url = values["DrmConfig.licenseUrl"] { config.drmConfig?.licenseUrl = url.isEmpty ? nil : URL(string: url) }
@@ -149,13 +155,11 @@ extension AdvancedConfiguration {
     }
 
     func applySourceObjectUI(to config: PlayerConfig) {
-        if let attributes = jsonValue("SystemUserInterfaceConfig.subtitleStyles") as? [String: Any],
-           let ui = config.styleConfig.userInterfaceConfig as? SystemUserInterfaceConfig,
-           let rule = AVTextStyleRule(textMarkupAttributes: attributes) { ui.subtitleStyles = [rule] }
-        if let attributes = jsonValue("SubtitleUserInterfaceConfig.subtitleStyles") as? [String: Any],
-           let rule = AVTextStyleRule(textMarkupAttributes: attributes) {
+        if let json = values["SystemUserInterfaceConfig.subtitleStyles"],
+           let ui = config.styleConfig.userInterfaceConfig as? SystemUserInterfaceConfig { ui.subtitleStyles = try! NativeCueDraft.styles(json) }
+        if let json = values["SubtitleUserInterfaceConfig.subtitleStyles"] {
             let ui = SubtitleUserInterfaceConfig()
-            ui.subtitleStyles = [rule]
+            ui.subtitleStyles = try! NativeCueDraft.styles(json)
             config.styleConfig.userInterfaceConfig = ui
         }
     }
@@ -197,6 +201,6 @@ extension AdvancedConfiguration {
     }
 
     private static func normalizedJson(_ object: Any) throws -> String {
-        String(decoding: try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys]), as: UTF8.self)
+        String(decoding: try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .fragmentsAllowed]), as: UTF8.self)
     }
 }

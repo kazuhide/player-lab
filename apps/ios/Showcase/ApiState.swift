@@ -61,6 +61,9 @@ extension PlayerModel {
         put("AdvertisingApi.schedule", "\(player.ads.schedule.count) ad items")
         put("Player.availableAudio", player.availableAudio.prefix(32).map { "\($0.identifier): \($0.label) [\($0.language ?? "und")]" }.joined(separator: "\n"))
         put("Player.availableSubtitles", player.availableSubtitles.prefix(32).map { "\($0.identifier): \($0.label) [\($0.language ?? "und")]" }.joined(separator: "\n"))
+        put("SubtitleTrack.controller", player.availableSubtitles.prefix(32).map { "\($0.identifier): object \(ObjectIdentifier($0.controller).hashValue)" }.joined(separator: "\n"))
+        let tracks: [Track] = player.availableAudio.map { $0 as Track } + player.availableSubtitles.map { $0 as Track }
+        put("Track.type", tracks.prefix(64).map { "\($0.identifier): \($0.type)" }.joined(separator: "\n"))
         put("Player.audio", player.audio.map { "\($0.identifier): \($0.label)" } ?? "None")
         put("Player.subtitle", player.availableSubtitles.isEmpty ? "Off / unavailable" : player.subtitle.label)
         put("Player.availableVideoQualities", player.availableVideoQualities.prefix(32).map(Self.qualityText).joined(separator: "\n"))
@@ -93,6 +96,7 @@ extension PlayerModel {
             put("UserInterfaceApi.isPictureInPicture", String(view.isPictureInPicture))
             put("UserInterfaceApi.scalingMode", String(describing: view.scalingMode))
             put("PlayerView.pictureInPicture", "Enabled: \(view.pictureInPicture.isEnabled)")
+            put("PlayerView.systemUi", view.systemUi.map { "Object \(ObjectIdentifier($0).hashValue)" } ?? "Not active for the current UI type")
             put("PlayerView.events", "Object \(ObjectIdentifier(view.events).hashValue); typed listener recording: \(apiEventsEnabled)")
             put("PlayerView.contentOverlay", "Object \(ObjectIdentifier(view.contentOverlay).hashValue)")
             put("ContentOverlayApi.view", "UIView \(ObjectIdentifier(view.contentOverlay.view).hashValue); frame=\(view.contentOverlay.view.frame)")

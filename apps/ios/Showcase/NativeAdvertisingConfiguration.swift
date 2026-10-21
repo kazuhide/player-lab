@@ -46,7 +46,7 @@ extension AdvancedConfiguration {
             guard let value = UInt(value) else { throw ConfigurationValidationError(message: "ImaSettings.maxRedirects needs an unsigned whole number.") }
             return String(value)
         }
-        return value
+        return try normalizeRichValue(value, id: id)
     }
 
     func applyAdvertisingFields(to config: PlayerConfig) {

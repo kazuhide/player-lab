@@ -1,4 +1,5 @@
 import BitmovinPlayer
+import AVFoundation
 import UIKit
 import XCTest
 #if os(tvOS)
@@ -29,6 +30,10 @@ final class NativeExtendedRuntimeTests: XCTestCase {
         try await eventually("content playback") { model.player.currentTime > 0.5 && !model.player.availableSubtitles.isEmpty }
         try model.executeApi(.sourceMetadata, arguments: ["json": "{\"category\":\"manual-subtitle-qualification\"}"])
         XCTAssertEqual(model.player.source?.metadata?["category"] as? String, "manual-subtitle-qualification")
+        try model.executeApi(.sourceMetadata, arguments: ["json": "{\"title\":{\"$avMetadataItem\":{\"identifier\":\"common/title\",\"value\":\"Native metadata example\",\"languageTag\":\"und\"}}}"])
+        let nativeTitle = try XCTUnwrap(model.player.source?.metadata?["title"] as? AVMetadataItem)
+        XCTAssertEqual(nativeTitle.identifier, .commonIdentifierTitle)
+        XCTAssertEqual(nativeTitle.stringValue, "Native metadata example")
         try model.executeApi(.subtitleAdd, arguments: ["json": "{\"identifier\":\"manual-qualification\",\"label\":\"Manual example\",\"language\":\"en\",\"url\":null}"])
         try await eventually("manual subtitle addition") { model.player.availableSubtitles.contains { $0.identifier == "manual-qualification" } }
         try model.executeApi(.subtitle, arguments: ["value": "manual-qualification"])

@@ -37,7 +37,7 @@ extension ApiOperation {
         let position = ApiArgument("time", "Position (seconds)", .number(minimum: 0))
         let cueNote = "Fields: startTime, endTime, html, text, rawText, attributedText (text or {string,fontSize,foregroundColor}), imageBase64, position:{column,row}, region, regionStyle and vttFromParsedCue (a current parsed-cue index). Image bytes are excluded from code. VTT properties come from real CueParsedEvent objects."
         switch self {
-        case .sourceMetadata: return [.init("json", "Source metadata JSON (null clears)", .json(initial: "{}"), note: "This operation supports JSON values. The SDK also supports native AVMetadataItem values, which need the metadata object factory.")]
+        case .sourceMetadata: return [.init("json", "Source metadata JSON (null clears)", .json(initial: "{}"), note: "Supports ordinary JSON and {$avMetadataItem: {...}} native metadata values using the same typed factory as SourceConfig.metadata.")]
         case .subtitleAdd: return [.init("json", "Subtitle object", .json(initial: "{\"identifier\":\"manual-example\",\"label\":\"Manual example\",\"url\":null,\"format\":\"webVtt\"}"), note: "Fields: url (null for manual cues), format, label, identifier, isDefaultTrack, language, associatedLanguage, characteristics and forced. The identifier must not already exist on the current source.")]
         case .cueEnter: return [.init("track", "Existing subtitle track identifier", .text), .init("json", "Cue object", .json(initial: "{\"startTime\":0,\"endTime\":5,\"text\":\"Example subtitle\"}"), note: cueNote)]
         case .cueExit: return [.init("track", "Identifier used by the last cueEnter for this source", .text)]
@@ -70,7 +70,7 @@ extension ApiOperation {
         case .sourceMetadata:
             let object = try JSONSerialization.jsonObject(with: Data(json.utf8), options: [.fragmentsAllowed])
             guard object is NSNull || object is [String: Any] else { throw invalidExtended("Source metadata needs an object or null.") }
-            return object is NSNull ? "player.source?.metadata = nil" : "player.source?.metadata = try! JSONSerialization.jsonObject(with: Data(\(swiftString(json)).utf8)) as? [String: AnyObject]"
+            return object is NSNull ? "player.source?.metadata = nil" : (try NativeMetadataDraft(json: json).code + ["player.source?.metadata = sourceMetadata.mapValues { $0 as AnyObject }"]).joined(separator: "\n")
         case .subtitleAdd: return "let track = \(try NativeSubtitleDraft.parse(json).code)\nplayer.addSubtitle(track: track)"
         case .cueEnter:
             let draft = try NativeCueDraft(json: json, parsedCues: parsedCues)
@@ -130,7 +130,7 @@ extension PlayerModel {
             guard let source = player.source else { throw apiInputError("Load a source first.") }
             let object = try JSONSerialization.jsonObject(with: Data(json.utf8), options: [.fragmentsAllowed])
             if object is NSNull { source.metadata = nil }
-            else if let metadata = object as? [String: AnyObject] { source.metadata = metadata }
+            else if object is [String: Any] { source.metadata = try NativeMetadataDraft(json: json).values.mapValues { $0 as AnyObject } }
             else { throw apiInputError("Source metadata needs an object or null.") }
         case .subtitleAdd:
             guard player.source != nil else { throw apiInputError("Load a source first.") }

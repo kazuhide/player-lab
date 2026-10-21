@@ -3,7 +3,7 @@ import Foundation
 extension AdvancedConfiguration {
     var sourceObjectCode: [String] {
         var lines: [String] = []
-        if let value = values["SourceConfig.metadata"] { lines.append("sourceConfig.metadata = try! JSONSerialization.jsonObject(with: Data(\(swiftString(value)).utf8)) as! [String: Any]") }
+        if let value = values["SourceConfig.metadata"], let draft = try? NativeMetadataDraft(json: value) { lines += draft.code + ["sourceConfig.metadata = sourceMetadata"] }
         if let json = values["SourceConfig.tracks"], let tracks = try? NativeSubtitleDraft.array(json) {
             for track in tracks { lines.append("sourceConfig.add(subtitleTrack: \(track.code))") }
         }
@@ -19,9 +19,9 @@ extension AdvancedConfiguration {
         switch values["SourceConfig.drmConfig"] {
         case "none": lines.append("sourceConfig.drmConfig = nil")
         case "clearKey":
-            lines += ["// Replace the placeholder locally. Content keys are excluded from exported code.",
-                "let clearKey = DecryptionKey(kid: \(optionalQuoted("DecryptionKey.kid")), key: \"<CONTENT_KEY>\")",
-                "sourceConfig.drmConfig = ClearKeyConfig(decryptionKeys: [clearKey])"]
+            lines += ["// Replace placeholders locally. Content keys are excluded from exported code.",
+                "let clearKeys = [" + configuredClearKeys().map { "DecryptionKey(kid: \($0.kid.map(swiftString) ?? "nil"), key: \"<CONTENT_KEY>\")" }.joined(separator: ", ") + "]",
+                "sourceConfig.drmConfig = ClearKeyConfig(decryptionKeys: clearKeys)"]
         case "fairplay":
             lines.append("let fairplay = FairplayConfig(license: \(optionalUrl("DrmConfig.licenseUrl")), certificateURL: URL(string: \(quoted("FairplayConfig.certificateUrl")))!)")
             for field in ["licenseRequestHeaders", "certificateRequestHeaders"] {
@@ -32,17 +32,20 @@ extension AdvancedConfiguration {
             lines.append("sourceConfig.drmConfig = fairplay")
         default: break
         }
+        lines += receiverDrmCode
         if values["DrmConfig.licenseUrl"] != nil { lines.append("sourceConfig.drmConfig?.licenseUrl = \(optionalUrl("DrmConfig.licenseUrl"))") }
         if let uuid = values["DrmConfig.uuid"] { lines.append("sourceConfig.drmConfig?.uuid = UUID(uuidString: \(swiftString(uuid)))!") }
         if let attributes = values["SystemUserInterfaceConfig.subtitleStyles"] {
-            lines += ["let systemAttributes = try! JSONSerialization.jsonObject(with: Data(\(swiftString(attributes)).utf8)) as! [String: Any]",
-                "systemUiConfig.subtitleStyles = [AVTextStyleRule(textMarkupAttributes: systemAttributes)!]"]
+            if attributes == "null" { lines.append("systemUiConfig.subtitleStyles = nil") }
+            else { lines += ["let systemAttributes = try! JSONSerialization.jsonObject(with: Data(\(swiftString(attributes)).utf8)) as! [[String: Any]]",
+                "systemUiConfig.subtitleStyles = systemAttributes.compactMap { AVTextStyleRule(textMarkupAttributes: $0) }"] }
         }
         if let attributes = values["SubtitleUserInterfaceConfig.subtitleStyles"] {
-            lines += ["let subtitleUi = SubtitleUserInterfaceConfig()",
-                "let subtitleAttributes = try! JSONSerialization.jsonObject(with: Data(\(swiftString(attributes)).utf8)) as! [String: Any]",
-                "subtitleUi.subtitleStyles = [AVTextStyleRule(textMarkupAttributes: subtitleAttributes)!]",
-                "playerConfig.styleConfig.userInterfaceConfig = subtitleUi"]
+            lines.append("let subtitleUi = SubtitleUserInterfaceConfig()")
+            if attributes == "null" { lines.append("subtitleUi.subtitleStyles = nil") }
+            else { lines += ["let subtitleAttributes = try! JSONSerialization.jsonObject(with: Data(\(swiftString(attributes)).utf8)) as! [[String: Any]]",
+                "subtitleUi.subtitleStyles = subtitleAttributes.compactMap { AVTextStyleRule(textMarkupAttributes: $0) }"] }
+            lines.append("playerConfig.styleConfig.userInterfaceConfig = subtitleUi")
         }
         return lines
     }

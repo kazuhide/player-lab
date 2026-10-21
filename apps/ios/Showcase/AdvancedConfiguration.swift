@@ -180,7 +180,7 @@ struct AdvancedConfiguration: Equatable {
         if #available(iOS 27, tvOS 27, *) {
             fields.append(.init("TweaksConfig.includeMachineGeneratedSubtitles", .player, "tweaksConfig.includeMachineGeneratedSubtitles", .boolean))
         }
-        return fields + Self.sourceObjectFields + Self.nativeCallbackFields + Self.nativeAdvertisingFields
+        return fields + Self.sourceObjectFields + Self.nativeCallbackFields + Self.nativeAdvertisingFields + Self.richFields
     }
 
     func apply(to config: SourceConfig, callbackJournal: NativeCallbackJournal? = nil) {
@@ -202,6 +202,7 @@ struct AdvancedConfiguration: Equatable {
 
     func apply(to config: PlayerConfig, callbackJournal: NativeCallbackJournal? = nil) {
         applyAdvertisingFields(to: config)
+        applyRichPlayer(to: config)
         for (id, value) in values {
             switch id {
             case "PlaybackConfig.isBackgroundPlaybackEnabled": config.playbackConfig.isBackgroundPlaybackEnabled = value == "true"
@@ -268,6 +269,7 @@ struct AdvancedConfiguration: Equatable {
             if let value = values["BitmovinUserInterfaceConfig.forceSubtitlesIntoViewContainer"] { ui.forceSubtitlesIntoViewContainer = value == "true" }
             if let value = values["BitmovinUserInterfaceConfig.hideFirstFrame"] { ui.hideFirstFrame = value == "true" }
             if let value = values["BitmovinUserInterfaceConfig.playbackSpeedSelectionEnabled"] { ui.playbackSpeedSelectionEnabled = value == "true" }
+            if let value = jsonValue("BitmovinUserInterfaceConfig.customOptions") as? [String: Any] { ui.customOptions = value }
             if let value = values["BitmovinUserInterfaceMetadata.title"] { ui.metadata.title = value.isEmpty ? nil : value }
             if let value = values["BitmovinUserInterfaceMetadata.sourceDescription"] { ui.metadata.sourceDescription = value.isEmpty ? nil : value }
             config.styleConfig.userInterfaceConfig = ui
@@ -304,6 +306,7 @@ struct AdvancedConfiguration: Equatable {
             if Self.sourceObjectFields.contains(where: { $0.id == field.id }) { continue }
             if Self.nativeCallbackFields.contains(where: { $0.id == field.id }) { continue }
             if Self.nativeAdvertisingFields.contains(where: { $0.id == field.id }) { continue }
+            if Self.richFields.contains(where: { $0.id == field.id }) { continue }
             let root = field.owner == .source ? "sourceConfig" : field.owner == .view ? "playerViewConfig" : "playerConfig"
             var path = root + "." + field.path
             if field.id.hasPrefix("SystemUserInterfaceConfig.") { path = "systemUiConfig." + field.id.components(separatedBy: ".").last! }
@@ -317,6 +320,7 @@ struct AdvancedConfiguration: Equatable {
             lines.append(assignment)
         }
         lines += sourceObjectCode
+        lines += richCode
         lines += nativeAdvertisingCode
         lines += nativeCallbackCode
         if values.keys.contains(where: { $0.hasPrefix("SystemUserInterfaceConfig.") }) { lines.append("playerConfig.styleConfig.userInterfaceConfig = systemUiConfig") }

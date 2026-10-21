@@ -110,6 +110,8 @@ targets:
       - Showcase/NativePlaylistWorkbench.swift
       - Showcase/NativeSubtitleDraft.swift
       - Showcase/NativeCueDraft.swift
+      - Showcase/NativeMetadataDraft.swift
+      - Showcase/NativeRichConfiguration.swift
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
       - Showcase/NativeExtendedApi.swift
@@ -213,6 +215,8 @@ targets:
       - Showcase/NativePlaylistWorkbench.swift
       - Showcase/NativeSubtitleDraft.swift
       - Showcase/NativeCueDraft.swift
+      - Showcase/NativeMetadataDraft.swift
+      - Showcase/NativeRichConfiguration.swift
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
       - Showcase/NativeExtendedApi.swift
