@@ -20,6 +20,7 @@ func configurationCode(source: SourceSettings?, player: PlayerSettings, uiMode: 
     guard let source else { return "// Select a source before exporting its configuration." }
     var lines = [
         "import Foundation",
+        "import AVFoundation",
         "import BitmovinPlayer",
         "",
         "let playerConfig = PlayerConfig()",

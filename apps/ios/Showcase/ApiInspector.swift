@@ -1,4 +1,7 @@
 import SwiftUI
+#if !os(tvOS)
+import UIKit
+#endif
 
 private enum ApiInspectorPane: String, CaseIterable, Identifiable {
     case operations = "Operations", state = "State", events = "Events"
@@ -16,6 +19,7 @@ struct ApiInspector: View {
     @State private var stateFilter = ""
     @State private var pane = ApiInspectorPane.operations
     @State private var showsCode = false
+    @State private var showsOperations = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -41,13 +45,15 @@ struct ApiInspector: View {
                     TextField("Filter operation name", text: $operationFilter)
                         .disableAutocorrection(true)
                         .accessibilityIdentifier("api.operation.filter")
+                    #if os(tvOS)
+                    Button("Operation: \(operation.rawValue)") { showsOperations = true }
+                        .accessibilityIdentifier("api.operation")
+                    #else
                     Picker("Operation", selection: $operation) {
                         ForEach(ApiOperation.allCases.filter { $0 == operation || operationFilter.isEmpty || $0.rawValue.localizedCaseInsensitiveContains(operationFilter) }) { Text($0.rawValue).tag($0) }
                     }
-                    #if os(tvOS)
-                    .pickerStyle(.inline)
-                    #endif
                     .accessibilityIdentifier("api.operation")
+                    #endif
                     ForEach(operation.arguments) { argument in
                         argumentField(argument)
                     }
@@ -112,6 +118,7 @@ struct ApiInspector: View {
                   }
                 }
             }
+            .id(pane)
             .accessibilityIdentifier("api.form")
         }
         .padding()
@@ -121,6 +128,19 @@ struct ApiInspector: View {
         .onAppear { model.refreshApiState() }
         .onChange(of: operation) { _ in arguments.removeAll(); error = nil }
         .onChange(of: pane) { _ in if pane == .state { model.refreshApiState() } }
+        #if os(tvOS)
+        .fullScreenCover(isPresented: $showsOperations) {
+            TvApiOperationSelector(selection: $operation)
+        }
+        #else
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+                    .accessibilityIdentifier("api.keyboard.done")
+            }
+        }
+        #endif
     }
 
     @ViewBuilder
@@ -148,3 +168,29 @@ struct ApiInspector: View {
         }
     }
 }
+
+#if os(tvOS)
+private struct TvApiOperationSelector: View {
+    @Binding var selection: ApiOperation
+    @Environment(\.dismiss) private var dismiss
+    @State private var filter = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Choose SDK operation").font(.title2)
+                Spacer()
+                Button("Cancel") { dismiss() }
+            }
+            TextField("Filter operation name", text: $filter)
+                .disableAutocorrection(true)
+                .accessibilityIdentifier("api.operation.selector.filter")
+            List(ApiOperation.allCases.filter { filter.isEmpty || $0.rawValue.localizedCaseInsensitiveContains(filter) }) { operation in
+                Button(operation.rawValue) { selection = operation; dismiss() }
+                    .accessibilityIdentifier("api.operation.select.\(operation.id)")
+            }
+        }
+        .padding(60)
+    }
+}
+#endif

@@ -80,7 +80,7 @@ struct AdvancedConfiguration: Equatable {
                 throw ConfigurationValidationError(message: "Unknown or unavailable configuration API: \(id)")
             }
             if owner == nil || field.owner == owner || (owner == .player && field.owner == .view) {
-                self.values[id] = try field.input.validate(value, field: id)
+                self.values[id] = try Self.normalizeSourceObjectValue(field.input.validate(value, field: id), id: id)
                 if ["StyleConfig.playerUiJs", "StyleConfig.playerUiCss"].contains(id) && self.values[id] == "" {
                     throw ConfigurationValidationError(message: "\(id) requires a resource URL when overridden.")
                 }
@@ -101,6 +101,7 @@ struct AdvancedConfiguration: Equatable {
             throw ConfigurationValidationError(message: "Select Bitmovin in StyleConfig.userInterfaceType before editing Web UI fields.")
         }
         #endif
+        try validateSourceObjects()
     }
 
     static var fields: [AdvancedConfigurationField] {
@@ -173,7 +174,7 @@ struct AdvancedConfiguration: Equatable {
         if #available(iOS 27, tvOS 27, *) {
             fields.append(.init("TweaksConfig.includeMachineGeneratedSubtitles", .player, "tweaksConfig.includeMachineGeneratedSubtitles", .boolean))
         }
-        return fields
+        return fields + Self.sourceObjectFields
     }
 
     func apply(to config: SourceConfig) {
@@ -189,6 +190,7 @@ struct AdvancedConfiguration: Equatable {
             default: break
             }
         }
+        applySourceObjects(to: config)
     }
 
     func apply(to config: PlayerConfig) {
@@ -265,6 +267,7 @@ struct AdvancedConfiguration: Equatable {
         if let value = values["StyleConfig.playerUiCss"], !value.isEmpty { config.styleConfig.playerUiCss = URL(string: value)! }
         if let value = values["StyleConfig.supplementalPlayerUiCss"] { config.styleConfig.supplementalPlayerUiCss = value.isEmpty ? nil : URL(string: value) }
         #endif
+        applySourceObjectUI(to: config)
     }
 
     func apply(to config: PlayerViewConfig) {
@@ -289,6 +292,7 @@ struct AdvancedConfiguration: Equatable {
         #endif
         for field in Self.fields {
             guard let value = values[field.id] else { continue }
+            if Self.sourceObjectFields.contains(where: { $0.id == field.id }) { continue }
             let root = field.owner == .source ? "sourceConfig" : field.owner == .view ? "playerViewConfig" : "playerConfig"
             var path = root + "." + field.path
             if field.id.hasPrefix("SystemUserInterfaceConfig.") { path = "systemUiConfig." + field.id.components(separatedBy: ".").last! }
@@ -301,6 +305,7 @@ struct AdvancedConfiguration: Equatable {
             if field.id == "TweaksConfig.includeMachineGeneratedSubtitles" { assignment = "if #available(iOS 27, tvOS 27, *) { \(assignment) }" }
             lines.append(assignment)
         }
+        lines += sourceObjectCode
         if values.keys.contains(where: { $0.hasPrefix("SystemUserInterfaceConfig.") }) { lines.append("playerConfig.styleConfig.userInterfaceConfig = systemUiConfig") }
         #if !os(tvOS)
         if values.keys.contains(where: { $0.hasPrefix("BitmovinUserInterface") }) { lines.append("playerConfig.styleConfig.userInterfaceConfig = webUiConfig") }

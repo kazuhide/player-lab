@@ -94,12 +94,13 @@ private final class FullscreenSurfaceController: UIViewController {
             videoContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
         let button = UIButton(type: .system)
-        button.setTitle("Return to inline player", for: .normal)
-        #if os(tvOS)
-        button.backgroundColor = .darkGray
-        #else
-        button.backgroundColor = .secondarySystemBackground
-        #endif
+        var configuration = UIButton.Configuration.filled()
+        configuration.title = "Exit fullscreen"
+        configuration.baseBackgroundColor = UIColor.black.withAlphaComponent(0.75)
+        configuration.baseForegroundColor = .white
+        configuration.cornerStyle = .capsule
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12)
+        button.configuration = configuration
         button.addAction(UIAction { [weak self] _ in self?.close?() }, for: .primaryActionTriggered)
         button.accessibilityIdentifier = "api.fullscreen.exit"
         view.addSubview(button)
