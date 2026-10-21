@@ -285,6 +285,27 @@ class AppleAdapterTests(unittest.TestCase):
                         self.assertLessEqual(evidence["line"], len(lines))
                         self.assertIn(evidence["symbol"], lines[evidence["line"] - 1])
 
+    def test_sdk_consumer_evidence_does_not_substitute_exported_code_strings(self):
+        exposure = json.loads((apple.HERE / "exposure.json").read_text())
+        repository = apple.HERE.parents[2]
+        for app, mapping in exposure["applications"].items():
+            for member, row in mapping.items():
+                if row["status"] not in ("direct", "observed") or not row["evidence"]:
+                    continue
+                evidence = row["evidence"][0]
+                line = (repository / evidence["file"]).read_text().splitlines()[evidence["line"] - 1].strip()
+                with self.subTest(app=app, member=member):
+                    self.assertFalse(line.startswith('return "') or ': return "' in line,
+                                     "A generated Swift string is not the executed SDK consumer")
+            exact = {"Player.playbackSpeed": "player.playbackSpeed = speed",
+                     "BufferApi.getLevel(_:)": "let level = player.buffer.getLevel(",
+                     "ThumbnailsApi.renderThumbnail(forTime:toleranceBefore:toleranceAfter:)":
+                         "player.thumbnails.renderThumbnail(forTime: time, toleranceBefore:"}
+            for member, statement in exact.items():
+                evidence = mapping["BitmovinPlayerCore." + member]["evidence"][0]
+                line = (repository / evidence["file"]).read_text().splitlines()[evidence["line"] - 1].strip()
+                self.assertTrue(line.startswith(statement), (app, member, line))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -2324,8 +2324,8 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ApiOperations.swift",
-            "line": 151,
-            "symbol": "case .bufferLevel: return \"let level = player.buffer.getLevel(.\\(value))\""
+            "line": 205,
+            "symbol": "let level = player.buffer.getLevel("
           },
           {
             "file": "apps/ios/Showcase/ApiInspector.swift",
@@ -7724,7 +7724,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ApiOperations.swift",
-            "line": 144,
+            "line": 195,
             "symbol": "player.playbackSpeed = speed"
           },
           {
@@ -12456,8 +12456,8 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/NativeExtendedApi.swift",
-            "line": 120,
-            "symbol": "case .renderThumbnail: return \"player.thumbnails.renderThumbnail(forTime: \\(time), toleranceBefore: \\(before), toleranceAfter: \\(after))\""
+            "line": 219,
+            "symbol": "player.thumbnails.renderThumbnail(forTime: time, toleranceBefore:"
           },
           {
             "file": "apps/ios/Showcase/ApiInspector.swift",
@@ -15174,8 +15174,8 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ApiOperations.swift",
-            "line": 151,
-            "symbol": "case .bufferLevel: return \"let level = player.buffer.getLevel(.\\(value))\""
+            "line": 205,
+            "symbol": "let level = player.buffer.getLevel("
           },
           {
             "file": "apps/ios/Showcase/ApiInspector.swift",
@@ -19169,7 +19169,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ApiOperations.swift",
-            "line": 144,
+            "line": 195,
             "symbol": "player.playbackSpeed = speed"
           },
           {
@@ -24006,8 +24006,8 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/NativeExtendedApi.swift",
-            "line": 120,
-            "symbol": "case .renderThumbnail: return \"player.thumbnails.renderThumbnail(forTime: \\(time), toleranceBefore: \\(before), toleranceAfter: \\(after))\""
+            "line": 219,
+            "symbol": "player.thumbnails.renderThumbnail(forTime: time, toleranceBefore:"
           },
           {
             "file": "apps/ios/Showcase/ApiInspector.swift",
