@@ -655,5 +655,111 @@ class CoverageGapTests(unittest.TestCase):
                 self.validate_gaps(gaps, self.report)
 
 
+
+class AndroidVariantTests(unittest.TestCase):
+    def setUp(self):
+        from android_variants import validate_variant
+        self.check_variant = validate_variant
+        root = Path(__file__).resolve().parents[1] / "docs/api-coverage"
+        self.contract = json.loads((root / "android/variant-contract.json").read_text())
+        report = json.loads((root / "coverage.json").read_text())
+        self.app = next(a for a in report["applications"] if a["id"] == "android")
+        self.sdk = next(s for s in report["sdks"] if s["id"] == "android")
+        self.sources = json.loads((root / "android/sources.json").read_text())
+        # The report fixture explicitly binds both published binary flavors.
+        known = {s["url"] for s in self.sdk["sources"]}
+        self.sdk["sources"] += [{"url": a["officialArtifact"], "sha256": a["aarSha256"]}
+                                for a in self.contract["artifacts"] if a["officialArtifact"] not in known]
+
+    def test_original_inventory_survives_binary_package_relocation(self):
+        self.check_variant(self.contract, self.app, self.sdk, self.sources)
+        self.assertEqual({r["id"] for r in self.contract["rows"]}, {r["id"] for r in self.app["rows"]})
+
+    def test_missing_duplicate_unknown_or_recategorized_member_is_rejected(self):
+        for change in ("missing", "duplicate", "unknown", "category"):
+            contract = copy.deepcopy(self.contract)
+            if change == "missing":
+                contract["rows"].pop()
+            elif change == "duplicate":
+                contract["rows"].append(copy.deepcopy(contract["rows"][0]))
+            elif change == "unknown":
+                contract["rows"][0]["id"] += ".invented"
+            else:
+                contract["rows"][0]["category"] = "invented"
+            with self.subTest(change=change), self.assertRaises(CoverageError):
+                self.check_variant(contract, self.app, self.sdk, self.sources)
+
+    def test_non_relocation_signature_drift_cannot_be_hidden_by_success_flags(self):
+        contract = copy.deepcopy(self.contract)
+        owner = next(r["owner"] for r in contract["rows"] if r["shapeDifferenceOwner"] is None)
+        contract["publicOwners"][owner]["jason"].append("public void inventedBehavior();")
+        with self.assertRaises(CoverageError):
+            self.check_variant(contract, self.app, self.sdk, self.sources)
+
+    def test_artifact_coordinates_hashes_and_canonical_report_binding_are_required(self):
+        for change in ("url", "hash", "module", "missing", "report-hash", "source-hash", "version"):
+            contract, sdk = copy.deepcopy(self.contract), copy.deepcopy(self.sdk)
+            if change == "url":
+                contract["artifacts"][0]["officialArtifact"] = "https://example.com/player.aar"
+            elif change == "hash":
+                contract["artifacts"][0]["aarSha256"] = "invalid"
+            elif change == "module":
+                contract["artifacts"][0]["module"] = "invented"
+            elif change == "missing":
+                contract["artifacts"].pop()
+            elif change == "report-hash":
+                target = contract["artifacts"][0]["officialArtifact"]
+                next(s for s in sdk["sources"] if s["url"] == target)["sha256"] = "0" * 64
+            elif change == "source-hash":
+                contract["sourceArtifact"]["sha256"] = "0" * 64
+            else:
+                contract["variantsCompared"][0] = "0.0.0"
+            with self.subTest(change=change), self.assertRaises(CoverageError):
+                self.check_variant(contract, self.app, sdk, self.sources)
+
+    def test_member_presence_is_derived_from_raw_signatures(self):
+        contract = copy.deepcopy(self.contract)
+        row = next(r for r in contract["rows"] if r["category"] == "command")
+        contract["publicOwners"][row["owner"]] = {"standard": ["public class Empty {"], "jason": ["public class Empty {"]}
+        with self.assertRaises(CoverageError):
+            self.check_variant(contract, self.app, self.sdk, self.sources)
+
+
+
+    def test_actual_app_flavor_requires_its_matching_snapshot(self):
+        from android_variants import check_android_variant
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "android").mkdir()
+            raw = (json.dumps(self.contract, ensure_ascii=False, indent=2) + "\n").encode()
+            metadata = copy.deepcopy(self.sources)
+            metadata.update(appVariant="+jason", variantContractSha256=hashlib.sha256(raw).hexdigest())
+            (root / "android/variant-contract.json").write_bytes(raw)
+            (root / "android/sources.json").write_text(json.dumps(metadata))
+            data = {"applications": [self.app], "sdks": [self.sdk]}
+            gradle = 'implementation("com.bitmovin.player:player:' + self.sdk["version"] + '+jason")'
+            check_android_variant(data, root, gradle)
+            for bad in (gradle + "\n" + gradle, gradle.replace("+jason", "+unknown"), gradle.replace(self.sdk["version"], "0.0.0")):
+                with self.subTest(gradle=bad), self.assertRaises(CoverageError):
+                    check_android_variant(data, root, bad)
+            metadata["variantContractSha256"] = "0" * 64
+            (root / "android/sources.json").write_text(json.dumps(metadata))
+            with self.assertRaises(CoverageError):
+                check_android_variant(data, root, gradle)
+
+    def test_standard_source_inventory_does_not_inherit_binary_flavor_proofs(self):
+        from android_variants import check_android_variant
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "android").mkdir()
+            metadata = copy.deepcopy(self.sources)
+            metadata.pop("appVariant", None)
+            metadata.pop("variantContractSha256", None)
+            (root / "android/sources.json").write_text(json.dumps(metadata))
+            data = {"applications": [self.app], "sdks": [self.sdk]}
+            gradle = 'implementation("com.bitmovin.player:player:' + self.sdk["version"] + '")'
+            check_android_variant(data, root, gradle)
+
+
 if __name__ == "__main__":
     unittest.main()

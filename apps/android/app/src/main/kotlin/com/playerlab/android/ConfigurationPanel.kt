@@ -55,6 +55,8 @@ internal fun ConfigurationPanel(controller: PlayerController, uiMode: UiMode = U
         ConfigField("Source URL", source.url, { source = source.copy(url = it) }, "source-url", sourceErrors["url"], "HTTP or HTTPS stream URL")
         Text("Source type", style = MaterialTheme.typography.labelLarge)
         Choices(SourceType.entries.map { it to it.name }, source.type, "source-type") { source = source.copy(type = it) }
+        ConfigToggle("Use deprecated MediaSource constructor", source.useLegacyMediaSource, "source-legacy-constructor") { source = source.copy(useLegacyMediaSource = it) }
+        Text("Off uses SourceConfig(url, type). On constructs HLSSource, DASHSource, SmoothSource or ProgressiveSource from the same URL/type and passes that actual MediaSource to the deprecated SourceConfig constructor.", style = MaterialTheme.typography.bodySmall)
         ConfigField("Title", source.title, { source = source.copy(title = it) }, "source-title", helper = "Optional; blank uses the SDK default")
         ConfigField("Poster URL", source.posterUrl, { source = source.copy(posterUrl = it) }, "source-poster", sourceErrors["posterUrl"], "Optional HTTP or HTTPS image URL")
         ConfigToggle("Keep poster visible", source.posterPersistent, "source-poster-persistent") { source = source.copy(posterPersistent = it) }

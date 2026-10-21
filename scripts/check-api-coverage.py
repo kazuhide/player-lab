@@ -4,8 +4,9 @@ import argparse
 from pathlib import Path
 import subprocess
 
-from coverage_report import CoverageError, _load, check_summary, resolve_versions, validate
+from coverage_report import CoverageError, _Repo, _load, check_summary, resolve_versions, validate
 from coverage_gaps import validate_gaps
+from android_variants import check_android_variant
 
 
 FACTS = ('id', 'category', 'scope', 'deprecated', 'officialReference')
@@ -70,6 +71,7 @@ def check(repo, directory):
     versions = resolve_versions(repo, data['sourceRevision'], bindings)
     validate(data, repo, versions=versions, inventory_ids=inventory)
     check_native(data, directory)
+    check_android_variant(data, directory, _Repo(repo, data["sourceRevision"]).read("apps/android/app/build.gradle.kts").decode())
     check_summary(data, _load(directory / 'summary.json'))
     validate_gaps(_load(directory / 'gaps.json'), data)
     subprocess.run(['node', str(repo / 'scripts/api-coverage/extract-installed.cjs'),

@@ -21,7 +21,7 @@
   },
   "android": {
     "file": "apps/android/app/build.gradle.kts",
-    "pattern": "implementation\\(\"com\\.bitmovin\\.player:player:([^\"\\)]+)\"\\)"
+    "pattern": "implementation\\(\"com\\.bitmovin\\.player:player:([0-9]+\\.[0-9]+\\.[0-9]+)\\+jason\"\\)"
   },
   "react-native": {
     "file": "apps/react-native/package.json",

@@ -2,11 +2,18 @@
 
 Kotlin sample using the Bitmovin Player library, with a Compose control panel and
 `PlayerView`. The app targets phones, tablets, Android TV, and Android-based Fire
-TV devices. DVR means the window of live media that a viewer can rewind.
+TV devices.
 
-The app pins Bitmovin Player Android **3.171.0**, released on 2026-10-16
+The app pins Bitmovin Player Android **3.171.0+jason**, based on 3.171.0 released on 2026-10-16
 ([official release notes](https://developer.bitmovin.com/playback/docs/release-notes-android)).
-Android TV and Fire TV use the same Android SDK dependency.
+Android TV and Fire TV use the same Android SDK dependency. The `+jason` artifact
+relocates its Media3 dependency to `com.bitmovin.media3`. It is the compatible
+variant used by Bitmovin's official
+[IMA advertising sample](https://github.com/bitmovin/bitmovin-player-android-samples/blob/main/ImaAdsKotlin/build.gradle)
+and [companion-ad sample](https://github.com/bitmovin/bitmovin-player-android-samples/blob/main/CompanionAdsKotlin/build.gradle).
+The build uses Google IMA 3.38.0 and Java library desugaring 2.1.5, matching those
+samples. The Player, Analytics, MediaSession and UI modules use the same variant;
+its native `Cache` type must use the relocated Media3 namespace.
 
 ## Layout
 
@@ -71,6 +78,11 @@ PlayerViewConfig(uiConfig = UiConfig.WebUi(
 ))
 ```
 
+The source form can also use the deprecated `MediaSource` constructor for API
+comparison. It creates the selected `HLSSource`, `DASHSource`, `SmoothSource` or
+`ProgressiveSource` with the same URL/type and passes that actual object to
+`SourceConfig`. The modern URL/type constructor remains the default.
+
 The app recreates `PlayerView` when the mode changes. The build-and-sync command
 above writes the ignored assets under `app/src/main/assets/`.
 
@@ -112,7 +124,7 @@ stalls. It is ignored for VOD. Apply reloads the source; player recreation retai
 applied value. This policy does not guarantee convergence within a deadline and is
 not a qualification of stable return to the moving live edge.
 
-The editor also exposes seven language, subtitle and network settings:
+The editor also exposes language, subtitle and network settings:
 
 | Field | Value and application |
 | --- | --- |
@@ -125,7 +137,8 @@ Language lists trim surrounding whitespace and remove duplicate codes without
 changing their priority. Subtitle URL, label and language are trimmed. Empty
 items in language or retry lists are rejected. These settings participate in the
 same draft validation, Reset, source retention and applied-code output as the
-original fields. No request headers, credentials or arbitrary callbacks are edited.
+original fields. These standard form fields do not edit request headers or callbacks;
+the additional SDK API editor below provides separate typed callback adapters.
 The definitions follow the pinned
 [audio preference](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-playback-config/preferred-audio-languages.html),
 [subtitle track metadata](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.media/-track/is-default.html), and
@@ -178,6 +191,283 @@ exactly-once destruction, listener removal, and retired callback rejection:
   -Pandroid.testInstrumentationRunnerArguments.class=com.playerlab.android.PlayerConfigurationInstrumentedTest,com.playerlab.android.PlayerOwnershipInstrumentedTest \
   -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=
 ```
+
+## SDK API settings and controls
+
+Open **SDK API settings** to find additional public SDK configuration fields by
+name. Choose a typed value, stage the override, then apply it to recreate the
+player and reload its source. The applied Kotlin code appears below the editor.
+Removing an override restores the standard configuration or the SDK default on
+the next Apply. DRM secrets appear as placeholders in exported code. DRM callback
+fields accept editable JavaScript byte transformations as well as the Identity
+and Base64 examples. Their code uses the same callback editor described below.
+
+**SDK API controls** provides commands with named arguments, a refreshable state
+inspector, and event occurrence counts with SDK timestamps. Commands can require
+an active source, an attached view, compatible media or a connected service.
+Check the resulting state and events after running a command. Creating an SSAI
+test ad builds a local input object; ad playback must be established separately
+from the active SDK ad state and playback events.
+
+View event subscriptions accept an event name and a subscription ID. `on` keeps
+listening, `next` listens once, and `off` removes the matching ID. Subscriptions
+are retired when their view detaches or is recreated. Their counts appear with
+the `PlayerView.` prefix in Events. These are view UI events such as
+`FullscreenEnter` and `FullscreenExit`. Playback events are observed on Player,
+and source events on Source.
+
+The view-handler commands install host fullscreen, picture-in-picture, or custom
+Web UI message behavior. Fullscreen expands the video and hides the form; Back
+restores it. Picture in picture requires Android and device support. Its width
+and height arguments control the aspect ratio. The custom message handler exposes
+`playerLabMessage(data: String)` and returns the configured reply; a custom Web UI
+must call that endpoint. Incoming messages remain in memory for this session.
+Surface and texture commands use the actual attached rendering view. To change
+the rendering type, first apply `PlayerViewConfig.surfaceType`. Raw surfaces are
+cleared before their holder or owning view is retired. The destroy commands
+recreate the affected player or view so the controls remain usable.
+
+## Structured SDK inputs and native resources
+
+List fields use an item editor with separate typed controls. Add items, edit their
+fields, then stage and apply the whole value. Nested **roles** and **sources**
+buttons open child editors. `null`, an empty list and an empty string remain
+separate values where the SDK supports them.
+
+- **SourceConfig.subtitleTracks** creates external subtitle tracks with editable
+  IDs, MIME type, language, associated language, forced/default flags and track
+  roles. Track IDs must be unique. Default metadata does not enable a subtitle.
+- **AdvertisingConfig.schedule** builds ordered `AdItem` values, each with its
+  own fallback `AdSource` list, source type, tag, loading timeouts, ad position,
+  replacement duration and preload offset.
+- **PlaylistConfig.sources** loads an ordered playlist instead of the standard
+  source form. Per-item title, description, poster and start options are editable.
+  Global Source overrides apply to every item. **PlaylistOptions** controls
+  preloading and replay; preloading can increase memory and network use.
+  The generated code declares the options before loading the playlist and applies
+  Source overrides inside every item's configuration. Removing the source-list
+  override restores the standard source form. A downloaded offline source takes
+  precedence while offline playback is selected.
+- **AdvertisingConfig.companionAdContainers** creates actual `FrameLayout` hosts
+  below the player and passes those `ViewGroup` instances to the SDK. Positive
+  dimensions are passed as requested ad dimensions and use density-independent
+  pixels in this sample's host layout. Set both dimensions to `-1` for a fluid
+  companion. Compatible ad media is required for a host to receive an ad.
+- **TweaksConfig.exoPlayerCache** creates a real Media3 `SimpleCache` with
+  least-recently-used eviction. This SDK tweak reads a prefilled cache; ordinary
+  playback does not populate it. It is ignored for `OfflineSourceConfig`.
+  `null` disables the next player's cache. Sample caches are limited to 1 GiB.
+  Use the offline manager for SDK-managed downloads and offline playback.
+- **SourceNetworkConfig.engine** selects `HttpURLConnection` or a real Cronet
+  engine. Select **NetworkEngine.Cronet.cronetEngine** to edit HTTP/2, QUIC,
+  Brotli and user agent options. Press **Prepare Google Play services Cronet**
+  and wait for the ready state before applying. Devices need working Google Play
+  services; selected options do not establish which network protocol a server
+  negotiated. The integration follows the official
+  [Cronet sample](https://github.com/bitmovin/bitmovin-player-android-samples/tree/main/CronetPlaybackKotlin).
+
+Cache and Cronet resources are shared by constructor values within the app
+process. They are not closed when a player is replaced: an SDK source can still
+be retiring after `Player.destroy()`. The process retains at most four cache
+sizes and four Cronet configurations. Reuse a configuration or fully restart the
+app when this limit is reached. Native companion views are created for each new
+player and detached with their owning composition.
+
+The build uses Google Play services Cronet 18.1.1 with `cronet-api` 143.7445.0.
+The explicit API dependency avoids the duplicate namespace in the 141 split
+artifacts under Android Gradle plugin 9 while retaining Android API 23 support.
+Cronet 500.1.0 declares minimum API 24 and is not used because this sample retains
+API 23 support. Core library desugaring is enabled for IMA; minimum Android version
+is not raised to resolve a dependency conflict.
+
+**DebugConfig.isLoggingEnabled** is a startup-only control. Save the value in SDK
+API settings, fully stop the app, then reopen it. `Application.onCreate()` applies
+it before creating SDK components. The panel shows the current process value and
+the saved next-launch value separately. Debug logging can include confidential
+information. Keep those logs local and turn logging off after debugging.
+
+The offline panel includes **Advanced offline source constructor** for the public
+`OfflineSourceConfig` constructor. It edits the offline DRM key-set ID as hidden
+hexadecimal bytes, `isRestrictToOffline`, and app-private cache/track-state names.
+The constructor uses the current stream URL and type; the generated code replaces
+DRM bytes with `privateDrmIdBytes`. This does not import an SDK-managed download.
+For normal downloads, use **Play downloaded source** so the manager supplies its
+cache metadata. A restricted source needs matching cached files and track state;
+an arbitrary DRM ID is not an issued offline license.
+
+## VR renderer controls
+
+`VrApi.setVrRenderer()` enables or disables the sample's decoder-backed OpenGL
+renderer. It replaces the normal `PlayerView` and restores a new `PlayerView`
+when disabled. Configure the source's VR content type before enabling it. The
+renderer supports the SDK's flat, single-view, side-by-side and top/bottom layouts
+and reads actual VR viewing direction and stereo state.
+
+`VrRenderer.setSourceConfig()` accepts the active source, the configured source
+or `None`. `addUpdateCallback()` takes a handle, a JavaScript body and
+`everyFrames` for script sampling. The SDK frame clock still updates every draw;
+`delta` is seconds. The body receives `{delta, viewingDirection}` and returns
+`{text?, move?: {phi, x, y}}` or `null`. A move calls the actual SDK VR API.
+`removeUpdateCallback()` removes the exact handle. Pending results and callbacks
+are rejected when their renderer or player retires. **app:vr-renderer** state
+shows decoder/draw counts and callback outcomes. A flat test video does not
+qualify spherical content, headset rendering or all device graphics drivers.
+
+## Callback editor
+
+Fields marked **Script** accept the body of a JavaScript function whose argument
+is `input`. The field description shows its input and return contract. Stage the
+body and apply the settings before it runs. Enter `null` to disable the override.
+For example, a subtitle labeler can use:
+
+```javascript
+return input.language === 'en' ? 'English captions' : input.label;
+```
+
+The app converts the result back to the exact SDK return type. Decoder callbacks
+return indexes into the SDK-provided decoder list, retaining the original native
+decoder objects. HTTP callbacks return typed request/response values; `null`
+keeps the original. Byte arrays use integers from 0 through 255, up to 65536
+bytes. Larger input bodies are omitted from the snapshot and retained unless
+explicitly replaced. Response preprocessing makes the SDK buffer whole responses;
+select only the needed `TweaksConfig.httpResponseTypesToPreprocess` request types
+to avoid buffering video segments. Advertising scripts receive ad metadata and
+return a decision, retained item indexes, macro values or a media-file index, as
+specified by each field. The video adaptation hook returns an available quality
+ID. Cast media-info configuration runs only when a Cast session requests it.
+Its typed media-type control is an alternative to the editable callback; select
+one. IMA callbacks receive plain settings snapshots or manager state. A settings
+body returns a validated partial patch; a manager body returns a validated list
+of native manager actions. The app validates the complete result before applying
+any mutation. Manager state that is not available yet appears as `null`.
+Interstitial mapping scripts register native tracking events and a click-through
+URL; the SDK owns when those tracking URLs are requested.
+
+Analytics controls also provide a **Custom** error transformer body. It receives
+`{code, message, severity, originalErrorType}` and returns a partial
+`{code, message, severity}` object. `severity` is `CRITICAL` or `INFO`; `null`
+retains the original error. The public collector return type is non-null, so
+this adapter does not claim to suppress error events. Opaque original SDK
+objects are not exposed to the interpreter. It uses the owning player's callback
+context and the same execution limits.
+
+Only the explicitly applied body runs. Code remains in memory and is omitted from
+exports, where `<YOUR_CALLBACK_BODY>` marks the replacement point. The generated
+assignments use [ApiScriptSettings](app/src/main/kotlin/com/playerlab/android/ApiScriptSettings.kt)
+and [ApiScriptProgram](app/src/main/kotlin/com/playerlab/android/ApiScriptProgram.kt)
+from this sample; create an `ApiCallbackContext` before applying those assignments
+and close it when retiring its Player or Source. The UI refresh shows invocation
+and fallback counts without recording callback arguments, headers or bodies.
+
+The interpreter has no Java/Android bridge, network, filesystem, Player or Source
+objects. Each invocation is limited to 50000 interpreter instructions, 25
+milliseconds of thread CPU time, 250 milliseconds of elapsed wall time, and a
+stack depth of 64. CPU time measures work on the callback thread; wall time also
+includes time when that thread is not executing. If thread CPU accounting is
+unavailable or becomes unavailable, the invocation uses a 75-millisecond
+wall-time limit. Limits are checked at interpreter and value-conversion
+checkpoints; native built-ins are not preempted. Invalid results retain native
+behavior. It is an in-process development tool,
+not an isolated memory sandbox. The runtime uses the Android-compatible Java 8
+maintenance release [Rhino 1.7.15.1](https://github.com/mozilla/rhino/releases/tag/Rhino1_7_15_1_Release).
+Rhino's source and license links are included in the APK's
+[third-party notice](app/src/main/assets/third-party/rhino-notice.txt).
+
+## Android media session
+
+To publish metadata and transport controls to Android, stage
+`MediaSessionSourceConfig.Enabled.mediaMetadata` in the API settings. Enter one
+`key=value` per line, for example:
+
+```text
+displayTitle=Sample video
+subtitle=Playback configuration example
+artist=Sample artist
+mediaType=Movie
+duration=60000
+```
+
+The editor lists the supported metadata fields. Duration is in milliseconds;
+track and disc numbers are integers. Ratings use `Heart:true`, `Thumb:false`,
+`Percentage:75` or `Star:5:4.5`. Set a value to `null` to leave it unset.
+Apply the settings, then run **Enable Android media session** in SDK API controls.
+The session follows the current player when it is recreated. Disable the same
+control to release it. This optional integration uses the SDK's
+`player-media-session` module and does not request notification permission.
+Android decides where active session controls appear.
+
+## Offline controls
+
+The offline panel downloads selected renditions of the current video-on-demand
+source. Downloaded files remain in the app's private storage until explicitly
+deleted or the app is removed.
+
+1. Select a downloadable source in Configuration, or choose **Use sample DASH
+   source** in Offline controls. The sample is a short Big Buck Bunny asset.
+2. Allow download notifications, enter a stable content ID, then create a manager.
+   Reuse the same ID to inspect the same stored content. Use a different ID for a
+   different source.
+3. Set simultaneous download and segment limits, device requirements and DRM
+   handling, then apply the service configuration. Required device conditions
+   such as charging or an unmetered network can keep downloads waiting.
+4. Fetch the SDK options. For each desired video, audio, subtitle or thumbnail
+   entry, choose Download or Delete, then process the selected actions. None
+   clears a pending action. SDK track state determines which actions are valid.
+5. After the selected entries report Downloaded, choose **Play downloaded source**.
+   Player setting changes retain the SDK's offline source and its cache metadata.
+   Applying a regular source returns to online playback.
+6. Use **Delete all content for this ID** to remove its stored content. Releasing
+   the manager frees its in-memory resources and keeps the files. Offline DRM
+   license commands need compatible encrypted media and license-server support.
+
+The panel shows progress, track properties, storage usage and available DRM
+durations. Offline SDK errors, information and warnings also appear in the API
+event inspector. License bytes and opaque DRM identifiers are not exported.
+The SDK dependency, permissions and service setup follow the
+[official offline playback guide](https://developer.bitmovin.com/playback/docs/working-with-offline-playback-android).
+
+`PlayerOfflineInstrumentedTest` drives track selection and configuration through
+the GUI, downloads the short sample, disables Wi-Fi and mobile data, checks that
+there is no active network, and verifies offline playback before and after player
+recreation. It restores the device's radio settings in cleanup. Run it only on a
+device reserved for the test, with a valid allowed license:
+
+```sh
+./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.playerlab.android.PlayerOfflineInstrumentedTest
+```
+
+## Analytics controls
+
+The Analytics panel configures collection separately from player playback. It
+uses the local build key by default, allows a session-only license override,
+or can request the Analytics license associated with the Player license. Choose
+Disabled to stop collection. Applying settings recreates the player and source.
+Exported configuration replaces license values with placeholders.
+
+Edit default or source metadata by selecting a named field, entering a value and
+staging it. Remove a field to restore its null/default value. Source metadata
+takes precedence over default metadata. Custom fields and the experiment name
+are available in both editors. `isLive` accepts true or false; omitting it keeps
+automatic detection.
+
+Runtime actions can update source custom data, send an event-only custom payload,
+or signal a program change on the current source. The state reader shows the
+collector's impression ID, user ID and source metadata. SSAI controls report
+ad-break, ad and quartile transitions to the collector; use them alongside real
+stitched-ad playback. The example error strategy replaces the reported message
+while retaining its error code and severity. Collector retry policy can retain
+failed samples for later delivery, including offline playback with LONG_TERM.
+
+Use Bitmovin Dashboard to confirm that samples arrived and inspect their session
+details. A local SDK API result or impression ID alone does not establish backend
+ingestion. The integration follows the
+[integrated Analytics API](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-analytics/com.bitmovin.player.api.analytics/-analytics-api/index.html)
+and the [official Android collector](https://github.com/bitmovin/bitmovin-analytics-collector-android).
+
+`PlayerAnalyticsInstrumentedTest` checks GUI application, native source metadata,
+custom-data persistence, event-only data and program-change impressions during
+actual media playback. It keeps Dashboard delivery verification separate.
 
 ## Playback checks
 
@@ -381,7 +671,8 @@ caption, and configured retries versus no retries. The configuration-only
 checks do not establish playback; the licensed group checks actual SDK media.
 
 These checks use an Android phone emulator. Physical-device, Android TV, Fire TV,
-offline, casting and Analytics delivery require their respective environments.
+casting and Analytics delivery require their respective environments. Offline
+download and playback are covered separately by the test described above.
 The recorded native observations establish playback and control behavior; they
 do not measure complete internal SDK resource reclamation.
 
