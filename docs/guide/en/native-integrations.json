@@ -124,7 +124,7 @@
     },
     {
       "type": "p",
-      "text": "Use the external-subtitle scenarios to apply the 4 fields, select the track in the normal SDK menu and require a new native cue after selected-track confirmation on the same source. Earlier embedded/default cues do not count. Both OS scenarios passed with wrapper 1.29.0. Android additionally requires actual visible fixture text; iOS checks the selected track, fresh cue and moving native video. For the finite Android fixture, the runner pauses with the visible SDK control during menu traversal and explicitly plays after selection. Fresh same-owner native readback confirms these touches. Normal OS Tab input brings clipped SDK menu rows into view; it does not alter the track through a hidden setter."
+      "text": "Use the external-subtitle scenarios to apply the 4 fields, select the track in the normal SDK menu and require a new native cue after selected-track confirmation on the same source. Earlier embedded/default cues do not count. Both OS scenarios passed with wrapper 1.29.0. Android additionally requires actual visible fixture text; iOS checks the selected track, fresh cue and moving native video. For Android's finite fixture, the runner turns Autoplay off in the normal form and confirms a paused native sample before menu traversal. After selection it uses the visible SDK Play control and requires fresh same-owner playback and cue observations. Core cases test autoplay and Pause/Play separately. Normal OS Tab input brings clipped SDK menu rows into view; it does not alter the track through a hidden setter."
     },
     {
       "type": "figure",
