@@ -25,6 +25,7 @@ class Ui:
     def __init__(self, adb, serial):
         self.prefix = [adb, "-s", serial]
         self.last_report = None
+        self.last_tree = None
         self.last_control, self.last_action = None, None
         size = self.adb("shell", "wm", "size").decode()
         match = re.search(r"(\d+)x(\d+)", size)
@@ -58,6 +59,7 @@ class Ui:
                 if match and 0 < int(match.group(2)) < self.height: ime_tops.append(int(match.group(2)))
         self.keyboard_visible = bool(ime_tops)
         if ime_tops: self.bottom = min(self.bottom, min(ime_tops))
+        self.last_tree = tree
         return tree
 
     @staticmethod
@@ -197,17 +199,33 @@ class Ui:
 
     def playback_control(self, play):
         self.top()
-        for _ in range(2):
-            tree = self.tree()
+        tree = self.tree()
+        for _ in range(3):
             control = self.find(tree, "Play" if play else "Pause")
             if control is None:
                 control = self.find(tree, "Play video" if play else "Pause video")
             if control is not None:
+                read = self.find(tree, "Read runtime report")
+                prior = self.last_report and self.last_report["owner"]
                 self.tap(control)
-                return
+                if read is None:
+                    return  # Ordinary-entry screenshots have no observation header.
+                # Keep the actual control/readback touches together. An AX dump
+                # between them can exceed the stock bar's auto-hide interval.
+                self.tap(read)
+                previous_sequence = prior["sample"]["sequence"] if prior and prior["sample"] else 0
+                value = self.wait_report(lambda v: v["owner"] is not None and v["owner"]["sample"] is not None and
+                    v["owner"]["sample"]["sequence"] > previous_sequence, refresh=False)
+                if prior is not None and value["owner"]["generation"] != prior["generation"]:
+                    raise RuntimeError("The SDK playback control crossed native owners")
+                if value["owner"]["sample"]["playing"] is play:
+                    return
+                tree = self.last_tree
+                continue
             video = next((n for n in tree.iter("node") if n.get("resource-id", "").endswith("player-lab-player") and self.visible(n)), None)
             if video is not None:
                 self.tap(video)
+            tree = self.tree()
         raise RuntimeError("No visible SDK playback control was available")
 
     def frame(self, output):

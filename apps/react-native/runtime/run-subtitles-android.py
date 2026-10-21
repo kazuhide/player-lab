@@ -81,6 +81,11 @@ def main():
         ui.button("Apply and recreate player"); ui.button("Hide configuration"); ui.top()
         result["phase"] = "external-subtitle-menu"
         before_selection = ui.wait_report(lambda v: v["owner"] is not None and v["owner"]["sample"] is not None and v["owner"]["sample"]["externalSubtitleAvailable"])
+        # Keep the finite fixture available during slower native menu traversal.
+        # Core checks separately qualify autoplay; this case uses actual SDK UI.
+        ui.pause_visible()
+        before_selection = ui.wait_report(lambda v: v["owner"] is not None and v["owner"]["sample"] is not None and not v["owner"]["sample"]["playing"])
+        result["subtitleMenuPausedByVisibleSdkControl"] = True
         def external(tree):
             return next((n for n in tree.iter("node") if ui.visible(n) and any("external english" in n.get(k, "").casefold() for k in ["text", "content-desc"])), None)
         def subtitles(tree):
@@ -89,17 +94,32 @@ def main():
             # Compact WebView settings scroll inside the video viewport. A
             # clipped final row can overlap the gear's hit target; scroll that
             # real menu before tapping, rather than accepting its AX presence.
-            for _ in range(4):
+            for attempt in range(16):
+                parents = {child: parent for parent in tree.iter() for child in parent}
+                def menu_viewport(node):
+                    while node is not None:
+                        if node.get("scrollable") == "true": return ui.bounds(node)
+                        node = parents.get(node)
+                    return None
                 node = lookup(tree)
-                if node is not None and node.get("class") == "android.view.MenuItem" and ui.bounds(node)[3] - ui.bounds(node)[1] >= 75:
-                    return node, tree
+                if node is not None and node.get("class") == "android.view.MenuItem":
+                    box, viewport = ui.bounds(node), menu_viewport(node)
+                    if viewport is not None and box[1] >= viewport[1] and box[3] <= viewport[3] and box[3] - box[1] >= 75:
+                        return node, tree
                 rows = [n for n in tree.iter("node") if n.get("class") == "android.view.MenuItem" and ui.visible(n)]
                 if not rows: break
-                left = min(ui.bounds(n)[0] for n in rows); right = max(ui.bounds(n)[2] for n in rows)
-                top = min(ui.bounds(n)[1] for n in rows); bottom = max(ui.bounds(n)[3] for n in rows)
+                viewport = menu_viewport(rows[0])
+                if viewport is None: break
+                left, top, right, bottom = viewport
                 if bottom - top < 100: break
-                ui.adb("shell", "input", "swipe", str((left + right) // 2), str(bottom - 30),
-                       str((left + right) // 2), str(top + 30), "300")
+                if attempt < 4:
+                    ui.adb("shell", "input", "swipe", str((left + right) // 2), str(bottom - 30),
+                           str((left + right) // 2), str(top + 30), "300")
+                else:
+                    # Native parent scrolling can consume the gesture. The
+                    # stock menu items declare tabindex=0; normal OS Tab moves
+                    # browser focus and scrolls its real panel into view.
+                    ui.adb("shell", "input", "keyevent", "61")
                 tree = ui.tree()
             raise RuntimeError("The normal SDK menu row was not fully visible")
         # Opacity-hidden stock controls can remain in Android accessibility.
@@ -128,6 +148,12 @@ def main():
         ui.tap(target)
         selected = ui.wait_report(lambda v: v["owner"] is not None and v["owner"]["sample"] is not None and
                                   v["owner"]["sample"]["externalSubtitleSelected"])
+        menu = ui.tree()
+        if subtitles(menu) is not None or external(menu) is not None:
+            settings = ui.find(menu, "Settings")
+            if settings is not None: ui.tap(settings)
+        ui.play_visible()
+        result["externalSelectionResumedByVisibleSdkPlay"] = True
         def fresh_external_cue(value):
             try: external_cue_selection(before_selection, selected, value); return True
             except ValueError: return False
@@ -137,10 +163,6 @@ def main():
         result["selectedExternalTrack"] = True
         result["freshCueAfterNativeSelection"] = True
         result["cueEventsObserved"] = fresh_cue["owner"]["cueEnter"]
-        menu = ui.tree()
-        if subtitles(menu) is not None or external(menu) is not None:
-            settings = ui.find(menu, "Settings")
-            if settings is not None: ui.tap(settings)
         ui.wait(lambda tree: any(ui.visible(n) and any(cue.casefold() in n.get("text", "").casefold() for cue in cues) for n in tree.iter("node")))
         ui.frame(output / "external-caption-visible.png")
         result["visibleFixtureCaption"] = True

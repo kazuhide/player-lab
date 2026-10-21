@@ -83,6 +83,13 @@ new cue after that selected-track observation. Earlier embedded/default cues
 cannot satisfy this gate. The iOS test handles UI 4.23's unlabeled
 WKWebView menu-item roles using its public SmallScreen menu structure and the
 fixture's track order; the native selected external track and cue remain required.
+Android pauses with the visible SDK control while traversing the finite
+fixture's menu, then explicitly plays after selecting the external track. Each
+playback touch requires fresh native state from the same owner: an opacity-hidden
+control may consume the first touch only to reveal the bar. If a compact menu
+row is clipped, normal OS Tab input moves focus until the actual row is fully
+inside its scrollable panel. Android additionally requires visible fixture text;
+iOS qualifies selected-track, fresh-cue and moving-video observations.
 
 ```bash
 python3 apps/react-native/runtime/run-ios.py --device <UDID> --media-url http://127.0.0.1:5260/vod-multiaudio/master.m3u8 --subtitle-url http://127.0.0.1:5260/assets/sintel_en.vtt --output ../runtime-ios-subtitles
