@@ -203,6 +203,11 @@ expire with their owner and cannot be carried into a recreated configuration.
 For `on` and `off`, choose the same callback from the current SDK resources to
 remove the registered function.
 
+Low-latency controls apply to a live source. On a VOD source the SDK can accept
+a latency setter while its latency reads remain zero. Select a live source and
+read the target latency back to distinguish an applied setting from an
+inactive control; measuring actual playback delay needs a suitable live stream.
+
 The event log shows named SDK event summaries for the current owner. It retains
 a bounded recent history and redacts credential fields. Use **Pause Vega event
 log** and **Clear Vega event log** to control it. The matching source, device or

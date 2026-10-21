@@ -42,7 +42,7 @@ export function ConfigurationInputsPanel({ values, onChange }: { values: ConfigI
       </> : <Action title="Set Vega API value" onPress={() => update(initialValue(catalog, selected.schema!))} />}
       {!!error && <Text accessibilityRole="alert" style={styles.text}>{error}</Text>}
       <Text style={styles.text}>Configuration is passed to the Vega SDK, which still determines whether its native integration supports the requested feature. Native controls remain available. The SDK's browser HTML UI, browser DOM factories, Cast receivers and device sensors do not become available by setting their options. The native integration uses Fetch for network requests; an XHR requestApi override is rejected before Apply.</Text>
-      <Text style={styles.text}>Advanced subtitle arrays replace the single-track form. Ad and DRM configuration can be entered and dispatched, but successful playback requires the corresponding SDK module, content, entitlement and device support. API invocation and feature effects are separate results.</Text>
+      <Text style={styles.text}>Advanced subtitle arrays replace the single-track form. The current Vega integration does not provide client-side advertising, the browser HTML UI or a browser canvas/WebGL VR renderer. Their declared inputs can be inspected and exported; that does not make these features work on the native media surface. Callbacks requiring real HTML containers cannot be satisfied by a plain object. DRM playback additionally needs compatible content, a license service and device support.</Text>
     </>}
   </View>;
 }
