@@ -37,11 +37,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
-import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
-import com.bitmovin.player.api.analytics.AnalyticsPlayerConfig
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
@@ -97,22 +95,16 @@ internal class PlayerController(
     private val licenseKey: String,
     private val analyticsLicenseKey: String = "",
     private val playerFactory: ((PlayerConfig) -> Player)? = null,
-    private val sourceFactory: (SourceConfig) -> Source = { Source(it) },
+    private val sourceFactory: ((SourceConfig) -> Source)? = null,
     lifecycle: Lifecycle,
 ) {
     // §15: the bundled analytics collector reports QoE to the Bitmovin dashboard
     // when a key is configured (repo-root .env → sync-env.sh → local.properties).
-    private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides()): Player {
+    internal var apiAnalyticsSettings by mutableStateOf(ApiAnalyticsSettings())
+        private set
+    private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides(), analytics: ApiAnalyticsSettings = apiAnalyticsSettings): Player {
         val config = overrides.player(settings.toPlayerConfig(licenseKey))
-        return playerFactory?.invoke(config) ?: if (analyticsLicenseKey.isEmpty()) {
-            Player(context, config)
-        } else {
-            Player(
-                context,
-                config,
-                AnalyticsPlayerConfig.Enabled(AnalyticsConfig(licenseKey = analyticsLicenseKey)),
-            )
-        }
+        return playerFactory?.invoke(config) ?: Player(context, config, analytics.playerConfig(analyticsLicenseKey))
     }
 
     var player: Player by mutableStateOf(createPlayer(PlayerSettings()))
@@ -281,7 +273,7 @@ internal class PlayerController(
         sourceSubscription?.invoke()
         val owner = player
         val generation = ++sourceGeneration
-        val source = sourceFactory(config)
+        val source = sourceFactory?.invoke(config) ?: Source(config, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()))
         configuredSource = source
         fun ownsSource() = !released && player === owner && sourceGeneration == generation
         val error: (SourceEvent.Error) -> Unit = {
@@ -305,7 +297,7 @@ internal class PlayerController(
         refresh()
     }
 
-    internal fun applyPlayerSettings(settings: PlayerSettings, overrides: ApiOverrides = apiOverrides) {
+    internal fun applyPlayerSettings(settings: PlayerSettings, overrides: ApiOverrides = apiOverrides, analytics: ApiAnalyticsSettings = apiAnalyticsSettings) {
         if (released) return
         val sourceConfig = runCatching { sourceConfiguration(overrides) }.getOrElse {
             configurationStatus = "Unable to build source configuration; current settings kept."
@@ -313,7 +305,7 @@ internal class PlayerController(
         }
         // PlayerConfig and its nested configs are fixed at construction time in SDK 3.171.0.
         // https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player-config/index.html
-        val replacement = runCatching { createPlayer(settings, overrides) }.getOrElse {
+        val replacement = runCatching { createPlayer(settings, overrides, analytics) }.getOrElse {
             configurationStatus = "Unable to create a player; current settings kept."
             append("Player recreation failed")
             return
@@ -330,6 +322,7 @@ internal class PlayerController(
         player = replacement
         playerSettings = settings
         apiOverrides = overrides
+        apiAnalyticsSettings = analytics
         invalidateApiQuery()
         apiSsaiAds.clear()
         apiSsaiBreaks.clear()
@@ -531,6 +524,7 @@ private fun PlayerLabScreen(controller: PlayerController) {
         ApiConfigurationPanel(controller)
         ApiRuntimePanel(controller)
         ApiOfflinePanel(controller)
+        ApiAnalyticsPanel(controller)
 
         Column(modifier = Modifier.height(140.dp).verticalScroll(rememberScrollState())) {
             controller.log.take(12).forEach { line ->

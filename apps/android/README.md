@@ -237,6 +237,38 @@ device reserved for the test, with a valid allowed license:
   -Pandroid.testInstrumentationRunnerArguments.class=com.playerlab.android.PlayerOfflineInstrumentedTest
 ```
 
+## Analytics controls
+
+The Analytics panel configures collection separately from player playback. It
+uses the local build key by default, allows a session-only license override,
+or can request the Analytics license associated with the Player license. Choose
+Disabled to stop collection. Applying settings recreates the player and source.
+Exported configuration replaces license values with placeholders.
+
+Edit default or source metadata by selecting a named field, entering a value and
+staging it. Remove a field to restore its null/default value. Source metadata
+takes precedence over default metadata. Custom fields and the experiment name
+are available in both editors. `isLive` accepts true or false; omitting it keeps
+automatic detection.
+
+Runtime actions can update source custom data, send an event-only custom payload,
+or signal a program change on the current source. The state reader shows the
+collector's impression ID, user ID and source metadata. SSAI controls report
+ad-break, ad and quartile transitions to the collector; use them alongside real
+stitched-ad playback. The example error strategy replaces the reported message
+while retaining its error code and severity. Collector retry policy can retain
+failed samples for later delivery, including offline playback with LONG_TERM.
+
+Use Bitmovin Dashboard to confirm that samples arrived and inspect their session
+details. A local SDK API result or impression ID alone does not establish backend
+ingestion. The integration follows the
+[integrated Analytics API](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-analytics/com.bitmovin.player.api.analytics/-analytics-api/index.html)
+and the [official Android collector](https://github.com/bitmovin/bitmovin-analytics-collector-android).
+
+`PlayerAnalyticsInstrumentedTest` checks GUI application, native source metadata,
+custom-data persistence, event-only data and program-change impressions during
+actual media playback. It keeps Dashboard delivery verification separate.
+
 ## Playback checks
 
 Unit tests and APK builds do not verify licensed playback. On a device or
