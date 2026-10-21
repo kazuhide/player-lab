@@ -189,6 +189,20 @@ describe("Vega configuration in the mounted App and media session", () => {
     await action("Run Vega SDK API"); expect(Reflect.get(current(), "seek")).toHaveBeenCalledWith(0);
   });
 
+  it("renders each published operation's argument form after selection without running a native API", async () => {
+    const { catalog } = await import("../src/api/catalog");
+    await mount(); await action("Show SDK API experiments");
+    let selected = "PlayerAPI.getDuration";
+    for (const entry of catalog.rows.filter(entry => entry.category === "command" || entry.category === "observation")) {
+      await text("Filter Vega API operations", entry.id);
+      if (selected !== entry.id) await action(entry.id);
+      selected = entry.id;
+      expect(element("Pressable", { accessibilityLabel: "Run Vega SDK API" }), entry.id).toBeDefined();
+    }
+    expect(current().load).toHaveBeenCalledTimes(1);
+    expect(Reflect.get(current(), "seek")).not.toHaveBeenCalled();
+  });
+
   it("lets users inspect the actual current SDK API availability from the normal screen", async () => {
     await mount(); await action("Show SDK API experiments"); await action("Inspect current SDK API availability");
     const value = JSON.parse(String(element("Text", { accessibilityLabel: "Vega SDK API availability" }).props.children));

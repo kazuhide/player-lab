@@ -188,6 +188,15 @@ settle, recreate the player; the replacement waits for the native cleanup
 barrier. `destroy` retires the current owner and makes further calls unavailable
 until recreation.
 
+**Inspect current SDK API availability** lists whether each operation or state
+query exists on the current native player. This check reads public method
+properties without executing them. Manifest methods follow the loaded format:
+HLS track methods require HLS, and DASH period methods require DASH. A missing
+method is reported explicitly instead of being treated as a successful test.
+The app registers the low-latency, thumbnail, WebM, Smooth Streaming, TTML and
+CEA-608 modules as well as the core HLS/DASH modules. Their effective behavior
+still depends on the content and Vega media capabilities.
+
 Inputs requiring SDK instances list actual objects returned by the current
 player. An object literal does not create a native instance. Query resources
 expire with their owner and cannot be carried into a recreated configuration.
