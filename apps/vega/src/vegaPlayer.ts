@@ -14,6 +14,8 @@ import { vegaPlayerConfig } from "./playerConfig";
 
 import PolyfillModule = require("bitmovin-player/modules/bitmovinplayer-polyfill");
 import AnalyticsModule = require("bitmovin-player/modules/bitmovinplayer-analytics");
+import AdvertisingCoreModule = require("bitmovin-player/modules/bitmovinplayer-advertising-core");
+import SgaiModule = require("bitmovin-player/modules/bitmovinplayer-sgai");
 import ReactNativeModule = require("bitmovin-player/modules/bitmovinplayer-reactnative");
 import EngineBitmovinModule = require("bitmovin-player/modules/bitmovinplayer-engine-bitmovin");
 import EngineNativeModule = require("bitmovin-player/modules/bitmovinplayer-engine-native");
@@ -63,6 +65,8 @@ export function registerVegaPlayerModules(): void {
   Player.addModule(SubtitlesVttModule.default);
   Player.addModule(SubtitlesTtmlModule.default);
   Player.addModule(SubtitlesCea608Module.default);
+  Player.addModule(AdvertisingCoreModule.default);
+  Player.addModule(SgaiModule.default);
   modulesRegistered = true;
 }
 

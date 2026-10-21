@@ -193,8 +193,8 @@ query exists on the current native player. This check reads public method
 properties without executing them. Manifest methods follow the loaded format:
 HLS track methods require HLS, and DASH period methods require DASH. A missing
 method is reported explicitly instead of being treated as a successful test.
-The app registers the low-latency, thumbnail, WebM, Smooth Streaming, TTML and
-CEA-608 modules as well as the core HLS/DASH modules. Their effective behavior
+The app registers the low-latency, thumbnail, WebM, Smooth Streaming, TTML,
+CEA-608, AdvertisingCore and SGAI modules as well as the core HLS/DASH modules. Their effective behavior
 still depends on the content and Vega media capabilities.
 
 Inputs requiring SDK instances list actual objects returned by the current
@@ -221,6 +221,23 @@ After updating the pinned Vega SDK, regenerate and check the form metadata:
 pnpm --filter @showcase/vega api:generate
 pnpm --filter @showcase/vega api:check
 ```
+
+### HLS interstitials
+
+To try server-guided advertising (SGAI), select an HLS source containing
+interstitial markers. Under **Show all SDK configuration**, set
+`PlayerConfig.tweaks.enable_sgai_handling` to `true`, then Apply. This enables
+the SDK's [HLS interstitial handling](https://github.com/bitmovin/bitmovin-player-web-samples/blob/main/sgai/interstitials/index.js).
+It is separate from the client-side advertising integration that the Vega
+sample lists as unsupported.
+
+In **Show SDK API experiments**, use `PlayerAPI.sgai.list` to inspect the
+schedule, `PlayerAPI.sgai.getActiveAd` to inspect a currently playing
+interstitial, and `PlayerAPI.sgai.skip` to skip that interstitial. An empty
+active-ad result outside an interstitial is expected. Check `AdStarted`,
+`AdSkipped` and `AdBreakFinished` in the event log along with the playback state.
+The stream's program date and interstitial start date determine the scheduled
+position; an inconsistent date can place an interstitial outside the media.
 
 ## Background behavior
 
