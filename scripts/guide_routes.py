@@ -31,6 +31,13 @@ THEMES = (
 )
 LANGUAGES = ('en', 'ja')
 SHARED_FIGURES = {
+    'vega-api-operation': (1920, 1080),
+    'vega-api-volume': (1920, 1080),
+    'vega-api-callback': (1920, 1080),
+    'rn-ios-api-callback': (1206, 2622),
+    'rn-android-api-operation': (1080, 2400),
+    'rn-ios-api-events': (1206, 2622),
+    'rn-android-cast-startup': (1080, 2400),
     'analytics-dashboard-overview': (2864, 1270),
     'analytics-dashboard-errors': (1324, 501),
     'analytics-session-errors': (804, 188),
@@ -62,6 +69,13 @@ SHARED_FIGURES = {
 }
 FIGURE_EXTENSIONS = {
     name: 'png' for name in (
+        'vega-api-operation',
+        'vega-api-volume',
+        'vega-api-callback',
+        'rn-ios-api-callback',
+        'rn-android-api-operation',
+        'rn-ios-api-events',
+        'rn-android-cast-startup',
         'analytics-dashboard-overview', 'analytics-dashboard-errors', 'analytics-session-errors',
         'android-api-callback',
         'android-api-operation',
@@ -80,7 +94,7 @@ COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'veg
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = '11b7ccac88b126c07fc3984b63af45fe36219c67'
+SOURCE_REVISION = '9f1447014ac3cd0b7a07cd8bd6ddb4b47f91b75f'
 CONTENT_REVIEW = '2026-10-22'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 

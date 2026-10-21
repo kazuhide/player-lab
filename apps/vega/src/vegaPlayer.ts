@@ -5,8 +5,8 @@
  * React Native / Kepler JSX types. This is the part most worth verifying.
  *
  * Player modules must be imported `require`-style (Metro bundler limitation), as in
- * the Bitmovin Vega sample. DRM/crypto are omitted — DRM is out of scope for the
- * DVR scenarios (§1).
+ * the Bitmovin Vega sample. DRM and crypto modules enable the corresponding
+ * source settings; content and native device support still determine playback.
  */
 import type { PlayerAPI, PlayerConfig } from "bitmovin-player";
 import { Player } from "bitmovin-player/modules/bitmovinplayer-core";
@@ -14,6 +14,8 @@ import { vegaPlayerConfig } from "./playerConfig";
 
 import PolyfillModule = require("bitmovin-player/modules/bitmovinplayer-polyfill");
 import AnalyticsModule = require("bitmovin-player/modules/bitmovinplayer-analytics");
+import AdvertisingCoreModule = require("bitmovin-player/modules/bitmovinplayer-advertising-core");
+import SgaiModule = require("bitmovin-player/modules/bitmovinplayer-sgai");
 import ReactNativeModule = require("bitmovin-player/modules/bitmovinplayer-reactnative");
 import EngineBitmovinModule = require("bitmovin-player/modules/bitmovinplayer-engine-bitmovin");
 import EngineNativeModule = require("bitmovin-player/modules/bitmovinplayer-engine-native");
@@ -22,10 +24,18 @@ import XmlModule = require("bitmovin-player/modules/bitmovinplayer-xml");
 import DashModule = require("bitmovin-player/modules/bitmovinplayer-dash");
 import HlsModule = require("bitmovin-player/modules/bitmovinplayer-hls");
 import AbrModule = require("bitmovin-player/modules/bitmovinplayer-abr");
+import LowLatencyModule = require("bitmovin-player/modules/bitmovinplayer-lowlatency");
+import SmoothModule = require("bitmovin-player/modules/bitmovinplayer-smooth");
+import DrmModule = require("bitmovin-player/modules/bitmovinplayer-drm");
+import CryptoModule = require("bitmovin-player/modules/bitmovinplayer-crypto");
 import ContainerTsModule = require("bitmovin-player/modules/bitmovinplayer-container-ts");
 import ContainerMp4Module = require("bitmovin-player/modules/bitmovinplayer-container-mp4");
+import ContainerWebmModule = require("bitmovin-player/modules/bitmovinplayer-container-webm");
+import ThumbnailModule = require("bitmovin-player/modules/bitmovinplayer-thumbnail");
 import SubtitlesModule = require("bitmovin-player/modules/bitmovinplayer-subtitles");
 import SubtitlesVttModule = require("bitmovin-player/modules/bitmovinplayer-subtitles-vtt");
+import SubtitlesTtmlModule = require("bitmovin-player/modules/bitmovinplayer-subtitles-ttml");
+import SubtitlesCea608Module = require("bitmovin-player/modules/bitmovinplayer-subtitles-cea608");
 
 let modulesRegistered = false;
 
@@ -33,7 +43,7 @@ let modulesRegistered = false;
 export function registerVegaPlayerModules(): void {
   if (modulesRegistered) return;
   Player.addModule(PolyfillModule.default);
-  // §15 QoE: registered unconditionally, active only when config.analytics is set.
+  // Analytics collection starts only when its configuration is supplied.
   Player.addModule(AnalyticsModule.default);
   Player.addModule(ReactNativeModule.default);
   Player.addModule(EngineNativeModule.default);
@@ -43,10 +53,20 @@ export function registerVegaPlayerModules(): void {
   Player.addModule(XmlModule.default);
   Player.addModule(DashModule.default);
   Player.addModule(AbrModule.default);
+  Player.addModule(LowLatencyModule.default);
+  Player.addModule(SmoothModule.default);
+  Player.addModule(DrmModule.default);
+  Player.addModule(CryptoModule.default);
   Player.addModule(ContainerTsModule.default);
   Player.addModule(ContainerMp4Module.default);
+  Player.addModule(ContainerWebmModule.default);
+  Player.addModule(ThumbnailModule.default);
   Player.addModule(SubtitlesModule.default);
   Player.addModule(SubtitlesVttModule.default);
+  Player.addModule(SubtitlesTtmlModule.default);
+  Player.addModule(SubtitlesCea608Module.default);
+  Player.addModule(AdvertisingCoreModule.default);
+  Player.addModule(SgaiModule.default);
   modulesRegistered = true;
 }
 

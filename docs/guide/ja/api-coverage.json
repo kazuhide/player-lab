@@ -227,114 +227,58 @@
     ],
     "react-native": [
       {
-        "source": "The denominator covers the exported wrapper configuration roots, instance Player/Source/offline APIs, Cast manager and named view/offline callbacks. It is not the union of all underlying native SDK APIs.",
-        "text": "分母は、公開されたラッパーの設定ルート、インスタンスのPlayer・Source・オフラインAPI、Castマネージャー、名前付きの画面・オフラインコールバックです。内部で使用するすべてのネイティブSDK APIを合計したものではありません。"
+        "source": "The inventory covers the exported React Native wrapper configuration, Player and Source APIs, offline manager, Cast manager and named callbacks. It does not represent every API of the underlying native SDKs. Original IDs, categories and exclusions are retained.",
+        "text": "React Nativeラッパーの公開設定、Player・SourceのAPI、オフライン管理、Cast管理、名前付きコールバックを対象にします。内部で使うネイティブSDK全体のAPI数ではありません。元のID・分類・除外一覧を維持しています。"
       },
       {
-        "source": "Configuration counts leaf paths, callback contracts and opaque boundaries once; array element shapes are not multiplied. OfflineContentConfig has its own configuration scope, including inherited SourceConfig fields.",
-        "text": "設定は末端のパス、コールバック契約、内部を展開しない境界をそれぞれ一件と数えます。配列要素の型は要素数で増やしません。OfflineContentConfigは、SourceConfigから継承したフィールドも含め、独立した設定範囲で集計します。"
+        "source": "Additional SDK configuration, collection editors and callback editors stage typed overrides. Explicit Apply recreates the player and reloads the source; source, player, view, Analytics and offline settings have separate consumers. A field supported on only one OS may have no effect on the other OS.",
+        "text": "Additional SDK configurationと配列・関数の編集画面で、型に沿った上書き値を登録します。ApplyでPlayerを再生成しソースを読み直します。Source、Player、View、Analytics、オフライン設定はそれぞれの処理へ渡します。一方のOSだけで対応する値は、他のOSでは効果がない場合があります。"
       },
       {
-        "source": "Static construction helpers, generic React references/styles, namespace containers and the generic onEvent callback are excluded. Data-transfer fields and enum values are not separate runtime operations.",
-        "text": "静的な生成ヘルパー、汎用のReact参照・スタイル、名前空間の入れ物、汎用のonEventコールバックは除外します。データ受け渡し用のフィールドとenum値は、独立した実行時操作には数えません。"
+        "source": "The API experiments panel runs the selected SDK method with edited arguments and displays its result and code. A void response establishes dispatch, not playback completion. Query the current SDK state and inspect the named events for the operation being tested.",
+        "text": "API experimentsは選択したSDKメソッドへ入力した引数を渡し、結果とコードを表示します。戻り値がvoidでも再生処理の完了を示すとは限りません。対応するSDKの状態取得と名前付きイベントを併せて確認します。"
       },
       {
-        "source": "The source editor exposes URL/type/title/poster and startOffset/reference; the player editor exposes autoplay/mute, audioAndVideo.forwardDuration and maxSelectableBitrate. Only those leaf paths receive direct configuration credit. Apply validates the draft, recreates the player and reloads the source; unchanged/invalid Apply and Reset draft do not replace the player.",
-        "text": "ソースの編集画面はURL・形式・タイトル・ポスター・startOffsetと基準を、プレイヤーの編集画面は自動再生・ミュート・audioAndVideo.forwardDuration・maxSelectableBitrateを扱います。直接操作の対応件数は、これらの末端パスだけです。Applyは下書きを検証し、プレイヤーを再生成してソースを読み込みます。変更のないApply、無効なApply、Reset draftではプレイヤーを置き換えません。"
+        "source": "Source changes retain creation identity until initialization settles and check ownership immediately before native attachment. A displayed operation timeout does not cancel an SDK call. Repeated requests keep one active initializer and the latest waiting request instead of accumulating native sources.",
+        "text": "Sourceの切替では初期化完了まで生成した実体を保持し、ネイティブへ接続する直前にも所有者を確認します。画面上のタイムアウトはSDKの呼び出しを取り消す処理ではありません。反復要求では初期化中の実体と最新の待機要求を管理し、Sourceが増え続けないようにします。"
       },
       {
-        "source": "iOS offers HLS and progressive; Android also offers DASH. Buffer 0 selects automatically only on iOS; this form requires positive Android targets. Maximum bitrate accepts whole bit/s values: 1–2147483647 on Android and 1–9007199254740991 on iOS, matching the native integer conversion and JavaScript exact-integer limit. Blank buffer/cap fields omit SDK overrides. The complete applied source, chosen UI, log and Allow DVR helper state survive recreation; playback position resets.",
-        "text": "iOSではHLSとprogressive、AndroidではさらにDASHを選べます。バッファの0が自動選択を意味するのはiOSだけで、Androidではこのフォームに正の値を入力します。最大ビットレートは整数のbit/sで、Androidは1〜2147483647、iOSは1〜9007199254740991です。ネイティブの整数変換とJavaScriptで正確に表現できる範囲に合わせます。バッファ・ビットレート上限の空欄はSDKへの上書き指定を省略します。適用済みソースの全編集値、UIの選択、ログとAllow DVRの補助処理設定は再生成後も保持され、再生位置はリセットされます。"
+        "source": "Cast receiver and namespace options are saved through the native startup adapter and take effect after the app process is fully restarted. Wrapper 1.29 initialize(options) is deprecated and does not apply those options. Startup values and native initialization do not establish receiver discovery, a connection or remote playback.",
+        "text": "Castのreceiverとnamespaceはネイティブの起動処理へ保存し、アプリのプロセスを完全に再起動して反映します。ラッパー1.29のinitialize(options)は非推奨で、この値を反映しません。起動時の値や初期化状態だけで、受信機の発見・接続・リモート再生を確認したことにはなりません。"
       },
       {
-        "source": "The UI picker exposes named factory/asset presets. Time-shift buttons expose 0, -10, -30 and -60 seconds with DVR-window clamping; they do not accept arbitrary offsets.",
-        "text": "UIの選択は名前付きのファクトリー・アセットのプリセットです。タイムシフトボタンは0・-10・-30・-60秒に限られ、DVRウィンドウ内に補正されます。任意のオフセットは入力できません。"
+        "source": "Named events have current-owner subscriptions and a bounded visible log. Editable callback bodies require explicit execution permission and run inside the app. Offline completion, advertising, protected media, casting and other services require matching inputs and environments; source-level routes are separate from those qualification tests.",
+        "text": "名前付きイベントは現在の所有者で購読し、上限を設けたログに表示します。編集した関数の実行には明示的な許可が必要で、アプリ内で動作します。オフライン保存の完了、広告、保護素材、Castなどには対応する入力と環境が必要です。ソース上の操作経路と、それぞれの実行検証は別の証跡です。"
       },
       {
-        "source": "isLive and getCurrentTime are read by the snapshot controller but are not consumed by the displayed derived state, so they receive no observation credit.",
-        "text": "isLiveとgetCurrentTimeはスナップショット用コントローラーで読み取られますが、表示する派生状態には使われないため、観測件数には含めません。"
-      },
-      {
-        "source": "Allow DVR changes the application DVR helper, not a PlayerConfig playback property. License configuration comes from environment setup and is not GUI editable.",
-        "text": "Allow DVRが変更するのはアプリのDVRヘルパーであり、PlayerConfigの再生プロパティではありません。ライセンス設定は環境の準備時に渡すため、GUIから編集できません。"
-      },
-      {
-        "source": "The reproducible Expo host packages shared JS/CSS as native resources. Separate iOS and Android checks exercised SDK Default VOD playback and the packaged Sports factory with a visible INFO control and advancing native playback positions. Other factories remain unqualified; no SDK UI API credit is inferred from those checks.",
-        "text": "再現可能なExpoホストは共有JS・CSSをネイティブ資源として同梱します。iOSとAndroidでSDK Default UIのVOD再生と同梱Sportsファクトリーを検査し、INFO操作部品の表示とネイティブの再生位置の進行を確認しました。他のファクトリーは未確認です。この検査だけでSDK UI経由のAPI対応件数は加算しません。"
-      },
-      {
-        "source": "Wrapper 1.29.0 pins Apple 3.128.0 and Android 3.170.0+jason. Its supported native dependency group is kept intact rather than overridden with the standalone Android SDK version.",
-        "text": "ラッパー 1.29.0 は Apple 3.128.0 と Android 3.170.0+jason に固定されています。単体 Android の SDK 版で上書きせず、ラッパーがサポートするネイティブ依存の組み合わせを維持します。"
-      },
-      {
-        "source": "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries. Player/Source errors additionally display a numeric code when supplied; other event payload details are not rendered. onPlayerViewReady only triggers loading and is internal.",
-        "text": "onTimeChangedは表示用のDVR状態を更新します。onSourceLoaded、onTimeShifted、onPlayerError、onSourceErrorはイベント名をログに表示します。Player/Sourceのエラーでは、数値コードが渡された場合にそのコードも表示します。その他のイベントの詳細は表示しません。onPlayerViewReadyは読み込み開始のきっかけとして内部で使います。"
-      },
-      {
-        "source": "Player.load receives the edited SourceConfig. No Source instance lifecycle, read-only configuration observation, offline operation or unrelated nested property is inferred from those input controls.",
-        "text": "Player.loadには編集したSourceConfigを渡します。この入力画面から、Sourceインスタンスのライフサイクル操作、読み取り専用の設定値の観測、オフライン操作、無関係な入れ子のプロパティの対応は推定しません。"
-      },
-      {
-        "source": "On 2026-10-21 the wrapper 1.29.0 / Expo 57.0.30 host built on both native platforms and packaged shared assets matched the installed bundles. iOS native 3.128.0 played the local 60-second HLS fixture; Android native 3.170.0+jason played HLS and DASH. Actual GUI Apply produced a new native owner and destroyed the previous owner. The first Playing event and native position were 5.000 seconds for the configured start; autoplay, mute, maximum bitrate 2500000 and forward buffer 12.5 matched native configuration. The OS clipboard matched displayed applied code and excluded drafts and the actual key. Reset preserved the owner and source/UI/log/Allow DVR state. After background return the same owner played advancing visible VOD following an explicit SDK Play tap; this does not promise automatic resume. These checks cover the named simulator/emulator and Default/Sports modes, not physical devices, Release archives, every factory, protected/advertising content, live/DVR playback or quantitative buffer/bitrate effects.",
-        "text": "2026-10-21にラッパー1.29.0・Expo 57.0.30のホストを両プラットフォームでビルドし、共有アセットと実際のアプリ同梱ファイルの一致を確認しました。iOSのネイティブ3.128.0ではローカルの60秒HLS、Androidの3.170.0+jasonではHLSとDASHを再生しました。GUIからApplyすると新しいPlayerを作り、前のPlayerを破棄しました。開始位置の設定に対し、初回PlayingイベントとSDK位置は5.000秒でした。自動再生、ミュート、最大ビットレート2500000、前方バッファー12.5の適用値もネイティブ設定と一致しました。OSのクリップボードは表示した適用済みコードと一致し、下書きと実際のキーを含みません。ResetはPlayerとソース・UI・ログ・Allow DVRを保持しました。背景からの復帰後は同じPlayerでSDKのPlayを明示的に押し、映像とVOD時刻の進行を確認しました。自動復帰の保証ではありません。対象は今回のシミュレーター・エミュレーターとDefault・Sportsです。物理端末、Releaseアーカイブ、全ファクトリー、保護・広告コンテンツ、ライブ・DVR再生、バッファー・ビットレートの定量的効果は別の範囲です。"
-      },
-      {
-        "source": "Four external WebVTT subtitle leaves have app-owned editors: URL, label, language and isDefault. The validated SourceConfig reaches the normal Player.load path and applied-code display. isDefault is metadata; enable a track separately in the player menu. The identifier and WebVTT format are fixed in code and receive code-only credit. No arbitrary subtitle object, role or forced-track editor is inferred.",
-        "text": "外部WebVTT字幕はURL、表示名、言語、isDefaultの四項目を設定画面で編集できます。検証済みのSourceConfigを通常のPlayer.loadと適用済みコード表示に渡します。isDefaultはメタデータなので、字幕を有効にするにはプレイヤーのメニューからトラックを選びます。識別子とWebVTT形式はコードに固定されており、code-onlyに分類します。字幕オブジェクト全体、役割、強制字幕の設定画面があるとは扱いません。"
+        "source": "The latest checked wrapper is 1.29.0, with its supported native dependency group: Apple Player 3.128.0 and Android Player 3.170.0+jason. The standalone Android sample uses 3.171.0+jason independently; changing only the wrapper native pin is not a verified wrapper upgrade.",
+        "text": "確認したラッパーは1.29.0で、対応するネイティブ依存関係はApple Player 3.128.0とAndroid Player 3.170.0+jasonです。単体Androidサンプルは別に3.171.0+jasonを使います。ラッパー内のネイティブPlayerだけを差し替える方法は、検証済みのラッパー更新ではありません。"
       }
     ],
     "vega": [
       {
-        "source": "The denominator is the published Vega-channel TypeScript PlayerConfig/SourceConfig paths, PlayerAPI callable members and PlayerEvent names. Data-transfer types, module-construction methods and exported utility namespaces are outside these scopes.",
-        "text": "分母は、公開VegaチャネルのTypeScript宣言に含まれるPlayerConfig・SourceConfigのパス、PlayerAPIの呼び出し可能なメンバー、PlayerEvent名です。データ受け渡し用の型、モジュール生成メソッド、公開ユーティリティ名前空間はこの範囲に含めません。"
+        "source": "The inventory retains the published Vega-channel PlayerConfig and SourceConfig paths, PlayerAPI methods and PlayerEvent names. The official sample uses the beta channel; the general Web stable SDK is not a supported substitute. Original IDs, categories and exclusions are unchanged.",
+        "text": "Vega向け配布のPlayerConfig・SourceConfigのパス、PlayerAPIメソッド、PlayerEventを対象にし、元のID・分類・除外一覧を維持します。公式サンプルが使うbetaチャンネルを使用し、一般Web向けのstable版へ置き換えません。"
       },
       {
-        "source": "This special beta channel is the current release supported by the official Vega sample. The general Web stable release is not a supported replacement.",
-        "text": "この特別なベータチャネルは、公式Vegaサンプルが現在サポートするリリースです。一般向けWeb安定版への置き換えはサポートされていません。"
+        "source": "The typed editor stages scalar values, nested objects, arrays, dictionaries, callbacks and resource references. Apply materializes them into the actual SDK configuration; API experiments invoke current-owner methods and display SDK results. A declared field or generated code does not establish that its corresponding renderer or feature is supported on Vega.",
+        "text": "型付きエディターで値、入れ子のオブジェクト、配列、辞書、関数、実体への参照を登録します。ApplyでSDKの設定へ変換し、API experimentsで現在の所有者のメソッドを実行して結果を表示します。型定義や生成コードがあるだけで、その描画方式や機能がVegaで動くことにはなりません。"
       },
       {
-        "source": "Public declarations include APIs with module, media, device and platform prerequisites. Their presence does not prove that every Web feature operates on Vega. Unqualified features remain unexposed rather than being silently removed from the denominator.",
-        "text": "公開宣言には、モジュール・素材・機器・プラットフォームの前提条件を持つAPIも含まれます。宣言があることだけで、すべてのWeb機能がVegaで動作するとは判断しません。未検証の機能は未対応の状態で残し、分母から取り除きません。"
+        "source": "The runtime shows method availability from the actual SDK object. Media-dependent operations require an appropriate source. Named events are subscribed with their SDK names and displayed in a bounded owner-fenced log; this does not establish that every event has occurred.",
+        "text": "実際のSDKオブジェクトからメソッドの有無を確認できます。メディアに依存する操作には対応するソースが必要です。名前付きイベントはSDKの名称で購読し、所有者を確認して上限付きログへ表示します。全イベントが発火したという意味ではありません。"
       },
       {
-        "source": "The source editor exposes HLS/DASH/progressive string URLs, title/poster and startOffset/reference. Player controls expose autoplay/mute, separate audio/video forwardduration targets and the adaptation video bitrate cap. Only those leaf paths receive direct configuration credit; progressive array fields and unrelated object members remain unexposed.",
-        "text": "ソースの編集画面はHLS・DASH・progressiveの文字列URL、タイトル・ポスター、startOffsetと基準を扱います。プレイヤーの操作は自動再生・ミュート、音声・映像それぞれのforwardduration、適応時の映像ビットレート上限に対応します。直接操作の件数はこれらの末端パスだけで、progressiveの配列要素や無関係なオブジェクト項目は未対応のままです。"
+        "source": "Client-side advertising and VR retain individual limitations in the original denominator. Browser DOM-return callbacks cannot be satisfied by a JSON object or Kepler media surface. Fields that can be edited and exported but lack a supported native feature consumer retain code-only status. Fetch is the supported native transport; XHR is rejected.",
+        "text": "クライアント側広告とVRの制約は、元の分母に残して個別に示します。ブラウザーのDOM要素を返す関数には、JSONやKeplerのメディア表示領域を代用できません。編集・コード出力ができても対応するネイティブ機能へ適用できない項目は、コード内のみの分類を維持します。通信にはFetchを使い、XHRは適用前に拒否します。"
       },
       {
-        "source": "Apply validates the draft, recreates the SDK player through the serialized session and reloads the source; unchanged/invalid Apply and Reset draft do not replace resources. The selected/custom source, logs and Allow DVR helper state persist while playback position resets. Time-shift buttons remain fixed at 0, -10, -30 and -60 seconds with window clamping.",
-        "text": "Applyは下書きを検証し、順番を管理するセッション経由でSDKプレイヤーを再生成してソースを読み込みます。変更のないApply、無効なApply、Reset draftではリソースを置き換えません。選択したプリセット・任意URLのソース、ログ、Allow DVRの補助処理設定は保持され、再生位置はリセットされます。タイムシフトボタンは引き続き0・-10・-30・-60秒に固定され、ウィンドウ内に補正されます。"
+        "source": "Player recreation and foreground restoration wait for confirmed release of the previous native media owner and SDK player. An unconfirmed release blocks replacement. Settings, drafts and logs remain in the app instance; playback restarts from the configured source offset rather than an arbitrary previous position.",
+        "text": "Playerの再生成やフォアグラウンド復帰では、前のネイティブメディア実体とSDK Playerの解放を確認してから置き換えます。解放を確認できなければ生成を止めます。設定・編集中の値・ログは同じアプリ内で保持しますが、再生は以前の任意の位置ではなく、設定した開始位置から再開します。"
       },
       {
-        "source": "Allow DVR changes the application DVR helper, not PlayerConfig.playback.timeShift. License/authentication, ui:false and module registration remain setup constants, not GUI settings. Title/poster are passed in SourceConfig, but the Kepler screen has no poster overlay or HTML Player UI.",
-        "text": "Allow DVRが変えるのはアプリのDVR補助処理であり、PlayerConfig.playback.timeShiftではありません。ライセンス・認証、ui:false、モジュール登録は設定コード内の固定値で、GUI設定ではありません。タイトル・ポスターはSourceConfigに渡しますが、Kepler画面にはポスターの重ね表示やHTML Player UIはありません。"
-      },
-      {
-        "source": "isLive is read but not consumed by the displayed derived state and remains code-only. getCurrentTime now passes through DvrState.currentTime to the visible position in the existing state line and receives observation credit. Position is SDK media time in seconds and can use an absolute timeline for live sources.",
-        "text": "isLiveは読み取りますが表示用の派生状態には使わないため、code-onlyのままです。getCurrentTimeはDvrState.currentTimeを通って既存の状態欄のpositionへ表示されるため、観測として数えます。値はSDKのメディア時刻を秒で示し、ライブでは絶対時刻のタイムラインになる場合があります。"
-      },
-      {
-        "source": "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
-        "text": "PlayerAPI.loadの公開シグネチャは一件です。GUIは編集したSourceConfigを渡しますが、任意引数のforceTechnologyとdisableSeekingは操作できません。読み取り専用のPlayerAPI.getConfig・getSourceの観測や、内部を展開しないオブジェクト全体のGUI対応は推定しません。非公開のapp_idに固定値を渡しても、公開されたtweaks項目の対応とは数えません。"
-      },
-      {
-        "source": "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. These named log entries do not expose event payload fields.",
-        "text": "TimeChangedは追いかけ再生の状態表示を更新します。SourceLoaded、TimeShifted、DurationChanged、DVRWindowExceededは名前付きでログに表示します。これらのログには、通知に含まれる詳細データは表示しません。"
-      },
-      {
-        "source": "On 2026-10-21, Vega SDK 0.24.12112 and an arm64 Virtual Device ran the final lifecycle implementation. All 3 Release architectures built. The same app instance passed 3 bitrate Apply cycles, 3 VOD HLS background/foreground cycles and 3 Live DASH cycles with advancing SDK clocks and changing video frames. Actual D-pad/Select controls changed autoplay, mute and the app DVR switch; applied settings, drafts, logs and code display were retained. All 73 unit/session cases and TypeScript checks passed, separately from native execution. Background release waits for native deinitialization success and SDK destruction before replacement. Process RSS and file-descriptor samples do not identify individual native media/surface allocations or establish leak freedom. Physical-device behavior, protected/offline content, audible synchronization and quantitative buffer/bitrate effects require separate inputs.",
-        "text": "2026-10-21にVega SDK 0.24.12112とarm64 Virtual Deviceで最終のライフサイクル実装を実行しました。Releaseの3アーキテクチャをビルドし、同じアプリインスタンスでビットレート適用3回、VOD HLSの背景・前景復帰3回、Live DASHの復帰3回を確認しました。各回でSDK時刻と映像が進行し、D-padとSelectで自動再生・ミュート・アプリのDVRスイッチを変更しました。適用値、下書き、ログ、コード表示も保持しました。単体・セッション試験73件とTypeScript検査の成功はネイティブ実行と分けて扱います。背景での解放はネイティブ終了の成功とSDK破棄を待ってから次のセッションを作ります。プロセスRSSやファイル記述子数から、個別のメディア・サーフェス領域やすべての保持解消は判断できません。物理端末、保護・オフラインコンテンツ、聴感同期、バッファー・ビットレートの定量的な効果には別の試験素材が必要です。"
-      },
-      {
-        "source": "PlayerConfig.network.requestApi is fixed to Fetch by vegaPlayerConfig and used at SDK construction. This receives code-only configuration credit, not GUI credit; the existing network hooks and unrelated configuration fields are retained.",
-        "text": "PlayerConfig.network.requestApiはvegaPlayerConfigでFetchに固定し、SDKの生成時に使います。GUI対応には加えず、コード上の設定として数えます。既存の通信フックと関係のない設定項目は保持します。"
-      },
-      {
-        "source": "Foreground Apply waits for fulfilled SDK destruction before synchronous native release because the SDK's asynchronous stop sequence still uses the media object. On background transitions, AppState cancels callbacks, clears the owned video surface, resets the public media src to an empty string, and requests synchronous native deinitialization before the handler yields. Replacement waits for the native success acknowledgment, fulfilled SDK destruction and a new foreground surface. Unconfirmed native release, SDK destruction failure or cancellation during pending initialization retains the retiring owner and blocks replacement; restarting the app is required in those failure cases. The 1000 ms native release deadline is an app policy. Within a retained instance, applied source/player settings, drafts, logs and Allow DVR are preserved; playback position retention is not implemented. This lifecycle integration adds no editable SDK field or GUI coverage credit.",
-        "text": "前景でのApplyでは、SDKの非同期停止がメディアオブジェクトを使うため、SDK破棄の完了後にネイティブを同期解放します。背景への移行ではAppStateがコールバックを取り消し、所有する映像サーフェスを外し、公開メディアAPIのsrcを空文字に戻してから、ハンドラーが終了する前にネイティブ終了を同期要求します。置き換えはネイティブ終了の成功応答、SDK破棄の完了、新しい前景サーフェスを待ちます。ネイティブ解放の応答が確認できない場合、SDK破棄が失敗した場合、初期化待ちの途中で取り消した場合は、終了処理中の所有者を保持して置き換えを止めるため、アプリの再起動が必要です。ネイティブ解放の1000ミリ秒という期限はアプリ側の方針です。同じアプリインスタンスではソース・Playerの適用設定、下書き、ログ、Allow DVRを保持しますが、再生位置は保持しません。このライフサイクル対応によって編集可能なSDK項目やGUIカバレッジは増えません。"
-      },
-      {
-        "source": "Four external WebVTT subtitle leaves have app-owned editors: URL, label, lang and enabled. Validated settings reach the normal source load and applied-code display; enabled determines whether the external track starts enabled. The id and kind are fixed in code and receive code-only credit. Public CueEnter/CueExit events update plain subtitle text in the native view, and SubtitleDisabled clears it. This exposes cue text, not arbitrary event payloads, styled subtitle rendering or a general track-selection menu.",
-        "text": "外部WebVTT字幕はURL、表示名、lang、enabledの四項目を設定画面で編集できます。検証済みの設定を通常のソース読み込みと適用済みコード表示に渡します。enabledは外部トラックを最初から有効にするかを指定します。idとkindはコードに固定されており、code-onlyに分類します。公開APIのCueEnter/CueExitで字幕の文字列をネイティブ画面に表示・更新し、SubtitleDisabledで消します。字幕の文字列を表示する機能であり、任意の通知データ、装飾付き字幕、汎用のトラック選択メニューは公開していません。"
+        "source": "These mappings describe GUI and SDK routes. Representative virtual-device playback checks, unit tests and builds are separate records. They do not qualify every argument, media format, protected stream, physical device, remote service or long-running memory workload.",
+        "text": "この対応表はGUIからSDKへ至る経路を示します。仮想デバイスの代表的な再生確認、単体テスト、ビルドは別の記録です。全引数・形式・保護素材・実機・外部サービス・長時間のメモリ使用を確認したという意味ではありません。"
       }
     ]
   },

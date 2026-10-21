@@ -1,7 +1,7 @@
 {
   "id": "native-integrations",
   "title": "React Native と Vega OS への組み込み",
-  "lead": "React Nativeは生成したExpoプロジェクト、Vegaは同梱のKeplerアプリで動かします。ソース、再生、字幕、UIの設定を変更し、適用済みコードを確認します。",
+  "lead": "React Native版は生成したExpoホストで、Vega版はKeplerアプリで実行します。どちらもSDKの型に応じた設定入力、コールバック編集、API操作と結果の確認を提供します。ネイティブの統合方法と対応機能は異なります。",
   "blocks": [
     {
       "type": "h2",
@@ -30,12 +30,12 @@
     },
     {
       "type": "p",
-      "text": "生成アプリの表示名は Player Lab React Native、iOS と Android の識別子はともに com.playerlab.reactnative です。app.json には Player プラグインと同梱の共有 UI アセット用プラグインが登録されます。"
+      "text": "生成アプリの名前はPlayer Lab React Nativeで、iOSとAndroidの識別子はcom.playerlab.reactnativeです。app.jsonにはネイティブ機能、共有UI、Cast起動設定のプラグインを登録します。"
     },
     {
       "type": "code",
       "title": "生成アプリの識別子とプラグイン",
-      "text": "{\n  \"expo\": {\n    \"name\": \"Player Lab React Native\",\n    \"ios\": {\n      \"bundleIdentifier\": \"com.playerlab.reactnative\"\n    },\n    \"android\": {\n      \"package\": \"com.playerlab.reactnative\"\n    },\n    \"plugins\": [\n      [\n        \"bitmovin-player-react-native\",\n        {}\n      ],\n      \"./plugins/withSharedPlayerUi.cjs\"\n    ]\n  }\n}"
+      "text": "{\n  \"expo\": {\n    \"name\": \"Player Lab React Native\",\n    \"slug\": \"player-lab-react-native\",\n    \"version\": \"0.1.0\",\n    \"newArchEnabled\": true,\n    \"jsEngine\": \"hermes\",\n    \"ios\": {\n      \"bundleIdentifier\": \"com.playerlab.reactnative\",\n      \"supportsTablet\": true\n    },\n    \"android\": {\n      \"package\": \"com.playerlab.reactnative\"\n    },\n    \"plugins\": [\n      [\n        \"bitmovin-player-react-native\",\n        {\n          \"features\": {\n            \"airPlay\": true,\n            \"backgroundPlayback\": true,\n            \"offline\": true,\n            \"pictureInPicture\": true,\n            \"googleCastSDK\": {\n              \"appId\": \"FFE417E5\",\n              \"android\": \"21.3.0\",\n              \"ios\": \"4.8.4\"\n            }\n          }\n        }\n      ],\n      \"./plugins/withSharedPlayerUi.cjs\",\n      \"./plugins/withCastHost.cjs\"\n    ]\n  }\n}"
     },
     {
       "type": "steps",
@@ -116,7 +116,7 @@
     },
     {
       "type": "note",
-      "text": "React Nativeの設定フォームには、初期音声の優先言語、HTTPリトライ、TweaksConfigの編集欄はありません。再生中のトラック操作にはプレイヤーUIで提供するメニューを使います。APIの対応状況では、フォームの項目、UIのプリセット、コード内のみの対応を区別して確認できます。"
+      "text": "基本フォームはよく使う設定の入口です。Additional SDK configuration、Subtitle lists and advertising、JavaScript callbacksでラッパーの追加プロパティを編集できます。React Nativeラッパーが公開していないネイティブSDKの機能は、任意のキーを追加しても使えるようにはなりません。"
     },
     {
       "type": "p",
@@ -165,6 +165,96 @@
     },
     {
       "type": "h2",
+      "text": "React Nativeの追加設定と配列"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Show configurationのAdditional SDK configurationでSourceConfig.descriptionなどのパスを検索し、項目を選んでSet this API valueを押します。",
+        "型に応じて値を入力します。リストは一行に一項目、辞書は一行に重複しないname=valueを入力します。SDKの列挙型には選択肢が表示されます。Applyまでは下書きです。",
+        "字幕配列や広告のスケジュールはSubtitle lists and advertisingで編集します。ソースまたはオフラインの字幕リストを選び、Edit this list、Add list itemの順で追加します。トラックのURL、ラベル、言語、形式を入力し、役割と任意のフラグも設定できます。",
+        "Apply and recreate playerを押してShow applied codeを確認します。追加設定は基本フォームの後に適用します。Overrideを削除するとフォームの値またはSDK既定値へ戻ります。有効にした空のリストは配列を明示的に削除します。"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "SourceConfig.subtitleTracksとOfflineContentConfig.sourceConfig.subtitleTracksは独立したリストです。広告には挿入位置と広告ソースを設定します。スケジュールの適用だけでは広告サービスやメディアの利用可能状態は確認できません。有効な広告タグを用意し、対応するAPI操作で動作を比較します。"
+    },
+    {
+      "type": "h2",
+      "text": "React NativeのコールバックとUIハンドラー"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "JavaScript callbacks and native UI handlersでPlayerConfig.networkConfig.preprocessHttpRequestなどを検索し、Edit this callbackを選びます。関数の型が表示されます。",
+        "JSONではなく関数の本文を入力し、Allow edited JavaScript executionを有効にしてApplyします。ハンドラーの生成関数はApplyとPlayer再作成時に、通常のコールバックはSDKから呼ばれたときに動作します。",
+        "通信コールバックはPromiseを返せますが、同期コールバックは同期的に戻り値を返す必要があります。表示された引数名を使い、要求する型を返します。lab.getPlayer()とlab.getSource()は現在のSDKインスタンスを返します。",
+        "適用済みコードと、操作後のSDKの状態・イベントを確認します。既定の動作へ戻す場合はコールバックを削除してApplyします。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "rn-ios-api-callback",
+      "caption": "iOS版React Nativeで実行を明示的に有効にした通信コールバック。この例は呼び出しを確認するため音量を変更し、元のリクエストを返しています。"
+    },
+    {
+      "type": "note",
+      "title": "実行範囲",
+      "text": "React Nativeの本文はアプリのJavaScript環境で実行し、サンドボックスでは分離していません。信頼できるコードだけを使ってください。これはSwift版の実行量に上限のあるインタープリターとは異なります。全画面表示や独自メッセージの生成関数は、フォームに記載したSDKハンドラーを返す必要があります。実際のSDKインスタンスを必要とする入力は、通常のオブジェクトでは代用できません。"
+    },
+    {
+      "type": "h2",
+      "text": "React NativeのAPI操作・状態・イベント"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Show API experimentsを開き、操作を検索して型に応じた引数を入力します。Run selected APIを押すと、実行した呼び出しと戻り値を表示します。",
+        "最初はPlayer.getCurrentTimeやPlayer.getDurationを試します。再生後に再度取得し、Player eventsと比較します。getterは状態の問い合わせであり、呼び出しの完了が別の再生機能の動作まで証明するものではありません。",
+        "値を設定するAPIやシークを試したら、状態を取得して対応する完了イベントを待ちます。Player eventsにはSDKの通知内容の要約を残します。Pause event logとClear API event logで対象の操作を絞れます。",
+        "Playerを破棄した後や適用済み設定へ戻すときはRecreate player after API experimentsを使います。適用済みのソースと設定で再作成します。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "rn-android-api-operation",
+      "caption": "Android版React NativeのPlayer.getCurrentTime。時刻の基準を引数で指定し、ネイティブSDKの位置を取得します。"
+    },
+    {
+      "type": "figure",
+      "file": "rn-ios-api-events",
+      "caption": "React Nativeのイベントログ。ネイティブソースの再生中に届いたonTimeChangedの内容を表示しています。"
+    },
+    {
+      "type": "p",
+      "text": "オフラインの操作にはAdditional SDK configurationの設定と、独立したオフライン字幕リストを使います。OfflineContentConfig.identifierに継続して使う識別子を設定し、管理機能を初期化してgetOptionsを呼び、onOptionsAvailableを確認してからダウンロードします。完了はonCompletedで通知します。Player.loadOfflineContentは選択したダウンロード済み素材を読み込みます。キャンセルと削除はその識別子の素材を対象にします。対応コンテンツ、保存領域、DRMの利用権限も必要です。"
+    },
+    {
+      "type": "h2",
+      "text": "React NativeのCast起動設定"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Additional SDK configurationでBitmovinCastManagerOptions.applicationIdとmessageNamespaceを編集します。空欄にすると既定の受信アプリと名前空間へ戻ります。",
+        "Cast startup configurationのSave Cast options for next launchを押します。Applyとは独立して現在の下書きを保存します。アプリを完全に終了して開き直してください。JavaScriptの再読み込みやPlayerの再作成ではネイティブCastは再起動しません。",
+        "Read native Cast startup stateでsavedOptions、startupOptions、nativeInitialized、pendingRestartを比較します。Androidは現在の公開ネイティブgetterで取得します。iOSには設定のgetterがないため、プロセス起動時に初期化APIへ渡した値を表示します。",
+        "端末の探索、接続、受信側の再生には同じネットワーク上の対応する受信端末を使います。初期化だけではそれらの動作は確認できません。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "rn-android-cast-startup",
+      "caption": "Android版React Nativeを完全に再起動した後の状態。保存値と起動値が一致し、nativeInitializedはtrue、pendingRestartはfalseです。"
+    },
+    {
+      "type": "note",
+      "title": "非推奨のinitialize API",
+      "text": "ラッパー1.29のBitmovinCastManager.initialize(options)は非推奨で、処理を行いません。GUIのネイティブ起動アダプターが公開ネイティブAPIへ受信設定を渡します。以前に生成したホストは、新しいプラグインを含めて生成し直すか更新し、一度ネイティブを再ビルドします。生成ホストのGoogle CastはAndroidが21.3.0、iOSが4.8.4で、単独のSwift版とは別の固定バージョンです。"
+    },
+    {
+      "type": "h2",
       "text": "Vega OS と Kepler"
     },
     {
@@ -197,12 +287,12 @@
     },
     {
       "type": "p",
-      "text": "画面にはソース、Live edge、−10／−30／−60秒、Allow DVR、状態、ログとShow configurationがあります。初期状態は自動再生・ミュートが有効です。Allow DVR、Autoplay、Mute on startupはフォーカス可能にしてあり、D-padとSelect（VVDでは矢印キーとEnter）で切り替えられます。専用の再生／一時停止ボタン、音声・字幕・画質選択、メディアキーのショートカット、DRM用モジュールは含めません。"
+      "text": "Vegaの画面にはソースのプリセット、基本設定、SDK API experiments、状態、イベントとネイティブの動画領域があります。初期状態は自動再生とミュートが有効です。D-padとSelect（VVDでは矢印キーとEnter）でフォーカス可能な項目を操作します。再生やトラックの操作にはAPI experimentsを使い、基本の操作画面にはライブの巻き戻し用ボタンもあります。"
     },
     {
       "type": "steps",
       "items": [
-        "VOD HLSを選び、映像とpositionの値が進むことを確認します。このホストには独立した再生ボタンがないため、設定の比較中はAutoplayを有効にしておきます。",
+        "VOD HLSを選び、映像とpositionの値が進むことを確認します。比較にはAutoplayが便利です。無効の場合はSDK API experimentsのPlayerAPI.playを使います。",
         "Show configurationを開いて現在値を控え、Start offset (seconds)に5を入力してStartを選び、Apply and recreate playerを押します。新しいソースの読み込みと、再生開始後に映像の下へ表示するpositionを確認します。",
         "以下のバッファーやビットレートの入力例をApplyし、Show applied codeを変更前と比較します。ソースだけの編集でもプレイヤーを再作成し、前のネイティブプレイヤーが資源を解放するまで待ちます。",
         "編集の破棄にはReset draftを使います。初期のプレイヤー設定に戻す場合はAutoplayとMute on startupを有効にし、両方のバッファー欄とMaximum video bitrateを空欄にしてApplyします。ソース項目はVODのプリセットを選び直して戻します。Autoplayを無効にした場合は、有効に戻してApplyすると新しい再生セッションを開始します。"
@@ -229,7 +319,7 @@
         [
           "Maximum video bitrate",
           "1500000 bits per second",
-          "Applyでプレイヤーを再作成します。適用済みコードのadaptation.bitrates.maxSelectableVideoBitrateを確認し、複数ビットレートを持つソースで再生を比較します。このホストには手動の画質選択はありません。"
+          "Applyでプレイヤーを再作成します。適用済みコードのadaptation.bitrates.maxSelectableVideoBitrateを確認し、複数ビットレートのソースで比較します。特定の画質を選ぶ場合は、使用可能な品質一覧と対応するSDK API操作を確認します。"
         ],
         [
           "外部WebVTT",
@@ -275,11 +365,81 @@
     },
     {
       "type": "p",
-      "text": "プレイヤー生成前に、公開されているAmazonのメディア・WebCrypto API、@xmldom/xmldom 0.9.12、base-64 1.0.0を接続します。統合に必要なためPlayerConfig.network.requestApiはFetchに固定しています。これはコード上の設定で、GUIの選択項目ではありません。呼び出し側が渡したその他の通信フックは保持します。ネイティブのメディア・暗号処理はインストール済みパッケージの実装を使います。状態欄のpositionはPlayerAPI.getCurrentTime()の秒単位の値で、ライブでは絶対メディア時刻になる場合があります。"
+      "text": "ネイティブ環境ではPlayerを作る前にAmazonの公開メディア・WebCrypto APIを接続します。通信にはFetchが必要です。追加設定ではSDKの宣言を表示しますが、XHRのrequestApiを選ぶとApply前に拒否します。その他の通信フックは設定できます。PlayerAPI.getCurrentTimeの単位は秒で、ライブでは絶対メディア時刻になる場合があります。"
     },
     {
       "type": "p",
       "text": "前のネイティブPlayerを解放できなかったという診断が表示された場合は、アプリを再起動してから試します。前のPlayerがネイティブの資源を保持したまま次を生成すると再生できなくなるため、アプリは置き換えを止めて診断を表示します。"
+    },
+    {
+      "type": "h2",
+      "text": "Vegaの型付き設定とコールバック"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Show configuration → Show all SDK configurationを開き、PlayerConfigまたはSourceConfigのパスを検索してSet Vega API valueを選びます。",
+        "宣言された型に応じて、SDKの選択肢、オブジェクトの項目、辞書、リスト、バイト列を入力します。親オブジェクトと配列のフォームでは必須の関連項目をまとめて入力できます。配列のパスでは要素の番号を選び、順に追加します。",
+        "関数の項目にはJavaScriptの本文を入力します。Allow this SDK callbackを有効にしてApplyすると関数を登録します。any型には別の値の生成関数もあり、ApplyまたはRun時に評価します。",
+        "Apply and recreate playerを押し、Show applied codeを変更前と比較します。出力には適用済みの値と関数の本文を含み、ライセンスとヘッダーの値は置き換えます。Overrideを削除すると基本フォームまたはSDK既定値へ戻ります。"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "編集したJavaScriptはVegaアプリ内で動作し、サンドボックスでは分離していません。生成関数はセッションの再作成でも実行する場合があり、コールバックはSDKが呼ぶときに動作します。lab.getPlayer()とlab.getSource()は現在の公開SDKオブジェクトです。バイナリー入力は16進数またはBase64を受け付け、実際のバッファーや型付き配列へ変換します。証明書を入力した場合も、対応するDRM素材、ライセンスサービス、端末は別途必要です。"
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-callback",
+      "caption": "Vegaのコールバック編集欄です。SDKの引数と返り値の型を確認して関数本体を編集し、許可を有効にしてApplyしてからリクエストを試します。"
+    },
+    {
+      "type": "h2",
+      "text": "VegaのAPI操作・状態・イベント"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Show SDK API experimentsを開きます。メソッドを検索し、複数の呼び出し形式がある場合は選択して引数を入力します。任意引数は設定するか省略するかを選べます。",
+        "Run Vega SDK APIを押すと、実際の呼び出しと戻り値またはエラーを表示します。PlayerAPI.getCurrentTimeでは再生中に再取得し、位置と映像の変化を比較します。",
+        "Inspect current SDK API availabilityは公開メソッドの存在を調べるだけで、実行はしません。HLSのトラック用メソッドやDASHのperiod用メソッドには対応する形式のソースが必要です。",
+        "値を設定するAPIの後は状態を取得し、下にあるSDK eventsも確認します。Pause Vega event logとClear Vega event logで対象を絞ります。SDKインスタンスを必要とする引数は現在のセッションから選び、再作成後には使い回しません。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-operation",
+      "caption": "Big Buck Bunnyの再生中にPlayerAPI.getCurrentTimeを実行し、位置を取得したVegaの画面。"
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-volume",
+      "caption": "編集したリクエストコールバックで音量を変更した後、Vega SDKが17を返した画面です。動画とイベントログを結果と一緒に確認できます。"
+    },
+    {
+      "type": "p",
+      "text": "低遅延の操作には対応するライブソースを使います。VODでは目標値を設定できても遅延の取得値が0のままになる場合があります。対象のライブ配信で目標値とイベントを確認してから、実際の遅延を比較します。"
+    },
+    {
+      "type": "h2",
+      "text": "VegaのHLS広告挿入"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "広告挿入のマーカーを持つHLSを使います。Show all SDK configurationでPlayerConfig.tweaks.enable_sgai_handlingを選び、選択肢のtrueを指定してApplyします。",
+        "Show SDK API experimentsのPlayerAPI.sgai.listでスケジュールを確認します。PlayerAPI.sgai.getActiveAdは再生中の挿入コンテンツを返し、挿入区間外で空になるのは通常の状態です。",
+        "挿入コンテンツの再生中にPlayerAPI.sgai.skipを実行し、AdStarted、AdSkipped、AdBreakFinishedと、その後の再生状態を確認します。"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "これはHLSのマーカーに従うサーバー指示型広告挿入（SGAI）で、クライアント側の広告統合とは別の機能です。予定位置が想定と異なる場合は、ストリームに記録されたメディアの日時（program date）と挿入区間の開始日時を比較します。時間の基準が合わないと、挿入区間がメディアの範囲外になる場合があります。Vega READMEに公開のサンプルへのリンクがあります。対応するソースURLを使ってください。"
+    },
+    {
+      "type": "note",
+      "title": "Vegaで機能を使うための条件",
+      "text": "ネイティブ統合にはFetchが必要で、XHRを選ぶとApply前に拒否します。この動画ホストにはブラウザーのHTML UI、DOMコンテナー、クライアント側の広告、canvas／WebGLの描画環境はありません。入力項目、呼び出せるメソッド、定数の戻り値だけでは、Vegaでその機能が動作することを示せません。コンテンツ、SDKのモジュール、サービス、端末の能力によって動作が決まります。機能ごとの条件は現在のVega READMEを確認してください。"
     },
     {
       "type": "h2",
@@ -471,6 +631,51 @@
     {
       "url": "https://www.developer.amazon.com/docs/vega/0.24/focus-management",
       "label": "VegaのD-padフォーカス管理"
+    },
+    {
+      "path": "apps/react-native/src/NativeSettingsPanel.tsx",
+      "line": 1,
+      "label": "React Nativeの追加設定"
+    },
+    {
+      "path": "apps/react-native/src/NativeArraysPanel.tsx",
+      "line": 1,
+      "label": "字幕と広告の配列"
+    },
+    {
+      "path": "apps/react-native/src/NativeScriptsPanel.tsx",
+      "line": 1,
+      "label": "コールバックとUIハンドラー"
+    },
+    {
+      "path": "apps/react-native/src/ApiPanel.tsx",
+      "line": 1,
+      "label": "SDKの操作とイベントの結果"
+    },
+    {
+      "path": "apps/react-native/src/CastHostPanel.tsx",
+      "line": 1,
+      "label": "ネイティブCastの保存と起動設定"
+    },
+    {
+      "path": "apps/react-native/src/auxiliaryOperations.ts",
+      "line": 1,
+      "label": "オフラインとCastの操作"
+    },
+    {
+      "path": "apps/vega/src/api/ConfigurationInputsPanel.tsx",
+      "line": 1,
+      "label": "Vegaの型に応じた設定"
+    },
+    {
+      "path": "apps/vega/src/api/ApiPanel.tsx",
+      "line": 1,
+      "label": "Vegaの操作結果とイベント"
+    },
+    {
+      "path": "apps/vega/src/api/InputEditor.tsx",
+      "line": 1,
+      "label": "構造を持つ値とコールバックの入力"
     }
   ]
 }

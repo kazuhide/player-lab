@@ -36,7 +36,8 @@ export default defineConfig({
   },
   webServer: {
     command: `python3 ${quote(resolve(__dirname, "serve-pages.py"))} --directory ${quote(root)} --port ${port}`,
-    url: `${origin}/player-lab/web/`,
+    // Probe the server's bound address without DNS; browser URLs retain localhost.
+    url: `http://127.0.0.1:${port}/player-lab/web/`,
     reuseExistingServer: false,
     timeout: 15_000,
   },

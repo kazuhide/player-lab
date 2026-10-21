@@ -13,8 +13,24 @@
       "package": "com.playerlab.reactnative"
     },
     "plugins": [
-      ["bitmovin-player-react-native", {}],
-      "./plugins/withSharedPlayerUi.cjs"
+      [
+        "bitmovin-player-react-native",
+        {
+          "features": {
+            "airPlay": true,
+            "backgroundPlayback": true,
+            "offline": true,
+            "pictureInPicture": true,
+            "googleCastSDK": {
+              "appId": "FFE417E5",
+              "android": "21.3.0",
+              "ios": "4.8.4"
+            }
+          }
+        }
+      ],
+      "./plugins/withSharedPlayerUi.cjs",
+      "./plugins/withCastHost.cjs"
     ]
   }
 }

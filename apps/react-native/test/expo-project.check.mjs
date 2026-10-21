@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
+import { createRequire } from "node:module";
 import { createExpoProject } from "../scripts/create-expo-project.mjs";
 
 const appRoot = fileURLToPath(new URL("..", import.meta.url));
@@ -27,7 +28,13 @@ test("generates the existing App and pinned native project inputs without a lice
   const config = JSON.parse(readFileSync(join(target, "app.json"), "utf8")).expo;
   assert.equal(config.ios.bundleIdentifier, "com.playerlab.reactnative");
   assert.equal(config.android.package, "com.playerlab.reactnative");
-  assert.deepEqual(config.plugins[0], ["bitmovin-player-react-native", {}]);
+  assert.deepEqual(config.plugins[0], ["bitmovin-player-react-native", { features: {
+    airPlay:true, backgroundPlayback:true, offline:true, pictureInPicture:true,
+    googleCastSDK:{ appId:"FFE417E5", android:"21.3.0", ios:"4.8.4" },
+  } }]);
+  assert.equal(config.plugins.at(-1), "./plugins/withCastHost.cjs");
+  assert.match(readFileSync(join(target, "plugins/native/PlayerLabCastHost.kt"), "utf8"), /BitmovinCastManager.initialize/);
+  assert.match(readFileSync(join(target, "plugins/native/PlayerLabCastHost.swift"), "utf8"), /initializeCasting\(options:/);
   const manifest = JSON.parse(readFileSync(join(target, "package.json"), "utf8"));
   assert.equal(manifest.engines.node, "24.19.0");
   assert.equal(readFileSync(join(target, ".nvmrc"), "utf8").trim(), "24.19.0");
@@ -82,3 +89,15 @@ test("an explicitly selected environment file is copied privately without enteri
 test("rejects targets inside the sample source", () => fixture(({ assets }) => {
   assert.throws(() => createExpoProject({ target:resolve(appRoot, "generated"), assets }), /outside the sample/);
 }));
+
+
+test("the Cast startup plugin is idempotent and refuses a changed native template", () => {
+  const require = createRequire(import.meta.url);
+  const { insertOnce } = require("../expo/plugins/withCastHost.cjs");
+  const source = "before\n    super.onCreate(null)\nafter";
+  const marker = "PlayerLabCastHost.initializeSavedOptions(this)";
+  const edited = insertOnce(source, marker, "super.onCreate(null)", marker + "\n    super.onCreate(null)");
+  assert.equal(insertOnce(edited, marker, "super.onCreate(null)", "must not duplicate"), edited);
+  assert.ok(edited.indexOf(marker) < edited.indexOf("super.onCreate(null)"));
+  assert.throws(() => insertOnce("changed template", marker, "super.onCreate(null)", "replacement"), /cannot find/);
+});

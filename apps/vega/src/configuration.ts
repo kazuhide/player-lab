@@ -3,6 +3,8 @@ import type { PlayerConfig, SourceConfig } from "bitmovin-player";
 import { URL } from "react-native-url-polyfill";
 import { TimelineReferencePoint } from "bitmovin-player/modules/bitmovinplayer-core";
 import type { VegaSource } from "./Sources";
+import { configurationOverrides, validateConfigurationShape, type ConfigInput } from "./api/configInputs";
+import { NetworkRequestApi } from "bitmovin-player/modules/bitmovinplayer-core";
 
 export interface ConfigurationDraft {
   url: string;
@@ -20,10 +22,11 @@ export interface ConfigurationDraft {
   subtitleLabel: string;
   subtitleLanguage: string;
   subtitleEnabled: boolean;
+  apiInputs?: ConfigInput[];
 }
 export interface Configuration {
   source: SourceConfig;
-  player: Pick<PlayerConfig, "playback" | "buffer" | "adaptation">;
+  player: Partial<PlayerConfig>;
   draft: ConfigurationDraft;
 }
 
@@ -58,6 +61,9 @@ function optionalNumber(value: string, label: string): number | undefined {
 
 /** Only validated objects cross into the modular SDK's creation/load path. */
 export function parseConfiguration(draft: ConfigurationDraft): Configuration {
+  const overrides = configurationOverrides(draft.apiInputs ?? []);
+  const advanced = overrides.apply<Partial<PlayerConfig>>("PlayerConfig", {});
+  if (advanced.network?.requestApi && advanced.network.requestApi !== NetworkRequestApi.Fetch) throw new Error("The current Vega media integration requires Fetch. XHR is not connected in this native host.");
   const url = httpUrl(draft.url, "Source URL");
   if (!["hls", "dash", "progressive"].includes(draft.type)) throw new Error("Select a supported source type.");
   const title = draft.title.trim();
@@ -80,7 +86,7 @@ export function parseConfiguration(draft: ConfigurationDraft): Configuration {
   if (maxVideoBitrate !== undefined && maxVideoBitrate <= 0) throw new Error("Maximum video bitrate must be positive; leave blank for no cap.");
   const reference = draft.timeline === "start" ? TimelineReferencePoint.Start : draft.timeline === "end" ? TimelineReferencePoint.End : undefined;
   const media = draft.type === "hls" ? { hls: url } : draft.type === "dash" ? { dash: url } : { progressive: url };
-  return {
+  const result: Configuration = {
     source: {
       ...media, ...(title ? { title } : {}), ...(poster ? { poster } : {}),
       ...(subtitleUrl ? { subtitleTracks: [{ url: subtitleUrl, label: subtitleLabel, lang: subtitleLanguage,
@@ -103,8 +109,10 @@ export function parseConfiguration(draft: ConfigurationDraft): Configuration {
       videoForwardDuration: video === undefined ? "" : String(video), audioForwardDuration: audio === undefined ? "" : String(audio),
       maxVideoBitrate: maxVideoBitrate === undefined ? "" : String(maxVideoBitrate) },
   };
+  validateConfigurationShape({ key: "PLAYER_KEY_PLACEHOLDER", ...result.player }, result.source, draft.apiInputs ?? []);
+  return result;
 }
 
 export function sameConfiguration(left: Configuration, right: Configuration): boolean {
-  return JSON.stringify([left.source, left.player]) === JSON.stringify([right.source, right.player]);
+  return JSON.stringify([left.source, left.player, left.draft.apiInputs]) === JSON.stringify([right.source, right.player, right.draft.apiInputs]);
 }

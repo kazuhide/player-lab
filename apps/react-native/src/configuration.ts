@@ -2,6 +2,9 @@ import { SourceType, SubtitleFormat, TimelineReferencePoint, type PlayerConfig, 
 // Older native URL implementations omit the protocol and hostname getters used below.
 import { URL } from "react-native-url-polyfill";
 import type { ShowcaseSource } from "./sources";
+import { applyNativeSettings, type NativeSettings, type SettingValues } from "./nativeSettings";
+import { applyNativeArrays, type NativeArrayDraft } from "./nativeArrays";
+import { validateNativeScripts, validateNativeScriptSettings, type NativeScriptDraft } from "./nativeScripts";
 
 export type NativePlatform = "ios" | "android";
 export type SourceFormat = "hls" | "dash" | "progressive";
@@ -20,10 +23,11 @@ export interface ConfigurationDraft {
   subtitleLabel: string;
   subtitleLanguage: string;
   subtitleDefault: boolean;
+  apiSettings?: SettingValues;
+  arraySettings?: NativeArrayDraft;
+  scripts?: NativeScriptDraft;
 }
-export interface Configuration {
-  source: SourceConfig;
-  player: Pick<PlayerConfig, "playbackConfig" | "bufferConfig" | "adaptationConfig">;
+export interface Configuration extends NativeSettings {
   draft: ConfigurationDraft;
 }
 
@@ -62,6 +66,7 @@ function optionalNumber(value: string, label: string): number | undefined {
 
 /** The only boundary from editable text into SDK configuration objects. */
 export function parseConfiguration(draft: ConfigurationDraft, platform: NativePlatform): Configuration {
+  if (draft.scripts) validateNativeScripts(draft.scripts);
   const url = httpUrl(draft.url, "Source URL");
   if (platform === "ios" && draft.type === "dash") throw new Error("DASH is not supported by the native iOS player. Use HLS or progressive MP4.");
   const type = { hls: SourceType.HLS, dash: SourceType.DASH, progressive: SourceType.PROGRESSIVE }[draft.type];
@@ -103,13 +108,16 @@ export function parseConfiguration(draft: ConfigurationDraft, platform: NativePl
       ...(reference !== undefined ? { startOffsetTimelineReference: reference } : {}),
     } } : {}),
   };
-  return {
-    source,
-    player: {
+  const player: PlayerConfig = {
       playbackConfig: { isAutoplayEnabled: draft.autoplay, isMuted: draft.muted },
       ...(forwardDuration !== undefined ? { bufferConfig: { audioAndVideo: { forwardDuration } } } : {}),
       ...(maxBitrate !== undefined ? { adaptationConfig: { maxSelectableBitrate: maxBitrate } } : {}),
-    },
+  };
+  const settings = applyNativeSettings(source, player, draft.apiSettings ?? {});
+  applyNativeArrays(settings, draft.arraySettings ?? {});
+  if (draft.scripts) validateNativeScriptSettings(settings, draft.scripts);
+  return {
+    ...settings,
     draft: { ...draft, url, title, poster, subtitleUrl, subtitleLabel, subtitleLanguage, subtitleDefault,
       startOffset: startOffset === undefined ? "" : String(startOffset),
       forwardDuration: forwardDuration === undefined ? "" : String(forwardDuration), maxBitrate: maxBitrate === undefined ? "" : String(maxBitrate) },
@@ -117,5 +125,6 @@ export function parseConfiguration(draft: ConfigurationDraft, platform: NativePl
 }
 
 export function sameConfiguration(left: Configuration, right: Configuration): boolean {
-  return JSON.stringify([left.source, left.player]) === JSON.stringify([right.source, right.player]);
+  const values = (config: Configuration) => [config.source, config.player, config.view, config.webUi, config.props, config.offline, config.download, config.offlineOptions, config.cast, config.draft.scripts];
+  return JSON.stringify(values(left)) === JSON.stringify(values(right));
 }

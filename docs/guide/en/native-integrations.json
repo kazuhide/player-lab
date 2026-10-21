@@ -1,7 +1,7 @@
 {
   "id": "native-integrations",
   "title": "React Native and Vega OS integration",
-  "lead": "Run the React Native sample in a generated Expo project, or build the included Vega Kepler app. Try their source, playback, subtitle, and UI settings and inspect the applied configuration code.",
+  "lead": "Run the React Native sample in a generated Expo host, or build the Vega Kepler app. Both provide typed SDK configuration, editable callbacks and operations with their results. Their native integrations and supported features differ.",
   "blocks": [
     {
       "type": "h2",
@@ -30,12 +30,12 @@
     },
     {
       "type": "p",
-      "text": "The generated app is named Player Lab React Native and uses com.playerlab.reactnative for both iOS and Android. Its app.json registers the Player plugin and the included shared UI asset plugin:"
+      "text": "The generated app is named Player Lab React Native and uses com.playerlab.reactnative for iOS and Android. Its app.json enables the native features and registers the shared UI and Cast startup plugins:"
     },
     {
       "type": "code",
       "title": "Generated app identifiers and plugins",
-      "text": "{\n  \"expo\": {\n    \"name\": \"Player Lab React Native\",\n    \"ios\": {\n      \"bundleIdentifier\": \"com.playerlab.reactnative\"\n    },\n    \"android\": {\n      \"package\": \"com.playerlab.reactnative\"\n    },\n    \"plugins\": [\n      [\n        \"bitmovin-player-react-native\",\n        {}\n      ],\n      \"./plugins/withSharedPlayerUi.cjs\"\n    ]\n  }\n}"
+      "text": "{\n  \"expo\": {\n    \"name\": \"Player Lab React Native\",\n    \"slug\": \"player-lab-react-native\",\n    \"version\": \"0.1.0\",\n    \"newArchEnabled\": true,\n    \"jsEngine\": \"hermes\",\n    \"ios\": {\n      \"bundleIdentifier\": \"com.playerlab.reactnative\",\n      \"supportsTablet\": true\n    },\n    \"android\": {\n      \"package\": \"com.playerlab.reactnative\"\n    },\n    \"plugins\": [\n      [\n        \"bitmovin-player-react-native\",\n        {\n          \"features\": {\n            \"airPlay\": true,\n            \"backgroundPlayback\": true,\n            \"offline\": true,\n            \"pictureInPicture\": true,\n            \"googleCastSDK\": {\n              \"appId\": \"FFE417E5\",\n              \"android\": \"21.3.0\",\n              \"ios\": \"4.8.4\"\n            }\n          }\n        }\n      ],\n      \"./plugins/withSharedPlayerUi.cjs\",\n      \"./plugins/withCastHost.cjs\"\n    ]\n  }\n}"
     },
     {
       "type": "steps",
@@ -116,7 +116,7 @@
     },
     {
       "type": "note",
-      "text": "The React Native configuration form has no initial audio-language preference, HTTP retry editor or TweaksConfig panel. Use the player UI for the track controls it provides, and the API coverage reference to distinguish form fields, UI presets and code-only support."
+      "text": "The basic form is a shortcut for common settings. Additional SDK configuration, Subtitle lists and advertising, and JavaScript callbacks expose further wrapper properties. Native SDK features that the React Native wrapper does not publish do not become available through an arbitrary extra key."
     },
     {
       "type": "p",
@@ -165,6 +165,96 @@
     },
     {
       "type": "h2",
+      "text": "React Native: additional configuration and lists"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Show configuration and find Additional SDK configuration. Search the exact path, such as SourceConfig.description, select it and choose Set this API value.",
+        "Edit the value according to its type. Lists use one item per line; maps use one unique name=value pair per line. SDK enumerations offer their declared choices. These are draft overrides until Apply.",
+        "For subtitle arrays or advertising schedules, use Subtitle lists and advertising. Choose the source or offline subtitle list, Edit this list and Add list item. Complete each track's URL, label, language and format; roles and optional flags have separate controls.",
+        "Apply and recreate player, then Show applied code. Advanced overrides follow the basic form; removing an override restores its form value or SDK default. An enabled empty list explicitly clears that array."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "SourceConfig.subtitleTracks and OfflineContentConfig.sourceConfig.subtitleTracks are independent lists. Advertising items include a position and one or more ad sources. Applying an ad schedule does not establish that an ad service or media is available; use a valid tag and the appropriate API operation to compare behavior."
+    },
+    {
+      "type": "h2",
+      "text": "React Native: callbacks and native UI handlers"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Under JavaScript callbacks and native UI handlers, search a callback such as PlayerConfig.networkConfig.preprocessHttpRequest and choose Edit this callback. The editor shows its signature.",
+        "Enter a function body rather than JSON. Enable Allow edited JavaScript execution and Apply. Handler factories run on Apply or player recreation; ordinary callbacks run when the SDK invokes them.",
+        "Network callbacks may return a Promise; synchronous callbacks must return synchronously. Use the declared argument names and return the required type. lab.getPlayer() and lab.getSource() refer to the current SDK instances.",
+        "Inspect the applied code and the resulting SDK state or events. Remove the callback and Apply to restore the default."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "rn-ios-api-callback",
+      "caption": "React Native on iOS: an explicitly enabled network callback body. The example changes volume and returns the original request so its invocation can be observed."
+    },
+    {
+      "type": "note",
+      "title": "Execution scope",
+      "text": "React Native callback bodies run in the app's JavaScript runtime, without a sandbox. Use code you trust. This differs from the Apple Swift sample's bounded plain-value interpreter. Fullscreen and custom-message factories must return the SDK handler objects described in the form; a plain object cannot replace a required native SDK instance."
+    },
+    {
+      "type": "h2",
+      "text": "React Native: operations, state and events"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Show API experiments, search an operation and fill its typed arguments. Select Run selected API to display the submitted call and returned value.",
+        "Start with Player.getCurrentTime or Player.getDuration. Read again after playback, then compare Player events. A getter is a state query; a resolved call is not proof of an unrelated playback feature.",
+        "Try a setter or seek, then query its resulting state and wait for the matching completion event. Player events contains recent SDK payload summaries; Pause event log and Clear API event log help isolate the experiment.",
+        "Use Recreate player after API experiments after destroying the player or to return to the applied configuration. A replacement uses the applied source and settings."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "rn-android-api-operation",
+      "caption": "React Native on Android: Player.getCurrentTime with a typed time-mode argument and a returned native SDK position."
+    },
+    {
+      "type": "figure",
+      "file": "rn-ios-api-events",
+      "caption": "The React Native event log shows onTimeChanged payload summaries while the native source plays."
+    },
+    {
+      "type": "p",
+      "text": "Offline operations use the settings under Additional SDK configuration and the separate offline subtitle list. Set a stable OfflineContentConfig.identifier, initialize the manager, call getOptions and inspect onOptionsAvailable before downloading. Completion arrives through onCompleted. Player.loadOfflineContent loads the selected downloaded asset; cancellation and deletion affect that content identifier. Suitable content, storage and DRM rights are still required."
+    },
+    {
+      "type": "h2",
+      "text": "React Native: Cast startup settings"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "In Additional SDK configuration, edit BitmovinCastManagerOptions.applicationId and messageNamespace. Blank values restore the default receiver and namespace.",
+        "Select Save Cast options for next launch in Cast startup configuration. This saves the current draft independently from Apply. Fully close and reopen the app; JavaScript reload and player recreation do not restart native Cast.",
+        "Select Read native Cast startup state. Compare savedOptions with startupOptions, nativeInitialized and pendingRestart. Android reads the current public native manager getters; iOS reports the options submitted at process launch because its public manager has no options getter.",
+        "Use a compatible receiver on the same network for discovery, connection and receiver playback. Initialization alone does not establish those results."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "rn-android-cast-startup",
+      "caption": "React Native on Android after a full restart: saved and startup options agree, nativeInitialized is true and pendingRestart is false."
+    },
+    {
+      "type": "note",
+      "title": "Deprecated initialize API",
+      "text": "In wrapper 1.29, BitmovinCastManager.initialize(options) is a deprecated no-op. The GUI's native startup adapter applies receiver options through the public native API. An older generated host must be regenerated or updated and rebuilt once to include it. The generated host pins Google Cast 21.3.0 on Android and 4.8.4 on iOS, independently of the standalone Swift sample."
+    },
+    {
+      "type": "h2",
       "text": "Vega OS and Kepler"
     },
     {
@@ -197,12 +287,12 @@
     },
     {
       "type": "p",
-      "text": "The screen includes source selection, Live edge, −10/−30/−60-second controls, Allow DVR, state, logs, and Show configuration. Autoplay and mute are initially enabled. Allow DVR, Autoplay and Mute on startup are explicitly focusable and can be toggled with D-pad and Select (arrow keys and Enter on VVD). The screen does not provide dedicated play/pause buttons, audio/subtitle/quality selection, media-key shortcuts or DRM modules."
+      "text": "The Vega screen provides source presets, the basic configuration form, SDK API experiments, state and events alongside its native video surface. Autoplay and startup mute are initially enabled. Use D-pad and Select (arrow keys and Enter on VVD) to navigate focusable controls. Playback and track operations are available in API experiments, while the basic controls retain their live-rewind shortcuts."
     },
     {
       "type": "steps",
       "items": [
-        "Select VOD HLS and wait for moving video and an advancing position value. Keep Autoplay enabled while comparing settings: this host has no separate Play button.",
+        "Select VOD HLS and wait for moving video and an advancing position value. Autoplay is useful for comparison; if it is off, use PlayerAPI.play in SDK API experiments.",
         "Open Show configuration, record the baseline values, enter 5 for Start offset (seconds), choose Start and use Apply and recreate player. Check the new source load and the position displayed below the video after playback starts.",
         "Use the example buffer and bitrate values below, Apply, and compare Show applied code with the baseline. A source edit also recreates the player; it waits for the previous native player to release its resources.",
         "To discard edits use Reset draft. To restore initial player settings, set Autoplay and Mute on startup on, clear both buffer fields and Maximum video bitrate, then Apply. Select the VOD preset again to restore source fields. If Autoplay was turned off, turn it on and Apply to start a fresh playback session."
@@ -229,7 +319,7 @@
         [
           "Maximum video bitrate",
           "1500000 bits per second",
-          "Apply recreates the player. Check adaptation.bitrates.maxSelectableVideoBitrate in applied code and use a multi-bitrate source for playback comparisons. The host has no manual quality selector."
+          "Apply recreates the player. Check adaptation.bitrates.maxSelectableVideoBitrate in applied code and use a multi-bitrate source. For an explicit rendition, inspect available qualities and the corresponding SDK API operation."
         ],
         [
           "External WebVTT",
@@ -275,11 +365,81 @@
     },
     {
       "type": "p",
-      "text": "Before player construction, the runtime connects the published Amazon media/WebCrypto APIs, @xmldom/xmldom 0.9.12 and base-64 1.0.0. PlayerConfig.network.requestApi is fixed to Fetch as required by the integration; it is a code setting, not a GUI selector. Other supplied network hooks remain. Native media and crypto implementations stay in their installed packages. The state line displays PlayerAPI.getCurrentTime() in seconds; live sources can use an absolute media timeline."
+      "text": "The native runtime connects Amazon's published media and WebCrypto APIs before constructing the player. Its network transport must be Fetch. The advanced editor exposes the SDK declaration, but rejects an XHR requestApi override before Apply. Other network hooks remain configurable. PlayerAPI.getCurrentTime returns seconds; live sources can use an absolute media timeline."
     },
     {
       "type": "p",
       "text": "If the app reports that the previous native player could not be released, restart the app before trying again. Creating another player while the previous one still owns native resources can prevent playback. This safeguard stops replacement and keeps the diagnostic visible."
+    },
+    {
+      "type": "h2",
+      "text": "Vega: typed configuration and callbacks"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Show configuration → Show all SDK configuration. Search a PlayerConfig or SourceConfig path and choose Set Vega API value.",
+        "Use the input for the declared type: SDK enumeration, object fields, dictionary entries, list items or bytes. Parent object/list forms let you complete required sibling fields together. For an array path, choose its index and add items in order.",
+        "Function fields contain editable JavaScript bodies. Enable Allow this SDK callback and Apply to install the function. Values typed any also offer a separate JavaScript value factory that runs on Apply or Run.",
+        "Apply and recreate player, then compare Show applied code. The export contains applied values and bodies, with license and header placeholders. Removing an override restores the basic form or SDK default."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Edited Vega JavaScript runs inside the app without a sandbox. Factories may run again during session recreation; callbacks run when the SDK calls them. lab.getPlayer() and lab.getSource() provide the current public SDK objects. Binary inputs accept hexadecimal or Base64 and create a buffer or typed array; a certificate still needs compatible DRM content, a license service and a supported device."
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-callback",
+      "caption": "Vega callback editor showing the SDK signature and an editable function body. Approve the callback and Apply before testing the request."
+    },
+    {
+      "type": "h2",
+      "text": "Vega: operations, state and events"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Show SDK API experiments. Search a method, choose an overload if offered and enter typed arguments. Optional arguments can be set or omitted.",
+        "Select Run Vega SDK API. The panel shows the actual call and its return or error. For PlayerAPI.getCurrentTime, run it again during playback and compare changing video with the position.",
+        "Inspect current SDK API availability checks whether a public method exists without executing it. Format-specific queries require their matching source: HLS track methods need HLS and DASH period methods need DASH.",
+        "Read state after a setter and inspect the SDK events below the result. Pause Vega event log or Clear Vega event log to isolate an experiment. Inputs requiring SDK objects use current-session resources; they expire when the player is recreated."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-operation",
+      "caption": "Vega API experiments with PlayerAPI.getCurrentTime and a position returned while Big Buck Bunny plays."
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-volume",
+      "caption": "The Vega SDK returns volume 17 after the edited request callback changes it. The video and event log remain visible alongside the result."
+    },
+    {
+      "type": "p",
+      "text": "Low-latency operations apply to a suitable live source. VOD can accept a target setter while its latency readings remain zero. Use a matching live stream, read the target back and compare the relevant events before assessing actual delay."
+    },
+    {
+      "type": "h2",
+      "text": "Vega: HLS interstitials"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Use an HLS source containing interstitial markers. In Show all SDK configuration, select PlayerConfig.tweaks.enable_sgai_handling, choose true from its declared choices, then Apply.",
+        "In Show SDK API experiments, run PlayerAPI.sgai.list to inspect the schedule. PlayerAPI.sgai.getActiveAd returns the current interstitial; an empty result outside an interstitial is expected.",
+        "During an interstitial, use PlayerAPI.sgai.skip and check AdStarted, AdSkipped and AdBreakFinished together with the resulting playback state."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "This is server-guided advertising (SGAI), driven by markers in the HLS source. It is separate from the client-side advertising integration. If the scheduled position is unexpected, compare the stream's program date with the interstitial's start date: inconsistent timelines can place an interstitial outside the media. The Vega README links to the public interstitial example; use a compatible source URL."
+    },
+    {
+      "type": "note",
+      "title": "Vega feature requirements",
+      "text": "The native integration requires Fetch; selecting XHR is rejected before Apply. The browser HTML UI, browser DOM containers, client-side advertising and canvas/WebGL rendering are not supplied by this native media host. A declared input, a callable method or a constant return does not establish that its feature works on Vega. Content, SDK modules, services and device capabilities determine the effective behavior. Check the current Vega README for feature-specific requirements."
     },
     {
       "type": "h2",
@@ -471,6 +631,51 @@
     {
       "url": "https://www.developer.amazon.com/docs/vega/0.24/focus-management",
       "label": "Vega D-pad focus management"
+    },
+    {
+      "path": "apps/react-native/src/NativeSettingsPanel.tsx",
+      "line": 1,
+      "label": "Additional typed React Native settings"
+    },
+    {
+      "path": "apps/react-native/src/NativeArraysPanel.tsx",
+      "line": 1,
+      "label": "Subtitle and advertising lists"
+    },
+    {
+      "path": "apps/react-native/src/NativeScriptsPanel.tsx",
+      "line": 1,
+      "label": "Callback and UI-handler inputs"
+    },
+    {
+      "path": "apps/react-native/src/ApiPanel.tsx",
+      "line": 1,
+      "label": "Native SDK operations and event results"
+    },
+    {
+      "path": "apps/react-native/src/CastHostPanel.tsx",
+      "line": 1,
+      "label": "Saved native Cast startup settings"
+    },
+    {
+      "path": "apps/react-native/src/auxiliaryOperations.ts",
+      "line": 1,
+      "label": "Offline and Cast operations"
+    },
+    {
+      "path": "apps/vega/src/api/ConfigurationInputsPanel.tsx",
+      "line": 1,
+      "label": "Typed Vega configuration"
+    },
+    {
+      "path": "apps/vega/src/api/ApiPanel.tsx",
+      "line": 1,
+      "label": "Vega operation results and events"
+    },
+    {
+      "path": "apps/vega/src/api/InputEditor.tsx",
+      "line": 1,
+      "label": "Structured values and callback inputs"
     }
   ]
 }

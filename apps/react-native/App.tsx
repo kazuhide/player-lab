@@ -16,7 +16,7 @@
  * types. Native playback requires an external Expo development build; see README.
  */
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Button, Platform, ScrollView, StyleSheet, Switch, Text, View, type GestureResponderEvent } from "react-native";
+import { Button, Modal, Platform, ScrollView, StyleSheet, Switch, Text, View, type GestureResponderEvent } from "react-native";
 import {
   CustomUi,
   PlayerView,
@@ -33,6 +33,11 @@ import { ConfigurationPanel } from "./src/ConfigurationPanel";
 import { configurationCode } from "./src/configurationCode";
 import { initialDraft, parseConfiguration, presetDraft, sameConfiguration, supportsSource, type Configuration } from "./src/configuration";
 import type { RuntimeAppState, RuntimeMonitor, RuntimeOwner } from "./src/runtimeObservation";
+import { ApiPanel } from "./src/ApiPanel";
+import { nativeEventProps } from "./src/apiEvents";
+import { disposeOwnedSources, loadOwnedSource } from "./src/sourceOwnership";
+import { apiValue } from "./src/apiValues";
+import { applyNativeScripts, NativeScriptOwner } from "./src/nativeScripts";
 
 // Both keys flow from the repo-root .env via scripts/sync-env.sh → this app's .env
 // (EXPO_PUBLIC_* = client-embedded; license keys are domain-locked, not secret).
@@ -77,6 +82,7 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
   const [applied, setApplied] = useState(() => parseConfiguration(initialDraft(sources[0]!), platform));
   const [draft, setDraft] = useState(applied.draft);
   const [revision, setRevision] = useState(0);
+  const recreate = useCallback(() => setRevision((value) => value + 1), []);
   const [error, setError] = useState<string | null>(null);
   const [timeShiftEnabled, setTimeShiftEnabled] = useState(true);
   const [log, setLog] = useState<string[]>([]);
@@ -101,6 +107,7 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
     setApplied(next);
     setDraft((current) => ({ ...current, ...fields }));
     setError(null);
+    if (Object.keys(next.draft.scripts?.bodies ?? {}).length || "isFullscreenRequested" in next.props) setRevision((value) => value + 1);
   };
   const apply = () => {
     try {
@@ -117,6 +124,7 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
   };
   return (
     <ScrollView testID="player-lab-screen" contentContainerStyle={styles.container} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+      keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled"
       scrollEnabled={Platform.OS !== "android" || playerTouchOwner === null}>
       {/* Player UI: the SDK default vs. our shared @showcase/ui-shared custom factories (§12). */}
       <View style={styles.row}>
@@ -130,9 +138,9 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
           />
         ))}
       </View>
-      <PlayerPane key={`${uiMode.label}:${revision}`} uiMode={uiMode} source={applied.source} playerConfig={applied.player}
+      <PlayerPane key={`${uiMode.label}:${revision}`} uiMode={uiMode} source={applied.source} playerConfig={applied.player} settings={applied}
         sources={sources} onSelectSource={selectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={setTimeShiftEnabled}
-        log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} />
+        log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} onRecreate={recreate} />
       <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
         onReset={() => { setDraft(applied.draft); setError(null); }}
         changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} appliedCode={appliedCode} />
@@ -144,6 +152,7 @@ interface PlayerPaneProps {
   uiMode: UiMode;
   source: SourceConfig;
   playerConfig: Configuration["player"];
+  settings: Configuration;
   sources: ShowcaseSource[];
   onSelectSource: (source: ShowcaseSource) => void;
   timeShiftEnabled: boolean;
@@ -152,27 +161,81 @@ interface PlayerPaneProps {
   append: (message: string) => void;
   onPlayerTouchChange: (owner: symbol, touching: boolean) => void;
   runtimeChecks?: RuntimeMonitor | undefined;
+  onRecreate: () => void;
 }
 
-function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange }: PlayerPaneProps): React.JSX.Element {
+function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange, onRecreate }: PlayerPaneProps): React.JSX.Element {
+  const [fullscreen, setFullscreen] = useState(() => Boolean(settings.props.isFullscreenRequested));
+  const recorder = useRef<(name: string, value: unknown) => void>(() => {});
+  const [runtime] = useState(() => {
+    const owner = new NativeScriptOwner((name, value) => recorder.current(name, value), setFullscreen);
+    try {
+      const configured = Boolean(Object.keys(settings.draft.scripts?.bodies ?? {}).length || "isFullscreenRequested" in settings.props);
+      const materialized = configured ? parseConfiguration(settings.draft, Platform.OS === "ios" ? "ios" : "android") : settings;
+      if (settings.draft.scripts) applyNativeScripts(materialized, settings.draft.scripts, owner);
+      if ("isFullscreenRequested" in materialized.props && !materialized.props.fullscreenHandler) materialized.props.fullscreenHandler = owner.defaultFullscreen();
+      return { owner, settings: materialized, configured, error: null };
+    } catch { owner.retire(); return { owner, settings, configured: false, error: "The approved handler factory could not be applied. Edit the callback and Apply again." }; }
+  });
+  useEffect(() => () => runtime.owner.retire(), [runtime]);
+  if (runtime.error) return <View><Text accessibilityRole="alert">{runtime.error}</Text><Button title="Recreate player after API experiments" onPress={onRecreate} /></View>;
+  const applied = runtime.configured ? runtime.settings : settings;
+  return <ActivePlayerPane uiMode={uiMode} source={runtime.configured ? applied.source : source} playerConfig={runtime.configured ? applied.player : playerConfig}
+    settings={applied} sources={sources} onSelectSource={onSelectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={onTimeShiftEnabled}
+    log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} onRecreate={onRecreate}
+    scriptOwner={runtime.owner} scriptRecorder={recorder} fullscreen={fullscreen} onExitFullscreen={() => {
+      try { applied.props.fullscreenHandler?.exitFullscreen(); }
+      catch { recorder.current("PlayerViewProps.fullscreenHandler", { error: "Fullscreen exit callback failed." }); }
+      setFullscreen(false);
+    }} />;
+}
+
+function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange, onRecreate,
+  scriptOwner, scriptRecorder, fullscreen, onExitFullscreen }: PlayerPaneProps & { scriptOwner: NativeScriptOwner; scriptRecorder: React.MutableRefObject<(name: string, value: unknown) => void>; fullscreen: boolean; onExitFullscreen: () => void }): React.JSX.Element {
+  const analyticsConfig = playerConfig.analyticsConfig ? {
+    ...playerConfig.analyticsConfig,
+    licenseKey: Object.prototype.hasOwnProperty.call(settings.draft.apiSettings ?? {}, "PlayerConfig.analyticsConfig.licenseKey")
+      ? playerConfig.analyticsConfig.licenseKey : ANALYTICS_LICENSE_KEY,
+  } : ANALYTICS_LICENSE_KEY ? { licenseKey: ANALYTICS_LICENSE_KEY } : undefined;
   const player = usePlayer(
     uiMode.factoryFunction
       ? {
           licenseKey: LICENSE_KEY,
           ...ANALYTICS,
           ...playerConfig,
+          ...(analyticsConfig ? { analyticsConfig } : {}),
           styleConfig: {
             userInterfaceType: UserInterfaceType.Bitmovin,
             playerUiJs: WEBUI_JS,
             playerUiCss: WEBUI_CSS,
+            ...playerConfig.styleConfig,
           },
         }
-      : { licenseKey: LICENSE_KEY, ...ANALYTICS, ...playerConfig },
+      : { licenseKey: LICENSE_KEY, ...ANALYTICS, ...playerConfig, ...(analyticsConfig ? { analyticsConfig } : {}) },
   );
   const [dvr, setDvr] = useState<DvrState | null>(null);
+  scriptOwner.bind(player);
   const [viewReady, setViewReady] = useState(false);
   const snapshots = useRef<SnapshotController | null>(null);
   const active = useRef(true);
+  const [apiEvents, setApiEvents] = useState<string[]>([]);
+  const [recordingEvents, setRecordingEvents] = useState(true);
+  const recording = useRef(recordingEvents);
+  recording.current = recordingEvents;
+  const eventBuffer = useRef<string[]>([]);
+  const eventFlush = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const recordApiEvent = useCallback((name: string, event: unknown) => {
+    if (!active.current || !recording.current) return;
+    eventBuffer.current = [`${name}: ${apiValue(event).slice(0, 2000)}`, ...eventBuffer.current].slice(0, 80);
+    // Batch high-frequency bridge events rather than rendering once per callback.
+    if (!eventFlush.current) eventFlush.current = setTimeout(() => {
+      eventFlush.current = undefined;
+      if (active.current) setApiEvents(eventBuffer.current);
+    }, 125);
+  }, []);
+  const apiEventProps = useMemo(() => nativeEventProps(recordApiEvent), [recordApiEvent]);
+  scriptRecorder.current = recordApiEvent;
+  useEffect(() => () => { if (eventFlush.current) clearTimeout(eventFlush.current); }, []);
   const observed = useRef<RuntimeOwner | null>(null);
   const touchOwner = useMemo(() => Symbol("player-touch"), []);
   const playerPointers = useRef(new Set<string>());
@@ -209,7 +272,7 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
       active.current = false;
       controller.dispose();
       if (snapshots.current === controller) snapshots.current = null;
-      try { player.destroy(); }
+      try { disposeOwnedSources(player); player.destroy(); }
       finally { owner?.retire(); }
       if (observed.current === owner) observed.current = null;
     };
@@ -221,7 +284,7 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
     setDvr(null);
     append(`load ${source.title || "source"}`);
     // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.
-    player.load(source);
+    void loadOwnedSource(player, source).catch(() => { if (active.current) append("Source initialization failed; inspect source events or retry after the pending initializer settles."); });
     observed.current?.sourceLoad();
   }, [source, player, viewReady, append]);
 
@@ -232,42 +295,51 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
 
   const refresh = useCallback(() => snapshots.current?.refresh(), []);
   const seek = useCallback((offset: number) => snapshots.current?.seek(offset), []);
+  const sourceMutated = useCallback(() => { snapshots.current?.sourceChanged(); setDvr(null); }, []);
 
   // Select our custom factory by name; omitted for the SDK default UI.
-  const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction
-    ? { uiConfig: { variant: new CustomUi(uiMode.factoryFunction) } satisfies WebUiConfig }
+  const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction || Object.keys(settings.view).length || Object.keys(settings.webUi).length
+    ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }
     : undefined;
 
-  return (
-    <>
-      <View testID="player-lab-player" {...(Platform.OS === "android" ? {
+  const playerView = <View testID="player-lab-player" style={fullscreen ? styles.fullscreen : undefined} {...(Platform.OS === "android" ? {
         // Let the embedded SDK menu consume video gestures before the outer form.
         onTouchStartCapture: startPlayerTouch,
         onTouchEndCapture: finishPlayerTouch,
         onTouchCancelCapture: finishPlayerTouch,
       } : {})}>
       <PlayerView
+        {...apiEventProps}
+        {...settings.props}
+        {...("isFullscreenRequested" in settings.props ? { isFullscreenRequested: fullscreen } : {})}
         player={player}
-        style={styles.player}
+        style={fullscreen ? styles.fullscreen : styles.player}
         {...(viewConfig ? { config: viewConfig } : {})}
-        onPlayerViewReady={() => { if (active.current) { observed.current?.viewReady(); setViewReady(true); } }}
-        onTimeChanged={() => { if (active.current) { observed.current?.event("timeChanged"); void refresh(); } }}
-        onCueEnter={() => { if (active.current) observed.current?.event("cueEnter"); }}
-        onSourceLoaded={() => {
+        onPlayerViewReady={() => { if (active.current) { recordApiEvent("onPlayerViewReady", undefined); observed.current?.viewReady(); setViewReady(true); } }}
+        onTimeChanged={(event) => { apiEventProps.onTimeChanged?.(event); if (active.current) { observed.current?.event("timeChanged"); void refresh(); } }}
+        onCueEnter={(event) => { apiEventProps.onCueEnter?.(event); if (active.current) observed.current?.event("cueEnter"); }}
+        onSourceLoaded={(event) => {
+          apiEventProps.onSourceLoaded?.(event);
           if (!active.current) return;
           append("SourceLoaded");
           observed.current?.event("sourceLoaded");
           void refresh();
         }}
-        onTimeShifted={() => {
+        onTimeShifted={(event) => {
+          apiEventProps.onTimeShifted?.(event);
           if (!active.current) return;
           append("TimeShifted");
           void refresh();
         }}
-        onPlayerError={(event) => { if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Player error (${event.code})` : "Player error"); } }}
-        onSourceError={(event) => { if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Source error (${event.code})` : "Source error"); } }}
+        onPlayerError={(event) => { apiEventProps.onPlayerError?.(event); if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Player error (${event.code})` : "Player error"); } }}
+        onSourceError={(event) => { apiEventProps.onSourceError?.(event); if (active.current) { observed.current?.event("error", event?.code); append(typeof event?.code === "number" ? `Source error (${event.code})` : "Source error"); } }}
       />
-      </View>
+      </View>;
+  return (
+    <>
+      {fullscreen ? <Modal visible onRequestClose={onExitFullscreen} presentationStyle="fullScreen" supportedOrientations={["portrait", "landscape"]}>
+        {playerView}<Button title="Exit fullscreen experiment" onPress={onExitFullscreen} />
+      </Modal> : playerView}
 
       <View style={styles.row}>
         {sources.map((s) => (
@@ -315,6 +387,9 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
           </Text>
         ))}
       </ScrollView>
+      <ApiPanel player={player} source={source} ready={viewReady} events={apiEvents} recording={recordingEvents}
+        onRecording={setRecordingEvents} onClearEvents={() => { eventBuffer.current = []; setApiEvents([]); }} onRecreate={onRecreate}
+        settings={settings} onEvent={recordApiEvent} onSourceMutation={sourceMutated} />
     </>
   );
 }
@@ -322,6 +397,7 @@ function PlayerPane({ uiMode, source, playerConfig, sources, onSelectSource, tim
 const styles = StyleSheet.create({
   container: { padding: 12, gap: 10 },
   player: { width: "100%", height: 220, backgroundColor: "#000" },
+  fullscreen: { flex: 1, width: "100%", backgroundColor: "#000" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
   label: { marginRight: 6 },
   mono: { fontFamily: "monospace", fontSize: 12 },

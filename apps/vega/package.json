@@ -2,13 +2,15 @@
   "name": "@showcase/vega",
   "version": "0.1.0",
   "private": true,
-  "description": "Vega OS / Fire TV build of the Bitmovin Player Playground — modular web player + Kepler UI",
+  "description": "Vega OS / Fire TV build of the Bitmovin Player Playground \u2014 modular web player + Kepler UI",
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "runtime:config": "node scripts/write-runtime-config.cjs",
     "build:vega": "react-native build-vega --build-type Release --max-workers 2",
-    "build:vega:debug": "react-native build-vega --build-type Debug --max-workers 2"
+    "build:vega:debug": "react-native build-vega --build-type Debug --max-workers 2",
+    "api:generate": "node scripts/generate-api-schema.cjs",
+    "api:check": "node scripts/generate-api-schema.cjs --check"
   },
   "dependencies": {
     "@amazon-devices/react-native-kepler": "~2.1.0+rn0.72.0",

@@ -116,7 +116,8 @@ After **Show applied code**, use D-pad Down/Up to read the output. Each code lin
 participates in TV focus so the normal ScrollView can reveal the complete code,
 including lines below the video. The code uses license placeholders.
 
-`ui:false` stays fixed because the HTML Player UI is unavailable on Vega. Source
+`ui:false` is the default because the HTML Player UI is unavailable on Vega. An
+advanced UI override does not create browser controls. Source
 title/poster values are passed in the SDK source configuration; this Kepler screen does
 not add a poster-artwork renderer. There is no loop configuration in this
 published SDK surface. **Allow DVR** remains an application helper, separate
@@ -138,6 +139,105 @@ These paths are checked against the installed public
 imply support for the general Web SDK or untested Vega feature parity. A Kepler
 build and target-specific checks remain necessary for formats, buffers,
 adaptation and remote editing beyond the validation scope below.
+
+### Advanced SDK configuration
+
+Open **Show all SDK configuration** and search by a `PlayerConfig` or
+`SourceConfig` path. **Set Vega API value** adds a draft override. The editor
+uses the installed SDK declarations to offer the accepted value types,
+enumeration values, object fields, dictionary entries and list items. Array
+paths include an editable item index. Add items in order; incomplete nested
+objects are rejected before Apply. Removing an override restores the basic
+form value or the SDK default. Advanced numeric fields also accept `Infinity`
+where the SDK declaration permits a number; the effective limits still depend
+on that option and the media engine.
+
+Binary inputs accept hexadecimal or Base64 bytes and become an actual buffer
+or typed array, with a 64 KiB limit. For example, this can provide a DRM server
+certificate. Entering a certificate does not supply the license service,
+content rights or device support needed for encrypted playback.
+
+Function inputs contain editable JavaScript bodies. Enable **Allow this SDK
+callback** and Apply to install the real function; editing or validating its
+text does not execute it. The function runs when the SDK calls it. Values whose
+SDK type is `any` also offer a separate JavaScript value factory that runs on
+Apply or Run. Approved factories can run again when their session is recreated.
+Edited code runs inside this app without a sandbox, so only use code you trust.
+`lab.getPlayer()` and `lab.getSource()` return this session's public SDK objects.
+No account API or environment variables are supplied through `lab`.
+
+**Show applied code** includes the applied values and edited function bodies,
+with placeholders for license and header values. Review edited code before
+sharing it. The generated code retains the native media host's initialization,
+surface and release requirements.
+
+The native integration requires Fetch. Selecting XHR is rejected before Apply.
+The SDK's browser HTML UI, client-side advertising and browser-only integrations
+remain subject to the official
+[Vega feature limitations](https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/blob/0c7463104d3c18f56440aeec7beccd0d92c11aaa/README.md#features-and-limitations).
+Dispatching a configuration value does not establish that its feature has an
+effect on Vega.
+
+### SDK operations, state and events
+
+Open **Show SDK API experiments**, search for a published `PlayerAPI` method,
+enter its typed arguments and select **Run Vega SDK API**. Optional arguments
+can be set or omitted. The panel shows the executed call and the returned value
+or error. A pending SDK operation is not retried automatically. If it does not
+settle, recreate the player; the replacement waits for the native cleanup
+barrier. `destroy` retires the current owner and makes further calls unavailable
+until recreation.
+
+**Inspect current SDK API availability** lists whether each operation or state
+query exists on the current native player. This check reads public method
+properties without executing them. Manifest methods follow the loaded format:
+HLS track methods require HLS, and DASH period methods require DASH. A missing
+method is reported explicitly instead of being treated as a successful test.
+The app registers the low-latency, thumbnail, WebM, Smooth Streaming, TTML,
+CEA-608, AdvertisingCore and SGAI modules as well as the core HLS/DASH modules. Their effective behavior
+still depends on the content and Vega media capabilities.
+
+Inputs requiring SDK instances list actual objects returned by the current
+player. An object literal does not create a native instance. Query resources
+expire with their owner and cannot be carried into a recreated configuration.
+For `on` and `off`, choose the same callback from the current SDK resources to
+remove the registered function.
+
+Low-latency controls apply to a live source. On a VOD source the SDK can accept
+a latency setter while its latency reads remain zero. Select a live source and
+read the target latency back to distinguish an applied setting from an
+inactive control; measuring actual playback delay needs a suitable live stream.
+
+The event log shows named SDK event summaries for the current owner. It retains
+a bounded recent history and redacts credential fields. Use **Pause Vega event
+log** and **Clear Vega event log** to control it. The matching source, device or
+service must produce an event before it can appear. A successful call, a constant
+return or an empty result does not prove that an underlying feature is available;
+check the resulting state, events and playback behavior separately.
+
+After updating the pinned Vega SDK, regenerate and check the form metadata:
+
+```bash
+pnpm --filter @showcase/vega api:generate
+pnpm --filter @showcase/vega api:check
+```
+
+### HLS interstitials
+
+To try server-guided advertising (SGAI), select an HLS source containing
+interstitial markers. Under **Show all SDK configuration**, set
+`PlayerConfig.tweaks.enable_sgai_handling` to `true`, then Apply. This enables
+the SDK's [HLS interstitial handling](https://github.com/bitmovin/bitmovin-player-web-samples/blob/main/sgai/interstitials/index.js).
+It is separate from the client-side advertising integration that the Vega
+sample lists as unsupported.
+
+In **Show SDK API experiments**, use `PlayerAPI.sgai.list` to inspect the
+schedule, `PlayerAPI.sgai.getActiveAd` to inspect a currently playing
+interstitial, and `PlayerAPI.sgai.skip` to skip that interstitial. An empty
+active-ad result outside an interstitial is expected. Check `AdStarted`,
+`AdSkipped` and `AdBreakFinished` in the event log along with the playback state.
+The stream's program date and interstitial start date determine the scheduled
+position; an inconsistent date can place an interstitial outside the media.
 
 ## Background behavior
 

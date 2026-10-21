@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import type { ConfigurationDraft } from "./configuration";
 import { ConfigurationCodeView } from "./ConfigurationCodeView";
+import { ConfigurationInputsPanel } from "./api/ConfigurationInputsPanel";
 
 interface Props {
   draft: ConfigurationDraft;
@@ -63,6 +64,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         <Text style={styles.help}>This screen accepts positive buffer targets. Blank keeps the SDK default (40 seconds per media type); live windows can limit the effective buffer.</Text>
         {field("Maximum video bitrate (bits per second)", "maxVideoBitrate", true)}
         <Text style={styles.help}>Positive video bitrate cap; blank leaves it unlimited. Stream, engine and device support still apply.</Text>
+        <ConfigurationInputsPanel values={draft.apiInputs ?? []} onChange={(apiInputs) => onChange({ ...draft, apiInputs })} />
         {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
         <View style={styles.row}>
           <Button title="Apply and recreate player" onPress={onApply} disabled={!changed} />

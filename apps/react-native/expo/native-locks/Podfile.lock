@@ -74,6 +74,7 @@ PODS:
     - ExpoModulesCore
     - ExpoModulesJSI
   - FBLazyVector (0.86.3)
+  - google-cast-sdk (4.8.4)
   - hermes-engine (250829098.0.17):
     - hermes-engine/Pre-built (= 250829098.0.17)
   - hermes-engine/Pre-built (250829098.0.17)
@@ -1968,6 +1969,7 @@ PODS:
   - ReactNativeDependencies (0.86.3)
   - RNBitmovinPlayer (1.29.0):
     - ExpoModulesCore
+    - google-cast-sdk (= 4.8.4)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2062,6 +2064,10 @@ DEPENDENCIES:
   - "ReactNativeDependencies (from `../node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.7_@types+react@19.3.0_react@19.2.3/node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)"
   - "RNBitmovinPlayer (from `../node_modules/.pnpm/bitmovin-player-react-native@1.29.0_expo-crypto@57.0.4_expo@57.0.30__expo@57.0.30_react_b1980be12335591aad8b7aec17ca7c85/node_modules/bitmovin-player-react-native/ios`)"
   - "Yoga (from `../node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.7_@types+react@19.3.0_react@19.2.3/node_modules/react-native/ReactCommon/yoga`)"
+
+SPEC REPOS:
+  trunk:
+    - google-cast-sdk
 
 EXTERNAL SOURCES:
   EXConstants:
@@ -2261,6 +2267,7 @@ SPEC CHECKSUMS:
   ExpoModulesJSI: b767422763350d2b248fb218f71bbb286fd2ee77
   ExpoModulesWorklets: 22d1898cfa60b815ffc7421c775e2e6a1bd8dc82
   FBLazyVector: 2138c6c2ab66c31bf5754dc18097fbc498a49c7f
+  google-cast-sdk: 32f65af50d164e3c475e79ad123db3cc26fbcd37
   hermes-engine: 5668a8e8a8741b4cddc6245af48a421592e4d0f0
   RCTDeprecation: 96f68ebf33f8762466b01d57d6e873c4f30efb07
   RCTRequired: 166eed8ad6d8440e73e56d09a9090366609823d2
@@ -2335,7 +2342,7 @@ SPEC CHECKSUMS:
   ReactCodegen: ae4b994947f0a4a9c0d14c4fa0fbb6bb04ef1bdb
   ReactCommon: 02f6a489d5eb4ab79d7deba5cd4434e0ba351a07
   ReactNativeDependencies: 6738e602b46fd24aa453cd58267ec3bb8bf29d27
-  RNBitmovinPlayer: f294bb793e3a6f3f43bbbfa9a4e71034426de027
+  RNBitmovinPlayer: 106f1fba488de9ba42b7434aaa2ece2fc56e519d
   Yoga: 18b74b3ade30bebc1904004dfaceae1dd02a330a
 
 PODFILE CHECKSUM: 152eaaa88f758d5f1f55eb50d349fbb45d865a23

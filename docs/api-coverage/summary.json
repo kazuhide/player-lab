@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-22",
-  "sourceRevision": "f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0",
+  "sourceRevision": "9f1447014ac3cd0b7a07cd8bd6ddb4b47f91b75f",
   "sdks": [
     {
       "id": "android",
@@ -174,7 +174,7 @@
       ]
     }
   ],
-  "inputSha256": "9cd89501bbfdee254ae9e6865264b234acdb173593350eae6b73a865eaa674f0",
+  "inputSha256": "c26301832f867ca21e66e49eefd9ac040c3de4ca2ca40abab8648e9a9b72ca07",
   "applications": [
     {
       "id": "android",
@@ -14269,20 +14269,13 @@
       "sdkId": "react-native",
       "platform": "React Native (iOS / Android)",
       "scopeNotes": [
-        "The denominator covers the exported wrapper configuration roots, instance Player/Source/offline APIs, Cast manager and named view/offline callbacks. It is not the union of all underlying native SDK APIs.",
-        "Configuration counts leaf paths, callback contracts and opaque boundaries once; array element shapes are not multiplied. OfflineContentConfig has its own configuration scope, including inherited SourceConfig fields.",
-        "Static construction helpers, generic React references/styles, namespace containers and the generic onEvent callback are excluded. Data-transfer fields and enum values are not separate runtime operations.",
-        "The source editor exposes URL/type/title/poster and startOffset/reference; the player editor exposes autoplay/mute, audioAndVideo.forwardDuration and maxSelectableBitrate. Only those leaf paths receive direct configuration credit. Apply validates the draft, recreates the player and reloads the source; unchanged/invalid Apply and Reset draft do not replace the player.",
-        "iOS offers HLS and progressive; Android also offers DASH. Buffer 0 selects automatically only on iOS; this form requires positive Android targets. Maximum bitrate accepts whole bit/s values: 1–2147483647 on Android and 1–9007199254740991 on iOS, matching the native integer conversion and JavaScript exact-integer limit. Blank buffer/cap fields omit SDK overrides. The complete applied source, chosen UI, log and Allow DVR helper state survive recreation; playback position resets.",
-        "The UI picker exposes named factory/asset presets. Time-shift buttons expose 0, -10, -30 and -60 seconds with DVR-window clamping; they do not accept arbitrary offsets.",
-        "isLive and getCurrentTime are read by the snapshot controller but are not consumed by the displayed derived state, so they receive no observation credit.",
-        "Allow DVR changes the application DVR helper, not a PlayerConfig playback property. License configuration comes from environment setup and is not GUI editable.",
-        "The reproducible Expo host packages shared JS/CSS as native resources. Separate iOS and Android checks exercised SDK Default VOD playback and the packaged Sports factory with a visible INFO control and advancing native playback positions. Other factories remain unqualified; no SDK UI API credit is inferred from those checks.",
-        "Wrapper 1.29.0 pins Apple 3.128.0 and Android 3.170.0+jason. Its supported native dependency group is kept intact rather than overridden with the standalone Android SDK version.",
-        "onTimeChanged refreshes displayed DVR state. onSourceLoaded, onTimeShifted, onPlayerError and onSourceError have named log entries. Player/Source errors additionally display a numeric code when supplied; other event payload details are not rendered. onPlayerViewReady only triggers loading and is internal.",
-        "Player.load receives the edited SourceConfig. No Source instance lifecycle, read-only configuration observation, offline operation or unrelated nested property is inferred from those input controls.",
-        "On 2026-10-21 the wrapper 1.29.0 / Expo 57.0.30 host built on both native platforms and packaged shared assets matched the installed bundles. iOS native 3.128.0 played the local 60-second HLS fixture; Android native 3.170.0+jason played HLS and DASH. Actual GUI Apply produced a new native owner and destroyed the previous owner. The first Playing event and native position were 5.000 seconds for the configured start; autoplay, mute, maximum bitrate 2500000 and forward buffer 12.5 matched native configuration. The OS clipboard matched displayed applied code and excluded drafts and the actual key. Reset preserved the owner and source/UI/log/Allow DVR state. After background return the same owner played advancing visible VOD following an explicit SDK Play tap; this does not promise automatic resume. These checks cover the named simulator/emulator and Default/Sports modes, not physical devices, Release archives, every factory, protected/advertising content, live/DVR playback or quantitative buffer/bitrate effects.",
-        "Four external WebVTT subtitle leaves have app-owned editors: URL, label, language and isDefault. The validated SourceConfig reaches the normal Player.load path and applied-code display. isDefault is metadata; enable a track separately in the player menu. The identifier and WebVTT format are fixed in code and receive code-only credit. No arbitrary subtitle object, role or forced-track editor is inferred."
+        "The inventory covers the exported React Native wrapper configuration, Player and Source APIs, offline manager, Cast manager and named callbacks. It does not represent every API of the underlying native SDKs. Original IDs, categories and exclusions are retained.",
+        "Additional SDK configuration, collection editors and callback editors stage typed overrides. Explicit Apply recreates the player and reloads the source; source, player, view, Analytics and offline settings have separate consumers. A field supported on only one OS may have no effect on the other OS.",
+        "The API experiments panel runs the selected SDK method with edited arguments and displays its result and code. A void response establishes dispatch, not playback completion. Query the current SDK state and inspect the named events for the operation being tested.",
+        "Source changes retain creation identity until initialization settles and check ownership immediately before native attachment. A displayed operation timeout does not cancel an SDK call. Repeated requests keep one active initializer and the latest waiting request instead of accumulating native sources.",
+        "Cast receiver and namespace options are saved through the native startup adapter and take effect after the app process is fully restarted. Wrapper 1.29 initialize(options) is deprecated and does not apply those options. Startup values and native initialization do not establish receiver discovery, a connection or remote playback.",
+        "Named events have current-owner subscriptions and a bounded visible log. Editable callback bodies require explicit execution permission and run inside the app. Offline completion, advertising, protected media, casting and other services require matching inputs and environments; source-level routes are separate from those qualification tests.",
+        "The latest checked wrapper is 1.29.0, with its supported native dependency group: Apple Player 3.128.0 and Android Player 3.170.0+jason. The standalone Android sample uses 3.171.0+jason independently; changing only the wrapper native pin is not a verified wrapper upgrade."
       ],
       "excluded": [
         {
@@ -14434,57 +14427,57 @@
         "configuration": {
           "denominator": 267,
           "byStatus": {
-            "direct": 14,
-            "preset": 3,
+            "direct": 267,
+            "preset": 0,
             "observed": 0,
             "internal": 0,
-            "code-only": 5,
-            "missing": 245,
+            "code-only": 0,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 1,
-          "percentDirect": 5.24,
-          "percentDirectOrPreset": 6.37
+          "percentDirect": 100.0,
+          "percentDirectOrPreset": 100.0
         },
         "command": {
           "denominator": 46,
           "byStatus": {
-            "direct": 1,
-            "preset": 1,
+            "direct": 46,
+            "preset": 0,
             "observed": 0,
-            "internal": 1,
+            "internal": 0,
             "code-only": 0,
-            "missing": 43,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 1,
-          "percentDirect": 2.17,
-          "percentDirectOrPreset": 4.35
+          "percentDirect": 100.0,
+          "percentDirectOrPreset": 100.0
         },
         "observation": {
           "denominator": 57,
           "byStatus": {
-            "direct": 0,
+            "direct": 57,
             "preset": 0,
-            "observed": 3,
+            "observed": 0,
             "internal": 0,
-            "code-only": 2,
-            "missing": 52,
+            "code-only": 0,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 0,
-          "percentDirect": 0.0,
-          "percentDirectOrPreset": 0.0
+          "percentDirect": 100.0,
+          "percentDirectOrPreset": 100.0
         },
         "event": {
           "denominator": 80,
           "byStatus": {
             "direct": 0,
             "preset": 0,
-            "observed": 5,
-            "internal": 1,
+            "observed": 80,
+            "internal": 0,
             "code-only": 0,
-            "missing": 74,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 0,
@@ -14514,32 +14507,32 @@
             "command": {
               "denominator": 3,
               "byStatus": {
-                "direct": 0,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "event": {
               "denominator": 0,
@@ -14564,17 +14557,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -14629,17 +14622,17 @@
             "configuration": {
               "denominator": 77,
               "byStatus": {
-                "direct": 0,
+                "direct": 77,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 77,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -14709,32 +14702,32 @@
             "command": {
               "denominator": 11,
               "byStatus": {
-                "direct": 0,
+                "direct": 11,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 11,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 7,
               "byStatus": {
-                "direct": 0,
+                "direct": 7,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 7,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "event": {
               "denominator": 0,
@@ -14806,10 +14799,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 9,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 9,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -14824,17 +14817,17 @@
             "configuration": {
               "denominator": 3,
               "byStatus": {
-                "direct": 0,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -14889,17 +14882,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -14969,32 +14962,32 @@
             "command": {
               "denominator": 26,
               "byStatus": {
-                "direct": 1,
-                "preset": 1,
+                "direct": 26,
+                "preset": 0,
                 "observed": 0,
-                "internal": 1,
+                "internal": 0,
                 "code-only": 0,
-                "missing": 23,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 3.85,
-              "percentDirectOrPreset": 7.69
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 34,
               "byStatus": {
-                "direct": 0,
+                "direct": 34,
                 "preset": 0,
-                "observed": 3,
+                "observed": 0,
                 "internal": 0,
-                "code-only": 2,
-                "missing": 29,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "event": {
               "denominator": 0,
@@ -15019,17 +15012,17 @@
             "configuration": {
               "denominator": 93,
               "byStatus": {
-                "direct": 4,
-                "preset": 2,
+                "direct": 93,
+                "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 3,
-                "missing": 84,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 4.3,
-              "percentDirectOrPreset": 6.45
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -15084,17 +15077,17 @@
             "configuration": {
               "denominator": 5,
               "byStatus": {
-                "direct": 0,
+                "direct": 5,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -15149,17 +15142,17 @@
             "configuration": {
               "denominator": 7,
               "byStatus": {
-                "direct": 0,
+                "direct": 7,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 7,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -15196,10 +15189,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 5,
-                "internal": 1,
+                "observed": 71,
+                "internal": 0,
                 "code-only": 0,
-                "missing": 65,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -15229,32 +15222,32 @@
             "command": {
               "denominator": 6,
               "byStatus": {
-                "direct": 0,
+                "direct": 6,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 6,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 15,
               "byStatus": {
-                "direct": 0,
+                "direct": 15,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 15,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "event": {
               "denominator": 0,
@@ -15279,17 +15272,17 @@
             "configuration": {
               "denominator": 75,
               "byStatus": {
-                "direct": 10,
+                "direct": 75,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 2,
-                "missing": 63,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 13.33,
-              "percentDirectOrPreset": 13.33
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -15344,17 +15337,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
-                "preset": 1,
+                "direct": 4,
+                "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 25.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -21605,19 +21598,12 @@
       "sdkId": "vega",
       "platform": "Fire TV Vega",
       "scopeNotes": [
-        "The denominator is the published Vega-channel TypeScript PlayerConfig/SourceConfig paths, PlayerAPI callable members and PlayerEvent names. Data-transfer types, module-construction methods and exported utility namespaces are outside these scopes.",
-        "This special beta channel is the current release supported by the official Vega sample. The general Web stable release is not a supported replacement.",
-        "Public declarations include APIs with module, media, device and platform prerequisites. Their presence does not prove that every Web feature operates on Vega. Unqualified features remain unexposed rather than being silently removed from the denominator.",
-        "The source editor exposes HLS/DASH/progressive string URLs, title/poster and startOffset/reference. Player controls expose autoplay/mute, separate audio/video forwardduration targets and the adaptation video bitrate cap. Only those leaf paths receive direct configuration credit; progressive array fields and unrelated object members remain unexposed.",
-        "Apply validates the draft, recreates the SDK player through the serialized session and reloads the source; unchanged/invalid Apply and Reset draft do not replace resources. The selected/custom source, logs and Allow DVR helper state persist while playback position resets. Time-shift buttons remain fixed at 0, -10, -30 and -60 seconds with window clamping.",
-        "Allow DVR changes the application DVR helper, not PlayerConfig.playback.timeShift. License/authentication, ui:false and module registration remain setup constants, not GUI settings. Title/poster are passed in SourceConfig, but the Kepler screen has no poster overlay or HTML Player UI.",
-        "isLive is read but not consumed by the displayed derived state and remains code-only. getCurrentTime now passes through DvrState.currentTime to the visible position in the existing state line and receives observation credit. Position is SDK media time in seconds and can use an absolute timeline for live sources.",
-        "PlayerAPI.load has one public signature; the GUI supplies an edited SourceConfig but exposes neither optional forceTechnology nor disableSeeking. No read-only PlayerAPI.getConfig/getSource observation or opaque object-wide GUI coverage is inferred. The fixed hidden app_id setting does not expose public tweaks fields.",
-        "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. These named log entries do not expose event payload fields.",
-        "On 2026-10-21, Vega SDK 0.24.12112 and an arm64 Virtual Device ran the final lifecycle implementation. All 3 Release architectures built. The same app instance passed 3 bitrate Apply cycles, 3 VOD HLS background/foreground cycles and 3 Live DASH cycles with advancing SDK clocks and changing video frames. Actual D-pad/Select controls changed autoplay, mute and the app DVR switch; applied settings, drafts, logs and code display were retained. All 73 unit/session cases and TypeScript checks passed, separately from native execution. Background release waits for native deinitialization success and SDK destruction before replacement. Process RSS and file-descriptor samples do not identify individual native media/surface allocations or establish leak freedom. Physical-device behavior, protected/offline content, audible synchronization and quantitative buffer/bitrate effects require separate inputs.",
-        "PlayerConfig.network.requestApi is fixed to Fetch by vegaPlayerConfig and used at SDK construction. This receives code-only configuration credit, not GUI credit; the existing network hooks and unrelated configuration fields are retained.",
-        "Foreground Apply waits for fulfilled SDK destruction before synchronous native release because the SDK's asynchronous stop sequence still uses the media object. On background transitions, AppState cancels callbacks, clears the owned video surface, resets the public media src to an empty string, and requests synchronous native deinitialization before the handler yields. Replacement waits for the native success acknowledgment, fulfilled SDK destruction and a new foreground surface. Unconfirmed native release, SDK destruction failure or cancellation during pending initialization retains the retiring owner and blocks replacement; restarting the app is required in those failure cases. The 1000 ms native release deadline is an app policy. Within a retained instance, applied source/player settings, drafts, logs and Allow DVR are preserved; playback position retention is not implemented. This lifecycle integration adds no editable SDK field or GUI coverage credit.",
-        "Four external WebVTT subtitle leaves have app-owned editors: URL, label, lang and enabled. Validated settings reach the normal source load and applied-code display; enabled determines whether the external track starts enabled. The id and kind are fixed in code and receive code-only credit. Public CueEnter/CueExit events update plain subtitle text in the native view, and SubtitleDisabled clears it. This exposes cue text, not arbitrary event payloads, styled subtitle rendering or a general track-selection menu."
+        "The inventory retains the published Vega-channel PlayerConfig and SourceConfig paths, PlayerAPI methods and PlayerEvent names. The official sample uses the beta channel; the general Web stable SDK is not a supported substitute. Original IDs, categories and exclusions are unchanged.",
+        "The typed editor stages scalar values, nested objects, arrays, dictionaries, callbacks and resource references. Apply materializes them into the actual SDK configuration; API experiments invoke current-owner methods and display SDK results. A declared field or generated code does not establish that its corresponding renderer or feature is supported on Vega.",
+        "The runtime shows method availability from the actual SDK object. Media-dependent operations require an appropriate source. Named events are subscribed with their SDK names and displayed in a bounded owner-fenced log; this does not establish that every event has occurred.",
+        "Client-side advertising and VR retain individual limitations in the original denominator. Browser DOM-return callbacks cannot be satisfied by a JSON object or Kepler media surface. Fields that can be edited and exported but lack a supported native feature consumer retain code-only status. Fetch is the supported native transport; XHR is rejected.",
+        "Player recreation and foreground restoration wait for confirmed release of the previous native media owner and SDK player. An unconfirmed release blocks replacement. Settings, drafts and logs remain in the app instance; playback restarts from the configured source offset rather than an arbitrary previous position.",
+        "These mappings describe GUI and SDK routes. Representative virtual-device playback checks, unit tests and builds are separate records. They do not qualify every argument, media format, protected stream, physical device, remote service or long-running memory workload."
       ],
       "excluded": [
         {
@@ -21701,57 +21687,57 @@
         "configuration": {
           "denominator": 653,
           "byStatus": {
-            "direct": 16,
-            "preset": 0,
+            "direct": 595,
+            "preset": 1,
             "observed": 0,
             "internal": 0,
-            "code-only": 6,
-            "missing": 631,
+            "code-only": 54,
+            "missing": 3,
             "sdk-ui-unverified": 0
           },
           "deprecated": 5,
-          "percentDirect": 2.45,
-          "percentDirectOrPreset": 2.45
+          "percentDirect": 91.12,
+          "percentDirectOrPreset": 91.27
         },
         "command": {
           "denominator": 67,
           "byStatus": {
-            "direct": 1,
-            "preset": 1,
+            "direct": 49,
+            "preset": 0,
             "observed": 0,
-            "internal": 3,
+            "internal": 0,
             "code-only": 0,
-            "missing": 62,
+            "missing": 18,
             "sdk-ui-unverified": 0
           },
           "deprecated": 0,
-          "percentDirect": 1.49,
-          "percentDirectOrPreset": 2.99
+          "percentDirect": 73.13,
+          "percentDirectOrPreset": 73.13
         },
         "observation": {
           "denominator": 82,
           "byStatus": {
-            "direct": 0,
+            "direct": 64,
             "preset": 0,
-            "observed": 4,
+            "observed": 0,
             "internal": 0,
-            "code-only": 1,
-            "missing": 77,
+            "code-only": 0,
+            "missing": 18,
             "sdk-ui-unverified": 0
           },
           "deprecated": 2,
-          "percentDirect": 0.0,
-          "percentDirectOrPreset": 0.0
+          "percentDirect": 78.05,
+          "percentDirectOrPreset": 78.05
         },
         "event": {
           "denominator": 91,
           "byStatus": {
             "direct": 0,
             "preset": 0,
-            "observed": 8,
+            "observed": 91,
             "internal": 0,
             "code-only": 0,
-            "missing": 83,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 0,
@@ -21781,32 +21767,32 @@
             "command": {
               "denominator": 67,
               "byStatus": {
-                "direct": 1,
-                "preset": 1,
+                "direct": 49,
+                "preset": 0,
                 "observed": 0,
-                "internal": 3,
+                "internal": 0,
                 "code-only": 0,
-                "missing": 62,
+                "missing": 18,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 1.49,
-              "percentDirectOrPreset": 2.99
+              "percentDirect": 73.13,
+              "percentDirectOrPreset": 73.13
             },
             "observation": {
               "denominator": 82,
               "byStatus": {
-                "direct": 0,
+                "direct": 64,
                 "preset": 0,
-                "observed": 4,
+                "observed": 0,
                 "internal": 0,
-                "code-only": 1,
-                "missing": 77,
+                "code-only": 0,
+                "missing": 18,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 2,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 78.05,
+              "percentDirectOrPreset": 78.05
             },
             "event": {
               "denominator": 0,
@@ -21831,17 +21817,17 @@
             "configuration": {
               "denominator": 371,
               "byStatus": {
-                "direct": 5,
-                "preset": 0,
+                "direct": 343,
+                "preset": 1,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 4,
-                "missing": 362,
+                "code-only": 24,
+                "missing": 3,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 3,
-              "percentDirect": 1.35,
-              "percentDirectOrPreset": 1.35
+              "percentDirect": 92.45,
+              "percentDirectOrPreset": 92.72
             },
             "command": {
               "denominator": 0,
@@ -21943,10 +21929,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 8,
+                "observed": 91,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 83,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -21961,17 +21947,17 @@
             "configuration": {
               "denominator": 282,
               "byStatus": {
-                "direct": 11,
+                "direct": 252,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 2,
-                "missing": 269,
+                "code-only": 30,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 2,
-              "percentDirect": 3.9,
-              "percentDirectOrPreset": 3.9
+              "percentDirect": 89.36,
+              "percentDirectOrPreset": 89.36
             },
             "command": {
               "denominator": 0,

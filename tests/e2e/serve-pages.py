@@ -2,10 +2,19 @@
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from socketserver import TCPServer
 from urllib.parse import unquote, urlsplit
 import argparse
 
 PREFIX = '/player-lab/'
+
+
+class PagesServer(ThreadingHTTPServer):
+    def server_bind(self):
+        # HTTPServer resolves a hostname before listening; this can stall on macOS.
+        # https://github.com/actions/runner-images/issues/14409
+        TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
 
 
 class PagesHandler(SimpleHTTPRequestHandler):
@@ -59,7 +68,7 @@ def main():
     if not root.is_dir() or not 1024 <= args.port <= 65535:
         parser.error('Use a public artifact directory and a port from 1024 to 65535.')
     handler = partial(PagesHandler, directory=str(root))
-    ThreadingHTTPServer(('127.0.0.1', args.port), handler).serve_forever()
+    PagesServer(('127.0.0.1', args.port), handler).serve_forever()
 
 
 if __name__ == '__main__':

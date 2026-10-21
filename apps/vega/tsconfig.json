@@ -6,6 +6,7 @@
     "jsx": "react-jsx",
     "lib": ["ES2021", "DOM"],
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "verbatimModuleSyntax": false,
     "isolatedModules": false,

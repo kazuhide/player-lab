@@ -269,7 +269,8 @@ test("the original UI controls reflect detailed edits and can replace them", asy
 test("SDK-managed UI uses the configured factory and theme selection restores app ownership", async ({ page }) => {
   let id = "PlayerConfig.style.uiManagerFactory";
   await selectApi(page, "configuration", id); await branch(page, id, "function");
-  await page.getByRole("textbox", { name: "JavaScript callback body" }).fill("return lab.ui.UIFactory.buildUI(playerAPI, config);");
+  await page.getByRole("textbox", { name: "JavaScript callback body" }).fill(
+    'return lab.ui.UIFactory.buildUI(playerAPI, { ...config, seekbarSnappingRange: 7.25 });');
   await page.getByRole("checkbox", { name: "Allow this callback to run in this page after Apply" }).check();
   await apply(page);
   id = "PlayerConfig.ui";
@@ -277,8 +278,9 @@ test("SDK-managed UI uses the configured factory and theme selection restores ap
   await page.getByRole("textbox", { name: "Data without an SDK type restriction" }).fill("{}");
   await apply(page);
   await expect(page.locator(".ui-theme-bar-note")).toContainText("SDK-managed UI");
-  await expect.poll(async () => (await page.locator(".api-event-log").textContent())!.includes("Callback invoked")).toBe(true);
-  expect(await readApi(page, "UIManager.getConfig")).toContain("metadata");
+  // Event counts survive the bounded payload history; verify the actual factory result as well.
+  await expect(page.locator(".api-event-log")).toContainText(/(?:^|\n)callback: [1-9]\d*(?:\n|$)/);
+  expect(JSON.parse(await readApi(page, "UIManager.getConfig")).seekbarSnappingRange).toBe(7.25);
   await page.locator("#ui-theme-bar .theme-btn").filter({ hasText: /^Sports$/ }).click();
   await expect(page.locator(".ui-theme-bar-note")).not.toContainText("SDK-managed UI");
   await expect(page.locator("#player video")).toHaveCount(1);
