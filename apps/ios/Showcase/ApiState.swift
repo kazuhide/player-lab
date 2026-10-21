@@ -17,6 +17,15 @@ extension PlayerModel {
         func put(_ id: String, _ value: String) { rows.append(.init(id: id, value: value)) }
         put("PlayerFactory.sdkVersion", PlayerFactory.sdkVersion)
         put("PlayerCoreFactory.sdkVersion", PlayerCoreFactory.sdkVersion)
+        put("Presentation.host", presentation.rawValue)
+        put("Presentation.registeredLayer", String(apiObjects.presentationRegistration.layer?.player != nil))
+        put("Presentation.registeredController", String(apiObjects.presentationRegistration.controller?.player != nil))
+        if presentation == .sdkBindings {
+            put("VideoPlayerView.isPictureInPictureEnabled(_:)", String(boundPiPEnabled))
+            put("VideoPlayerView.isPictureInPictureAvailable(_:)", String(boundPiPAvailable))
+            put("VideoPlayerView.isPictureInPictureActive(_:)", String(boundPiPActive))
+            put("VideoPlayerView.scalingMode(_:)", String(describing: boundScalingMode))
+        }
         put("Player.isMuted", String(player.isMuted))
         put("Player.isPaused", String(player.isPaused))
         put("Player.isPlaying", String(player.isPlaying))
@@ -50,6 +59,14 @@ extension PlayerModel {
         put("SharePlayApi.isInGroupSession", String(player.sharePlay.isInGroupSession))
         put("SharePlayApi.isSuspended", String(player.sharePlay.isSuspended))
         put("SharePlayApi.suspensionReasons", player.sharePlay.suspensionReasons.map { $0.rawValue }.joined(separator: ", "))
+        put("SharePlayApi.ownedSuspensions", apiObjects.sharePlaySuspensions.enumerated().map { "\($0.offset): \($0.element.suspension.reason.rawValue); began=\($0.element.suspension.beginDate)" }.joined(separator: "\n"))
+        #if !os(tvOS)
+        put("CustomMessageHandler.delegate", playerCallbackJournal.messageHandler.map { $0.delegate == nil ? "No delegate" : "App-owned editable callback delegate" } ?? "No configured handler")
+        #endif
+        if let registry = playerCallbackJournal.interstitialRegistry {
+            put("InterstitialCustomAttributesMappingRegistry.clickThroughUrl", registry.clickThroughUrl == nil ? "nil" : "URL configured; value omitted")
+            put("InterstitialCustomAttributesMappingRegistry.tracking", "Actual SDK registry; \(InterstitialTrackingEventTrigger.allCases.reduce(0) { $0 + registry.tracking.trackingEvents(for: $1).count }) tracking events")
+        }
         put("Player.thumbnails", "Rendering mode: \(player.thumbnails.renderingMode)")
         put("ThumbnailsApi.container", player.thumbnails.container.map { "UIView \(ObjectIdentifier($0).hashValue); frame=\($0.frame)" } ?? "Not attached")
         put("ImaAdsManager.adCuePoints", playerCallbackJournal.adsManager.map { String(describing: $0.adCuePoints) } ?? "No current IMA ads manager")
@@ -78,6 +95,9 @@ extension PlayerModel {
             put("Source.duration", "\(source.duration) seconds")
             put("Source.loadingState", String(describing: source.loadingState))
             put("Source.metadata", "\(source.metadata?.count ?? 0) keys; values are not exported")
+            #if os(tvOS)
+            put("Source.markers", source.markers.enumerated().map { "\($0.offset): time=\($0.element.time); duration=\($0.element.duration)" }.joined(separator: "\n"))
+            #endif
             put("Source.events", "Object \(ObjectIdentifier(source.events).hashValue); typed listener recording: \(apiEventsEnabled)")
             put("Source.drm", "Object \(ObjectIdentifier(source.drm).hashValue)")
             put("SourceDrmApi.fairplay", "Object \(ObjectIdentifier(source.drm.fairplay).hashValue); license data is not displayed")
@@ -97,6 +117,14 @@ extension PlayerModel {
             put("UserInterfaceApi.scalingMode", String(describing: view.scalingMode))
             put("PlayerView.pictureInPicture", "Enabled: \(view.pictureInPicture.isEnabled)")
             put("PlayerView.systemUi", view.systemUi.map { "Object \(ObjectIdentifier($0).hashValue)" } ?? "Not active for the current UI type")
+            #if os(tvOS)
+            if let ui = view.systemUi {
+                put("SystemUiApi.transportBarCustomMenuItems", ui.transportBarCustomMenuItems.map(\.title).joined(separator: ", "))
+                put("SystemUiApi.contextualActions", ui.contextualActions.map(\.title).joined(separator: ", "))
+                put("SystemUiApi.infoViewActions", ui.infoViewActions.map(\.title).joined(separator: ", "))
+                put("SystemUiApi.customInfoViewControllers", ui.customInfoViewControllers.map { $0.title ?? "Untitled" }.joined(separator: ", "))
+            }
+            #endif
             put("PlayerView.events", "Object \(ObjectIdentifier(view.events).hashValue); typed listener recording: \(apiEventsEnabled)")
             put("PlayerView.contentOverlay", "Object \(ObjectIdentifier(view.contentOverlay).hashValue)")
             put("ContentOverlayApi.view", "UIView \(ObjectIdentifier(view.contentOverlay.view).hashValue); frame=\(view.contentOverlay.view.frame)")

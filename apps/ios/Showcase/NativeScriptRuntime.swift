@@ -7,6 +7,28 @@ final class NativeCallbackJournal: @unchecked Sendable {
     private var entries: [String: (calls: Int, failures: Int, result: String)] = [:]
     private var retainedObjects: [AnyObject] = []
     private weak var currentAdsManager: (any ImaAdsManager)?
+    private weak var currentModel: PlayerModel?
+    var model: PlayerModel? { lock.lock(); defer { lock.unlock() }; return currentModel }
+    func setModel(_ model: PlayerModel) { lock.lock(); defer { lock.unlock() }; currentModel = model }
+    #if !os(tvOS)
+    private weak var currentMessageHandler: CustomMessageHandler?
+    #endif
+    private weak var currentInterstitialRegistry: (any InterstitialCustomAttributesMappingRegistry)?
+
+    #if !os(tvOS)
+    var messageHandler: CustomMessageHandler? {
+        lock.lock(); defer { lock.unlock() }; return currentMessageHandler
+    }
+    func setMessageHandler(_ handler: CustomMessageHandler) {
+        lock.lock(); defer { lock.unlock() }; currentMessageHandler = handler
+    }
+    #endif
+    var interstitialRegistry: (any InterstitialCustomAttributesMappingRegistry)? {
+        lock.lock(); defer { lock.unlock() }; return currentInterstitialRegistry
+    }
+    func setInterstitialRegistry(_ registry: any InterstitialCustomAttributesMappingRegistry) {
+        lock.lock(); defer { lock.unlock() }; currentInterstitialRegistry = registry
+    }
 
     var adsManager: (any ImaAdsManager)? {
         lock.lock()

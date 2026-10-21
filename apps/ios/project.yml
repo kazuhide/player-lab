@@ -102,6 +102,13 @@ targets:
       - Showcase/NativeScriptRuntime.swift
       - Showcase/NativeCallbackConfiguration.swift
       - Showcase/NativeCallbackCode.swift
+      - Showcase/NativeUiCallbacks.swift
+      - Showcase/NativeInterstitialCallbacks.swift
+      - Showcase/NativeCallbackOperations.swift
+      - Showcase/NativePresentation.swift
+      - Showcase/NativePlayerSurface.swift
+      - Showcase/NativeTVControls.swift
+      - Showcase/NativeTVOperations.swift
       - Showcase/NativeNetworkConfiguration.swift
       - Showcase/NativeNetworkCode.swift
       - Showcase/NativeAdSchedule.swift
@@ -207,6 +214,13 @@ targets:
       - Showcase/NativeScriptRuntime.swift
       - Showcase/NativeCallbackConfiguration.swift
       - Showcase/NativeCallbackCode.swift
+      - Showcase/NativeUiCallbacks.swift
+      - Showcase/NativeInterstitialCallbacks.swift
+      - Showcase/NativeCallbackOperations.swift
+      - Showcase/NativePresentation.swift
+      - Showcase/NativePlayerSurface.swift
+      - Showcase/NativeTVControls.swift
+      - Showcase/NativeTVOperations.swift
       - Showcase/NativeNetworkConfiguration.swift
       - Showcase/NativeNetworkCode.swift
       - Showcase/NativeAdSchedule.swift

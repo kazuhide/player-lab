@@ -21,6 +21,7 @@ func configurationCode(source: SourceSettings?, player: PlayerSettings, uiMode: 
     var lines = [
         "import Foundation",
         "import AVFoundation",
+        "import UIKit",
         "import JavaScriptCore",
         "import BitmovinPlayer",
         "",
@@ -69,6 +70,9 @@ func configurationCode(source: SourceSettings?, player: PlayerSettings, uiMode: 
         "let player = PlayerFactory.createPlayer(playerConfig: playerConfig)",
         "// Attach the player to your PlayerView before loading the source.",
     ]
+    #if os(tvOS)
+    if player.advanced.values["SystemUserInterfaceConfig.transportBarCustomMenuItems"] != nil { lines.append("menuPlayerReference.player = player") }
+    #endif
     if source.initialTracks.usesSelectionApi {
         lines += initialTrackCode(source.initialTracks)
     }

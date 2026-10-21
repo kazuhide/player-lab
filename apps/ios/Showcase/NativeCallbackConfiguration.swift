@@ -22,7 +22,7 @@ extension AdvancedConfiguration {
             .init("FairplayConfig.provideLicenseData", .source, "drmConfig.provideLicenseData", .script(initial: "return storage[input.assetId] ?? null;"), "input.assetId identifies the asset. Return base64, bytes, {utf8: text}, or null. Errors return nil. storage is in memory, so it does not survive restarting the app."),
         ]
         #endif
-        return fields + nativeNetworkFields + nativeAdvertisingCallbacks
+        return fields + nativeNetworkFields + nativeAdvertisingCallbacks + nativeUiCallbackFields + nativeInterstitialFields
     }
 
     static func nativeCallbackSource(_ source: String, id: String) -> String {
@@ -56,7 +56,10 @@ extension AdvancedConfiguration {
     }
 
     func callbackSources(owner: ConfigurationOwner) -> [String: String] {
-        let ids = Set(Self.nativeCallbackFields.filter { $0.owner == owner }.map(\.id))
+        let ids = Set(Self.nativeCallbackFields.filter { field in
+            guard field.owner == owner else { return false }
+            if case .script = field.input { return true }; return false
+        }.map(\.id))
         return values.filter { ids.contains($0.key) }
     }
 
@@ -121,7 +124,7 @@ extension AdvancedConfiguration {
 
     func applyNativePlayerCallbacks(to config: PlayerConfig, journal: NativeCallbackJournal?) {
         let sources = callbackSources(owner: .player)
-        guard !sources.isEmpty || values.keys.contains(where: { $0.hasPrefix("ImaSettings.") }) else { return }
+        guard !sources.isEmpty || values.keys.contains(where: { $0.hasPrefix("ImaSettings.") }) || values["InterstitialsConfig.CustomAttributesMappingPresets.adCreativeSignaling"] == "true" else { return }
         let runtime = NativeScriptRuntime(sources: sources, journal: journal)
         if sources["PlaybackConfig.isForcedSubtitleCallback"] != nil {
             config.playbackConfig.isForcedSubtitleCallback = { track in
@@ -130,6 +133,7 @@ extension AdvancedConfiguration {
         }
         applyNetworkCallbacks(to: config.networkConfig, runtime: runtime, sources: sources, journal: journal)
         applyAdvertisingCallbacks(to: config.advertisingConfig, runtime: runtime, sources: sources, journal: journal)
+        applyInterstitialCallbacks(to: config.interstitialsConfig, runtime: runtime, sources: sources, journal: journal)
     }
 
     static func dataInput(_ data: Data, assetId: String? = nil) -> [String: Any] {

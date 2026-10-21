@@ -28,6 +28,32 @@ final class NativeExtendedRuntimeTests: XCTestCase {
         window.rootViewController = controller; window.windowLevel = .alert + 1; window.makeKeyAndVisible()
         defer { model.detachApiView(view); view.player = nil; model.player.destroy(); window.isHidden = true }
         try await eventually("content playback") { model.player.currentTime > 0.5 && !model.player.availableSubtitles.isEmpty }
+        try model.executeApi(.sharePlayBegin, arguments: ["reason": "native-qualification"])
+        XCTAssertEqual(model.apiObjects.sharePlaySuspensions.count, 1)
+        XCTAssertEqual(model.apiObjects.sharePlaySuspensions[0].suspension.reason.rawValue, "native-qualification")
+        try model.executeApi(.sharePlayEnd, arguments: ["index": "0"])
+        XCTAssertTrue(model.apiObjects.sharePlaySuspensions.isEmpty)
+        try model.executeApi(.sharePlayBegin, arguments: ["reason": "native-proposed-time"])
+        try model.executeApi(.sharePlayEndAt, arguments: ["index": "0", "time": "5"])
+        XCTAssertTrue(model.apiObjects.sharePlaySuspensions.isEmpty)
+        #if os(tvOS)
+        let menu = "[{\"title\":\"Playback\",\"children\":[{\"title\":\"Pause example\",\"operation\":\"pause\"}]}]"
+        let actions = "[{\"title\":\"Example volume\",\"operation\":\"volume\",\"arguments\":{\"value\":\"43\"}}]"
+        try model.executeApi(.tvMenu, arguments: ["json": menu])
+        try model.executeApi(.tvContextActions, arguments: ["json": actions])
+        try model.executeApi(.tvInfoActions, arguments: ["json": actions])
+        try model.executeApi(.tvInfoControllers, arguments: ["json": "[{\"title\":\"Example source\",\"text\":\"Native SDK qualification\"}]"])
+        try model.executeApi(.tvMarkers, arguments: ["json": "[{\"time\":5,\"duration\":10}]"])
+        let systemUi = try XCTUnwrap(view.systemUi)
+        XCTAssertEqual(systemUi.transportBarCustomMenuItems.first?.title, "Playback")
+        XCTAssertEqual(systemUi.contextualActions.first?.title, "Example volume")
+        XCTAssertEqual(systemUi.customInfoViewControllers.first?.title, "Example source")
+        XCTAssertEqual(model.player.source?.markers.first?.time, 5)
+        let button = UIButton(type: .system)
+        button.addAction(try XCTUnwrap(systemUi.infoViewActions.first), for: .primaryActionTriggered)
+        button.sendActions(for: .primaryActionTriggered)
+        XCTAssertEqual(model.player.volume, 43)
+        #endif
         try model.executeApi(.sourceMetadata, arguments: ["json": "{\"category\":\"manual-subtitle-qualification\"}"])
         XCTAssertEqual(model.player.source?.metadata?["category"] as? String, "manual-subtitle-qualification")
         try model.executeApi(.sourceMetadata, arguments: ["json": "{\"title\":{\"$avMetadataItem\":{\"identifier\":\"common/title\",\"value\":\"Native metadata example\",\"languageTag\":\"und\"}}}"])

@@ -49,6 +49,13 @@ final class PlayerModel: ObservableObject {
     @Published private(set) var apiEvents: [ApiEventRecord] = []
     @Published private(set) var apiEventsEnabled = true
     @Published private(set) var usesNativeApiHost = false
+    @Published private(set) var presentation = NativePresentation.sdkSwiftUI
+    @Published var boundPiPEnabled = false
+    @Published var boundPiPAvailable = false
+    @Published var boundPiPActive = false
+    @Published var boundPiPSkipControls = true
+    @Published var boundScalingMode = ScalingMode.fit
+    @Published var nativeControlsShown = true
     let playlistWorkbench = NativePlaylistWorkbench()
     let apiObjects = NativeApiObjects()
     private var apiPlaylistContexts: [ObjectIdentifier: NativePlaylistSourceContext] = [:]
@@ -96,6 +103,7 @@ final class PlayerModel: ObservableObject {
         player = PlayerModel.makePlayer(
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
             uiMode: .default, settings: PlayerSettings(), callbackJournal: journal)
+        journal.setModel(self)
         bindEvents()
     }
 
@@ -134,6 +142,8 @@ final class PlayerModel: ObservableObject {
 
     private func recreatePlayer() {
         let previous = player
+        apiObjects.presentationRegistration.retire()
+        apiObjects.retirePlayer(previous)
         apiPlaylistContexts.removeAll()
         retireApiPlayerEvents()
         retireApiSourceEvents()
@@ -147,6 +157,7 @@ final class PlayerModel: ObservableObject {
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
             uiMode: uiMode, settings: playerSettings, callbackJournal: journal)
         player = next
+        journal.setModel(self)
         playerGeneration = UUID()
         bindEvents()
         reloadCurrentSource()
@@ -176,7 +187,7 @@ final class PlayerModel: ObservableObject {
         }
         #endif
         settings.apply(to: config, callbackJournal: callbackJournal)
-        settings.advanced.applyUI(to: config)
+        settings.advanced.applyUI(to: config, callbackJournal: callbackJournal)
         let configuredAdsManagerCallback = config.advertisingConfig.onAdsManagerAvailable
         config.advertisingConfig.onAdsManagerAvailable = { [weak callbackJournal] manager in
             callbackJournal?.setAdsManager(manager)
@@ -201,7 +212,7 @@ final class PlayerModel: ObservableObject {
 
     func makePlayerViewConfig() -> PlayerViewConfig {
         let config = PlayerViewConfig()
-        playerSettings.advanced.apply(to: config)
+        playerSettings.advanced.apply(to: config, callbackJournal: playerCallbackJournal)
         return config
     }
 
@@ -509,8 +520,14 @@ final class PlayerModel: ObservableObject {
     }
     func recreateFromApi() { recreatePlayer() }
     func setNativeApiHost(_ enabled: Bool) {
-        guard usesNativeApiHost != enabled else { return }
-        usesNativeApiHost = enabled
+        setPresentation(enabled ? .playerView : .sdkSwiftUI)
+    }
+    func setPresentation(_ next: NativePresentation) {
+        guard presentation != next else { return }
+        presentation = next
+        usesNativeApiHost = next == .playerView
+        boundPiPAvailable = false
+        boundPiPActive = false
         recreatePlayer()
     }
 

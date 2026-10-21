@@ -3,13 +3,16 @@ import Foundation
 extension AdvancedConfiguration {
     var nativeCallbackCode: [String] {
         var lines: [String] = []
-        for owner in [ConfigurationOwner.player, .source] {
+        for owner in [ConfigurationOwner.player, .source, .view] {
             let sources = callbackSources(owner: owner)
-            guard !sources.isEmpty else { continue }
-            let name = owner == .player ? "playerScript" : "sourceScript"
+            let needsPlayerSetup = owner == .player && (values["BitmovinUserInterfaceConfig.customMessageHandler"] == "true" || values["InterstitialsConfig.CustomAttributesMappingPresets.adCreativeSignaling"] == "true")
+            guard !sources.isEmpty || needsPlayerSetup else { continue }
+            let name = owner == .player ? "playerScript" : owner == .source ? "sourceScript" : "viewScript"
             lines += scriptPreamble(sources, name: name)
             lines += nativeNetworkCode(sources: sources, name: name)
             lines += nativeAdvertisingCallbackCode(sources: sources, name: name)
+            lines += nativeUiCallbackCode(sources: sources, name: name)
+            lines += nativeInterstitialCode(sources: sources, name: name)
             if sources["PlaybackConfig.isForcedSubtitleCallback"] != nil {
                 lines += ["playerConfig.playbackConfig.isForcedSubtitleCallback = { track in",
                     "    \(name)(\"PlaybackConfig.isForcedSubtitleCallback\", \(subtitleInputCode)) as? Bool ?? track.isForced", "}"]
@@ -63,7 +66,7 @@ extension AdvancedConfiguration {
     }
 
     private func scriptPreamble(_ sources: [String: String], name: String) -> [String] {
-        let definitions = "[" + sources.keys.sorted().map { swiftString($0) + ": " + swiftString(sources[$0]!) }.joined(separator: ", ") + "]"
+        let definitions = sources.isEmpty ? "[:]" : "[" + sources.keys.sorted().map { swiftString($0) + ": " + swiftString(sources[$0]!) }.joined(separator: ", ") + "]"
         return [
             "// Keep this context alive with the player/source; its callbacks share in-memory storage.",
             "let \(name)Lock = NSRecursiveLock()",

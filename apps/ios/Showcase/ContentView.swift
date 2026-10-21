@@ -10,11 +10,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            Group {
-                if model.usesNativeApiHost { NativePlayerSurface(model: model) }
-                else { VideoPlayerView(player: model.player, playerViewConfig: model.makePlayerViewConfig()) }
-            }
-                .id(model.playerGeneration) // a new player always needs a new native view
+            NativePresentationSurface(model: model)
                 .aspectRatio(16.0 / 9.0, contentMode: .fit)
             ControlPanel(model: model)
         }

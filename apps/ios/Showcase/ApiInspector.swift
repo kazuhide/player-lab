@@ -1,4 +1,5 @@
 import SwiftUI
+import BitmovinPlayer
 #if !os(tvOS)
 import UIKit
 #endif
@@ -20,6 +21,7 @@ struct ApiInspector: View {
     @State private var pane = ApiInspectorPane.operations
     @State private var showsCode = false
     @State private var showsOperations = false
+    @State private var showsPresentationCode = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -35,10 +37,30 @@ struct ApiInspector: View {
             .accessibilityIdentifier("api.pane")
             Form {
                 Section(header: Text("Player view host")) {
+                    Picker("Presentation", selection: Binding(get: { model.presentation }, set: { model.setPresentation($0) })) {
+                        ForEach(NativePresentation.allCases) { Text($0.rawValue).tag($0) }
+                    }
+                    .accessibilityIdentifier("api.presentation")
                     Toggle("Use native PlayerView host", isOn: Binding(get: { model.usesNativeApiHost }, set: { model.setNativeApiHost($0) }))
                         .accessibilityIdentifier("api.nativeHost")
                     Text("Changing host recreates the player and reloads the applied source. Native PlayerView exposes fullscreen, Picture-in-Picture and view events. The original SDK SwiftUI host remains the default.")
                         .font(.caption).foregroundStyle(.secondary)
+                    if model.presentation == .sdkBindings {
+                        Toggle("Picture-in-Picture enabled", isOn: $model.boundPiPEnabled)
+                        Toggle("Picture-in-Picture active", isOn: $model.boundPiPActive)
+                        Text("SDK Picture-in-Picture availability: \(model.boundPiPAvailable)")
+                        #if !os(tvOS)
+                        Toggle("Show Picture-in-Picture skip controls", isOn: $model.boundPiPSkipControls)
+                        #endif
+                    }
+                    if model.presentation == .sdkBindings || model.presentation == .playerLayer || model.presentation == .playerController {
+                        Picker("Scaling mode", selection: $model.boundScalingMode) {
+                            Text("Fit").tag(ScalingMode.fit); Text("Zoom").tag(ScalingMode.zoom); Text("Stretch").tag(ScalingMode.stretch)
+                        }
+                    }
+                    if model.presentation == .playerController { Toggle("Show AVKit playback controls", isOn: $model.nativeControlsShown) }
+                    Toggle("Show presentation code", isOn: $showsPresentationCode)
+                    if showsPresentationCode { Text(model.presentation.code).font(.system(.caption, design: .monospaced)) }
                 }
                 if pane == .operations {
                   Section(header: Text("SDK operation")) {

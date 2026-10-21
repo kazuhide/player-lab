@@ -48,7 +48,23 @@ enum ApiOperation: String, CaseIterable, Identifiable {
     case playerAdSkip = "Player.skipAd()", advertisingSkip = "AdvertisingApi.skip()"
     case playerAdContainer = "Player.registerAdContainer(_:)", advertisingContainer = "AdvertisingApi.register(adContainer:)"
     case imaClicked = "ImaAdsManager.clicked()", imaDiscard = "ImaAdsManager.discardAdBreak()"
+    case macroPreview = "VastMacro and provider preview", interstitialMacroPreview = "InterstitialMacro and provider preview"
+    case trackingRegister = "InterstitialTrackingRegistry.register(trackingEvent:for:)"
+    case trackingRegisterMultiple = "InterstitialTrackingRegistry.register(trackingEvents:for:)"
+    case trackingQuery = "InterstitialTrackingRegistry.trackingEvents(for:)"
+    case sharePlayBegin = "SharePlayApi.beginSuspension(for:)"
+    case sharePlayEnd = "SharePlayApi.endSuspension(_:)"
+    case sharePlayEndAt = "SharePlayApi.endSuspension(_:proposingNewTime:)"
+    #if os(tvOS)
+    case tvMenu = "SystemUiApi.transportBarCustomMenuItems"
+    case tvContextActions = "SystemUiApi.contextualActions"
+    case tvInfoActions = "SystemUiApi.infoViewActions"
+    case tvInfoControllers = "SystemUiApi.customInfoViewControllers"
+    case tvMarkers = "Source.markers"
+    #endif
     #if !os(tvOS)
+    case messageSend = "CustomMessageHandler.sendMessage(_:)"
+    case messageSendWithData = "CustomMessageHandler.sendMessage(_:withData:)"
     case pipSkipControls = "PictureInPictureApi.showSkipControls"
     case hidePiPControls = "PlayerViewTweaksApi.hidePlaybackControlsInPictureInPicture"
     #endif

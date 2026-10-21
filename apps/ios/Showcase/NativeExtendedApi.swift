@@ -12,10 +12,21 @@ final class NativeApiObjects: ObservableObject {
     }
     let thumbnailContainer = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 180))
     let adContainer = UIView()
+    let presentationRegistration = NativePresentationRegistration()
     @Published var showsThumbnailContainer = false
     private(set) var parsedCues: [Cue] = []
     private weak var parsedSource: Source?
     var enteredCues: [String: EnteredCue] = [:]
+    struct OwnedSuspension {
+        weak var player: Player?
+        let suspension: any SharePlaySuspension
+    }
+    var sharePlaySuspensions: [OwnedSuspension] = []
+
+    func retirePlayer(_ player: Player) {
+        for item in sharePlaySuspensions where item.player === player { player.sharePlay.endSuspension(item.suspension) }
+        sharePlaySuspensions.removeAll { $0.player == nil || $0.player === player }
+    }
 
     func prepareSource(_ source: Source) {
         if parsedSource !== source { retireSource(); parsedSource = source }
@@ -57,7 +68,7 @@ extension ApiOperation {
         #if !os(tvOS)
         case .pipSkipControls, .hidePiPControls: return [.init("value", "Enabled", .boolean)]
         #endif
-        default: return []
+        default: return callbackArguments
         }
     }
 
@@ -105,7 +116,7 @@ extension ApiOperation {
         case .pipSkipControls: return "playerView.pictureInPicture.showSkipControls = \(values["value"] ?? "false")"
         case .hidePiPControls: return "playerView.tweaks.hidePlaybackControlsInPictureInPicture = \(values["value"] ?? "false")"
         #endif
-        default: throw invalidExtended("This operation has no extended implementation.")
+        default: return try callbackCode(values)
         }
     }
 
@@ -187,7 +198,7 @@ extension PlayerModel {
         case .pipSkipControls: try requireApiView().pictureInPicture.showSkipControls = arguments["value"] == "true"
         case .hidePiPControls: try requireApiView().tweaks.hidePlaybackControlsInPictureInPicture = arguments["value"] == "true"
         #endif
-        default: throw apiInputError("This operation has no extended implementation.")
+        default: return try executeCallbackApi(operation, arguments: arguments)
         }
         return operation.rawValue + " invoked. Inspect actual SDK state and events for completion."
     }

@@ -106,8 +106,12 @@ struct AdvancedConfiguration: Equatable {
         if self.values.keys.contains(where: { $0.hasPrefix("BitmovinUserInterface") }) && engine != "bitmovin" {
             throw ConfigurationValidationError(message: "Select Bitmovin in StyleConfig.userInterfaceType before editing Web UI fields.")
         }
+        if self.values.keys.contains(where: { $0.hasPrefix("CustomMessageHandler.") }) && self.values["BitmovinUserInterfaceConfig.customMessageHandler"] != "true" {
+            throw ConfigurationValidationError(message: "Enable BitmovinUserInterfaceConfig.customMessageHandler before configuring its delegate callbacks.")
+        }
         #endif
         try validateSourceObjects()
+        try validateNativeTVFields()
     }
 
     static var fields: [AdvancedConfigurationField] {
@@ -180,7 +184,7 @@ struct AdvancedConfiguration: Equatable {
         if #available(iOS 27, tvOS 27, *) {
             fields.append(.init("TweaksConfig.includeMachineGeneratedSubtitles", .player, "tweaksConfig.includeMachineGeneratedSubtitles", .boolean))
         }
-        return fields + Self.sourceObjectFields + Self.nativeCallbackFields + Self.nativeAdvertisingFields + Self.richFields
+        return fields + Self.sourceObjectFields + Self.nativeCallbackFields + Self.nativeAdvertisingFields + Self.richFields + Self.nativeTVFields
     }
 
     func apply(to config: SourceConfig, callbackJournal: NativeCallbackJournal? = nil) {
@@ -197,6 +201,7 @@ struct AdvancedConfiguration: Equatable {
             }
         }
         applySourceObjects(to: config)
+        applyNativeTVSource(to: config)
         applyNativeSourceCallbacks(to: config, journal: callbackJournal)
     }
 
@@ -248,7 +253,7 @@ struct AdvancedConfiguration: Equatable {
     }
 
     /// Apply after the selected bundled UI factory, so explicit user overrides take precedence.
-    func applyUI(to config: PlayerConfig) {
+    func applyUI(to config: PlayerConfig, callbackJournal: NativeCallbackJournal? = nil) {
         if values.keys.contains(where: { $0.hasPrefix("SystemUserInterfaceConfig.") }) {
             let ui = SystemUserInterfaceConfig()
             if let value = values["SystemUserInterfaceConfig.hideFirstFrame"] { ui.hideFirstFrame = value == "true" }
@@ -279,9 +284,11 @@ struct AdvancedConfiguration: Equatable {
         if let value = values["StyleConfig.supplementalPlayerUiCss"] { config.styleConfig.supplementalPlayerUiCss = value.isEmpty ? nil : URL(string: value) }
         #endif
         applySourceObjectUI(to: config)
+        applyNativeUiCallbacks(to: config, journal: callbackJournal)
+        applyNativeTVUI(to: config, journal: callbackJournal)
     }
 
-    func apply(to config: PlayerViewConfig) {
+    func apply(to config: PlayerViewConfig, callbackJournal: NativeCallbackJournal? = nil) {
         if let value = values["PlayerViewConfig.hideFirstFrame"] { config.hideFirstFrame = value == "true" }
         if let value = values["PictureInPictureConfig.isEnabled"] { config.pictureInPictureConfig.isEnabled = value == "true" }
         #if !os(tvOS)
@@ -289,6 +296,7 @@ struct AdvancedConfiguration: Equatable {
         if let value = values["PictureInPictureConfig.showSkipControls"] { config.pictureInPictureConfig.showSkipControls = value == "true" }
         if let value = values["PlayerViewTweaksConfig.hidePlaybackControlsInPictureInPicture"] { config.tweaksConfig.hidePlaybackControlsInPictureInPicture = value == "true" }
         #endif
+        applyNativeViewCallbacks(to: config, journal: callbackJournal)
     }
 
     var code: [String] {
@@ -307,6 +315,7 @@ struct AdvancedConfiguration: Equatable {
             if Self.nativeCallbackFields.contains(where: { $0.id == field.id }) { continue }
             if Self.nativeAdvertisingFields.contains(where: { $0.id == field.id }) { continue }
             if Self.richFields.contains(where: { $0.id == field.id }) { continue }
+            if Self.nativeTVFields.contains(where: { $0.id == field.id }) { continue }
             let root = field.owner == .source ? "sourceConfig" : field.owner == .view ? "playerViewConfig" : "playerConfig"
             var path = root + "." + field.path
             if field.id.hasPrefix("SystemUserInterfaceConfig.") { path = "systemUiConfig." + field.id.components(separatedBy: ".").last! }
@@ -323,6 +332,7 @@ struct AdvancedConfiguration: Equatable {
         lines += richCode
         lines += nativeAdvertisingCode
         lines += nativeCallbackCode
+        lines += nativeTVCode
         if values.keys.contains(where: { $0.hasPrefix("SystemUserInterfaceConfig.") }) { lines.append("playerConfig.styleConfig.userInterfaceConfig = systemUiConfig") }
         #if !os(tvOS)
         if values.keys.contains(where: { $0.hasPrefix("BitmovinUserInterface") }) { lines.append("playerConfig.styleConfig.userInterfaceConfig = webUiConfig") }
