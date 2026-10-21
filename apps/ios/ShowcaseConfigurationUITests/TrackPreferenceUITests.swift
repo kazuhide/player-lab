@@ -177,8 +177,9 @@ final class TrackPreferenceUITests: XCTestCase {
 
     #if os(tvOS)
     private func focus(_ element: XCUIElement, in app: XCUIApplication) throws {
-        let row = element.exists && element.elementType == .switch
-            ? app.cells.containing(.switch, identifier: element.identifier).firstMatch : element
+        // Form buttons and switches focus their containing cell; toolbar buttons focus themselves.
+        let row = element.exists && (element.elementType == .switch || element.elementType == .button)
+            ? app.cells.containing(element.elementType, identifier: element.identifier).firstMatch : element
         let target = row.exists ? row : element
         // Apply is to the right of Reset at the bottom. Check that axis before returning up the form.
         let directions: [XCUIRemote.Button] = element.identifier == "configuration.apply"
