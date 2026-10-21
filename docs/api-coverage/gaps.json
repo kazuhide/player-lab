@@ -547,6 +547,18 @@
       },
       "references": []
     },
+    "web-missing-event-dispatcher-input-f4335cfef5": {
+      "kind": "implementation",
+      "en": {
+        "reason": "This configuration accepts an EventDispatcher for language changes, not a UI component. The app has no control for supplying and managing that dispatcher. A serialized object does not provide its event behavior.",
+        "action": "Provide a typed EventDispatcher factory or owned-instance selector, manage subscriptions and cleanup, and show language-change notifications. A component tree editor is not required for this input."
+      },
+      "ja": {
+        "reason": "言語の変更を通知するEventDispatcherを渡す設定です。UI部品ではありません。このオブジェクトの生成・設定を操作するGUIがなく、JSONの値だけではイベント通知の処理を指定できません。",
+        "action": "型に合うEventDispatcherの生成またはアプリが管理する実体の選択を用意し、購読・解除と通知の表示を接続します。コンポーネントの配置を編集する機能は必要ありません。"
+      },
+      "references": []
+    },
     "web-missing-label-editor-4478836b84": {
       "kind": "implementation",
       "en": {
@@ -1888,8 +1900,7 @@
             "UIComponentConfigMap.VolumeControlButton.components[]",
             "UIComponentConfigMap.VolumeSlider.label",
             "UIComponentConfigMap.WindowColorSelectBox.overlay",
-            "UIComponentConfigMap.WindowOpacitySelectBox.overlay",
-            "UIConfig.localization.events.onLanguageChanged"
+            "UIComponentConfigMap.WindowOpacitySelectBox.overlay"
           ]
         },
         {
@@ -1897,6 +1908,12 @@
           "apis": [
             "UIManager.onActiveUiChanged",
             "UIManager.onUiVariantResolve"
+          ]
+        },
+        {
+          "reason": "web-missing-event-dispatcher-input-f4335cfef5",
+          "apis": [
+            "UIConfig.localization.events.onLanguageChanged"
           ]
         },
         {
