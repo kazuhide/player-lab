@@ -34,6 +34,71 @@ Type-check the test project without starting a browser:
 pnpm --filter @showcase/e2e typecheck
 ```
 
+## Firefox, WebKit and Safari
+
+Build the public Pages application with the local 60-second fixture, then run
+the same production-file, playback, theme, setting and guide checks in Firefox
+and WebKit. The additional cases exercise applied-code copying, native HLS
+subtitles and controlled HLS/DASH live rewind through the original GUI.
+
+```bash
+pnpm --filter @showcase/e2e exec playwright install --with-deps firefox webkit
+python3 encoding/test-streams/local.py
+bash scripts/build-pages.sh .cache/test-streams .cache/browser-pages/site .cache/browser-pages/manifest.json
+E2E_PAGES_DIR="$PWD/.cache/browser-pages/site" pnpm --filter @showcase/e2e e2e:cross-browser
+```
+
+Use `--project firefox` or `--project webkit` for one engine, or `E2E_HEADED=1`
+for a visible local run. Ports default to 5214 for Pages and 5350 for controlled
+live media; override `E2E_PAGES_PORT` and `E2E_CROSS_BROWSER_LIVE_PORT` to avoid
+other running services. The runner stops its own servers and fails on missing
+media, unsupported playback or an assertion failure. Tests do not mock player
+methods or clipboard writes; the collector is intercepted to avoid recording
+test sessions in an account. Browser installation requires Internet access;
+the generated media tests use local media.
+
+CI runs Chromium and Firefox on Linux and WebKit on macOS. WebKit's media
+implementation depends on the operating system; Playwright recommends macOS
+for [video tests closest to Safari](https://playwright.dev/docs/browsers#webkit).
+The macOS job downloads the same Pages artifact produced and checked on Linux,
+verifies its file manifest before and after the tests, and gates publication
+through the overall CI result. It does not rebuild the application. All engine
+projects retain the same playback, visibility and decoded-frame assertions.
+Linux WebKit was observed to retain buffered media at time zero after source
+changes even while the HTML video reported playing; that engine/platform
+combination is not the Safari playback target of this CI job.
+
+The Firefox project disables its browser-owned Picture-in-Picture hover button:
+that overlay can intercept clicks over the application's settings menu. The
+application's own Picture-in-Picture control remains available. Menu results
+therefore describe this explicit browser preference, rather than every personal
+Firefox profile.
+
+On macOS, the WebKit checks use Option-Tab to include links in keyboard
+navigation, following [Safari's keyboard shortcuts](https://support.apple.com/guide/safari/cpsh003/mac).
+They use Option-Right Arrow to scroll a focused wide table. Link navigation uses
+actual keyboard input. Table cases focus the scroll region before sending the
+key; they do not set scroll positions by script.
+Other browser/platform combinations use Tab and Right Arrow.
+
+On macOS 27, Firefox 157 can fail before a test starts when its shared app-data
+directory is protected by the operating system. The upstream report describes
+[the separate app-data lookup](https://github.com/microsoft/playwright/issues/42768).
+Run with a new, dedicated `CFFIXED_USER_HOME` directory in the shell environment
+to isolate test app data. Keep it separate from a personal browser profile and
+remove it after testing. This workaround does not grant Full Disk Access or
+disable the browser sandbox. Linux CI uses the normal browser launcher.
+
+Playwright's WebKit build is not the installed Safari application, as explained
+in [the Playwright browser documentation](https://playwright.dev/docs/browsers).
+For a Safari release check, serve the same Pages artifact with
+`python3 tests/e2e/serve-pages.py --directory .cache/browser-pages/site --port 5214`
+and open `http://localhost:5214/player-lab/web/` in Safari. Check HLS and DASH
+movie/time progression, source and player Apply, a theme swap and its construction
+code, code copying, native HLS audio/subtitle selection, live rewind/return, and
+return to finite VOD. Record the Safari/OS versions separately from WebKit.
+Remote Automation is not required for this manual path.
+
 ## Provisioned feature assets
 
 To test the existing feature presets locally without cloud resources, follow
