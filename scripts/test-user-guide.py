@@ -356,8 +356,8 @@ class GuideTests(unittest.TestCase):
 
     def test_native_configuration_totals_include_audited_code_only_entries(self):
         report = json.loads((ROOT / 'docs/api-coverage/coverage.json').read_text())
-        expected = {'ios': (209, '23 / 209 · 11.00%', 12, 4, 7),
-                    'tvos': (180, '20 / 180 · 11.11%', 12, 0, 8),
+        expected = {'ios': (209, '203 / 209 · 97.13%', 203, 0, 0),
+                    'tvos': (180, '170 / 180 · 94.44%', 170, 0, 0),
                     'android': (294, '267 / 294 · 90.82%', 267, 0, 0),
                     'react-native': (267, '267 / 267 · 100.00%', 267, 0, 0),
                     'vega': (653, '650 / 653 · 99.54%', 595, 1, 54)}

@@ -1,6 +1,6 @@
 import Foundation
 
-private func swiftString(_ value: String) -> String {
+func swiftString(_ value: String) -> String {
     let body = value.unicodeScalars.map { scalar -> String in
         switch scalar.value {
         case 0x22: return "\\\""
@@ -20,6 +20,9 @@ func configurationCode(source: SourceSettings?, player: PlayerSettings, uiMode: 
     guard let source else { return "// Select a source before exporting its configuration." }
     var lines = [
         "import Foundation",
+        "import AVFoundation",
+        "import UIKit",
+        "import JavaScriptCore",
         "import BitmovinPlayer",
         "",
         "let playerConfig = PlayerConfig()",
@@ -58,11 +61,18 @@ func configurationCode(source: SourceSettings?, player: PlayerSettings, uiMode: 
     let reference = source.timelineReference == .automatic ? "auto" : source.timelineReference == .start ? "start" : "end"
     lines += [
         "sourceConfig.options.startOffsetTimelineReference = .\(reference)",
+        "let playerViewConfig = PlayerViewConfig()",
+    ]
+    lines += player.advanced.code + source.advanced.code
+    lines += [
         "",
         "let source = SourceFactory.createSource(from: sourceConfig)",
         "let player = PlayerFactory.createPlayer(playerConfig: playerConfig)",
         "// Attach the player to your PlayerView before loading the source.",
     ]
+    #if os(tvOS)
+    if player.advanced.values["SystemUserInterfaceConfig.transportBarCustomMenuItems"] != nil { lines.append("menuPlayerReference.player = player") }
+    #endif
     if source.initialTracks.usesSelectionApi {
         lines += initialTrackCode(source.initialTracks)
     }

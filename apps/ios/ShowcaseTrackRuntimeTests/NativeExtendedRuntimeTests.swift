@@ -1,0 +1,121 @@
+import BitmovinPlayer
+import AVFoundation
+import UIKit
+import XCTest
+#if os(tvOS)
+@testable import Showcase_tvOS
+#else
+@testable import Showcase_iOS
+#endif
+
+@MainActor
+final class NativeExtendedRuntimeTests: XCTestCase {
+    func testRealManualSubtitleControllerMetadataAndViewOperations() async throws {
+        XCTAssertFalse(bitmovinLicenseKey().isEmpty)
+        let model = PlayerModel(licenseKey: bitmovinLicenseKey())
+        model.setNativeApiHost(true)
+        var draft = model.configurationDraft
+        draft.sourceURL = "https://kazuhide.github.io/player-lab/web/media/vod-multiaudio/master.m3u8"
+        draft.autoplay = true
+        draft.subtitleMode = .off
+        draft.advancedValues = ["LabelingConfig.audioLabel": "return 'SDK: ' + input.label;"]
+        try model.apply(draft)
+        let view = PlayerView(player: model.player, frame: CGRect(x: 0, y: 0, width: 320, height: 180))
+        model.attachApiView(view)
+        let controller = UIViewController()
+        controller.view.addSubview(view)
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        window.rootViewController = controller; window.windowLevel = .alert + 1; window.makeKeyAndVisible()
+        defer { model.detachApiView(view); view.player = nil; model.player.destroy(); window.isHidden = true }
+        try await eventually("content playback") { model.player.currentTime > 0.5 && !model.player.availableSubtitles.isEmpty }
+        XCTAssertTrue(model.player.availableAudio.allSatisfy { $0.label.hasPrefix("SDK: ") }, "The real SDK audio-label callback must execute through the bounded native interpreter")
+        let callback = try XCTUnwrap(model.sourceCallbackJournal.snapshot.first { $0.id == "LabelingConfig.audioLabel" })
+        XCTAssertTrue(callback.value.contains("failures: 0"))
+        try model.executeApi(.rotateView, arguments: ["degrees": "90"])
+        XCTAssertEqual(view.transform.a, 0, accuracy: 0.00001)
+        XCTAssertEqual(view.transform.b, 1, accuracy: 0.00001)
+        try model.executeApi(.rotateView, arguments: ["degrees": "0"])
+        XCTAssertTrue(view.transform.isIdentity)
+        try model.executeApi(.layoutView, arguments: [:])
+        XCTAssertThrowsError(try model.executeApi(.renewFairplay, arguments: ["index": "0"]), "An unencrypted source provides no actual license request; do not fabricate one")
+        try model.executeApi(.sharePlayBegin, arguments: ["reason": "native-qualification"])
+        XCTAssertEqual(model.apiObjects.sharePlaySuspensions.count, 1)
+        XCTAssertEqual(model.apiObjects.sharePlaySuspensions[0].suspension.reason.rawValue, "native-qualification")
+        try model.executeApi(.sharePlayEnd, arguments: ["index": "0"])
+        XCTAssertTrue(model.apiObjects.sharePlaySuspensions.isEmpty)
+        try model.executeApi(.sharePlayBegin, arguments: ["reason": "native-proposed-time"])
+        try model.executeApi(.sharePlayEndAt, arguments: ["index": "0", "time": "5"])
+        XCTAssertTrue(model.apiObjects.sharePlaySuspensions.isEmpty)
+        #if os(tvOS)
+        let menu = "[{\"title\":\"Playback\",\"children\":[{\"title\":\"Pause example\",\"operation\":\"pause\"}]}]"
+        let actions = "[{\"title\":\"Example volume\",\"operation\":\"volume\",\"arguments\":{\"value\":\"43\"}}]"
+        try model.executeApi(.tvMenu, arguments: ["json": menu])
+        try model.executeApi(.tvContextActions, arguments: ["json": actions])
+        try model.executeApi(.tvInfoActions, arguments: ["json": actions])
+        try model.executeApi(.tvInfoControllers, arguments: ["json": "[{\"title\":\"Example source\",\"text\":\"Native SDK qualification\"}]"])
+        try model.executeApi(.tvMarkers, arguments: ["json": "[{\"time\":5,\"duration\":10}]"])
+        let systemUi = try XCTUnwrap(view.systemUi)
+        XCTAssertEqual(systemUi.transportBarCustomMenuItems.first?.title, "Playback")
+        XCTAssertEqual(systemUi.contextualActions.first?.title, "Example volume")
+        XCTAssertEqual(systemUi.customInfoViewControllers.first?.title, "Example source")
+        XCTAssertEqual(model.player.source?.markers.first?.time, 5)
+        let button = UIButton(type: .system)
+        button.addAction(try XCTUnwrap(systemUi.infoViewActions.first), for: .primaryActionTriggered)
+        button.sendActions(for: .primaryActionTriggered)
+        XCTAssertEqual(model.player.volume, 43)
+        #endif
+        try model.executeApi(.sourceMetadata, arguments: ["json": "{\"category\":\"manual-subtitle-qualification\"}"])
+        XCTAssertEqual(model.player.source?.metadata?["category"] as? String, "manual-subtitle-qualification")
+        try model.executeApi(.sourceMetadata, arguments: ["json": "{\"title\":{\"$avMetadataItem\":{\"identifier\":\"common/title\",\"value\":\"Native metadata example\",\"languageTag\":\"und\"}}}"])
+        let nativeTitle = try XCTUnwrap(model.player.source?.metadata?["title"] as? AVMetadataItem)
+        XCTAssertEqual(nativeTitle.identifier, .commonIdentifierTitle)
+        XCTAssertEqual(nativeTitle.stringValue, "Native metadata example")
+        try model.executeApi(.subtitleAdd, arguments: ["json": "{\"identifier\":\"manual-qualification\",\"label\":\"Manual example\",\"language\":\"en\",\"url\":null}"])
+        try await eventually("manual subtitle addition") { model.player.availableSubtitles.contains { $0.identifier == "manual-qualification" } }
+        try model.executeApi(.subtitle, arguments: ["value": "manual-qualification"])
+        try await eventually("manual subtitle selection") { model.player.subtitle.identifier == "manual-qualification" }
+        try model.executeApi(.cueEnter, arguments: ["track": "manual-qualification", "json": "{\"startTime\":0,\"endTime\":30,\"text\":\"Manual API qualification\"}"])
+        try await eventually("actual CueEnterEvent") { model.apiEvents.contains { $0.api == "BitmovinPlayerCore.CueEnterEvent" } }
+        XCTAssertEqual(model.apiObjects.enteredCues.count, 1)
+        model.setApiEventRecording(false)
+        XCTAssertEqual(model.apiObjects.enteredCues.count, 1, "Changing event recording must not retire active source resources")
+        model.setApiEventRecording(true)
+        model.setApiEventTransport(.publisher)
+        XCTAssertEqual(model.apiObjects.enteredCues.count, 1, "Changing event transport must retain the exact controller and cue for cueExit")
+        try model.executeApi(.cueExit, arguments: ["track": "manual-qualification"])
+        try await eventually("actual CueExitEvent") { model.apiEvents.contains { $0.api == "BitmovinPlayerCore.CueExitEvent" } }
+        XCTAssertTrue(model.apiObjects.enteredCues.isEmpty)
+        try model.executeApi(.subtitleStyles, arguments: ["json": "[]"])
+        try model.executeApi(.viewSubtitleStyles, arguments: ["json": "null"])
+        try model.executeApi(.thumbnailContainer, arguments: ["enabled": "true"])
+        XCTAssertTrue(model.player.thumbnails.container === model.apiObjects.thumbnailContainer)
+        try model.executeApi(.playerAdContainer, arguments: ["x": "4", "y": "8", "width": "280", "height": "140"])
+        XCTAssertTrue(model.apiObjects.adContainer.superview === view.contentOverlay.view)
+        XCTAssertEqual(model.apiObjects.adContainer.frame, CGRect(x: 4, y: 8, width: 280, height: 140))
+        #if !os(tvOS)
+        try model.executeApi(.pipSkipControls, arguments: ["value": "true"])
+        XCTAssertTrue(view.pictureInPicture.showSkipControls)
+        try model.executeApi(.hidePiPControls, arguments: ["value": "true"])
+        XCTAssertTrue(view.tweaks.hidePlaybackControlsInPictureInPicture)
+        #endif
+        try model.executeApi(.sourceMetadata, arguments: ["json": "null"])
+        XCTAssertNil(model.player.source?.metadata)
+        let previous = model.player.source
+        try model.executeApi(.loadConfig, arguments: [:])
+        try await eventually("sourceConfig overload reload") { model.player.source !== previous && model.player.currentTime > 0.5 }
+        XCTAssertTrue(model.apiObjects.enteredCues.isEmpty)
+        print("Native API qualification: manual subtitle add/select/enter/exit, metadata set/clear, native view options and sourceConfig reload passed")
+    }
+
+    private func eventually(_ stage: String, predicate: () -> Bool) async throws {
+        let deadline = Date().addingTimeInterval(45)
+        while Date() < deadline {
+            if predicate() { return }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        XCTFail("Timed out waiting for \(stage)")
+        throw QualificationFailure.deadline
+    }
+    private enum QualificationFailure: Error { case deadline }
+}

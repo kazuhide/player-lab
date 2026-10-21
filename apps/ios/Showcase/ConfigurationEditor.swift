@@ -1,5 +1,5 @@
 import SwiftUI
-#if os(iOS)
+#if !os(tvOS)
 import UIKit
 #endif
 
@@ -11,6 +11,7 @@ struct ConfigurationEditor: View {
     @State private var applyError: String?
     @State private var showCode = false
     @State private var copiedCode: String?
+    @State private var showsAdvanced = false
 
     init(model: PlayerModel) {
         self.model = model
@@ -152,6 +153,15 @@ struct ConfigurationEditor: View {
                         #endif
                     }
                 }
+                Section(header: Text("Advanced SDK settings")) {
+                    Toggle("Edit additional Player, Source and view settings", isOn: $showsAdvanced)
+                        .accessibilityIdentifier("advanced.show")
+                    if showsAdvanced {
+                        AdvancedConfigurationFields(values: $draft.advancedValues)
+                    }
+                    Text("Enable an override to edit it. Disable it to return to the SDK default. Source values reload the source; Player and view values recreate the player. System UI fields require the System UI type.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
             .accessibilityIdentifier("configuration.form")
 
@@ -191,6 +201,15 @@ struct ConfigurationEditor: View {
         .background(.background)
         #endif
         .onChange(of: draft) { _ in applyError = nil }
+        #if !os(tvOS)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+                    .accessibilityIdentifier("configuration.keyboard.done")
+            }
+        }
+        #endif
     }
 
     private var appliedCode: String {

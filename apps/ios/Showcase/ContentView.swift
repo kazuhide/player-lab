@@ -10,8 +10,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            VideoPlayerView(player: model.player, playerViewConfig: PlayerViewConfig())
-                .id(model.playerGeneration) // a new player always needs a new native view
+            NativePresentationSurface(model: model)
                 .aspectRatio(16.0 / 9.0, contentMode: .fit)
             ControlPanel(model: model)
         }
@@ -28,6 +27,12 @@ struct ContentView: View {
 struct ControlPanel: View {
     @ObservedObject var model: PlayerModel
     @State private var showsConfiguration = false
+    @State private var showsApiInspector = false
+    @State private var showsPlaylist = false
+    #if !os(tvOS)
+    @State private var showsOffline = false
+    @State private var showsCast = false
+    #endif
     private let quickOffsets: [TimeInterval] = [-10, -30, -60, -120]
 
     var body: some View {
@@ -54,6 +59,19 @@ struct ControlPanel: View {
                     #if os(tvOS)
                     Text("Use Play/Pause on the remote to start or pause this source.")
                         .font(.caption).foregroundStyle(.secondary)
+                    #endif
+                }
+
+                labeled("Public SDK APIs") {
+                    Button("Open API inspector") { showsApiInspector = true }
+                        .accessibilityIdentifier("api.open")
+                    Button("Open playlist inspector") { showsPlaylist = true }
+                        .accessibilityIdentifier("playlist.open")
+                    #if !os(tvOS)
+                    Button("Open offline HLS inspector") { showsOffline = true }
+                        .accessibilityIdentifier("offline.open")
+                    Button("Open Google Cast inspector") { showsCast = true }
+                        .accessibilityIdentifier("cast.open")
                     #endif
                 }
 
@@ -119,8 +137,14 @@ struct ControlPanel: View {
         #if os(tvOS)
         // A compact tvOS sheet collapses Form to its minimal height, hiding its focusable rows.
         .fullScreenCover(isPresented: $showsConfiguration) { ConfigurationEditor(model: model) }
+        .fullScreenCover(isPresented: $showsApiInspector) { ApiInspector(model: model) }
+        .fullScreenCover(isPresented: $showsPlaylist) { NativePlaylistInspector(model: model, workbench: model.playlistWorkbench) }
         #else
         .sheet(isPresented: $showsConfiguration) { ConfigurationEditor(model: model) }
+        .sheet(isPresented: $showsApiInspector) { ApiInspector(model: model) }
+        .sheet(isPresented: $showsPlaylist) { NativePlaylistInspector(model: model, workbench: model.playlistWorkbench) }
+        .sheet(isPresented: $showsOffline) { OfflineInspector(player: model, workbench: model.offlineWorkbench) }
+        .sheet(isPresented: $showsCast) { NativeCastInspector(workbench: model.castWorkbench) }
         #endif
     }
 

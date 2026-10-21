@@ -44,6 +44,40 @@ final class PlayerModel: ObservableObject {
     @Published private(set) var playerSettings = PlayerSettings()
     @Published private(set) var configurationStatus = "Startup defaults active"
     @Published private(set) var trackStatus = PlaybackTrackStatus()
+    @Published private(set) var apiState: [ApiStateValue] = []
+    @Published private(set) var apiResult = "Choose an API operation."
+    @Published private(set) var apiEvents: [ApiEventRecord] = []
+    @Published private(set) var apiEventsEnabled = true
+    @Published private(set) var apiEventTransport = NativeEventTransport.listener
+    @Published private(set) var usesNativeApiHost = false
+    @Published private(set) var presentation = NativePresentation.sdkSwiftUI
+    @Published private(set) var nativePlayerFactory = NativePlayerFactory.standard
+    @Published var boundPiPEnabled = false
+    @Published var boundPiPAvailable = false
+    @Published var boundPiPActive = false
+    @Published var boundPiPSkipControls = true
+    @Published var boundScalingMode = ScalingMode.fit
+    @Published var nativeControlsShown = true
+    let playlistWorkbench = NativePlaylistWorkbench()
+    let sharePlayWorkbench = NativeSharePlayWorkbench()
+    let apiObjects = NativeApiObjects()
+    private var apiPlaylistContexts: [ObjectIdentifier: NativePlaylistSourceContext] = [:]
+    private weak var apiPlaylistProgressSource: Source?
+    private var apiPlaylistProgressTime: TimeInterval?
+    #if !os(tvOS)
+    let offlineWorkbench = OfflineWorkbench()
+    let castWorkbench = NativeCastWorkbench()
+    #endif
+    private(set) weak var apiPlayerView: PlayerView?
+    private var playerApiListener: PlayerApiEventListener?
+    private var sourceApiListener: SourceApiEventListener?
+    private var viewApiListener: ViewApiEventListener?
+    private var playerApiPublishers: [AnyCancellable] = []
+    private var sourceApiPublishers: [AnyCancellable] = []
+    private var viewApiPublishers: [AnyCancellable] = []
+    private weak var apiSource: Source?
+    private(set) var playerCallbackJournal = NativeCallbackJournal()
+    private(set) var sourceCallbackJournal = NativeCallbackJournal()
 
     var configurationDraft: ConfigurationDraft {
         ConfigurationDraft(source: sourceSettings, player: playerSettings)
@@ -70,9 +104,12 @@ final class PlayerModel: ObservableObject {
     init(licenseKey: String, analyticsLicenseKey: String = "") {
         self.licenseKey = licenseKey
         self.analyticsLicenseKey = analyticsLicenseKey
+        let journal = NativeCallbackJournal()
+        playerCallbackJournal = journal
         player = PlayerModel.makePlayer(
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
-            uiMode: .default, settings: PlayerSettings())
+            uiMode: .default, settings: PlayerSettings(), callbackJournal: journal, factory: .standard)
+        journal.setModel(self)
         bindEvents()
     }
 
@@ -111,14 +148,22 @@ final class PlayerModel: ObservableObject {
 
     private func recreatePlayer() {
         let previous = player
+        apiObjects.presentationRegistration.retire()
+        apiObjects.retirePlayer(previous)
+        apiPlaylistContexts.removeAll()
+        retireApiPlayerEvents()
+        retireApiSourceEvents()
         cancellables.removeAll()
         resetSourceCompletion()
         initialTrackSelection.retire()
         lastSnapshot = nil
+        let journal = NativeCallbackJournal()
+        playerCallbackJournal = journal
         let next = PlayerModel.makePlayer(
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
-            uiMode: uiMode, settings: playerSettings)
+            uiMode: uiMode, settings: playerSettings, callbackJournal: journal, factory: nativePlayerFactory)
         player = next
+        journal.setModel(self)
         playerGeneration = UUID()
         bindEvents()
         reloadCurrentSource()
@@ -127,11 +172,11 @@ final class PlayerModel: ObservableObject {
     }
 
     private static func makePlayer(
-        licenseKey: String, analyticsLicenseKey: String, uiMode: UiMode, settings: PlayerSettings
+        licenseKey: String, analyticsLicenseKey: String, uiMode: UiMode, settings: PlayerSettings, callbackJournal: NativeCallbackJournal, factory: NativePlayerFactory
     ) -> Player {
+        NativeLoggingOwner.apply(settings.advanced, journal: callbackJournal)
         let config = PlayerConfig()
         config.key = licenseKey
-        settings.apply(to: config)
         #if os(tvOS)
         // tvOS: native System UI — the Web UI is unavailable here (§12).
         config.styleConfig.userInterfaceType = .system
@@ -148,6 +193,18 @@ final class PlayerModel: ObservableObject {
             config.styleConfig.userInterfaceConfig = uiConfig
         }
         #endif
+        settings.apply(to: config, callbackJournal: callbackJournal)
+        settings.advanced.applyUI(to: config, callbackJournal: callbackJournal)
+        let configuredAdsManagerCallback = config.advertisingConfig.onAdsManagerAvailable
+        config.advertisingConfig.onAdsManagerAvailable = { [weak callbackJournal] manager in
+            callbackJournal?.setAdsManager(manager)
+            configuredAdsManagerCallback?(manager)
+        }
+        switch factory {
+        case .core: return PlayerCoreFactory.createPlayer(playerConfig: config)
+        case .legacy: return PlayerFactory.create(playerConfig: config)
+        case .standard: break
+        }
         // §15: the bundled analytics collector reports QoE to the Bitmovin dashboard
         // when a key is configured (repo-root .env → sync-env.sh → Local.xcconfig).
         guard !analyticsLicenseKey.isEmpty else {
@@ -165,17 +222,27 @@ final class PlayerModel: ObservableObject {
         reloadCurrentSource()
     }
 
+    func makePlayerViewConfig() -> PlayerViewConfig {
+        let config = PlayerViewConfig()
+        playerSettings.advanced.apply(to: config, callbackJournal: playerCallbackJournal)
+        return config
+    }
+
     func loadInitialSource() {
         guard sourceSettings == nil, let first = Sources.all.first else { return }
         load(first)
     }
 
     private func reloadCurrentSource() {
+        apiPlaylistContexts.removeAll()
         guard let sourceSettings else { return }
+        retireApiSourceEvents()
         resetSourceCompletion()
         initialTrackSelection.retire()
         trackStatus = PlaybackTrackStatus()
-        let source = SourceFactory.createSource(from: sourceSettings.makeSourceConfig())
+        sourceCallbackJournal = NativeCallbackJournal()
+        let source = SourceFactory.createSource(from: sourceSettings.makeSourceConfig(callbackJournal: sourceCallbackJournal))
+        bindApiSourceEvents(source)
         // Bind the intended source before load: an older queued event can arrive
         // while the SDK still reports the old current source.
         initialTrackSelection.bind(source)
@@ -272,14 +339,29 @@ final class PlayerModel: ObservableObject {
     }
 
     private func bindEvents() {
+        bindApiPlayerEvents()
         // Bind against a local (not the @Published `player` property): repeated property-wrapper
         // access across these four Combine chains pushes the Swift type-checker past its
         // per-expression budget ("cannot infer closure parameter type" cascade).
         let player = self.player
         player.events.on(TimeChangedEvent.self)
+            .map { [weak player] event -> (Source?, TimeInterval) in
+                (player?.source, event.currentTime)
+            }
             .receive(on: DispatchQueue.main)
-            .sink { [weak self, weak player] _ in
+            .sink { [weak self, weak player] source, time in
                 guard let self, let player, self.player === player else { return }
+                if let source, player.source === source, self.apiPlaylistContexts[ObjectIdentifier(source)] != nil {
+                    self.followApiPlaylistSource()
+                    // Preloaded transitions can omit Ready/Playing. A source-owned advancing
+                    // playback clock avoids selecting against the outgoing native player item.
+                    if self.apiPlaylistProgressSource === source, let previous = self.apiPlaylistProgressTime,
+                       time.isFinite, time > previous, player.isPlaying, source.loadingState == .loaded {
+                        self.applyInitialTracks(player, source: source)
+                    }
+                    self.apiPlaylistProgressSource = source
+                    self.apiPlaylistProgressTime = time
+                }
                 self.refresh()
             }
             .store(in: &cancellables)
@@ -287,10 +369,21 @@ final class PlayerModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self, weak player] event in
                 guard let self, let player, self.player === player,
-                      self.initialTrackSelection.owns(event.source),
                       player.source === event.source else { return }
+                if self.apiPlaylistContexts[ObjectIdentifier(event.source)] != nil { self.followApiPlaylistSource() }
+                guard self.initialTrackSelection.owns(event.source) else { return }
                 self.bindSourceCompletion(player)
                 self.append("SourceLoaded"); self.refresh()
+            }
+            .store(in: &cancellables)
+        player.events.on(PlaylistTransitionEvent.self)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, weak player] event in
+                guard let self, let player, self.player === player, player.source === event.to,
+                      self.apiPlaylistContexts[ObjectIdentifier(event.to)] != nil else { return }
+                self.followApiPlaylistSource()
+                self.pruneApiPlaylistContexts()
+                self.refresh()
             }
             .store(in: &cancellables)
         player.events.on(ReadyEvent.self)
@@ -339,7 +432,7 @@ final class PlayerModel: ObservableObject {
     }
 
     private func applyInitialTracks(_ player: Player, source: Source) {
-        guard let preferences = sourceSettings?.initialTracks,
+        guard let preferences = apiPlaylistContexts[ObjectIdentifier(source)]?.settings.initialTracks ?? sourceSettings?.initialTracks,
               let current = player.source else { return }
         guard initialTrackSelection.claim(eventSource: source, currentSource: current) else { return }
         // Select once at initial Ready: the tested 3.128 HLS startup restored its
@@ -360,5 +453,200 @@ final class PlayerModel: ObservableObject {
                 player.setAudio(trackIdentifier: identifier)
             } else { append("Initial audio language unavailable; kept SDK choice") }
         }
+    }
+
+    func setApiResult(_ message: String) { apiResult = message }
+    func setApiState(_ values: [ApiStateValue]) { apiState = values }
+    func clearApiEvents() { apiEvents.removeAll() }
+
+    func unloadFromApi() {
+        apiPlaylistContexts.removeAll()
+        initialTrackSelection.retire()
+        resetSourceCompletion()
+        player.unload()
+        retireApiSourceEvents()
+        trackStatus = PlaybackTrackStatus()
+        refresh()
+    }
+
+    func reloadFromApi() { reloadCurrentSource() }
+    func loadConfiguredSourceConfigFromApi() throws {
+        guard let sourceSettings else { throw ConfigurationValidationError(message: "Apply source settings first.") }
+        let journal = NativeCallbackJournal()
+        sourceCallbackJournal = journal
+        loadApiSourceConfig(sourceSettings.makeSourceConfig(callbackJournal: journal))
+    }
+    func loadApiSourceConfig(_ config: SourceConfig) {
+        apiPlaylistContexts.removeAll()
+        retireApiSourceEvents()
+        resetSourceCompletion()
+        initialTrackSelection.retire()
+        trackStatus = PlaybackTrackStatus()
+        player.load(sourceConfig: config)
+        if let source = player.source {
+            initialTrackSelection.bind(source)
+            bindApiSourceEvents(source)
+        }
+        refresh()
+    }
+
+    func loadApiPlaylist(_ config: PlaylistConfig, contexts: [NativePlaylistSourceContext]) {
+        retireApiSourceEvents()
+        resetSourceCompletion()
+        initialTrackSelection.retire()
+        lastSnapshot = nil
+        trackStatus = PlaybackTrackStatus()
+        apiPlaylistContexts = Dictionary(uniqueKeysWithValues: contexts.map { (ObjectIdentifier($0.source), $0) })
+        player.load(playlistConfig: config)
+        followApiPlaylistSource()
+        refresh()
+    }
+
+    func registerApiPlaylistContext(_ context: NativePlaylistSourceContext) {
+        if let current = player.source, apiPlaylistContexts[ObjectIdentifier(current)] == nil, let sourceSettings {
+            apiPlaylistContexts[ObjectIdentifier(current)] = .init(source: current, settings: sourceSettings, journal: sourceCallbackJournal)
+        }
+        apiPlaylistContexts[ObjectIdentifier(context.source)] = context
+    }
+
+    func followApiPlaylistSource() {
+        guard let source = player.source, let context = apiPlaylistContexts[ObjectIdentifier(source)] else { return }
+        if !initialTrackSelection.owns(source) {
+            apiPlaylistProgressSource = nil
+            apiPlaylistProgressTime = nil
+            resetSourceCompletion()
+            initialTrackSelection.bind(source)
+            lastSnapshot = nil
+            trackStatus = PlaybackTrackStatus()
+            retireApiSourceEvents()
+            bindApiSourceEvents(source)
+        }
+        sourceCallbackJournal = context.journal
+        if source.loadingState == .loaded, completionSource !== source { bindSourceCompletion(player) }
+    }
+
+    func pruneApiPlaylistContexts() {
+        var ids = Set(player.playlist.sources.map(ObjectIdentifier.init))
+        if let current = player.source { ids.insert(ObjectIdentifier(current)) }
+        apiPlaylistContexts = apiPlaylistContexts.filter { ids.contains($0.key) }
+    }
+    func recreateFromApi() { recreatePlayer() }
+    func setNativeApiHost(_ enabled: Bool) {
+        setPresentation(enabled ? .playerView : .sdkSwiftUI)
+    }
+    func setPresentation(_ next: NativePresentation) {
+        guard presentation != next else { return }
+        presentation = next
+        usesNativeApiHost = next == .playerView
+        boundPiPAvailable = false
+        boundPiPActive = false
+        recreatePlayer()
+    }
+    func setNativePlayerFactory(_ factory: NativePlayerFactory) {
+        guard factory != nativePlayerFactory else { return }
+        nativePlayerFactory = factory
+        recreatePlayer()
+    }
+
+    private func recordApiEvent(_ api: String, timestamp: TimeInterval, owner: String) {
+        guard apiEventsEnabled else { return }
+        apiEvents.insert(.init(api: api, timestamp: timestamp, owner: owner), at: 0)
+        if apiEvents.count > 120 { apiEvents.removeLast(apiEvents.count - 120) }
+    }
+
+    private func bindApiPlayerEvents() {
+        guard apiEventsEnabled else { return }
+        let player = self.player
+        let listener = PlayerApiEventListener { [weak self, weak player] api, timestamp in
+            guard let self, let player, self.player === player else { return }
+            self.recordApiEvent(api, timestamp: timestamp, owner: "Player")
+        }
+        playerApiListener = listener
+        if apiEventTransport == .listener { player.add(listener: listener) }
+        else { playerApiPublishers = NativePublisherSubscriptions.player(player, receiver: listener) }
+    }
+
+    private func retireApiPlayerEvents() {
+        playerApiPublishers.removeAll()
+        if let listener = playerApiListener { player.remove(listener: listener) }
+        playerApiListener = nil
+    }
+
+    private func bindApiSourceEvents(_ source: Source) {
+        guard apiEventsEnabled else { return }
+        apiSource = source
+        let listener = SourceApiEventListener { [weak self, weak source] api, timestamp in
+            guard let self, let source, self.apiSource === source else { return }
+            self.recordApiEvent(api, timestamp: timestamp, owner: "Source")
+        }
+        listener.parsedCue = { [weak self, weak source] cue in
+            guard let self, let source, self.apiSource === source, self.player.source === source else { return }
+            self.apiObjects.appendParsedCue(cue, source: source)
+        }
+        listener.acquiredLicense = { [weak self, weak source] request in
+            guard let self, let source, self.apiSource === source, self.player.source === source else { return }
+            self.apiObjects.appendAcquiredLicense(request, source: source)
+            self.refreshApiState()
+        }
+        sourceApiListener = listener
+        if apiEventTransport == .listener { source.add(listener: listener) }
+        else { sourceApiPublishers = NativePublisherSubscriptions.source(source, receiver: listener) }
+    }
+
+    private func retireApiSourceEvents(retireObjects: Bool = true) {
+        sourceApiPublishers.removeAll()
+        if retireObjects { apiObjects.retireSource() }
+        if let listener = sourceApiListener { apiSource?.remove(listener: listener) }
+        sourceApiListener = nil
+        apiSource = nil
+    }
+
+    @MainActor
+    func attachApiView(_ view: PlayerView) {
+        viewApiPublishers.removeAll()
+        if let old = apiPlayerView, let listener = viewApiListener { old.remove(listener: listener) }
+        apiPlayerView = view
+        guard apiEventsEnabled else { return }
+        let listener = ViewApiEventListener { [weak self, weak view] api, timestamp in
+            guard let self, let view, self.apiPlayerView === view, view.player === self.player else { return }
+            self.recordApiEvent(api, timestamp: timestamp, owner: "Player view")
+        }
+        viewApiListener = listener
+        if apiEventTransport == .listener { view.add(listener: listener) }
+        else { viewApiPublishers = NativePublisherSubscriptions.view(view, receiver: listener) }
+    }
+
+    @MainActor
+    func detachApiView(_ view: PlayerView) {
+        guard apiPlayerView === view else { return }
+        viewApiPublishers.removeAll()
+        if let listener = viewApiListener { view.remove(listener: listener) }
+        viewApiListener = nil
+        apiPlayerView = nil
+    }
+
+    @MainActor
+    func setApiEventRecording(_ enabled: Bool) {
+        guard enabled != apiEventsEnabled else { return }
+        apiEventsEnabled = enabled
+        retireApiPlayerEvents()
+        retireApiSourceEvents(retireObjects: false)
+        viewApiPublishers.removeAll()
+        if let view = apiPlayerView, let listener = viewApiListener { view.remove(listener: listener) }
+        viewApiListener = nil
+        if enabled {
+            bindApiPlayerEvents()
+            if let source = player.source { bindApiSourceEvents(source) }
+            if let view = apiPlayerView { attachApiView(view) }
+        }
+    }
+
+    @MainActor
+    func setApiEventTransport(_ transport: NativeEventTransport) {
+        guard transport != apiEventTransport else { return }
+        let wasEnabled = apiEventsEnabled
+        if wasEnabled { setApiEventRecording(false) }
+        apiEventTransport = transport
+        if wasEnabled { setApiEventRecording(true) }
     }
 }

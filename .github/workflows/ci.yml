@@ -71,6 +71,7 @@ jobs:
           python3 apps/ios/test_track_qualification.py
           python3 apps/android/test-runtime-tests.py
           node --test apps/android/configuration-fixture.test.mjs
+          node --test apps/ios/scripts/test-native-script-engine.cjs
       - name: Correctness worker budget tests
         run: pnpm --filter @showcase/e2e test:workers
       - name: Test environment loading and bundle verification

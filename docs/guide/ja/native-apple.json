@@ -1,7 +1,7 @@
 {
   "id": "native-apple",
   "title": "iOS・iPadOS・tvOS",
-  "lead": "SwiftUIアプリでHLS・プログレッシブMP4、起動時の再生、初期音声・字幕、映像の拡大方法、ビットレート、バッファーを設定します。iOS・iPadOSは共有Web UIを選べ、tvOSはシステムUIを使います。",
+  "lead": "SwiftUIアプリでPlayer・Source・表示方法を設定し、API inspectorからSDKの操作、現在の状態、イベントを確認します。iOSとiPadOSにはオフラインHLSとGoogle Castの画面もあります。tvOSはネイティブの操作画面を使います。",
   "blocks": [
     {
       "type": "h2",
@@ -9,7 +9,7 @@
     },
     {
       "type": "p",
-      "text": "Xcode と XcodeGen 2.46.0 が必要です。宣言された最低 OS は iOS 15.0／tvOS 15.0、固定された Player は 3.128.0 です。Player はバイナリー XCFramework のため、アプリを swift build だけでビルドすることはできません。共通準備でライセンスと共有 UI を同期してから、リポジトリのルートを起点に次を実行します。"
+      "text": "XcodeとXcodeGen 2.46.0が必要です。最低対応OSはiOS 16.0／tvOS 15.0、Playerは3.128.0です。iOSにはGoogle Cast 4.8.6を組み込み、このライブラリがiOS 16以降を必要とします。PlayerはバイナリーのXCFrameworkなので、swift buildだけではアプリをビルドできません。共通の準備手順でライセンスと共有UIを同期し、リポジトリのルートから次を実行します。"
     },
     {
       "type": "code",
@@ -17,7 +17,7 @@
     },
     {
       "type": "p",
-      "text": "xcodegen version が 2.46.0 であることを確認します。Xcode では Showcase-iOS または Showcase-tvOS を選び、実行先を指定して起動します。実機への導入では開発チームと署名も設定します。Player ライセンスでは iOS に com.playerlab.ios、tvOS に com.playerlab.tvos を許可します。 どちらもアプリ名はPlayer Labです。DVRはライブ映像を巻き戻す機能を指します。"
+      "text": "xcodegen versionが2.46.0であることを確認します。XcodeでShowcase-iOSまたはShowcase-tvOSと実行先を選んで起動します。実機では開発チームと署名を設定します。Playerライセンスの許可リストに、iOSはcom.playerlab.ios、tvOSはcom.playerlab.tvosを登録してください。アプリの表示名はどちらもPlayer Labです。"
     },
     {
       "type": "note",
@@ -60,7 +60,7 @@
       "type": "steps",
       "items": [
         "ソースのプリセットの下にある Configure source and playback を選びます。iPhone／iPad はシート、tvOS は全画面のネイティブフォームを開きます。tvOS はリモコンでフォーカスを移動し、Select で操作します。文字入力は OS のキーボードを使います。",
-        "Source URL に絶対 HTTP(S) URL を入力し、HLS または Progressive MP4 を選びます。タイトルと HTTP(S) のポスター URL は任意です。空欄にすると解除します。DASH とオフラインパッケージは選択できません。",
+        "HTTP(S)の絶対URLをSource URLへ入力し、HLSまたはProgressive MP4を選びます。タイトルとHTTP(S)のPoster URLは任意で、空欄にすると削除します。キャッシュ済みHLSは別のオフライン画面を使います。DASHには対応していません。",
         "開始位置を指定する場合は Start offset に秒数を入力し、Automatic／Start／End を選びます。オフセットの空欄は SDK の既定値です。Automatic は VOD では先頭、ライブではライブ端を基準にします。正負の有限値を受け付け、SDK がストリームの範囲へ補正します。ライブのオフセットは再生開始時に適用されます。",
         "Autoplay after source load、Start muted、SDK time shift / DVR を選びます。既定は順に無効・有効・有効です。別の Allow DVR controls (app) もアプリのクイックシークを制御します。Maximum bitrate は整数の bit/s（0 は上限なし）、Forward buffer は 0 以上の有限の秒数（0 は SDK に任せる）で入力します。",
         "Apply の前に Reload source または Recreate player and reload source の表示を確認します。不正な入力には説明が表示され、Apply は無効になります。Reset to applied は編集中の値だけを適用済みの値へ戻し、Cancel は編集を破棄します。適用済み設定は現在のアプリ起動中に保持されます。"
@@ -118,6 +118,74 @@
     {
       "type": "p",
       "text": "初期のプレイヤー設定に戻す場合は、Autoplayを無効、Start mutedとSDK time shift / DVRを有効、Maximum bitrateとForward bufferを0、Video scalingをFitにしてApplyします。Reset to appliedは下書きを破棄する操作で、既定値への復帰ではありません。VOD HLSを再度選ぶとカスタムソースの項目と初期トラック設定を戻せますが、プレイヤー設定は維持します。適用した設定は現在のアプリセッションで保持します。"
+    },
+    {
+      "type": "h2",
+      "text": "追加のSDK設定"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Configure source and playbackを開き、Advanced SDK settingsのEdit additional Player, Source and view settingsを有効にします。Filter configuration API nameでプロパティを検索します。",
+        "その項目のOverrideを有効にします。型に応じてスイッチ、SDKの選択肢、値の入力欄、構造を持つJSON、コールバック本文が表示されます。説明で入力可能な値と単位を確認します。Overrideを無効にすると、基本フォームの値またはSDK既定値へ戻ります。",
+        "表示された適用方法を確認してApplyします。Sourceの設定はソースを再読み込みし、Playerと表示ビューの設定はプレイヤーを再作成します。無効な値は適用されません。Show applied codeで適用済みのSwift設定を確認します。",
+        "API inspector → StateでRefresh SDK stateを押し、ソース、トラック、対象のPlayerの値を確認します。項目によっては、対応するコンテンツ、サービス、端末がある場合にだけ効果が現れます。"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "構造を持つ項目は、入力欄の説明にあるSDKオブジェクトへ変換されます。SourceConfig.tracksには字幕トラックのオブジェクトを配列で入力し、identifierを重複させないようにします。空の配列は追加トラックを削除します。Overrideを無効にすると、この明示的な設定自体を外します。"
+    },
+    {
+      "type": "figure",
+      "file": "ios-subtitle-array-editor",
+      "caption": "iPhoneのSourceConfig.tracks入力欄。各オブジェクトが字幕トラックを表し、入力可能なプロパティは下の説明に記載されています。"
+    },
+    {
+      "type": "code",
+      "title": "手動字幕トラックの入力例",
+      "text": "[{\"identifier\":\"manual-example\",\"label\":\"Manual English\",\"language\":\"en\",\"url\":null}]"
+    },
+    {
+      "type": "p",
+      "text": "この例はリモートファイルや表示内容を持たない手動トラックを追加します。Apply後にPlayer.availableSubtitlesを確認し、字幕のキュー（表示時刻と内容）を扱うAPIで内容を追加して選択します。ファイルを使う場合はHTTP(S) URLとwebVttなどの形式を指定します。外部字幕の描画は選択したUIに依存します。tvOSのSystem UIと共通に試す場合はHLS内の字幕トラックを使います。"
+    },
+    {
+      "type": "figure",
+      "file": "ios-subtitle-array-sdk-state",
+      "caption": "配列を適用した後のPlayer.availableSubtitles。ソース内のトラックに加えてmanual-exampleが表示されています。"
+    },
+    {
+      "type": "h2",
+      "text": "コールバックを編集する"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "LabelingConfig.audioLabelなどのコールバックを検索してOverrideを有効にします。説明でinputの内容と戻り値の型を確認します。",
+        "音声ラベルの例ではreturn 'GUI ' + input.label;のように関数の本文を入力し、Applyします。下書きの編集だけでは登録・実行されません。",
+        "SDKがその関数を呼ぶ条件のコンテンツを使います。API inspector → StateでCallbackを検索して更新し、呼び出し回数と失敗回数を確認します。登録済みであることと、実際に呼ばれたことを区別できます。",
+        "Show applied codeで適用した本文を確認します。SDK既定の処理へ戻す場合はOverrideを無効にしてApplyします。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "ios-callback-editor",
+      "caption": "音声ラベルのコールバック本文。inputで受け取ったラベルに対して、返した文字列をSDKへ渡します。"
+    },
+    {
+      "type": "figure",
+      "file": "ios-callback-sdk-status",
+      "caption": "SDKが適用済みの音声ラベル関数を呼んだ後の状態。引数をログに出さず、呼び出し回数と失敗回数を表示します。"
+    },
+    {
+      "type": "note",
+      "title": "実行方法と失敗時の動作",
+      "text": "Apple版のコールバックは、文字列・数値・配列などの値を扱う実行量に上限のあるインタープリターで評価します。対応するlet／const、関数、配列、文字列、JSON操作を使えます。ホストのオブジェクト、非同期コード、動的なコード実行は使えません。非対応の構文はApply前に拒否します。実行エラー、上限超過、SDKが必要とする型と異なる戻り値には、項目に記載した代替処理を使います。評価に成功した呼び出しは同じ所有元のstorageを共有します。評価中のエラーではその回の変更を破棄しますが、評価完了後のSDK型チェックで拒否された場合は変更が残ります。対応する言語機能と制限は公開のインタープリターREADMEに記載しています。 varの代わりにletまたはconstを使います。JSON.parseとJSON.stringifyの引数は一つで、reviver・replacer・字下げの指定は拒否します。"
+    },
+    {
+      "type": "p",
+      "text": "評価処理にはCPU時間と経過時間の上限を別々に設けています。CPU時間はコールバックのスレッドが処理した時間で、経過時間にはそのスレッドが動いていない時間も含まれます。両方を制限することで、一時的な実行待ちを許容しつつ計算量と全体の待ち時間を抑えます。評価開始時にスレッドのCPU時間を取得できない場合は経過時間の上限を使います。これはインタープリターの値の処理に対する制限で、別プロセスや独立したネイティブメモリー領域ではありません。"
     },
     {
       "type": "h2",
@@ -194,65 +262,164 @@
     },
     {
       "type": "h2",
-      "text": "SDK既定UIの操作を試す"
+      "text": "SDK既定のPlayer UIを使う"
+    },
+    {
+      "type": "p",
+      "text": "Defaultでは通常の再生、タイムラインのシーク、ソースのトラックメニューを使えます。下に隠れた項目は、プレイヤー内のメニューをスクロールして表示します。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Defaultを選び、音声や字幕のトラックを含むソースを読み込んで再生します。",
+        "一時停止、再開、タイムラインのドラッグを試します。Settingsから速度のプリセットや使用可能な音声・字幕トラックを選べます。",
+        "任意の音量や速度はAPI inspector → Operationsで入力します。全画面表示と表示ビューのAPIを試すときはNative PlayerViewを選びます。"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "既定メニューの速度はプリセットです。また、スピーカーボタンではミュートを切り替えても数値の音量スライダーがない場合があります。これは既定UIの操作部品についての制限であり、API inspectorの対応範囲や入力可能な値の制限ではありません。"
+    },
+    {
+      "type": "h2",
+      "text": "APIを操作して状態を確認する"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open API inspectorを開きます。OperationsでAPI名を検索して操作を選びます。引数の入力欄には型と単位が表示されます。",
+        "Player.volumeを選び、0〜100の整数を入力してRun APIを押します。呼び出しの実行だけで再生上の効果まで確認したことにはなりません。",
+        "Stateへ切り替え、Player.volumeで絞ってRefresh SDK stateを押すと現在のPlayerから値を取得します。シークのような非同期操作では、完了イベントと操作後の位置も確認します。",
+        "Show operation codeで現在の有効な引数に対応するSwift呼び出しを表示します。設定コードはPlayerの生成や読み込みに使い、操作コードは実行中のインスタンスへ使います。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "ios-api-operation",
+      "caption": "Player.volumeの数値を入力してRun APIを実行する画面。Show operation codeで対応するSwift呼び出しを表示できます。"
+    },
+    {
+      "type": "figure",
+      "file": "ios-api-volume-state",
+      "caption": "操作後に現在のSDK Playerから取得したPlayer.volume。"
+    },
+    {
+      "type": "p",
+      "text": "EventsではPlayer・Source・表示ビューの型付きコールバックを記録できます。Filter event name or ownerとClear eventsで対象の操作を絞ります。表示するのはAPI名、所有元、SDKの時刻です。リスナーの登録とイベントの発生は別の状態です。同じイベントがSourceとPlayerの各リスナーに届く場合もあります。 Subscription transportでTyped listenersとCombine publishersを切り替え、同じSDKイベントを別の購読方法で確認できます。"
+    },
+    {
+      "type": "figure",
+      "file": "tvos-api-state",
+      "caption": "tvOSのAPI inspector。Operations・State・Eventsをリモコンのフォーカス移動とSelectで操作します。"
+    },
+    {
+      "type": "h2",
+      "text": "映像の表示方法を選ぶ"
+    },
+    {
+      "type": "p",
+      "text": "API inspector → StateのPresentationで、SDK SwiftUI、SDK SwiftUI with bindings、Native PlayerView、AVPlayerLayer、AVPlayerViewControllerを比較できます。変更するとプレイヤーを再作成して適用済みソースを読み込みます。既定はSDK SwiftUIです。"
+    },
+    {
+      "type": "p",
+      "text": "Player factoryは表示方法とは別の選択です。既定のPlayerFactoryは設定済みのAnalyticsを接続します。PlayerCoreFactoryと非推奨のPlayerFactory.createは、そのラッパーを持たないPlayerを作ります。変更するとPlayerを再作成します。Analyticsの収集を比較する場合は既定の生成方法を使います。"
     },
     {
       "type": "table",
       "headers": [
-        "API",
-        "実際の操作とSDKの応答",
-        "分類"
+        "表示方法",
+        "試す内容"
       ],
       "rows": [
         [
-          "Player.pause()",
-          "Pause後の再生位置は3回とも10.095秒。",
-          "直接操作"
+          "SDK SwiftUI with bindings",
+          "Picture-in-Pictureと拡大方法のバインディングを変更し、利用可能状態を確認します。"
         ],
         [
-          "Player.play()",
-          "Play後、同じPlayerの位置が10.583秒から14.982秒へ進行。",
-          "直接操作"
+          "Native PlayerView",
+          "全画面表示やPicture-in-PictureのAPIを実行し、表示ビューのイベントを確認します。"
         ],
         [
-          "Player.seek(time:)",
-          "タイムラインのドラッグ後、新しいSeekedで30秒への移動が完了。",
-          "直接操作"
+          "AVPlayerLayer",
+          "登録した映像レイヤー、アプリ側の操作画面、拡大方法を比較します。"
         ],
         [
-          "Player.setAudio(trackIdentifier:)",
-          "German test trackを選び、SDKの音声選択が0番から1番へ変化。",
-          "直接操作"
-        ],
-        [
-          "Player.playbackSpeed",
-          "2xを選び、SDKの速度が2へ変化。",
-          "プリセット"
-        ],
-        [
-          "Player.volume",
-          "スピーカー操作はミュートを変更。音量は100のままでタッチ用スライダーなし。",
-          "不提供"
-        ],
-        [
-          "UserInterfaceApi.enterFullscreen() / exitFullscreen()",
-          "このアプリ構成には全画面ハンドラーと可視の操作がない。",
-          "不提供・API二つ"
+          "AVPlayerViewController",
+          "AVKitの操作画面とShow AVKit playback controlsを比較します。"
         ]
       ]
     },
     {
       "type": "p",
-      "text": "音声メニューはavailableAudioのIDをすべて動的に列挙し、公開APIの有効な引数を選択できます。English test trackとGerman test trackは検証用のラベルで、翻訳音声ではありません。速度は0.25x、0.5x、通常、1.5x、2xだけなのでプリセットです。不提供の三つも利用可能なSDK APIとして分母に残します。この結果は対象のiPhoneシミュレーターのものであり、tvOSや物理端末のUIとは区別します。"
+      "text": "Picture-in-Pictureとリモート再生には対応するOSと端末が必要です。利用可能状態を確認して使います。Show presentation codeには、選択したビュー・レイヤー・コントローラーを同じBitmovin Playerへ登録するコードを表示します。"
+    },
+    {
+      "type": "h2",
+      "text": "SharePlayのセッション"
     },
     {
       "type": "steps",
       "items": [
-        "Defaultを選び、複数音声を含む到達可能なHLSのURLと自動再生を設定し、Applyします。",
-        "コントロールを表示し、Pause、Play、再度Pauseを操作してからVideo timelineを中央へドラッグします。",
-        "Settings → Speedを開き、スクロールして2xを選びます。上へ戻ってBackを選びます。",
-        "Audio Trackを開き、スクロールしてGerman test trackを選びます。メニュー内の見えていない選択肢はスクロールして表示します。"
+        "API inspector → OperationsのSharePlay GroupSessionでListen for sessionsを選びます。OSが作った実際のセッションを受け取り、自動的には参加しません。",
+        "ソースを読み込んだ状態でActivate current source activityを押すと、OSへSharePlayの開始を要求します。ソースのURLとタイトルを共有するため、開始前に使うソースを確認します。",
+        "実際のOSセッションを選び、Coordinate current playerまたはCoordinate and joinを使います。参加するPlayerはSourceConfig.options.sharePlayIdentifierを一致させる必要があります。",
+        "Refresh group stateで状態と参加者数を取得します。Leave selected sessionはこのアプリの退出を要求し、Stop listeningは監視だけを止めます。"
       ]
+    },
+    {
+      "type": "p",
+      "text": "SharePlayにはOSの利用条件、対応するシステムのセッション、署名のGroup Activities機能が必要です。利用可能なセッションがないシミュレーターでも操作画面は表示しますが、GroupSessionの代用品は作りません。Show SharePlay codeで公開の連携APIを確認できます。"
+    },
+    {
+      "type": "h2",
+      "text": "iOS・iPadOSのオフラインHLS"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "メイン画面でオンデマンドのHLSとDRM設定を適用し、Open offline HLS inspectorを開きます。ライブHLSは有限のダウンロード素材になりません。この画面はtvOSにはありません。",
+        "Wi-Fi制限と必要な空き容量を指定し、既定値またはOfflineConfigで初期化します。初期化はプロセス全体で共通になり、選択した起動設定は次回起動にも使います。",
+        "Select applied HLS source as offline assetで対象を選びます。同じ素材を後から指定する場合は識別子を明示します。Fetch available audio and subtitle tracksでトラックを取得し、ダウンロードする音声と字幕を選びます。",
+        "ダウンロード操作を選んでRun offline APIを押します。SDKの進行状況、offlineState、イベントを確認します。トラック取得や操作の送信だけではダウンロード完了を表しません。",
+        "完了後にキャッシュ済みメディアだけに再生を制限するかを指定し、Create OfflineSourceConfig、Load cached sourceの順に押します。制限を変更した場合は、OfflineSourceConfigを再作成してから読み込みます。現在のPlayerへ読み込み、メイン設定を再びApplyすると、そちらのリモートソースへ戻ります。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "ios-offline-track-selection",
+      "caption": "SDKから取得した音声・字幕トラック。各トラックをダウンロード対象にするか選択できます。"
+    },
+    {
+      "type": "p",
+      "text": "一時停止、再開、キャンセル、削除、オフラインライセンスの操作は選択した素材に対して実行します。削除はその素材のキャッシュを取り除きます。FairPlayライセンスの更新や同期には対応するサービスが必要です。直前の操作コード、SDKの状態、イベントから、操作の受付と完了を分けて確認できます。"
+    },
+    {
+      "type": "h2",
+      "text": "iOS・iPadOSのGoogle Cast"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Google Cast inspectorを開きます。受信アプリIDと任意のurn:x-cast:…形式の名前空間を入力し、バックグラウンドセッション、端末探索、セッション終了時の受信側の停止を選びます。",
+        "initializeCasting(options:)を選んでRun Cast APIを実行してから、Player設定のRemoteControlConfig.isCastEnabledを有効にします。受信アプリの欄が空の場合はSDK既定値を使います。",
+        "初期化はプロセス全体で共通です。初期化後の変更は次の起動用に保存するので、アプリを完全に終了して開き直します。Playerだけを再作成してもCastは置き換わりません。",
+        "Refresh Cast stateで初期化、端末の利用可能状態、接続をそれぞれ確認します。操作の選択欄から受信側の再生やメッセージ送信を実行し、通知を確認するときはリスナーを追加します。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "ios-cast-options",
+      "caption": "Google Castの受信アプリと端末探索の設定。アプリのプロセス起動時に使う設定です。"
+    },
+    {
+      "type": "figure",
+      "file": "ios-cast-sdk-state",
+      "caption": "SDKが送信側の初期化済み状態を返した画面。受信端末の利用可能状態と接続状態は別の値です。"
+    },
+    {
+      "type": "note",
+      "title": "受信側に必要な条件",
+      "text": "受信側の再生には対応するCast端末、ローカルネットワークの許可、再生可能なメディアが必要です。独自の受信アプリにはInfo.plistの_APPID._googlecast._tcp登録とネイティブの再ビルドも必要です。既定の受信アプリ用の登録は含めています。初期化だけでは端末探索や受信側の再生を確認したことにはなりません。tvOS版にはGoogle Castを組み込んでいません。"
     },
     {
       "type": "h2",
@@ -265,6 +432,10 @@
     {
       "type": "p",
       "text": "初期トラック設定がある場合、Swiftの出力には明示したSourceの読み込みを確認し、最初のReadyで一度だけ選択するlistenerが含まれます。アプリと同じ言語タグ全体・主言語の照合を使います。ライセンスは置き換え用文字列のままで、未適用の編集値は含めません。"
+    },
+    {
+      "type": "p",
+      "text": "コールバックのコードを再利用するときは、apps/ios/Showcaseにある公開のNativeScripts/acorn.js、NativeScripts/engine.js、ACORN-LICENSE.txtをXcodeアプリのリソースに含めます。生成したSwiftは各コールバックの所有元へパーサー全文を埋め込まず、同じ同梱ファイルを読み込みます。パーサーまたはインタープリターのファイルがない場合は実行しません。パーサーを配布する際はAcornのMITライセンス表示を残してください。"
     },
     {
       "type": "figure",
@@ -357,6 +528,46 @@
     {
       "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/styleconfig/scalingmode/index.html",
       "label": "公式scalingModeプロパティ"
+    },
+    {
+      "path": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
+      "line": 1,
+      "label": "追加SDK設定の入力"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeSubtitleDraft.swift",
+      "line": 1,
+      "label": "字幕トラックの構造化入力"
+    },
+    {
+      "path": "apps/ios/Showcase/ApiInspector.swift",
+      "line": 1,
+      "label": "API操作・状態・イベントの画面"
+    },
+    {
+      "path": "apps/ios/Showcase/NativePresentation.swift",
+      "line": 1,
+      "label": "ネイティブの表示方法"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeScripts/README.md",
+      "line": 1,
+      "label": "コールバックの言語機能と実行上限"
+    },
+    {
+      "path": "apps/ios/Showcase/OfflineInspector.swift",
+      "line": 1,
+      "label": "オフラインHLSの操作"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeCastInspector.swift",
+      "line": 1,
+      "label": "Castの起動設定と操作"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeSharePlay.swift",
+      "line": 1,
+      "label": "SharePlayセッションの操作"
     }
   ]
 }

@@ -2,6 +2,9 @@ import SwiftUI
 
 @main
 struct ShowcaseApp: App {
+    #if !os(tvOS)
+    @UIApplicationDelegateAdaptor(OfflineBackgroundDelegate.self) private var offlineDelegate
+    #endif
     var body: some Scene {
         WindowGroup {
             ContentView()

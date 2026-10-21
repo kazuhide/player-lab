@@ -508,8 +508,7 @@ internal object ApiSettings {
             id = "android:com.bitmovin.player.api.live.LiveConfig.minTimeShiftBufferDepth",
             owner = "live.LiveConfig",
             kind = ApiValueKind.Decimal,
-            help = "Remove override to restore the base configuration. SDK content and device requirements apply.",
-            minimum = 0.0,
+            help = "Signed buffer depth in seconds; the SDK default is -40. SourceLiveConfig takes precedence when present. Remove the override to restore the base configuration.",
             player = { c, v -> c.copy(liveConfig = c.liveConfig.copy(minTimeShiftBufferDepth = v.toDouble())) },
             code = { v -> "playerConfig = playerConfig.copy(liveConfig = playerConfig.liveConfig.copy(minTimeShiftBufferDepth = $v))" }
         ),

@@ -45,6 +45,7 @@ struct SourceSettings: Equatable {
     var startOffset: TimeInterval?
     var timelineReference: OffsetReference = .automatic
     var initialTracks = InitialTrackPreferences()
+    var advanced = AdvancedConfiguration.empty
 
     init(_ source: ShowcaseSource) {
         url = source.url
@@ -55,7 +56,8 @@ struct SourceSettings: Equatable {
 
     init(url: URL, type: SourceFormat, title: String, posterURL: URL?,
          startOffset: TimeInterval?, timelineReference: OffsetReference,
-         initialTracks: InitialTrackPreferences = InitialTrackPreferences()) {
+         initialTracks: InitialTrackPreferences = InitialTrackPreferences(),
+         advanced: AdvancedConfiguration = .empty) {
         self.url = url
         self.type = type
         self.title = title
@@ -63,14 +65,16 @@ struct SourceSettings: Equatable {
         self.startOffset = startOffset
         self.timelineReference = timelineReference
         self.initialTracks = initialTracks
+        self.advanced = advanced
     }
 
-    func makeSourceConfig() -> SourceConfig {
+    func makeSourceConfig(callbackJournal: NativeCallbackJournal? = nil) -> SourceConfig {
         let config = SourceConfig(url: url, type: type.sdkType)
         config.title = title.isEmpty ? nil : title
         config.posterSource = posterURL
         if let startOffset { config.options.startOffset = startOffset }
         config.options.startOffsetTimelineReference = timelineReference.sdkValue
+        advanced.apply(to: config, callbackJournal: callbackJournal)
         return config
     }
 }
@@ -82,14 +86,16 @@ struct PlayerSettings: Equatable {
     var maximumBitrate: UInt = 0
     var forwardBuffer: TimeInterval = 0
     var videoScaling: VideoScaling = .fit
+    var advanced = AdvancedConfiguration.empty
 
-    func apply(to config: PlayerConfig) {
+    func apply(to config: PlayerConfig, callbackJournal: NativeCallbackJournal? = nil) {
         config.playbackConfig.isAutoplayEnabled = autoplay
         config.playbackConfig.isMuted = startMuted
         config.playbackConfig.isTimeShiftEnabled = sdkTimeShiftEnabled
         config.adaptationConfig.maxSelectableBitrate = maximumBitrate
         config.bufferConfig.audioAndVideo.forwardDuration = forwardBuffer
         config.styleConfig.scalingMode = videoScaling.sdkValue
+        advanced.apply(to: config, callbackJournal: callbackJournal)
     }
 }
 
@@ -127,6 +133,7 @@ struct ConfigurationDraft: Equatable {
     var audioLanguage: String
     var subtitleMode: InitialSubtitleMode
     var subtitleLanguage: String
+    var advancedValues: [String: String]
 
     init(source: SourceSettings? = nil, player: PlayerSettings = PlayerSettings()) {
         let source = source ?? SourceSettings(Sources.all[0])
@@ -145,9 +152,11 @@ struct ConfigurationDraft: Equatable {
         audioLanguage = source.initialTracks.audioLanguage ?? ""
         subtitleMode = source.initialTracks.subtitleMode
         subtitleLanguage = source.initialTracks.subtitleLanguage ?? ""
+        advancedValues = source.advanced.values.merging(player.advanced.values) { _, right in right }
     }
 
     func validated() throws -> ValidatedConfiguration {
+        _ = try AdvancedConfiguration(validating: advancedValues)
         let url = try Self.httpURL(sourceURL, field: "Source URL")
         let posterText = posterURL.trimmingCharacters(in: .whitespacesAndNewlines)
         let poster = posterText.isEmpty ? nil : try Self.httpURL(posterText, field: "Poster URL")
@@ -168,10 +177,12 @@ struct ConfigurationDraft: Equatable {
             source: SourceSettings(url: url, type: sourceType, title: title,
                                    posterURL: poster, startOffset: offset, timelineReference: timelineReference,
                                    initialTracks: InitialTrackPreferences(audioLanguage: audio,
-                                       subtitleMode: subtitleMode, subtitleLanguage: subtitle)),
+                                       subtitleMode: subtitleMode, subtitleLanguage: subtitle),
+                                   advanced: try AdvancedConfiguration(validating: advancedValues, owner: .source)),
             player: PlayerSettings(autoplay: autoplay, startMuted: startMuted,
                                    sdkTimeShiftEnabled: sdkTimeShiftEnabled,
-                                   maximumBitrate: bitrate, forwardBuffer: buffer, videoScaling: videoScaling))
+                                   maximumBitrate: bitrate, forwardBuffer: buffer, videoScaling: videoScaling,
+                                   advanced: try AdvancedConfiguration(validating: advancedValues, owner: .player)))
     }
 
     private static func httpURL(_ text: String, field: String) throws -> URL {

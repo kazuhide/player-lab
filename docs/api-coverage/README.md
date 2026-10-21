@@ -177,8 +177,11 @@ python3 scripts/api-coverage/android/regenerate.py \
   --repo . --version 3.171.0 --output /path/to/api-refresh/android
 ```
 
-The Apple manifest pins the documentation files and their hashes. A new SDK
-version needs a reviewed manifest and scope update, not an unverified version
+The Apple manifest pins the documentation files and their hashes. Swift package
+version bindings select each pin by its package identity and then read
+`/state/version`. This keeps the Player version binding stable when other
+packages change the pin order; a missing or duplicate identity is rejected. A new
+SDK version needs a reviewed manifest and scope update, not an unverified version
 substitution. The Android generator's `--offline` option can reuse complete
 public caches; see `--help` for their layouts.
 

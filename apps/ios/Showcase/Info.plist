@@ -26,5 +26,12 @@
     <string>$(BITMOVIN_ANALYTICS_LICENSE_KEY)</string>
     <key>UILaunchScreen</key>
     <dict/>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Player Lab discovers Google Cast receivers on your local network when you initialize casting or open its device picker.</string>
+    <key>NSBonjourServices</key>
+    <array>
+        <string>_googlecast._tcp</string>
+        <string>_FFE417E5._googlecast._tcp</string>
+    </array>
 </dict>
 </plist>
