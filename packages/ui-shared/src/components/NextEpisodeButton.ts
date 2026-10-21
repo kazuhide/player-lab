@@ -1,4 +1,4 @@
-import { Button, ButtonStyle } from "bitmovin-player-ui";
+import { Button, ButtonStyle, PlayerUtils } from "bitmovin-player-ui";
 import type { ButtonConfig, UIInstanceManager } from "bitmovin-player-ui";
 import type { PlayerAPI } from "bitmovin-player";
 
@@ -51,7 +51,7 @@ export class NextEpisodeButton extends Button<NextEpisodeButtonConfig> {
       // Clamp at 0 so the button stays available at the exact end of the clip (remaining === 0),
       // not only strictly before it: manual "next" must still work once the playhead reaches the
       // finish (e.g. paused at the end with autoplay-next off, where the Next-up card is informational).
-      const remaining = Math.max(0, duration - player.getCurrentTime());
+      const remaining = Math.max(0, duration - PlayerUtils.getCurrentTimeRelativeToSeekableRange(player));
       if (remaining <= this.leadSeconds) this.show();
       else this.hide();
     };

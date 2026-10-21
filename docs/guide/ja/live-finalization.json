@@ -75,11 +75,15 @@
     },
     {
       "type": "p",
-      "text": "ライブ時に実時刻を使っていた素材では、有限のVODになってもシーク可能範囲の原点に実時刻が残る場合があります。その場合にseek(10)とすると、先頭から10秒ではなく範囲外として先頭へ制限されます。先頭から10秒へ移動するには、シーク可能範囲の始点へ10を足します。"
+      "text": "SDKのgetCurrentTime()は既定で絶対時刻を返します。ライブ時に実時刻を使っていた素材では、有限のVODになってもシーク可能範囲にその原点が残る場合があり、終了だけでSDKの時刻が0始まりになるとは限りません。その場合にseek(10)とすると、先頭から10秒ではなく範囲外として先頭へ制限されます。先頭から10秒へ移動するには、シーク可能範囲の始点へ10を足します。"
     },
     {
       "type": "code",
       "text": "const range = player.getSeekableRange();\nplayer.seek(range.start + 10);\n// After Seeked, inspect the relative playback position.\nconst relative = player.getCurrentTime(\"relativetime\");"
+    },
+    {
+      "type": "p",
+      "text": "有限のVODでは、共有UIが現在時刻からシーク可能範囲の始点を引いた値を使い、タイムライン表示、アクセシビリティ値、キーボード・前後シーク、イントロ・残り時間の判定を揃えます。シーク先はこの相対範囲内に制限し、SDKのseek APIを呼ぶ時だけ始点を足し戻します。Webのダブルクリックシークも同じヘルパーを使います。ライブ専用のWallClockLabelは引き続き絶対時刻を使います。"
     },
     {
       "type": "p",
@@ -142,6 +146,11 @@
       "path": "apps/ios/README.md",
       "line": 214,
       "label": "nativeのHLS終了とソースの所有関係"
+    },
+    {
+      "path": "apps/web/src/gestures.ts",
+      "line": 43,
+      "label": "VOD操作の相対シーク先とSDKの原点の復元"
     }
   ]
 }

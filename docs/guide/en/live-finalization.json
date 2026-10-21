@@ -75,11 +75,15 @@
     },
     {
       "type": "p",
-      "text": "Media that used wall-clock time during live playback can retain that origin in its seekable range after becoming finite VOD. In that case, seek(10) is outside the range and is clamped to the start, rather than moving ten seconds into the clip. Add ten to the start of the seekable range instead."
+      "text": "The SDK defaults getCurrentTime() to absolute time. Media that used wall-clock time during live playback can retain that origin in its seekable range after becoming finite VOD; finalization does not guarantee a zero-based SDK clock. In that case, seek(10) is outside the range and is clamped to the start, rather than moving ten seconds into the clip. Add ten to the start of the seekable range instead."
     },
     {
       "type": "code",
       "text": "const range = player.getSeekableRange();\nplayer.seek(range.start + 10);\n// After Seeked, inspect the relative playback position.\nconst relative = player.getCurrentTime(\"relativetime\");"
+    },
+    {
+      "type": "p",
+      "text": "For finite VOD, the shared UI uses current time minus the seekable-range start for timeline display, accessibility values, keyboard and quick-seek controls, and intro/countdown decisions. Seek targets are clamped in that relative range, then the start is added back only when calling the SDK seek API. The Web double-click seek uses the same helper. The live-only WallClockLabel continues to use absolute time."
     },
     {
       "type": "p",
@@ -142,6 +146,11 @@
       "path": "apps/ios/README.md",
       "line": 214,
       "label": "Native HLS completion and source ownership"
+    },
+    {
+      "path": "apps/web/src/gestures.ts",
+      "line": 43,
+      "label": "Relative VOD gesture target and restored SDK origin"
     }
   ]
 }

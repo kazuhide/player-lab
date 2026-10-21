@@ -1,7 +1,8 @@
 diff --git a/dist/js/framework/UIManager.js b/dist/js/framework/UIManager.js
+index cda70c4702c8a26e53f63988924e0be0846db26d..6d579c3fdf4eb27614e0b6cfc09daec02f8c5538 100644
 --- a/dist/js/framework/UIManager.js
 +++ b/dist/js/framework/UIManager.js
-@@ -59,6 +59,7 @@
+@@ -59,6 +59,7 @@ var ComponentConfigManager_1 = require("./utils/ComponentConfigManager");
  var ComponentLayoutOverrideProcessor_1 = require("./utils/ComponentLayoutOverrideProcessor");
  var UIComponentLayoutOverrides_1 = require("./UIComponentLayoutOverrides");
  var NonLinearAdEvents_1 = require("./utils/NonLinearAdEvents");
@@ -9,7 +10,7 @@ diff --git a/dist/js/framework/UIManager.js b/dist/js/framework/UIManager.js
  /**
   * Identifier for the different {@link UIVariant}s.
   */
-@@ -112,6 +113,9 @@
+@@ -112,6 +113,9 @@ var UIManager = /** @class */ (function () {
              })), uiconfig.componentLayoutOverrides), events: {
                  onUpdated: new EventDispatcher_1.EventDispatcher(),
              }, volumeController: new VolumeController_1.VolumeController(this.managerPlayerWrapper.getPlayer()), adBreakTracker: new AdBreakTracker_1.AdBreakTracker(this.managerPlayerWrapper.getPlayer()) });
@@ -19,7 +20,7 @@ diff --git a/dist/js/framework/UIManager.js b/dist/js/framework/UIManager.js
          this.componentLayoutOverrideProcessor = new ComponentLayoutOverrideProcessor_1.ComponentLayoutOverrideProcessor(this.config);
          this.recommendationsApi = {
              add: function (recommendation) {
-@@ -292,10 +296,10 @@
+@@ -292,10 +296,10 @@ var UIManager = /** @class */ (function () {
              _this.activeNonLinearAdStartedEvent = undefined;
          });
          var isSourceLoaded = player.getSource() != null;
@@ -32,7 +33,7 @@ diff --git a/dist/js/framework/UIManager.js b/dist/js/framework/UIManager.js
              isSourceLoaded = false;
          });
          // Dynamically select a UI variant that matches the current UI condition.
-@@ -1005,13 +1009,7 @@
+@@ -1005,13 +1009,7 @@ var InternalUIInstanceManager = /** @class */ (function (_super) {
          return this.released;
      };
      InternalUIInstanceManager.prototype.releaseControlsTree = function (component) {
@@ -48,9 +49,10 @@ diff --git a/dist/js/framework/UIManager.js b/dist/js/framework/UIManager.js
      InternalUIInstanceManager.prototype.clearEventHandlers = function () {
          _super.prototype.clearEventHandlers.call(this);
 diff --git a/dist/js/framework/components/RecommendationItem.js b/dist/js/framework/components/RecommendationItem.js
+index 7ca4176ff2054cb4e4d64e7eb75d00b6000b37c5..866b916765f18df6038e594001cad70026ffa0a7 100644
 --- a/dist/js/framework/components/RecommendationItem.js
 +++ b/dist/js/framework/components/RecommendationItem.js
-@@ -32,6 +32,8 @@
+@@ -32,6 +32,8 @@ var EventDispatcher_1 = require("../EventDispatcher");
  var DOM_1 = require("../DOM");
  var Label_1 = require("./labels/Label");
  var StringUtils_1 = require("../utils/StringUtils");
@@ -59,7 +61,7 @@ diff --git a/dist/js/framework/components/RecommendationItem.js b/dist/js/framew
  /**
   * An item of the {@link RecommendationOverlay}.
   */
-@@ -49,6 +51,11 @@
+@@ -49,6 +51,11 @@ var RecommendationItem = /** @class */ (function (_super) {
          }, _this.config);
          return _this;
      }
@@ -71,7 +73,7 @@ diff --git a/dist/js/framework/components/RecommendationItem.js b/dist/js/framew
      RecommendationItem.prototype.configure = function (player, uimanager) {
          var _this = this;
          _super.prototype.configure.call(this, player, uimanager);
-@@ -56,8 +63,7 @@
+@@ -56,8 +63,7 @@ var RecommendationItem = /** @class */ (function (_super) {
              return;
          }
          this.onClick.subscribe(function () {
@@ -81,7 +83,7 @@ diff --git a/dist/js/framework/components/RecommendationItem.js b/dist/js/framew
          });
      };
      RecommendationItem.prototype.toDomElement = function () {
-@@ -84,6 +90,7 @@
+@@ -84,6 +90,7 @@ var RecommendationItem = /** @class */ (function (_super) {
              class: this.prefixCss('title-container'),
          }, this);
          var innerTitleElement = new Label_1.Label({ text: recommendationConfig.title, cssClass: 'title' });
@@ -89,7 +91,7 @@ diff --git a/dist/js/framework/components/RecommendationItem.js b/dist/js/framew
          titleElement.append(innerTitleElement.getDomElement());
          itemElement.append(titleElement);
          if (recommendationConfig.duration != null) {
-@@ -91,6 +98,7 @@
+@@ -91,6 +98,7 @@ var RecommendationItem = /** @class */ (function (_super) {
                  text: recommendationConfig.duration ? StringUtils_1.StringUtils.secondsToTime(recommendationConfig.duration) : '',
                  cssClass: 'duration',
              });
@@ -98,9 +100,10 @@ diff --git a/dist/js/framework/components/RecommendationItem.js b/dist/js/framew
          }
          if (!isExternalRecommendationLink(recommendationResource)) {
 diff --git a/dist/js/framework/components/buttons/Button.js b/dist/js/framework/components/buttons/Button.js
+index 385556124fbcbe11e74a33afe5821b160463f0ac..1fa7a0aeb8e81990fe72086bd0ca038d8ae21269 100644
 --- a/dist/js/framework/components/buttons/Button.js
 +++ b/dist/js/framework/components/buttons/Button.js
-@@ -21,6 +21,7 @@
+@@ -21,6 +21,7 @@ var DOM_1 = require("../../DOM");
  var EventDispatcher_1 = require("../../EventDispatcher");
  var i18n_1 = require("../../localization/i18n");
  var Icon_1 = require("../Icon");
@@ -108,7 +111,7 @@ diff --git a/dist/js/framework/components/buttons/Button.js b/dist/js/framework/
  /**
   * Configures the style of a {@link Button} component.
   */
-@@ -71,6 +72,10 @@
+@@ -71,6 +72,10 @@ var Button = /** @class */ (function (_super) {
              this.setText(this.config.text);
          }
      };
@@ -119,7 +122,7 @@ diff --git a/dist/js/framework/components/buttons/Button.js b/dist/js/framework/
      Button.prototype.toDomElement = function () {
          var _this = this;
          var buttonElementAttributes = {
-@@ -87,6 +92,7 @@
+@@ -87,6 +92,7 @@ var Button = /** @class */ (function (_super) {
          var buttonElement = new DOM_1.DOM('button', buttonElementAttributes, this);
          var addIconElement = function () {
              var icon = new Icon_1.Icon();
@@ -127,10 +130,27 @@ diff --git a/dist/js/framework/components/buttons/Button.js b/dist/js/framework/
              buttonElement.append(icon.getDomElement());
          };
          var addLabelElement = function () {
+diff --git a/dist/js/framework/components/buttons/QuickSeekButton.js b/dist/js/framework/components/buttons/QuickSeekButton.js
+index 7dac264d8402c952b37ec3c19f206aa91a15e6df..aeb55e22c7c8ffd074293dfc2106cf1f0be874d9 100644
+--- a/dist/js/framework/components/buttons/QuickSeekButton.js
++++ b/dist/js/framework/components/buttons/QuickSeekButton.js
+@@ -100,8 +100,9 @@ var QuickSeekButton = /** @class */ (function (_super) {
+                 player.timeShift(clampedValue);
+             }
+             else {
+-                var clampedValue = PlayerUtils_1.PlayerUtils.clampValueToRange(newSeekTime, 0, player.getDuration());
+-                player.seek(clampedValue);
++                var start = PlayerUtils_1.PlayerUtils.getSeekableRangeStart(player, 0);
++                var clampedValue = PlayerUtils_1.PlayerUtils.clampValueToRange(newSeekTime - start, 0, player.getDuration());
++                player.seek(start + clampedValue);
+             }
+         });
+         this.player.on(this.player.exports.PlayerEvent.Seek, this.onSeek);
 diff --git a/dist/js/framework/components/labels/Label.js b/dist/js/framework/components/labels/Label.js
+index 240afcbd08128580642fe2d1b23bddb14e2c93b9..29171bc3e57778c03287c88f0735014110665ba1 100644
 --- a/dist/js/framework/components/labels/Label.js
 +++ b/dist/js/framework/components/labels/Label.js
-@@ -21,6 +21,7 @@
+@@ -21,6 +21,7 @@ var DOM_1 = require("../../DOM");
  var EventDispatcher_1 = require("../../EventDispatcher");
  var i18n_1 = require("../../localization/i18n");
  var Icon_1 = require("../Icon");
@@ -138,7 +158,7 @@ diff --git a/dist/js/framework/components/labels/Label.js b/dist/js/framework/co
  var LabelStyle;
  (function (LabelStyle) {
      /**
-@@ -74,6 +75,10 @@
+@@ -74,6 +75,10 @@ var Label = /** @class */ (function (_super) {
              this.setText(this.config.text);
          }
      };
@@ -149,7 +169,7 @@ diff --git a/dist/js/framework/components/labels/Label.js b/dist/js/framework/co
      Label.prototype.toDomElement = function () {
          var _this = this;
          var tagName = this.config.for != null ? 'label' : 'span';
-@@ -93,6 +98,7 @@
+@@ -93,6 +98,7 @@ var Label = /** @class */ (function (_super) {
          });
          if (this.config.labelStyle !== LabelStyle.Text) {
              var icon = new Icon_1.Icon();
@@ -158,9 +178,10 @@ diff --git a/dist/js/framework/components/labels/Label.js b/dist/js/framework/co
                  case LabelStyle.TextWithTrailingIcon:
                      wrapperElement.append(icon.getDomElement());
 diff --git a/dist/js/framework/components/overlays/RecommendationOverlay.js b/dist/js/framework/components/overlays/RecommendationOverlay.js
+index ef586e846dd994aa99f07abe2fe2b67e5c231eb8..a7b6299d522cf9d2b333933555a04ed686fdf2c5 100644
 --- a/dist/js/framework/components/overlays/RecommendationOverlay.js
 +++ b/dist/js/framework/components/overlays/RecommendationOverlay.js
-@@ -19,6 +19,7 @@
+@@ -19,6 +19,7 @@ exports.RecommendationOverlay = void 0;
  var Container_1 = require("../Container");
  var HugeReplayButton_1 = require("../buttons/HugeReplayButton");
  var RecommendationItem_1 = require("../RecommendationItem");
@@ -168,7 +189,7 @@ diff --git a/dist/js/framework/components/overlays/RecommendationOverlay.js b/di
  /**
   * Overlays the player and displays recommended videos.
   *
-@@ -50,6 +51,7 @@
+@@ -50,6 +51,7 @@ var RecommendationOverlay = /** @class */ (function (_super) {
          var _this = this;
          _super.prototype.configure.call(this, player, uimanager);
          var clearRecommendations = function () {
@@ -177,9 +198,10 @@ diff --git a/dist/js/framework/components/overlays/RecommendationOverlay.js b/di
              _this.recommendationContainer.updateComponents();
              _this.getDomElement().removeClass(_this.prefixCss(RecommendationOverlay.CLASS_HAS_RECOMMENDATIONS));
 diff --git a/dist/js/framework/components/overlays/SubtitleOverlay.js b/dist/js/framework/components/overlays/SubtitleOverlay.js
+index 04dbdd0d808775fd7a62698bba6f97cd6f53e518..c8738d29028283d0a34e81d331b5e3787a911a56 100644
 --- a/dist/js/framework/components/overlays/SubtitleOverlay.js
 +++ b/dist/js/framework/components/overlays/SubtitleOverlay.js
-@@ -23,6 +23,7 @@
+@@ -23,6 +23,7 @@ var EventDispatcher_1 = require("../../EventDispatcher");
  var DOM_1 = require("../../DOM");
  var i18n_1 = require("../../localization/i18n");
  var VttUtils_1 = require("../../utils/VttUtils");
@@ -187,18 +209,18 @@ diff --git a/dist/js/framework/components/overlays/SubtitleOverlay.js b/dist/js/
  /**
   * Overlays the player to display subtitles.
   *
-@@ -155,6 +156,10 @@
-         else {
+@@ -156,6 +157,10 @@ var SubtitleOverlay = /** @class */ (function (_super) {
              this.getDomElement().removeClass(this.prefixCss(SubtitleOverlay.CLASS_CEA608_PUSHUP_DISABLED));
          }
-+    };
+     };
 +    SubtitleOverlay.prototype.release = function () {
 +        ComponentDisposal_1.releaseComponentTree(this.previewSubtitle);
 +        _super.prototype.release.call(this);
-     };
++    };
      SubtitleOverlay.prototype.setFontSizeFactor = function (factor) {
          // We only allow range from 50% to 200% as suggested by spec
-@@ -300,6 +305,7 @@
+         // https://www.ecfr.gov/current/title-47/part-79/section-79.103#p-79.103(c)(4)
+@@ -300,6 +305,7 @@ var SubtitleOverlay = /** @class */ (function (_super) {
              var fontSizeRatio = dummyLabelCharWidth / dummyLabelCharHeight;
              _this.removeComponent(dummyLabel);
              _this.updateComponents();
@@ -207,9 +229,10 @@ diff --git a/dist/js/framework/components/overlays/SubtitleOverlay.js b/dist/js/
                  _this.hide();
              }
 diff --git a/dist/js/framework/components/seekbar/SeekBar.js b/dist/js/framework/components/seekbar/SeekBar.js
+index 1c2085fe3ef4bb36cf16737e669015925ac55eb8..739f55966ee2ea617b8951d09f872e5a4726f4aa 100644
 --- a/dist/js/framework/components/seekbar/SeekBar.js
 +++ b/dist/js/framework/components/seekbar/SeekBar.js
-@@ -28,6 +28,7 @@
+@@ -28,6 +28,7 @@ var i18n_1 = require("../../localization/i18n");
  var BrowserUtils_1 = require("../../utils/BrowserUtils");
  var TimelineMarkersHandler_1 = require("../../utils/TimelineMarkersHandler");
  var getMinBufferLevel_1 = require("../../utils/getMinBufferLevel");
@@ -217,7 +240,22 @@ diff --git a/dist/js/framework/components/seekbar/SeekBar.js b/dist/js/framework
  /**
   * A seek bar to seek within the player's media. It displays the current playback position, amount of buffed data, seek
   * target, and keeps status about an ongoing seek.
-@@ -530,6 +531,7 @@
+@@ -139,11 +140,11 @@ var SeekBar = /** @class */ (function (_super) {
+             }
+         }
+         else if (this.seekBarType === SeekBarController_1.SeekBarType.Vod) {
+-            var ariaValueText = "".concat(StringUtils_1.StringUtils.secondsToText(this.player.getCurrentTime()), " ").concat(i18n_1.i18n.performLocalization(i18n_1.i18n.getLocalizer('seekBar.durationText')), " ").concat(StringUtils_1.StringUtils.secondsToText(this.player.getDuration()));
+-            this.getDomElement().attr('aria-valuenow', Math.floor(this.player.getCurrentTime()).toString());
++            var ariaValueText = "".concat(StringUtils_1.StringUtils.secondsToText(this.getRelativeCurrentTime()), " ").concat(i18n_1.i18n.performLocalization(i18n_1.i18n.getLocalizer('seekBar.durationText')), " ").concat(StringUtils_1.StringUtils.secondsToText(this.player.getDuration()));
++            this.getDomElement().attr('aria-valuenow', Math.floor(this.getRelativeCurrentTime()).toString());
+             this.getDomElement().attr('aria-valuetext', ariaValueText);
+             if (this.config.addCurrentTimeToAriaLabel) {
+-                this.getDomElement().attr('aria-label', "".concat(i18n_1.i18n.performLocalization(this.config.ariaLabel), ": ").concat(StringUtils_1.StringUtils.secondsToText(this.player.getCurrentTime())));
++                this.getDomElement().attr('aria-label', "".concat(i18n_1.i18n.performLocalization(this.config.ariaLabel), ": ").concat(StringUtils_1.StringUtils.secondsToText(this.getRelativeCurrentTime())));
+             }
+         }
+     };
+@@ -530,6 +531,7 @@ var SeekBar = /** @class */ (function (_super) {
          return PlayerUtils_1.PlayerUtils.getCurrentTimeRelativeToSeekableRange(this.player);
      };
      SeekBar.prototype.release = function () {
@@ -226,9 +264,10 @@ diff --git a/dist/js/framework/components/seekbar/SeekBar.js b/dist/js/framework
          if (this.smoothPlaybackPositionUpdater) {
              // object must not necessarily exist, e.g. in volume slider subclass
 diff --git a/dist/js/framework/components/settings/DynamicSettingsPanelItem.js b/dist/js/framework/components/settings/DynamicSettingsPanelItem.js
+index e2bb0ae957771e6dd464bb22db03a199721f2a2f..a8fa747a82354c9c2308707d724e82fa67a1df44 100644
 --- a/dist/js/framework/components/settings/DynamicSettingsPanelItem.js
 +++ b/dist/js/framework/components/settings/DynamicSettingsPanelItem.js
-@@ -23,6 +23,7 @@
+@@ -23,6 +23,7 @@ var SettingsPanelPage_1 = require("./SettingsPanelPage");
  var SettingsPanelPageBackButton_1 = require("./SettingsPanelPageBackButton");
  var SubtitleSettingSelectBox_1 = require("./subtitlesettings/SubtitleSettingSelectBox");
  var InteractiveSettingsPanelItem_1 = require("./InteractiveSettingsPanelItem");
@@ -236,7 +275,7 @@ diff --git a/dist/js/framework/components/settings/DynamicSettingsPanelItem.js b
  /**
   * A dynamic settings panel item which can build a sub page with the items of a {@link ListSelector}.
   * The page will be dynamically added and removed from the {@link SettingsPanel}.
-@@ -58,6 +59,11 @@
+@@ -58,6 +59,11 @@ var DynamicSettingsPanelItem = /** @class */ (function (_super) {
          }, _this.config);
          return _this;
      }
@@ -250,6 +289,7 @@ diff --git a/dist/js/framework/components/settings/DynamicSettingsPanelItem.js b
          _super.prototype.configure.call(this, player, uimanager);
 diff --git a/dist/js/framework/utils/ComponentDisposal.js b/dist/js/framework/utils/ComponentDisposal.js
 new file mode 100644
+index 0000000000000000000000000000000000000000..5d09a54ad003622931e4687979b8433026213594
 --- /dev/null
 +++ b/dist/js/framework/utils/ComponentDisposal.js
 @@ -0,0 +1,20 @@
@@ -274,9 +314,10 @@ new file mode 100644
 +    }
 +}
 diff --git a/dist/js/framework/utils/ComponentLayoutOverrideProcessor.js b/dist/js/framework/utils/ComponentLayoutOverrideProcessor.js
+index 4e90c3df9aa2bf72797227d698754efac6359467..c2ae752d2aa2808e4cdc91a2142c278ebe55a3d1 100644
 --- a/dist/js/framework/utils/ComponentLayoutOverrideProcessor.js
 +++ b/dist/js/framework/utils/ComponentLayoutOverrideProcessor.js
-@@ -5,6 +5,7 @@
+@@ -5,6 +5,7 @@ var UIComponentLayoutOverrides_1 = require("../UIComponentLayoutOverrides");
  var Container_1 = require("../components/Container");
  var SettingsPanelItem_1 = require("../components/settings/SettingsPanelItem");
  var ConstructorUtils_1 = require("./ConstructorUtils");
@@ -284,7 +325,7 @@ diff --git a/dist/js/framework/utils/ComponentLayoutOverrideProcessor.js b/dist/
  var ComponentLayoutOverrideProcessor = /** @class */ (function () {
      function ComponentLayoutOverrideProcessor(config) {
          this.config = config;
-@@ -58,27 +59,8 @@
+@@ -58,27 +59,8 @@ var ComponentLayoutOverrideProcessor = /** @class */ (function () {
          }
          return override;
      };
@@ -316,6 +357,7 @@ diff --git a/dist/js/framework/utils/ComponentLayoutOverrideProcessor.js b/dist/
  }());
 diff --git a/dist/js/framework/utils/RecommendationPlayback.js b/dist/js/framework/utils/RecommendationPlayback.js
 new file mode 100644
+index 0000000000000000000000000000000000000000..f6c50c58be0b266027a58e07d9a874e2335ee97d
 --- /dev/null
 +++ b/dist/js/framework/utils/RecommendationPlayback.js
 @@ -0,0 +1,168 @@
@@ -487,3 +529,87 @@ new file mode 100644
 +        return player.play();
 +    }).then(cleanup, fail);
 +}
+diff --git a/dist/js/framework/utils/SeekBarController.js b/dist/js/framework/utils/SeekBarController.js
+index 8b226c299b9a25efc0c2236cd9b6bf799f86287a..6a644ac31b60185420cec8ffc54fa052c793877e 100644
+--- a/dist/js/framework/utils/SeekBarController.js
++++ b/dist/js/framework/utils/SeekBarController.js
+@@ -2,6 +2,7 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.SeekBarController = exports.SeekBarType = void 0;
+ var UIUtils_1 = require("./UIUtils");
++var PlayerUtils_1 = require("./PlayerUtils");
+ var SeekBarType;
+ (function (SeekBarType) {
+     SeekBarType[SeekBarType["Vod"] = 0] = "Vod";
+@@ -46,7 +47,8 @@ var SeekBarController = /** @class */ (function () {
+             return this.arrowKeyControls(this.player.getTimeShift(), { min: this.player.getMaxTimeShift(), max: 0 }, function (value) { return _this.player.timeShift(value); });
+         }
+         else if (type === SeekBarType.Vod) {
+-            return this.arrowKeyControls(this.player.getCurrentTime(), { min: 0, max: this.player.getDuration() }, function (value) { return _this.player.seek(value); });
++            var start = PlayerUtils_1.PlayerUtils.getSeekableRangeStart(this.player, 0);
++            return this.arrowKeyControls(PlayerUtils_1.PlayerUtils.getCurrentTimeRelativeToSeekableRange(this.player), { min: 0, max: this.player.getDuration() }, function (value) { return _this.player.seek(start + value); });
+         }
+         else if (type === SeekBarType.Volume && this.volumeController != null) {
+             var volumeTransition = this.volumeController.startTransition();
+diff --git a/src/ts/components/buttons/QuickSeekButton.ts b/src/ts/components/buttons/QuickSeekButton.ts
+index 362e3f32a2d779e1b9cfc29170efc6d3a551b368..9135c75b2b80375ac6800c66b76c55ded732a707 100644
+--- a/src/ts/components/buttons/QuickSeekButton.ts
++++ b/src/ts/components/buttons/QuickSeekButton.ts
+@@ -111,8 +111,9 @@ export class QuickSeekButton extends Button<QuickSeekButtonConfig> {
+         const clampedValue = PlayerUtils.clampValueToRange(newSeekTime, player.getMaxTimeShift(), 0);
+         player.timeShift(clampedValue);
+       } else {
+-        const clampedValue = PlayerUtils.clampValueToRange(newSeekTime, 0, player.getDuration());
+-        player.seek(clampedValue);
++        const start = PlayerUtils.getSeekableRangeStart(player, 0);
++        const clampedValue = PlayerUtils.clampValueToRange(newSeekTime - start, 0, player.getDuration());
++        player.seek(start + clampedValue);
+       }
+     });
+
+diff --git a/src/ts/components/seekbar/SeekBar.ts b/src/ts/components/seekbar/SeekBar.ts
+index aba4dd4ea63d7a6bc57275ad1b20636857fda505..56390d80fa0381c382e6868ed03f44b7d17a9cc2 100644
+--- a/src/ts/components/seekbar/SeekBar.ts
++++ b/src/ts/components/seekbar/SeekBar.ts
+@@ -214,14 +214,14 @@ export class SeekBar extends Component<SeekBarConfig> {
+         this.getDomElement().attr('aria-label', `${i18n.performLocalization(this.config.ariaLabel)}: ${timeShiftText}`);
+       }
+     } else if (this.seekBarType === SeekBarType.Vod) {
+-      const ariaValueText = `${StringUtils.secondsToText(this.player.getCurrentTime())} ${i18n.performLocalization(i18n.getLocalizer('seekBar.durationText'))} ${StringUtils.secondsToText(this.player.getDuration())}`;
+-      this.getDomElement().attr('aria-valuenow', Math.floor(this.player.getCurrentTime()).toString());
++      const ariaValueText = `${StringUtils.secondsToText(this.getRelativeCurrentTime())} ${i18n.performLocalization(i18n.getLocalizer('seekBar.durationText'))} ${StringUtils.secondsToText(this.player.getDuration())}`;
++      this.getDomElement().attr('aria-valuenow', Math.floor(this.getRelativeCurrentTime()).toString());
+       this.getDomElement().attr('aria-valuetext', ariaValueText);
+
+       if (this.config.addCurrentTimeToAriaLabel) {
+         this.getDomElement().attr(
+           'aria-label',
+-          `${i18n.performLocalization(this.config.ariaLabel)}: ${StringUtils.secondsToText(this.player.getCurrentTime())}`,
++          `${i18n.performLocalization(this.config.ariaLabel)}: ${StringUtils.secondsToText(this.getRelativeCurrentTime())}`,
+         );
+       }
+     }
+diff --git a/src/ts/utils/SeekBarController.ts b/src/ts/utils/SeekBarController.ts
+index ccc1ef6bcc135adacd91fee935f459a0d2394102..ed27b5ee641cc9ac88d63df568616e0d24ce0662 100644
+--- a/src/ts/utils/SeekBarController.ts
++++ b/src/ts/utils/SeekBarController.ts
+@@ -1,4 +1,5 @@
+ import { UIUtils } from './UIUtils';
++import { PlayerUtils } from './PlayerUtils';
+ import { DOM } from '../DOM';
+ import { PlayerAPI } from 'bitmovin-player';
+ import { VolumeController } from './VolumeController';
+@@ -64,10 +65,11 @@ export class SeekBarController {
+         (value: number) => this.player.timeShift(value),
+       );
+     } else if (type === SeekBarType.Vod) {
++      const start = PlayerUtils.getSeekableRangeStart(this.player, 0);
+       return this.arrowKeyControls(
+-        this.player.getCurrentTime(),
++        PlayerUtils.getCurrentTimeRelativeToSeekableRange(this.player),
+         { min: 0, max: this.player.getDuration() },
+-        (value: number) => this.player.seek(value),
++        (value: number) => this.player.seek(start + value),
+       );
+     } else if (type === SeekBarType.Volume && this.volumeController != null) {
+       const volumeTransition = this.volumeController.startTransition();
