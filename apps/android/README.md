@@ -346,7 +346,8 @@ It does not include SDK error messages or configuration dumps.
 The app's event log also retains startup error codes, so a failed initial request
 can be distinguished from a source that is still loading.
 
-On 2026-10-21, Player 3.171.0 passed 18 JVM tests (six DVR, ten configuration
+Before migration to the current application identity, on 2026-10-21,
+Player 3.171.0 passed 18 JVM tests (six DVR, ten configuration
 and two lifecycle tests) and debug app/instrumentation builds. The authorized
 Android 16/API 36.1 ARM64 phone-emulator group passed all 16 checks in 237.139
 seconds: configuration/ownership, configured VOD autoplay/mute/start offset,
@@ -365,6 +366,16 @@ the coupled completion/native-offset/visible-LIVE check under a controlled
 emulator delay. These recorded runs do not establish a seek-completion or
 latency-convergence SLA. The optional policy keeps the SDK synchronization
 defaults; temporary catch-up adjustments are not reported by Player.playbackSpeed.
+
+For the current `com.playerlab.android` identity, Player 3.171.0 passed
+24 JVM tests, app/instrumentation builds and seven configuration-only
+instrumentation checks. Separately, a fresh licensed Android 16/API 36.1 ARM64
+phone-emulator run passed all 20 instrumentation checks in 277.411 seconds.
+That group includes the existing playback, strict live, HLS/DASH finalization,
+standard UI, clipboard and lifecycle cases, plus language priority/source
+override, external WebVTT menu selection with a fresh native cue and visible
+caption, and configured retries versus no retries. The configuration-only
+checks do not establish playback; the licensed group checks actual SDK media.
 
 These checks use an Android phone emulator. Physical-device, Android TV, Fire TV,
 offline, casting and Analytics delivery require their respective environments.
