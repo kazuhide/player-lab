@@ -342,11 +342,17 @@ private fun PlayerLabScreen(controller: PlayerController) {
         val displayedPlayer = controller.player
         key(displayedPlayer, uiMode) {
             AndroidView(
-                factory = { context -> controller.attachView(PlayerView(context, displayedPlayer, playerViewConfig(uiMode))) },
+                factory = { context ->
+                    PlayerTouchHost(context,
+                        controller.attachView(PlayerView(context, displayedPlayer, playerViewConfig(uiMode))))
+                },
                 // Detach the shared player BEFORE releasing the view: PlayerView.onDestroy()
                 // destroys its attached player, but `controller` owns the player's lifecycle
                 // (it persists across UI-mode switches and is destroyed in onDestroy/release).
-                onRelease = { controller.releaseView(it) },
+                onRelease = { host ->
+                    host.releaseTouchOwnership()
+                    controller.releaseView(host.content as PlayerView)
+                },
                 modifier = Modifier.fillMaxWidth().height(220.dp),
             )
         }
