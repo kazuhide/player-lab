@@ -4,6 +4,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ApiScriptProgramTest {
+    @Test fun editedAndSparseByteArraysRemainValueSnapshots() {
+        val bytes = (0 until 4096).map { it % 256 }
+        val p = ApiScriptProgram("input.bytes[0] = 255; input.bytes[4095] = 7; return input.bytes;")
+        val returned = p.run(mapOf("bytes" to bytes)) as List<*>
+        assertEquals(255.0, returned.first()); assertEquals(7.0, returned.last())
+        assertEquals(0, bytes.first()); assertEquals(255, bytes.last())
+        assertEquals(listOf(1.0, null, 3.0), ApiScriptProgram("return [1,,3];").run(null))
+    }
+
     @Test fun cachedProgramCreatesAFreshScopeForEveryCallAndThread() {
         val program = ApiScriptProgram("this.counter = (this.counter || 0) + 1; return [this.counter, input];")
         assertEquals(listOf(1.0, 2.0), program.run(2))

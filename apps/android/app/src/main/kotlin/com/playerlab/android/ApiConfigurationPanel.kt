@@ -32,6 +32,7 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Additional Player, Source and Tweaks configuration", style = MaterialTheme.typography.titleMedium)
         Text("Each entry is a typed SDK field. An override takes precedence over the standard form. Apply recreates the player and reloads the current source. Removing an override restores the standard form or SDK default on the next Apply.", style = MaterialTheme.typography.bodySmall)
+        ApiStartupPanel(controller)
         OutlinedTextField(query, { query = it }, label = { Text("Find SDK field") },
             singleLine = true, modifier = Modifier.fillMaxWidth().testTag("api-settings-search"))
         ApiSettings.fields.filter { it.id.contains(query, ignoreCase = true) }.forEach { field ->
@@ -50,7 +51,12 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
                 Button(onClick = { input = choice }, modifier = Modifier.testTag("api-choice-$choice")) { Text(choice) }
             }
         }
-        OutlinedTextField(input, { input = it }, label = { Text("SDK field value") },
+        if (field.kind == ApiValueKind.Records) {
+            if (input == "null") Button(onClick = { input = "" }) { Text("Edit list") }
+            if (field.nullable) Button(onClick = { input = "null" }) { Text("Use null") }
+        }
+        if (field.kind == ApiValueKind.Records && input != "null") ApiRecordEditor(requireNotNull(field.records), input, { input = it })
+        else OutlinedTextField(input, { input = it }, label = { Text("SDK field value") },
             visualTransformation = if (field.secret || field.drmParameter && field.kind in listOf(ApiValueKind.Text, ApiValueKind.StringMap)) PasswordVisualTransformation() else VisualTransformation.None,
             modifier = Modifier.fillMaxWidth().testTag("api-setting-value"))
         Button(onClick = {
@@ -60,6 +66,10 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
         }, modifier = Modifier.testTag("api-setting-stage")) { Text("Use this override") }
         Button(onClick = { values = values - selected; input = ""; error = "" },
             enabled = selected in values, modifier = Modifier.testTag("api-setting-remove")) { Text("Remove this override") }
+        if (field.id.contains("NetworkEngine.Cronet") || field.id.endsWith("SourceNetworkConfig.engine")) {
+            Button(onClick = { ApiNativeFactories.prepareCronet(controller.hostContext) }, modifier = Modifier.testTag("api-cronet-prepare")) { Text("Prepare Google Play services Cronet") }
+            Text(ApiNativeFactories.providerStatus, modifier = Modifier.testTag("api-cronet-status"), style = MaterialTheme.typography.bodySmall)
+        }
         Text("Staged overrides", style = MaterialTheme.typography.titleSmall)
         values.keys.forEach { Text(it.removePrefix("android:com.bitmovin.player.api."), style = MaterialTheme.typography.bodySmall) }
         if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("api-settings-error"))

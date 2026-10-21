@@ -51,6 +51,9 @@ private fun syncArguments(value: String, legacy: Boolean) = synchronizationValue
 
 internal object ApiStructuredSettings {
     val fields = listOf(
+        ApiSetting(SDK + "casting.GoogleCastMediaInfoConfig.mediaType", "GoogleCastMediaInfoConfig", ApiValueKind.Choice, "Returns this typed media info from the Cast configuration callback. Do not combine it with the editable onConfigureMediaInfo script. A configured Cast sender and compatible receiver are needed to invoke the hook.", choices = com.bitmovin.player.api.casting.GoogleCastMediaType.entries.map { it.name },
+            player = { c, v -> c.copy(remoteControlConfig = c.remoteControlConfig.copy(onConfigureMediaInfo = com.bitmovin.player.api.casting.ConfigureMediaInfoCallback { com.bitmovin.player.api.casting.GoogleCastMediaInfoConfig(com.bitmovin.player.api.casting.GoogleCastMediaType.valueOf(v)) })) },
+            code = { v -> "playerConfig = playerConfig.copy(remoteControlConfig = playerConfig.remoteControlConfig.copy(onConfigureMediaInfo = ConfigureMediaInfoCallback { GoogleCastMediaInfoConfig(GoogleCastMediaType.$v) }))" }),
         ApiSetting(SDK + "PlayerConfig.key", "PlayerConfig", ApiValueKind.Text,
             "Session-only Player key override. The value is hidden and exported as a placeholder. Removing it restores the build key.", secret = true,
             player = { c, v -> c.copy(key = v) }, code = { "playerConfig = playerConfig.copy(key = \"YOUR_PLAYER_LICENSE_KEY\")" }),

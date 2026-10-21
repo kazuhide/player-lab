@@ -10,6 +10,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
@@ -106,12 +108,18 @@ internal class PlayerController(
         private set
     internal var apiSourceCallbacks = ApiCallbackContext()
         private set
+    internal val hostContext get() = context
+    private var preparedCompanions = emptyList<ApiNativeFactories.Host>()
     private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides(), analytics: ApiAnalyticsSettings = apiAnalyticsSettings, callbacks: ApiCallbackContext = apiCallbacks): Player {
-        val config = overrides.player(settings.toPlayerConfig(licenseKey), callbacks)
-        return playerFactory?.invoke(config) ?: Player(context, config, analytics.playerConfig(analyticsLicenseKey))
+        val prepared = ApiNativeFactories.player(context, overrides.player(settings.toPlayerConfig(licenseKey), callbacks), overrides.values)
+        val result = playerFactory?.invoke(prepared.config) ?: Player(context, prepared.config, analytics.playerConfig(analyticsLicenseKey))
+        preparedCompanions = prepared.hosts
+        return result
     }
 
     var player: Player by mutableStateOf(createPlayer(PlayerSettings()))
+        private set
+    internal var apiCompanionHosts by mutableStateOf(preparedCompanions)
         private set
     internal var playerSettings: PlayerSettings by mutableStateOf(PlayerSettings())
         private set
@@ -139,6 +147,73 @@ internal class PlayerController(
         private set
     internal val apiHostMessages = mutableStateListOf<String>()
     internal var apiClearFocus: () -> Unit = {}
+    internal var apiVrRenderer: ApiVrRenderer? by mutableStateOf(null)
+        private set
+    private var apiVrRequested = false
+    internal val apiVrCallbackStates = androidx.compose.runtime.mutableStateMapOf<String, String>()
+    private val apiVrCallbacks = mutableMapOf<String, ApiVrUserCallback>()
+    private val apiHostLifecycle = lifecycle
+    private val apiVrLifecycle = androidx.lifecycle.LifecycleEventObserver { _, event ->
+        when (event) {
+            androidx.lifecycle.Lifecycle.Event.ON_RESUME -> apiVrRenderer?.onResume()
+            androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> apiVrRenderer?.onPause()
+            else -> Unit
+        }
+    }
+    internal fun setApiVrRendererActive(enabled: Boolean) {
+        check(!released)
+        apiVrRequested = enabled
+        if (!enabled) { retireApiVrRenderer(); apiViewRevision++; return }
+        if (apiVrRenderer != null) return
+        apiClearFocus()
+        val owner = player
+        lateinit var renderer: ApiVrRenderer
+        fun owns() = !released && player === owner && apiVrRenderer === renderer
+        renderer = ApiVrRenderer(context, owner, ::owns) { message -> if (owns()) append(message) }
+        retireApiViewSubscriptions()
+        views.forEach { retireApiViewHandlers(it); apiSurfaces.clear(it); viewLifecycle.detach(it); it.player = null }
+        apiDetachedView = null
+        apiVrRenderer = renderer
+        try {
+            owner.vr.setVrRenderer(renderer)
+            renderer.setSourceConfig(owner.source?.config ?: configuredSource?.config)
+            if (apiHostLifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) renderer.onResume() else renderer.onPause()
+        } catch (error: Exception) {
+            retireApiVrRenderer(); apiVrRequested = false; apiViewRevision++
+            throw error
+        }
+    }
+    private fun retireApiVrRenderer() {
+        apiVrCallbacks.values.forEach { it.close(); it.renderer.removeUpdateCallback(it) }
+        apiVrCallbacks.clear(); apiVrCallbackStates.clear()
+        apiVrRenderer?.close()
+        apiVrRenderer = null
+    }
+    internal fun addApiVrCallback(id: String, everyFrames: Int, body: String) {
+        require(id.matches(Regex("[A-Za-z0-9_-]{1,64}")))
+        val renderer = requireNotNull(apiVrRenderer) { "Enable the host VR renderer first." }
+        require(id in apiVrCallbacks || apiVrCallbacks.size < 16) { "Use at most 16 callback handles." }
+        val owner = player
+        val callback = ApiVrUserCallback(renderer, body, everyFrames, { delta ->
+            val direction = owner.vr.viewingDirection
+            mapOf("delta" to delta, "viewingDirection" to direction?.let { mapOf("yaw" to it.yaw, "pitch" to it.pitch, "roll" to it.roll) })
+        }) { handle, _ ->
+            apiMain.post {
+                val result = handle.takeResult()
+                if (!released && player === owner && apiVrRenderer === renderer && apiVrCallbacks[id] === handle && handle.context.active && result != null) {
+                    result.move?.let(owner.vr::moveViewingDirection)
+                    apiVrCallbackStates[id] = "calls=${handle.calls.get()}; result=${result.text ?: "null"}; fallback=${handle.context.snapshot()["VrRenderer.UpdateCallback"]?.second ?: 0}"
+                }
+            }
+        }
+        apiVrCallbacks.remove(id)?.let { it.close(); it.renderer.removeUpdateCallback(it) }
+        apiVrCallbacks[id] = callback
+        renderer.addUpdateCallback(callback)
+    }
+    internal fun removeApiVrCallback(id: String) {
+        val callback = requireNotNull(apiVrCallbacks.remove(id)) { "Unknown callback handle." }
+        callback.close(); callback.renderer.removeUpdateCallback(callback); apiVrCallbackStates.remove(id)
+    }
     private val viewLifecycle = PlayerViewLifecycle(lifecycle)
     private val playerSubscriptions = mutableListOf<() -> Unit>()
     private var sourceSubscription: (() -> Unit)? = null
@@ -187,7 +262,12 @@ internal class PlayerController(
                 com.bitmovin.player.api.offline.OfflineSourceConfig.CREATOR.createFromParcel(parcel)
             } finally { parcel.recycle() }
         }
-        return overrides.source(source, callbacks)
+        return ApiNativeFactories.source(context, overrides.source(source, callbacks), overrides.values)
+    }
+    private fun sourceConfigurations(overrides: ApiOverrides = apiOverrides, callbacks: ApiCallbackContext): List<SourceConfig> {
+        val playlist = if (offlinePlayback == null) overrides.playlistSources() else null
+        return playlist?.map { ApiNativeFactories.source(context, overrides.source(it, callbacks), overrides.values) }
+            ?: listOf(sourceConfiguration(overrides, callbacks))
     }
     internal fun currentView(): PlayerView? = views.firstOrNull { it.player === player }
     internal fun setApiFullscreenHandler(enabled: Boolean) {
@@ -271,6 +351,7 @@ internal class PlayerController(
     }
     internal fun setApiViewAttached(attach: Boolean) {
         check(!released)
+        check(apiVrRenderer == null) { "Disable the host VR renderer before attaching a PlayerView." }
         val view = currentView() ?: apiDetachedView?.takeIf { it in views } ?: error("Create a PlayerView first.")
         if (attach) {
             view.player = player
@@ -350,6 +431,7 @@ internal class PlayerController(
         private set
 
     init {
+        apiHostLifecycle.addObserver(apiVrLifecycle)
         observePlayer()
     }
 
@@ -391,35 +473,42 @@ internal class PlayerController(
         append("Source configuration applied")
     }
 
-    private fun loadCurrentSource(config: SourceConfig? = null, callbacks: ApiCallbackContext = ApiCallbackContext()) {
-        val sourceConfig = config ?: sourceConfiguration(callbacks = callbacks)
+    private fun loadCurrentSource(configs: List<SourceConfig>? = null, callbacks: ApiCallbackContext = ApiCallbackContext()) {
+        val sourceConfigs = configs ?: sourceConfigurations(callbacks = callbacks)
+        val sources = sourceConfigs.map { sourceConfig -> sourceFactory?.invoke(sourceConfig)
+            ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), apiOverrides.mediaSession()) }
         invalidateApiQuery()
         sourceSubscription?.invoke()
         val owner = player
         val generation = ++sourceGeneration
-        val source = sourceFactory?.invoke(sourceConfig) ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), apiOverrides.mediaSession())
         apiSourceCallbacks.close()
         apiSourceCallbacks = callbacks
-        configuredSource = source
+        configuredSource = sources.first()
         fun ownsSource() = !released && player === owner && sourceGeneration == generation
-        val error: (SourceEvent.Error) -> Unit = {
-            if (ownsSource()) { lastErrorCode = it.code.value; append("SourceError ${it.code.value}") }
+        val retire = sources.map { source ->
+            val error: (SourceEvent.Error) -> Unit = {
+                if (ownsSource()) { lastErrorCode = it.code.value; append("SourceError ${it.code.value}") }
+            }
+            val loaded: (SourceEvent.Loaded) -> Unit = {
+                if (ownsSource()) { append("SourceLoaded"); refresh() }
+            }
+            source.on(SourceEvent.Error::class, error)
+            source.on(SourceEvent.Loaded::class, loaded)
+            val apiSubscriptions = ApiEvents.source.map { entry ->
+                entry.subscribe(source) { id, timestamp -> apiEvent(id, timestamp, ::ownsSource) }
+            }
+            val dispose: () -> Unit = {
+                source.off(SourceEvent.Error::class, error)
+                source.off(SourceEvent.Loaded::class, loaded)
+                apiSubscriptions.forEach { it() }
+            }
+            dispose
         }
-        val loaded: (SourceEvent.Loaded) -> Unit = {
-            if (ownsSource()) { append("SourceLoaded"); refresh() }
-        }
-        source.on(SourceEvent.Error::class, error)
-        source.on(SourceEvent.Loaded::class, loaded)
-        val apiSubscriptions = ApiEvents.source.map { entry ->
-            entry.subscribe(source) { id, timestamp -> apiEvent(id, timestamp, ::ownsSource) }
-        }
-        sourceSubscription = {
-            source.off(SourceEvent.Error::class, error)
-            source.off(SourceEvent.Loaded::class, loaded)
-            apiSubscriptions.forEach { it() }
-        }
+        sourceSubscription = { retire.forEach { it() } }
         lastErrorCode = null
-        owner.load(source)
+        if (offlinePlayback == null && ApiCollectionSettings.PLAYLIST in apiOverrides.values)
+            owner.load(com.bitmovin.player.api.playlist.PlaylistConfig(sources, apiOverrides.playlistOptions()))
+        else owner.load(sources.single())
         refresh()
     }
 
@@ -427,7 +516,12 @@ internal class PlayerController(
         if (released) return
         val nextCallbacks = ApiCallbackContext()
         val nextSourceCallbacks = ApiCallbackContext()
-        val sourceConfig = runCatching { sourceConfiguration(overrides, nextSourceCallbacks) }.getOrElse {
+        if (ApiNativeFactories.requiresCronet(overrides.values) && !ApiNativeFactories.cronetReady()) {
+            nextCallbacks.close(); nextSourceCallbacks.close()
+            configurationStatus = "Prepare the Google Play services Cronet provider in SDK API settings before applying."
+            return
+        }
+        val sourceConfigs = runCatching { sourceConfigurations(overrides, nextSourceCallbacks) }.getOrElse {
             nextCallbacks.close(); nextSourceCallbacks.close()
             configurationStatus = "Unable to build source configuration; current settings kept."
             return
@@ -440,6 +534,7 @@ internal class PlayerController(
             append("Player recreation failed")
             return
         }
+        retireApiVrRenderer()
         playerGeneration++
         sourceGeneration++
         sourceSubscription?.invoke()
@@ -453,6 +548,7 @@ internal class PlayerController(
         views.forEach { retireApiViewHandlers(it); apiSurfaces.clear(it); viewLifecycle.detach(it); it.player = null }
         apiDetachedView = null
         player = replacement
+        apiCompanionHosts = preparedCompanions
         apiMediaSession?.player = replacement
         playerSettings = settings
         apiOverrides = overrides
@@ -467,7 +563,8 @@ internal class PlayerController(
         apiOriginalOrientations.clear()
         observePlayer()
         previous.destroy()
-        loadCurrentSource(sourceConfig, nextSourceCallbacks)
+        loadCurrentSource(sourceConfigs, nextSourceCallbacks)
+        if (apiVrRequested) setApiVrRendererActive(true)
         configurationStatus = "Player settings applied; current source reloaded."
         append("Player recreated; source retained")
     }
@@ -515,6 +612,9 @@ internal class PlayerController(
 
     fun release() {
         if (released) return
+        retireApiVrRenderer()
+        apiVrRequested = false
+        apiHostLifecycle.removeObserver(apiVrLifecycle)
         released = true
         apiCallbacks.close()
         apiSourceCallbacks.close()
@@ -618,7 +718,11 @@ private fun PlayerLabScreen(controller: PlayerController) {
         // Recreate the PlayerView when the UI mode changes — the UI is fixed at view-construction
         // time via PlayerViewConfig, so swapping factories means a fresh view (the Player persists).
         val displayedPlayer = controller.player
-        key(displayedPlayer, uiMode, controller.apiViewRevision) {
+        val vrRenderer = controller.apiVrRenderer
+        if (vrRenderer != null) key(vrRenderer) {
+            AndroidView(factory = { vrRenderer }, onRelease = { it.close() },
+                modifier = if (videoOnly) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(220.dp))
+        } else key(displayedPlayer, uiMode, controller.apiViewRevision) {
             AndroidView(
                 factory = { context ->
                     PlayerTouchHost(context,
@@ -687,6 +791,14 @@ private fun PlayerLabScreen(controller: PlayerController) {
 
         ConfigurationPanel(controller, uiMode)
         ApiConfigurationPanel(controller)
+        controller.apiCompanionHosts.forEach { host ->
+            key(host.view) {
+                Text("Companion: ${host.name} (${host.width} × ${host.height})", style = MaterialTheme.typography.labelMedium)
+                AndroidView(factory = { host.view }, onRelease = { (it.parent as? android.view.ViewGroup)?.removeView(it) },
+                    modifier = if (host.width == -1) Modifier.fillMaxWidth().heightIn(min = 50.dp, max = 500.dp)
+                        else Modifier.width(host.width.dp).height(host.height.dp))
+            }
+        }
         ApiRuntimePanel(controller)
         ApiOfflinePanel(controller)
         ApiAnalyticsPanel(controller)

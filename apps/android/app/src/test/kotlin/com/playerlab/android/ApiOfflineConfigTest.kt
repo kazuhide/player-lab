@@ -24,4 +24,18 @@ class ApiOfflineConfigTest {
         assertTrue(draft.code().contains("maxSimultaneousSegmentDownloads = 7"))
         assertTrue(ApiOfflineConfigDraft(requirements = emptySet()).build().deviceStateRequirements.isEmpty())
     }
+    @Test fun manualOfflineSourceInputsAreBoundedAndExportNoDrmSessionBytes() {
+        val draft = ApiOfflineSourceDraft(drmIdHex = "0010feff", restrictToOffline = true)
+        assertArrayEquals(byteArrayOf(0, 16, -2, -1), draft.drmId())
+        val bytes = draft.drmId()!!; bytes[0] = 9
+        assertEquals(0.toByte(), draft.drmId()!![0])
+        draft.validate()
+        assertTrue(draft.code().contains("privateDrmIdBytes")); assertFalse(draft.code().contains("0010feff"))
+        assertNull(ApiOfflineSourceDraft().drmId())
+        for (bad in listOf("", "0", "0x12", "gg", "a".repeat(131074))) assertTrue(runCatching { draft.copy(drmIdHex = bad).validate() }.isFailure)
+        for (bad in listOf("../other", "/tmp", "a/b", "a.b", "a".repeat(65))) {
+            assertTrue(runCatching { draft.copy(cacheFolder = bad).validate() }.isFailure)
+            assertTrue(runCatching { draft.copy(trackStateFile = bad).validate() }.isFailure)
+        }
+    }
 }

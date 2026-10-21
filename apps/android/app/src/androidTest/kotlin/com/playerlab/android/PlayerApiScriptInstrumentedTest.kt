@@ -42,7 +42,7 @@ class PlayerApiScriptInstrumentedTest {
             assertNull(c.lastErrorCode)
         }
         click("api-callback-refresh")
-        ui.onNodeWithTag("api-callback-${id("network.NetworkConfig.preprocessHttpRequestCallback")}").performScrollTo().assertTextContains("fallback after invalid result=0", substring = true)
+        ui.onNodeWithTag("api-callback-${id("network.NetworkConfig.preprocessHttpRequestCallback")}").performScrollTo().assertTextContains("fallback=0", substring = true)
         ui.onNodeWithTag("api-settings-code").assertTextContains("<YOUR_CALLBACK_BODY>", substring = true)
         ui.onNodeWithTag("api-settings-code").assertTextContains("ApiScriptSettings", substring = true)
     }

@@ -12,7 +12,7 @@ import com.bitmovin.player.api.ui.*
 import com.bitmovin.player.api.vr.*
 import com.bitmovin.player.api.media.session.MediaSessionSourceConfig
 
-internal enum class ApiValueKind { Boolean, Integer, LongInteger, Decimal, FloatDecimal, Text, TextList, IntegerList, StringMap, Choice, Script }
+internal enum class ApiValueKind { Boolean, Integer, LongInteger, Decimal, FloatDecimal, Text, TextList, IntegerList, StringMap, Choice, Script, Records }
 
 /** Explicit typed setters and callback adapters; no reflection or arbitrary SDK object mutation. */
 internal data class ApiSetting(
@@ -34,6 +34,7 @@ internal data class ApiSetting(
     val mediaSession: ((String) -> MediaSessionSourceConfig?)? = null,
     val view: ((PlayerViewConfig, String) -> PlayerViewConfig)? = null,
     val code: ((String) -> String)? = null,
+    val records: ApiRecordSchema? = null,
 ) {
     fun normalize(input: String): String {
         val value = if (kind == ApiValueKind.Text || kind == ApiValueKind.Script) input else input.trim()
@@ -57,6 +58,7 @@ internal data class ApiSetting(
             ApiValueKind.StringMap -> { parseApiStringMap(value); null }
             ApiValueKind.Text -> { require(value.length <= 8192) { "Text is limited to 8192 characters." }; null }
             ApiValueKind.Script -> { if (value !in choices) ApiScriptProgram(value); null }
+            ApiValueKind.Records -> { requireNotNull(records).normalize(value); null }
         }
         if (number != null) {
             require(minimum == null || number >= minimum) { "Value must be at least $minimum." }
@@ -69,6 +71,7 @@ internal data class ApiSetting(
             ApiValueKind.FloatDecimal -> value.toFloat().toString()
             ApiValueKind.TextList -> if (value.isEmpty()) "" else value.split(',').joinToString(",") { it.trim() }
             ApiValueKind.IntegerList -> if (value.isEmpty()) "" else value.split(',').joinToString(",") { it.trim().toInt().toString() }
+            ApiValueKind.Records -> requireNotNull(records).normalize(value)
             else -> value
         }
     }
@@ -90,12 +93,37 @@ internal data class ApiOverrides(val values: Map<String, String> = emptyMap()) {
         ApiSettings.byId.getValue(id).view?.invoke(config, value) ?: config
     }
     fun mediaSession(): MediaSessionSourceConfig? = values.entries.firstNotNullOfOrNull { (id, value) -> ApiSettings.byId.getValue(id).mediaSession?.invoke(value) }
+    fun playlistOptions() = ApiCollectionSettings.playlistOptions(values)
+    fun playlistSources(): List<SourceConfig>? = values[ApiCollectionSettings.PLAYLIST]?.let(ApiCollectionSettings::sources)
     fun code(): String {
         val entries = values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }
-        val context = if (entries.any { ApiSettings.byId.getValue(it.key).kind == ApiValueKind.Script }) "val callbackContext = ApiCallbackContext()\n" else ""
-        return context + entries.filterNot { ApiSettings.byId.getValue(it.key).drmParameter }.joinToString("\n") { (id, value) ->
-            requireNotNull(ApiSettings.byId.getValue(id).code).invoke(value)
-        } + apiDrmCode(values.filterKeys { ApiSettings.byId.getValue(it).drmParameter })
+        val lines = mutableListOf<String>()
+        if (entries.any { ApiSettings.byId.getValue(it.key).kind == ApiValueKind.Script }) lines += "val callbackContext = ApiCallbackContext()"
+        val playlist = playlistSources()
+        val sourceEntries = entries.filter { (id, _) ->
+            val field = ApiSettings.byId.getValue(id)
+            field.source != null || field.sourceCallback != null || field.drmParameter ||
+                id.endsWith("source.SourceNetworkConfig.engine") || id.endsWith("source.NetworkEngine.Cronet.cronetEngine")
+        }
+        fun emit(selected: List<Map.Entry<String, String>>): String = selected.filterNot { ApiSettings.byId.getValue(it.key).drmParameter }
+            .filterNot { it.key.endsWith("source.SourceNetworkConfig.engine") && values.keys.any { id -> id.endsWith("source.NetworkEngine.Cronet.cronetEngine") } }
+            .joinToString("\n") { (id, value) -> requireNotNull(ApiSettings.byId.getValue(id).code).invoke(value) } +
+            apiDrmCode(selected.filter { ApiSettings.byId.getValue(it.key).drmParameter }.associate { it.toPair() })
+        val playlistEntries = entries.filter { ApiSettings.byId.getValue(it.key).owner in setOf("PlaylistConfig", "PlaylistOptions") }
+        lines += emit(entries.filterNot { it in playlistEntries || playlist != null && it in sourceEntries })
+        if (playlistEntries.isNotEmpty()) {
+            lines += "var playlistOptions = PlaylistOptions()"
+            lines += emit(playlistEntries.filterNot { it.key == ApiCollectionSettings.PLAYLIST })
+        }
+        if (playlist != null) {
+            val sourceOverrides = emit(sourceEntries)
+            lines += playlist.joinToString(",\n", "val playlistSources = listOf(\n", "\n)") { config ->
+                "    run {\n        val sourceConfig = ${ApiCollectionSettings.sourceCode(config)}\n" +
+                    sourceOverrides.lineSequence().filter(String::isNotBlank).joinToString("\n") { "        $it" } + "\n        Source(sourceConfig)\n    }"
+            }
+            lines += "player.load(PlaylistConfig(playlistSources, playlistOptions))"
+        }
+        return lines.filter(String::isNotBlank).joinToString("\n")
     }
     companion object {
         fun validate(draft: Map<String, String>): ApiOverrides {
@@ -124,6 +152,12 @@ internal data class ApiOverrides(val values: Map<String, String> = emptyMap()) {
             require(draft["android:com.bitmovin.player.api.ui.PlayerViewConfig.uiConfig"] != "Disabled" || draft.keys.none { it.contains("UiConfig.WebUi.") }) { "Remove Web UI field overrides before disabling the Web UI." }
             require(draft["android:com.bitmovin.player.api.source.SourceConfig.cmcdConfig"] != "Disabled" || draft.keys.none { it.contains("CmcdConfig.Enabled.") || it.contains("CmcdSessionId.") }) { "Remove enabled CMCD fields before disabling CMCD." }
             require(draft["android:com.bitmovin.player.api.live.LiveConfig.lowLatencyConfig"] != "null" || draft.keys.none { it.contains("LowLatencyConfig.") }) { "Remove legacy low-latency fields before clearing that config." }
+            exclusive("GoogleCastMediaInfoConfig.mediaType", "RemoteControlConfig.onConfigureMediaInfo")
+            exclusive("AdvertisingConfig.beforeInitialization", "ImaConfig.beforeInitialization")
+            exclusive("AdvertisingConfig.adsManagerAvailableCallback", "ImaConfig.onAdsManagerAvailable")
+            exclusive("AdvertisingConfig.imaUiElements", "ImaConfig.preferredUiElements")
+            ApiNativeFactories.validate(parsed.values)
+            parsed.values[ApiCollectionSettings.PLAYLIST]?.let(ApiCollectionSettings::sources)
             // Exercise pure configuration constructors before retiring the current player.
             // No Player, Source, network client or device resource is allocated here.
             parsed.player(PlayerConfig())
@@ -1070,7 +1104,7 @@ internal object ApiSettings {
             nullable = true,
             drmParameter = true
         )
-    ) + ApiStructuredSettings.fields + ApiScriptSettings.fields + listOf(
+    ) + ApiStructuredSettings.fields + ApiScriptSettings.fields + ApiCollectionSettings.fields + ApiImaSettings.fields + ApiNativeFactories.fields + listOf(
         ApiSetting("android:com.bitmovin.player.api.media.session.MediaSessionSourceConfig.Enabled.mediaMetadata", "Media session", ApiValueKind.StringMap,
             "Use one field=value per line. Text: artist, albumTitle, albumArtist, displayTitle, subtitle, writer, author, composer, conductor, genre, compilation, station. Integers: duration (milliseconds), trackNumber, totalTrackCount, recordingYear/Month/Day, releaseYear/Month/Day, discNumber, totalDiscCount. Booleans: isBrowsable, isPlayable. mediaType uses MediaMetadata.MediaType (for example Movie or Video). userRating/overallRating use Heart:true, Thumb:false, Percentage:75 or Star:5:4.5. null clears a value. Apply reloads Source with MediaSessionSourceConfig.Enabled; enable the host media session in SDK API controls to publish it to Android.",
             mediaSession = { com.bitmovin.player.api.media.session.MediaSessionSourceConfig.Enabled(ApiMediaMetadata.parse(it)) },

@@ -46,6 +46,9 @@ class PlayerApiDrmInstrumentedTest {
                 val stats = c.apiSourceCallbacks.snapshot()[id("WidevineConfig.$member")]
                 assertNotNull("Actual license callback invoked: $member", stats)
                 assertTrue(stats!!.first > 0)
+                val timing = c.apiSourceCallbacks.performanceSnapshot()[id("WidevineConfig.$member")]
+                assertNotNull("Pure callback timing is available", timing)
+                println("DRM callback $member: wall=${timing!!.wallMillis}ms; cpu=${timing.cpuMillis}ms; phases=${timing.phasesMillis}; bytes=${c.apiSourceCallbacks.byteInputSizes()[id("WidevineConfig.$member")]}")
                 assertEquals("No fallback for $member; calls=${stats.first}; reason=${c.apiSourceCallbacks.fallbackReasons()[id("WidevineConfig.$member")]}; bytes=${c.apiSourceCallbacks.byteInputSizes()[id("WidevineConfig.$member")]}", 0, stats.second)
             }
             assertNull(c.lastErrorCode)

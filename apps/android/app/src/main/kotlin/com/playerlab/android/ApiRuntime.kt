@@ -18,7 +18,7 @@ import com.bitmovin.player.api.ssai.SsaiAdBreak
 import com.bitmovin.player.api.deficiency.PlayerErrorCode
 import com.bitmovin.player.api.advertising.vast.VastAdExtension
 
-internal data class ApiArgument(val name: String, val example: String = "", val choices: List<String> = emptyList())
+internal data class ApiArgument(val name: String, val example: String = "", val choices: List<String> = emptyList(), val multiline: Boolean = false)
 internal class ApiInputs(private val values: Map<String, String>) {
     fun text(name: String) = values[name] ?: error("Missing $name")
     fun int(name: String, minimum: Int? = null, maximum: Int? = null): Int {
@@ -121,7 +121,11 @@ internal object ApiRuntime {
         ApiCommand("android:com.bitmovin.player.api.vr.VrApi.moveViewingDirection()", listOf(ApiArgument("phi", "0"), ApiArgument("x", "0"), ApiArgument("y", "0"))) { c, i -> val direction = Vector3(i.number("phi"), i.number("x"), i.number("y")); c.apiVector = direction; c.player.vr.moveViewingDirection(direction) },
         ApiCommand("android:com.bitmovin.player.api.playlist.PlaylistApi.add()", listOf(ApiArgument("url", "https://example.invalid/stream.m3u8"), ApiArgument("type", "Hls", SourceType.entries.map { it.name }), ApiArgument("index", ""))) { c, i -> Source(SourceConfig(i.text("url"), SourceType.valueOf(i.text("type")))).let { source -> if (i.text("index").isBlank()) c.player.playlist.add(source) else c.player.playlist.add(source, i.int("index", 0)) } },
         ApiCommand("android:com.bitmovin.player.api.playlist.PlaylistApi.remove()", listOf(ApiArgument("index", "0"))) { c, i -> c.player.playlist.remove(i.int("index", 0)) },
-        ApiCommand("android:com.bitmovin.player.api.playlist.PlaylistApi.seek()", listOf(ApiArgument("index", "0"), ApiArgument("time", "0"))) { c, i -> c.player.playlist.seek(c.player.playlist.sources.getOrNull(i.int("index", 0)) ?: error("No playlist source at that index."), i.number("time", 0.0)) },
+        ApiCommand("android:com.bitmovin.player.api.playlist.PlaylistApi.seek()", listOf(ApiArgument("index", "0"), ApiArgument("time", "0"), ApiArgument("startOffsetTimelineReference", "null", listOf("null") + TimelineReferencePoint.entries.map { it.name }), ApiArgument("useSeekTarget", "true", listOf("true", "false")))) { c, i ->
+            val source = c.player.playlist.sources.getOrNull(i.int("index", 0)) ?: error("No playlist source at that index.")
+            val target = if (i.bool("useSeekTarget")) com.bitmovin.player.api.playlist.SeekTarget(i.number("time"), i.text("startOffsetTimelineReference").takeUnless { it == "null" }?.let(TimelineReferencePoint::valueOf)) else null
+            c.player.playlist.seek(source, target)
+        },
         ApiCommand("android:com.bitmovin.player.api.Player.scheduleAd()", listOf(ApiArgument("tag", "https://example.invalid/ad.xml"), ApiArgument("type", "Bitmovin", AdSourceType.entries.map { it.name }), ApiArgument("position", "pre"), ApiArgument("replaceContentDuration", "0"), ApiArgument("preloadOffset", "0"), ApiArgument("bitmovinAdTagLoading", "false", listOf("true","false")), ApiArgument("vastLoadTimeout", "8"), ApiArgument("videoLoadTimeout", "8"))) { c, i -> AdItem(sources = arrayOf(AdSource(AdSourceType.valueOf(i.text("type")), i.text("tag"), i.number("vastLoadTimeout", 0.0), i.number("videoLoadTimeout", 0.0))), position = i.text("position"), replaceContentDuration = i.number("replaceContentDuration", 0.0), preloadOffset = i.number("preloadOffset", 0.0), bitmovinAdTagLoading = i.bool("bitmovinAdTagLoading")).let { ad -> c.player.scheduleAd(ad) } },
         ApiCommand("android:com.bitmovin.player.api.advertising.AdvertisingApi.schedule()", listOf(ApiArgument("tag", "https://example.invalid/ad.xml"), ApiArgument("type", "Bitmovin", AdSourceType.entries.map { it.name }), ApiArgument("position", "pre"), ApiArgument("replaceContentDuration", "0"), ApiArgument("preloadOffset", "0"), ApiArgument("bitmovinAdTagLoading", "false", listOf("true","false")), ApiArgument("vastLoadTimeout", "8"), ApiArgument("videoLoadTimeout", "8"))) { c, i -> AdItem(sources = arrayOf(AdSource(AdSourceType.valueOf(i.text("type")), i.text("tag"), i.number("vastLoadTimeout", 0.0), i.number("videoLoadTimeout", 0.0))), position = i.text("position"), replaceContentDuration = i.number("replaceContentDuration", 0.0), preloadOffset = i.number("preloadOffset", 0.0), bitmovinAdTagLoading = i.bool("bitmovinAdTagLoading")).let { ad -> c.player.ads.schedule(ad) } },
         ApiCommand("android:com.bitmovin.player.api.Player.skipAd()", listOf()) { c, i -> c.player.skipAd() },
@@ -153,7 +157,7 @@ internal object ApiRuntime {
         ApiCommand("android:com.bitmovin.player.api.ssai.SsaiAd.clickThroughUrlOpened()", listOf(ApiArgument("id", "test-ad"), ApiArgument("openedExternally", "false", listOf("true","false")))) { c, i -> require(i.bool("openedExternally")).let { (c.apiSsaiAds[i.text("id")] ?: error("No SSAI test ad.")).clickThroughUrlOpened() } },
         ApiCommand("android:com.bitmovin.player.api.vr.orientation.OrientationProvider.enable()", listOf(ApiArgument("provider", "gyroscopic", listOf("gyroscopic","touch")))) { c, i -> (if (i.text("provider") == "gyroscopic") c.player.vr.gyroscopicOrientationProvider else c.player.vr.touchOrientationProvider)?.enable() ?: error("The selected orientation provider is unavailable.") },
         ApiCommand("android:com.bitmovin.player.api.vr.orientation.OrientationProvider.disable()", listOf(ApiArgument("provider", "gyroscopic", listOf("gyroscopic","touch")))) { c, i -> (if (i.text("provider") == "gyroscopic") c.player.vr.gyroscopicOrientationProvider else c.player.vr.touchOrientationProvider)?.disable() ?: error("The selected orientation provider is unavailable.") }
-    ) + ApiAdditionalRuntime.commands
+    ) + ApiAdditionalRuntime.commands + ApiVrRuntime.commands
     val reads: List<ApiRead> = listOf(
         ApiRead("android:com.bitmovin.player.api.Player.isLive") { c -> c.player.isLive },
         ApiRead("android:com.bitmovin.player.api.Player.currentTime") { c -> c.player.currentTime },
@@ -296,5 +300,5 @@ internal object ApiRuntime {
         ApiRead("android:com.bitmovin.player.api.source.SourceConfig.progressiveSource") { c -> source(c).config.progressiveSource?.let { mapOf("url" to it.url, "type" to it.type.name) } },
         ApiRead("android:com.bitmovin.player.api.source.SourceConfig.smoothSource") { c -> source(c).config.smoothSource?.let { mapOf("url" to it.url, "type" to it.type.name) } },
         ApiRead("android:com.bitmovin.player.api.source.SourceConfig.drmConfigs") { c -> source(c).config.drmConfigs.map { it?.let { mapOf("uuid" to it.uuid.toString(), "licenseUrl" to "[redacted]", "isLicenseRenewable" to it.isLicenseRenewable, "shouldKeepDrmSessionsAlive" to it.shouldKeepDrmSessionsAlive) } } }
-    ) + ApiAdditionalRuntime.reads
+    ) + ApiAdditionalRuntime.reads + ApiVrRuntime.reads
 }

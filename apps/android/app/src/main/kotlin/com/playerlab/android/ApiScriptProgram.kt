@@ -9,16 +9,25 @@ import org.mozilla.javascript.Script
 import org.mozilla.javascript.ScriptableObject
 import org.mozilla.javascript.Undefined
 
-internal class ApiScriptBudgetException(val phase: String) : IllegalArgumentException("Callback exceeded its execution budget ($phase).")
+internal class ApiScriptBudgetException(val phase: String, val elapsedMillis: Long, val cpuMillis: Long?, val convertedItems: Int, val phases: Map<String, Long>) : IllegalArgumentException("Callback exceeded its execution budget ($phase).")
 internal class ApiScriptExecutionException : IllegalArgumentException("Invalid JavaScript callback or return value.")
+
+internal data class ApiScriptTiming(val wallMillis: Long, val cpuMillis: Long?, val phasesMillis: Map<String, Long>)
 
 /** Pure value callbacks. No SDK object, Java wrapper, file, URL or Android object enters the script scope. */
 internal class ApiScriptProgram(private val body: String) {
     private class Limit(val phase: String) : Error()
     private class Budget {
-        val deadline = System.nanoTime() + 75_000_000L
+        val started = System.nanoTime()
+        val deadline = started + 75_000_000L
+        val cpuStarted = runCatching { android.os.Debug.threadCpuTimeNanos() }.getOrNull()
+        var convertedItems = 0
         var instructions = 50_000
         var phase = "scope initialization"
+        var phaseStarted = started
+        val phases = linkedMapOf<String, Long>()
+        fun next(value: String) { val now = System.nanoTime(); phases[phase] = (now - phaseStarted) / 1_000_000; phase = value; phaseStarted = now }
+        fun elapsedPhases() = phases + (phase to (System.nanoTime() - phaseStarted) / 1_000_000)
     }
     private val budget = ThreadLocal<Budget>()
     private val factory = object : ContextFactory() {
@@ -53,7 +62,7 @@ internal class ApiScriptProgram(private val body: String) {
         }
     }
 
-    private fun <T> evaluate(block: (Context, Scriptable) -> T): T {
+    private fun <T> evaluate(observed: (ApiScriptTiming) -> Unit, block: (Context, Scriptable) -> T): T {
         budget.set(Budget())
         try {
             return factory.call { context ->
@@ -61,18 +70,26 @@ internal class ApiScriptProgram(private val body: String) {
                 block(context, scope)
             }
         } catch (error: Limit) {
-            throw ApiScriptBudgetException(error.phase)
+            val current = requireNotNull(budget.get())
+            throw ApiScriptBudgetException(error.phase, (System.nanoTime() - current.started) / 1_000_000,
+                current.cpuStarted?.let { start -> runCatching { (android.os.Debug.threadCpuTimeNanos() - start) / 1_000_000 }.getOrNull() }, current.convertedItems, current.elapsedPhases())
         } catch (_: org.mozilla.javascript.RhinoException) {
             throw ApiScriptExecutionException()
-        } finally { budget.remove() }
+        } finally {
+            val current = requireNotNull(budget.get())
+            val timing = ApiScriptTiming((System.nanoTime() - current.started) / 1_000_000,
+                current.cpuStarted?.let { start -> runCatching { (android.os.Debug.threadCpuTimeNanos() - start) / 1_000_000 }.getOrNull() }, current.elapsedPhases())
+            budget.remove()
+            observed(timing)
+        }
     }
-    fun run(input: Any?): Any? = evaluate { context, scope ->
+    fun run(input: Any?, observed: (ApiScriptTiming) -> Unit = {}): Any? = evaluate(observed) { context, scope ->
         val function = compiled.exec(context, scope) as Function
-        requireNotNull(budget.get()).phase = "input conversion"
+        requireNotNull(budget.get()).next("input conversion")
         val converted = toScript(context, scope, input, 0)
-        requireNotNull(budget.get()).phase = "script execution"
+        requireNotNull(budget.get()).next("script execution")
         val returned = function.call(context, scope, scope, arrayOf(converted))
-        requireNotNull(budget.get()).phase = "output conversion"
+        requireNotNull(budget.get()).next("output conversion")
         fromScript(returned, 0)
     }
     private fun checkDepth(depth: Int) {
@@ -93,7 +110,18 @@ internal class ApiScriptProgram(private val body: String) {
             }
             is List<*> -> {
                 require(value.size <= 65_536)
-                context.newArray(scope, value.map { toScript(context, scope, it, depth + 1) }.toTypedArray())
+                val items = arrayOfNulls<Any>(value.size)
+                if (items.isNotEmpty()) checkDepth(depth + 1)
+                value.forEachIndexed { index, item ->
+                    if (index % 32 == 0) checkDepth(depth + 1)
+                    items[index] = when (item) {
+                        null, is Boolean, is Number -> item
+                        is String -> item.also { require(it.length <= 131_072) }
+                        else -> toScript(context, scope, item, depth + 1)
+                    }
+                }
+                checkDepth(depth)
+                context.newArray(scope, items)
             }
             else -> error("Unsupported callback input type.")
         }
@@ -107,7 +135,24 @@ internal class ApiScriptProgram(private val body: String) {
             is CharSequence -> value.toString().also { require(it.length <= 131_072) }
             is NativeArray -> {
                 require(value.length <= 65_536)
-                (0 until value.length.toInt()).map { fromScript(value.get(it, value), depth + 1) }
+                val length = value.length.toInt()
+                if (length > 0) checkDepth(depth + 1)
+                val items = ArrayList<Any?>(length)
+                repeat(length) { index ->
+                    // Batch checks avoid a clock/thread-local lookup for every media byte.
+                    // User-defined getters still execute under the interpreter instruction observer.
+                    if (index % 32 == 0) { requireNotNull(budget.get()).convertedItems = index; checkDepth(depth + 1) }
+                    val item = value.get(index, value).let { if (it === Scriptable.NOT_FOUND) null else it }
+                    items.add(when (item) {
+                        null, is Undefined -> null
+                        is Boolean -> item
+                        is Number -> item.toDouble().also { require(it.isFinite()) }
+                        is CharSequence -> item.toString().also { require(it.length <= 131_072) }
+                        else -> fromScript(item, depth + 1)
+                    })
+                }
+                checkDepth(depth)
+                items
             }
             is Scriptable -> {
                 require(value.className == "Object") { "Return a plain value object." }
@@ -130,20 +175,22 @@ internal class ApiCallbackContext {
     private val counts = linkedMapOf<String, Pair<Int, Int>>()
     private val failureKinds = linkedMapOf<String, String>()
     private val byteCounts = linkedMapOf<String, Int>()
+    private val timings = linkedMapOf<String, ApiScriptTiming>()
     fun close() { active = false }
     @Synchronized fun snapshot(): Map<String, Pair<Int, Int>> = counts.toMap()
     @Synchronized fun fallbackReasons(): Map<String, String> = failureKinds.toMap()
     @Synchronized fun byteInputSizes(): Map<String, Int> = byteCounts.toMap()
+    @Synchronized fun performanceSnapshot(): Map<String, ApiScriptTiming> = timings.toMap()
     @Synchronized fun recordByteInput(id: String, size: Int) { if (active) byteCounts[id] = size }
     fun <T> apply(id: String, program: ApiScriptProgram, input: Any?, fallback: T, decode: (Any?) -> T): T {
         if (!active) return fallback
         return try {
-            val result = decode(program.run(input))
+            val result = decode(program.run(input) { timing -> synchronized(this) { if (active) timings[id] = timing } })
             if (!active) fallback else { record(id, false); result }
         } catch (error: Exception) {
             if (active) {
                 val kind = when (error) {
-                    is ApiScriptBudgetException -> "execution budget (${error.phase})"
+                    is ApiScriptBudgetException -> "execution budget (${error.phase}; wall=${error.elapsedMillis}ms; cpu=${error.cpuMillis ?: "unavailable"}ms; convertedItems=${error.convertedItems}; phases=${error.phases})"
                     is ApiScriptExecutionException -> "script execution"
                     else -> "return contract"
                 }

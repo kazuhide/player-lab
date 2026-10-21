@@ -31,6 +31,7 @@ android {
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -38,10 +39,15 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation(project(":dvr"))
     // Pin to the current Bitmovin Player v3 release (§18).
-    implementation("com.bitmovin.player:player:3.171.0")
-    implementation("com.bitmovin.player:player-media-session:3.171.0")
+    implementation("com.bitmovin.player:player:3.171.0+jason")
+    implementation("com.bitmovin.player:player-media-session:3.171.0+jason")
+    implementation("com.google.android.gms:play-services-cronet:18.1.1")
+    // Keep Android 23 support with distinct namespaces for the Cronet API/shared artifacts.
+    implementation("org.chromium.net:cronet-api:143.7445.0")
+    implementation("com.google.ads.interactivemedia.v3:interactivemedia:3.38.0")
     // Required by the SDK offline download service.
     // https://developer.bitmovin.com/playback/docs/working-with-offline-playback-android
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")

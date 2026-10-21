@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.bitmovin.player.api.offline.DeviceStateRequirement
 import com.bitmovin.player.api.offline.OfflineContentManager
 import com.bitmovin.player.api.offline.options.OfflineOptionEntryAction
@@ -28,6 +29,9 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
     var appliedCode by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("") }
     var query by remember { mutableStateOf("") }
+    var sourceDraft by remember { mutableStateOf(ApiOfflineSourceDraft()) }
+    var sourceFactoryExpanded by remember { mutableStateOf(false) }
+    var sourceFactoryCode by remember { mutableStateOf("") }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { allowed ->
         result = if (allowed) "Download notifications enabled." else "Download notifications are disabled in system settings."
     }
@@ -69,6 +73,18 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
                 "deviceStateRequirements" to config.deviceStateRequirements.map { it.name }, "requirements" to config.requirements.requirements,
                 "shouldAutomaticallyHandleDrmLicenses" to config.tweaksConfig.shouldAutomaticallyHandleDrmLicenses)
         } }, modifier = Modifier.testTag("offline-config-read")) { Text("Read applied offline configuration") }
+
+        Button(onClick = { sourceFactoryExpanded = !sourceFactoryExpanded }, modifier = Modifier.testTag("offline-factory-toggle")) { Text("Advanced offline source constructor") }
+        if (sourceFactoryExpanded) {
+            Text("OfflineSourceConfig.drmId and isRestrictToOffline", style = MaterialTheme.typography.titleSmall)
+            Text("Constructs an actual SDK offline source for the current URL and source type. Normally use Play downloaded source above so the SDK supplies its own cache metadata. This advanced factory uses named directories under the app's private api-offline-source storage. It does not copy files from an SDK-managed download. With restriction enabled, matching cached resources and track state must already exist. DRM ID is the offline session key-set ID returned by your offline license workflow, not a Player key.", style = MaterialTheme.typography.bodySmall)
+            OutlinedTextField(sourceDraft.drmIdHex, { sourceDraft = sourceDraft.copy(drmIdHex = it) }, label = { Text("drmId: hexadecimal bytes or null") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth().testTag("offline-factory-drm"))
+            Row { Switch(sourceDraft.restrictToOffline, { sourceDraft = sourceDraft.copy(restrictToOffline = it) }, modifier = Modifier.testTag("offline-factory-restrict")); Text("isRestrictToOffline") }
+            OutlinedTextField(sourceDraft.cacheFolder, { sourceDraft = sourceDraft.copy(cacheFolder = it) }, label = { Text("Cache directory name") }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("offline-factory-cache"))
+            OutlinedTextField(sourceDraft.trackStateFile, { sourceDraft = sourceDraft.copy(trackStateFile = it) }, label = { Text("Track-state file name") }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("offline-factory-tracks"))
+            Button(onClick = { run { val config = sourceDraft.build(controller.hostContext, controller.sourceSettings.toSourceConfig()); controller.loadOfflineSource(config); sourceFactoryCode = sourceDraft.code(); mapOf("constructed" to true, "isRestrictToOffline" to config.isRestrictToOffline, "drmIdBytes" to config.drmId?.size) } }, modifier = Modifier.testTag("offline-factory-apply")) { Text("Construct and load offline source") }
+            if (sourceFactoryCode.isNotEmpty()) SelectionContainer { Text(sourceFactoryCode, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("offline-factory-code")) }
+        }
 
         Text("Content options", style = MaterialTheme.typography.titleSmall)
         Button(onClick = { run { offline.getOptions() } }, enabled = offline.manager != null, modifier = Modifier.testTag("offline-options")) { Text("Fetch SDK options") }

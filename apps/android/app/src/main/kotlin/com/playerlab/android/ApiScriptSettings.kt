@@ -180,5 +180,5 @@ internal object ApiScriptSettings {
             source = { c, v, scope -> val p = program(v); c.labelingConfig = c.labelingConfig.copy(audioQualityLabeler = p?.let { AudioQualityLabeler { item ->
                 scope.apply(SDK + "media.LabelingConfig.audioQualityLabeler", p, quality(item) + mapOf("channelCount" to item.channelCount), null as String?, ::text)
             } }) }),
-    ) + ApiAdvertisingScripts.fields
+    ) + ApiAdvertisingScripts.fields + ApiImaScripts.fields
 }
