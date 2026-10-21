@@ -48,8 +48,10 @@ final class PlayerModel: ObservableObject {
     @Published private(set) var apiResult = "Choose an API operation."
     @Published private(set) var apiEvents: [ApiEventRecord] = []
     @Published private(set) var apiEventsEnabled = true
+    @Published private(set) var apiEventTransport = NativeEventTransport.listener
     @Published private(set) var usesNativeApiHost = false
     @Published private(set) var presentation = NativePresentation.sdkSwiftUI
+    @Published private(set) var nativePlayerFactory = NativePlayerFactory.standard
     @Published var boundPiPEnabled = false
     @Published var boundPiPAvailable = false
     @Published var boundPiPActive = false
@@ -57,6 +59,7 @@ final class PlayerModel: ObservableObject {
     @Published var boundScalingMode = ScalingMode.fit
     @Published var nativeControlsShown = true
     let playlistWorkbench = NativePlaylistWorkbench()
+    let sharePlayWorkbench = NativeSharePlayWorkbench()
     let apiObjects = NativeApiObjects()
     private var apiPlaylistContexts: [ObjectIdentifier: NativePlaylistSourceContext] = [:]
     private weak var apiPlaylistProgressSource: Source?
@@ -69,6 +72,9 @@ final class PlayerModel: ObservableObject {
     private var playerApiListener: PlayerApiEventListener?
     private var sourceApiListener: SourceApiEventListener?
     private var viewApiListener: ViewApiEventListener?
+    private var playerApiPublishers: [AnyCancellable] = []
+    private var sourceApiPublishers: [AnyCancellable] = []
+    private var viewApiPublishers: [AnyCancellable] = []
     private weak var apiSource: Source?
     private(set) var playerCallbackJournal = NativeCallbackJournal()
     private(set) var sourceCallbackJournal = NativeCallbackJournal()
@@ -102,7 +108,7 @@ final class PlayerModel: ObservableObject {
         playerCallbackJournal = journal
         player = PlayerModel.makePlayer(
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
-            uiMode: .default, settings: PlayerSettings(), callbackJournal: journal)
+            uiMode: .default, settings: PlayerSettings(), callbackJournal: journal, factory: .standard)
         journal.setModel(self)
         bindEvents()
     }
@@ -155,7 +161,7 @@ final class PlayerModel: ObservableObject {
         playerCallbackJournal = journal
         let next = PlayerModel.makePlayer(
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
-            uiMode: uiMode, settings: playerSettings, callbackJournal: journal)
+            uiMode: uiMode, settings: playerSettings, callbackJournal: journal, factory: nativePlayerFactory)
         player = next
         journal.setModel(self)
         playerGeneration = UUID()
@@ -166,8 +172,9 @@ final class PlayerModel: ObservableObject {
     }
 
     private static func makePlayer(
-        licenseKey: String, analyticsLicenseKey: String, uiMode: UiMode, settings: PlayerSettings, callbackJournal: NativeCallbackJournal
+        licenseKey: String, analyticsLicenseKey: String, uiMode: UiMode, settings: PlayerSettings, callbackJournal: NativeCallbackJournal, factory: NativePlayerFactory
     ) -> Player {
+        NativeLoggingOwner.apply(settings.advanced, journal: callbackJournal)
         let config = PlayerConfig()
         config.key = licenseKey
         #if os(tvOS)
@@ -192,6 +199,11 @@ final class PlayerModel: ObservableObject {
         config.advertisingConfig.onAdsManagerAvailable = { [weak callbackJournal] manager in
             callbackJournal?.setAdsManager(manager)
             configuredAdsManagerCallback?(manager)
+        }
+        switch factory {
+        case .core: return PlayerCoreFactory.createPlayer(playerConfig: config)
+        case .legacy: return PlayerFactory.create(playerConfig: config)
+        case .standard: break
         }
         // §15: the bundled analytics collector reports QoE to the Bitmovin dashboard
         // when a key is configured (repo-root .env → sync-env.sh → Local.xcconfig).
@@ -530,6 +542,11 @@ final class PlayerModel: ObservableObject {
         boundPiPActive = false
         recreatePlayer()
     }
+    func setNativePlayerFactory(_ factory: NativePlayerFactory) {
+        guard factory != nativePlayerFactory else { return }
+        nativePlayerFactory = factory
+        recreatePlayer()
+    }
 
     private func recordApiEvent(_ api: String, timestamp: TimeInterval, owner: String) {
         guard apiEventsEnabled else { return }
@@ -545,10 +562,12 @@ final class PlayerModel: ObservableObject {
             self.recordApiEvent(api, timestamp: timestamp, owner: "Player")
         }
         playerApiListener = listener
-        player.add(listener: listener)
+        if apiEventTransport == .listener { player.add(listener: listener) }
+        else { playerApiPublishers = NativePublisherSubscriptions.player(player, receiver: listener) }
     }
 
     private func retireApiPlayerEvents() {
+        playerApiPublishers.removeAll()
         if let listener = playerApiListener { player.remove(listener: listener) }
         playerApiListener = nil
     }
@@ -564,12 +583,19 @@ final class PlayerModel: ObservableObject {
             guard let self, let source, self.apiSource === source, self.player.source === source else { return }
             self.apiObjects.appendParsedCue(cue, source: source)
         }
+        listener.acquiredLicense = { [weak self, weak source] request in
+            guard let self, let source, self.apiSource === source, self.player.source === source else { return }
+            self.apiObjects.appendAcquiredLicense(request, source: source)
+            self.refreshApiState()
+        }
         sourceApiListener = listener
-        source.add(listener: listener)
+        if apiEventTransport == .listener { source.add(listener: listener) }
+        else { sourceApiPublishers = NativePublisherSubscriptions.source(source, receiver: listener) }
     }
 
-    private func retireApiSourceEvents() {
-        apiObjects.retireSource()
+    private func retireApiSourceEvents(retireObjects: Bool = true) {
+        sourceApiPublishers.removeAll()
+        if retireObjects { apiObjects.retireSource() }
         if let listener = sourceApiListener { apiSource?.remove(listener: listener) }
         sourceApiListener = nil
         apiSource = nil
@@ -577,6 +603,7 @@ final class PlayerModel: ObservableObject {
 
     @MainActor
     func attachApiView(_ view: PlayerView) {
+        viewApiPublishers.removeAll()
         if let old = apiPlayerView, let listener = viewApiListener { old.remove(listener: listener) }
         apiPlayerView = view
         guard apiEventsEnabled else { return }
@@ -585,12 +612,14 @@ final class PlayerModel: ObservableObject {
             self.recordApiEvent(api, timestamp: timestamp, owner: "Player view")
         }
         viewApiListener = listener
-        view.add(listener: listener)
+        if apiEventTransport == .listener { view.add(listener: listener) }
+        else { viewApiPublishers = NativePublisherSubscriptions.view(view, receiver: listener) }
     }
 
     @MainActor
     func detachApiView(_ view: PlayerView) {
         guard apiPlayerView === view else { return }
+        viewApiPublishers.removeAll()
         if let listener = viewApiListener { view.remove(listener: listener) }
         viewApiListener = nil
         apiPlayerView = nil
@@ -601,7 +630,8 @@ final class PlayerModel: ObservableObject {
         guard enabled != apiEventsEnabled else { return }
         apiEventsEnabled = enabled
         retireApiPlayerEvents()
-        retireApiSourceEvents()
+        retireApiSourceEvents(retireObjects: false)
+        viewApiPublishers.removeAll()
         if let view = apiPlayerView, let listener = viewApiListener { view.remove(listener: listener) }
         viewApiListener = nil
         if enabled {
@@ -609,5 +639,14 @@ final class PlayerModel: ObservableObject {
             if let source = player.source { bindApiSourceEvents(source) }
             if let view = apiPlayerView { attachApiView(view) }
         }
+    }
+
+    @MainActor
+    func setApiEventTransport(_ transport: NativeEventTransport) {
+        guard transport != apiEventTransport else { return }
+        let wasEnabled = apiEventsEnabled
+        if wasEnabled { setApiEventRecording(false) }
+        apiEventTransport = transport
+        if wasEnabled { setApiEventRecording(true) }
     }
 }

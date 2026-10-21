@@ -267,6 +267,7 @@ final class PlayerApiEventListener: ApiEventReceiver, PlayerListener {
 
 final class SourceApiEventListener: ApiEventReceiver, SourceListener {
     var parsedCue: ((Cue) -> Void)?
+    var acquiredLicense: (@MainActor (FairplayContentKeyRequest) -> Void)?
     func onAudioAdded(_ event: AudioAddedEvent, source: Source) {
         send("BitmovinPlayerCore.AudioAddedEvent", timestamp: event.timestamp)
     }
@@ -290,6 +291,7 @@ final class SourceApiEventListener: ApiEventReceiver, SourceListener {
         send("BitmovinPlayerCore.DurationChangedEvent", timestamp: event.timestamp)
     }
     func onFairplayLicenseAcquired(_ event: FairplayLicenseAcquiredEvent, source: Source) {
+        DispatchQueue.main.async { [weak self] in self?.acquiredLicense?(event.contentKeyRequest) }
         send("BitmovinPlayerCore.FairplayLicenseAcquiredEvent", timestamp: event.timestamp)
     }
     func onMetadataParsed(_ event: MetadataParsedEvent, source: Source) {

@@ -36,6 +36,11 @@ targets:
     deploymentTarget: "16.0"
     sources:
       - path: Showcase
+      - path: Showcase/NativeExamples/NativeRemoteSourceFactory.swift.txt
+        buildPhase: resources
+      - path: Showcase/NativeScripts
+        buildPhase: resources
+        excludes: [README.md]
       # The shared Web UI bundle (synced from packages/ui-shared/dist by
       # scripts/sync-webui-bundle.sh) is bundled as an app resource so the iOS Web UI can load
       # it (§12). `optional` so `xcodegen generate` works before the first sync. tvOS omits this —
@@ -48,6 +53,7 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Showcase/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.ios
+        CODE_SIGN_ENTITLEMENTS: Showcase/PlayerLab.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"
     dependencies:
       - package: GoogleCast
@@ -60,12 +66,19 @@ targets:
     type: application
     platform: tvOS
     deploymentTarget: "15.0"
-    sources: [Showcase]
+    sources:
+      - path: Showcase
+      - path: Showcase/NativeExamples/NativeRemoteSourceFactory.swift.txt
+        buildPhase: resources
+      - path: Showcase/NativeScripts
+        buildPhase: resources
+        excludes: [README.md]
     settings:
       base:
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Showcase/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.tvos
+        CODE_SIGN_ENTITLEMENTS: Showcase/PlayerLab.entitlements
     dependencies:
       - package: BitmovinPlayer
         product: BitmovinPlayer
@@ -106,6 +119,17 @@ targets:
       - Showcase/NativeInterstitialCallbacks.swift
       - Showcase/NativeCallbackOperations.swift
       - Showcase/NativePresentation.swift
+      - Showcase/NativePlayerFactory.swift
+      - Showcase/NativeSharePlay.swift
+      - Showcase/NativePublisherSubscriptions.swift
+      - Showcase/NativeLogging.swift
+      - Showcase/NativeRemoteSourceFactory.swift
+      - Showcase/NativeRemoteConfiguration.swift
+      - path: Showcase/NativeExamples/NativeRemoteSourceFactory.swift.txt
+        buildPhase: resources
+      - path: Showcase/NativeScripts
+        buildPhase: resources
+        excludes: [README.md]
       - Showcase/NativePlayerSurface.swift
       - Showcase/NativeTVControls.swift
       - Showcase/NativeTVOperations.swift
@@ -218,6 +242,17 @@ targets:
       - Showcase/NativeInterstitialCallbacks.swift
       - Showcase/NativeCallbackOperations.swift
       - Showcase/NativePresentation.swift
+      - Showcase/NativePlayerFactory.swift
+      - Showcase/NativeSharePlay.swift
+      - Showcase/NativePublisherSubscriptions.swift
+      - Showcase/NativeLogging.swift
+      - Showcase/NativeRemoteSourceFactory.swift
+      - Showcase/NativeRemoteConfiguration.swift
+      - path: Showcase/NativeExamples/NativeRemoteSourceFactory.swift.txt
+        buildPhase: resources
+      - path: Showcase/NativeScripts
+        buildPhase: resources
+        excludes: [README.md]
       - Showcase/NativePlayerSurface.swift
       - Showcase/NativeTVControls.swift
       - Showcase/NativeTVOperations.swift

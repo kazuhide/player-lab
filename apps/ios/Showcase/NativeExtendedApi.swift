@@ -13,9 +13,12 @@ final class NativeApiObjects: ObservableObject {
     let thumbnailContainer = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 180))
     let adContainer = UIView()
     let presentationRegistration = NativePresentationRegistration()
+    let consoleLogger = ConsoleLogger()
     @Published var showsThumbnailContainer = false
     private(set) var parsedCues: [Cue] = []
     private weak var parsedSource: Source?
+    struct AcquiredLicense { weak var source: Source?; let request: FairplayContentKeyRequest }
+    private(set) var acquiredLicenses: [AcquiredLicense] = []
     var enteredCues: [String: EnteredCue] = [:]
     struct OwnedSuspension {
         weak var player: Player?
@@ -36,7 +39,13 @@ final class NativeApiObjects: ObservableObject {
         parsedCues.insert(cue, at: 0)
         if parsedCues.count > 16 { parsedCues.removeLast(parsedCues.count - 16) }
     }
+    func appendAcquiredLicense(_ request: FairplayContentKeyRequest, source: Source) {
+        prepareSource(source)
+        acquiredLicenses.insert(.init(source: source, request: request), at: 0)
+        if acquiredLicenses.count > 16 { acquiredLicenses.removeLast(acquiredLicenses.count - 16) }
+    }
     func retireSource() {
+        acquiredLicenses.removeAll()
         enteredCues.removeAll()
         parsedCues.removeAll()
         parsedSource = nil
@@ -48,6 +57,8 @@ extension ApiOperation {
         let position = ApiArgument("time", "Position (seconds)", .number(minimum: 0))
         let cueNote = "Fields: startTime, endTime, html, text, rawText, attributedText (text or {string,fontSize,foregroundColor}), imageBase64, position:{column,row}, region, regionStyle and vttFromParsedCue (a current parsed-cue index). Image bytes are excluded from code. VTT properties come from real CueParsedEvent objects."
         switch self {
+        case .renewFairplay: return [.init("index", "Acquired FairPlay request index on current source", .text, initial: "0", note: "Use an actual FairplayLicenseAcquiredEvent request shown in SDK state. Load licensed FairPlay content and enable event observation first. The app never constructs an AVContentKeyRequest.")]
+        case .rotateView: return [.init("degrees", "Native PlayerView preview rotation (degrees)", .text, initial: "0", note: "Rotates the actual native PlayerView inside its host, calling willRotate before the transform and didRotate after layout. This changes the view preview, not the device orientation.")]
         case .sourceMetadata: return [.init("json", "Source metadata JSON (null clears)", .json(initial: "{}"), note: "Supports ordinary JSON and {$avMetadataItem: {...}} native metadata values using the same typed factory as SourceConfig.metadata.")]
         case .subtitleAdd: return [.init("json", "Subtitle object", .json(initial: "{\"identifier\":\"manual-example\",\"label\":\"Manual example\",\"url\":null,\"format\":\"webVtt\"}"), note: "Fields: url (null for manual cues), format, label, identifier, isDefaultTrack, language, associatedLanguage, characteristics and forced. The identifier must not already exist on the current source.")]
         case .cueEnter: return [.init("track", "Existing subtitle track identifier", .text), .init("json", "Cue object", .json(initial: "{\"startTime\":0,\"endTime\":5,\"text\":\"Example subtitle\"}"), note: cueNote)]
@@ -78,6 +89,14 @@ extension ApiOperation {
         let before = values["before"] ?? "0", after = values["after"] ?? "0"
         switch self {
         case .loadConfig: return "player.load(sourceConfig: sourceConfig)"
+        case .renewFairplay:
+            guard let index = Int(values["index"] ?? ""), index >= 0 else { throw invalidExtended("Enter a nonnegative acquired-request index.") }
+            return "// Retain requests from the current source's actual FairplayLicenseAcquiredEvent.\n// Retire those requests when the source changes; never fabricate an AVContentKeyRequest.\nsource.drm.fairplay.renewExpiringLicense(for: acquiredRequests[\(index)])"
+        case .rotateView:
+            let angle = try Self.rotationAngle(values)
+            return "playerView.willRotate()\nplayerView.transform = CGAffineTransform(rotationAngle: \(angle))\nplayerView.setNeedsLayout()\nplayerView.layoutIfNeeded()\nplayerView.didRotate()"
+        case .layoutView: return "playerView.setNeedsLayout()\nplayerView.layoutIfNeeded() // UIKit invokes layoutSubviews on the actual view."
+
         case .sourceMetadata:
             let object = try JSONSerialization.jsonObject(with: Data(json.utf8), options: [.fragmentsAllowed])
             guard object is NSNull || object is [String: Any] else { throw invalidExtended("Source metadata needs an object or null.") }
@@ -120,6 +139,11 @@ extension ApiOperation {
         }
     }
 
+    static func rotationAngle(_ values: [String: String]) throws -> Double {
+        guard let degrees = Double(values["degrees"] ?? ""), degrees.isFinite else { throw ConfigurationValidationError(message: "Rotation must be finite degrees.") }
+        return degrees.truncatingRemainder(dividingBy: 360) * .pi / 180
+    }
+
     static func adContainerFrame(_ values: [String: String]) throws -> CGRect {
         guard let x = Double(values["x"] ?? ""), x.isFinite, let y = Double(values["y"] ?? ""), y.isFinite,
               let width = Double(values["width"] ?? ""), width.isFinite, width > 0,
@@ -137,6 +161,24 @@ extension PlayerModel {
         switch operation {
         case .loadConfig:
             try loadConfiguredSourceConfigFromApi()
+        case .renewFairplay:
+            guard let index = Int(arguments["index"] ?? ""), apiObjects.acquiredLicenses.indices.contains(index),
+                  let source = player.source, apiObjects.acquiredLicenses[index].source === source else {
+                throw apiInputError("Choose a retained FairplayLicenseAcquiredEvent request from the current source. Load licensed FairPlay content and enable event observation first.")
+            }
+            source.drm.fairplay.renewExpiringLicense(for: apiObjects.acquiredLicenses[index].request)
+            return "Requested license renewal using the selected actual SDK request. Check FairPlay events for the result."
+        case .rotateView:
+            let view = try requireApiView()
+            let angle = try ApiOperation.rotationAngle(arguments)
+            view.willRotate()
+            view.transform = CGAffineTransform(rotationAngle: angle)
+            view.setNeedsLayout(); view.layoutIfNeeded()
+            view.didRotate()
+            return "Rotated the current native PlayerView preview; SDK willRotate/didRotate bracketed actual view layout. Device orientation was not changed."
+        case .layoutView:
+            let view = try requireApiView(); view.setNeedsLayout(); view.layoutIfNeeded()
+            return "Requested and performed layout on the current native PlayerView. UIKit owns layoutSubviews dispatch."
         case .sourceMetadata:
             guard let source = player.source else { throw apiInputError("Load a source first.") }
             let object = try JSONSerialization.jsonObject(with: Data(json.utf8), options: [.fragmentsAllowed])

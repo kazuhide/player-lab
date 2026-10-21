@@ -18,6 +18,13 @@ extension PlayerModel {
         put("PlayerFactory.sdkVersion", PlayerFactory.sdkVersion)
         put("PlayerCoreFactory.sdkVersion", PlayerCoreFactory.sdkVersion)
         put("Presentation.host", presentation.rawValue)
+        put("Player.factory", nativePlayerFactory.rawValue)
+        put("EventSubscription.transport", apiEventTransport.rawValue)
+        put("DebugConfig.logging", "Global SDK logging configuration")
+        put("LoggingConfig.logger", DebugConfig.logging.logger.map { $0 is ConsoleLogger ? "ConsoleLogger" : $0 is NativeGuiLogger ? "Editable JavaScript Logger" : "Other Logger" } ?? "nil; logging disabled")
+        put("Logger.level", DebugConfig.logging.logger.map { String($0.level.rawValue) } ?? "No logger")
+        put("ConsoleLogger.level", "Inspector-owned ConsoleLogger: \(apiObjects.consoleLogger.level.rawValue)")
+        if let logger = DebugConfig.logging.logger as? NativeGuiLogger { put("Logger.safeSummary", logger.summary) }
         put("Presentation.registeredLayer", String(apiObjects.presentationRegistration.layer?.player != nil))
         put("Presentation.registeredController", String(apiObjects.presentationRegistration.controller?.player != nil))
         if presentation == .sdkBindings {
@@ -71,6 +78,7 @@ extension PlayerModel {
         put("ThumbnailsApi.container", player.thumbnails.container.map { "UIView \(ObjectIdentifier($0).hashValue); frame=\($0.frame)" } ?? "Not attached")
         put("ImaAdsManager.adCuePoints", playerCallbackJournal.adsManager.map { String(describing: $0.adCuePoints) } ?? "No current IMA ads manager")
         put("SubtitleTrackController.manualCues", "\(apiObjects.enteredCues.count) retained cues on the current source")
+        put("FairplayLicenseAcquiredEvent.retainedRequests", apiObjects.acquiredLicenses.enumerated().filter { $0.element.source === player.source }.map { "\($0.offset): actual current-source request; URL and key data omitted" }.joined(separator: "\n"))
         put("CueParsedEvent.retainedCues", apiObjects.parsedCues.enumerated().map { "\($0.offset): \($0.element.startTime)–\($0.element.endTime)s; VTT=\($0.element.vtt != nil)" }.joined(separator: "\n"))
         put("Player.ads", "Active ad: \(player.ads.activeAd != nil); active break: \(player.ads.activeAdBreak != nil)")
         put("AdvertisingApi.activeAd", player.ads.activeAd == nil ? "None" : "Present")

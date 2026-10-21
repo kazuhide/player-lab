@@ -46,6 +46,33 @@ final class NativePresentationRuntimeTests: XCTestCase {
         print("Native presentation qualification: SwiftUI PiP enabled/availability and scaling bindings reached the actual SDK view; PiP activation requires platform availability")
     }
 
+    func testFactorySelectionAndPublisherSubscriptionsUseActualSdkInstances() async throws {
+        let model = PlayerModel(licenseKey: bitmovinLicenseKey())
+        model.setApiEventTransport(.publisher)
+        var draft = model.configurationDraft; draft.sourceURL = "https://kazuhide.github.io/player-lab/web/media/vod-multiaudio/master.m3u8"; draft.autoplay = true
+        try model.apply(draft); model.setPresentation(.playerView)
+        let (window, host) = try show(model)
+        defer { model.player.destroy(); window.isHidden = true; _ = host }
+        try await eventually("publisher playback and source events") {
+            model.player.currentTime > 0.5 && model.apiEvents.contains { $0.api == "BitmovinPlayerCore.ReadyEvent" && $0.owner == "Player" } && model.apiEvents.contains { $0.api == "BitmovinPlayerCore.SourceLoadedEvent" && $0.owner == "Source" }
+        }
+        try model.executeApi(.viewScaling, arguments: ["value": "zoom"])
+        try await eventually("view publisher") { model.apiEvents.contains { $0.api == "BitmovinPlayerCore.ScalingModeChangedEvent" && $0.owner == "Player view" } }
+        model.setApiEventRecording(false); model.clearApiEvents(); model.player.pause()
+        try await Task.sleep(nanoseconds: 200_000_000)
+        XCTAssertTrue(model.apiEvents.isEmpty)
+        model.setApiEventRecording(true); model.player.play()
+        try await eventually("publisher reattachment") { model.apiEvents.contains { $0.api == "BitmovinPlayerCore.PlayingEvent" && $0.owner == "Player" } }
+        for factory in [NativePlayerFactory.core, .legacy, .standard] {
+            let previous = model.player
+            model.setNativePlayerFactory(factory)
+            XCTAssertTrue(previous.isDestroyed)
+            try await eventually("selected factory playback") { model.player.currentTime > 0.5 && model.apiPlayerView?.player === model.player }
+            XCTAssertEqual(model.nativePlayerFactory, factory)
+        }
+        print("Native presentation qualification: both PlayerEventsApi generic overloads, source/view Combine subscriptions, cancellation/rebind and Core/legacy/default factory playback passed")
+    }
+
     private func makeModel() throws -> PlayerModel {
         let key = bitmovinLicenseKey(); XCTAssertFalse(key.isEmpty)
         let model = PlayerModel(licenseKey: key)

@@ -5,6 +5,8 @@ import BitmovinPlayer
 extension ApiOperation {
     var callbackArguments: [ApiArgument] {
         switch self {
+        case .loggerLog, .consoleLoggerLog:
+            return [.init("json", "Log entry", .json(initial: "{\"message\":\"Example message\",\"level\":\"warning\",\"sender\":\"Player Lab\"}"), note: "Fields: message, level, sender, optional integer code, ISO 8601 date and data:{domain,code,message,userInfo}. Uses the current global Logger or the inspector's owned ConsoleLogger.")] + (self == .consoleLoggerLog ? [.init("minimumLevel", "ConsoleLogger minimum level", .choice(["verbose", "info", "warning", "error"]), initial: "warning")] : [])
         case .macroPreview, .interstitialMacroPreview:
             return [.init("name", "Macro name", .text), .init("values", "Macro values", .json(initial: "[]"), note: "An array of strings. The inspector creates the public SDK macro object and calls the currently configured provider.")] + (self == .macroPreview ? [.init("scope", "Macro scope", .choice(["requestUri", "tracking"]))] : [])
         case .trackingRegister, .trackingRegisterMultiple:
@@ -19,12 +21,16 @@ extension ApiOperation {
         case .messageSend, .messageSendWithData:
             return [.init("message", "Message name", .text)] + (self == .messageSendWithData ? [.init("data", "Message data (empty sends nil)", .text)] : [])
         #endif
-        default: return televisionArguments
+        default: return televisionArguments + remoteArguments
         }
     }
 
     func callbackCode(_ values: [String: String]) throws -> String {
         switch self {
+        case .loggerLog, .consoleLoggerLog:
+            let entry = try NativeLogEntryDraft(values["json"] ?? "{}")
+            if self == .loggerLog { return "DebugConfig.logging.logger?.log(\(entry.code))" }
+            return "let logger = ConsoleLogger()\nlogger.level = .\(values["minimumLevel"] ?? "warning")\nlogger.log(\(entry.code))"
         case .macroPreview, .interstitialMacroPreview:
             let array = try Self.macroValues(values["values"] ?? "[]")
             let type = self == .macroPreview ? "VastMacro" : "InterstitialMacro"
@@ -49,7 +55,7 @@ extension ApiOperation {
             let data = values["data"] ?? ""
             return "webMessageHandler.sendMessage(\(swiftString(values["message"] ?? "")), withData: \(data.isEmpty ? "nil" : swiftString(data)))"
         #endif
-        default: return try televisionCode(values)
+        default: return try remoteCode(values)
         }
     }
 
@@ -69,6 +75,15 @@ extension PlayerModel {
     @MainActor
     func executeCallbackApi(_ operation: ApiOperation, arguments: [String: String]) throws -> String {
         switch operation {
+        case .loggerLog, .consoleLoggerLog:
+            let entry = try NativeLogEntryDraft(arguments["json"] ?? "{}").entry
+            if operation == .loggerLog {
+                guard let logger = DebugConfig.logging.logger else { throw callbackInputError("Enable a global logger in LoggingConfig.logger first.") }
+                logger.log(entry)
+            } else {
+                apiObjects.consoleLogger.level = NativeLoggingOwner.level(arguments["minimumLevel"] ?? "warning")!
+                apiObjects.consoleLogger.log(entry)
+            }
         case .macroPreview, .interstitialMacroPreview:
             let name = arguments["name"] ?? "", values = try ApiOperation.macroValues(arguments["values"] ?? "[]")
             if operation == .macroPreview {
@@ -110,7 +125,7 @@ extension PlayerModel {
             if operation == .messageSend { handler.sendMessage(message) }
             else { let data = arguments["data"] ?? ""; handler.sendMessage(message, withData: data.isEmpty ? nil : data) }
         #endif
-        default: return try executeTelevisionApi(operation, arguments: arguments)
+        default: return try executeRemoteApi(operation, arguments: arguments)
         }
         return operation.rawValue + " invoked. Inspect SDK state and events; invocation does not establish delivery or playback."
     }

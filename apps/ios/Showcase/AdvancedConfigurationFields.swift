@@ -59,7 +59,7 @@ private struct AdvancedConfigurationFieldView: View {
             #if os(tvOS)
             .pickerStyle(.inline)
             #endif
-        case .text, .url, .number:
+        case .text, .url, .number, .nonPositiveNumber:
             TextField("Value", text: value)
                 .disableAutocorrection(true)
                 #if !os(tvOS)
@@ -79,8 +79,9 @@ private struct AdvancedConfigurationFieldView: View {
                 .frame(minHeight: 112).textInputAutocapitalization(.never).disableAutocorrection(true)
             #endif
         case .script:
-            Text("JavaScript function body; input contains the callback arguments.")
+            Text("Function body for a JavaScript subset. input contains the arguments; storage is shared by this player, source or view. Use let or const. CPU, elapsed-time and value-size limits apply; failures use the documented fallback.")
                 .font(.caption).foregroundStyle(.secondary)
+            Link("Supported syntax and limits", destination: URL(string: "https://github.com/kazuhide/player-lab/blob/main/apps/ios/Showcase/NativeScripts/README.md")!).font(.caption)
             #if os(tvOS)
             TextField("Function body", text: value).disableAutocorrection(true)
             #else

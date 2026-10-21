@@ -21,7 +21,7 @@ extension AdvancedConfiguration {
     func applyNativeViewCallbacks(to config: PlayerViewConfig, journal: NativeCallbackJournal?) {
         let id = "PictureInPictureConfig.restoreUserInterfaceHandler-swift.property"
         guard let body = values[id] else { return }
-        let runtime = NativeScriptRuntime(sources: [id: body], journal: journal)
+        let runtime = journal?.runtime(sources: [id: body], owner: "view") ?? NativeScriptRuntime(sources: [id: body])
         config.pictureInPictureConfig.restoreUserInterfaceHandler = { completion in
             completion(runtime.call(id, input: [:], fallback: false, convert: NativeScriptRuntime.boolean))
         }
@@ -29,7 +29,7 @@ extension AdvancedConfiguration {
 
     func applyNativeUiCallbacks(to config: PlayerConfig, journal: NativeCallbackJournal?) {
         let sources = callbackSources(owner: .player)
-        let runtime = NativeScriptRuntime(sources: sources, journal: journal)
+        let runtime = journal?.runtime(sources: sources, owner: "player") ?? NativeScriptRuntime(sources: sources)
         #if os(tvOS)
         let id = "SystemUserInterfaceConfig.timeToSeekAfterUserSeeked"
         if sources[id] != nil, let ui = config.styleConfig.userInterfaceConfig as? SystemUserInterfaceConfig {

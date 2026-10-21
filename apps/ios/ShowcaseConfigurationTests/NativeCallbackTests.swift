@@ -19,7 +19,7 @@ final class NativeCallbackTests: XCTestCase {
         let config = applied.source.makeSourceConfig(callbackJournal: journal)
         let fairplay = try XCTUnwrap(config.drmConfig as? FairplayConfig)
         XCTAssertEqual(fairplay.prepareContentId?("abc"), "asset:ABC")
-        XCTAssertEqual(fairplay.prepareMessage?(Data([1, 254]), "id"), Data([3, 1]))
+        XCTAssertEqual(fairplay.prepareMessage?(Data([1, 254]), "id"), Data([3, 1]), "\(journal.snapshot)")
         XCTAssertEqual(fairplay.prepareLicenseServerUrl?("https://example.com/old"), "https://example.com/new")
         let information = try XCTUnwrap(fairplay.prepareOfflineDrmLicenseInformation?(Data([1, 2, 3])))
         XCTAssertEqual(information.licenseDuration, 180)
@@ -32,7 +32,14 @@ final class NativeCallbackTests: XCTestCase {
         applied.player.apply(to: player, callbackJournal: journal)
         XCTAssertEqual(player.playbackConfig.isForcedSubtitleCallback?(subtitle), true)
         XCTAssertEqual(journal.snapshot.count, 7)
-        XCTAssertTrue(journal.snapshot.allSatisfy { $0.value.contains("failures: 0") })
+        let sourceRuntime = journal.runtime(sources: applied.source.advanced.callbackSources(owner: .source), owner: "source")
+        let metrics = sourceRuntime.metricsSnapshot()
+        XCTAssertFalse(metrics.isEmpty)
+        XCTAssertTrue(metrics.values.allSatisfy { $0["cpuMs"] != nil && $0["wallMs"] != nil })
+        let measurement = XCTAttachment(data: try JSONSerialization.data(withJSONObject: metrics, options: [.sortedKeys, .prettyPrinted]), uniformTypeIdentifier: "public.json")
+        measurement.name = "native-callback-metrics.json"; measurement.lifetime = .keepAlways; add(measurement)
+        if journal.snapshot.contains(where: { !$0.value.contains("failures: 0") }) { print("Callback interpreter trusted metrics: \(metrics)") }
+        XCTAssertTrue(journal.snapshot.allSatisfy { $0.value.contains("failures: 0") }, "\(journal.snapshot)")
         attachCode(configurationCode(source: applied.source, player: applied.player, uiMode: .default), name: "native-callbacks.swift")
     }
 
@@ -99,7 +106,7 @@ final class NativeCallbackTests: XCTestCase {
             XCTAssertEqual(result.url.query, "example=1")
         }
         XCTAssertEqual(delegated, 1)
-        XCTAssertTrue(journal.snapshot.allSatisfy { $0.value.contains("failures: 0") })
+        XCTAssertTrue(journal.snapshot.allSatisfy { $0.value.contains("failures: 0") }, "\(journal.snapshot)")
         attachCode(configurationCode(source: applied.source, player: applied.player, uiMode: .default), name: "native-network.swift")
     }
 
@@ -140,6 +147,50 @@ final class NativeCallbackTests: XCTestCase {
         XCTAssertNil(other.provideLicenseData?("asset"))
     }
     #endif
+
+    func testOwnerSourceLimitsFailBeforeAnySdkCallbackIsConstructed() throws {
+        XCTAssertThrowsError(try NativeScriptRuntime.validateSources(Dictionary(uniqueKeysWithValues: (0..<129).map { ("callback\($0)", "return true;") })))
+        let body = "/*" + String(repeating: " ", count: 65_500) + "*/ return true;"
+        XCTAssertThrowsError(try NativeScriptRuntime.validateSources(Dictionary(uniqueKeysWithValues: (0..<17).map { ("callback\($0)", body) })))
+    }
+
+    func testEditedByteAndStringMapsReturnNativeBridgeValues() throws {
+        let runtime = NativeScriptRuntime(sources: [
+            "bytes": "return input.bytes.map((byte, index) => (byte + index + input.assetId.length) % 256);",
+            "strings": "return input.values.map(value => 'tracking:' + value);",
+        ])
+        let bytes = try runtime.evaluate("bytes", input: ["bytes": [1, 254], "assetId": "id"])
+        XCTAssertEqual(NativeScriptRuntime.data(bytes), Data([3, 1]))
+        let sdkBytes = try runtime.evaluate("bytes", input: AdvancedConfiguration.dataInput(Data([1, 254]), assetId: "id"))
+        XCTAssertEqual(NativeScriptRuntime.data(sdkBytes), Data([3, 1]))
+        let strings = try runtime.evaluate("strings", input: ["values": ["a", "b"]])
+        XCTAssertEqual(NativeScriptRuntime.strings(strings), ["tracking:a", "tracking:b"])
+        XCTAssertNotNil(runtime.metricsSnapshot()["strings"]?["cpuMs"], "The actual native thread CPU clock must be connected to the trusted interpreter")
+    }
+
+    func testBoundedInterpreterRejectsHostAccessAndTerminatesLoopsWithStorageRollback() throws {
+        XCTAssertThrowsError(try NativeScriptRuntime.validate("return /example/.test(input.text);", id: "regex"))
+        let journal = NativeCallbackJournal()
+        let runtime = NativeScriptRuntime(sources: [
+            "save": "storage.counter = 3; return storage.counter;",
+            "loop": "storage.counter = 99; try { while (true) {} } catch (e) { return 123; } finally { storage.counter = 100; }",
+            "read": "return storage.counter;",
+            "host": "return globalThis;",
+        ], journal: journal)
+        XCTAssertEqual(runtime.call("save", input: [:], fallback: -1, convert: NativeScriptRuntime.number), 3)
+        let started = Date()
+        XCTAssertEqual(runtime.call("loop", input: [:], fallback: -1, convert: NativeScriptRuntime.number), -1)
+        XCTAssertLessThan(Date().timeIntervalSince(started), 2)
+        XCTAssertEqual(runtime.call("read", input: [:], fallback: -1, convert: NativeScriptRuntime.number), 3)
+        XCTAssertEqual(runtime.call("host", input: [:], fallback: -1, convert: NativeScriptRuntime.number), -1)
+        XCTAssertTrue(journal.snapshot.first(where: { $0.id == "loop" })?.value.contains("failures: 1") == true)
+        let generated = NativeScriptRuntime.codePreamble(["loop": "while (true) {}"], name: "bounded").joined(separator: "\n")
+        XCTAssertTrue(generated.contains("PlayerLabScriptEngine"))
+        XCTAssertTrue(generated.contains("Bundle.main.url(forResource:"))
+        XCTAssertTrue(generated.contains("ACORN-LICENSE.txt"))
+        XCTAssertLessThan(generated.utf8.count, 8_192, "Code examples must show configuration rather than embedding the parser implementation")
+        XCTAssertFalse(generated.contains("objectForKeyedSubscript(\"Function\")"))
+    }
 
     private func attachCode(_ code: String, name: String) {
         let attachment = XCTAttachment(data: Data(code.utf8), uniformTypeIdentifier: "public.swift-source")

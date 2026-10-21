@@ -3,6 +3,16 @@ import BitmovinPlayer
 import XCTest
 
 final class NativeExtendedApiTests: XCTestCase {
+    func testNativeRotationUsesFiniteUserAnglesAndPublicViewLifecycleCalls() throws {
+        XCTAssertEqual(try ApiOperation.rotationAngle(["degrees": "450"]), .pi / 2, accuracy: 0.00001)
+        XCTAssertThrowsError(try ApiOperation.rotationAngle(["degrees": "nan"]))
+        XCTAssertThrowsError(try ApiOperation.renewFairplay.code(arguments: ["index": "-1"]))
+        let code = try ApiOperation.rotateView.code(arguments: ["degrees": "90"])
+        XCTAssertTrue(code.contains("playerView.willRotate()")); XCTAssertTrue(code.contains("playerView.didRotate()"))
+        let attachment = XCTAttachment(data: Data(("import UIKit\nimport BitmovinPlayer\n@MainActor func apply(playerView: PlayerView) {\n" + code + "\n}").utf8), uniformTypeIdentifier: "public.swift-source")
+        attachment.name = "native-view-rotation.swift"; attachment.lifetime = .keepAlways; add(attachment)
+    }
+
     func testOperationCodeBuildsTypedSubtitlesStylesAndAdItems() throws {
         let subtitle = try ApiOperation.subtitleAdd.code(arguments: ["json": "{\"identifier\":\"manual\",\"url\":null,\"language\":\"en\"}"])
         XCTAssertTrue(subtitle.contains("SubtitleTrack(url: nil"))

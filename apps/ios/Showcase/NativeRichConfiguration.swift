@@ -7,7 +7,7 @@ extension AdvancedConfiguration {
         var fields: [AdvancedConfigurationField] = [
             .init("PlayerConfig.key", .player, "key", .secret, "Optional local Player license override. A value is required when enabled. The value is kept in memory and excluded from exported code."),
             .init("PlaybackConfig.isPictureInPictureEnabled", .player, "playbackConfig.isPictureInPictureEnabled", .boolean, "Deprecated SDK setting. Prefer PlayerViewConfig.pictureInPictureConfig.isEnabled."),
-            .init("LiveConfig.minTimeshiftBufferDepth", .player, "liveConfig.minTimeshiftBufferDepth", .number(minimum: 0), "Deprecated player-level setting in seconds. Prefer SourceLiveConfig.minTimeshiftBufferDepth."),
+            .init("LiveConfig.minTimeshiftBufferDepth", .player, "liveConfig.minTimeshiftBufferDepth", .nonPositiveNumber, "Deprecated player-level setting in seconds. Prefer SourceLiveConfig.minTimeshiftBufferDepth."),
             .init("ClearKeyConfig.decryptionKeys", .source, "drmConfig.decryptionKeys", .json(initial: "[]"), "Array of {key: hexadecimal content key, kid: optional hexadecimal key identifier}. Select ClearKey first. Values remain local; exported keys are placeholders. Can be combined with the single-key fields."),
         ]
         for owner in ["WidevineConfig", "PlayReadyConfig"] {

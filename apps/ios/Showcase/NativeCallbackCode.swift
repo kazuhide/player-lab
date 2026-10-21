@@ -13,6 +13,8 @@ extension AdvancedConfiguration {
             lines += nativeAdvertisingCallbackCode(sources: sources, name: name)
             lines += nativeUiCallbackCode(sources: sources, name: name)
             lines += nativeInterstitialCode(sources: sources, name: name)
+            lines += nativeLoggingCallbackCode(sources: sources, name: name)
+            lines += nativeRemoteCode(sources: sources, name: name)
             if sources["PlaybackConfig.isForcedSubtitleCallback"] != nil {
                 lines += ["playerConfig.playbackConfig.isForcedSubtitleCallback = { track in",
                     "    \(name)(\"PlaybackConfig.isForcedSubtitleCallback\", \(subtitleInputCode)) as? Bool ?? track.isForced", "}"]
@@ -66,21 +68,7 @@ extension AdvancedConfiguration {
     }
 
     private func scriptPreamble(_ sources: [String: String], name: String) -> [String] {
-        let definitions = sources.isEmpty ? "[:]" : "[" + sources.keys.sorted().map { swiftString($0) + ": " + swiftString(sources[$0]!) }.joined(separator: ", ") + "]"
-        return [
-            "// Keep this context alive with the player/source; its callbacks share in-memory storage.",
-            "let \(name)Lock = NSRecursiveLock()",
-            "let \(name)Context = JSContext()!",
-            "\(name)Context.evaluateScript(\"globalThis.storage = Object.create(null);\")",
-            "let \(name)Definitions: [String: String] = \(definitions)",
-            "let \(name)Functions = \(name)Definitions.mapValues { body in \(name)Context.objectForKeyedSubscript(\"Function\")!.construct(withArguments: [\"input\", body])! }",
-            "let \(name): (String, [String: Any]) -> Any? = { id, input in",
-            "    \(name)Lock.lock(); defer { \(name)Lock.unlock() }",
-            "    \(name)Context.exception = nil",
-            "    let result = \(name)Functions[id]?.call(withArguments: [input])",
-            "    guard \(name)Context.exception == nil, let result, !result.isNull, !result.isUndefined else { return nil }",
-            "    return result.toObject()",
-            "}",
+        return NativeScriptRuntime.codePreamble(sources, name: name) + [
             "func \(name)Data(_ value: Any?) -> Data? {",
             "    if let base64 = value as? String { return Data(base64Encoded: base64) }",
             "    if let object = value as? [String: Any], let text = object[\"utf8\"] as? String { return Data(text.utf8) }",

@@ -22,14 +22,14 @@ extension AdvancedConfiguration {
             .init("FairplayConfig.provideLicenseData", .source, "drmConfig.provideLicenseData", .script(initial: "return storage[input.assetId] ?? null;"), "input.assetId identifies the asset. Return base64, bytes, {utf8: text}, or null. Errors return nil. storage is in memory, so it does not survive restarting the app."),
         ]
         #endif
-        return fields + nativeNetworkFields + nativeAdvertisingCallbacks + nativeUiCallbackFields + nativeInterstitialFields
+        return fields + nativeNetworkFields + nativeAdvertisingCallbacks + nativeUiCallbackFields + nativeInterstitialFields + nativeLoggingCallbacks + nativeRemoteCallbacks
     }
 
     static func nativeCallbackSource(_ source: String, id: String) -> String {
         // Preserve the earlier example selectors while storing editable function bodies.
         switch (id, source) {
         case ("FairplayConfig.prepareContentId", "identity"): return "return input.contentId;"
-        case ("FairplayConfig.prepareContentId", "removeSkdScheme"): return "return input.contentId.replace(/^skd:\\/\\//i, '');"
+        case ("FairplayConfig.prepareContentId", "removeSkdScheme"): return "return input.contentId.toLowerCase().startsWith('skd://') ? input.contentId.slice(6) : input.contentId;"
         case ("FairplayConfig.prepareLicenseServerUrl", _):
             if source.isEmpty { return "return input.url;" }
             if URL(string: source)?.scheme != nil { return "return \(swiftString(source));" }
@@ -39,7 +39,7 @@ extension AdvancedConfiguration {
             switch source {
             case "identity": return "return input.base64;"
             case "base64": return "return {utf8: input.base64};"
-            case "formSpc": return "return {utf8: 'spc=' + encodeURIComponent(input.base64).replace(/%2F/g, '/') + '&assetId=' + encodeURIComponent(input.assetId)};"
+            case "formSpc": return "return {utf8: 'spc=' + encodeURIComponent(input.base64).split('%2F').join('/') + '&assetId=' + encodeURIComponent(input.assetId)};"
             case "jsonSpc": return "return {utf8: JSON.stringify({spc: input.base64, assetId: input.assetId})};"
             default: break
             }
@@ -66,7 +66,7 @@ extension AdvancedConfiguration {
     func applyNativeSourceCallbacks(to config: SourceConfig, journal: NativeCallbackJournal?) {
         let sources = callbackSources(owner: .source)
         guard !sources.isEmpty else { return }
-        let runtime = NativeScriptRuntime(sources: sources, journal: journal)
+        let runtime = journal?.runtime(sources: sources, owner: "source") ?? NativeScriptRuntime(sources: sources)
         if sources["LabelingConfig.audioLabel"] != nil {
             config.labelingConfig.audioLabel = { track in
                 runtime.call("LabelingConfig.audioLabel", input: Self.audioInput(track), fallback: track.label, convert: NativeScriptRuntime.string)
@@ -125,7 +125,7 @@ extension AdvancedConfiguration {
     func applyNativePlayerCallbacks(to config: PlayerConfig, journal: NativeCallbackJournal?) {
         let sources = callbackSources(owner: .player)
         guard !sources.isEmpty || values.keys.contains(where: { $0.hasPrefix("ImaSettings.") }) || values["InterstitialsConfig.CustomAttributesMappingPresets.adCreativeSignaling"] == "true" else { return }
-        let runtime = NativeScriptRuntime(sources: sources, journal: journal)
+        let runtime = journal?.runtime(sources: sources, owner: "player") ?? NativeScriptRuntime(sources: sources)
         if sources["PlaybackConfig.isForcedSubtitleCallback"] != nil {
             config.playbackConfig.isForcedSubtitleCallback = { track in
                 runtime.call("PlaybackConfig.isForcedSubtitleCallback", input: Self.subtitleInput(track), fallback: track.isForced, convert: NativeScriptRuntime.boolean)
@@ -134,6 +134,7 @@ extension AdvancedConfiguration {
         applyNetworkCallbacks(to: config.networkConfig, runtime: runtime, sources: sources, journal: journal)
         applyAdvertisingCallbacks(to: config.advertisingConfig, runtime: runtime, sources: sources, journal: journal)
         applyInterstitialCallbacks(to: config.interstitialsConfig, runtime: runtime, sources: sources, journal: journal)
+        applyNativeRemoteCallback(to: config, runtime: runtime, sources: sources)
     }
 
     static func dataInput(_ data: Data, assetId: String? = nil) -> [String: Any] {

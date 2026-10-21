@@ -37,6 +37,12 @@ struct ApiInspector: View {
             .accessibilityIdentifier("api.pane")
             Form {
                 Section(header: Text("Player view host")) {
+                    Picker("Player factory", selection: Binding(get: { model.nativePlayerFactory }, set: { model.setNativePlayerFactory($0) })) {
+                        ForEach(NativePlayerFactory.allCases) { Text($0.rawValue).tag($0) }
+                    }
+                    .accessibilityIdentifier("api.factory")
+                    Text("Changing factories recreates the player. The default factory attaches Analytics when configured; the Core and deprecated factories create a player without that wrapper.")
+                        .font(.caption).foregroundStyle(.secondary)
                     Picker("Presentation", selection: Binding(get: { model.presentation }, set: { model.setPresentation($0) })) {
                         ForEach(NativePresentation.allCases) { Text($0.rawValue).tag($0) }
                     }
@@ -61,6 +67,7 @@ struct ApiInspector: View {
                     if model.presentation == .playerController { Toggle("Show AVKit playback controls", isOn: $model.nativeControlsShown) }
                     Toggle("Show presentation code", isOn: $showsPresentationCode)
                     if showsPresentationCode { Text(model.presentation.code).font(.system(.caption, design: .monospaced)) }
+                    if showsPresentationCode { Text(model.nativePlayerFactory.code).font(.system(.caption, design: .monospaced)) }
                 }
                 if pane == .operations {
                   Section(header: Text("SDK operation")) {
@@ -99,6 +106,7 @@ struct ApiInspector: View {
                             #endif
                     }
                   }
+                  NativeSharePlayControls(model: model, workbench: model.sharePlayWorkbench)
                 }
                 if pane == .state {
                   Section(header: Text("SDK state")) {
@@ -122,6 +130,10 @@ struct ApiInspector: View {
                 }
                 if pane == .events {
                   Section(header: Text("SDK events")) {
+                    Picker("Subscription transport", selection: Binding(get: { model.apiEventTransport }, set: { model.setApiEventTransport($0) })) {
+                        ForEach(NativeEventTransport.allCases) { Text($0.rawValue).tag($0) }
+                    }
+                    .accessibilityIdentifier("api.events.transport")
                     Toggle("Record typed SDK callbacks", isOn: Binding(get: { model.apiEventsEnabled }, set: { model.setApiEventRecording($0) }))
                         .accessibilityIdentifier("api.events.enabled")
                     TextField("Filter event name or owner", text: $eventFilter)
@@ -192,6 +204,10 @@ struct ApiInspector: View {
                     .textInputAutocapitalization(.never).disableAutocorrection(true)
                     .accessibilityIdentifier("api.argument.\(argument.id)")
                 #endif
+                if case .script = argument.input {
+                    Text("This function uses a JavaScript subset with CPU, elapsed-time and value-size limits. Use let or const; no network or native object access is exposed.").font(.caption).foregroundStyle(.secondary)
+                    Link("Supported syntax and limits", destination: URL(string: "https://github.com/kazuhide/player-lab/blob/main/apps/ios/Showcase/NativeScripts/README.md")!).font(.caption)
+                }
                 if !argument.note.isEmpty { Text(argument.note).font(.caption).foregroundStyle(.secondary) }
             }
         default:

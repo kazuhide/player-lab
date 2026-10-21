@@ -18,6 +18,7 @@ final class NativeExtendedRuntimeTests: XCTestCase {
         draft.sourceURL = "https://kazuhide.github.io/player-lab/web/media/vod-multiaudio/master.m3u8"
         draft.autoplay = true
         draft.subtitleMode = .off
+        draft.advancedValues = ["LabelingConfig.audioLabel": "return 'SDK: ' + input.label;"]
         try model.apply(draft)
         let view = PlayerView(player: model.player, frame: CGRect(x: 0, y: 0, width: 320, height: 180))
         model.attachApiView(view)
@@ -28,6 +29,16 @@ final class NativeExtendedRuntimeTests: XCTestCase {
         window.rootViewController = controller; window.windowLevel = .alert + 1; window.makeKeyAndVisible()
         defer { model.detachApiView(view); view.player = nil; model.player.destroy(); window.isHidden = true }
         try await eventually("content playback") { model.player.currentTime > 0.5 && !model.player.availableSubtitles.isEmpty }
+        XCTAssertTrue(model.player.availableAudio.allSatisfy { $0.label.hasPrefix("SDK: ") }, "The real SDK audio-label callback must execute through the bounded native interpreter")
+        let callback = try XCTUnwrap(model.sourceCallbackJournal.snapshot.first { $0.id == "LabelingConfig.audioLabel" })
+        XCTAssertTrue(callback.value.contains("failures: 0"))
+        try model.executeApi(.rotateView, arguments: ["degrees": "90"])
+        XCTAssertEqual(view.transform.a, 0, accuracy: 0.00001)
+        XCTAssertEqual(view.transform.b, 1, accuracy: 0.00001)
+        try model.executeApi(.rotateView, arguments: ["degrees": "0"])
+        XCTAssertTrue(view.transform.isIdentity)
+        try model.executeApi(.layoutView, arguments: [:])
+        XCTAssertThrowsError(try model.executeApi(.renewFairplay, arguments: ["index": "0"]), "An unencrypted source provides no actual license request; do not fabricate one")
         try model.executeApi(.sharePlayBegin, arguments: ["reason": "native-qualification"])
         XCTAssertEqual(model.apiObjects.sharePlaySuspensions.count, 1)
         XCTAssertEqual(model.apiObjects.sharePlaySuspensions[0].suspension.reason.rawValue, "native-qualification")
@@ -67,6 +78,11 @@ final class NativeExtendedRuntimeTests: XCTestCase {
         try model.executeApi(.cueEnter, arguments: ["track": "manual-qualification", "json": "{\"startTime\":0,\"endTime\":30,\"text\":\"Manual API qualification\"}"])
         try await eventually("actual CueEnterEvent") { model.apiEvents.contains { $0.api == "BitmovinPlayerCore.CueEnterEvent" } }
         XCTAssertEqual(model.apiObjects.enteredCues.count, 1)
+        model.setApiEventRecording(false)
+        XCTAssertEqual(model.apiObjects.enteredCues.count, 1, "Changing event recording must not retire active source resources")
+        model.setApiEventRecording(true)
+        model.setApiEventTransport(.publisher)
+        XCTAssertEqual(model.apiObjects.enteredCues.count, 1, "Changing event transport must retain the exact controller and cue for cueExit")
         try model.executeApi(.cueExit, arguments: ["track": "manual-qualification"])
         try await eventually("actual CueExitEvent") { model.apiEvents.contains { $0.api == "BitmovinPlayerCore.CueExitEvent" } }
         XCTAssertTrue(model.apiObjects.enteredCues.isEmpty)

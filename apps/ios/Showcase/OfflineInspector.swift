@@ -65,7 +65,10 @@ struct OfflineInspector: View {
                     .accessibilityIdentifier("offline.operation")
                     if operation == .migrate {
                         input("Remote asset URL for migration", value: $workbench.migrationUrl, id: "offline.migration.url")
-                        input("Resource identifier prefix (blank preserves identifier)", value: $workbench.migrationIdentifierPrefix, id: "offline.migration.prefix")
+                        Text("Resource identifier callback").font(.caption)
+                        TextEditor(text: $workbench.migrationScript).font(.system(.caption, design: .monospaced)).frame(minHeight: 100)
+                            .accessibilityIdentifier("offline.migration.callback")
+                        Text("input.identifier and input.url are strings. Return a replacement identifier; errors preserve the original. Callbacks use the bounded plain-value script interpreter.").font(.caption).foregroundStyle(.secondary)
                     }
                     Button("Run offline API") { perform { try workbench.run(operation) } }
                         .accessibilityIdentifier("offline.run")

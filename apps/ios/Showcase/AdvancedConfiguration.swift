@@ -6,12 +6,13 @@ enum ConfigurationOwner: String, CaseIterable {
 }
 
 enum ConfigurationInput {
-    case boolean, number(minimum: Double), text, secret, url, choice([String]), script(initial: String), json(initial: String)
+    case boolean, number(minimum: Double), nonPositiveNumber, text, secret, url, choice([String]), script(initial: String), json(initial: String)
 
     var initial: String {
         switch self {
         case .boolean: return "false"
         case .number(let minimum): return String(minimum)
+        case .nonPositiveNumber: return "0"
         case .text, .secret, .url: return ""
         case .choice(let choices): return choices[0]
         case .script(let source), .json(let source): return source
@@ -27,6 +28,9 @@ enum ConfigurationInput {
             guard let number = Double(value), number.isFinite, number >= minimum else {
                 throw invalid(field, "must be a finite number greater than or equal to \(minimum)")
             }
+            return String(number)
+        case .nonPositiveNumber:
+            guard let number = Double(value), number.isFinite, number <= 0 else { throw invalid(field, "must be finite and zero or negative seconds") }
             return String(number)
         case .choice(let choices):
             guard choices.contains(value) else { throw invalid(field, "must be one of \(choices.joined(separator: ", "))") }
@@ -49,7 +53,7 @@ enum ConfigurationInput {
 
     func code(_ value: String) -> String {
         switch self {
-        case .boolean, .number: return value
+        case .boolean, .number, .nonPositiveNumber: return value
         case .choice: return "." + value
         case .text: return value.isEmpty ? "nil" : swiftString(value)
         case .secret: return value.isEmpty ? "nil" : "\"<LOCAL_VALUE>\""
@@ -112,6 +116,8 @@ struct AdvancedConfiguration: Equatable {
         #endif
         try validateSourceObjects()
         try validateNativeTVFields()
+        try validateNativeLogging()
+        for owner in ConfigurationOwner.allCases { try NativeScriptRuntime.validateSources(callbackSources(owner: owner)) }
     }
 
     static var fields: [AdvancedConfigurationField] {
@@ -119,7 +125,7 @@ struct AdvancedConfiguration: Equatable {
             .init("SourceConfig.sourceDescription", .source, "sourceDescription", .text),
             .init("SourceConfig.isPosterPersistent", .source, "isPosterPersistent", .boolean),
             .init("SourceLiveConfig.targetLatency", .source, "liveConfig.targetLatency", .number(minimum: 0), "Seconds; requires a live stream."),
-            .init("SourceLiveConfig.minTimeshiftBufferDepth", .source, "liveConfig.minTimeshiftBufferDepth", .number(minimum: 0), "Seconds; minimum live window for time shift."),
+            .init("SourceLiveConfig.minTimeshiftBufferDepth", .source, "liveConfig.minTimeshiftBufferDepth", .nonPositiveNumber, "Zero or negative seconds, matching the SDK maxTimeShift offset convention. SDK default is -40 seconds; disable this override to restore it."),
             .init("SourceLiveConfig.automaticallyPreservesLatency", .source, "liveConfig.automaticallyPreservesLatency", .boolean),
             .init("SourceOptions.sharePlayIdentifier", .source, "options.sharePlayIdentifier", .text, "Identifiers must match participating SharePlay sources."),
             .init("PlaybackConfig.isBackgroundPlaybackEnabled", .player, "playbackConfig.isBackgroundPlaybackEnabled", .boolean, "Background audio requires the host audio capability. tvOS supports audio-only background content."),
@@ -184,7 +190,7 @@ struct AdvancedConfiguration: Equatable {
         if #available(iOS 27, tvOS 27, *) {
             fields.append(.init("TweaksConfig.includeMachineGeneratedSubtitles", .player, "tweaksConfig.includeMachineGeneratedSubtitles", .boolean))
         }
-        return fields + Self.sourceObjectFields + Self.nativeCallbackFields + Self.nativeAdvertisingFields + Self.richFields + Self.nativeTVFields
+        return fields + Self.sourceObjectFields + Self.nativeCallbackFields + Self.nativeAdvertisingFields + Self.richFields + Self.nativeTVFields + Self.nativeLoggingFields
     }
 
     func apply(to config: SourceConfig, callbackJournal: NativeCallbackJournal? = nil) {
@@ -316,6 +322,7 @@ struct AdvancedConfiguration: Equatable {
             if Self.nativeAdvertisingFields.contains(where: { $0.id == field.id }) { continue }
             if Self.richFields.contains(where: { $0.id == field.id }) { continue }
             if Self.nativeTVFields.contains(where: { $0.id == field.id }) { continue }
+            if Self.nativeLoggingFields.contains(where: { $0.id == field.id }) { continue }
             let root = field.owner == .source ? "sourceConfig" : field.owner == .view ? "playerViewConfig" : "playerConfig"
             var path = root + "." + field.path
             if field.id.hasPrefix("SystemUserInterfaceConfig.") { path = "systemUiConfig." + field.id.components(separatedBy: ".").last! }
@@ -333,6 +340,7 @@ struct AdvancedConfiguration: Equatable {
         lines += nativeAdvertisingCode
         lines += nativeCallbackCode
         lines += nativeTVCode
+        lines += nativeLoggingCode
         if values.keys.contains(where: { $0.hasPrefix("SystemUserInterfaceConfig.") }) { lines.append("playerConfig.styleConfig.userInterfaceConfig = systemUiConfig") }
         #if !os(tvOS)
         if values.keys.contains(where: { $0.hasPrefix("BitmovinUserInterface") }) { lines.append("playerConfig.styleConfig.userInterfaceConfig = webUiConfig") }

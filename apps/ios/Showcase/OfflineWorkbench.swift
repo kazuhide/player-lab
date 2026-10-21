@@ -45,7 +45,8 @@ final class OfflineWorkbench: ObservableObject {
     @Published var insertPlaylistType = false
     @Published var restrictedToAssetCache = true
     @Published var migrationUrl = ""
-    @Published var migrationIdentifierPrefix = ""
+    @Published var migrationScript = "return input.identifier;"
+    private(set) var migrationJournal = NativeCallbackJournal()
     private(set) var manager: OfflineContentManager?
     private var listener: OfflineWorkbenchListener?
     private var restoreListener: OfflineRestoreListener?
@@ -92,6 +93,7 @@ final class OfflineWorkbench: ObservableObject {
         manager = next
         selection = nil
         tracks = []; cachedSource = nil; progress = nil; events = []
+        migrationJournal = NativeCallbackJournal()
         let listener = OfflineWorkbenchListener { [weak self, weak next] api, timestamp in
             guard let self, let next, self.generation == token, self.manager === next else { return }
             self.events.insert(.init(api: api, timestamp: timestamp, owner: "Offline asset"), at: 0)
@@ -123,12 +125,14 @@ final class OfflineWorkbench: ObservableObject {
     @MainActor
     func run(_ operation: OfflineOperation) throws {
         guard let manager else { throw invalid("Select an offline asset first.") }
+        var appliedDownloadConfig: DownloadConfig?
         switch operation {
         case .download: manager.download()
-        case .configuredDownload: manager.download(downloadConfig: try makeDownloadConfig())
+        case .configuredDownload:
+            let config = try makeDownloadConfig(); manager.download(downloadConfig: config); appliedDownloadConfig = config
         case .selectedDownload:
             guard let selection else { throw invalid("Fetch available tracks, then select their actions before downloading.") }
-            manager.download(tracks: selection, downloadConfig: try makeDownloadConfig())
+            let config = try makeDownloadConfig(); manager.download(tracks: selection, downloadConfig: config); appliedDownloadConfig = config
         case .fetchTracks: manager.fetchAvailableTracks()
         case .suspend: manager.suspendDownload()
         case .resume: manager.resumeDownload()
@@ -139,19 +143,30 @@ final class OfflineWorkbench: ObservableObject {
         case .migrate:
             let url = try ConfigurationInput.url.validate(migrationUrl, field: "Migration URL")
             guard !url.isEmpty else { throw invalid("Enter the remote asset URL to migrate.") }
-            let prefix = migrationIdentifierPrefix
-            manager.tweaks.migrateDownload(remoteAssetUrl: URL(string: url)!, resourceIdentifierCallback: { prefix + $0 })
+            let callback = try makeMigrationCallback(remoteAssetUrl: url)
+            manager.tweaks.migrateDownload(remoteAssetUrl: URL(string: url)!, resourceIdentifierCallback: callback)
         }
         let call: String
         switch operation {
         case .configuredDownload: call = "offline.download(downloadConfig: downloadConfig)"
         case .selectedDownload: call = "// Use tracks returned by AvailableTracksFetchedEvent; edit each track.action first.\noffline.download(tracks: selectedTracks, downloadConfig: downloadConfig)"
-        case .migrate: call = "offline.tweaks.migrateDownload(remoteAssetUrl: URL(string: \(swiftString(migrationUrl)))!, resourceIdentifierCallback: { \(swiftString(migrationIdentifierPrefix)) + $0 })"
+        case .migrate:
+            call = (["import JavaScriptCore"] + NativeScriptRuntime.codePreamble(["identifier": migrationScript], name: "migrationScript") + [
+                "offline.tweaks.migrateDownload(remoteAssetUrl: URL(string: \(swiftString(migrationUrl)))!, resourceIdentifierCallback: { original in",
+                "    migrationScript(\"identifier\", [\"identifier\": original, \"url\": \(swiftString(migrationUrl))]) as? String ?? original", "})"]).joined(separator: "\n")
         default: call = operation.rawValue.replacingOccurrences(of: "OfflineContentManager.", with: "offline.")
         }
-        generatedCode = ([.configuredDownload, .selectedDownload].contains(operation) ? downloadCode + "\n" : "") + call
+        generatedCode = (appliedDownloadConfig.map { Self.code(for: $0) + "\n" } ?? "") + call
         result = operation.rawValue + " invoked. Check the SDK state and completion/error events."
         refresh()
+    }
+
+    func makeMigrationCallback(remoteAssetUrl: String) throws -> (String) -> String {
+        try NativeScriptRuntime.validate(migrationScript, id: "OfflineContentManagerTweaksApi.resourceIdentifierCallback")
+        let runtime = NativeScriptRuntime(sources: ["identifier": migrationScript], journal: migrationJournal)
+        return { original in
+            runtime.call("identifier", input: ["identifier": original, "url": remoteAssetUrl], fallback: original, convert: NativeScriptRuntime.string)
+        }
     }
 
     @MainActor
@@ -240,8 +255,14 @@ final class OfflineWorkbench: ObservableObject {
         OfflineManager.sharedInstance().delegate = listener
     }
 
-    private var downloadCode: String {
-        "let downloadConfig = DownloadConfig()\ndownloadConfig.minimumBitrate = \(minimumBitrate.isEmpty ? "nil" : "NSNumber(value: UInt64(\(swiftString(minimumBitrate)))!)")\ndownloadConfig.supportClearKeyContent = \(supportClearKey)\ndownloadConfig.tweaksConfig.shouldInsertPlaylistTypeTagIfMissing = \(insertPlaylistType)"
+    @MainActor
+    var downloadCode: String {
+        guard let config = try? makeDownloadConfig() else { return "// Correct the download settings before exporting code." }
+        return Self.code(for: config)
+    }
+    private static func code(for config: DownloadConfig) -> String {
+        let bitrate = config.minimumBitrate.map { "NSNumber(value: \($0.uint64Value) as UInt64)" } ?? "nil"
+        return "let downloadConfig = DownloadConfig()\ndownloadConfig.minimumBitrate = \(bitrate)\ndownloadConfig.supportClearKeyContent = \(config.supportClearKeyContent)\ndownloadConfig.tweaksConfig.shouldInsertPlaylistTypeTagIfMissing = \(config.tweaksConfig.shouldInsertPlaylistTypeTagIfMissing)"
     }
     private func invalid(_ message: String) -> ConfigurationValidationError { .init(message: message) }
     private static func stateName(_ state: OfflineState) -> String {

@@ -2,6 +2,22 @@ import BitmovinPlayer
 import XCTest
 
 final class AdvancedConfigurationTests: XCTestCase {
+    func testMachineGeneratedSubtitlesFieldFollowsActualOsAvailability() throws {
+        let id = "TweaksConfig.includeMachineGeneratedSubtitles"
+        if #available(iOS 27, tvOS 27, *) {
+            XCTAssertTrue(AdvancedConfiguration.fields.contains { $0.id == id })
+            var draft = ConfigurationDraft(); draft.advancedValues[id] = "false"
+            let configuration = try draft.validated()
+            let player = PlayerConfig(); configuration.player.apply(to: player)
+            XCTAssertFalse(player.tweaksConfig.includeMachineGeneratedSubtitles)
+            let code = configurationCode(source: configuration.source, player: configuration.player, uiMode: .default)
+            XCTAssertTrue(code.contains("if #available(iOS 27, tvOS 27, *)"))
+            XCTAssertTrue(code.contains("includeMachineGeneratedSubtitles = false"))
+        } else {
+            XCTAssertFalse(AdvancedConfiguration.fields.contains { $0.id == id })
+        }
+    }
+
     func testFieldInventoryAndNumericCodeUseValidSwiftLiterals() throws {
         let fields = AdvancedConfiguration.fields
         XCTAssertEqual(Set(fields.map(\.id)).count, fields.count)
@@ -25,13 +41,13 @@ final class AdvancedConfigurationTests: XCTestCase {
         draft.advancedValues["SourceConfig.sourceDescription"] = "A \"quoted\" description"
         draft.advancedValues["SourceConfig.isPosterPersistent"] = "true"
         draft.advancedValues["SourceLiveConfig.targetLatency"] = "8.5"
-        draft.advancedValues["SourceLiveConfig.minTimeshiftBufferDepth"] = "12"
+        draft.advancedValues["SourceLiveConfig.minTimeshiftBufferDepth"] = "-12"
         let applied = try draft.validated()
         let source = applied.source.makeSourceConfig()
         XCTAssertEqual(source.sourceDescription, "A \"quoted\" description")
         XCTAssertTrue(source.isPosterPersistent)
         XCTAssertEqual(source.liveConfig.targetLatency, 8.5)
-        XCTAssertEqual(source.liveConfig.minTimeshiftBufferDepth, 12)
+        XCTAssertEqual(source.liveConfig.minTimeshiftBufferDepth, -12)
         let code = configurationCode(source: applied.source, player: applied.player, uiMode: .default)
         XCTAssertTrue(code.contains("sourceConfig.liveConfig.targetLatency = 8.5"))
         XCTAssertTrue(code.contains("A \\\"quoted\\\" description"))
@@ -52,6 +68,20 @@ final class AdvancedConfigurationTests: XCTestCase {
         let reset = PlayerConfig()
         try draft.validated().player.apply(to: reset)
         XCTAssertEqual(reset.tweaksConfig.timeChangedInterval, PlayerConfig().tweaksConfig.timeChangedInterval)
+    }
+
+    func testMinimumTimeshiftDepthUsesTheSdkNonPositiveOffsetContract() throws {
+        for value in ["0", "-40", "-120.5"] {
+            var draft = ConfigurationDraft(); draft.advancedValues["SourceLiveConfig.minTimeshiftBufferDepth"] = value
+            let config = try draft.validated()
+            XCTAssertEqual(config.source.makeSourceConfig().liveConfig.minTimeshiftBufferDepth, Double(value))
+            XCTAssertTrue(configurationCode(source: config.source, player: config.player, uiMode: .default).contains("minTimeshiftBufferDepth = " + String(Double(value)!)))
+            let legacy = try AdvancedConfiguration(validating: ["LiveConfig.minTimeshiftBufferDepth": value])
+            let player = PlayerConfig(); legacy.apply(to: player)
+            XCTAssertEqual(player.liveConfig.minTimeshiftBufferDepth, Double(value))
+        }
+        var invalid = ConfigurationDraft(); invalid.advancedValues["SourceLiveConfig.minTimeshiftBufferDepth"] = "1"
+        XCTAssertThrowsError(try invalid.validated())
     }
 
     func testUnknownAndMalformedAdvancedValuesFailBeforeApplyingAnything() {
