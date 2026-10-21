@@ -1169,14 +1169,15 @@ test.describe("Web app UI", () => {
         (overlay as HTMLElement).style.cssText = "position:static;display:block;transform:none;height:45px";
       }
       document.body.prepend(fixture);
-      const state = { clicks: [] as string[], playing: false, toggles: 0, seeks: 0 };
+      const state = { clicks: [] as string[], playing: false, toggles: 0, seeks: 0, targets: [] as number[], rangeAvailable: true };
       for (const button of Array.from(fixture.querySelectorAll("button"))) button.addEventListener("click", () => state.clicks.push(button.textContent!));
       const fakePlayer = {
         isPlaying: () => state.playing,
         play: () => { state.playing = true; state.toggles++; },
         pause: () => { state.playing = false; state.toggles++; },
         isLive: () => false, getCurrentTime: () => 20, getDuration: () => 100,
-        seek: () => { state.seeks++; },
+        getSeekableRange: () => state.rangeAvailable ? { start: 0, end: 100 } : undefined,
+        seek: (target: number) => { state.seeks++; state.targets.push(target); },
       } as unknown as PlayerAPI;
       installPlayerGesture(fixture, { getPlayer: () => fakePlayer, getMode: () => "seek", isActive: () => true });
       Object.assign(window, { gestureFixture: state });
@@ -1191,6 +1192,11 @@ test.describe("Web app UI", () => {
     await expect.poll(() => page.evaluate(() => (window as unknown as { gestureFixture: { toggles: number } }).gestureFixture.toggles)).toBe(1);
     await page.locator("#gesture-surface").dblclick();
     await expect.poll(() => page.evaluate(() => (window as unknown as { gestureFixture: { seeks: number } }).gestureFixture.seeks)).toBe(1);
+    // The UI helper also supports mobile adapters without a seekable range.
+    // Exercise that adapter fallback without changing the Web Player contract.
+    await page.evaluate(() => { (window as unknown as { gestureFixture: { rangeAvailable: boolean } }).gestureFixture.rangeAvailable = false; });
+    await page.locator("#gesture-surface").dblclick();
+    await expect.poll(() => page.evaluate(() => (window as unknown as { gestureFixture: { targets: number[] } }).gestureFixture.targets)).toEqual([30, 30]);
   });
 
   for (const theme of ["Premiere", "Creator", "Studio"]) {
