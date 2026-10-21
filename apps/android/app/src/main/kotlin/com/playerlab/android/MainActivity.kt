@@ -102,8 +102,8 @@ internal class PlayerController(
 ) {
     // §15: the bundled analytics collector reports QoE to the Bitmovin dashboard
     // when a key is configured (repo-root .env → sync-env.sh → local.properties).
-    private fun createPlayer(settings: PlayerSettings): Player {
-        val config = settings.toPlayerConfig(licenseKey)
+    private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides()): Player {
+        val config = overrides.player(settings.toPlayerConfig(licenseKey))
         return playerFactory?.invoke(config) ?: if (analyticsLicenseKey.isEmpty()) {
             Player(context, config)
         } else {
@@ -118,6 +118,8 @@ internal class PlayerController(
     var player: Player by mutableStateOf(createPlayer(PlayerSettings()))
         private set
     internal var playerSettings: PlayerSettings by mutableStateOf(PlayerSettings())
+        private set
+    internal var apiOverrides: ApiOverrides by mutableStateOf(ApiOverrides())
         private set
     internal var sourceSettings: SourceSettings by mutableStateOf(SourceSettings.from(Sources.all.first()))
         private set
@@ -180,7 +182,7 @@ internal class PlayerController(
         sourceSubscription?.invoke()
         val owner = player
         val generation = ++sourceGeneration
-        val source = sourceFactory(sourceSettings.toSourceConfig())
+        val source = sourceFactory(apiOverrides.source(sourceSettings.toSourceConfig()))
         configuredSource = source
         fun ownsSource() = !released && player === owner && sourceGeneration == generation
         val error: (SourceEvent.Error) -> Unit = {
@@ -200,11 +202,11 @@ internal class PlayerController(
         refresh()
     }
 
-    internal fun applyPlayerSettings(settings: PlayerSettings) {
+    internal fun applyPlayerSettings(settings: PlayerSettings, overrides: ApiOverrides = apiOverrides) {
         if (released) return
         // PlayerConfig and its nested configs are fixed at construction time in SDK 3.171.0.
         // https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player-config/index.html
-        val replacement = runCatching { createPlayer(settings) }.getOrElse {
+        val replacement = runCatching { createPlayer(settings, overrides) }.getOrElse {
             configurationStatus = "Unable to create a player; current settings kept."
             append("Player recreation failed")
             return
@@ -220,6 +222,7 @@ internal class PlayerController(
         views.forEach { viewLifecycle.detach(it); it.player = null }
         player = replacement
         playerSettings = settings
+        apiOverrides = overrides
         observePlayer()
         previous.destroy()
         loadCurrentSource()
@@ -405,6 +408,7 @@ private fun PlayerLabScreen(controller: PlayerController) {
         )
 
         ConfigurationPanel(controller, uiMode)
+        ApiConfigurationPanel(controller)
 
         Column(modifier = Modifier.height(140.dp).verticalScroll(rememberScrollState())) {
             controller.log.take(12).forEach { line ->

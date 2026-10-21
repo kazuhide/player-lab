@@ -1,6 +1,6 @@
 package com.playerlab.android
 
-private fun kotlinString(value: String) = buildString {
+internal fun kotlinString(value: String) = buildString {
     append('"')
     value.forEach { character ->
         when (character) {
