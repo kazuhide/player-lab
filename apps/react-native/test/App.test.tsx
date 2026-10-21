@@ -34,7 +34,8 @@ vi.mock("bitmovin-player-react-native", async () => {
     CustomUi: class { constructor(public factoryFunction: string) {} },
     PlayerView: "PlayerView",
     SourceType: { NONE: "none", HLS: "hls", DASH: "dash", PROGRESSIVE: "progressive" },
-    SubtitleFormat: { VTT: "vtt" },
+    SubtitleFormat: { CEA: "cea", TTML: "ttml", VTT: "vtt", SRT: "srt" },
+    AdSourceType: { BITMOVIN: "bitmovin", IMA: "ima", UNKNOWN: "unknown", PROGRESSIVE: "progressive" },
     TimelineReferencePoint: { START: "start", END: "end" },
     UserInterfaceType: { Bitmovin: "Bitmovin", System: "System", Subtitle: "Subtitle" },
     AnalyticsRetryPolicy: { NO_RETRY: "noRetry", LONG_TERM: "longTerm" },
@@ -120,6 +121,22 @@ describe("React Native configuration in the mounted App", () => {
     host.getSourceFile = (name, language, onError, create) => name === file ? ts.createSourceFile(file, code, language, true, ts.ScriptKind.TSX) : read(name, language, onError, create);
     const diagnostics = ts.getPreEmitDiagnostics(ts.createProgram([file], options, host));
     expect(diagnostics.map((diagnostic) => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"))).toEqual([]);
+  });
+
+  it("applies typed subtitle lists and roles from the mounted GUI and removes the complete list", async () => {
+    await mount(); await ready(); await press("Show configuration");
+    await press("Edit this list"); await press("Add list item");
+    await text("Track URL", "https://example.com/captions.ttml");
+    await text("Track label", "English captions"); await text("Track language", "en-US");
+    await text("Track identifier (optional)", "captions"); await press("ttml");
+    await press("Add track role"); await text("Role 1 schemeIdUri", "urn:mpeg:dash:role:2011");
+    await text("Role 1 value", "caption"); await press("Apply and recreate player"); await ready();
+    expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ subtitleTracks: [{
+      url: "https://example.com/captions.ttml", label: "English captions", language: "en-US", identifier: "captions",
+      format: "ttml", roles: [{ schemeIdUri: "urn:mpeg:dash:role:2011", value: "caption" }],
+    }] }));
+    await press("Remove list item"); await press("Apply and recreate player"); await ready();
+    expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ subtitleTracks: [] }));
   });
 
   it("requires coherent DRM configuration, preserves its dictionary and masks header values in code", async () => {

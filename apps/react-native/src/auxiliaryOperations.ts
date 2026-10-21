@@ -1,6 +1,7 @@
 import { BitmovinCastManager, OfflineContentManager, Source, type OfflineContentManagerListener, type Player } from "bitmovin-player-react-native";
 import type { ApiOperation } from "./apiOperations";
 import type { NativeSettings } from "./nativeSettings";
+import { finiteNumber } from "./apiValues";
 
 interface OfflineOwner { manager: OfflineContentManager; ready: Promise<void>; remove: () => void; released?: Promise<void>; }
 
@@ -103,6 +104,13 @@ export class AuxiliaryOperations {
     add("BitmovinCastManager.isInitialized", () => BitmovinCastManager.isInitialized());
     add("BitmovinCastManager.initialize", () => BitmovinCastManager.initialize(this.settings().cast), "await SDK.BitmovinCastManager.initialize(castOptions);\n// Recreate the Player after initialization; the host must include the Cast SDK.");
     add("BitmovinCastManager.updateContext", () => BitmovinCastManager.updateContext());
+    operations.push({ id: "Player.scheduleAd", arguments: [{ name: "index", label: "Applied advertising schedule index (starting at 0)", initial: "0" }],
+      run: (values) => {
+        const index = finiteNumber(values.index ?? "", "Ad item index", 0);
+        const item = this.settings().player.advertisingConfig?.schedule[index];
+        if (!Number.isSafeInteger(index) || !item) throw new Error("Choose an index from the applied advertising schedule.");
+        return this.player.scheduleAd(item);
+      }, code: (values) => `player.scheduleAd(playerConfig.advertisingConfig!.schedule[${finiteNumber(values.index ?? "", "Ad item index", 0)}]!);` });
     operations.push({ id: "BitmovinCastManager.sendMessage", arguments: [
       { name: "message", label: "Cast message", initial: "" }, { name: "namespace", label: "Cast namespace (blank uses default)", initial: "" },
     ], run: (values) => BitmovinCastManager.sendMessage(values.message ?? "", values.namespace || null),

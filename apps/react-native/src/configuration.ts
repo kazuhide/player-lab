@@ -3,6 +3,7 @@ import { SourceType, SubtitleFormat, TimelineReferencePoint, type PlayerConfig, 
 import { URL } from "react-native-url-polyfill";
 import type { ShowcaseSource } from "./sources";
 import { applyNativeSettings, type NativeSettings, type SettingValues } from "./nativeSettings";
+import { applyNativeArrays, type NativeArrayDraft } from "./nativeArrays";
 
 export type NativePlatform = "ios" | "android";
 export type SourceFormat = "hls" | "dash" | "progressive";
@@ -22,6 +23,7 @@ export interface ConfigurationDraft {
   subtitleLanguage: string;
   subtitleDefault: boolean;
   apiSettings?: SettingValues;
+  arraySettings?: NativeArrayDraft;
 }
 export interface Configuration extends NativeSettings {
   draft: ConfigurationDraft;
@@ -108,8 +110,10 @@ export function parseConfiguration(draft: ConfigurationDraft, platform: NativePl
       ...(forwardDuration !== undefined ? { bufferConfig: { audioAndVideo: { forwardDuration } } } : {}),
       ...(maxBitrate !== undefined ? { adaptationConfig: { maxSelectableBitrate: maxBitrate } } : {}),
   };
+  const settings = applyNativeSettings(source, player, draft.apiSettings ?? {});
+  applyNativeArrays(settings, draft.arraySettings ?? {});
   return {
-    ...applyNativeSettings(source, player, draft.apiSettings ?? {}),
+    ...settings,
     draft: { ...draft, url, title, poster, subtitleUrl, subtitleLabel, subtitleLanguage, subtitleDefault,
       startOffset: startOffset === undefined ? "" : String(startOffset),
       forwardDuration: forwardDuration === undefined ? "" : String(forwardDuration), maxBitrate: maxBitrate === undefined ? "" : String(maxBitrate) },

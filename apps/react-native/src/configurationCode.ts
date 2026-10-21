@@ -5,6 +5,7 @@ const ENUMS: Record<string, Readonly<Record<string, string>>> = {
   SourceType: SDK.SourceType, TimelineReferencePoint: SDK.TimelineReferencePoint, SubtitleFormat: SDK.SubtitleFormat,
   AnalyticsRetryPolicy: SDK.AnalyticsRetryPolicy, ScalingMode: SDK.ScalingMode, UserInterfaceType: SDK.UserInterfaceType,
   SurfaceType: SDK.SurfaceType, ForceReuseVideoCodecReason: SDK.ForceReuseVideoCodecReason, PictureInPictureAction: SDK.PictureInPictureAction,
+  AdSourceType: SDK.AdSourceType,
 };
 const ENUM_PATHS: Record<string, string> = {
   "SourceConfig.type": "SourceType", "SourceConfig.options.startOffsetTimelineReference": "TimelineReferencePoint",
@@ -13,6 +14,7 @@ const ENUM_PATHS: Record<string, string> = {
   "PlayerConfig.tweaksConfig.forceReuseVideoCodecReasons[]": "ForceReuseVideoCodecReason",
   "PlayerViewConfig.surfaceType": "SurfaceType", "PlayerViewProps.scalingMode": "ScalingMode",
   "PlayerViewProps.pictureInPictureActions[]": "PictureInPictureAction",
+  "PlayerConfig.advertisingConfig.schedule[].sources[].type": "AdSourceType",
 };
 
 /** Emit actual enum expressions rather than asserting that arbitrary JSON has SDK types. */
@@ -57,7 +59,7 @@ export function configurationCode(applied: Configuration, platform: NativePlatfo
     `const viewConfig: SDK.PlayerViewConfig = ${sdkCodeValue(viewConfig, "PlayerViewConfig")};`,
     `const viewProps = ${sdkCodeValue(applied.props, "PlayerViewProps")};`,
   ];
-  if (Object.keys(applied.draft.apiSettings ?? {}).some((id) => /^(Offline|BitmovinCastManagerOptions)/.test(id))) lines.push(
+  if (applied.draft.arraySettings?.offlineSubtitles || Object.keys(applied.draft.apiSettings ?? {}).some((id) => /^(Offline|BitmovinCastManagerOptions)/.test(id))) lines.push(
     "// Validated inputs for the offline and Cast API experiments.",
     `const offlineConfig: SDK.OfflineContentConfig = ${sdkCodeValue(applied.offline, "OfflineContentConfig")};`,
     `const downloadRequest: SDK.OfflineDownloadRequest = ${sdkCodeValue(applied.download, "OfflineDownloadRequest")};`,
