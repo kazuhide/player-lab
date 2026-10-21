@@ -22521,7 +22521,7 @@
         "A theme picker does not make every constructor constant GUI configurable. Constructor-only values receive code-only status. The Autohide switch supplies constrained UIContainer.hideDelay choices, and custom layouts supply a constrained QuickSeekButton inclusion choice.",
         "The 15 directly editable core UIConfig fields and fixed recommendation metadata are separate from individual component override editing. No arbitrary componentConfigOverrides or componentLayoutOverrides editor is present.",
         "These figures describe the Web application. Reusing the bundle in a native app does not transfer all Web controls or measured coverage to the native bridge.",
-        "The local compatibility patch changes component release and recommendation action ownership. It does not add public declarations or increase the SDK API denominator.",
+        "The local compatibility patch changes component release, recommendation action ownership and finalized VOD timebase normalization. It does not add public declarations or increase the SDK API denominator.",
         "Language and subtitle-language adaptation are separate nested fields. The preferences switch is constructed only for Default and CSS themes and requires UI storage. Storage and resume defaults remain off; editing a flag is separate from proving cross-session persistence."
       ],
       "scopes": [
@@ -22790,7 +22790,7 @@
     }
   ],
   "checkedAt": "2026-10-21",
-  "inputSha256": "9f7f587de865c7992c53045086fa46b8175d5a528b08cc6dffbe955f6bbcecc8",
+  "inputSha256": "5289e4e0960e5085ddae6bf9d25d910522ddb3dd58d9d519f6cf2047add25129",
   "schemaVersion": 1,
   "sdks": [
     {
@@ -22916,5 +22916,5 @@
       "version": "4.23.0"
     }
   ],
-  "sourceRevision": "331f6d3b87a1bb2c5b994d9c96fd131caf9fbbf6"
+  "sourceRevision": "2fa676243228288c42e110f5016b9309de516b55"
 }

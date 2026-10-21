@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-21",
-  "sourceRevision": "331f6d3b87a1bb2c5b994d9c96fd131caf9fbbf6",
+  "sourceRevision": "2fa676243228288c42e110f5016b9309de516b55",
   "sdks": [
     {
       "id": "web",
@@ -941,8 +941,17 @@
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 46,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 48,
+              "symbol": "const target = clampToDuration(PlayerUtils.getCurrentTimeRelativeToSeekableRange(player) + delta, player.getDuration());",
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
+            },
+            {
+              "kind": "sdk",
+              "package": "bitmovin-player-ui",
+              "version": "4.23.0",
+              "file": "dist/js/framework/utils/PlayerUtils.js",
+              "line": 47,
+              "sha256": "0f33a37601e054920176593ad27863fd8f94012ac3e08a34fab3ed7bf73029ae"
             }
           ]
         },
@@ -1025,8 +1034,9 @@
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 46,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 48,
+              "symbol": "const target = clampToDuration(PlayerUtils.getCurrentTimeRelativeToSeekableRange(player) + delta, player.getDuration());",
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
             }
           ]
         },
@@ -1073,8 +1083,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 44,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 45,
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
             }
           ]
         },
@@ -1320,8 +1330,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 44,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 45,
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
             }
           ]
         },
@@ -1428,8 +1438,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 52,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 55,
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
             }
           ]
         },
@@ -1596,8 +1606,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 43,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 44,
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
             }
           ]
         },
@@ -1662,8 +1672,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 37,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 38,
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
             }
           ]
         },
@@ -2082,8 +2092,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 37,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 38,
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
             }
           ]
         },
@@ -2112,8 +2122,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 38,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 39,
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
             }
           ]
         },
@@ -2157,21 +2167,22 @@
               "version": "4.23.0",
               "file": "dist/js/framework/components/seekbar/SeekBar.js",
               "line": 95,
-              "sha256": "ed181751db57ce57806eab96ed11637f0f83c6950a8f39b22062fe9d3321c903"
+              "sha256": "d1fa5f7ca3027605fd16e2936e5a140549175c3954009d76ca8fe0c20ada513f"
             },
             {
               "kind": "sdk",
               "package": "bitmovin-player-ui",
               "version": "4.23.0",
               "file": "dist/js/framework/components/seekbar/SeekBar.js",
-              "line": 340,
-              "sha256": "ed181751db57ce57806eab96ed11637f0f83c6950a8f39b22062fe9d3321c903"
+              "line": 343,
+              "sha256": "d1fa5f7ca3027605fd16e2936e5a140549175c3954009d76ca8fe0c20ada513f"
             },
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 46,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 49,
+              "symbol": "player.seek(start + target, \"dblclick\");",
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
             },
             {
               "kind": "app",
@@ -2458,8 +2469,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 53,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 56,
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
             }
           ]
         },
@@ -2749,15 +2760,15 @@
               "version": "4.23.0",
               "file": "dist/js/framework/components/seekbar/SeekBar.js",
               "line": 92,
-              "sha256": "ed181751db57ce57806eab96ed11637f0f83c6950a8f39b22062fe9d3321c903"
+              "sha256": "d1fa5f7ca3027605fd16e2936e5a140549175c3954009d76ca8fe0c20ada513f"
             },
             {
               "kind": "sdk",
               "package": "bitmovin-player-ui",
               "version": "4.23.0",
               "file": "dist/js/framework/components/seekbar/SeekBar.js",
-              "line": 340,
-              "sha256": "ed181751db57ce57806eab96ed11637f0f83c6950a8f39b22062fe9d3321c903"
+              "line": 343,
+              "sha256": "d1fa5f7ca3027605fd16e2936e5a140549175c3954009d76ca8fe0c20ada513f"
             },
             {
               "kind": "app",
@@ -2768,8 +2779,8 @@
             {
               "kind": "app",
               "file": "apps/web/src/gestures.ts",
-              "line": 44,
-              "sha256": "f24f43eceb5197488aa4599b3446e1ad6be236e07a6a55579df21e9c5c9c0f57"
+              "line": 45,
+              "sha256": "ec621d448f6bad4fdf15853242ec4d1b02422e70ca82983b87100f18f480b1c4"
             },
             {
               "kind": "app",
@@ -48134,7 +48145,7 @@
         "A theme picker does not make every constructor constant GUI configurable. Constructor-only values receive code-only status. The Autohide switch supplies constrained UIContainer.hideDelay choices, and custom layouts supply a constrained QuickSeekButton inclusion choice.",
         "The 15 directly editable core UIConfig fields and fixed recommendation metadata are separate from individual component override editing. No arbitrary componentConfigOverrides or componentLayoutOverrides editor is present.",
         "These figures describe the Web application. Reusing the bundle in a native app does not transfer all Web controls or measured coverage to the native bridge.",
-        "The local compatibility patch changes component release and recommendation action ownership. It does not add public declarations or increase the SDK API denominator.",
+        "The local compatibility patch changes component release, recommendation action ownership and finalized VOD timebase normalization. It does not add public declarations or increase the SDK API denominator.",
         "Language and subtitle-language adaptation are separate nested fields. The preferences switch is constructed only for Default and CSS themes and requires UI storage. Storage and resume defaults remain off; editing a flag is separate from proving cross-session persistence."
       ]
     },

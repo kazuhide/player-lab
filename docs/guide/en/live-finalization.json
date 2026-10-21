@@ -75,7 +75,7 @@
     },
     {
       "type": "p",
-      "text": "Media that used wall-clock time during live playback can retain that origin in its seekable range after becoming finite VOD. In that case, seek(10) is outside the range and is clamped to the start, rather than moving ten seconds into the clip. Add ten to the start of the seekable range instead."
+      "text": "The SDK defaults getCurrentTime() to absolute time. Media that used wall-clock time during live playback can retain that origin in its seekable range after becoming finite VOD; finalization does not guarantee a zero-based SDK clock. In that case, seek(10) is outside the range and is clamped to the start, rather than moving ten seconds into the clip. Add ten to the start of the seekable range instead."
     },
     {
       "type": "code",
@@ -83,7 +83,16 @@
     },
     {
       "type": "p",
+      "text": "For finite VOD, the shared UI uses current time minus the seekable-range start for timeline display, accessibility values, keyboard and quick-seek controls, and intro/countdown decisions. Seek targets are clamped in that relative range, then the start is added back only when calling the SDK seek API. The Web double-click seek uses the same helper. The live-only WallClockLabel continues to use absolute time."
+    },
+    {
+      "type": "p",
       "text": "Wait for Seeked before reading relative time to check the completed movement. The app displays relative and absolute time separately. Interpret clock-based displays and latency carefully when the source lacks clock information or the device clock is inaccurate."
+    },
+    {
+      "type": "note",
+      "title": "Rapid quick-seek clicks",
+      "text": "Player UI 4.23.0 updates its pending seek target when the SDK sends a Seek notification. If 2 backward-button clicks arrive before that notification, both can request the same position. In a local test with ordinary VOD paused at 20 seconds, 2 rapid 10-second backward clicks finished at 10 seconds. The playback checks wait for a fresh Seeked event and confirm the resulting position before testing the next action."
     },
     {
       "type": "h2",
@@ -142,6 +151,11 @@
       "path": "apps/ios/README.md",
       "line": 214,
       "label": "Native HLS completion and source ownership"
+    },
+    {
+      "path": "apps/web/src/gestures.ts",
+      "line": 43,
+      "label": "Relative VOD gesture target and restored SDK origin"
     }
   ]
 }

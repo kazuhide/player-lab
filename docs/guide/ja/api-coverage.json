@@ -67,8 +67,8 @@
         "text": "この件数はWebアプリを対象とします。同じバンドルをネイティブアプリで使っても、Web側の全操作や測定した対応件数をネイティブブリッジに引き継ぐことはできません。"
       },
       {
-        "source": "The local compatibility patch changes component release and recommendation action ownership. It does not add public declarations or increase the SDK API denominator.",
-        "text": "ローカルの互換パッチが変更するのは、コンポーネント解放とおすすめ操作の所有関係です。公開宣言を追加するものではなく、SDK APIの分母も増やしません。"
+        "source": "The local compatibility patch changes component release, recommendation action ownership and finalized VOD timebase normalization. It does not add public declarations or increase the SDK API denominator.",
+        "text": "ローカルの互換パッチは、コンポーネント解放、おすすめ操作の所有関係、終了後のVODの時刻基準を修正します。公開宣言を追加するものではなく、SDK APIの分母も増やしません。"
       },
       {
         "source": "Language and subtitle-language adaptation are separate nested fields. The preferences switch is constructed only for Default and CSS themes and requires UI storage. Storage and resume defaults remain off; editing a flag is separate from proving cross-session persistence.",
