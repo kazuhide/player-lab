@@ -5,15 +5,15 @@ CHAPTERS = {
     'web-screen-themes': 'web', 'web-sources-tracks': 'web',
     'web-ui-settings': 'web', 'web-live-dvr': 'web',
     'web-player-config': 'web', 'web-ui-customization': 'web',
-    'web-qoe-analytics': 'analytics', 'analytics-metrics': 'analytics',
-    'analytics-queries': 'analytics', 'analytics-visualization': 'analytics',
-    'analytics-ai': 'analytics',
     'native-overview': 'native', 'native-apple': 'native',
     'native-android': 'native', 'native-integrations': 'native',
     'troubleshooting': 'reference', 'audio-timing': 'reference',
     'test-results': 'reference', 'glossary': 'reference',
+    'web-qoe-analytics': 'analytics', 'analytics-metrics': 'analytics',
+    'analytics-visualization': 'analytics', 'analytics-queries': 'analytics',
+    'analytics-ai': 'analytics',
 }
-CATEGORIES = ('start', 'web', 'analytics', 'native', 'reference')
+CATEGORIES = ('start', 'web', 'native', 'reference', 'analytics')
 LEGACY_ROUTES = {
     'measurement': 'test-results',
     'media': 'web-sources-tracks',
@@ -31,6 +31,9 @@ THEMES = (
 )
 LANGUAGES = ('en', 'ja')
 SHARED_FIGURES = {
+    'analytics-dashboard-overview': (2864, 1270),
+    'analytics-dashboard-errors': (1324, 501),
+    'analytics-session-errors': (804, 188),
     'android-source-settings': (1080, 2400),
     'android-player-settings': (1080, 2400),
     'android-applied-code': (1080, 2400),
@@ -51,6 +54,16 @@ SHARED_FIGURES = {
     'vega-caption': (1920, 1080),
     'vega-code': (1920, 1080),
 }
+FIGURE_EXTENSIONS = {
+    name: 'png' for name in (
+        'analytics-dashboard-overview', 'analytics-dashboard-errors', 'analytics-session-errors')
+}
+
+
+def shared_figure_path(name):
+    return f'assets/guide/{name}.{FIGURE_EXTENSIONS.get(name, "jpg")}'
+
+
 COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'vega')
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS),
@@ -72,7 +85,7 @@ GUIDE_FILES = {
 }
 GUIDE_ASSETS = {
     'guide.css', 'guide.js',
-    *(f'assets/guide/{name}.jpg' for name in SHARED_FIGURES),
+    *(shared_figure_path(name) for name in SHARED_FIGURES),
     *(f'assets/guide/{name}.jpg' for name in THEMES),
     *(f'assets/guide/{name}-{language}.jpg'
       for name in ('overview', 'source-controls', 'config') for language in LANGUAGES),

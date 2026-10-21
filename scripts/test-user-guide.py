@@ -95,6 +95,37 @@ class GuideTests(unittest.TestCase):
         pages = build(load_content(ROOT / 'docs/guide'))
         self.assertEqual(set(pages), GUIDE_FILES)
 
+    def test_reworded_player_headings_keep_their_published_bookmarks(self):
+        bookmarks = {
+            'web-player-config': ['three-application-modes'],
+            'web-screen-themes': ['three-customization-methods'],
+            'web-sources-tracks': ['seven-sources'],
+            'web-ui-settings': ['sixteen-ui-settings'],
+            'web-ui-customization': ['fourteen-guide-sections', 'six-common-modifications'],
+        }
+        for language in ('en', 'ja'):
+            for chapter, identifiers in bookmarks.items():
+                parser = Links()
+                parser.feed(self.pages[route_file(language, chapter)].decode())
+                for identifier in identifiers:
+                    self.assertIn(identifier, parser.ids, (language, chapter))
+
+    def test_dashboard_capture_uses_the_original_local_png(self):
+        html = render_block({'type': 'figure', 'file': 'analytics-dashboard-overview',
+                             'caption': 'Bitmovin Dashboard demo screen.'}, 'en',
+                            route_file('en', 'web-qoe-analytics'), None)
+        self.assertIn('assets/guide/analytics-dashboard-overview.png', html)
+        self.assertIn('width="2864" height="1270"', html)
+        self.assertIn('assets/guide/analytics-dashboard-overview.png', GUIDE_ASSETS)
+
+    def test_player_chapters_precede_dashboard_analytics_in_both_languages(self):
+        for language in ('en', 'ja'):
+            html = self.pages[route_file(language)].decode()
+            self.assertLess(html.index('web-player-config/'), html.index('native-overview/'))
+            self.assertLess(html.index('native-integrations/'), html.index('web-qoe-analytics/'))
+            self.assertLess(html.index('test-results/'), html.index('web-qoe-analytics/'))
+            self.assertLess(html.index('analytics-visualization/'), html.index('analytics-queries/'))
+
     def test_old_internal_workflow_urls_redirect_to_relevant_same_language_help(self):
         destinations = {'measurement': 'test-results', 'media': 'web-sources-tracks',
                         'cloud-encoding': 'web-sources-tracks', 'live-finalization': 'troubleshooting'}

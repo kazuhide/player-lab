@@ -17,9 +17,9 @@ TEXT = {
         'search_count': '{count} results', 'search_help': 'Enter at least two characters. Up to 12 results are shown.',
         'sources': 'Sources', 'code': 'Code sample', 'table': 'Reference table',
         'previous': 'Previous', 'next': 'Next', 'overview': 'Guide overview',
-        'start': 'Getting started', 'native': 'Native examples', 'analytics': 'Analytics and Observability',
+        'start': 'Getting started', 'native': 'Native examples', 'analytics': 'Analytics / Observability',
         'reference': 'Reference', 'web_group': 'Web controls and UI',
-        'settings': 'Player Config reference', 'controls': 'All 41 controls', 'themes': 'Theme reference',
+        'settings': 'Player Config reference', 'controls': 'Controls reference', 'themes': 'Theme reference',
         'api-coverage': 'Public API coverage',
         'kind': 'Input', 'fallback': 'Form fallback', 'options': 'Choices', 'api': 'Player API',
         'field': 'Setting', 'description': 'Meaning and use', 'mode': 'Applies',
@@ -43,9 +43,9 @@ TEXT = {
         'search_count': '{count}件', 'search_help': '2文字以上で検索します。結果は最大12件表示します。',
         'sources': '参照資料', 'code': 'コード例', 'table': '参照表',
         'previous': '前の章', 'next': '次の章', 'overview': 'ガイドの概要',
-        'start': '利用の準備', 'native': 'ネイティブ版', 'analytics': 'AnalyticsとObservability',
+        'start': '利用の準備', 'native': 'ネイティブ版', 'analytics': 'Analytics / Observability',
         'reference': 'リファレンス', 'web_group': 'Webの操作とUI',
-        'settings': 'Player Configの全設定', 'controls': '全41操作', 'themes': 'テーマ一覧',
+        'settings': 'Player Configの設定一覧', 'controls': '操作一覧', 'themes': 'テーマ一覧',
         'api-coverage': '公開APIの対応状況',
         'kind': '入力形式', 'fallback': '代替表示値', 'options': '選択肢', 'api': 'Player API',
         'field': '設定名', 'description': '意味と使い方', 'mode': '適用方法',
@@ -121,12 +121,12 @@ def render_block(block, language, page, section_id):
         return f'<div class="guide-table" tabindex="0" role="region" aria-label="{labels["table"]}"><table><thead><tr>{head}</tr></thead><tbody>{rows}</tbody></table></div>'
     if kind == 'figure':
         name = block['file']
-        from guide_routes import SHARED_FIGURES
+        from guide_routes import SHARED_FIGURES, shared_figure_path
         if name in FIGURE_DIMENSIONS:
             src = relative(page, f'assets/guide/{name}-{language}.jpg')
             width, height = FIGURE_DIMENSIONS[name][language]
         elif name in SHARED_FIGURES:
-            src = relative(page, f'assets/guide/{name}.jpg')
+            src = relative(page, shared_figure_path(name))
             width, height = SHARED_FIGURES[name]
         else:
             raise ValueError('The guide contains an unknown figure.')

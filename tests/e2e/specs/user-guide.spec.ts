@@ -538,8 +538,10 @@ for (const language of languages) {
 
 test("localized guide figures and representative theme images decode", async ({ page }) => {
   for (const language of languages) {
-    for (const slug of ["start", "web-sources-tracks", "web-player-config", "themes", "native-apple", "native-android", "native-integrations"]) {
+    for (const slug of ["start", "web-sources-tracks", "web-player-config", "themes", "native-apple", "native-android", "native-integrations",
+      "web-qoe-analytics", "analytics-visualization"]) {
       await page.goto(guidePath(language, slug));
+      const fullSizeImages = slug.startsWith("native-") || slug === "web-qoe-analytics" || slug === "analytics-visualization";
       const images = slug === "themes"
         ? page.locator("#default img, #custom-premiere img")
         : page.locator(".guide-figure img");
@@ -559,16 +561,16 @@ test("localized guide figures and representative theme images decode", async ({ 
         expect(decoded.complete).toBe(true);
         expect(decoded.width).toBeGreaterThan(0);
         expect(decoded.height).toBeGreaterThan(0);
-        expect(new URL(decoded.src).pathname).toMatch(/^\/player-lab\/assets\/guide\/[^/]+\.jpg$/);
+        expect(new URL(decoded.src).pathname).toMatch(/^\/player-lab\/assets\/guide\/[^/]+\.(?:jpg|png)$/);
         await expect(image).toHaveAttribute("width", String(decoded.width));
         await expect(image).toHaveAttribute("height", String(decoded.height));
-        if (slug.startsWith("native-")) {
+        if (fullSizeImages) {
           const fullSize = image.locator("..");
           await expect(fullSize).toHaveAttribute("href", await image.getAttribute("src") as string);
           await expect(fullSize).toHaveAccessibleName(/\S/);
         }
       }
-      if (slug.startsWith("native-")) {
+      if (fullSizeImages) {
         const fullSize = images.first().locator("..");
         const destination = new URL((await fullSize.getAttribute("href"))!, page.url()).href;
         const width = Number(await images.first().getAttribute("width"));

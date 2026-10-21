@@ -1,17 +1,18 @@
 {
   "id": "analytics-visualization",
-  "title": "Visualize playback quality and audience data",
-  "lead": "Choose a view that answers a specific question, then retain its period, filters, units and population. Bitmovin Dashboard, API clients and Grafana provide the external visualization workflows described here; Player Lab displays aggregate query rows.",
+  "title": "Playback data in the Dashboard",
+  "lead": "Use Bitmovin Dashboard charts and breakdowns, then inspect an affected playback in session details. Use the Query API or Grafana when you need a custom view.",
   "blocks": [
     {
       "type": "h2",
-      "text": "Compare browsers or devices in the Dashboard"
+      "text": "Compare browsers or devices in the Dashboard",
+      "id": "compare-browsers-or-devices-in-the-dashboard"
     },
     {
       "type": "steps",
       "items": [
-        "Open the Analytics area of Bitmovin Dashboard and select the Analytics license that received your playback data.",
-        "Set a fixed time range, such as one completed day. Record the displayed time zone and active filters so another person can repeat the comparison.",
+        "Open Observability in Bitmovin Dashboard and select the same Analytics license used by the collector.",
+        "Select a period containing the playback. Use a fixed period for comparisons and record the displayed time zone and active filters.",
         "Choose Video Startup Time and inspect its browser breakdown. Read the accompanying Video Starts count as well as the duration; a slow result from a small group needs a different follow-up from a large affected audience.",
         "Narrow the comparison with an available device, platform or browser filter. Change one condition at a time, keeping the same metric and period.",
         "Compare Rebuffering Percentage or Error Percentage for the same group. Use the API query workflow when the Dashboard does not expose the dimension or aggregation you need."
@@ -23,7 +24,35 @@
     },
     {
       "type": "h2",
-      "text": "Choose a chart for the question"
+      "text": "Narrow an error down to a session"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Use Top Errors to inspect failure types and frequency. Match the license, period and content filters to the playback being investigated.",
+        "Select an error and inspect an associated session. Check the player, operating system and event time alongside the error code.",
+        "Read the description and additional information under Errors in the session details. Available detail depends on the collector and platform.",
+        "Match the playback and time with the app log to investigate configuration, network or content issues. Check the related behavior before treating an error description as a complete diagnosis."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-errors",
+      "caption": "Top Error Codes example from an official Bitmovin article. The selected error has an explanatory tooltip and the view shows active filters. These are not Player Lab test results. © Bitmovin. SDK versions and values in the image also belong to the article example."
+    },
+    {
+      "type": "figure",
+      "file": "analytics-session-errors",
+      "caption": "Session-level Errors example from the same official article. The code and timestamp accompany an HTTP 401 explanation. The source is linked below. © Bitmovin."
+    },
+    {
+      "type": "p",
+      "text": "These screens are reproduced from public Bitmovin material; Player Lab does not embed the Dashboard. Check the current Dashboard and collector for available menus and detail."
+    },
+    {
+      "type": "h2",
+      "text": "Choose a chart for the question",
+      "id": "choose-a-chart-for-the-question"
     },
     {
       "type": "table",
@@ -56,7 +85,8 @@
     },
     {
       "type": "h2",
-      "text": "Read the metric and its population"
+      "text": "Read the metric and its population",
+      "id": "read-the-metric-and-its-population"
     },
     {
       "type": "table",
@@ -93,7 +123,8 @@
     },
     {
       "type": "h2",
-      "text": "Build a custom view with Grafana"
+      "text": "Build a custom view with Grafana",
+      "id": "build-a-custom-view-with-grafana"
     },
     {
       "type": "p",
@@ -109,7 +140,8 @@
     },
     {
       "type": "h2",
-      "text": "Keep data and query settings together"
+      "text": "Keep data and query settings together",
+      "id": "keep-data-and-query-settings-together"
     },
     {
       "type": "table",
@@ -171,6 +203,14 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/exporting-your-data",
       "label": "Bitmovin: raw data Export Tasks"
+    },
+    {
+      "url": "https://bitmovin.com/blog/ios-error-reporting-bitmovin-player-analytics/",
+      "label": "Bitmovin: Dashboard error-code and session screenshots"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/what-additional-error-data-can-be-retrieved-in-bitmovin-analytics",
+      "label": "Bitmovin: error details by collector and platform"
     }
   ]
 }

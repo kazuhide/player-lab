@@ -5,7 +5,8 @@
   "blocks": [
     {
       "type": "h2",
-      "text": "Three application modes"
+      "text": "How changes take effect",
+      "id": "three-application-modes"
     },
     {
       "type": "table",
@@ -39,7 +40,7 @@
     },
     {
       "type": "p",
-      "text": "There are 144 fields in 15 groups. DVR, UI and casting controls also appear in the separate control panel. Open or close a group using its heading. Dynamic groups start open; recreation groups start closed."
+      "text": "The separate control panel also contains live rewind, UI and casting controls. Open or close a configuration group using its heading. Dynamic groups start open; recreation groups start closed."
     },
     {
       "type": "h2",
@@ -196,11 +197,193 @@
     },
     {
       "type": "h2",
+      "text": "Compare automatic video quality",
+      "id": "compare-automatic-video-quality"
+    },
+    {
+      "type": "p",
+      "text": "Adaptive bitrate selection (ABR) chooses a video quality as playback conditions change. Select VOD DASH and Premiere, then leave the player quality menu on Auto. The bundled Pages sample offers 180p and 360p video. A cap above its highest quality cannot demonstrate a change, and a manual quality selection does not test automatic selection."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "In Adaptation (dynamic), set resolution.maxSelectableVideoHeight to 180 pixels and leave the field to apply it immediately. Playback continues on the same Player.",
+        "Open Show applied configuration code and refresh it. Find maxSelectableVideoHeight in player.adaptation.setConfig. The snapshot confirms the setting submitted to the SDK; inspect actual media requests or decoded resolution in the browser's media tools to check the selected quality.",
+        "Allow already buffered video to play before comparing the image. A configuration change does not replace every buffered segment immediately, and the manual quality menu may still list 360p.",
+        "For this bundled sample, set the height back to 360 pixels to allow its highest quality again. Clearing this dynamic field does not remove an applied cap. Reload the page for a fresh in-memory configuration when you need to remove the experiment entirely."
+      ]
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Setting",
+        "Example change and application",
+        "What the comparison means"
+      ],
+      "rows": [
+        [
+          "limitToPlayerSize",
+          "Turn on in Adaptation (dynamic); immediate.",
+          "Restrict automatic selection to the video display size. Compare at a smaller browser width; a source already below that size may look unchanged. Turn off to restore the previous false value."
+        ],
+        [
+          "bitrates.maxSelectableVideoBitrate",
+          "Enter 500kbps (500000 bit/s) in Adaptation (initial), then Recreate the player to apply.",
+          "A bitrate ceiling for automatic selection. It chooses from the source's available qualities, rather than producing a new 500000 bit/s stream. Clear and recreate to remove this override."
+        ],
+        [
+          "startupBitrate",
+          "Enter 250kbps (250000 bit/s) in Adaptation (initial), then recreate.",
+          "Compare the initial quality after loading, rather than a later steady-state quality. The player can subsequently adapt. Clear and recreate to restore automatic startup selection."
+        ],
+        [
+          "maxStartupBitrate",
+          "Clear startupBitrate, enter 500kbps (500000 bit/s) here, then recreate.",
+          "Limit automatic startup selection. This setting has no effect while startupBitrate is explicitly specified."
+        ],
+        [
+          "qualityStabilityBalance",
+          "Use only with a compatible low-latency adaptation setup.",
+          "This balance does not affect the default adaptation logic. A changed number alone is not a comparison of playback stability."
+        ]
+      ],
+      "widths": [
+        0.25,
+        0.32,
+        0.43
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Initial Adaptation changes are written to both desktop and mobile configuration. Network speed, available renditions, buffered segments and the playback technology affect the result. Native HLS does not necessarily follow the same adaptation path as SDK-managed DASH. Use the same source and browser when comparing settings."
+    },
+    {
+      "type": "h2",
+      "text": "Compare retained media buffers",
+      "id": "compare-retained-media-buffers"
+    },
+    {
+      "type": "p",
+      "text": "A forward buffer holds media ahead of playback; a backward buffer retains media already played. These values are durations in seconds, not file sizes. The target can differ from the amount currently buffered because downloads, segment boundaries, available memory and live availability constrain the actual buffer."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Control",
+        "Example and application",
+        "Check and restore"
+      ],
+      "rows": [
+        [
+          "Player API: buffer target forward (s)",
+          "Enter 10 seconds; applies immediately to video only.",
+          "Refresh applied code and inspect player.buffer.setTargetLevel. This does not change the audio target. Return to the recorded previous value, such as 40 seconds; clearing the field does not undo the setter."
+        ],
+        [
+          "Playback panel: Buffer target (s)",
+          "Enter 10 seconds and press Set buffer target.",
+          "The event log reports the requested target. This is another route to the same video-forward-buffer API; its input is not a live buffer-level meter."
+        ],
+        [
+          "Buffer (initial)",
+          "Set video/audio forwardduration to 10 seconds and backwardduration to 5 seconds, then recreate.",
+          "Refresh applied code to check the separate video and audio settings. Inspect media buffering in the browser, then seek backward to compare retention. Clear the initial overrides and recreate to remove them."
+        ],
+        [
+          "Tweaks: startup_threshold / restart_threshold",
+          "Try 2 seconds for the threshold being compared, then recreate.",
+          "The startup threshold affects the initial start; the restart threshold affects recovery after a buffering interruption. They are separate from the forward-buffer target. Clear the override and recreate to restore the underlying setting."
+        ]
+      ],
+      "widths": [
+        0.27,
+        0.31,
+        0.42
+      ]
+    },
+    {
+      "type": "note",
+      "text": "A larger buffer may use more memory and absorb a temporary download interruption, but it does not extend a live origin's rewind window or guarantee lower latency. The app does not display separate live audio/video buffer ranges; use the browser's media inspector for actual ranges. The example inputs are comparison values, not recommended settings."
+    },
+    {
+      "type": "h2",
+      "text": "Set request timeouts and retries",
+      "id": "set-request-timeouts-and-retries"
+    },
+    {
+      "type": "p",
+      "text": "A timeout limits how long an individual request may wait. A retry starts another attempt after a failure. Network contains timeout settings; Tweaks contains the retry controls exposed by this app. Both groups require Recreate the player to apply. A request-type timeout takes precedence over defaultRequestTimeout."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Setting",
+        "Example input",
+        "Scope"
+      ],
+      "rows": [
+        [
+          "network.defaultRequestTimeout",
+          "5 seconds",
+          "Fallback timeout for requests without a type-specific override."
+        ],
+        [
+          "network.requestTimeout[media/video]",
+          "2 seconds",
+          "Video requests; audio keeps its own override or the default. This is not a limit on total playback duration."
+        ],
+        [
+          "network.requestTimeout[manifest/dash]",
+          "3 seconds",
+          "The DASH manifest. HLS uses the separate master and variant request types."
+        ],
+        [
+          "tweaks.max_retries",
+          "1 retry",
+          "Failed manifest requests, including HLS master and variant playlists."
+        ],
+        [
+          "tweaks.max_mpd_retries / mpd_retry_delay",
+          "1 retry / 1 second",
+          "Failed DASH manifest downloads and the wait before another MPD attempt. MPD is the DASH manifest."
+        ],
+        [
+          "tweaks.max_cdn_retries",
+          "1 retry",
+          "Retries per content delivery network for on-demand download failures."
+        ],
+        [
+          "tweaks.infinite_retries_for_live",
+          "On or off",
+          "Whether unreachable live media keeps retrying after the available qualities have failed. It is not an on-demand retry setting."
+        ]
+      ],
+      "widths": [
+        0.38,
+        0.18,
+        0.44
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select VOD DASH. Open the browser's Network tools and record the behavior before changing a setting.",
+        "Set a timeout or retry value, recreate the Player, then refresh applied configuration code. Confirm the value under network or tweaks; draft text alone is not applied configuration.",
+        "To exercise a timeout, use the browser's network tools to delay a request beyond the configured timeout. To compare retries, temporarily block a manifest request and reload the source. Inspect actual attempts and their timing in Network; the app event log shows event names such as Error, not an HTTP request trace.",
+        "Remove browser throttling or request blocking. Clear the optional numeric overrides and recreate the Player. For a checkbox, restore the previously recorded on/off value. Reload the source to check normal playback again."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Browser caching, native HLS and the request type can affect which requests exercise these settings. Total time before a playback error can include multiple requests, retries and retry delays; it is not necessarily equal to one timeout. The GUI does not edit retryHttpRequest callbacks, authentication headers or arbitrary request logic."
+    },
+    {
+      "type": "h2",
       "text": "Restore a setting"
     },
     {
       "type": "p",
-      "text": "Clear an optional Source or initial-configuration override, or select its default option, then apply it to remove only that override. Other settings remain applied. Checkboxes explicitly specify on or off; they do not provide an unset state. The GUI has no global reset or configuration-file save/load."
+      "text": "Clear an optional Source or initial-configuration override, or select its default option, then apply it to remove only that override. Other settings remain applied. Checkboxes explicitly specify on or off; they do not provide an unset state. Runtime setters can need an explicit replacement value, as described above. Selecting a source preset clears source overrides but keeps Player settings. Reloading the browser page clears this app's in-memory edits; stored Player UI preferences are separate. The GUI has no global reset or configuration-file save/load."
     },
     {
       "type": "h2",
@@ -222,7 +405,7 @@
     {
       "type": "figure",
       "file": "config",
-      "caption": "The six SourceConfig fields. The Apply button is below the complete configuration panel."
+      "caption": "SourceConfig fields. The Apply button is below the complete configuration panel."
     },
     {
       "type": "h2",
@@ -238,6 +421,30 @@
     }
   ],
   "sources": [
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 255
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 330
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 624
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 656
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 667
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 974
+    },
     {
       "path": "apps/web/src/configPanel.ts",
       "line": 67

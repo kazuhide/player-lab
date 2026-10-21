@@ -1,11 +1,65 @@
 {
   "id": "web-qoe-analytics",
-  "title": "Read playback quality while using the player",
-  "lead": "Play, pause and seek a source, then use the session readouts and event log to explain what changed. Keep these browser measurements separate from collected Analytics aggregates.",
+  "title": "Send Analytics and inspect it in the Dashboard",
+  "lead": "An Analytics collector listens to player events and sends playback data to Bitmovin. Inspect collected data in Bitmovin Dashboard under Observability. The app’s local state and QoE readouts help explain the playback currently on screen.",
   "blocks": [
     {
       "type": "h2",
-      "text": "Try a short playback session"
+      "text": "From playback to collected data",
+      "id": "choose-the-right-analytics-view"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Action",
+        "Where",
+        "What you check"
+      ],
+      "rows": [
+        [
+          "Operate the player",
+          "Player Lab Web and native apps",
+          "Change settings or playback actions, then inspect player state and applied code."
+        ],
+        [
+          "Send playback data",
+          "A configured Analytics collector",
+          "Collect supported player events and playback context for the selected Analytics license."
+        ],
+        [
+          "Inspect collected results",
+          "Observability in Bitmovin Dashboard",
+          "Select the license, period and filters to inspect audience and playback quality."
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Find a playback in the Dashboard"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Play a video in an app configured for Analytics. Note the setting, source, device and playback time. On the public Pages demo, also check the Analytics collection notice.",
+        "Sign in to Bitmovin Dashboard and open Observability. Select the same Analytics license used by the collector.",
+        "Choose a period containing your playback. Check the displayed time zone, then narrow the view with content or browser filters.",
+        "Find the playback through Plays or Latest Sessions under Audience. Use Quality of Experience to inspect Video Startup Time or Rebuffering Percentage.",
+        "Investigate failures through Top Errors or the session details. Match the playback and time when comparing the Dashboard with the app’s event log."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-overview",
+      "caption": "Official Bitmovin demo screen showing the license, period, Global Filters and Video Title selectors. Values are dummy data. This older screen uses an Analytics menu label and layout that may differ from the current Dashboard. Source: the official sandbox article linked below. © Bitmovin."
+    },
+    {
+      "type": "note",
+      "text": "You need access to the selected Analytics license in the Dashboard. Playing the public demo does not grant access to its destination account. To inspect your own data, configure your Analytics license in a local app. A collection notice or browser-local value alone does not establish that data reached the collector backend."
+    },
+    {
+      "type": "h2",
+      "text": "Inspect local state and events",
+      "id": "try-a-short-playback-session"
     },
     {
       "type": "steps",
@@ -18,11 +72,12 @@
     },
     {
       "type": "h2",
-      "text": "Read the six QoE values"
+      "text": "Read the local QoE values",
+      "id": "read-the-six-qoe-values"
     },
     {
       "type": "p",
-      "text": "Quality of Experience (QoE) means the viewer's playback experience. These six readouts are calculated by this app from the current player events; they are not a query of all viewers or a replacement for the Analytics dashboard."
+      "text": "QoE means Quality of Experience. This panel computes values from the current player’s events. Its population and definitions differ from collected Analytics in the Dashboard."
     },
     {
       "type": "table",
@@ -70,7 +125,8 @@
     },
     {
       "type": "h2",
-      "text": "Use events to explain a change"
+      "text": "Use events to explain a change",
+      "id": "use-events-to-explain-a-change"
     },
     {
       "type": "p",
@@ -81,37 +137,8 @@
       "text": "A new source load, source unload or player destruction resets the session measurements. Switching only the theme or UI keeps the same player measurements. At playback end, final totals stop increasing. Start a fresh load before comparing another trial."
     },
     {
-      "type": "h2",
-      "text": "Choose the right Analytics view"
-    },
-    {
-      "type": "table",
-      "headers": [
-        "What you need",
-        "Where to look",
-        "Scope"
-      ],
-      "rows": [
-        [
-          "What just happened during this playback?",
-          "Player state, QoE metrics and event log",
-          "Current browser session. These readouts work without an account query."
-        ],
-        [
-          "Is this player configured to collect Analytics?",
-          "The collection notice and your Analytics collector configuration",
-          "Playback/device telemetry sent with an Analytics license; a local readout alone does not prove account aggregation."
-        ],
-        [
-          "How did viewers perform over a time range?",
-          "Local server-proxied query panel, Analytics dashboard or Query API",
-          "Collected data for the selected Analytics license and range."
-        ]
-      ]
-    },
-    {
       "type": "p",
-      "text": "The public Pages app can collect Analytics and displays a collection notice when configured. Its aggregate-query panel is hidden because Pages does not run the server endpoint. Use local development for the four query buttons, or the Analytics dashboard for your authorized data."
+      "text": "The public Pages app also sends Analytics when configured. Its aggregate-query panel is hidden because Pages does not run a server that can hold an account API key. Use the Dashboard for routine inspection, and use local queries or the Query API when you need a custom aggregate."
     }
   ],
   "sources": [
@@ -146,6 +173,22 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/which-metrics-related-to-the-startup-time-are-collected-by-bitmovin",
       "label": "Analytics startup-time definitions"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-analytics",
+      "label": "Bitmovin: collector setup and Analytics licenses"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/metrics-and-dashboard-walkthrough",
+      "label": "Bitmovin: Metrics & Dashboard"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/is-there-a-sandbox-environment-to-test-bitmovin-analytics",
+      "label": "Bitmovin: official demo Dashboard screen"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/can-i-change-the-timezone-used-for-bitmovin-analytics-data",
+      "label": "Bitmovin: Dashboard time-zone settings"
     }
   ]
 }

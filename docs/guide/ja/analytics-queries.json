@@ -1,11 +1,12 @@
 {
   "id": "analytics-queries",
-  "title": "Analyticsの集計結果を取得する",
-  "lead": "まずローカルWebのボタンで集計し、必要に応じてサーバー側のクエリで期間や分類を指定します。公開Pages版は設定に応じて送信しますが、集計クエリのサーバーは提供しません。",
+  "title": "AnalyticsをAPIで取得する",
+  "lead": "通常はDashboardで結果を確認します。独自の集計や外部ツールへの連携が必要な場合に、ローカルの集計画面やサーバー側のQuery APIを使います。公開Pages版は集計クエリのサーバーを提供しません。",
   "blocks": [
     {
       "type": "h2",
-      "text": "既存GUIで問い合わせる"
+      "text": "ローカルの集計画面で試す",
+      "id": "use-the-existing-gui"
     },
     {
       "type": "steps",
@@ -18,7 +19,8 @@
     },
     {
       "type": "h2",
-      "text": "用途に合うキーを設定する"
+      "text": "用途に合うキーを設定する",
+      "id": "choose-the-correct-credentials"
     },
     {
       "type": "table",
@@ -61,7 +63,8 @@
     },
     {
       "type": "h2",
-      "text": "表示とJSONレスポンスを読む"
+      "text": "表示とJSONレスポンスを読む",
+      "id": "read-the-result-and-json-response"
     },
     {
       "type": "p",
@@ -78,7 +81,8 @@
     },
     {
       "type": "h2",
-      "text": "期間を指定して取得する"
+      "text": "期間を指定して取得する",
+      "id": "request-a-specific-time-range"
     },
     {
       "type": "p",
@@ -91,7 +95,8 @@
     },
     {
       "type": "h2",
-      "text": "Query APIで分類と時間別の集計を行う"
+      "text": "Query APIで分類と時間別の集計を行う",
+      "id": "use-the-query-api-for-a-breakdown"
     },
     {
       "type": "p",
@@ -113,12 +118,13 @@
     },
     {
       "type": "h2",
-      "text": "同じ対象を比較する"
+      "text": "同じ対象を比較する",
+      "id": "keep-the-same-population-when-comparing"
     },
     {
       "type": "bullets",
       "items": [
-        "startとendで期間を指定します。UTCの時刻と保持期間内のデータを使います。GUIの4項目は直近7日間を自動で選びます。",
+        "startとendで期間を指定します。UTCの時刻と保持期間内のデータを使います。ローカルGUIは直近7日間を自動で選びます。",
         "intervalはMINUTE、HOUR、DAY、MONTHの時間単位に分ける指定です。start/endによる全体の期間とは異なります。",
         "groupByはBROWSER、COUNTRY、DEVICE_TYPE、OPERATINGSYSTEMなどの分類です。filtersはBROWSER EQ ChromeやVIDEO_STARTUPTIME GT 0のように対象を絞る条件です。",
         "取得結果にはAnalyticsライセンス、期間、タイムゾーン、条件、集計方法、単位、コレクターの対応範囲を添えます。すべてのコレクターで全項目が取れるとは限りません。"
@@ -126,7 +132,8 @@
     },
     {
       "type": "h2",
-      "text": "期待した値が返らないとき"
+      "text": "期待した値が返らないとき",
+      "id": "if-a-query-does-not-return-the-expected-value"
     },
     {
       "type": "table",

@@ -71,17 +71,65 @@
       "text": "画面には Default、Sports、Live (DVR)、Cinema の UI 選択、ソースボタン、Live edge、−10／−30／−60 秒、Allow DVR、状態、イベントログと Show configuration があります。iOS は HLS で開始し、HLS／progressive MP4 を選べます。iOS では DASH の形式選択とプリセットを表示せず、Android では DASH も選べます。"
     },
     {
+      "type": "steps",
+      "items": [
+        "VODのプリセットを選び、プレイヤーUIで再生を開始します。Show configurationとShow applied codeを開き、比較用に現在値を控えます。",
+        "ソースURLを変えず、Start offset (seconds)に5を入力してStartを選び、Apply and recreate playerを押します。この編集画面ではソースだけを変えてもプレイヤーを再作成します。Autoplayが無効なら再生を開始し、最初の再生位置と新しいSourceLoadedイベントを確認します。",
+        "フォームを開き直し、以下のバッファーやビットレートの値を比較します。適用済みコードはApplyが成功した後に変わります。コードではネイティブSDKに渡した設定を、実際の映像とトラックメニューではそのソースで再生できる内容を確認します。",
+        "未適用の編集を破棄する場合はReset draftを使います。適用した変更を戻す場合は控えた値を入力して再度Applyします。初期のプレイヤー値はAutoplayとMute on startupが無効、Forward bufferとMaximum bitrateが空欄です。ソースのプリセットを選ぶとソース項目は戻りますが、プレイヤー設定は維持します。"
+      ]
+    },
+    {
+      "type": "table",
+      "headers": [
+        "設定",
+        "入力例",
+        "比較すること"
+      ],
+      "widths": [
+        0.24,
+        0.26,
+        0.5
+      ],
+      "rows": [
+        [
+          "Forward buffer",
+          "10秒",
+          "Applyでプレイヤーを再作成します。適用済みコードのbufferConfig.audioAndVideo.forwardDurationを比較します。バッファーの目標値であり、起動までの待ち時間を保証する値ではありません。空欄にすると各OSのSDK既定値に戻ります。"
+        ],
+        [
+          "Maximum bitrate",
+          "1500000 bits per second",
+          "Applyでプレイヤーを再作成します。適用済みコードのadaptationConfig.maxSelectableBitrateと、複数ビットレートを持つソースの再生を比較します。単位はビット毎秒です。Mbpsや桁区切りのカンマを付けずに入力します。"
+        ],
+        [
+          "外部WebVTT",
+          "自分で用意したHTTPSのWebVTT URL、label: Test captions、language: en、Mark as default: 無効",
+          "Apply後、プレイヤーの字幕メニューでTest captionsを選び、字幕の表示時刻を再生します。Mark as defaultはメタデータで、字幕を有効にする操作ではありません。選んだ映像の時間に合うWebVTTを使ってください。"
+        ],
+        [
+          "Player UI",
+          "DefaultからCinemaへ変更",
+          "UIの切り替えはプレイヤーを再作成し、適用済みソースを読み込み直します。操作部品とShow applied codeのUI設定を比較します。一方、ソースのプリセットボタンは既存プレイヤーへ即時にソースを読み込みます。"
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "React Nativeの設定フォームには、初期音声の優先言語、HTTPリトライ、TweaksConfigの編集欄はありません。再生中のトラック操作にはプレイヤーUIで提供するメニューを使います。APIの対応状況では、フォームの項目、UIのプリセット、コード内のみの対応を区別して確認できます。"
+    },
+    {
       "type": "p",
       "text": "Show configuration では、必須の HTTP／HTTPS ソース URL、形式、任意のタイトル・ポスター URL、開始オフセット（秒）、基準の Start／End／SDK default を編集します。オフセットは符号付きで入力できます。Start はメディアまたは DVR 範囲の先頭、End は末尾またはライブ端です。SDK default は VOD が Start、ライブが End です。タイトル・ポスター・オフセットの空欄は、その任意値を省略します。"
     },
     {
       "type": "p",
-      "text": "外部字幕には External WebVTT URL、Subtitle label、Subtitle language、Mark as default の4項目があります。URL・ラベル・IETF言語タグを一緒に入力します。en-us は en-US になります。URLを空欄にするとトラックとメタデータを削除します。Mark as default はネイティブのトラックメタデータを設定する項目で、有効化にはSDKの字幕メニューから選択します。Apply、Reset draft、コード出力は、同じ検証済みの適用設定を使います。"
+      "text": "外部字幕は External WebVTT URL、Subtitle label、Subtitle language、Mark as default で設定します。URL・ラベル・IETF言語タグを一緒に入力します。en-us は en-US になります。URLを空欄にするとトラックとメタデータを削除します。Mark as default はネイティブのトラックメタデータを設定する項目で、有効化にはSDKの字幕メニューから選択します。Apply、Reset draft、コード出力は、同じ検証済みの適用設定を使います。"
     },
     {
       "type": "figure",
       "file": "rn-ios-subtitles",
-      "caption": "iOS版React Native：適用前の外部WebVTT字幕の4項目。"
+      "caption": "iOS版React Native：適用前の外部WebVTT字幕の設定欄。"
     },
     {
       "type": "figure",
@@ -152,12 +200,56 @@
       "text": "画面にはソース、Live edge、−10／−30／−60秒、Allow DVR、状態、ログとShow configurationがあります。初期状態は自動再生・ミュートが有効です。Allow DVR、Autoplay、Mute on startupはフォーカス可能にしてあり、D-padとSelect（VVDでは矢印キーとEnter）で切り替えられます。専用の再生／一時停止ボタン、音声・字幕・画質選択、メディアキーのショートカット、DRM用モジュールは含めません。"
     },
     {
+      "type": "steps",
+      "items": [
+        "VOD HLSを選び、映像とpositionの値が進むことを確認します。このホストには独立した再生ボタンがないため、設定の比較中はAutoplayを有効にしておきます。",
+        "Show configurationを開いて現在値を控え、Start offset (seconds)に5を入力してStartを選び、Apply and recreate playerを押します。新しいソースの読み込みと、再生開始後に映像の下へ表示するpositionを確認します。",
+        "以下のバッファーやビットレートの入力例をApplyし、Show applied codeを変更前と比較します。ソースだけの編集でもプレイヤーを再作成し、前のネイティブプレイヤーが資源を解放するまで待ちます。",
+        "編集の破棄にはReset draftを使います。初期のプレイヤー設定に戻す場合はAutoplayとMute on startupを有効にし、両方のバッファー欄とMaximum video bitrateを空欄にしてApplyします。ソース項目はVODのプリセットを選び直して戻します。Autoplayを無効にした場合は、有効に戻してApplyすると新しい再生セッションを開始します。"
+      ]
+    },
+    {
+      "type": "table",
+      "headers": [
+        "設定",
+        "入力例",
+        "比較すること"
+      ],
+      "widths": [
+        0.24,
+        0.26,
+        0.5
+      ],
+      "rows": [
+        [
+          "Video / audio forward buffer",
+          "Video: 10秒、Audio: 10秒",
+          "Applyでプレイヤーを再作成します。適用済みコードのbuffer.video.forwarddurationとbuffer.audio.forwarddurationを確認します。先読みする映像・音声の目標値であり、ライブ配信の保存範囲を伸ばす設定ではありません。"
+        ],
+        [
+          "Maximum video bitrate",
+          "1500000 bits per second",
+          "Applyでプレイヤーを再作成します。適用済みコードのadaptation.bitrates.maxSelectableVideoBitrateを確認し、複数ビットレートを持つソースで再生を比較します。このホストには手動の画質選択はありません。"
+        ],
+        [
+          "外部WebVTT",
+          "自分で用意したHTTPSのWebVTT URL、label: Test captions、language: en、Enable external subtitle on load: 有効",
+          "Apply後、字幕の表示時刻を再生します。Vegaではネイティブ映像の上に装飾のない字幕テキストを描画します。React Nativeとは異なり、字幕メニューを使わずこの設定でトラックを有効にします。"
+        ],
+        [
+          "Source title / poster",
+          "Title: Player Lab VOD。必要なら自分のHTTPSポスターURL",
+          "適用済みのソースコードで値を確認します。このホストには画像の重ね合わせ表示がないため、ポスター値を保存してもポスター画像は表示されません。"
+        ]
+      ]
+    },
+    {
       "type": "p",
       "text": "Show configuration では HTTP／HTTPS ソース URL、HLS／DASH／progressive MP4 の形式、任意のタイトル・ポスター URL、符号付きの開始オフセット（秒）、基準の Start／End／SDK default を編集します。Start はメディアまたは DVR 範囲の先頭、End は末尾またはライブ端です。SDK default は VOD が Start、ライブが End です。タイトル・ポスター・オフセットの空欄は、その任意値を省略します。Kepler 画面に画像表示は追加されないため、ポスター値を保存してもこの画面に画像は重なりません。"
     },
     {
       "type": "p",
-      "text": "外部字幕には External WebVTT URL、Subtitle label、Subtitle language、Enable external subtitle on load の4項目があります。URL・ラベル・IETF言語タグを一緒に入力します。en-us は en-US になります。URLを空欄にするとトラックとメタデータを削除します。公開のSubtitles／WebVTTパーサーモジュールがキューイベントを送り、ネイティブのテキスト表示に使います。ソース・Playerの終了時と背景化時には表示を消します。HTMLによる字幕装飾は描画しません。確認した環境ではHTTPSで字幕を表示でき、同じローカルHTTP素材では表示できませんでした。Resetは下書きだけを戻し、Applyは既存の解放待ちを経て再作成します。コード出力には適用済みの値だけを含みます。"
+      "text": "外部字幕は External WebVTT URL、Subtitle label、Subtitle language、Enable external subtitle on load で設定します。URL・ラベル・IETF言語タグを一緒に入力します。en-us は en-US になります。URLを空欄にするとトラックとメタデータを削除します。公開のSubtitles／WebVTTパーサーモジュールがキューイベントを送り、ネイティブのテキスト表示に使います。ソース・Playerの終了時と背景化時には表示を消します。HTMLによる字幕装飾は描画しません。確認した環境ではHTTPSで字幕を表示でき、同じローカルHTTP素材では表示できませんでした。Resetは下書きだけを戻し、Applyは既存の解放待ちを経て再作成します。コード出力には適用済みの値だけを含みます。"
     },
     {
       "type": "figure",

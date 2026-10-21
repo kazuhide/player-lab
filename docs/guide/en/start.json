@@ -1,7 +1,7 @@
 {
   "id": "start",
   "title": "Scope and first steps",
-  "lead": "Use the Web and native apps to try playback features, change Player settings and UI, and inspect the code. The Analytics chapters explain local readouts, collected metrics, and external analysis tools.",
+  "lead": "Use the Web and native apps to try playback features, change Player settings and UI, and inspect the applied code.",
   "blocks": [
     {
       "type": "p",
@@ -35,12 +35,12 @@
           "Follow local setup and the chapter for iOS/tvOS, Android, React Native, or Vega."
         ],
         [
-          "Understand playback quality and usage",
-          "Start with QoE and Analytics, then read metrics, queries, visualization, and LLM analysis."
-        ],
-        [
           "Check implemented APIs or representative results",
           "Use the API coverage reference and test results. Results identify their environment and scope."
+        ],
+        [
+          "Review collected playback data",
+          "After trying the player, use Analytics and Observability to check playback data in Bitmovin Dashboard. The final chapters also explain metrics, API queries, external visualization, and LLM analysis."
         ]
       ]
     },
@@ -63,7 +63,7 @@
     },
     {
       "type": "note",
-      "title": "Three points to check first",
+      "title": "Before you start",
       "text": "A theme named Live does not determine the source’s streaming mode. Construction code is an example for the selected theme, not an automatic export of all settings. The short public demo media cannot demonstrate a long rewind window or sample chapter markers at 120 seconds and beyond."
     },
     {
@@ -82,6 +82,10 @@
     {
       "type": "p",
       "text": "Test results summarize checks performed in the stated environment. They do not imply that every SDK API, device, source, or Analytics ingestion path is covered. Use the platform chapters and API reference to find the controls available today."
+    },
+    {
+      "type": "p",
+      "text": "The guide covers Web and native player features before Analytics and Observability. The Analytics collector sends playback events from the player, and you normally review the collected data in Bitmovin Dashboard. Local QoE readouts describe the current app session. The final chapters explain these differences and show how to inspect collected metrics and analyze them further."
     }
   ],
   "sources": [

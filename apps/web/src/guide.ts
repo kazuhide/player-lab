@@ -41,8 +41,8 @@ const SECTIONS: Section[] = [
       {
         kind: "p",
         text: {
-          ja: "プレイヤー本体とは別パッケージで、UI を「構造(コンポーネントのツリー)」と「スキン(SCSS)」に分けています。だからこそ、構造を変えずにスキンだけ差し替える/構造ごと組み直す/部品を1個だけ自作する、を自由に選べます。このページは、何をどう変えられるかを実コードと公式ソースへのリンクで具体的に示すことを目的にしています。",
-          en: "It's a separate package from the player core, and it splits the UI into a “structure (a tree of components)” and a “skin (SCSS)”. That split is what lets you choose freely: swap only the skin without touching structure, re-compose the structure entirely, or write just one custom part. This page's goal is to show concretely — with real code and links to the official source — what you can change and how.",
+          ja: "プレイヤー本体とは別のパッケージで、UIを構造(コンポーネントのツリー)とスキン(SCSS)に分けています。構造を保ってスキンを変更したり、部品の配置を組み直したり、独自の部品を追加したりできます。このページではコードと公式ソースへのリンクを使い、変更方法を説明します。",
+          en: "The UI is a separate package from the player core, with a structure (a tree of components) and a skin (SCSS). You can change the skin while retaining the structure, rearrange components, or add custom components. This page explains these changes with code and links to the official source.",
         },
       },
       {
@@ -58,8 +58,8 @@ const SECTIONS: Section[] = [
     id: "architecture",
     heading: { ja: "アーキテクチャと用語", en: "Architecture & vocabulary" },
     intro: {
-      ja: "登場人物は4つだけ。これさえ掴めば、あとは部品の組み合わせです。",
-      en: "There are only four players here. Grasp these and the rest is just composing parts.",
+      ja: "UIを構成する主なクラスと、それぞれの役割を確認します。",
+      en: "Review the main classes used to build the UI and their roles.",
     },
     blocks: [
       {
@@ -87,8 +87,8 @@ const SECTIONS: Section[] = [
         kind: "code",
         lang: "ts",
         caption: {
-          ja: "プレイヤーの内蔵 UI を切ってから、自分の UI を載せる。これが全ての出発点です。",
-          en: "Turn off the player's built-in UI, then attach your own. This is where everything starts.",
+          ja: "プレイヤーの内蔵UIを無効にしてから、独自のUIを接続します。",
+          en: "Disable the player's built-in UI, then attach a custom UI.",
         },
         code: `import { Player } from "bitmovin-player";
 import { UIManager, UIFactory, UIVariantIdentifier, UIComponentLayoutOverride, type UIContainer } from "bitmovin-player-ui";
@@ -115,10 +115,10 @@ const ui2 = createUi(anotherContainer);`,
   },
   {
     id: "start",
-    heading: { ja: "3つの入り口", en: "Three ways in" },
+    heading: { ja: "UIの変更方法", en: "UI customization approaches" },
     intro: {
-      ja: "やりたいことの重さで選びます。上から順に、手数が少なく自由度が上がります。",
-      en: "Pick by how much you need. Top to bottom: fewer steps, more freedom.",
+      ja: "標準UIを使うか、部品の配置を変えるか、色やサイズを変えるか、目的に応じて選びます。",
+      en: "Choose an approach based on whether you need the standard UI, a different component layout, or changes to colors and sizes.",
     },
     blocks: [
       {
@@ -265,8 +265,8 @@ new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }])
     id: "custom-component",
     heading: { ja: "部品を自作する(中核)", en: "Writing a custom component (the core)" },
     intro: {
-      ja: "ここがカスタムの本丸。「ライブラリの基底を継承 → constructor で見た目、configure でプレイヤーに繋ぐ」。たった2メソッドの型です。",
-      en: "This is the heart of customizing. “Extend a library base → look in the constructor, wire to the player in configure”. It's a two-method pattern.",
+      ja: "ライブラリの基底クラスを継承し、constructorで見た目を設定します。configureでプレイヤーの操作やイベントにつなぎ、releaseで必要な後片付けを行います。",
+      en: "Extend a library base class, set its appearance in the constructor, connect player actions and events in configure, and clean up owned resources in release.",
     },
     blocks: [
       {
@@ -547,8 +547,8 @@ new QuickSeekButton({ seekSeconds: 30 });`,
         kind: "callout",
         tone: "tip",
         text: {
-          ja: "プレイグラウンドの「UI settings」で UIConfig フラグを、「Player Config」でプレイヤー本体の全設定を、その場で試せます。どれがどの層かを体で覚えるのに最適です。",
-          en: "The playground's “UI settings” toggles UIConfig flags and “Player Config” exposes every player-level setting live — the best way to feel which layer is which.",
+          ja: "「UI settings」ではUIConfigの表示設定を、「Player Config」では画面に用意された再生設定を変更できます。各項目に表示された適用方法を確認し、再生結果と適用コードを見比べます。",
+          en: "Use “UI settings” to change the exposed UIConfig options and “Player Config” for the available playback settings. Follow each field's application method, then compare the playback result with the applied code.",
         },
       },
     ],

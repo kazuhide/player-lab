@@ -23,15 +23,10 @@ apply them, and inspect the configuration code used by the app.
   applied settings with license placeholders; draft edits are excluded.
   The [UI customization guide](https://kazuhide.github.io/player-lab/guide/web-ui-customization/)
   explains how to adapt the examples.
-- **Analytics:** inspect the current playback's event log and QoE readouts.
-  [Analytics and playback measurements](https://kazuhide.github.io/player-lab/guide/web-qoe-analytics/)
-  explains local values, collector delivery and account queries.
 
 The public Web app supports English and Japanese and includes public demo media
 for audio, subtitles and sprite previews. Public reference streams can change.
-Some local examples need media URLs or credentials that you supply. Pages can
-send playback data through its configured Analytics collector, while account
-aggregate queries require a local server and stay hidden on Pages. See the
+Some local examples need media URLs or credentials that you supply. See the
 [Pages scope](apps/web/README.md#pages-version) and
 [recorded test results](https://kazuhide.github.io/player-lab/guide/test-results/).
 
@@ -81,6 +76,18 @@ See [testing instructions](docs/e2e-testing.md) and
 checks. Optional [encoding tools](encoding) can create media in your account and
 incur charges; they are not required to try the public Web app.
 
+## Analytics and Observability
+
+After trying the player, review collected playback data in Bitmovin Dashboard.
+The Analytics collector sends playback events from the player; local QoE readouts
+describe the current app session. The
+[Analytics guide](https://kazuhide.github.io/player-lab/guide/web-qoe-analytics/)
+explains Dashboard views, collected metrics, API queries, external visualization
+and analysis with a language model.
+
+Pages can send playback data through its configured Analytics collector.
+Account aggregate queries require a local server and stay hidden on Pages.
+
 ## Licenses
 
 Project code is provided under [MIT](LICENSE). Dependencies retain their own
@@ -88,5 +95,8 @@ licenses. The hosted Bitmovin Player SDK is proprietary; the project's MIT
 license does not cover it. See the
 [SDK notice](https://kazuhide.github.io/player-lab/web/notices/BITMOVIN-PLAYER-NOTICE.txt).
 SDK binaries and generated media are not tracked in this Git repository.
+Dashboard screenshots in the guide are reproduced from Bitmovin's public
+documentation and articles. They remain © Bitmovin and are not covered by the
+project's MIT license; source links accompany the examples.
 The [subtitle asset notes](encoding/test-streams/assets/README.md) describe its
 attribution and timestamp changes.
