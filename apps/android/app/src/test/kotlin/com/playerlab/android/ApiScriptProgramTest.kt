@@ -4,6 +4,41 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ApiScriptProgramTest {
+    private class CheckpointClock(private val elapsedWallMs: Long, private val elapsedCpuMs: Long?, private val cpuInitiallyAvailable: Boolean = elapsedCpuMs != null) : ApiScriptClock {
+        private var wallReads = 0
+        private var cpuReads = 0
+        override fun wallNanos() = (if (wallReads++ == 0) 0L else elapsedWallMs) * 1_000_000L
+        override fun threadCpuNanos(): Long? = if (cpuReads++ == 0) {
+            if (cpuInitiallyAvailable) 0L else null
+        } else elapsedCpuMs?.times(1_000_000L)
+    }
+
+    @Test fun independentCpuAndWallLimitsDoNotRejectLowCpuElapsedTime() {
+        var timing: ApiScriptTiming? = null
+        assertEquals(7.0, ApiScriptProgram("return 7;", CheckpointClock(80, 1)).run(null) { timing = it })
+        assertEquals(80L, timing!!.wallMillis)
+        assertEquals(1L, timing!!.cpuMillis)
+    }
+
+    @Test fun cpuWorkBeyondItsLimitRetainsTheNativeFallback() {
+        val context = ApiCallbackContext()
+        assertEquals("native", context.apply("cpu", ApiScriptProgram("return 'edited';", CheckpointClock(30, 26)), null, "native") { it as String })
+        assertEquals(1 to 1, context.snapshot()["cpu"])
+    }
+
+    @Test fun independentWallLimitRejectsLongNonCpuDelay() {
+        try { ApiScriptProgram("return 7;", CheckpointClock(251, 1)).run(null); fail("Expected wall limit") }
+        catch (error: ApiScriptBudgetException) { assertEquals(251L, error.elapsedMillis); assertEquals(1L, error.cpuMillis) }
+    }
+
+    @Test fun unavailableOrLostCpuClockUsesTheShorterWallFallback() {
+        listOf(false, true).forEach { initiallyAvailable ->
+            assertEquals(7.0, ApiScriptProgram("return 7;", CheckpointClock(74, null, initiallyAvailable)).run(null))
+            try { ApiScriptProgram("return 7;", CheckpointClock(76, null, initiallyAvailable)).run(null); fail("Expected fallback wall limit") }
+            catch (error: ApiScriptBudgetException) { assertEquals(76L, error.elapsedMillis); assertNull(error.cpuMillis) }
+        }
+    }
+
     @Test fun editedAndSparseByteArraysRemainValueSnapshots() {
         val bytes = (0 until 4096).map { it % 256 }
         val p = ApiScriptProgram("input.bytes[0] = 255; input.bytes[4095] = 7; return input.bytes;")

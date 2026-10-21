@@ -360,8 +360,14 @@ and close it when retiring its Player or Source. The UI refresh shows invocation
 and fallback counts without recording callback arguments, headers or bodies.
 
 The interpreter has no Java/Android bridge, network, filesystem, Player or Source
-objects. Each invocation has an instruction, elapsed-time and stack limit;
-invalid results retain native behavior. It is an in-process development tool,
+objects. Each invocation is limited to 50000 interpreter instructions, 25
+milliseconds of thread CPU time, 250 milliseconds of elapsed wall time, and a
+stack depth of 64. CPU time measures work on the callback thread; wall time also
+includes time when that thread is not executing. If thread CPU accounting is
+unavailable or becomes unavailable, the invocation uses a 75-millisecond
+wall-time limit. Limits are checked at interpreter and value-conversion
+checkpoints; native built-ins are not preempted. Invalid results retain native
+behavior. It is an in-process development tool,
 not an isolated memory sandbox. The runtime uses the Android-compatible Java 8
 maintenance release [Rhino 1.7.15.1](https://github.com/mozilla/rhino/releases/tag/Rhino1_7_15_1_Release).
 Rhino's source and license links are included in the APK's

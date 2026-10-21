@@ -44,7 +44,7 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
         val field = ApiSettings.byId.getValue(selected)
         Text(field.id.removePrefix("android:"), style = MaterialTheme.typography.labelLarge)
         Text("${field.kind}. ${field.help}", style = MaterialTheme.typography.bodySmall)
-        if (field.kind == ApiValueKind.Script) Text("Callbacks accept a pure input value snapshot and return the documented value. Only your staged body is executed; code is kept in memory, with no Java/Android access. Budgets are 50000 interpreter instructions, 75 milliseconds checked at execution/conversion checkpoints, and a stack depth of 64. Native built-ins are not preempted. This is not a separate-process memory sandbox.", style = MaterialTheme.typography.bodySmall)
+        if (field.kind == ApiValueKind.Script) Text("Callbacks accept a pure input value snapshot and return the documented value. Only your staged body is executed; code is kept in memory, with no Java/Android access. Budgets are 50000 interpreter instructions, 25 milliseconds of thread CPU time, 250 milliseconds of wall time, and a stack depth of 64. If CPU time is unavailable, the wall limit is 75 milliseconds. Limits are checked at execution/conversion checkpoints; native built-ins are not preempted. This is not a separate-process memory sandbox.", style = MaterialTheme.typography.bodySmall)
         if (field.choices.isNotEmpty() || field.kind == ApiValueKind.Boolean) {
             val choices = field.choices.ifEmpty { listOf("true", "false") } + if (field.nullable) listOf("null") else emptyList()
             choices.forEach { choice ->

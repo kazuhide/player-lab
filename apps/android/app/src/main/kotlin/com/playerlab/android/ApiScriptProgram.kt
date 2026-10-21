@@ -14,20 +14,44 @@ internal class ApiScriptExecutionException : IllegalArgumentException("Invalid J
 
 internal data class ApiScriptTiming(val wallMillis: Long, val cpuMillis: Long?, val phasesMillis: Map<String, Long>)
 
+internal interface ApiScriptClock {
+    fun wallNanos(): Long
+    fun threadCpuNanos(): Long?
+}
+
+private object ApiSystemScriptClock : ApiScriptClock {
+    override fun wallNanos() = System.nanoTime()
+    override fun threadCpuNanos(): Long? = runCatching { android.os.Debug.threadCpuTimeNanos() }.getOrNull()?.takeIf { it >= 0 }
+}
+
 /** Pure value callbacks. No SDK object, Java wrapper, file, URL or Android object enters the script scope. */
-internal class ApiScriptProgram(private val body: String) {
+internal class ApiScriptProgram(private val body: String, private val clock: ApiScriptClock = ApiSystemScriptClock) {
     private class Limit(val phase: String) : Error()
-    private class Budget {
-        val started = System.nanoTime()
-        val deadline = started + 75_000_000L
-        val cpuStarted = runCatching { android.os.Debug.threadCpuTimeNanos() }.getOrNull()
+    private class Budget(val clock: ApiScriptClock) {
+        val started = clock.wallNanos()
+        val cpuStarted = clock.threadCpuNanos()
+        private var cpuUnavailable = cpuStarted == null
         var convertedItems = 0
         var instructions = 50_000
         var phase = "scope initialization"
         var phaseStarted = started
         val phases = linkedMapOf<String, Long>()
-        fun next(value: String) { val now = System.nanoTime(); phases[phase] = (now - phaseStarted) / 1_000_000; phase = value; phaseStarted = now }
-        fun elapsedPhases() = phases + (phase to (System.nanoTime() - phaseStarted) / 1_000_000)
+        fun next(value: String) { val now = clock.wallNanos(); phases[phase] = (now - phaseStarted) / 1_000_000; phase = value; phaseStarted = now }
+        fun elapsedPhases() = phases + (phase to (clock.wallNanos() - phaseStarted) / 1_000_000)
+        fun cpuElapsedNanos(): Long? {
+            if (cpuUnavailable) return null
+            val elapsed = clock.threadCpuNanos()?.let { it - requireNotNull(cpuStarted) }
+            if (elapsed == null || elapsed < 0) { cpuUnavailable = true; return null }
+            return elapsed
+        }
+        fun check() {
+            val wallElapsed = clock.wallNanos() - started
+            val cpuElapsed = cpuElapsedNanos()
+            // CPU work and elapsed delay are separate bounds. If CPU accounting is lost,
+            // conservatively retain the shorter wall-only limit for this invocation.
+            if (wallElapsed > 250_000_000L || cpuElapsed?.let { it > 25_000_000L } == true ||
+                (cpuElapsed == null && wallElapsed > 75_000_000L)) throw Limit(phase)
+        }
     }
     private val budget = ThreadLocal<Budget>()
     private val factory = object : ContextFactory() {
@@ -44,7 +68,8 @@ internal class ApiScriptProgram(private val body: String) {
         override fun observeInstructionCount(context: Context, count: Int) {
             val current = budget.get() ?: throw Limit("missing budget")
             current.instructions -= count
-            if (current.instructions < 0 || System.nanoTime() > current.deadline) throw Limit(current.phase)
+            if (current.instructions < 0) throw Limit(current.phase)
+            current.check()
         }
     }
     // Sealed standard objects are shared; each invocation receives its own writable global.
@@ -63,7 +88,7 @@ internal class ApiScriptProgram(private val body: String) {
     }
 
     private fun <T> evaluate(observed: (ApiScriptTiming) -> Unit, block: (Context, Scriptable) -> T): T {
-        budget.set(Budget())
+        budget.set(Budget(clock))
         try {
             return factory.call { context ->
                 val scope = context.newObject(standardScope).apply { prototype = standardScope; parentScope = null }
@@ -71,14 +96,14 @@ internal class ApiScriptProgram(private val body: String) {
             }
         } catch (error: Limit) {
             val current = requireNotNull(budget.get())
-            throw ApiScriptBudgetException(error.phase, (System.nanoTime() - current.started) / 1_000_000,
-                current.cpuStarted?.let { start -> runCatching { (android.os.Debug.threadCpuTimeNanos() - start) / 1_000_000 }.getOrNull() }, current.convertedItems, current.elapsedPhases())
+            throw ApiScriptBudgetException(error.phase, (clock.wallNanos() - current.started) / 1_000_000,
+                current.cpuElapsedNanos()?.div(1_000_000), current.convertedItems, current.elapsedPhases())
         } catch (_: org.mozilla.javascript.RhinoException) {
             throw ApiScriptExecutionException()
         } finally {
             val current = requireNotNull(budget.get())
-            val timing = ApiScriptTiming((System.nanoTime() - current.started) / 1_000_000,
-                current.cpuStarted?.let { start -> runCatching { (android.os.Debug.threadCpuTimeNanos() - start) / 1_000_000 }.getOrNull() }, current.elapsedPhases())
+            val timing = ApiScriptTiming((clock.wallNanos() - current.started) / 1_000_000,
+                current.cpuElapsedNanos()?.div(1_000_000), current.elapsedPhases())
             budget.remove()
             observed(timing)
         }
@@ -94,7 +119,8 @@ internal class ApiScriptProgram(private val body: String) {
     }
     private fun checkDepth(depth: Int) {
         val current = budget.get() ?: throw Limit("missing budget")
-        if (depth > 8 || System.nanoTime() > current.deadline) throw Limit(current.phase)
+        if (depth > 8) throw Limit(current.phase)
+        current.check()
     }
     private fun toScript(context: Context, scope: Scriptable, value: Any?, depth: Int): Any? {
         checkDepth(depth)
