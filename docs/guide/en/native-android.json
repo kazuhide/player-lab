@@ -187,7 +187,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 160,
+      "line": 182,
       "label": "Real-playback tests and recorded results"
     },
     {
@@ -222,12 +222,12 @@
     },
     {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
-      "line": 17,
+      "line": 34,
       "label": "Validated source and player settings"
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
-      "line": 70,
+      "line": 73,
       "label": "Strict live controls and failure diagnostics"
     },
     {

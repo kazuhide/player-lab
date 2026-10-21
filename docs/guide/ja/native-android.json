@@ -187,7 +187,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 160,
+      "line": 182,
       "label": "実再生テストと記録された結果"
     },
     {
@@ -222,12 +222,12 @@
     },
     {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
-      "line": 17,
+      "line": 34,
       "label": "ソース・Player 設定の検証と変換"
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
-      "line": 70,
+      "line": 73,
       "label": "厳密なライブ操作検証と失敗時診断"
     },
     {

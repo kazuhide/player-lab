@@ -428,12 +428,12 @@
     },
     {
       "path": "apps/ios/Showcase/ContentView.swift",
-      "line": 25,
+      "line": 28,
       "label": "Existing screen controls and editor presentation"
     },
     {
       "path": "apps/ios/Showcase/ConfigurationEditor.swift",
-      "line": 4,
+      "line": 7,
       "label": "Native configuration fields and actions"
     },
     {

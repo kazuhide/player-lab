@@ -205,12 +205,12 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 45,
+      "line": 55,
       "label": "Allowed Android application identifiers"
     },
     {
       "path": "apps/ios/README.md",
-      "line": 35,
+      "line": 38,
       "label": "Allowed Apple application identifiers"
     },
     {

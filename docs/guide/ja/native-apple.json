@@ -428,12 +428,12 @@
     },
     {
       "path": "apps/ios/Showcase/ContentView.swift",
-      "line": 25,
+      "line": 28,
       "label": "既存の画面操作と設定画面の表示"
     },
     {
       "path": "apps/ios/Showcase/ConfigurationEditor.swift",
-      "line": 4,
+      "line": 7,
       "label": "ネイティブの設定項目と操作"
     },
     {

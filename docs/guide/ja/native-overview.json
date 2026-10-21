@@ -364,7 +364,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 116,
+      "line": 115,
       "label": "Androidの言語・字幕・再試行設定"
     },
     {
@@ -374,7 +374,7 @@
     },
     {
       "path": "apps/vega/README.md",
-      "line": 175,
+      "line": 179,
       "label": "同梱Vegaアプリと実行準備"
     }
   ]

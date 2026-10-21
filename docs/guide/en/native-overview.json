@@ -364,7 +364,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 116,
+      "line": 115,
       "label": "Android language, subtitle and retry settings"
     },
     {
@@ -374,7 +374,7 @@
     },
     {
       "path": "apps/vega/README.md",
-      "line": 175,
+      "line": 179,
       "label": "Included Vega host and runtime preparation"
     }
   ]
