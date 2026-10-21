@@ -63,6 +63,13 @@ jobs:
         run: pnpm typecheck
       - name: Test
         run: pnpm test
+      - name: Test native runtime runners
+        run: |
+          python3 -m unittest discover -s apps/react-native/runtime -p 'test_*.py'
+          python3 -m unittest discover -s apps/vega/runtime -p 'test_*.py'
+          python3 apps/ios/test_track_qualification.py
+          python3 apps/android/test-runtime-tests.py
+          node --test apps/android/configuration-fixture.test.mjs
       - name: Correctness worker budget tests
         run: pnpm --filter @showcase/e2e test:workers
       - name: Test environment loading and bundle verification
