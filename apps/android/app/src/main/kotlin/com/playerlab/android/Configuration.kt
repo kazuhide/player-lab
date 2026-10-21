@@ -42,18 +42,24 @@ internal data class SourceSettings(
     val liveTargetLatency: Double? = null,
     val preferredAudioLanguages: List<String> = emptyList(),
     val externalSubtitle: ExternalSubtitleSettings? = null,
+    val useLegacyMediaSource: Boolean = false,
 ) {
-    fun toSourceConfig() = SourceConfig(
-        url = url,
-        type = type,
-        title = title.ifBlank { null },
-        posterSource = posterUrl.ifBlank { null },
-        isPosterPersistent = posterPersistent,
-        options = SourceOptions(startOffset, offsetReference),
-        liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },
-        preferredAudioLanguages = preferredAudioLanguages.toList(),
-        subtitleTracks = externalSubtitle?.let { listOf(it.toSubtitleTrack()) } ?: emptyList(),
-    )
+    fun toSourceConfig(): SourceConfig {
+        val config = if (!useLegacyMediaSource) SourceConfig(url, type) else when (type) {
+            SourceType.Hls -> SourceConfig(com.bitmovin.player.api.source.HLSSource(url))
+            SourceType.Dash -> SourceConfig(com.bitmovin.player.api.source.DASHSource(url))
+            SourceType.Smooth -> SourceConfig(com.bitmovin.player.api.source.SmoothSource(url))
+            SourceType.Progressive -> SourceConfig(com.bitmovin.player.api.source.ProgressiveSource(url))
+        }
+        return config.apply {
+            title = this@SourceSettings.title.ifBlank { null }
+            posterSource = posterUrl.ifBlank { null }; isPosterPersistent = posterPersistent
+            options = SourceOptions(startOffset, offsetReference)
+            liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) }
+            preferredAudioLanguages = this@SourceSettings.preferredAudioLanguages.toList()
+            subtitleTracks = externalSubtitle?.let { listOf(it.toSubtitleTrack()) } ?: emptyList()
+        }
+    }
 
     companion object {
         fun from(source: PlayerSource) = SourceSettings(source.url, source.type)
@@ -74,6 +80,7 @@ internal data class SourceDraft(
     val subtitleLabel: String = "",
     val subtitleLanguage: String = "",
     val subtitleDefault: Boolean = false,
+    val useLegacyMediaSource: Boolean = false,
 ) {
     fun validate(): ValidatedDraft<SourceSettings> {
         val errors = mutableMapOf<String, String>()
@@ -102,7 +109,7 @@ internal data class SourceDraft(
         return ValidatedDraft(
             if (errors.isEmpty()) SourceSettings(
                 url.trim(), type, title.trim(), posterUrl.trim(), posterPersistent, offset, offsetReference, latency,
-                languages, subtitle,
+                languages, subtitle, useLegacyMediaSource,
             ) else null,
             errors,
         )
@@ -115,7 +122,7 @@ internal data class SourceDraft(
             settings.liveTargetLatency?.toString().orEmpty(),
             settings.preferredAudioLanguages.joinToString(", "), settings.externalSubtitle?.url.orEmpty(),
             settings.externalSubtitle?.label.orEmpty(), settings.externalSubtitle?.language.orEmpty(),
-            settings.externalSubtitle?.isDefault ?: false,
+            settings.externalSubtitle?.isDefault ?: false, settings.useLegacyMediaSource,
         )
     }
 }

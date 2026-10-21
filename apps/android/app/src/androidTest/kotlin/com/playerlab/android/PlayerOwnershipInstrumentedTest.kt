@@ -128,6 +128,62 @@ class PlayerOwnershipInstrumentedTest {
         instrumentation.runOnMainSync { assertEquals("", controller.apiAsyncResult) }
     }
 
+    @Test fun unloadTransitionAndGuiAddedSourcesFenceQueriesAndOwnAllSourceEvents() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        lateinit var controller: PlayerController
+        lateinit var player: RecordingPlayer
+        val sources = mutableListOf<RecordingSource>()
+        lateinit var added: RecordingSource
+        var retiredEvents = emptyList<Pair<KClass<*>, (Event) -> Unit>>()
+        instrumentation.runOnMainSync {
+            val host = object : LifecycleOwner { override val lifecycle = LifecycleRegistry(this) }
+            controller = PlayerController(instrumentation.targetContext, "dummy", playerFactory = { config -> RecordingPlayer(config).also { player = it }.api },
+                sourceFactory = { config -> RecordingSource(config).also { sources += it }.api }, lifecycle = host.lifecycle)
+            controller.load(Sources.all.first())
+            controller.queryTargetPlaybackLatency()
+            controller.unloadApiSource()
+            player.latencyCallbacks[0].onTargetPlaybackLatency(7.0)
+        }
+        instrumentation.waitForIdleSync()
+        instrumentation.runOnMainSync {
+            assertEquals("Unloaded source query cannot publish", "", controller.apiAsyncResult)
+            controller.load(Sources.all.first())
+            controller.addApiPlaylistSource("https://example.invalid/second.m3u8", com.bitmovin.player.api.source.SourceType.Hls, null)
+            added = sources.last()
+            assertTrue("Dynamic source receives SDK source event subscriptions", added.subscriptions.size >= ApiEvents.source.size)
+            val event = SourceEvent.Loaded(added.api)
+            added.subscriptions.filter { it.first == SourceEvent.Loaded::class }.toList().forEach { it.second(event) }
+            assertEquals(1, controller.apiEvents["SourceEvent.Loaded"])
+            assertEquals(event.timestamp, controller.apiEventTimes["SourceEvent.Loaded"])
+            added.subscriptions.filter { it.first == SourceEvent.Error::class }.toList().forEach { it.second(SourceEvent.Error(SourceErrorCode.General, "Synthetic")) }
+            assertEquals(SourceErrorCode.General.value, controller.lastErrorCode)
+            controller.queryTargetPlaybackLatency()
+            controller.seekApiPlaylistSource(1, com.bitmovin.player.api.playlist.SeekTarget(0.0))
+            player.latencyCallbacks[1].onTargetPlaybackLatency(8.0)
+        }
+        instrumentation.waitForIdleSync()
+        instrumentation.runOnMainSync {
+            assertEquals("Previous playlist source query cannot publish", "", controller.apiAsyncResult)
+            controller.queryTargetPlaybackLatency()
+            // Exercise the SDK-driven automatic transition too, rather than only the GUI wrapper.
+            val transition = PlayerEvent.PlaylistTransition(added.api, player.playlistSources.first())
+            player.currentSource = player.playlistSources.first()
+            player.subscriptions.filter { it.first == PlayerEvent.PlaylistTransition::class }.toList().forEach { it.second(transition) }
+            player.latencyCallbacks[2].onTargetPlaybackLatency(9.0)
+            retiredEvents = added.subscriptions.toList()
+            controller.removeApiPlaylistSource(1)
+            assertTrue("Removed source subscriptions are retired", added.subscriptions.isEmpty())
+        }
+        instrumentation.waitForIdleSync()
+        instrumentation.runOnMainSync {
+            assertEquals("Automatic transition query cannot publish", "", controller.apiAsyncResult)
+            val counts = controller.apiEvents.toMap(); val error = controller.lastErrorCode
+            retiredEvents.filter { it.first == SourceEvent.Error::class }.forEach { it.second(SourceEvent.Error(SourceErrorCode.UnsupportedStreamType, "Retired")) }
+            assertEquals(counts, controller.apiEvents.toMap()); assertEquals(error, controller.lastErrorCode)
+            controller.release(); assertTrue(sources.all { it.subscriptions.isEmpty() })
+        }
+    }
+
     private class RecordingPlayer(private val config: PlayerConfig) : InvocationHandler {
         val latencyCallbacks = mutableListOf<TargetPlaybackLatencyCallback>()
         private val lowLatency = Proxy.newProxyInstance(
@@ -139,6 +195,20 @@ class PlayerOwnershipInstrumentedTest {
             }
             null
         } as LowLatencyApi
+        var currentSource: Source? = null
+        val playlistSources = mutableListOf<Source>()
+        private val playlist = Proxy.newProxyInstance(
+            com.bitmovin.player.api.playlist.PlaylistApi::class.java.classLoader, arrayOf(com.bitmovin.player.api.playlist.PlaylistApi::class.java),
+        ) { _, method, arguments ->
+            val values = arguments.orEmpty()
+            when (method.name) {
+                "getSources" -> playlistSources.toList()
+                "add" -> { val source = values[0] as Source; if (values.size == 1) playlistSources.add(source) else playlistSources.add(values[1] as Int, source); Unit }
+                "remove" -> { val removed = playlistSources.removeAt(values[0] as Int); if (currentSource === removed) currentSource = playlistSources.firstOrNull(); Unit }
+                "seek" -> { currentSource = values[0] as Source; Unit }
+                else -> null
+            }
+        } as com.bitmovin.player.api.playlist.PlaylistApi
         var destroyCalls = 0
         var timeShiftCalls = 0
         val subscriptions = mutableListOf<Pair<KClass<*>, (Event) -> Unit>>()
@@ -152,6 +222,10 @@ class PlayerOwnershipInstrumentedTest {
                 "off" -> { subscriptions.removeAll { it.first == args[0] && it.second === args[1] }; Unit }
                 "destroy" -> { destroyCalls++; Unit }
                 "timeShift" -> { timeShiftCalls++; Unit }
+                "load" -> { val loaded = args[0]; playlistSources.clear(); playlistSources += if (loaded is Source) listOf(loaded) else (loaded as com.bitmovin.player.api.playlist.PlaylistConfig).sources; currentSource = playlistSources.firstOrNull(); Unit }
+                "unload" -> { currentSource = null; playlistSources.clear(); Unit }
+                "getSource" -> currentSource
+                "getPlaylist" -> playlist
                 "getConfig" -> config
                 "getLowLatency" -> lowLatency
                 "isDestroyed" -> destroyCalls > 0

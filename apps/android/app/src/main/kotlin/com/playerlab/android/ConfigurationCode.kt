@@ -43,6 +43,21 @@ internal fun configurationCode(source: SourceSettings, player: PlayerSettings, u
     variant = UiConfig.WebUi.Variant.Custom(${kotlinString(factory)}),
 ))"""
     } ?: "PlayerViewConfig()"
+    val legacyClass = when (source.type.name) { "Hls" -> "HLSSource"; "Dash" -> "DASHSource"; "Smooth" -> "SmoothSource"; else -> "ProgressiveSource" }
+    val sourceCode = if (source.useLegacyMediaSource) """SourceConfig($legacyClass(${kotlinString(source.url)})).apply {
+    title = $title; posterSource = $poster; isPosterPersistent = ${source.posterPersistent}
+    options = SourceOptions(${source.startOffset ?: "null"}, $reference)
+    liveConfig = $live
+    preferredAudioLanguages = ${languages(source.preferredAudioLanguages)}
+    subtitleTracks = $subtitles
+}""" else """SourceConfig(
+    url = ${kotlinString(source.url)}, type = SourceType.${source.type.name},
+    title = $title, posterSource = $poster, isPosterPersistent = ${source.posterPersistent},
+    options = SourceOptions(${source.startOffset ?: "null"}, $reference),
+    liveConfig = $live,
+    preferredAudioLanguages = ${languages(source.preferredAudioLanguages)},
+    subtitleTracks = $subtitles,
+)"""
     return """import com.bitmovin.player.api.*
 import com.bitmovin.player.api.buffer.*
 import com.bitmovin.player.api.live.SourceLiveConfig
@@ -68,14 +83,7 @@ val playerConfig = PlayerConfig(
     ),
     networkConfig = NetworkConfig(retryHttpRequestConfig = $retries),
 )
-val sourceConfig = SourceConfig(
-    url = ${kotlinString(source.url)}, type = SourceType.${source.type.name},
-    title = $title, posterSource = $poster, isPosterPersistent = ${source.posterPersistent},
-    options = SourceOptions(${source.startOffset ?: "null"}, $reference),
-    liveConfig = $live,
-    preferredAudioLanguages = ${languages(source.preferredAudioLanguages)},
-    subtitleTracks = $subtitles,
-)
+val sourceConfig = $sourceCode
 val playerViewConfig = $view
 
 // Create and attach PlayerView with playerViewConfig before loading sourceConfig.

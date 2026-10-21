@@ -162,7 +162,7 @@ internal object ApiScriptSettings {
             player = { c, v, scope -> val p = program(v); c.copy(tweaksConfig = c.tweaksConfig.copy(retryPlaybackConfig = if (p == null) com.bitmovin.player.api.TweaksConfig().retryPlaybackConfig else RetryPlaybackConfig { context ->
                 scope.apply(SDK + "recovery.RetryPlaybackConfig.retryPlaybackCallback", p, mapOf("errorCode" to context.errorEvent.code.value,
                     "playbackQuality" to context.playbackQuality?.let(::quality), "attemptedActions" to context.attemptedActions.map(::retryAction), "suggestedAction" to retryAction(context.suggestedAction)),
-                    RetryPlaybackAction.None as RetryPlaybackAction, ::decodedRetryAction)
+                    context.suggestedAction, ::decodedRetryAction)
             })) }),
         script("media.LabelingConfig.audioLabeler", "input is audio track metadata, including language. Return the label string, or null to leave it unchanged.", "return input.language + ' audio';",
             source = { c, v, scope -> val p = program(v); c.labelingConfig = c.labelingConfig.copy(audioLabeler = p?.let { AudioLabeler { item ->

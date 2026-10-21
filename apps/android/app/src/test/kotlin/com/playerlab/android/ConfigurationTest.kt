@@ -140,4 +140,17 @@ class ConfigurationTest {
         assertEquals(settings, PlayerDraft.from(settings).validate().value)
         assertEquals(1_500_000, settings.toPlayerConfig("dummy").adaptationConfig.maxSelectableVideoBitrate)
     }
+    @Test fun legacyMediaSourceConstructorPreservesTypedValuesAndDraftSelectionForEverySourceType() {
+        for (type in SourceType.entries) {
+            val settings = SourceSettings("https://example.invalid/media", type, title = "Legacy", posterUrl = "https://example.invalid/poster.jpg", startOffset = 2.0, useLegacyMediaSource = true)
+            val config = settings.toSourceConfig()
+            assertEquals(type, config.type); assertEquals(settings.url, config.url)
+            assertEquals("Legacy", config.title); assertEquals(settings.posterUrl, config.posterSource); assertEquals(2.0, config.options.startOffset)
+            assertTrue(SourceDraft.from(settings).validate().value!!.useLegacyMediaSource)
+            val code = configurationCode(settings, PlayerSettings(), UiMode.DEFAULT)
+            val typeName = when (type) { SourceType.Hls -> "HLSSource"; SourceType.Dash -> "DASHSource"; SourceType.Smooth -> "SmoothSource"; SourceType.Progressive -> "ProgressiveSource" }
+            assertTrue(code.contains("SourceConfig($typeName("))
+            assertTrue(code.contains("options = SourceOptions(2.0"))
+        }
+    }
 }

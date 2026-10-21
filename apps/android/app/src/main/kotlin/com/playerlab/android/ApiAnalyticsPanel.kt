@@ -43,8 +43,12 @@ internal fun ApiAnalyticsPanel(controller: PlayerController) {
         Text("Collector log level (DEBUG includes diagnostic details)", style = MaterialTheme.typography.labelLarge)
         LogLevel.entries.forEach { level -> Button(onClick = { draft = draft.copy(logLevel = level) }, enabled = draft.logLevel != level) { Text(level.name) } }
         Row { Switch(draft.ssaiEngagementTracking, { draft = draft.copy(ssaiEngagementTracking = it) }); Text("Legacy SSAI engagement flag (SDK ignores this setting)") }
-        Text("Error transformation example strategy", style = MaterialTheme.typography.labelLarge)
-        listOf("Default", "Redact message").forEach { strategy -> Button(onClick = { draft = draft.copy(errorStrategy = strategy) }, enabled = draft.errorStrategy != strategy) { Text(strategy) } }
+        Text("Error transformation", style = MaterialTheme.typography.labelLarge)
+        listOf("Default", "Redact message", "Custom").forEach { strategy -> Button(onClick = { draft = draft.copy(errorStrategy = strategy) }, enabled = draft.errorStrategy != strategy, modifier = Modifier.testTag("analytics-error-strategy-$strategy")) { Text(strategy) } }
+        if (draft.errorStrategy == "Custom") {
+            Text("Pure JavaScript body using input: {code, message, severity, originalErrorType}. Return a partial {code, message, severity} error object, or null to retain the original error. The public collector callback returns a non-null error. severity is CRITICAL or INFO. Original SDK objects are not exposed. The same callback execution bounds and retirement rules apply.", style = MaterialTheme.typography.bodySmall)
+            OutlinedTextField(draft.errorCallbackBody, { draft = draft.copy(errorCallbackBody = it) }, label = { Text("Analytics error callback body") }, modifier = Modifier.fillMaxWidth().testTag("analytics-error-body"))
+        }
         AnalyticsMetadataEditor("Default metadata", "analytics-default", analyticsDefaultKeys, draft.defaults) { draft = draft.copy(defaults = it) }
         AnalyticsMetadataEditor("Source / program metadata", "analytics-source", analyticsSourceKeys, draft.source) { draft = draft.copy(source = it) }
         Button(onClick = { run {

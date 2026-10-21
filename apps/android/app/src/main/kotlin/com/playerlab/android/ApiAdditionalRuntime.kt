@@ -52,8 +52,8 @@ internal object ApiAdditionalRuntime {
         },
         ApiCommand("android:com.bitmovin.player.api.Player.setAdViewGroup()", listOf(ApiArgument("target", "Current PlayerView", listOf("Current PlayerView", "None")))) { c, i -> c.player.setAdViewGroup(if (i.text("target") == "None") null else view(c)) },
         ApiCommand("android:com.bitmovin.player.api.Player.preloadDrmLicense()", listOf(), "Player.preloadDrmLicense using applied NagraConnectConfig") { c, _ -> c.player.preloadDrmLicense(c.apiOverrides.source(c.sourceSettings.toSourceConfig()).drmConfig as? NagraConnectConfig ?: error("Configure NagraConnect before preloading its license.")) },
-        ApiCommand("android:com.bitmovin.player.api.vr.VrApi.gyroscopicOrientationProvider", orientationArguments()) { c, i -> setApiOrientation(c, "gyroscopic", i.text("mode"), ViewingDirection(i.number("yaw"), i.number("pitch"), i.number("roll")), i.bool("enabled")) },
-        ApiCommand("android:com.bitmovin.player.api.vr.VrApi.touchOrientationProvider", orientationArguments()) { c, i -> setApiOrientation(c, "touch", i.text("mode"), ViewingDirection(i.number("yaw"), i.number("pitch"), i.number("roll")), i.bool("enabled")) },
+        ApiCommand("android:com.bitmovin.player.api.vr.VrApi.gyroscopicOrientationProvider", orientationArguments()) { c, i -> setApiOrientation(c, "gyroscopic", i.text("mode"), ViewingDirection(pitch = i.number("pitch"), roll = i.number("roll"), yaw = i.number("yaw")), i.bool("enabled")) },
+        ApiCommand("android:com.bitmovin.player.api.vr.VrApi.touchOrientationProvider", orientationArguments()) { c, i -> setApiOrientation(c, "touch", i.text("mode"), ViewingDirection(pitch = i.number("pitch"), roll = i.number("roll"), yaw = i.number("yaw")), i.bool("enabled")) },
     )
     val reads = listOf(
         ApiRead("app:media-session") { c -> mapOf("enabled" to (c.apiMediaSession != null), "isReleased" to c.apiMediaSession?.isReleased, "ownsCurrentPlayer" to (c.apiMediaSession?.player === c.player)) },

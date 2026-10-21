@@ -252,8 +252,9 @@ internal data class ApiAnalyticsSettings(
     val errorStrategy: String = "Default",
     val defaults: Map<String, String> = emptyMap(),
     val source: Map<String, String> = emptyMap(),
+    val errorCallbackBody: String = "return {code: input.code, message: 'Player Lab error', severity: input.severity};",
 ) {
-    fun playerConfig(buildKey: String): AnalyticsPlayerConfig {
+    fun playerConfig(buildKey: String, callbacks: ApiCallbackContext = ApiCallbackContext()): AnalyticsPlayerConfig {
         require(mode in listOf("Build key", "Deferred license", "Disabled"))
         validateAnalyticsMetadata(defaults, analyticsDefaultKeys)
         sourceMetadata()
@@ -267,6 +268,7 @@ internal data class ApiAnalyticsSettings(
             .setErrorTransformerCallback(when (errorStrategy) {
                 "Default" -> null
                 "Redact message" -> ErrorTransformerCallback { error, _ -> AnalyticsError(error.code, "Player Lab error details omitted", error.severity) }
+                "Custom" -> ApiAnalyticsErrorScripts.callback(errorCallbackBody, callbacks)
                 else -> error("Choose a documented error transformation strategy.")
             }).apply {
                 if (backendUrl.isNotBlank()) {
@@ -290,10 +292,11 @@ internal data class ApiAnalyticsSettings(
         val license = if (mode == "Deferred license" && licenseOverride.isBlank()) "DEFERRED" else "YOUR_ANALYTICS_LICENSE_KEY"
         val args = listOf("licenseKey = ${kotlinString(license)}", "adTrackingDisabled = $adTrackingDisabled", "randomizeUserId = $randomizeUserId", "retryPolicy = RetryPolicy.${retryPolicy.name}", "logLevel = LogLevel.${logLevel.name}", "ssaiEngagementTrackingEnabled = $ssaiEngagementTracking") +
             (if (backendUrl.isNotBlank()) listOf("backendUrl = ${kotlinString(backendUrl)}") else emptyList()) +
-            if (errorStrategy == "Redact message") listOf("errorTransformerCallback = com.bitmovin.analytics.api.error.ErrorTransformerCallback { error, _ -> com.bitmovin.analytics.api.error.AnalyticsError(error.code, \"Player Lab error details omitted\", error.severity) }") else emptyList()
+            if (errorStrategy == "Custom") listOf("errorTransformerCallback = ApiAnalyticsErrorScripts.callback(\"<YOUR_CALLBACK_BODY>\", callbackContext)") else if (errorStrategy == "Redact message") listOf("errorTransformerCallback = com.bitmovin.analytics.api.error.ErrorTransformerCallback { error, _ -> com.bitmovin.analytics.api.error.AnalyticsError(error.code, \"Player Lab error details omitted\", error.severity) }") else emptyList()
         val defaultArgs = defaults.filterKeys { it !in analyticsCustomKeys }.map { (key, value) -> "$key = ${kotlinString(value)}" } + "customData = ${custom(defaults)}"
         return """
             // Import com.bitmovin.analytics.api.* and com.bitmovin.player.api.analytics.*.
+            ${if (errorStrategy == "Custom") "val callbackContext = ApiCallbackContext()" else ""}
             val analyticsConfig = AnalyticsPlayerConfig.Enabled(
                 analyticsConfig = AnalyticsConfig(${args.joinToString(", ")}),
                 defaultMetadata = DefaultMetadata(${defaultArgs.joinToString(", ")}),

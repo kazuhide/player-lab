@@ -73,4 +73,17 @@ class ApiCollectionSettingsTest {
         assertEquals(0, ApiNativeFactories.snapshot()["cacheInstances"])
         assertEquals(0, ApiNativeFactories.snapshot()["cronetInstances"])
     }
+    @Test fun selectedHttpUrlConnectionRetainsRedirectPolicyAndPlaylistCodeRetainsMediaSessionMetadata() {
+        val settings = linkedMapOf(id("source.SourceNetworkConfig.engine") to "HttpURLConnection", id("source.NetworkEngine.HttpURLConnection.allowCrossProtocolRedirects") to "true")
+        for (input in listOf(settings, settings.entries.reversed().associate { it.toPair() })) {
+            val source = ApiOverrides.validate(input).source(SourceConfig("https://example.invalid/a.mpd", SourceType.Dash))
+            assertTrue(ApiNativeFactories.httpUrlConnectionEngine(source.networkConfig.engine).allowCrossProtocolRedirects)
+        }
+        val playlist = encoded(row(ApiCollectionSettings.sourceSchema))
+        val overrides = ApiOverrides.validate(mapOf(ApiCollectionSettings.PLAYLIST to playlist, id("media.session.MediaSessionSourceConfig.Enabled.mediaMetadata") to "artist=Sample"))
+        val code = overrides.code()
+        assertTrue(code.contains("val mediaSessionConfig ="))
+        assertTrue(code.contains("Source(sourceConfig, mediaSessionConfig = mediaSessionConfig)"))
+        assertTrue(code.indexOf("val mediaSessionConfig =") < code.indexOf("Source(sourceConfig, mediaSessionConfig"))
+    }
 }

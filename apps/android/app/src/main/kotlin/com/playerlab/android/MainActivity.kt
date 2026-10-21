@@ -47,6 +47,7 @@ import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
+import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.UiConfig
 import com.playerlab.android.dvr.Dvr
@@ -112,7 +113,7 @@ internal class PlayerController(
     private var preparedCompanions = emptyList<ApiNativeFactories.Host>()
     private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides(), analytics: ApiAnalyticsSettings = apiAnalyticsSettings, callbacks: ApiCallbackContext = apiCallbacks): Player {
         val prepared = ApiNativeFactories.player(context, overrides.player(settings.toPlayerConfig(licenseKey), callbacks), overrides.values)
-        val result = playerFactory?.invoke(prepared.config) ?: Player(context, prepared.config, analytics.playerConfig(analyticsLicenseKey))
+        val result = playerFactory?.invoke(prepared.config) ?: Player(context, prepared.config, analytics.playerConfig(analyticsLicenseKey, callbacks))
         preparedCompanions = prepared.hosts
         return result
     }
@@ -217,6 +218,8 @@ internal class PlayerController(
     private val viewLifecycle = PlayerViewLifecycle(lifecycle)
     private val playerSubscriptions = mutableListOf<() -> Unit>()
     private var sourceSubscription: (() -> Unit)? = null
+    private class ApiSourceObservation(val source: Source, val owner: Player, val generation: Int) { var dispose: () -> Unit = {} }
+    private val apiObservedSources = java.util.IdentityHashMap<Source, ApiSourceObservation>()
     private val apiMain = android.os.Handler(android.os.Looper.getMainLooper())
     private var apiQuerySequence = 0L
     private var apiQueryTimeout: Runnable? = null
@@ -378,12 +381,16 @@ internal class PlayerController(
         val owner = player
         val generation = playerGeneration
         val source = sourceGeneration
+        val activeSource = owner.source
+        val configured = configuredSource
         val query = apiQuerySequence
-        fun ownsQuery() = !released && player === owner && generation == playerGeneration &&
+        fun ownsBase() = !released && player === owner && generation == playerGeneration &&
             source == sourceGeneration && query == apiQuerySequence
+        fun ownsQuery() = ownsBase() && owner.source === activeSource && configuredSource === configured
         apiAsyncResult = "Waiting for target playback latency."
         val timeout = Runnable {
-            if (ownsQuery()) {
+            if (ownsBase() && !ownsQuery()) invalidateApiQuery()
+            else if (ownsQuery()) {
                 apiQuerySequence++
                 apiQueryTimeout = null
                 apiAsyncResult = "No target playback latency result within 10 seconds. Try again after loading a source."
@@ -394,7 +401,8 @@ internal class PlayerController(
         try {
             owner.lowLatency.getTargetPlaybackLatency { value ->
                 apiMain.post {
-                    if (ownsQuery()) {
+                    if (ownsBase() && !ownsQuery()) invalidateApiQuery()
+                    else if (ownsQuery()) {
                         apiMain.removeCallbacks(timeout)
                         apiQueryTimeout = null
                         apiQuerySequence++
@@ -443,6 +451,7 @@ internal class PlayerController(
                 apiEvent(id, timestamp) { !released && player === owner && generation == playerGeneration }
             }
         }
+        onPlayer(PlayerEvent.PlaylistTransition::class) { invalidateApiQuery(); configuredSource = it.to }
         onPlayer(PlayerEvent.Error::class) { lastErrorCode = it.code.value; append("PlayerError ${it.code.value}") }
         onPlayer(PlayerEvent.TimeChanged::class) { refresh() }
         onPlayer(PlayerEvent.TimeShifted::class) { append("TimeShifted"); refresh() }
@@ -473,38 +482,66 @@ internal class PlayerController(
         append("Source configuration applied")
     }
 
+    private fun observeApiSource(source: Source) {
+        sourceSubscription = ::retireApiSourceSubscriptions
+        if (apiObservedSources.containsKey(source)) return
+        val observation = ApiSourceObservation(source, player, sourceGeneration)
+        apiObservedSources[source] = observation
+        fun ownsSource() = !released && player === observation.owner && sourceGeneration == observation.generation && apiObservedSources[source] === observation
+        val error: (SourceEvent.Error) -> Unit = { if (ownsSource()) { lastErrorCode = it.code.value; append("SourceError ${it.code.value}") } }
+        val loaded: (SourceEvent.Loaded) -> Unit = { if (ownsSource()) { append("SourceLoaded"); refresh() } }
+        source.on(SourceEvent.Error::class, error); source.on(SourceEvent.Loaded::class, loaded)
+        val subscriptions = ApiEvents.source.map { entry -> entry.subscribe(source) { id, timestamp -> apiEvent(id, timestamp, ::ownsSource) } }
+        observation.dispose = {
+            source.off(SourceEvent.Error::class, error); source.off(SourceEvent.Loaded::class, loaded)
+            subscriptions.forEach { it() }
+        }
+    }
+    private fun retireApiSource(source: Source) { apiObservedSources.remove(source)?.dispose?.invoke() }
+    private fun retireApiSourceSubscriptions() {
+        val retired = apiObservedSources.values.toList(); apiObservedSources.clear()
+        retired.forEach { it.dispose() }
+    }
+    internal fun unloadApiSource() {
+        check(!released); invalidateApiQuery(); ++sourceGeneration
+        retireApiSourceSubscriptions(); sourceSubscription = null; configuredSource = null
+        apiSourceCallbacks.close(); apiSourceCallbacks = ApiCallbackContext()
+        player.unload(); refresh()
+    }
+    internal fun addApiPlaylistSource(url: String, type: SourceType, index: Int?) {
+        check(!released)
+        require(index == null || index in 0..player.playlist.sources.size) { "Playlist insertion index is outside the current source list." }
+        val config = ApiNativeFactories.source(context, apiOverrides.source(SourceConfig(url, type), apiSourceCallbacks), apiOverrides.values)
+        val source = sourceFactory?.invoke(config) ?: Source(config, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), mediaSessionConfig = apiOverrides.mediaSession())
+        observeApiSource(source)
+        try { if (index == null) player.playlist.add(source) else player.playlist.add(source, index) }
+        catch (failure: Exception) { retireApiSource(source); throw failure }
+    }
+    internal fun removeApiPlaylistSource(index: Int) {
+        check(!released)
+        val source = player.playlist.sources.getOrNull(index) ?: error("No playlist source at that index.")
+        invalidateApiQuery(); player.playlist.remove(index); retireApiSource(source)
+        if (configuredSource === source) configuredSource = player.source ?: player.playlist.sources.firstOrNull()
+    }
+    internal fun seekApiPlaylistSource(index: Int, target: com.bitmovin.player.api.playlist.SeekTarget?) {
+        check(!released)
+        val source = player.playlist.sources.getOrNull(index) ?: error("No playlist source at that index.")
+        invalidateApiQuery(); player.playlist.seek(source, target); configuredSource = source
+    }
+
     private fun loadCurrentSource(configs: List<SourceConfig>? = null, callbacks: ApiCallbackContext = ApiCallbackContext()) {
         val sourceConfigs = configs ?: sourceConfigurations(callbacks = callbacks)
         val sources = sourceConfigs.map { sourceConfig -> sourceFactory?.invoke(sourceConfig)
-            ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), apiOverrides.mediaSession()) }
+            ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), mediaSessionConfig = apiOverrides.mediaSession()) }
         invalidateApiQuery()
         sourceSubscription?.invoke()
         val owner = player
-        val generation = ++sourceGeneration
+        ++sourceGeneration
         apiSourceCallbacks.close()
         apiSourceCallbacks = callbacks
         configuredSource = sources.first()
-        fun ownsSource() = !released && player === owner && sourceGeneration == generation
-        val retire = sources.map { source ->
-            val error: (SourceEvent.Error) -> Unit = {
-                if (ownsSource()) { lastErrorCode = it.code.value; append("SourceError ${it.code.value}") }
-            }
-            val loaded: (SourceEvent.Loaded) -> Unit = {
-                if (ownsSource()) { append("SourceLoaded"); refresh() }
-            }
-            source.on(SourceEvent.Error::class, error)
-            source.on(SourceEvent.Loaded::class, loaded)
-            val apiSubscriptions = ApiEvents.source.map { entry ->
-                entry.subscribe(source) { id, timestamp -> apiEvent(id, timestamp, ::ownsSource) }
-            }
-            val dispose: () -> Unit = {
-                source.off(SourceEvent.Error::class, error)
-                source.off(SourceEvent.Loaded::class, loaded)
-                apiSubscriptions.forEach { it() }
-            }
-            dispose
-        }
-        sourceSubscription = { retire.forEach { it() } }
+        sources.forEach(::observeApiSource)
+        sourceSubscription = ::retireApiSourceSubscriptions
         lastErrorCode = null
         if (offlinePlayback == null && ApiCollectionSettings.PLAYLIST in apiOverrides.values)
             owner.load(com.bitmovin.player.api.playlist.PlaylistConfig(sources, apiOverrides.playlistOptions()))

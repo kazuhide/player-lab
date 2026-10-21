@@ -78,6 +78,11 @@ PlayerViewConfig(uiConfig = UiConfig.WebUi(
 ))
 ```
 
+The source form can also use the deprecated `MediaSource` constructor for API
+comparison. It creates the selected `HLSSource`, `DASHSource`, `SmoothSource` or
+`ProgressiveSource` with the same URL/type and passes that actual object to
+`SourceConfig`. The modern URL/type constructor remains the default.
+
 The app recreates `PlayerView` when the mode changes. The build-and-sync command
 above writes the ignored assets under `app/src/main/assets/`.
 
@@ -337,6 +342,14 @@ of native manager actions. The app validates the complete result before applying
 any mutation. Manager state that is not available yet appears as `null`.
 Interstitial mapping scripts register native tracking events and a click-through
 URL; the SDK owns when those tracking URLs are requested.
+
+Analytics controls also provide a **Custom** error transformer body. It receives
+`{code, message, severity, originalErrorType}` and returns a partial
+`{code, message, severity}` object. `severity` is `CRITICAL` or `INFO`; `null`
+retains the original error. The public collector return type is non-null, so
+this adapter does not claim to suppress error events. Opaque original SDK
+objects are not exposed to the interpreter. It uses the owning player's callback
+context and the same execution limits.
 
 Only the explicitly applied body runs. Code remains in memory and is omitted from
 exports, where `<YOUR_CALLBACK_BODY>` marks the replacement point. The generated

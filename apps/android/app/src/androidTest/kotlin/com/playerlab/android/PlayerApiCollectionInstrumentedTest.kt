@@ -146,6 +146,73 @@ class PlayerApiCollectionInstrumentedTest {
         await("IMA ad media actually starts") { (c.apiEvents["PlayerEvent.AdStarted"] ?: 0) > 0 }
     }
 
+    @Test fun deprecatedMediaSourceConstructorAndThumbnailStateUseTheCurrentGuiValues() {
+        val c = ui.activity.controller
+        baseline(); click("configuration-toggle"); click("source-legacy-constructor"); click("apply-source")
+        await("Legacy HLS source constructor actually plays") { c.sourceSettings.useLegacyMediaSource && c.player.isPlaying && c.player.currentTime > 0.5 }
+        ui.runOnUiThread { assertEquals(SourceType.Hls, c.player.source!!.config.type); assertEquals(sample + "master.m3u8", c.player.source!!.config.url) }
+        click("api-settings-toggle"); select("source.SourceConfig.thumbnailTrack")
+        field("api-setting-value", "https://kazuhide.github.io/player-lab/web/media/vod-sprites/thumbnails/thumbnails.vtt"); click("api-setting-stage")
+        select("source.NetworkEngine.HttpURLConnection.allowCrossProtocolRedirects"); click("api-choice-true"); click("api-setting-stage")
+        select("source.SourceNetworkConfig.engine"); click("api-choice-HttpURLConnection"); click("api-setting-stage"); click("api-settings-apply")
+        await("SDK loads the real thumbnail track") { c.player.isPlaying && c.player.source?.getThumbnail(c.player.currentTime) != null }
+        ui.runOnUiThread { assertTrue((c.player.source!!.config.networkConfig.engine as NetworkEngine.HttpURLConnection).allowCrossProtocolRedirects) }
+        click("api-runtime-toggle"); click("api-section-State"); field("api-runtime-search", "media.thumbnail.Thumbnail."); click("api-state-refresh")
+        for (member in listOf("start", "end", "x", "y", "width", "height", "uri", "text")) {
+            val node = ui.onNodeWithTag("api-state-${id("media.thumbnail.Thumbnail.$member")}").performScrollTo()
+            node.assertExists()
+            assertFalse(node.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].joinToString { it.text }.startsWith("Unavailable"))
+        }
+        ui.onNodeWithTag("api-state-${id("media.thumbnail.Thumbnail.width")}").assertTextContains("160", substring = true)
+    }
+
+    @Test fun namedManualOrientationValuesReachBothNativeProvidersWithoutAxisSwaps() {
+        val c = ui.activity.controller
+        baseline(); click("api-runtime-toggle")
+        for (provider in listOf("gyroscopic", "touch")) {
+            val member = "vr.VrApi.${provider}OrientationProvider"
+            field("api-runtime-search", member); click("api-command-${id(member)}")
+            field("api-argument-pitch", "17"); field("api-argument-roll", "23"); field("api-argument-yaw", "91"); click("api-command-run")
+            ui.runOnUiThread {
+                val selected = if (provider == "gyroscopic") c.player.vr.gyroscopicOrientationProvider else c.player.vr.touchOrientationProvider
+                val direction = requireNotNull(selected).getViewingDirection()
+                assertEquals(17.0, direction.pitch, 0.0); assertEquals(23.0, direction.roll, 0.0); assertEquals(91.0, direction.yaw, 0.0)
+            }
+            field("api-argument-mode", "Original"); click("api-command-run")
+        }
+    }
+
+    @Test fun guiAddedSourcesPublishActualSourceEventsAndInvokeTheEditableAnalyticsErrorHook() {
+        val c = ui.activity.controller
+        baseline(); click("analytics-toggle"); click("analytics-error-strategy-Custom")
+        field("analytics-error-body", "return {code: input.code, message: 'Player Lab synthetic source error', severity: input.severity};")
+        click("analytics-apply")
+        await("Player restarts with custom error transformer") { c.player.isPlaying && c.player.currentTime > 0.5 }
+        click("api-runtime-toggle")
+        fun command(member: String) { field("api-runtime-search", member); click("api-command-${id(member)}") }
+        command("playlist.PlaylistApi.add()")
+        field("api-argument-url", sample + "manifest.mpd"); field("api-argument-type", "Dash"); click("api-command-run")
+        await("Added DASH source is in the SDK playlist") { c.player.playlist.sources.size == 2 }
+        var loadedBefore = 0
+        ui.runOnUiThread { loadedBefore = c.apiEvents["SourceEvent.Loaded"] ?: 0 }
+        command("playlist.PlaylistApi.seek()"); field("api-argument-index", "1"); click("api-command-run")
+        await("Added source actually plays and publishes SourceEvent.Loaded") { c.player.source?.config?.type == SourceType.Dash && c.player.isPlaying && c.player.currentTime > 0.5 && (c.apiEvents["SourceEvent.Loaded"] ?: 0) > loadedBefore }
+        ui.runOnUiThread { assertNotNull(c.apiEventTimes["SourceEvent.Loaded"]); assertTrue(c.log.any { it == "SourceLoaded" }) }
+        command("playlist.PlaylistApi.add()"); field("api-argument-url", sample + "intentionally-missing-source.m3u8"); field("api-argument-type", "Hls"); click("api-command-run")
+        command("playlist.PlaylistApi.seek()"); field("api-argument-index", "2"); click("api-command-run")
+        await("Added invalid source publishes its actual SDK error and transforms the Analytics error") {
+            (c.apiEvents["SourceEvent.Error"] ?: 0) > 0 && c.lastErrorCode != null &&
+                (c.apiCallbacks.snapshot()["AnalyticsConfig.errorTransformerCallback"]?.first ?: 0) > 0
+        }
+        ui.runOnUiThread {
+            assertNotNull(c.apiEventTimes["SourceEvent.Error"])
+            assertTrue(c.log.any { it.startsWith("SourceError ") })
+            assertEquals(0, c.apiCallbacks.snapshot()["AnalyticsConfig.errorTransformerCallback"]!!.second)
+            c.applySource(SourceSettings(sample + "master.m3u8", SourceType.Hls))
+        }
+        await("Restore the valid sample after the expected negative test") { c.player.isPlaying && c.player.currentTime > 0.5 && c.lastErrorCode == null }
+    }
+
     private fun baseline() {
         val c = ui.activity.controller
         ui.runOnUiThread { c.applySource(SourceSettings(sample + "master.m3u8", SourceType.Hls)); c.applyPlayerSettings(PlayerSettings(autoplay = true, muted = true)) }

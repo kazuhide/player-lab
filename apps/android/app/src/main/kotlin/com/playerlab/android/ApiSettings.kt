@@ -116,10 +116,11 @@ internal data class ApiOverrides(val values: Map<String, String> = emptyMap()) {
             lines += emit(playlistEntries.filterNot { it.key == ApiCollectionSettings.PLAYLIST })
         }
         if (playlist != null) {
+            val sourceConstructor = if (entries.any { ApiSettings.byId.getValue(it.key).mediaSession != null }) "Source(sourceConfig, mediaSessionConfig = mediaSessionConfig)" else "Source(sourceConfig)"
             val sourceOverrides = emit(sourceEntries)
             lines += playlist.joinToString(",\n", "val playlistSources = listOf(\n", "\n)") { config ->
                 "    run {\n        val sourceConfig = ${ApiCollectionSettings.sourceCode(config)}\n" +
-                    sourceOverrides.lineSequence().filter(String::isNotBlank).joinToString("\n") { "        $it" } + "\n        Source(sourceConfig)\n    }"
+                    sourceOverrides.lineSequence().filter(String::isNotBlank).joinToString("\n") { "        $it" } + "\n        $sourceConstructor\n    }"
             }
             lines += "player.load(PlaylistConfig(playlistSources, playlistOptions))"
         }
@@ -1108,7 +1109,7 @@ internal object ApiSettings {
         ApiSetting("android:com.bitmovin.player.api.media.session.MediaSessionSourceConfig.Enabled.mediaMetadata", "Media session", ApiValueKind.StringMap,
             "Use one field=value per line. Text: artist, albumTitle, albumArtist, displayTitle, subtitle, writer, author, composer, conductor, genre, compilation, station. Integers: duration (milliseconds), trackNumber, totalTrackCount, recordingYear/Month/Day, releaseYear/Month/Day, discNumber, totalDiscCount. Booleans: isBrowsable, isPlayable. mediaType uses MediaMetadata.MediaType (for example Movie or Video). userRating/overallRating use Heart:true, Thumb:false, Percentage:75 or Star:5:4.5. null clears a value. Apply reloads Source with MediaSessionSourceConfig.Enabled; enable the host media session in SDK API controls to publish it to Android.",
             mediaSession = { com.bitmovin.player.api.media.session.MediaSessionSourceConfig.Enabled(ApiMediaMetadata.parse(it)) },
-            code = { "mediaSessionConfig = MediaSessionSourceConfig.Enabled(ApiMediaMetadata.parse(${kotlinString(it)}))\n// Pass mediaSessionConfig as Source(..., mediaSessionConfig = mediaSessionConfig)." })
+            code = { "val mediaSessionConfig = MediaSessionSourceConfig.Enabled(ApiMediaMetadata.parse(${kotlinString(it)}))\n// Pass mediaSessionConfig as Source(..., mediaSessionConfig = mediaSessionConfig)." })
     )
     val byId: Map<String, ApiSetting> = fields.associateBy(ApiSetting::id)
 }

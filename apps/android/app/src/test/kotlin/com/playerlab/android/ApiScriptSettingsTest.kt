@@ -69,4 +69,21 @@ class ApiScriptSettingsTest {
         assertEquals("en:English", source.labelingConfig.subtitleLabeler!!.getSubtitleLabel(track))
         assertTrue(overrides.player(PlayerConfig()).playbackConfig.forcedSubtitleCallback!!.isForcedSubtitle(track))
     }
+    @Test fun invalidBudgetExceededAndRetiredRecoveryScriptsRetainTheActualSdkSuggestion() {
+        val source = java.lang.reflect.Proxy.newProxyInstance(com.bitmovin.player.api.source.Source::class.java.classLoader, arrayOf(com.bitmovin.player.api.source.Source::class.java)) { _, _, _ -> null } as com.bitmovin.player.api.source.Source
+        val suggested = com.bitmovin.player.api.recovery.RetryPlaybackAction.LimitBitrate(123456)
+        val input = com.bitmovin.player.api.recovery.RetryPlaybackContext(
+            com.bitmovin.player.api.event.SourceEvent.Error(com.bitmovin.player.api.deficiency.SourceErrorCode.General, "Synthetic"), null, source, emptyList(), suggested)
+        for (body in listOf("return {type: 'invented'};", "while(true) {}")) {
+            val scope = ApiCallbackContext()
+            val overrides = ApiOverrides.validate(mapOf(id("recovery.RetryPlaybackConfig.retryPlaybackCallback") to body))
+            val callback = overrides.player(PlayerConfig(), scope).tweaksConfig.retryPlaybackConfig.retryPlaybackCallback
+            assertSame(suggested, callback.onPlaybackError(input))
+            assertEquals(1 to 1, scope.snapshot()[id("recovery.RetryPlaybackConfig.retryPlaybackCallback")])
+            scope.close(); assertSame(suggested, callback.onPlaybackError(input))
+        }
+        val explicitNone = ApiOverrides.validate(mapOf(id("recovery.RetryPlaybackConfig.retryPlaybackCallback") to "return 'None';"))
+            .player(PlayerConfig()).tweaksConfig.retryPlaybackConfig.retryPlaybackCallback
+        assertSame(com.bitmovin.player.api.recovery.RetryPlaybackAction.None, explicitNone.onPlaybackError(input))
+    }
 }
