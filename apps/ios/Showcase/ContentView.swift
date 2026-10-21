@@ -32,6 +32,7 @@ struct ControlPanel: View {
     @ObservedObject var model: PlayerModel
     @State private var showsConfiguration = false
     @State private var showsApiInspector = false
+    @State private var showsPlaylist = false
     #if !os(tvOS)
     @State private var showsOffline = false
     #endif
@@ -67,6 +68,8 @@ struct ControlPanel: View {
                 labeled("Public SDK APIs") {
                     Button("Open API inspector") { showsApiInspector = true }
                         .accessibilityIdentifier("api.open")
+                    Button("Open playlist inspector") { showsPlaylist = true }
+                        .accessibilityIdentifier("playlist.open")
                     #if !os(tvOS)
                     Button("Open offline HLS inspector") { showsOffline = true }
                         .accessibilityIdentifier("offline.open")
@@ -136,9 +139,11 @@ struct ControlPanel: View {
         // A compact tvOS sheet collapses Form to its minimal height, hiding its focusable rows.
         .fullScreenCover(isPresented: $showsConfiguration) { ConfigurationEditor(model: model) }
         .fullScreenCover(isPresented: $showsApiInspector) { ApiInspector(model: model) }
+        .fullScreenCover(isPresented: $showsPlaylist) { NativePlaylistInspector(model: model, workbench: model.playlistWorkbench) }
         #else
         .sheet(isPresented: $showsConfiguration) { ConfigurationEditor(model: model) }
         .sheet(isPresented: $showsApiInspector) { ApiInspector(model: model) }
+        .sheet(isPresented: $showsPlaylist) { NativePlaylistInspector(model: model, workbench: model.playlistWorkbench) }
         .sheet(isPresented: $showsOffline) { OfflineInspector(player: model, workbench: model.offlineWorkbench) }
         #endif
     }

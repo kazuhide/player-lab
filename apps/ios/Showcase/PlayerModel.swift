@@ -49,6 +49,10 @@ final class PlayerModel: ObservableObject {
     @Published private(set) var apiEvents: [ApiEventRecord] = []
     @Published private(set) var apiEventsEnabled = true
     @Published private(set) var usesNativeApiHost = false
+    let playlistWorkbench = NativePlaylistWorkbench()
+    private var apiPlaylistContexts: [ObjectIdentifier: NativePlaylistSourceContext] = [:]
+    private weak var apiPlaylistProgressSource: Source?
+    private var apiPlaylistProgressTime: TimeInterval?
     #if !os(tvOS)
     let offlineWorkbench = OfflineWorkbench()
     #endif
@@ -128,6 +132,7 @@ final class PlayerModel: ObservableObject {
 
     private func recreatePlayer() {
         let previous = player
+        apiPlaylistContexts.removeAll()
         retireApiPlayerEvents()
         retireApiSourceEvents()
         cancellables.removeAll()
@@ -199,6 +204,7 @@ final class PlayerModel: ObservableObject {
     }
 
     private func reloadCurrentSource() {
+        apiPlaylistContexts.removeAll()
         guard let sourceSettings else { return }
         retireApiSourceEvents()
         resetSourceCompletion()
@@ -309,9 +315,23 @@ final class PlayerModel: ObservableObject {
         // per-expression budget ("cannot infer closure parameter type" cascade).
         let player = self.player
         player.events.on(TimeChangedEvent.self)
+            .map { [weak player] event -> (Source?, TimeInterval) in
+                (player?.source, event.currentTime)
+            }
             .receive(on: DispatchQueue.main)
-            .sink { [weak self, weak player] _ in
+            .sink { [weak self, weak player] source, time in
                 guard let self, let player, self.player === player else { return }
+                if let source, player.source === source, self.apiPlaylistContexts[ObjectIdentifier(source)] != nil {
+                    self.followApiPlaylistSource()
+                    // Preloaded transitions can omit Ready/Playing. A source-owned advancing
+                    // playback clock avoids selecting against the outgoing native player item.
+                    if self.apiPlaylistProgressSource === source, let previous = self.apiPlaylistProgressTime,
+                       time.isFinite, time > previous, player.isPlaying, source.loadingState == .loaded {
+                        self.applyInitialTracks(player, source: source)
+                    }
+                    self.apiPlaylistProgressSource = source
+                    self.apiPlaylistProgressTime = time
+                }
                 self.refresh()
             }
             .store(in: &cancellables)
@@ -319,10 +339,21 @@ final class PlayerModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self, weak player] event in
                 guard let self, let player, self.player === player,
-                      self.initialTrackSelection.owns(event.source),
                       player.source === event.source else { return }
+                if self.apiPlaylistContexts[ObjectIdentifier(event.source)] != nil { self.followApiPlaylistSource() }
+                guard self.initialTrackSelection.owns(event.source) else { return }
                 self.bindSourceCompletion(player)
                 self.append("SourceLoaded"); self.refresh()
+            }
+            .store(in: &cancellables)
+        player.events.on(PlaylistTransitionEvent.self)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, weak player] event in
+                guard let self, let player, self.player === player, player.source === event.to,
+                      self.apiPlaylistContexts[ObjectIdentifier(event.to)] != nil else { return }
+                self.followApiPlaylistSource()
+                self.pruneApiPlaylistContexts()
+                self.refresh()
             }
             .store(in: &cancellables)
         player.events.on(ReadyEvent.self)
@@ -371,7 +402,7 @@ final class PlayerModel: ObservableObject {
     }
 
     private func applyInitialTracks(_ player: Player, source: Source) {
-        guard let preferences = sourceSettings?.initialTracks,
+        guard let preferences = apiPlaylistContexts[ObjectIdentifier(source)]?.settings.initialTracks ?? sourceSettings?.initialTracks,
               let current = player.source else { return }
         guard initialTrackSelection.claim(eventSource: source, currentSource: current) else { return }
         // Select once at initial Ready: the tested 3.128 HLS startup restored its
@@ -399,6 +430,7 @@ final class PlayerModel: ObservableObject {
     func clearApiEvents() { apiEvents.removeAll() }
 
     func unloadFromApi() {
+        apiPlaylistContexts.removeAll()
         initialTrackSelection.retire()
         resetSourceCompletion()
         player.unload()
@@ -409,6 +441,7 @@ final class PlayerModel: ObservableObject {
 
     func reloadFromApi() { reloadCurrentSource() }
     func loadApiSourceConfig(_ config: SourceConfig) {
+        apiPlaylistContexts.removeAll()
         retireApiSourceEvents()
         resetSourceCompletion()
         initialTrackSelection.retire()
@@ -419,6 +452,47 @@ final class PlayerModel: ObservableObject {
             bindApiSourceEvents(source)
         }
         refresh()
+    }
+
+    func loadApiPlaylist(_ config: PlaylistConfig, contexts: [NativePlaylistSourceContext]) {
+        retireApiSourceEvents()
+        resetSourceCompletion()
+        initialTrackSelection.retire()
+        lastSnapshot = nil
+        trackStatus = PlaybackTrackStatus()
+        apiPlaylistContexts = Dictionary(uniqueKeysWithValues: contexts.map { (ObjectIdentifier($0.source), $0) })
+        player.load(playlistConfig: config)
+        followApiPlaylistSource()
+        refresh()
+    }
+
+    func registerApiPlaylistContext(_ context: NativePlaylistSourceContext) {
+        if let current = player.source, apiPlaylistContexts[ObjectIdentifier(current)] == nil, let sourceSettings {
+            apiPlaylistContexts[ObjectIdentifier(current)] = .init(source: current, settings: sourceSettings, journal: sourceCallbackJournal)
+        }
+        apiPlaylistContexts[ObjectIdentifier(context.source)] = context
+    }
+
+    func followApiPlaylistSource() {
+        guard let source = player.source, let context = apiPlaylistContexts[ObjectIdentifier(source)] else { return }
+        if !initialTrackSelection.owns(source) {
+            apiPlaylistProgressSource = nil
+            apiPlaylistProgressTime = nil
+            resetSourceCompletion()
+            initialTrackSelection.bind(source)
+            lastSnapshot = nil
+            trackStatus = PlaybackTrackStatus()
+            retireApiSourceEvents()
+            bindApiSourceEvents(source)
+        }
+        sourceCallbackJournal = context.journal
+        if source.loadingState == .loaded, completionSource !== source { bindSourceCompletion(player) }
+    }
+
+    func pruneApiPlaylistContexts() {
+        var ids = Set(player.playlist.sources.map(ObjectIdentifier.init))
+        if let current = player.source { ids.insert(ObjectIdentifier(current)) }
+        apiPlaylistContexts = apiPlaylistContexts.filter { ids.contains($0.key) }
     }
     func recreateFromApi() { recreatePlayer() }
     func setNativeApiHost(_ enabled: Bool) {

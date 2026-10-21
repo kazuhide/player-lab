@@ -58,19 +58,20 @@ final class OfflineWorkbench: ObservableObject {
 
     @MainActor
     func initialize(useConfig: Bool) throws {
-        guard !OfflineManager.isOfflineManagerInitialized else {
-            result = "The process-wide manager is already initialized. Wi-Fi restriction can still be changed."
-            refresh(); return
-        }
         guard let space = UInt(minimumFreeSpace) else { throw invalid("Minimum free space must be a nonnegative whole number of megabytes.") }
         OfflineManager.minimumAvailableSpaceThreshold = space
-        if useConfig { OfflineManager.initializeOfflineManager(offlineConfig: OfflineConfig(restrictMediaDownloadsToWiFi: restrictToWifi)) }
-        else { OfflineManager.initializeOfflineManager() }
         OfflineStartup.remember(useConfig: useConfig, restrictToWifi: restrictToWifi, minimumFreeSpace: space)
-        bindRestoration()
         generatedCode = "OfflineManager.minimumAvailableSpaceThreshold = \(space)\n" + (useConfig
             ? "OfflineManager.initializeOfflineManager(offlineConfig: OfflineConfig(restrictMediaDownloadsToWiFi: \(restrictToWifi)))"
             : "OfflineManager.initializeOfflineManager()")
+        guard !OfflineManager.isOfflineManagerInitialized else {
+            bindRestoration()
+            result = "The process-wide manager is already initialized. Free-space threshold updated; initialization options saved for the next launch. Use Apply Wi-Fi restriction for the active manager."
+            refresh(); return
+        }
+        if useConfig { OfflineManager.initializeOfflineManager(offlineConfig: OfflineConfig(restrictMediaDownloadsToWiFi: restrictToWifi)) }
+        else { OfflineManager.initializeOfflineManager() }
+        bindRestoration()
         result = "OfflineManager initialized. This is process-wide; changing initialization options requires a new process."
         refresh()
     }
@@ -199,7 +200,9 @@ final class OfflineWorkbench: ObservableObject {
             .init(id: "OfflineManager.minimumAvailableSpaceThreshold", value: "\(OfflineManager.minimumAvailableSpaceThreshold) MB")]
         if OfflineManager.isOfflineManagerInitialized {
             let shared = OfflineManager.sharedInstance()
-            state += [.init(id: "OfflineManager.restrictMediaDownloadsToWiFi", value: String(shared.restrictMediaDownloadsToWiFi)),
+            state += [.init(id: "OfflineManager.sharedInstance()", value: "Object \(ObjectIdentifier(shared).hashValue)"),
+                .init(id: "OfflineManager.delegate", value: shared.delegate.map { "Object \(ObjectIdentifier($0).hashValue)" } ?? "None"),
+                .init(id: "OfflineManager.restrictMediaDownloadsToWiFi", value: String(shared.restrictMediaDownloadsToWiFi)),
                 .init(id: "OfflineManager.areSuspendedDownloadsRestored", value: String(shared.areSuspendedDownloadsRestored))]
         }
         if let manager {
@@ -215,6 +218,10 @@ final class OfflineWorkbench: ObservableObject {
             } else { state.append(.init(id: "OfflineContentManager.offlineDrmLicenseInformation", value: "Unavailable")) }
         }
         if let cachedSource { state.append(.init(id: "OfflineSourceConfig.isRestrictedToAssetCache", value: String(cachedSource.isRestrictedToAssetCache))) }
+        if let selection {
+            state += [.init(id: "OfflineTrackSelection.audioTracks", value: "\(selection.audioTracks.count) SDK tracks; selection actions shown above"),
+                .init(id: "OfflineTrackSelection.textTracks", value: "\(selection.textTracks.count) SDK tracks; selection actions shown above")]
+        }
     }
 
     @MainActor
