@@ -1,7 +1,7 @@
 {
   "id": "native-apple",
   "title": "iOS, iPadOS, and tvOS",
-  "lead": "Use the SwiftUI app to configure HLS or progressive MP4, startup playback, initial audio/subtitle selection, video scaling, bitrate and buffering. iOS and iPadOS can select the shared Web UI; tvOS uses the system UI.",
+  "lead": "Configure the Apple player, source and presentation in the SwiftUI app. The API inspector runs SDK operations, reads current state and records events. iOS and iPadOS also provide offline HLS and Google Cast panels; tvOS uses native controls.",
   "blocks": [
     {
       "type": "h2",
@@ -9,7 +9,7 @@
     },
     {
       "type": "p",
-      "text": "Xcode and XcodeGen 2.46.0 are required. The declared minimum OS versions are iOS 15.0 and tvOS 15.0, and the Player is pinned to 3.128.0. The Player is a binary XCFramework, so swift build alone cannot build the app. Synchronize the licenses and shared UI in the common preparation, then run the following starting at the repository root."
+      "text": "Xcode and XcodeGen 2.46.0 are required. The app targets iOS 16.0 or later and tvOS 15.0 or later, with Player 3.128.0. The iOS target includes Google Cast 4.8.6, which requires iOS 16. The Player is a binary XCFramework, so swift build alone cannot build the app. Synchronize the licenses and shared UI in the common preparation, then run the following from the repository root."
     },
     {
       "type": "code",
@@ -17,7 +17,7 @@
     },
     {
       "type": "p",
-      "text": "Check that xcodegen version reports 2.46.0. In Xcode, choose Showcase-iOS or Showcase-tvOS, select a destination, and run. Configure a development team and signing for a physical device. Allow com.playerlab.ios for iOS or com.playerlab.tvos for tvOS on the Player license. Both apps display Player Lab; DVR is a live-rewind feature."
+      "text": "Check that xcodegen version reports 2.46.0. In Xcode, choose Showcase-iOS or Showcase-tvOS, select a destination, and run. Configure a development team and signing for a physical device. Allow com.playerlab.ios for iOS or com.playerlab.tvos for tvOS on the Player license. Both apps display Player Lab."
     },
     {
       "type": "note",
@@ -60,7 +60,7 @@
       "type": "steps",
       "items": [
         "Choose Configure source and playback below the source presets. iPhone and iPad show a sheet; tvOS opens a full-screen native form. On tvOS, move focus with the remote and press Select; text fields use the system keyboard.",
-        "Enter an absolute HTTP(S) Source URL, select HLS or Progressive MP4, and optionally enter a title and HTTP(S) poster URL. Empty title or poster values clear them. DASH and offline packages are not offered.",
+        "Enter an absolute HTTP(S) Source URL, choose HLS or Progressive MP4, and optionally enter a title and HTTP(S) poster URL. Empty title or poster fields clear them. Cached HLS uses the separate offline inspector; DASH is not supported.",
         "Set an optional start offset in seconds and choose Automatic, Start, or End. Blank offset uses the SDK default. Automatic means the beginning for VOD and the live edge for live. Signed finite offsets are accepted and the SDK corrects them to stream boundaries; live offsets apply when playback starts.",
         "Choose Autoplay after source load, Start muted, and SDK time shift / DVR. Defaults are off, on, and on. The separate Allow DVR controls (app) switch also governs the app quick-seek buttons. Enter maximum bitrate in whole bit/s (0 = unlimited) and forward buffer in finite nonnegative seconds (0 = SDK choice).",
         "Read Reload source or Recreate player and reload source before selecting Apply. Invalid fields show an explanation and disable Apply. Reset to applied restores only the draft; Cancel discards it. Applied settings last for the current app session."
@@ -118,6 +118,74 @@
     {
       "type": "p",
       "text": "To return to the initial player defaults, enter Autoplay off, Start muted on, SDK time shift / DVR on, Maximum bitrate 0, Forward buffer 0 and Video scaling Fit, then Apply. Reset to applied only abandons draft edits; it does not restore defaults. Selecting VOD HLS again clears custom source fields and initial track preferences while keeping player settings. Applied configuration is kept for the current app session."
+    },
+    {
+      "type": "h2",
+      "text": "Additional SDK settings"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Configure source and playback and enable Edit additional Player, Source and view settings under Advanced SDK settings. Search Filter configuration API name for a property.",
+        "Enable its Override. The input provides a switch, SDK enumeration, value field, structured JSON or callback body according to the property's type. Read its accepted values and units. Disabling the override restores the basic form value or SDK default.",
+        "Check the pending action and Apply. Source settings reload the source; Player and view settings recreate the player. Invalid values leave active settings unchanged. Show applied code displays the Swift configuration from the applied values.",
+        "In API inspector → State, select Refresh SDK state to check the loaded source, tracks or player value. An option may affect playback only with matching content, a service or a supported device."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Structured fields create the public SDK objects described below the input. SourceConfig.tracks accepts an array of subtitle objects with unique identifiers. An empty array clears additional tracks; disabling its override removes the explicit setting."
+    },
+    {
+      "type": "figure",
+      "file": "ios-subtitle-array-editor",
+      "caption": "SourceConfig.tracks in the iPhone editor. Each object describes a subtitle track, with accepted properties listed below the input."
+    },
+    {
+      "type": "code",
+      "title": "Manual subtitle track example",
+      "text": "[{\"identifier\":\"manual-example\",\"label\":\"Manual English\",\"language\":\"en\",\"url\":null}]"
+    },
+    {
+      "type": "p",
+      "text": "This adds a manual track without a remote file or subtitle cues. After Apply, inspect Player.availableSubtitles, then use the subtitle and cue operations to supply and select cues. For a file, provide its HTTP(S) URL and format, such as webVtt. External subtitle rendering depends on the selected UI; native HLS subtitle renditions remain the common route for tvOS System UI."
+    },
+    {
+      "type": "figure",
+      "file": "ios-subtitle-array-sdk-state",
+      "caption": "Player.availableSubtitles after Apply includes manual-example alongside the source's native tracks."
+    },
+    {
+      "type": "h2",
+      "text": "Editable callbacks"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Search for a callback such as LabelingConfig.audioLabel and enable its override. Read the description of input and the required return type.",
+        "Enter a function body, such as return 'GUI ' + input.label; for this label callback, then Apply. Editing the draft alone does not install or invoke it.",
+        "Use content that causes the SDK to call the function. In API inspector → State, filter Callback and refresh. Calls and failures distinguish an installed function from one actually invoked by the SDK.",
+        "Inspect Show applied code. To restore the SDK behavior, disable the override and Apply."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "ios-callback-editor",
+      "caption": "The audio-label callback accepts a JavaScript body that returns a replacement for the label in input."
+    },
+    {
+      "type": "figure",
+      "file": "ios-callback-sdk-status",
+      "caption": "State after the SDK invoked the applied audio-label body. Counts are shown without callback payloads."
+    },
+    {
+      "type": "note",
+      "title": "Execution and fallback",
+      "text": "Apple callbacks use a bounded plain-value interpreter. Supported let/const, function, array, string and JSON operations are available; host objects, asynchronous code and dynamic execution are unavailable. Invalid syntax is rejected before Apply. Execution errors, quota failures or a wrong SDK return type use the documented fallback. Successful evaluations share storage within their owner. Interpreter errors discard that evaluation's changes; a subsequent SDK type rejection retains them. The public interpreter README describes the supported subset. Use let or const instead of var. JSON.parse and JSON.stringify accept one argument; reviver, replacer and indentation options are rejected."
+    },
+    {
+      "type": "p",
+      "text": "The evaluator limits CPU work and elapsed time separately. CPU time measures execution on the callback thread; elapsed time also includes periods when that thread is not running. Separate limits allow brief scheduling delays while bounding both computation and total waiting. When thread CPU accounting is unavailable at the start of a call, the evaluator uses its elapsed-time fallback. These are interpreter value limits, not a separate process or an isolated native heap."
     },
     {
       "type": "h2",
@@ -194,65 +262,164 @@
     },
     {
       "type": "h2",
-      "text": "Try the SDK default UI"
+      "text": "Use the SDK default player controls"
+    },
+    {
+      "type": "p",
+      "text": "Default provides normal playback, timeline seeking and the source's track menus. Scroll inside the player menu to reach options below its viewport."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select Default, load a source with audio or subtitle renditions and start playback.",
+        "Pause, resume and drag the timeline. In Settings, choose a speed preset or an available audio/subtitle track.",
+        "Use API inspector → Operations for an arbitrary volume or speed value. Choose Native PlayerView to try fullscreen and view APIs."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Stock speed choices are presets, and its speaker control can toggle mute without a numeric volume slider. These limits describe the default controls only; they do not describe the API inspector's coverage or accepted arguments."
+    },
+    {
+      "type": "h2",
+      "text": "Run APIs and read their results"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select Open API inspector. In Operations, filter by API name and select an operation. Its inputs describe the accepted argument types and units.",
+        "Choose Player.volume, enter a whole number from 0 to 100 and select Run API. A submitted call does not by itself establish a playback effect.",
+        "Switch to State, filter Player.volume and Refresh SDK state to read it from the current player. For asynchronous operations such as seeking, also check the completion event and resulting position.",
+        "Enable Show operation code for the Swift call with the current valid arguments. Configuration code creates or loads the player; operation code acts on the running instance."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "ios-api-operation",
+      "caption": "Player.volume with an editable numeric argument and Run API. Show operation code displays its Swift call."
+    },
+    {
+      "type": "figure",
+      "file": "ios-api-volume-state",
+      "caption": "The State pane reads Player.volume from the current SDK player after the operation."
+    },
+    {
+      "type": "p",
+      "text": "Events records typed Player, Source and view callbacks. Filter event name or owner and Clear events help isolate an experiment. Entries show API identity, owner and SDK timestamp. Listener registration and receiving an event are separate states; both Player and Source listeners can report the same event. Subscription transport switches between Typed listeners and Combine publishers; both report the same SDK event types."
+    },
+    {
+      "type": "figure",
+      "file": "tvos-api-state",
+      "caption": "The tvOS API inspector uses the same Operations, State and Events workflow with remote focus and Select."
+    },
+    {
+      "type": "h2",
+      "text": "Choose the video presentation"
+    },
+    {
+      "type": "p",
+      "text": "In API inspector → State, Presentation offers SDK SwiftUI, SDK SwiftUI with bindings, Native PlayerView, AVPlayerLayer and AVPlayerViewController. A change recreates the player and reloads the applied source. SDK SwiftUI remains the default."
+    },
+    {
+      "type": "p",
+      "text": "Player factory is a separate choice. The default PlayerFactory attaches Analytics when configured; PlayerCoreFactory and the deprecated PlayerFactory.create path create the player without that wrapper. Changing factories recreates the player. Keep the default when comparing the attached Analytics collector."
     },
     {
       "type": "table",
       "headers": [
-        "API",
-        "Observed control and native result",
-        "Coverage"
+        "Presentation",
+        "What to try"
       ],
       "rows": [
         [
-          "Player.pause()",
-          "Pause held position 10.095 seconds across three samples.",
-          "Direct"
+          "SDK SwiftUI with bindings",
+          "Change Picture-in-Picture and scaling bindings; inspect availability."
         ],
         [
-          "Player.play()",
-          "Play advanced the same player from 10.583 to 14.982 seconds.",
-          "Direct"
+          "Native PlayerView",
+          "Run fullscreen and Picture-in-Picture operations and inspect view events."
         ],
         [
-          "Player.seek(time:)",
-          "Actual timeline drag completed a fresh Seeked at 30 seconds.",
-          "Direct"
+          "AVPlayerLayer",
+          "Compare a registered video layer with the separate app controls and scaling."
         ],
         [
-          "Player.setAudio(trackIdentifier:)",
-          "German test track changed the native audio index from 0 to 1.",
-          "Direct"
-        ],
-        [
-          "Player.playbackSpeed",
-          "Actual 2x selection set native speed to 2.",
-          "Preset"
-        ],
-        [
-          "Player.volume",
-          "Speaker touch changed mute; volume remained 100 and no touch slider was offered.",
-          "Missing"
-        ],
-        [
-          "UserInterfaceApi.enterFullscreen() / exitFullscreen()",
-          "The host has no fullscreen handler or visible control.",
-          "Missing, two API rows"
+          "AVPlayerViewController",
+          "Compare AVKit controls and Show AVKit playback controls."
         ]
       ]
     },
     {
       "type": "p",
-      "text": "The audio menu dynamically lists all availableAudio IDs, covering the valid public argument domain. English test track and German test track are fixture metadata, not translations. Speed offers only 0.25x, 0.5x, normal, 1.5x and 2x, so it is a preset. The three missing routes remain available SDK APIs in the denominator. These results apply to the tested iPhone simulator host, separate from tvOS or physical-device UI."
+      "text": "Picture-in-Picture and remote playback require compatible platforms and devices. Read availability state before use. Show presentation code explains how the selected view, layer or controller is registered with the same Bitmovin player."
+    },
+    {
+      "type": "h2",
+      "text": "SharePlay sessions"
     },
     {
       "type": "steps",
       "items": [
-        "Select Default, enter a reachable HLS source with multiple audio tracks, configure autoplay, and Apply.",
-        "Reveal the controls, Pause, Play, pause again and drag Video timeline to the middle.",
-        "Open Settings → Speed, scroll to 2x and select it. Scroll back and choose Back.",
-        "Open Audio Track, scroll to German test track and select it. Options below the menu viewport require scrolling."
+        "In API inspector → Operations, find SharePlay GroupSession and select Listen for sessions. This receives actual sessions created by the operating system; none is joined automatically.",
+        "With a loaded source, Activate current source activity asks the OS to activate its SharePlay activity. It shares the source URL and title, so choose an appropriate source before activation.",
+        "Select an actual OS session, then Coordinate current player or Coordinate and join. Participating players need matching SourceConfig.options.sharePlayIdentifier values.",
+        "Refresh group state to read the session state and participant count. Leave selected session requests this app's departure; Stop listening only stops observation."
       ]
+    },
+    {
+      "type": "p",
+      "text": "SharePlay requires OS eligibility, an appropriate system session and the Group Activities signing capability. A simulator with no eligible session can still show the controls, but it cannot provide a fabricated GroupSession. Show SharePlay code explains the public coordination call."
+    },
+    {
+      "type": "h2",
+      "text": "Offline HLS on iOS and iPadOS"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Apply an on-demand HLS source and its DRM settings in the main configuration, then Open offline HLS inspector. Live HLS has no finite download. This panel is unavailable on tvOS.",
+        "Set the Wi-Fi restriction and minimum free space. Initialize with SDK defaults or OfflineConfig. Initialization is process-wide and the selected startup settings are retained for the next launch.",
+        "Select applied HLS source as offline asset. Use an explicit identifier to address that asset again. Fetch available audio and subtitle tracks and choose their download actions.",
+        "Choose a download operation and Run offline API. Inspect progress, offlineState and events; track discovery or a submitted call is not download completion.",
+        "After completion, Create OfflineSourceConfig, choose whether playback must be restricted to cached media, then Load cached source. It uses the current player; applying the main configuration returns to its remote source."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "ios-offline-track-selection",
+      "caption": "The offline inspector lists actual SDK audio/subtitle tracks and their download actions."
+    },
+    {
+      "type": "p",
+      "text": "Suspend, resume, cancel, delete and offline-license operations affect the selected asset. Delete removes its cached media. FairPlay renewal and synchronization need a suitable license service. Last operation code, SDK state and events distinguish an accepted call from a completed operation."
+    },
+    {
+      "type": "h2",
+      "text": "Google Cast on iOS and iPadOS"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Google Cast inspector. Enter the receiver application ID and optional urn:x-cast:… namespace, then choose background sessions, discovery and receiver-stop behavior.",
+        "Choose initializeCasting(options:) and Run Cast API before enabling RemoteControlConfig.isCastEnabled in player settings. Empty receiver fields use SDK defaults.",
+        "Initialization is process-wide. Changing initialized options saves them for the next full app launch. Close and reopen the app; recreating a player alone does not replace Cast.",
+        "Refresh Cast state to inspect initialization, availability and connection separately. Choose receiver playback or messaging operations and add a listener to observe notifications."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "ios-cast-options",
+      "caption": "Receiver and discovery options in the Google Cast inspector. They configure the app process's startup."
+    },
+    {
+      "type": "figure",
+      "file": "ios-cast-sdk-state",
+      "caption": "The sender is initialized; receiver availability and connection are separate state values."
+    },
+    {
+      "type": "note",
+      "title": "Receiver requirements",
+      "text": "Receiver playback needs a compatible Cast device, local-network permission and suitable media. Custom receivers also need their _APPID._googlecast._tcp entry in Info.plist and a native rebuild; the default service is included. Initialization alone does not establish discovery or receiver playback. Google Cast is not provided by the tvOS sample."
     },
     {
       "type": "h2",
@@ -265,6 +432,10 @@
     {
       "type": "p",
       "text": "With initial track preferences, the Swift export includes a retained listener that verifies the explicit loaded Source and selects once at initial Ready. It uses the same full-tag/primary-language matching as the app. License keys remain placeholders and unapplied draft text is excluded."
+    },
+    {
+      "type": "p",
+      "text": "When reusing callback code, include the public NativeScripts/acorn.js, NativeScripts/engine.js and ACORN-LICENSE.txt resources from apps/ios/Showcase in your Xcode app bundle. The generated Swift loads those bundled files instead of embedding the parser in every callback owner. Evaluation is unavailable if the parser or interpreter resource is missing. Retain Acorn's MIT notice when distributing the parser."
     },
     {
       "type": "figure",
@@ -357,6 +528,46 @@
     {
       "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/styleconfig/scalingmode/index.html",
       "label": "Official scalingMode property"
+    },
+    {
+      "path": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
+      "line": 1,
+      "label": "Additional typed settings"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeSubtitleDraft.swift",
+      "line": 1,
+      "label": "Structured subtitle tracks"
+    },
+    {
+      "path": "apps/ios/Showcase/ApiInspector.swift",
+      "line": 1,
+      "label": "API operations, state and events"
+    },
+    {
+      "path": "apps/ios/Showcase/NativePresentation.swift",
+      "line": 1,
+      "label": "Native video presentation hosts"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeScripts/README.md",
+      "line": 1,
+      "label": "Callback language and resource limits"
+    },
+    {
+      "path": "apps/ios/Showcase/OfflineInspector.swift",
+      "line": 1,
+      "label": "Offline HLS workflow"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeCastInspector.swift",
+      "line": 1,
+      "label": "Cast startup and operations"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeSharePlay.swift",
+      "line": 1,
+      "label": "SharePlay session controls"
     }
   ]
 }
