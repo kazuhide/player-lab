@@ -18,7 +18,7 @@ PACKAGE = "bitmovin-player-ios-core"
 VERSION = "3.128.0"
 MODULE = "BitmovinPlayerCore"
 BASE = "https://cdn.bitmovin.com/player/ios/" + VERSION
-REVISION = "451d0f09aa70052bdaa2c8c2944ccaf08eb1da70"
+REVISION = "70580e811bb769dcfc45e623c15f88d5c4a4fd36"
 PLATFORMS = {"ios": "iOS", "tvos": "tvOS"}
 BASE_EVENTS = ("AdBreakEvent", "AdEvent", "CueEvent", "Event", "OfflineEvent",
                "PlayerEvent", "PlayerViewEvent", "SourceEvent")

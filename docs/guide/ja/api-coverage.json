@@ -61,138 +61,62 @@
     ],
     "ios": [
       {
-        "source": "Bounded public BitmovinPlayerCore operational scope: 65 configuration or nested input owners, 39 runtime owners, and four typed listener families. This is not a percentage of every SDK declaration.",
-        "text": "公開BitmovinPlayerCoreの操作に関わる範囲を対象とします。設定または入れ子の入力を持つ型65件、実行時の型39件、型付きリスナー四系統です。SDKの全宣言に対する割合ではありません。"
+        "source": "The inventory retains the original public Core API IDs, categories and exclusions. It covers configuration, SDK operations, state reads and typed event subscriptions; it is separate from the Analytics collector API.",
+        "text": "元の公開Core APIのID・分類・除外一覧を維持します。設定、SDK操作、状態の取得、型付きイベント購読が対象で、Analytics収集SDKのAPI一覧とは別です。"
       },
       {
-        "source": "The denominator is extracted from pinned vendor DocC independently of the app mapping; available deprecated APIs remain counted.",
-        "text": "分母は、アプリ側の対応付けとは独立して、固定バージョンの公式DocCから抽出しています。利用可能な非推奨APIも対象に残します。"
+        "source": "Configuration drafts support typed values, arrays, native objects and edited callback bodies. Apply reloads the source or recreates the player. Parent configuration objects are credited only where an editable child reaches an actual SDK consumer.",
+        "text": "設定の下書きでは型付きの値、配列、ネイティブの実体、関数本体を編集できます。Applyでソースを再読込するかPlayerを再生成します。親の設定オブジェクトは、編集可能な子項目が実際のSDK処理へ渡る場合に対応済みとします。"
       },
       {
-        "source": "Configuration counts public fields of the selected roots and nested input types. Initializers, enum cases, pure output data, inherited SwiftUI View APIs, and Analytics/Collector modules are outside this scope.",
-        "text": "設定は、対象ルートと入れ子の入力型の公開フィールドを数えます。イニシャライザー、enumケース、純粋な出力データ、SwiftUI Viewから継承するAPI、Analytics・Collectorモジュールは対象外です。"
+        "source": "The API inspector invokes typed SDK operations, displays current state and records named callbacks through listeners or Combine publishers. A returned value, accepted configuration or subscribed event does not qualify every media, operating system, device or remote service.",
+        "text": "API inspectorで型付きのSDK操作、現在の状態取得、リスナーまたはCombineによる名前付きイベント記録を試せます。戻り値、設定の受理、購読の登録だけで、全素材・OS・端末・外部サービスでの動作を確認したことにはなりません。"
       },
       {
-        "source": "Availability is the declared platform-family surface, not a guarantee that every member exists at the app minimum OS version. Per-symbol introduction metadata is retained in sdk-symbols.json.",
-        "text": "利用可能範囲は、宣言されたプラットフォーム系統に基づきます。アプリの最低OSバージョンですべてのメンバーを利用できることを保証するものではありません。シンボルごとの導入OS情報はsdk-symbols.jsonに保持しています。"
+        "source": "Native callback bodies use a JavaScript subset with CPU, elapsed-time, instruction and value-size limits. Generated Swift uses the same public bundled interpreter resources; those files and their license must be copied with the example.",
+        "text": "ネイティブの関数本体はJavaScriptの一部の構文を使い、CPU時間、経過時間、命令数、値の大きさに上限を設けます。生成Swiftも同じ公開の実行用ファイルを利用するため、コード例と一緒にそのファイルとライセンスをコピーします。"
       },
       {
-        "source": "Direct means an app-owned control accepts arbitrary supported arguments or invokes an argumentless operation. Preset means a fixed set of sources, values or UI choices; it does not imply arbitrary argument support.",
-        "text": "「GUIで直接指定」は、アプリ独自の操作がサポートされる引数を任意に受け取るか、引数のない操作を呼び出す場合です。「限定プリセット」は、固定のソース・値・UI候補からの選択であり、任意の引数を指定できることは意味しません。"
+        "source": "The source DRM editor constructs FairPlay, ClearKey and receiver-side Widevine or PlayReady objects. The remote-source callback and receiver-conversion preview provide additional typed routes. Constructing a Widevine or PlayReady object does not add local Apple decoding support for that DRM system.",
+        "text": "ソースのDRM編集ではFairPlay、ClearKey、受信機向けのWidevine・PlayReadyの実体を生成できます。リモートソースの関数や受信機向け変換のプレビューでも型に沿って試せます。WidevineやPlayReadyの実体を生成しても、Apple端末でそのDRMを復号できるようになるわけではありません。"
       },
       {
-        "source": "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
-        "text": "名前空間のコンテナーは「コードのみ」とし、個別に対応付けた末端の項目だけをGUIの対応件数に含めます。Allow DVR controlsはアプリ側DvrKitのフラグを変更し、別のSDK time shift操作がPlaybackConfig.isTimeShiftEnabledを変更します。"
+        "source": "Original getter-only advertisement protocol members, SDK-internal ad lifecycle methods and system background-session callbacks retain individual limitations. They remain in the original denominator; no adjusted percentage is substituted for the reported coverage.",
+        "text": "読み取り専用の広告プロトコル、SDK内部の広告ライフサイクル、OSのバックグラウンド通知には個別に制約を記します。元の分母に残し、対象を減らした割合でカバレッジを置き換えません。"
       },
       {
-        "source": "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
-        "text": "読み取ったgetterとイベント購読は、設定や操作の対応件数には加算しません。Player.timeShiftは間接的に表示にも使われますが、操作として一件だけ数え、観測値として重複させません。"
-      },
-      {
-        "source": "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
-        "text": "型付きリスナー四系統が通知する具体的なEvent型を、個別のイベントIDとして数えます。汎用コールバックと抽象イベント基底型は除外し、公開リスナー登録APIは実行時の独立した行として残します。"
-      },
-      {
-        "source": "Eight event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged refreshes DVR and track state, while Ready applies initial track preferences and AudioChanged/SubtitleChanged refresh the visible track readout. Event payload fields are not exposed.",
-        "text": "八種類のイベントを監視します。SourceLoaded、TimeShifted、DvrWindowExceeded、PlaybackFinishedは名前付きでログに表示します。TimeChangedは追いかけ再生とトラックの表示を更新し、Readyは初期トラックの希望を適用します。AudioChangedとSubtitleChangedもトラック表示を更新します。通知に含まれる詳細データを編集・表示する機能はありません。"
-      },
-      {
-        "source": "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
-        "text": "アプリ独自の設定操作と派生表示には、実際のソース上の結び付けがあります。SDK提供のUIには、対応するAPIとの結び付けと実行時の証跡がない限り、直接指定・プリセットの対応件数を付けません。"
-      },
-      {
-        "source": "On 2026-10-21, native GUI checks on iPhone, iPad and Apple TV simulators applied source/startup settings and played the local 60-second HLS and progressive MP4 fixtures with advancing native positions and visible video. Native getters checked the applied start offset, autoplay, bitrate cap and forward-buffer values. Controlled HLS completion checks on iPhone and Apple TV retained the same source and disabled app DVR after PlaybackFinished, even when SDK live/infinite getters persisted; replay and new-source resets were checked separately. These checks do not establish physical-device behavior, audible synchronization, network bitrate enforcement, casting, offline playback or Analytics receipt.",
-        "text": "2026-10-21にiPhone・iPad・Apple TVのシミュレーターで、画面からソース・起動時設定を適用し、ローカルの60秒HLSとプログレッシブMP4を再生しました。ネイティブ再生位置の進行と映像を確認し、開始オフセット、自動再生、ビットレート上限、前方バッファーの適用値をSDKから読み取りました。iPhoneとApple TVのHLS終了試験では、SDKがライブ・無限長を返し続ける場合も同じソースのPlaybackFinishedを受けてアプリのDVRを無効化し、再再生と新規ソースへの切り替えを別に確認しました。物理端末、聴感同期、通信時のビットレート制限の効果、キャスト、オフライン、Analyticsの受信を示す結果ではありません。"
-      },
-      {
-        "source": "12 SDK configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s, forward buffer in seconds and video scaling. Fit/Fill/Stretch cover the public scaling enum. Validated Apply reloads source-only changes or recreates the player for startup/scaling settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
-        "text": "アプリの設定画面で12個のSDK設定項目を編集できます。ソースURL、HLS/MP4の種別、タイトル、ポスターURL、秒単位の開始位置とその基準、自動再生、起動時ミュート、SDKの追いかけ再生、bit/s単位の最大ビットレート、秒単位の先読みバッファ、映像の表示方法です。Fit/Fill/StretchはSDKが公開する表示方法の全選択肢に対応します。Applyはソースだけの変更なら再読み込みし、起動時設定や映像の表示方法の変更ならPlayerを再生成します。ソース設定、UIの選択、ログ、アプリのDVRスイッチを保持し、再生位置はリセットします。Reset to appliedは編集内容だけを戻します。"
-      },
-      {
-        "source": "Initial audio language and subtitle Automatic/Off/preferred-language controls are app preferences, not SDK configuration properties. The intended Source is bound before load(source:); the first owned Ready selects a full-tag or primary-language match, or leaves the SDK/OS default when unavailable. A claim made before SDK calls prevents repeated selection and later track-menu choices remain untouched. These controls credit the real selection commands and visible getters, without adding configuration fields or arbitrary-object credit.",
-        "text": "初期音声言語と字幕のAutomatic/Off/希望言語はアプリの設定で、SDKの設定プロパティではありません。load(source:)の前に対象のSourceを結び付け、対象ソースの最初のReadyで、言語タグ全体または言語部分が一致するトラックを選びます。一致しなければSDK/OSの既定選択を保ちます。SDK呼び出し前に適用済みと記録して重複選択を防ぐため、その後に利用者がメニューで選んだトラックは上書きしません。カバレッジには実際の選択コマンドと画面表示に使う取得APIを計上し、SDKの設定項目や任意のオブジェクト全体を編集できるとは扱いません。"
-      },
-      {
-        "source": "The iOS application also covers iPadOS; both have identical audited API availability and app control paths.",
-        "text": "iOSアプリにはiPadOSも含まれます。調査したAPIの利用可能範囲とアプリの操作経路は共通です。"
-      },
-      {
-        "source": "Four configuration fields remain constrained UI presets backed by bundled JS/CSS resources: uiManagerFactoryFunction, playerUiJs, playerUiCss and userInterfaceConfig. Missing custom resources fall back to the SDK UI; source URLs and HLS/MP4 type are editable.",
-        "text": "四つの設定フィールドは、同梱JS・CSSを使う限定UIプリセットです。uiManagerFactoryFunction、playerUiJs、playerUiCss、userInterfaceConfigが該当します。カスタムファイルが見つからない場合はSDK UIに戻ります。ソースURLとHLS／MP4形式は編集できます。"
-      },
-      {
-        "source": "All eight SDK Default UI candidates were checked on an iPhone simulator with Player 3.128.0 and the generated 60-second multi-audio HLS. Actual touch and read-only native observations qualified Play, Pause, seek and the dynamic available-audio menu as direct. The five fixed speed values receive preset credit; actual 2x and the second audio track reached the native SDK. Volume and enter/exit fullscreen are missing in this host: speaker touch only changes mute, no touch volume slider is offered, and no fullscreen handler or visible control is installed. The SDK bridge/UI resource bytes matched the installed app. The two recorded cases passed in 55.381 and 48.599 seconds. No candidate remains sdk-ui-unverified; these are iPhone simulator observations, not physical-device or tvOS UI results.",
-        "text": "Player 3.128.0のiPhoneシミュレーターと生成した60秒・複数音声のHLSで、SDK既定UIの八つの候補を確認しました。実タッチとSDKの読み取り値で、再生・一時停止・シーク・利用可能な音声を動的に列挙するメニューを直接操作として確認しました。速度は五つの固定値なのでプリセットとし、2倍速と第二音声がSDKへ反映されることを確認しました。このアプリ構成ではvolumeと全画面の開始・終了を提供しません。スピーカーボタンはミュートだけを変更し、タッチ用の音量スライダー、全画面ハンドラー、可視の全画面操作はありません。SDKのbridge・UIリソースは実アプリのバイトと一致しました。二つの試験は55.381秒・48.599秒で成功しました。sdk-ui-unverifiedの候補は残っていません。iPhoneシミュレーターの結果であり、物理端末やtvOSのUIを確認した結果ではありません。"
-      },
-      {
-        "source": "SourceConfig.cmcdConfig requires OS 18 or later and TweaksConfig.includeMachineGeneratedSubtitles requires OS 27 or later; family-wide availability retains both.",
-        "text": "SourceConfig.cmcdConfigはOS 18以降、TweaksConfig.includeMachineGeneratedSubtitlesはOS 27以降が必要です。プラットフォーム系統全体の利用可能範囲として、両方を残します。"
+        "source": "The app requires iOS 16 or later and uses Apple Player 3.128.0 with Google Cast 4.8.6. Cast initialization, receiver discovery and actual remote playback are different states; receiver playback requires a compatible device and service.",
+        "text": "アプリはiOS 16以降を対象にし、Apple Player 3.128.0とGoogle Cast 4.8.6を使います。Castの初期化、受信機の発見、リモート再生は別の状態で、再生には対応する端末とサービスが必要です。"
       }
     ],
     "tvos": [
       {
-        "source": "Bounded public BitmovinPlayerCore operational scope: 65 configuration or nested input owners, 39 runtime owners, and four typed listener families. This is not a percentage of every SDK declaration.",
-        "text": "公開BitmovinPlayerCoreの操作に関わる範囲を対象とします。設定または入れ子の入力を持つ型65件、実行時の型39件、型付きリスナー四系統です。SDKの全宣言に対する割合ではありません。"
+        "source": "The inventory retains the original public Core API IDs, categories and exclusions. It covers configuration, SDK operations, state reads and typed event subscriptions; it is separate from the Analytics collector API.",
+        "text": "元の公開Core APIのID・分類・除外一覧を維持します。設定、SDK操作、状態の取得、型付きイベント購読が対象で、Analytics収集SDKのAPI一覧とは別です。"
       },
       {
-        "source": "The denominator is extracted from pinned vendor DocC independently of the app mapping; available deprecated APIs remain counted.",
-        "text": "分母は、アプリ側の対応付けとは独立して、固定バージョンの公式DocCから抽出しています。利用可能な非推奨APIも対象に残します。"
+        "source": "Configuration drafts support typed values, arrays, native objects and edited callback bodies. Apply reloads the source or recreates the player. Parent configuration objects are credited only where an editable child reaches an actual SDK consumer.",
+        "text": "設定の下書きでは型付きの値、配列、ネイティブの実体、関数本体を編集できます。Applyでソースを再読込するかPlayerを再生成します。親の設定オブジェクトは、編集可能な子項目が実際のSDK処理へ渡る場合に対応済みとします。"
       },
       {
-        "source": "Configuration counts public fields of the selected roots and nested input types. Initializers, enum cases, pure output data, inherited SwiftUI View APIs, and Analytics/Collector modules are outside this scope.",
-        "text": "設定は、対象ルートと入れ子の入力型の公開フィールドを数えます。イニシャライザー、enumケース、純粋な出力データ、SwiftUI Viewから継承するAPI、Analytics・Collectorモジュールは対象外です。"
+        "source": "The API inspector invokes typed SDK operations, displays current state and records named callbacks through listeners or Combine publishers. A returned value, accepted configuration or subscribed event does not qualify every media, operating system, device or remote service.",
+        "text": "API inspectorで型付きのSDK操作、現在の状態取得、リスナーまたはCombineによる名前付きイベント記録を試せます。戻り値、設定の受理、購読の登録だけで、全素材・OS・端末・外部サービスでの動作を確認したことにはなりません。"
       },
       {
-        "source": "Availability is the declared platform-family surface, not a guarantee that every member exists at the app minimum OS version. Per-symbol introduction metadata is retained in sdk-symbols.json.",
-        "text": "利用可能範囲は、宣言されたプラットフォーム系統に基づきます。アプリの最低OSバージョンですべてのメンバーを利用できることを保証するものではありません。シンボルごとの導入OS情報はsdk-symbols.jsonに保持しています。"
+        "source": "Native callback bodies use a JavaScript subset with CPU, elapsed-time, instruction and value-size limits. Generated Swift uses the same public bundled interpreter resources; those files and their license must be copied with the example.",
+        "text": "ネイティブの関数本体はJavaScriptの一部の構文を使い、CPU時間、経過時間、命令数、値の大きさに上限を設けます。生成Swiftも同じ公開の実行用ファイルを利用するため、コード例と一緒にそのファイルとライセンスをコピーします。"
       },
       {
-        "source": "Direct means an app-owned control accepts arbitrary supported arguments or invokes an argumentless operation. Preset means a fixed set of sources, values or UI choices; it does not imply arbitrary argument support.",
-        "text": "「GUIで直接指定」は、アプリ独自の操作がサポートされる引数を任意に受け取るか、引数のない操作を呼び出す場合です。「限定プリセット」は、固定のソース・値・UI候補からの選択であり、任意の引数を指定できることは意味しません。"
+        "source": "The source DRM editor constructs FairPlay, ClearKey and receiver-side Widevine or PlayReady objects. The remote-source callback and receiver-conversion preview provide additional typed routes. Constructing a Widevine or PlayReady object does not add local Apple decoding support for that DRM system.",
+        "text": "ソースのDRM編集ではFairPlay、ClearKey、受信機向けのWidevine・PlayReadyの実体を生成できます。リモートソースの関数や受信機向け変換のプレビューでも型に沿って試せます。WidevineやPlayReadyの実体を生成しても、Apple端末でそのDRMを復号できるようになるわけではありません。"
       },
       {
-        "source": "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
-        "text": "名前空間のコンテナーは「コードのみ」とし、個別に対応付けた末端の項目だけをGUIの対応件数に含めます。Allow DVR controlsはアプリ側DvrKitのフラグを変更し、別のSDK time shift操作がPlaybackConfig.isTimeShiftEnabledを変更します。"
+        "source": "Original getter-only advertisement protocol members, SDK-internal ad lifecycle methods and system background-session callbacks retain individual limitations. They remain in the original denominator; no adjusted percentage is substituted for the reported coverage.",
+        "text": "読み取り専用の広告プロトコル、SDK内部の広告ライフサイクル、OSのバックグラウンド通知には個別に制約を記します。元の分母に残し、対象を減らした割合でカバレッジを置き換えません。"
       },
       {
-        "source": "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
-        "text": "読み取ったgetterとイベント購読は、設定や操作の対応件数には加算しません。Player.timeShiftは間接的に表示にも使われますが、操作として一件だけ数え、観測値として重複させません。"
-      },
-      {
-        "source": "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
-        "text": "型付きリスナー四系統が通知する具体的なEvent型を、個別のイベントIDとして数えます。汎用コールバックと抽象イベント基底型は除外し、公開リスナー登録APIは実行時の独立した行として残します。"
-      },
-      {
-        "source": "Eight event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged refreshes DVR and track state, while Ready applies initial track preferences and AudioChanged/SubtitleChanged refresh the visible track readout. Event payload fields are not exposed.",
-        "text": "八種類のイベントを監視します。SourceLoaded、TimeShifted、DvrWindowExceeded、PlaybackFinishedは名前付きでログに表示します。TimeChangedは追いかけ再生とトラックの表示を更新し、Readyは初期トラックの希望を適用します。AudioChangedとSubtitleChangedもトラック表示を更新します。通知に含まれる詳細データを編集・表示する機能はありません。"
-      },
-      {
-        "source": "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
-        "text": "アプリ独自の設定操作と派生表示には、実際のソース上の結び付けがあります。SDK提供のUIには、対応するAPIとの結び付けと実行時の証跡がない限り、直接指定・プリセットの対応件数を付けません。"
-      },
-      {
-        "source": "On 2026-10-21, native GUI checks on iPhone, iPad and Apple TV simulators applied source/startup settings and played the local 60-second HLS and progressive MP4 fixtures with advancing native positions and visible video. Native getters checked the applied start offset, autoplay, bitrate cap and forward-buffer values. Controlled HLS completion checks on iPhone and Apple TV retained the same source and disabled app DVR after PlaybackFinished, even when SDK live/infinite getters persisted; replay and new-source resets were checked separately. These checks do not establish physical-device behavior, audible synchronization, network bitrate enforcement, casting, offline playback or Analytics receipt.",
-        "text": "2026-10-21にiPhone・iPad・Apple TVのシミュレーターで、画面からソース・起動時設定を適用し、ローカルの60秒HLSとプログレッシブMP4を再生しました。ネイティブ再生位置の進行と映像を確認し、開始オフセット、自動再生、ビットレート上限、前方バッファーの適用値をSDKから読み取りました。iPhoneとApple TVのHLS終了試験では、SDKがライブ・無限長を返し続ける場合も同じソースのPlaybackFinishedを受けてアプリのDVRを無効化し、再再生と新規ソースへの切り替えを別に確認しました。物理端末、聴感同期、通信時のビットレート制限の効果、キャスト、オフライン、Analyticsの受信を示す結果ではありません。"
-      },
-      {
-        "source": "12 SDK configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s, forward buffer in seconds and video scaling. Fit/Fill/Stretch cover the public scaling enum. Validated Apply reloads source-only changes or recreates the player for startup/scaling settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
-        "text": "アプリの設定画面で12個のSDK設定項目を編集できます。ソースURL、HLS/MP4の種別、タイトル、ポスターURL、秒単位の開始位置とその基準、自動再生、起動時ミュート、SDKの追いかけ再生、bit/s単位の最大ビットレート、秒単位の先読みバッファ、映像の表示方法です。Fit/Fill/StretchはSDKが公開する表示方法の全選択肢に対応します。Applyはソースだけの変更なら再読み込みし、起動時設定や映像の表示方法の変更ならPlayerを再生成します。ソース設定、UIの選択、ログ、アプリのDVRスイッチを保持し、再生位置はリセットします。Reset to appliedは編集内容だけを戻します。"
-      },
-      {
-        "source": "Initial audio language and subtitle Automatic/Off/preferred-language controls are app preferences, not SDK configuration properties. The intended Source is bound before load(source:); the first owned Ready selects a full-tag or primary-language match, or leaves the SDK/OS default when unavailable. A claim made before SDK calls prevents repeated selection and later track-menu choices remain untouched. These controls credit the real selection commands and visible getters, without adding configuration fields or arbitrary-object credit.",
-        "text": "初期音声言語と字幕のAutomatic/Off/希望言語はアプリの設定で、SDKの設定プロパティではありません。load(source:)の前に対象のSourceを結び付け、対象ソースの最初のReadyで、言語タグ全体または言語部分が一致するトラックを選びます。一致しなければSDK/OSの既定選択を保ちます。SDK呼び出し前に適用済みと記録して重複選択を防ぐため、その後に利用者がメニューで選んだトラックは上書きしません。カバレッジには実際の選択コマンドと画面表示に使う取得APIを計上し、SDKの設定項目や任意のオブジェクト全体を編集できるとは扱いません。"
-      },
-      {
-        "source": "The UI variant picker is excluded on tvOS and System UI is fixed. The native full-screen editor exposes the same 12 SDK configuration leaves as iOS, plus app initial-track preferences; there are no SDK configuration presets.",
-        "text": "tvOSにはUIの種類を選ぶメニューがなく、System UIを使用します。全画面の設定画面で、iOSと同じ12個のSDK設定項目とアプリの初期トラックの希望を編集できます。SDKの設定項目にpreset分類のものはありません。"
-      },
-      {
-        "source": "The app-owned tvOS remote Play/Pause command maps to Player.play() and Player.pause(). Opaque System UI controls do not receive volume, track or fullscreen credit without exact binding and runtime evidence.",
-        "text": "アプリのtvOSリモコン再生・一時停止操作はPlayer.play()とPlayer.pause()に対応します。System UIの操作は、正確な呼び出し経路と実行結果を確認できなければ音量・トラック・全画面の対応件数へ加えません。"
-      },
-      {
-        "source": "SDK APIs documented as no-op on tvOS remain in the available denominator when their Swift declaration permits tvOS.",
-        "text": "tvOSでは何も行わないと記載されたSDK APIも、Swift宣言でtvOSを許可している場合は利用可能な分母に残します。"
+        "source": "The app requires tvOS 15 or later. The native System UI is supported; the Bitmovin Web UI metadata renderer and the published mutable children of PlayerView tweaks and ImaAdvertisingConfig are unavailable. Detached RemoteControlConfig values can still be tried through the public receiver DRM conversion APIs; PlayerConfig.remoteControlConfig is not available on tvOS.",
+        "text": "アプリはtvOS 15以降を対象にします。ネイティブのSystem UIに対応しますが、Bitmovin Web UIのメタデータ表示と、PlayerView tweaks・ImaAdvertisingConfigの公開された変更可能な子項目は利用できません。独立したRemoteControlConfigは受信機向けDRM変換の公開APIで試せますが、PlayerConfig.remoteControlConfigはtvOSで利用できません。"
       }
     ],
     "android": [

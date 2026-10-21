@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-22",
-  "sourceRevision": "9f1447014ac3cd0b7a07cd8bd6ddb4b47f91b75f",
+  "sourceRevision": "70580e811bb769dcfc45e623c15f88d5c4a4fd36",
   "sdks": [
     {
       "id": "android",
@@ -174,7 +174,7 @@
       ]
     }
   ],
-  "inputSha256": "c26301832f867ca21e66e49eefd9ac040c3de4ca2ca40abab8648e9a9b72ca07",
+  "inputSha256": "04041affe309d3ead1d2c6c3fe7bd6e9222bd9e9ec0e7e1e7428ed832e37029c",
   "applications": [
     {
       "id": "android",
@@ -7388,23 +7388,13 @@
       "sdkId": "apple",
       "platform": "iOS",
       "scopeNotes": [
-        "Bounded public BitmovinPlayerCore operational scope: 65 configuration or nested input owners, 39 runtime owners, and four typed listener families. This is not a percentage of every SDK declaration.",
-        "The denominator is extracted from pinned vendor DocC independently of the app mapping; available deprecated APIs remain counted.",
-        "Configuration counts public fields of the selected roots and nested input types. Initializers, enum cases, pure output data, inherited SwiftUI View APIs, and Analytics/Collector modules are outside this scope.",
-        "Availability is the declared platform-family surface, not a guarantee that every member exists at the app minimum OS version. Per-symbol introduction metadata is retained in sdk-symbols.json.",
-        "Direct means an app-owned control accepts arbitrary supported arguments or invokes an argumentless operation. Preset means a fixed set of sources, values or UI choices; it does not imply arbitrary argument support.",
-        "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
-        "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
-        "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
-        "Eight event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged refreshes DVR and track state, while Ready applies initial track preferences and AudioChanged/SubtitleChanged refresh the visible track readout. Event payload fields are not exposed.",
-        "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
-        "On 2026-10-21, native GUI checks on iPhone, iPad and Apple TV simulators applied source/startup settings and played the local 60-second HLS and progressive MP4 fixtures with advancing native positions and visible video. Native getters checked the applied start offset, autoplay, bitrate cap and forward-buffer values. Controlled HLS completion checks on iPhone and Apple TV retained the same source and disabled app DVR after PlaybackFinished, even when SDK live/infinite getters persisted; replay and new-source resets were checked separately. These checks do not establish physical-device behavior, audible synchronization, network bitrate enforcement, casting, offline playback or Analytics receipt.",
-        "12 SDK configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s, forward buffer in seconds and video scaling. Fit/Fill/Stretch cover the public scaling enum. Validated Apply reloads source-only changes or recreates the player for startup/scaling settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
-        "Initial audio language and subtitle Automatic/Off/preferred-language controls are app preferences, not SDK configuration properties. The intended Source is bound before load(source:); the first owned Ready selects a full-tag or primary-language match, or leaves the SDK/OS default when unavailable. A claim made before SDK calls prevents repeated selection and later track-menu choices remain untouched. These controls credit the real selection commands and visible getters, without adding configuration fields or arbitrary-object credit.",
-        "The iOS application also covers iPadOS; both have identical audited API availability and app control paths.",
-        "Four configuration fields remain constrained UI presets backed by bundled JS/CSS resources: uiManagerFactoryFunction, playerUiJs, playerUiCss and userInterfaceConfig. Missing custom resources fall back to the SDK UI; source URLs and HLS/MP4 type are editable.",
-        "All eight SDK Default UI candidates were checked on an iPhone simulator with Player 3.128.0 and the generated 60-second multi-audio HLS. Actual touch and read-only native observations qualified Play, Pause, seek and the dynamic available-audio menu as direct. The five fixed speed values receive preset credit; actual 2x and the second audio track reached the native SDK. Volume and enter/exit fullscreen are missing in this host: speaker touch only changes mute, no touch volume slider is offered, and no fullscreen handler or visible control is installed. The SDK bridge/UI resource bytes matched the installed app. The two recorded cases passed in 55.381 and 48.599 seconds. No candidate remains sdk-ui-unverified; these are iPhone simulator observations, not physical-device or tvOS UI results.",
-        "SourceConfig.cmcdConfig requires OS 18 or later and TweaksConfig.includeMachineGeneratedSubtitles requires OS 27 or later; family-wide availability retains both."
+        "The inventory retains the original public Core API IDs, categories and exclusions. It covers configuration, SDK operations, state reads and typed event subscriptions; it is separate from the Analytics collector API.",
+        "Configuration drafts support typed values, arrays, native objects and edited callback bodies. Apply reloads the source or recreates the player. Parent configuration objects are credited only where an editable child reaches an actual SDK consumer.",
+        "The API inspector invokes typed SDK operations, displays current state and records named callbacks through listeners or Combine publishers. A returned value, accepted configuration or subscribed event does not qualify every media, operating system, device or remote service.",
+        "Native callback bodies use a JavaScript subset with CPU, elapsed-time, instruction and value-size limits. Generated Swift uses the same public bundled interpreter resources; those files and their license must be copied with the example.",
+        "The source DRM editor constructs FairPlay, ClearKey and receiver-side Widevine or PlayReady objects. The remote-source callback and receiver-conversion preview provide additional typed routes. Constructing a Widevine or PlayReady object does not add local Apple decoding support for that DRM system.",
+        "Original getter-only advertisement protocol members, SDK-internal ad lifecycle methods and system background-session callbacks retain individual limitations. They remain in the original denominator; no adjusted percentage is substituted for the reported coverage.",
+        "The app requires iOS 16 or later and uses Apple Player 3.128.0 with Google Cast 4.8.6. Cast initialization, receiver discovery and actual remote playback are different states; receiver playback requires a compatible device and service."
       ],
       "excluded": [
         {
@@ -7508,42 +7498,42 @@
         "configuration": {
           "denominator": 209,
           "byStatus": {
-            "direct": 12,
-            "preset": 4,
+            "direct": 203,
+            "preset": 0,
             "observed": 0,
             "internal": 0,
-            "code-only": 7,
-            "missing": 186,
+            "code-only": 0,
+            "missing": 6,
             "sdk-ui-unverified": 0
           },
           "deprecated": 11,
-          "percentDirect": 5.74,
-          "percentDirectOrPreset": 7.66
+          "percentDirect": 97.13,
+          "percentDirectOrPreset": 97.13
         },
         "command": {
           "denominator": 146,
           "byStatus": {
-            "direct": 5,
-            "preset": 3,
+            "direct": 142,
+            "preset": 0,
             "observed": 0,
             "internal": 0,
-            "code-only": 4,
-            "missing": 134,
+            "code-only": 1,
+            "missing": 3,
             "sdk-ui-unverified": 0
           },
           "deprecated": 8,
-          "percentDirect": 3.42,
-          "percentDirectOrPreset": 5.48
+          "percentDirect": 97.26,
+          "percentDirectOrPreset": 97.26
         },
         "observation": {
           "denominator": 101,
           "byStatus": {
             "direct": 0,
             "preset": 0,
-            "observed": 8,
+            "observed": 101,
             "internal": 0,
-            "code-only": 2,
-            "missing": 91,
+            "code-only": 0,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 3,
@@ -7555,10 +7545,10 @@
           "byStatus": {
             "direct": 0,
             "preset": 0,
-            "observed": 8,
+            "observed": 106,
             "internal": 0,
             "code-only": 0,
-            "missing": 98,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 4,
@@ -7703,17 +7693,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -7768,17 +7758,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -7978,27 +7968,27 @@
             "command": {
               "denominator": 3,
               "byStatus": {
-                "direct": 0,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 3,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 3,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -8028,17 +8018,17 @@
             "configuration": {
               "denominator": 8,
               "byStatus": {
-                "direct": 0,
+                "direct": 8,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 8,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -8093,17 +8083,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -8173,27 +8163,27 @@
             "command": {
               "denominator": 18,
               "byStatus": {
-                "direct": 0,
+                "direct": 18,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 18,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 2,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 12,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 12,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 12,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -8223,17 +8213,17 @@
             "configuration": {
               "denominator": 5,
               "byStatus": {
-                "direct": 0,
+                "direct": 5,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -8288,17 +8278,17 @@
             "configuration": {
               "denominator": 9,
               "byStatus": {
-                "direct": 0,
-                "preset": 1,
+                "direct": 9,
+                "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 8,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 11.11
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -8353,17 +8343,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -8433,27 +8423,27 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -8483,17 +8473,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 1,
+                "code-only": 0,
                 "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -8613,32 +8603,32 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -8678,17 +8668,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -8743,32 +8733,32 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -8840,10 +8830,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -8888,27 +8878,27 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -8938,17 +8928,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9003,17 +8993,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9068,17 +9058,17 @@
             "configuration": {
               "denominator": 3,
               "byStatus": {
-                "direct": 0,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9133,17 +9123,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9198,17 +9188,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9263,17 +9253,17 @@
             "configuration": {
               "denominator": 12,
               "byStatus": {
-                "direct": 0,
+                "direct": 12,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 12,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9343,27 +9333,27 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -9408,27 +9398,27 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -9458,17 +9448,17 @@
             "configuration": {
               "denominator": 3,
               "byStatus": {
-                "direct": 0,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9523,17 +9513,17 @@
             "configuration": {
               "denominator": 8,
               "byStatus": {
-                "direct": 0,
+                "direct": 8,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 8,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9588,17 +9578,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9653,17 +9643,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9718,17 +9708,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9798,27 +9788,27 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -9848,17 +9838,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -9913,17 +9903,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -10010,10 +10000,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 2,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -10043,17 +10033,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -10108,17 +10098,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -10173,32 +10163,32 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -10238,17 +10228,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -10303,17 +10293,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -10383,17 +10373,17 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -10433,17 +10423,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -10498,17 +10488,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -10578,27 +10568,27 @@
             "command": {
               "denominator": 11,
               "byStatus": {
-                "direct": 0,
+                "direct": 11,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 11,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 5,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 5,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -10643,17 +10633,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -10740,10 +10730,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 10,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 10,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -10773,17 +10763,17 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -10838,27 +10828,27 @@
             "command": {
               "denominator": 6,
               "byStatus": {
-                "direct": 0,
+                "direct": 5,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 0,
-                "missing": 6,
+                "code-only": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 83.33,
+              "percentDirectOrPreset": 83.33
             },
             "observation": {
               "denominator": 5,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 5,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -10888,17 +10878,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -10953,17 +10943,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -11050,10 +11040,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 2,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -11098,17 +11088,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -11148,17 +11138,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -11213,32 +11203,32 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -11278,17 +11268,17 @@
             "configuration": {
               "denominator": 6,
               "byStatus": {
-                "direct": 3,
+                "direct": 6,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 50.0,
-              "percentDirectOrPreset": 50.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -11358,27 +11348,27 @@
             "command": {
               "denominator": 28,
               "byStatus": {
-                "direct": 5,
-                "preset": 3,
+                "direct": 28,
+                "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 1,
-                "missing": 19,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 4,
-              "percentDirect": 17.86,
-              "percentDirectOrPreset": 28.57
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 34,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 8,
+                "observed": 34,
                 "internal": 0,
-                "code-only": 2,
-                "missing": 24,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 3,
@@ -11408,17 +11398,17 @@
             "configuration": {
               "denominator": 13,
               "byStatus": {
-                "direct": 0,
+                "direct": 13,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 5,
-                "missing": 8,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -11488,27 +11478,27 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -11553,17 +11543,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -11618,17 +11608,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 2,
+                "code-only": 0,
                 "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -11683,27 +11673,27 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -11780,10 +11770,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 5,
+                "observed": 62,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 57,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 3,
@@ -11845,10 +11835,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 3,
+                "observed": 19,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 16,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
@@ -11878,27 +11868,27 @@
             "command": {
               "denominator": 11,
               "byStatus": {
-                "direct": 0,
+                "direct": 8,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 11,
+                "missing": 3,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 72.73,
+              "percentDirectOrPreset": 72.73
             },
             "observation": {
               "denominator": 4,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 4,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -11928,17 +11918,17 @@
             "configuration": {
               "denominator": 3,
               "byStatus": {
-                "direct": 0,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -12008,17 +11998,17 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -12073,17 +12063,17 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -12123,17 +12113,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -12203,27 +12193,27 @@
             "command": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -12253,17 +12243,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -12318,17 +12308,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -12398,27 +12388,27 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 3,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 3,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -12448,17 +12438,17 @@
             "configuration": {
               "denominator": 10,
               "byStatus": {
-                "direct": 0,
+                "direct": 10,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 10,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -12528,27 +12518,27 @@
             "command": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 3,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 3,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -12593,27 +12583,27 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 8,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 8,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 8,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -12643,32 +12633,32 @@
             "configuration": {
               "denominator": 14,
               "byStatus": {
-                "direct": 4,
-                "preset": 0,
-                "observed": 0,
-                "internal": 0,
-                "code-only": 1,
-                "missing": 9,
-                "sdk-ui-unverified": 0
-              },
-              "deprecated": 0,
-              "percentDirect": 28.57,
-              "percentDirectOrPreset": 28.57
-            },
-            "command": {
-              "denominator": 1,
-              "byStatus": {
-                "direct": 0,
+                "direct": 14,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
+            },
+            "command": {
+              "denominator": 1,
+              "byStatus": {
+                "direct": 1,
+                "preset": 0,
+                "observed": 0,
+                "internal": 0,
+                "code-only": 0,
+                "missing": 0,
+                "sdk-ui-unverified": 0
+              },
+              "deprecated": 0,
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -12740,10 +12730,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -12788,17 +12778,17 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -12853,17 +12843,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -12918,17 +12908,17 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -12983,17 +12973,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 1,
-                "missing": 1,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -13048,27 +13038,27 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -13098,17 +13088,17 @@
             "configuration": {
               "denominator": 3,
               "byStatus": {
-                "direct": 0,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -13163,17 +13153,17 @@
             "configuration": {
               "denominator": 3,
               "byStatus": {
-                "direct": 2,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 66.67,
-              "percentDirectOrPreset": 66.67
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -13228,17 +13218,17 @@
             "configuration": {
               "denominator": 7,
               "byStatus": {
-                "direct": 1,
-                "preset": 3,
+                "direct": 7,
+                "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 14.29,
-              "percentDirectOrPreset": 57.14
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -13293,17 +13283,17 @@
             "configuration": {
               "denominator": 5,
               "byStatus": {
-                "direct": 0,
+                "direct": 5,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -13325,10 +13315,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -13373,17 +13363,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -13423,17 +13413,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -13488,17 +13478,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -13553,17 +13543,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -13633,27 +13623,27 @@
             "command": {
               "denominator": 5,
               "byStatus": {
-                "direct": 0,
+                "direct": 5,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -13683,17 +13673,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -13715,10 +13705,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -13748,17 +13738,17 @@
             "configuration": {
               "denominator": 14,
               "byStatus": {
-                "direct": 0,
+                "direct": 14,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 14,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 2,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -13828,27 +13818,27 @@
             "command": {
               "denominator": 7,
               "byStatus": {
-                "direct": 0,
+                "direct": 7,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 7,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 5,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 5,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -13893,17 +13883,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -13990,10 +13980,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 15,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 15,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -14008,17 +13998,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -14073,17 +14063,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -14153,27 +14143,27 @@
             "command": {
               "denominator": 5,
               "byStatus": {
-                "direct": 0,
+                "direct": 5,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -14203,32 +14193,32 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -15403,22 +15393,13 @@
       "sdkId": "apple",
       "platform": "tvOS",
       "scopeNotes": [
-        "Bounded public BitmovinPlayerCore operational scope: 65 configuration or nested input owners, 39 runtime owners, and four typed listener families. This is not a percentage of every SDK declaration.",
-        "The denominator is extracted from pinned vendor DocC independently of the app mapping; available deprecated APIs remain counted.",
-        "Configuration counts public fields of the selected roots and nested input types. Initializers, enum cases, pure output data, inherited SwiftUI View APIs, and Analytics/Collector modules are outside this scope.",
-        "Availability is the declared platform-family surface, not a guarantee that every member exists at the app minimum OS version. Per-symbol introduction metadata is retained in sdk-symbols.json.",
-        "Direct means an app-owned control accepts arbitrary supported arguments or invokes an argumentless operation. Preset means a fixed set of sources, values or UI choices; it does not imply arbitrary argument support.",
-        "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
-        "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
-        "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
-        "Eight event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged refreshes DVR and track state, while Ready applies initial track preferences and AudioChanged/SubtitleChanged refresh the visible track readout. Event payload fields are not exposed.",
-        "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
-        "On 2026-10-21, native GUI checks on iPhone, iPad and Apple TV simulators applied source/startup settings and played the local 60-second HLS and progressive MP4 fixtures with advancing native positions and visible video. Native getters checked the applied start offset, autoplay, bitrate cap and forward-buffer values. Controlled HLS completion checks on iPhone and Apple TV retained the same source and disabled app DVR after PlaybackFinished, even when SDK live/infinite getters persisted; replay and new-source resets were checked separately. These checks do not establish physical-device behavior, audible synchronization, network bitrate enforcement, casting, offline playback or Analytics receipt.",
-        "12 SDK configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s, forward buffer in seconds and video scaling. Fit/Fill/Stretch cover the public scaling enum. Validated Apply reloads source-only changes or recreates the player for startup/scaling settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
-        "Initial audio language and subtitle Automatic/Off/preferred-language controls are app preferences, not SDK configuration properties. The intended Source is bound before load(source:); the first owned Ready selects a full-tag or primary-language match, or leaves the SDK/OS default when unavailable. A claim made before SDK calls prevents repeated selection and later track-menu choices remain untouched. These controls credit the real selection commands and visible getters, without adding configuration fields or arbitrary-object credit.",
-        "The UI variant picker is excluded on tvOS and System UI is fixed. The native full-screen editor exposes the same 12 SDK configuration leaves as iOS, plus app initial-track preferences; there are no SDK configuration presets.",
-        "The app-owned tvOS remote Play/Pause command maps to Player.play() and Player.pause(). Opaque System UI controls do not receive volume, track or fullscreen credit without exact binding and runtime evidence.",
-        "SDK APIs documented as no-op on tvOS remain in the available denominator when their Swift declaration permits tvOS."
+        "The inventory retains the original public Core API IDs, categories and exclusions. It covers configuration, SDK operations, state reads and typed event subscriptions; it is separate from the Analytics collector API.",
+        "Configuration drafts support typed values, arrays, native objects and edited callback bodies. Apply reloads the source or recreates the player. Parent configuration objects are credited only where an editable child reaches an actual SDK consumer.",
+        "The API inspector invokes typed SDK operations, displays current state and records named callbacks through listeners or Combine publishers. A returned value, accepted configuration or subscribed event does not qualify every media, operating system, device or remote service.",
+        "Native callback bodies use a JavaScript subset with CPU, elapsed-time, instruction and value-size limits. Generated Swift uses the same public bundled interpreter resources; those files and their license must be copied with the example.",
+        "The source DRM editor constructs FairPlay, ClearKey and receiver-side Widevine or PlayReady objects. The remote-source callback and receiver-conversion preview provide additional typed routes. Constructing a Widevine or PlayReady object does not add local Apple decoding support for that DRM system.",
+        "Original getter-only advertisement protocol members, SDK-internal ad lifecycle methods and system background-session callbacks retain individual limitations. They remain in the original denominator; no adjusted percentage is substituted for the reported coverage.",
+        "The app requires tvOS 15 or later. The native System UI is supported; the Bitmovin Web UI metadata renderer and the published mutable children of PlayerView tweaks and ImaAdvertisingConfig are unavailable. Detached RemoteControlConfig values can still be tried through the public receiver DRM conversion APIs; PlayerConfig.remoteControlConfig is not available on tvOS."
       ],
       "excluded": [
         {
@@ -15942,42 +15923,42 @@
         "configuration": {
           "denominator": 180,
           "byStatus": {
-            "direct": 12,
+            "direct": 170,
             "preset": 0,
             "observed": 0,
             "internal": 0,
-            "code-only": 8,
-            "missing": 160,
+            "code-only": 0,
+            "missing": 10,
             "sdk-ui-unverified": 0
           },
           "deprecated": 10,
-          "percentDirect": 6.67,
-          "percentDirectOrPreset": 6.67
+          "percentDirect": 94.44,
+          "percentDirectOrPreset": 94.44
         },
         "command": {
           "denominator": 108,
           "byStatus": {
-            "direct": 3,
-            "preset": 3,
+            "direct": 105,
+            "preset": 0,
             "observed": 0,
             "internal": 0,
-            "code-only": 4,
-            "missing": 98,
+            "code-only": 0,
+            "missing": 3,
             "sdk-ui-unverified": 0
           },
           "deprecated": 6,
-          "percentDirect": 2.78,
-          "percentDirectOrPreset": 5.56
+          "percentDirect": 97.22,
+          "percentDirectOrPreset": 97.22
         },
         "observation": {
           "denominator": 75,
           "byStatus": {
             "direct": 0,
             "preset": 0,
-            "observed": 8,
+            "observed": 75,
             "internal": 0,
-            "code-only": 4,
-            "missing": 63,
+            "code-only": 0,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 3,
@@ -15989,10 +15970,10 @@
           "byStatus": {
             "direct": 0,
             "preset": 0,
-            "observed": 8,
+            "observed": 94,
             "internal": 0,
             "code-only": 0,
-            "missing": 86,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 4,
@@ -16137,17 +16118,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -16202,17 +16183,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -16412,27 +16393,27 @@
             "command": {
               "denominator": 3,
               "byStatus": {
-                "direct": 0,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 3,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 3,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -16462,17 +16443,17 @@
             "configuration": {
               "denominator": 8,
               "byStatus": {
-                "direct": 0,
+                "direct": 7,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 8,
+                "missing": 1,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 87.5,
+              "percentDirectOrPreset": 87.5
             },
             "command": {
               "denominator": 0,
@@ -16527,17 +16508,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -16672,27 +16653,27 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -16722,17 +16703,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 1,
+                "code-only": 0,
                 "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -16852,32 +16833,32 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -16917,17 +16898,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -16982,32 +16963,32 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -17079,10 +17060,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -17112,17 +17093,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -17177,17 +17158,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -17242,17 +17223,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -17307,17 +17288,17 @@
             "configuration": {
               "denominator": 10,
               "byStatus": {
-                "direct": 0,
+                "direct": 10,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 10,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -17387,27 +17368,27 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -17452,27 +17433,27 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -17502,17 +17483,17 @@
             "configuration": {
               "denominator": 7,
               "byStatus": {
-                "direct": 0,
+                "direct": 7,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 7,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -17567,17 +17548,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -17632,17 +17613,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -17697,17 +17678,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -17777,27 +17758,27 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -17827,17 +17808,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -17892,17 +17873,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -17989,10 +17970,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 2,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -18022,17 +18003,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -18087,17 +18068,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -18152,32 +18133,32 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -18217,17 +18198,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -18282,17 +18263,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -18362,17 +18343,17 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -18412,17 +18393,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -18492,17 +18473,17 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -18542,17 +18523,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -18607,32 +18588,32 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -18672,17 +18653,17 @@
             "configuration": {
               "denominator": 6,
               "byStatus": {
-                "direct": 3,
+                "direct": 6,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 50.0,
-              "percentDirectOrPreset": 50.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -18752,27 +18733,27 @@
             "command": {
               "denominator": 28,
               "byStatus": {
-                "direct": 3,
-                "preset": 3,
+                "direct": 28,
+                "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 1,
-                "missing": 21,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 4,
-              "percentDirect": 10.71,
-              "percentDirectOrPreset": 21.43
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 34,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 8,
+                "observed": 34,
                 "internal": 0,
-                "code-only": 4,
-                "missing": 22,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 3,
@@ -18802,17 +18783,17 @@
             "configuration": {
               "denominator": 12,
               "byStatus": {
-                "direct": 0,
+                "direct": 12,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 5,
-                "missing": 7,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -18882,27 +18863,27 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -18947,17 +18928,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -19012,17 +18993,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 2,
+                "code-only": 0,
                 "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -19077,27 +19058,27 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -19174,10 +19155,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 5,
+                "observed": 61,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 56,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 3,
@@ -19239,10 +19220,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 3,
+                "observed": 19,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 16,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
@@ -19272,27 +19253,27 @@
             "command": {
               "denominator": 11,
               "byStatus": {
-                "direct": 0,
+                "direct": 8,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 11,
+                "missing": 3,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 72.73,
+              "percentDirectOrPreset": 72.73
             },
             "observation": {
               "denominator": 3,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 3,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -19322,17 +19303,17 @@
             "configuration": {
               "denominator": 3,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 1,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 66.67,
+              "percentDirectOrPreset": 66.67
             },
             "command": {
               "denominator": 0,
@@ -19402,17 +19383,17 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -19467,27 +19448,27 @@
             "command": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -19517,17 +19498,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -19582,17 +19563,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -19662,27 +19643,27 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 3,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 3,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -19712,17 +19693,17 @@
             "configuration": {
               "denominator": 10,
               "byStatus": {
-                "direct": 0,
+                "direct": 10,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 10,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -19792,27 +19773,27 @@
             "command": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 3,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 3,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -19857,27 +19838,27 @@
             "command": {
               "denominator": 3,
               "byStatus": {
-                "direct": 0,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 8,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 8,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 8,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -19907,32 +19888,32 @@
             "configuration": {
               "denominator": 15,
               "byStatus": {
-                "direct": 4,
-                "preset": 0,
-                "observed": 0,
-                "internal": 0,
-                "code-only": 1,
-                "missing": 10,
-                "sdk-ui-unverified": 0
-              },
-              "deprecated": 0,
-              "percentDirect": 26.67,
-              "percentDirectOrPreset": 26.67
-            },
-            "command": {
-              "denominator": 1,
-              "byStatus": {
-                "direct": 0,
+                "direct": 15,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
+            },
+            "command": {
+              "denominator": 1,
+              "byStatus": {
+                "direct": 1,
+                "preset": 0,
+                "observed": 0,
+                "internal": 0,
+                "code-only": 0,
+                "missing": 0,
+                "sdk-ui-unverified": 0
+              },
+              "deprecated": 0,
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -20004,10 +19985,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -20052,17 +20033,17 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -20117,17 +20098,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -20182,17 +20163,17 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -20247,17 +20228,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 1,
-                "missing": 1,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -20312,27 +20293,27 @@
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -20362,17 +20343,17 @@
             "configuration": {
               "denominator": 3,
               "byStatus": {
-                "direct": 0,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 3,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -20427,17 +20408,17 @@
             "configuration": {
               "denominator": 3,
               "byStatus": {
-                "direct": 2,
+                "direct": 3,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 66.67,
-              "percentDirectOrPreset": 66.67
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -20492,17 +20473,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 1,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 1,
-                "missing": 2,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 25.0,
-              "percentDirectOrPreset": 25.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -20557,17 +20538,17 @@
             "configuration": {
               "denominator": 5,
               "byStatus": {
-                "direct": 0,
+                "direct": 5,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -20589,10 +20570,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -20637,17 +20618,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -20687,17 +20668,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -20767,17 +20748,17 @@
             "command": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -20817,17 +20798,17 @@
             "configuration": {
               "denominator": 8,
               "byStatus": {
-                "direct": 0,
+                "direct": 8,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 8,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 1,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -20882,17 +20863,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -20962,27 +20943,27 @@
             "command": {
               "denominator": 5,
               "byStatus": {
-                "direct": 0,
+                "direct": 5,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -21012,17 +20993,17 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -21044,10 +21025,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -21077,17 +21058,17 @@
             "configuration": {
               "denominator": 12,
               "byStatus": {
-                "direct": 0,
+                "direct": 12,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 12,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 2,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -21157,27 +21138,27 @@
             "command": {
               "denominator": 7,
               "byStatus": {
-                "direct": 0,
+                "direct": 7,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 7,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 5,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 5,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -21222,17 +21203,17 @@
             "command": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
@@ -21319,10 +21300,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 14,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 14,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -21337,17 +21318,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -21402,17 +21383,17 @@
             "configuration": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -21482,27 +21463,27 @@
             "command": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 1,
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 0,
+                "observed": 1,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
@@ -21532,32 +21513,32 @@
             "configuration": {
               "denominator": 4,
               "byStatus": {
-                "direct": 0,
+                "direct": 4,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 4,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 1,
               "byStatus": {
-                "direct": 0,
+                "direct": 1,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 1,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 0,
