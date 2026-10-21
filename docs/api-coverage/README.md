@@ -85,6 +85,36 @@ values, or SDK feature prerequisite. Static source mapping does not establish
 successful playback, event delivery, device support, or external service receipt.
 Recorded build and playback results remain separate evidence in the guide.
 
+## Why coverage is incomplete
+
+The target is to try supported settings, operations, state queries and events
+from the app. Current coverage does not meet that target. Most gaps are missing
+editors, actions, queries or event displays in the app. Device, stream, license
+service and receiver requirements are conditions for execution; they are not
+reasons to omit a control. An API documented as having no effect on a platform
+can still have an editable input, an actual invocation or a visible return value.
+
+The guide's **Reason and required work** panel explains each remaining route,
+including fixed presets and code-only use. `gaps.json` binds those authored
+explanations to the exact report hash and API IDs. It does not change the
+coverage statuses or denominators, and explaining a gap does not close it.
+
+One input-contract issue is retained explicitly. UI 4.23.0 declares
+`UIComponentConfigMap.ToggleSettingsPanelItem` with the component class rather
+than its configuration interface. This produces instance methods and event
+subscriptions as configuration paths. They do not become constructor settings
+when passed in an override object. The guide links the
+[published declaration](https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/UIComponentConfigOverrides.ts#L493).
+An instance operation can have a separate control; it must not earn configuration
+credit from a value that the component ignores.
+
+Callback and live-object inputs need typed implementations or object-creation
+paths. JSON text alone cannot supply executable callbacks, native views or SDK
+instances. Selecting fixed callback behavior remains a preset. Supported API
+exposure and effective feature behavior are different claims: for example, the
+[supported Vega SDK does not support client-side ads or the HTML Player UI](https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/blob/0c7463104d3c18f56440aeec7beccd0d92c11aaa/README.md#features-and-limitations).
+Adding a field does not enable unavailable SDK functionality.
+
 ## Check the report
 
 From the repository root, install the pinned dependencies and run:
@@ -103,7 +133,10 @@ network, license values, environment files, or native local configuration.
 
 Updating application controls or SDK versions requires reviewing and refreshing
 their mappings; changing a percentage in `summary.json` cannot update coverage.
-The report deliberately fails when a cited source file changes.
+The report deliberately fails when a cited source file changes. Review the gap
+explanations against the new report as well: missing, duplicated or stale API
+assignments fail the same check. New APIs cannot silently inherit an explanation
+or disappear from the remaining work.
 
 ## Refresh public SDK inventories
 

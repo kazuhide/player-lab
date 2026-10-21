@@ -8,13 +8,15 @@ from guide_html import (TEXT, anchor, controls_html, esc, field_anchor, legacy_h
                         render_block, settings_group, source_url, sources_html, themes_html)
 from guide_routes import CATEGORIES, CHAPTERS, DOCUMENTS, GUIDE_FILES, LANGUAGES, LEGACY_ROUTES, SETTING_GROUPS, THEMES, route_file
 from guide_coverage import coverage_pages, validate_coverage
+from coverage_gaps import validate_gaps
 
 
 class GuideContent(dict):
     """Language documents with their explicitly loaded coverage inputs."""
-    def __init__(self, documents, coverage):
+    def __init__(self, documents, coverage, gaps=None):
         super().__init__(documents)
         self.coverage = coverage
+        self.gaps = gaps
 
 
 def unique_object(pairs):
@@ -35,7 +37,7 @@ def read_document(path, *, limit=512 * 1024):
         return json.loads(reader.read().decode('utf-8'), object_pairs_hook=unique_object)
 
 
-def load_content(root, *, coverage=None):
+def load_content(root, *, coverage=None, gaps=None):
     if root.is_symlink() or not root.is_dir():
         raise ValueError('The guide input must be a real directory.')
     result = {}
@@ -51,7 +53,8 @@ def load_content(root, *, coverage=None):
             raise ValueError('The public API coverage input directory is required.')
         coverage = tuple(read_document(folder / name, limit=10 * 1024 * 1024)
                          for name in ('coverage.json', 'summary.json'))
-    return GuideContent(result, coverage)
+        gaps = read_document(folder / 'gaps.json', limit=2 * 1024 * 1024)
+    return GuideContent(result, coverage, gaps)
 
 
 def block_shape(block):
@@ -160,13 +163,15 @@ def search_text(block):
     return block.get('text') or block.get('caption') or ''
 
 
-def build(content, *, coverage=None):
+def build(content, *, coverage=None, gaps=None):
     validate_content(content)
     coverage = coverage if coverage is not None else getattr(content, 'coverage', None)
     if not isinstance(coverage, (tuple, list)) or len(coverage) != 2:
         raise ValueError('The guide requires an explicitly loaded coverage report and summary.')
     report, summary = coverage
     validate_coverage(report, summary, content)
+    gaps = gaps if gaps is not None else getattr(content, 'gaps', None)
+    assessments = validate_gaps(gaps, report) if gaps is not None else None
     pages = {}
     headings = {name:section_ids(content['en'][name]) for name in CHAPTERS}
     for language in LANGUAGES:
@@ -218,7 +223,7 @@ def build(content, *, coverage=None):
         for theme in document['themes']:
             search.append({'kind':'theme','title':theme['label'],'url':'themes/#'+theme['id'],
                            'excerpt':theme['description'],'text':theme['description']+' '+theme['code']})
-        generated, targets = coverage_pages(content, report, summary, language)
+        generated, targets = coverage_pages(content, report, summary, language, assessments=assessments)
         pages.update(generated)
         search.extend(targets)
         page = route_file(language)

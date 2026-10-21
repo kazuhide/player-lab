@@ -29,6 +29,12 @@ LABELS = {
         'not_applicable': 'Not applicable', 'applications': 'Application inventories',
         'overview': 'API coverage overview', 'channel': 'Channel', 'hash': 'SHA-256',
         'status_key': 'How to read the statuses',
+        'goal': 'Target and remaining work',
+        'goal_unmet': 'The app does not yet expose every inventoried API through its GUI.',
+        'goal_note': 'Fixed presets and code-only configuration entries are not individually editable GUI inputs. Required media, services and devices are prerequisites for exercising a feature; they do not prevent adding GUI access. A method that returns a constant or has no effect on a platform can still be invoked and inspected.',
+        'gap_summary': 'Reason and required work', 'gap_reason': 'Reason', 'gap_action': 'Required work',
+        'gap_implementation': 'App work remains',
+        'gap_input-contract': 'SDK declaration and runtime contract differ',
         'metric_note': 'Each category has its own denominator. Configuration APIs used is the sum of individual GUI edits, GUI presets and code-only configuration entries. A zero individual GUI count does not mean the app has no configuration code. Observation and event visibility includes direct, preset and observed statuses. A zero denominator has no percentage.',
         'configuration_note': 'Configuration counts use SDK API entries, including configuration-object access and nested properties, rather than independent editable fields. Code-only entries include fixed values and helper code without a GUI; changing these values requires editing the source and rebuilding. SDK defaults are not counted as app configuration. Source mappings do not prove that a setting has been applied on a device.',
         'limit_note': 'These are source-backed mappings of app configuration, GUI controls and visible output. SDK UI marked unverified receives no verified credit. Scope notes qualify each inventory; counts do not establish playback or device testing. There is no combined coverage percentage.',
@@ -54,6 +60,12 @@ LABELS = {
         'not_applicable': '対象なし', 'applications': 'アプリ別の全API一覧',
         'overview': 'API対応状況の概要', 'channel': '提供区分', 'hash': 'SHA-256',
         'status_key': '対応状況の読み方',
+        'goal': '目標と残りの対応',
+        'goal_unmet': 'すべての対象APIをGUIから試せる状態には達していません。',
+        'goal_note': '固定候補からの選択やコード内だけの設定は、GUIで値を個別に編集できる状態とは異なります。対応する素材・サービス・端末は機能を実行するための条件であり、GUIを追加できない理由ではありません。固定値を返すメソッドや、その環境では効果のないメソッドも、呼び出して結果を確認することは可能です。',
+        'gap_summary': '理由と必要な対応', 'gap_reason': '理由', 'gap_action': '必要な対応',
+        'gap_implementation': 'アプリ側の対応が必要',
+        'gap_input-contract': 'SDKの型と適用経路の不一致',
         'metric_note': '設定・操作・観測値・イベントは、それぞれ別の分母で集計します。設定APIの使用数は、GUIで個別変更・GUIで候補選択・コード内のみの合計です。GUIで個別変更できる件数が0でも、設定コードがないという意味ではありません。観測値とイベントの表示件数は、直接利用・プリセット・GUIでの観測を合計したものです。分母が0の場合、割合は表示しません。',
         'configuration_note': '設定はSDKのAPI単位で数えます。設定オブジェクトへのアクセスと、その中のプロパティを含むため、独立して編集できる項目数とは異なります。「コード内のみ」には固定値やGUIにつないでいない補助コードも含み、値の変更にはソースの編集と再ビルドが必要です。SDKの既定値はアプリの設定件数に加えません。コード上の対応付けは、実機での設定適用を確認した結果ではありません。',
         'limit_note': 'アプリの設定・GUI操作・表示と公開コードの対応を示す一覧です。未確認のSDK UIは確認済みの件数に含めません。アプリごとの対象範囲と制限も確認してください。件数は実再生や実機試験の結果を示すものではありません。全区分を混ぜた対応率は算出しません。',
@@ -309,6 +321,42 @@ def status_legend(language):
             + '<dl class="guide-status-key">' + items + '</dl></details>')
 
 
+def goal_html(document, language, assessments, *, app_id=None):
+    labels = LABELS[language]
+    paragraphs = document.get('coverageGoal', [])
+    if assessments is None and not paragraphs:
+        return ''
+    selected = ((assessments or {}).get(app_id, {}).values() if app_id is not None
+                else (item for rows in (assessments or {}).values() for item in rows.values()))
+    counts = Counter(item['kind'] for item in selected)
+    output = [f'<h2 id="coverage-goal">{esc(labels["goal"])}</h2>', '<aside class="guide-note guide-api-goal">']
+    if counts:
+        output.append('<p><strong>' + esc(labels['goal_unmet']) + '</strong></p>')
+    texts = [labels['goal_note']] if app_id is not None else paragraphs
+    output.extend('<p>' + esc(text) + '</p>' for text in texts)
+    if assessments is not None:
+        output.append('<dl class="guide-api-gap-counts">' + ''.join(
+            '<dt>' + esc(labels['gap_' + kind]) + '</dt><dd>' + str(counts[kind]) + '</dd>'
+            for kind in ('implementation', 'input-contract')) + '</dl>')
+    output.append('</aside>')
+    return ''.join(output)
+
+
+def gap_html(assessment, language):
+    labels, content = LABELS[language], assessment[language]
+    output = [f'<details class="guide-api-gap" data-api-gap="{esc(assessment["id"])}">',
+              '<summary>' + esc(labels['gap_summary']) + '</summary>',
+              '<p class="guide-api-gap-kind">' + esc(labels['gap_' + assessment['kind']]) + '</p>',
+              '<dl><dt>' + esc(labels['gap_reason']) + '</dt><dd>' + esc(content['reason']) + '</dd>',
+              '<dt>' + esc(labels['gap_action']) + '</dt><dd>' + esc(content['action']) + '</dd></dl>']
+    if assessment['references']:
+        output.append('<ul class="guide-api-gap-sources">' + ''.join(
+            '<li><a href="' + esc(safe_https(url)) + '">' + esc(url) + '</a></li>'
+            for url in assessment['references']) + '</ul>')
+    output.append('</details>')
+    return ''.join(output)
+
+
 def evidence_html(row, revision, language):
     labels, output = LABELS[language], []
     for item in row['evidence']:
@@ -329,17 +377,21 @@ def evidence_html(row, revision, language):
     return official
 
 
-def rows_table(app, category, data, language):
+def rows_table(app, category, data, language, *, assessments=None):
     labels = LABELS[language]
     selected = sorted((r for r in app['rows'] if r['category'] == category), key=lambda r:(r['scope'], r['id']))
     if not selected:
         return f'<p>{labels["none"]}</p>'
     rows = []
+    app_assessments = (assessments or {}).get(app['id'], {})
     for row in selected:
         identity = api_anchor(row['id'])
+        status = f'<span data-api-status="{row["status"]}">{labels[row["status"]]}</span>'
+        if row['id'] in app_assessments:
+            status += gap_html(app_assessments[row['id']], language)
         cells = [f'<code id="{identity}" data-api-id="{esc(row["id"])}">{esc(row["id"])}</code>',
                  '<code>' + esc(row['scope']) + '</code>',
-                 f'<span data-api-status="{row["status"]}">{labels[row["status"]]}</span>',
+                 status,
                  labels['yes'] if row['deprecated'] else labels['no'], evidence_html(row, data['sourceRevision'], language)]
         rows.append(cells)
     caption = f'{labels[category]} · {labels["all_ids"]} ({len(selected)})'
@@ -348,12 +400,13 @@ def rows_table(app, category, data, language):
             + '</details>')
 
 
-def app_body(app, data, document, language, page):
+def app_body(app, data, document, language, page, *, assessments=None):
     labels = LABELS[language]
     sdk = next(s for s in data['sdks'] if s['id'] == app['sdkId'])
     overview = relative(page, route_file(language, 'api-coverage'))
     output = [f'<p><a href="{esc(overview)}">{labels["overview"]}</a> · {esc(sdk_label(sdk, document, language))} <code>{esc(sdk["version"])}</code></p>',
-              provenance(data, language), f'<aside class="guide-note"><p>{labels["limit_note"]}</p><p>{labels["status_note"]}</p></aside>',
+              provenance(data, language), goal_html(document, language, assessments, app_id=app['id']),
+              f'<aside class="guide-note"><p>{labels["limit_note"]}</p><p>{labels["status_note"]}</p></aside>',
               status_legend(language), f'<h2 id="scope-notes">{labels["scope_notes"]}</h2>']
     notes = app['scopeNotes'] if language == 'en' else [n['text'] for n in document['noteTranslations'][app['id']]]
     output.append('<ul>' + ''.join(f'<li>{esc(note)}</li>' for note in notes) + '</ul>')
@@ -369,7 +422,7 @@ def app_body(app, data, document, language, page):
         if category == 'configuration':
             output.append(f'<p class="guide-note">{labels["configuration_note"]}</p>')
         output.append(category_metrics([app], category, language, page, document))
-        output.append(rows_table(app, category, data, language))
+        output.append(rows_table(app, category, data, language, assessments=assessments))
     output.append(f'<h2 id="exclusions">{labels["excluded"]} ({len(app["excluded"])})</h2><p>{labels["excluded_note"]}</p>')
     if app['excluded']:
         rows = [['<code>' + esc(item['id']) + '</code>',
@@ -380,12 +433,13 @@ def app_body(app, data, document, language, page):
     return ''.join(output)
 
 
-def coverage_pages(documents, data, summary, language):
+def coverage_pages(documents, data, summary, language, *, assessments=None):
     labels, document = LABELS[language], documents[language]['api-coverage']
     apps_by_id = {a['id']:a for a in data['applications']}
     apps = [apps_by_id[key] for key in COVERAGE_APPS]
     page = route_file(language, 'api-coverage')
-    output = [provenance(data, language), f'<aside class="guide-note"><p>{labels["metric_note"]}</p><p>{labels["limit_note"]}</p></aside>', status_legend(language),
+    output = [provenance(data, language), goal_html(document, language, assessments),
+              f'<aside class="guide-note"><p>{labels["metric_note"]}</p><p>{labels["limit_note"]}</p></aside>', status_legend(language),
               f'<h2 id="versions">{labels["versions"]}</h2>', versions_table(data, language, document),
               f'<h2 id="applications">{labels["applications"]}</h2><ul>']
     for app in apps:
@@ -398,14 +452,21 @@ def coverage_pages(documents, data, summary, language):
             output.append(f'<p class="guide-note">{labels["configuration_note"]}</p>')
         output.append(category_metrics(apps, category, language, page, document))
     pages = {page:page_html(documents[language], language, 'api-coverage', document['title'], document['lead'], ''.join(output)).encode()}
-    search = [{'kind':'chapter', 'title':document['title'], 'url':'api-coverage/', 'excerpt':document['lead'], 'text':document['lead']}]
+    search = [{'kind':'chapter', 'title':document['title'], 'url':'api-coverage/', 'excerpt':document['lead'],
+               'text':' '.join([document['lead'], *document.get('coverageGoal', [])])}]
     for app in apps:
         slug = 'api-coverage/' + app['id']
         title = document['title'] + ' · ' + app_label(app, document, language)
         pages[route_file(language, slug)] = page_html(documents[language], language, slug, title, document['lead'],
-            app_body(app, data, document, language, route_file(language, slug))).encode()
+            app_body(app, data, document, language, route_file(language, slug), assessments=assessments)).encode()
+        app_assessments = (assessments or {}).get(app['id'], {})
         for row in sorted(app['rows'], key=lambda r:r['id']):
             status = labels[row['status']]
+            explanation = ''
+            if row['id'] in app_assessments:
+                content = app_assessments[row['id']][language]
+                explanation = ' ' + content['reason'] + ' ' + content['action']
             search.append({'kind':'api', 'title':row['id'], 'url':slug + '/#' + api_anchor(row['id']),
-                           'excerpt':app_label(app, document, language) + ' · ' + status, 'text':row['status'] + ' ' + status})
+                           'excerpt':app_label(app, document, language) + ' · ' + status + explanation,
+                           'text':row['status'] + ' ' + status + explanation})
     return pages, search

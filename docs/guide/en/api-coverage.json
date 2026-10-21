@@ -1,5 +1,12 @@
 {
   "id": "api-coverage",
   "title": "Public API coverage",
-  "lead": "Compare the SDK APIs available in each application with the configuration code, GUI controls and displays in its public source. Configuration totals include code-only settings and show GUI access separately. Open an application inventory for every qualified API ID and its evidence."
+  "lead": "Compare available SDK APIs with the app's configuration, controls and visible results. API exposure is incomplete. Each application inventory lists the remaining work, input-contract issues and official references without treating code-only use as editable GUI support.",
+  "coverageGoal": [
+    "The target is to let users try each supported setting, operation, state query and event from the app. That target has not been met. Most gaps are missing app features; they are not SDK prohibitions.",
+    "Configuration APIs used includes individual GUI edits, fixed presets and code-only values. It is not the percentage of settings that users can edit. Each API below retains its current status and denominator. The reason panels also cover preset and code-only routes that still lack individual editing or visible output.",
+    "The Web UI configuration inventory includes paths generated from Partial<ToggleSettingsPanelItem>, a component class rather than its constructor configuration type. Those paths describe instance methods and event subscriptions. Passing them as configuration does not invoke the methods or subscribe to events. They remain listed with an input-contract explanation; ignored properties are not counted as working settings.",
+    "A typed value editor does not supply a function, native view or live SDK object. Those inputs need corresponding code and object creation. Fixed callback strategies are presets. Device, media and external-service requirements are execution conditions; they do not excuse a missing GUI. An API documented as having no effect can still be invoked or inspected, so that fact alone does not prevent API exposure coverage.",
+    "API exposure, effective feature behavior and execution results are separate. A registered event listener is not proof that the event was delivered. An input for a feature that the selected SDK does not support cannot establish working playback. The existing results are not a complete qualification of every listed API."
+  ]
 }

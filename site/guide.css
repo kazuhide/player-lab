@@ -89,6 +89,16 @@
 .guide-coverage-table thead th,
 #versions + .guide-table thead th { white-space: nowrap; }
 .guide-coverage-table tbody th { font-weight: 400; background: var(--surface); }
+.guide-api-gap { min-width: 16rem; max-width: 34rem; margin-top: 0.5rem; white-space: normal; overflow-wrap: anywhere; }
+.guide-api-gap > summary { cursor: pointer; font-weight: 600; }
+.guide-api-gap-kind { margin: 0.625rem 0; color: var(--muted); font-size: 0.75rem; }
+.guide-api-gap dl { margin: 0; }
+.guide-api-gap dt { font-weight: 600; }
+.guide-api-gap dd { margin: 0.25rem 0 0.75rem; line-height: 1.6; }
+.guide-api-gap-sources { margin: 0.5rem 0 0; padding-left: 1.125rem; font-size: 0.75rem; }
+.guide-api-gap-counts { display: grid; grid-template-columns: minmax(0, 1fr) max-content; gap: 0.5rem 1rem; max-width: 40rem; margin: 0.75rem 0 0; font-size: 0.875rem; }
+.guide-api-gap-counts :is(dt, dd) { margin: 0; }
+.guide-api-gap-counts dd { font-variant-numeric: tabular-nums; }
 .guide-api-group { margin-block: 1rem; }
 .guide-api-group > summary { cursor: pointer; padding-block: 0.5rem; font-size: 0.875rem; font-weight: 650; }
 .guide-evidence { margin-top: 0.5rem; font-size: 0.8125rem; }
