@@ -1,9 +1,9 @@
 schema-version = 1
 
 [package]
-title = "Player Lab"
+title = "Player Lab Vega"
 version = "0.1.0"
-id = "com.showcase.dvr.vega"
+id = "com.playerlab.vega"
 
 # RN 0.72 remains supported by Vega SDK 0.24 on OS 1.2.
 # https://developer.amazon.com/docs/vega/0.24/target-os-version
@@ -25,7 +25,7 @@ id = "/com.amazon.kepler.w3cmedia_2@IW3cmedia_3"
 
 [components]
 [[components.interactive]]
-id = "com.showcase.dvr.vega.main"
+id = "com.playerlab.vega.main"
 runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
 launch-type = "singleton"
 categories = ["com.amazon.category.main", "com.amazon.category.kepler.media"]

@@ -1,4 +1,4 @@
-# Bitmovin Player sample for Android and Fire TV
+# Player Lab for Android and Fire TV
 
 Kotlin sample using the Bitmovin Player library, with a Compose control panel and
 `PlayerView`. The app targets phones, tablets, Android TV, and Android-based Fire
@@ -52,7 +52,9 @@ You can also open `apps/android` in Android Studio. The Gradle properties
 `local.properties`. The sync script updates those entries from `.env` while
 preserving the local SDK path.
 
-Allow `com.showcase.dvr` on your player license. The analytics key is optional;
+The application ID and Kotlin namespace are `com.playerlab.android`; the test APK
+uses `com.playerlab.android.test`. Allow
+`com.playerlab.android` on your player license. The analytics key is optional;
 when provided, the bundled collector reports playback-quality measurements to
 your account. Do not commit keys or local SDK configuration.
 
@@ -110,6 +112,26 @@ stalls. It is ignored for VOD. Apply reloads the source; player recreation retai
 applied value. This policy does not guarantee convergence within a deadline and is
 not a qualification of stable return to the moving live edge.
 
+The editor also exposes seven language, subtitle and network settings:
+
+| Field | Value and application |
+| --- | --- |
+| Player audio language priority | Comma-separated language codes, highest priority first, for example `de, en`; blank means no preference. Apply restarts the player. |
+| Source audio language priority | The same format; a nonempty list overrides the player preference, while blank inherits it. Apply reloads the source. The SDK chooses the highest-priority available language before downloading the initial audio; no match uses the default track. |
+| WebVTT URL / Subtitle label / Subtitle language / Default external subtitle | One optional HTTP/HTTPS WebVTT track, with an optional menu label and language code. Supply the URL before applying its metadata; clear all four fields to remove it. `isDefault` is informational metadata and does **not** automatically enable subtitles. Select the track from the existing Default UI's subtitle menu. Apply reloads the source. |
+| HTTP retry delays (s) | Blank retains the SDK's linear backoff; `none` disables retries. A comma-separated list such as `0, 0.25, 2` allows one retry per finite nonnegative delay, in seconds. Apply restarts the player. This does not enable DRM renewal retries. |
+
+Language lists trim surrounding whitespace and remove duplicate codes without
+changing their priority. Subtitle URL, label and language are trimmed. Empty
+items in language or retry lists are rejected. These settings participate in the
+same draft validation, Reset, source retention and applied-code output as the
+original fields. No request headers, credentials or arbitrary callbacks are edited.
+The definitions follow the pinned
+[audio preference](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-playback-config/preferred-audio-languages.html),
+[subtitle track metadata](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.media/-track/is-default.html), and
+[HTTP retry schedule](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.network/-retry-http-request-config/-retry/retry-timeouts.html)
+contracts.
+
 **Apply & restart player** creates a new player and reloads the currently applied
 source, retaining its metadata/options, selected UI mode, Allow DVR setting, and
 event log. Playback restarts according to autoplay and the source start offset.
@@ -153,7 +175,7 @@ exactly-once destruction, listener removal, and retired callback rejection:
 
 ```sh
 ./gradlew :app:connectedDebugAndroidTest \
-  -Pandroid.testInstrumentationRunnerArguments.class=com.showcase.app.PlayerConfigurationInstrumentedTest,com.showcase.app.PlayerOwnershipInstrumentedTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.playerlab.android.PlayerConfigurationInstrumentedTest,com.playerlab.android.PlayerOwnershipInstrumentedTest \
   -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=
 ```
 
@@ -174,29 +196,70 @@ python3 encoding/test-streams/local.py
 node apps/android/runtime-fixture.mjs .cache/test-streams/vod-baseline
 ```
 
-In another terminal, connect the owned emulator or device and forward the two
+In another terminal, connect the owned emulator or device and forward the three
 loopback ports before running the suite from `apps/android`:
 
 ```sh
 adb reverse tcp:5272 tcp:5272
 adb reverse tcp:5273 tcp:5273
+adb reverse tcp:5274 tcp:5274
 cd apps/android
 ./gradlew :app:connectedDebugAndroidTest
 # Remove these forwards and stop the fixture server after testing.
 adb reverse --remove tcp:5272
 adb reverse --remove tcp:5273
+adb reverse --remove tcp:5274
 ```
 
 The debug build permits HTTP only for `localhost` and `127.0.0.1`; release network
 policy is unchanged. The fixture and authorized license are required for the full
 suite. Select individual test classes when checking only their documented scope.
 
+For automation, the Android-specific entry point builds and installs both APKs,
+runs the public `AndroidJUnitRunner` on an explicitly selected device, and writes
+a safe JSON result. It requires successful individual tests and the final runner
+completion; an `adb` exit code of zero alone does not pass. Raw build and test
+output stays in the private directory outside the repository. The runner stops
+the app and test package afterward, including on timeout. It does not start an
+emulator or manage the fixture server or port forwards:
+
+```sh
+python3 apps/android/runtime-tests.py --serial emulator-5554 \
+  --output-dir /tmp/player-lab-android-runtime
+# Configuration-only example; this builds with a dummy key and cannot qualify playback.
+python3 apps/android/runtime-tests.py --serial emulator-5554 \
+  --output-dir /tmp/player-lab-android-configuration \
+  --dummy-license --classes com.playerlab.android.PlayerConfigurationInstrumentedTest
+python3 apps/android/test-runtime-tests.py
+```
+
+Use `--classes` with comma-separated classes or `class#method` to limit the scope.
+`--skip-build` uses existing APKs and must be used only after building the intended
+source and credential configuration. Configuration-only and playback results must
+be reported separately.
+
+The same fixture serves the generated `vod-multiaudio` sibling directory on
+port 5274, WebVTT cues spanning the 60-second video, and a manifest that fails a bounded number of
+times before serving the original bytes. The control endpoint exposes only
+counters and a reset accepting zero through three failures. The server stays on
+loopback and does not proxy upstream requests or log request data. Its own checks
+run with `node --test apps/android/configuration-fixture.test.mjs` from the repository root.
+
+`PlayerLanguageNetworkInstrumentedTest` uses the real configuration editor and
+public SDK APIs to check initial audio-language selection, a source override and
+return to player inheritance; external subtitle metadata followed by a visible
+Default UI menu selection, a fresh native cue and visible subtitle text; and two
+configured HTTP retries versus no retries. The expected no-retry source error is
+kept separate from successful playback, then a healthy source reload must advance
+on the same player. It uses the authorized license and the fixture above, with no
+private observer or diagnostic bridge.
+
 `PlayerDvrInstrumentedTest` checks the real library's source loading and finite
 on-demand duration. `PlayerControlsInstrumentedTest` uses the app's actual Compose
 buttons and switch, checks the bundled Sports UI's elements and stylesheet in its
 WebView, starts playback through that UI, then checks source switching, live
 rewind, return to live, and the DVR setting. Both tests need network access and a
-valid license allowing `com.showcase.dvr`; neither substitutes a mock player.
+valid license allowing `com.playerlab.android`; neither substitutes a mock player.
 Player and Source failures report numeric error codes without printing their
 messages or license values. A failed license request is a failed playback check,
 even when compilation and packaging pass. Leave the optional Analytics key empty
@@ -252,7 +315,8 @@ separately checks app-owned Player destruction.
 
 The shared UI can exist before its playback control becomes visible. The test
 waits for that control, then checks that native playback time advances. It reveals
-controls through WebView pointer input and checks element dimensions and the
+controls through WebView pointer input, or one native tap on a visible Default
+touch overlay when its controls have hidden, and checks element dimensions and the
 computed display, visibility and opacity of each ancestor. Hidden controls with
 nonzero dimensions do not establish a visible result.
 
@@ -282,7 +346,8 @@ It does not include SDK error messages or configuration dumps.
 The app's event log also retains startup error codes, so a failed initial request
 can be distinguished from a source that is still loading.
 
-On 2026-10-21, Player 3.171.0 passed 18 JVM tests (six DVR, ten configuration
+Before migration to the current application identity, on 2026-10-21,
+Player 3.171.0 passed 18 JVM tests (six DVR, ten configuration
 and two lifecycle tests) and debug app/instrumentation builds. The authorized
 Android 16/API 36.1 ARM64 phone-emulator group passed all 16 checks in 237.139
 seconds: configuration/ownership, configured VOD autoplay/mute/start offset,
@@ -302,6 +367,19 @@ emulator delay. These recorded runs do not establish a seek-completion or
 latency-convergence SLA. The optional policy keeps the SDK synchronization
 defaults; temporary catch-up adjustments are not reported by Player.playbackSpeed.
 
+For the current `com.playerlab.android` identity, Player 3.171.0 passed
+24 JVM tests, app/instrumentation builds and seven configuration-only
+instrumentation checks. Separately, a fresh licensed Android 16/API 36.1 ARM64
+phone-emulator run after the menu touch correction passed all 20 instrumentation
+checks in 274.859 seconds. Both license-free touch fixture cases also passed
+separately; they exercise local WebView content and do not establish licensed
+playback.
+That group includes the existing playback, strict live, HLS/DASH finalization,
+standard UI, clipboard and lifecycle cases, plus language priority/source
+override, external WebVTT menu selection with a fresh native cue and visible
+caption, and configured retries versus no retries. The configuration-only
+checks do not establish playback; the licensed group checks actual SDK media.
+
 These checks use an Android phone emulator. Physical-device, Android TV, Fire TV,
 offline, casting and Analytics delivery require their respective environments.
 The recorded native observations establish playback and control behavior; they
@@ -314,3 +392,24 @@ UI settings sent to the SDK. Draft edits do not change this output. **Copy code*
 writes the code to the Android clipboard; you can also select the text. License
 values are excluded and the Player key is a placeholder. The app's Allow DVR
 switch remains separate from the SDK configuration.
+
+## Scrolling player menus
+
+The embedded player menu and the surrounding Compose form can both scroll.
+Swipe inside the video menu to reach lower settings; swipe outside the video
+to move the form. A parent scroll container can intercept a gesture intended
+for the embedded menu. The host keeps a handled player gesture with the video
+until it ends or is cancelled, and releases it when the view is removed.
+This uses Android's public
+[touch interception contract](https://developer.android.com/reference/android/view/ViewParent#requestDisallowInterceptTouchEvent(boolean)).
+
+The license-free device fixture checks real WebView overflow scrolling, outer
+form scrolling and cancellation/release handling. From `apps/android`, run:
+
+```sh
+./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.playerlab.android.PlayerTouchHostInstrumentedTest \
+  -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=
+```
+
+Rebuild with your normal allowed key before running playback checks.

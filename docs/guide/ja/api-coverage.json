@@ -109,8 +109,8 @@
         "text": "型付きリスナー四系統が通知する具体的なEvent型を、個別のイベントIDとして数えます。汎用コールバックと抽象イベント基底型は除外し、公開リスナー登録APIは実行時の独立した行として残します。"
       },
       {
-        "source": "Five event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged triggers DVR refresh. Event payload fields are not exposed.",
-        "text": "五つのイベントを監視します。SourceLoaded、TimeShifted、DvrWindowExceeded、PlaybackFinishedは名前付きログへ記録し、TimeChangedはDVR表示を更新します。イベントのペイロードフィールドは公開していません。"
+        "source": "Eight event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged refreshes DVR and track state, while Ready applies initial track preferences and AudioChanged/SubtitleChanged refresh the visible track readout. Event payload fields are not exposed.",
+        "text": "八種類のイベントを監視します。SourceLoaded、TimeShifted、DvrWindowExceeded、PlaybackFinishedは名前付きでログに表示します。TimeChangedは追いかけ再生とトラックの表示を更新し、Readyは初期トラックの希望を適用します。AudioChangedとSubtitleChangedもトラック表示を更新します。通知に含まれる詳細データを編集・表示する機能はありません。"
       },
       {
         "source": "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
@@ -121,8 +121,12 @@
         "text": "2026-10-21にiPhone・iPad・Apple TVのシミュレーターで、画面からソース・起動時設定を適用し、ローカルの60秒HLSとプログレッシブMP4を再生しました。ネイティブ再生位置の進行と映像を確認し、開始オフセット、自動再生、ビットレート上限、前方バッファーの適用値をSDKから読み取りました。iPhoneとApple TVのHLS終了試験では、SDKがライブ・無限長を返し続ける場合も同じソースのPlaybackFinishedを受けてアプリのDVRを無効化し、再再生と新規ソースへの切り替えを別に確認しました。物理端末、聴感同期、通信時のビットレート制限の効果、キャスト、オフライン、Analyticsの受信を示す結果ではありません。"
       },
       {
-        "source": "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
-        "text": "設定11項目にアプリ独自の編集GUIがあります。ソースURL、HLS／MP4形式、タイトル、ポスターURL、秒単位の開始オフセットと基準、自動再生、起動時ミュート、SDKのタイムシフト、bit/s単位の最大ビットレート、秒単位の前方バッファーです。Applyは入力検証後、ソースだけの変更では再ロードし、起動時設定の変更ではプレイヤーを再生成します。ソースオプション、UIモード、ログ、アプリのDVRスイッチを保持し、再生位置はリセットします。Reset to appliedが戻すのはドラフトだけです。"
+        "source": "12 SDK configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s, forward buffer in seconds and video scaling. Fit/Fill/Stretch cover the public scaling enum. Validated Apply reloads source-only changes or recreates the player for startup/scaling settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
+        "text": "アプリの設定画面で12個のSDK設定項目を編集できます。ソースURL、HLS/MP4の種別、タイトル、ポスターURL、秒単位の開始位置とその基準、自動再生、起動時ミュート、SDKの追いかけ再生、bit/s単位の最大ビットレート、秒単位の先読みバッファ、映像の表示方法です。Fit/Fill/StretchはSDKが公開する表示方法の全選択肢に対応します。Applyはソースだけの変更なら再読み込みし、起動時設定や映像の表示方法の変更ならPlayerを再生成します。ソース設定、UIの選択、ログ、アプリのDVRスイッチを保持し、再生位置はリセットします。Reset to appliedは編集内容だけを戻します。"
+      },
+      {
+        "source": "Initial audio language and subtitle Automatic/Off/preferred-language controls are app preferences, not SDK configuration properties. The intended Source is bound before load(source:); the first owned Ready selects a full-tag or primary-language match, or leaves the SDK/OS default when unavailable. A claim made before SDK calls prevents repeated selection and later track-menu choices remain untouched. These controls credit the real selection commands and visible getters, without adding configuration fields or arbitrary-object credit.",
+        "text": "初期音声言語と字幕のAutomatic/Off/希望言語はアプリの設定で、SDKの設定プロパティではありません。load(source:)の前に対象のSourceを結び付け、対象ソースの最初のReadyで、言語タグ全体または言語部分が一致するトラックを選びます。一致しなければSDK/OSの既定選択を保ちます。SDK呼び出し前に適用済みと記録して重複選択を防ぐため、その後に利用者がメニューで選んだトラックは上書きしません。カバレッジには実際の選択コマンドと画面表示に使う取得APIを計上し、SDKの設定項目や任意のオブジェクト全体を編集できるとは扱いません。"
       },
       {
         "source": "The iOS application also covers iPadOS; both have identical audited API availability and app control paths.",
@@ -175,8 +179,8 @@
         "text": "型付きリスナー四系統が通知する具体的なEvent型を、個別のイベントIDとして数えます。汎用コールバックと抽象イベント基底型は除外し、公開リスナー登録APIは実行時の独立した行として残します。"
       },
       {
-        "source": "Five event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged triggers DVR refresh. Event payload fields are not exposed.",
-        "text": "五つのイベントを監視します。SourceLoaded、TimeShifted、DvrWindowExceeded、PlaybackFinishedは名前付きログへ記録し、TimeChangedはDVR表示を更新します。イベントのペイロードフィールドは公開していません。"
+        "source": "Eight event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged refreshes DVR and track state, while Ready applies initial track preferences and AudioChanged/SubtitleChanged refresh the visible track readout. Event payload fields are not exposed.",
+        "text": "八種類のイベントを監視します。SourceLoaded、TimeShifted、DvrWindowExceeded、PlaybackFinishedは名前付きでログに表示します。TimeChangedは追いかけ再生とトラックの表示を更新し、Readyは初期トラックの希望を適用します。AudioChangedとSubtitleChangedもトラック表示を更新します。通知に含まれる詳細データを編集・表示する機能はありません。"
       },
       {
         "source": "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
@@ -187,12 +191,16 @@
         "text": "2026-10-21にiPhone・iPad・Apple TVのシミュレーターで、画面からソース・起動時設定を適用し、ローカルの60秒HLSとプログレッシブMP4を再生しました。ネイティブ再生位置の進行と映像を確認し、開始オフセット、自動再生、ビットレート上限、前方バッファーの適用値をSDKから読み取りました。iPhoneとApple TVのHLS終了試験では、SDKがライブ・無限長を返し続ける場合も同じソースのPlaybackFinishedを受けてアプリのDVRを無効化し、再再生と新規ソースへの切り替えを別に確認しました。物理端末、聴感同期、通信時のビットレート制限の効果、キャスト、オフライン、Analyticsの受信を示す結果ではありません。"
       },
       {
-        "source": "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
-        "text": "設定11項目にアプリ独自の編集GUIがあります。ソースURL、HLS／MP4形式、タイトル、ポスターURL、秒単位の開始オフセットと基準、自動再生、起動時ミュート、SDKのタイムシフト、bit/s単位の最大ビットレート、秒単位の前方バッファーです。Applyは入力検証後、ソースだけの変更では再ロードし、起動時設定の変更ではプレイヤーを再生成します。ソースオプション、UIモード、ログ、アプリのDVRスイッチを保持し、再生位置はリセットします。Reset to appliedが戻すのはドラフトだけです。"
+        "source": "12 SDK configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s, forward buffer in seconds and video scaling. Fit/Fill/Stretch cover the public scaling enum. Validated Apply reloads source-only changes or recreates the player for startup/scaling settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
+        "text": "アプリの設定画面で12個のSDK設定項目を編集できます。ソースURL、HLS/MP4の種別、タイトル、ポスターURL、秒単位の開始位置とその基準、自動再生、起動時ミュート、SDKの追いかけ再生、bit/s単位の最大ビットレート、秒単位の先読みバッファ、映像の表示方法です。Fit/Fill/StretchはSDKが公開する表示方法の全選択肢に対応します。Applyはソースだけの変更なら再読み込みし、起動時設定や映像の表示方法の変更ならPlayerを再生成します。ソース設定、UIの選択、ログ、アプリのDVRスイッチを保持し、再生位置はリセットします。Reset to appliedは編集内容だけを戻します。"
       },
       {
-        "source": "The UI variant picker is excluded on tvOS and System UI is fixed. The native full-screen editor exposes the same 11 configuration leaves as iOS; there are no configuration presets.",
-        "text": "tvOSにはUI候補を選ぶGUIがなく、System UIを固定で使用します。ネイティブの全画面エディターではiOSと同じ設定11項目を編集でき、設定の限定プリセットはありません。"
+        "source": "Initial audio language and subtitle Automatic/Off/preferred-language controls are app preferences, not SDK configuration properties. The intended Source is bound before load(source:); the first owned Ready selects a full-tag or primary-language match, or leaves the SDK/OS default when unavailable. A claim made before SDK calls prevents repeated selection and later track-menu choices remain untouched. These controls credit the real selection commands and visible getters, without adding configuration fields or arbitrary-object credit.",
+        "text": "初期音声言語と字幕のAutomatic/Off/希望言語はアプリの設定で、SDKの設定プロパティではありません。load(source:)の前に対象のSourceを結び付け、対象ソースの最初のReadyで、言語タグ全体または言語部分が一致するトラックを選びます。一致しなければSDK/OSの既定選択を保ちます。SDK呼び出し前に適用済みと記録して重複選択を防ぐため、その後に利用者がメニューで選んだトラックは上書きしません。カバレッジには実際の選択コマンドと画面表示に使う取得APIを計上し、SDKの設定項目や任意のオブジェクト全体を編集できるとは扱いません。"
+      },
+      {
+        "source": "The UI variant picker is excluded on tvOS and System UI is fixed. The native full-screen editor exposes the same 12 SDK configuration leaves as iOS, plus app initial-track preferences; there are no SDK configuration presets.",
+        "text": "tvOSにはUIの種類を選ぶメニューがなく、System UIを使用します。全画面の設定画面で、iOSと同じ12個のSDK設定項目とアプリの初期トラックの希望を編集できます。SDKの設定項目にpreset分類のものはありません。"
       },
       {
         "source": "The app-owned tvOS remote Play/Pause command maps to Player.play() and Player.pause(). Opaque System UI controls do not receive volume, track or fullscreen credit without exact binding and runtime evidence.",
@@ -261,16 +269,16 @@
         "text": "duration・maxTimeShift・timeShiftは画面上のDVR情報に使われます。isLiveとcurrentTimeはコピーされますが、Dvr.deriveStateでは使われないため、GUIの観測件数には含めません。"
       },
       {
-        "source": "Source evidence reads seven explicit public app/control-test source files, including Configuration.kt and ConfigurationPanel.kt. No environment files, native local properties, license values or device state are read by this generator.",
-        "text": "証跡の生成では、Configuration.ktとConfigurationPanel.ktを含む、明示した七つの公開アプリ／操作テストのソースファイルを読み取ります。このgeneratorは、環境設定ファイル、ネイティブのローカル設定、ライセンス値、端末の状態を参照しません。"
+        "source": "Source evidence reads tracked public app and control-test files, including the configuration editor, SDK mapping and applied-code export. No environment files, native local properties, license values or device state are read by this generator.",
+        "text": "設定画面、SDKへの変換、適用済みコードの出力を含む追跡対象の公開アプリ・操作テストのソースを証跡とします。この生成処理は、環境ファイル、端末のlocal.properties、ライセンス値や実行中の端末状態を読みません。"
       },
       {
-        "source": "18 individual creation/source configuration leaves are editable, including optional source target latency. Blank target latency leaves SourceConfig.liveConfig unset; a finite value creates SourceLiveConfig(targetLatency=value) without changing SDK synchronization defaults.",
-        "text": "生成時・ソース設定の末端18項目を個別に編集でき、任意のソース目標遅延も含みます。目標遅延が空欄ならSourceConfig.liveConfigを設定せず、有限数を明示するとSourceLiveConfig(targetLatency=value)を生成します。SDKの同期制御の既定値は変更しません。"
+        "source": "25 individual creation/source configuration leaves are editable. They include player/source audio-language priorities, one external WebVTT track's URL/label/language/default metadata and HTTP retry delays, alongside source target latency. Blank target latency leaves SourceConfig.liveConfig unset.",
+        "text": "生成時・ソース設定の末端25項目を個別に編集できます。ソースの目標遅延に加え、Player／Sourceの優先音声言語、外部WebVTT字幕一つのURL・表示名・言語・既定扱いのメタデータ、HTTP再試行の待ち時間を含みます。目標遅延を空欄にするとSourceConfig.liveConfigを指定しません。"
       },
       {
-        "source": "PlayerConfig.playbackConfig, PlayerConfig.bufferConfig, PlayerConfig.adaptationConfig, SourceConfig.options, SourceConfig.liveConfig and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary configuration objects.",
-        "text": "PlayerConfig.playbackConfig、PlayerConfig.bufferConfig、PlayerConfig.adaptationConfig、SourceConfig.options、SourceConfig.liveConfig、BufferConfig.audioAndVideoは、編集項目を所有する設定オブジェクトへの結び付けとして「コードのみ」に分類します。任意の設定オブジェクトを編集するGUIではありません。"
+        "source": "PlayerConfig playback/buffer/adaptation/network bindings, SourceConfig options/liveConfig/subtitleTracks and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary objects or arrays. External track ID and WebVTT MIME type are fixed code-only values.",
+        "text": "PlayerConfigのplayback・buffer・adaptation・network、SourceConfigのoptions・liveConfig・subtitleTracks、BufferConfig.audioAndVideoはコード内の結合です。任意のオブジェクトや配列をGUIから編集する機能ではありません。外部字幕のトラックIDとWebVTTのMIMEタイプもコード内の固定値です."
       },
       {
         "source": "Source Apply validates HTTP(S) URLs and finite offset seconds, constructs Source(SourceConfig) and invokes Player.load(Source). Only this load overload is an app GUI path. Player.config, Source.config and Player.isDestroyed reads in tests receive no observed GUI credit; Player.on/off and Source.on/off remain listener lifecycle code.",
@@ -279,6 +287,14 @@
       {
         "source": "Player Apply recreates the player and reloads the retained source options, preserving UI mode, log and app Allow DVR. Playback position resets. Source Reset restores the applied source draft; Player Reset restores SDK-default draft values. Reset alone does not apply either draft.",
         "text": "プレイヤーのApplyは、UIモード、ログ、アプリのAllow DVRを保持して再生成し、保持したソースオプションで再ロードします。再生位置はリセットします。ソースのResetは適用済みソースのドラフトに、プレイヤーのResetはSDK既定値のドラフトに戻します。Resetだけではどちらも適用しません。"
+      },
+      {
+        "source": "The single external WebVTT track's isDefault flag is informational metadata and does not enable subtitles. Select the track through the normal Default UI subtitle menu. HTTP retry delays are finite nonnegative seconds: blank keeps linear backoff, none disables retries, and each list entry allows one retry. No arbitrary request callback or DRM renewal retry editor is provided.",
+        "text": "外部WebVTT字幕一つのisDefaultは情報用のメタデータであり、字幕を有効にしません。標準UIの字幕メニューから選択します。HTTPの再試行待ちは有限の非負の秒数です。空欄は待ち時間を段階的に増やす方式、noneは再試行なし、一覧の各値は再試行一回に対応します。任意のリクエストコールバックやDRMライセンス更新の再試行を編集する機能はありません。"
+      },
+      {
+        "source": "A nonempty SourceConfig.preferredAudioLanguages list overrides the player preference; blank inherits it. Language codes retain order after trimming and case-insensitive duplicate removal. No match uses the SDK default audio track.",
+        "text": "SourceConfig.preferredAudioLanguagesが空でなければPlayer側の優先言語より優先します。空欄はPlayer側を引き継ぎます。言語コードは前後の空白を除き、大文字・小文字を区別せず重複を取り除いた後も順序を保ちます。一致しない場合はSDKの既定音声を使います。"
       },
       {
         "source": "Buffer durations are finite seconds: forward buffer is at least 0.5, and nonnegative startup/restart thresholds are at most forward minus 0.5, allowing 1 ULP of subtraction error. Automatic video bitrate is a nonnegative Int in bit/s; empty means 2147483647 with no ABR cap. Quality/stability balance is 0 through 1 and applies near the live edge.",
@@ -401,6 +417,10 @@
       {
         "source": "On 2026-10-21 the wrapper 1.29.0 / Expo 57.0.30 host built on both native platforms and packaged shared assets matched the installed bundles. iOS native 3.128.0 played the local 60-second HLS fixture; Android native 3.170.0+jason played HLS and DASH. Actual GUI Apply produced a new native owner and destroyed the previous owner. The first Playing event and native position were 5.000 seconds for the configured start; autoplay, mute, maximum bitrate 2500000 and forward buffer 12.5 matched native configuration. The OS clipboard matched displayed applied code and excluded drafts and the actual key. Reset preserved the owner and source/UI/log/Allow DVR state. After background return the same owner played advancing visible VOD following an explicit SDK Play tap; this does not promise automatic resume. These checks cover the named simulator/emulator and Default/Sports modes, not physical devices, Release archives, every factory, protected/advertising content, live/DVR playback or quantitative buffer/bitrate effects.",
         "text": "2026-10-21にラッパー1.29.0・Expo 57.0.30のホストを両プラットフォームでビルドし、共有アセットと実際のアプリ同梱ファイルの一致を確認しました。iOSのネイティブ3.128.0ではローカルの60秒HLS、Androidの3.170.0+jasonではHLSとDASHを再生しました。GUIからApplyすると新しいPlayerを作り、前のPlayerを破棄しました。開始位置の設定に対し、初回PlayingイベントとSDK位置は5.000秒でした。自動再生、ミュート、最大ビットレート2500000、前方バッファー12.5の適用値もネイティブ設定と一致しました。OSのクリップボードは表示した適用済みコードと一致し、下書きと実際のキーを含みません。ResetはPlayerとソース・UI・ログ・Allow DVRを保持しました。背景からの復帰後は同じPlayerでSDKのPlayを明示的に押し、映像とVOD時刻の進行を確認しました。自動復帰の保証ではありません。対象は今回のシミュレーター・エミュレーターとDefault・Sportsです。物理端末、Releaseアーカイブ、全ファクトリー、保護・広告コンテンツ、ライブ・DVR再生、バッファー・ビットレートの定量的効果は別の範囲です。"
+      },
+      {
+        "source": "Four external WebVTT subtitle leaves have app-owned editors: URL, label, language and isDefault. The validated SourceConfig reaches the normal Player.load path and applied-code display. isDefault is metadata; enable a track separately in the player menu. The identifier and WebVTT format are fixed in code and receive code-only credit. No arbitrary subtitle object, role or forced-track editor is inferred.",
+        "text": "外部WebVTT字幕はURL、表示名、言語、isDefaultの四項目を設定画面で編集できます。検証済みのSourceConfigを通常のPlayer.loadと適用済みコード表示に渡します。isDefaultはメタデータなので、字幕を有効にするにはプレイヤーのメニューからトラックを選びます。識別子とWebVTT形式はコードに固定されており、code-onlyに分類します。字幕オブジェクト全体、役割、強制字幕の設定画面があるとは扱いません。"
       }
     ],
     "vega": [
@@ -437,8 +457,8 @@
         "text": "PlayerAPI.loadの公開シグネチャは一件です。GUIは編集したSourceConfigを渡しますが、任意引数のforceTechnologyとdisableSeekingは操作できません。読み取り専用のPlayerAPI.getConfig・getSourceの観測や、内部を展開しないオブジェクト全体のGUI対応は推定しません。非公開のapp_idに固定値を渡しても、公開されたtweaks項目の対応とは数えません。"
       },
       {
-        "source": "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. Event payload fields are not exposed.",
-        "text": "TimeChangedは表示中のDVR状態を更新します。SourceLoaded・TimeShifted・DurationChanged・DVRWindowExceededには名前付きログもあります。イベントのペイロード項目は公開しません。"
+        "source": "TimeChanged refreshes displayed DVR state; SourceLoaded, TimeShifted, DurationChanged and DVRWindowExceeded also have named log entries. These named log entries do not expose event payload fields.",
+        "text": "TimeChangedは追いかけ再生の状態表示を更新します。SourceLoaded、TimeShifted、DurationChanged、DVRWindowExceededは名前付きでログに表示します。これらのログには、通知に含まれる詳細データは表示しません。"
       },
       {
         "source": "On 2026-10-21, Vega SDK 0.24.12112 and an arm64 Virtual Device ran the final lifecycle implementation. All 3 Release architectures built. The same app instance passed 3 bitrate Apply cycles, 3 VOD HLS background/foreground cycles and 3 Live DASH cycles with advancing SDK clocks and changing video frames. Actual D-pad/Select controls changed autoplay, mute and the app DVR switch; applied settings, drafts, logs and code display were retained. All 73 unit/session cases and TypeScript checks passed, separately from native execution. Background release waits for native deinitialization success and SDK destruction before replacement. Process RSS and file-descriptor samples do not identify individual native media/surface allocations or establish leak freedom. Physical-device behavior, protected/offline content, audible synchronization and quantitative buffer/bitrate effects require separate inputs.",
@@ -451,6 +471,10 @@
       {
         "source": "Foreground Apply waits for fulfilled SDK destruction before synchronous native release because the SDK's asynchronous stop sequence still uses the media object. On background transitions, AppState cancels callbacks, clears the owned video surface, resets the public media src to an empty string, and requests synchronous native deinitialization before the handler yields. Replacement waits for the native success acknowledgment, fulfilled SDK destruction and a new foreground surface. Unconfirmed native release, SDK destruction failure or cancellation during pending initialization retains the retiring owner and blocks replacement; restarting the app is required in those failure cases. The 1000 ms native release deadline is an app policy. Within a retained instance, applied source/player settings, drafts, logs and Allow DVR are preserved; playback position retention is not implemented. This lifecycle integration adds no editable SDK field or GUI coverage credit.",
         "text": "前景でのApplyでは、SDKの非同期停止がメディアオブジェクトを使うため、SDK破棄の完了後にネイティブを同期解放します。背景への移行ではAppStateがコールバックを取り消し、所有する映像サーフェスを外し、公開メディアAPIのsrcを空文字に戻してから、ハンドラーが終了する前にネイティブ終了を同期要求します。置き換えはネイティブ終了の成功応答、SDK破棄の完了、新しい前景サーフェスを待ちます。ネイティブ解放の応答が確認できない場合、SDK破棄が失敗した場合、初期化待ちの途中で取り消した場合は、終了処理中の所有者を保持して置き換えを止めるため、アプリの再起動が必要です。ネイティブ解放の1000ミリ秒という期限はアプリ側の方針です。同じアプリインスタンスではソース・Playerの適用設定、下書き、ログ、Allow DVRを保持しますが、再生位置は保持しません。このライフサイクル対応によって編集可能なSDK項目やGUIカバレッジは増えません。"
+      },
+      {
+        "source": "Four external WebVTT subtitle leaves have app-owned editors: URL, label, lang and enabled. Validated settings reach the normal source load and applied-code display; enabled determines whether the external track starts enabled. The id and kind are fixed in code and receive code-only credit. Public CueEnter/CueExit events update plain subtitle text in the native view, and SubtitleDisabled clears it. This exposes cue text, not arbitrary event payloads, styled subtitle rendering or a general track-selection menu.",
+        "text": "外部WebVTT字幕はURL、表示名、lang、enabledの四項目を設定画面で編集できます。検証済みの設定を通常のソース読み込みと適用済みコード表示に渡します。enabledは外部トラックを最初から有効にするかを指定します。idとkindはコードに固定されており、code-onlyに分類します。公開APIのCueEnter/CueExitで字幕の文字列をネイティブ画面に表示・更新し、SubtitleDisabledで消します。字幕の文字列を表示する機能であり、任意の通知データ、装飾付き字幕、汎用のトラック選択メニューは公開していません。"
       }
     ]
   },

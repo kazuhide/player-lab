@@ -22,12 +22,12 @@ def build_scope(inventory, repo, scratch, version):
     VERSION = version
     DATA = inventory
     PAGES = {r['url']:r for r in DATA['pages']}
-    MAIN = 'apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt'
-    SOURCES = 'apps/android/app/src/main/kotlin/com/showcase/app/Sources.kt'
-    OFFLINE = 'apps/android/app/src/main/kotlin/com/showcase/app/OfflineManager.kt'
-    DVR = 'apps/android/dvr/src/main/kotlin/com/showcase/dvr/Dvr.kt'
-    CONFIG = 'apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt'
-    EDITOR = 'apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt'
+    MAIN = 'apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt'
+    SOURCES = 'apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt'
+    OFFLINE = 'apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt'
+    DVR = 'apps/android/dvr/src/main/kotlin/com/playerlab/android/dvr/Dvr.kt'
+    CONFIG = 'apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt'
+    EDITOR = 'apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt'
 
 
     def qualified(r):

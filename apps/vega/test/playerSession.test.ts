@@ -35,6 +35,30 @@ function fixture() {
 }
 
 describe("Vega session ownership", () => {
+  it("retires public player observers before destroy and acknowledges cleanup only after both SDK and native release", async () => {
+    const old = fixture();
+    const destroyed = deferred();
+    old.player.destroy.mockReturnValueOnce(destroyed.promise);
+    let active!: () => boolean;
+    const remove = vi.fn(() => expect(active()).toBe(false));
+    const session = startVegaSession({ ...old.options, observePlayer: (player, isActive) => {
+      expect(player).toBe(old.player); active = isActive; return remove;
+    } });
+    await session.ready;
+    expect(active()).toBe(true);
+    const cleanup = session.dispose();
+    const acknowledged = vi.fn();
+    void cleanup.then(acknowledged);
+    expect(remove).toHaveBeenCalledTimes(1);
+    expect(remove.mock.invocationCallOrder[0]).toBeLessThan(old.player.destroy.mock.invocationCallOrder[0]!);
+    await Promise.resolve();
+    expect(acknowledged).not.toHaveBeenCalled();
+    destroyed.resolve(); await cleanup;
+    expect(old.video.deinitializeSync).toHaveReturnedWith("success");
+    expect(acknowledged).toHaveBeenCalledTimes(1);
+    await session.dispose();
+    expect(remove).toHaveBeenCalledTimes(1);
+  });
   it("keeps native media valid until ordinary foreground SDK destruction fulfills", async () => {
     const { options, video, player } = fixture();
     const reset = vi.fn();

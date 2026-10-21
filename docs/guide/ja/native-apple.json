@@ -1,7 +1,7 @@
 {
   "id": "native-apple",
   "title": "iOS・iPadOS・tvOS",
-  "lead": "SwiftUI アプリで HLS／progressive MP4 ソース、自動再生・ミュート、ビットレート上限、バッファーを設定し、ソース切り替えとライブの巻き戻しを試します。iOS／iPadOS は共有 Web UI を選択でき、tvOS は System UI を使います。",
+  "lead": "SwiftUIアプリでHLS・プログレッシブMP4、起動時の再生、初期音声・字幕、映像の拡大方法、ビットレート、バッファーを設定します。iOS・iPadOSは共有Web UIを選べ、tvOSはシステムUIを使います。",
   "blocks": [
     {
       "type": "h2",
@@ -17,7 +17,7 @@
     },
     {
       "type": "p",
-      "text": "xcodegen version が 2.46.0 であることを確認します。Xcode では Showcase-iOS または Showcase-tvOS を選び、実行先を指定して起動します。実機への導入では開発チームと署名も設定します。Player ライセンスでは iOS に com.showcase.dvr.Showcase-iOS、tvOS に com.showcase.dvr.Showcase-tvOS を許可します。"
+      "text": "xcodegen version が 2.46.0 であることを確認します。Xcode では Showcase-iOS または Showcase-tvOS を選び、実行先を指定して起動します。実機への導入では開発チームと署名も設定します。Player ライセンスでは iOS に com.playerlab.ios、tvOS に com.playerlab.tvos を許可します。 どちらもアプリ名はPlayer Labです。DVRはライブ映像を巻き戻す機能を指します。"
     },
     {
       "type": "note",
@@ -67,7 +67,62 @@
     },
     {
       "type": "p",
-      "text": "ソース情報と開始位置だけの変更は、同じ Player でソースを再ロードします。再生設定・ビットレート上限・バッファーの変更は Player と表示ビューを再生成し、タイトル・ポスター・開始位置を含む現在のソースを再ロードします。UI モード、アプリの DVR スイッチ、イベントログは保持します。再生位置と再生中状態は保持せず、開始位置と Autoplay の設定に従って再開します。ソースのプリセットを選ぶとソース固有の項目と開始位置はそのプリセットの既定値へ置き換わり、Player の設定は保持します。"
+      "text": "ソース情報・開始位置・初期トラックの設定だけなら、同じPlayerでソースを再読み込みします。再生設定・拡大方法・ビットレート・バッファーの変更はPlayerと表示ビューを作り直し、タイトル・ポスター・開始位置を含むソースを読み直します。UIモード、アプリのDVRスイッチ、イベントログは保持します。再生は設定した開始位置とAutoplayに従って再開します。プリセットを選ぶとソース固有の項目と初期トラック設定を初期値に戻し、Player設定は保持します。"
+    },
+    {
+      "type": "h2",
+      "text": "初期音声・字幕と映像の拡大方法"
+    },
+    {
+      "type": "figure",
+      "file": "ios-playback-tracks",
+      "caption": "iPadOS 26.4のPlayer Lab。Apply後に生成したHLSとGerman字幕が表示され、Playback tracksにはSDKの現在の選択が表示されます。Configure source and playbackから設定を開きます。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "HLS内に音声・字幕のrenditionを持つソースを使います。Initial tracksで任意の音声言語（例：de-AT）を入力し、字幕はAutomatic、Off、Preferred languageから選びます。字幕の言語入力はPreferred languageの場合だけ必要です。",
+        "音声の空欄とAutomatic字幕はSDK・OSの選択を使います。言語タグ全体を先に照合し、次に主言語を照合するため、de-ATでdeを選べます。一致する言語がなければ既定の選択を保ちます。OffはSDKの字幕選択APIへnilを渡します。",
+        "Fit、Fill (crop)、Stretchから映像の拡大方法を選びます。Fitは縦横比を保って枠内へ収め、Fillは縦横比を保って枠を埋めるため端を切り取ります。Stretchは縦横比を保たず枠を埋めます。変更内容を確認してApplyします。Resetは編集中の値だけを戻します。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "ios-initial-tracks",
+      "caption": "iPadの初期トラック設定。PlayerConfigの言語プロパティではなく、最初のReadyで一度だけ使う、ソースごとのアプリ設定です。"
+    },
+    {
+      "type": "figure",
+      "file": "ios-video-scaling",
+      "caption": "字幕の優先言語とFill (crop)。拡大方法はSDKのStyleConfig.scalingModeへ渡す設定で、Playerを再生成します。"
+    },
+    {
+      "type": "p",
+      "text": "言語の入力値は、対象のSourceが読み込まれて最初のReadyに達した後、公開APIのavailableAudio・availableSubtitlesとsetAudio・setSubtitleで適用します。PlayerConfigの設定項目を増やすものではありません。その後SDKのトラックメニューで選び直した値は、次のソース読み込みまで保ちます。拡大方法は別のSDK設定で、Player生成時にStyleConfig.scalingModeへ渡します。"
+    },
+    {
+      "type": "note",
+      "title": "Readyで一度だけ選択する理由",
+      "text": "確認したPlayer 3.128.0とHLSでは、SourceLoadedでGermanを選んでも一時的な切り替えにとどまり、Readyより前の音声変更通知でEnglishへ戻りました。音声と字幕の呼び出し順を逆にしても防げませんでした。このため、初期メディアの準備が整う最初のReadyを待ち、対象のSourceが現在も有効であることを確認して一度だけ選択します。このSDKと素材で確認した挙動であり、すべてのストリームへの保証ではありません。"
+    },
+    {
+      "type": "p",
+      "text": "生成したvod-multiaudioにはEnglish・Germanの音声メタデータと、HLSのWebVTT字幕renditionがあります。音声ラベルは検証用で、翻訳音声ではありません。HLS内の字幕はiOSとtvOSに共通の経路です。外部字幕をSourceConfigへ追加する方法は、tvOSのシステムUIでは同じ経路になりません。"
+    },
+    {
+      "type": "figure",
+      "file": "tvos-playback-tracks",
+      "caption": "tvOS 26.4のPlayer Lab。実際のリモコン入力とApplyの後、HLS内のGerman字幕と設定画面への入口が表示されます。"
+    },
+    {
+      "type": "figure",
+      "file": "tvos-initial-tracks",
+      "caption": "tvOSの初期言語設定。リモコンでフォーカスを移し、Selectとシステムキーボードで入力します。"
+    },
+    {
+      "type": "figure",
+      "file": "tvos-video-scaling",
+      "caption": "tvOSのフォームでもFit、Fill (crop)、Stretchをリモコンで選べます。"
     },
     {
       "type": "h2",
@@ -291,6 +346,58 @@
     {
       "type": "p",
       "text": "ConfigurationでShow applied codeを開くと、SDKへ渡したPlayer・Source・UI設定を確認できます。編集中の値はApplyするまでコードへ反映しません。iOSではCopy codeとテキスト選択でコピーできます。tvOSではコードを表示しますが、このサンプルにクリップボード連携はありません。ライセンス値は出力せず、Playerキーは置き換え用の文字列で表示します。"
+    },
+    {
+      "type": "p",
+      "text": "初期トラック設定がある場合、Swiftの出力には明示したSourceの読み込みを確認し、最初のReadyで一度だけ選択するlistenerが含まれます。アプリと同じ言語タグ全体・主言語の照合を使います。ライセンスは置き換え用文字列のままで、未適用の編集値は含めません。"
+    },
+    {
+      "type": "figure",
+      "file": "ios-applied-code",
+      "caption": "iPadの適用済みSwiftコード。映像の拡大方法とソース設定を含み、編集中の値を除外し、Playerキーは置き換え用の文字列です。"
+    },
+    {
+      "type": "figure",
+      "file": "tvos-applied-code",
+      "caption": "tvOSの適用済みSwiftコード。折り返した各行へフォーカスを移して読めます。このTVアプリにクリップボード連携はありません。"
+    },
+    {
+      "type": "h2",
+      "text": "初期トラックと拡大方法を再現する"
+    },
+    {
+      "type": "p",
+      "text": "ビルドの準備を済ませ、Playerライセンスでcom.playerlab.iosまたはcom.playerlab.tvosを許可します。xcrun simctl list devices availableで自分が操作するシミュレーターのUDIDを確認します。リポジトリのルートからHLS字幕付き素材を生成し、次の公開入口を実行します。結果の保存先は毎回新しいディレクトリにします。"
+    },
+    {
+      "type": "code",
+      "text": "python3 encoding/test-streams/local.py --output .cache/apple-track-media\npython3 apps/ios/run-track-qualification.py --platform ios \\\n  --destination <OWNED_IOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-ios\npython3 apps/ios/run-track-qualification.py --platform tvos \\\n  --destination <OWNED_TVOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-tvos"
+    },
+    {
+      "type": "p",
+      "text": "ランナーはこのcheckoutをビルドし、一時的なloopbackポートで生成素材だけを配信して、終了時にサーバーを閉じます。各OSでSDKのホスト付き試験と通常GUIの試験を1件ずつ実行し、確定した結果が2件成功・スキップなしの場合に成功します。標準出力は安全な状態・件数・ハッシュだけです。Xcodeの生ログと添付物は非公開の保存先に残すため、共有前に内容を確認します。"
+    },
+    {
+      "type": "p",
+      "text": "通常GUIの試験はGerman音声・字幕、自動再生、開始位置、拡大方法を実際のコントロールで入力し、現在の音声・字幕の組と再生位置の進行を一緒に確認します。Off、再生成後のEnglish、無効な編集値、Reset、コード表示も対象で、iOSではSports・Defaultも切り替えます。SDKのホスト付き試験では、新しいソース読み込み、同じPlayerでの再読み込み、旧Playerの破棄、その後の手動選択、正方形のnative viewportで3種類の拡大方法を確認します。"
+    },
+    {
+      "type": "code",
+      "title": "負対照：失敗することを確認する",
+      "text": "python3 apps/ios/run-track-qualification.py --platform ios \\\n  --destination <OWNED_IOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-negative \\\n  --ui-only --expected-audio en"
+    },
+    {
+      "type": "p",
+      "text": "負対照でも通常フォームではGermanを要求します。Englishは意図的に誤った期待値なので、終了値が0以外となり、現在の選択を確かめるassertionが失敗します。起動直後の一時的な言語だけでは、音声・字幕と進行を組み合わせた検査に合格できません。--ui-only・--sdk-onlyで1件だけ実行することもでき、--derived-data・--source-packagesでは公開ビルドのキャッシュを任意で再利用できます。"
+    },
+    {
+      "type": "code",
+      "title": "Xcode・ライセンス不要のランナーファイル所有権テスト",
+      "text": "python3 -m unittest discover -s apps/ios -p test_track_qualification.py -v"
+    },
+    {
+      "type": "note",
+      "text": "拡大方法は公開AVPlayerLayerのgeometryとvideo gravityを正方形の枠で調べます。映像と枠の縦横比が同じ場合、3種類が同じ見た目になることがあります。シミュレーターの設定・選択・表示・再生を確認する試験で、ビットレート上限の実効性、バッファー性能、物理端末、DRM、Casting、Analytics受信の測定ではありません。"
     }
   ],
   "sources": [
@@ -306,12 +413,12 @@
     },
     {
       "path": "apps/ios/README.md",
-      "line": 378,
+      "line": 411,
       "label": "設定テストの実行方法と範囲"
     },
     {
       "path": "apps/ios/README.md",
-      "line": 141,
+      "line": 149,
       "label": "共有 UI と再生を確認する別テスト"
     },
     {
@@ -321,27 +428,27 @@
     },
     {
       "path": "apps/ios/Showcase/ContentView.swift",
-      "line": 25,
+      "line": 28,
       "label": "既存の画面操作と設定画面の表示"
     },
     {
       "path": "apps/ios/Showcase/ConfigurationEditor.swift",
-      "line": 4,
+      "line": 7,
       "label": "ネイティブの設定項目と操作"
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",
-      "line": 50,
+      "line": 68,
       "label": "ソース設定の SDK への反映"
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",
-      "line": 122,
+      "line": 150,
       "label": "編集値の検証と単位"
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 91,
+      "line": 96,
       "label": "Apply・Player の再生成・ソースの保持"
     },
     {
@@ -355,7 +462,7 @@
     },
     {
       "path": "apps/ios/README.md",
-      "line": 279,
+      "line": 314,
       "label": "現行の60秒HLS・MP4の設定と再生"
     },
     {
@@ -366,6 +473,48 @@
       "path": "docs/api-coverage/apple/stock-ui-qualification.json",
       "line": 1,
       "label": "SDK既定UIの実測結果と公開bridge・リソースの対応"
+    },
+    {
+      "path": "apps/ios/Showcase/TrackPreferences.swift",
+      "line": 1,
+      "label": "初期トラックの照合と所有権"
+    },
+    {
+      "path": "apps/ios/Showcase/PlayerModel.swift",
+      "line": 296,
+      "label": "対象SourceのReadyでの一度だけの選択"
+    },
+    {
+      "path": "apps/ios/Showcase/Configuration.swift",
+      "line": 92,
+      "label": "SDKへの拡大方法の設定"
+    },
+    {
+      "path": "apps/ios/run-track-qualification.py",
+      "line": 1,
+      "label": "公開トラック・拡大方法ランナー"
+    },
+    {
+      "path": "apps/ios/ShowcaseTrackRuntimeTests/TrackRuntimeTests.swift",
+      "line": 1,
+      "label": "ホスト付きSDKのトラック・拡大方法試験"
+    },
+    {
+      "path": "apps/ios/ShowcaseConfigurationUITests/TrackPreferenceUITests.swift",
+      "line": 1,
+      "label": "通常GUI入力と現在の選択の検査"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerlistener/onready(_:player:)/index.html",
+      "label": "公式Readyイベント"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/player/index.html",
+      "label": "公式Playerのトラック選択API"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/styleconfig/scalingmode/index.html",
+      "label": "公式scalingModeプロパティ"
     }
   ]
 }

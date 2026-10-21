@@ -18,14 +18,15 @@ from pathlib import Path
 from android_scope import build_scope
 from dokka_public import collect
 
-MAIN = 'apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt'
-SOURCE = 'apps/android/app/src/main/kotlin/com/showcase/app/Sources.kt'
-OFFLINE = 'apps/android/app/src/main/kotlin/com/showcase/app/OfflineManager.kt'
-DVR = 'apps/android/dvr/src/main/kotlin/com/showcase/dvr/Dvr.kt'
-CONFIG = 'apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt'
-EDITOR = 'apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt'
-CONTROL_TEST = 'apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt'
-APP_INPUTS = (MAIN, SOURCE, OFFLINE, DVR, CONFIG, EDITOR, CONTROL_TEST)
+MAIN = 'apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt'
+SOURCE = 'apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt'
+OFFLINE = 'apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt'
+DVR = 'apps/android/dvr/src/main/kotlin/com/playerlab/android/dvr/Dvr.kt'
+CONFIG = 'apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt'
+EDITOR = 'apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt'
+CONTROL_TEST = 'apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt'
+CODE = 'apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt'
+APP_INPUTS = (MAIN, SOURCE, OFFLINE, DVR, CONFIG, EDITOR, CODE, CONTROL_TEST)
 GUI_STATUSES = {'direct', 'preset'}
 
 
@@ -214,16 +215,16 @@ def normalize(scoped, all_public, inventory, repo):
         'OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig; the separate SDK time shifting editor changes PlaybackConfig.isTimeShiftEnabled.',
         'jsLocation/cssLocation remain constant and match SDK defaults, so the UI mode picker does not receive GUI field credit for them.',
         'duration/maxTimeShift/timeShift contribute to the rendered DVR text. isLive/currentTime are copied but unused by Dvr.deriveState and receive no observed GUI credit.',
-        'Source evidence reads seven explicit public app/control-test source files, including Configuration.kt and ConfigurationPanel.kt. No environment files, native local properties, license values or device state are read by this generator.',
-        '18 individual creation/source configuration leaves are editable, including optional source target latency. Blank target latency leaves SourceConfig.liveConfig unset; a finite value creates SourceLiveConfig(targetLatency=value) without changing SDK synchronization defaults.',
-        'PlayerConfig.playbackConfig, PlayerConfig.bufferConfig, PlayerConfig.adaptationConfig, SourceConfig.options, SourceConfig.liveConfig and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary configuration objects.',
+        'Source evidence reads tracked public app and control-test files, including the configuration editor, SDK mapping and applied-code export. No environment files, native local properties, license values or device state are read by this generator.',
+        '25 individual creation/source configuration leaves are editable. They include player/source audio-language priorities, one external WebVTT track\'s URL/label/language/default metadata and HTTP retry delays, alongside source target latency. Blank target latency leaves SourceConfig.liveConfig unset.',
+        'PlayerConfig playback/buffer/adaptation/network bindings, SourceConfig options/liveConfig/subtitleTracks and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary objects or arrays. External track ID and WebVTT MIME type are fixed code-only values.',
         'Source Apply validates HTTP(S) URLs and finite offset seconds, constructs Source(SourceConfig) and invokes Player.load(Source). Only this load overload is an app GUI path. Player.config, Source.config and Player.isDestroyed reads in tests receive no observed GUI credit; Player.on/off and Source.on/off remain listener lifecycle code.',
         'Player Apply recreates the player and reloads the retained source options, preserving UI mode, log and app Allow DVR. Playback position resets. Source Reset restores the applied source draft; Player Reset restores SDK-default draft values. Reset alone does not apply either draft.',
         'Buffer durations are finite seconds: forward buffer is at least 0.5, and nonnegative startup/restart thresholds are at most forward minus 0.5, allowing 1 ULP of subtraction error. Automatic video bitrate is a nonnegative Int in bit/s; empty means 2147483647 with no ABR cap. Quality/stability balance is 0 through 1 and applies near the live edge.',
         'PlayerView onStart/onResume/onPause/onStop are internal host lifecycle calls. A view-owned observer catches up newly attached views in a resumed Activity and stops notifications before retirement. Detach precedes view.onDestroy, and the controller owns Player destruction. Foreground return can retain the SDK paused state; the regression explicitly requests Play rather than assuming automatic resume.',
         'The 2026-10-21 Android phone group passed all 16 cases, with 18 JVM tests and both app/test APK builds. It covered configuration, source-owned startup offset, standard UI/native controls, HLS/DASH live finalization, clipboard, ownership, UI handoffs and background return with explicit Play.',
         'Live acceptance couples a fresh TimeShifted completion, native zero time-shift and genuinely visible LIVE within the same deadline. Raw live latency and effective target latency are separate diagnostics; no seek-completion or ideal-latency SLA is asserted, and no automatic seek retry is added.',
-    ] + count_notes + overload_notes
+    ] + ['A nonempty SourceConfig.preferredAudioLanguages list overrides the player preference; blank inherits it. Language codes retain order after trimming and case-insensitive duplicate removal. No match uses the SDK default audio track.', "The single external WebVTT track's isDefault flag is informational metadata and does not enable subtitles. Select the track through the normal Default UI subtitle menu. HTTP retry delays are finite nonnegative seconds: blank keeps linear backoff, none disables retries, and each list entry allows one retry. No arbitrary request callback or DRM renewal retry editor is provided."] + count_notes + overload_notes
     result = {'id':'android', 'sdkId':'android', 'platform':'Android', 'rows':output_rows,
               'excluded':[{'id':identifier, 'reason':reason} for identifier, reason in sorted(excluded.items())],
               'scopeNotes':notes}

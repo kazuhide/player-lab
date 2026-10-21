@@ -27,7 +27,7 @@ vi.mock("react-native", () => ({
 // The Vega core installs browser shims when imported. Mock that native boundary, while
 // retaining the real application controller/session and the SDK's declared event names.
 vi.mock("bitmovin-player/modules/bitmovinplayer-core", () => ({
-  PlayerEvent: { TimeChanged: "timechanged", SourceLoaded: "sourceloaded", TimeShifted: "timeshifted", DurationChanged: "durationchanged", DVRWindowExceeded: "dvrwindowexceeded" },
+  PlayerEvent: { TimeChanged: "timechanged", SourceLoaded: "sourceloaded", TimeShifted: "timeshifted", DurationChanged: "durationchanged", DVRWindowExceeded: "dvrwindowexceeded", CueEnter: "cueenter", CueExit: "cueexit", SubtitleDisabled: "subtitledisabled", Error: "error" },
   TimelineReferencePoint: { Start: "start", End: "end" },
 }));
 vi.mock("@amazon-devices/react-native-w3cmedia", () => ({
@@ -71,6 +71,11 @@ function element(type: string, props: Record<string, unknown> = {}): ReactTestIn
 const current = () => runtime.players[runtime.players.length - 1]!;
 const button = (title: string) => element("Button", { title });
 const input = (label: string) => element("TextInput", { accessibilityLabel: label });
+function appliedCode(): string {
+  return screen.root.findAll((node) => String(node.type) === "View" &&
+    typeof node.props.testID === "string" && node.props.testID.startsWith("applied-code-line-"))
+    .map((row) => { const value = row.find((node) => String(node.type) === "Text").props.children; return value === "\u00a0" ? "" : value; }).join("\n");
+}
 async function press(title: string) { await act(async () => button(title).props.onPress()); }
 async function text(label: string, value: string) { await act(async () => input(label).props.onChangeText(value)); }
 async function appState(state: string) {
@@ -106,12 +111,47 @@ afterEach(async () => {
 });
 
 describe("Vega configuration in the mounted App and media session", () => {
+  it("renders public subtitle cues and clears them on replacement and background without accepting retired callbacks", async () => {
+    await mount();
+    const old = current();
+    const enter = [...old.listeners.get(PlayerEvent.CueEnter)!][0]! as (cue: object) => void;
+    await act(async () => enter({ subtitleId: "external", start: 1, end: 3, text: "Visible public cue" }));
+    expect(element("Text", { testID: "vega-subtitle-cue" }).props.children).toBe("Visible public cue");
+    await press("Show configuration"); await text("Source title", "New owner"); await press("Apply and recreate player");
+    expect(old.listeners.get(PlayerEvent.CueEnter)?.size).toBe(0);
+    await act(async () => enter({ subtitleId: "external", start: 1, end: 3, text: "Retired cue" }));
+    expect(element("Text", { testID: "vega-subtitle-cue" })).toBeUndefined();
+    const next = [...current().listeners.get(PlayerEvent.CueEnter)!][0]! as (cue: object) => void;
+    await act(async () => next({ subtitleId: "external", start: 1, end: 3, text: "Current cue" }));
+    await appState("background");
+    expect(element("Text", { testID: "vega-subtitle-cue" })).toBeUndefined();
+  });
+  it("applies and exports the validated external WebVTT fields through the existing session", async () => {
+    await mount(); await press("Show configuration");
+    await text("External WebVTT URL", " https://example.com/captions.vtt ");
+    await text("Subtitle label", " English captions ");
+    await text("Subtitle language", "en-us");
+    await act(async () => element("Switch", { accessibilityLabel: "Enable external subtitle on load" }).props.onValueChange(true));
+    const old = current();
+    await press("Apply and recreate player");
+    expect(old.destroy).toHaveBeenCalledTimes(1);
+    expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ subtitleTracks: [{
+      url: "https://example.com/captions.vtt", label: "English captions", lang: "en-US",
+      id: "player-lab-external", kind: "subtitle", enabled: true,
+    }] }));
+    await press("Show applied code");
+    const code = appliedCode();
+    expect(code).toContain('"enabled": true');
+    await text("Subtitle label", "Unapplied draft"); await press("Reset draft");
+    expect(input("Subtitle label").props.value).toBe("English captions");
+    await text("External WebVTT URL", ""); await press("Apply and recreate player");
+    expect(current().load.mock.calls[current().load.mock.calls.length - 1]?.[0]).not.toHaveProperty("subtitleTracks");
+  });
   it("shows applied configuration code without exporting drafts or native credentials", async () => {
     await mount();
     await press("Show configuration");
     await press("Show applied code");
-    const code = () => screen.root.findAll((node) => String(node.type) === "Text" &&
-      typeof node.props.children === "string" && node.props.children.includes("const playerConfig ="))[0]!.props.children as string;
+    const code = appliedCode;
     const original = code();
     expect(original).toContain("YOUR_PLAYER_KEY");
     expect(original).not.toContain("licenseKey");
@@ -121,6 +161,15 @@ describe("Vega configuration in the mounted App and media session", () => {
     expect(code()).toContain("APPLIED_SOURCE_TITLE");
     expect(code()).toContain('"ui": false');
     expect(code()).toContain("native media initialization");
+  });
+
+  it("lets TV focus reach every applied-code line through the normal screen", async () => {
+    await mount(); await press("Show configuration"); await press("Show applied code");
+    const rows = screen.root.findAll((node) => String(node.type) === "View" &&
+      typeof node.props.testID === "string" && node.props.testID.startsWith("applied-code-line-"));
+    expect(rows.length).toBeGreaterThan(10);
+    expect(rows.every((row) => row.props.focusable === true && row.props.accessible === true)).toBe(true);
+    expect(rows[rows.length - 1]!.props.testID).toMatch(/-last$/);
   });
 
   it("makes each TV switch focusable without applying its configuration draft", async () => {

@@ -34,6 +34,7 @@ interface SessionOptions<V extends SessionMedia, P extends SessionPlayer, C exte
   removePolyfills: (video: V) => void;
   createPlayer: () => P;
   createController: (player: P, isActive: () => boolean) => C;
+  observePlayer?: (player: P, isActive: () => boolean) => () => void;
   controllerRef: { current: C | null };
   getTimeShiftEnabled: () => boolean;
   onError: (message: string) => void;
@@ -51,6 +52,7 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
   let surfaceAttached = false;
   let cancelled = false;
   let cleanup: Promise<void> | null = null;
+  let removePlayerObservers: (() => void) | null = null;
 
   function dispose(background = false): Promise<void> {
     if (cleanup) return cleanup;
@@ -102,6 +104,9 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
     if (background) barrier.releaseNativeSync(true);
     // Clear only this effect's controller; an older cleanup cannot clear a newer owner.
     if (controller && options.controllerRef.current === controller) options.controllerRef.current = null;
+    try { removePlayerObservers?.(); }
+    catch { options.onError("Vega observer cleanup failed"); }
+    removePlayerObservers = null;
     try { controller?.dispose(); }
     catch { options.onError("Vega controller cleanup failed"); }
 
@@ -147,6 +152,7 @@ export function startVegaSession<V extends SessionMedia, P extends SessionPlayer
     video.setSurfaceHandle(options.handle);
     options.installPolyfills(video);
     player = options.createPlayer();
+    removePlayerObservers = options.observePlayer?.(player, () => !cancelled) ?? null;
     controller = options.createController(player, () => !cancelled);
     controller.setTimeShiftEnabled(options.getTimeShiftEnabled());
     options.controllerRef.current = controller;

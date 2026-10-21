@@ -3,27 +3,27 @@
     "android:com.bitmovin.player.api.PlaybackConfig.isAutoplayEnabled": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigToggle(\"Autoplay\", player.autoplay, \"config-autoplay\") { player = player.copy(autoplay = it) }",
           "symbol": "ConfigToggle(\"Autoplay\", player.autoplay, \"config-autoplay\") { player = player.copy(autoplay = it) }"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "isAutoplayEnabled = autoplay, isMuted = muted, isTimeShiftEnabled = timeShift,",
           "symbol": "isAutoplayEnabled = autoplay, isMuted = muted, isTimeShiftEnabled = timeShift,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
           "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = player.validate()",
           "symbol": "player.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "val config = settings.toPlayerConfig(licenseKey)",
           "symbol": "settings.toPlayerConfig(licenseKey)"
         }
@@ -34,27 +34,27 @@
     "android:com.bitmovin.player.api.PlaybackConfig.isMuted": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigToggle(\"Start muted\", player.muted, \"config-muted\") { player = player.copy(muted = it) }",
           "symbol": "ConfigToggle(\"Start muted\", player.muted, \"config-muted\") { player = player.copy(muted = it) }"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "isAutoplayEnabled = autoplay, isMuted = muted, isTimeShiftEnabled = timeShift,",
           "symbol": "isAutoplayEnabled = autoplay, isMuted = muted, isTimeShiftEnabled = timeShift,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
           "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = player.validate()",
           "symbol": "player.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "val config = settings.toPlayerConfig(licenseKey)",
           "symbol": "settings.toPlayerConfig(licenseKey)"
         }
@@ -65,27 +65,27 @@
     "android:com.bitmovin.player.api.PlaybackConfig.isTimeShiftEnabled": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigToggle(\"Enable SDK live time shifting\", player.timeShift, \"config-timeshift\") { player = player.copy(timeShift = it) }",
           "symbol": "ConfigToggle(\"Enable SDK live time shifting\", player.timeShift, \"config-timeshift\") { player = player.copy(timeShift = it) }"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "isAutoplayEnabled = autoplay, isMuted = muted, isTimeShiftEnabled = timeShift,",
           "symbol": "isAutoplayEnabled = autoplay, isMuted = muted, isTimeShiftEnabled = timeShift,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
           "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = player.validate()",
           "symbol": "player.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "val config = settings.toPlayerConfig(licenseKey)",
           "symbol": "settings.toPlayerConfig(licenseKey)"
         }
@@ -96,7 +96,7 @@
     "android:com.bitmovin.player.api.PlayerConfig.adaptationConfig": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "adaptationConfig = AdaptationConfig(",
           "symbol": "adaptationConfig = AdaptationConfig("
         }
@@ -107,7 +107,7 @@
     "android:com.bitmovin.player.api.PlayerConfig.bufferConfig": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "bufferConfig = BufferConfig(",
           "symbol": "bufferConfig = BufferConfig("
         }
@@ -118,7 +118,7 @@
     "android:com.bitmovin.player.api.PlayerConfig.playbackConfig": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "playbackConfig = PlaybackConfig(",
           "symbol": "playbackConfig = PlaybackConfig("
         }
@@ -129,7 +129,7 @@
     "android:com.bitmovin.player.api.buffer.BufferConfig.audioAndVideo": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "audioAndVideo = BufferMediaTypeConfig(forwardDuration)",
           "symbol": "audioAndVideo = BufferMediaTypeConfig(forwardDuration)"
         }
@@ -140,27 +140,27 @@
     "android:com.bitmovin.player.api.buffer.BufferConfig.restartThreshold": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigField(\"Restart threshold (s)\", player.restartThreshold, { player = player.copy(restartThreshold = it) }, \"config-restart\", playerErrors[\"restartThreshold\"], \"Default 5; buffer needed after a stall\", KeyboardType.Decimal)",
           "symbol": "ConfigField(\"Restart threshold (s)\", player.restartThreshold, { player = player.copy(restartThreshold = it) }, \"config-restart\", playerErrors[\"restartThreshold\"], \"Default 5; buffer needed after a stall\", KeyboardType.Decimal)"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "startupThreshold = startupThreshold, restartThreshold = restartThreshold,",
           "symbol": "startupThreshold = startupThreshold, restartThreshold = restartThreshold,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
           "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = player.validate()",
           "symbol": "player.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "val config = settings.toPlayerConfig(licenseKey)",
           "symbol": "settings.toPlayerConfig(licenseKey)"
         }
@@ -171,27 +171,27 @@
     "android:com.bitmovin.player.api.buffer.BufferConfig.startupThreshold": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigField(\"Startup threshold (s)\", player.startupThreshold, { player = player.copy(startupThreshold = it) }, \"config-startup\", playerErrors[\"startupThreshold\"], \"Default 2.5; nonnegative and at most forward buffer minus 0.5\", KeyboardType.Decimal)",
           "symbol": "ConfigField(\"Startup threshold (s)\", player.startupThreshold, { player = player.copy(startupThreshold = it) }, \"config-startup\", playerErrors[\"startupThreshold\"], \"Default 2.5; nonnegative and at most forward buffer minus 0.5\", KeyboardType.Decimal)"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "startupThreshold = startupThreshold, restartThreshold = restartThreshold,",
           "symbol": "startupThreshold = startupThreshold, restartThreshold = restartThreshold,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
           "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = player.validate()",
           "symbol": "player.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "val config = settings.toPlayerConfig(licenseKey)",
           "symbol": "settings.toPlayerConfig(licenseKey)"
         }
@@ -202,27 +202,27 @@
     "android:com.bitmovin.player.api.buffer.BufferMediaTypeConfig.forwardDuration": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigField(\"Forward buffer (s)\", player.forwardDuration, { player = player.copy(forwardDuration = it) }, \"config-forward\", playerErrors[\"forwardDuration\"], \"Default 50; at least 0.5 for threshold headroom\", KeyboardType.Decimal)",
           "symbol": "ConfigField(\"Forward buffer (s)\", player.forwardDuration, { player = player.copy(forwardDuration = it) }, \"config-forward\", playerErrors[\"forwardDuration\"], \"Default 50; at least 0.5 for threshold headroom\", KeyboardType.Decimal)"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "audioAndVideo = BufferMediaTypeConfig(forwardDuration),",
           "symbol": "audioAndVideo = BufferMediaTypeConfig(forwardDuration),"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
           "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = player.validate()",
           "symbol": "player.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "val config = settings.toPlayerConfig(licenseKey)",
           "symbol": "settings.toPlayerConfig(licenseKey)"
         }
@@ -233,27 +233,27 @@
     "android:com.bitmovin.player.api.media.AdaptationConfig.isRebufferingAllowed": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigToggle(\"Allow rebuffering\", player.rebuffering, \"config-rebuffering\") { player = player.copy(rebuffering = it) }",
           "symbol": "ConfigToggle(\"Allow rebuffering\", player.rebuffering, \"config-rebuffering\") { player = player.copy(rebuffering = it) }"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "isRebufferingAllowed = rebuffering, qualityStabilityBalance = qualityStabilityBalance,",
           "symbol": "isRebufferingAllowed = rebuffering, qualityStabilityBalance = qualityStabilityBalance,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
           "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = player.validate()",
           "symbol": "player.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "val config = settings.toPlayerConfig(licenseKey)",
           "symbol": "settings.toPlayerConfig(licenseKey)"
         }
@@ -264,27 +264,27 @@
     "android:com.bitmovin.player.api.media.AdaptationConfig.maxSelectableVideoBitrate": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigField(\"Maximum automatic video bitrate (bps)\", player.maxVideoBitrate, { player = player.copy(maxVideoBitrate = it) }, \"config-max-bitrate\", playerErrors[\"maxVideoBitrate\"], \"Blank = no ABR cap (2147483647). Higher qualities remain available for manual selection.\", KeyboardType.Number)",
           "symbol": "ConfigField(\"Maximum automatic video bitrate (bps)\", player.maxVideoBitrate, { player = player.copy(maxVideoBitrate = it) }, \"config-max-bitrate\", playerErrors[\"maxVideoBitrate\"], \"Blank = no ABR cap (2147483647). Higher qualities remain available for manual selection.\", KeyboardType.Number)"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "maxSelectableVideoBitrate = maxVideoBitrate, preload = preload,",
           "symbol": "maxSelectableVideoBitrate = maxVideoBitrate, preload = preload,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
           "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = player.validate()",
           "symbol": "player.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "val config = settings.toPlayerConfig(licenseKey)",
           "symbol": "settings.toPlayerConfig(licenseKey)"
         }
@@ -295,27 +295,27 @@
     "android:com.bitmovin.player.api.media.AdaptationConfig.preload": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigToggle(\"Preload content\", player.preload, \"config-preload\") { player = player.copy(preload = it) }",
           "symbol": "ConfigToggle(\"Preload content\", player.preload, \"config-preload\") { player = player.copy(preload = it) }"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "maxSelectableVideoBitrate = maxVideoBitrate, preload = preload,",
           "symbol": "maxSelectableVideoBitrate = maxVideoBitrate, preload = preload,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
           "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = player.validate()",
           "symbol": "player.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "val config = settings.toPlayerConfig(licenseKey)",
           "symbol": "settings.toPlayerConfig(licenseKey)"
         }
@@ -326,27 +326,27 @@
     "android:com.bitmovin.player.api.media.AdaptationConfig.qualityStabilityBalance": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigField(\"Live quality / stability balance\", player.qualityStabilityBalance, { player = player.copy(qualityStabilityBalance = it) }, \"config-balance\", playerErrors[\"qualityStabilityBalance\"], \"0 = quality; 1 = stability; default 0.5. Live streams near the live edge only.\", KeyboardType.Decimal)",
           "symbol": "ConfigField(\"Live quality / stability balance\", player.qualityStabilityBalance, { player = player.copy(qualityStabilityBalance = it) }, \"config-balance\", playerErrors[\"qualityStabilityBalance\"], \"0 = quality; 1 = stability; default 0.5. Live streams near the live edge only.\", KeyboardType.Decimal)"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "isRebufferingAllowed = rebuffering, qualityStabilityBalance = qualityStabilityBalance,",
           "symbol": "isRebufferingAllowed = rebuffering, qualityStabilityBalance = qualityStabilityBalance,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
           "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = player.validate()",
           "symbol": "player.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "val config = settings.toPlayerConfig(licenseKey)",
           "symbol": "settings.toPlayerConfig(licenseKey)"
         }
@@ -357,27 +357,27 @@
     "android:com.bitmovin.player.api.source.SourceConfig.isPosterPersistent": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigToggle(\"Keep poster visible\", source.posterPersistent, \"source-poster-persistent\") { source = source.copy(posterPersistent = it) }",
           "symbol": "ConfigToggle(\"Keep poster visible\", source.posterPersistent, \"source-poster-persistent\") { source = source.copy(posterPersistent = it) }"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "isPosterPersistent = posterPersistent,",
           "symbol": "isPosterPersistent = posterPersistent,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applySource(settings: SourceSettings) {",
           "symbol": "internal fun applySource(settings: SourceSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = source.validate()",
           "symbol": "source.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "owner.load(source)",
           "symbol": "owner.load(source)"
         }
@@ -388,7 +388,7 @@
     "android:com.bitmovin.player.api.source.SourceConfig.options": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "options = SourceOptions(startOffset, offsetReference)",
           "symbol": "options = SourceOptions(startOffset, offsetReference)"
         }
@@ -399,27 +399,27 @@
     "android:com.bitmovin.player.api.source.SourceConfig.posterSource": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigField(\"Poster URL\", source.posterUrl, { source = source.copy(posterUrl = it) }, \"source-poster\", sourceErrors[\"posterUrl\"], \"Optional HTTP or HTTPS image URL\")",
           "symbol": "ConfigField(\"Poster URL\", source.posterUrl, { source = source.copy(posterUrl = it) }, \"source-poster\", sourceErrors[\"posterUrl\"], \"Optional HTTP or HTTPS image URL\")"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "posterSource = posterUrl.ifBlank { null },",
           "symbol": "posterSource = posterUrl.ifBlank { null },"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applySource(settings: SourceSettings) {",
           "symbol": "internal fun applySource(settings: SourceSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = source.validate()",
           "symbol": "source.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "owner.load(source)",
           "symbol": "owner.load(source)"
         }
@@ -430,27 +430,27 @@
     "android:com.bitmovin.player.api.source.SourceConfig.title": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigField(\"Title\", source.title, { source = source.copy(title = it) }, \"source-title\", helper = \"Optional; blank uses the SDK default\")",
           "symbol": "ConfigField(\"Title\", source.title, { source = source.copy(title = it) }, \"source-title\", helper = \"Optional; blank uses the SDK default\")"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "title = title.ifBlank { null },",
           "symbol": "title = title.ifBlank { null },"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applySource(settings: SourceSettings) {",
           "symbol": "internal fun applySource(settings: SourceSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = source.validate()",
           "symbol": "source.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "owner.load(source)",
           "symbol": "owner.load(source)"
         }
@@ -461,27 +461,27 @@
     "android:com.bitmovin.player.api.source.SourceConfig.type": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "Choices(SourceType.entries.map { it to it.name }, source.type, \"source-type\") { source = source.copy(type = it) }",
           "symbol": "Choices(SourceType.entries.map { it to it.name }, source.type, \"source-type\") { source = source.copy(type = it) }"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "type = type,",
           "symbol": "type = type,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applySource(settings: SourceSettings) {",
           "symbol": "internal fun applySource(settings: SourceSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = source.validate()",
           "symbol": "source.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "owner.load(source)",
           "symbol": "owner.load(source)"
         }
@@ -492,27 +492,27 @@
     "android:com.bitmovin.player.api.source.SourceConfig.url": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigField(\"Source URL\", source.url, { source = source.copy(url = it) }, \"source-url\", sourceErrors[\"url\"], \"HTTP or HTTPS stream URL\")",
           "symbol": "ConfigField(\"Source URL\", source.url, { source = source.copy(url = it) }, \"source-url\", sourceErrors[\"url\"], \"HTTP or HTTPS stream URL\")"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "url = url,",
           "symbol": "url = url,"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applySource(settings: SourceSettings) {",
           "symbol": "internal fun applySource(settings: SourceSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = source.validate()",
           "symbol": "source.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "owner.load(source)",
           "symbol": "owner.load(source)"
         }
@@ -523,27 +523,27 @@
     "android:com.bitmovin.player.api.source.SourceOptions.startOffset": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "ConfigField(\"Start offset (s)\", source.startOffset, { source = source.copy(startOffset = it) }, \"source-offset\", sourceErrors[\"startOffset\"], \"Blank = SDK default. Start uses positive seconds; End uses negative seconds. Out-of-window offsets are corrected by the SDK.\")",
           "symbol": "ConfigField(\"Start offset (s)\", source.startOffset, { source = source.copy(startOffset = it) }, \"source-offset\", sourceErrors[\"startOffset\"], \"Blank = SDK default. Start uses positive seconds; End uses negative seconds. Out-of-window offsets are corrected by the SDK.\")"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "options = SourceOptions(startOffset, offsetReference),",
           "symbol": "options = SourceOptions(startOffset, offsetReference),"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applySource(settings: SourceSettings) {",
           "symbol": "internal fun applySource(settings: SourceSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = source.validate()",
           "symbol": "source.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "owner.load(source)",
           "symbol": "owner.load(source)"
         }
@@ -554,27 +554,27 @@
     "android:com.bitmovin.player.api.source.SourceOptions.startOffsetTimelineReference": {
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "source.offsetReference, \"source-reference\",",
           "symbol": "source.offsetReference, \"source-reference\","
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "options = SourceOptions(startOffset, offsetReference),",
           "symbol": "options = SourceOptions(startOffset, offsetReference),"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "internal fun applySource(settings: SourceSettings) {",
           "symbol": "internal fun applySource(settings: SourceSettings) {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "val validated = source.validate()",
           "symbol": "source.validate()"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "owner.load(source)",
           "symbol": "owner.load(source)"
         }
@@ -587,17 +587,17 @@
       "limitation": "Optional finite source target latency in seconds. Blank leaves liveConfig unset and preserves SDK defaults; no ideal-latency or seek-completion guarantee.",
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
           "needle": "\"Live target latency (s)\", source.liveTargetLatency, { source = source.copy(liveTargetLatency = it) },",
           "symbol": "\"Live target latency (s)\", source.liveTargetLatency, { source = source.copy(liveTargetLatency = it) },"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },",
           "symbol": "liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "owner.load(source)",
           "symbol": "owner.load(source)"
         }
@@ -608,9 +608,211 @@
       "limitation": "Owner binding for the separately mapped targetLatency leaf; no arbitrary live configuration editor.",
       "evidence": [
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
           "needle": "liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },",
           "symbol": "liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.PlaybackConfig.preferredAudioLanguages": {
+      "status": "direct_gui",
+      "limitation": "Ordered comma-separated language codes; blank is no preference; Player recreation.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
+          "needle": "\"Player audio language priority\", player.preferredAudioLanguages,",
+          "symbol": "\"Player audio language priority\", player.preferredAudioLanguages,"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "playbackConfig = PlaybackConfig(",
+          "symbol": "preferredAudioLanguages = preferredAudioLanguages.toList(),"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
+          "needle": "preferredAudioLanguages = ${languages(player.preferredAudioLanguages)},",
+          "symbol": "preferredAudioLanguages = ${languages(player.preferredAudioLanguages)},"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.source.SourceConfig.preferredAudioLanguages": {
+      "status": "direct_gui",
+      "limitation": "Ordered language codes; blank inherits player preference; Source reload.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
+          "needle": "\"Source audio language priority\", source.preferredAudioLanguages,",
+          "symbol": "\"Source audio language priority\", source.preferredAudioLanguages,"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) },",
+          "symbol": "preferredAudioLanguages = preferredAudioLanguages.toList(),"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
+          "needle": "preferredAudioLanguages = ${languages(source.preferredAudioLanguages)},",
+          "symbol": "preferredAudioLanguages = ${languages(source.preferredAudioLanguages)},"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.media.Track.url": {
+      "status": "direct_gui",
+      "limitation": "HTTP/HTTPS URL; blank adds no external track; Source reload.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
+          "needle": "ConfigField(\"WebVTT URL\", source.subtitleUrl, { source = source.copy(subtitleUrl = it) },",
+          "symbol": "ConfigField(\"WebVTT URL\", source.subtitleUrl, { source = source.copy(subtitleUrl = it) },"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "url = url, mimeType = \"text/vtt\", label = label.ifBlank { null },",
+          "symbol": "url = url, mimeType = \"text/vtt\", label = label.ifBlank { null },"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
+          "needle": "url = ${kotlinString(it.url)}, mimeType = \"text/vtt\",",
+          "symbol": "url = ${kotlinString(it.url)}, mimeType = \"text/vtt\","
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.media.Track.label": {
+      "status": "direct_gui",
+      "limitation": "Text; blank maps to null; Source reload.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
+          "needle": "ConfigField(\"Subtitle label\", source.subtitleLabel, { source = source.copy(subtitleLabel = it) },",
+          "symbol": "ConfigField(\"Subtitle label\", source.subtitleLabel, { source = source.copy(subtitleLabel = it) },"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "url = url, mimeType = \"text/vtt\", label = label.ifBlank { null },",
+          "symbol": "url = url, mimeType = \"text/vtt\", label = label.ifBlank { null },"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
+          "needle": "label = ${it.label.takeIf(String::isNotBlank)?.let(::kotlinString) ?: \"null\"}, id = \"player-lab-external-webvtt\",",
+          "symbol": "label = ${it.label.takeIf(String::isNotBlank)?.let(::kotlinString) ?: \"null\"}, id = \"player-lab-external-webvtt\","
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.media.subtitle.SubtitleTrack.language": {
+      "status": "direct_gui",
+      "limitation": "One language code; blank maps to null; Source reload.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
+          "needle": "ConfigField(\"Subtitle language\", source.subtitleLanguage, { source = source.copy(subtitleLanguage = it) },",
+          "symbol": "ConfigField(\"Subtitle language\", source.subtitleLanguage, { source = source.copy(subtitleLanguage = it) },"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "id = \"player-lab-external-webvtt\", isDefault = isDefault, language = language.ifBlank { null },",
+          "symbol": "id = \"player-lab-external-webvtt\", isDefault = isDefault, language = language.ifBlank { null },"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
+          "needle": "isDefault = ${it.isDefault}, language = ${it.language.takeIf(String::isNotBlank)?.let(::kotlinString) ?: \"null\"},",
+          "symbol": "isDefault = ${it.isDefault}, language = ${it.language.takeIf(String::isNotBlank)?.let(::kotlinString) ?: \"null\"},"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.media.Track.isDefault": {
+      "status": "direct_gui",
+      "limitation": "Boolean metadata only; false by default; no automatic enabling; Source reload.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
+          "needle": "ConfigToggle(\"Default external subtitle\", source.subtitleDefault, \"source-subtitle-default\") {",
+          "symbol": "ConfigToggle(\"Default external subtitle\", source.subtitleDefault, \"source-subtitle-default\") {"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "id = \"player-lab-external-webvtt\", isDefault = isDefault, language = language.ifBlank { null },",
+          "symbol": "id = \"player-lab-external-webvtt\", isDefault = isDefault, language = language.ifBlank { null },"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
+          "needle": "isDefault = ${it.isDefault}, language = ${it.language.takeIf(String::isNotBlank)?.let(::kotlinString) ?: \"null\"},",
+          "symbol": "isDefault = ${it.isDefault}, language = ${it.language.takeIf(String::isNotBlank)?.let(::kotlinString) ?: \"null\"},"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.network.RetryHttpRequestConfig.Retry.retryTimeouts": {
+      "status": "direct_gui",
+      "limitation": "Finite nonnegative seconds; one retry per value; none is no retries; blank is SDK linear backoff; Player recreation.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
+          "needle": "\"HTTP retry delays (s)\", player.httpRetryDelays, { player = player.copy(httpRetryDelays = it) },",
+          "symbol": "\"HTTP retry delays (s)\", player.httpRetryDelays, { player = player.copy(httpRetryDelays = it) },"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "retryHttpRequestConfig = httpRetryDelays?.let { RetryHttpRequestConfig.Retry(it.toList()) }",
+          "symbol": "retryHttpRequestConfig = httpRetryDelays?.let { RetryHttpRequestConfig.Retry(it.toList()) }"
+        },
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
+          "needle": "networkConfig = NetworkConfig(retryHttpRequestConfig = $retries),",
+          "symbol": "networkConfig = NetworkConfig(retryHttpRequestConfig = $retries),"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.PlayerConfig.networkConfig": {
+      "status": "code_only",
+      "limitation": "Fixed binding; no arbitrary object or array editor.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "networkConfig = NetworkConfig(",
+          "symbol": "networkConfig = NetworkConfig("
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.network.NetworkConfig.retryHttpRequestConfig": {
+      "status": "code_only",
+      "limitation": "Fixed binding; no arbitrary object or array editor.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "retryHttpRequestConfig = httpRetryDelays?.let",
+          "symbol": "retryHttpRequestConfig = httpRetryDelays?.let { RetryHttpRequestConfig.Retry(it.toList()) }"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.source.SourceConfig.subtitleTracks": {
+      "status": "code_only",
+      "limitation": "Fixed binding; no arbitrary object or array editor.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "subtitleTracks = externalSubtitle?.let",
+          "symbol": "subtitleTracks = externalSubtitle?.let { listOf(it.toSubtitleTrack()) } ?: emptyList(),"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.media.Track.id": {
+      "status": "code_only",
+      "limitation": "Fixed binding; no arbitrary object or array editor.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "id = \"player-lab-external-webvtt\", isDefault = isDefault,",
+          "symbol": "id = \"player-lab-external-webvtt\", isDefault = isDefault, language = language.ifBlank { null },"
+        }
+      ]
+    },
+    "android:com.bitmovin.player.api.media.subtitle.SubtitleTrack.mimeType": {
+      "status": "code_only",
+      "limitation": "Fixed binding; no arbitrary object or array editor.",
+      "evidence": [
+        {
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+          "needle": "url = url, mimeType = \"text/vtt\",",
+          "symbol": "url = url, mimeType = \"text/vtt\", label = label.ifBlank { null },"
         }
       ]
     }
@@ -622,12 +824,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -639,12 +841,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -656,12 +858,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -673,12 +875,12 @@
       "limitation": "The standard selector offers 0.25, 0.5, 1, 1.5 and 2. The SDK accepts other positive finite speed values, but this GUI supplies only those presets. Native 1.5 playback was verified.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -690,12 +892,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -707,12 +909,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. Visible standard control and native state/fresh Seeked; playbackSpeed=1.5.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {",
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -724,12 +926,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. Visible standard option; fresh native Source changed event and selected ID match; source retained.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {",
           "symbol": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -741,12 +943,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. Visible standard option; fresh native Source changed event and selected ID match; source retained.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {",
           "symbol": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -758,12 +960,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. Visible standard option; fresh native Source changed event and selected ID match; source retained.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {",
           "symbol": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -775,12 +977,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. Actual standard hover calls native Android.getThumbnail; published 3.171.0 UI AAR calls Player.getThumbnail and published core AAR delegates to active Source.getThumbnail; reference returned null image. No rendered thumbnail image claim.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -792,12 +994,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. Actual standard hover calls native Android.getThumbnail; published 3.171.0 UI AAR calls Player.getThumbnail and published core AAR delegates to active Source.getThumbnail; reference returned null image. No rendered thumbnail image claim.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -809,12 +1011,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -826,12 +1028,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -843,12 +1045,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -860,12 +1062,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -877,12 +1079,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -894,12 +1096,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. No configured fullscreen/PiP handlers, visible buttons absent; native fullscreen=false, PiPavailable=false, PiP=false. No entry/exit action or state transition is claimed; false getters inspected.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }
@@ -911,12 +1113,12 @@
       "limitation": "Android phone emulator, SDK 3.171.0. Mobile volume slider is hidden; native volume=100 inspected. No GUI setter call or volume-change claim.",
       "evidence": [
         {
-          "file": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+          "file": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
           "needle": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {",
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
           "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
           "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
         }

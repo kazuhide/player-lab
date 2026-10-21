@@ -6,7 +6,7 @@ import { expectMovingVideo } from "../src/playback-observation";
 type Language = "en" | "ja";
 interface Setting { scope: string; path: string }
 interface SettingGroup { id: string; title: string; fields: Setting[] }
-interface GuideDocument { id: string; title: string; groups?: SettingGroup[] }
+interface GuideDocument { id: string; title: string; groups?: SettingGroup[]; blocks?: { type: string }[] }
 interface SearchEntry { kind: string; title: string; url: string }
 interface CoverageRow {
   id: string; category: string; scope: string; status: string; deprecated: boolean; officialReference: string;
@@ -470,7 +470,7 @@ for (const language of languages) {
     for (const width of [320, 375, 768, 1024, 1440]) {
       test(`long text, code, tables and images fit a ${width}px document`, async ({ page }, testInfo) => {
         await page.setViewportSize({ width, height: 900 });
-        for (const slug of ["start", "native-apple", "cloud-encoding", "settings/tweaks", "controls", "themes",
+        for (const slug of ["start", "native-apple", "native-android", "native-integrations", "cloud-encoding", "settings/tweaks", "controls", "themes",
           "api-coverage", "api-coverage/web-ui"]) {
           await test.step(slug, async () => {
             await page.goto(guidePath(language, slug));
@@ -507,12 +507,15 @@ for (const language of languages) {
 
 test("localized guide figures and representative theme images decode", async ({ page }) => {
   for (const language of languages) {
-    for (const slug of ["start", "web-sources-tracks", "web-player-config", "themes"]) {
+    for (const slug of ["start", "web-sources-tracks", "web-player-config", "themes", "native-apple", "native-android", "native-integrations"]) {
       await page.goto(guidePath(language, slug));
       const images = slug === "themes"
         ? page.locator("#default img, #custom-premiere img")
         : page.locator(".guide-figure img");
-      await expect(images).toHaveCount(slug === "themes" ? 2 : 1);
+      const expected = slug === "themes" ? 2
+        : content[language][slug]!.blocks!.filter((block) => block.type === "figure").length;
+      expect(expected).toBeGreaterThan(0);
+      await expect(images).toHaveCount(expected);
       for (const image of await images.all()) {
         await image.scrollIntoViewIfNeeded();
         // Firefox can reject decode() before a lazy image request has started.
@@ -526,6 +529,21 @@ test("localized guide figures and representative theme images decode", async ({ 
         expect(decoded.width).toBeGreaterThan(0);
         expect(decoded.height).toBeGreaterThan(0);
         expect(new URL(decoded.src).pathname).toMatch(/^\/player-lab\/assets\/guide\/[^/]+\.jpg$/);
+        await expect(image).toHaveAttribute("width", String(decoded.width));
+        await expect(image).toHaveAttribute("height", String(decoded.height));
+        if (slug.startsWith("native-")) {
+          const fullSize = image.locator("..");
+          await expect(fullSize).toHaveAttribute("href", await image.getAttribute("src") as string);
+          await expect(fullSize).toHaveAccessibleName(/\S/);
+        }
+      }
+      if (slug.startsWith("native-")) {
+        const fullSize = images.first().locator("..");
+        const destination = new URL((await fullSize.getAttribute("href"))!, page.url()).href;
+        const width = Number(await images.first().getAttribute("width"));
+        await fullSize.click();
+        await expect(page).toHaveURL(destination);
+        await expect(page.locator("img")).toHaveJSProperty("naturalWidth", width);
       }
     }
   }

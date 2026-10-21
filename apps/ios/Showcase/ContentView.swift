@@ -81,8 +81,18 @@ struct ControlPanel: View {
                     }
                 }
 
+                labeled("Playback tracks") {
+                    Text("Audio: \(model.trackStatus.audio)")
+                        .accessibilityIdentifier("playback.audio")
+                    Text("Subtitles: \(model.trackStatus.subtitles)")
+                        .accessibilityIdentifier("playback.subtitles")
+                    Text(String(format: "Position: %.1fs", model.trackStatus.position))
+                        .accessibilityIdentifier("playback.position")
+                }
+
                 labeled("DVR controls") {
                     Toggle("Allow DVR controls (app)", isOn: $model.timeShiftEnabled)
+                        .accessibilityIdentifier("dvr.allowControls")
                 }
 
                 labeled("DVR state") {
@@ -105,6 +115,7 @@ struct ControlPanel: View {
                 }
             }
         }
+        .accessibilityIdentifier("controls.scroll")
         #if os(tvOS)
         // A compact tvOS sheet collapses Form to its minimal height, hiding its focusable rows.
         .fullScreenCover(isPresented: $showsConfiguration) { ConfigurationEditor(model: model) }

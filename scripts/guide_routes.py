@@ -22,11 +22,32 @@ THEMES = (
     'custom-compact', 'custom-premiere', 'custom-creator', 'custom-studio',
 )
 LANGUAGES = ('en', 'ja')
+SHARED_FIGURES = {
+    'android-source-settings': (1080, 2400),
+    'android-player-settings': (1080, 2400),
+    'android-applied-code': (1080, 2400),
+    'ios-playback-tracks': (1668, 2420),
+    'ios-initial-tracks': (1668, 2420),
+    'ios-video-scaling': (1668, 2420),
+    'ios-applied-code': (1668, 2420),
+    'tvos-playback-tracks': (3840, 2160),
+    'tvos-initial-tracks': (3840, 2160),
+    'tvos-video-scaling': (3840, 2160),
+    'tvos-applied-code': (3840, 2160),
+    'rn-ios-subtitles': (1206, 2622),
+    'rn-ios-caption': (1206, 2622),
+    'rn-ios-code': (1206, 2622),
+    'rn-android-subtitles': (1080, 2400),
+    'rn-android-caption': (1080, 2400),
+    'vega-subtitles': (1920, 1080),
+    'vega-caption': (1920, 1080),
+    'vega-code': (1920, 1080),
+}
 COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'vega')
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = '7d29eafe6817fbd481cc3349bada75f0027f0bfd'
+SOURCE_REVISION = '59ceb011f105776391bbc53383c91c5a39a0b4a6'
 CONTENT_REVIEW = '2026-10-21'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 
@@ -42,6 +63,7 @@ GUIDE_FILES = {
 }
 GUIDE_ASSETS = {
     'guide.css', 'guide.js',
+    *(f'assets/guide/{name}.jpg' for name in SHARED_FIGURES),
     *(f'assets/guide/{name}.jpg' for name in THEMES),
     *(f'assets/guide/{name}-{language}.jpg'
       for name in ('overview', 'source-controls', 'config') for language in LANGUAGES),

@@ -75,6 +75,32 @@ struct ConfigurationEditor: View {
                     Toggle("SDK time shift / DVR", isOn: $draft.sdkTimeShiftEnabled)
                         .accessibilityIdentifier("configuration.sdkTimeShift")
                 }
+                Section(header: Text("Initial tracks · reloads source"), footer:
+                    Text("App preferences, applied once at initial Ready with the SDK track-selection APIs. Blank audio and Automatic subtitles keep the SDK/OS choice. A full language tag matches first, then its primary language. An unavailable language keeps the default. Later track-menu choices are left alone.")) {
+                    field("Initial audio language (optional)", placeholder: "SDK / OS default, for example de",
+                          text: $draft.audioLanguage, id: "configuration.audioLanguage")
+                    Picker("Initial subtitles", selection: $draft.subtitleMode) {
+                        ForEach(InitialSubtitleMode.allCases) { Text($0.rawValue).tag($0) }
+                    }
+                    #if os(tvOS)
+                    .pickerStyle(.inline)
+                    #endif
+                    .accessibilityIdentifier("configuration.subtitleMode")
+                    if draft.subtitleMode == .language {
+                        field("Initial subtitle language", placeholder: "For example en or de",
+                              text: $draft.subtitleLanguage, id: "configuration.subtitleLanguage")
+                    }
+                }
+                Section(header: Text("Video scaling · recreates player"), footer:
+                    Text("Fit preserves the aspect ratio inside the view. Fill preserves it and crops the edges. Stretch fills the view without preserving it. Equal video/view aspect ratios can look identical.")) {
+                    Picker("Video scaling", selection: $draft.videoScaling) {
+                        ForEach(VideoScaling.allCases) { Text($0.rawValue).tag($0) }
+                    }
+                    #if os(tvOS)
+                    .pickerStyle(.inline)
+                    #endif
+                    .accessibilityIdentifier("configuration.videoScaling")
+                }
                 Section(header: Text("Adaptation and buffer · recreates player"), footer:
                     Text("Maximum bitrate: 0 means unlimited. Forward buffer: 0 lets the SDK choose. Both settings remain active when selecting another source.")) {
                     field("Maximum bitrate (bit/s)", placeholder: "0",

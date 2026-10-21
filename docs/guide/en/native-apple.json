@@ -1,7 +1,7 @@
 {
   "id": "native-apple",
   "title": "iOS, iPadOS, and tvOS",
-  "lead": "Use the SwiftUI app to configure HLS or progressive MP4 sources, startup playback, bitrate, and buffering, then try source switching and live rewind. iOS and iPadOS can select the shared Web UI; tvOS uses the system UI.",
+  "lead": "Use the SwiftUI app to configure HLS or progressive MP4, startup playback, initial audio/subtitle selection, video scaling, bitrate and buffering. iOS and iPadOS can select the shared Web UI; tvOS uses the system UI.",
   "blocks": [
     {
       "type": "h2",
@@ -17,7 +17,7 @@
     },
     {
       "type": "p",
-      "text": "Check that xcodegen version reports 2.46.0. In Xcode, choose Showcase-iOS or Showcase-tvOS, select a destination, and run. Configure a development team and signing for a physical device. Allow com.showcase.dvr.Showcase-iOS for iOS or com.showcase.dvr.Showcase-tvOS for tvOS on the Player license."
+      "text": "Check that xcodegen version reports 2.46.0. In Xcode, choose Showcase-iOS or Showcase-tvOS, select a destination, and run. Configure a development team and signing for a physical device. Allow com.playerlab.ios for iOS or com.playerlab.tvos for tvOS on the Player license. Both apps display Player Lab; DVR is a live-rewind feature."
     },
     {
       "type": "note",
@@ -67,7 +67,62 @@
     },
     {
       "type": "p",
-      "text": "Source fields and start position changes reload the source on the existing player. Playback, bitrate, and buffer changes recreate the player and native view, then reload the complete current source including title, poster, and offset options. UI mode, the app DVR switch, and event log remain in place. Apply does not preserve playback position or playing state; the configured start position and Autoplay determine the restart. Selecting a source preset replaces source-specific fields and offsets with its defaults while keeping player settings."
+      "text": "Source fields, start position and initial track preferences reload the source on the existing player. Playback, scaling, bitrate and buffer changes recreate the player and native view, then reload the complete source including title, poster and offset options. UI mode, the app DVR switch and event log remain in place. Apply restarts at the configured offset according to Autoplay. Selecting a source preset resets its source fields and initial track preferences while retaining player settings."
+    },
+    {
+      "type": "h2",
+      "text": "Initial tracks and video scaling"
+    },
+    {
+      "type": "figure",
+      "file": "ios-playback-tracks",
+      "caption": "Player Lab on iPadOS 26.4 after Apply: the generated HLS plays with German test subtitles, and Playback tracks shows the current native selections. Configure source and playback opens the editor."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Use a source with native HLS audio/subtitle renditions. In Initial tracks, enter an optional audio language such as de-AT and choose Automatic, Off or Preferred language for subtitles. Enter a subtitle language only for Preferred language.",
+        "Blank audio and Automatic subtitles keep the SDK/OS choice. A full language tag matches first, then its primary language; de-AT can select de. An unavailable language leaves the default in place. Off calls the SDK subtitle-selection API with nil.",
+        "Choose Fit, Fill (crop) or Stretch. Fit preserves aspect ratio inside the view; Fill preserves it and crops the edges; Stretch fills the view without preserving it. Check the pending action, then Apply. Reset changes only the draft."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "ios-initial-tracks",
+      "caption": "Initial track preferences in the iPad form. These are source-local application preferences, applied once at initial Ready, rather than PlayerConfig language properties."
+    },
+    {
+      "type": "figure",
+      "file": "ios-video-scaling",
+      "caption": "Preferred subtitle language and Fill (crop). Scaling is the SDK StyleConfig.scalingMode setting and recreates the player."
+    },
+    {
+      "type": "p",
+      "text": "The language fields use the public availableAudio/availableSubtitles and setAudio/setSubtitle APIs after the intended Source loads and reaches its first Ready. They are application preferences, not additional PlayerConfig fields. Later choices in the SDK track menu remain until the next source load. Scaling is a separate creation-time SDK field, StyleConfig.scalingMode."
+    },
+    {
+      "type": "note",
+      "title": "Why selection waits for Ready",
+      "text": "In the checked Player 3.128.0 HLS startup, SourceLoaded selection briefly changed audio to German, then a native audio-change event restored English before Ready. Reversing the audio/subtitle call order did not prevent this. The app selects once at initial Ready, when initial media is ready, and verifies the intended current Source before selecting. This is an observation of this SDK and fixture, not a promise about every stream."
+    },
+    {
+      "type": "p",
+      "text": "The generated vod-multiaudio fixture has English/German audio metadata and native HLS WebVTT subtitle renditions. These audio labels identify test renditions, not translated soundtracks. Native renditions provide a route shared by iOS and tvOS; external SourceConfig subtitles do not provide the same tvOS System UI route."
+    },
+    {
+      "type": "figure",
+      "file": "tvos-playback-tracks",
+      "caption": "Player Lab on tvOS 26.4 after real remote input and Apply, with visible German native HLS subtitles and the configuration entry."
+    },
+    {
+      "type": "figure",
+      "file": "tvos-initial-tracks",
+      "caption": "The tvOS configuration form uses remote focus, Select and the system keyboard for initial language preferences."
+    },
+    {
+      "type": "figure",
+      "file": "tvos-video-scaling",
+      "caption": "Fit, Fill (crop) and Stretch are native focusable choices in the tvOS form."
     },
     {
       "type": "h2",
@@ -291,6 +346,58 @@
     {
       "type": "p",
       "text": "In Configuration, open Show applied code to read the Player, Source and UI settings already sent to the SDK. Editing the draft does not change the code until Apply. iOS provides Copy code and text selection. tvOS displays the code and has no clipboard integration in this sample. License values are omitted; the Player key is shown as a placeholder."
+    },
+    {
+      "type": "p",
+      "text": "With initial track preferences, the Swift export includes a retained listener that verifies the explicit loaded Source and selects once at initial Ready. It uses the same full-tag/primary-language matching as the app. License keys remain placeholders and unapplied draft text is excluded."
+    },
+    {
+      "type": "figure",
+      "file": "ios-applied-code",
+      "caption": "Applied Swift configuration on iPad. The export shows scaling and source options, excludes drafts and uses a Player key placeholder."
+    },
+    {
+      "type": "figure",
+      "file": "tvos-applied-code",
+      "caption": "Applied Swift configuration on tvOS. Focusable wrapped lines support remote reading; this TV host has no clipboard integration."
+    },
+    {
+      "type": "h2",
+      "text": "Reproduce initial tracks and scaling"
+    },
+    {
+      "type": "p",
+      "text": "Complete the build preparation and allow com.playerlab.ios or com.playerlab.tvos on your Player license. Use an owned simulator UDID from xcrun simctl list devices available. From the repository root, generate the native-subtitle fixture, then run the public entry below. Each result directory must be new."
+    },
+    {
+      "type": "code",
+      "text": "python3 encoding/test-streams/local.py --output .cache/apple-track-media\npython3 apps/ios/run-track-qualification.py --platform ios \\\n  --destination <OWNED_IOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-ios\npython3 apps/ios/run-track-qualification.py --platform tvos \\\n  --destination <OWNED_TVOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-tvos"
+    },
+    {
+      "type": "p",
+      "text": "The runner builds this checkout, serves only the generated media on an ephemeral loopback port and closes its server afterward. It runs one hosted SDK case and one normal GUI case per platform, requires a finalized result with both passing and no skipped cases, and prints only safe status/count/hash values. Raw Xcode logs and attachments stay in the private artifacts directory; inspect them before sharing."
+    },
+    {
+      "type": "p",
+      "text": "The normal GUI case enters German audio/subtitles, autoplay, offset and scaling, then checks current audio/subtitle selections together with advancing position. It also checks Off, English after recreation, invalid drafts, Reset and applied code; iOS includes Sports/Default changes. The hosted case checks fresh source loads, same-player reload, old-player destruction, later manual track selection and all three scaling modes on a square native viewport."
+    },
+    {
+      "type": "code",
+      "title": "Negative control: expected to fail",
+      "text": "python3 apps/ios/run-track-qualification.py --platform ios \\\n  --destination <OWNED_IOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-negative \\\n  --ui-only --expected-audio en"
+    },
+    {
+      "type": "p",
+      "text": "The negative control still requests German in the normal form. Expect a nonzero exit and a failed current-selection assertion, because English is deliberately the wrong expectation. A transient startup language cannot satisfy the combined selection and progress checks. --ui-only and --sdk-only can also select one case; --derived-data and --source-packages optionally reuse public build caches."
+    },
+    {
+      "type": "code",
+      "title": "Runner file-ownership checks without Xcode or a license",
+      "text": "python3 -m unittest discover -s apps/ios -p test_track_qualification.py -v"
+    },
+    {
+      "type": "note",
+      "text": "Scaling checks use public AVPlayerLayer geometry and video gravity in a square viewport. Equal video/view aspect ratios can make all modes look alike. These checks establish simulator configuration, selection, rendering and playback; they do not measure bitrate enforcement, buffering performance, physical devices, DRM, casting or Analytics receipt."
     }
   ],
   "sources": [
@@ -306,12 +413,12 @@
     },
     {
       "path": "apps/ios/README.md",
-      "line": 378,
+      "line": 411,
       "label": "Configuration test commands and scope"
     },
     {
       "path": "apps/ios/README.md",
-      "line": 141,
+      "line": 149,
       "label": "Separate shared-UI playback checks"
     },
     {
@@ -321,27 +428,27 @@
     },
     {
       "path": "apps/ios/Showcase/ContentView.swift",
-      "line": 25,
+      "line": 28,
       "label": "Existing screen controls and editor presentation"
     },
     {
       "path": "apps/ios/Showcase/ConfigurationEditor.swift",
-      "line": 4,
+      "line": 7,
       "label": "Native configuration fields and actions"
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",
-      "line": 50,
+      "line": 68,
       "label": "Source configuration mapping"
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",
-      "line": 122,
+      "line": 150,
       "label": "Draft validation and units"
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 91,
+      "line": 96,
       "label": "Apply, player generation, and retained source"
     },
     {
@@ -355,7 +462,7 @@
     },
     {
       "path": "apps/ios/README.md",
-      "line": 279,
+      "line": 314,
       "label": "Current 60-second HLS/MP4 configuration and playback"
     },
     {
@@ -366,6 +473,48 @@
       "path": "docs/api-coverage/apple/stock-ui-qualification.json",
       "line": 1,
       "label": "Recorded SDK Default UI results and public bridge/resource bindings"
+    },
+    {
+      "path": "apps/ios/Showcase/TrackPreferences.swift",
+      "line": 1,
+      "label": "Initial track preferences, matching and ownership"
+    },
+    {
+      "path": "apps/ios/Showcase/PlayerModel.swift",
+      "line": 296,
+      "label": "Ready-bound selection on the intended Source"
+    },
+    {
+      "path": "apps/ios/Showcase/Configuration.swift",
+      "line": 92,
+      "label": "SDK scaling configuration"
+    },
+    {
+      "path": "apps/ios/run-track-qualification.py",
+      "line": 1,
+      "label": "Public track/scaling runner"
+    },
+    {
+      "path": "apps/ios/ShowcaseTrackRuntimeTests/TrackRuntimeTests.swift",
+      "line": 1,
+      "label": "Hosted SDK track and scaling checks"
+    },
+    {
+      "path": "apps/ios/ShowcaseConfigurationUITests/TrackPreferenceUITests.swift",
+      "line": 1,
+      "label": "Normal GUI input and current-selection checks"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerlistener/onready(_:player:)/index.html",
+      "label": "Official Ready event"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/player/index.html",
+      "label": "Official Player track-selection APIs"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/styleconfig/scalingmode/index.html",
+      "label": "Official scalingMode property"
     }
   ]
 }

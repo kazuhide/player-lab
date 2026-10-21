@@ -18,7 +18,7 @@ interface Props {
 export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed, error, platform, appliedCode }: Props): React.JSX.Element {
   const [expanded, setExpanded] = useState(false);
   const update = <K extends keyof ConfigurationDraft>(key: K, value: ConfigurationDraft[K]) => onChange({ ...draft, [key]: value });
-  const field = (label: string, key: "url" | "title" | "poster" | "startOffset" | "forwardDuration" | "maxBitrate", numeric = false) => (
+  const field = (label: string, key: "url" | "title" | "poster" | "startOffset" | "forwardDuration" | "maxBitrate" | "subtitleUrl" | "subtitleLabel" | "subtitleLanguage", numeric = false) => (
     <View key={key} style={styles.field}>
       <Text>{label}</Text>
       <TextInput accessibilityLabel={label} value={draft[key]} onChangeText={(value) => update(key, value)}
@@ -40,6 +40,13 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         {platform === "ios" && <Text style={styles.help}>The native iOS player supports HLS and progressive MP4; DASH presets are hidden.</Text>}
         {field("Source title", "title")}
         {field("Poster URL", "poster")}
+        {field("External WebVTT URL", "subtitleUrl")}
+        {field("Subtitle label", "subtitleLabel")}
+        {field("Subtitle language", "subtitleLanguage")}
+        <View style={styles.row}>
+          <Text>Mark as default</Text><Switch accessibilityLabel="Mark as default" value={draft.subtitleDefault} onValueChange={(value) => update("subtitleDefault", value)} />
+        </View>
+        <Text style={styles.help}>Optional: add one external WebVTT track. Enter a label and IETF language tag (for example, en or en-US). A blank URL removes the track and clears its metadata. Mark as default sets track metadata; choose subtitles in the player menu to enable them.</Text>
         {field("Start offset (seconds)", "startOffset", true)}
         <Text>Start offset reference</Text>
         <View style={styles.row}>

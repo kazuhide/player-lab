@@ -1,4 +1,4 @@
-import { SourceType, TimelineReferencePoint, type PlayerConfig, type SourceConfig } from "bitmovin-player-react-native";
+import { SourceType, SubtitleFormat, TimelineReferencePoint, type PlayerConfig, type SourceConfig } from "bitmovin-player-react-native";
 // Older native URL implementations omit the protocol and hostname getters used below.
 import { URL } from "react-native-url-polyfill";
 import type { ShowcaseSource } from "./sources";
@@ -16,6 +16,10 @@ export interface ConfigurationDraft {
   muted: boolean;
   forwardDuration: string;
   maxBitrate: string;
+  subtitleUrl: string;
+  subtitleLabel: string;
+  subtitleLanguage: string;
+  subtitleDefault: boolean;
 }
 export interface Configuration {
   source: SourceConfig;
@@ -27,10 +31,11 @@ export function supportsSource(source: ShowcaseSource, platform: NativePlatform)
   return platform !== "ios" || source.kind.endsWith("hls");
 }
 
-export function presetDraft(source: ShowcaseSource): Pick<ConfigurationDraft, "url" | "type" | "title" | "poster" | "startOffset" | "timeline"> {
+export function presetDraft(source: ShowcaseSource): Pick<ConfigurationDraft, "url" | "type" | "title" | "poster" | "startOffset" | "timeline" | "subtitleUrl" | "subtitleLabel" | "subtitleLanguage" | "subtitleDefault"> {
   return {
     url: source.url, type: source.kind.endsWith("hls") ? "hls" : "dash", title: source.label,
     poster: "", startOffset: "", timeline: "default",
+    subtitleUrl: "", subtitleLabel: "", subtitleLanguage: "", subtitleDefault: false,
   };
 }
 
@@ -63,6 +68,16 @@ export function parseConfiguration(draft: ConfigurationDraft, platform: NativePl
   if (!type) throw new Error("Select a supported source type.");
   const title = draft.title.trim();
   const poster = draft.poster.trim() ? httpUrl(draft.poster, "Poster URL") : "";
+  const subtitleUrl = draft.subtitleUrl.trim() ? httpUrl(draft.subtitleUrl, "External WebVTT URL") : "";
+  const subtitleLabel = subtitleUrl ? draft.subtitleLabel.trim() : "";
+  let subtitleLanguage = "";
+  if (subtitleUrl) {
+    if (!subtitleLabel) throw new Error("Enter a label for the external subtitle track.");
+    try { subtitleLanguage = Intl.getCanonicalLocales(draft.subtitleLanguage.trim())[0] ?? ""; }
+    catch { /* Report the field error without forwarding invalid text to the SDK. */ }
+    if (!subtitleLanguage) throw new Error("Subtitle language must be an IETF language tag, such as en or en-US.");
+  }
+  const subtitleDefault = Boolean(subtitleUrl && draft.subtitleDefault);
   const startOffset = optionalNumber(draft.startOffset, "Start offset");
   const forwardDuration = optionalNumber(draft.forwardDuration, "Forward buffer");
   // Zero selects a duration automatically only on iOS; this screen requires positive Android targets.
@@ -81,6 +96,8 @@ export function parseConfiguration(draft: ConfigurationDraft, platform: NativePl
   const reference = draft.timeline === "start" ? TimelineReferencePoint.START : draft.timeline === "end" ? TimelineReferencePoint.END : undefined;
   const source: SourceConfig = {
     url, type, ...(title ? { title } : {}), ...(poster ? { poster } : {}),
+    ...(subtitleUrl ? { subtitleTracks: [{ url: subtitleUrl, label: subtitleLabel, language: subtitleLanguage,
+      identifier: "player-lab-external", format: SubtitleFormat.VTT, isDefault: subtitleDefault }] } : {}),
     ...(startOffset !== undefined || reference !== undefined ? { options: {
       ...(startOffset !== undefined ? { startOffset } : {}),
       ...(reference !== undefined ? { startOffsetTimelineReference: reference } : {}),
@@ -93,7 +110,8 @@ export function parseConfiguration(draft: ConfigurationDraft, platform: NativePl
       ...(forwardDuration !== undefined ? { bufferConfig: { audioAndVideo: { forwardDuration } } } : {}),
       ...(maxBitrate !== undefined ? { adaptationConfig: { maxSelectableBitrate: maxBitrate } } : {}),
     },
-    draft: { ...draft, url, title, poster, startOffset: startOffset === undefined ? "" : String(startOffset),
+    draft: { ...draft, url, title, poster, subtitleUrl, subtitleLabel, subtitleLanguage, subtitleDefault,
+      startOffset: startOffset === undefined ? "" : String(startOffset),
       forwardDuration: forwardDuration === undefined ? "" : String(forwardDuration), maxBitrate: maxBitrate === undefined ? "" : String(maxBitrate) },
   };
 }

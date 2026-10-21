@@ -67,6 +67,72 @@ final class ConfigurationTests: XCTestCase {
         XCTAssertEqual(config.bufferConfig.audioAndVideo.forwardDuration, 12.5)
     }
 
+    func testScalingAndInitialTrackPreferencesNormalizeWithoutInventingSdkProperties() throws {
+        var draft = ConfigurationDraft()
+        draft.videoScaling = .fill
+        draft.audioLanguage = " DE-at "
+        draft.subtitleMode = .language
+        draft.subtitleLanguage = " en-US "
+        let configuration = try draft.validated()
+        let player = PlayerConfig()
+        configuration.player.apply(to: player)
+        XCTAssertEqual(player.styleConfig.scalingMode, .zoom)
+        XCTAssertEqual(configuration.source.initialTracks.audioLanguage, "de-at")
+        XCTAssertEqual(configuration.source.initialTracks.subtitleLanguage, "en-us")
+        let code = configurationCode(source: configuration.source, player: configuration.player, uiMode: .default)
+        XCTAssertTrue(code.contains("playerConfig.styleConfig.scalingMode = .zoom"))
+        XCTAssertTrue(code.contains("player.setAudio(trackIdentifier: id)"))
+        XCTAssertTrue(code.contains("player.setSubtitle(trackIdentifier: id)"))
+        XCTAssertFalse(code.contains("playerConfig.audioLanguage"))
+        XCTAssertTrue(code.contains("player.source === event.source"))
+        XCTAssertTrue(code.contains("func onReady(_ event: ReadyEvent"))
+        XCTAssertLessThan(try XCTUnwrap(code.range(of: "player.setSubtitle(trackIdentifier: id)")?.lowerBound),
+                          try XCTUnwrap(code.range(of: "player.setAudio(trackIdentifier: id)")?.lowerBound))
+        XCTAssertLessThan(try XCTUnwrap(code.range(of: "player.add(listener: initialTracks)")?.lowerBound),
+                          try XCTUnwrap(code.range(of: "player.load(source:")?.lowerBound))
+        let example = XCTAttachment(string: code)
+        example.name = "initial-tracks-generated.swift"
+        example.lifetime = .keepAlways
+        add(example)
+    }
+
+    func testAutomaticAndOffDoNotExportHiddenSubtitleDraft() throws {
+        var draft = ConfigurationDraft()
+        draft.subtitleLanguage = "invalid ignored draft"
+        var configuration = try draft.validated()
+        var code = configurationCode(source: configuration.source, player: configuration.player, uiMode: .default)
+        XCTAssertFalse(code.contains("class InitialTracks"))
+        XCTAssertNil(configuration.source.initialTracks.subtitleLanguage)
+        draft.subtitleMode = .off
+        configuration = try draft.validated()
+        code = configurationCode(source: configuration.source, player: configuration.player, uiMode: .default)
+        XCTAssertTrue(code.contains("player.setSubtitle(trackIdentifier: nil)"))
+        XCTAssertFalse(code.contains("invalid ignored draft"))
+        draft.subtitleMode = .language
+        XCTAssertThrowsError(try draft.validated())
+    }
+
+    @MainActor
+    func testLanguageOnlyReloadAndScalingRecreationRetainTheAppliedSource() throws {
+        let model = PlayerModel(licenseKey: "configuration-tests-invalid-license")
+        defer { model.player.destroy() }
+        model.load(Sources.all[1])
+        let original = model.player
+        var draft = model.configurationDraft
+        draft.audioLanguage = "de"
+        draft.subtitleMode = .off
+        XCTAssertEqual(try model.apply(draft), .reloadSource)
+        XCTAssertTrue(model.player === original)
+        let source = model.sourceSettings
+        draft.videoScaling = .stretch
+        XCTAssertEqual(try model.apply(draft), .recreatePlayer)
+        XCTAssertTrue(original.isDestroyed)
+        XCTAssertEqual(model.sourceSettings, source)
+        XCTAssertEqual(model.player.config.styleConfig.scalingMode, .stretch)
+        XCTAssertEqual(model.configurationDraft.audioLanguage, "de")
+        XCTAssertEqual(model.configurationDraft.subtitleMode, .off)
+    }
+
     func testInvalidURLsAndNumbersAreRejected() {
         let invalidFields: [(WritableKeyPath<ConfigurationDraft, String>, String)] = [
             (\.sourceURL, ""), (\.sourceURL, "file:///tmp/movie.mp4"),
@@ -97,6 +163,12 @@ final class ConfigurationTests: XCTestCase {
 
         XCTAssertThrowsError(try model.apply(invalid))
         XCTAssertTrue(model.player === player)
+        invalid = applied
+        invalid.subtitleMode = .language
+        invalid.subtitleLanguage = ""
+        XCTAssertThrowsError(try model.apply(invalid))
+        XCTAssertTrue(model.player === player)
+        XCTAssertEqual(model.configurationDraft, applied)
         XCTAssertEqual(model.playerGeneration, generation)
         XCTAssertEqual(model.configurationDraft, applied)
         XCTAssertEqual(try model.apply(applied), .none)
@@ -117,6 +189,9 @@ final class ConfigurationTests: XCTestCase {
         draft.posterURL = "https://example.com/poster.png"
         draft.startOffset = "-10"
         draft.timelineReference = .end
+        draft.audioLanguage = "de"
+        draft.subtitleMode = .language
+        draft.subtitleLanguage = "en"
         let initialPlayer = model.player
         XCTAssertEqual(try model.apply(draft), .reloadSource)
         XCTAssertTrue(model.player === initialPlayer)
@@ -132,6 +207,8 @@ final class ConfigurationTests: XCTestCase {
         XCTAssertEqual(model.configurationDraft, draft)
         XCTAssertFalse(model.timeShiftEnabled)
         XCTAssertEqual(model.player.config.adaptationConfig.maxSelectableBitrate, 4_000_000)
+        XCTAssertEqual(model.sourceSettings?.initialTracks.audioLanguage, "de")
+        XCTAssertEqual(model.sourceSettings?.initialTracks.subtitleLanguage, "en")
         #if !os(tvOS)
         XCTAssertEqual(model.uiMode, .cinema)
         #endif

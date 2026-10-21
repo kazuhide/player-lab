@@ -90,6 +90,11 @@
       "text": "Wait for Seeked before reading relative time to check the completed movement. The app displays relative and absolute time separately. Interpret clock-based displays and latency carefully when the source lacks clock information or the device clock is inaccurate."
     },
     {
+      "type": "note",
+      "title": "Rapid quick-seek clicks",
+      "text": "Player UI 4.23.0 updates its pending seek target when the SDK sends a Seek notification. If 2 backward-button clicks arrive before that notification, both can request the same position. In a local test with ordinary VOD paused at 20 seconds, 2 rapid 10-second backward clicks finished at 10 seconds. The playback checks wait for a fresh Seeked event and confirm the resulting position before testing the next action."
+    },
+    {
       "type": "h2",
       "text": "Apple HLS completion"
     },
@@ -144,7 +149,7 @@
     },
     {
       "path": "apps/ios/README.md",
-      "line": 214,
+      "line": 247,
       "label": "Native HLS completion and source ownership"
     },
     {

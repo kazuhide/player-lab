@@ -8,8 +8,8 @@
     <application
         android:allowBackup="true"
         android:icon="@android:drawable/sym_def_app_icon"
-        android:label="Player Playground"
-        android:theme="@style/Theme.Showcase">
+        android:label="Player Lab"
+        android:theme="@style/Theme.PlayerLab">
 
         <meta-data
             android:name="BITMOVIN_PLAYER_LICENSE_KEY"

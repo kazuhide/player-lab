@@ -15,7 +15,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DvrShowcase"
+rootProject.name = "PlayerLabAndroid"
 
 include(":dvr")
 

@@ -1,7 +1,7 @@
 {
   "id": "native-overview",
   "title": "ネイティブ版の範囲と準備",
-  "lead": "ネイティブ版には、ソースと再生設定のエディター、ソース切り替え、ライブ配信の巻き戻しとライブ位置への復帰、UI 共有の実装例があります。設定エディターは用途を絞った項目を扱います。より多くの設定を比較する場合は Web 版を使い、対応形式、既定値、統合上の制約は各プラットフォームの章で確認してください。",
+  "lead": "ネイティブ版には、ソース・再生設定の編集、適用済みコードの表示、ソース切り替え、ライブ配信の巻き戻し機能があります。Appleの映像の拡大方法と初期トラック設定、Androidの言語・再試行設定、外部WebVTT字幕など、各版に応じた項目も扱います。より広い設定一覧はWeb版で、ビルド手順、既定値、実再生の確認範囲は各プラットフォームの章で確認してください。",
   "blocks": [
     {
       "type": "h2",
@@ -17,28 +17,28 @@
       "rows": [
         [
           "iOS／iPadOS",
-          "XcodeGen から生成する SwiftUI アプリ",
-          "カタログは Live HLS／VOD HLS"
+          "XcodeGenから生成するSwiftUIアプリ",
+          "HLSのカタログ。任意のProgressive MP4ソースにも対応"
         ],
         [
           "tvOS",
-          "同じ Swift ソースを使うアプリ",
-          "カタログは Live HLS／VOD HLS"
+          "同じSwiftソースとOS標準のSystem UIを使うアプリ",
+          "HLSのカタログ。任意のProgressive MP4ソースにも対応"
         ],
         [
-          "Android／Android 系 Fire TV",
-          "Gradle でビルドする Kotlin アプリ",
-          "Live／VOD の HLS と DASH"
+          "Android／Android系Fire TV",
+          "GradleでビルドするKotlinアプリ",
+          "Live／VODのHLSとDASH"
         ],
         [
           "React Native",
-          "外部 Expo プロジェクトへ組み込む画面とロジック",
-          "HLS／DASH のカタログ。実行先 OS の制約は別途確認"
+          "アプリ画面と、バージョンを固定したExpo開発用アプリの生成ツール",
+          "HLS／DASHのカタログ。実行先OSの制約は別途確認"
         ],
         [
           "Vega OS",
-          "外部 Kepler プロジェクトへ組み込むソース",
-          "HLS／DASH のモジュールを登録。端末再生は未確認"
+          "同梱の画面を使うKeplerアプリ。Vega SDKは別途必要",
+          "HLS／DASHモジュール。Vega Virtual DeviceでVOD HLSとLive DASHを確認"
         ]
       ],
       "widths": [
@@ -49,7 +49,7 @@
     },
     {
       "type": "p",
-      "text": "各ネイティブ版のカタログは外部の公開参照ストリームを使います。Pages に同梱された 60 秒の Big Buck Bunny 素材を共通で読み込む構成ではありません。参照ストリームの内容や可用性は提供元によって変わります。クラウドエンコーダーを起動しなくても参照ソースを試せますが、通信や参照先の制限で再生できない場合があります。"
+      "text": "ソースのカタログには外部の公開参照ストリームが含まれます。設定画面からローカル生成素材も読み込めます。Appleの確認では、複数音声とHLS内の字幕を含む素材を使いました。各アプリがPages同梱素材を自動的に読み込む構成ではありません。参照ストリームの内容や可用性は提供元によって変わります。これらを試すためにクラウドエンコーダーを起動する必要はありません。"
     },
     {
       "type": "h2",
@@ -66,27 +66,27 @@
         [
           "iOS／iPadOS",
           "Default、Sports、Live (DVR)、Cinema",
-          "ソース・再生設定エディター、ソース選択、ライブ端基準のシーク、Allow DVR、状態、ログ"
+          "ソース・再生設定、初期トラック設定、現在のトラック、映像の拡大方法、ソース・DVR操作、状態、ログ"
         ],
         [
           "tvOS",
-          "OS の System UI。Web UI の選択なし",
-          "フォーカス操作に対応したソース・再生設定エディター、ソース選択、DVR 操作、状態、ログ"
+          "OSのSystem UI。Web UIの選択なし",
+          "フォーカス対応の設定・初期トラック欄、Play/Pauseコマンド、ソース・DVR操作、状態、ログ"
         ],
         [
-          "Android／Android 系 Fire TV",
+          "Android／Android系Fire TV",
           "Default、Sports、Live (DVR)、Cinema",
-          "ソース・再生設定エディター、ソース選択、ライブ端基準のシーク、Allow DVR、状態、ログ"
+          "音声の優先順・外部字幕・再試行を含む設定画面、ソース・DVR操作、状態、ログ"
         ],
         [
           "React Native",
-          "4 種類の選択例。共有 UI のアセット配信は要統合",
-          "ソース・再生設定エディター、ソース選択、ライブ端基準のシーク、Allow DVR、状態、ログ"
+          "生成したExpoアプリへ同梱する共有Web UI",
+          "ソース・再生設定と外部WebVTT字幕の編集、ソース・DVR操作、状態、ログ"
         ],
         [
           "Vega OS",
-          "ブラウザー用 UI を使わず Kepler の部品で構成",
-          "ソース・再生設定エディター、ソース選択、ライブ端基準のシーク、Allow DVR、状態、ログ"
+          "Keplerの操作部品とネイティブ字幕表示。ブラウザー用UIは不使用",
+          "ソース・再生設定と外部WebVTT字幕の編集、ソース・DVR操作、状態、ログ"
         ]
       ],
       "widths": [
@@ -97,13 +97,16 @@
     },
     {
       "type": "p",
-      "text": "エディターでは SourceConfig と PlayerConfig の一部を変更できます。TweaksConfig を含む、より広い設定一覧は Web 版で扱います。各版に共通する編集項目は次のとおりです。"
+      "text": "設定画面ではSourceConfig、PlayerConfig、各プラットフォームの一部の設定と、アプリ独自の初期設定を扱います。TweaksConfigを含む、より広い設定一覧はWeb版で扱います。編集項目には次のようなものがあります。"
     },
     {
       "type": "bullets",
       "items": [
-        "ソース：HTTP/HTTPS の URL と形式、任意のタイトルとポスター URL、開始オフセット（秒）、オフセットの基準。",
-        "再生設定：自動再生、起動時ミュート、先読みバッファ（秒）、ビットレート上限（bit/s）。対応形式、空欄や既定値の意味、数値の範囲はプラットフォームによって異なります。"
+        "ソース：HTTP/HTTPSのURLと形式、任意のタイトルとポスターURL、開始オフセット（秒）、オフセットの基準。",
+        "再生設定：自動再生、起動時ミュート、先読みバッファ（秒）、ビットレート上限（bit/s）。対応形式、空欄や既定値の意味、数値の範囲はプラットフォームによって異なります。",
+        "Apple：StyleConfig.scalingModeによる映像の拡大方法と、公開トラック選択APIを使うアプリ側の初期音声・字幕言語設定。最初のReadyでの適用とHLS内字幕の条件はAppleの章で説明します。",
+        "Android：Player全体とソースごとの音声言語の優先順、外部WebVTT字幕の情報、HTTP再試行の待ち時間。設定の継承、字幕メニューでの選択、待ち時間の単位はAndroidの章で説明します。",
+        "React NativeとVega：外部WebVTTのURL・表示名・言語。React Nativeには既定トラックの情報、Vegaには読み込み時に有効にする設定があります。表示と選択の違いはネイティブ統合の章で説明します。"
       ]
     },
     {
@@ -112,7 +115,7 @@
     },
     {
       "type": "p",
-      "text": "ネイティブ版の補助パネルに専用の音声・字幕・画質選択欄はありません。SDK 標準 UI の機能は、ソース、OS、端末、SDK の対応に依存します。音声や字幕付きのソースボタンがあることは、その選択操作まで確認済みであることを示しません。"
+      "text": "Appleには現在のネイティブトラックの表示と、初期トラック設定があります。Androidの音声優先順は開始時の選択に使われます。AndroidとReact Nativeの既定トラック情報だけでは字幕は有効にならないため、プレイヤーの字幕メニューで選択します。Vegaは有効にした外部WebVTTのキューを通常の文字列として表示します。そのほかのトラックや画質の操作は、SDKのUI、ソース、プラットフォームに依存します。"
     },
     {
       "type": "table",
@@ -124,12 +127,12 @@
       "rows": [
         [
           "ソース設定エディター",
-          "任意のソース、メタデータ、開始位置",
+          "任意のソース、メタデータ、開始位置、ソースごとのトラック設定",
           "Apple と Android は既存プレイヤーでソースを再読み込みする。React Native と Vega はソースだけの変更も含め、変更を Apply するとプレイヤーを再生成する。"
         ],
         [
           "再生設定エディター",
-          "生成時の再生・バッファ・ビットレート設定",
+          "生成時の再生・バッファ・ビットレート設定と各版固有の設定",
           "プレイヤーを再生成し、適用済みソースの全設定を再読み込みする。Allow DVR、ログ、選択可能な UI モードは保持する。再生位置は開始オフセットまたは SDK 既定値に戻る。自動再生が有効なら再生を始める。"
         ],
         [
@@ -144,8 +147,8 @@
         ],
         [
           "TV のリモコン",
-          "Android は TV 用ランチャー宣言。Vega は Kepler の画面部品",
-          "フォーカス移動や再生・停止キーは端末で要確認。専用キー処理の実装済みとはしない"
+          "tvOSはリモコンのPlay/Pauseに対応。tvOSとVegaにはフォーカス対応の設定画面",
+          "tvOSの通常のリモコン設定操作とVegaの方向キー操作は、シミュレーターまたは仮想デバイスで確認済み。物理TV端末や未確認のキー割り当ては別途確認が必要。"
         ],
         [
           "Analytics",
@@ -177,28 +180,28 @@
       "rows": [
         [
           "iOS",
-          "com.showcase.dvr.Showcase-iOS",
+          "com.playerlab.ios",
           "apps/ios/Local.xcconfig → ビルド設定 → Info.plist"
         ],
         [
           "tvOS",
-          "com.showcase.dvr.Showcase-tvOS",
-          "iOS と同じ受け渡し"
+          "com.playerlab.tvos",
+          "iOSと同じ仕組み"
         ],
         [
-          "Android／Android 系 Fire TV",
-          "com.showcase.dvr",
+          "Android／Android系Fire TV",
+          "com.playerlab.android",
           "apps/android/local.properties → Manifest"
         ],
         [
           "React Native",
-          "外部アプリで設定した bundle identifier／application ID",
-          "apps/react-native/.env を外部アプリへ渡す"
+          "生成したExpoアプリはcom.playerlab.reactnative",
+          "apps/react-native/.env → Expoプロジェクト生成ツール → アプリ"
         ],
         [
           "Vega OS",
-          "設定例は com.showcase.dvr.vega",
-          "Kepler のエントリーポイントで globals に設定"
+          "com.playerlab.vega",
+          "runtime:config → 追跡対象外のruntime.local.json → Keplerエントリー"
         ]
       ],
       "widths": [
@@ -223,7 +226,7 @@
     },
     {
       "type": "note",
-      "text": "sync-env.sh はローカルのライセンス設定を各ツール用の無追跡ファイルへ反映します。ライセンス変更後は再実行し、アプリをビルドし直します。生成ファイル、ライセンス値、ローカル SDK パスを公開リポジトリへ追加しないでください。"
+      "text": "sync-env.shはApple、Android、React Native向けに、追跡対象外のライセンス設定ファイルを生成します。各プラットフォームの章に従ってネイティブアプリを生成・ビルドしてください。ネイティブ統合の章では同梱のExpo生成ツールとKeplerアプリを説明しています。Vegaは別途インストールしたSDKとruntime:configも必要で、sync-env.shはVegaの設定を生成しません。ライセンス変更後は該当する設定手順とビルドをやり直します。生成ファイル、ライセンス値、ローカルSDKのパスは公開リポジトリへ追加しないでください。"
     },
     {
       "type": "h2",
@@ -272,7 +275,7 @@
     },
     {
       "type": "p",
-      "text": "HLS は再生開始直後に巻き戻し範囲が 0 と報告される場合があります。再生を始めて範囲が取得されるまで待ちます。先読みバッファを増やしても、配信側が提供する過去の映像は増えません。ライブ端はシークの完了を待つ間にも前進します。移動要求の受理と、SDK 内の移動完了と、画面表示の更新は同時ではありません。"
+      "text": "HLS は再生開始直後に巻き戻し範囲が 0 秒と報告される場合があります。再生を始めて範囲が取得されるまで待ちます。先読みバッファを増やしても、配信側が提供する過去の映像は増えません。ライブ端はシークの完了を待つ間にも前進します。移動要求の受理と、SDK 内の移動完了と、画面表示の更新は同時ではありません。"
     },
     {
       "type": "note",
@@ -307,9 +310,9 @@
           "有効なライセンスでの再生・操作"
         ],
         [
-          "シミュレーター／エミュレーターの実再生",
-          "その OS・SDK・ソース・テスト手順での動作",
-          "物理端末、TV、リモコン、Casting、Offline、Analytics 集計"
+          "シミュレーター・エミュレーター・仮想デバイスでの実再生",
+          "確認に使ったOS・SDK・ソース・手順での挙動。記録したtvOSリモコン操作とVega再生も含む",
+          "未確認のソース・OSの組み合わせ、物理端末、Casting、オフライン再生、Analytics集計"
         ]
       ],
       "widths": [
@@ -317,6 +320,10 @@
         0.34,
         0.37
       ]
+    },
+    {
+      "type": "note",
+      "text": "AppleではHLS内の音声・字幕選択と、tvOSの通常のリモコン設定操作を確認しています。Vegaは仮想デバイスでApplyの反復、VOD／Liveの背景復帰、外部WebVTTキューの表示を確認済みですが、物理Vega端末は未確認です。確認に使ったソース、再現手順、制約は各プラットフォームの章を参照してください。AndroidでPlayerエラー1003が出る場合は、インストール済みAPKが使うPlayerキーと実際のpackage IDを、そのキーのアプリ許可一覧と照合してください。これはPlayerライセンスの確認であり、任意のAnalyticsの許可設定とは別です。"
     }
   ],
   "sources": [
@@ -341,7 +348,7 @@
       "label": "ライブ座標と状態計算"
     },
     {
-      "path": "apps/android/dvr/src/main/kotlin/com/showcase/dvr/Dvr.kt",
+      "path": "apps/android/dvr/src/main/kotlin/com/playerlab/android/dvr/Dvr.kt",
       "line": 43,
       "label": "Android のライブ座標と状態計算"
     },
@@ -349,6 +356,26 @@
       "path": "docs/e2e-testing.md",
       "line": 82,
       "label": "ネイティブ検証の範囲"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 114,
+      "label": "Appleの設定と初期トラック選択"
+    },
+    {
+      "path": "apps/android/README.md",
+      "line": 115,
+      "label": "Androidの言語・字幕・再試行設定"
+    },
+    {
+      "path": "apps/react-native/README.md",
+      "line": 112,
+      "label": "同梱Expoアプリとビルド準備"
+    },
+    {
+      "path": "apps/vega/README.md",
+      "line": 179,
+      "label": "同梱Vegaアプリと実行準備"
     }
   ]
 }

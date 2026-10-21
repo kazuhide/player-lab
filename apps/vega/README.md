@@ -112,6 +112,10 @@ unapplied player-setting edits. Selected/custom source fields, logs and the
 Rapid Apply operations wait for the previous player's cleanup before loading
 the latest selected configuration.
 
+After **Show applied code**, use D-pad Down/Up to read the output. Each code line
+participates in TV focus so the normal ScrollView can reveal the complete code,
+including lines below the video. The code uses license placeholders.
+
 `ui:false` stays fixed because the HTML Player UI is unavailable on Vega. Source
 title/poster values are passed in the SDK source configuration; this Kepler screen does
 not add a poster-artwork renderer. There is no loop configuration in this
@@ -174,6 +178,35 @@ proof of release.
 
 ## Build the Kepler application
 
+The source configuration also accepts one external WebVTT track: HTTP/HTTPS URL,
+menu label, IETF language tag (for example, `en` or `en-US`), and **Enable external
+subtitle on load**. URL, label and language are required together; language tags
+are normalized. A blank subtitle URL removes the track and clears its metadata.
+Reset changes only the draft. Apply uses the existing player/session recreation
+barrier, and applied-code output includes only validated applied values. A source
+preset clears the external subtitle fields.
+Use HTTPS for the external WebVTT delivery tested on Vega. The qualified HTTPS
+fixture rendered cues; the same bytes from a plain local HTTP server did not.
+
+The four leaves map to `TextTrack.url`, `MediaTrack.label`, `TextTrack.lang`, and
+`SubtitleTrack.enabled` in the pinned public SDK. The app supplies a fixed track
+ID and subtitle kind. Vega has no HTML UI: the public Subtitles and WebVTT parser
+modules parse WebVTT, and public `CueEnter`/`CueExit` events drive a native text overlay. It
+displays plain cue text; HTML subtitle styling is not rendered. Source/player
+retirement and background transitions clear that overlay and retire its event
+listeners. The enclosing track array is assembled by the app.
+
+For a dedicated test build, `runtime:config --runtime-checks` explicitly enables
+a read-only report around the same production App, native surface and session
+barrier. Omitting this flag retains the normal entry. Reports contain numeric
+public SDK clocks, playback state, cue counts/visibility and release-barrier
+acknowledgements, without keys, URLs, cue text or SDK messages. Keep this entry
+out of normal screenshots and distribution builds.
+
+The [public device runner](runtime/README.md) drives the real form and remote,
+checks moving video and native cue/clock observations, and uses a license-free
+companion for the documented app-to-app background/return path.
+
 Install Amazon's [Vega SDK](https://developer.amazon.com/docs/vega/0.24/install-vega-sdk)
 and its documented prerequisites. The checked profile uses SDK 0.24.12112 and
 `@amazon-devices/kepler-cli-platform` 0.22.14. Keep the RN 0.72 dependency set in
@@ -230,7 +263,9 @@ vega exec pnpm --filter @showcase/vega build:vega
 `BITMOVIN_ANALYTICS_LICENSE_KEY` from the process environment into the ignored,
 owner-readable `runtime.local.json`. It does not load dotenv files itself or
 print values. `index.js` installs these globals before evaluating the unchanged
-App entry. Allow `com.showcase.dvr.vega` on the player license. Generated
+App entry. The package identifier is `com.playerlab.vega`, its interactive component
+is `com.playerlab.vega.main`, and the displayed title is **Player Lab Vega**.
+Allow `com.playerlab.vega` on the player license. Generated
 configuration, packages, bundles and runtime logs can contain license values;
 keep them private and outside published artifacts.
 
@@ -244,7 +279,7 @@ vega virtual-device start --timeout 120
 vega exec vda devices -l
 vega device info --device <VVD_SERIAL>
 vega run-app apps/vega/build/aarch64-release/vega_aarch64.vpkg \
-  com.showcase.dvr.vega.main --deviceId <VVD_SERIAL>
+  com.playerlab.vega.main --deviceId <VVD_SERIAL>
 ```
 
 Select the verified VVD serial explicitly when Android emulators are also

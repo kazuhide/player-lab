@@ -232,11 +232,11 @@ class GuideTests(unittest.TestCase):
 
     def test_native_configuration_totals_include_audited_code_only_entries(self):
         report = json.loads((ROOT / 'docs/api-coverage/coverage.json').read_text())
-        expected = {'ios': (209, '22 / 209 · 10.53%', 11, 4, 7),
-                    'tvos': (180, '19 / 180 · 10.56%', 11, 0, 8),
-                    'android': (294, '32 / 294 · 10.88%', 18, 3, 11),
-                    'react-native': (267, '16 / 267 · 5.99%', 10, 3, 3),
-                    'vega': (653, '16 / 653 · 2.45%', 12, 0, 4)}
+        expected = {'ios': (209, '23 / 209 · 11.00%', 12, 4, 7),
+                    'tvos': (180, '20 / 180 · 11.11%', 12, 0, 8),
+                    'android': (294, '44 / 294 · 14.97%', 25, 3, 16),
+                    'react-native': (267, '22 / 267 · 8.24%', 14, 3, 5),
+                    'vega': (653, '22 / 653 · 3.37%', 16, 0, 6)}
         for app in report['applications']:
             if app['id'] not in expected:
                 continue

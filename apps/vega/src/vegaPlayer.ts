@@ -24,10 +24,12 @@ import HlsModule = require("bitmovin-player/modules/bitmovinplayer-hls");
 import AbrModule = require("bitmovin-player/modules/bitmovinplayer-abr");
 import ContainerTsModule = require("bitmovin-player/modules/bitmovinplayer-container-ts");
 import ContainerMp4Module = require("bitmovin-player/modules/bitmovinplayer-container-mp4");
+import SubtitlesModule = require("bitmovin-player/modules/bitmovinplayer-subtitles");
+import SubtitlesVttModule = require("bitmovin-player/modules/bitmovinplayer-subtitles-vtt");
 
 let modulesRegistered = false;
 
-/** Register the DVR-relevant modular player modules once. */
+/** Register the modules used by this App once. */
 export function registerVegaPlayerModules(): void {
   if (modulesRegistered) return;
   Player.addModule(PolyfillModule.default);
@@ -43,6 +45,8 @@ export function registerVegaPlayerModules(): void {
   Player.addModule(AbrModule.default);
   Player.addModule(ContainerTsModule.default);
   Player.addModule(ContainerMp4Module.default);
+  Player.addModule(SubtitlesModule.default);
+  Player.addModule(SubtitlesVttModule.default);
   modulesRegistered = true;
 }
 

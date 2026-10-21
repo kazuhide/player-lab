@@ -1,0 +1,14 @@
+import UIKit
+
+// XCTest needs its own application target. Playback stays in the installed Expo showcase.
+@main
+final class RuntimeDriver: UIResponder, UIApplicationDelegate {
+    var window: UIWindow?
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions options: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = UIViewController()
+        window.makeKeyAndVisible()
+        self.window = window
+        return true
+    }
+}

@@ -1,7 +1,7 @@
 {
   "id": "native-android",
   "title": "Android・Android 系 Fire TV",
-  "lead": "Kotlin と Compose のアプリで HLS／DASH のソースを読み込み、ライブの巻き戻しと共有 Web UI を試します。Android 系 Fire TV と Vega OS は別ターゲットです。",
+  "lead": "KotlinとComposeのアプリでソース・再生設定を変更し、音声や字幕の選択、操作画面の切り替え、適用済みKotlinコードの確認ができます。ライブ配信の巻き戻しとオフライン保存の補助コードも含みます。Android系Fire TVとVega OSは別の対象です。",
   "blocks": [
     {
       "type": "h2",
@@ -17,7 +17,7 @@
     },
     {
       "type": "p",
-      "text": "出力は apps/android/app/build/outputs/apk/debug/app-debug.apk です。Android Studio で apps/android を開いて接続端末やエミュレーターへ実行することもできます。Player ライセンスには application ID の com.showcase.dvr を許可します。"
+      "text": "出力は apps/android/app/build/outputs/apk/debug/app-debug.apk です。Android Studio で apps/android を開いて接続端末やエミュレーターへ実行することもできます。Player ライセンスには application ID の com.playerlab.android を許可します。"
     },
     {
       "type": "p",
@@ -52,7 +52,7 @@
     },
     {
       "type": "p",
-      "text": "Configuration を開くと 18 項目を編集できます。ソース設定は HTTP／HTTPS URL、DASH／HLS／Smooth／Progressive、タイトル、ポスター URL、ポスターの継続表示、開始オフセット（秒）、SDK default／Start／End の基準、任意のライブ目標遅延（秒）です。タイトル・ポスター・オフセットの空欄は SDK 既定値です。既定の基準は VOD が先頭、ライブが末尾で、範囲外のオフセットは SDK が補正します。HTTP の可否は端末のネットワークポリシーに従います。"
+      "text": "Configuration を開くと 25 項目を編集できます。ソース設定は HTTP／HTTPS URL、DASH／HLS／Smooth／Progressive、タイトル、ポスター URL、ポスターの継続表示、開始オフセット（秒）、SDK default／Start／End の基準、任意のライブ目標遅延（秒）です。タイトル・ポスター・オフセットの空欄は SDK 既定値です。既定の基準は VOD が先頭、ライブが末尾で、範囲外のオフセットは SDK が補正します。HTTP の可否は端末のネットワークポリシーに従います。"
     },
     {
       "type": "p",
@@ -79,6 +79,46 @@
       "text": "Show applied code は適用中の設定と現在の UI に対応する Kotlin の PlayerConfig・SourceConfig・PlayerViewConfig を表示し、任意のライブ目標遅延も含めます。未適用の下書きは含めません。Copy code は Android のクリップボードへ書き込み、Copied を表示します。ライセンスキーはプレースホルダーです。統合先では自身のキー、ビューの接続、lifecycle 転送を別途用意します。"
     },
     {
+      "type": "note",
+      "title": "Androidでのプレイヤーメニューのスクロール",
+      "text": "動画内の設定メニューとアプリの設定フォームは別々にスクロールします。メニューの下にある項目を表示するには動画内をスワイプし、フォームをスクロールするときは動画の外から操作してください。外側のスクロールが動画内のスワイプを取り込むことがあるため、アプリはプレイヤーで扱うタッチを動画側に保持します。指を離したとき、操作をキャンセルしたとき、プレイヤーを置き換えたときに解除します。"
+    },
+    {
+      "type": "h2",
+      "text": "音声の優先言語・外部字幕・通信の再試行"
+    },
+    {
+      "type": "p",
+      "text": "Player audio language priorityにはde, enのように優先順の言語コードを入力し、プレイヤー生成時に適用します。Source audio language priorityが空でなければ、そのソースではPlayer側より優先します。空欄はPlayer側の設定を引き継ぎます。前後の空白を除き、大文字・小文字を区別せず重複を取り除いても優先順は保ちます。一致する言語がなければSDKの既定トラックを使います。"
+    },
+    {
+      "type": "p",
+      "text": "WebVTTは字幕の表示時刻と文字を記述するテキスト形式です。外部字幕を1本追加するには、HTTPまたはHTTPSのWebVTT URLを入力します。表示名とen-USなどの言語コードも任意で指定できます。Default external subtitleはisDefaultというメタデータを設定するだけで、字幕を有効にはしません。Apply sourceで適用した後、Default UIの設定メニューから字幕を選択してください。URLを空欄に戻す場合はメタデータも消します。配信に含まれる字幕は引き続き利用できます。"
+    },
+    {
+      "type": "figure",
+      "file": "android-source-settings",
+      "caption": "Androidのソース設定。ソースの音声言語一覧はPlayer側の指定より優先されます。外部WebVTT字幕にはURL・表示名・言語・既定フラグを設定し、表示はプレイヤーの字幕メニューで有効にします。Android 16エミュレーターでの画面です。"
+    },
+    {
+      "type": "figure",
+      "file": "android-player-settings",
+      "caption": "AndroidのPlayer設定。自動再生、開始時のミュート、Player全体の音声言語の優先順を指定します。適用するとPlayerを再生成します。ソース側に音声言語の指定があれば、そちらが優先されます。"
+    },
+    {
+      "type": "p",
+      "text": "HTTP retry delays (s)は通信を再試行するまでの待ち時間です。空欄はSDKの再試行の待ち時間を段階的に増やす方式、noneは再試行なしです。0, 0.25, 2のように有限の非負の秒数を並べると、各値につき1回再試行します。プレイヤーを再生成して適用します。任意のコールバック、リクエストの認証情報、DRMライセンス更新の再試行を設定する画面ではありません。"
+    },
+    {
+      "type": "note",
+      "text": "ソース設定は現在のPlayerで再読み込みし、Playerの言語・再試行設定はPlayerを再生成して適用します。適用済みソースのメタデータ、選択中のUI、アプリの巻き戻し設定を引き継ぎます。Resetは下書きだけを変更します。Show applied codeには同じ正規化済み設定を表示し、未適用の入力と実際のライセンス値を含めません。"
+    },
+    {
+      "type": "figure",
+      "file": "android-applied-code",
+      "caption": "HTTP再試行の待ち時間と適用済みのKotlinコード。コードには適用した値とYOUR_PLAYER_KEYを表示し、未適用の編集値や実際のライセンスは含めません。画像を選択すると元のサイズで確認できます。"
+    },
+    {
       "type": "h2",
       "text": "オフラインのコード例"
     },
@@ -96,16 +136,27 @@
     },
     {
       "type": "p",
-      "text": "端末テスト全件には、許可されたライセンスと、ローカルの60秒 HLS／DASH 終了 fixture が必要です。Node 24 を使い、リポジトリのルートでテストメディアを生成してサーバーを起動します。別のターミナルで adb reverse により 5272・5273 番を転送してから、下のテストを実行します。終了後は両転送を解除し、サーバーを停止します。localhost・127.0.0.1 の HTTP を許可するのは debug ビルドだけで、release のネットワークポリシーは変更していません。"
+      "text": "エミュレーターで同じ手順を実行するには、リポジトリのルートで共通の60秒素材を生成し、公開されているテスト用サーバーを起動します。別のターミナルで、SERIALをadb devicesに表示される端末識別子に置き換え、3つのポートを転送してランチャーを実行します。ランチャーはアプリとテストをビルド・インストールし、個々のテスト結果と最後の完了記録を確認します。生の出力と安全な要約は作業ツリー外に保存します。adbの終了コードだけで合格にはしません。ローカルHTTP通信を許可するのはデバッグビルドのみです。"
     },
     {
       "type": "code",
-      "text": "python3 encoding/test-streams/local.py\nnode apps/android/runtime-fixture.mjs .cache/test-streams/vod-baseline\n# In another terminal:\nadb reverse tcp:5272 tcp:5272\nadb reverse tcp:5273 tcp:5273"
+      "text": "python3 encoding/test-streams/local.py\nnode apps/android/runtime-fixture.mjs .cache/test-streams/vod-baseline\n# In another terminal:\nadb -s SERIAL reverse tcp:5272 tcp:5272\nadb -s SERIAL reverse tcp:5273 tcp:5273\nadb -s SERIAL reverse tcp:5274 tcp:5274\npython3 apps/android/runtime-tests.py --serial SERIAL --output-dir /tmp/player-lab-android-runtime"
+    },
+    {
+      "type": "p",
+      "text": "実再生のテストにはcom.playerlab.androidを許可したPlayerライセンスが必要です。設定画面だけを確認する場合は、下記のように--dummy-licenseと設定テストのクラス名を指定できます。この確認は入力検証と編集画面が対象で、再生の確認にはなりません。ランチャーはエミュレーターやテスト用サーバーの起動、ポート転送は行いません。"
     },
     {
       "type": "code",
-      "title": "apps/android で実行",
-      "text": "./gradlew :dvr:test :app:testDebugUnitTest\n./gradlew :app:connectedDebugAndroidTest"
+      "text": "python3 apps/android/runtime-tests.py --serial SERIAL --output-dir /tmp/player-lab-android-config --dummy-license --classes com.playerlab.android.PlayerConfigurationInstrumentedTest\npython3 apps/android/test-runtime-tests.py"
+    },
+    {
+      "type": "p",
+      "text": "実行後は自分で作成したポート転送だけを解除し、テスト用サーバーを停止します。生の出力にはローカルのテスト情報が含まれるため非公開で保管してください。時間切れの場合はアプリとテストのプロセスを停止し、未完了として失敗を報告します。"
+    },
+    {
+      "type": "code",
+      "text": "adb -s SERIAL reverse --remove tcp:5272\nadb -s SERIAL reverse --remove tcp:5273\nadb -s SERIAL reverse --remove tcp:5274"
     },
     {
       "type": "p",
@@ -129,8 +180,8 @@
     },
     {
       "type": "note",
-      "title": "2026-10-21 の記録された検証範囲",
-      "text": "Player 3.171.0 で JVM テスト18件（DVR 6件、設定10件、lifecycle 2件）とアプリ・instrumentation APK のビルドが成功しました。許可されたライセンスを使う Android 16/API 36.1 ARM64 の電話向けエミュレーター一括実行は237.139秒で16件すべて成功しました。設定付きVOD、厳密なLIVE、標準UIの操作と不提供、両形式の終了、実クリップボード、12回のUI交換、明示的な再生要求を伴う2回の停止・復帰を含みます。通常のライブ復帰は157 msで要求固定目標の誤差+0.002秒、206 ms後にnativeゼロoffsetと可視LIVEが一致しました。新たなReady/frame後の設定付きVODの最初の位置は10.256秒でした。新しいVOD seek完了と、新たなlive loadで可視のライブ操作が戻ることを明示した両終了検査も69.860秒で成功しました。任意の30秒遅延policyも制御したエミュレーター遅延下で結合した復帰条件を満たしました。SDK既定値の変更やseek再試行は追加しておらず、これらの実行はseek完了や遅延収束の時間保証ではありません。物理端末、Android TV、Fire TV、オフライン、Casting、Analytics受信、SDK内部リソースの全解放完了はこの範囲に含みません。"
+      "title": "電話向けエミュレーターでの確認結果（2026-10-21）",
+      "text": "現在のアプリID com.playerlab.android と Player 3.171.0 を使い、Android 16/API 36.1 ARM64 の電話向けエミュレーターでライセンス付き端末テスト20件が274.859秒ですべて成功しました。映像の描画と再生位置の進行、音声の優先言語とソース側の上書き、外部WebVTT字幕の選択と新しい字幕の表示、指定回数のHTTP再試行、標準UI、HLS／DASHのライブ終了、クリップボード、画面の切り替えとバックグラウンドからの復帰を確認しています。これとは別に、端末を使わない設定・ロジックのテスト24件と、設定のみの端末テスト7件も成功しています。設定のみのテストは再生の確認には含めません。以前の測定値と再実行のコマンドはAndroidのREADMEに記載しています。この結果は検査した電話向けエミュレーターでのものです。実機、Android TV、Fire TV、オフライン再生、キャスト、Analyticsの受信、SDK内部リソースの全解放完了は別途確認が必要です。観測したシークや遅延の所要時間を保証するものではありません。"
     }
   ],
   "sources": [
@@ -141,7 +192,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 160,
+      "line": 182,
       "label": "実再生テストと記録された結果"
     },
     {
@@ -150,12 +201,12 @@
       "label": "SDK・Java・application ID・ライセンス優先度"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
       "line": 332,
       "label": "実画面と PlayerView の再生成"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/OfflineManager.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt",
       "line": 22,
       "label": "オフライン補助クラス"
     },
@@ -165,42 +216,42 @@
       "label": "通常端末・TV のランチャー宣言"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/Sources.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt",
       "line": 20,
       "label": "公開参照ソースのカタログ"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
       "line": 37,
       "label": "設定エディター"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
-      "line": 17,
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+      "line": 34,
       "label": "ソース・Player 設定の検証と変換"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
-      "line": 70,
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
+      "line": 73,
       "label": "厳密なライブ操作検証と失敗時診断"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerUiHandoffInstrumentedTest.kt",
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerUiHandoffInstrumentedTest.kt",
       "line": 38,
       "label": "再生中 Player の UI 切り替え検査"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerConfigurationPlaybackInstrumentedTest.kt",
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerConfigurationPlaybackInstrumentedTest.kt",
       "line": 38,
       "label": "設定付き VOD の最初の観測位置の検証"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/PlayerViewLifecycle.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt",
       "line": 8,
       "label": "ビューの lifecycle 所有権"
     },
     {
-      "path": "apps/android/app/src/test/kotlin/com/showcase/app/PlayerViewLifecycleTest.kt",
+      "path": "apps/android/app/src/test/kotlin/com/playerlab/android/PlayerViewLifecycleTest.kt",
       "line": 11,
       "label": "ホスト lifecycle の回帰検査"
     },
@@ -221,17 +272,17 @@
       "label": "Player 3.171.0 のソース目標遅延とライブ端の定義"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerFinalizationInstrumentedTest.kt",
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerFinalizationInstrumentedTest.kt",
       "line": 47,
       "label": "同じURLのHLS／DASH終了とReplay検査"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerConfigurationCodeInstrumentedTest.kt",
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerConfigurationCodeInstrumentedTest.kt",
       "line": 32,
       "label": "適用済みコードと実クリップボードの検査"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationCode.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
       "line": 22,
       "label": "適用済みSDK設定のコード例"
     },
@@ -239,6 +290,20 @@
       "path": "apps/android/runtime-fixture.mjs",
       "line": 1,
       "label": "Androidのローカル終了fixture"
+    },
+    {
+      "path": "apps/android/runtime-tests.py",
+      "line": 1,
+      "label": "Androidの公開テストランチャー"
+    },
+    {
+      "path": "apps/android/test-runtime-tests.py",
+      "line": 1,
+      "label": "結果の厳密な判定を確認するテスト"
+    },
+    {
+      "url": "https://developer.android.com/reference/android/view/ViewParent#requestDisallowInterceptTouchEvent(boolean)",
+      "label": "Androidのタッチ取り込み制御"
     }
   ]
 }

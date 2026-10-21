@@ -18,8 +18,8 @@ bash scripts/test-env-lib.sh
 | --- | --- |
 | Web | DVR logic, measurements, client-license handling, and server-side Analytics proxy tests |
 | Shared UI | Formatting, live state, and exported UI factories |
-| React Native | DVR unit tests and types including `App.tsx` |
-| Vega | DVR unit tests and modular player types; React/Kepler TSX UI is excluded |
+| React Native | Configuration, lifecycle and observation tests; TypeScript includes the app and panels |
+| Vega | Configuration, session, subtitle and lifecycle tests; TypeScript includes the app and native surface |
 | iOS/tvOS | `swift test --package-path apps/ios/DvrKit` |
 | Android | `cd apps/android` then `./gradlew :dvr:test` |
 
@@ -89,8 +89,13 @@ existing model and shared WebView controls with a real SDK. The Android tests
 include the actual Compose controls and shared WebView. Follow the
 [iOS](../apps/ios/README.md) and [Android](../apps/android/README.md) guides to run
 them with your own allowed license. CI compiles native apps without a playback
-license; it does not run these licensed scenarios. No React Native end-to-end
-harness or Vega device harness is included.
+license; it does not run these licensed scenarios. React Native provides opt-in
+[iOS and Android GUI runners](../apps/react-native/runtime/README.md) that use
+normal app controls and read-only SDK observations. The
+[Vega device runner](../apps/vega/runtime/README.md) uses the same app, normal
+remote input and explicit SDK/native release acknowledgements. The
+[Vega guide](../apps/vega/README.md) describes SDK and Virtual Device setup. Each platform guide distinguishes build checks, licensed
+runtime results, and the OS/device combinations used.
 
 Native playback needs an app-allowlisted player license and a runtime. Shared
 Web UI rendering must be checked in the native WebView; tvOS uses system UI and
@@ -254,7 +259,7 @@ For the Android configuration/ownership checks, connect an emulator and run from
 
 ```sh
 ./gradlew :app:connectedDebugAndroidTest \
-  -Pandroid.testInstrumentationRunnerArguments.class=com.showcase.app.PlayerConfigurationInstrumentedTest,com.showcase.app.PlayerOwnershipInstrumentedTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.playerlab.android.PlayerConfigurationInstrumentedTest,com.playerlab.android.PlayerOwnershipInstrumentedTest \
   -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=
 ```
 
@@ -284,9 +289,10 @@ unit tests.
 
 | Platform | Recorded result and scope |
 | --- | --- |
-| Android phone, Player 3.171.0 | All 16 instrumented cases passed, covering configuration, source-owned startup position, standard UI/native controls, ownership, UI replacement, clipboard, background return with explicit Play, and live finalization. Separate focused HLS/DASH finalization checks passed 2/2. A later standalone check with the updated shared UI passed 2/2 in 27.042 seconds: standard VOD controls and 12 UI replacements retained source/configuration/DVR state with advancing native positions and visible video. |
+| Android phone emulator, Player 3.171.0 | The current `com.playerlab.android` app passed all 20 licensed cases in 274.859 seconds with the final shared UI. These include rendered video and advancing positions, audio-language priority/source overrides, external WebVTT menu selection and a fresh visible cue, configured HTTP retries, standard controls, clipboard, ownership, 12 UI replacements, background return and HLS/DASH finalization. Separate 24 JVM tests and seven configuration-only device checks do not establish playback. |
 | iPhone, iPad and Apple TV simulators, Player 3.128.0 | GUI-configured local 60-second HLS and progressive MP4 played with advancing native positions and visible video. Native getters confirmed applied startup and buffering settings. Separate same-source HLS completion cases passed on iPhone in 20.875 seconds and Apple TV in 21.362 seconds. They checked PlaybackFinished, disabled app DVR, replay and reset on a new live source, including when the SDK retained live/infinite getters. Apple TV uses the system player UI. |
-| Vega SDK 0.24.12112, arm64 Virtual Device | The same app instance passed 3 bitrate Apply cycles, 3 VOD HLS background/foreground cycles and 3 Live DASH cycles with advancing SDK clocks and changing video frames. Remote controls and retained settings/drafts/logs/code display were checked. All 3 Release architectures built. The separate 73 unit/session tests use mocked native boundaries; TypeScript checks also passed. |
+| React Native 1.29.0, iOS and Android | The final shared UI passed the core configuration/clipboard/lifecycle sequence on both hosts. Separate external-WebVTT runs required menu selection, a fresh cue from the same owner/source epoch, moving video, applied metadata/code, draft Reset and wrapper retirement. Normal-entry captures also show external captions. Android's subtitle-only case turns Autoplay off during menu selection and starts through the visible SDK Play control; the core case separately checks autoplay and Pause/Play. |
+| Vega SDK 0.24.12112, arm64 Virtual Device | The public device runner passed applied settings/code, draft isolation, an external WebVTT cue and visible caption, advancing native clocks/decoded frames and moving video. App-to-app transfer retained the same OS application instance and created one fresh native player on return; every retired player acknowledged SDK destruction and native media release. All three Release architectures built; the runtime result applies to the arm64 Virtual Device. |
 
 Android live-return acceptance still requires fresh native TimeShifted completion,
 an SDK time shift within the live threshold, and genuinely visible LIVE under the
@@ -300,7 +306,7 @@ do not establish physical-device behavior, audible synchronization, quantitative
 bitrate/buffer effects, individual native resource counts or leak freedom,
 casting, offline playback, or Analytics receipt.
 
-### Updated shared UI on native hosts
+### Earlier shared UI ownership checks on native hosts
 
 The updated UI ownership patch was also built into the native hosts and checked
 on 2026-10-21. Packaged JavaScript and CSS were read back and matched the same

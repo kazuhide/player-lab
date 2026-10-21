@@ -5,27 +5,27 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 81,
+            "line": 107,
             "symbol": "text: $draft.maximumBitrate"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 71,
+            "line": 90,
             "symbol": "config.adaptationConfig.maxSelectableBitrate = maximumBitrate"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -46,7 +46,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 144,
+            "line": 147,
             "symbol": "uiConfig.uiManagerFactoryFunction = factory"
           }
         ],
@@ -57,7 +57,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 72,
+            "line": 91,
             "symbol": "config.bufferConfig.audioAndVideo.forwardDuration"
           }
         ],
@@ -68,27 +68,27 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 83,
+            "line": 109,
             "symbol": "text: $draft.forwardBuffer"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 72,
+            "line": 91,
             "symbol": "config.bufferConfig.audioAndVideo.forwardDuration = forwardBuffer"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -100,22 +100,22 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 283,
+            "line": 330,
             "symbol": "player.events.on(DvrWindowExceededEvent.self)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 288,
+            "line": 335,
             "symbol": "self.append(\"DVRWindowExceeded → recover\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 289,
+            "line": 336,
             "symbol": "player.timeShift = 0"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 99,
+            "line": 109,
             "symbol": "labeled(\"Event log (§10)\")"
           }
         ],
@@ -131,22 +131,22 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 68,
+            "line": 87,
             "symbol": "config.playbackConfig.isAutoplayEnabled = autoplay"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -162,22 +162,22 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 69,
+            "line": 88,
             "symbol": "config.playbackConfig.isMuted = startMuted"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -193,22 +193,22 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 70,
+            "line": 89,
             "symbol": "config.playbackConfig.isTimeShiftEnabled = sdkTimeShiftEnabled"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -219,28 +219,38 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 207,
+            "line": 216,
             "symbol": "currentTime: player.currentTime"
           },
           {
             "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
             "line": 109,
             "symbol": "func deriveState"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 239,
+            "symbol": "position: snap.currentTime.isFinite ? snap.currentTime : 0"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 89,
+            "symbol": "model.trackStatus.position"
           }
         ],
-        "limitation": "Captured in a snapshot, but not consumed by the app-owned DVR projection or displayed.",
-        "status": "code-only"
+        "limitation": "The current native position is copied into the source-owned Playback tracks readout; the displayed value is finite seconds.",
+        "status": "observed"
       },
       "BitmovinPlayerCore.Player.destroy()": {
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 110,
+            "line": 112,
             "symbol": "recreatePlayer()"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 123,
+            "line": 126,
             "symbol": "previous.destroy()"
           }
         ],
@@ -251,7 +261,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 204,
+            "line": 213,
             "symbol": "duration: player.duration"
           },
           {
@@ -261,7 +271,7 @@
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 90,
+            "line": 100,
             "symbol": "model.dvr.mode.rawValue"
           }
         ],
@@ -272,7 +282,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 260,
+            "line": 279,
             "symbol": "player.events.on(TimeChangedEvent.self)"
           }
         ],
@@ -284,12 +294,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 239,
+            "line": 258,
             "symbol": "let loadedAsLive = player.isLive"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 248,
+            "line": 267,
             "symbol": "if loadedAsLive { self.liveSourceFinalized = true }"
           },
           {
@@ -299,13 +309,13 @@
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 90,
+            "line": 100,
             "symbol": "dvr.mode"
           }
         ],
         "limitation": "Native live state at load qualifies the source-owned completion flag used by the displayed DVR mode; the SDK getter itself is not replaced."
       },
-      "BitmovinPlayerCore.Player.load(sourceConfig:)": {
+      "BitmovinPlayerCore.Player.load(source:)": {
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
@@ -314,28 +324,43 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 94,
+            "line": 96,
             "symbol": "apply(_ draft: ConfigurationDraft)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
+          },
+          {
+            "file": "apps/ios/Showcase/ConfigurationCode.swift",
+            "line": 70,
+            "symbol": "\"player.load(source: source)\""
           }
         ],
-        "limitation": "The configuration editor accepts a validated arbitrary HTTP(S) HLS or MP4 source and calls this SourceConfig overload; other load overloads are not exposed.",
+        "limitation": "The validated arbitrary HTTP(S) HLS or MP4 source is converted to a Source with SourceFactory.createSource(from:), bound as the intended source, and passed to load(source:). The SourceConfig and playlist load overloads are not called by the app.",
         "status": "direct"
       },
       "BitmovinPlayerCore.Player.maxTimeShift": {
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 205,
+            "line": 214,
             "symbol": "maxTimeShift: player.maxTimeShift"
           },
           {
@@ -345,7 +370,7 @@
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 94,
+            "line": 104,
             "symbol": "model.dvr.windowDuration"
           }
         ],
@@ -402,9 +427,49 @@
             "file": "apps/ios/Showcase/ContentView.swift",
             "line": 13,
             "symbol": "VideoPlayerView(player: model.player, playerViewConfig: PlayerViewConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/ConfigurationEditor.swift",
+            "line": 81,
+            "symbol": "text: $draft.audioLanguage"
+          },
+          {
+            "file": "apps/ios/Showcase/Configuration.swift",
+            "line": 163,
+            "symbol": "InitialTrackPreferences.language(audioLanguage"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 296,
+            "symbol": "player.events.on(ReadyEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 344,
+            "symbol": "initialTrackSelection.claim(eventSource: source, currentSource: current)"
+          },
+          {
+            "file": "apps/ios/Showcase/TrackPreferences.swift",
+            "line": 33,
+            "symbol": "static func matchingIdentifier("
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 359,
+            "symbol": "tracks: player.availableAudio.map"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 360,
+            "symbol": "player.setAudio(trackIdentifier: identifier)"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 85,
+            "symbol": "model.trackStatus.audio"
           }
         ],
-        "limitation": "The SDK Default menu dynamically enumerates all Player.availableAudio identifiers, covering the public valid non-null ID domain. Actual second-track selection changed the native audio index from 0 to 1.",
+        "limitation": "The SDK Default menu dynamically enumerates all Player.availableAudio identifiers, covering the public valid non-null ID domain. Actual second-track selection changed the native audio index from 0 to 1. App initial-language preference selects the first exact language tag, then the first primary-language match, once at initial Ready for the intended current source. Blank/no match retains the SDK/OS choice; later menu choices are untouched. This route does not provide arbitrary track-ID input or distinguish all same-language tracks.",
         "status": "direct"
       },
       "BitmovinPlayerCore.Player.timeShift": {
@@ -426,17 +491,17 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 178,
+            "line": 187,
             "symbol": "player.timeShift = 0"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 196,
+            "line": 205,
             "symbol": "player.timeShift = Dvr.clampToWindow(offset, maxTimeShift: player.maxTimeShift)"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 92,
+            "line": 102,
             "symbol": "model.dvr.behindLive"
           }
         ],
@@ -458,12 +523,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 71,
+            "line": 90,
             "symbol": "config.adaptationConfig.maxSelectableBitrate"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -474,12 +539,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 72,
+            "line": 91,
             "symbol": "config.bufferConfig.audioAndVideo.forwardDuration"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -490,7 +555,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 130,
+            "line": 133,
             "symbol": "config.key = licenseKey"
           }
         ],
@@ -501,22 +566,22 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 68,
+            "line": 87,
             "symbol": "config.playbackConfig.isAutoplayEnabled"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 69,
+            "line": 88,
             "symbol": "config.playbackConfig.isMuted"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 70,
+            "line": 89,
             "symbol": "config.playbackConfig.isTimeShiftEnabled"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -527,8 +592,13 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 141,
+            "line": 144,
             "symbol": "config.styleConfig.playerUiJs"
+          },
+          {
+            "file": "apps/ios/Showcase/Configuration.swift",
+            "line": 92,
+            "symbol": "config.styleConfig.scalingMode = videoScaling.sdkValue"
           }
         ],
         "limitation": "Namespace container; the iOS preset-controlled child fields are mapped individually.",
@@ -538,8 +608,18 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 267,
+            "line": 286,
             "symbol": "player.events.on(SourceLoadedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 308,
+            "symbol": "player.events.on(AudioChangedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 315,
+            "symbol": "player.events.on(SubtitleChangedEvent.self)"
           }
         ],
         "limitation": "SourceEvent publisher registration; not an event identity or GUI action.",
@@ -549,8 +629,13 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 260,
+            "line": 279,
             "symbol": "player.events.on(TimeChangedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 296,
+            "symbol": "player.events.on(ReadyEvent.self)"
           }
         ],
         "limitation": "PlayerEvent publisher registration; not an event identity or GUI action.",
@@ -560,12 +645,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 54,
+            "line": 72,
             "symbol": "config.options.startOffset"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 55,
+            "line": 73,
             "symbol": "config.options.startOffsetTimelineReference"
           }
         ],
@@ -581,23 +666,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 53,
+            "line": 71,
             "symbol": "config.posterSource = posterURL"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "Validated optional absolute HTTP(S) poster URL; empty clears it. Apply reloads the source.",
@@ -612,23 +707,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 52,
+            "line": 70,
             "symbol": "config.title = title.isEmpty ? nil : title"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "Arbitrary title text; empty clears the title. Apply reloads the source.",
@@ -643,23 +748,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 51,
+            "line": 69,
             "symbol": "SourceConfig(url: url, type: type.sdkType)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "HLS and progressive MP4 cover the supported online source formats; DASH and offline packages are not offered.",
@@ -674,23 +789,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 51,
+            "line": 69,
             "symbol": "SourceConfig(url: url, type: type.sdkType)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "Validated absolute HTTP(S) URL for HLS or progressive MP4; Apply reloads the source.",
@@ -701,17 +826,17 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 267,
+            "line": 286,
             "symbol": "player.events.on(SourceLoadedEvent.self)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 272,
+            "line": 293,
             "symbol": "self.append(\"SourceLoaded\")"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 99,
+            "line": 109,
             "symbol": "labeled(\"Event log (§10)\")"
           }
         ],
@@ -727,23 +852,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 54,
+            "line": 72,
             "symbol": "config.options.startOffset = startOffset"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "Finite offset in seconds; empty preserves the SDK default. Apply reloads the source.",
@@ -758,23 +893,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 55,
+            "line": 73,
             "symbol": "config.options.startOffsetTimelineReference = timelineReference.sdkValue"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "Automatic, Start and End cover the public timeline reference values; Apply reloads the source.",
@@ -789,7 +934,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 142,
+            "line": 145,
             "symbol": "config.styleConfig.playerUiCss = css"
           }
         ],
@@ -805,7 +950,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 141,
+            "line": 144,
             "symbol": "config.styleConfig.playerUiJs = js"
           }
         ],
@@ -821,7 +966,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 145,
+            "line": 148,
             "symbol": "config.styleConfig.userInterfaceConfig = uiConfig"
           }
         ],
@@ -833,17 +978,17 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 260,
+            "line": 279,
             "symbol": "player.events.on(TimeChangedEvent.self)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 264,
+            "line": 283,
             "symbol": "self.refresh()"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 88,
+            "line": 98,
             "symbol": "labeled(\"DVR state\")"
           }
         ],
@@ -855,17 +1000,17 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 275,
+            "line": 322,
             "symbol": "player.events.on(TimeShiftedEvent.self)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 279,
+            "line": 326,
             "symbol": "self.append(\"TimeShifted\")"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 99,
+            "line": 109,
             "symbol": "labeled(\"Event log (§10)\")"
           }
         ],
@@ -899,17 +1044,17 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 240,
+            "line": 259,
             "symbol": "player.events.on(PlaybackFinishedEvent.self)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 249,
+            "line": 268,
             "symbol": "self.append(\"PlaybackFinished\")"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 101,
+            "line": 111,
             "symbol": "model.log.prefix"
           }
         ],
@@ -920,16 +1065,294 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 236,
+            "line": 255,
             "symbol": "guard let source = player.source else"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 245,
+            "line": 264,
             "symbol": "player.source === source else"
           }
         ],
         "limitation": "The current source identity guards completion callbacks; no arbitrary source object is displayed or edited."
+      },
+      "BitmovinPlayerCore.SourceFactory.createSource(from:)": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          }
+        ],
+        "limitation": "Internal Source construction for the reviewed load(source:) route; no separate factory or arbitrary SourceConfig object editor.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.StyleConfig.scalingMode": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ConfigurationEditor.swift",
+            "line": 96,
+            "symbol": "Picker(\"Video scaling\", selection: $draft.videoScaling)"
+          },
+          {
+            "file": "apps/ios/Showcase/ConfigurationEditor.swift",
+            "line": 174,
+            "symbol": "Button(\"Apply\")"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 97,
+            "symbol": "draft.validated()"
+          },
+          {
+            "file": "apps/ios/Showcase/Configuration.swift",
+            "line": 33,
+            "symbol": "case .fill: return .zoom"
+          },
+          {
+            "file": "apps/ios/Showcase/Configuration.swift",
+            "line": 92,
+            "symbol": "config.styleConfig.scalingMode = videoScaling.sdkValue"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 134,
+            "symbol": "settings.apply(to: config)"
+          },
+          {
+            "file": "apps/ios/Showcase/ConfigurationCode.swift",
+            "line": 32,
+            "symbol": "\"playerConfig.styleConfig.scalingMode ="
+          }
+        ],
+        "limitation": "All public ScalingMode values are selectable: Fit maps to fit, Fill (crop) to zoom, and Stretch to stretch. Apply recreates the player and the applied-code export uses the same value.",
+        "status": "direct"
+      },
+      "BitmovinPlayerCore.Player.audio": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 232,
+            "symbol": "let audio = player.audio"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 235,
+            "symbol": "audio: audio.map"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 85,
+            "symbol": "model.trackStatus.audio"
+          }
+        ],
+        "limitation": "The currently selected audio label/language is displayed for the owned loaded source.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.subtitle": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 233,
+            "symbol": "let subtitle = player.availableSubtitles.isEmpty ? nil : player.subtitle"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 236,
+            "symbol": "subtitles: subtitle.map"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 87,
+            "symbol": "model.trackStatus.subtitles"
+          }
+        ],
+        "limitation": "The selected subtitle label/language or Off is displayed for the owned loaded source.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.availableAudio": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 359,
+            "symbol": "tracks: player.availableAudio.map"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 360,
+            "symbol": "player.setAudio(trackIdentifier: identifier)"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 85,
+            "symbol": "model.trackStatus.audio"
+          }
+        ],
+        "limitation": "Available audio identifiers/languages are consumed by initial language matching; its selected result is visible in Playback tracks. The app does not expose every track object field.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.availableSubtitles": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 353,
+            "symbol": "tracks: player.availableSubtitles.map"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 233,
+            "symbol": "let subtitle = player.availableSubtitles.isEmpty ? nil : player.subtitle"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 87,
+            "symbol": "model.trackStatus.subtitles"
+          }
+        ],
+        "limitation": "Available subtitles are consumed by initial language matching and the visible Off/selected-track readout. The app does not expose every track object field.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.setSubtitle(trackIdentifier:)": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ConfigurationEditor.swift",
+            "line": 82,
+            "symbol": "Picker(\"Initial subtitles\", selection: $draft.subtitleMode)"
+          },
+          {
+            "file": "apps/ios/Showcase/ConfigurationEditor.swift",
+            "line": 91,
+            "symbol": "text: $draft.subtitleLanguage"
+          },
+          {
+            "file": "apps/ios/Showcase/Configuration.swift",
+            "line": 165,
+            "symbol": "InitialTrackPreferences.language(subtitleLanguage"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 296,
+            "symbol": "player.events.on(ReadyEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 344,
+            "symbol": "initialTrackSelection.claim(eventSource: source, currentSource: current)"
+          },
+          {
+            "file": "apps/ios/Showcase/TrackPreferences.swift",
+            "line": 33,
+            "symbol": "static func matchingIdentifier("
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 349,
+            "symbol": "case .off: player.setSubtitle(trackIdentifier: nil)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 353,
+            "symbol": "tracks: player.availableSubtitles.map"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 354,
+            "symbol": "player.setSubtitle(trackIdentifier: identifier)"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 87,
+            "symbol": "model.trackStatus.subtitles"
+          }
+        ],
+        "limitation": "Automatic preserves the SDK/OS choice; Off passes nil; Preferred language selects the first full-tag or primary-language match once at initial Ready. No match keeps the default and later menu choices are untouched. No arbitrary track-ID editor or complete same-language-track selector is provided.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.ReadyEvent": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 296,
+            "symbol": "player.events.on(ReadyEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 299,
+            "symbol": ".compactMap { [weak player] _ in player?.source }"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 303,
+            "symbol": "self.completionSource === source, player.source === source else"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 304,
+            "symbol": "self.applyInitialTracks(player, source: source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 344,
+            "symbol": "initialTrackSelection.claim(eventSource: source, currentSource: current)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 305,
+            "symbol": "self.refresh()"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 84,
+            "symbol": "labeled(\"Playback tracks\")"
+          }
+        ],
+        "limitation": "Ready captures the emitting source before main-queue delivery, rejects retired player/source callbacks, applies app initial-track preferences at most once, and refreshes the visible track/position readout.",
+        "status": "observed",
+        "eventExposure": "monitored"
+      },
+      "BitmovinPlayerCore.AudioChangedEvent": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 308,
+            "symbol": "player.events.on(AudioChangedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 312,
+            "symbol": "self.refresh()"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 85,
+            "symbol": "model.trackStatus.audio"
+          }
+        ],
+        "limitation": "Individually subscribed for the current player and consumed by the visible Playback tracks refresh; no event payload fields are exposed.",
+        "status": "observed",
+        "eventExposure": "monitored"
+      },
+      "BitmovinPlayerCore.SubtitleChangedEvent": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 315,
+            "symbol": "player.events.on(SubtitleChangedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 319,
+            "symbol": "self.refresh()"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 87,
+            "symbol": "model.trackStatus.subtitles"
+          }
+        ],
+        "limitation": "Individually subscribed for the current player and consumed by the visible Playback tracks refresh; no event payload fields are exposed.",
+        "status": "observed",
+        "eventExposure": "monitored"
       }
     },
     "tvos": {
@@ -937,27 +1360,27 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 81,
+            "line": 107,
             "symbol": "text: $draft.maximumBitrate"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 71,
+            "line": 90,
             "symbol": "config.adaptationConfig.maxSelectableBitrate = maximumBitrate"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -968,7 +1391,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 72,
+            "line": 91,
             "symbol": "config.bufferConfig.audioAndVideo.forwardDuration"
           }
         ],
@@ -979,27 +1402,27 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 83,
+            "line": 109,
             "symbol": "text: $draft.forwardBuffer"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 72,
+            "line": 91,
             "symbol": "config.bufferConfig.audioAndVideo.forwardDuration = forwardBuffer"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -1011,22 +1434,22 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 283,
+            "line": 330,
             "symbol": "player.events.on(DvrWindowExceededEvent.self)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 288,
+            "line": 335,
             "symbol": "self.append(\"DVRWindowExceeded → recover\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 289,
+            "line": 336,
             "symbol": "player.timeShift = 0"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 99,
+            "line": 109,
             "symbol": "labeled(\"Event log (§10)\")"
           }
         ],
@@ -1042,22 +1465,22 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 68,
+            "line": 87,
             "symbol": "config.playbackConfig.isAutoplayEnabled = autoplay"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -1073,22 +1496,22 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 69,
+            "line": 88,
             "symbol": "config.playbackConfig.isMuted = startMuted"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -1104,22 +1527,22 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 70,
+            "line": 89,
             "symbol": "config.playbackConfig.isTimeShiftEnabled = sdkTimeShiftEnabled"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -1130,28 +1553,38 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 207,
+            "line": 216,
             "symbol": "currentTime: player.currentTime"
           },
           {
             "file": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
             "line": 109,
             "symbol": "func deriveState"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 239,
+            "symbol": "position: snap.currentTime.isFinite ? snap.currentTime : 0"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 89,
+            "symbol": "model.trackStatus.position"
           }
         ],
-        "limitation": "Captured in a snapshot, but not consumed by the app-owned DVR projection or displayed.",
-        "status": "code-only"
+        "limitation": "The current native position is copied into the source-owned Playback tracks readout; the displayed value is finite seconds.",
+        "status": "observed"
       },
       "BitmovinPlayerCore.Player.destroy()": {
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 110,
+            "line": 112,
             "symbol": "recreatePlayer()"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 123,
+            "line": 126,
             "symbol": "previous.destroy()"
           }
         ],
@@ -1162,7 +1595,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 204,
+            "line": 213,
             "symbol": "duration: player.duration"
           },
           {
@@ -1172,7 +1605,7 @@
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 90,
+            "line": 100,
             "symbol": "model.dvr.mode.rawValue"
           }
         ],
@@ -1183,7 +1616,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 260,
+            "line": 279,
             "symbol": "player.events.on(TimeChangedEvent.self)"
           }
         ],
@@ -1195,12 +1628,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 239,
+            "line": 258,
             "symbol": "let loadedAsLive = player.isLive"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 248,
+            "line": 267,
             "symbol": "if loadedAsLive { self.liveSourceFinalized = true }"
           },
           {
@@ -1210,13 +1643,13 @@
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 90,
+            "line": 100,
             "symbol": "dvr.mode"
           }
         ],
         "limitation": "Native live state at load qualifies the source-owned completion flag used by the displayed DVR mode; the SDK getter itself is not replaced."
       },
-      "BitmovinPlayerCore.Player.load(sourceConfig:)": {
+      "BitmovinPlayerCore.Player.load(source:)": {
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
@@ -1225,28 +1658,43 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 94,
+            "line": 96,
             "symbol": "apply(_ draft: ConfigurationDraft)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
+          },
+          {
+            "file": "apps/ios/Showcase/ConfigurationCode.swift",
+            "line": 70,
+            "symbol": "\"player.load(source: source)\""
           }
         ],
-        "limitation": "The configuration editor accepts a validated arbitrary HTTP(S) HLS or MP4 source and calls this SourceConfig overload; other load overloads are not exposed.",
+        "limitation": "The validated arbitrary HTTP(S) HLS or MP4 source is converted to a Source with SourceFactory.createSource(from:), bound as the intended source, and passed to load(source:). The SourceConfig and playlist load overloads are not called by the app.",
         "status": "direct"
       },
       "BitmovinPlayerCore.Player.maxTimeShift": {
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 205,
+            "line": 214,
             "symbol": "maxTimeShift: player.maxTimeShift"
           },
           {
@@ -1256,7 +1704,7 @@
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 94,
+            "line": 104,
             "symbol": "model.dvr.windowDuration"
           }
         ],
@@ -1282,17 +1730,17 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 178,
+            "line": 187,
             "symbol": "player.timeShift = 0"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 196,
+            "line": 205,
             "symbol": "player.timeShift = Dvr.clampToWindow(offset, maxTimeShift: player.maxTimeShift)"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 92,
+            "line": 102,
             "symbol": "model.dvr.behindLive"
           }
         ],
@@ -1303,12 +1751,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 71,
+            "line": 90,
             "symbol": "config.adaptationConfig.maxSelectableBitrate"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -1319,12 +1767,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 72,
+            "line": 91,
             "symbol": "config.bufferConfig.audioAndVideo.forwardDuration"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -1335,7 +1783,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 130,
+            "line": 133,
             "symbol": "config.key = licenseKey"
           }
         ],
@@ -1346,22 +1794,22 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 68,
+            "line": 87,
             "symbol": "config.playbackConfig.isAutoplayEnabled"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 69,
+            "line": 88,
             "symbol": "config.playbackConfig.isMuted"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 70,
+            "line": 89,
             "symbol": "config.playbackConfig.isTimeShiftEnabled"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 131,
+            "line": 134,
             "symbol": "settings.apply(to: config)"
           }
         ],
@@ -1372,8 +1820,13 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 134,
+            "line": 137,
             "symbol": "config.styleConfig.userInterfaceType = .system"
+          },
+          {
+            "file": "apps/ios/Showcase/Configuration.swift",
+            "line": 92,
+            "symbol": "config.styleConfig.scalingMode = videoScaling.sdkValue"
           }
         ],
         "limitation": "Namespace container; tvOS fixes its userInterfaceType child to System UI.",
@@ -1383,8 +1836,18 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 267,
+            "line": 286,
             "symbol": "player.events.on(SourceLoadedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 308,
+            "symbol": "player.events.on(AudioChangedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 315,
+            "symbol": "player.events.on(SubtitleChangedEvent.self)"
           }
         ],
         "limitation": "SourceEvent publisher registration; not an event identity or GUI action.",
@@ -1394,8 +1857,13 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 260,
+            "line": 279,
             "symbol": "player.events.on(TimeChangedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 296,
+            "symbol": "player.events.on(ReadyEvent.self)"
           }
         ],
         "limitation": "PlayerEvent publisher registration; not an event identity or GUI action.",
@@ -1405,12 +1873,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 54,
+            "line": 72,
             "symbol": "config.options.startOffset"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 55,
+            "line": 73,
             "symbol": "config.options.startOffsetTimelineReference"
           }
         ],
@@ -1426,23 +1894,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 53,
+            "line": 71,
             "symbol": "config.posterSource = posterURL"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "Validated optional absolute HTTP(S) poster URL; empty clears it. Apply reloads the source.",
@@ -1457,23 +1935,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 52,
+            "line": 70,
             "symbol": "config.title = title.isEmpty ? nil : title"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "Arbitrary title text; empty clears the title. Apply reloads the source.",
@@ -1488,23 +1976,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 51,
+            "line": 69,
             "symbol": "SourceConfig(url: url, type: type.sdkType)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "HLS and progressive MP4 cover the supported online source formats; DASH and offline packages are not offered.",
@@ -1519,23 +2017,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 51,
+            "line": 69,
             "symbol": "SourceConfig(url: url, type: type.sdkType)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "Validated absolute HTTP(S) URL for HLS or progressive MP4; Apply reloads the source.",
@@ -1546,17 +2054,17 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 267,
+            "line": 286,
             "symbol": "player.events.on(SourceLoadedEvent.self)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 272,
+            "line": 293,
             "symbol": "self.append(\"SourceLoaded\")"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 99,
+            "line": 109,
             "symbol": "labeled(\"Event log (§10)\")"
           }
         ],
@@ -1572,23 +2080,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 54,
+            "line": 72,
             "symbol": "config.options.startOffset = startOffset"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "Finite offset in seconds; empty preserves the SDK default. Apply reloads the source.",
@@ -1603,23 +2121,33 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 148,
+            "line": 174,
             "symbol": "Button(\"Apply\")"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 95,
+            "line": 97,
             "symbol": "draft.validated()"
           },
           {
             "file": "apps/ios/Showcase/Configuration.swift",
-            "line": 55,
+            "line": 73,
             "symbol": "config.options.startOffsetTimelineReference = timelineReference.sdkValue"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 173,
-            "symbol": "player.load(sourceConfig: sourceSettings.makeSourceConfig())"
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 181,
+            "symbol": "initialTrackSelection.bind(source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 182,
+            "symbol": "player.load(source: source)"
           }
         ],
         "limitation": "Automatic, Start and End cover the public timeline reference values; Apply reloads the source.",
@@ -1629,7 +2157,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 134,
+            "line": 137,
             "symbol": "config.styleConfig.userInterfaceType = .system"
           }
         ],
@@ -1641,17 +2169,17 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 260,
+            "line": 279,
             "symbol": "player.events.on(TimeChangedEvent.self)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 264,
+            "line": 283,
             "symbol": "self.refresh()"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 88,
+            "line": 98,
             "symbol": "labeled(\"DVR state\")"
           }
         ],
@@ -1663,17 +2191,17 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 275,
+            "line": 322,
             "symbol": "player.events.on(TimeShiftedEvent.self)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 279,
+            "line": 326,
             "symbol": "self.append(\"TimeShifted\")"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 99,
+            "line": 109,
             "symbol": "labeled(\"Event log (§10)\")"
           }
         ],
@@ -1685,17 +2213,17 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 240,
+            "line": 259,
             "symbol": "player.events.on(PlaybackFinishedEvent.self)"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 249,
+            "line": 268,
             "symbol": "self.append(\"PlaybackFinished\")"
           },
           {
             "file": "apps/ios/Showcase/ContentView.swift",
-            "line": 101,
+            "line": 111,
             "symbol": "model.log.prefix"
           }
         ],
@@ -1706,12 +2234,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 236,
+            "line": 255,
             "symbol": "guard let source = player.source else"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 245,
+            "line": 264,
             "symbol": "player.source === source else"
           }
         ],
@@ -1727,12 +2255,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 182,
+            "line": 191,
             "symbol": "func togglePlayback()"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 186,
+            "line": 195,
             "symbol": "else { player.play() }"
           }
         ],
@@ -1748,12 +2276,12 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 182,
+            "line": 191,
             "symbol": "func togglePlayback()"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 185,
+            "line": 194,
             "symbol": "if player.isPlaying { player.pause() }"
           }
         ],
@@ -1764,7 +2292,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 185,
+            "line": 194,
             "symbol": "if player.isPlaying { player.pause() }"
           }
         ],
@@ -1775,11 +2303,335 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 184,
+            "line": 193,
             "symbol": "guard !player.isDestroyed, player.source != nil"
           }
         ],
         "limitation": "Used to guard or choose the remote Play/Pause operation; this getter is not independently rendered."
+      },
+      "BitmovinPlayerCore.SourceFactory.createSource(from:)": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 178,
+            "symbol": "SourceFactory.createSource(from: sourceSettings.makeSourceConfig())"
+          }
+        ],
+        "limitation": "Internal Source construction for the reviewed load(source:) route; no separate factory or arbitrary SourceConfig object editor.",
+        "status": "code-only"
+      },
+      "BitmovinPlayerCore.StyleConfig.scalingMode": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ConfigurationEditor.swift",
+            "line": 96,
+            "symbol": "Picker(\"Video scaling\", selection: $draft.videoScaling)"
+          },
+          {
+            "file": "apps/ios/Showcase/ConfigurationEditor.swift",
+            "line": 174,
+            "symbol": "Button(\"Apply\")"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 97,
+            "symbol": "draft.validated()"
+          },
+          {
+            "file": "apps/ios/Showcase/Configuration.swift",
+            "line": 33,
+            "symbol": "case .fill: return .zoom"
+          },
+          {
+            "file": "apps/ios/Showcase/Configuration.swift",
+            "line": 92,
+            "symbol": "config.styleConfig.scalingMode = videoScaling.sdkValue"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 134,
+            "symbol": "settings.apply(to: config)"
+          },
+          {
+            "file": "apps/ios/Showcase/ConfigurationCode.swift",
+            "line": 32,
+            "symbol": "\"playerConfig.styleConfig.scalingMode ="
+          }
+        ],
+        "limitation": "All public ScalingMode values are selectable: Fit maps to fit, Fill (crop) to zoom, and Stretch to stretch. Apply recreates the player and the applied-code export uses the same value.",
+        "status": "direct"
+      },
+      "BitmovinPlayerCore.Player.audio": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 232,
+            "symbol": "let audio = player.audio"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 235,
+            "symbol": "audio: audio.map"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 85,
+            "symbol": "model.trackStatus.audio"
+          }
+        ],
+        "limitation": "The currently selected audio label/language is displayed for the owned loaded source.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.subtitle": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 233,
+            "symbol": "let subtitle = player.availableSubtitles.isEmpty ? nil : player.subtitle"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 236,
+            "symbol": "subtitles: subtitle.map"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 87,
+            "symbol": "model.trackStatus.subtitles"
+          }
+        ],
+        "limitation": "The selected subtitle label/language or Off is displayed for the owned loaded source.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.availableAudio": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 359,
+            "symbol": "tracks: player.availableAudio.map"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 360,
+            "symbol": "player.setAudio(trackIdentifier: identifier)"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 85,
+            "symbol": "model.trackStatus.audio"
+          }
+        ],
+        "limitation": "Available audio identifiers/languages are consumed by initial language matching; its selected result is visible in Playback tracks. The app does not expose every track object field.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.availableSubtitles": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 353,
+            "symbol": "tracks: player.availableSubtitles.map"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 233,
+            "symbol": "let subtitle = player.availableSubtitles.isEmpty ? nil : player.subtitle"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 87,
+            "symbol": "model.trackStatus.subtitles"
+          }
+        ],
+        "limitation": "Available subtitles are consumed by initial language matching and the visible Off/selected-track readout. The app does not expose every track object field.",
+        "status": "observed"
+      },
+      "BitmovinPlayerCore.Player.setAudio(trackIdentifier:)": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ConfigurationEditor.swift",
+            "line": 81,
+            "symbol": "text: $draft.audioLanguage"
+          },
+          {
+            "file": "apps/ios/Showcase/Configuration.swift",
+            "line": 163,
+            "symbol": "InitialTrackPreferences.language(audioLanguage"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 296,
+            "symbol": "player.events.on(ReadyEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 344,
+            "symbol": "initialTrackSelection.claim(eventSource: source, currentSource: current)"
+          },
+          {
+            "file": "apps/ios/Showcase/TrackPreferences.swift",
+            "line": 33,
+            "symbol": "static func matchingIdentifier("
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 359,
+            "symbol": "tracks: player.availableAudio.map"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 360,
+            "symbol": "player.setAudio(trackIdentifier: identifier)"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 85,
+            "symbol": "model.trackStatus.audio"
+          }
+        ],
+        "limitation": "App initial-language preference selects the first exact language tag, then the first primary-language match, once at initial Ready for the intended current source. Blank/no match retains the SDK/OS choice; later menu choices are untouched. This route does not provide arbitrary track-ID input or distinguish all same-language tracks.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.Player.setSubtitle(trackIdentifier:)": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/ConfigurationEditor.swift",
+            "line": 82,
+            "symbol": "Picker(\"Initial subtitles\", selection: $draft.subtitleMode)"
+          },
+          {
+            "file": "apps/ios/Showcase/ConfigurationEditor.swift",
+            "line": 91,
+            "symbol": "text: $draft.subtitleLanguage"
+          },
+          {
+            "file": "apps/ios/Showcase/Configuration.swift",
+            "line": 165,
+            "symbol": "InitialTrackPreferences.language(subtitleLanguage"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 296,
+            "symbol": "player.events.on(ReadyEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 344,
+            "symbol": "initialTrackSelection.claim(eventSource: source, currentSource: current)"
+          },
+          {
+            "file": "apps/ios/Showcase/TrackPreferences.swift",
+            "line": 33,
+            "symbol": "static func matchingIdentifier("
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 349,
+            "symbol": "case .off: player.setSubtitle(trackIdentifier: nil)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 353,
+            "symbol": "tracks: player.availableSubtitles.map"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 354,
+            "symbol": "player.setSubtitle(trackIdentifier: identifier)"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 87,
+            "symbol": "model.trackStatus.subtitles"
+          }
+        ],
+        "limitation": "Automatic preserves the SDK/OS choice; Off passes nil; Preferred language selects the first full-tag or primary-language match once at initial Ready. No match keeps the default and later menu choices are untouched. No arbitrary track-ID editor or complete same-language-track selector is provided.",
+        "status": "preset"
+      },
+      "BitmovinPlayerCore.ReadyEvent": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 296,
+            "symbol": "player.events.on(ReadyEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 299,
+            "symbol": ".compactMap { [weak player] _ in player?.source }"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 303,
+            "symbol": "self.completionSource === source, player.source === source else"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 304,
+            "symbol": "self.applyInitialTracks(player, source: source)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 344,
+            "symbol": "initialTrackSelection.claim(eventSource: source, currentSource: current)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 305,
+            "symbol": "self.refresh()"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 84,
+            "symbol": "labeled(\"Playback tracks\")"
+          }
+        ],
+        "limitation": "Ready captures the emitting source before main-queue delivery, rejects retired player/source callbacks, applies app initial-track preferences at most once, and refreshes the visible track/position readout.",
+        "status": "observed",
+        "eventExposure": "monitored"
+      },
+      "BitmovinPlayerCore.AudioChangedEvent": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 308,
+            "symbol": "player.events.on(AudioChangedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 312,
+            "symbol": "self.refresh()"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 85,
+            "symbol": "model.trackStatus.audio"
+          }
+        ],
+        "limitation": "Individually subscribed for the current player and consumed by the visible Playback tracks refresh; no event payload fields are exposed.",
+        "status": "observed",
+        "eventExposure": "monitored"
+      },
+      "BitmovinPlayerCore.SubtitleChangedEvent": {
+        "evidence": [
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 315,
+            "symbol": "player.events.on(SubtitleChangedEvent.self)"
+          },
+          {
+            "file": "apps/ios/Showcase/PlayerModel.swift",
+            "line": 319,
+            "symbol": "self.refresh()"
+          },
+          {
+            "file": "apps/ios/Showcase/ContentView.swift",
+            "line": 87,
+            "symbol": "model.trackStatus.subtitles"
+          }
+        ],
+        "limitation": "Individually subscribed for the current player and consumed by the visible Playback tracks refresh; no event payload fields are exposed.",
+        "status": "observed",
+        "eventExposure": "monitored"
       }
     }
   },
@@ -1791,7 +2643,7 @@
       "SourceConfig.cmcdConfig requires OS 18 or later and TweaksConfig.includeMachineGeneratedSubtitles requires OS 27 or later; family-wide availability retains both."
     ],
     "tvos": [
-      "The UI variant picker is excluded on tvOS and System UI is fixed. The native full-screen editor exposes the same 11 configuration leaves as iOS; there are no configuration presets.",
+      "The UI variant picker is excluded on tvOS and System UI is fixed. The native full-screen editor exposes the same 12 SDK configuration leaves as iOS, plus app initial-track preferences; there are no SDK configuration presets.",
       "The app-owned tvOS remote Play/Pause command maps to Player.play() and Player.pause(). Opaque System UI controls do not receive volume, track or fullscreen credit without exact binding and runtime evidence.",
       "SDK APIs documented as no-op on tvOS remain in the available denominator when their Swift declaration permits tvOS."
     ]
@@ -1805,9 +2657,10 @@
     "Namespace containers remain code-only; only individually mapped leaves receive GUI credit. Allow DVR controls changes an app DvrKit flag, while the separate SDK time shift control changes PlaybackConfig.isTimeShiftEnabled.",
     "Observed getters and event subscriptions receive no configurable or command coverage credit. Player.timeShift is also displayed indirectly, but its single command row is not duplicated as an observation.",
     "Concrete Event types emitted by the four typed listener families are individual event identities. Generic callbacks and abstract event bases are excluded; public listener registration APIs remain separate runtime rows.",
-    "Five event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged triggers DVR refresh. Event payload fields are not exposed.",
+    "Eight event identities are monitored: SourceLoaded, TimeShifted, DvrWindowExceeded and PlaybackFinished have named log entries; TimeChanged refreshes DVR and track state, while Ready applies initial track preferences and AudioChanged/SubtitleChanged refresh the visible track readout. Event payload fields are not exposed.",
     "App-owned configuration controls and derived displays have exact source bindings. SDK-supplied UI controls receive no direct or preset credit without exact binding and runtime evidence.",
     "On 2026-10-21, native GUI checks on iPhone, iPad and Apple TV simulators applied source/startup settings and played the local 60-second HLS and progressive MP4 fixtures with advancing native positions and visible video. Native getters checked the applied start offset, autoplay, bitrate cap and forward-buffer values. Controlled HLS completion checks on iPhone and Apple TV retained the same source and disabled app DVR after PlaybackFinished, even when SDK live/infinite getters persisted; replay and new-source resets were checked separately. These checks do not establish physical-device behavior, audible synchronization, network bitrate enforcement, casting, offline playback or Analytics receipt.",
-    "11 configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s and forward buffer in seconds. Validated Apply reloads source-only changes or recreates the player for startup settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft."
+    "12 SDK configuration leaves have app-owned editors: source URL, HLS/MP4 type, title, poster URL, start offset in seconds and timeline reference, autoplay, startup mute, SDK time shift, maximum bitrate in bit/s, forward buffer in seconds and video scaling. Fit/Fill/Stretch cover the public scaling enum. Validated Apply reloads source-only changes or recreates the player for startup/scaling settings, retaining source options, UI mode, logs and the app DVR switch; playback position resets. Reset to applied changes only the draft.",
+    "Initial audio language and subtitle Automatic/Off/preferred-language controls are app preferences, not SDK configuration properties. The intended Source is bound before load(source:); the first owned Ready selects a full-tag or primary-language match, or leaves the SDK/OS default when unavailable. A claim made before SDK calls prevents repeated selection and later track-menu choices remain untouched. These controls credit the real selection commands and visible getters, without adding configuration fields or arbitrary-object credit."
   ]
 }

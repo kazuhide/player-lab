@@ -1,5 +1,5 @@
 import type { PlayerConfig } from "bitmovin-player";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { BitmovinPlayer } from "./BitmovinPlayer";
 import { ControlPanel } from "./ControlPanel";
@@ -9,6 +9,7 @@ import { SOURCES } from "./Sources";
 import { ConfigurationPanel } from "./ConfigurationPanel";
 import { configurationCode } from "./configurationCode";
 import { initialDraft, parseConfiguration, presetDraft, sameConfiguration } from "./configuration";
+import type { RuntimeMonitor } from "./runtimeObservation";
 
 // Vega has no dotenv toolchain: the Kepler entry sets these globals before the app
 // mounts (values come from the repo-root .env — the same canonical names as every
@@ -17,7 +18,7 @@ const ENV = globalThis as unknown as Record<string, string | undefined>;
 const LICENSE_KEY = ENV.BITMOVIN_PLAYER_LICENSE_KEY ?? "YOUR_PLAYER_KEY";
 const ANALYTICS_LICENSE_KEY = ENV.BITMOVIN_ANALYTICS_LICENSE_KEY ?? "";
 
-export const App: React.FC = () => {
+export const App: React.FC<{ runtimeChecks?: RuntimeMonitor }> = ({ runtimeChecks }) => {
   const [activeId, setActiveId] = useState(SOURCES[0]!.id);
   const [applied, setApplied] = useState(() => parseConfiguration(initialDraft(SOURCES[0]!)));
   const [draft, setDraft] = useState(applied.draft);
@@ -27,6 +28,16 @@ export const App: React.FC = () => {
   const [dvrAllowed, setDvrAllowed] = useState(true);
   const controllerRef = useRef<DvrController | null>(null);
   const appliedCode = useMemo(() => configurationCode(applied), [applied]);
+  useEffect(() => {
+    runtimeChecks?.appState({ dvrAllowed, logCount: log.length, sourceType: applied.draft.type,
+      startOffset: applied.source.options?.startOffset ?? null, autoplay: applied.draft.autoplay,
+      startupMuted: applied.draft.muted, videoForwardBuffer: applied.player.buffer?.video?.forwardduration ?? null,
+      audioForwardBuffer: applied.player.buffer?.audio?.forwardduration ?? null,
+      maxVideoBitrate: typeof applied.player.adaptation?.bitrates?.maxSelectableVideoBitrate === "number"
+        ? applied.player.adaptation.bitrates.maxSelectableVideoBitrate : null,
+      externalSubtitleConfigured: Boolean(applied.source.subtitleTracks?.length) });
+    runtimeChecks?.appliedCode(appliedCode);
+  }, [runtimeChecks, dvrAllowed, log.length, applied, appliedCode]);
 
   const onDvr = useCallback((state: DvrState, line?: string) => {
     setDvr(state);
@@ -38,7 +49,7 @@ export const App: React.FC = () => {
       key: LICENSE_KEY,
       ui: false,
       ...applied.player,
-      tweaks: { app_id: "com.showcase.dvr.vega" },
+      tweaks: { app_id: "com.playerlab.vega" },
       // §15: the analytics module is registered in vegaPlayer.ts; the collector
       // only activates when a key is configured here.
       ...(ANALYTICS_LICENSE_KEY ? { analytics: { key: ANALYTICS_LICENSE_KEY } } : {}),
@@ -79,8 +90,9 @@ export const App: React.FC = () => {
         onDvr={onDvr}
         controllerRef={controllerRef}
         timeShiftEnabled={dvrAllowed}
+        runtimeChecks={runtimeChecks}
       />
-      <ScrollView>
+      <ScrollView testID="player-lab-screen">
         <ControlPanel
           sources={SOURCES}
           activeId={activeId}

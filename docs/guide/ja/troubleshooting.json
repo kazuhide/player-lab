@@ -205,12 +205,12 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 45,
+      "line": 55,
       "label": "Android識別子の許可"
     },
     {
       "path": "apps/ios/README.md",
-      "line": 35,
+      "line": 38,
       "label": "Apple識別子の許可"
     },
     {

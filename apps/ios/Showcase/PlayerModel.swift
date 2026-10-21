@@ -43,6 +43,7 @@ final class PlayerModel: ObservableObject {
     @Published private(set) var sourceSettings: SourceSettings?
     @Published private(set) var playerSettings = PlayerSettings()
     @Published private(set) var configurationStatus = "Startup defaults active"
+    @Published private(set) var trackStatus = PlaybackTrackStatus()
 
     var configurationDraft: ConfigurationDraft {
         ConfigurationDraft(source: sourceSettings, player: playerSettings)
@@ -64,6 +65,7 @@ final class PlayerModel: ObservableObject {
     private weak var completionSource: Source?
     private var liveSourceFinalized = false
     private var lastSnapshot: PlayerSnapshot?
+    private var initialTrackSelection = InitialTrackSelectionGate()
 
     init(licenseKey: String, analyticsLicenseKey: String = "") {
         self.licenseKey = licenseKey
@@ -111,6 +113,7 @@ final class PlayerModel: ObservableObject {
         let previous = player
         cancellables.removeAll()
         resetSourceCompletion()
+        initialTrackSelection.retire()
         lastSnapshot = nil
         let next = PlayerModel.makePlayer(
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
@@ -170,7 +173,13 @@ final class PlayerModel: ObservableObject {
     private func reloadCurrentSource() {
         guard let sourceSettings else { return }
         resetSourceCompletion()
-        player.load(sourceConfig: sourceSettings.makeSourceConfig())
+        initialTrackSelection.retire()
+        trackStatus = PlaybackTrackStatus()
+        let source = SourceFactory.createSource(from: sourceSettings.makeSourceConfig())
+        // Bind the intended source before load: an older queued event can arrive
+        // while the SDK still reports the old current source.
+        initialTrackSelection.bind(source)
+        player.load(source: source)
     }
 
     func goToLiveEdge() {
@@ -219,6 +228,16 @@ final class PlayerModel: ObservableObject {
         lastSnapshot = snap
         dvr = Dvr.deriveState(snap, config: DvrConfig(
             timeShiftEnabled: timeShiftEnabled && playerSettings.sdkTimeShiftEnabled))
+        if let source = player.source, completionSource === source {
+            let audio = player.audio
+            let subtitle = player.availableSubtitles.isEmpty ? nil : player.subtitle
+            trackStatus = PlaybackTrackStatus(
+                audio: audio.map { "\($0.label) [\($0.language ?? "und")]" } ?? "Not available",
+                subtitles: subtitle.map { track in
+                    track.label + (track.language.map { " [\($0)]" } ?? "")
+                } ?? "Off",
+                position: snap.currentTime.isFinite ? snap.currentTime : 0)
+        }
     }
 
     private func append(_ message: String) {
@@ -266,10 +285,38 @@ final class PlayerModel: ObservableObject {
             .store(in: &cancellables)
         player.events.on(SourceLoadedEvent.self)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self, weak player] _ in
-                guard let self, let player, self.player === player else { return }
+            .sink { [weak self, weak player] event in
+                guard let self, let player, self.player === player,
+                      self.initialTrackSelection.owns(event.source),
+                      player.source === event.source else { return }
                 self.bindSourceCompletion(player)
                 self.append("SourceLoaded"); self.refresh()
+            }
+            .store(in: &cancellables)
+        player.events.on(ReadyEvent.self)
+            // Ready has no Source payload. Capture the emitting player's source
+            // before scheduling, so a retired Ready cannot select on a new load.
+            .compactMap { [weak player] _ in player?.source }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, weak player] source in
+                guard let self, let player, self.player === player,
+                      self.completionSource === source, player.source === source else { return }
+                self.applyInitialTracks(player, source: source)
+                self.refresh()
+            }
+            .store(in: &cancellables)
+        player.events.on(AudioChangedEvent.self)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, weak player] _ in
+                guard let self, let player, self.player === player else { return }
+                self.refresh()
+            }
+            .store(in: &cancellables)
+        player.events.on(SubtitleChangedEvent.self)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self, weak player] _ in
+                guard let self, let player, self.player === player else { return }
+                self.refresh()
             }
             .store(in: &cancellables)
         player.events.on(TimeShiftedEvent.self)
@@ -289,5 +336,29 @@ final class PlayerModel: ObservableObject {
                 player.timeShift = 0
             }
             .store(in: &cancellables)
+    }
+
+    private func applyInitialTracks(_ player: Player, source: Source) {
+        guard let preferences = sourceSettings?.initialTracks,
+              let current = player.source else { return }
+        guard initialTrackSelection.claim(eventSource: source, currentSource: current) else { return }
+        // Select once at initial Ready: the tested 3.128 HLS startup restored its
+        // default audio between SourceLoaded and Ready. Later UI choices stay intact.
+        switch preferences.subtitleMode {
+        case .automatic: break
+        case .off: player.setSubtitle(trackIdentifier: nil)
+        case .language:
+            if let language = preferences.subtitleLanguage,
+               let identifier = InitialTrackPreferences.matchingIdentifier(language,
+                tracks: player.availableSubtitles.map { ($0.identifier, $0.language) }) {
+                player.setSubtitle(trackIdentifier: identifier)
+            } else { append("Initial subtitle language unavailable; kept SDK choice") }
+        }
+        if let language = preferences.audioLanguage {
+            if let identifier = InitialTrackPreferences.matchingIdentifier(language,
+                tracks: player.availableAudio.map { ($0.identifier, $0.language) }) {
+                player.setAudio(trackIdentifier: identifier)
+            } else { append("Initial audio language unavailable; kept SDK choice") }
+        }
     }
 }

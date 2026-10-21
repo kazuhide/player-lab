@@ -16,7 +16,7 @@ interface Props {
 export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed, error, appliedCode }: Props): React.JSX.Element {
   const [expanded, setExpanded] = useState(false);
   const update = <K extends keyof ConfigurationDraft>(key: K, value: ConfigurationDraft[K]) => onChange({ ...draft, [key]: value });
-  const field = (label: string, key: "url" | "title" | "poster" | "startOffset" | "videoForwardDuration" | "audioForwardDuration" | "maxVideoBitrate", numeric = false) => (
+  const field = (label: string, key: "url" | "title" | "poster" | "startOffset" | "videoForwardDuration" | "audioForwardDuration" | "maxVideoBitrate" | "subtitleUrl" | "subtitleLabel" | "subtitleLanguage", numeric = false) => (
     <View key={key} style={styles.field}>
       <Text style={styles.label}>{label}</Text>
       <TextInput accessibilityLabel={label} value={draft[key]} onChangeText={(value) => update(key, value)}
@@ -37,6 +37,14 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         </View>
         {field("Source title", "title")}
         {field("Poster URL", "poster")}
+        {field("External WebVTT URL", "subtitleUrl")}
+        {field("Subtitle label", "subtitleLabel")}
+        {field("Subtitle language", "subtitleLanguage")}
+        <View style={styles.row}>
+          <Text style={styles.label}>Enable external subtitle on load</Text>
+          <Switch focusable style={styles.toggle} accessibilityLabel="Enable external subtitle on load" value={draft.subtitleEnabled} onValueChange={(value) => update("subtitleEnabled", value)} />
+        </View>
+        <Text style={styles.help}>Optional: add one external WebVTT track with a label and IETF language tag (for example, en or en-US). A blank URL removes the track and clears its metadata. Enabled tracks display plain cue text over the native video; HTML subtitle styling is not rendered.</Text>
         <Text style={styles.help}>Title and poster are stored with the source. This screen displays no artwork overlay.</Text>
         {field("Start offset (seconds)", "startOffset", true)}
         <Text style={styles.label}>Start offset reference</Text>

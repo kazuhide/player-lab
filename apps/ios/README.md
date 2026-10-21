@@ -35,8 +35,8 @@ The app pins Player 3.128.0; `Package.resolved` also records its transitive
 package revisions.
 
 Set your keys in the repository-root `.env` as described in `docs/SETUP.md`.
-The generated targets use `com.showcase.dvr.Showcase-iOS` and
-`com.showcase.dvr.Showcase-tvOS`. Allow the identifier of the target you run on
+The generated targets use `com.playerlab.ios` and
+`com.playerlab.tvos`. Allow the identifier of the target you run on
 your Player license; if you change it in Xcode, allow the changed identifier.
 See the [official bundle identifier setup](https://github.com/bitmovin/bitmovin-player-ios-samples#add-the-bundle-identifier-as-an-allowed-domain).
 From the repository root:
@@ -99,6 +99,9 @@ Applied settings last for the current app session.
 | SDK time shift / DVR | Enables live DVR in the SDK. Default: on. The separate **Allow DVR controls (app)** switch also governs the app's quick-seek buttons. |
 | Maximum bitrate | Nonnegative whole bit/s; `0` means unlimited. |
 | Forward buffer | Nonnegative finite seconds; `0` lets the SDK choose. |
+| Initial audio language (app) | Optional two- or three-letter language code, with optional script/region subtags, such as `en`, `de-AT`, or `zh-Hant`. Empty keeps the SDK/OS choice. |
+| Initial subtitles (app) | Automatic keeps the SDK/OS choice; Off disables subtitles; Preferred language selects a matching native subtitle track. A language is required only for Preferred language. |
+| Video scaling | Fit preserves aspect ratio and fits the video; Fill (crop) preserves aspect ratio and fills the view; Stretch fills the view without preserving aspect ratio. Default: Fit. |
 
 Source fields and start position changes reload the source on the existing
 player. Playback, bitrate, or buffer changes recreate the player and its native
@@ -108,8 +111,38 @@ The pending action says which operation will run. Apply does not preserve the
 current playback position or playing state; playback starts from the configured
 offset or the SDK default, according to Autoplay.
 
+The initial language controls are application preferences, not language
+properties in `PlayerConfig`. Player 3.128.0 exposes track selection through
+`setAudio(trackIdentifier:)` and `setSubtitle(trackIdentifier:)`. After the
+intended Source loads and reaches its first `Ready` event, the app selects a full
+language-tag match, then a primary
+language match if needed (`de-AT` can select `de`). An unavailable language leaves
+the SDK/OS choice in place. Selection runs once at initial Ready for each source load, so a later
+choice in the SDK's track menu is retained until the next load. These preferences
+reload the source; changing scaling recreates the player because it is applied
+through `StyleConfig.scalingMode` at player creation. Fit, Fill, and Stretch may
+look identical when the video and view have the same aspect ratio.
+
+In the tested Player 3.128.0 HLS startup, selecting German audio during
+`SourceLoaded` briefly selected German, then a later native audio-change event
+restored English before `Ready`; changing the order of the audio/subtitle calls
+did not prevent this. The app therefore waits for the first
+[`Ready`](https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerlistener/onready(_:player:)/index.html),
+when initial audio/video is downloaded, and applies the preferences once. It
+captures the source when Ready is emitted and verifies the intended loaded
+source again before selecting, so a retired callback cannot select tracks on a
+replacement source. This describes the checked SDK/fixture combination, not a
+universal promise about every stream.
+
+Use native HLS subtitle renditions for this workflow on both platforms. External
+subtitle tracks added to `SourceConfig` are supported by the Bitmovin UI or
+Chromecast, and do not provide the same tvOS System UI route. The **Playback
+tracks** section shows the current SDK audio/subtitle selection and position;
+language metadata describes the test rendition, not a translation of its audio.
+
 Selecting a source preset replaces the source URL, type, title, poster, and
-offset options with that preset's values. Player settings, UI mode, and the app
+offset options with that preset's values, and resets its initial track
+preferences. Player settings, UI mode, and the app
 DVR switch remain active. Changing the iOS UI mode also keeps the complete
 current source configuration while recreating the player.
 
@@ -178,7 +211,7 @@ elements and stylesheet, playback started through that UI, switching to live HLS
 and back, seeking behind live, returning to live, disabling/enabling DVR, and
 recreating the player with the Cinema UI. It retains a screenshot in the Xcode
 test result. It uses public reference streams and needs a valid license allowing
-`com.showcase.dvr.Showcase-iOS`. Leave the optional Analytics key empty when no
+`com.playerlab.ios`. Leave the optional Analytics key empty when no
 collection is intended. A library error or unavailable stream fails the test;
 there is no mock fallback or success-on-skip behavior.
 
@@ -456,3 +489,89 @@ In **Configuration**, open **Show applied code** to read the applied Player,
 Source and UI settings. Draft edits are excluded. iOS provides **Copy code** and
 text selection; tvOS displays the code without clipboard integration. The Player
 key is a placeholder, and Analytics license values are not included.
+When initial track preferences are applied, the export includes a retained
+`PlayerListener` that selects once for the explicit loaded Source at initial `Ready`.
+It describes these as app preferences and uses the same full-tag/primary-language
+matching and public SDK methods as the app.
+
+## Reproduce initial tracks and scaling
+
+The opt-in track qualification runner builds the normal app plus tests from
+this checkout. It needs Xcode, XcodeGen, the normal allowed Player license, and
+the generated native-subtitle HLS fixture. Complete the build setup above, then
+run from the repository root with a simulator UDID from
+`xcrun simctl list devices available`:
+
+```sh
+python3 encoding/test-streams/local.py --output .cache/apple-track-media
+python3 apps/ios/run-track-qualification.py --platform ios \
+  --destination <OWNED_IOS_SIMULATOR_UDID> \
+  --media-dir .cache/apple-track-media \
+  --artifacts .cache/apple-track-ios
+python3 apps/ios/run-track-qualification.py --platform tvos \
+  --destination <OWNED_TVOS_SIMULATOR_UDID> \
+  --media-dir .cache/apple-track-media \
+  --artifacts .cache/apple-track-tvos
+```
+
+Choose a new artifacts directory for each run. The runner serves only the
+generated media on an ephemeral loopback port, closes that server on exit,
+generates the Xcode project and runs two tests per platform. It stores raw Xcode
+logs and result bundles in the private artifacts directory, and prints a safe
+summary with exit status, test counts, public source/resource hashes and source
+revision. It does not read or print license values. Do not publish raw result
+bundles without inspecting their attachments and diagnostics.
+
+The GUI test enters the HLS URL, initial German audio/subtitles, scaling and
+autoplay through actual controls. iOS uses touch input; tvOS uses remote focus,
+Select and the system keyboard. It checks advancing SDK-backed position labels,
+subtitle Off, English after player recreation, invalid draft rejection, Reset,
+and applied code. iOS also switches between Sports and Default. The hosted
+public-SDK test checks fresh Source loads, same-player reload, old-player
+destruction, retained app DVR selection, later track selection, and native
+`AVPlayerLayer.videoRect` geometry in a square viewport for all three scaling
+modes. The square viewport is a test surface, separate from the normal app GUI.
+Both tests fail on unavailable media or missing playback; no mock or
+success-on-skip path is used.
+
+The runner's selected-plan ownership checks need neither a license nor Xcode:
+
+```sh
+python3 -m unittest discover -s apps/ios -p test_track_qualification.py -v
+```
+
+They verify exclusive creation, preservation of an existing plan, and cleanup
+after successful use, serialization failure and partial writes. Each native
+case couples its current audio/subtitle selections with advancing position after
+the configured initial seek; a transient selection is insufficient.
+
+For a negative control, use a new artifacts directory and add
+`--ui-only --expected-audio en`. The GUI still requests German, so its real audio
+selection assertion must fail. This demonstrates that the entry checks native
+selection instead of merely completing form input. `--ui-only` can also run the
+normal GUI case alone; `--sdk-only` runs only the hosted SDK case.
+`--derived-data` and `--source-packages` optionally reuse
+an existing public build/package cache; they are not required private helpers.
+
+These checks establish simulator configuration, track selection, rendering
+geometry and playback. They do not measure bitrate enforcement, buffering
+performance, physical devices, DRM, casting or Analytics receipt.
+
+On 2026-10-21, the public runner passed both cases on each destination below
+with Player 3.128.0 and the normal `com.playerlab.ios` / `com.playerlab.tvos`
+app identities. Xcode generation, build and test exited zero; each finalized
+result contained two passes, zero failures and zero skipped tests.
+
+| Destination | Hosted SDK case | Normal GUI case |
+| --- | --- | --- |
+| iPad Pro 11-inch (M5) / iPadOS 26.4 | 9.403 s | 172.160 s |
+| Apple TV 4K (3rd generation) / tvOS 26.4 | 9.981 s | 277.297 s |
+
+The hostless configuration schemes passed 14 tests each. The runner file-ownership
+suite passed four tests, and the exact generated Ready-based Swift examples
+typechecked for both platforms. The iPad negative control deliberately expected
+English while the GUI requested German: it failed the current-selection check
+in 101.448 seconds, with one failed case and no skips. The inspected normal-GUI
+captures show the new settings, native German subtitles and placeholder-only
+applied code. The separate square-viewport captures show Fit letterboxing,
+Fill cropping and Stretch distortion; they are test surfaces, not the app layout.

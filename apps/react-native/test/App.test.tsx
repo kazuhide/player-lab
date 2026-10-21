@@ -30,11 +30,12 @@ vi.mock("bitmovin-player-react-native", async () => {
     CustomUi: class { constructor(public factoryFunction: string) {} },
     PlayerView: "PlayerView",
     SourceType: { HLS: "hls", DASH: "dash", PROGRESSIVE: "progressive" },
+    SubtitleFormat: { VTT: "vtt" },
     TimelineReferencePoint: { START: "start", END: "end" },
     UserInterfaceType: { Bitmovin: "bitmovin" },
     usePlayer: (config: object) => useState(() => {
       const player = {
-        config, load: vi.fn(), destroy: vi.fn(), timeShift: vi.fn(),
+        config, load: vi.fn(), isDestroyed: false, destroy: vi.fn(() => { player.isDestroyed = true; }), timeShift: vi.fn(),
         isLive: vi.fn(async () => true), getDuration: vi.fn(async () => Infinity),
         getMaxTimeShift: vi.fn(async () => -900), getTimeShift: vi.fn(async () => 0),
         getCurrentTime: vi.fn(async () => 0),
@@ -46,6 +47,7 @@ vi.mock("bitmovin-player-react-native", async () => {
 });
 
 import App from "../App";
+import { createRuntimeMonitor } from "../src/runtimeObservation";
 
 let screen: ReactTestRenderer;
 let errors: ReturnType<typeof vi.spyOn>;
@@ -82,6 +84,124 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it("keeps Android SDK touches inside the player until every player pointer ends or cancels", async () => {
+    await mount(); await ready();
+    const playerArea = () => element("View", { testID: "player-lab-player" });
+    const scroll = () => element("ScrollView", { testID: "player-lab-screen" });
+    const touch = (identifier: string, remaining: string[]) => ({ nativeEvent: {
+      identifier, touches: remaining.map((identifier) => ({ identifier })),
+    } });
+    expect(scroll().props.scrollEnabled).not.toBe(false);
+    expect(playerArea().props.onTouchStartCapture).toBeTypeOf("function");
+    await act(async () => playerArea().props.onTouchStartCapture(touch("one", ["one"])));
+    expect(scroll().props.scrollEnabled).toBe(false);
+    await act(async () => playerArea().props.onTouchStartCapture(touch("two", ["one", "two"])));
+    await act(async () => element("PlayerView").props.onSourceLoaded());
+    expect(scroll().props.scrollEnabled).toBe(false);
+    await act(async () => playerArea().props.onTouchEndCapture(touch("one", ["two"])));
+    expect(scroll().props.scrollEnabled).toBe(false);
+    await act(async () => playerArea().props.onTouchCancelCapture(touch("two", [])));
+    expect(scroll().props.scrollEnabled).toBe(true);
+    await act(async () => playerArea().props.onTouchStartCapture(touch("three", ["three", "outside"])));
+    await act(async () => playerArea().props.onTouchEndCapture(touch("three", ["outside"])));
+    expect(scroll().props.scrollEnabled).toBe(true);
+    // Form fingers that never started in the video must not keep it locked.
+    await press("Show configuration");
+    await text("Source title", "Form remains editable");
+    expect(input("Source title").props.value).toBe("Form remains editable");
+  });
+
+  it("releases an Android touch on player replacement and ignores the retired pane's notifications", async () => {
+    await mount(); await ready();
+    const playerArea = () => element("View", { testID: "player-lab-player" });
+    const scroll = () => element("ScrollView", { testID: "player-lab-screen" });
+    const touch = (identifier: string, remaining: string[]) => ({ nativeEvent: {
+      identifier, touches: remaining.map((identifier) => ({ identifier })),
+    } });
+    const retired = playerArea().props;
+    expect(retired.onTouchStartCapture).toBeTypeOf("function");
+    await act(async () => retired.onTouchStartCapture(touch("old", ["old"])));
+    await press("Sports");
+    expect(scroll().props.scrollEnabled).toBe(true);
+    await act(async () => playerArea().props.onTouchStartCapture(touch("new", ["new"])));
+    expect(scroll().props.scrollEnabled).toBe(false);
+    await act(async () => retired.onTouchCancelCapture(touch("old", [])));
+    await act(async () => retired.onTouchStartCapture(touch("late", ["late"])));
+    expect(scroll().props.scrollEnabled).toBe(false);
+    await act(async () => playerArea().props.onTouchEndCapture(touch("new", [])));
+    expect(scroll().props.scrollEnabled).toBe(true);
+  });
+
+  it("keeps the iOS player and form scroll handling unchanged", async () => {
+    runtime.os = "ios";
+    await mount(); await ready();
+    const playerArea = element("View", { testID: "player-lab-player" });
+    expect(playerArea.props.onTouchStartCapture).toBeUndefined();
+    expect(playerArea.props.onTouchEndCapture).toBeUndefined();
+    expect(playerArea.props.onTouchCancelCapture).toBeUndefined();
+    expect(element("ScrollView", { testID: "player-lab-screen" }).props.scrollEnabled).not.toBe(false);
+  });
+
+  it("applies one validated WebVTT track and exports only its applied metadata", async () => {
+    await mount();
+    await ready();
+    await press("Show configuration");
+    await text("External WebVTT URL", " https://example.com/captions.vtt ");
+    await text("Subtitle label", " English captions ");
+    await text("Subtitle language", "en-us");
+    await act(async () => element("Switch", { accessibilityLabel: "Mark as default" }).props.onValueChange(true));
+    await press("Apply and recreate player");
+    await ready();
+    expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ subtitleTracks: [{
+      url: "https://example.com/captions.vtt", label: "English captions", language: "en-US",
+      identifier: "player-lab-external", format: "vtt", isDefault: true,
+    }] }));
+    await press("Show applied code");
+    expect(input("Applied configuration code").props.value).toContain('"isDefault": true');
+    await text("Subtitle label", "Only a draft");
+    await press("Reset draft");
+    expect(input("Subtitle label").props.value).toBe("English captions");
+    await press("Sports");
+    await ready();
+    expect(current().load.mock.calls[current().load.mock.calls.length - 1]?.[0].subtitleTracks[0].language).toBe("en-US");
+    await text("External WebVTT URL", "");
+    await press("Apply and recreate player");
+    await ready();
+    expect(current().load.mock.calls[current().load.mock.calls.length - 1]?.[0]).not.toHaveProperty("subtitleTracks");
+    expect(input("Subtitle label").props.value).toBe("");
+  });
+
+  it.each([
+    ["External WebVTT URL", "file:///captions.vtt"],
+    ["Subtitle label", "  "],
+    ["Subtitle language", "not a language"],
+  ])("keeps invalid external subtitle %s away from the SDK", async (label, value) => {
+    await mount(); await ready(); await press("Show configuration");
+    await text("External WebVTT URL", "https://example.com/captions.vtt");
+    await text("Subtitle label", "English");
+    await text("Subtitle language", "en");
+    await text(label, value);
+    await press("Apply and recreate player");
+    expect(runtime.players).toHaveLength(1);
+    expect(current().load).toHaveBeenCalledTimes(1);
+    expect(element("Text", { accessibilityRole: "alert" })).toBeDefined();
+  });
+  it("observes the real mounted owner only in the opt-in runtime entry and retires it on Apply", async () => {
+    const monitor = createRuntimeMonitor();
+    await act(async () => { screen = create(<App runtimeChecks={monitor} />); });
+    expect(monitor.report()).toMatchObject({ created: 1, owner: { generation: 1, viewReady: false } });
+    await ready();
+    await act(async () => element("PlayerView").props.onSourceLoaded());
+    expect(monitor.report().owner).toMatchObject({ viewReady: true, sourceLoads: 1, sourceLoaded: 1 });
+    const oldView = element("PlayerView").props;
+    await press("Show configuration");
+    await text("Source title", "Runtime applied title");
+    await press("Apply and recreate player");
+    expect(monitor.report()).toMatchObject({ created: 2, retired: [{ generation: 1, wrapperDestroyed: true }],
+      owner: { generation: 2, sourceLoaded: 0 }, app: { revision: 1, ui: "Default", logCount: 3 } });
+    await act(async () => oldView.onSourceLoaded());
+    expect(monitor.report().owner?.sourceLoaded).toBe(0);
+  });
   it("places the iOS configuration inputs inside the ScrollView that adjusts for the keyboard", async () => {
     runtime.os = "ios";
     await mount();
