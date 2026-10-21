@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { observePlayback } from "../src/playback-observation";
 
 const analyticsEnabled = process.env.E2E_PAGES_ANALYTICS_ENABLED === "1";
 const audits = new WeakMap<Page, { api: string[]; collectors: { method: string; type: string }[]; errors: string[] }>();
@@ -43,6 +44,8 @@ async function videoState(page: Page) {
 }
 
 async function expectPlayback(page: Page): Promise<void> {
+  // Native HLS may suspend frame presentation while the player is offscreen.
+  await page.locator("#player").scrollIntoViewIfNeeded();
   await expect.poll(() => videoState(page)).toMatchObject({ ready: true });
   const initial = await videoState(page);
   expect(initial.duration).toBeGreaterThan(59);
@@ -177,6 +180,8 @@ test("the app and guide keep language, relative navigation and document width at
       await page.locator(".guide-back").click();
       await expect(page).toHaveURL(/\/player-lab\/web\/index\.html$/);
       await expect(page.locator("html")).toHaveAttribute("lang", language);
+      // Finish the returned app's initial load before the next navigation.
+      await expect.poll(() => videoState(page)).toMatchObject({ ready: true });
     }
   }
 });
@@ -248,7 +253,9 @@ test("the subtitle menu enables and renders the bundled WebVTT cue", async ({ pa
 test("the seek bar displays a decoded sprite from the bundled thumbnail track", async ({ page }, testInfo) => {
   await openApp(page);
   await page.getByRole("button", { name: "Default (Bitmovin)", exact: true }).click();
+  await observePlayback(page);
   await page.getByRole("button", { name: "VOD + Sprites", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.__playbackObservation?.sourceLoaded ?? 0)).toBe(1);
   await expectPlayback(page);
   const image = page.waitForResponse((response) => response.url().endsWith("/sprite-0.jpg") && response.status() === 200);
   await page.locator(".bmpui-ui-seekbar .bmpui-seekbar").hover({ position: { x: 20, y: 2 } });
@@ -295,8 +302,10 @@ test("the original config GUI applies runtime, source reload and player recreati
   await offset.blur();
   const reload = page.getByRole("button", { name: /Reload the source to apply/ });
   await expect(reload).toBeEnabled();
+  await observePlayback(page);
   await reload.click();
   await expect(reload).toBeDisabled();
+  await expect.poll(() => page.evaluate(() => window.__playbackObservation?.sourceLoaded ?? 0)).toBe(1);
   await expect(page.locator(".bmpui-label-metadata-title")).toHaveText("Pages source configuration");
   await expectPlayback(page);
   const reloaded = await videoState(page);
@@ -319,7 +328,10 @@ test("the original config GUI applies runtime, source reload and player recreati
   await expect.poll(() => page.locator("#player video").evaluate((video: HTMLVideoElement) => ({
     paused: video.paused, muted: video.muted, volume: video.volume,
   }))).toEqual({ paused: true, muted: true, volume: 0.4 });
+  await expect(page.locator(".panel-log")).toContainText(/sourceloaded/i);
   await expect(page.locator(".bmpui-label-metadata-title")).toHaveText("Pages source configuration");
+  await page.locator("#player").scrollIntoViewIfNeeded();
+  await page.locator("#player").hover();
   await page.locator(".bmpui-ui-playbacktogglebutton").click();
   await expectPlayback(page);
   await previousVideo!.dispose();

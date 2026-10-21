@@ -6,6 +6,17 @@ video sizes (320×180 and 640×360), AAC audio, HLS and DASH manifests, sprite
 thumbnails and a separate subtitle file. The cloud templates remain available
 for testing the Encoding API itself.
 
+The multi-audio HLS preset also contains English and German subtitle renditions.
+Each has thirty two-second WebVTT segments with generated test text, allowing
+native HLS clients to select subtitles without a separate application API. A
+zero-based `X-TIMESTAMP-MAP` relates cue times to the media timeline. These cues
+identify the selected language; they are not translations of the film dialogue.
+The subtitle playlists also copy each video segment's `EXT-X-PROGRAM-DATE-TIME`.
+That shared wall-clock mapping matters even for this finite clip: without it,
+the tested native HLS path in WebKit requested only the final subtitle segment
+and produced no active cue near the beginning. Matching the video dates restored
+the expected cues without changing video timestamps or injecting subtitle events.
+
 ## Run the checks
 
 Install FFmpeg with `libx264` and `aac` encoders, `ffprobe`, Python 3 and `curl`,

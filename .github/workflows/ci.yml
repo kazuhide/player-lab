@@ -107,7 +107,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Install browser
-        run: pnpm --filter @showcase/e2e exec playwright install --with-deps chromium
+        run: pnpm --filter @showcase/e2e exec playwright install --with-deps chromium firefox
       - name: Check public playback and the existing GUI
         env:
           PLAYWRIGHT_BROWSER_CHANNEL: chromium
@@ -172,6 +172,11 @@ jobs:
           E2E_PAGES_DIR: ${{ runner.temp }}/pages-release/site
           E2E_PAGES_ANALYTICS_ENABLED: ${{ vars.PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY != '' && '1' || '0' }}
         run: pnpm --filter @showcase/e2e e2e:pages
+      - name: Check Firefox against the same production artifact
+        env:
+          E2E_PAGES_DIR: ${{ runner.temp }}/pages-release/site
+          E2E_PAGES_ANALYTICS_ENABLED: ${{ vars.PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY != '' && '1' || '0' }}
+        run: pnpm --filter @showcase/e2e e2e:cross-browser --project=firefox
       - name: Verify the tested Pages files before upload
         run: python3 scripts/package-pages.py --verify-dir "$RUNNER_TEMP/pages-release/site" --manifest "$RUNNER_TEMP/pages-release/manifest.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -180,6 +185,38 @@ jobs:
           path: ${{ runner.temp }}/pages-release
           if-no-files-found: error
           retention-days: 1
+
+  webkit:
+    needs: web
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.19.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install WebKit for the macOS media platform
+        run: pnpm --filter @showcase/e2e exec playwright install webkit
+      - name: Download the same production files checked by Chromium and Firefox
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: pages-release
+          path: ${{ runner.temp }}/pages-release
+      - name: Verify downloaded Pages files
+        run: python3 scripts/package-pages.py --verify-dir "$RUNNER_TEMP/pages-release/site" --manifest "$RUNNER_TEMP/pages-release/manifest.json"
+      - name: Check WebKit playback and the guide against the production artifact
+        env:
+          E2E_PAGES_DIR: ${{ runner.temp }}/pages-release/site
+          E2E_PAGES_ANALYTICS_ENABLED: ${{ vars.PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY != '' && '1' || '0' }}
+        run: pnpm --filter @showcase/e2e e2e:cross-browser --project=webkit
+      - name: Verify the tested Pages files again
+        run: python3 scripts/package-pages.py --verify-dir "$RUNNER_TEMP/pages-release/site" --manifest "$RUNNER_TEMP/pages-release/manifest.json"
 
   ios:
     needs: build

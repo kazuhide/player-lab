@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import { expectMovingVideo } from "../src/playback-observation";
 
 type Language = "en" | "ja";
 interface Setting { scope: string; path: string }
@@ -88,10 +89,15 @@ async function expectHeadingStructure(page: Page): Promise<void> {
 
 async function tabTo(page: Page, target: Locator): Promise<void> {
   for (let index = 0; index < 15; index++) {
-    await page.keyboard.press("Tab");
+    await page.keyboard.press(navigationKey("Tab"));
     if (await target.evaluate((element) => element === document.activeElement)) return;
   }
   await expect(target).toBeFocused();
+}
+
+function navigationKey(key: "Tab" | "ArrowRight"): string {
+  // macOS WebKit follows the platform's Option-key navigation behavior.
+  return process.platform === "darwin" && test.info().project.name === "webkit" ? `Alt+${key}` : key;
 }
 
 const errors = new WeakMap<Page, string[]>();
@@ -123,6 +129,7 @@ for (const language of languages) {
       await expect(page).toHaveURL(/\/player-lab\/web\/$/);
       await page.getByRole("button", { name: language === "ja" ? "日本語" : "English", exact: true }).click();
       await expect(page.locator("html")).toHaveAttribute("lang", language);
+      await expectMovingVideo(page);
       const guide = page.locator("#user-guide-link");
       await expect(guide).toHaveAttribute("hreflang", language);
       await expect(guide).toHaveText(language === "ja" ? "ユーザーガイド" : "User guide");
@@ -136,6 +143,7 @@ for (const language of languages) {
       await page.locator(".guide-header nav a").first().click();
       await expect(page).toHaveURL(/\/player-lab\/web\/$/);
       await expect(page.locator("html")).toHaveAttribute("lang", language);
+      await expectMovingVideo(page);
     });
 
     test("all chapters and reference routes serve their own localized content", async ({ page }) => {
@@ -429,14 +437,14 @@ for (const language of languages) {
 
     test("skip navigation and the mobile contents work with the keyboard", async ({ page }) => {
       await page.goto(guidePath(language, "start"));
-      await page.keyboard.press("Tab");
+      await page.keyboard.press(navigationKey("Tab"));
       await expect(page.locator(".skip-link")).toBeFocused();
       await expect(page.locator(".skip-link")).toBeVisible();
       await page.keyboard.press("Enter");
       await expect(page.locator("main")).toBeFocused();
       await page.setViewportSize({ width: 375, height: 900 });
       await page.goto(guidePath(language));
-      await page.keyboard.press("Tab");
+      await page.keyboard.press(navigationKey("Tab"));
       const skip = page.locator(".skip-link");
       await expect(skip).toBeFocused();
       const hit = await skip.evaluate((element) => {
@@ -451,7 +459,7 @@ for (const language of languages) {
       await expect(summary).toHaveCSS("outline-style", "solid");
       await page.keyboard.press("Enter");
       await expect(page.locator(".guide-mobile-contents")).toHaveAttribute("open", "");
-      await page.keyboard.press("Tab");
+      await page.keyboard.press(navigationKey("Tab"));
       const firstChapter = page.locator(".guide-mobile-contents nav a").first();
       await expect(firstChapter).toBeFocused();
       await page.keyboard.press("Enter");
@@ -507,6 +515,9 @@ test("localized guide figures and representative theme images decode", async ({ 
       await expect(images).toHaveCount(slug === "themes" ? 2 : 1);
       for (const image of await images.all()) {
         await image.scrollIntoViewIfNeeded();
+        // Firefox can reject decode() before a lazy image request has started.
+        await expect.poll(() => image.evaluate((element: HTMLImageElement) =>
+          element.complete && element.naturalWidth > 0)).toBe(true);
         const decoded = await image.evaluate(async (element: HTMLImageElement) => {
           await element.decode();
           return { complete: element.complete, width: element.naturalWidth, height: element.naturalHeight, src: element.currentSrc };
@@ -565,7 +576,7 @@ test.describe("guide without JavaScript", () => {
         if (width === 375) {
           expect(layout.scrollWidth).toBeGreaterThan(layout.clientWidth);
           await table.focus();
-          await page.keyboard.press("ArrowRight");
+          await page.keyboard.press(navigationKey("ArrowRight"));
           await expect.poll(() => table.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
         }
         await expectNoDocumentOverflow(page);
@@ -674,7 +685,7 @@ test("API search, bilingual fragments and table disclosure work with the keyboar
     const region = group.locator(".guide-coverage-table");
     expect(await region.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
     await region.focus();
-    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press(navigationKey("ArrowRight"));
     await expect.poll(() => region.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
     await expectNoDocumentOverflow(page);
     await page.locator("a[data-guide-language]").click();

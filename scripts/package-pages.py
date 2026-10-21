@@ -37,6 +37,8 @@ MEDIA_FILES = {
     *(f'vod-baseline/init-stream{number}.m4s' for number in range(4)),
 }
 MEDIA_SEGMENT = re.compile(r'vod-baseline/chunk-stream[0-3]-[0-9]{5}\.m4s')
+MEDIA_SUBTITLE_SEGMENT = re.compile(r'vod-multiaudio/subtitle-(?:en|de)-[0-2][0-9]\.vtt')
+OPTIONAL_MEDIA_FILES = {f'vod-multiaudio/subtitle-{language}.m3u8' for language in ('en', 'de')}
 MEDIA_DIRECTORIES = {'vod-baseline', 'vod-sprites', 'vod-sprites/thumbnails', 'vod-multiaudio', 'assets'}
 DASH_NAMESPACE = 'urn:mpeg:dash:schema:mpd:2011'
 DASH_SCHEMA = ('urn:mpeg:DASH:schema:MPD:2011 '
@@ -111,9 +113,9 @@ def check_dash(name, text, files):
 
 def collect_media(root, allow_report=True):
     files = regular_tree(root, MEDIA_DIRECTORIES)
-    allowed = MEDIA_FILES | ({'fixture-report.json'} if allow_report else set())
+    allowed = MEDIA_FILES | OPTIONAL_MEDIA_FILES | ({'fixture-report.json'} if allow_report else set())
     if not MEDIA_FILES <= files.keys() or any(
-        name not in allowed and not MEDIA_SEGMENT.fullmatch(name)
+        name not in allowed and not MEDIA_SEGMENT.fullmatch(name) and not MEDIA_SUBTITLE_SEGMENT.fullmatch(name)
         for name in files
     ):
         raise ValueError('The media fixture contains missing or unexpected files.')
@@ -144,7 +146,7 @@ def collect_media(root, allow_report=True):
                     raise ValueError('An HLS URI attribute is malformed.')
                 for value in values:
                     target = media_reference(name, value, files)
-                    if not target.endswith(('.m3u8', '.m4s')):
+                    if not target.endswith(('.m3u8', '.m4s')) and not MEDIA_SUBTITLE_SEGMENT.fullmatch(target):
                         raise ValueError('An HLS fixture references an unexpected file type.')
                     references.add(target)
         elif name == 'vod-sprites/thumbnails/thumbnails.vtt':
@@ -154,7 +156,8 @@ def collect_media(root, allow_report=True):
                 if not re.fullmatch(r'sprite-0\.jpg#xywh=\d+,\d+,\d+,\d+', line):
                     raise ValueError('The thumbnail track has an unexpected image reference.')
                 references.add(media_reference(name, line, files, sprite=True))
-    if any(MEDIA_SEGMENT.fullmatch(name) and name not in references for name in files):
+    if any((MEDIA_SEGMENT.fullmatch(name) or MEDIA_SUBTITLE_SEGMENT.fullmatch(name)
+            or name in OPTIONAL_MEDIA_FILES) and name not in references for name in files):
         raise ValueError('The media fixture contains an unreferenced segment.')
     return files
 

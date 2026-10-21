@@ -280,6 +280,21 @@ class PagesPackageTests(unittest.TestCase):
             self.assertEqual((self.output / 'web/media' / name).read_bytes(), (media / name).read_bytes())
         self.assertNotIn('fixture-report', self.manifest.read_text())
 
+    def test_native_hls_subtitles_are_packaged_only_with_local_referenced_segments(self):
+        media = self.make_media()
+        master = media / 'vod-multiaudio/master.m3u8'
+        master.write_text(master.read_text() + '#EXT-X-MEDIA:TYPE=SUBTITLES,URI="subtitle-en.m3u8"\n')
+        self.write(media, 'vod-multiaudio/subtitle-en.m3u8',
+                   b'#EXTM3U\n#EXTINF:2.000,\nsubtitle-en-00.vtt\n#EXT-X-ENDLIST\n')
+        self.write(media, 'vod-multiaudio/subtitle-en-00.vtt',
+                   b'WEBVTT\nX-TIMESTAMP-MAP=LOCAL:00:00:00.000,MPEGTS:0\n\n00:00.000 --> 00:02.000\nTest\n')
+        self.make_package('--media-dir', media)
+        self.assertTrue((self.output / 'web/media/vod-multiaudio/subtitle-en-00.vtt').is_file())
+        self.write(media, 'vod-multiaudio/subtitle-en-01.vtt', b'WEBVTT\n')
+        other_output = self.root / 'unreferenced-output'
+        self.output, self.manifest = other_output, self.root / 'unreferenced-report.json'
+        self.assert_rejected('--media-dir', media)
+
     def test_media_references_cannot_escape_or_load_remote_resources(self):
         media = self.make_media()
         playlist = media / 'vod-sprites/master.m3u8'
