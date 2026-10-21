@@ -383,7 +383,7 @@ private fun PlayerLabScreen(controller: PlayerController) {
             AndroidView(
                 factory = { context ->
                     PlayerTouchHost(context,
-                        controller.attachView(PlayerView(context, displayedPlayer, playerViewConfig(uiMode))))
+                        controller.attachView(PlayerView(context, displayedPlayer, controller.apiOverrides.view(playerViewConfig(uiMode)))))
                 },
                 // Detach the shared player BEFORE releasing the view: PlayerView.onDestroy()
                 // destroys its attached player, but `controller` owns the player's lifecycle

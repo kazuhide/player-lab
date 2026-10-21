@@ -75,4 +75,38 @@ class ApiSettingsTest {
         assertEquals(emptyList<String>(), overrides.source(SourceConfig("https://example.invalid/a.m3u8", SourceType.Hls)).audioCodecPriority)
         assertFalse(overrides.code().contains("0003"))
     }
+
+    @Test fun structured_maps_cmcd_and_view_settings_reach_their_sdk_types() {
+        val overrides = ApiOverrides.validate(mapOf(
+            id("source.SourceConfig.metadata") to "label=Example\nvalue=a=b",
+            id("source.CmcdConfig.Enabled.contentId") to "public-sample",
+            id("source.CmcdConfig.Enabled.excludedKeys") to "SessionId,ContentId",
+            id("ui.PlayerViewConfig.surfaceType") to "TextureView",
+            id("ui.UiConfig.WebUi.focusUiOnInitialization") to "true",
+            id("casting.RemoteControlConfig.customReceiverConfig") to "mode=test",
+        ))
+        val source = overrides.source(SourceConfig("https://example.invalid/a.m3u8", SourceType.Hls))
+        assertEquals(mapOf("label" to "Example", "value" to "a=b"), source.metadata)
+        val cmcd = source.cmcdConfig as com.bitmovin.player.api.source.CmcdConfig.Enabled
+        assertEquals("public-sample", cmcd.contentId)
+        assertEquals(2, cmcd.excludedKeys.size)
+        val view = overrides.view(com.bitmovin.player.api.ui.PlayerViewConfig())
+        assertEquals(com.bitmovin.player.api.ui.SurfaceType.TextureView, view.surfaceType)
+        assertTrue((view.uiConfig as com.bitmovin.player.api.ui.UiConfig.WebUi).focusUiOnInitialization)
+        assertEquals(mapOf("mode" to "test"), overrides.player(PlayerConfig()).remoteControlConfig.customReceiverConfig)
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(id("source.SourceConfig.metadata") to "same=one\nsame=two")) }.isFailure)
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(id("source.CmcdConfig.Enabled.contentId") to "x".repeat(65))) }.isFailure)
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(id("source.CmcdSessionId.Custom.value") to "")) }.isFailure)
+    }
+
+    @Test fun incompatible_union_variants_are_rejected_before_player_replacement() {
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(
+            id("BandwidthMeterType.Default.bandwidthEstimateWeightLimit") to "2000",
+            id("BandwidthMeterType.Experimental.usePreloadHintsForBandwidthEstimation") to "true",
+        )) }.isFailure)
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(
+            id("ui.UiConfig.WebUi.variant") to "TvUi",
+            id("ui.UiConfig.WebUi.Variant.Custom.uiManagerFactoryFunction") to "exampleFactory",
+        )) }.isFailure)
+    }
 }

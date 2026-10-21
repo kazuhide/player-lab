@@ -65,7 +65,8 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
         Button(onClick = { values = controller.apiOverrides.values; input = values[selected].orEmpty(); error = "" },
             modifier = Modifier.testTag("api-settings-reset")) { Text("Reset SDK draft") }
         Text("Applied SDK override code", style = MaterialTheme.typography.titleSmall)
-        Text("Apply these assignments to fresh configuration objects before creating Player and Source. Use a mutable playerConfig variable for copy assignments. No license values are included.", style = MaterialTheme.typography.bodySmall)
+        if (controller.configurationStatus.isNotEmpty()) Text(controller.configurationStatus)
+        Text("Apply these assignments to fresh configuration objects before creating Player, Source and PlayerView. Use mutable playerConfig and playerViewConfig variables for copy assignments. No license values are included.", style = MaterialTheme.typography.bodySmall)
         SelectionContainer { Text(controller.apiOverrides.code().ifEmpty { "// No additional SDK overrides." },
             style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-settings-code")) }
     }

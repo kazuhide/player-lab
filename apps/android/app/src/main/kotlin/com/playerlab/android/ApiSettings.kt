@@ -6,9 +6,11 @@ import com.bitmovin.player.api.live.*
 import com.bitmovin.player.api.media.MediaFilter
 import com.bitmovin.player.api.media.thumbnail.ThumbnailTrack
 import com.bitmovin.player.api.source.*
+import com.bitmovin.player.api.network.HttpRequestType
+import com.bitmovin.player.api.ui.*
 import com.bitmovin.player.api.vr.*
 
-internal enum class ApiValueKind { Boolean, Integer, LongInteger, Decimal, FloatDecimal, Text, TextList, Choice }
+internal enum class ApiValueKind { Boolean, Integer, LongInteger, Decimal, FloatDecimal, Text, TextList, StringMap, Choice }
 
 /** Explicit typed setters; no reflection, script evaluation or arbitrary SDK mutation. */
 internal data class ApiSetting(
@@ -22,6 +24,7 @@ internal data class ApiSetting(
     val nullable: Boolean = false,
     val player: ((PlayerConfig, String) -> PlayerConfig)? = null,
     val source: ((SourceConfig, String) -> Unit)? = null,
+    val view: ((PlayerViewConfig, String) -> PlayerViewConfig)? = null,
     val code: (String) -> String,
 ) {
     fun normalize(input: String): String {
@@ -30,11 +33,16 @@ internal data class ApiSetting(
         val number = when (kind) {
             ApiValueKind.Boolean -> { require(value == "true" || value == "false") { "Choose true or false." }; null }
             ApiValueKind.Integer -> value.toIntOrNull()?.toDouble() ?: error("Enter a whole 32-bit integer.")
-            ApiValueKind.LongInteger -> { value.toLongOrNull() ?: error("Enter a whole 64-bit integer."); null }
+            ApiValueKind.LongInteger -> value.toLongOrNull()?.toDouble() ?: error("Enter a whole 64-bit integer.")
             ApiValueKind.Decimal -> value.toDoubleOrNull()?.also { require(it.isFinite()) { "Enter a finite number." } } ?: error("Enter a finite decimal.")
             ApiValueKind.FloatDecimal -> value.toFloatOrNull()?.also { require(it.isFinite()) { "Enter a finite number." } }?.toDouble() ?: error("Enter a finite decimal.")
             ApiValueKind.Choice -> { require(value in choices) { "Choose a documented SDK value." }; null }
-            ApiValueKind.TextList -> { require(value.isEmpty() || value.split(',').all { it.trim().isNotEmpty() }) { "Enter comma-separated nonempty values, or leave blank for an empty list." }; null }
+            ApiValueKind.TextList -> {
+                require(value.isEmpty() || value.split(',').all { it.trim().isNotEmpty() }) { "Enter comma-separated nonempty values, or leave blank for an empty list." }
+                require(choices.isEmpty() || value.isEmpty() || value.split(',').all { it.trim() in choices }) { "Use the documented comma-separated choices." }
+                null
+            }
+            ApiValueKind.StringMap -> { parseApiStringMap(value); null }
             ApiValueKind.Text -> { require(value.length <= 8192) { "Text is limited to 8192 characters." }; null }
         }
         if (number != null) {
@@ -59,18 +67,51 @@ internal data class ApiOverrides(val values: Map<String, String> = emptyMap()) {
     fun source(base: SourceConfig): SourceConfig = base.also { config ->
         values.forEach { (id, value) -> ApiSettings.byId.getValue(id).source?.invoke(config, value) }
     }
+    fun view(base: PlayerViewConfig): PlayerViewConfig = values.entries.fold(base) { config, (id, value) ->
+        ApiSettings.byId.getValue(id).view?.invoke(config, value) ?: config
+    }
     fun code(): String = values.entries.joinToString("\n") { (id, value) -> ApiSettings.byId.getValue(id).code(value) }
     companion object {
-        fun validate(draft: Map<String, String>): ApiOverrides = ApiOverrides(draft.mapValues { (id, value) ->
-            val field = ApiSettings.byId[id] ?: error("Unknown SDK configuration field.")
-            try { field.normalize(value) } catch (error: IllegalArgumentException) { throw IllegalArgumentException("$id: ${error.message}") }
-        }.toMap())
+        fun validate(draft: Map<String, String>): ApiOverrides {
+            val parsed = ApiOverrides(draft.mapValues { (id, value) ->
+                val field = ApiSettings.byId[id] ?: error("Unknown SDK configuration field.")
+                try { field.normalize(value) } catch (error: IllegalArgumentException) { throw IllegalArgumentException("$id: ${error.message}") }
+            }.toMap())
+            fun exclusive(first: String, second: String) {
+                require(!(draft.keys.any { it.contains(first) } && draft.keys.any { it.contains(second) })) {
+                    "Choose one SDK variant: remove overrides from either $first or $second."
+                }
+            }
+            exclusive("BandwidthMeterType.Default.", "BandwidthMeterType.Experimental.")
+            exclusive("BandwidthEstimationMode.ExponentialWeightedAverage.", "BandwidthEstimationMode.SlidingPercentile.")
+            exclusive("CmcdConfig.Enabled.sessionId", "CmcdSessionId.Custom.value")
+            exclusive("UiConfig.WebUi.variant", "UiConfig.WebUi.Variant.Custom.uiManagerFactoryFunction")
+            // Exercise pure configuration constructors before retiring the current player.
+            // No Player, Source, network client or device resource is allocated here.
+            parsed.player(PlayerConfig())
+            parsed.source(SourceConfig("https://example.invalid/validation.m3u8", SourceType.Hls))
+            parsed.view(PlayerViewConfig())
+            return parsed
+        }
     }
+}
+
+internal fun parseApiStringMap(value: String): Map<String, String> {
+    val result = linkedMapOf<String, String>()
+    value.lineSequence().filter(String::isNotBlank).forEach { line ->
+        val parts = line.split('=', limit = 2)
+        require(parts.size == 2 && parts[0].trim().isNotEmpty()) { "Use one name=value entry per line." }
+        val key = parts[0].trim()
+        require(key !in result) { "Map entry names must be unique." }
+        result[key] = parts[1]
+    }
+    return result
 }
 
 internal object ApiSettings {
     private fun textList(value: String) = if (value.isEmpty()) emptyList() else value.split(',').map(String::trim)
     private fun listCode(value: String) = textList(value).joinToString(", ", "listOf(", ")", transform = ::kotlinString)
+    private fun mapCode(value: String) = parseApiStringMap(value).entries.joinToString(", ", "mapOf(", ")") { "${kotlinString(it.key)} to ${kotlinString(it.value)}" }
     val fields: List<ApiSetting> = listOf(
         ApiSetting(
             id = "android:com.bitmovin.player.api.PlaybackConfig.isTunneledPlaybackEnabled",
@@ -513,6 +554,367 @@ internal object ApiSettings {
             help = "Remove override to restore the base configuration. SDK content and device requirements apply.",
             source = { c, v -> c.vrConfig = c.vrConfig.copy(viewingWindow = c.vrConfig.viewingWindow.copy(minYaw = v.toDouble())) },
             code = { v -> "sourceConfig.vrConfig = sourceConfig.vrConfig.copy(viewingWindow = sourceConfig.vrConfig.viewingWindow.copy(minYaw = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.casting.RemoteControlConfig.isCastEnabled",
+            owner = "casting.RemoteControlConfig",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            player = { c, v -> c.copy(remoteControlConfig = c.remoteControlConfig.copy(isCastEnabled = v.toBooleanStrict())) },
+            code = { v -> "playerConfig = playerConfig.copy(remoteControlConfig = playerConfig.remoteControlConfig.copy(isCastEnabled = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.casting.RemoteControlConfig.sendManifestRequestsWithCredentials",
+            owner = "casting.RemoteControlConfig",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            player = { c, v -> c.copy(remoteControlConfig = c.remoteControlConfig.copy(sendManifestRequestsWithCredentials = v.toBooleanStrict())) },
+            code = { v -> "playerConfig = playerConfig.copy(remoteControlConfig = playerConfig.remoteControlConfig.copy(sendManifestRequestsWithCredentials = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.casting.RemoteControlConfig.sendSegmentRequestsWithCredentials",
+            owner = "casting.RemoteControlConfig",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            player = { c, v -> c.copy(remoteControlConfig = c.remoteControlConfig.copy(sendSegmentRequestsWithCredentials = v.toBooleanStrict())) },
+            code = { v -> "playerConfig = playerConfig.copy(remoteControlConfig = playerConfig.remoteControlConfig.copy(sendSegmentRequestsWithCredentials = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.casting.RemoteControlConfig.sendDrmLicenseRequestsWithCredentials",
+            owner = "casting.RemoteControlConfig",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            player = { c, v -> c.copy(remoteControlConfig = c.remoteControlConfig.copy(sendDrmLicenseRequestsWithCredentials = v.toBooleanStrict())) },
+            code = { v -> "playerConfig = playerConfig.copy(remoteControlConfig = playerConfig.remoteControlConfig.copy(sendDrmLicenseRequestsWithCredentials = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.casting.RemoteControlConfig.stopCastingOnError",
+            owner = "casting.RemoteControlConfig",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            player = { c, v -> c.copy(remoteControlConfig = c.remoteControlConfig.copy(stopCastingOnError = v.toBooleanStrict())) },
+            code = { v -> "playerConfig = playerConfig.copy(remoteControlConfig = playerConfig.remoteControlConfig.copy(stopCastingOnError = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.casting.RemoteControlConfig.receiverStylesheetUrl",
+            owner = "casting.RemoteControlConfig",
+            kind = ApiValueKind.Text,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            player = { c, v -> c.copy(remoteControlConfig = c.remoteControlConfig.copy(receiverStylesheetUrl = v)) },
+            code = { v -> "playerConfig = playerConfig.copy(remoteControlConfig = playerConfig.remoteControlConfig.copy(receiverStylesheetUrl = ${kotlinString(v)}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.casting.RemoteControlConfig.customReceiverConfig",
+            owner = "casting.RemoteControlConfig",
+            kind = ApiValueKind.StringMap,
+            help = "One receiver name=value entry per line. Empty input sends an empty map. Receiver support is required.",
+            player = { c, v -> c.copy(remoteControlConfig = c.remoteControlConfig.copy(customReceiverConfig = parseApiStringMap(v))) },
+            code = { v -> "playerConfig = playerConfig.copy(remoteControlConfig = playerConfig.remoteControlConfig.copy(customReceiverConfig = ${mapCode(v)}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.source.SourceConfig.metadata",
+            owner = "source.SourceConfig",
+            kind = ApiValueKind.StringMap,
+            help = "One metadata name=value entry per line. Empty input sends an empty map.",
+            source = { c, v -> c.metadata = parseApiStringMap(v) },
+            code = { v -> "sourceConfig.metadata = ${mapCode(v)}" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.source.NetworkEngine.HttpURLConnection.allowCrossProtocolRedirects",
+            owner = "source.NetworkEngine.HttpURLConnection",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            source = { c, v -> c.networkConfig = SourceNetworkConfig(NetworkEngine.HttpURLConnection(allowCrossProtocolRedirects = v.toBooleanStrict())) },
+            code = { v -> "sourceConfig.networkConfig = SourceNetworkConfig(NetworkEngine.HttpURLConnection(allowCrossProtocolRedirects = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.source.CmcdConfig.Enabled.transmissionMode",
+            owner = "source.CmcdConfig.Enabled",
+            kind = ApiValueKind.Choice,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            choices = listOf("Header","Query"),
+            source = { c, v -> c.cmcdConfig = (c.cmcdConfig as? CmcdConfig.Enabled ?: CmcdConfig.Enabled()).copy(transmissionMode = CmcdTransmissionMode.valueOf(v)) },
+            code = { v -> "sourceConfig.cmcdConfig = (sourceConfig.cmcdConfig as? CmcdConfig.Enabled ?: CmcdConfig.Enabled()).copy(transmissionMode = CmcdTransmissionMode.$v)" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.source.CmcdConfig.Enabled.contentId",
+            owner = "source.CmcdConfig.Enabled",
+            kind = ApiValueKind.Text,
+            help = "Content identifier, at most 64 characters. Setting a CMCD leaf enables CMCD.",
+            source = { c, v -> c.cmcdConfig = (c.cmcdConfig as? CmcdConfig.Enabled ?: CmcdConfig.Enabled()).copy(contentId = v) },
+            code = { v -> "sourceConfig.cmcdConfig = (sourceConfig.cmcdConfig as? CmcdConfig.Enabled ?: CmcdConfig.Enabled()).copy(contentId = ${kotlinString(v)})" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.source.CmcdConfig.Enabled.excludedKeys",
+            owner = "source.CmcdConfig.Enabled",
+            kind = ApiValueKind.TextList,
+            help = "Comma-separated CMCD enum names; blank creates an empty exclusion set.",
+            choices = listOf("Bitrate","BufferLength","ContentId","SessionId","MaximumRequestedBitrate","StreamingFormat","StreamType","Version","TopBitrate","ObjectDuration","MeasuredThroughput","ObjectType","BufferStarvation","Deadline","PlaybackRate","Startup","NextObjectRequest","NextRangeRequest"),
+            source = { c, v -> c.cmcdConfig = (c.cmcdConfig as? CmcdConfig.Enabled ?: CmcdConfig.Enabled()).copy(excludedKeys = textList(v).map { CmcdKey.Predefined.valueOf(it) }.toSet()) },
+            code = { v -> "sourceConfig.cmcdConfig = (sourceConfig.cmcdConfig as? CmcdConfig.Enabled ?: CmcdConfig.Enabled()).copy(excludedKeys = ${textList(v).joinToString(", ", "setOf(", ")") { "CmcdKey.Predefined.$it" }})" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.source.CmcdConfig.Enabled.sessionId",
+            owner = "source.CmcdConfig.Enabled",
+            kind = ApiValueKind.Choice,
+            help = "Generate or omit the session ID; the custom value field sets the Custom variant.",
+            choices = listOf("Generate","None"),
+            source = { c, v -> c.cmcdConfig = (c.cmcdConfig as? CmcdConfig.Enabled ?: CmcdConfig.Enabled()).copy(sessionId = if (v == "Generate") CmcdSessionId.Generate else CmcdSessionId.None) },
+            code = { v -> "sourceConfig.cmcdConfig = (sourceConfig.cmcdConfig as? CmcdConfig.Enabled ?: CmcdConfig.Enabled()).copy(sessionId = CmcdSessionId.$v)" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.source.CmcdSessionId.Custom.value",
+            owner = "source.CmcdSessionId.Custom",
+            kind = ApiValueKind.Text,
+            help = "Nonempty custom session identifier, at most 64 characters.",
+            source = { c, v -> c.cmcdConfig = (c.cmcdConfig as? CmcdConfig.Enabled ?: CmcdConfig.Enabled()).copy(sessionId = CmcdSessionId.Custom(v)) },
+            code = { v -> "sourceConfig.cmcdConfig = (sourceConfig.cmcdConfig as? CmcdConfig.Enabled ?: CmcdConfig.Enabled()).copy(sessionId = CmcdSessionId.Custom(${kotlinString(v)}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.BandwidthMeterType.Default.bandwidthEstimateWeightLimit",
+            owner = "BandwidthMeterType.Default",
+            kind = ApiValueKind.Integer,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            minimum = 1.0,
+            player = { c, v -> c.copy(tweaksConfig = c.tweaksConfig.copy(bandwidthMeterType = BandwidthMeterType.Default(v.toInt()))) },
+            code = { v -> "playerConfig = playerConfig.copy(tweaksConfig = playerConfig.tweaksConfig.copy(bandwidthMeterType = BandwidthMeterType.Default($v)))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.BandwidthMeterType.Experimental.minBytesTransferred",
+            owner = "BandwidthMeterType.Experimental",
+            kind = ApiValueKind.LongInteger,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            player = { c, v -> c.copy(tweaksConfig = c.tweaksConfig.copy(bandwidthMeterType = (c.tweaksConfig.bandwidthMeterType as? BandwidthMeterType.Experimental ?: BandwidthMeterType.Experimental()).copy(minBytesTransferred = v.toLong()))) },
+            code = { v -> "playerConfig = playerConfig.copy(tweaksConfig = playerConfig.tweaksConfig.copy(bandwidthMeterType = (playerConfig.tweaksConfig.bandwidthMeterType as? BandwidthMeterType.Experimental ?: BandwidthMeterType.Experimental()).copy(minBytesTransferred = ${v}L)))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.BandwidthMeterType.Experimental.usePreloadHintsForBandwidthEstimation",
+            owner = "BandwidthMeterType.Experimental",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            player = { c, v -> c.copy(tweaksConfig = c.tweaksConfig.copy(bandwidthMeterType = (c.tweaksConfig.bandwidthMeterType as? BandwidthMeterType.Experimental ?: BandwidthMeterType.Experimental()).copy(usePreloadHintsForBandwidthEstimation = v.toBooleanStrict()))) },
+            code = { v -> "playerConfig = playerConfig.copy(tweaksConfig = playerConfig.tweaksConfig.copy(bandwidthMeterType = (playerConfig.tweaksConfig.bandwidthMeterType as? BandwidthMeterType.Experimental ?: BandwidthMeterType.Experimental()).copy(usePreloadHintsForBandwidthEstimation = $v)))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.BandwidthEstimationMode.ExponentialWeightedAverage.smoothingFactor",
+            owner = "BandwidthEstimationMode.ExponentialWeightedAverage",
+            kind = ApiValueKind.Decimal,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            minimum = 0.0,
+            maximum = 1.0,
+            player = { c, v -> (c.tweaksConfig.bandwidthMeterType as? BandwidthMeterType.Experimental ?: BandwidthMeterType.Experimental()).let { existing -> c.copy(tweaksConfig = c.tweaksConfig.copy(bandwidthMeterType = existing.copy(bandwidthEstimationMode = BandwidthEstimationMode.ExponentialWeightedAverage(v.toDouble())))) } },
+            code = { v -> "playerConfig = playerConfig.copy(tweaksConfig = playerConfig.tweaksConfig.copy(bandwidthMeterType = (playerConfig.tweaksConfig.bandwidthMeterType as? BandwidthMeterType.Experimental ?: BandwidthMeterType.Experimental()).let { existing -> existing.copy(bandwidthEstimationMode = BandwidthEstimationMode.ExponentialWeightedAverage($v)) })))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.BandwidthEstimationMode.SlidingPercentile.maxSampleCount",
+            owner = "BandwidthEstimationMode.SlidingPercentile",
+            kind = ApiValueKind.Integer,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            minimum = 1.0,
+            player = { c, v -> (c.tweaksConfig.bandwidthMeterType as? BandwidthMeterType.Experimental ?: BandwidthMeterType.Experimental()).let { existing -> c.copy(tweaksConfig = c.tweaksConfig.copy(bandwidthMeterType = existing.copy(bandwidthEstimationMode = (existing.bandwidthEstimationMode as? BandwidthEstimationMode.SlidingPercentile ?: BandwidthEstimationMode.SlidingPercentile()).copy(maxSampleCount = v.toInt())))) } },
+            code = { v -> "playerConfig = playerConfig.copy(tweaksConfig = playerConfig.tweaksConfig.copy(bandwidthMeterType = (playerConfig.tweaksConfig.bandwidthMeterType as? BandwidthMeterType.Experimental ?: BandwidthMeterType.Experimental()).let { existing -> existing.copy(bandwidthEstimationMode = (existing.bandwidthEstimationMode as? BandwidthEstimationMode.SlidingPercentile ?: BandwidthEstimationMode.SlidingPercentile()).copy(maxSampleCount = $v)) })))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.BandwidthEstimationMode.SlidingPercentile.percentile",
+            owner = "BandwidthEstimationMode.SlidingPercentile",
+            kind = ApiValueKind.Decimal,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            minimum = 0.0,
+            maximum = 1.0,
+            player = { c, v -> (c.tweaksConfig.bandwidthMeterType as? BandwidthMeterType.Experimental ?: BandwidthMeterType.Experimental()).let { existing -> c.copy(tweaksConfig = c.tweaksConfig.copy(bandwidthMeterType = existing.copy(bandwidthEstimationMode = (existing.bandwidthEstimationMode as? BandwidthEstimationMode.SlidingPercentile ?: BandwidthEstimationMode.SlidingPercentile()).copy(percentile = v.toDouble())))) } },
+            code = { v -> "playerConfig = playerConfig.copy(tweaksConfig = playerConfig.tweaksConfig.copy(bandwidthMeterType = (playerConfig.tweaksConfig.bandwidthMeterType as? BandwidthMeterType.Experimental ?: BandwidthMeterType.Experimental()).let { existing -> existing.copy(bandwidthEstimationMode = (existing.bandwidthEstimationMode as? BandwidthEstimationMode.SlidingPercentile ?: BandwidthEstimationMode.SlidingPercentile()).copy(percentile = $v)) })))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.TweaksConfig.httpResponseTypesToPreprocess",
+            owner = "TweaksConfig",
+            kind = ApiValueKind.TextList,
+            help = "Comma-separated request types. Preprocessing retains full responses in memory; select only required types. Blank creates an empty list.",
+            choices = listOf("ManifestDash","ManifestHlsMaster","ManifestHlsVariant","ManifestSmooth","MediaProgressive","MediaAudio","MediaVideo","MediaSubtitles","MediaThumbnails","DrmLicenseWidevine","DrmLicenseNagraConnect","DrmLicensePlayReady","KeyHlsAes","HlsInterstitialsAssetList","Unknown"),
+            player = { c, v -> c.copy(tweaksConfig = c.tweaksConfig.copy(httpResponseTypesToPreprocess = textList(v).map(HttpRequestType::valueOf))) },
+            code = { v -> "playerConfig = playerConfig.copy(tweaksConfig = playerConfig.tweaksConfig.copy(httpResponseTypesToPreprocess = ${textList(v).joinToString(", ", "listOf(", ")") { "HttpRequestType.$it" }}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.TweaksConfig.forceReuseVideoCodecReasons",
+            owner = "TweaksConfig",
+            kind = ApiValueKind.TextList,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            choices = listOf("ColorInfoMismatch","MaxInputSizeExceeded","MaxResolutionExceeded"),
+            player = { c, v -> c.copy(tweaksConfig = c.tweaksConfig.copy(forceReuseVideoCodecReasons = textList(v).map(ForceReuseVideoCodecReason::valueOf).toSet())) },
+            code = { v -> "playerConfig = playerConfig.copy(tweaksConfig = playerConfig.tweaksConfig.copy(forceReuseVideoCodecReasons = ${textList(v).joinToString(", ", "setOf(", ")") { "ForceReuseVideoCodecReason.$it" }}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.vr.VrConfig.vrContentType",
+            owner = "vr.VrConfig",
+            kind = ApiValueKind.Choice,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            choices = listOf("None","Sbs","Single","Tab"),
+            source = { c, v -> c.vrConfig = c.vrConfig.copy(vrContentType = VrContentType.valueOf(v)) },
+            code = { v -> "sourceConfig.vrConfig = sourceConfig.vrConfig.copy(vrContentType = VrContentType.$v)" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.PlayerViewConfig.hideFirstFrame",
+            owner = "ui.PlayerViewConfig",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            view = { c, v -> c.copy(hideFirstFrame = v.toBooleanStrict()) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(hideFirstFrame = $v)" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.PlayerViewConfig.enableComposeSurfaceSyncWorkaround",
+            owner = "ui.PlayerViewConfig",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            view = { c, v -> c.copy(enableComposeSurfaceSyncWorkaround = v.toBooleanStrict()) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(enableComposeSurfaceSyncWorkaround = $v)" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.PlayerViewConfig.scalingMode",
+            owner = "ui.PlayerViewConfig",
+            kind = ApiValueKind.Choice,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            choices = listOf("Fit","Stretch","Zoom"),
+            view = { c, v -> c.copy(scalingMode = ScalingMode.valueOf(v)) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(scalingMode = ScalingMode.$v)" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.PlayerViewConfig.surfaceType",
+            owner = "ui.PlayerViewConfig",
+            kind = ApiValueKind.Choice,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            choices = listOf("SurfaceView","TextureView"),
+            view = { c, v -> c.copy(surfaceType = SurfaceType.valueOf(v)) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(surfaceType = SurfaceType.$v)" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.PlayerViewConfig.playerMaxVideoQualityConstraint",
+            owner = "ui.PlayerViewConfig",
+            kind = ApiValueKind.Choice,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            choices = listOf("RelaxedViewport","None"),
+            view = { c, v -> c.copy(playerMaxVideoQualityConstraint = PlayerViewConfig.PlayerVideoQualityConstraint.valueOf(v)) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(playerMaxVideoQualityConstraint = PlayerViewConfig.PlayerVideoQualityConstraint.$v)" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.UiConfig.WebUi.cssLocation",
+            owner = "ui.UiConfig.WebUi",
+            kind = ApiValueKind.Text,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            view = { c, v -> c.copy(uiConfig = ((c.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(cssLocation = v)) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(uiConfig = ((playerViewConfig.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(cssLocation = ${kotlinString(v)}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.UiConfig.WebUi.jsLocation",
+            owner = "ui.UiConfig.WebUi",
+            kind = ApiValueKind.Text,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            view = { c, v -> c.copy(uiConfig = ((c.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(jsLocation = v)) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(uiConfig = ((playerViewConfig.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(jsLocation = ${kotlinString(v)}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.UiConfig.WebUi.supplementalCssLocation",
+            owner = "ui.UiConfig.WebUi",
+            kind = ApiValueKind.Text,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            view = { c, v -> c.copy(uiConfig = ((c.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(supplementalCssLocation = v)) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(uiConfig = ((playerViewConfig.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(supplementalCssLocation = ${kotlinString(v)}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.UiConfig.WebUi.customOptions",
+            owner = "ui.UiConfig.WebUi",
+            kind = ApiValueKind.Text,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            view = { c, v -> c.copy(uiConfig = ((c.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(customOptions = v)) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(uiConfig = ((playerViewConfig.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(customOptions = ${kotlinString(v)}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.UiConfig.WebUi.playbackSpeedSelectionEnabled",
+            owner = "ui.UiConfig.WebUi",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            view = { c, v -> c.copy(uiConfig = ((c.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(playbackSpeedSelectionEnabled = v.toBooleanStrict())) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(uiConfig = ((playerViewConfig.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(playbackSpeedSelectionEnabled = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.UiConfig.WebUi.forceSubtitlesIntoViewContainer",
+            owner = "ui.UiConfig.WebUi",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            view = { c, v -> c.copy(uiConfig = ((c.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(forceSubtitlesIntoViewContainer = v.toBooleanStrict())) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(uiConfig = ((playerViewConfig.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(forceSubtitlesIntoViewContainer = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.UiConfig.WebUi.focusUiOnInitialization",
+            owner = "ui.UiConfig.WebUi",
+            kind = ApiValueKind.Boolean,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            view = { c, v -> c.copy(uiConfig = ((c.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(focusUiOnInitialization = v.toBooleanStrict())) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(uiConfig = ((playerViewConfig.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(focusUiOnInitialization = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.UiConfig.WebUi.Variant.Custom.uiManagerFactoryFunction",
+            owner = "ui.UiConfig.WebUi.Variant.Custom",
+            kind = ApiValueKind.Text,
+            help = "Remove override to restore the base configuration. Content and device support still apply.",
+            view = { c, v -> c.copy(uiConfig = ((c.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(variant = UiConfig.WebUi.Variant.Custom(v))) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(uiConfig = ((playerViewConfig.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(variant = UiConfig.WebUi.Variant.Custom(${kotlinString(v)})))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.UiConfig.WebUi.variant",
+            owner = "ui.UiConfig.WebUi",
+            kind = ApiValueKind.Choice,
+            help = "Built-in variants. Use uiManagerFactoryFunction for a Custom variant.",
+            choices = listOf("SmallScreenUi","TvUi"),
+            view = { c, v -> c.copy(uiConfig = ((c.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(variant = if (v == "TvUi") UiConfig.WebUi.Variant.TvUi else UiConfig.WebUi.Variant.SmallScreenUi)) },
+            code = { v -> "playerViewConfig = playerViewConfig.copy(uiConfig = ((playerViewConfig.uiConfig as? UiConfig.WebUi) ?: UiConfig.WebUi()).copy(variant = UiConfig.WebUi.Variant.$v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.StyleConfig.isUiEnabled",
+            owner = "ui.StyleConfig",
+            kind = ApiValueKind.Boolean,
+            help = "Deprecated SDK field. Explicit PlayerViewConfig can take precedence; prefer the corresponding view field for current UI behavior.",
+            player = { c, v -> c.copy(styleConfig = c.styleConfig.copy(isUiEnabled = v.toBooleanStrict())) },
+            code = { v -> "playerConfig = playerConfig.copy(styleConfig = playerConfig.styleConfig.copy(isUiEnabled = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.StyleConfig.isHideFirstFrame",
+            owner = "ui.StyleConfig",
+            kind = ApiValueKind.Boolean,
+            help = "Deprecated SDK field. Explicit PlayerViewConfig can take precedence; prefer the corresponding view field for current UI behavior.",
+            player = { c, v -> c.copy(styleConfig = c.styleConfig.copy(isHideFirstFrame = v.toBooleanStrict())) },
+            code = { v -> "playerConfig = playerConfig.copy(styleConfig = playerConfig.styleConfig.copy(isHideFirstFrame = $v))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.StyleConfig.playerUiCss",
+            owner = "ui.StyleConfig",
+            kind = ApiValueKind.Text,
+            help = "Deprecated SDK field. Explicit PlayerViewConfig can take precedence; prefer the corresponding view field for current UI behavior.",
+            player = { c, v -> c.copy(styleConfig = c.styleConfig.copy(playerUiCss = v)) },
+            code = { v -> "playerConfig = playerConfig.copy(styleConfig = playerConfig.styleConfig.copy(playerUiCss = ${kotlinString(v)}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.StyleConfig.playerUiJs",
+            owner = "ui.StyleConfig",
+            kind = ApiValueKind.Text,
+            help = "Deprecated SDK field. Explicit PlayerViewConfig can take precedence; prefer the corresponding view field for current UI behavior.",
+            player = { c, v -> c.copy(styleConfig = c.styleConfig.copy(playerUiJs = v)) },
+            code = { v -> "playerConfig = playerConfig.copy(styleConfig = playerConfig.styleConfig.copy(playerUiJs = ${kotlinString(v)}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.StyleConfig.supplementalPlayerUiCss",
+            owner = "ui.StyleConfig",
+            kind = ApiValueKind.Text,
+            help = "Deprecated SDK field. Explicit PlayerViewConfig can take precedence; prefer the corresponding view field for current UI behavior.",
+            player = { c, v -> c.copy(styleConfig = c.styleConfig.copy(supplementalPlayerUiCss = v)) },
+            code = { v -> "playerConfig = playerConfig.copy(styleConfig = playerConfig.styleConfig.copy(supplementalPlayerUiCss = ${kotlinString(v)}))" }
+        ),
+        ApiSetting(
+            id = "android:com.bitmovin.player.api.ui.StyleConfig.scalingMode",
+            owner = "ui.StyleConfig",
+            kind = ApiValueKind.Choice,
+            help = "Deprecated SDK field. Explicit PlayerViewConfig can take precedence; prefer the corresponding view field for current UI behavior.",
+            choices = listOf("Fit","Stretch","Zoom"),
+            player = { c, v -> c.copy(styleConfig = c.styleConfig.copy(scalingMode = ScalingMode.valueOf(v))) },
+            code = { v -> "playerConfig = playerConfig.copy(styleConfig = playerConfig.styleConfig.copy(scalingMode = ScalingMode.$v))" }
         )
     )
     val byId: Map<String, ApiSetting> = fields.associateBy(ApiSetting::id)
