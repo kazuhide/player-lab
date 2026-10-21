@@ -40,7 +40,6 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
   const generation = useRef(0);
   const pending = useRef(false);
   useEffect(() => {
-    auxiliary.sourceChanged();
     generation.current += 1;
     pending.current = false;
     setBusy(false);
@@ -60,7 +59,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
     let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
       const appliedCode = selected.code(values);
-      if (["Player.load", "Player.loadSource", "Player.loadOfflineContent", "Player.unload", "Player.destroy", "Source.destroy"].includes(selected.id)) { auxiliary.sourceChanged(); onSourceMutation(); }
+      if (["Player.load", "Player.loadSource", "Player.loadOfflineContent", "Player.unload", "Player.destroy", "Source.destroy"].includes(selected.id)) { onSourceMutation(); }
       const value = await Promise.race([
         Promise.resolve(selected.run(values)),
         new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error("No response within 10 seconds. The native call may still complete; it has not been retried.")), 10000); }),

@@ -1,7 +1,7 @@
 import { BufferType, type CustomDataConfig, type Player, type SourceConfig } from "bitmovin-player-react-native";
 import { finiteNumber, stringEntries } from "./apiValues";
 import { EMPTY_METADATA, metadataValue } from "./metadataInput";
-import { loadOwnedSource, unloadOwnedSource, unloadSourceCode } from "./sourceOwnership";
+import { disposeOwnedSources, initializeOwnedSource, loadOwnedSource, unloadOwnedSource, unloadSourceCode } from "./sourceOwnership";
 
 export interface ApiArgument { name: string; label: string; initial: string; choices?: readonly string[]; editor?: "metadata"; }
 export interface ApiOperation {
@@ -52,7 +52,8 @@ export function nativeOperations(player: Player, source: SourceConfig): ApiOpera
       code: () => id.replace(/^Player\./, "player.").replace(/^Source\./, "player.source.") });
   }
   noArgs("Player.initialize", () => player.initialize());
-  noArgs("Player.destroy", () => player.destroy());
+  noArgs("Player.destroy", () => { disposeOwnedSources(player); player.destroy(); });
+  operations[operations.length - 1]!.code = () => 'import { disposeOwnedSources } from "./src/sourceOwnership";\ndisposeOwnedSources(player);\nplayer.destroy();';
   noArgs("Player.play", () => player.play());
   noArgs("Player.pause", () => player.pause());
   noArgs("Player.mute", () => player.mute());
@@ -64,7 +65,7 @@ export function nativeOperations(player: Player, source: SourceConfig): ApiOpera
   noArgs("Player.castStop", () => player.castStop());
   noArgs("Player.showAirPlayTargetPicker", () => player.showAirPlayTargetPicker());
   noArgs("Player.load", () => loadOwnedSource(player, source));
-  operations[operations.length - 1]!.code = () => unloadSourceCode + "\nplayer.load(sourceConfig);";
+  operations[operations.length - 1]!.code = () => 'import { loadOwnedSource } from "./src/sourceOwnership";\nawait loadOwnedSource(player, sourceConfig);';
   one("Player.seek", time, (raw) => finiteNumber(raw, "Time", 0), (v) => player.seek(v));
   one("Player.timeShift", time, (raw) => finiteNumber(raw, "Offset"), (v) => player.timeShift(v));
   one("Player.setVolume", { ...value, initial: "100", label: "Volume (0–100)" }, (raw) => finiteNumber(raw, "Volume", 0, 100), (v) => player.setVolume(v));
@@ -132,7 +133,8 @@ export function nativeOperations(player: Player, source: SourceConfig): ApiOpera
   noArgs("Source.isAttachedToPlayer", () => activeSource().isAttachedToPlayer());
   noArgs("Source.metadata", () => activeSource().metadata());
   noArgs("Source.loadingState", () => activeSource().loadingState());
-  noArgs("Source.initialize", () => activeSource().initialize());
+  noArgs("Source.initialize", () => initializeOwnedSource(player));
+  operations[operations.length - 1]!.code = () => 'import { initializeOwnedSource } from "./src/sourceOwnership";\nawait initializeOwnedSource(player);';
   noArgs("Source.destroy", () => { activeSource(); unloadOwnedSource(player); });
   operations[operations.length - 1]!.code = () => unloadSourceCode;
   property("Source.config", () => activeSource().config);

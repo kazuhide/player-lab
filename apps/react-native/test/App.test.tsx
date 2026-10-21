@@ -32,11 +32,19 @@ vi.mock("expo-clipboard", () => ({ setStringAsync: runtime.clipboard }));
 
 vi.mock("bitmovin-player-react-native", async () => {
   const { useState } = await import("react");
+  class MockSource {
+    nativeId = "app-mock-source";
+    isInitialized = false;
+    isDestroyed = false;
+    constructor(public config: import("bitmovin-player-react-native").SourceConfig) {}
+    initialize = vi.fn(async () => { this.isInitialized = true; });
+    destroy = vi.fn(() => { this.isDestroyed = true; });
+  }
   return {
     CustomUi: class { constructor(public factoryFunction: string) {} },
     PlayerView: "PlayerView",
     OfflineEventType: { onCompleted: "onCompleted", onError: "onError", onProgress: "onProgress", onOptionsAvailable: "onOptionsAvailable", onDrmLicenseUpdated: "onDrmLicenseUpdated", onDrmLicenseExpired: "onDrmLicenseExpired", onSuspended: "onSuspended", onResumed: "onResumed", onCanceled: "onCanceled" },
-    Source: class {},
+    Source: MockSource,
     CustomMessageHandler: class {
       constructor(private readonly options: { onReceivedSynchronousMessage: (message: string, data: string | undefined) => string | undefined; onReceivedAsynchronousMessage: (message: string, data: string | undefined) => void }) {}
       receivedSynchronousMessage(message: string, data: string | undefined) { return this.options.onReceivedSynchronousMessage(message, data); }
@@ -57,7 +65,11 @@ vi.mock("bitmovin-player-react-native", async () => {
     PictureInPictureAction: { TogglePlayback: "TogglePlayback", Seek: "Seek" },
     usePlayer: (config: PlayerConfig) => useState(() => {
       const player = {
-        config, load: vi.fn(), unload: vi.fn(), buffer: { getLevel: vi.fn(async () => 5), setTargetLevel: vi.fn() }, isDestroyed: false, destroy: vi.fn(() => { player.isDestroyed = true; }), timeShift: vi.fn(),
+        config,
+        source: undefined as MockSource | undefined,
+        load: vi.fn((configuration: import("bitmovin-player-react-native").SourceConfig) => player.loadSource(new MockSource(configuration))),
+        loadSource: vi.fn((source: MockSource) => { player.source = source; void source.initialize().then(() => {}); }),
+        unload: vi.fn(), buffer: { getLevel: vi.fn(async () => 5), setTargetLevel: vi.fn() }, isDestroyed: false, destroy: vi.fn(() => { player.isDestroyed = true; }), timeShift: vi.fn(),
         isLive: vi.fn(async () => true), getDuration: vi.fn(async () => Infinity),
         getMaxTimeShift: vi.fn(async () => -900), getTimeShift: vi.fn(async () => 0),
         getCurrentTime: vi.fn(async () => 0),
@@ -105,7 +117,7 @@ afterEach(async () => {
 });
 
 function expectValidCode(code: string): void {
-  const file = path.resolve("test/generated-configuration-example.tsx");
+  const file = path.resolve("generated-configuration-example.tsx");
   const configFile = ts.readConfigFile("tsconfig.json", ts.sys.readFile);
   const options = ts.parseJsonConfigFileContent(configFile.config, ts.sys, path.resolve(".")).options;
   const host = ts.createCompilerHost(options);
@@ -136,7 +148,7 @@ describe("React Native configuration in the mounted App", () => {
 
   it("retires the native source before replacing it through Player.load", async () => {
     await mount(); await ready(); await press("Show API experiments");
-    const player = current(); const previous = { destroy: vi.fn() };
+    const player = current(); const previous = { isInitialized: true, isDestroyed: false, destroy: vi.fn() };
     Object.assign(player, { source: previous });
     await text("Filter API operations", "Player.load"); await press("Player.load"); await press("Run selected API");
     expect(previous.destroy).toHaveBeenCalledOnce();

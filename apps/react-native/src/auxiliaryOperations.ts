@@ -1,4 +1,4 @@
-import { unloadOwnedSource, unloadSourceCode } from "./sourceOwnership";
+import { loadOwnedSourceInstance, unloadOwnedSource, unloadSourceCode } from "./sourceOwnership";
 import { BitmovinCastManager, OfflineContentManager, OfflineEventType, Source, type OfflineContentManagerListener, type Player } from "bitmovin-player-react-native";
 import type { ApiOperation } from "./apiOperations";
 import type { NativeSettings } from "./nativeSettings";
@@ -10,9 +10,7 @@ interface OfflineOwner { manager: OfflineContentManager; ready: Promise<void>; r
 export class AuxiliaryOperations {
   private active = true;
   private offline: OfflineOwner | undefined;
-  private loadedSource: Source | undefined;
   private revision = 0;
-  private sourceRevision = 0;
   private retirement: Promise<void> = Promise.resolve();
   private listenerRevision = 0;
   constructor(private readonly player: Player, private readonly settings: () => NativeSettings,
@@ -138,17 +136,11 @@ export class AuxiliaryOperations {
       unloadOwnedSource(this.player);
       return this.player.loadOfflineContent(manager, this.settings().offlineOptions);
     }, unloadSourceCode + "\nplayer.loadOfflineContent(offline, offlineOptions);");
-    add("Player.loadSource", async () => {
-      const revision = ++this.sourceRevision;
-      unloadOwnedSource(this.player);
-      const source = new Source(this.settings().source);
-      try {
-        await source.initialize();
-        if (!this.active || revision !== this.sourceRevision) { source.destroy(); return; }
-        this.player.loadSource(source);
-        this.loadedSource = source;
-      } catch (error) { source.destroy(); throw error; }
-    }, unloadSourceCode + "\nconst source = new SDK.Source(sourceConfig);\nawait source.initialize();\nplayer.loadSource(source);");
+    add("Player.loadSource", () => {
+      const configuration = this.settings().source;
+      return loadOwnedSourceInstance(this.player, () => new Source(configuration));
+    },
+      'import { loadOwnedSourceInstance } from "./src/sourceOwnership";\nawait loadOwnedSourceInstance(player, () => new SDK.Source(sourceConfig));');
     add("BitmovinCastManager.isInitialized", () => BitmovinCastManager.isInitialized());
     add("BitmovinCastManager.initialize", () => BitmovinCastManager.initialize(this.settings().cast), "await SDK.BitmovinCastManager.initialize(castOptions);\n// SDK 1.29: this deprecated method is a no-op. Use Cast startup configuration, save and fully restart the app.\n// Inspect the actual native state with BitmovinCastManager.isInitialized().");
     add("BitmovinCastManager.updateContext", () => BitmovinCastManager.updateContext());
@@ -169,13 +161,9 @@ export class AuxiliaryOperations {
   dispose(): void {
     this.active = false;
     this.revision += 1;
-    this.sourceRevision += 1;
     if (this.offline) { const owner = this.offline; this.offline = undefined; this.retirement = this.release(owner); }
     void this.retirement.catch(() => console.warn("Offline manager cleanup failed."));
-    if (this.loadedSource && !this.loadedSource.isDestroyed && this.player.source !== this.loadedSource) this.loadedSource.destroy();
-    // The Player owns its currently attached source's native lifetime.
-    this.loadedSource = undefined;
+
   }
 
-  sourceChanged(): void { this.sourceRevision += 1; }
 }

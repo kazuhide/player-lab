@@ -79,7 +79,8 @@ export function configurationCode(applied: Configuration, platform: NativePlatfo
   const lines = [
     'import React, { useEffect, useRef, useState } from "react";',
     'import { Modal, View, Button } from "react-native";',
-    'import * as SDK from "bitmovin-player-react-native";', "",
+    'import * as SDK from "bitmovin-player-react-native";',
+    'import { disposeOwnedSources, loadOwnedSource } from "./src/sourceOwnership";', "",
     "export function ConfiguredPlayer() {",
     "  const current = useRef<SDK.Player | null>(null);",
     `  const [fullscreen, setFullscreen] = useState(${Boolean(applied.props.isFullscreenRequested)});`,
@@ -113,11 +114,11 @@ export function configurationCode(applied: Configuration, platform: NativePlatfo
       android: "21.3.0", ios: "4.8.4" } } }, null, 2).split("\n").map((line) => "// " + line),
   );
   lines.push("", "  const player = SDK.usePlayer(playerConfig);", "  current.current = player;",
-    "  useEffect(() => () => { current.current = null; player.destroy(); }, [player]);",
+    "  useEffect(() => () => { current.current = null; disposeOwnedSources(player); player.destroy(); }, [player]);",
     "  const playerView = <SDK.PlayerView player={player} config={viewConfig} {...viewProps}",
     "    {...(viewProps.isFullscreenRequested !== undefined ? { isFullscreenRequested: fullscreen } : {})}",
     "    style={fullscreen ? { flex: 1, width: \"100%\" } : { width: \"100%\", aspectRatio: 16 / 9 }}",
-    "    onPlayerViewReady={() => player.load(sourceConfig)} />;",
+    "    onPlayerViewReady={() => { void loadOwnedSource(player, sourceConfig).catch(() => console.warn(\"Source initialization failed.\")); }} />;",
     "  return fullscreen ? <Modal visible presentationStyle=\"fullScreen\">{playerView}<Button title=\"Exit fullscreen\" onPress={() => { viewProps.fullscreenHandler?.exitFullscreen(); setFullscreen(false); }} /></Modal> : <View>{playerView}</View>;", "}", "",
     "// Player and Analytics license values and request headers are placeholders.",
     "// The app's Allow DVR control is separate from SDK configuration.",

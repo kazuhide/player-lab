@@ -35,7 +35,7 @@ import { initialDraft, parseConfiguration, presetDraft, sameConfiguration, suppo
 import type { RuntimeAppState, RuntimeMonitor, RuntimeOwner } from "./src/runtimeObservation";
 import { ApiPanel } from "./src/ApiPanel";
 import { nativeEventProps } from "./src/apiEvents";
-import { loadOwnedSource } from "./src/sourceOwnership";
+import { disposeOwnedSources, loadOwnedSource } from "./src/sourceOwnership";
 import { apiValue } from "./src/apiValues";
 import { applyNativeScripts, NativeScriptOwner } from "./src/nativeScripts";
 
@@ -272,7 +272,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
       active.current = false;
       controller.dispose();
       if (snapshots.current === controller) snapshots.current = null;
-      try { player.destroy(); }
+      try { disposeOwnedSources(player); player.destroy(); }
       finally { owner?.retire(); }
       if (observed.current === owner) observed.current = null;
     };
@@ -284,7 +284,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
     setDvr(null);
     append(`load ${source.title || "source"}`);
     // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.
-    loadOwnedSource(player, source);
+    void loadOwnedSource(player, source).catch(() => { if (active.current) append("Source initialization failed; inspect source events or retry after the pending initializer settles."); });
     observed.current?.sourceLoad();
   }, [source, player, viewReady, append]);
 

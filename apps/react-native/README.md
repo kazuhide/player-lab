@@ -319,6 +319,14 @@ values. **Copy code** uses Expo Clipboard 57.0.2, matched to Expo 57. Regenerate
 build the external native host after changing native dependencies; refreshing
 JavaScript alone does not install a native module.
 
+## Loading and replacing sources
+
+SDK 1.29's [`Player.load` and `loadSource`](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/src/player.ts) return before native `Source.initialize()` finishes. Replacing or unloading a source during that work needs a separate ownership check: the original continuation must not attach a retired source, and destroying a source before initialization settles can leave a later native allocation behind.
+
+The app routes loads through [sourceOwnership.ts](src/sourceOwnership.ts). It retains the real SDK-created Source, waits for initialization, and checks the current owner again at the SDK's native dispatch. One native Source initializer runs at a time; a newer request replaces the waiting request for that player. Unload, destroy and recreation retire pending work immediately and release each source after initialization settles. The SDK does not expose cancellation of an in-progress native initializer. If it does not settle, the next load stays queued; the API panel reports the pending call after its timeout and does not retry it automatically.
+
+Applied examples import this helper. Include it when moving the example into another project so its source lifetime matches the app's behavior.
+
 ## Scrolling Android player menus
 
 Swipe inside the video menu to reach lower settings, and outside the video
@@ -326,6 +334,8 @@ to scroll the configuration form. While a gesture started in the Android player
 is active, the app pauses the surrounding form's scrolling. The last player
 pointer ending or being cancelled releases it; replacing the player also
 releases the retired pane's touch state. iOS keeps its existing scroll handling.
+
+## Cast startup settings
 
 The generated host includes the Google Cast sender SDK and the native configuration for local network discovery, background playback, offline playback and picture-in-picture. The Cast versions follow the [SDK 1.29 example](https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/example/app.config.ts): Android 21.3.0 and iOS 4.8.4. Cast discovery and receiver playback require a compatible receiver on the same network.
 
