@@ -303,7 +303,7 @@
     },
     {
       "type": "note",
-      "text": "A larger buffer may use more memory and absorb a temporary download interruption, but it does not extend a live origin's rewind window or guarantee lower latency. The app does not display separate live audio/video buffer ranges; use the browser's media inspector for actual ranges. The example inputs are comparison values, not recommended settings."
+      "text": "A larger buffer may use more memory and absorb a temporary download interruption, but it does not extend a live origin's rewind window or guarantee lower latency. Read state in the SDK editor provides PlayerAPI.buffer.getLevel for the selected media and buffer type. Browser media tools can inspect actual buffered ranges. The example inputs are comparison values rather than recommended settings."
     },
     {
       "type": "h2",
@@ -375,7 +375,7 @@
     },
     {
       "type": "note",
-      "text": "Browser caching, native HLS and the request type can affect which requests exercise these settings. Total time before a playback error can include multiple requests, retries and retry delays; it is not necessarily equal to one timeout. The GUI does not edit retryHttpRequest callbacks, authentication headers or arbitrary request logic."
+      "text": "Browser caching, native HLS and the request type affect which requests exercise these settings. Total time before a playback error can include multiple requests, retries and delays. The SDK editor below also provides retryHttpRequest and preprocessing callbacks for custom request logic."
     },
     {
       "type": "h2",
@@ -397,8 +397,8 @@
       "type": "steps",
       "items": [
         "For a setting such as SourceConfig.title, select its input type when alternatives are offered, enter a value, and choose Apply setting. PlayerConfig recreates the Player, SourceConfig reloads the source, and UI configuration rebuilds the UI.",
-        "Enable optional object fields individually. Use Add item for arrays and Add property for dictionaries. Array item paths have explicit indices; add missing parent entries in order rather than leaving holes.",
-        "Remove this override restores the corresponding base setting. A later edit in the original form replaces overlapping SDK-editor overrides while retaining unrelated values.",
+        "Enable optional object fields individually. Use Add item for arrays and Add property for dictionaries. For a new object with required siblings, choose its containing path, such as PlayerConfig.playback.preferredTech or SourceConfig.subtitleTracks, and complete the fields together before Apply. An indexed leaf edits an existing array item; keep the preceding items in place.",
+        "Remove this override restores the corresponding base setting. A later edit in the original form replaces overlapping SDK-editor overrides while retaining unrelated values. Object edits retain untouched base fields; an array edit replaces that whole array.",
         "For a method, choose its signature, enable optional arguments where needed, enter values and choose Run API or Read state. The result appears below the generated code. Destroy and Recreate Player use the same ownership lifecycle as the rest of the app.",
         "Events lists the subscriptions on the current Player and UIManager. The log shows counts and bounded payload previews when events occur. Recreating the Player retires the previous subscriptions and history."
       ]
@@ -425,6 +425,10 @@
       "text": "The body runs as JavaScript in this page. lab.ui provides the imported UI classes and lab.getPlayer() returns the current Player. The callback log records invocation and return-contract errors. Removing an unfinished request callback can recreate the Player without waiting for that request to finish."
     },
     {
+      "type": "note",
+      "text": "Native HLS lets the browser load media requests, so an SDK network callback may not run for those requests. To test the scripted HLS transport, edit PlayerConfig.playback.preferredTech as an array, add an item with player set to PlayerType.Html5 and streaming set to StreamType.Hls, then Apply. The Read state result and callback log show which configuration and calls were used."
+    },
+    {
       "type": "figure",
       "file": "sdk-callback",
       "caption": "The request callback has editable code, a published signature and an explicit execution control. The SDK invokes it after Apply."
@@ -443,7 +447,7 @@
     },
     {
       "type": "p",
-      "text": "PlayerConfig.ui can enable SDK-managed UI. The app supplies pinned UI script and style locations; these are editable through PlayerConfig.location. The SDK calls the configured style.uiManagerFactory. Selecting an original theme returns to the app-managed UI and avoids overlapping managers."
+      "text": "Apply an empty object {} to PlayerConfig.ui to enable SDK-managed UI. The app supplies pinned UI script and style locations; these are editable through PlayerConfig.location. The SDK calls the configured style.uiManagerFactory. Selecting an original theme returns to the app-managed UI and avoids overlapping managers."
     },
     {
       "type": "note",
@@ -537,11 +541,11 @@
       "label": "SourceConfigOptions"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/cb777ef103a24a66ea92daa13177601482448157/apps/web/src/api/explorer.ts",
+      "url": "https://github.com/kazuhide/player-lab/blob/aae87e0a0faa55752286a42f7b41e512221a136e/apps/web/src/api/explorer.ts",
       "label": "SDK editor"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/cb777ef103a24a66ea92daa13177601482448157/apps/web/src/api/materialize.ts",
+      "url": "https://github.com/kazuhide/player-lab/blob/aae87e0a0faa55752286a42f7b41e512221a136e/apps/web/src/api/materialize.ts",
       "label": "Callbacks and SDK constructors"
     },
     {

@@ -303,7 +303,7 @@
     },
     {
       "type": "note",
-      "text": "バッファを増やすとメモリ使用量が増え、一時的な取得の中断を吸収できる場合があります。配信側の巻き戻し範囲は広がらず、遅延が減ることも保証しません。アプリには音声・映像それぞれの実際の保持範囲を示す欄がないため、ブラウザーのメディア調査機能で確認します。入力例は比較用であり、推奨設定ではありません。"
+      "text": "バッファを増やすとメモリ使用量が増え、一時的な取得の中断を吸収できる場合があります。配信側の巻き戻し範囲は広がらず、遅延が減ることも保証しません。SDKの詳細欄の状態取得からPlayerAPI.buffer.getLevelを選び、対象のメディアとバッファ種別を指定して値を確認します。実際の保持範囲はブラウザーのメディア調査機能で確認します。入力例は比較用であり、推奨設定ではありません。"
     },
     {
       "type": "h2",
@@ -375,7 +375,7 @@
     },
     {
       "type": "note",
-      "text": "キャッシュ、ネイティブHLS、リクエストの種別により、どの通信が設定の対象になるかが変わります。再生エラーまでの総時間には複数の通信、再試行、待ち時間を含む場合があり、タイムアウト1回分と一致するとは限りません。GUIではretryHttpRequestなどのコールバック、認証ヘッダー、任意の通信処理は編集できません。"
+      "text": "ブラウザーのキャッシュ、ネイティブHLS、リクエストの種類によって設定が適用される通信は異なります。再生エラーになるまでの時間には複数の通信や再試行と待機時間が含まれます。下記のSDK詳細欄ではretryHttpRequestと通信の前処理の関数も編集できます。"
     },
     {
       "type": "h2",
@@ -397,7 +397,7 @@
       "type": "steps",
       "items": [
         "SourceConfig.titleなどの項目を選びます。型の選択肢があれば入力する型を選び、値を入れて「設定を適用」を押します。PlayerConfigはPlayerの再生成、SourceConfigはソースの再読み込み、UI設定はUIの再生成で反映します。",
-        "オブジェクトの任意項目は個別に有効にします。配列は「項目を追加」、辞書は「プロパティを追加」で編集します。配列要素のパスでは要素番号を指定します。存在しない要素の番号を飛ばさず、親の配列を順に追加してください。",
+        "オブジェクトの任意項目は個別に有効にします。配列は「項目を追加」、辞書は「プロパティを追加」で編集します。必須項目を持つ要素を追加するときはPlayerConfig.playback.preferredTechやSourceConfig.subtitleTracksのような親のパスを選び、必要な項目を揃えて一度に適用してください。要素番号付きの末端パスは既存の要素の編集に使い、それより前の要素を保持してください。オブジェクトの編集では変更していない元の項目を保持し、配列の編集ではその配列全体を置き換えます。",
         "「この上書きを解除」で対応する基本設定へ戻します。従来のフォームで同じ項目を変更した場合は重複する詳細設定を取り除き、無関係な設定は保持します。",
         "メソッドは引数の形式を選び、必要な任意引数を有効にして値を入力し、「APIを実行」または「状態を取得」を押します。生成したコードの下に結果を表示します。破棄と再生成はアプリ内のほかの操作と共通の管理手順で行います。",
         "イベント欄には現在のPlayerとUIManagerの購読対象を表示します。イベントが発生すると、回数と内容の抜粋を上限のあるログに表示します。Playerの再生成時に、古い購読と履歴を取り除きます。"
@@ -425,6 +425,10 @@
       "text": "関数本体はこのページのJavaScriptとして動きます。lab.uiから読み込み済みのUIクラスを利用し、lab.getPlayer()で現在のPlayerを取得できます。関数の呼び出しと戻り値の型の不一致をログに記録します。通信を完了させない関数を設定した場合も、その上書きを解除してPlayerを再生成できます。"
     },
     {
+      "type": "note",
+      "text": "ネイティブHLSではブラウザーがメディアを取得するため、SDKの通信コールバックが呼ばれない場合があります。SDK側のHLS通信を試すにはPlayerConfig.playback.preferredTechで配列を選んで要素を追加し、playerをPlayerType.Html5、streamingをStreamType.Hlsにして適用します。「状態の取得」とコールバックのログで使用した設定と呼び出しを確認してください。"
+    },
+    {
       "type": "figure",
       "file": "sdk-callback",
       "caption": "リクエストの関数本体、SDKが定める引数と戻り値、実行の許可を編集します。適用後にSDKから呼ばれます。"
@@ -443,7 +447,7 @@
     },
     {
       "type": "p",
-      "text": "PlayerConfig.uiを有効にするとSDKがUIを生成します。アプリは使用中のUIバージョンに対応するスクリプトとスタイルの読み込み先を指定し、PlayerConfig.locationから変更できます。SDKは設定したstyle.uiManagerFactoryを呼び出します。従来のテーマを選ぶとアプリが生成するUIへ戻り、UIManagerが重複しないようにします。"
+      "text": "PlayerConfig.uiに空のオブジェクト{}を適用するとSDKがUIを生成します。アプリは使用中のUIバージョンに対応するスクリプトとスタイルの読み込み先を指定し、PlayerConfig.locationから変更できます。SDKは設定したstyle.uiManagerFactoryを呼び出します。従来のテーマを選ぶとアプリが生成するUIへ戻り、UIManagerが重複しないようにします。"
     },
     {
       "type": "note",
@@ -537,11 +541,11 @@
       "label": "SourceConfigOptions"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/cb777ef103a24a66ea92daa13177601482448157/apps/web/src/api/explorer.ts",
+      "url": "https://github.com/kazuhide/player-lab/blob/aae87e0a0faa55752286a42f7b41e512221a136e/apps/web/src/api/explorer.ts",
       "label": "SDK editor"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/cb777ef103a24a66ea92daa13177601482448157/apps/web/src/api/materialize.ts",
+      "url": "https://github.com/kazuhide/player-lab/blob/aae87e0a0faa55752286a42f7b41e512221a136e/apps/web/src/api/materialize.ts",
       "label": "Callbacks and SDK constructors"
     },
     {

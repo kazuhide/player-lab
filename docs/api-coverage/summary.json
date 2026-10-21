@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-22",
-  "sourceRevision": "cb777ef103a24a66ea92daa13177601482448157",
+  "sourceRevision": "aae87e0a0faa55752286a42f7b41e512221a136e",
   "sdks": [
     {
       "id": "android",
@@ -126,7 +126,7 @@
       ]
     }
   ],
-  "inputSha256": "cba18db26c4acd66d55c25a63b1ba779fdeaa209f9bedc28d8bb60b2557edf98",
+  "inputSha256": "d8f4e199c7e4560a4557ce52cd3854758a2abd42eebe528cb2468ca00b90226d",
   "applications": [
     {
       "id": "android",
