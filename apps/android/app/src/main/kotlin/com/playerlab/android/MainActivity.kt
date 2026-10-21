@@ -131,6 +131,30 @@ internal class PlayerController(
     private val viewLifecycle = PlayerViewLifecycle(lifecycle)
     private val playerSubscriptions = mutableListOf<() -> Unit>()
     private var sourceSubscription: (() -> Unit)? = null
+    private val apiMain = android.os.Handler(android.os.Looper.getMainLooper())
+    internal val apiEvents = androidx.compose.runtime.mutableStateMapOf<String, Int>()
+    internal var apiEventRecording by mutableStateOf(true)
+    internal var apiAsyncResult by mutableStateOf("")
+        private set
+    internal fun currentView(): PlayerView? = views.firstOrNull { it.player === player }
+    internal fun queryTargetPlaybackLatency() {
+        val owner = player
+        val generation = playerGeneration
+        apiAsyncResult = "Waiting for target playback latency."
+        owner.lowLatency.getTargetPlaybackLatency { value ->
+            apiMain.post {
+                if (!released && player === owner && generation == playerGeneration) {
+                    apiAsyncResult = "LowLatencyApi.getTargetPlaybackLatency: ${value ?: "null"}"
+                }
+            }
+        }
+    }
+    private fun apiEvent(id: String, owns: () -> Boolean) {
+        val record = {
+            if (owns() && apiEventRecording) apiEvents[id] = ((apiEvents[id] ?: 0).toLong() + 1).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+        }
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) record() else apiMain.post { record() }
+    }
     internal var configuredSource: Source? = null
         private set
     private var playerGeneration = 0
@@ -150,6 +174,13 @@ internal class PlayerController(
     }
 
     private fun observePlayer() {
+        val owner = player
+        val generation = playerGeneration
+        ApiEvents.player.forEach { entry ->
+            playerSubscriptions += entry.subscribe(owner) { id ->
+                apiEvent(id) { !released && player === owner && generation == playerGeneration }
+            }
+        }
         onPlayer(PlayerEvent.Error::class) { lastErrorCode = it.code.value; append("PlayerError ${it.code.value}") }
         onPlayer(PlayerEvent.TimeChanged::class) { refresh() }
         onPlayer(PlayerEvent.TimeShifted::class) { append("TimeShifted"); refresh() }
@@ -193,9 +224,13 @@ internal class PlayerController(
         }
         source.on(SourceEvent.Error::class, error)
         source.on(SourceEvent.Loaded::class, loaded)
+        val apiSubscriptions = ApiEvents.source.map { entry ->
+            entry.subscribe(source) { id -> apiEvent(id, ::ownsSource) }
+        }
         sourceSubscription = {
             source.off(SourceEvent.Error::class, error)
             source.off(SourceEvent.Loaded::class, loaded)
+            apiSubscriptions.forEach { it() }
         }
         lastErrorCode = null
         owner.load(source)
@@ -223,6 +258,7 @@ internal class PlayerController(
         player = replacement
         playerSettings = settings
         apiOverrides = overrides
+        apiAsyncResult = ""
         observePlayer()
         previous.destroy()
         loadCurrentSource()
@@ -409,6 +445,7 @@ private fun PlayerLabScreen(controller: PlayerController) {
 
         ConfigurationPanel(controller, uiMode)
         ApiConfigurationPanel(controller)
+        ApiRuntimePanel(controller)
 
         Column(modifier = Modifier.height(140.dp).verticalScroll(rememberScrollState())) {
             controller.log.take(12).forEach { line ->
