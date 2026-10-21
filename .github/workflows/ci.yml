@@ -220,6 +220,7 @@ jobs:
         run: python3 scripts/package-pages.py --verify-dir "$RUNNER_TEMP/pages-release/site" --manifest "$RUNNER_TEMP/pages-release/manifest.json"
       - name: Check WebKit playback and the guide against the production artifact
         env:
+          DEBUG: pw:webserver
           E2E_PAGES_DIR: ${{ runner.temp }}/pages-release/site
           E2E_PAGES_ANALYTICS_ENABLED: ${{ vars.PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY != '' && '1' || '0' }}
         run: pnpm --filter @showcase/e2e e2e:cross-browser --project=webkit
