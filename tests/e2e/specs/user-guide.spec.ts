@@ -6,7 +6,8 @@ import { expectMovingVideo } from "../src/playback-observation";
 type Language = "en" | "ja";
 interface Setting { scope: string; path: string }
 interface SettingGroup { id: string; title: string; fields: Setting[] }
-interface GuideDocument { id: string; title: string; groups?: SettingGroup[]; blocks?: { type: string }[] }
+interface Control { id: string; group: string; label: string; description: string }
+interface GuideDocument { id: string; title: string; groups?: SettingGroup[]; controls?: Control[]; blocks?: { type: string }[] }
 interface SearchEntry { kind: string; title: string; url: string }
 interface CoverageRow {
   id: string; category: string; scope: string; status: string; deprecated: boolean; officialReference: string;
@@ -112,6 +113,54 @@ test.afterEach(({ page }) => {
 
 for (const language of languages) {
   test.describe(`user guide (${language})`, () => {
+    test("controls remain readable by group on desktop and mobile", async ({ page }) => {
+      await page.goto(guidePath(language, "controls"));
+      const controls = content[language].controls!.controls!;
+      const rows = page.locator(".guide-controls > div");
+      await expect(rows).toHaveCount(controls.length);
+      expect(await rows.evaluateAll((elements) => elements.map((element) => ({
+        id: element.id,
+        label: element.querySelector(".guide-control-label")?.textContent,
+        description: element.querySelector("dd")?.textContent,
+      })))).toEqual(controls.map(({ id, label, description }) => ({ id, label, description })));
+      await expect(page.locator(".guide-control-kind")).toHaveCount(controls.length);
+      await expect(page.locator(".guide-control-group > h2")).toHaveText(language === "ja"
+        ? ["ソース", "再生位置", "再生動作", "プレイヤーUI", "外部画面への出力"]
+        : ["Source presets", "Playback position", "Playback behavior", "Player UI", "External displays"]);
+      for (const width of [320, 768, 1024, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        const layout = await rows.first().evaluate((element) => {
+          const term = element.querySelector("dt")!, detail = element.querySelector("dd")!;
+          const name = term.getBoundingClientRect(), description = detail.getBoundingClientRect();
+          return { name: { top: name.top, right: name.right, bottom: name.bottom },
+            description: { top: description.top, left: description.left },
+            weight: Number(getComputedStyle(term).fontWeight),
+            descriptionWeight: Number(getComputedStyle(detail).fontWeight),
+            padding: parseFloat(getComputedStyle(element).paddingTop) };
+        });
+        expect(layout.weight).toBeGreaterThan(layout.descriptionWeight);
+        expect(layout.padding).toBeGreaterThanOrEqual(12);
+        if (width === 320) expect(layout.description.top).toBeGreaterThan(layout.name.bottom);
+        else {
+          expect(Math.abs(layout.name.top - layout.description.top)).toBeLessThan(1);
+          expect(layout.description.left).toBeGreaterThan(layout.name.right);
+        }
+        await expectNoDocumentOverflow(page);
+      }
+      const jump = page.locator('.guide-control-nav a[href="#controls-ui"]');
+      await jump.focus();
+      await expect(jump).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(/#controls-ui$/);
+      await expect(page.locator("h2#controls-ui")).toBeInViewport();
+      const search = page.locator("[data-guide-search]");
+      const control = controls.find((item) => item.id === "localization.language")!;
+      await search.fill(control.label);
+      await page.locator("[data-search-results]").getByRole("link", { name: control.label, exact: true }).click();
+      await expect(page).toHaveURL(/#localization\.language$/);
+      await expect(page.locator('[id="localization.language"]')).toBeInViewport();
+    });
+
     test("Analytics attribute names remain readable without splitting a word", async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto(guidePath(language, "analytics-metrics"));
@@ -585,6 +634,16 @@ test("localized guide figures and representative theme images decode", async ({ 
 test.describe("guide without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
   for (const language of languages) {
+    test(`${language} control groups and item bookmarks work without JavaScript`, async ({ page }) => {
+      await page.goto(guidePath(language, "controls"));
+      await expect(page.locator(".guide-controls > div")).toHaveCount(content[language].controls!.controls!.length);
+      await page.locator('.guide-control-nav a[href="#controls-casting"]').click();
+      await expect(page).toHaveURL(/#controls-casting$/);
+      await expect(page.locator("h2#controls-casting")).toBeInViewport();
+      await page.goto(guidePath(language, "controls") + "#localization.language");
+      await expect(page.locator('[id="localization.language"]')).toBeInViewport();
+    });
+
     test(`${language} API inventories contain every report row and native evidence without JavaScript`, async ({ page }, testInfo) => {
       await page.goto(guidePath(language, "api-coverage"));
       await expect(page.locator("[data-guide-search-container]")).toBeHidden();

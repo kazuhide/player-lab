@@ -20,6 +20,9 @@ TEXT = {
         'start': 'Getting started', 'native': 'Native examples', 'analytics': 'Analytics / Observability',
         'reference': 'Reference', 'web_group': 'Web controls and UI',
         'settings': 'Player Config reference', 'controls': 'Controls reference', 'themes': 'Theme reference',
+        'control_groups': 'Control groups', 'control_source': 'Source presets',
+        'control_seek': 'Playback position', 'control_playback': 'Playback behavior',
+        'control_ui': 'Player UI', 'control_casting': 'External displays',
         'api-coverage': 'Public API coverage',
         'kind': 'Input', 'fallback': 'Form fallback', 'options': 'Choices', 'api': 'Player API',
         'field': 'Setting', 'description': 'Meaning and use', 'mode': 'Applies',
@@ -46,6 +49,9 @@ TEXT = {
         'start': '利用の準備', 'native': 'ネイティブ版', 'analytics': 'Analytics / Observability',
         'reference': 'リファレンス', 'web_group': 'Webの操作とUI',
         'settings': 'Player Configの設定一覧', 'controls': '操作一覧', 'themes': 'テーマ一覧',
+        'control_groups': '操作の分類', 'control_source': 'ソース',
+        'control_seek': '再生位置', 'control_playback': '再生動作',
+        'control_ui': 'プレイヤーUI', 'control_casting': '外部画面への出力',
         'api-coverage': '公開APIの対応状況',
         'kind': '入力形式', 'fallback': '代替表示値', 'options': '選択肢', 'api': 'Player API',
         'field': '設定名', 'description': '意味と使い方', 'mode': '適用方法',
@@ -259,6 +265,27 @@ def settings_group(group, language):
         output.append(f'<article class="guide-setting" data-setting id="{identity}"><h2><code>{esc(field["path"])}</code></h2>'
                       f'<p class="guide-metadata">{esc(field["scope"])} · {esc(field["label"])}</p><p>{esc(description)}</p>'
                       f'<dl>{metadata}</dl><a href="{esc(source_url(field["source"]))}">{labels["sources"]}</a></article>')
+    return ''.join(output)
+
+
+def controls_html(controls, language):
+    """Group the control reference without changing its published item anchors."""
+    labels, groups = TEXT[language], {}
+    for control in controls:
+        if 'control_' + control['group'] not in labels or control['kind'] not in labels:
+            raise ValueError('A control needs a translated group and input type.')
+        groups.setdefault(control['group'], []).append(control)
+    links = ''.join(f'<li><a href="#controls-{esc(group)}">{esc(labels["control_" + group])}</a></li>'
+                    for group in groups)
+    output = [f'<nav class="guide-control-nav" aria-label="{labels["control_groups"]}"><ul>{links}</ul></nav>']
+    for group, entries in groups.items():
+        rows = ''.join(
+            f'<div id="{esc(control["id"])}"><dt><span class="guide-control-label">{esc(control["label"])}</span> '
+            f'<span class="guide-control-kind">{esc(labels[control["kind"]])}</span></dt>'
+            f'<dd>{esc(control["description"])}</dd></div>' for control in entries)
+        output.append(f'<section class="guide-control-group" aria-labelledby="controls-{esc(group)}">'
+                      f'<h2 id="controls-{esc(group)}">{esc(labels["control_" + group])}</h2>'
+                      f'<dl class="guide-controls">{rows}</dl></section>')
     return ''.join(output)
 
 
