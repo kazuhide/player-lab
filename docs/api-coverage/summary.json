@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-22",
-  "sourceRevision": "2e01393b86d0c3004114c5ed6474d856676bc90f",
+  "sourceRevision": "f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0",
   "sdks": [
     {
       "id": "android",
@@ -12,12 +12,60 @@
       "latestCheckedAt": "2026-10-21",
       "sources": [
         {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player/3.171.0+jason/player-3.171.0+jason.aar",
+          "sha256": "2f01bb0dcd908fd5f13098352611c85c3a3bcfa676c788a4f67d925c42da751d"
+        },
+        {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player/3.171.0/player-3.171.0.aar",
+          "sha256": "2f01bb0dcd908fd5f13098352611c85c3a3bcfa676c788a4f67d925c42da751d"
+        },
+        {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-core/3.171.0/player-core-3.171.0.aar",
+          "sha256": "3a048a6e5fb601e36c1252f7d82939d79ec800e531c9b33f06ba82778867cf65"
+        },
+        {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-analytics/3.171.0+jason/player-analytics-3.171.0+jason.aar",
+          "sha256": "4e5220f3ace132ab490d7a4b43a59dae4e59b03a47bce17966fa5c2ae609c983"
+        },
+        {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-analytics/3.171.0/player-analytics-3.171.0.aar",
+          "sha256": "4e5220f3ace132ab490d7a4b43a59dae4e59b03a47bce17966fa5c2ae609c983"
+        },
+        {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-media-session/3.171.0/player-media-session-3.171.0.aar",
+          "sha256": "5eff241f55ef13a9e0d22de4cdaed95f317bbc2e457e375bd301351c6eda6f03"
+        },
+        {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-ui-web/3.171.0+jason/player-ui-web-3.171.0+jason.aar",
+          "sha256": "76052fe06e7993583196464eba85f58ee57ec41dae8b2b68ee2a8a26e60b312a"
+        },
+        {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-core/3.171.0+jason/player-core-3.171.0+jason.aar",
+          "sha256": "7fbdcdd9eaaa7233f212b424c087e26469dd9abb55133c7f99f84be96f667206"
+        },
+        {
           "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-core/3.171.0/player-core-3.171.0-sources.jar",
           "sha256": "a44320a3594a0bc02019742d397e37af769fc49ced9946443d426f2299a11e85"
         },
         {
           "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-ui-web/3.171.0/player-ui-web-3.171.0-sources.jar",
           "sha256": "c071fd09a9b7f5561c6384b0415a73114e09d89c8043d583679547e0e64c18b4"
+        },
+        {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-base/3.171.0+jason/player-base-3.171.0+jason.aar",
+          "sha256": "e33faf46aab7634e0f87dbec897c5f26488f5b2ee15eb3fa8064f147cde6ef6b"
+        },
+        {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-base/3.171.0/player-base-3.171.0.aar",
+          "sha256": "e33faf46aab7634e0f87dbec897c5f26488f5b2ee15eb3fa8064f147cde6ef6b"
+        },
+        {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-ui-web/3.171.0/player-ui-web-3.171.0.aar",
+          "sha256": "e7c899e65aef51e803d7678a7c97792f5e85f8187f2c927b4efe5fec7adb000d"
+        },
+        {
+          "url": "https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/player-media-session/3.171.0+jason/player-media-session-3.171.0+jason.aar",
+          "sha256": "e7d620fb649e7e809545c2f681d6f484a49f72273b1f0e638cb933bb11c0bea7"
         },
         {
           "url": "https://developer.bitmovin.com/playback/docs/release-notes-android"
@@ -126,51 +174,20 @@
       ]
     }
   ],
-  "inputSha256": "c0804ea824ac75b27821f897dd9f3224e5b7392e645cb29c2fa46afdff85f654",
+  "inputSha256": "9cd89501bbfdee254ae9e6865264b234acdb173593350eae6b73a865eaa674f0",
   "applications": [
     {
       "id": "android",
       "sdkId": "android",
       "platform": "Android",
       "scopeNotes": [
-        "Bitmovin Android SDK 3.171.0; Android, Android TV and Android-based Fire TV share this SDK/build.",
-        "807 source scoped declarations normalize to 691 qualified operational IDs across four categories. The full public callable/property/constructor census has 2205 declarations; it is not an editable-control count.",
-        "Configuration, commands, read-only observations and concrete event types have separate denominators. No aggregate percentage is asserted.",
-        "Overloads count once by fully qualified method name; () distinguishes explicit methods from Kotlin properties. Exposed-overload counts are listed below.",
-        "Generated enum/Parcelable/Data helpers, constructors/builders, property getter/setter and interface aliases, callback contracts and optional-wrapper declarations have explicit exclusion reasons.",
-        "Deprecated callable fields/methods/events remain included; deprecation alone never excludes an operational ID.",
-        "Missing means no exposed route in the audited app. The standard SDK UI routes below were separately exercised on an Android phone emulator; no Android TV or Fire TV device behavior is inferred.",
-        "Eleven standard UI routes were observed at the native boundary: play, pause, seek, mute/unmute, speed, audio/subtitle/video quality selection and both public thumbnail query entry points. The thumbnail query returned null; this does not establish thumbnail image rendering. The speed selector offers only 0.25, 0.5, 1, 1.5 and 2, so that command receives preset credit.",
-        "Fullscreen/PiP entry, exit and state controls and the mobile volume slider were verified absent from the configured phone UI. They remain missing and receive no GUI credit; reading a false native getter in a test does not count as an app observation.",
-        "Current UI choices are Default/Sports/Live/Cinema. Shared assets and custom factories were exercised in the native phone tests. No TvUi/focus selector is exposed.",
-        "Cast, IMA, DRM, offline, low-latency, VR, PiP and Analytics remain SDK-available with their media, dependency, license, hardware or integration prerequisites; lack of a test device does not remove them.",
-        "OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig; the separate SDK time shifting editor changes PlaybackConfig.isTimeShiftEnabled.",
-        "jsLocation/cssLocation remain constant and match SDK defaults, so the UI mode picker does not receive GUI field credit for them.",
-        "duration/maxTimeShift/timeShift contribute to the rendered DVR text. isLive/currentTime are copied but unused by Dvr.deriveState and receive no observed GUI credit.",
-        "Source evidence reads tracked public app and control-test files, including the configuration editor, SDK mapping and applied-code export. No environment files, native local properties, license values or device state are read by this generator.",
-        "25 individual creation/source configuration leaves are editable. They include player/source audio-language priorities, one external WebVTT track's URL/label/language/default metadata and HTTP retry delays, alongside source target latency. Blank target latency leaves SourceConfig.liveConfig unset.",
-        "PlayerConfig playback/buffer/adaptation/network bindings, SourceConfig options/liveConfig/subtitleTracks and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary objects or arrays. External track ID and WebVTT MIME type are fixed code-only values.",
-        "Source Apply validates HTTP(S) URLs and finite offset seconds, constructs Source(SourceConfig) and invokes Player.load(Source). Only this load overload is an app GUI path. Player.config, Source.config and Player.isDestroyed reads in tests receive no observed GUI credit; Player.on/off and Source.on/off remain listener lifecycle code.",
-        "Player Apply recreates the player and reloads the retained source options, preserving UI mode, log and app Allow DVR. Playback position resets. Source Reset restores the applied source draft; Player Reset restores SDK-default draft values. Reset alone does not apply either draft.",
-        "The single external WebVTT track's isDefault flag is informational metadata and does not enable subtitles. Select the track through the normal Default UI subtitle menu. HTTP retry delays are finite nonnegative seconds: blank keeps linear backoff, none disables retries, and each list entry allows one retry. No arbitrary request callback or DRM renewal retry editor is provided.",
-        "A nonempty SourceConfig.preferredAudioLanguages list overrides the player preference; blank inherits it. Language codes retain order after trimming and case-insensitive duplicate removal. No match uses the SDK default audio track.",
-        "Buffer durations are finite seconds: forward buffer is at least 0.5, and nonnegative startup/restart thresholds are at most forward minus 0.5, allowing 1 ULP of subtraction error. Automatic video bitrate is a nonnegative Int in bit/s; empty means 2147483647 with no ABR cap. Quality/stability balance is 0 through 1 and applies near the live edge.",
-        "PlayerView onStart/onResume/onPause/onStop are internal host lifecycle calls. A view-owned observer catches up newly attached views in a resumed Activity and stops notifications before retirement. Detach precedes view.onDestroy, and the controller owns Player destruction. Foreground return can retain the SDK paused state; the regression explicitly requests Play rather than assuming automatic resume.",
-        "The 2026-10-21 Android phone group passed all 16 cases, with 18 JVM tests and both app/test APK builds. It covered configuration, source-owned startup offset, standard UI/native controls, HLS/DASH live finalization, clipboard, ownership, UI handoffs and background return with explicit Play.",
-        "Live acceptance couples a fresh TimeShifted completion, native zero time-shift and genuinely visible LIVE within the same deadline. Raw live latency and effective target latency are separate diagnostics; no seek-completion or ideal-latency SLA is asserted, and no automatic seek retry is added.",
-        "configuration_named_types: 242 configuration, 5 observation.",
-        "configuration_supporting_types: 50 configuration, 13 observation.",
-        "events: 115 event.",
-        "runtime_argument_fields: 2 configuration.",
-        "runtime_playback: 63 command, 60 observation.",
-        "runtime_supporting_types: 9 command, 89 observation.",
-        "runtime_ui_offline_analytics: 31 command, 12 observation.",
-        "android:com.bitmovin.player.PlayerView.off(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
-        "android:com.bitmovin.player.api.Player.load(): 3 public overload declarations; 1 app-panel GUI overloads mapped.",
-        "android:com.bitmovin.player.api.Player.setSurface(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
-        "android:com.bitmovin.player.api.playlist.PlaylistApi.add(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
-        "android:com.bitmovin.player.api.playlist.PlaylistApi.remove(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
-        "android:com.bitmovin.player.api.playlist.PlaylistApi.seek(): 2 public overload declarations; 0 app-panel GUI overloads mapped."
+        "The inventory retains the published Android configuration entries, public operations and reads, and named events. Nested configuration-owner entries are API paths, not a count of independent form fields. The original IDs, categories and exclusions remain unchanged.",
+        "SDK API settings provides typed values, lists, dictionaries, native object factories and editable callback bodies. The standard form remains available. Staged overrides take precedence after explicit Apply and player recreation; startup-only debug logging uses a saved next-process setting.",
+        "Commands invoke the current Player, Source, view or native host with edited arguments; reads refresh visible SDK state. Source identity and generation are checked for asynchronous results. Submitting a command does not establish its playback or service effect.",
+        "Named events have current-owner subscriptions and visible occurrence counts with SDK timestamps. Subscription wiring is not a record that every event fired; the matching source, feature, device or service is still required.",
+        "The app uses release 3.171.0 with the vendor +jason binary flavor required by IMA. The original standard source inventory is retained and compared with both published binary flavors. Only the explicit Media3 package relocation is normalized; standard source hashes are not presented as +jason binary hashes.",
+        "The 27 remaining configuration entries describe SDK-owned or internal metadata rather than supported independent inputs. They stay in the original denominator with a per-ID contract explanation. An unused constructed object or a read of SDK output does not become an editable setting.",
+        "These are source-level route mappings. Java virtual machine (JVM) unit tests, builds and representative licensed emulator checks are separate evidence. They do not qualify every argument combination, device, graphics driver, protected stream, Cast receiver or Analytics dashboard receipt."
       ],
       "excluded": [
         {
@@ -6850,57 +6867,57 @@
         "configuration": {
           "denominator": 294,
           "byStatus": {
-            "direct": 25,
-            "preset": 3,
+            "direct": 267,
+            "preset": 0,
             "observed": 0,
             "internal": 0,
-            "code-only": 16,
-            "missing": 250,
+            "code-only": 0,
+            "missing": 27,
             "sdk-ui-unverified": 0
           },
           "deprecated": 16,
-          "percentDirect": 8.5,
-          "percentDirectOrPreset": 9.52
+          "percentDirect": 90.82,
+          "percentDirectOrPreset": 90.82
         },
         "command": {
           "denominator": 103,
           "byStatus": {
-            "direct": 9,
-            "preset": 2,
+            "direct": 103,
+            "preset": 0,
             "observed": 0,
-            "internal": 7,
-            "code-only": 3,
-            "missing": 82,
+            "internal": 0,
+            "code-only": 0,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 4,
-          "percentDirect": 8.74,
-          "percentDirectOrPreset": 10.68
+          "percentDirect": 100.0,
+          "percentDirectOrPreset": 100.0
         },
         "observation": {
           "denominator": 179,
           "byStatus": {
-            "direct": 2,
+            "direct": 159,
             "preset": 0,
-            "observed": 3,
+            "observed": 20,
             "internal": 0,
-            "code-only": 4,
-            "missing": 170,
+            "code-only": 0,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 14,
-          "percentDirect": 1.12,
-          "percentDirectOrPreset": 1.12
+          "percentDirect": 88.83,
+          "percentDirectOrPreset": 88.83
         },
         "event": {
           "denominator": 115,
           "byStatus": {
             "direct": 0,
             "preset": 0,
-            "observed": 6,
+            "observed": 115,
             "internal": 0,
             "code-only": 0,
-            "missing": 109,
+            "missing": 0,
             "sdk-ui-unverified": 0
           },
           "deprecated": 9,
@@ -6915,17 +6932,17 @@
             "configuration": {
               "denominator": 242,
               "byStatus": {
-                "direct": 21,
-                "preset": 3,
+                "direct": 219,
+                "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 13,
-                "missing": 205,
+                "code-only": 0,
+                "missing": 23,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 16,
-              "percentDirect": 8.68,
-              "percentDirectOrPreset": 9.92
+              "percentDirect": 90.5,
+              "percentDirectOrPreset": 90.5
             },
             "command": {
               "denominator": 0,
@@ -6945,17 +6962,17 @@
             "observation": {
               "denominator": 5,
               "byStatus": {
-                "direct": 0,
+                "direct": 5,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 5,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 5,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "event": {
               "denominator": 0,
@@ -6980,17 +6997,17 @@
             "configuration": {
               "denominator": 50,
               "byStatus": {
-                "direct": 4,
+                "direct": 46,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
-                "code-only": 3,
-                "missing": 43,
+                "code-only": 0,
+                "missing": 4,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 8.0,
-              "percentDirectOrPreset": 8.0
+              "percentDirect": 92.0,
+              "percentDirectOrPreset": 92.0
             },
             "command": {
               "denominator": 0,
@@ -7010,17 +7027,17 @@
             "observation": {
               "denominator": 13,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
-                "observed": 0,
+                "observed": 11,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 13,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 15.38,
+              "percentDirectOrPreset": 15.38
             },
             "event": {
               "denominator": 0,
@@ -7092,10 +7109,10 @@
               "byStatus": {
                 "direct": 0,
                 "preset": 0,
-                "observed": 6,
+                "observed": 115,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 109,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 9,
@@ -7110,17 +7127,17 @@
             "configuration": {
               "denominator": 2,
               "byStatus": {
-                "direct": 0,
+                "direct": 2,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 2,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "command": {
               "denominator": 0,
@@ -7190,32 +7207,32 @@
             "command": {
               "denominator": 63,
               "byStatus": {
-                "direct": 9,
-                "preset": 2,
+                "direct": 63,
+                "preset": 0,
                 "observed": 0,
-                "internal": 1,
+                "internal": 0,
                 "code-only": 0,
-                "missing": 51,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 4,
-              "percentDirect": 14.29,
-              "percentDirectOrPreset": 17.46
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 60,
               "byStatus": {
-                "direct": 2,
+                "direct": 60,
                 "preset": 0,
-                "observed": 3,
+                "observed": 0,
                 "internal": 0,
-                "code-only": 2,
-                "missing": 53,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 9,
-              "percentDirect": 3.33,
-              "percentDirectOrPreset": 3.33
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "event": {
               "denominator": 0,
@@ -7255,32 +7272,32 @@
             "command": {
               "denominator": 9,
               "byStatus": {
-                "direct": 0,
+                "direct": 9,
                 "preset": 0,
                 "observed": 0,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 9,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 89,
               "byStatus": {
-                "direct": 0,
+                "direct": 87,
                 "preset": 0,
-                "observed": 0,
+                "observed": 2,
                 "internal": 0,
                 "code-only": 0,
-                "missing": 89,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 97.75,
+              "percentDirectOrPreset": 97.75
             },
             "event": {
               "denominator": 0,
@@ -7320,32 +7337,32 @@
             "command": {
               "denominator": 31,
               "byStatus": {
-                "direct": 0,
+                "direct": 31,
                 "preset": 0,
                 "observed": 0,
-                "internal": 6,
-                "code-only": 3,
-                "missing": 22,
+                "internal": 0,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 100.0,
+              "percentDirectOrPreset": 100.0
             },
             "observation": {
               "denominator": 12,
               "byStatus": {
-                "direct": 0,
+                "direct": 5,
                 "preset": 0,
-                "observed": 0,
+                "observed": 7,
                 "internal": 0,
-                "code-only": 2,
-                "missing": 10,
+                "code-only": 0,
+                "missing": 0,
                 "sdk-ui-unverified": 0
               },
               "deprecated": 0,
-              "percentDirect": 0.0,
-              "percentDirectOrPreset": 0.0
+              "percentDirect": 41.67,
+              "percentDirectOrPreset": 41.67
             },
             "event": {
               "denominator": 0,

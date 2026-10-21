@@ -167,7 +167,7 @@
     },
     {
       "type": "p",
-      "text": "HTTP retry delays (s) controls the wait before each retry. Blank uses the SDK policy that increases the wait between retries, none disables retries, and a comma-separated list such as 0, 0.25, 2 permits one retry for each finite nonnegative value. The setting applies after player recreation. It does not expose custom callbacks, request credentials or content-protection license renewal retries."
+      "text": "HTTP retry delays (s) controls the wait before each retry. Blank uses the SDK policy that increases the wait between retries, none disables retries, and a comma-separated list such as 0, 0.25, 2 permits one retry for each finite nonnegative value. The setting applies after player recreation. This standard field does not edit callbacks, request credentials or content-protection license renewal retries; use the separate SDK settings for their supported inputs."
     },
     {
       "type": "note",
@@ -233,7 +233,7 @@
     {
       "type": "note",
       "title": "Callback execution",
-      "text": "Scripts receive plain value snapshots and return the field's documented type. They have no Java, Android, Player, file or network object access. The interpreter checks instruction, elapsed-time and stack budgets and retains native behavior on an invalid result. This runs inside the app process, with no separate memory isolation. Response preprocessing can buffer a whole response; select only the request types you need."
+      "text": "Scripts receive plain value snapshots and return the field's documented type. They have no Java, Android, Player, file or network object access. The interpreter limits instructions, CPU time, elapsed time and stack depth, and retains native behavior on an invalid result. CPU time measures work done by the script; elapsed time also includes time when the thread is not running. Checking both avoids rejecting a short script solely because another task delayed it, while still limiting slow execution. This runs inside the app process, with no separate memory isolation. Response preprocessing can buffer a whole response; select only the request types you need."
     },
     {
       "type": "h2",
@@ -296,49 +296,40 @@
   ],
   "sources": [
     {
-      "path": "apps/android/README.md",
-      "line": 26,
-      "label": "Build and licenses"
+      "label": "Build and licenses",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/README.md"
     },
     {
-      "path": "apps/android/app/build.gradle.kts",
-      "line": 9,
-      "label": "SDK, Java, application ID, and license precedence"
+      "label": "SDK, Java, application ID, and license precedence",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/build.gradle.kts"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-      "line": 332,
-      "label": "Screen implementation and PlayerView recreation"
+      "label": "Screen implementation and PlayerView recreation",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt",
-      "line": 22,
-      "label": "Offline helper class"
+      "label": "Offline helper class",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt"
     },
     {
-      "path": "apps/android/app/src/main/AndroidManifest.xml",
-      "line": 29,
-      "label": "Phone and TV launcher declarations"
+      "label": "Phone and TV launcher declarations",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/AndroidManifest.xml"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt",
-      "line": 20,
-      "label": "Public reference source catalog"
+      "label": "Public reference source catalog",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-      "line": 37,
-      "label": "Configuration editor"
+      "label": "Configuration editor",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
-      "line": 34,
-      "label": "Validated source and player settings"
+      "label": "Validated source and player settings",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt",
-      "line": 8,
-      "label": "View lifecycle ownership"
+      "label": "View lifecycle ownership",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt"
     },
     {
       "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player/is-stalled.html",
@@ -357,13 +348,32 @@
       "label": "Player 3.171.0 source target latency and live-edge definition"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
-      "line": 22,
-      "label": "Applied SDK configuration example"
+      "label": "Applied SDK configuration example",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt"
     },
     {
       "url": "https://developer.android.com/reference/android/view/ViewParent#requestDisallowInterceptTouchEvent(boolean)",
       "label": "Android touch interception contract"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiSettings.kt",
+      "label": "ApiSettings.kt"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiRuntimePanel.kt",
+      "label": "ApiRuntimePanel.kt"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiOfflinePanel.kt",
+      "label": "ApiOfflinePanel.kt"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt",
+      "label": "ApiAnalyticsPanel.kt"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiVrRenderer.kt",
+      "label": "ApiVrRenderer.kt"
     }
   ]
 }

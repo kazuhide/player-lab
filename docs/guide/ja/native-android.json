@@ -167,7 +167,7 @@
     },
     {
       "type": "p",
-      "text": "HTTP retry delays (s)は通信を再試行するまでの待ち時間です。空欄はSDKの再試行の待ち時間を段階的に増やす方式、noneは再試行なしです。0, 0.25, 2のように有限の非負の秒数を並べると、各値につき1回再試行します。プレイヤーを再生成して適用します。任意のコールバック、リクエストの認証情報、DRMライセンス更新の再試行を設定する画面ではありません。"
+      "text": "HTTP retry delays (s)は通信を再試行するまでの待ち時間です。空欄はSDKの再試行の待ち時間を段階的に増やす方式、noneは再試行なしです。0, 0.25, 2のように有限の非負の秒数を並べると、各値につき1回再試行します。プレイヤーを再生成して適用します。この標準フィールドではコールバック、リクエストの認証情報、コンテンツ保護ライセンス更新の再試行は変更しません。それぞれの対応項目は別のSDK設定で編集します。"
     },
     {
       "type": "note",
@@ -233,7 +233,7 @@
     {
       "type": "note",
       "title": "関数の実行",
-      "text": "関数には値の写しを渡し、各フィールドで定めた型の結果を受け取ります。Java・Android・Player・ファイル・ネットワークの実体にはアクセスできません。インタープリターは命令数・経過時間・スタックの上限を確認し、無効な結果では本来の処理を維持します。アプリと同じプロセスで動作し、メモリが別に隔離される仕組みではありません。レスポンスの前処理では全体をメモリへ読み込む場合があるため、必要なリクエスト種別だけを選んでください。"
+      "text": "関数には値の写しを渡し、各フィールドで定めた型の結果を受け取ります。Java・Android・Player・ファイル・ネットワークの実体にはアクセスできません。インタープリターは命令数・CPU時間・経過時間・スタックの深さを制限し、無効な結果では本来の処理を維持します。CPU時間は処理に使った時間で、経過時間にはスレッドが実行されていない間も含まれます。両方を確認することで、他の処理に待たされた短い関数を誤って拒否せず、長時間の実行にも上限を設けています。アプリと同じプロセスで動作し、メモリが別に隔離される仕組みではありません。レスポンスの前処理では全体をメモリへ読み込む場合があるため、必要なリクエスト種別だけを選んでください。"
     },
     {
       "type": "h2",
@@ -296,49 +296,40 @@
   ],
   "sources": [
     {
-      "path": "apps/android/README.md",
-      "line": 26,
-      "label": "ビルドとライセンス"
+      "label": "ビルドとライセンス",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/README.md"
     },
     {
-      "path": "apps/android/app/build.gradle.kts",
-      "line": 9,
-      "label": "SDK・Java・application ID・ライセンス優先度"
+      "label": "SDK・Java・application ID・ライセンス優先度",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/build.gradle.kts"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-      "line": 332,
-      "label": "実画面と PlayerView の再生成"
+      "label": "実画面と PlayerView の再生成",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt",
-      "line": 22,
-      "label": "オフライン補助クラス"
+      "label": "オフライン補助クラス",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt"
     },
     {
-      "path": "apps/android/app/src/main/AndroidManifest.xml",
-      "line": 29,
-      "label": "通常端末・TV のランチャー宣言"
+      "label": "通常端末・TV のランチャー宣言",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/AndroidManifest.xml"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt",
-      "line": 20,
-      "label": "公開参照ソースのカタログ"
+      "label": "公開参照ソースのカタログ",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-      "line": 37,
-      "label": "設定エディター"
+      "label": "設定エディター",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
-      "line": 34,
-      "label": "ソース・Player 設定の検証と変換"
+      "label": "ソース・Player 設定の検証と変換",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt",
-      "line": 8,
-      "label": "ビューの lifecycle 所有権"
+      "label": "ビューの lifecycle 所有権",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt"
     },
     {
       "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player/is-stalled.html",
@@ -357,13 +348,32 @@
       "label": "Player 3.171.0 のソース目標遅延とライブ端の定義"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
-      "line": 22,
-      "label": "適用済みSDK設定のコード例"
+      "label": "適用済みSDK設定のコード例",
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt"
     },
     {
       "url": "https://developer.android.com/reference/android/view/ViewParent#requestDisallowInterceptTouchEvent(boolean)",
       "label": "Androidのタッチ取り込み制御"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiSettings.kt",
+      "label": "ApiSettings.kt"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiRuntimePanel.kt",
+      "label": "ApiRuntimePanel.kt"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiOfflinePanel.kt",
+      "label": "ApiOfflinePanel.kt"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt",
+      "label": "ApiAnalyticsPanel.kt"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiVrRenderer.kt",
+      "label": "ApiVrRenderer.kt"
     }
   ]
 }

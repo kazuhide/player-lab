@@ -197,156 +197,32 @@
     ],
     "android": [
       {
-        "source": "Bitmovin Android SDK 3.171.0; Android, Android TV and Android-based Fire TV share this SDK/build.",
-        "text": "Bitmovin Android SDK 3.171.0を対象とします。Android、Android TV、AndroidベースのFire TVは同じSDKとビルドを使用します。"
+        "source": "The inventory retains the published Android configuration entries, public operations and reads, and named events. Nested configuration-owner entries are API paths, not a count of independent form fields. The original IDs, categories and exclusions remain unchanged.",
+        "text": "Androidの設定、公開操作、状態取得、名前付きイベントの一覧を維持しています。入れ子の設定オブジェクトもAPIのパスとして数えるため、独立した入力欄の数ではありません。元のID・分類・除外一覧は変更していません。"
       },
       {
-        "source": "807 source scoped declarations normalize to 691 qualified operational IDs across four categories. The full public callable/property/constructor census has 2205 declarations; it is not an editable-control count.",
-        "text": "対象範囲のソース宣言807件を、四区分・691件の完全修飾API IDに正規化しています。公開されている呼び出し可能な宣言・プロパティ・コンストラクター全体は2205件ですが、この数はGUIで編集できる項目数ではありません。"
+        "source": "SDK API settings provides typed values, lists, dictionaries, native object factories and editable callback bodies. The standard form remains available. Staged overrides take precedence after explicit Apply and player recreation; startup-only debug logging uses a saved next-process setting.",
+        "text": "SDK API settingsでは、型に沿った値、配列、辞書、ネイティブの実体、関数本体を入力します。従来のフォームも利用できます。上書きは明示的な適用とPlayerの再生成後に優先され、起動時のデバッグログ設定は次のプロセスで反映します。"
       },
       {
-        "source": "Configuration, commands, read-only observations and concrete event types have separate denominators. No aggregate percentage is asserted.",
-        "text": "設定、操作、読み取り専用の観測値、具体的なイベント型は、それぞれ別の分母で集計します。全区分を合計した割合は算出しません。"
+        "source": "Commands invoke the current Player, Source, view or native host with edited arguments; reads refresh visible SDK state. Source identity and generation are checked for asynchronous results. Submitting a command does not establish its playback or service effect.",
+        "text": "操作は入力した引数を現在のPlayer・Source・View・ホストへ渡し、状態取得はSDKの値を表示します。非同期の結果ではソースの実体と世代を確認します。要求を送っただけで再生や外部サービスへの効果が確認できるわけではありません。"
       },
       {
-        "source": "Overloads count once by fully qualified method name; () distinguishes explicit methods from Kotlin properties. Exposed-overload counts are listed below.",
-        "text": "オーバーロードは完全修飾メソッド名ごとに一件と数えます。明示的なメソッドには()を付け、Kotlinプロパティと区別します。GUIに対応するオーバーロード数は後述します。"
+        "source": "Named events have current-owner subscriptions and visible occurrence counts with SDK timestamps. Subscription wiring is not a record that every event fired; the matching source, feature, device or service is still required.",
+        "text": "名前付きイベントは現在の所有者で購読し、件数とSDKの時刻を表示します。購読経路があることと、全イベントの発火を確認したことは異なります。対応する素材・機能・端末・サービスが必要です。"
       },
       {
-        "source": "Generated enum/Parcelable/Data helpers, constructors/builders, property getter/setter and interface aliases, callback contracts and optional-wrapper declarations have explicit exclusion reasons.",
-        "text": "自動生成されたenum・Parcelable・データ型の補助機能、コンストラクター、ビルダー、getter/setter、インターフェイスの別名、コールバック契約、任意ラッパーの宣言には、除外理由を明記しています。"
+        "source": "The app uses release 3.171.0 with the vendor +jason binary flavor required by IMA. The original standard source inventory is retained and compared with both published binary flavors. Only the explicit Media3 package relocation is normalized; standard source hashes are not presented as +jason binary hashes.",
+        "text": "アプリは3.171.0の+jason版を使います。IMAに合わせた配布形式です。標準版のソースによる元の一覧を維持し、両方の公開バイナリーと照合します。正規化する差はMedia3のパッケージ移設だけで、標準版のソースのハッシュを+jason版のバイナリーのハッシュとして扱いません。"
       },
       {
-        "source": "Deprecated callable fields/methods/events remain included; deprecation alone never excludes an operational ID.",
-        "text": "呼び出し可能な非推奨のフィールド・メソッド・イベントも対象です。非推奨であることだけを理由にAPI IDを除外しません。"
+        "source": "The 27 remaining configuration entries describe SDK-owned or internal metadata rather than supported independent inputs. They stay in the original denominator with a per-ID contract explanation. An unused constructed object or a read of SDK output does not become an editable setting.",
+        "text": "残る設定27件はSDKが所有する値や内部用のメタデータで、独立して適用する公開入力ではありません。元の分母に残し、IDごとの契約上の理由を示します。未使用のオブジェクトを生成したり、SDKの出力値を読み取ったりしても、設定を編集したことにはしません。"
       },
       {
-        "source": "Missing means no exposed route in the audited app. The standard SDK UI routes below were separately exercised on an Android phone emulator; no Android TV or Fire TV device behavior is inferred.",
-        "text": "「対応するGUIなし」は、調査したアプリに提供経路がないことを示します。以下の標準SDK UI経路はAndroidの電話向けエミュレーターで別途操作して確認しました。Android TVやFire TVの端末動作を示す結果ではありません。"
-      },
-      {
-        "source": "Eleven standard UI routes were observed at the native boundary: play, pause, seek, mute/unmute, speed, audio/subtitle/video quality selection and both public thumbnail query entry points. The thumbnail query returned null; this does not establish thumbnail image rendering. The speed selector offers only 0.25, 0.5, 1, 1.5 and 2, so that command receives preset credit.",
-        "text": "標準UIからネイティブAPIとの境界まで、play、pause、seek、mute/unmute、再生速度、音声・字幕・映像品質の選択と二つの公開thumbnail問い合わせ経路、計十一件を確認しました。thumbnailの問い合わせはnullを返したため、画像表示を確認した結果ではありません。 再生速度は0.25、0.5、1、1.5、2の固定選択なので、この操作はプリセットとして数えます。"
-      },
-      {
-        "source": "Fullscreen/PiP entry, exit and state controls and the mobile volume slider were verified absent from the configured phone UI. They remain missing and receive no GUI credit; reading a false native getter in a test does not count as an app observation.",
-        "text": "検査した電話向けUIでは、Fullscreen/PiPの開始・終了・状態表示と携帯向けvolume sliderが提供されていないことを確認しました。これらは「対応するGUIなし」のままとし、確認済みGUI件数には含めません。テストでnative getterのfalseを読むだけでは、アプリで観測値を表示したとは数えません。"
-      },
-      {
-        "source": "Current UI choices are Default/Sports/Live/Cinema. Shared assets and custom factories were exercised in the native phone tests. No TvUi/focus selector is exposed.",
-        "text": "UIの選択肢はDefault・Sports・Live・Cinemaです。電話向けのネイティブテストで共有アセットとカスタムfactoryを実行しました。TvUiやフォーカス方式の選択GUIはありません。"
-      },
-      {
-        "source": "Cast, IMA, DRM, offline, low-latency, VR, PiP and Analytics remain SDK-available with their media, dependency, license, hardware or integration prerequisites; lack of a test device does not remove them.",
-        "text": "Cast、IMA、DRM、オフライン、低遅延、VR、PiP、Analyticsは、素材・依存ライブラリ・ライセンス・ハードウェア・組み込み条件を満たせば利用できるSDK APIとして残しています。試験用の実機がないことを理由に分母から除外しません。"
-      },
-      {
-        "source": "OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig; the separate SDK time shifting editor changes PlaybackConfig.isTimeShiftEnabled.",
-        "text": "OfflineManagerはGUIに接続されていません。ヘルパー内の呼び出しは「コードのみ」です。Allow DVRが変更するのはアプリ側のDvrConfigで、別のSDK time shifting編集項目がPlaybackConfig.isTimeShiftEnabledを変更します。"
-      },
-      {
-        "source": "jsLocation/cssLocation remain constant and match SDK defaults, so the UI mode picker does not receive GUI field credit for them.",
-        "text": "jsLocationとcssLocationはSDKの既定値と同じ定数です。UIの選択を変えても値は変わらないため、GUIで指定できる設定には含めません。"
-      },
-      {
-        "source": "duration/maxTimeShift/timeShift contribute to the rendered DVR text. isLive/currentTime are copied but unused by Dvr.deriveState and receive no observed GUI credit.",
-        "text": "duration・maxTimeShift・timeShiftは画面上のDVR情報に使われます。isLiveとcurrentTimeはコピーされますが、Dvr.deriveStateでは使われないため、GUIの観測件数には含めません。"
-      },
-      {
-        "source": "Source evidence reads tracked public app and control-test files, including the configuration editor, SDK mapping and applied-code export. No environment files, native local properties, license values or device state are read by this generator.",
-        "text": "設定画面、SDKへの変換、適用済みコードの出力を含む追跡対象の公開アプリ・操作テストのソースを証跡とします。この生成処理は、環境ファイル、端末のlocal.properties、ライセンス値や実行中の端末状態を読みません。"
-      },
-      {
-        "source": "25 individual creation/source configuration leaves are editable. They include player/source audio-language priorities, one external WebVTT track's URL/label/language/default metadata and HTTP retry delays, alongside source target latency. Blank target latency leaves SourceConfig.liveConfig unset.",
-        "text": "生成時・ソース設定の末端25項目を個別に編集できます。ソースの目標遅延に加え、Player／Sourceの優先音声言語、外部WebVTT字幕一つのURL・表示名・言語・既定扱いのメタデータ、HTTP再試行の待ち時間を含みます。目標遅延を空欄にするとSourceConfig.liveConfigを指定しません。"
-      },
-      {
-        "source": "PlayerConfig playback/buffer/adaptation/network bindings, SourceConfig options/liveConfig/subtitleTracks and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary objects or arrays. External track ID and WebVTT MIME type are fixed code-only values.",
-        "text": "PlayerConfigのplayback・buffer・adaptation・network、SourceConfigのoptions・liveConfig・subtitleTracks、BufferConfig.audioAndVideoはコード内の結合です。任意のオブジェクトや配列をGUIから編集する機能ではありません。外部字幕のトラックIDとWebVTTのMIMEタイプもコード内の固定値です."
-      },
-      {
-        "source": "Source Apply validates HTTP(S) URLs and finite offset seconds, constructs Source(SourceConfig) and invokes Player.load(Source). Only this load overload is an app GUI path. Player.config, Source.config and Player.isDestroyed reads in tests receive no observed GUI credit; Player.on/off and Source.on/off remain listener lifecycle code.",
-        "text": "ソースのApplyはHTTP(S) URLと有限の秒数オフセットを検証し、Source(SourceConfig)を生成してPlayer.load(Source)を呼びます。GUIにつながるloadのオーバーロードはこれだけです。テストで読むPlayer.config、Source.config、Player.isDestroyedにはGUIの観測件数を付けません。Player.on/offとSource.on/offはリスナーのライフサイクル処理です。"
-      },
-      {
-        "source": "Player Apply recreates the player and reloads the retained source options, preserving UI mode, log and app Allow DVR. Playback position resets. Source Reset restores the applied source draft; Player Reset restores SDK-default draft values. Reset alone does not apply either draft.",
-        "text": "プレイヤーのApplyは、UIモード、ログ、アプリのAllow DVRを保持して再生成し、保持したソースオプションで再ロードします。再生位置はリセットします。ソースのResetは適用済みソースのドラフトに、プレイヤーのResetはSDK既定値のドラフトに戻します。Resetだけではどちらも適用しません。"
-      },
-      {
-        "source": "The single external WebVTT track's isDefault flag is informational metadata and does not enable subtitles. Select the track through the normal Default UI subtitle menu. HTTP retry delays are finite nonnegative seconds: blank keeps linear backoff, none disables retries, and each list entry allows one retry. No arbitrary request callback or DRM renewal retry editor is provided.",
-        "text": "外部WebVTT字幕一つのisDefaultは情報用のメタデータであり、字幕を有効にしません。標準UIの字幕メニューから選択します。HTTPの再試行待ちは有限の非負の秒数です。空欄は待ち時間を段階的に増やす方式、noneは再試行なし、一覧の各値は再試行一回に対応します。任意のリクエストコールバックやDRMライセンス更新の再試行を編集する機能はありません。"
-      },
-      {
-        "source": "A nonempty SourceConfig.preferredAudioLanguages list overrides the player preference; blank inherits it. Language codes retain order after trimming and case-insensitive duplicate removal. No match uses the SDK default audio track.",
-        "text": "SourceConfig.preferredAudioLanguagesが空でなければPlayer側の優先言語より優先します。空欄はPlayer側を引き継ぎます。言語コードは前後の空白を除き、大文字・小文字を区別せず重複を取り除いた後も順序を保ちます。一致しない場合はSDKの既定音声を使います。"
-      },
-      {
-        "source": "Buffer durations are finite seconds: forward buffer is at least 0.5, and nonnegative startup/restart thresholds are at most forward minus 0.5, allowing 1 ULP of subtraction error. Automatic video bitrate is a nonnegative Int in bit/s; empty means 2147483647 with no ABR cap. Quality/stability balance is 0 through 1 and applies near the live edge.",
-        "text": "バッファーは有限の秒数です。前方バッファーは0.5以上、開始時・再バッファー時のしきい値は非負で、前方バッファーから0.5を引いた値以下とし、減算誤差を1 ULPまで許容します。自動画質選択のビデオビットレートはbit/s単位の非負のIntです。空欄は2147483647となり、ABRの上限を設けません。画質と安定性の比重は0から1で、ライブ端の近くに適用します。"
-      },
-      {
-        "source": "PlayerView onStart/onResume/onPause/onStop are internal host lifecycle calls. A view-owned observer catches up newly attached views in a resumed Activity and stops notifications before retirement. Detach precedes view.onDestroy, and the controller owns Player destruction. Foreground return can retain the SDK paused state; the regression explicitly requests Play rather than assuming automatic resume.",
-        "text": "PlayerViewのonStart/onResume/onPause/onStopは画面のライフサイクルに伴う内部呼び出しです。ビューごとのobserverは、Activityが復帰済みの場合にも新しいビューへ現在の状態を通知し、旧ビューへの通知は退役前に解除します。view.onDestroyの前にPlayerを切り離し、Playerの破棄はcontrollerが担当します。画面へ戻ってもSDKが一時停止状態を保持する場合があるため、回帰テストでは自動再開を仮定せず、明示的にPlayを要求します。"
-      },
-      {
-        "source": "The 2026-10-21 Android phone group passed all 16 cases, with 18 JVM tests and both app/test APK builds. It covered configuration, source-owned startup offset, standard UI/native controls, HLS/DASH live finalization, clipboard, ownership, UI handoffs and background return with explicit Play.",
-        "text": "2026-10-21のAndroid電話向けエミュレーター一括実行は16件すべて成功し、JVMテスト18件とアプリ・テストAPKのビルドも成功しました。設定、対象ソースの準備完了後の開始オフセット、標準UIとネイティブ操作、HLS/DASHライブ終了、クリップボード、所有権、UI切り替え、明示的なPlayを伴うバックグラウンド復帰を確認しました。"
-      },
-      {
-        "source": "Live acceptance couples a fresh TimeShifted completion, native zero time-shift and genuinely visible LIVE within the same deadline. Raw live latency and effective target latency are separate diagnostics; no seek-completion or ideal-latency SLA is asserted, and no automatic seek retry is added.",
-        "text": "ライブ復帰は、新しいTimeShifted完了イベント、nativeのゼロtimeShift、実際に可視なLIVEを同じ期限内に満たすかで判定します。raw live latencyと実効target latencyは別の診断値です。seek完了や理想遅延のSLAを主張せず、自動seek再試行も追加していません。"
-      },
-      {
-        "source": "configuration_named_types: 242 configuration, 5 observation.",
-        "text": "configuration_named_types：設定242件、観測値5件。"
-      },
-      {
-        "source": "configuration_supporting_types: 50 configuration, 13 observation.",
-        "text": "configuration_supporting_types：設定50件、観測値13件。"
-      },
-      {
-        "source": "events: 115 event.",
-        "text": "events：イベント115件。"
-      },
-      {
-        "source": "runtime_argument_fields: 2 configuration.",
-        "text": "runtime_argument_fields：設定2件。"
-      },
-      {
-        "source": "runtime_playback: 63 command, 60 observation.",
-        "text": "runtime_playback：操作63件、観測値60件。"
-      },
-      {
-        "source": "runtime_supporting_types: 9 command, 89 observation.",
-        "text": "runtime_supporting_types：操作9件、観測値89件。"
-      },
-      {
-        "source": "runtime_ui_offline_analytics: 31 command, 12 observation.",
-        "text": "runtime_ui_offline_analytics：操作31件、観測値12件。"
-      },
-      {
-        "source": "android:com.bitmovin.player.PlayerView.off(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
-        "text": "android:com.bitmovin.player.PlayerView.off()：公開オーバーロード2件のうち、アプリのGUIに対応するものは0件です。"
-      },
-      {
-        "source": "android:com.bitmovin.player.api.Player.load(): 3 public overload declarations; 1 app-panel GUI overloads mapped.",
-        "text": "android:com.bitmovin.player.api.Player.load()：公開オーバーロード3件のうち、アプリのGUIに対応するものは1件です。"
-      },
-      {
-        "source": "android:com.bitmovin.player.api.Player.setSurface(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
-        "text": "android:com.bitmovin.player.api.Player.setSurface()：公開オーバーロード2件のうち、アプリのGUIに対応するものは0件です。"
-      },
-      {
-        "source": "android:com.bitmovin.player.api.playlist.PlaylistApi.add(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
-        "text": "android:com.bitmovin.player.api.playlist.PlaylistApi.add()：公開オーバーロード2件のうち、アプリのGUIに対応するものは0件です。"
-      },
-      {
-        "source": "android:com.bitmovin.player.api.playlist.PlaylistApi.remove(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
-        "text": "android:com.bitmovin.player.api.playlist.PlaylistApi.remove()：公開オーバーロード2件のうち、アプリのGUIに対応するものは0件です。"
-      },
-      {
-        "source": "android:com.bitmovin.player.api.playlist.PlaylistApi.seek(): 2 public overload declarations; 0 app-panel GUI overloads mapped.",
-        "text": "android:com.bitmovin.player.api.playlist.PlaylistApi.seek()：公開オーバーロード2件のうち、アプリのGUIに対応するものは0件です。"
+        "source": "These are source-level route mappings. Java virtual machine (JVM) unit tests, builds and representative licensed emulator checks are separate evidence. They do not qualify every argument combination, device, graphics driver, protected stream, Cast receiver or Analytics dashboard receipt.",
+        "text": "この対応表はソース上の操作経路を示します。Java仮想マシン上の単体テスト、ビルド、ライセンスを使った代表的なエミュレーター検証は別の証跡です。全引数・端末・描画ドライバー・保護素材・Cast受信機・Analytics Dashboardへの反映を確認したという意味ではありません。"
       }
     ],
     "react-native": [

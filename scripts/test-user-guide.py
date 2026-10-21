@@ -358,7 +358,7 @@ class GuideTests(unittest.TestCase):
         report = json.loads((ROOT / 'docs/api-coverage/coverage.json').read_text())
         expected = {'ios': (209, '23 / 209 · 11.00%', 12, 4, 7),
                     'tvos': (180, '20 / 180 · 11.11%', 12, 0, 8),
-                    'android': (294, '44 / 294 · 14.97%', 25, 3, 16),
+                    'android': (294, '267 / 294 · 90.82%', 267, 0, 0),
                     'react-native': (267, '22 / 267 · 8.24%', 14, 3, 5),
                     'vega': (653, '22 / 653 · 3.37%', 16, 0, 6)}
         for app in report['applications']:
