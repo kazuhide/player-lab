@@ -50,6 +50,22 @@ beforeEach(() => { vi.clearAllMocks(); bridge.initializeSource.mockResolvedValue
 afterEach(async () => { await flush(); });
 
 describe("source ownership against the installed SDK's asynchronous bridge", () => {
+  it("never changes a shared fulfilled promise supplied by the native Promise runtime", async () => {
+    const player = new Player();
+    const descriptor = Object.getOwnPropertyDescriptor(Promise, "resolve")!;
+    const original = Promise.resolve.bind(Promise);
+    const shared = Object.freeze(original());
+    Object.defineProperty(Promise, "resolve", { ...descriptor, value: (value: unknown) => value === undefined ? shared : original(value) });
+    try {
+      await expect(loadOwnedSource(player, { nativeId: "shared-runtime-promise", url: "https://example.com/a.m3u8" })).resolves.toBeUndefined();
+      expect(Object.prototype.hasOwnProperty.call(shared, "then")).toBe(false);
+      expect(bridge.loadSource).toHaveBeenCalledExactlyOnceWith(player.nativeId, "shared-runtime-promise");
+    } finally {
+      Object.defineProperty(Promise, "resolve", descriptor);
+      disposeOwnedSources(player); player.destroy();
+    }
+  });
+
   it("preserves the SDK-created source identity and restores both exact method descriptors", async () => {
     const player = new Player();
     const loadDescriptor = Object.getOwnPropertyDescriptor(player, "loadSource");

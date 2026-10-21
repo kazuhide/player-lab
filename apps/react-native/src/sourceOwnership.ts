@@ -61,7 +61,8 @@ function captureLoad(host: Host, configuration: SourceConfig): Source {
 
 /** Guard the actual SDK .then(native loadSource) invocation, including same-tick retirement. */
 function attach(request: Request, source: Source): void {
-  const completed = Promise.resolve();
+  // Promise.resolve(undefined) may be a shared singleton on native Promise runtimes.
+  const completed = new Promise<void>((resolve) => { resolve(); });
   const then = completed.then.bind(completed);
   completed.then = function<TResult1 = void, TResult2 = never>(
     fulfilled?: ((value: void) => TResult1 | PromiseLike<TResult1>) | null,
