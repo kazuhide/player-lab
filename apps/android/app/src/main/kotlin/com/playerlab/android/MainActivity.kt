@@ -143,6 +143,32 @@ internal class PlayerController(
     internal var apiEventRecording by mutableStateOf(true)
     internal var apiAsyncResult by mutableStateOf("")
         private set
+    internal val apiOffline = ApiOffline(context) { id, timestamp -> apiEvent(id, timestamp) { !released } }
+    private var offlinePlayback: com.bitmovin.player.api.offline.OfflineSourceConfig? = null
+    internal fun createOfflineManager(id: String) {
+        apiOffline.open(apiOverrides.source(sourceSettings.toSourceConfig()), id)
+    }
+    internal fun loadOfflineSource(config: com.bitmovin.player.api.offline.OfflineSourceConfig) {
+        if (released) return
+        offlinePlayback = config
+        sourceSettings = SourceSettings(config.url, config.type, title = config.title.orEmpty())
+        sourceRevision++
+        loadCurrentSource()
+        configurationStatus = "SDK offline source loaded. Inspect playback and track states."
+    }
+    private fun sourceConfiguration(overrides: ApiOverrides = apiOverrides): SourceConfig {
+        val offline = offlinePlayback
+        val source = if (offline == null) sourceSettings.toSourceConfig() else {
+            // Copy the SDK Parcelable so removing an override does not retain an earlier mutation.
+            val parcel = android.os.Parcel.obtain()
+            try {
+                offline.writeToParcel(parcel, 0)
+                parcel.setDataPosition(0)
+                com.bitmovin.player.api.offline.OfflineSourceConfig.CREATOR.createFromParcel(parcel)
+            } finally { parcel.recycle() }
+        }
+        return overrides.source(source)
+    }
     internal fun currentView(): PlayerView? = views.firstOrNull { it.player === player }
     private fun invalidateApiQuery() {
         apiQuerySequence++
@@ -232,6 +258,7 @@ internal class PlayerController(
 
     fun load(source: PlayerSource) {
         if (released) return
+        offlinePlayback = null
         sourceSettings = SourceSettings.from(source)
         // Also replace a dirty editor when the same catalog preset is selected again.
         sourceRevision++
@@ -241,6 +268,7 @@ internal class PlayerController(
 
     internal fun applySource(settings: SourceSettings) {
         if (released) return
+        offlinePlayback = null
         sourceSettings = settings
         sourceRevision++
         loadCurrentSource()
@@ -248,12 +276,12 @@ internal class PlayerController(
         append("Source configuration applied")
     }
 
-    private fun loadCurrentSource() {
+    private fun loadCurrentSource(config: SourceConfig = sourceConfiguration()) {
         invalidateApiQuery()
         sourceSubscription?.invoke()
         val owner = player
         val generation = ++sourceGeneration
-        val source = sourceFactory(apiOverrides.source(sourceSettings.toSourceConfig()))
+        val source = sourceFactory(config)
         configuredSource = source
         fun ownsSource() = !released && player === owner && sourceGeneration == generation
         val error: (SourceEvent.Error) -> Unit = {
@@ -279,6 +307,10 @@ internal class PlayerController(
 
     internal fun applyPlayerSettings(settings: PlayerSettings, overrides: ApiOverrides = apiOverrides) {
         if (released) return
+        val sourceConfig = runCatching { sourceConfiguration(overrides) }.getOrElse {
+            configurationStatus = "Unable to build source configuration; current settings kept."
+            return
+        }
         // PlayerConfig and its nested configs are fixed at construction time in SDK 3.171.0.
         // https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player-config/index.html
         val replacement = runCatching { createPlayer(settings, overrides) }.getOrElse {
@@ -305,7 +337,7 @@ internal class PlayerController(
         apiSelectedSsaiBreak = null
         observePlayer()
         previous.destroy()
-        loadCurrentSource()
+        loadCurrentSource(sourceConfig)
         configurationStatus = "Player settings applied; current source reloaded."
         append("Player recreated; source retained")
     }
@@ -356,6 +388,8 @@ internal class PlayerController(
         apiSsaiBreaks.clear()
         apiSelectedSsaiAd = null
         apiSelectedSsaiBreak = null
+        apiOffline.dispose()
+        offlinePlayback = null
         playerGeneration++
         sourceGeneration++
         sourceSubscription?.invoke()
@@ -496,6 +530,7 @@ private fun PlayerLabScreen(controller: PlayerController) {
         ConfigurationPanel(controller, uiMode)
         ApiConfigurationPanel(controller)
         ApiRuntimePanel(controller)
+        ApiOfflinePanel(controller)
 
         Column(modifier = Modifier.height(140.dp).verticalScroll(rememberScrollState())) {
             controller.log.take(12).forEach { line ->

@@ -179,6 +179,64 @@ exactly-once destruction, listener removal, and retired callback rejection:
   -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=
 ```
 
+## SDK API settings and controls
+
+Open **SDK API settings** to find additional public SDK configuration fields by
+name. Choose a typed value, stage the override, then apply it to recreate the
+player and reload its source. The applied Kotlin code appears below the editor.
+Removing an override restores the standard configuration or the SDK default on
+the next Apply. DRM secrets appear as placeholders in exported code. The DRM
+transformation choices are example callback strategies, rather than an editor
+for arbitrary executable callbacks.
+
+**SDK API controls** provides commands with named arguments, a refreshable state
+inspector, and event occurrence counts with SDK timestamps. Commands can require
+an active source, an attached view, compatible media or a connected service.
+Check the resulting state and events after running a command. Creating an SSAI
+test ad builds a local input object; ad playback must be established separately
+from the active SDK ad state and playback events.
+
+## Offline controls
+
+The offline panel downloads selected renditions of the current video-on-demand
+source. Downloaded files remain in the app's private storage until explicitly
+deleted or the app is removed.
+
+1. Select a downloadable source in Configuration, or choose **Use sample DASH
+   source** in Offline controls. The sample is a short Big Buck Bunny asset.
+2. Allow download notifications, enter a stable content ID, then create a manager.
+   Reuse the same ID to inspect the same stored content. Use a different ID for a
+   different source.
+3. Set simultaneous download and segment limits, device requirements and DRM
+   handling, then apply the service configuration. Required device conditions
+   such as charging or an unmetered network can keep downloads waiting.
+4. Fetch the SDK options. For each desired video, audio, subtitle or thumbnail
+   entry, choose Download or Delete, then process the selected actions. None
+   clears a pending action. SDK track state determines which actions are valid.
+5. After the selected entries report Downloaded, choose **Play downloaded source**.
+   Player setting changes retain the SDK's offline source and its cache metadata.
+   Applying a regular source returns to online playback.
+6. Use **Delete all content for this ID** to remove its stored content. Releasing
+   the manager frees its in-memory resources and keeps the files. Offline DRM
+   license commands need compatible encrypted media and license-server support.
+
+The panel shows progress, track properties, storage usage and available DRM
+durations. Offline SDK errors, information and warnings also appear in the API
+event inspector. License bytes and opaque DRM identifiers are not exported.
+The SDK dependency, permissions and service setup follow the
+[official offline playback guide](https://developer.bitmovin.com/playback/docs/working-with-offline-playback-android).
+
+`PlayerOfflineInstrumentedTest` drives track selection and configuration through
+the GUI, downloads the short sample, disables Wi-Fi and mobile data, checks that
+there is no active network, and verifies offline playback before and after player
+recreation. It restores the device's radio settings in cleanup. Run it only on a
+device reserved for the test, with a valid allowed license:
+
+```sh
+./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.playerlab.android.PlayerOfflineInstrumentedTest
+```
+
 ## Playback checks
 
 Unit tests and APK builds do not verify licensed playback. On a device or
@@ -381,7 +439,8 @@ caption, and configured retries versus no retries. The configuration-only
 checks do not establish playback; the licensed group checks actual SDK media.
 
 These checks use an Android phone emulator. Physical-device, Android TV, Fire TV,
-offline, casting and Analytics delivery require their respective environments.
+casting and Analytics delivery require their respective environments. Offline
+download and playback are covered separately by the test described above.
 The recorded native observations establish playback and control behavior; they
 do not measure complete internal SDK resource reclamation.
 

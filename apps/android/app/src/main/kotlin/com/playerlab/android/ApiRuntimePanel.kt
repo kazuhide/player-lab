@@ -79,7 +79,7 @@ internal fun ApiRuntimePanel(controller: PlayerController) {
                 }
                 Text("Values are occurrence counts for this app session. Zero means no occurrence has been recorded. The latest timestamp is read from SDK Event.timestamp in milliseconds since the Unix epoch. Keys, request headers and other payloads are not copied into this log.", style = MaterialTheme.typography.bodySmall)
                 Button(onClick = { controller.apiEvents.clear(); controller.apiEventTimes.clear() }, modifier = Modifier.testTag("api-events-clear")) { Text("Clear event counts") }
-                (ApiEvents.player.map { it.id } + ApiEvents.source.map { it.id }).filter { it.contains(query, ignoreCase = true) }.forEach { id ->
+                (ApiEvents.player.map { it.id } + ApiEvents.source.map { it.id } + listOf("OfflineEvent.Error", "OfflineEvent.Info", "OfflineEvent.Warning")).filter { it.contains(query, ignoreCase = true) }.forEach { id ->
                     Text("$id: ${controller.apiEvents[id] ?: 0}; latest timestamp=${controller.apiEventTimes[id] ?: "not recorded"}", modifier = Modifier.testTag("api-event-$id"), style = MaterialTheme.typography.bodySmall)
                 }
             }
