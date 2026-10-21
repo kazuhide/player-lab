@@ -350,7 +350,8 @@ function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectS
         ))}
       </ScrollView>
       <ApiPanel player={player} source={source} ready={viewReady} events={apiEvents} recording={recordingEvents}
-        onRecording={setRecordingEvents} onClearEvents={() => { eventBuffer.current = []; setApiEvents([]); }} onRecreate={onRecreate} />
+        onRecording={setRecordingEvents} onClearEvents={() => { eventBuffer.current = []; setApiEvents([]); }} onRecreate={onRecreate}
+        settings={settings} onEvent={recordApiEvent} />
     </>
   );
 }

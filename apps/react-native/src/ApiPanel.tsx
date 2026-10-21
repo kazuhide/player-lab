@@ -3,6 +3,8 @@ import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 import type { Player, SourceConfig } from "bitmovin-player-react-native";
 import { nativeOperations } from "./apiOperations";
 import { apiValue } from "./apiValues";
+import { AuxiliaryOperations } from "./auxiliaryOperations";
+import type { NativeSettings } from "./nativeSettings";
 
 interface Props {
   player: Player;
@@ -13,14 +15,20 @@ interface Props {
   onRecording: (enabled: boolean) => void;
   onClearEvents: () => void;
   onRecreate: () => void;
+  settings: NativeSettings;
+  onEvent: (name: string, value: unknown) => void;
 }
 
 /** The selected typed operation is dispatched only by an explicit user action. */
-export function ApiPanel({ player, source, ready, events, recording, onRecording, onClearEvents, onRecreate }: Props): React.JSX.Element {
+export function ApiPanel({ player, source, ready, events, recording, onRecording, onClearEvents, onRecreate, settings, onEvent }: Props): React.JSX.Element {
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState("");
   const [limit, setLimit] = useState(12);
-  const operations = useMemo(() => nativeOperations(player, source), [player, source]);
+  const currentSettings = useRef(settings);
+  currentSettings.current = settings;
+  const auxiliary = useMemo(() => new AuxiliaryOperations(player, () => currentSettings.current, onEvent), [player, onEvent]);
+  useEffect(() => () => auxiliary.dispose(), [auxiliary]);
+  const operations = useMemo(() => [...nativeOperations(player, source), ...auxiliary.operations()].sort((left, right) => left.id.localeCompare(right.id)), [player, source, auxiliary]);
   const [selectedId, setSelectedId] = useState("Player.play");
   const selected = operations.find((operation) => operation.id === selectedId) ?? operations[0]!;
   const [values, setValues] = useState<Record<string, string>>({});
@@ -30,13 +38,14 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
   const generation = useRef(0);
   const pending = useRef(false);
   useEffect(() => {
+    auxiliary.sourceChanged();
     generation.current += 1;
     pending.current = false;
     setBusy(false);
     setResult("");
     setCode("");
     return () => { generation.current += 1; };
-  }, [player, source]);
+  }, [player, source, auxiliary]);
   useEffect(() => {
     setValues(Object.fromEntries(selected.arguments.map((argument) => [argument.name, argument.initial])));
   }, [selected]);
@@ -66,6 +75,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
     <Button title={expanded ? "Hide API experiments" : "Show API experiments"} onPress={() => setExpanded(!expanded)} />
     {expanded && <>
       <Text>Choose an operation, enter its arguments, then run it. A void result means the wrapper dispatched the call; use events and queries to check its effect. Platform and source requirements still apply.</Text>
+      <Text>Offline inputs are edited under Additional SDK configuration. Initialize the offline manager, get options, then download; completion is an event. Delete and cancel affect only the chosen content identifier. Cast initialization requires the host Cast SDK; recreate the player afterwards.</Text>
       <TextInput accessibilityLabel="Filter API operations" value={filter} onChangeText={(value) => { setFilter(value); setLimit(12); }} autoCorrect={false} autoCapitalize="none" style={styles.input} />
       <View style={styles.row}>{matches.slice(0, limit).map((operation) => <Button key={operation.id} title={operation.id}
         disabled={busy || selected.id === operation.id} onPress={() => { setSelectedId(operation.id); setResult(""); setCode(""); }} />)}</View>
