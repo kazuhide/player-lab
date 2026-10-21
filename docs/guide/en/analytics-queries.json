@@ -1,0 +1,211 @@
+{
+  "id": "analytics-queries",
+  "title": "Retrieve Analytics aggregates",
+  "lead": "Use the existing local Web buttons first, then retrieve a specific time range or breakdown through a server-side query. The public Pages app collects data when configured but does not host aggregate queries.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Use the existing GUI"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Start the local Web development server and configure the server-side Analytics license and API key. Use the same Analytics license whose collected data you want to inspect.",
+        "Open Bitmovin Analytics (server-proxied query). Choose Impressions, Avg startup time, Avg video startup or Avg buffered (rebuffer).",
+        "Wait for Querying… to finish. The status shows the selected preset and row count; the result below shows row values. Time values are raw milliseconds.",
+        "Each click requests the last 7 days at that moment, as one aggregate. The GUI has no date picker, category selector, chart or free-form query editor."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Choose the correct credentials"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Value",
+        "Purpose",
+        "Where it belongs"
+      ],
+      "rows": [
+        [
+          "Player license",
+          "Allows player usage for an authorized host/app",
+          "Player configuration; it is not the Query API secret."
+        ],
+        [
+          "Analytics license",
+          "Selects the collector destination and queried dataset",
+          "Collector configuration and server BITMOVIN_ANALYTICS_LICENSE_KEY."
+        ],
+        [
+          "Account API key",
+          "Authenticates the Query API request",
+          "Server-only BITMOVIN_ANALYTICS_API_KEY, or the BITMOVIN_API_KEY fallback."
+        ],
+        [
+          "Organization scope, when required",
+          "Selects an authorized organization for the API key",
+          "Server BITMOVIN_TENANT_ORG_ID, forwarded as X-Tenant-Org-Id."
+        ]
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Server configuration placeholders (.env)",
+      "text": "BITMOVIN_ANALYTICS_LICENSE_KEY=<ANALYTICS_LICENSE_KEY>\nBITMOVIN_ANALYTICS_API_KEY=<SERVER_SIDE_API_KEY>\n# Optional organization scope:\n# BITMOVIN_TENANT_ORG_ID=<ORGANIZATION_ID>"
+    },
+    {
+      "type": "note",
+      "text": "Replace placeholders only in your local/server configuration and restart the development server. Never place an account API key in a VITE_* variable, Player Config, source URL or copied client code. Static Pages has no server that can hold this secret."
+    },
+    {
+      "type": "h2",
+      "text": "Read the result and JSON response"
+    },
+    {
+      "type": "p",
+      "text": "The GUI displays rows, not a JSON editor. The existing /api/analytics/query endpoint returns the row array and row count plus the requested aggregation and dimension. This invented example means one result row containing the count 42; rowCount is not the impression count."
+    },
+    {
+      "type": "code",
+      "title": "Illustrative local proxy response",
+      "text": "{\n  \"rows\": [[42]],\n  \"rowCount\": 1,\n  \"aggregation\": \"count\",\n  \"dimension\": \"IMPRESSION_ID\"\n}"
+    },
+    {
+      "type": "p",
+      "text": "With no interval or groupBy, a count normally occupies one value in a row. Empty rows produce (no rows) in the GUI. A successful request alone does not prove that the intended source, license, period or filters matched data."
+    },
+    {
+      "type": "h2",
+      "text": "Request a specific time range"
+    },
+    {
+      "type": "p",
+      "text": "From a trusted terminal, you can call the existing local proxy with an explicit UTC range. Use the port printed by your development server; 5173 is the example below. The proxy supplies the server-selected license and API secret, so neither appears in this request."
+    },
+    {
+      "type": "code",
+      "title": "Existing local proxy: count impressions",
+      "text": "curl --request POST http://localhost:5173/api/analytics/query \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"aggregation\": \"count\",\n    \"dimension\": \"IMPRESSION_ID\",\n    \"start\": \"2026-10-14T00:00:00.000Z\",\n    \"end\": \"2026-10-21T00:00:00.000Z\"\n  }'"
+    },
+    {
+      "type": "h2",
+      "text": "Use the Query API for a breakdown"
+    },
+    {
+      "type": "p",
+      "text": "The following direct API example averages positive video startup times by browser and hour. Save the body as query.json, replace the Analytics license placeholder, and choose dates inside your data retention window. This is a server/terminal example, not a new GUI feature."
+    },
+    {
+      "type": "code",
+      "title": "query.json — hourly startup by browser",
+      "text": "{\n  \"licenseKey\": \"<ANALYTICS_LICENSE_KEY>\",\n  \"dimension\": \"VIDEO_STARTUPTIME\",\n  \"start\": \"2026-10-14T00:00:00.000Z\",\n  \"end\": \"2026-10-15T00:00:00.000Z\",\n  \"interval\": \"HOUR\",\n  \"groupBy\": [\n    \"BROWSER\"\n  ],\n  \"filters\": [\n    {\n      \"name\": \"VIDEO_STARTUPTIME\",\n      \"operator\": \"GT\",\n      \"value\": 0\n    }\n  ],\n  \"limit\": 200,\n  \"includeContext\": true\n}"
+    },
+    {
+      "type": "code",
+      "title": "Send from your server or trusted terminal",
+      "text": "curl --request POST https://api.bitmovin.com/v1/analytics/queries/avg \\\n  --header 'Content-Type: application/json' \\\n  --header \"X-Api-Key: $BITMOVIN_API_KEY\" \\\n  --data @query.json"
+    },
+    {
+      "type": "p",
+      "text": "Use an authorized server environment for BITMOVIN_API_KEY. Add X-Tenant-Org-Id only when the API key requires an organization scope. Direct API responses wrap results in data.result and can include columnLabels/contextDescription; read those labels before assigning meanings to columns. The app proxy keeps rows and rowCount but does not forward every response field or every Query API option."
+    },
+    {
+      "type": "h2",
+      "text": "Keep the same population when comparing"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "start and end choose an explicit time window. Use UTC timestamps and data within your retention period; the four GUI presets choose the last 7 days automatically.",
+        "interval groups time into MINUTE, HOUR, DAY or MONTH buckets. It is different from the overall start/end range.",
+        "groupBy chooses categories, for example BROWSER, COUNTRY, DEVICE_TYPE or OPERATINGSYSTEM. filters selects the subset, for example BROWSER EQ Chrome or VIDEO_STARTUPTIME GT 0.",
+        "Keep the Analytics license, range, timezone, filters, aggregation, unit and collector coverage with any exported result. Do not assume that every collector reports every dimension."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "If a query does not return the expected value"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Result",
+        "Meaning / next check"
+      ],
+      "rows": [
+        [
+          "503 not_configured",
+          "The server lacks an Analytics license or API secret. Configure the server, rather than entering a secret in the browser."
+        ],
+        [
+          "400 bad_request or bad_json",
+          "Check JSON syntax, aggregation, dimension and ISO-8601 start/end fields."
+        ],
+        [
+          "401 or 403",
+          "Check the server API key's permissions and organization scope; a Player license cannot authenticate this API."
+        ],
+        [
+          "502 / proxy connection message",
+          "Check that the development backend can reach the upstream API. A static build alone has no proxy."
+        ],
+        [
+          "200 with no rows",
+          "Check the selected Analytics license, collected data, range and filters before interpreting it as a zero result."
+        ]
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 108
+    },
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 147
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 70
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 104
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 113
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "line": 61
+    },
+    {
+      "path": "docs/SETUP.md",
+      "line": 208
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/reference/postanalyticsqueriescount",
+      "label": "Analytics Query API: count"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/reference/postanalyticsqueriesavg",
+      "label": "Analytics Query API: average"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/getting-started-with-the-analytics-api",
+      "label": "Getting started with the Analytics API"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-api-sdk-javascript/blob/main/src/models/AnalyticsQueryRequest.ts",
+      "label": "Official Analytics query request model"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-api-sdk-javascript/blob/main/src/models/AnalyticsInterval.ts",
+      "label": "Official Analytics time-bucket enum"
+    }
+  ]
+}

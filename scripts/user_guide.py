@@ -4,9 +4,9 @@ import os
 from pathlib import Path
 import stat
 
-from guide_html import (TEXT, anchor, esc, field_anchor, page_html, relative,
+from guide_html import (TEXT, anchor, esc, field_anchor, legacy_html, page_html, relative,
                         render_block, settings_group, source_url, sources_html, themes_html)
-from guide_routes import CHAPTERS, DOCUMENTS, GUIDE_FILES, LANGUAGES, SETTING_GROUPS, THEMES, route_file
+from guide_routes import CATEGORIES, CHAPTERS, DOCUMENTS, GUIDE_FILES, LANGUAGES, LEGACY_ROUTES, SETTING_GROUPS, THEMES, route_file
 from guide_coverage import coverage_pages, validate_coverage
 
 
@@ -223,7 +223,7 @@ def build(content, *, coverage=None):
         search.extend(targets)
         page = route_file(language)
         groups = []
-        for category in ('start', 'web', 'native', 'media', 'reference'):
+        for category in CATEGORIES:
             title = labels['web_group'] if category == 'web' else labels[category]
             entries = [key for key, group in CHAPTERS.items() if group == category]
             if category == 'reference':
@@ -234,6 +234,8 @@ def build(content, *, coverage=None):
         pages[page] = page_html(documents, language, '', labels['guide'], labels['intro'], ''.join(groups)).encode()
         index = ('ja/' if language == 'ja' else '') + 'guide/search-index.json'
         pages[index] = (json.dumps(search, ensure_ascii=False, allow_nan=False, separators=(',', ':'))+'\n').encode()
+        for slug in LEGACY_ROUTES:
+            pages[route_file(language, slug)] = legacy_html(language, slug).encode()
     if set(pages) != GUIDE_FILES:
         raise ValueError('Generated guide files disagree with the public allowlist.')
     return pages

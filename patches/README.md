@@ -59,8 +59,8 @@ API can no longer unsubscribe. The SDK's `destroy()` contract owns removal of
 its remaining event handlers.
 
 These are version-specific ownership corrections, not a general memory fix.
-See [the measurement instructions and results](../docs/web-performance.md) for
-the retainer paths and the Player 8.281.0 / UI 4.23.0 comparison recorded on
+See [the recorded observations](../docs/web-performance-results.json) for
+the Player 8.281.0 / UI 4.23.0 comparison recorded on
 2026-10-21. Retained JavaScript heap decreased in that workload, while CPU time
 and process RSS increased. Recheck
 the upstream implementation and the public browser regression before upgrading

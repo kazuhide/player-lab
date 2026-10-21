@@ -166,7 +166,7 @@
     },
     {
       "type": "p",
-      "text": "このリポジトリには、固定バージョンのUIライブラリの補助部品を解放する修正と、繰り返し切り替えの検証があります。ただし、それだけでSDKやブラウザーの全メモリが空になるわけではありません。性能の結果は計測条件とともに公開ドキュメントを参照します。"
+      "text": "固定バージョンのUIライブラリには、UIを繰り返し切り替える際に補助部品を解放する修正を含めています。CPUとメモリの代表的な値は、条件とともに「テスト結果」にまとめています。"
     },
     {
       "type": "note",
@@ -207,8 +207,8 @@
       "line": 631
     },
     {
-      "path": "docs/web-performance.md",
-      "line": 140
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/test-results/",
+      "label": "代表的なテスト結果"
     },
     {
       "url": "https://kazuhide.github.io/player-lab/web/guide.html",

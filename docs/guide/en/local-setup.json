@@ -1,7 +1,7 @@
 {
   "id": "local-setup",
   "title": "Local setup and licenses",
-  "lead": "You can try the basic Web controls on localhost. Custom hosts, native apps, Analytics, and cloud processing each require the appropriate licenses or account configuration.",
+  "lead": "Try the basic Web controls on localhost. Native apps, custom Web hosts, and Analytics require the appropriate license settings.",
   "blocks": [
     {
       "type": "h2",
@@ -43,7 +43,7 @@
     },
     {
       "type": "p",
-      "text": "Open the URL shown in the startup message using the hostname localhost. The Web SDK can run on this hostname without a Player key. Reproduction steps in this guide use localhost consistently. The official Web 8.86.0 release notes also list 127.0.0.1 as exempt from authentication, but actual playback on that host was not checked for this guide. LAN IP addresses, custom hostnames, GitHub Pages, and native apps require an appropriate license."
+      "text": "Open the URL shown in the startup message using the hostname localhost. The Web SDK can run on this hostname without a Player key. LAN IP addresses, custom hostnames, GitHub Pages, and native apps require an appropriate license."
     },
     {
       "type": "p",
@@ -87,7 +87,7 @@
         ],
         [
           "BITMOVIN_API_KEY",
-          "Server or CLI credential for cloud processing and related operations. It can also be used for aggregate queries. Do not pass it to the browser."
+          "Server or command-line credential for account API operations. The local Analytics proxy also accepts it as a fallback. Keep it out of client code."
         ]
       ]
     },
@@ -139,7 +139,7 @@
     },
     {
       "type": "p",
-      "text": "The project publishes the static files generated and tested by CI on main. CI produces a file inventory and SHA-256 verification data. The Pages workflow verifies the successful artifact from the same commit before deployment. A local .env file or inherited VITE_* values do not replace the Pages configuration."
+      "text": "For a fork or another deployment, configure the two public client licenses below as GitHub Repository variables and enable the included Pages workflow. Local .env files and inherited VITE_* values do not replace this configuration. CI builds and tests the artifact before Pages publishes it."
     },
     {
       "type": "table",

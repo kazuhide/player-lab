@@ -4,6 +4,10 @@
   "lead": "Use the source buttons to choose media and the feature you want to check. Pages bundles short on-demand samples and uses external public streams for live playback.",
   "blocks": [
     {
+      "type": "p",
+      "text": "The apps use several test streams. The public Pages build includes short Big Buck Bunny clips for its basic VOD controls; local development and native apps also use external HLS, DASH, and live reference streams. Available audio, subtitles, duration, and live rewind range depend on the selected source."
+    },
+    {
       "type": "h2",
       "text": "Seven sources"
     },

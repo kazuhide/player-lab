@@ -47,11 +47,17 @@ class Links(HTMLParser):
         super().__init__()
         self.links, self.ids = [], set()
         self.language = None
+        self.refresh = None
+        self.canonical = None
 
     def handle_starttag(self, tag, attrs):
         values = dict(attrs)
         if tag == 'html':
             self.language = values.get('lang')
+        if tag == 'meta' and values.get('http-equiv', '').lower() == 'refresh':
+            self.refresh = values.get('content')
+        if tag == 'link' and values.get('rel') == 'canonical':
+            self.canonical = values.get('href')
         if 'id' in values:
             if values['id'] in self.ids:
                 raise AssertionError('Duplicate HTML id')
@@ -78,7 +84,7 @@ class GuideTests(unittest.TestCase):
 
     def test_all_chapters_and_reference_groups_are_public_in_both_languages(self):
         self.assertEqual(set(self.pages), GUIDE_FILES)
-        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 94)
+        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 104)
         for language in ('en', 'ja'):
             fields = [field for group in self.content[language]['settings']['groups'] for field in group['fields']]
             self.assertEqual(len(fields), 144)
@@ -88,6 +94,33 @@ class GuideTests(unittest.TestCase):
     def test_published_content_builds_with_the_actual_api_report(self):
         pages = build(load_content(ROOT / 'docs/guide'))
         self.assertEqual(set(pages), GUIDE_FILES)
+
+    def test_old_internal_workflow_urls_redirect_to_relevant_same_language_help(self):
+        destinations = {'measurement': 'test-results', 'media': 'web-sources-tracks',
+                        'cloud-encoding': 'web-sources-tracks', 'live-finalization': 'troubleshooting'}
+        for language in ('en', 'ja'):
+            for old, destination in destinations.items():
+                with self.subTest(language=language, old=old):
+                    name = route_file(language, old)
+                    parser = Links()
+                    parser.feed(self.pages[name].decode())
+                    self.assertEqual(parser.refresh, '0; url=../' + destination + '/')
+                    self.assertEqual(parser.language, language)
+                    prefix = 'ja/' if language == 'ja' else ''
+                    self.assertEqual(parser.canonical, 'https://kazuhide.github.io/player-lab/' + prefix + 'guide/' + destination + '/')
+                    self.assertIn('../' + destination + '/', parser.links)
+                    self.assertNotIn('ffmpeg', self.pages[name].decode().lower())
+                    self.assertNotIn('guide-nav', self.pages[name].decode())
+            search = json.loads(self.pages[('ja/' if language == 'ja' else '') + 'guide/search-index.json'])
+            self.assertFalse(any(entry['url'].split('/')[0] in destinations for entry in search))
+            overview = Links()
+            overview.feed(self.pages[route_file(language)].decode())
+            for old in destinations:
+                self.assertNotIn(old + '/', overview.links)
+            for chapter in ('web-qoe-analytics', 'analytics-metrics', 'analytics-queries',
+                            'analytics-visualization', 'analytics-ai', 'test-results'):
+                self.assertIn(chapter + '/', overview.links)
+                self.assertTrue(any(entry['url'] == chapter + '/' for entry in search))
 
     def test_every_local_link_and_fragment_resolves_under_the_project(self):
         parsed = {}

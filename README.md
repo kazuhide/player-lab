@@ -1,24 +1,41 @@
 # Player Lab
 
-[Project overview and getting started](https://kazuhide.github.io/player-lab/)
-· [Web app](https://kazuhide.github.io/player-lab/web/)
+[Open the Web app](https://kazuhide.github.io/player-lab/web/)
 · User guide: [English](https://kazuhide.github.io/player-lab/guide/) / [日本語](https://kazuhide.github.io/player-lab/ja/guide/)
 
-A Bitmovin Player playground for Web, iOS/tvOS, Android/Fire TV, React Native,
-and Vega OS. Try player and source settings, switch between the standard and
-custom player interfaces, and inspect the code that builds each Web interface.
+Try Bitmovin Player settings, playback APIs and user interfaces on Web,
+iOS/tvOS, Android/Fire TV, React Native and Vega OS. Change settings in the GUI,
+apply them, and inspect the configuration code used by the app.
 
-The Web app includes themes, configuration panels, player API controls,
-UI construction examples, an English/Japanese language switch, and a separate
-customization guide. Existing examples also cover live rewind, multi-audio,
-subtitles, sprite previews, and playback measurements. Some examples need media
-or credentials that you supply when running locally. The Pages build includes
-public test media; see the [Web guide](apps/web/README.md#pages-version) for its
-contents and Pages limitations.
-When configured, the Analytics collector sends playback data to Bitmovin.
-Account aggregation queries remain disabled on Pages.
+## Try the player
 
-## Run the Web app
+- **Settings:** choose a source, edit source and player options, and apply the
+  changes. Check whether the field applies immediately, reloads the source or
+  recreates the player.
+  See the [settings reference](https://kazuhide.github.io/player-lab/guide/settings/).
+- **Playback APIs:** try play/pause, seeking, live rewind, audio and subtitle
+  selection, and the controls available in each interface. Check the
+  [control reference](https://kazuhide.github.io/player-lab/guide/controls/) and
+  [API coverage](https://kazuhide.github.io/player-lab/guide/api-coverage/)
+  for each platform's implemented routes.
+- **UI and code:** switch interfaces, compare their controls, and read the
+  selected Web theme's construction example. Open the applied-code view for
+  applied settings with license placeholders; draft edits are excluded.
+  The [UI customization guide](https://kazuhide.github.io/player-lab/guide/web-ui-customization/)
+  explains how to adapt the examples.
+- **Analytics:** inspect the current playback's event log and QoE readouts.
+  [Analytics and playback measurements](https://kazuhide.github.io/player-lab/guide/web-qoe-analytics/)
+  explains local values, collector delivery and account queries.
+
+The public Web app supports English and Japanese and includes public demo media
+for audio, subtitles and sprite previews. Public reference streams can change.
+Some local examples need media URLs or credentials that you supply. Pages can
+send playback data through its configured Analytics collector, while account
+aggregate queries require a local server and stay hidden on Pages. See the
+[Pages scope](apps/web/README.md#pages-version) and
+[recorded test results](https://kazuhide.github.io/player-lab/guide/test-results/).
+
+## Run locally
 
 Use Node.js 24.19.0 and pnpm 10.33.0.
 
@@ -27,44 +44,30 @@ pnpm install --frozen-lockfile
 pnpm --filter @showcase/web dev
 ```
 
-Open the printed URL with the hostname `localhost`. The Web Player can run
-there without a player key. Other hosts and native apps need your own Player
-license. To configure keys or optional feature streams, follow
-[Setup](docs/SETUP.md). Never put an account API secret into a client setting.
+Open the printed URL using `localhost`. The Web Player can run there without a
+Player key. Other hosts and native apps need an allowed Player license. Follow
+[Setup](docs/SETUP.md) for keys and optional media, and the
+[Web instructions](apps/web/README.md) for available controls. Account API secrets
+belong on the server and must not be entered into client settings.
 
-Use the theme selector and configuration panels beside the player. The
-construction panel shows the selected theme's code; the separate guide explains
-how to customize it. See the [Web instructions](apps/web/README.md).
+## Native apps and shared UI
 
-## Apps and tools
-
-| Path | Contents |
+| App | What to try |
 | --- | --- |
-| [Web](apps/web) | Player playground, settings, UI examples, and guide |
-| [iOS/tvOS](apps/ios) | Swift app, source/playback configuration editor, UI examples, and playback tests |
-| [Android/Fire TV](apps/android) | Kotlin app, source/player configuration editors, UI examples, playback tests, and offline helper |
-| [React Native](apps/react-native) | Existing screen and settings, with a generator for an external Expo development build |
-| [Vega OS](apps/vega) | Kepler application host, native video integration, and settings; requires the Vega toolchain |
-| [Shared UI](packages/ui-shared) | Custom player components, themes, and UI factories |
-| [Encoding](encoding) | Optional scripts to create your own test streams |
-| `tests/e2e` | Browser tests that drive the existing Web app and player |
+| [iOS/tvOS](apps/ios) | Source/playback settings, initial tracks, video scaling and applied code |
+| [Android/Fire TV](apps/android) | Source/player settings, language priority, external WebVTT, HTTP retries and applied code |
+| [React Native](apps/react-native) | Settings, external subtitles and applied code in an external Expo development build |
+| [Vega OS](apps/vega) | Settings, external subtitles and applied code in the included Kepler host |
+| [Shared UI](packages/ui-shared) | Custom components, themes and UI factories |
 
-Native apps keep their own toolchains and playback integrations. iPhone/iPad,
-Android, and React Native can use the shared Web UI; tvOS and Vega use native
-interfaces. Type checks and compilation do not establish playback on a device.
+Each app keeps its native toolchain and exposes its own set of controls.
+iPhone/iPad, Android and React Native can use the shared Web UI; tvOS and Vega
+use native interfaces. Start with the
+[native app guide](https://kazuhide.github.io/player-lab/guide/native-overview/)
+for setup and platform limits. Build and unit-test success are separate from
+actual playback on a simulator, emulator or physical device.
 
-## Live rewind
-
-DVR means a live stream's rewind window. In the player API, the live edge is
-`0` and positions behind it are negative. Each app clamps requested positions
-to the current window. Increasing the downloaded buffer does not extend that
-window: the live manifest determines how far back the viewer can seek.
-
-Read [DVR time and start settings](docs/dvr-time-and-start-config.md),
-[live-to-VOD transitions and measurements](docs/live-to-vod-and-analytics.md),
-and the [feature guide](docs/bitmovin-feature-coverage.md).
-
-## Checks
+## Development checks
 
 ```sh
 pnpm typecheck
@@ -73,19 +76,10 @@ pnpm build
 bash scripts/test-env-lib.sh
 ```
 
-[Testing instructions](docs/e2e-testing.md) distinguish unit tests, browser
-playback, native builds, and device checks. Public reference streams can change
-or become unavailable. Local sprite and multi-audio examples need configured
-media URLs; the Pages build includes a public 60-second fixture.
-
-[Web memory and processor measurements](docs/web-performance.md) cover repeated
-theme changes and player release, with reproduction steps and measurement limits.
-
-Encoding scripts create resources in your account and can incur charges.
-They are optional for trying the Web app with public reference streams.
-
-Before publishing changes, follow [the contribution checks](docs/contributing.md)
-for local secret checks and the existing browser subset.
+See [testing instructions](docs/e2e-testing.md) and
+[contribution checks](docs/contributing.md) for the relevant browser and native
+checks. Optional [encoding tools](encoding) can create media in your account and
+incur charges; they are not required to try the public Web app.
 
 ## Licenses
 

@@ -1,6 +1,6 @@
 {
   "id": "troubleshooting",
-  "title": "よくある問題の切り分け",
+  "title": "よくある問題とFAQ",
   "lead": "まず、公開Pages、ローカルWeb、ネイティブアプリのどれで起きたかを確認します。ライセンス、通信、設定の反映、素材や端末の対応を分けて調べます。",
   "blocks": [
     {
@@ -166,11 +166,6 @@
           "実時刻を持つ素材で確認します。取得できない実時間遅延を0秒と読み替えず、相対位置やSDKの端からの距離と分けて扱います。"
         ],
         [
-          "ライブ終了後も表示が変わらない",
-          "配信がまだライブを示すか、SDKのdurationが有限の正の値になったかを確認します。",
-          "ライブ終了後のVODへの切り替えの章の条件で確認します。アプリはソースの種別表示だけで固定せず、読み込み後の時間情報も使います。"
-        ],
-        [
           "Pagesにサーバー経由クエリがない",
           "Pagesは静的配信で、アカウントの集計クエリを処理するサーバーがない構成です。",
           "非表示は意図した動作です。現在の再生はQoE欄で確認し、集計クエリが必要ならローカル開発サーバー側を設定します。"
@@ -188,6 +183,39 @@
       ]
     },
     {
+      "type": "h2",
+      "text": "イベント終了後にライブ操作が変わるのはなぜですか？"
+    },
+    {
+      "type": "p",
+      "text": "終了したイベントは、有限の長さを持つVODに変わることがあります。HLSはEXT-X-ENDLISTでセグメントが追加されないことを示し、DASHはdynamicのマニフェストから有限のstatic形式に変わることがあります。アプリが有限の正のdurationを取得すると、VODの操作に切り替わり、ライブの巻き戻し・先端への移動は無効になります。終了によって巻き戻せる履歴が増えるわけではなく、Liveというテーマ名もソースをライブに変えません。"
+    },
+    {
+      "type": "h2",
+      "text": "AppleでHLSが終了してもライブと返されるのはなぜですか？"
+    },
+    {
+      "type": "p",
+      "text": "Apple Player 3.128.0では、再生が完了したHLSのSourceでもisLive = trueと無限のdurationが残る場合があります。アプリはライブとして読み込んだ現在のSourceのPlaybackFinishedを記録し、ended-liveを表示してライブ操作を無効にします。共有Live/Sports UIはLIVE操作を隠し、Replayを残します。同じSourceの再生をやり直しても完了状態は保持され、新しい読み込みで解除されます。SDKの取得値は変更しません。"
+    },
+    {
+      "type": "p",
+      "text": "最終マニフェストを有限のVODとして読み直すには、URLとPlayer設定を保ち、Configure source and playbackのTitleだけを変え、操作がReload sourceと表示されることを確認してApplyします。同じPlayerとURLで新しいSourceを読み込み、再生位置はリセットされます。これは元のSourceの再生完了やReplayとは別の操作です。"
+    },
+    {
+      "type": "h2",
+      "text": "終了後のクリップにも実時刻のような位置が残るのはなぜですか？"
+    },
+    {
+      "type": "p",
+      "text": "ライブ中に実時刻のタイムスタンプを使ったソースは、有限のVODになってもその起点が残る場合があります。共有UIはシーク可能範囲の先頭を起点に表示・移動します。APIコードではgetSeekableRange().startにクリップ内の移動先秒数を加えてシークし、新しいSeekedを待ってgetCurrentTime(\"relativetime\")で相対位置を確認します。絶対値のseek(10)では先頭へ補正される場合があります。Sportsのライブ専用時計はライブ以外では非表示になります。"
+    },
+    {
+      "type": "note",
+      "title": "短い間隔でのクイックシーク",
+      "text": "Player UI 4.23.0は、SDKのSeek通知後に処理中の移動先を更新します。その通知前に戻るボタンを2回押すと、同じ位置を要求する場合があります。正確な移動を確認するときは、Seekedと移動結果を確認してから次の操作を試します。"
+    },
+    {
       "type": "note",
       "text": "調査結果を共有するときは、キー値、認証ヘッダー、個人情報、非公開の素材URLを含めずに、対象SDK、ソースの種類、再現操作、エラーコードと取得成否を整理します。"
     }
@@ -195,7 +223,7 @@
   "sources": [
     {
       "path": "docs/SETUP.md",
-      "line": 29,
+      "line": 31,
       "label": "キーの種類とホスト許可"
     },
     {
@@ -220,22 +248,22 @@
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 920,
+      "line": 929,
       "label": "設定の適用"
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 589,
+      "line": 599,
       "label": "言語変更と未適用入力"
     },
     {
       "path": "apps/web/src/dvr/state.ts",
-      "line": 47,
-      "label": "ライブとVODの状態"
+      "line": 37,
+      "label": "有限のdurationによるVOD判定"
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 490,
+      "line": 501,
       "label": "Pagesのクエリ非表示と送信通知"
     },
     {
@@ -261,6 +289,39 @@
     {
       "url": "https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Mixed_content",
       "label": "MDN:HTTPSと混在コンテンツ"
+    },
+    {
+      "path": "apps/ios/Showcase/PlayerModel.swift",
+      "line": 253,
+      "label": "現在のSourceに対応するHLS完了状態"
+    },
+    {
+      "path": "apps/ios/Showcase/PlayerModel.swift",
+      "line": 173,
+      "label": "同じURLを新しいSourceで読み直す処理"
+    },
+    {
+      "path": "packages/ui-shared/src/components/observeLiveSourceCompletion.ts",
+      "line": 4,
+      "label": "共有UIの完了状態と読み込み時の解除"
+    },
+    {
+      "path": "apps/web/src/gestures.ts",
+      "line": 43,
+      "label": "VODの相対位置から求めるシーク先"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 303,
+      "label": "同一URLのHLS再読み込みとVODシークの確認記録"
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc8216.html#section-4.3.3.4",
+      "label": "HLSのプレイリスト終了通知"
+    },
+    {
+      "url": "https://dashif.org/DASH-IF-IOP/live2vod/",
+      "label": "DASHのライブからVODへの移行"
     }
   ]
 }

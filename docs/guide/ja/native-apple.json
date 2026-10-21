@@ -76,7 +76,7 @@
     {
       "type": "figure",
       "file": "ios-playback-tracks",
-      "caption": "iPadOS 26.4のPlayer Lab。Apply後に生成したHLSとGerman字幕が表示され、Playback tracksにはSDKの現在の選択が表示されます。Configure source and playbackから設定を開きます。"
+      "caption": "iPadOS 26.4のPlayer Lab。Apply後にテスト用のHLSとGerman字幕が表示され、Playback tracksにはSDKの現在の選択が表示されます。Configure source and playbackから設定を開きます。"
     },
     {
       "type": "steps",
@@ -107,7 +107,7 @@
     },
     {
       "type": "p",
-      "text": "生成したvod-multiaudioにはEnglish・Germanの音声メタデータと、HLSのWebVTT字幕renditionがあります。音声ラベルは検証用で、翻訳音声ではありません。HLS内の字幕はiOSとtvOSに共通の経路です。外部字幕をSourceConfigへ追加する方法は、tvOSのシステムUIでは同じ経路になりません。"
+      "text": "テスト用のvod-multiaudioにはEnglish・Germanの音声メタデータと、HLSのWebVTT字幕renditionがあります。音声ラベルは検証用で、翻訳音声ではありません。HLS内の字幕はiOSとtvOSに共通の経路です。外部字幕をSourceConfigへ追加する方法は、tvOSのシステムUIでは同じ経路になりません。"
     },
     {
       "type": "figure",
@@ -126,26 +126,6 @@
     },
     {
       "type": "h2",
-      "text": "HLSライブ終了後のVODシーク"
-    },
-    {
-      "type": "p",
-      "text": "Player 3.128.0ではPlaybackFinishedの後も、読み込み済みのHLS SourceがisLive=true、duration=無限長を返す場合があります。アプリはSDKの時刻を書き換えず、ended-liveを表示してライブ操作を無効にします。同じSourceのReplayは進みますが、SDKがライブと判定している間はseek(time:)の効果はありません。"
-    },
-    {
-      "type": "p",
-      "text": "確定済みマニフェストを有限長のVODとして読み直すには、Configure source and playbackでURLとPlayer設定を保ち、Titleだけを変更し、Reload sourceの表示を確認してApplyします。同じPlayerと同じURLで新しいSourceを読み込み、再生位置はリセットされます。iOS・tvOSの制御試験では有限長、新しいSeekedによる30秒への移動、その後のSDK再生位置の進行を確認します。元のSourceの完了・Replayとは別の、明示的な読み直し操作です。"
-    },
-    {
-      "type": "p",
-      "text": "Sports UIはライブ専用のWallClockLabelとシークバーを使い、VODの経過時間ラベルは配置していません。独自のCSSクラスを使うため、非表示用のルールを明示し、SDKのhide操作がライブ再生以外では時刻表示を隠すようにします。iOSの終了試験では60秒の映像の中央にあるシークマーカーと、ライブ時刻表示の非表示を確認します。tvOSのホスト付き試験は、可視映像と公開SDKのseek APIを使う確認であり、リモコンによるVODシークの検証ではありません。"
-    },
-    {
-      "type": "p",
-      "text": "2026年10月21日、拡張した終了試験がiPad / iOS 26.4で65.726秒、Apple TV / tvOS 26.4で65.579秒、各1件成功・失敗0件でした。完了したSourceはライブ・無限長の読み取り値を保持しました。その後、同じPlayerとURLで有限VODに読み直し、新しいSeekedによる30秒への移動と、SDKのTimeChangedによる進行を確認しました。iPadでは中央のシークマーカーとライブ時刻の非表示、TVでは00:31・残り00:29の表示を確認しました。ホスト付きのSDK試験であり、GUIのApply操作やリモコンによるVODシークとは別です。"
-    },
-    {
-      "type": "h2",
       "text": "動かない場合の確認"
     },
     {
@@ -159,115 +139,12 @@
       ]
     },
     {
-      "type": "h2",
-      "text": "テストの実行と記録された結果"
-    },
-    {
       "type": "p",
-      "text": "Showcase-iOS-Configuration と Showcase-tvOS-Configuration は、アプリと同じモデル・設定ソースを使うホストなしのテストです。Player ライセンスと共有 UI リソースは不要です。明示的に無効なテスト用の値は SDK オブジェクトの生成だけに使います。URL・数値の検証、SDK の項目への設定、無効入力／変更なしの Apply、ソース再ロード、ソースオプション・UI 選択・アプリの DVR スイッチを保持する Player 再生成を確認します。再生とネットワーク動作の証明にはなりません。CI は利用可能な iPhone シミュレーターで iOS の設定テストを実行し、tvOS は汎用シミュレーター向けビルドを維持します。後述の tvOS 単体テストとリモコン GUI の結果は、別途実施した記録です。シミュレーター名をインストール済みの実行先に置き換え、apps/ios から実行します。"
-    },
-    {
-      "type": "code",
-      "title": "ライセンス不要の設定テスト",
-      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Configuration \\\n  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test\nxcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-Configuration \\\n  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
-    },
-    {
-      "type": "p",
-      "text": "任意の ConfigurationUI スキームは実際のアプリを起動するため、許可済みの通常の Player ライセンス、ネットワーク、参照ソースが必要です。空のキーは SDK 起動時の precondition failure になります。iOS は不正な編集値、Reset、ソース情報の Apply、ソースを保持したミュート・ビットレート・バッファーの Apply を確認します。tvOS はリモコンのフォーカスと Select でソース形式と自動再生を編集して Reset します。Xcode の結果バンドルにスクリーンショットを保存します。"
-    },
-    {
-      "type": "code",
-      "title": "アプリ用ライセンスを使う設定 GUI テスト",
-      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-ConfigurationUI \\\n  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test\nxcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-ConfigurationUI \\\n  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
-    },
-    {
-      "type": "note",
-      "text": "この設定 GUI テストは SDK の既定 UI を使います。共有 Web UI、時間が進む実再生、開始オフセットの精度、ビットレート上限の実効性、物理端末、Casting、オフライン、Analytics の受信は検証範囲に含みません。共有 UI と再生動作は次の別スキーム Showcase-iOS-Runtime で確認します。"
-    },
-    {
-      "type": "note",
-      "title": "記録済みの設定テスト",
-      "text": "2026-10-20 に、ホストなしの設定テストは iOS／tvOS シミュレーターで各 6 件成功しました。設定 GUI テストは iPhone 17 Pro／iOS 26.4、iPad Pro 11-inch (M5)／iOS 26.4、Apple TV 4K (3rd generation)／tvOS 26.4 で各 1 件成功し、保存された iPhone と TV の設定画面を確認しました。SDK の既定 UI での設定操作を検証した結果であり、別途記載した 10 月 19 日の記録に物理端末や再生の検証を追加するものではありません。"
-    },
-    {
-      "type": "code",
-      "title": "リポジトリのルートから DVR の計算をテスト",
-      "text": "swift test --package-path apps/ios/DvrKit"
-    },
-    {
-      "type": "p",
-      "text": "実 SDK と共有 UI を確認する任意のテストには Showcase-iOS-Runtime スキームを使います。次の <SIMULATOR_NAME> は自分の Xcode にインストールされた iOS シミュレーター名へ置き換えます。Player ライセンス、ネットワーク、参照ストリームが必要です。"
-    },
-    {
-      "type": "code",
-      "title": "apps/ios で実行",
-      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Runtime \\\n  -destination 'platform=iOS Simulator,name=<SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
-    },
-    {
-      "type": "p",
-      "text": "このテストは実 SDK とモデル、共有 WebView の可視コントロールを使います。VOD、UI からの再生開始、HLS のソース切り替え、巻き戻し、ライブ復帰、DVR 状態の切り替え、Cinema UI への再生成を確認します。ライセンスエラーや参照先の不通をモックや成功扱いのスキップで置き換えません。"
-    },
-    {
-      "type": "note",
-      "title": "記録済みの検証範囲",
-      "text": "2026-10-19 の記録では、iPhone 17 Pro／iOS 26.4 シミュレーター、Player 3.128.0、共有 UI 4.15.1 で 1 件成功、失敗 0、11.670 秒でした。ここでは記録済みの結果を示しており、再実行した結果ではありません。物理端末、tvOS の再生、TV リモコン、Casting、オフライン、Analytics の受信はこの結果に含みません。CI の iOS／tvOS ビルド成功も実再生とは別です。"
+      "text": "プログレッシブMP4を試す場合は、Configure source and playbackに到達可能なHTTPまたはHTTPS URLを入力し、Progressive MP4を選んでApplyします。シーク用のバイト範囲取得など、Playerが要求する通信にサーバーが対応している必要があります。HLSと再生・シークを比較できます。"
     },
     {
       "type": "h2",
-      "text": "ローカル素材の設定と再生"
-    },
-    {
-      "type": "p",
-      "text": "2026年10月21日、Player 3.128.0の通常アプリのGUIから、生成した60秒のBig Buck BunnyのHLS・プログレッシブMP4をiPhone・iPad・Apple TVのシミュレーターで再生しました。MP4ではURL、プログレッシブ形式、タイトル、開始オフセット5秒、自動再生、最大ビットレート2,500,000 bit/s、前方バッファー8秒を編集画面から入力しました。SDKの読み取り値で設定の適用、新しいPlayerと旧Playerの破棄を確認し、再生位置の進行と映像を確認しました。"
-    },
-    {
-      "type": "table",
-      "headers": [
-        "MP4の実行先",
-        "結果と所要時間",
-        "SDKの再生位置"
-      ],
-      "rows": [
-        [
-          "iPhone 17 Pro / iOS 26.4",
-          "成功1件・失敗0件 / 47.026秒",
-          "6.113 → 10.513秒"
-        ],
-        [
-          "iPad Pro 11-inch (M5) / iOS 26.4",
-          "成功1件・失敗0件 / 52.502秒",
-          "6.118 → 10.518秒"
-        ],
-        [
-          "Apple TV 4K (3rd generation) / tvOS 26.4",
-          "成功1件・失敗0件 / 104.280秒",
-          "6.017 → 10.418秒"
-        ]
-      ]
-    },
-    {
-      "type": "p",
-      "text": "コピーしたMP4のファイル全体の長さは60.021333秒です。映像は0.021322秒から60秒間、音声は0秒から60.021333秒間です。入力HLSでは音声の始点が-0.021333秒、映像が0秒でした。MP4への詰め替えでファイルの原点が移動し、トラック間の時刻差が残ります。映像の終端より音声が21ミリ秒余計に続くという意味ではありません。ファイル全体の長さに加え、各トラックの始点と終点を比較します。ビットレートとバッファーの読み取り値は設定が渡ったことを示し、通信時の上限やバッファー性能の測定ではありません。実際のシミュレーターによる結果であり、ホストなしのロジック検査・ビルドとは別です。"
-    },
-    {
-      "type": "p",
-      "text": "Apple READMEの手順で.cache/apple-runtime-mediaを生成した後、リポジトリのルートから次のコマンドを実行すると同等のプログレッシブファイルを作れます。この変換手順も2026年10月21日に別途確認しました。映像と音声は再エンコードせずにコピーし、生成済みメディアを上書きしません。"
-    },
-    {
-      "type": "code",
-      "text": "mkdir -p .cache/apple-mp4\nffmpeg -v error -n -i .cache/apple-runtime-media/vod-baseline/master.m3u8 \\\n  -map 0:v:0 -map 0:a:0 -c copy -movflags +faststart \\\n  .cache/apple-mp4/vod-60s.mp4"
-    },
-    {
-      "type": "p",
-      "text": "バイト範囲の取得に対応するHTTPサーバーでこのファイルを配信します。Configure source and playbackへ到達可能なURLを入力し、Progressive MP4を選びます。上記の値をApplyして映像と再生位置の進行を確認します。HLS終了試験用のサーバーはこのMP4を配信しません。選択したシミュレーターから素材へ接続できることと、アプリを許可したPlayerライセンスが必要です。"
-    },
-    {
-      "type": "h2",
-      "text": "SDK既定UIの操作とAPI対応"
-    },
-    {
-      "type": "p",
-      "text": "2026年10月21日、Player 3.128.0のiPhone 17 Pro / iOS 26.4 Simulatorで実際のGUI試験が2件成功し、所要時間は55.381秒・48.599秒でした。生成した60秒・複数音声のHLS、実タッチ、可視映像、SDKの読み取り値と通知を使いました。公開SDKのbridgeと既定UIのリソースは、実アプリのバイトと一致しました。対象の八つは、直接操作四つ、プリセット一つ、この構成で不提供の三つとして確認済みです。"
+      "text": "SDK既定UIの操作を試す"
     },
     {
       "type": "table",
@@ -321,23 +198,11 @@
     {
       "type": "steps",
       "items": [
-        "Defaultを選びます。生成したvod-multiaudio/master.m3u8の到達可能なURLと自動再生を設定し、Applyします。",
+        "Defaultを選び、複数音声を含む到達可能なHLSのURLと自動再生を設定し、Applyします。",
         "コントロールを表示し、Pause、Play、再度Pauseを操作してからVideo timelineを中央へドラッグします。",
         "Settings → Speedを開き、スクロールして2xを選びます。上へ戻ってBackを選びます。",
         "Audio Trackを開き、スクロールしてGerman test trackを選びます。メニュー内の見えていない選択肢はスクロールして表示します。"
       ]
-    },
-    {
-      "type": "h2",
-      "text": "更新後の共有UIをiPadで確認"
-    },
-    {
-      "type": "p",
-      "text": "2026年10月21日、Player 3.128.0と保持処理を修正した共有UI 4.23.0で、iPad / iOS 26.4の実GUI試験が1件成功しました。失敗・スキップは0件、所要時間は116.240秒でした。実行後のアプリ内のJavaScript・CSSは生成物と一致しました。60秒HLSの設定をApplyし、Sportsへ切り替え、プログレッシブMP4を読み込み、同じPlayer上でタイトルだけをApplyして新しいSourceへ更新しました。開始オフセット5秒、自動再生、ミュート、最大ビットレート2,500,000 bit/s、前方バッファー8秒、Sports、無効にしたアプリのDVRスイッチを保持しました。MP4の再生位置は6.778秒から11.178秒へ進み、映像も確認しました。これは再生・設定の試験であり、Webのヒープ測定とは別です。"
-    },
-    {
-      "type": "p",
-      "text": "追加のMP4ソース再読み込み試験は、iPhoneで81.745秒、Apple TVで109.539秒で成功しました。どちらもGUIでStart mutedをオンからオフへ変更してから、タイトルだけをApplyしました。SDKの読み取り値で、同じPlayer、新しいSource、SourceLoadedの回数が1から2へ増えること、起動時設定・UI・アプリDVRの保持を確認し、映像と再生位置も進行しました。iPadの試験と合わせ、三つのシミュレーターでMP4のソースだけの再読み込みとミュート設定の適用を確認しています。"
     },
     {
       "type": "h2",
@@ -362,42 +227,8 @@
       "caption": "tvOSの適用済みSwiftコード。折り返した各行へフォーカスを移して読めます。このTVアプリにクリップボード連携はありません。"
     },
     {
-      "type": "h2",
-      "text": "初期トラックと拡大方法を再現する"
-    },
-    {
-      "type": "p",
-      "text": "ビルドの準備を済ませ、Playerライセンスでcom.playerlab.iosまたはcom.playerlab.tvosを許可します。xcrun simctl list devices availableで自分が操作するシミュレーターのUDIDを確認します。リポジトリのルートからHLS字幕付き素材を生成し、次の公開入口を実行します。結果の保存先は毎回新しいディレクトリにします。"
-    },
-    {
-      "type": "code",
-      "text": "python3 encoding/test-streams/local.py --output .cache/apple-track-media\npython3 apps/ios/run-track-qualification.py --platform ios \\\n  --destination <OWNED_IOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-ios\npython3 apps/ios/run-track-qualification.py --platform tvos \\\n  --destination <OWNED_TVOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-tvos"
-    },
-    {
-      "type": "p",
-      "text": "ランナーはこのcheckoutをビルドし、一時的なloopbackポートで生成素材だけを配信して、終了時にサーバーを閉じます。各OSでSDKのホスト付き試験と通常GUIの試験を1件ずつ実行し、確定した結果が2件成功・スキップなしの場合に成功します。標準出力は安全な状態・件数・ハッシュだけです。Xcodeの生ログと添付物は非公開の保存先に残すため、共有前に内容を確認します。"
-    },
-    {
-      "type": "p",
-      "text": "通常GUIの試験はGerman音声・字幕、自動再生、開始位置、拡大方法を実際のコントロールで入力し、現在の音声・字幕の組と再生位置の進行を一緒に確認します。Off、再生成後のEnglish、無効な編集値、Reset、コード表示も対象で、iOSではSports・Defaultも切り替えます。SDKのホスト付き試験では、新しいソース読み込み、同じPlayerでの再読み込み、旧Playerの破棄、その後の手動選択、正方形のnative viewportで3種類の拡大方法を確認します。"
-    },
-    {
-      "type": "code",
-      "title": "負対照：失敗することを確認する",
-      "text": "python3 apps/ios/run-track-qualification.py --platform ios \\\n  --destination <OWNED_IOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-negative \\\n  --ui-only --expected-audio en"
-    },
-    {
-      "type": "p",
-      "text": "負対照でも通常フォームではGermanを要求します。Englishは意図的に誤った期待値なので、終了値が0以外となり、現在の選択を確かめるassertionが失敗します。起動直後の一時的な言語だけでは、音声・字幕と進行を組み合わせた検査に合格できません。--ui-only・--sdk-onlyで1件だけ実行することもでき、--derived-data・--source-packagesでは公開ビルドのキャッシュを任意で再利用できます。"
-    },
-    {
-      "type": "code",
-      "title": "Xcode・ライセンス不要のランナーファイル所有権テスト",
-      "text": "python3 -m unittest discover -s apps/ios -p test_track_qualification.py -v"
-    },
-    {
       "type": "note",
-      "text": "拡大方法は公開AVPlayerLayerのgeometryとvideo gravityを正方形の枠で調べます。映像と枠の縦横比が同じ場合、3種類が同じ見た目になることがあります。シミュレーターの設定・選択・表示・再生を確認する試験で、ビットレート上限の実効性、バッファー性能、物理端末、DRM、Casting、Analytics受信の測定ではありません。"
+      "text": "Fit、Fill (crop)、Stretchの違いは、映像と表示枠の縦横比が異なる場合に確認しやすくなります。同じ縦横比では3種類が同じ見た目になることがあります。シミュレーターでの結果は、すべての実機やAirPlay先での動作を示すものではありません。"
     }
   ],
   "sources": [
@@ -410,16 +241,6 @@
       "path": "apps/ios/README.md",
       "line": 80,
       "label": "設定の編集手順と単位"
-    },
-    {
-      "path": "apps/ios/README.md",
-      "line": 411,
-      "label": "設定テストの実行方法と範囲"
-    },
-    {
-      "path": "apps/ios/README.md",
-      "line": 149,
-      "label": "共有 UI と再生を確認する別テスト"
     },
     {
       "path": "apps/ios/project.yml",
@@ -461,20 +282,6 @@
       "label": "Bitmovin Apple 公式の形式・ライセンス設定"
     },
     {
-      "path": "apps/ios/README.md",
-      "line": 314,
-      "label": "現行の60秒HLS・MP4の設定と再生"
-    },
-    {
-      "url": "https://ffmpeg.org/ffmpeg-formats.html#Format-Options",
-      "label": "FFmpegの時刻シフト設定"
-    },
-    {
-      "path": "docs/api-coverage/apple/stock-ui-qualification.json",
-      "line": 1,
-      "label": "SDK既定UIの実測結果と公開bridge・リソースの対応"
-    },
-    {
       "path": "apps/ios/Showcase/TrackPreferences.swift",
       "line": 1,
       "label": "初期トラックの照合と所有権"
@@ -488,21 +295,6 @@
       "path": "apps/ios/Showcase/Configuration.swift",
       "line": 92,
       "label": "SDKへの拡大方法の設定"
-    },
-    {
-      "path": "apps/ios/run-track-qualification.py",
-      "line": 1,
-      "label": "公開トラック・拡大方法ランナー"
-    },
-    {
-      "path": "apps/ios/ShowcaseTrackRuntimeTests/TrackRuntimeTests.swift",
-      "line": 1,
-      "label": "ホスト付きSDKのトラック・拡大方法試験"
-    },
-    {
-      "path": "apps/ios/ShowcaseConfigurationUITests/TrackPreferenceUITests.swift",
-      "line": 1,
-      "label": "通常GUI入力と現在の選択の検査"
     },
     {
       "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerlistener/onready(_:player:)/index.html",

@@ -59,7 +59,7 @@
           </a>
           <figcaption>
             <span>Web版の画面例。プレイヤー、設定パネル、テーマのコード例を表示しています。</span>
-            <a href="guide/media/">テスト素材の説明</a>
+            <a href="guide/web-sources-tracks/">ソース・音声・字幕の説明</a>
           </figcaption>
         </figure>
       </section>
@@ -131,22 +131,20 @@ pnpm --filter @showcase/web dev</code></pre>
 
       <section class="verification wrap" aria-labelledby="verification-title">
         <div>
-          <h2 id="verification-title">再生テストと検証記録</h2>
-          <p>Pages版にはBig Buck Bunnyから生成した60秒分の素材を含みます。
-            動画を分割して配信するHLS・DASH形式に対応し、映像は2秒ごとに分割します。
-            再生、画質・音声の選択、字幕、プレビュー画像などがテストの対象です。</p>
-          <p>2つの音声トラックは同じ音源を異なる音量で収録しており、言語名はテスト用の識別情報です。
-            字幕はSintelのテキストを使って表示タイミングを確認するための素材で、Big Buck Bunnyの翻訳ではありません。</p>
-          <p>ブラウザー内で測定する再生開始時間や読み込み待ちの回数は確認できます。
-            Analyticsのライセンスを設定した場合は、再生データをBitmovinへ送信します。
-            集計クエリはサーバー側の処理が必要なため、Pages版では無効です。</p>
-          <p>ブラウザーでの再生テスト、アプリのビルド（ソースコードからアプリを作成する処理）、
-            iOSシミュレーターやAndroidエミュレーターでの実行は別々に記録しています。
-            テスト結果には実行環境、使用素材、確認した操作、未検証の項目を記載しています。</p>
+          <h2 id="verification-title">再生データとテストソース</h2>
+          <p>QoEパネルでは、現在のブラウザーセッションの再生開始時間や読み込み待ちなどを確認できます。
+            Analyticsを設定した場合は再生データをBitmovinへ送信します。
+            ガイドでは収集される指標、APIでの取得、外部ダッシュボードでの可視化、言語モデルを使った分析を説明します。</p>
+          <p>Analyticsの集計クエリにはサーバーが必要なため、Pages版では非表示です。
+            ローカルのWebサーバーでは、APIの利用設定を行って試せます。</p>
+          <p>各アプリでは複数のテストストリームを使います。Pages版には短いBig Buck Bunnyを同梱し、
+            ローカル開発版やネイティブ版では外部の参照ストリームも使います。
+            音声・字幕・巻き戻せる範囲はソースによって異なります。</p>
         </div>
         <div class="verification-links">
-          <a href="guide/media/">テスト素材の生成手順</a>
-          <a href="guide/measurement/">テストの実行手順と結果</a>
+          <a href="guide/web-qoe-analytics/">QoEとAnalytics</a>
+          <a href="guide/web-sources-tracks/">ソースを選んで試す</a>
+          <a href="guide/test-results/">テスト結果</a>
           <a href="../web/media/ATTRIBUTION.txt">テスト素材の出典（英語）</a>
         </div>
       </section>

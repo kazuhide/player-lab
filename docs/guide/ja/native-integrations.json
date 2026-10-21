@@ -1,7 +1,7 @@
 {
   "id": "native-integrations",
   "title": "React Native と Vega OS への組み込み",
-  "lead": "React Nativeは外部のExpoプロジェクトを生成し、Vegaは同梱のKeplerアプリをビルドします。それぞれの実行手順と実再生の確認範囲を説明します。",
+  "lead": "React Nativeは生成したExpoプロジェクト、Vegaは同梱のKeplerアプリで動かします。ソース、再生、字幕、UIの設定を変更し、適用済みコードを確認します。",
   "blocks": [
     {
       "type": "h2",
@@ -95,10 +95,6 @@
     },
     {
       "type": "p",
-      "text": "URL の検証には react-native-url-polyfill 4.0.0 の URL をローカルに読み込みます。古いネイティブ環境のグローバル URL は protocol と hostname が未実装で、有効なソースでも読み込み前に拒否されるためです。ローカルのパーサーを使うことで、グローバル URL と SDK のメディア用シムは変更しません。"
-    },
-    {
-      "type": "p",
       "text": "Autoplay と Mute on startup はプレイヤー生成時の設定です。開始オフセットとバッファ時間は有限の十進数（秒）で入力します。バッファの空欄は SDK 既定値（iOS は 0、Android は 50）で、iOS の 0 は自動選択です。Android の 0 は自動選択ではないため、このフォームでは正の値を入力します。Maximum bitrate は整数の bit/s で、Android は 1〜2,147,483,647、iOS は 1〜9,007,199,254,740,991、空欄は上限なしです。ネイティブブリッジはビットレートを整数へ変換し、Android は符号付き 32 ビット値を使います。また JavaScript の安全な整数の上限を超えると値を正確に表現できません。整数でない値と範囲外の値は再生成前に拒否します。"
     },
     {
@@ -106,25 +102,8 @@
       "text": "Apply and recreate player は下書き全体を検証し、プレイヤーを作り直して開始オフセットから選択中ソースを読み込みます。再生位置はリセットされ、Autoplay の設定に従って再生を開始します。ソースの全編集値、UI の選択、ログと Allow DVR は保持します。無効な入力や変更のない設定では再生成しません。Reset draft は編集を戻すだけで、再生は変えません。ソースのプリセットボタンは引き続き即時に読み込みます。Allow DVR はアプリの補助処理を操作し、SDK の再生設定自体を編集するものではありません。"
     },
     {
-      "type": "code",
-      "title": "リポジトリのルートからロジックと型を確認",
-      "text": "pnpm --filter @showcase/react-native test\npnpm --filter @showcase/react-native typecheck"
-    },
-    {
-      "type": "note",
-      "text": "型検査は実際の App と生成ホストのエントリーポイントを含みます。App 操作テストは native／Player のモックを使います。ジェネレーターの検査は、ソース・アセットのコピー、固定入力、既存出力先の拒否、明示した環境ファイルの非公開コピーを別に確認します。別の iPhone シミュレーター実測では、ラッパー 1.29.0、Expo 57.0.30、ネイティブ Player 3.128.0 を使用しました。Default と Sports で 60 秒の HLS 素材の映像表示とネイティブ位置の進行を確認しました。5 秒の開始オフセットを設定し、最初のネイティブ Playing イベントと同時の位置採取はともに 5.000 秒でした。自動再生・ミュート、バッファ・ビットレート設定、Apply での所有者の交代と前所有者の終了、Reset およびソース・UI・ログ・Allow DVR の保持を確認しました。OS クリップボードは表示中の適用済みコードと完全に一致し、下書きの変更は含みません。背景化から復帰後は、画面の SDK Play を明示的に押し、同じ所有者で再生位置の進行を確認しました。"
-    },
-    {
-      "type": "note",
-      "text": "公開の端末ランナーは、同じ本番App・所有者・ビュー準備待ちの経路を使う、明示的な --runtime-checks ホストで実行します。通常のフォーム・SDK・OSクリップボードを操作し、59–61秒の素材で5回の新しいネイティブ採取と実映像の変化を要求します。Default／Sportsの両方向で所有者が交代しても設定を保持する必要があります。Androidでは画面のSDK操作で一時停止してからHomeに戻り、復帰後も明示的に再生します。自動再開を確認する試験ではありません。isDestroyed はラッパーの終了を示しますが、公開の void destroy() APIにはネイティブ終了の完了通知がありません。結果・ログは公開せず、ガイド画像は通常エントリーから撮影してください。 ソースの読み込みは実際のビュー準備完了を待ち、終了済みのビュー・所有者からの通知を拒否します。"
-    },
-    {
-      "type": "code",
-      "text": "python3 apps/react-native/runtime/run-ios.py --device <IOS_UDID> --media-url <60_SECOND_HLS_URL> --output ../rn-ios-result\npython3 apps/react-native/runtime/run-android.py --device <ANDROID_SERIAL> --media-url <60_SECOND_HLS_URL> --output ../rn-android-result"
-    },
-    {
       "type": "p",
-      "text": "外部字幕用シナリオでは4項目を適用し、通常のSDK字幕メニューでトラックを選択します。同じソースで選択状態を確認した後、新しいネイティブcueが必要です。それ以前の埋め込み字幕や既定トラックのcueは合格条件を満たしません。両OSでwrapper 1.29.0のシナリオが合格しました。Androidは実際の字幕文字の表示も確認し、iOSは選択トラック、新しいcue、ネイティブ動画の進行を確認します。Androidの60秒素材では、通常フォームでAutoplayを無効にし、ネイティブの一時停止状態を確認してからメニューを操作します。選択後は画面上のSDK Playを押し、同じ所有者からの新しい再生状態と字幕cueで確認します。自動再生とPause／Playの操作は基本シナリオで別に確認します。見切れたSDKメニュー項目は通常のOS Tab入力で表示範囲へ移動し、非表示のsetterでトラックを切り替えることはありません。"
+      "text": "React Nativeで外部字幕を表示するには、URL・表示名・言語・既定フラグを適用した後、Playerの字幕メニューでトラックを選びます。Mark as defaultはメタデータの設定で、これだけで字幕は有効になりません。再生素材とWebVTTのキューの時刻が合っていることも確認します。"
     },
     {
       "type": "figure",
@@ -135,14 +114,6 @@
       "type": "figure",
       "file": "rn-android-caption",
       "caption": "Android版React Native：選択した外部字幕をネイティブ動画に表示。"
-    },
-    {
-      "type": "code",
-      "text": "python3 apps/react-native/runtime/run-ios.py --device <IOS_UDID> --media-url <60_SECOND_HLS_URL> --subtitle-url <WEBVTT_URL> --output ../rn-ios-subtitles\npython3 apps/react-native/runtime/run-subtitles-android.py --adb <ADB_PATH> --device <ANDROID_SERIAL> --media-url <60_SECOND_HLS_URL> --subtitle-url <WEBVTT_URL> --output ../rn-android-subtitles"
-    },
-    {
-      "type": "p",
-      "text": "Android API 36.1 では、今回のラッパーで 60 秒の HLS／DASH 素材の映像表示とネイティブ SDK 位置の進行を確認しました。5 秒の開始オフセットを設定した最初の Playing で位置 5.0 秒を採取しましたが、フレーム単位の初期シーク時刻は測定していません。自動再生・ミュート、ビットレートとバッファの getter、Reset での所有者保持、Apply での所有者の交代と前所有者の終了を確認しました。Default と同梱 Sports は適用済みソースと設定を保持しました。OS クリップボードは表示中の設定コードと完全に一致し、下書きの変更は含みません。背景化から復帰後は、画面の SDK Play を明示的に押し、適用済みの同じ所有者で再生位置の進行を確認しました。これらのシミュレーター・エミュレーター実測は、操作なしの自動再開、物理端末や Release ビルド、DRM、広告、すべてのファクトリー、live／DVR、バッファ・ビットレートの定量的な効果を確認したものではありません。"
     },
     {
       "type": "h2",
@@ -160,7 +131,7 @@
       "type": "steps",
       "items": [
         "公式Vega SDKと前提ツールを導入します。通常のJavaScript依存のインストール、単体テスト、型検査にはネイティブSDKやライセンスは不要です。",
-        "同梱のアプリ実行用プロジェクトを使い、バンドル生成前にGit管理対象外の実行設定を作ります。下のビルド確認例には認証情報を含めません。",
+        "同梱のアプリ実行用プロジェクトを使い、バンドル生成前にローカルのライセンスからGit管理対象外の実行設定を作ります。",
         "ライセンスを使って再生する場合は、scripts/env-lib.shでルートの.envを読み込み、ビルド前にruntime:configを再実行します。コピーするのはPlayerと任意のAnalyticsライセンスだけで、index.jsがAppの評価前に設定します。Playerの許可リストにはcom.playerlab.vegaを登録してください。生成した設定、バンドル、パッケージ、ログは公開しないでください。",
         "Vega SDKの環境でbuild:vegaを実行します。JavaScript/Hermesバンドルとaarch64・armv7・x86_64のReleaseパッケージを生成します。通常のワークスペースのbuildはネイティブSDKを実行しません。",
         "Vega Virtual Deviceを起動するか対応端末を接続し、OSとプロファイルを確認してシリアル番号を指定します。対応するパッケージを起動し、映像フレームの変化とSDK位置の進行を併せて確認します。CLIのready表示だけではOSやアプリの起動を確認したことにはなりません。"
@@ -168,8 +139,8 @@
     },
     {
       "type": "code",
-      "title": "ライセンスを含めずにビルドする",
-      "text": "pnpm install --frozen-lockfile\npnpm --filter @showcase/vega runtime:config --without-credentials\nvega exec pnpm --filter @showcase/vega build:vega"
+      "title": "ローカルのライセンスを読み込んでビルドする",
+      "text": "source scripts/env-lib.sh\nload_env_defaults .env\npnpm --filter @showcase/vega runtime:config\nvega exec pnpm --filter @showcase/vega build:vega"
     },
     {
       "type": "code",
@@ -200,10 +171,6 @@
     },
     {
       "type": "p",
-      "text": "URL検証にはreact-native-url-polyfill 4.0.0をローカルに読み込みます。React Native 0.72ではグローバルURLの一部の取得処理が未実装のためです。メディア用オブジェクトURLを含むネイティブのグローバルURLは保持します。依存関係はapps/vega/package.jsonに定義済みです。"
-    },
-    {
-      "type": "p",
       "text": "Autoplay と Mute on startup はプレイヤー生成時の設定です。音声・映像それぞれの Forward buffer は秒単位で、このフォームでは正の値を入力します。空欄はメディア種別ごとに SDK 既定値の 40 秒を使い、ライブの範囲によって有効なバッファは制限されます。Maximum video bitrate は bit/s の正の適応上限で、空欄は上限なしです。数値は有限の十進数で入力します。形式、バッファと適応の対応は、ソース、再生エンジン、端末にも依存します。"
     },
     {
@@ -212,49 +179,15 @@
     },
     {
       "type": "p",
-      "text": "背景化の処理ではセッションのコールバックを無効にし、所有している映像表示面を外してから、終了させるメディア要素の公開srcプロパティへ空文字列を設定します。これによりJavaScriptが動いている間にMediaSourceのリセットと切断を開始し、その後ネイティブの同期終了を要求してSDKの終了へ進みます。ソースのリセットだけでは解放完了とは扱いません。ネイティブ終了の成功とSDKのdestroy完了の両方を確認してから、グローバルのメディア用シムを置き換え、新しい所有者を作ります。先行するApplyの終了待ちでも、実際に資源を持つ所有者を背景化の処理から解放します。通常のApplyでは、SDKの終了処理がメディアを使い終えるまで待つ順序を保ちます。復帰後は新しい映像表示面の世代と終了確認を待ちます。適用済み設定、下書き、ログとAllow DVRはAppの状態に保持し、Autoplayと開始オフセットに従って再生します。以前の再生位置は復元しません。"
-    },
-    {
-      "type": "code",
-      "title": "リポジトリのルートから画面とロジックを確認",
-      "text": "pnpm --filter @showcase/vega test\npnpm --filter @showcase/vega typecheck"
-    },
-    {
-      "type": "note",
-      "text": "先行した2026-10-21の基準版の検査でライセンス不要のテスト73件とApp全体の型検査が成功しました。3形式のReleaseパッケージをビルドし、aarch64パッケージをaarch64のVega Virtual Deviceで実行しました。診断コードを含まないパッケージのsource mapと、アプリ全15ソースの一致を確認しています。映像ビットレート上限を2、3、4 Mbit/sとしてApplyを3回行い、同じアプリインスタンスで各回のVOD HLSの実映像とSDK位置の進行を確認しました。D-padとSelectで3つのスイッチのオフ／オンを確認し、適用済みコードの表示／非表示、下書きの除外、Apply後の更新、ライセンスのプレースホルダー表示も確認しました。単体・セッションテストは引き続きネイティブのメディア・Player境界をモックし、実再生とは別の検証結果です。"
-    },
-    {
-      "type": "note",
-      "text": "公開のVegaランナーには、専用端末、Vega SDK、ループバックのAppium／Kepler自動操作、明示的な --runtime-checks ビルドが必要です。通常の操作から字幕の可視性、5回のネイティブ時計・デコードフレームの進行、実映像の変化を要求します。下書きとコードの分離、設定の保持、背景復帰後の新しいセッションも確認します。終了確認ではSDKのdestroy完了とネイティブメディアの解放成功を要求し、解放が未確認なら次の所有者を作りません。これはネイティブのdestroy完了通知がないReact Nativeラッパーとは異なります。TypeScript・レンダラーテストは、ライセンスを使うOS試験と別の検証です。 通常のソース読み込みが完了してから始めます。最初のネイティブ確保を中止し、解放完了を確認できない場合はアプリの再起動が必要です。"
-    },
-    {
-      "type": "note",
-      "text": "公開Vega runnerは外部HTTPS WebVTTトラックを有効にした状態で合格し、cueの描画中にネイティブ時計とデコード済みフレームが進みました。ソースのApply後も字幕、再生、バッファ、ビットレート、DVRの設定を保持しました。companionアプリから戻る際は同じOSアプリinstanceを保ち、前景用playerを新規作成し、player破棄とネイティブreleaseの完了を確認しました。この結果は記載した仮想端末の組み合わせに対するもので、WebVTTの全機能や実機での動作を保証するものではありません。"
-    },
-    {
-      "type": "p",
-      "text": "ランナーはライセンス不要の切替用アプリを用意し、公式のアプリ間URIで背景へ移動した後、同じOSアプリインスタンスへ戻ります。Homeは履歴を消去する場合があり、終了後の新規起動での状態復元とは別の動作です。"
-    },
-    {
-      "type": "code",
-      "text": "python3 apps/vega/runtime/prepare-companion.py --output ../vega-runtime-companion\n(cd ../vega-runtime-companion && vega exec pnpm build)\nvega run-app ../vega-runtime-companion/build/aarch64-release/player-lab-runtime-companion_aarch64.vpkg com.playerlab.runtimecompanion.main --deviceId <VDA_DEVICE>\npython3 apps/vega/runtime/run.py --device <VDA_DEVICE> --vda-server-port <VDA_PORT> --media-url <60_SECOND_HLS_URL> --subtitle-url <HTTPS_WEBVTT_URL> --output ../vega-runtime-result"
+      "text": "Vegaでは背景から戻る際に再生セッションを作り直し、保持したソースと適用済み設定を読み込みます。開始位置とAutoplayの指定に従って再生を開始します。以前の任意の再生位置を復元する処理ではありません。"
     },
     {
       "type": "p",
       "text": "プレイヤー生成前に、公開されているAmazonのメディア・WebCrypto API、@xmldom/xmldom 0.9.12、base-64 1.0.0を接続します。統合に必要なためPlayerConfig.network.requestApiはFetchに固定しています。これはコード上の設定で、GUIの選択項目ではありません。呼び出し側が渡したその他の通信フックは保持します。ネイティブのメディア・暗号処理はインストール済みパッケージの実装を使います。状態欄のpositionはPlayerAPI.getCurrentTime()の秒単位の値で、ライブでは絶対メディア時刻になる場合があります。"
     },
     {
-      "type": "code",
-      "title": "ローカルのライセンス設定を読み込んで再ビルドする",
-      "text": "source scripts/env-lib.sh\nload_env_defaults .env\npnpm --filter @showcase/vega runtime:config\nvega exec pnpm --filter @showcase/vega build:vega"
-    },
-    {
-      "type": "note",
-      "text": "外部字幕の追加前に、通常エントリーの基準版パッケージで、VOD HLSとLive DASHをそれぞれ3回、別アプリへ切り替えて5秒以上背景化した後に復帰させました。すべて同じプロセスとアプリインスタンスを維持し、再生開始後のSDK位置の進行と実映像の変化を併せて確認しています。SourceLoadedだけでは映像表示の確認としません。VODでは選択中ソース、適用済みビットレート上限、未適用のタイトル、設定ログとAllow DVRのオフを保持しました。LiveでもソースとAllow DVRのオフを保持し、Selectで有効に戻すとDVR操作が利用可能になりました。開いているファイル記述子は背景化で149〜152から72〜74へ減り、再生後は149〜153でした。メモリと記述子の測定値だけでは、メディア・表示面の正確なネイティブ割り当て数やリークの有無は判断できません。これはVVDでの検証であり、物理Fire TV、DRM・オフライン動作、音声の正確性、バッファやビットレートの定量的な効果は別途確認が必要です。"
-    },
-    {
       "type": "p",
-      "text": "ネイティブ終了のtimedout／invalidや例外、SDK終了の拒否、物理的な解放完了を確認できない初期化中止では、前の所有者を保持し、再起動が必要という診断を表示して置き換えを止めます。失効したネイティブハンドルを再試行したり、解放未確認のまま新しい所有者を作ったりはしません。同期解放の期限1000 msはアプリ側の方針で、Amazonの既定値ではありません。一時停止だけではMediaSourceの接続が残るため、終了させる要素のソースをリセットして解放を準備しますが、所有権の移動には2つの完了確認を引き続き必要とします。"
+      "text": "前のネイティブPlayerを解放できなかったという診断が表示された場合は、アプリを再起動してから試します。前のPlayerがネイティブの資源を保持したまま次を生成すると再生できなくなるため、アプリは置き換えを止めて診断を表示します。"
     },
     {
       "type": "h2",

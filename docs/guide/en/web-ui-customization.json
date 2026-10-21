@@ -166,7 +166,7 @@
     },
     {
       "type": "p",
-      "text": "The repository includes a patch that releases auxiliary objects in the pinned UI library, with checks for repeated UI replacement. This does not establish that every SDK or browser allocation becomes empty. Read the public performance results together with their measurement conditions."
+      "text": "The repository includes a patch that releases auxiliary objects in the pinned UI library during repeated UI replacement. Representative CPU and memory observations are summarized in Test results with their conditions."
     },
     {
       "type": "note",
@@ -207,8 +207,8 @@
       "line": 631
     },
     {
-      "path": "docs/web-performance.md",
-      "line": 140
+      "url": "https://kazuhide.github.io/player-lab/guide/test-results/",
+      "label": "Representative test results"
     },
     {
       "url": "https://kazuhide.github.io/player-lab/web/guide.html",

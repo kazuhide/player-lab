@@ -4,13 +4,21 @@ CHAPTERS = {
     'start': 'start', 'local-setup': 'start',
     'web-screen-themes': 'web', 'web-sources-tracks': 'web',
     'web-ui-settings': 'web', 'web-live-dvr': 'web',
-    'web-player-config': 'web', 'web-qoe-analytics': 'web',
-    'web-ui-customization': 'web',
+    'web-player-config': 'web', 'web-ui-customization': 'web',
+    'web-qoe-analytics': 'analytics', 'analytics-metrics': 'analytics',
+    'analytics-queries': 'analytics', 'analytics-visualization': 'analytics',
+    'analytics-ai': 'analytics',
     'native-overview': 'native', 'native-apple': 'native',
     'native-android': 'native', 'native-integrations': 'native',
-    'media': 'media', 'audio-timing': 'media', 'cloud-encoding': 'media',
-    'live-finalization': 'media', 'measurement': 'media',
-    'troubleshooting': 'reference', 'glossary': 'reference',
+    'troubleshooting': 'reference', 'audio-timing': 'reference',
+    'test-results': 'reference', 'glossary': 'reference',
+}
+CATEGORIES = ('start', 'web', 'analytics', 'native', 'reference')
+LEGACY_ROUTES = {
+    'measurement': 'test-results',
+    'media': 'web-sources-tracks',
+    'cloud-encoding': 'web-sources-tracks',
+    'live-finalization': 'troubleshooting',
 }
 SETTING_GROUPS = (
     'player-api', 'dynamic-adaptation', 'low-latency', 'source', 'playback',
@@ -47,7 +55,7 @@ COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'veg
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = '59ceb011f105776391bbc53383c91c5a39a0b4a6'
+SOURCE_REVISION = '11b7ccac88b126c07fc3984b63af45fe36219c67'
 CONTENT_REVIEW = '2026-10-21'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 
@@ -59,6 +67,7 @@ def route_file(language, slug=''):
 
 GUIDE_FILES = {
     *(route_file(language, slug) for language in LANGUAGES for slug in SLUGS),
+    *(route_file(language, slug) for language in LANGUAGES for slug in LEGACY_ROUTES),
     'guide/search-index.json', 'ja/guide/search-index.json',
 }
 GUIDE_ASSETS = {

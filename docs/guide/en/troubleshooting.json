@@ -1,6 +1,6 @@
 {
   "id": "troubleshooting",
-  "title": "Troubleshooting",
+  "title": "Troubleshooting and FAQ",
   "lead": "First identify whether the issue occurs on public Pages, in the local Web app, or in a native app. Check licensing, network access, setting application, and media or device support separately.",
   "blocks": [
     {
@@ -166,11 +166,6 @@
           "Use media with wall-clock information. Do not interpret unavailable wall-clock latency as zero; distinguish it from relative position and distance from the SDK’s live edge."
         ],
         [
-          "The display does not change after live ends",
-          "Check whether the stream still signals live and whether the SDK’s duration has become a finite positive value.",
-          "Use the conditions in the live-to-VOD chapter. The app also uses timing information after loading rather than relying only on the source-type label."
-        ],
-        [
           "There is no server-query panel on Pages",
           "Pages serves static files and has no server to process account aggregate queries.",
           "The panel is intentionally hidden. Check the current playback in the QoE section. Configure the local development server if aggregate queries are needed."
@@ -188,6 +183,39 @@
       ]
     },
     {
+      "type": "h2",
+      "text": "Why do live controls change when an event ends?"
+    },
+    {
+      "type": "p",
+      "text": "A finished event can become a finite VOD presentation. HLS can signal that no more segments will be added with EXT-X-ENDLIST; DASH can change a dynamic manifest to a finite static presentation. When the app observes a finite, positive duration, it switches to VOD controls and disables live rewind/return commands. Finalization does not create more rewind history, and a theme named Live does not make a VOD source live."
+    },
+    {
+      "type": "h2",
+      "text": "Why can Apple still report live after HLS ends?"
+    },
+    {
+      "type": "p",
+      "text": "On Apple Player 3.128.0, a completed HLS Source can keep isLive = true and an infinite duration. The app records PlaybackFinished for the current Source that loaded as live, shows ended-live and disables its live commands. The shared Live and Sports UIs hide their LIVE controls and retain Replay. Replaying the same Source preserves this completion state; a new load clears it. The app does not change the SDK getters."
+    },
+    {
+      "type": "p",
+      "text": "To read the final manifest as finite VOD, keep the URL and player settings, change only Title under Configure source and playback, and Apply when the action says Reload source. This loads a new Source on the same Player and URL and resets playback position. Reloading is a separate action from finishing or replaying the original Source."
+    },
+    {
+      "type": "h2",
+      "text": "Why does a finished clip still have clock-based positions?"
+    },
+    {
+      "type": "p",
+      "text": "A source that used wall-clock timestamps while live can keep that origin after becoming finite VOD. The shared UI displays and seeks relative to the seekable-range start. In API code, use getSeekableRange().start + the desired clip offset as the seek target, then wait for a fresh Seeked event and inspect getCurrentTime(\"relativetime\"). An absolute seek(10) can instead be clamped to the start. The live-only Sports clock is hidden outside live playback."
+    },
+    {
+      "type": "note",
+      "title": "Rapid quick-seek clicks",
+      "text": "Player UI 4.23.0 updates its pending target after the SDK Seek notification. Two rapid backward clicks before that notification can request the same position. If checking a precise movement, wait for Seeked and confirm the result before the next action."
+    },
+    {
       "type": "note",
       "text": "When sharing findings, report the target SDK, source type, reproduction steps, error codes, and retrieval results without including key values, authentication headers, personal information, or private media URLs."
     }
@@ -195,7 +223,7 @@
   "sources": [
     {
       "path": "docs/SETUP.md",
-      "line": 29,
+      "line": 31,
       "label": "Key types and allowed hosts"
     },
     {
@@ -220,22 +248,22 @@
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 920,
+      "line": 929,
       "label": "Applying configuration"
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 589,
+      "line": 599,
       "label": "Language switching and unapplied inputs"
     },
     {
       "path": "apps/web/src/dvr/state.ts",
-      "line": 47,
-      "label": "Live and VOD state"
+      "line": 37,
+      "label": "Finite-duration VOD classification"
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 490,
+      "line": 501,
       "label": "Hidden Pages queries and collection notice"
     },
     {
@@ -261,6 +289,39 @@
     {
       "url": "https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Mixed_content",
       "label": "MDN: HTTPS and mixed content"
+    },
+    {
+      "path": "apps/ios/Showcase/PlayerModel.swift",
+      "line": 253,
+      "label": "Source-owned HLS completion"
+    },
+    {
+      "path": "apps/ios/Showcase/PlayerModel.swift",
+      "line": 173,
+      "label": "Reloading the same URL with a new Source"
+    },
+    {
+      "path": "packages/ui-shared/src/components/observeLiveSourceCompletion.ts",
+      "line": 4,
+      "label": "Shared UI completion and load reset"
+    },
+    {
+      "path": "apps/web/src/gestures.ts",
+      "line": 43,
+      "label": "Relative VOD seek target"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 303,
+      "label": "Recorded same-URL HLS reload and completed VOD seek"
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc8216.html#section-4.3.3.4",
+      "label": "HLS end-of-playlist signal"
+    },
+    {
+      "url": "https://dashif.org/DASH-IF-IOP/live2vod/",
+      "label": "DASH live-to-VOD transition"
     }
   ]
 }
