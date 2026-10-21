@@ -4,6 +4,7 @@ import com.bitmovin.player.api.drm.*
 import com.bitmovin.player.api.source.SourceConfig
 
 private const val DRM = "android:com.bitmovin.player.api.drm."
+private const val DRM_VARIANT = "android:com.bitmovin.player.api.source.SourceConfig.drmConfig"
 private fun drmStrategy(value: ByteArray, strategy: String): ByteArray = when (strategy) {
     "Identity" -> value
     "Base64Encode" -> android.util.Base64.encode(value, android.util.Base64.NO_WRAP)
@@ -13,8 +14,14 @@ private fun drmStrategy(value: ByteArray, strategy: String): ByteArray = when (s
 private fun drmVariant(values: Map<String, String>): String {
     val variants = listOf("Widevine", "PlayReady", "NagraConnect").filter { variant -> values.keys.any { it.startsWith("${DRM}${variant}Config.") } } +
         if (values.keys.any { it.startsWith("${DRM}ClearKeyConfigEntry.") }) listOf("ClearKey") else emptyList()
+    val selected = values[DRM_VARIANT]
+    if (selected == "None") {
+        require(values.size == 1) { "Remove DRM field overrides before selecting None." }
+        return selected
+    }
     require(variants.size <= 1) { "Use settings from one DRM variant at a time." }
-    return variants.firstOrNull() ?: "Widevine"
+    require(selected == null || variants.all { it == selected }) { "Remove field overrides from the other DRM variant." }
+    return selected ?: variants.firstOrNull() ?: "Widevine"
 }
 
 /** Construct the whole DRM object once so input order cannot discard another field. */
@@ -22,6 +29,7 @@ internal fun configureApiDrm(source: SourceConfig, values: Map<String, String>) 
     if (values.isEmpty()) return
     fun value(name: String) = values[DRM + name]
     val variant = drmVariant(values)
+    if (variant == "None") { source.drmConfig = null; return }
     val url = value("DrmConfig.licenseUrl") ?: source.drmConfig?.licenseUrl
     val headers = value("DrmConfig.httpHeaders")?.let(::parseApiStringMap)
     val message = value("${variant}Config.prepareMessageCallback")?.let { strategy -> PrepareMessageCallback { drmStrategy(it, strategy) } }
@@ -59,6 +67,7 @@ internal fun apiDrmCode(values: Map<String, String>): String {
     if (values.isEmpty()) return ""
     fun value(name: String) = values[DRM + name]
     val variant = drmVariant(values)
+    if (variant == "None") return "\nsourceConfig.drmConfig = null"
     val lines = mutableListOf("", "// DRM secrets are placeholders. Import com.bitmovin.player.api.drm.*.")
     fun callback(name: String): String {
         val strategy = value("${variant}Config.$name") ?: return "null"

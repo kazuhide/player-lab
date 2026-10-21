@@ -48,7 +48,7 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
             }
         }
         OutlinedTextField(input, { input = it }, label = { Text("SDK field value") },
-            visualTransformation = if (field.drmParameter && field.kind in listOf(ApiValueKind.Text, ApiValueKind.StringMap)) PasswordVisualTransformation() else VisualTransformation.None,
+            visualTransformation = if (field.secret || field.drmParameter && field.kind in listOf(ApiValueKind.Text, ApiValueKind.StringMap)) PasswordVisualTransformation() else VisualTransformation.None,
             modifier = Modifier.fillMaxWidth().testTag("api-setting-value"))
         Button(onClick = {
             runCatching { field.normalize(input) }.onSuccess {

@@ -109,4 +109,57 @@ class ApiSettingsTest {
             id("ui.UiConfig.WebUi.Variant.Custom.uiManagerFactoryFunction") to "exampleFactory",
         )) }.isFailure)
     }
+
+    @Test fun structured_variant_selection_is_independent_of_edit_order_and_rejects_conflicts() {
+        val values = linkedMapOf(
+            id("BandwidthEstimationMode.SlidingPercentile.maxSampleCount") to "9",
+            id("BandwidthMeterType.Experimental.bandwidthEstimationMode") to "SlidingPercentile",
+            id("TweaksConfig.bandwidthMeterType") to "Experimental",
+        )
+        for (input in listOf(values, values.entries.reversed().associate { it.toPair() })) {
+            val config = ApiOverrides.validate(input).player(PlayerConfig())
+            val bandwidth = config.tweaksConfig.bandwidthMeterType as com.bitmovin.player.api.BandwidthMeterType.Experimental
+            assertEquals(9, (bandwidth.bandwidthEstimationMode as com.bitmovin.player.api.BandwidthEstimationMode.SlidingPercentile).maxSampleCount)
+        }
+        assertTrue(runCatching { ApiOverrides.validate(values + (id("TweaksConfig.bandwidthMeterType") to "Default")) }.isFailure)
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(id("source.SourceConfig.cmcdConfig") to "Disabled", id("source.CmcdConfig.Enabled.contentId") to "sample")) }.isFailure)
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(id("source.SourceConfig.drmConfig") to "None", id("drm.DrmConfig.licenseUrl") to "https://example.invalid/license")) }.isFailure)
+    }
+
+    @Test fun device_and_live_structures_retain_all_typed_members_and_export_canonical_code() {
+        val overrides = ApiOverrides.validate(mapOf(
+            id("TweaksConfig.devicesThatRequireSurfaceWorkaround") to "model.1=Example model\ndevice.2=example-device",
+            id("LoadErrorFallbackConfig.HttpStatusCode.statusCodes") to "00404, 503",
+            id("live.LiveConfig.synchronization") to "Ntp.1=time.example.invalid",
+            id("live.SourceLiveConfig.catchupConfig") to "playbackRate=1.1\nseekThreshold=Infinity",
+            id("live.SourceLiveConfig.fallbackConfig") to "playbackRate=0.9\nseekThreshold=8",
+        ))
+        val player = overrides.player(PlayerConfig())
+        assertEquals(2, player.tweaksConfig.devicesThatRequireSurfaceWorkaround.size)
+        assertEquals(listOf(404, 503), (player.tweaksConfig.loadErrorFallbackConfig as com.bitmovin.player.api.LoadErrorFallbackConfig.HttpStatusCode).statusCodes)
+        assertEquals("time.example.invalid", player.liveConfig.synchronization.single().source)
+        val source = overrides.source(SourceConfig("https://example.invalid/live.mpd", SourceType.Dash))
+        assertEquals(1.1f, source.liveConfig!!.catchupConfig.playbackRate)
+        assertEquals(Double.POSITIVE_INFINITY, source.liveConfig!!.catchupConfig.seekThreshold, 0.0)
+        assertEquals(8.0, source.liveConfig!!.fallbackConfig.seekThreshold, 0.0)
+        assertTrue(overrides.code().contains("Double.POSITIVE_INFINITY"))
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(id("live.SourceLiveConfig.catchupConfig") to "playbackRate=NaN")) }.isFailure)
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(id("live.SourceLiveConfig.catchupConfig") to "unknown=1")) }.isFailure)
+        assertTrue(runCatching { ApiOverrides.validate(mapOf(id("LoadErrorFallbackConfig.HttpStatusCode.statusCodes") to "404,nope")) }.isFailure)
+    }
+
+    @Test fun explicit_disabled_configs_and_key_override_are_typed_and_export_no_key_value() {
+        val overrides = ApiOverrides.validate(mapOf(
+            id("PlayerConfig.key") to "unit-test-key-not-for-export",
+            id("ui.PlayerViewConfig.uiConfig") to "Disabled",
+            id("source.SourceConfig.cmcdConfig") to "Disabled",
+            id("source.SourceConfig.drmConfig") to "None",
+        ))
+        assertEquals("unit-test-key-not-for-export", overrides.player(PlayerConfig()).key)
+        assertEquals(com.bitmovin.player.api.ui.UiConfig.Disabled, overrides.view(com.bitmovin.player.api.ui.PlayerViewConfig()).uiConfig)
+        val source = overrides.source(SourceConfig("https://example.invalid/a.m3u8", SourceType.Hls))
+        assertEquals(com.bitmovin.player.api.source.CmcdConfig.Disabled, source.cmcdConfig)
+        assertNull(source.drmConfig)
+        assertFalse(overrides.code().contains("unit-test-key-not-for-export"))
+    }
 }

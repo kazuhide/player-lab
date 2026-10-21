@@ -11,7 +11,7 @@ import com.bitmovin.player.api.network.HttpRequestType
 import com.bitmovin.player.api.ui.*
 import com.bitmovin.player.api.vr.*
 
-internal enum class ApiValueKind { Boolean, Integer, LongInteger, Decimal, FloatDecimal, Text, TextList, StringMap, Choice }
+internal enum class ApiValueKind { Boolean, Integer, LongInteger, Decimal, FloatDecimal, Text, TextList, IntegerList, StringMap, Choice }
 
 /** Explicit typed setters; no reflection, script evaluation or arbitrary SDK mutation. */
 internal data class ApiSetting(
@@ -24,6 +24,8 @@ internal data class ApiSetting(
     val maximum: Double? = null,
     val nullable: Boolean = false,
     val drmParameter: Boolean = false,
+    val order: Int = 10,
+    val secret: Boolean = false,
     val player: ((PlayerConfig, String) -> PlayerConfig)? = null,
     val source: ((SourceConfig, String) -> Unit)? = null,
     val view: ((PlayerViewConfig, String) -> PlayerViewConfig)? = null,
@@ -44,6 +46,10 @@ internal data class ApiSetting(
                 require(choices.isEmpty() || value.isEmpty() || value.split(',').all { it.trim() in choices }) { "Use the documented comma-separated choices." }
                 null
             }
+            ApiValueKind.IntegerList -> {
+                require(value.isEmpty() || value.split(',').all { it.trim().toIntOrNull() != null }) { "Enter comma-separated 32-bit integers, or leave blank for an empty list." }
+                null
+            }
             ApiValueKind.StringMap -> { parseApiStringMap(value); null }
             ApiValueKind.Text -> { require(value.length <= 8192) { "Text is limited to 8192 characters." }; null }
         }
@@ -57,23 +63,24 @@ internal data class ApiSetting(
             ApiValueKind.Decimal -> value.toDouble().toString()
             ApiValueKind.FloatDecimal -> value.toFloat().toString()
             ApiValueKind.TextList -> if (value.isEmpty()) "" else value.split(',').joinToString(",") { it.trim() }
+            ApiValueKind.IntegerList -> if (value.isEmpty()) "" else value.split(',').joinToString(",") { it.trim().toInt().toString() }
             else -> value
         }
     }
 }
 
 internal data class ApiOverrides(val values: Map<String, String> = emptyMap()) {
-    fun player(base: PlayerConfig): PlayerConfig = values.entries.fold(base) { config, (id, value) ->
+    fun player(base: PlayerConfig): PlayerConfig = values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }.fold(base) { config, (id, value) ->
         ApiSettings.byId.getValue(id).player?.invoke(config, value) ?: config
     }
     fun source(base: SourceConfig): SourceConfig = base.also { config ->
-        values.forEach { (id, value) -> ApiSettings.byId.getValue(id).source?.invoke(config, value) }
+        values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }.forEach { (id, value) -> ApiSettings.byId.getValue(id).source?.invoke(config, value) }
         configureApiDrm(config, values.filterKeys { ApiSettings.byId.getValue(it).drmParameter })
     }
-    fun view(base: PlayerViewConfig): PlayerViewConfig = values.entries.fold(base) { config, (id, value) ->
+    fun view(base: PlayerViewConfig): PlayerViewConfig = values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }.fold(base) { config, (id, value) ->
         ApiSettings.byId.getValue(id).view?.invoke(config, value) ?: config
     }
-    fun code(): String = values.entries.filterNot { ApiSettings.byId.getValue(it.key).drmParameter }.joinToString("\n") { (id, value) -> requireNotNull(ApiSettings.byId.getValue(id).code).invoke(value) } + apiDrmCode(values.filterKeys { ApiSettings.byId.getValue(it).drmParameter })
+    fun code(): String = values.entries.sortedBy { ApiSettings.byId.getValue(it.key).order }.filterNot { ApiSettings.byId.getValue(it.key).drmParameter }.joinToString("\n") { (id, value) -> requireNotNull(ApiSettings.byId.getValue(id).code).invoke(value) } + apiDrmCode(values.filterKeys { ApiSettings.byId.getValue(it).drmParameter })
     companion object {
         fun validate(draft: Map<String, String>): ApiOverrides {
             val parsed = ApiOverrides(draft.mapValues { (id, value) ->
@@ -89,6 +96,17 @@ internal data class ApiOverrides(val values: Map<String, String> = emptyMap()) {
             exclusive("BandwidthEstimationMode.ExponentialWeightedAverage.", "BandwidthEstimationMode.SlidingPercentile.")
             exclusive("CmcdConfig.Enabled.sessionId", "CmcdSessionId.Custom.value")
             exclusive("UiConfig.WebUi.variant", "UiConfig.WebUi.Variant.Custom.uiManagerFactoryFunction")
+            exclusive("TweaksConfig.devicesThatRequireSurfaceWorkaround", "DeviceDescription.")
+            exclusive("AdaptationConfig.startupBitrate", "AdaptationConfig.initialBandwidthEstimateOverride")
+            val bandwidth = draft["android:com.bitmovin.player.api.TweaksConfig.bandwidthMeterType"]
+            require(bandwidth != "Default" || draft.keys.none { it.contains("BandwidthMeterType.Experimental.") || it.contains("BandwidthEstimationMode.") }) { "Remove experimental bandwidth fields before choosing Default." }
+            require(bandwidth != "Experimental" || draft.keys.none { it.contains("BandwidthMeterType.Default.") }) { "Remove default-estimator fields before choosing Experimental." }
+            val estimationMode = draft["android:com.bitmovin.player.api.BandwidthMeterType.Experimental.bandwidthEstimationMode"]
+            require(estimationMode != "ExponentialWeightedAverage" || draft.keys.none { it.contains("BandwidthEstimationMode.SlidingPercentile.") }) { "Remove sliding-percentile fields before choosing the weighted-average mode." }
+            require(estimationMode != "SlidingPercentile" || draft.keys.none { it.contains("BandwidthEstimationMode.ExponentialWeightedAverage.") }) { "Remove weighted-average fields before choosing the sliding-percentile mode." }
+            require(draft["android:com.bitmovin.player.api.ui.PlayerViewConfig.uiConfig"] != "Disabled" || draft.keys.none { it.contains("UiConfig.WebUi.") }) { "Remove Web UI field overrides before disabling the Web UI." }
+            require(draft["android:com.bitmovin.player.api.source.SourceConfig.cmcdConfig"] != "Disabled" || draft.keys.none { it.contains("CmcdConfig.Enabled.") || it.contains("CmcdSessionId.") }) { "Remove enabled CMCD fields before disabling CMCD." }
+            require(draft["android:com.bitmovin.player.api.live.LiveConfig.lowLatencyConfig"] != "null" || draft.keys.none { it.contains("LowLatencyConfig.") }) { "Remove legacy low-latency fields before clearing that config." }
             // Exercise pure configuration constructors before retiring the current player.
             // No Player, Source, network client or device resource is allocated here.
             parsed.player(PlayerConfig())
@@ -1026,6 +1044,6 @@ internal object ApiSettings {
             choices = listOf("Identity","Base64Encode","Base64Decode"),
             drmParameter = true
         )
-    )
+    ) + ApiStructuredSettings.fields
     val byId: Map<String, ApiSetting> = fields.associateBy(ApiSetting::id)
 }
