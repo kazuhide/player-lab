@@ -38,3 +38,18 @@ it("reports only the allowlisted applied scalar settings", () => {
     autoplay: true, startupMuted: true, videoForwardBuffer: 8, audioForwardBuffer: 8,
     maxVideoBitrate: 2500000, externalSubtitleConfigured: true });
 });
+
+it("waits for SourceLoaded before reading and keeps later getter failures fatal", () => {
+  const listeners = new Map<string, () => void>();
+  const list = vi.fn(() => { throw new Error("source not ready"); });
+  const player = { subtitles: { list }, on: vi.fn((name, fn) => listeners.set(name, fn)), off: vi.fn() };
+  const monitor = createRuntimeMonitor();
+  monitor.attach(player as unknown as PlayerAPI, () => 0);
+  monitor.sample();
+  expect(list).not.toHaveBeenCalled();
+  expect(monitor.report().owner).toMatchObject({ sourceLoaded: 0, readFailures: 0, sample: null });
+  listeners.get("sourceloaded")!();
+  monitor.sample();
+  expect(list).toHaveBeenCalledOnce();
+  expect(monitor.report().owner).toMatchObject({ sourceLoaded: 1, readFailures: 1, sample: null });
+});

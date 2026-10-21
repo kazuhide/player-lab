@@ -79,6 +79,9 @@ export function createRuntimeMonitor(): RuntimeMonitor {
     sample() {
       if (!current) return;
       const { player, report, frames } = current;
+      // The read-only header can be pressed while native allocation/load is
+      // still pending. Require the real source event before querying media.
+      if (report.sourceLoaded === 0) return;
       try {
         const tracks = player.subtitles.list();
         report.sample = { sequence: (report.sample?.sequence ?? 0) + 1, time: finite(player.getCurrentTime()), duration: finite(player.getDuration()),
