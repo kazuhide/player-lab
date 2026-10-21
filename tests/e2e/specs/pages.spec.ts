@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { observePlayback } from "../src/playback-observation";
+import { observePlayback, sourceStartObservation } from "../src/playback-observation";
 
 const analyticsEnabled = process.env.E2E_PAGES_ANALYTICS_ENABLED === "1";
 const audits = new WeakMap<Page, { api: string[]; collectors: { method: string; type: string }[]; errors: string[] }>();
@@ -308,9 +308,13 @@ test("the original config GUI applies runtime, source reload and player recreati
   await expect.poll(() => page.evaluate(() => window.__playbackObservation?.sourceLoaded ?? 0)).toBe(1);
   await expect(page.locator(".bmpui-label-metadata-title")).toHaveText("Pages source configuration");
   await expectPlayback(page);
-  const reloaded = await videoState(page);
-  expect(reloaded.time).toBeGreaterThanOrEqual(4.9);
-  expect(reloaded.time).toBeLessThan(8);
+  // A slow reader may observe several seconds of legitimate playback after startup.
+  await expect.poll(async () => (await videoState(page)).time).toBeGreaterThanOrEqual(8.2);
+  const reloaded = await sourceStartObservation(page);
+  expect(reloaded).toMatchObject({ sameOwner: true, sourceLoaded: 1, sameSource: true });
+  expect(reloaded.firstPlayingTime).not.toBeNull();
+  expect(reloaded.firstPlayingTime!).toBeGreaterThanOrEqual(4.9);
+  expect(reloaded.firstPlayingTime!).toBeLessThan(8);
 
   const playback = page.locator("#config-panel .config-group").filter({ has: page.getByText("Playback", { exact: true }) });
   await playback.locator("summary").click();
@@ -325,6 +329,7 @@ test("the original config GUI applies runtime, source reload and player recreati
   await recreate.click();
   await expect(recreate).toBeDisabled();
   await expect.poll(() => previousVideo!.evaluate((video) => video.isConnected)).toBe(false);
+  expect(await sourceStartObservation(page)).toMatchObject({ sameOwner: false, firstPlayingTime: null });
   await expect.poll(() => page.locator("#player video").evaluate((video: HTMLVideoElement) => ({
     paused: video.paused, muted: video.muted, volume: video.volume,
   }))).toEqual({ paused: true, muted: true, volume: 0.4 });
@@ -335,4 +340,37 @@ test("the original config GUI applies runtime, source reload and player recreati
   await page.locator(".bmpui-ui-playbacktogglebutton").click();
   await expectPlayback(page);
   await previousVideo!.dispose();
+});
+
+test("source start observations retain zero offsets and reject a replaced source", async ({ page }) => {
+  await openApp(page);
+  await page.getByRole("button", { name: "Premiere", exact: true }).click();
+  const title = page.locator("#config-panel .config-field").filter({
+    has: page.locator(".config-field-label", { hasText: /^title/ }),
+  }).locator("input");
+  const offset = page.locator("#config-panel .config-field").filter({
+    has: page.locator(".config-field-label", { hasText: /^options\.startOffset \(s\)/ }),
+  }).locator("input");
+  await offset.fill("0");
+  await offset.blur();
+  await title.fill("Zero offset source");
+  await title.blur();
+  const reload = page.getByRole("button", { name: /Reload the source to apply/ });
+  await observePlayback(page);
+  await reload.click();
+  await expectPlayback(page);
+  const initial = await sourceStartObservation(page);
+  expect(initial).toMatchObject({ sameOwner: true, sourceLoaded: 1, sameSource: true });
+  expect(initial.firstPlayingTime).not.toBeNull();
+  expect(initial.firstPlayingTime!).toBeGreaterThanOrEqual(0);
+  expect(initial.firstPlayingTime!).toBeLessThan(4.9);
+
+  await title.fill("Replacement source");
+  await title.blur();
+  await reload.click();
+  await expect.poll(() => page.evaluate(() => window.__playbackObservation?.sourceLoaded ?? 0)).toBe(2);
+  await expectPlayback(page);
+  expect(await sourceStartObservation(page)).toEqual({
+    sameOwner: true, sourceLoaded: 2, sameSource: false, firstPlayingTime: null,
+  });
 });

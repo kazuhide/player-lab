@@ -6,7 +6,7 @@ interface PlaybackObservation {
   sourceGeneration: number;
   sequence: number;
   sourceLoaded: number;
-  events: { name: string; sequence: number }[];
+  events: { name: string; sequence: number; sourceGeneration: number; time?: number }[];
   observer: MutationObserver;
   seeked: () => void;
 }
@@ -35,15 +35,41 @@ export async function observePlayback(page: Page): Promise<void> {
             const name = (node.textContent ?? "").split("\n")[0]!.replace(/^\[[^\]]+\]\s*/, "").toLowerCase();
             if (name === "sourceloaded" || name === "sourceunloaded") observation.sourceGeneration++;
             if (name === "sourceloaded") observation.sourceLoaded++;
-            observation.events.push({ name, sequence: ++observation.sequence });
+            observation.events.push({
+              name, sequence: ++observation.sequence,
+              sourceGeneration: observation.sourceGeneration,
+              // Keep the initial position before later assertions allow playback to advance.
+              ...(name === "playing" ? { time: video.currentTime } : {}),
+            });
           }
         }
       }),
-      seeked: () => observation.events.push({ name: "native-seeked", sequence: ++observation.sequence }),
+      seeked: () => observation.events.push({
+        name: "native-seeked", sequence: ++observation.sequence,
+        sourceGeneration: observation.sourceGeneration,
+      }),
     };
     observation.observer.observe(log, { childList: true });
     video.addEventListener("seeked", observation.seeked);
     window.__playbackObservation = observation;
+  });
+}
+
+export async function sourceStartObservation(page: Page) {
+  return page.evaluate(() => {
+    const observation = window.__playbackObservation!;
+    const loaded = observation.events.find(event => event.name === "sourceloaded");
+    const playing = loaded && observation.events.find(event => event.name === "playing"
+      && event.sequence > loaded.sequence && event.sourceGeneration === loaded.sourceGeneration);
+    const sameOwner = observation.video === document.querySelector("#player video") && observation.video.isConnected
+      && observation.log === document.querySelector(".panel-log") && observation.log.isConnected;
+    const sameSource = Boolean(loaded && playing && loaded.sourceGeneration === observation.sourceGeneration);
+    return {
+      sameOwner,
+      sourceLoaded: observation.sourceLoaded,
+      sameSource,
+      firstPlayingTime: sameOwner && sameSource && observation.sourceLoaded === 1 ? playing?.time ?? null : null,
+    };
   });
 }
 
