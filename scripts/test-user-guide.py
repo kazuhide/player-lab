@@ -359,8 +359,8 @@ class GuideTests(unittest.TestCase):
         expected = {'ios': (209, '23 / 209 · 11.00%', 12, 4, 7),
                     'tvos': (180, '20 / 180 · 11.11%', 12, 0, 8),
                     'android': (294, '267 / 294 · 90.82%', 267, 0, 0),
-                    'react-native': (267, '22 / 267 · 8.24%', 14, 3, 5),
-                    'vega': (653, '22 / 653 · 3.37%', 16, 0, 6)}
+                    'react-native': (267, '267 / 267 · 100.00%', 267, 0, 0),
+                    'vega': (653, '650 / 653 · 99.54%', 595, 1, 54)}
         for app in report['applications']:
             if app['id'] not in expected:
                 continue
