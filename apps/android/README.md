@@ -53,8 +53,7 @@ You can also open `apps/android` in Android Studio. The Gradle properties
 preserving the local SDK path.
 
 The application ID and Kotlin namespace are `com.playerlab.android`; the test APK
-uses `com.playerlab.android.test`. This installs separately from the previous
-`com.showcase.dvr` application and does not migrate its local data. Allow
+uses `com.playerlab.android.test`. Allow
 `com.playerlab.android` on your player license. The analytics key is optional;
 when provided, the bundled collector reports playback-quality measurements to
 your account. Do not commit keys or local SDK configuration.

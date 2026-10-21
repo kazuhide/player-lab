@@ -1,7 +1,7 @@
 {
   "id": "native-android",
   "title": "Android and Android-based Fire TV",
-  "lead": "Use the Kotlin and Compose app to load HLS/DASH sources, try live rewind, and compare the shared Web UI. Android-based Fire TV and Vega OS are separate targets.",
+  "lead": "Use the Kotlin and Compose app to change source and playback settings, select tracks, compare player interfaces and inspect applied Kotlin code. Live rewind and the offline helper are additional examples. Android-based Fire TV and Vega OS are separate targets.",
   "blocks": [
     {
       "type": "h2",
@@ -17,7 +17,7 @@
     },
     {
       "type": "p",
-      "text": "The output is apps/android/app/build/outputs/apk/debug/app-debug.apk. You can also open apps/android in Android Studio and run on a connected device or emulator. Allow the application ID com.showcase.dvr on the Player license."
+      "text": "The output is apps/android/app/build/outputs/apk/debug/app-debug.apk. You can also open apps/android in Android Studio and run on a connected device or emulator. Allow the application ID com.playerlab.android on the Player license."
     },
     {
       "type": "p",
@@ -52,7 +52,7 @@
     },
     {
       "type": "p",
-      "text": "Open Configuration to edit 18 settings. Source fields are a custom HTTP/HTTPS URL, DASH/HLS/Smooth/Progressive type, optional title, optional poster URL, persistent poster, start offset in seconds, SDK-default/Start/End reference, and optional live target latency in seconds. Blank title, poster, and offset use SDK defaults. The default reference is the start for VOD and the end for live streams; the SDK corrects offsets outside stream boundaries. HTTP depends on the device network policy."
+      "text": "Open Configuration to edit 25 settings. Source fields are a custom HTTP/HTTPS URL, DASH/HLS/Smooth/Progressive type, optional title, optional poster URL, persistent poster, start offset in seconds, SDK-default/Start/End reference, and optional live target latency in seconds. Blank title, poster, and offset use SDK defaults. The default reference is the start for VOD and the end for live streams; the SDK corrects offsets outside stream boundaries. HTTP depends on the device network policy."
     },
     {
       "type": "p",
@@ -80,6 +80,41 @@
     },
     {
       "type": "h2",
+      "text": "Audio language, external subtitles and retries"
+    },
+    {
+      "type": "p",
+      "text": "Player audio language priority sets an ordered list such as de, en when the player is created. Source audio language priority overrides it for that source when nonempty; blank inherits the player list. Codes keep their priority after trimming and removing duplicates without regard to case. No match leaves the SDK default track."
+    },
+    {
+      "type": "p",
+      "text": "WebVTT is a text-based subtitle format with timed cues. To add one external track, enter its HTTP or HTTPS WebVTT URL and optionally a label and language code such as en-US. Default external subtitle sets isDefault metadata; it does not enable the subtitles. Apply source, then select the track in the Default UI settings menu. Clearing the URL also requires clearing its metadata. Existing in-stream subtitles remain available."
+    },
+    {
+      "type": "figure",
+      "file": "android-source-settings",
+      "caption": "Android source settings: the source language list overrides the player list. An external WebVTT track has a URL, label, language and default metadata; enable it separately in the player subtitle menu. Android 16 emulator."
+    },
+    {
+      "type": "figure",
+      "file": "android-player-settings",
+      "caption": "Android player settings: autoplay, mute and player-wide audio language priority. Applying these settings recreates the player; the source-specific audio list still takes precedence."
+    },
+    {
+      "type": "p",
+      "text": "HTTP retry delays (s) controls the wait before each retry. Blank uses the SDK policy that increases the wait between retries, none disables retries, and a comma-separated list such as 0, 0.25, 2 permits one retry for each finite nonnegative value. The setting applies after player recreation. It does not expose custom callbacks, request credentials or content-protection license renewal retries."
+    },
+    {
+      "type": "note",
+      "text": "Source changes reload the current player; player language and retry changes recreate it. Both paths keep the applied source metadata, selected UI and app rewind preference. Reset changes the draft only. Show applied code contains the same normalized settings and excludes unapplied text and actual license values."
+    },
+    {
+      "type": "figure",
+      "file": "android-applied-code",
+      "caption": "HTTP retry delays and applied Kotlin code. The displayed code uses the applied values and YOUR_PLAYER_KEY; draft-only edits and the actual license are excluded. Select the image to read it at full size."
+    },
+    {
+      "type": "h2",
       "text": "Offline code example"
     },
     {
@@ -96,16 +131,27 @@
     },
     {
       "type": "p",
-      "text": "The full instrumented suite requires an authorized license and the local 60-second HLS/DASH finalization fixture. With Node 24, generate the local test media and start the server from the repository root. In a second terminal, forward ports 5272 and 5273 with adb reverse before running the tests below. Remove both forwards and stop the server afterwards. Only the debug build permits loopback HTTP for localhost and 127.0.0.1; release network policy is unchanged."
+      "text": "For a reproducible emulator run, generate the shared 60-second media and start the public fixture server from the repository root. In another terminal, replace SERIAL with the device identifier from adb devices, forward all three ports, then run the public launcher. The launcher builds and installs the app and tests, reads individual instrumentation results and the final completion record, and writes private raw output plus a safe summary outside the checkout. An adb exit status alone is not a pass. Only the debug build permits loopback HTTP; the release network policy is unchanged."
     },
     {
       "type": "code",
-      "text": "python3 encoding/test-streams/local.py\nnode apps/android/runtime-fixture.mjs .cache/test-streams/vod-baseline\n# In another terminal:\nadb reverse tcp:5272 tcp:5272\nadb reverse tcp:5273 tcp:5273"
+      "text": "python3 encoding/test-streams/local.py\nnode apps/android/runtime-fixture.mjs .cache/test-streams/vod-baseline\n# In another terminal:\nadb -s SERIAL reverse tcp:5272 tcp:5272\nadb -s SERIAL reverse tcp:5273 tcp:5273\nadb -s SERIAL reverse tcp:5274 tcp:5274\npython3 apps/android/runtime-tests.py --serial SERIAL --output-dir /tmp/player-lab-android-runtime"
+    },
+    {
+      "type": "p",
+      "text": "A configured Player license with com.playerlab.android allowed is required for playback cases. For editor-only checks, use --dummy-license with the explicit configuration test class below. These checks establish validation and editor behavior, not media playback. The launcher does not start an emulator or fixture server, or manage port forwarding."
     },
     {
       "type": "code",
-      "title": "Run from apps/android",
-      "text": "./gradlew :dvr:test :app:testDebugUnitTest\n./gradlew :app:connectedDebugAndroidTest"
+      "text": "python3 apps/android/runtime-tests.py --serial SERIAL --output-dir /tmp/player-lab-android-config --dummy-license --classes com.playerlab.android.PlayerConfigurationInstrumentedTest\npython3 apps/android/test-runtime-tests.py"
+    },
+    {
+      "type": "p",
+      "text": "After the run, remove only the forwards you created and stop the fixture server. Reports can contain local test details; keep the raw output private. The runner stops its app and test process after a timeout and reports incomplete execution as failure."
+    },
+    {
+      "type": "code",
+      "text": "adb -s SERIAL reverse --remove tcp:5272\nadb -s SERIAL reverse --remove tcp:5273\nadb -s SERIAL reverse --remove tcp:5274"
     },
     {
       "type": "p",
@@ -150,12 +196,12 @@
       "label": "SDK, Java, application ID, and license precedence"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/MainActivity.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
       "line": 332,
       "label": "Screen implementation and PlayerView recreation"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/OfflineManager.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt",
       "line": 22,
       "label": "Offline helper class"
     },
@@ -165,42 +211,42 @@
       "label": "Phone and TV launcher declarations"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/Sources.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt",
       "line": 20,
       "label": "Public reference source catalog"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationPanel.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
       "line": 37,
       "label": "Configuration editor"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/Configuration.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
       "line": 17,
       "label": "Validated source and player settings"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerControlsInstrumentedTest.kt",
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
       "line": 70,
       "label": "Strict live controls and failure diagnostics"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerUiHandoffInstrumentedTest.kt",
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerUiHandoffInstrumentedTest.kt",
       "line": 38,
       "label": "Playing-player UI handoff check"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerConfigurationPlaybackInstrumentedTest.kt",
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerConfigurationPlaybackInstrumentedTest.kt",
       "line": 38,
       "label": "Configured VOD first-position assertion"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/PlayerViewLifecycle.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt",
       "line": 8,
       "label": "View lifecycle ownership"
     },
     {
-      "path": "apps/android/app/src/test/kotlin/com/showcase/app/PlayerViewLifecycleTest.kt",
+      "path": "apps/android/app/src/test/kotlin/com/playerlab/android/PlayerViewLifecycleTest.kt",
       "line": 11,
       "label": "Host lifecycle regression checks"
     },
@@ -221,17 +267,17 @@
       "label": "Player 3.171.0 source target latency and live-edge definition"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerFinalizationInstrumentedTest.kt",
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerFinalizationInstrumentedTest.kt",
       "line": 47,
       "label": "Same-URL HLS/DASH finalization and Replay checks"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/showcase/app/PlayerConfigurationCodeInstrumentedTest.kt",
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerConfigurationCodeInstrumentedTest.kt",
       "line": 32,
       "label": "Applied-code and real clipboard check"
     },
     {
-      "path": "apps/android/app/src/main/kotlin/com/showcase/app/ConfigurationCode.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
       "line": 22,
       "label": "Applied SDK configuration example"
     },
@@ -239,6 +285,16 @@
       "path": "apps/android/runtime-fixture.mjs",
       "line": 1,
       "label": "Local Android finalization fixture"
+    },
+    {
+      "path": "apps/android/runtime-tests.py",
+      "line": 1,
+      "label": "Public Android runtime launcher"
+    },
+    {
+      "path": "apps/android/test-runtime-tests.py",
+      "line": 1,
+      "label": "Strict result parser checks"
     }
   ]
 }

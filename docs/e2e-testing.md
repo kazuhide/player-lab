@@ -89,8 +89,12 @@ existing model and shared WebView controls with a real SDK. The Android tests
 include the actual Compose controls and shared WebView. Follow the
 [iOS](../apps/ios/README.md) and [Android](../apps/android/README.md) guides to run
 them with your own allowed license. CI compiles native apps without a playback
-license; it does not run these licensed scenarios. No React Native end-to-end
-harness or Vega device harness is included.
+license; it does not run these licensed scenarios. React Native provides opt-in
+[iOS and Android GUI runners](../apps/react-native/runtime/README.md) that use
+normal app controls and read-only SDK observations. The
+[Vega guide](../apps/vega/README.md) describes its SDK, Virtual Device, and
+playback checks. Each platform guide distinguishes build checks, licensed
+runtime results, and the OS/device combinations used.
 
 Native playback needs an app-allowlisted player license and a runtime. Shared
 Web UI rendering must be checked in the native WebView; tvOS uses system UI and
@@ -254,7 +258,7 @@ For the Android configuration/ownership checks, connect an emulator and run from
 
 ```sh
 ./gradlew :app:connectedDebugAndroidTest \
-  -Pandroid.testInstrumentationRunnerArguments.class=com.showcase.app.PlayerConfigurationInstrumentedTest,com.showcase.app.PlayerOwnershipInstrumentedTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.playerlab.android.PlayerConfigurationInstrumentedTest,com.playerlab.android.PlayerOwnershipInstrumentedTest \
   -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=
 ```
 

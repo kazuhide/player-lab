@@ -121,11 +121,20 @@ def render_block(block, language, page, section_id):
         return f'<div class="guide-table" tabindex="0" role="region" aria-label="{labels["table"]}"><table><thead><tr>{head}</tr></thead><tbody>{rows}</tbody></table></div>'
     if kind == 'figure':
         name = block['file']
-        if name not in {'overview', 'source-controls', 'config'}:
+        from guide_routes import SHARED_FIGURES
+        if name in FIGURE_DIMENSIONS:
+            src = relative(page, f'assets/guide/{name}-{language}.jpg')
+            width, height = FIGURE_DIMENSIONS[name][language]
+        elif name in SHARED_FIGURES:
+            src = relative(page, f'assets/guide/{name}.jpg')
+            width, height = SHARED_FIGURES[name]
+        else:
             raise ValueError('The guide contains an unknown figure.')
-        src = relative(page, f'assets/guide/{name}-{language}.jpg')
-        width, height = FIGURE_DIMENSIONS[name][language]
-        return f'<figure class="guide-figure"><img src="{esc(src)}" width="{width}" height="{height}" alt="{esc(block["caption"])}" loading="lazy" decoding="async"><figcaption>{esc(block["caption"])}</figcaption></figure>'
+        picture = f'<img src="{esc(src)}" width="{width}" height="{height}" alt="{esc(block["caption"])}" loading="lazy" decoding="async">'
+        if name in SHARED_FIGURES:
+            label = 'Open full-size image' if language == 'en' else '元のサイズの画像を開く'
+            picture = f'<a href="{esc(src)}" aria-label="{label}: {esc(block["caption"])}">{picture}</a>'
+        return f'<figure class="guide-figure">{picture}<figcaption>{esc(block["caption"])}</figcaption></figure>'
     raise ValueError('The guide contains an unknown block type.')
 
 

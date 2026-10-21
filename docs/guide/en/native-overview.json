@@ -1,7 +1,7 @@
 {
   "id": "native-overview",
   "title": "Native sample scope and preparation",
-  "lead": "The native samples include source and playback configuration editors alongside source switching, live rewind, returning to live, and shared UI examples. The editors expose a focused set of SDK settings; the Web app provides the broader configuration panel. Use the platform chapters for formats, defaults, and integration limits.",
+  "lead": "The native apps provide source and playback editors, applied configuration code, source switching, and live rewind controls. Platform-specific settings include Apple video scaling and initial track preferences, Android language and retry settings, and external WebVTT subtitles. The Web app provides the broader configuration panel; use each platform chapter for build steps, defaults and verified playback scope.",
   "blocks": [
     {
       "type": "h2",
@@ -18,12 +18,12 @@
         [
           "iOS / iPadOS",
           "A SwiftUI app generated with XcodeGen",
-          "Live HLS and VOD HLS in the catalog"
+          "An HLS catalog; custom Progressive MP4 sources are also supported"
         ],
         [
           "tvOS",
-          "An app using the same Swift sources",
-          "Live HLS and VOD HLS in the catalog"
+          "An app using the same Swift sources and native System UI",
+          "An HLS catalog; custom Progressive MP4 sources are also supported"
         ],
         [
           "Android / Android-based Fire TV",
@@ -32,13 +32,13 @@
         ],
         [
           "React Native",
-          "Screens and logic to integrate into an external Expo project",
-          "An HLS/DASH catalog; check the target OS restrictions separately"
+          "The app screen and a pinned Expo development-app generator",
+          "An HLS/DASH catalog; target OS restrictions still apply"
         ],
         [
           "Vega OS",
-          "Sources to integrate into an external Kepler project",
-          "HLS/DASH modules are registered; device playback has not been verified"
+          "A Kepler application host for the included App; a separate Vega SDK is required",
+          "HLS/DASH modules; VOD HLS and Live DASH checked on a Vega Virtual Device"
         ]
       ],
       "widths": [
@@ -49,7 +49,7 @@
     },
     {
       "type": "p",
-      "text": "Each native catalog uses external public reference streams. The samples do not all load the 60-second Big Buck Bunny media bundled with Pages. Reference stream content and availability depend on the provider. You can try these sources without starting a cloud encoder, but network conditions or provider restrictions may prevent playback."
+      "text": "The source catalogs include external public reference streams. The editors can also load generated local fixtures, including the multi-audio HLS with native subtitle renditions used by the Apple checks. The apps do not all load the media bundled with Pages automatically. Reference-stream content and availability depend on the provider; no cloud encoder is needed to try these sources."
     },
     {
       "type": "h2",
@@ -66,27 +66,27 @@
         [
           "iOS / iPadOS",
           "Default, Sports, Live (DVR), Cinema",
-          "Source/player editors, source selection, live-edge-relative seeking, Allow DVR, state, and logs"
+          "Source/player editors, initial track preferences, current tracks, video scaling, source/DVR controls, state and logs"
         ],
         [
           "tvOS",
           "System UI; no Web UI selector",
-          "Focusable native source/player editor, source selection, DVR controls, state, and logs"
+          "Focusable configuration and track-preference controls, Play/Pause command, source/DVR controls, state and logs"
         ],
         [
           "Android / Android-based Fire TV",
           "Default, Sports, Live (DVR), Cinema",
-          "Source/player editors, source selection, live-edge-relative seeking, Allow DVR, state, and logs"
+          "Source/player editors with audio priorities, external subtitles and retries; source/DVR controls, state and logs"
         ],
         [
           "React Native",
-          "Four UI choices; delivery of the shared UI assets requires integration",
-          "Source/player editors, source selection, live-edge-relative seeking, Allow DVR, state, and logs"
+          "Shared Web UI choices, bundled by the generated Expo host",
+          "Source/player and external WebVTT editors, source/DVR controls, state and logs"
         ],
         [
           "Vega OS",
-          "Kepler components rather than browser UI",
-          "Source/player editors, source selection, live-edge-relative seeking, Allow DVR, state, and logs"
+          "Kepler controls and a native subtitle overlay; no browser UI",
+          "Source/player and external WebVTT editors, source/DVR controls, state and logs"
         ]
       ],
       "widths": [
@@ -97,13 +97,16 @@
     },
     {
       "type": "p",
-      "text": "The editors expose selected SourceConfig and PlayerConfig fields. For the broader configuration lists, including TweaksConfig, use the Web app. Common editable fields are:"
+      "text": "The editors expose selected SourceConfig, PlayerConfig and platform-specific settings, together with application preferences. The Web app provides broader lists, including TweaksConfig. Editable examples include:"
     },
     {
       "type": "bullets",
       "items": [
         "Source: HTTP/HTTPS URL and type, optional title and poster URL, start offset in seconds, and offset reference.",
-        "Player: autoplay, startup mute, forward buffer in seconds, and bitrate cap in bits per second. Supported formats, blank/default meanings, and numeric limits differ by platform."
+        "Player: autoplay, startup mute, forward buffer in seconds, and bitrate cap in bits per second. Supported formats, blank/default meanings, and numeric limits differ by platform.",
+        "Apple: native video scaling through StyleConfig.scalingMode, plus initial audio/subtitle language preferences implemented by the app with public track-selection APIs. See the Apple chapter for application at the first Ready event and native HLS subtitle requirements.",
+        "Android: player-wide and source-specific audio language priorities, external WebVTT track metadata, and HTTP retry delays. See the Android chapter for inheritance, subtitle-menu selection and retry units.",
+        "React Native and Vega: an external WebVTT URL, label and language. React Native exposes default-track metadata; Vega can enable the track on load. See the native integrations chapter for the different display and selection paths."
       ]
     },
     {
@@ -112,7 +115,7 @@
     },
     {
       "type": "p",
-      "text": "The native helper panels do not add dedicated audio, subtitle, or quality selectors. Features in the SDK standard UI depend on the source, OS, device, and SDK support. A source button for multi-audio or subtitles does not establish verified track selection."
+      "text": "Apple shows current native track selections and provides initial track preferences. Android audio priorities influence startup selection. Default-track metadata on Android and React Native does not itself enable subtitles; use their player subtitle menus. Vega displays enabled external WebVTT cues as plain text. Other track and quality controls depend on the SDK UI, source and platform."
     },
     {
       "type": "table",
@@ -124,12 +127,12 @@
       "rows": [
         [
           "Source editor",
-          "Custom source, metadata, and start position",
+          "Custom source, metadata, start position and source-specific track options",
           "Apple and Android reload the source on the existing player. React Native and Vega recreate the player whenever Apply changes the configuration, including source-only edits."
         ],
         [
           "Player editor",
-          "Creation-time playback, buffer, and bitrate settings",
+          "Creation-time playback, buffer, bitrate and platform-specific settings",
           "Recreates the player and reloads the complete applied source, retaining Allow DVR, logs, and any UI selection. Position resets to the configured start offset or SDK default; Autoplay determines whether playback starts."
         ],
         [
@@ -144,8 +147,8 @@
         ],
         [
           "TV remote",
-          "Android declares a TV launcher; Vega uses Kepler screen components",
-          "Check focus navigation and play/pause keys on the device. Dedicated key handling is not implemented."
+          "tvOS handles the remote Play/Pause command; tvOS and Vega provide focusable configuration controls",
+          "The normal tvOS remote configuration path and Vega D-pad controls were exercised on a simulator or virtual device. Physical TV hardware and untested key mappings still need checking."
         ],
         [
           "Analytics",
@@ -177,28 +180,28 @@
       "rows": [
         [
           "iOS",
-          "com.showcase.dvr.Showcase-iOS",
+          "com.playerlab.ios",
           "apps/ios/Local.xcconfig → build settings → Info.plist"
         ],
         [
           "tvOS",
-          "com.showcase.dvr.Showcase-tvOS",
+          "com.playerlab.tvos",
           "The same mechanism as iOS"
         ],
         [
           "Android / Android-based Fire TV",
-          "com.showcase.dvr",
+          "com.playerlab.android",
           "apps/android/local.properties → Manifest"
         ],
         [
           "React Native",
-          "The bundle identifier or application ID configured in the external app",
-          "Transfer apps/react-native/.env to the external app"
+          "com.playerlab.reactnative in the generated Expo host",
+          "apps/react-native/.env → Expo project generator → app"
         ],
         [
           "Vega OS",
-          "The example uses com.showcase.dvr.vega",
-          "Set globals in the Kepler entry point"
+          "com.playerlab.vega",
+          "runtime:config → ignored runtime.local.json → Kepler entry"
         ]
       ],
       "widths": [
@@ -223,7 +226,7 @@
     },
     {
       "type": "note",
-      "text": "sync-env.sh writes local license settings to untracked files for each tool. Run it again after a license change, then rebuild the app. Do not add generated configuration files, license values, or local SDK paths to the public repository."
+      "text": "sync-env.sh writes ignored Apple, Android and React Native license files. Follow the platform chapters to generate and build the native app. The native integrations chapter covers the included Expo generator and Kepler host; Vega additionally requires its separately installed SDK and runtime:config, which sync-env.sh does not run. After a license change, repeat the relevant configuration step and rebuild. Keep generated configuration files, license values and local SDK paths out of the public repository."
     },
     {
       "type": "h2",
@@ -262,7 +265,7 @@
         ],
         [
           "atLiveEdge",
-          "By default, within one second of the live edge"
+          "By default, within 1 second of the live edge"
         ]
       ],
       "widths": [
@@ -272,7 +275,7 @@
     },
     {
       "type": "p",
-      "text": "HLS may report a zero-length rewind window just after startup. Start playback and wait for the range to become available. Increasing the forward buffer does not extend the historical media retained by the stream. The live edge keeps moving while a seek completes. Acceptance of a seek request, completion inside the SDK, and the UI update do not happen at the same instant."
+      "text": "HLS may report a rewind window of 0 seconds just after startup. Start playback and wait for the range to become available. Increasing the forward buffer does not extend the historical media retained by the stream. The live edge keeps moving while a seek completes. Acceptance of a seek request, completion inside the SDK, and the UI update do not happen at the same instant."
     },
     {
       "type": "note",
@@ -307,9 +310,9 @@
           "Playback and controls with a valid license"
         ],
         [
-          "Playback on a simulator or emulator",
-          "Behavior for the tested OS, SDK, source, and procedure",
-          "Physical devices, TV, remotes, casting, offline playback, and Analytics aggregation"
+          "Playback on a simulator, emulator or virtual device",
+          "Behavior for the tested OS, SDK, source and procedure, including the recorded tvOS remote and Vega playback checks",
+          "Untested source/OS combinations, physical hardware, casting, offline playback and Analytics aggregation"
         ]
       ],
       "widths": [
@@ -317,6 +320,10 @@
         0.34,
         0.37
       ]
+    },
+    {
+      "type": "note",
+      "text": "The recorded Apple checks include native HLS audio/subtitle selection and the normal tvOS remote configuration path. Vega virtual-device checks cover repeated Apply, VOD/Live warm returns and external WebVTT cue display; physical Vega hardware remains unverified. Use the platform chapters for the tested sources, reproduction steps and limits. If Player error 1003 occurs on Android, compare the Player key used by the installed APK and its actual package ID with that key’s application allowlist. These are Player-license checks; optional Analytics authorization is separate."
     }
   ],
   "sources": [
@@ -341,7 +348,7 @@
       "label": "Live coordinates and state calculation"
     },
     {
-      "path": "apps/android/dvr/src/main/kotlin/com/showcase/dvr/Dvr.kt",
+      "path": "apps/android/dvr/src/main/kotlin/com/playerlab/android/dvr/Dvr.kt",
       "line": 43,
       "label": "Android live coordinates and state calculation"
     },
@@ -349,6 +356,26 @@
       "path": "docs/e2e-testing.md",
       "line": 82,
       "label": "Native verification scope"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 114,
+      "label": "Apple settings and initial track selection"
+    },
+    {
+      "path": "apps/android/README.md",
+      "line": 116,
+      "label": "Android language, subtitle and retry settings"
+    },
+    {
+      "path": "apps/react-native/README.md",
+      "line": 112,
+      "label": "Included Expo host and build preparation"
+    },
+    {
+      "path": "apps/vega/README.md",
+      "line": 175,
+      "label": "Included Vega host and runtime preparation"
     }
   ]
 }

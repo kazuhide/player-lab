@@ -22,11 +22,24 @@ THEMES = (
     'custom-compact', 'custom-premiere', 'custom-creator', 'custom-studio',
 )
 LANGUAGES = ('en', 'ja')
+SHARED_FIGURES = {
+    'android-source-settings': (1080, 2400),
+    'android-player-settings': (1080, 2400),
+    'android-applied-code': (1080, 2400),
+    'ios-playback-tracks': (1668, 2420),
+    'ios-initial-tracks': (1668, 2420),
+    'ios-video-scaling': (1668, 2420),
+    'ios-applied-code': (1668, 2420),
+    'tvos-playback-tracks': (3840, 2160),
+    'tvos-initial-tracks': (3840, 2160),
+    'tvos-video-scaling': (3840, 2160),
+    'tvos-applied-code': (3840, 2160),
+}
 COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'vega')
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = 'df1ca6de8fb2023444a07a887906998dcb2048b9'
+SOURCE_REVISION = '331f6d3b87a1bb2c5b994d9c96fd131caf9fbbf6'
 CONTENT_REVIEW = '2026-10-21'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 
@@ -42,6 +55,7 @@ GUIDE_FILES = {
 }
 GUIDE_ASSETS = {
     'guide.css', 'guide.js',
+    *(f'assets/guide/{name}.jpg' for name in SHARED_FIGURES),
     *(f'assets/guide/{name}.jpg' for name in THEMES),
     *(f'assets/guide/{name}-{language}.jpg'
       for name in ('overview', 'source-controls', 'config') for language in LANGUAGES),
