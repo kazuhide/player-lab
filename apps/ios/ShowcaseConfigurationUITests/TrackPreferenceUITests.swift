@@ -151,10 +151,14 @@ final class TrackPreferenceUITests: XCTestCase {
             let button = app.buttons.matching(labels).firstMatch
             if menu.waitForExistence(timeout: 1) { menu.tap() }
             else {
-                let available = button.waitForExistence(timeout: 2)
-                if !available { capture(app, name: "diagnostic-edit-menu") }
-                XCTAssertTrue(available)
-                button.tap()
+                if button.waitForExistence(timeout: 2) { button.tap() }
+                else {
+                    // iOS can omit its edit menu; use its public hardware selection shortcut.
+                    XCTContext.runActivity(named: "Select All using the keyboard shortcut") { _ in
+                        field.tap()
+                        field.typeKey("a", modifierFlags: .command)
+                    }
+                }
             }
         }
         field.typeText(text)
