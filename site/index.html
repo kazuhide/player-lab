@@ -60,7 +60,7 @@
           </a>
           <figcaption>
             <span>A capture of the Web app with its player, settings and theme code.</span>
-            <a href="guide/media/">About the test media</a>
+            <a href="guide/web-sources-tracks/">Sources, audio, and subtitles</a>
           </figcaption>
         </figure>
       </section>
@@ -127,20 +127,21 @@ pnpm --filter @showcase/web dev</code></pre>
 
       <section class="verification wrap" aria-labelledby="verification-title">
         <div>
-          <h2 id="verification-title">Playback tests</h2>
-          <p>The Pages build includes a 60-second <em>Big Buck Bunny</em> fixture
-            as HLS and DASH, with two-second video segments.</p>
-          <p>Both audio tracks use the same soundtrack at different volumes; their
-            language labels are test metadata. The <em>Sintel</em> subtitles test cue
-            timing and are not a translation of <em>Big Buck Bunny</em>.</p>
-          <p>Browser-local playback measurements remain available. When configured,
-            the Analytics collector sends playback data to Bitmovin. Account aggregation
-            queries need a backend and are disabled on Pages. The test record
-            distinguishes browser playback, native builds and runtime checks.</p>
+          <h2 id="verification-title">Playback data and test streams</h2>
+          <p>The QoE panel shows startup time, buffering, and related values for the
+            current browser session. The Analytics collector sends playback data to
+            Bitmovin when configured. The guide explains collected metrics, API queries,
+            external dashboards, and analysis with a language model.</p>
+          <p>Analytics aggregation queries need a backend and are hidden on Pages.
+            They are available through the local Web server with the appropriate API access.</p>
+          <p>The apps use several test streams. Pages includes short <em>Big Buck Bunny</em>
+            clips; local and native apps also use external reference streams.
+            Available audio, subtitles, and live rewind ranges depend on the source.</p>
         </div>
         <div class="verification-links">
-          <a href="guide/media/">Generate the 60-second fixture</a>
-          <a href="guide/measurement/">Read the test results</a>
+          <a href="guide/web-qoe-analytics/">QoE and Analytics</a>
+          <a href="guide/web-sources-tracks/">Try the test sources</a>
+          <a href="guide/test-results/">Read the test results</a>
           <a href="web/media/ATTRIBUTION.txt">Media credits</a>
         </div>
       </section>

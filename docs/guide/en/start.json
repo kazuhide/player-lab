@@ -1,11 +1,11 @@
 {
   "id": "start",
   "title": "Scope and first steps",
-  "lead": "Player Lab is a collection of samples for exploring Bitmovin Player settings, playback controls, and user interface (UI) configurations. This guide covers the public Web app, local setup, platform-specific samples, and test media generation.",
+  "lead": "Use the Web and native apps to try playback features, change Player settings and UI, and inspect the code. The Analytics chapters explain local readouts, collected metrics, and external analysis tools.",
   "blocks": [
     {
       "type": "p",
-      "text": "This guide describes the public implementation as of October 19, 2026. The samples currently use Bitmovin Player. Each platform exposes a different set of controls. The Web app focuses on comparing settings and UI configurations; the native samples focus on platform integration and live rewind behavior."
+      "text": "Player Lab currently uses Bitmovin Player. Each app exposes a different set of settings and controls. Start with a feature you want to try, apply one change, then check the player, event log, and available code example. The API coverage reference distinguishes individual GUI fields, presets, code-only examples, and APIs not yet exposed by the app."
     },
     {
       "type": "table",
@@ -19,28 +19,28 @@
       ],
       "rows": [
         [
-          "Try the app without installing anything",
-          "Open the public Web app and follow the steps in this chapter."
+          "Try playback without installation",
+          "Open the public Web app and follow the steps below."
         ],
         [
-          "Compare the appearance and construction code",
-          "Read “The Web screen and themes” and “Customize the player UI.”"
+          "Compare UI and code",
+          "Use the Web themes and UI customization chapters."
         ],
         [
-          "Change playback or streaming settings",
-          "Use “Apply Player Config changes” and “Player Config: all 144 fields.”"
+          "Change source or Player settings",
+          "Use the configuration chapters, field reference, and native app forms. Check whether a change applies immediately, reloads the source, or recreates the Player."
         ],
         [
-          "Reproduce the behavior locally",
-          "Read “Local setup and licenses” and “Public demo media and local reproduction.”"
+          "Run a native app",
+          "Follow local setup and the chapter for iOS/tvOS, Android, React Native, or Vega."
         ],
         [
-          "Integrate with iOS, Android, or TV",
-          "Read the four native chapters to check each platform’s scope and required tools."
+          "Understand playback quality and usage",
+          "Start with QoE and Analytics, then read metrics, queries, visualization, and LLM analysis."
         ],
         [
-          "Check measurements and test results",
-          "Read “Performance measurement and verified test scope.” Distinguish recorded results from checks you run yourself."
+          "Check implemented APIs or representative results",
+          "Use the API coverage reference and test results. Results identify their environment and scope."
         ]
       ]
     },
@@ -81,7 +81,7 @@
     },
     {
       "type": "p",
-      "text": "“Recorded” refers to verification results in the public documentation. It does not mean every OS or cloud procedure was rerun for this guide. Check which OS, SDK, source, and operations a result covers, and distinguish it from verification in your own environment."
+      "text": "Test results summarize checks performed in the stated environment. They do not imply that every SDK API, device, source, or Analytics ingestion path is covered. Use the platform chapters and API reference to find the controls available today."
     }
   ],
   "sources": [

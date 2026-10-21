@@ -76,7 +76,7 @@
     {
       "type": "figure",
       "file": "ios-playback-tracks",
-      "caption": "Player Lab on iPadOS 26.4 after Apply: the generated HLS plays with German test subtitles, and Playback tracks shows the current native selections. Configure source and playback opens the editor."
+      "caption": "Player Lab on iPadOS 26.4 after Apply: the test HLS plays with German test subtitles, and Playback tracks shows the current native selections. Configure source and playback opens the editor."
     },
     {
       "type": "steps",
@@ -107,7 +107,7 @@
     },
     {
       "type": "p",
-      "text": "The generated vod-multiaudio fixture has English/German audio metadata and native HLS WebVTT subtitle renditions. These audio labels identify test renditions, not translated soundtracks. Native renditions provide a route shared by iOS and tvOS; external SourceConfig subtitles do not provide the same tvOS System UI route."
+      "text": "The test vod-multiaudio fixture has English/German audio metadata and native HLS WebVTT subtitle renditions. These audio labels identify test renditions, not translated soundtracks. Native renditions provide a route shared by iOS and tvOS; external SourceConfig subtitles do not provide the same tvOS System UI route."
     },
     {
       "type": "figure",
@@ -126,26 +126,6 @@
     },
     {
       "type": "h2",
-      "text": "Seek after an HLS live event ends"
-    },
-    {
-      "type": "p",
-      "text": "Player 3.128.0 can report PlaybackFinished while the loaded HLS Source retains isLive true and infinite duration. The app displays ended-live and disables its live commands without changing the SDK timing getters. Replay can advance that same Source, but seek(time:) has no effect while the SDK classifies it as live."
-    },
-    {
-      "type": "p",
-      "text": "To read the final manifest as finite VOD, keep the URL and player settings, change only Title under Configure source and playback, and Apply when the action says Reload source. This creates a new Source on the same Player and exact URL; playback position resets. The controlled iOS/tvOS checks require finite duration, a fresh Seeked at 30 seconds and subsequent native playback progress. This manual reload is separate from completion or replay of the original Source."
-    },
-    {
-      "type": "p",
-      "text": "The Sports UI contains a live-only WallClockLabel and a seek bar, rather than a VOD elapsed-time label. Its custom CSS class needs an explicit hidden rule so the SDK's hide operation removes the live clock outside live playback. The iOS ending check confirms the visible marker halfway through the 60-second clip and hides the live clock. The tvOS hosted check uses the public SDK seek API with visible native video; it does not qualify remote VOD seeking."
-    },
-    {
-      "type": "p",
-      "text": "The extended check passed on October 21, 2026 on iPad / iOS 26.4 in 65.726 seconds and Apple TV / tvOS 26.4 in 65.579 seconds, one test each with zero failures. Both retained live/infinite getters on the completed Source, then reloaded the same URL on the same Player into finite VOD, completed a fresh Seeked at 30 seconds and advanced through native TimeChanged events. The iPad showed the middle seek marker with its live clock hidden; the TV display reached 00:31 / remaining 00:29. These are hosted SDK checks, separate from GUI Apply and remote VOD seeking."
-    },
-    {
-      "type": "h2",
       "text": "When something does not work"
     },
     {
@@ -159,115 +139,12 @@
       ]
     },
     {
-      "type": "h2",
-      "text": "Running tests and reading recorded results"
-    },
-    {
       "type": "p",
-      "text": "The Showcase-iOS-Configuration and Showcase-tvOS-Configuration schemes run hostless tests on the exact app model/configuration sources without a Player license or shared UI resources. A clearly invalid synthetic key permits SDK object construction only. The tests cover URL/number validation, SDK field mapping, rejected/no-op Apply, source reload, and player recreation retaining source options, UI selection, and the app DVR switch. They do not establish playback or network behavior. CI runs the iOS scheme on an available iPhone simulator and keeps a generic tvOS simulator build; the tvOS unit and remote GUI results below are separate recorded checks. Replace the simulator names with installed destinations and run from apps/ios."
-    },
-    {
-      "type": "code",
-      "title": "Hostless configuration tests without a license",
-      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Configuration \\\n  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test\nxcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-Configuration \\\n  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
-    },
-    {
-      "type": "p",
-      "text": "The opt-in ConfigurationUI schemes launch the real app, so they require the normal allowed Player license, network access, and reference source. An empty key is an SDK startup precondition failure. The iOS test covers invalid drafts, Reset, source metadata Apply, and mute/bitrate/buffer Apply with the source retained. The tvOS test uses remote focus and Select to edit source type and autoplay, then Reset. Screenshots are retained in the Xcode result bundle."
-    },
-    {
-      "type": "code",
-      "title": "Configuration GUI checks with the app license",
-      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-ConfigurationUI \\\n  -destination 'platform=iOS Simulator,name=<IOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test\nxcodebuild -project Showcase.xcodeproj -scheme Showcase-tvOS-ConfigurationUI \\\n  -destination 'platform=tvOS Simulator,name=<TVOS_SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
-    },
-    {
-      "type": "note",
-      "text": "These configuration GUI checks use the SDK default UI. They do not qualify the shared Web UI, advancing playback, start-offset accuracy, bitrate enforcement, physical devices, casting, offline playback, or Analytics receipt. The separate Showcase-iOS-Runtime scheme below checks the shared UI and playback behavior."
-    },
-    {
-      "type": "note",
-      "title": "Recorded configuration checks",
-      "text": "On October 20, 2026, the hostless configuration schemes passed six tests each on iOS and tvOS simulators. The GUI scheme passed one test each on iPhone 17 Pro / iOS 26.4, iPad Pro 11-inch (M5) / iOS 26.4, and Apple TV 4K (3rd generation) / tvOS 26.4. The retained iPhone and TV editor images were inspected. This verifies these configuration workflows in the SDK default UI; it does not add physical-device or playback qualification to the separate October 19 record."
-    },
-    {
-      "type": "code",
-      "title": "Test DVR calculations from the repository root",
-      "text": "swift test --package-path apps/ios/DvrKit"
-    },
-    {
-      "type": "p",
-      "text": "The optional Showcase-iOS-Runtime scheme checks the real SDK and shared UI. Replace <SIMULATOR_NAME> below with an iOS simulator name installed in your Xcode. A Player license, network access, and the reference streams are required."
-    },
-    {
-      "type": "code",
-      "title": "Run from apps/ios",
-      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS-Runtime \\\n  -destination 'platform=iOS Simulator,name=<SIMULATOR_NAME>' \\\n  -onlyUsePackageVersionsFromResolvedFile -parallel-testing-enabled NO \\\n  CODE_SIGNING_ALLOWED=NO test"
-    },
-    {
-      "type": "p",
-      "text": "This test uses the real SDK and model, with visible controls in the shared WebView. It checks VOD, starting playback through the UI, switching HLS sources, rewind, return to live, DVR state changes, and recreation with Cinema UI. License errors or unreachable streams are not replaced with mocks or treated as successful skips."
-    },
-    {
-      "type": "note",
-      "title": "Recorded verification scope",
-      "text": "The October 19, 2026 record reports one pass, zero failures, and 11.670 seconds on an iPhone 17 Pro / iOS 26.4 simulator, using Player 3.128.0 and shared UI 4.15.1. These are recorded results, not a new test run. They do not cover physical devices, tvOS playback, TV remotes, casting, offline playback, or Analytics receipt. Successful iOS/tvOS builds in CI are also separate from actual playback."
+      "text": "To try a progressive MP4, enter a reachable HTTP or HTTPS URL in Configure source and playback, select Progressive MP4, and Apply. The server must support the requests required by the Player, including byte ranges for seeking. Compare playback and seeking with an HLS source."
     },
     {
       "type": "h2",
-      "text": "Local configuration playback"
-    },
-    {
-      "type": "p",
-      "text": "On October 21, 2026, the normal app GUI played generated 60-second Big Buck Bunny HLS and progressive MP4 on iPhone, iPad and Apple TV simulators with Player 3.128.0. The MP4 workflow entered URL, progressive type, title, start offset 5 seconds, autoplay, maximum bitrate 2,500,000 bit/s and forward buffer 8 seconds through the editor. Native observations confirmed configuration values, Player replacement and previous destruction, advancing positions and visible video."
-    },
-    {
-      "type": "table",
-      "headers": [
-        "MP4 destination",
-        "Result and case duration",
-        "Native playback samples"
-      ],
-      "rows": [
-        [
-          "iPhone 17 Pro / iOS 26.4",
-          "1 passed, 0 failed / 47.026 s",
-          "6.113 → 10.513 s"
-        ],
-        [
-          "iPad Pro 11-inch (M5) / iOS 26.4",
-          "1 passed, 0 failed / 52.502 s",
-          "6.118 → 10.518 s"
-        ],
-        [
-          "Apple TV 4K (3rd generation) / tvOS 26.4",
-          "1 passed, 0 failed / 104.280 s",
-          "6.017 → 10.418 s"
-        ]
-      ]
-    },
-    {
-      "type": "p",
-      "text": "The copied MP4 reports a container duration of 60.021333 seconds. Video spans 60 seconds from 0.021322; audio starts at zero and spans 60.021333. Input HLS audio starts at -0.021333 while video starts at zero. Remuxing shifts the file origin and retains that track offset; it does not add 21 milliseconds of audio beyond the video endpoint. Compare track starts and endpoints, not only container duration. Bitrate and buffer readings establish configuration delivery, not bandwidth enforcement or buffering performance. These actual simulator results are separate from hostless logic and build checks."
-    },
-    {
-      "type": "p",
-      "text": "After generating .cache/apple-runtime-media as described in the Apple README, create an equivalent progressive file with the following command from the repository root. The remux recipe was verified separately on October 21, 2026. It copies the existing encoded video and audio; it does not overwrite the generated media."
-    },
-    {
-      "type": "code",
-      "text": "mkdir -p .cache/apple-mp4\nffmpeg -v error -n -i .cache/apple-runtime-media/vod-baseline/master.m3u8 \\\n  -map 0:v:0 -map 0:a:0 -c copy -movflags +faststart \\\n  .cache/apple-mp4/vod-60s.mp4"
-    },
-    {
-      "type": "p",
-      "text": "Serve this file with an HTTP server that supports byte ranges. Enter its reachable URL under Configure source and playback and select Progressive MP4. Apply the values above and check the visible video and advancing position. The HLS ending fixture server does not serve this MP4. The source must be reachable from the selected simulator and the app needs its allowed Player license."
-    },
-    {
-      "type": "h2",
-      "text": "SDK Default UI operation coverage"
-    },
-    {
-      "type": "p",
-      "text": "On October 21, 2026, two actual iPhone 17 Pro / iOS 26.4 Simulator GUI cases passed with Player 3.128.0 in 55.381 and 48.599 seconds. They used the generated 60-second multi-audio HLS, real touches, visible video and read-only native getters/listeners. The public SDK bridge and stock UI resources matched the installed app. All eight audited candidates now have a result: four direct, one preset and three missing in this host."
+      "text": "Try the SDK default UI"
     },
     {
       "type": "table",
@@ -321,23 +198,11 @@
     {
       "type": "steps",
       "items": [
-        "Select Default. Configure a reachable generated vod-multiaudio/master.m3u8 URL and autoplay, then Apply.",
+        "Select Default, enter a reachable HLS source with multiple audio tracks, configure autoplay, and Apply.",
         "Reveal the controls, Pause, Play, pause again and drag Video timeline to the middle.",
         "Open Settings → Speed, scroll to 2x and select it. Scroll back and choose Back.",
         "Open Audio Track, scroll to German test track and select it. Options below the menu viewport require scrolling."
       ]
-    },
-    {
-      "type": "h2",
-      "text": "Updated shared UI on iPad"
-    },
-    {
-      "type": "p",
-      "text": "On October 21, 2026, an additional actual iPad / iOS 26.4 GUI case passed with Player 3.128.0 and the updated shared UI 4.23.0 ownership patch: one passed, zero failed or skipped, 116.240 seconds. Installed JavaScript/CSS matched the generated resources after execution. It applied 60-second HLS settings, switched to Sports, loaded progressive MP4 and applied a title-only change on the same Player with a new Source. Offset 5 seconds, autoplay, mute, maximum bitrate 2,500,000 bit/s, forward buffer 8 seconds, Sports and the disabled app DVR switch were retained. Visible MP4 playback advanced from 6.778 to 11.178 seconds. This playback/configuration check is separate from the Web heap measurements."
-    },
-    {
-      "type": "p",
-      "text": "Additional source-only MP4 checks passed on iPhone in 81.745 seconds and Apple TV in 109.539 seconds. Both changed Start muted from on to off through the GUI before a title-only Apply. Native observations confirmed the same Player, a new Source, a fresh SourceLoaded count from 1 to 2, retained startup settings/UI/app DVR, and advancing visible video. Together with the iPad case, these qualify source-only MP4 reload and mute delivery on all three simulators."
     },
     {
       "type": "h2",
@@ -362,42 +227,8 @@
       "caption": "Applied Swift configuration on tvOS. Focusable wrapped lines support remote reading; this TV host has no clipboard integration."
     },
     {
-      "type": "h2",
-      "text": "Reproduce initial tracks and scaling"
-    },
-    {
-      "type": "p",
-      "text": "Complete the build preparation and allow com.playerlab.ios or com.playerlab.tvos on your Player license. Use an owned simulator UDID from xcrun simctl list devices available. From the repository root, generate the native-subtitle fixture, then run the public entry below. Each result directory must be new."
-    },
-    {
-      "type": "code",
-      "text": "python3 encoding/test-streams/local.py --output .cache/apple-track-media\npython3 apps/ios/run-track-qualification.py --platform ios \\\n  --destination <OWNED_IOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-ios\npython3 apps/ios/run-track-qualification.py --platform tvos \\\n  --destination <OWNED_TVOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-tvos"
-    },
-    {
-      "type": "p",
-      "text": "The runner builds this checkout, serves only the generated media on an ephemeral loopback port and closes its server afterward. It runs one hosted SDK case and one normal GUI case per platform, requires a finalized result with both passing and no skipped cases, and prints only safe status/count/hash values. Raw Xcode logs and attachments stay in the private artifacts directory; inspect them before sharing."
-    },
-    {
-      "type": "p",
-      "text": "The normal GUI case enters German audio/subtitles, autoplay, offset and scaling, then checks current audio/subtitle selections together with advancing position. It also checks Off, English after recreation, invalid drafts, Reset and applied code; iOS includes Sports/Default changes. The hosted case checks fresh source loads, same-player reload, old-player destruction, later manual track selection and all three scaling modes on a square native viewport."
-    },
-    {
-      "type": "code",
-      "title": "Negative control: expected to fail",
-      "text": "python3 apps/ios/run-track-qualification.py --platform ios \\\n  --destination <OWNED_IOS_SIMULATOR_UDID> \\\n  --media-dir .cache/apple-track-media --artifacts .cache/apple-track-negative \\\n  --ui-only --expected-audio en"
-    },
-    {
-      "type": "p",
-      "text": "The negative control still requests German in the normal form. Expect a nonzero exit and a failed current-selection assertion, because English is deliberately the wrong expectation. A transient startup language cannot satisfy the combined selection and progress checks. --ui-only and --sdk-only can also select one case; --derived-data and --source-packages optionally reuse public build caches."
-    },
-    {
-      "type": "code",
-      "title": "Runner file-ownership checks without Xcode or a license",
-      "text": "python3 -m unittest discover -s apps/ios -p test_track_qualification.py -v"
-    },
-    {
       "type": "note",
-      "text": "Scaling checks use public AVPlayerLayer geometry and video gravity in a square viewport. Equal video/view aspect ratios can make all modes look alike. These checks establish simulator configuration, selection, rendering and playback; they do not measure bitrate enforcement, buffering performance, physical devices, DRM, casting or Analytics receipt."
+      "text": "Fit, Fill (crop), and Stretch are easiest to compare when the video and its display area have different aspect ratios. If both ratios match, the three options can look the same. A simulator result does not establish behavior on every physical device or AirPlay target."
     }
   ],
   "sources": [
@@ -410,16 +241,6 @@
       "path": "apps/ios/README.md",
       "line": 80,
       "label": "Configuration workflow and units"
-    },
-    {
-      "path": "apps/ios/README.md",
-      "line": 411,
-      "label": "Configuration test commands and scope"
-    },
-    {
-      "path": "apps/ios/README.md",
-      "line": 149,
-      "label": "Separate shared-UI playback checks"
     },
     {
       "path": "apps/ios/project.yml",
@@ -461,20 +282,6 @@
       "label": "Official Bitmovin Apple formats and license setup"
     },
     {
-      "path": "apps/ios/README.md",
-      "line": 314,
-      "label": "Current 60-second HLS/MP4 configuration and playback"
-    },
-    {
-      "url": "https://ffmpeg.org/ffmpeg-formats.html#Format-Options",
-      "label": "FFmpeg timestamp-shift options"
-    },
-    {
-      "path": "docs/api-coverage/apple/stock-ui-qualification.json",
-      "line": 1,
-      "label": "Recorded SDK Default UI results and public bridge/resource bindings"
-    },
-    {
       "path": "apps/ios/Showcase/TrackPreferences.swift",
       "line": 1,
       "label": "Initial track preferences, matching and ownership"
@@ -488,21 +295,6 @@
       "path": "apps/ios/Showcase/Configuration.swift",
       "line": 92,
       "label": "SDK scaling configuration"
-    },
-    {
-      "path": "apps/ios/run-track-qualification.py",
-      "line": 1,
-      "label": "Public track/scaling runner"
-    },
-    {
-      "path": "apps/ios/ShowcaseTrackRuntimeTests/TrackRuntimeTests.swift",
-      "line": 1,
-      "label": "Hosted SDK track and scaling checks"
-    },
-    {
-      "path": "apps/ios/ShowcaseConfigurationUITests/TrackPreferenceUITests.swift",
-      "line": 1,
-      "label": "Normal GUI input and current-selection checks"
     },
     {
       "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerlistener/onready(_:player:)/index.html",

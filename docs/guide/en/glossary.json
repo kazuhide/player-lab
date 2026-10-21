@@ -144,9 +144,8 @@
       "label": "PiP and external playback"
     },
     {
-      "path": "docs/web-performance.md",
-      "line": 71,
-      "label": "Interpreting memory and garbage collection"
+      "url": "https://kazuhide.github.io/player-lab/guide/test-results/",
+      "label": "Representative test results"
     },
     {
       "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS",

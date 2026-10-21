@@ -1,0 +1,170 @@
+{
+  "id": "analytics-metrics",
+  "title": "Analyticsの指標を選ぶ",
+  "lead": "比較を始める前に、知りたいこと、指標、単位、集計方法を揃えます。Webアプリの集計ボタンは4つです。ほかの分析にはAnalytics APIやダッシュボードを使います。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Webの4つのボタンから試す"
+    },
+    {
+      "type": "p",
+      "text": "ローカル開発では「Bitmovin Analytics（サーバー経由クエリ）」を開きます。どのボタンも、サーバーで選んだAnalyticsライセンスの直近7日間を集計します。時間ごとの区切りや分類条件は付けず、数値はAPIの単位のまま表示します。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "ボタン",
+        "指標と集計方法",
+        "意味／APIの単位"
+      ],
+      "rows": [
+        [
+          "インプレッション数",
+          "count(IMPRESSION_ID)",
+          "インプレッション／セッションの数です。そのままダッシュボードのPlaysと同じ意味にはなりません。"
+        ],
+        [
+          "平均スタートアップ時間",
+          "avg(STARTUPTIME)",
+          "プレイヤーの起動時間と映像の開始時間の合計です。単位はミリ秒（ms）です。"
+        ],
+        [
+          "平均ビデオスタートアップ",
+          "avg(VIDEO_STARTUPTIME)",
+          "再生を始める意思を示してから、最初の映像までです。単位はミリ秒（ms）です。"
+        ],
+        [
+          "平均バッファ時間",
+          "avg(BUFFERED)",
+          "バッファによる待ち時間の平均です。単位はミリ秒（ms）で、割合ではありません。"
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "ブラウザー内のstartup欄はSourceLoadedからPlayingまでを計ります。AnalyticsのVIDEO_STARTUPTIMEは再生開始操作から最初の映像までで、STARTUPTIMEにはプレイヤーの起動時間も含まれます。単位が同じでも、同じ計測とは限りません。"
+    },
+    {
+      "type": "h2",
+      "text": "4つのボタン以外でよく使う指標"
+    },
+    {
+      "type": "p",
+      "text": "次はAnalyticsの公式資料にあるクエリ例で、このアプリに追加の操作ボタンがあるという意味ではありません。API Explorer、自分のバックエンド、対応SDKで使います。端末を比較する前に、各コレクターとプラットフォームで収集できる項目を確認します。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "知りたいこと／キーワード",
+        "公式資料の集計例",
+        "意味と単位"
+      ],
+      "rows": [
+        [
+          "再生に成功したPlays／IMPRESSION_ID",
+          "count、VIDEO_STARTUPTIME > 0で絞る",
+          "最初の映像が表示されたセッション数です。この条件が、アプリの条件なしインプレッション集計との違いです。"
+        ],
+        [
+          "代表的な映像開始時間／VIDEO_STARTUPTIME",
+          "median、VIDEO_STARTUPTIME > 0で絞る",
+          "単位はミリ秒です。Observabilityのカタログではaverageとpercentileにも対応し、既定はmedianです。"
+        ],
+        [
+          "合計視聴時間／PLAYED",
+          "sum、PLAYED > 0で絞る",
+          "再生中のミリ秒です。3,600,000で割ると時間になります。"
+        ],
+        [
+          "再バッファの割合／REBUFFER_PERCENTAGE",
+          "avg",
+          "視聴中にメディアを待った時間の割合（%）です。BUFFEREDの平均時間とは別の指標です。"
+        ],
+        [
+          "再生映像のビットレート／VIDEO_BITRATE",
+          "avg、VIDEO_BITRATE > 0で絞る",
+          "単位はbits/秒（bps）です。1,000,000で割るとMbpsになります。映像のビットレートであり、回線の転送速度ではありません。"
+        ],
+        [
+          "ダウンロード速度／DOWNLOAD_SPEED",
+          "avg",
+          "セグメントのダウンロード速度で、単位はbits/秒です。収集の可否はコレクターによって異なります。"
+        ],
+        [
+          "エラーの割合／ERROR_PERCENTAGE",
+          "avg",
+          "対象セッションに対する割合（%）です。映像の開始前に失敗する場合も含むため、比較では分母を揃えます。"
+        ],
+        [
+          "シークの所要時間／SEEKED",
+          "median、SEEKED > 0で絞る",
+          "シーク後に再生を再開するまでのミリ秒です。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "公式ダッシュボード資料には、AVFoundationとBitmovin iOSでのダウンロード速度・ダウンロード量の取得制約が記載されています。あるSDKで項目がない場合や結果が空の場合は、値がゼロという意味ではなく、全プラットフォームでの対応も示しません。"
+    },
+    {
+      "type": "h2",
+      "text": "集計方法を選ぶ"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "countは個数、sumは合計、avgは算術平均です。何を数え、何の平均を取るかは指標の定義で決まります。",
+        "medianは50パーセンタイルです。p95などの高いパーセンタイルは、典型的な視聴者よりも遅い側の状況を示します。percentileクエリには、その値の指定と対応する指標が必要です。",
+        "Webの4ボタンにはmedian、percentile、任意期間、自由な絞り込みの入力はありません。既存プロキシもQuery API全体の一部に対応するものです。",
+        "対象数の異なる割合を単純平均したり、時間ごとのユニークユーザー数を足して期間全体の人数と見なしたりしません。指標の定義と集計対象を併記します。"
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "名前・単位・集計対象を揃える"
+    },
+    {
+      "type": "p",
+      "text": "RESTの属性名は、VIDEO_STARTUPTIMEなど公式資料どおりの大文字表記を使います。Observability MCPではvideo_startuptimeやplaysなどの専用キーワードを使い、指標に応じた条件が加わる場合があります。ダッシュボードの表示名をそのままAPI項目と見なさず、利用できる場合はsearchMetrics、またはgetAvailableMetricsで確かめます。"
+    },
+    {
+      "type": "note",
+      "text": "MCPのカタログはerror_percentageと、視聴時間で補正するerror_ratioを区別しています。どちらもブラウザーのErrorイベント数とは異なります。独自の割合を計算する前に、選んだ指標の定義・単位・分母をダッシュボードやAPIカタログで確認します。"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 23
+    },
+    {
+      "path": "apps/web/src/analytics/metrics.ts",
+      "line": 90
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/analytics-api-fields",
+      "label": "Analytics API fields and units"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/analytics-dashboard-metrics-reference",
+      "label": "Analytics dashboard metrics reference"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/how-to-recreate-dashboard-queries-via-the-api-1",
+      "label": "Official dashboard query patterns"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/which-metrics-related-to-the-startup-time-are-collected-by-bitmovin",
+      "label": "Startup metric definitions"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-api-sdk-javascript/blob/main/src/models/AnalyticsAttribute.ts",
+      "label": "Official Analytics REST attribute enum"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/bitmovin-observability-mcp-server",
+      "label": "Observability MCP metrics and aggregation catalog"
+    }
+  ]
+}

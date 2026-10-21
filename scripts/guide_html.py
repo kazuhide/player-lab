@@ -6,7 +6,7 @@ import posixpath
 import re
 from urllib.parse import urlsplit
 
-from guide_routes import CONTENT_REVIEW, PUBLIC_BASE, SOURCE_REVISION, route_file
+from guide_routes import CATEGORIES, CONTENT_REVIEW, LEGACY_ROUTES, PUBLIC_BASE, SOURCE_REVISION, route_file
 
 TEXT = {
     'en': {
@@ -17,7 +17,7 @@ TEXT = {
         'search_count': '{count} results', 'search_help': 'Enter at least two characters. Up to 12 results are shown.',
         'sources': 'Sources', 'code': 'Code sample', 'table': 'Reference table',
         'previous': 'Previous', 'next': 'Next', 'overview': 'Guide overview',
-        'start': 'Getting started', 'native': 'Native examples', 'media': 'Media and measurements',
+        'start': 'Getting started', 'native': 'Native examples', 'analytics': 'Analytics and Observability',
         'reference': 'Reference', 'web_group': 'Web controls and UI',
         'settings': 'Player Config reference', 'controls': 'All 41 controls', 'themes': 'Theme reference',
         'api-coverage': 'Public API coverage',
@@ -32,7 +32,7 @@ TEXT = {
         'credit': 'Screen captures include Big Buck Bunny, © 2008 Blender Foundation, under Creative Commons Attribution 3.0.',
         'license': 'Project code: MIT. The Bitmovin Player SDK has its own license.',
         'no_script': 'The chapters and references work without JavaScript. Use the contents or your browser’s Find command.',
-        'intro': 'Playback controls, configuration, UI customization, platform examples, and reproducible measurements.',
+        'intro': 'Try playback features, change configuration and UI, inspect applied code, and explore playback analytics.',
         'reference_intro': 'Find an individual setting, control, or theme. The chapters explain the workflows and their limits.',
     },
     'ja': {
@@ -43,7 +43,7 @@ TEXT = {
         'search_count': '{count}件', 'search_help': '2文字以上で検索します。結果は最大12件表示します。',
         'sources': '参照資料', 'code': 'コード例', 'table': '参照表',
         'previous': '前の章', 'next': '次の章', 'overview': 'ガイドの概要',
-        'start': '利用の準備', 'native': 'ネイティブ版', 'media': '素材と測定',
+        'start': '利用の準備', 'native': 'ネイティブ版', 'analytics': 'AnalyticsとObservability',
         'reference': 'リファレンス', 'web_group': 'Webの操作とUI',
         'settings': 'Player Configの全設定', 'controls': '全41操作', 'themes': 'テーマ一覧',
         'api-coverage': '公開APIの対応状況',
@@ -58,7 +58,7 @@ TEXT = {
         'credit': '画面例の映像: Big Buck Bunny © 2008 Blender Foundation。Creative Commons Attribution 3.0で利用しています。',
         'license': 'プロジェクトのコードはMITライセンスです。Bitmovin Player SDKには別の利用条件が適用されます。',
         'no_script': '本文と参照資料はJavaScriptを使わずに読めます。目次またはブラウザーのページ内検索を利用してください。',
-        'intro': '再生操作、各種設定、UIの変更、各OS向けのサンプルと測定手順を説明します。',
+        'intro': '再生機能、各種設定、UIの変更を試し、適用されたコードや再生品質のデータを確認するためのガイドです。',
         'reference_intro': '個別の設定、操作、テーマを探すための一覧です。操作の流れと制限は各章で説明しています。',
     },
 }
@@ -152,7 +152,7 @@ def field_anchor(field):
 def navigation(content, language, page, current):
     from guide_routes import CHAPTERS
     labels, output = TEXT[language], []
-    for category in ('start', 'web', 'native', 'media', 'reference'):
+    for category in CATEGORIES:
         title = labels['web_group'] if category == 'web' else labels[category]
         entries = [(key, content[key]['title']) for key, group in CHAPTERS.items() if group == category]
         if category == 'reference':
@@ -163,6 +163,32 @@ def navigation(content, language, page, current):
                         + f'>{esc(title)}</a></li>' for key, title in entries)
         output.append(f'<section><h3>{esc(title)}</h3><ol>{links}</ol></section>')
     return f'<nav class="guide-nav" aria-label="{labels["contents"]}">' + ''.join(output) + '</nav>'
+
+
+def legacy_html(language, slug):
+    """Keep bookmarks usable without publishing retired authoring workflows."""
+    target = LEGACY_ROUTES[slug]
+    page = route_file(language, slug)
+    destination = relative(page, route_file(language, target))
+    canonical = PUBLIC_BASE + route_file(language, target).removesuffix('index.html')
+    other = 'ja' if language == 'en' else 'en'
+    alternate = PUBLIC_BASE + route_file(other, target).removesuffix('index.html')
+    title = 'Page moved' if language == 'en' else 'ページを移動しました'
+    message = 'Open the updated guide' if language == 'en' else '新しいガイドを開く'
+    return f'''<!doctype html>
+<html lang="{language}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url={esc(destination)}">
+<title>{title} | Player Lab</title>
+<link rel="canonical" href="{canonical}"><link rel="alternate" hreflang="{other}" href="{alternate}">
+<link rel="stylesheet" href="{esc(relative(page, 'styles.css'))}">
+<link rel="stylesheet" href="{esc(relative(page, 'guide.css'))}">
+</head>
+<body><main class="guide-main"><h1>{title}</h1><p><a href="{esc(destination)}">{message}</a></p></main></body>
+</html>
+'''
 
 
 def page_html(content, language, slug, title, lead, body, pagination=''):

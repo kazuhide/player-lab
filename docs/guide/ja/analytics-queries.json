@@ -1,0 +1,211 @@
+{
+  "id": "analytics-queries",
+  "title": "Analyticsの集計結果を取得する",
+  "lead": "まずローカルWebのボタンで集計し、必要に応じてサーバー側のクエリで期間や分類を指定します。公開Pages版は設定に応じて送信しますが、集計クエリのサーバーは提供しません。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "既存GUIで問い合わせる"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "ローカルWebの開発サーバーを起動し、サーバー側にAnalyticsライセンスとAPIキーを設定します。参照したい収集済みデータのAnalyticsライセンスを使います。",
+        "「Bitmovin Analytics（サーバー経由クエリ）」を開き、インプレッション数、平均スタートアップ時間、平均ビデオスタートアップ、平均バッファ時間のいずれかを選びます。",
+        "「問い合わせ中…」が終わるまで待ちます。選んだ項目と行数、その下に結果の値が表示されます。時間の値はミリ秒のままです。",
+        "各クリック時点の直近7日間を、1つの集計として問い合わせます。このGUIには日付選択、分類選択、グラフ、自由なクエリ入力はありません。"
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "用途に合うキーを設定する"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "値",
+        "用途",
+        "設定する場所"
+      ],
+      "rows": [
+        [
+          "Playerライセンス",
+          "許可されたホストやアプリでプレイヤーを使う",
+          "プレイヤー設定に使います。Query APIの秘密キーではありません。"
+        ],
+        [
+          "Analyticsライセンス",
+          "コレクターの送信先と、問い合わせるデータを選ぶ",
+          "コレクター設定と、サーバーのBITMOVIN_ANALYTICS_LICENSE_KEYに使います。"
+        ],
+        [
+          "アカウントAPIキー",
+          "Query APIのリクエストを認証する",
+          "サーバー専用のBITMOVIN_ANALYTICS_API_KEY、または代わりにBITMOVIN_API_KEYを使います。"
+        ],
+        [
+          "必要な場合の組織指定",
+          "APIキーで参照できる組織を選ぶ",
+          "サーバーのBITMOVIN_TENANT_ORG_IDをX-Tenant-Org-Idとして送ります。"
+        ]
+      ]
+    },
+    {
+      "type": "code",
+      "title": "サーバー設定のプレースホルダー（.env）",
+      "text": "BITMOVIN_ANALYTICS_LICENSE_KEY=<ANALYTICS_LICENSE_KEY>\nBITMOVIN_ANALYTICS_API_KEY=<SERVER_SIDE_API_KEY>\n# Optional organization scope:\n# BITMOVIN_TENANT_ORG_ID=<ORGANIZATION_ID>"
+    },
+    {
+      "type": "note",
+      "text": "プレースホルダーは自分のローカル／サーバー設定で置き換え、開発サーバーを再起動します。アカウントAPIキーをVITE_*変数、Player Config、ソースURL、コピーするクライアントコードに入れないでください。静的なPagesには、この秘密情報を保持するサーバーがありません。"
+    },
+    {
+      "type": "h2",
+      "text": "表示とJSONレスポンスを読む"
+    },
+    {
+      "type": "p",
+      "text": "GUIは結果の行を表示し、JSONを編集する画面ではありません。既存の/api/analytics/queryは、行の配列と行数、指定した集計方法・指標を返します。次は架空の例で、1行の結果に件数42が入っています。rowCountはインプレッション数ではありません。"
+    },
+    {
+      "type": "code",
+      "title": "ローカルプロキシのレスポンス例",
+      "text": "{\n  \"rows\": [[42]],\n  \"rowCount\": 1,\n  \"aggregation\": \"count\",\n  \"dimension\": \"IMPRESSION_ID\"\n}"
+    },
+    {
+      "type": "p",
+      "text": "intervalやgroupByを指定しない件数集計では、通常は1行に1つの値が入ります。行が空ならGUIに(no rows)と表示します。リクエストの成功だけでは、意図したソース・ライセンス・期間・条件にデータがあったことまでは分かりません。"
+    },
+    {
+      "type": "h2",
+      "text": "期間を指定して取得する"
+    },
+    {
+      "type": "p",
+      "text": "自分の端末から既存のローカルプロキシを呼ぶと、UTCの期間を指定できます。開発サーバーに表示されたポートを使ってください。次の例は5173です。ライセンスとAPIの秘密キーはサーバー側で補うため、このリクエストには含めません。"
+    },
+    {
+      "type": "code",
+      "title": "既存のローカルプロキシ：インプレッション数",
+      "text": "curl --request POST http://localhost:5173/api/analytics/query \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"aggregation\": \"count\",\n    \"dimension\": \"IMPRESSION_ID\",\n    \"start\": \"2026-10-14T00:00:00.000Z\",\n    \"end\": \"2026-10-21T00:00:00.000Z\"\n  }'"
+    },
+    {
+      "type": "h2",
+      "text": "Query APIで分類と時間別の集計を行う"
+    },
+    {
+      "type": "p",
+      "text": "次のAPI例は、0より大きい映像開始時間をブラウザー別・1時間ごとに平均します。本文をquery.jsonへ保存し、Analyticsライセンスのプレースホルダーを置き換え、データの保持期間内の日付を選びます。サーバーや端末から使う例であり、新しいGUI機能ではありません。"
+    },
+    {
+      "type": "code",
+      "title": "query.json — ブラウザー別・1時間ごとの開始時間",
+      "text": "{\n  \"licenseKey\": \"<ANALYTICS_LICENSE_KEY>\",\n  \"dimension\": \"VIDEO_STARTUPTIME\",\n  \"start\": \"2026-10-14T00:00:00.000Z\",\n  \"end\": \"2026-10-15T00:00:00.000Z\",\n  \"interval\": \"HOUR\",\n  \"groupBy\": [\n    \"BROWSER\"\n  ],\n  \"filters\": [\n    {\n      \"name\": \"VIDEO_STARTUPTIME\",\n      \"operator\": \"GT\",\n      \"value\": 0\n    }\n  ],\n  \"limit\": 200,\n  \"includeContext\": true\n}"
+    },
+    {
+      "type": "code",
+      "title": "自分のサーバーまたは端末から送信",
+      "text": "curl --request POST https://api.bitmovin.com/v1/analytics/queries/avg \\\n  --header 'Content-Type: application/json' \\\n  --header \"X-Api-Key: $BITMOVIN_API_KEY\" \\\n  --data @query.json"
+    },
+    {
+      "type": "p",
+      "text": "BITMOVIN_API_KEYには、自分が参照権限を持つサーバー環境のキーを使います。組織指定が必要な場合だけX-Tenant-Org-Idを追加します。APIの結果はdata.resultに入り、columnLabelsやcontextDescriptionが付く場合があります。列の意味はラベルで確かめます。アプリのプロキシはrowsとrowCountを返しますが、APIのすべての応答項目・問い合わせオプションを扱うものではありません。"
+    },
+    {
+      "type": "h2",
+      "text": "同じ対象を比較する"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "startとendで期間を指定します。UTCの時刻と保持期間内のデータを使います。GUIの4項目は直近7日間を自動で選びます。",
+        "intervalはMINUTE、HOUR、DAY、MONTHの時間単位に分ける指定です。start/endによる全体の期間とは異なります。",
+        "groupByはBROWSER、COUNTRY、DEVICE_TYPE、OPERATINGSYSTEMなどの分類です。filtersはBROWSER EQ ChromeやVIDEO_STARTUPTIME GT 0のように対象を絞る条件です。",
+        "取得結果にはAnalyticsライセンス、期間、タイムゾーン、条件、集計方法、単位、コレクターの対応範囲を添えます。すべてのコレクターで全項目が取れるとは限りません。"
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "期待した値が返らないとき"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "結果",
+        "意味／次に確認すること"
+      ],
+      "rows": [
+        [
+          "503 not_configured",
+          "サーバーのAnalyticsライセンスまたはAPIの秘密キーが未設定です。秘密キーをブラウザーへ入れず、サーバーを設定します。"
+        ],
+        [
+          "400 bad_requestまたはbad_json",
+          "JSONの書式、集計方法、指標名、ISO-8601形式のstart/endを確認します。"
+        ],
+        [
+          "401または403",
+          "サーバーのAPIキーの参照権限と組織指定を確認します。Playerライセンスでは、このAPIを認証できません。"
+        ],
+        [
+          "502／プロキシへの接続メッセージ",
+          "開発サーバーからAPIへ接続できるか確認します。静的ビルドだけではプロキシは動きません。"
+        ],
+        [
+          "200で行がない",
+          "ゼロと解釈する前に、選択したAnalyticsライセンス、収集済みデータ、期間、条件を確認します。"
+        ]
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 108
+    },
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 147
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 70
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 104
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 113
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "line": 61
+    },
+    {
+      "path": "docs/SETUP.md",
+      "line": 208
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/reference/postanalyticsqueriescount",
+      "label": "Analytics Query API: count"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/reference/postanalyticsqueriesavg",
+      "label": "Analytics Query API: average"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/getting-started-with-the-analytics-api",
+      "label": "Getting started with the Analytics API"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-api-sdk-javascript/blob/main/src/models/AnalyticsQueryRequest.ts",
+      "label": "Official Analytics query request model"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-api-sdk-javascript/blob/main/src/models/AnalyticsInterval.ts",
+      "label": "Official Analytics time-bucket enum"
+    }
+  ]
+}

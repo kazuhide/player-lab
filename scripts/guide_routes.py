@@ -4,13 +4,21 @@ CHAPTERS = {
     'start': 'start', 'local-setup': 'start',
     'web-screen-themes': 'web', 'web-sources-tracks': 'web',
     'web-ui-settings': 'web', 'web-live-dvr': 'web',
-    'web-player-config': 'web', 'web-qoe-analytics': 'web',
-    'web-ui-customization': 'web',
+    'web-player-config': 'web', 'web-ui-customization': 'web',
+    'web-qoe-analytics': 'analytics', 'analytics-metrics': 'analytics',
+    'analytics-queries': 'analytics', 'analytics-visualization': 'analytics',
+    'analytics-ai': 'analytics',
     'native-overview': 'native', 'native-apple': 'native',
     'native-android': 'native', 'native-integrations': 'native',
-    'media': 'media', 'audio-timing': 'media', 'cloud-encoding': 'media',
-    'live-finalization': 'media', 'measurement': 'media',
-    'troubleshooting': 'reference', 'glossary': 'reference',
+    'troubleshooting': 'reference', 'audio-timing': 'reference',
+    'test-results': 'reference', 'glossary': 'reference',
+}
+CATEGORIES = ('start', 'web', 'analytics', 'native', 'reference')
+LEGACY_ROUTES = {
+    'measurement': 'test-results',
+    'media': 'web-sources-tracks',
+    'cloud-encoding': 'web-sources-tracks',
+    'live-finalization': 'troubleshooting',
 }
 SETTING_GROUPS = (
     'player-api', 'dynamic-adaptation', 'low-latency', 'source', 'playback',
@@ -59,6 +67,7 @@ def route_file(language, slug=''):
 
 GUIDE_FILES = {
     *(route_file(language, slug) for language in LANGUAGES for slug in SLUGS),
+    *(route_file(language, slug) for language in LANGUAGES for slug in LEGACY_ROUTES),
     'guide/search-index.json', 'ja/guide/search-index.json',
 }
 GUIDE_ASSETS = {

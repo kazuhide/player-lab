@@ -1,134 +1,151 @@
 {
   "id": "web-qoe-analytics",
-  "title": "State, events and playback measurements",
-  "lead": "Distinguish the current playback-session values calculated in the browser from Analytics data sent to and aggregated by Bitmovin.",
+  "title": "Read playback quality while using the player",
+  "lead": "Play, pause and seek a source, then use the session readouts and event log to explain what changed. Keep these browser measurements separate from collected Analytics aggregates.",
   "blocks": [
     {
       "type": "h2",
-      "text": "Event log"
+      "text": "Try a short playback session"
     },
     {
-      "type": "p",
-      "text": "The log shows notifications such as SourceLoaded, Play, Playing, Paused, Seek, TimeShift, StallStarted and Error with local timestamps. New events appear first; the log retains up to 80 lines. Frequent TimeChanged events are excluded. Recreating the player also rebuilds the control panel."
+      "type": "steps",
+      "items": [
+        "Open the Web app, choose VOD HLS or your own finite source, and start playback with Play. Read Player state and the QoE metrics below the player.",
+        "Seek with the player control. Compare Seek/Seeked in the event log with the seek time readout; live sources use TimeShift/TimeShifted instead.",
+        "Pause and resume. A deliberate pause does not count as rebuffering in this readout. A real StallStarted/StallEnded after playback begins increases its interruption count.",
+        "When comparing a changed configuration, open Show applied configuration code and copy the applied settings. Draft edits are not included. Load the same source again for a new measurement."
+      ]
     },
     {
       "type": "h2",
-      "text": "Six QoE readouts"
+      "text": "Read the six QoE values"
     },
     {
       "type": "p",
-      "text": "Quality of Experience (QoE) refers here to playback-quality indicators. The app calculates them in the browser from SDK events; they are not account-level aggregate results."
+      "text": "Quality of Experience (QoE) means the viewer's playback experience. These six readouts are calculated by this app from the current player events; they are not a query of all viewers or a replacement for the Analytics dashboard."
     },
     {
       "type": "table",
       "headers": [
         "Readout",
+        "Unit",
         "Definition in this app"
       ],
       "rows": [
         [
           "startup",
-          "Time from SourceLoaded to the first Playing event, not the entire time from opening the page to the first video frame."
+          "ms",
+          "SourceLoaded to the first Playing event. Waiting before a manual Play can contribute; this is not the Analytics VIDEO_STARTUPTIME definition."
         ],
         [
           "rebuffering",
-          "Stall time divided by playing plus stall time after startup, with the interruption count. Pauses and initial buffering are excluded."
+          "% and interruption count",
+          "Stall time / (playing time + stall time) after startup. Manual pauses and initial buffering are excluded."
         ],
         [
           "errors",
-          "The number of Error events in the session."
+          "events",
+          "Number of Error events received by the current session, rather than the number of affected viewers."
         ],
         [
           "seek time",
-          "Time from the latest Seek or TimeShift to its corresponding completion event."
+          "ms",
+          "Latest Seek or TimeShift request to its completion event."
         ],
         [
           "live latency",
-          "The difference between the device clock and the wall-clock time corresponding to the video."
+          "seconds",
+          "Device wall clock minus the playback wall-clock timestamp; requires usable source timing such as HLS Program Date Time (PDT)."
         ],
         [
           "edge latency",
-          "The distance from the live edge returned by the SDK getLatency API."
+          "seconds",
+          "The SDK lowlatency.getLatency() value: distance from the live edge, rather than from real time."
         ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "A dash or needs PDT is not zero latency. QoE latency fields can retain their last valid value if timing becomes unavailable, so also check Player state for the current source."
+    },
+    {
+      "type": "h2",
+      "text": "Use events to explain a change"
+    },
+    {
+      "type": "p",
+      "text": "The event log includes SourceLoaded, Play, Playing, Paused, Seek, TimeShift, StallStarted and Error with local timestamps. New events appear first, with up to 80 lines. Frequent TimeChanged events update the readouts but are not listed in the log."
+    },
+    {
+      "type": "p",
+      "text": "A new source load, source unload or player destruction resets the session measurements. Switching only the theme or UI keeps the same player measurements. At playback end, final totals stop increasing. Start a fresh load before comparing another trial."
+    },
+    {
+      "type": "h2",
+      "text": "Choose the right Analytics view"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "What you need",
+        "Where to look",
+        "Scope"
       ],
-      "widths": [
-        0.27,
-        0.73
+      "rows": [
+        [
+          "What just happened during this playback?",
+          "Player state, QoE metrics and event log",
+          "Current browser session. These readouts work without an account query."
+        ],
+        [
+          "Is this player configured to collect Analytics?",
+          "The collection notice and your Analytics collector configuration",
+          "Playback/device telemetry sent with an Analytics license; a local readout alone does not prove account aggregation."
+        ],
+        [
+          "How did viewers perform over a time range?",
+          "Local server-proxied query panel, Analytics dashboard or Query API",
+          "Collected data for the selected Analytics license and range."
+        ]
       ]
     },
     {
       "type": "p",
-      "text": "A new SourceLoaded, source unload or player destruction resets the measurements. Changes that only replace a theme or UI retain the same player measurements. At playback end, final totals are retained and stop increasing."
-    },
-    {
-      "type": "note",
-      "text": "QoE latency fields may retain their last valid value when timing information becomes temporarily unavailable. Check the Player state readout, including needs PDT, to determine whether timing is valid for the current source."
-    },
-    {
-      "type": "h2",
-      "text": "Analytics collection on Pages"
-    },
-    {
-      "type": "p",
-      "text": "The public Pages app uses a dedicated Analytics license to send playback and device information to Bitmovin Analytics. It displays a notice explaining this collection. A visible browser-local QoE readout and data aggregation in the destination dashboard are separate checks."
-    },
-    {
-      "type": "p",
-      "text": "Pages serves static files and does not run a backend holding an account API key. The server-proxied Analytics query panel is therefore hidden. Its absence does not mean that the collector has stopped sending playback data."
-    },
-    {
-      "type": "h2",
-      "text": "Aggregate queries in local development"
-    },
-    {
-      "type": "p",
-      "text": "The local development server supports aggregate queries when an API key and Analytics license are configured server-side. Four GUI buttons query impressions, average startup time, average video startup time and average buffered time over the last seven days. Results are displayed as rows."
-    },
-    {
-      "type": "p",
-      "text": "An unconfigured server displays a configuration message; an unreachable proxy displays a connection message. The query uses the Analytics license selected on the server. An empty result means no rows were returned, not directly that playback succeeded or failed."
-    },
-    {
-      "type": "note",
-      "text": "Player and Analytics licenses are client-side values. The account API key is a server-side secret. Never enter an account API key into Player Config, a URL, an image field or another browser-side input."
+      "text": "The public Pages app can collect Analytics and displays a collection notice when configured. Its aggregate-query panel is hidden because Pages does not run the server endpoint. Use local development for the four query buttons, or the Analytics dashboard for your authorized data."
     }
   ],
   "sources": [
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 486
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 508
+    },
+    {
+      "path": "apps/web/src/analytics/metrics.ts",
+      "line": 79
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 186
+    },
     {
       "path": "apps/web/src/controlPanel.ts",
       "line": 697
     },
     {
-      "path": "apps/web/src/main.ts",
-      "line": 479
-    },
-    {
-      "path": "apps/web/src/main.ts",
-      "line": 490
-    },
-    {
-      "path": "apps/web/src/main.ts",
-      "line": 499
-    },
-    {
-      "path": "apps/web/src/main.ts",
-      "line": 542
-    },
-    {
-      "path": "apps/web/src/analytics/metrics.ts",
-      "line": 90
+      "path": "apps/web/src/configurationCodeView.ts",
+      "line": 9
     },
     {
       "path": "apps/web/src/analyticsView.ts",
-      "line": 24
+      "line": 157
     },
     {
-      "path": "apps/web/src/server/analyticsProxy.ts",
-      "line": 70
-    },
-    {
-      "path": "docs/SETUP.md",
-      "line": 45
+      "url": "https://developer.bitmovin.com/playback/docs/which-metrics-related-to-the-startup-time-are-collected-by-bitmovin",
+      "label": "Analytics startup-time definitions"
     }
   ]
 }

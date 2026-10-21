@@ -1,7 +1,7 @@
 {
   "id": "audio-timing",
   "title": "Interpreting audio and video timing",
-  "lead": "Two-second segments do not mean every audio segment is exactly two seconds. The media generator checks actual presentation time separately from packet and container measurements.",
+  "lead": "Audio and video segments can have slightly different boundaries. This example explains why and how to interpret timestamps when trying playback and seeking.",
   "blocks": [
     {
       "type": "h2",
@@ -9,7 +9,7 @@
     },
     {
       "type": "p",
-      "text": "The video runs at 24 frames per second, with a keyframe every 48 frames. This produces two-second video segments: 30 segments for 60 seconds."
+      "text": "For example, a test stream at 24 frames per second with a keyframe every 48 frames has two-second video segments. A 60-second clip then has 30 video segments. These conditions describe this example, not every stream used by the apps."
     },
     {
       "type": "p",
@@ -25,11 +25,7 @@
     },
     {
       "type": "p",
-      "text": "The generator preserves audio packets and their timing instead of dropping or duplicating a frame at every segment boundary. It records playlist durations and independently inspected FFprobe packet measurements in fixture-report.json."
-    },
-    {
-      "type": "p",
-      "text": "It requires 30 two-second video segments. It does not require every audio segment to report 2.000000 seconds. It does check that the final presentation time of every video and audio representation is within one millisecond of 60 seconds."
+      "text": "The test media preserves audio packets and their timing instead of dropping or duplicating frames at every segment boundary. Audio segment durations can alternate around two seconds while the final presentation time still agrees with the video."
     },
     {
       "type": "h2",
@@ -91,19 +87,6 @@
     {
       "type": "p",
       "text": "FFprobe 6.1.1 and 9.0.2 reported different tail measurements for the same generated audio. The inspected MP4 sample table stores a final presentation duration of 512 samples. Version 6.1.1 reported the final packet as a full 1,024-sample frame, ending at 60.010666 seconds. Version 9.0.2 used the stored partial duration and reported an end of 60.000000 seconds."
-    },
-    {
-      "type": "p",
-      "text": "The tool reads the final sample's stored duration from its generated single-track MP4 fragment. It records the raw FFprobe result as probe_last_packet_end_seconds, the stored sample count as last_packet_duration_samples, and the end time using the stored duration as last_packet_end_seconds."
-    },
-    {
-      "type": "note",
-      "title": "The timing check has not been relaxed",
-      "text": "The tool uses the stored presentation duration and retains the same one-millisecond bound around 60 seconds. A genuinely extended audio tail still fails. Invalid MP4 boxes or sample tables also fail, rather than being replaced with assumed values. The report retains both FFmpeg and FFprobe versions."
-    },
-    {
-      "type": "p",
-      "text": "The public documentation records successful generation with FFmpeg/FFprobe 6.1.1-3ubuntu5 on Ubuntu 24.04 and 9.0.2 on macOS. Both stored the same 512-sample tail and presented audio through 60.000000 seconds. This verifies timing; it does not establish identical encoded bytes across operating systems."
     }
   ],
   "sources": [

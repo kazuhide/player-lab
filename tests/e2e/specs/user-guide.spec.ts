@@ -112,6 +112,24 @@ test.afterEach(({ page }) => {
 
 for (const language of languages) {
   test.describe(`user guide (${language})`, () => {
+    test("retired workflow bookmarks open current help in the same language", async ({ page }) => {
+      const routes = { measurement: "test-results", media: "web-sources-tracks",
+        "cloud-encoding": "web-sources-tracks", "live-finalization": "troubleshooting" };
+      for (const [old, destination] of Object.entries(routes)) {
+        await page.goto(guidePath(language, old));
+        await expect(page).toHaveURL((url) => url.pathname === guidePath(language, destination));
+        await expect(page.locator("html")).toHaveAttribute("lang", language);
+        await expect(page.locator("main > h1")).toHaveText(content[language][destination]!.title);
+      }
+      await page.goto(guidePath(language));
+      for (const slug of Object.keys(routes)) {
+        await expect(page.locator(`.guide-nav a[href="${slug}/"]`)).toHaveCount(0);
+      }
+      for (const slug of ["analytics-metrics", "analytics-queries", "analytics-visualization", "analytics-ai"]) {
+        await expect(page.locator(`.guide-topic-group a[href="${slug}/"]`)).toBeVisible();
+      }
+    });
+
     test("the landing call to action, app language and return links stay within the project", async ({ page }) => {
       await page.route(/analytics-ingress[^/]*\.bitmovin\.com/i, (route) => route.fulfill({
         status: 204, headers: { "Access-Control-Allow-Origin": "*" },
@@ -470,7 +488,7 @@ for (const language of languages) {
     for (const width of [320, 375, 768, 1024, 1440]) {
       test(`long text, code, tables and images fit a ${width}px document`, async ({ page }, testInfo) => {
         await page.setViewportSize({ width, height: 900 });
-        for (const slug of ["start", "native-apple", "native-android", "native-integrations", "cloud-encoding", "settings/tweaks", "controls", "themes",
+        for (const slug of ["start", "native-apple", "native-android", "native-integrations", "analytics-metrics", "analytics-queries", "analytics-visualization", "analytics-ai", "test-results", "settings/tweaks", "controls", "themes",
           "api-coverage", "api-coverage/web-ui"]) {
           await test.step(slug, async () => {
             await page.goto(guidePath(language, slug));

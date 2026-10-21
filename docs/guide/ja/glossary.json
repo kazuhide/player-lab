@@ -144,9 +144,8 @@
       "label": "PiPと外部表示"
     },
     {
-      "path": "docs/web-performance.md",
-      "line": 71,
-      "label": "メモリと回収の読み方"
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/test-results/",
+      "label": "代表的なテスト結果"
     },
     {
       "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS",

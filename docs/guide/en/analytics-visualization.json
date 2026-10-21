@@ -1,0 +1,184 @@
+{
+  "id": "analytics-visualization",
+  "title": "Visualize playback quality and audience data",
+  "lead": "Choose a view that answers a specific question, then retain its period, filters, units and population. Bitmovin Dashboard, API clients and Grafana provide the external visualization workflows described here; Player Lab displays aggregate query rows.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Compare browsers or devices in the Dashboard"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open the Analytics area of Bitmovin Dashboard and select the Analytics license that received your playback data.",
+        "Set a fixed time range, such as one completed day. Record the displayed time zone and active filters so another person can repeat the comparison.",
+        "Choose Video Startup Time and inspect its browser breakdown. Read the accompanying Video Starts count as well as the duration; a slow result from a small group needs a different follow-up from a large affected audience.",
+        "Narrow the comparison with an available device, platform or browser filter. Change one condition at a time, keeping the same metric and period.",
+        "Compare Rebuffering Percentage or Error Percentage for the same group. Use the API query workflow when the Dashboard does not expose the dimension or aggregation you need."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Browser identifies the browser family; Device Class describes categories such as desktop, phone and tablet; Device Type describes a device model or type. These are different breakdowns. The Dashboard exposes a subset of Analytics fields, so confirm the selected field rather than treating every API dimension as a Dashboard control."
+    },
+    {
+      "type": "h2",
+      "text": "Choose a chart for the question"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Question",
+        "Useful view",
+        "Keep with the result"
+      ],
+      "rows": [
+        [
+          "Did quality change during the day?",
+          "A time series with consistent time buckets; separate browser series if needed.",
+          "Start/end, time zone, interval, metric, aggregation and filters."
+        ],
+        [
+          "Which browser or device needs attention?",
+          "A category table or bar chart over the whole period, accompanied by the relevant session/start count.",
+          "Group-by field, ordering, limit and the population represented by each category."
+        ],
+        [
+          "What is the value for the whole period?",
+          "A total or scorecard without time buckets.",
+          "The whole-range aggregation, not an unweighted average of chart points."
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "An hourly median cannot be averaged to obtain the day's median. Category percentages also cannot simply be averaged when their populations differ. Query the whole-range metric again and keep the relevant population counts. Missing data is not a measured zero."
+    },
+    {
+      "type": "h2",
+      "text": "Read the metric and its population"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Metric",
+        "Unit and interpretation"
+      ],
+      "rows": [
+        [
+          "Plays",
+          "Count of sessions that started video. The documented Dashboard-equivalent query counts IMPRESSION_ID with VIDEO_STARTUPTIME > 0; an unfiltered impression count is a different query."
+        ],
+        [
+          "Video Startup Time",
+          "Duration in milliseconds (ms). The documented Dashboard query uses median VIDEO_STARTUPTIME with values > 0. Label an average or percentile explicitly when choosing a different aggregation."
+        ],
+        [
+          "Buffering Time",
+          "Milliseconds of buffering; the Dashboard describes an average per Play. This is a duration, not a percentage."
+        ],
+        [
+          "Rebuffering Percentage",
+          "A percentage relating rebuffering to viewing time. Keep its documented aggregation and the accompanying Played duration; it is separate from Player Lab's browser-local event calculation."
+        ],
+        [
+          "Error Percentage",
+          "A percentage relative to sessions considered, including errors before video starts. Keep that population; dividing by successful Plays would change the meaning."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Raw duration fields use milliseconds, while a Dashboard may format them as seconds. State any conversion in the chart title or axis. A change from 2% to 3% is 1 percentage point; it is a 50% relative increase. Keep these descriptions distinct."
+    },
+    {
+      "type": "h2",
+      "text": "Build a custom view with Grafana"
+    },
+    {
+      "type": "p",
+      "text": "For a reusable custom dashboard, follow the official Bitmovin Grafana Plugin setup. Its documented integration uses self-managed Grafana. Configure the API key in the external data source, select the Analytics license, and keep that credential outside Player Lab's browser configuration."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Create a panel with Bitmovin Analytics as its data source. Select the aggregation, dimension and any filters.",
+        "For trends, enable Format as time series, choose an Interval such as AUTO, and optionally Group By browser to produce separate series.",
+        "For a category table, disable Format as time series, add Group By and use an explicit order and limit. Retain the query definition with the dashboard."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Keep data and query settings together"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Route",
+        "What you can retain"
+      ],
+      "rows": [
+        [
+          "Player Lab local query panel",
+          "The existing preset buttons display result rows. There is no chart builder or CSV/JSON download button. The static Pages app hides this server-dependent panel."
+        ],
+        [
+          "Your server-side Analytics API client",
+          "Save the aggregate JSON response together with its request: license label, start/end, aggregation, dimension, interval, filters, groupBy, order and limit. Exclude authentication headers from the saved analysis file."
+        ],
+        [
+          "Analytics Export Task",
+          "A separate API workflow exports raw data as CSV or Parquet to configured S3, GCS or Azure storage. Select the period, output and required columns, then check the task status. This is not the aggregate query response or a Player Lab download."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The local proxy returns rows and rowCount rather than a complete chart specification. Keep column meanings and units from the original query before loading those rows into a spreadsheet or charting tool. Raw export files may contain session-level information; prepare a separate aggregate dataset before sharing it with an LLM."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 115,
+      "label": "Player Lab: aggregate presets and row rendering"
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 107,
+      "label": "Player Lab: aggregate JSON response and server-side credentials"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/metrics-and-dashboard-walkthrough",
+      "label": "Bitmovin: Metrics & Dashboard"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/analytics-dashboard-metrics-reference",
+      "label": "Bitmovin: Dashboard metric definitions and breakdown populations"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/how-to-recreate-dashboard-queries-via-the-api-1",
+      "label": "Bitmovin: reproduce Dashboard metrics with API queries"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/analytics-api-fields",
+      "label": "Bitmovin: Analytics fields and units"
+    },
+    {
+      "url": "https://bitmovin.com/video-observability-analytics",
+      "label": "Bitmovin: analysis screens, filters and breakdowns"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/integrating-bitmovin-analytics-with-grafana",
+      "label": "Bitmovin: Grafana Plugin configuration"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/exporting-your-data",
+      "label": "Bitmovin: raw data Export Tasks"
+    },
+    {
+      "url": "https://bitmovin.com/blog/custom-observability-dashboards-real-time-monitoring/",
+      "label": "Bitmovin: Custom Dashboarding proof of concept"
+    }
+  ]
+}

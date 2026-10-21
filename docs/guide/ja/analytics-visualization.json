@@ -1,0 +1,184 @@
+{
+  "id": "analytics-visualization",
+  "title": "再生品質と視聴データを可視化する",
+  "lead": "知りたいことに合う表示を選び、期間・フィルター・単位・集計対象を結果と一緒に残します。ここでは外部の Bitmovin Dashboard、API クライアント、Grafana を使う方法を説明します。Player Lab の集計クエリ画面は結果を行で表示します。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Dashboard でブラウザーや端末を比較する"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Bitmovin Dashboard の Analytics を開き、再生データの送信先である Analytics ライセンスを選びます。",
+        "終了済みの一日など、固定の期間を指定します。別の人も比較を再現できるように、表示されるタイムゾーンと有効なフィルターを記録します。",
+        "Video Startup Time を選び、ブラウザー別の内訳を確認します。時間だけでなく併記される Video Starts の数も読みます。少数の視聴で遅い場合と、多くの視聴に影響している場合では次の調査が異なります。",
+        "画面で選べる端末・プラットフォーム・ブラウザーのフィルターで対象を絞ります。指標と期間を保ち、条件を一つずつ変えます。",
+        "同じ対象の Rebuffering Percentage や Error Percentage も比較します。必要な分類項目や集計方法が Dashboard にない場合は、API クエリの手順を使います。"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Browser はブラウザーの種類、Device Class は desktop・phone・tablet などの区分、Device Type は端末のモデルや種類です。それぞれ異なる分類です。Dashboard で使える項目は Analytics の全フィールドの一部なので、API の項目がすべて画面にあると考えず、選択した分類を確認してください。"
+    },
+    {
+      "type": "h2",
+      "text": "知りたいことに合うグラフを選ぶ"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "知りたいこと",
+        "適した表示",
+        "結果と一緒に残す情報"
+      ],
+      "rows": [
+        [
+          "一日のどの時間帯で品質が変わったか",
+          "同じ時間幅で区切る時系列。必要に応じてブラウザー別の系列に分けます。",
+          "開始・終了、タイムゾーン、時間幅、指標、集計方法、フィルター。"
+        ],
+        [
+          "どのブラウザーや端末から調べるか",
+          "期間全体の分類別テーブルや棒グラフ。対応するセッション数や開始数も添えます。",
+          "分類項目、並び順、取得上限、各分類の集計対象。"
+        ],
+        [
+          "期間全体の値はいくつか",
+          "時間帯に分割しない合計値やスコアカード。",
+          "グラフの各点を単純平均せず、期間全体で求めた集計値。"
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "時間ごとの中央値を平均しても、一日全体の中央値にはなりません。分類ごとの割合も、集計対象の大きさが異なると単純平均できません。期間全体の指標を改めて問い合わせ、対応する対象数も残してください。データがないことは、ゼロを計測したこととは異なります。"
+    },
+    {
+      "type": "h2",
+      "text": "指標と集計対象を読む"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "指標",
+        "単位と読み方"
+      ],
+      "rows": [
+        [
+          "Plays",
+          "動画再生が開始したセッションの数。公式の Dashboard 相当クエリは VIDEO_STARTUPTIME > 0 で IMPRESSION_ID を数えます。条件なしのインプレッション数とは異なります。"
+        ],
+        [
+          "Video Startup Time",
+          "単位はミリ秒（ms）。公式の Dashboard 相当クエリは VIDEO_STARTUPTIME > 0 の中央値です。平均やパーセンタイルを選ぶ場合は、その集計方法を明記します。"
+        ],
+        [
+          "Buffering Time",
+          "バッファリングに費やしたミリ秒。Dashboard では Play あたりの平均時間と説明されています。割合ではなく時間です。"
+        ],
+        [
+          "Rebuffering Percentage",
+          "視聴時間に対する再バッファリングの割合です。公式の集計方法と併記される Played の時間を保ちます。Player Lab がブラウザー内のイベントから計算する値とは別です。"
+        ],
+        [
+          "Error Percentage",
+          "再生開始前のエラーも含め、対象セッションに対する割合です。その集計対象を保ってください。正常に再生開始した Plays を分母にすると意味が変わります。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "時間の生フィールドはミリ秒ですが、Dashboard では秒などに整形される場合があります。換算した場合はグラフのタイトルや軸に明記します。2% から 3% への変化は 1 パーセントポイントで、相対的には 50% の増加です。この二つの表現を区別してください。"
+    },
+    {
+      "type": "h2",
+      "text": "Grafana で独自の表示を作る"
+    },
+    {
+      "type": "p",
+      "text": "繰り返し使う独自の Dashboard は、公式の Bitmovin Grafana Plugin の手順で作れます。公式手順の対象は自分で運用する Grafana です。API キーは外部のデータソースに設定し、Analytics ライセンスを選びます。Player Lab のブラウザー側の設定に API キーを入れないでください。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Bitmovin Analytics をデータソースにしたパネルを作り、集計方法、対象フィールド、フィルターを選びます。",
+        "推移を見る場合は Format as time series を有効にし、AUTO などの Interval を指定します。Group By に browser を指定すると、ブラウザー別の系列にできます。",
+        "分類別のテーブルでは Format as time series を無効にし、Group By と並び順、取得上限を指定します。クエリの定義を Dashboard と一緒に保存します。"
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "データとクエリ条件を一緒に残す"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "方法",
+        "保存できるもの"
+      ],
+      "rows": [
+        [
+          "Player Lab のローカル集計画面",
+          "既存のボタンは結果を行で表示します。グラフ作成や CSV/JSON ダウンロードのボタンはありません。サーバーが必要なため、静的な Pages ではこの画面を表示しません。"
+        ],
+        [
+          "自分のサーバー側 Analytics API クライアント",
+          "集計 JSON の応答と、ライセンスの識別名、開始・終了、集計方法、対象フィールド、interval、filters、groupBy、並び順、上限を一緒に保存します。分析用ファイルに認証ヘッダーを残さないでください。"
+        ],
+        [
+          "Analytics Export Task",
+          "生データを CSV または Parquet で、設定済みの S3・GCS・Azure ストレージへ出力する別の API 手順です。期間、出力先、必要な列を指定し、タスクの状態を確認します。集計クエリの応答や Player Lab のダウンロードとは異なります。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "ローカルのプロキシが返すのは rows と rowCount で、グラフの完全な仕様ではありません。表計算ソフトやグラフツールに取り込む前に、元のクエリから列の意味と単位を残してください。生データの出力にはセッション単位の情報が含まれる場合があります。LLM に渡す前に、別の集計データを作ります。"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 115,
+      "label": "Player Lab: 集計候補と行表示"
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 107,
+      "label": "Player Lab: 集計 JSON とサーバー側の認証情報"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/metrics-and-dashboard-walkthrough",
+      "label": "Bitmovin: Metrics & Dashboard"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/analytics-dashboard-metrics-reference",
+      "label": "Bitmovin: Dashboard の指標と内訳の集計対象"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/how-to-recreate-dashboard-queries-via-the-api-1",
+      "label": "Bitmovin: API で Dashboard 指標を再現する"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/analytics-api-fields",
+      "label": "Bitmovin: Analytics のフィールドと単位"
+    },
+    {
+      "url": "https://bitmovin.com/video-observability-analytics",
+      "label": "Bitmovin: 分析画面・フィルター・分類"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/integrating-bitmovin-analytics-with-grafana",
+      "label": "Bitmovin: Grafana Plugin の設定"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/exporting-your-data",
+      "label": "Bitmovin: 生データの Export Task"
+    },
+    {
+      "url": "https://bitmovin.com/blog/custom-observability-dashboards-real-time-monitoring/",
+      "label": "Bitmovin: Custom Dashboarding の概念実証"
+    }
+  ]
+}

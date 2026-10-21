@@ -129,59 +129,6 @@
     {
       "type": "note",
       "text": "MainActivity does not call this class, and there is no GUI for downloading, offline playback, or deletion. It is an integration example that needs to be connected to a screen, not a completed screen feature. In the integrating app, check the required service configuration, storage space, content and licenses, and actual playback with networking disabled. Successful compilation does not prove that downloading or offline playback works."
-    },
-    {
-      "type": "h2",
-      "text": "Running tests and reading recorded results"
-    },
-    {
-      "type": "p",
-      "text": "For a reproducible emulator run, generate the shared 60-second media and start the public fixture server from the repository root. In another terminal, replace SERIAL with the device identifier from adb devices, forward all three ports, then run the public launcher. The launcher builds and installs the app and tests, reads individual instrumentation results and the final completion record, and writes private raw output plus a safe summary outside the checkout. An adb exit status alone is not a pass. Only the debug build permits loopback HTTP; the release network policy is unchanged."
-    },
-    {
-      "type": "code",
-      "text": "python3 encoding/test-streams/local.py\nnode apps/android/runtime-fixture.mjs .cache/test-streams/vod-baseline\n# In another terminal:\nadb -s SERIAL reverse tcp:5272 tcp:5272\nadb -s SERIAL reverse tcp:5273 tcp:5273\nadb -s SERIAL reverse tcp:5274 tcp:5274\npython3 apps/android/runtime-tests.py --serial SERIAL --output-dir /tmp/player-lab-android-runtime"
-    },
-    {
-      "type": "p",
-      "text": "A configured Player license with com.playerlab.android allowed is required for playback cases. For editor-only checks, use --dummy-license with the explicit configuration test class below. These checks establish validation and editor behavior, not media playback. The launcher does not start an emulator or fixture server, or manage port forwarding."
-    },
-    {
-      "type": "code",
-      "text": "python3 apps/android/runtime-tests.py --serial SERIAL --output-dir /tmp/player-lab-android-config --dummy-license --classes com.playerlab.android.PlayerConfigurationInstrumentedTest\npython3 apps/android/test-runtime-tests.py"
-    },
-    {
-      "type": "p",
-      "text": "After the run, remove only the forwards you created and stop the fixture server. Reports can contain local test details; keep the raw output private. The runner stops its app and test process after a timeout and reports incomplete execution as failure."
-    },
-    {
-      "type": "code",
-      "text": "adb -s SERIAL reverse --remove tcp:5272\nadb -s SERIAL reverse --remove tcp:5273\nadb -s SERIAL reverse --remove tcp:5274"
-    },
-    {
-      "type": "p",
-      "text": "The DVR JVM tests check rewind calculations. App JVM tests check draft validation, SDK mapping and lifecycle ownership, including catch-up for a resumed replacement and observer removal. Configuration instrumented tests drive the real editor and D-pad; recording ownership tests check exactly-once destroy calls and retired callback rejection. These checks do not establish media playback. Licensed tests check finite VOD duration, shared WebView controls, source switching, live seeking and configured autoplay/mute/start offset. The UI-handoff tests check 12 view replacements plus two real Activity stop/resume cycles, source/settings/UI/Allow DVR retention, explicit Play after foregrounding, viewport visibility, playback progress and Player invalidation through teardown. They do not establish completed release of all SDK resources."
-    },
-    {
-      "type": "p",
-      "text": "The configured-start check captures the first TimeChanged after fresh Ready and RenderFirstFrame for the new player/source owner, including a zero sample. It checks 9.0–13.0 seconds within a 40-second deadline; Loaded and isPlaying can precede readiness. Eleven standard UI routes reach the native boundary: Play/Pause/Mute/Unmute, seek, 1.5x speed, audio/subtitle/video-quality choices and both thumbnail query entry points. A standard seek-bar hover reaches Player.getThumbnail and its active Source.getThumbnail delegation; the reference asset returns null, so thumbnail image rendering is not established. Seven routes are unavailable in the tested phone configuration: fullscreen/PiP entry, exit and state controls, plus the hidden mobile volume slider. They remain missing in the API report and receive no GUI credit. This does not establish availability on physical devices or TVs. The code-view test checks applied/draft isolation, UI selection, feedback and exact real OS clipboard text."
-    },
-    {
-      "type": "p",
-      "text": "HLS ENDLIST and DASH static tests retain the same URL, source and player through fresh PlaybackFinished at the finite media end, VOD/DVR-disabled state, visible Replay and replay-clock progress. They require fresh VOD seek completion, live controls hidden during Replay, visible live controls restored on a new live generation, and an explicit VOD switch. The SDK reports finite duration and isLive = false on this Android fixture; the app does not rewrite native getters."
-    },
-    {
-      "type": "p",
-      "text": "Even when the shared UI exists, its control layout and auto-hide state can change later. The tests check ancestor visibility as well as display dimensions. Rewind completion must land within three seconds of a media target captured before the request; that tolerance is not a product guarantee. Return to live still requires a fresh completion event, an SDK offset within one second of zero, and visible LIVE text/button state. Failure reports record monotonic request/completion times, target and completion positions, offsets, native-ready poll counts, and live-control visibility; SDK error messages and configuration dumps are omitted."
-    },
-    {
-      "type": "p",
-      "text": "The return check uses a fresh TimeShifted event, an SDK-reported timeShift within one second of zero, and genuinely visible LIVE text/button state within the same 40-second deadline. Native conditions are checked again after the UI result. Latency minus configured target latency is a separate diagnostic, not a promised sub-second synchronization SLA. Player 3.171.0 can report timeShift = 0 while that distance remains nonzero. Source.seekableRange returns (0, 0) for live sources, so its end is not a live media endpoint. Current time, raw latency, configured/effective target, buffers and range remain recorded. During time shifting, isStalled is false by definition; neither it nor an offset alone proves a completed seek. The optional policy retains the SDK catch-up/fallback rates of 1.2/0.95 and infinite seek thresholds; Player.playbackSpeed excludes temporary catch-up adjustments."
-    },
-    {
-      "type": "note",
-      "title": "Recorded phone-emulator results (2026-10-21)",
-      "text": "Player 3.171.0 with the current com.playerlab.android application ID passed all 20 licensed device checks on an Android 16/API 36.1 ARM64 phone emulator in 274.859 seconds. These checked video rendering and advancing playback, audio-language priority and source overrides, external WebVTT selection with a fresh subtitle cue and visible caption, configured HTTP retries, standard UI controls, HLS/DASH finalization, clipboard and lifecycle behavior. Separately, 24 JVM tests and seven configuration-only device checks passed; those do not establish playback. The Android README retains earlier measurements and the commands to repeat the tests. This result covers the tested phone emulator. Physical devices, Android TV, Fire TV, offline playback, casting, Analytics receipt and completed SDK resource cleanup require separate checks. The observed seek and latency timings are not guarantees."
     }
   ],
   "sources": [
@@ -189,11 +136,6 @@
       "path": "apps/android/README.md",
       "line": 26,
       "label": "Build and licenses"
-    },
-    {
-      "path": "apps/android/README.md",
-      "line": 182,
-      "label": "Real-playback tests and recorded results"
     },
     {
       "path": "apps/android/app/build.gradle.kts",
@@ -231,29 +173,9 @@
       "label": "Validated source and player settings"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt",
-      "line": 73,
-      "label": "Strict live controls and failure diagnostics"
-    },
-    {
-      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerUiHandoffInstrumentedTest.kt",
-      "line": 38,
-      "label": "Playing-player UI handoff check"
-    },
-    {
-      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerConfigurationPlaybackInstrumentedTest.kt",
-      "line": 38,
-      "label": "Configured VOD first-position assertion"
-    },
-    {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt",
       "line": 8,
       "label": "View lifecycle ownership"
-    },
-    {
-      "path": "apps/android/app/src/test/kotlin/com/playerlab/android/PlayerViewLifecycleTest.kt",
-      "line": 11,
-      "label": "Host lifecycle regression checks"
     },
     {
       "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player/is-stalled.html",
@@ -272,34 +194,9 @@
       "label": "Player 3.171.0 source target latency and live-edge definition"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerFinalizationInstrumentedTest.kt",
-      "line": 47,
-      "label": "Same-URL HLS/DASH finalization and Replay checks"
-    },
-    {
-      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerConfigurationCodeInstrumentedTest.kt",
-      "line": 32,
-      "label": "Applied-code and real clipboard check"
-    },
-    {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt",
       "line": 22,
       "label": "Applied SDK configuration example"
-    },
-    {
-      "path": "apps/android/runtime-fixture.mjs",
-      "line": 1,
-      "label": "Local Android finalization fixture"
-    },
-    {
-      "path": "apps/android/runtime-tests.py",
-      "line": 1,
-      "label": "Public Android runtime launcher"
-    },
-    {
-      "path": "apps/android/test-runtime-tests.py",
-      "line": 1,
-      "label": "Strict result parser checks"
     },
     {
       "url": "https://developer.android.com/reference/android/view/ViewParent#requestDisallowInterceptTouchEvent(boolean)",

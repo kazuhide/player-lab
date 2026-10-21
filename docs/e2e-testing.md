@@ -157,8 +157,8 @@ verification tasks.
 
 On 2026-10-21, the current `e2e:public` subset passed all 74 cases with zero
 retries, using Player 8.281.0 and UI 4.23.0 with the updated ownership patch.
-The [UI lifecycle measurements](web-performance.md) record the separate
-processor and memory comparison and its limits.
+The [representative test results](https://kazuhide.github.io/player-lab/guide/test-results/)
+summarize processor and memory observations with their test conditions.
 
 ## Additional native runtime checks
 

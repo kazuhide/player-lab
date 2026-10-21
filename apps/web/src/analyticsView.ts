@@ -23,7 +23,7 @@ interface Preset {
 const PRESETS: Preset[] = [
   { id: "impressions", label: { ja: "インプレッション数", en: "Impressions" }, aggregation: "count", dimension: "IMPRESSION_ID" },
   { id: "startup", label: { ja: "平均スタートアップ時間", en: "Avg startup time" }, aggregation: "avg", dimension: "STARTUPTIME" },
-  { id: "videoStartup", label: { ja: "平均ビデオスタートアップ", en: "Avg video startup" }, aggregation: "avg", dimension: "VIDEO_STARTUP_TIME" },
+  { id: "videoStartup", label: { ja: "平均ビデオスタートアップ", en: "Avg video startup" }, aggregation: "avg", dimension: "VIDEO_STARTUPTIME" },
   { id: "buffered", label: { ja: "平均バッファ時間", en: "Avg buffered (rebuffer)" }, aggregation: "avg", dimension: "BUFFERED" },
 ];
 

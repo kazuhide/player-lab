@@ -1,7 +1,7 @@
 {
   "id": "native-integrations",
   "title": "React Native and Vega OS integration",
-  "lead": "The React Native sample generates an external Expo project, and the Vega sample includes a Kepler application host. This section describes how to build and run each app and which native playback behaviors have been checked.",
+  "lead": "Run the React Native sample in a generated Expo project, or build the included Vega Kepler app. Try their source, playback, subtitle, and UI settings and inspect the applied configuration code.",
   "blocks": [
     {
       "type": "h2",
@@ -95,10 +95,6 @@
     },
     {
       "type": "p",
-      "text": "URL validation uses the locally imported URL from react-native-url-polyfill 4.0.0. Older native global URL implementations leave protocol and hostname unimplemented, which would reject valid sources before loading. The local parser leaves global URL and the SDK media shims unchanged."
-    },
-    {
-      "type": "p",
       "text": "Autoplay and Mute on startup apply at player creation. Start offsets and buffer durations accept finite decimal seconds. Blank buffer keeps the SDK default (iOS 0, Android 50); iOS 0 lets the SDK choose a duration. This form requires a positive Android buffer target because zero is not its automatic setting. Maximum bitrate accepts whole bits per second: 1–2,147,483,647 on Android and 1–9,007,199,254,740,991 on iOS; blank means no cap. The native bridge converts bitrate to an integer, Android uses a signed 32-bit value, and JavaScript cannot represent integers above its safe limit exactly. Fractions and out-of-range values are rejected before recreation."
     },
     {
@@ -106,25 +102,8 @@
       "text": "Apply and recreate player validates the whole draft, recreates the player, and reloads the selected source from its start offset. Playback position resets and playback starts according to Autoplay. The complete source, chosen UI, log, and Allow DVR setting are retained. Invalid or unchanged settings do not recreate the player. Reset draft only discards edits; it does not change playback. Preset source buttons still load immediately. Allow DVR remains an application helper rather than an editable SDK playback property."
     },
     {
-      "type": "code",
-      "title": "Check logic and types from the repository root",
-      "text": "pnpm --filter @showcase/react-native test\npnpm --filter @showcase/react-native typecheck"
-    },
-    {
-      "type": "note",
-      "text": "The type check includes the real App and generated host entry points. App interaction tests use native/player mocks; generator checks separately verify source/assets, pinned inputs, existing-target refusal and private copying of explicitly selected environment files. Separate iPhone-simulator checks used wrapper 1.29.0, Expo 57.0.30 and native Player 3.128.0. Default and Sports rendered the 60-second HLS fixture with advancing native positions. For a configured 5-second start offset, the native first Playing event and current-time sample both reported 5.000 seconds. Native checks confirmed autoplay/mute, buffer/bitrate settings, Apply replacing the owner with the previous owner destroyed, and Reset/source/UI/log/Allow DVR retention. The OS clipboard exactly matched the visible applied code and excluded draft edits. After background/foreground return, the same owner advanced after an explicit on-screen SDK Play action."
-    },
-    {
-      "type": "note",
-      "text": "The public device runners use an explicit --runtime-checks host around the same production App, owner and view-ready path. Normal form, SDK and OS clipboard operations require 5 fresh native samples, a 59–61-second duration and changing movie pixels. Settings must survive both Default/Sports owner replacements. Android pauses through the visible SDK control before Home and explicitly plays after return; this does not qualify automatic resume. The wrapper isDestroyed flag confirms wrapper retirement, but its public void destroy() API supplies no native completion acknowledgement. Keep reports/logs private and capture guide screens from the normal entry. Source loading waits for the actual native view-ready callback and rejects retired view/owner callbacks."
-    },
-    {
-      "type": "code",
-      "text": "python3 apps/react-native/runtime/run-ios.py --device <IOS_UDID> --media-url <60_SECOND_HLS_URL> --output ../rn-ios-result\npython3 apps/react-native/runtime/run-android.py --device <ANDROID_SERIAL> --media-url <60_SECOND_HLS_URL> --output ../rn-android-result"
-    },
-    {
       "type": "p",
-      "text": "Use the external-subtitle scenarios to apply the 4 fields, select the track in the normal SDK menu and require a new native cue after selected-track confirmation on the same source. Earlier embedded/default cues do not count. Both OS scenarios passed with wrapper 1.29.0. Android additionally requires actual visible fixture text; iOS checks the selected track, fresh cue and moving native video. For Android's finite fixture, the runner turns Autoplay off in the normal form and confirms a paused native sample before menu traversal. After selection it uses the visible SDK Play control and requires fresh same-owner playback and cue observations. Core cases test autoplay and Pause/Play separately. Normal OS Tab input brings clipped SDK menu rows into view; it does not alter the track through a hidden setter."
+      "text": "To display an external subtitle in React Native, apply its URL, label, language, and default metadata, then select the track in the Player subtitle menu. Mark as default supplies metadata; it does not enable the track by itself. Use a source and WebVTT file whose cue times overlap."
     },
     {
       "type": "figure",
@@ -135,14 +114,6 @@
       "type": "figure",
       "file": "rn-android-caption",
       "caption": "React Native on Android: the selected external subtitle over the native video."
-    },
-    {
-      "type": "code",
-      "text": "python3 apps/react-native/runtime/run-ios.py --device <IOS_UDID> --media-url <60_SECOND_HLS_URL> --subtitle-url <WEBVTT_URL> --output ../rn-ios-subtitles\npython3 apps/react-native/runtime/run-subtitles-android.py --adb <ADB_PATH> --device <ANDROID_SERIAL> --media-url <60_SECOND_HLS_URL> --subtitle-url <WEBVTT_URL> --output ../rn-android-subtitles"
-    },
-    {
-      "type": "p",
-      "text": "On Android API 36.1, the current wrapper rendered the 60-second HLS and DASH fixtures with advancing native SDK positions. The first Playing position was sampled at 5.0 seconds for the configured 5-second start offset; frame-accurate initial seek timing was not measured. Native checks confirmed autoplay/mute, the bitrate and buffer getters, Reset retaining the owner, and Apply replacing the owner with the previous owner destroyed. Default and the packaged Sports factory retained the applied source and settings. The OS clipboard exactly matched the visible configuration code and excluded draft edits. After background/foreground return, the same applied owner advanced after an explicit on-screen SDK Play action. These simulator/emulator checks do not establish automatic resume without interaction, physical-device or Release behavior, DRM, ads, all factories, live/DVR or quantitative buffer/bitrate effects."
     },
     {
       "type": "h2",
@@ -168,8 +139,8 @@
     },
     {
       "type": "code",
-      "title": "Build without including license credentials",
-      "text": "pnpm install --frozen-lockfile\npnpm --filter @showcase/vega runtime:config --without-credentials\nvega exec pnpm --filter @showcase/vega build:vega"
+      "title": "Load local licenses and build",
+      "text": "source scripts/env-lib.sh\nload_env_defaults .env\npnpm --filter @showcase/vega runtime:config\nvega exec pnpm --filter @showcase/vega build:vega"
     },
     {
       "type": "code",
@@ -200,10 +171,6 @@
     },
     {
       "type": "p",
-      "text": "URL validation uses a local import from react-native-url-polyfill 4.0.0 because React Native 0.72 does not implement all global URL getters. The native global URL and media object URLs are preserved. The dependency is already declared in apps/vega/package.json."
-    },
-    {
-      "type": "p",
       "text": "Autoplay and Mute on startup apply at player creation. Separate audio/video forward buffer targets are in seconds; this form accepts positive values, and blank keeps the SDK default of 40 seconds per media type. Live windows can limit the effective buffer. Maximum video bitrate is a positive adaptation cap in bits per second; blank means no cap. Numbers must be finite decimals. Format, buffering and adaptation support still depends on the stream, engine and target device."
     },
     {
@@ -212,49 +179,15 @@
     },
     {
       "type": "p",
-      "text": "Background handling retires the session callbacks, clears the owned surface and sets the retired media element’s public src property to an empty string. That starts MediaSource reset and detachment while JavaScript can still run. The handler then requests synchronous native deinitialization before starting SDK destruction. Source reset alone is not release confirmation: both successful native deinitialization and fulfilled SDK destruction are required before replacing the global media shim or creating another owner. Background handling also releases the actual owner when an earlier Apply is still retiring. Ordinary foreground Apply keeps its SDK-destroy-first order because SDK cleanup still uses the media object. Return requires a fresh surface generation and confirmed cleanup. Applied settings, drafts, logs and Allow DVR remain in App state; playback starts from the configured source offset according to Autoplay, without position restoration."
-    },
-    {
-      "type": "code",
-      "title": "Check the screen and logic from the repository root",
-      "text": "pnpm --filter @showcase/vega test\npnpm --filter @showcase/vega typecheck"
-    },
-    {
-      "type": "note",
-      "text": "An earlier 2026-10-21 baseline run passed 73 license-free tests and the full App type check. All three Release packages built; the aarch64 package ran on an aarch64 Vega Virtual Device. The uninstrumented package’s source map matched all 15 application source files. Three valid Applies with video bitrate caps of 2, 3 and 4 Mbit/s each showed changing VOD HLS frames and advancing SDK positions in the same app instance. Native D-pad/Select checks toggled all three switches off and on. Applied-code checks covered Show/Hide, draft exclusion, Apply updates and license placeholders. Unit/session tests still mock native media/player boundaries and remain separate evidence."
-    },
-    {
-      "type": "note",
-      "text": "The public Vega runner needs a dedicated device, Vega SDK, loopback Appium/Kepler automation and an explicit --runtime-checks build. It drives normal controls and requires visible cues, 5 progressing native clock/decoded-frame samples and changing movie pixels. It checks draft/code isolation, retained settings, and a fresh session after background return. Cleanup requires fulfilled SDK destruction and successful native media release; an unconfirmed owner blocks replacement. This differs from the React Native wrapper’s unavailable native destroy completion. TypeScript/renderer tests remain separate from licensed OS checks. Begin after normal source-load readiness. Cancelling initial native allocation without a release acknowledgement requires restarting the app."
-    },
-    {
-      "type": "note",
-      "text": "The public Vega runner passed with the external HTTPS WebVTT track enabled: native clocks and decoded frames advanced while the cue overlay was visible. Source Apply retained the configured subtitle, playback, buffer, bitrate and DVR settings. The companion-app return retained the OS app instance, created a fresh foreground player and acknowledged player destruction and native release. These checks cover the documented virtual-device combination; they do not establish every WebVTT feature or physical-device behavior."
-    },
-    {
-      "type": "p",
-      "text": "The runner switches to a license-free companion through the documented app-to-app URI and returns to the same OS application instance. Home can clear the back stack; cold-launch state restoration is a separate behavior."
-    },
-    {
-      "type": "code",
-      "text": "python3 apps/vega/runtime/prepare-companion.py --output ../vega-runtime-companion\n(cd ../vega-runtime-companion && vega exec pnpm build)\nvega run-app ../vega-runtime-companion/build/aarch64-release/player-lab-runtime-companion_aarch64.vpkg com.playerlab.runtimecompanion.main --deviceId <VDA_DEVICE>\npython3 apps/vega/runtime/run.py --device <VDA_DEVICE> --vda-server-port <VDA_PORT> --media-url <60_SECOND_HLS_URL> --subtitle-url <HTTPS_WEBVTT_URL> --output ../vega-runtime-result"
+      "text": "When the Vega app returns from the background, it creates a new playback session and reloads the retained source and applied settings. Playback restarts according to the configured start offset and Autoplay value. This does not restore an arbitrary previous playback position."
     },
     {
       "type": "p",
       "text": "Before player construction, the runtime connects the published Amazon media/WebCrypto APIs, @xmldom/xmldom 0.9.12 and base-64 1.0.0. PlayerConfig.network.requestApi is fixed to Fetch as required by the integration; it is a code setting, not a GUI selector. Other supplied network hooks remain. Native media and crypto implementations stay in their installed packages. The state line displays PlayerAPI.getCurrentTime() in seconds; live sources can use an absolute media timeline."
     },
     {
-      "type": "code",
-      "title": "Load local licenses before rebuilding",
-      "text": "source scripts/env-lib.sh\nload_env_defaults .env\npnpm --filter @showcase/vega runtime:config\nvega exec pnpm --filter @showcase/vega build:vega"
-    },
-    {
-      "type": "note",
-      "text": "Before the external-subtitle changes, a normal-entry baseline package completed 3 measured warm returns on VOD HLS and 3 on Live DASH, all in the same process and app instance. Each used an application switch and at least 5 seconds in the background. Advancing SDK positions and changing video frames were checked together after playback began; SourceLoaded alone was not sufficient. VOD returns retained the selected source, applied bitrate cap, unapplied title draft, configuration log and Allow DVR off. Live returns retained the source and Allow DVR off; Select then re-enabled available DVR controls. Open descriptors fell from 149–152 to 72–74 in the background and returned to 149–153 during playback. Memory and descriptor samples do not establish exact native media/surface allocation counts or leak freedom. This is VVD qualification; physical Fire TV, DRM/offline behavior, audio correctness and quantitative buffer/bitrate effects require their own checks."
-    },
-    {
       "type": "p",
-      "text": "A native timedout/invalid status or thrown release, rejected SDK destruction, or initialization cancellation without a physical-release acknowledgement keeps the prior owner and blocks replacement with a restart-needed diagnostic. The app does not retry a lost native handle or admit another owner after an unconfirmed release. Its 1000 ms synchronous-release deadline is an application policy, not an Amazon default. Pausing alone leaves the MediaSource attached; the retired element’s source reset prepares release, while the two completion acknowledgements still govern ownership."
+      "text": "If the app reports that the previous native player could not be released, restart the app before trying again. Creating another player while the previous one still owns native resources can prevent playback. This safeguard stops replacement and keeps the diagnostic visible."
     },
     {
       "type": "h2",

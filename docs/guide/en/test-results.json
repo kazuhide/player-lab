@@ -1,0 +1,118 @@
+{
+  "id": "test-results",
+  "title": "Recorded test results",
+  "lead": "Representative results show which settings and playback operations were checked, with their media, environment and measurement units. They are records of specific runs, not guarantees for every source or device.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Representative results recorded on 2026-10-21"
+    },
+    {
+      "type": "p",
+      "text": "These rows summarize separate checks documented for each app. Their media and workloads differ; do not add the case counts or durations into one suite. The Web row identifies the measured source revision and ordinary patched measurements."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Target / recorded source",
+        "Media and workload",
+        "Result and units",
+        "Environment and limits"
+      ],
+      "rows": [
+        [
+          "Web / Player 8.281.0, UI 4.23.0; source dee205b",
+          "60-second H.264/AAC Big Buck Bunny HLS/DASH; 21 phases of playback, themes, settings, source changes and disposal; 7 Players created/destroyed per run.",
+          "3 measured runs: median renderer CPU 2.924 s; main-thread CPU 1.785 s; heap after disposal 15.92 MiB; highest sampled heap 29.38 MiB.",
+          "Apple M5, 10 logical CPUs, 32 GiB, Chrome 155.0.8059.85, 1440 × 900, headless development server. 1 warm-up excluded; no throttling or forced collection."
+        ],
+        [
+          "Android / Player 3.171.0",
+          "Phone-emulator playback, live return, HLS/DASH ending, standard controls, clipboard, lifecycle, language priority, external WebVTT and HTTP retries.",
+          "20/20 licensed instrumentation cases passed in 274.859 s.",
+          "Android 16 / API 36.1 ARM64, current application identity and corrected menu touch handling. Separate 24 JVM and 7 configuration-only cases do not establish playback."
+        ],
+        [
+          "iOS / tvOS / Player 3.128.0",
+          "German audio/subtitles, scaling, Apply/Reset and code; 1 case each for hosted SDK and normal GUI.",
+          "2 passed per destination: iPad 9.403 s (SDK), 172.160 s (GUI); Apple TV 9.981 s (SDK), 277.297 s (GUI).",
+          "Recorded iPadOS/tvOS 26.4 simulators. These are the named 2-case records, separate from later GUI-only repeats and HLS-ending checks."
+        ],
+        [
+          "React Native / wrapper 1.29.0",
+          "60-second HLS on iOS and HLS/DASH on Android; Default/Sports, Apply, native settings, OS clipboard and explicit Play after background return.",
+          "Video frames and native position advanced; first Playing/current-time values were 5.000 s for the configured 5-second start.",
+          "Expo 57; native iOS 3.128.0 / Android 3.170.0+jason. Confirms configuration delivery and the recorded simulator/emulator behavior, not quantitative adaptation."
+        ],
+        [
+          "Vega / SDK 0.24.12112",
+          "Public VOD HLS and Live DASH presets; same-instance foreground Apply and background/foreground return.",
+          "3 valid VOD Applies, 3 VOD warm returns and 3 Live warm returns advanced SDK positions and video frames.",
+          "aarch64 virtual device; each warm return included at least 5 s in the background. Separate 73 license-free tests and 3 Release builds do not establish target-device playback."
+        ]
+      ],
+      "widths": [
+        0.18,
+        0.28,
+        0.26,
+        0.28
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Read CPU and memory values in context"
+    },
+    {
+      "type": "p",
+      "text": "Web CPU times are totals across the measured workload, not CPU utilization percentages. Renderer-process CPU excludes the separate browser and GPU processes. The heap values are ordinary samples whose size depends on collection timing; one MiB is 1,048,576 bytes. JavaScript heap is not total player memory: decoded frames, native media buffers and GPU allocations are outside it."
+    },
+    {
+      "type": "p",
+      "text": "The Web runs ended with seven Players created and destroyed, no live Player or media element, no pending media request, and the app metrics timer stopped. This short desktop workload does not establish long-session memory behavior, leak freedom or performance on other hardware. The recorded numbers are not pass/fail budgets."
+    },
+    {
+      "type": "h2",
+      "text": "Build checks and real playback are different evidence"
+    },
+    {
+      "type": "p",
+      "text": "Type checks, builds and unit tests with mocked players check code and configuration contracts. Real SDK playback checks also require advancing native time and visible video or subtitle cues for the named action. Applied bitrate/buffer getter values show that settings reached the SDK; they do not measure bandwidth enforcement or buffering performance."
+    },
+    {
+      "type": "note",
+      "text": "Simulator/emulator results do not qualify physical devices, every UI factory, protected media, casting or Analytics receipt. Browser automation can check a collector request attempt without establishing remote collection or dashboard aggregation. Check the platform chapters and SDK references for the operation you want to try."
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/web-performance-results.json",
+      "line": 273,
+      "label": "Recorded Web inputs and ordinary measurements"
+    },
+    {
+      "path": "tests/e2e/performance/lifecycle.spec.ts",
+      "line": 250,
+      "label": "Measured Web lifecycle workload"
+    },
+    {
+      "path": "apps/android/README.md",
+      "line": 370,
+      "label": "Current Android phone-emulator results"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "line": 560,
+      "label": "Recorded Apple SDK and normal-GUI results"
+    },
+    {
+      "path": "apps/react-native/README.md",
+      "line": 263,
+      "label": "React Native native playback and configuration checks"
+    },
+    {
+      "path": "apps/vega/README.md",
+      "line": 304,
+      "label": "Vega runtime validation scope"
+    }
+  ]
+}

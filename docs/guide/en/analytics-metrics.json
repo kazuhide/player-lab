@@ -1,0 +1,170 @@
+{
+  "id": "analytics-metrics",
+  "title": "Choose an Analytics metric",
+  "lead": "Choose a question, metric, unit and aggregation before comparing results. The Web app exposes four fixed aggregate buttons; the Analytics API and dashboard cover additional questions.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Start with the four Web buttons"
+    },
+    {
+      "type": "p",
+      "text": "In local development, open Bitmovin Analytics (server-proxied query). Every button queries the server-selected Analytics license over the last 7 days, without time buckets or category filters. The displayed numbers keep their API units."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Button",
+        "Metric and aggregation",
+        "Meaning / raw unit"
+      ],
+      "rows": [
+        [
+          "Impressions",
+          "count(IMPRESSION_ID)",
+          "Impression/session count; not automatically the dashboard Plays metric."
+        ],
+        [
+          "Avg startup time",
+          "avg(STARTUPTIME)",
+          "Player startup + video startup; milliseconds (ms)."
+        ],
+        [
+          "Avg video startup",
+          "avg(VIDEO_STARTUPTIME)",
+          "Intent to play to the first frame; milliseconds (ms)."
+        ],
+        [
+          "Avg buffered (rebuffer)",
+          "avg(BUFFERED)",
+          "Average buffering duration; milliseconds (ms), not a percentage."
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The browser-local startup readout measures SourceLoaded to Playing. Analytics VIDEO_STARTUPTIME measures playback initiation to the first frame, while STARTUPTIME also includes player setup. Equal units do not make these measurements interchangeable."
+    },
+    {
+      "type": "h2",
+      "text": "Common questions beyond the four buttons"
+    },
+    {
+      "type": "p",
+      "text": "The following are documented Analytics query patterns, not additional controls in this app. Use the API Explorer, your backend or a supported SDK. Check your collector/platform field support before comparing devices."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Question / keyword",
+        "Documented aggregation",
+        "Meaning and unit"
+      ],
+      "rows": [
+        [
+          "Successful Plays / IMPRESSION_ID",
+          "count, with VIDEO_STARTUPTIME > 0",
+          "Sessions that displayed a first frame. The positive-startup filter distinguishes this from the app's unfiltered impression button."
+        ],
+        [
+          "Typical video startup / VIDEO_STARTUPTIME",
+          "median, with VIDEO_STARTUPTIME > 0",
+          "Milliseconds. The Observability catalog also supports average and percentile; its default is median."
+        ],
+        [
+          "Total watch time / PLAYED",
+          "sum, with PLAYED > 0",
+          "Milliseconds in the played state. Divide by 3,600,000 for hours."
+        ],
+        [
+          "Rebuffering / REBUFFER_PERCENTAGE",
+          "avg",
+          "Percent of time spent waiting for media during viewing. This is distinct from average BUFFERED duration."
+        ],
+        [
+          "Played video bitrate / VIDEO_BITRATE",
+          "avg, with VIDEO_BITRATE > 0",
+          "Bits/second (bps). Divide by 1,000,000 for Mbps. This is rendition bitrate, not network throughput."
+        ],
+        [
+          "Download bandwidth / DOWNLOAD_SPEED",
+          "avg",
+          "Measured segment-download speed in bits/second. Field availability depends on the collector."
+        ],
+        [
+          "Error percentage / ERROR_PERCENTAGE",
+          "avg",
+          "Percentage against sessions considered, including cases that can fail before video starts. Keep its denominator when comparing results."
+        ],
+        [
+          "Seek duration / SEEKED",
+          "median, with SEEKED > 0",
+          "Milliseconds for a seek to resume playback."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The official dashboard reference lists download bandwidth and downloaded-data limitations on AVFoundation and Bitmovin iOS. An absent field or empty result on one SDK is not a zero measurement, and does not establish support on every platform."
+    },
+    {
+      "type": "h2",
+      "text": "Choose the aggregation deliberately"
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "count answers how many; sum answers the total; avg answers the arithmetic mean. The metric defines what is counted or averaged.",
+        "median is the 50th percentile. A high percentile, such as p95, describes the slow tail rather than the typical viewer. A percentile query needs its percentile parameter and a supported metric.",
+        "The four Web buttons do not expose median, percentile, a custom time range or arbitrary filters. The existing proxy is a subset of the full Query API.",
+        "Do not average percentages from unequal populations or add unique-user counts across buckets and assume a period total. Keep the metric definition and population visible."
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Keep names, units and populations together"
+    },
+    {
+      "type": "p",
+      "text": "Use uppercase REST attributes such as VIDEO_STARTUPTIME exactly as documented. Observability MCP uses its own catalog keywords, such as video_startuptime and plays, and can add metric-specific filters. Resolve those keywords with searchMetrics when available, or getAvailableMetrics, rather than assuming that a dashboard label is an API field."
+    },
+    {
+      "type": "note",
+      "text": "The MCP catalog distinguishes error_percentage from error_ratio, which is normalized by viewing hours. Neither is the browser's Error event count. Before deriving a new rate, verify the selected metric's definition, unit and denominator in the dashboard/API catalog."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 23
+    },
+    {
+      "path": "apps/web/src/analytics/metrics.ts",
+      "line": 90
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/analytics-api-fields",
+      "label": "Analytics API fields and units"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/analytics-dashboard-metrics-reference",
+      "label": "Analytics dashboard metrics reference"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/how-to-recreate-dashboard-queries-via-the-api-1",
+      "label": "Official dashboard query patterns"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/which-metrics-related-to-the-startup-time-are-collected-by-bitmovin",
+      "label": "Startup metric definitions"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-api-sdk-javascript/blob/main/src/models/AnalyticsAttribute.ts",
+      "label": "Official Analytics REST attribute enum"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/bitmovin-observability-mcp-server",
+      "label": "Observability MCP metrics and aggregation catalog"
+    }
+  ]
+}

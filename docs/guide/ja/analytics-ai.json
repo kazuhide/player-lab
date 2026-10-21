@@ -1,0 +1,163 @@
+{
+  "id": "analytics-ai",
+  "title": "LLM や MCP で Analytics を分析する",
+  "lead": "まず、再現できる集計上の問いを決めます。確認済みの出力ファイル、外部の Bitmovin Observability Assistant、または利用を許可した MCP 接続を使います。これらは Player Lab の再生 GUI とは別の手順です。",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "AI にデータを渡す方法を選ぶ"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "方法",
+        "使い方"
+      ],
+      "rows": [
+        [
+          "集計ファイル",
+          "自分の API やデータ出力の手順で小さな JSON・CSV テーブルを作り、利用を許可した LLM に渡します。Analytics に接続せず、そのファイルを分析します。"
+        ],
+        [
+          "Bitmovin Observability Assistant",
+          "外部の Dashboard のチャットで再生指標について質問します。自分のアカウントの権限内でデータを取得します。記録が必要な場合は、画面を離れる前に Download Chat で会話を保存します。"
+        ],
+        [
+          "Observability MCP",
+          "対応する AI クライアントを公式サーバーへ接続し、許可された Analytics ツールを使います。データを要求する前に、対象データと問い合わせ範囲を確認します。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Player Lab に LLM チャット、MCP 接続フォーム、アカウントデータの出力ボタンはありません。ローカルの Analytics 画面はサーバー側プロキシを通して集計結果を返し、ブラウザー内の QoE 画面は現在の再生セッションを計測します。どちらか一方の結果だけで、視聴者全体で起きたことを判断することはできません。"
+    },
+    {
+      "type": "h2",
+      "text": "安全に渡せる集計ファイルを作る"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "問いと期間を先に決めます。例えば、UTC の終了済みの二日間について、ブラウザー別の動画開始時間を比較します。",
+        "開始・終了、タイムゾーン、指標、集計方法、単位、フィルター、分類項目、時間幅、並び順、上限を結果と一緒に残します。ライセンスキーではなく、差し障りのないデータセット名を使います。",
+        "各分類について、同じ条件で求めた集計対象数も含めます。欠損値や非表示にした値をゼロと区別し、時間ごとの中央値から期間全体の中央値を計算しないでください。",
+        "認証情報、視聴者・セッションの識別子、IP アドレス、ソース URL、未確認のカスタムフィールドを除きます。データ共有ルールに従って小さな集団をまとめるか非表示にします。生の CSV 出力をそのままアップロードしてよいとは限りません。",
+        "できたファイルを手元で確認し、問いに必要な項目だけを利用が許可された AI サービスへ渡します。元のクエリと出力は自分の管理下に残します。"
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "分析を再現できる質問文を使う"
+    },
+    {
+      "type": "p",
+      "text": "次の例の対象範囲を、実際に作った集計ファイルの条件に置き換えます。これは質問文のひな形で、実行済みのクエリや Player Lab の利用状況に関する結果ではありません。日英で同じ分析を依頼できるよう、両版に同一の英語テンプレートを掲載しています。"
+    },
+    {
+      "type": "code",
+      "title": "集計ファイル用の質問テンプレート",
+      "text": "Analyze only the attached, reviewed aggregate dataset. Do not request credentials or session-level records.\n\nQuestion: Did video startup time change by browser between the two supplied UTC days?\nScope: Dataset A; 2026-10-18T00:00:00Z through 2026-10-20T00:00:00Z.\nMetric: median VIDEO_STARTUPTIME, milliseconds, filter VIDEO_STARTUPTIME > 0.\nPopulation: eligible video starts from a separate count query with the same time range and filters.\n\n1. Check the metadata, units, group sizes, missing buckets and any row limit before comparing results.\n2. Compare only the supplied days and groups. Do not average medians or treat missing/suppressed values as zero.\n3. Return a table with values, absolute changes, relevant counts and caveats. State any unit conversion.\n4. Separate measured observations from hypotheses. A browser correlation does not establish the cause.\n5. Propose the smallest follow-up queries, with exact metric/aggregation/filter/time requirements, without executing them.\n6. Include the dataset scope and query conditions in the answer so the comparison can be repeated."
+    },
+    {
+      "type": "h2",
+      "text": "公式 Observability MCP サーバーへ接続する"
+    },
+    {
+      "type": "p",
+      "text": "Model Context Protocol（MCP）は、AI クライアントがサーバーの提供するツールを呼び出すための仕組みです。公式の Observability エンドポイントは https://analytics.mcp.bitmovin.com/ で、x-api-key による認証を使います。必要な場合は x-tenant-org-id ヘッダーでテナントを指定します。クライアントごとの最新の公式手順に従ってください。公式の Claude Desktop の例では Node.js 20 以降を使います。"
+    },
+    {
+      "type": "code",
+      "title": "プレースホルダーを使った Claude Desktop の設定例",
+      "text": "{\n  \"mcpServers\": {\n    \"bitmovin-observability\": {\n      \"type\": \"stdio\",\n      \"command\": \"npx\",\n      \"args\": [\n        \"mcp-remote\",\n        \"https://analytics.mcp.bitmovin.com/\",\n        \"--header\",\n        \"x-api-key: <API_KEY>\"\n      ]\n    }\n  }\n}"
+    },
+    {
+      "type": "note",
+      "text": "この例はプレースホルダー入りのひな形です。実際の秘密情報は、クライアントが対応する秘密情報の管理方法を使い、保護されたローカルの MCP 設定だけに保存します。分析の質問文、Player Lab の入力欄、commit するファイル、画面キャプチャ、共有する会話に貼り付けないでください。MCP の接続は、集計ファイルをアップロードする場合とは異なるデータ取得経路を許可します。"
+    },
+    {
+      "type": "h2",
+      "text": "目的に合うツールと範囲を指定する"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "目的",
+        "ツールの役割"
+      ],
+      "rows": [
+        [
+          "指標と分類項目の名前を確かめる",
+          "接続先の指標・フィルターの一覧を確認します。現在の接続で searchMetrics・searchFilters が使える場合は必要な項目だけを検索できます。getAvailableMetrics・getAvailableFilters は一覧を返します。"
+        ],
+        [
+          "期間全体の一つの値",
+          "queryTotal は合計・平均・中央値・パーセンタイルなどの集計値を返します。"
+        ],
+        [
+          "時間ごとの変化",
+          "query は自動選択された時間幅で時系列データとグラフを返します。"
+        ],
+        [
+          "ブラウザーや端末の比較",
+          "queryGroupBy は分類別の内訳を返します。比較時は期間とフィルターを揃えます。"
+        ],
+        [
+          "調査を許可した一つの再生セッション",
+          "getImpressionOverview は一つの impressionId の概要を返し、analyzeImpression は時系列と解釈を加えます。ライセンス全体の集計や期間指定クエリの代わりにはなりません。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "ツールのキーワードは Dashboard の表示名や生 API のフィールド名と一致するとは限りません。接続先の一覧で正確な名前を調べ、返された定義・集計方法・単位を残します。特に Error Percentage と Error Ratio は別の指標です。名前を読み替えたり、算出済みの率の分母が変わるフィルターを追加したりしないでください。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "アクセスを許可したデータセット、明確な開始・終了、タイムゾーンを指定します。問い合わせ前に、解決された指標名、集計方法、フィルターを表示するよう依頼します。",
+        "queryTotal で期間全体の基準値を求め、query で推移を確認します。MCP の時系列ツールは時間幅を自動で選ぶため、実際の区切りも記録します。",
+        "queryGroupBy で差のあるブラウザーや端末へ絞ります。必要に応じて、対応する対象数も別に問い合わせます。",
+        "集計結果から必要性が分かった場合に限り、範囲を絞った個別セッション調査を明示的に許可します。セッション ID は識別子であり、視聴者数ではありません。",
+        "ツールへの入力、集計結果、説明を一緒に残します。再生設定を変える前に、計算と次の調査案をその結果に照らして確認します。"
+      ]
+    },
+    {
+      "type": "note",
+      "text": "MCP の公式資料では、個々の時間計測へのしきい値と、セッション内の累積時間への条件を区別し、後者はそのフィルターでは使えないと説明しています。セッション調査ツールが受け取るのは時間範囲ではなく一つの impressionId です。自然な文章で答えが返っても、対応していないクエリが実行できたと判断しないでください。"
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 115,
+      "label": "Player Lab: 現在の集計クエリ GUI"
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 107,
+      "label": "Player Lab: 集計応答の整形とサーバー側認証"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/bitmovin-observability-mcp-server",
+      "label": "Bitmovin: Observability MCP の接続・ツール・制約"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/the-bitmovin-observability-assistant",
+      "label": "Bitmovin: Dashboard Assistant と Download Chat"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/how-to-recreate-dashboard-queries-via-the-api-1",
+      "label": "Bitmovin: 指標の集計方法とクエリ条件"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/analytics-api-fields",
+      "label": "Bitmovin: Analytics のフィールドと単位"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/exporting-your-data",
+      "label": "Bitmovin: 生データ出力の形式と列の選択"
+    }
+  ]
+}

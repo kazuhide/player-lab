@@ -101,4 +101,15 @@ describe("Analytics view on a static host", () => {
     expect(Date.parse(body.end) - Date.parse(body.start)).toBe(7 * 24 * 60 * 60 * 1000);
     expect(child(view.el, "analytics-result").textContent).toBe("42");
   });
+
+  it("queries video startup using the public Analytics attribute", async () => {
+    vi.stubEnv("MODE", "development");
+    const view = createAnalyticsView();
+    child(view.el, "analytics-controls").children[2]!.dispatchEvent(new Event("click"));
+    await vi.waitFor(() => expect(child(view.el, "analytics-result").hidden).toBe(false));
+    const [, request] = fetch.mock.calls[0]!;
+    expect(JSON.parse(request!.body as string)).toMatchObject({
+      aggregation: "avg", dimension: "VIDEO_STARTUPTIME",
+    });
+  });
 });
