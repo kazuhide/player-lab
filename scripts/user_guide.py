@@ -130,7 +130,7 @@ def section_ids(document):
     result, used = {}, {'main', 'sources'}
     for index, block in enumerate(document['blocks']):
         if block['type'] == 'h2':
-            base = anchor(block['text']) or 'section'
+            base = anchor(block.get('id', block['text'])) or 'section'
             value, number = base, 1
             while value in used:
                 number += 1

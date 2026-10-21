@@ -1,7 +1,7 @@
 {
   "id": "web-screen-themes",
   "title": "The Web screen and themes",
-  "lead": "The public Web app lets you change the appearance and playback settings of Bitmovin Player in a browser. Selecting a theme also displays code explaining its composition.",
+  "lead": "Use the Web app to compare player controls, change their behavior and inspect the code behind the selected UI. Keep the source unchanged while comparing themes so that a media change does not obscure the difference.",
   "blocks": [
     {
       "type": "p",
@@ -13,7 +13,8 @@
     },
     {
       "type": "h2",
-      "text": "Three customization methods"
+      "text": "Ways to customize the UI",
+      "id": "three-customization-methods"
     },
     {
       "type": "table",
@@ -24,7 +25,7 @@
       "rows": [
         [
           "Default UI",
-          "Default (Bitmovin) provides the standard component composition for comparison."
+          "Default (Bitmovin) uses the standard desktop component tree through the app's DefaultUIFactory wrapper. Start here when comparing a custom layout."
         ],
         [
           "Default UI + CSS",
@@ -120,15 +121,61 @@
     {
       "type": "steps",
       "items": [
-        "Check that VOD HLS plays, then select Default (Bitmovin).",
-        "Switch to a CSS theme such as Neon. Check that the appearance changes while the layout stays the same.",
-        "Switch to a custom UI such as Premiere and compare the title, settings and seek-bar positions.",
-        "Read the difference summary and construction code beside the video to identify added, removed and modified components."
+        "Start VOD HLS and select Default (Bitmovin). Check the current time, pause/resume, volume and seek bar before changing the UI.",
+        "Select Neon, then return to Default. Compare the seek-bar color, button appearance and control-bar background while checking that playback continues. These themes share the same component tree.",
+        "Select Premiere, Creator and Studio on the same source. Compare the title, current/remaining time, settings gear and seek-bar position. These themes build different component trees.",
+        "Open the construction code beside the video. Its difference summary explains the changed components; the source path below the code identifies the factory or stylesheet to inspect.",
+        "In UI settings, change Speed item in settings gear while using Premiere. Reopen the gear menu and check the applied UIConfig overrides beside the video. Change the setting back and confirm the item returns."
       ]
     },
     {
       "type": "note",
-      "text": "A theme change retains the playing player and rebuilds only its UI. The construction code is an implementation example for that theme. It is not a configuration file reflecting every current GUI input or an export that saves the complete state."
+      "text": "A theme change keeps the player and current source, but releases and rebuilds its UI. Construction code is an abbreviated implementation example, not an editable browser field. Applied UIConfig overrides shows the UI values explicitly changed in the GUI; it excludes theme defaults, the app's sample metadata, autohide, casting options and PlayerConfig/SourceConfig. Copying either panel does not save the complete app state."
+    },
+    {
+      "type": "h2",
+      "text": "Try theme-specific controls"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Theme and source",
+        "Action and expected result"
+      ],
+      "rows": [
+        [
+          "Sports with a playing source",
+          "Wait for the sample score and player-information overlays to hide, then press INFO to show them again. Their content is supplied by sportsData.ts; it is not a live sports feed."
+        ],
+        [
+          "Binge with VOD HLS",
+          "During the sample intro from 5 to 18 seconds, use Skip Intro and check the playback position. Near the end, inspect Next episode and the Next-up card. Continuous play controls automatic advancement through the configured playlist."
+        ],
+        [
+          "Premiere, Creator or Studio with VOD",
+          "Open the gear menu and compare speed, quality and audio choices. Available choices depend on the source and UI settings. Finish playback to inspect the recommendation overlay, then select a recommendation and check the loaded source."
+        ],
+        [
+          "Live (DVR) with VOD, then an available live preset",
+          "Compare elapsed/total time on VOD with the LIVE and time labels on a live stream. The theme name does not make a source live or provide a rewind window; those depend on the loaded media."
+        ]
+      ],
+      "widths": [
+        0.3,
+        0.7
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Return to a comparison baseline"
+    },
+    {
+      "type": "p",
+      "text": "Selecting Default changes the UI composition; it does not reset the source, playback settings or UIConfig overrides. Restore the toggles changed during an experiment, keep Autohide controls off while inspecting the layout, and select the same source before comparing again. Reloading the page restores the app's initial in-memory settings. The selected app language and any enabled Player UI storage preferences or resume positions can survive a reload."
+    },
+    {
+      "type": "p",
+      "text": "The GUI selects existing compositions and exposes UI behavior settings. To add a control, move a component or edit a skin, use the source path shown beneath Construction code and follow Customize the player UI. The UI settings and external displays chapter describes each toggle and its prerequisites."
     },
     {
       "type": "h2",
@@ -162,11 +209,23 @@
     },
     {
       "path": "apps/web/src/uiGuide.ts",
-      "line": 467
+      "line": 535
     },
     {
       "path": "apps/web/src/i18n.ts",
       "line": 18
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 136
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 253
+    },
+    {
+      "path": "packages/ui-shared/src/sportsData.ts",
+      "line": 1
     }
   ]
 }

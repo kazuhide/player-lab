@@ -30,11 +30,13 @@
     {
       "type": "steps",
       "items": [
-        "ソースボタンで Live DASH + DVR、Live HLS、複数音声または字幕付きの Live DASH、VOD HLS、VOD DASH を選びます。起動時は先頭の Live DASH + DVR が読み込まれます。",
-        "プレイヤー内のコントロールで再生します。UI の Default、Sports、Live (DVR)、Cinema を切り替えて配置や表示を比較します。",
-        "−10s、−30s、−60s でライブ端からの指定位置へ移動します。Live edge でライブ位置へ戻ります。終了したライブソースを含む有限の VOD では、これらのライブ操作は無効になります。",
-        "Allow DVR、mode、dvrAvailable、behindLive、window の表示と、下部のイベントログを確認します。狭い画面ではボタン列を横に、パネル全体を縦にスクロールできます。",
-        "PlayerError または SourceError が記録されたら数値コードを確認します。まずライセンスの許可 application ID と参照ソースへの通信を確認します。"
+        "VOD HLSまたはVOD DASHを選び、プレイヤー内の操作部品で再生を開始します。設定を変える前に映像と再生位置が進むことを確認します。",
+        "ConfigurationとShow applied codeを開きます。URLは変えず、TitleにPlayer Lab VODを入力してApply source (reload)を押します。プレイヤー設定を変えずに、新しいソース読み込みのイベントと適用済みSourceConfigを確認します。",
+        "プレイヤー設定を比較する場合はStartup thresholdを1秒、Restart thresholdを2秒、Forward bufferを10秒にしてApply & restart playerを押します。再起動のメッセージ、保持されたソース、適用済みBufferConfigを確認します。Autoplayが無効なら再生を開始します。",
+        "Default、Sports、Live (DVR)、Cinemaを切り替えてUIの配置を比較します。AndroidではPlayerを維持してPlayerViewを交換します。プレイヤー内のメニューと外側のフォームは別々にスクロールします。",
+        "音声・字幕・ビットレートは、対応するトラックや画質を含むソースで以下の入力例を試します。設定値を入れても、ソースにないトラックや画質は増えません。",
+        "ライブの巻き戻しを試す場合はライブのプリセットを選び、範囲が得られるのを待ちます。負の補助オフセットはライブ端から過去への距離です。mode、dvrAvailable、behindLive、window、イベントログを確認します。Live edgeでライブ端に戻ります。",
+        "PlayerErrorやSourceErrorが出た場合は数値コードを確認します。まずライセンスに許可したアプリIDと参照ソースへの通信を確認してください。"
       ]
     },
     {
@@ -52,7 +54,7 @@
     },
     {
       "type": "p",
-      "text": "Configuration を開くと 25 項目を編集できます。ソース設定は HTTP／HTTPS URL、DASH／HLS／Smooth／Progressive、タイトル、ポスター URL、ポスターの継続表示、開始オフセット（秒）、SDK default／Start／End の基準、任意のライブ目標遅延（秒）です。タイトル・ポスター・オフセットの空欄は SDK 既定値です。既定の基準は VOD が先頭、ライブが末尾で、範囲外のオフセットは SDK が補正します。HTTP の可否は端末のネットワークポリシーに従います。"
+      "text": "Configurationを開くとソースとプレイヤーの設定を編集できます。ソース設定は HTTP／HTTPS URL、DASH／HLS／Smooth／Progressive、タイトル、ポスター URL、ポスターの継続表示、開始オフセット（秒）、SDK default／Start／End の基準、任意のライブ目標遅延（秒）です。タイトル・ポスター・オフセットの空欄は SDK 既定値です。既定の基準は VOD が先頭、ライブが末尾で、範囲外のオフセットは SDK が補正します。HTTP の可否は端末のネットワークポリシーに従います。"
     },
     {
       "type": "p",
@@ -82,6 +84,60 @@
       "type": "note",
       "title": "Androidでのプレイヤーメニューのスクロール",
       "text": "動画内の設定メニューとアプリの設定フォームは別々にスクロールします。メニューの下にある項目を表示するには動画内をスワイプし、フォームをスクロールするときは動画の外から操作してください。外側のスクロールが動画内のスワイプを取り込むことがあるため、アプリはプレイヤーで扱うタッチを動画側に保持します。指を離したとき、操作をキャンセルしたとき、プレイヤーを置き換えたときに解除します。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "設定グループ",
+        "入力例",
+        "適用方法と確認すること"
+      ],
+      "widths": [
+        0.22,
+        0.28,
+        0.5
+      ],
+      "rows": [
+        [
+          "Sourceと再生開始位置",
+          "Start offset: 5秒、Offset reference: Start",
+          "Apply source (reload)を使います。VODで再生開始位置を先頭と比較します。オフセットを空欄にするとSDK既定値になります。設定したオフセットは、その後のプレイヤー再起動にも適用します。"
+        ],
+        [
+          "Playback",
+          "Autoplay: 無効、Start muted: 有効",
+          "Apply & restart playerを使います。再生ボタンを押すまで待機し、ミュートで始まることを確認します。これらは起動時の設定で、プレイヤーUIの即時操作とは別です。"
+        ],
+        [
+          "Buffer",
+          "Startup threshold: 1、Restart threshold: 2、Forward buffer: 10。単位はいずれも秒",
+          "Apply & restart playerを使います。開始・再開のしきい値は、再生開始時や読み込み待ち後の再開に必要なバッファー内のメディア時間で、実時間の待ち時間を保証する値ではありません。適用済みコードのBufferConfigを確認します。見える効果は通信やソースによって変わります。"
+        ],
+        [
+          "Adaptation",
+          "Maximum automatic video bitrate: 1500000 bps",
+          "Apply & restart playerを使います。適用済みコードのmaxSelectableVideoBitrateと、複数ビットレートを含むソースの自動画質選択を比較します。自動選択の上限なので、手動選択ではより高い画質も選べます。"
+        ],
+        [
+          "ライブのAdaptation",
+          "Live quality / stability balance: 0.8",
+          "Apply & restart playerを使います。ライブ端付近では1側が安定性、0側が画質を優先します。VODでは比較できません。Preload contentとAllow rebufferingは別のAdaptation設定です。"
+        ],
+        [
+          "音声の優先言語",
+          "Player: en, de、Source: de, en",
+          "Player側は再起動、Source側は再読み込みで適用します。対応する音声を含むソースでプレイヤーのメニューを確認します。Source側のリストを優先し、空欄にするとPlayer側を引き継ぎます。"
+        ],
+        [
+          "Network",
+          "HTTP retry delays: 0, 0.25, 2秒",
+          "Apply & restart playerを使い、適用済みコードのリトライ間隔を確認します。成功した再生リクエストだけではリトライは確認できません。失敗時の挙動を調べる場合は自分で管理するテストソースを使います。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "初期のプレイヤー設定に戻す場合はReset player draftを押してからApply & restart playerを実行します。Reset player draftだけでは再生を変更しません。一方、Reset source draftは適用済みのソース値を下書きに戻す操作で、プリセットの既定値には戻りません。カスタムソース設定や外部字幕のメタデータを消す場合はソースのプリセットを選びます。プレイヤー設定は維持します。Androidでは同じ有効値を再適用した場合も、再読み込みまたは再起動を繰り返します。"
     },
     {
       "type": "h2",

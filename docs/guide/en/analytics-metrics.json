@@ -1,63 +1,30 @@
 {
   "id": "analytics-metrics",
   "title": "Choose an Analytics metric",
-  "lead": "Choose a question, metric, unit and aggregation before comparing results. The Web app exposes four fixed aggregate buttons; the Analytics API and dashboard cover additional questions.",
+  "lead": "Choose a Dashboard metric that answers your question, then check its unit, aggregation and playback population. When building a custom query, retain the corresponding API field names and conditions.",
   "blocks": [
     {
       "type": "h2",
-      "text": "Start with the four Web buttons"
+      "text": "Choose a Dashboard metric"
     },
     {
       "type": "p",
-      "text": "In local development, open Bitmovin Analytics (server-proxied query). Every button queries the server-selected Analytics license over the last 7 days, without time buckets or category filters. The displayed numbers keep their API units."
-    },
-    {
-      "type": "table",
-      "headers": [
-        "Button",
-        "Metric and aggregation",
-        "Meaning / raw unit"
-      ],
-      "rows": [
-        [
-          "Impressions",
-          "count(IMPRESSION_ID)",
-          "Impression/session count; not automatically the dashboard Plays metric."
-        ],
-        [
-          "Avg startup time",
-          "avg(STARTUPTIME)",
-          "Player startup + video startup; milliseconds (ms)."
-        ],
-        [
-          "Avg video startup",
-          "avg(VIDEO_STARTUPTIME)",
-          "Intent to play to the first frame; milliseconds (ms)."
-        ],
-        [
-          "Avg buffered (rebuffer)",
-          "avg(BUFFERED)",
-          "Average buffering duration; milliseconds (ms), not a percentage."
-        ]
-      ]
-    },
-    {
-      "type": "note",
-      "text": "The browser-local startup readout measures SourceLoaded to Playing. Analytics VIDEO_STARTUPTIME measures playback initiation to the first frame, while STARTUPTIME also includes player setup. Equal units do not make these measurements interchangeable."
+      "text": "Use Audience for viewing activity, Quality of Experience for startup and buffering, and Top Errors for playback failures. Keep the Analytics license, period and filters consistent. Read quality values together with their corresponding playback counts or viewing duration."
     },
     {
       "type": "h2",
-      "text": "Common questions beyond the four buttons"
+      "text": "Playback quality and audience metrics",
+      "id": "common-questions-beyond-the-four-buttons"
     },
     {
       "type": "p",
-      "text": "The following are documented Analytics query patterns, not additional controls in this app. Use the API Explorer, your backend or a supported SDK. Check your collector/platform field support before comparing devices."
+      "text": "These metrics describe audience and playback quality. The table also gives API aggregation examples. Available Dashboard fields depend on the view; use the API for custom groupings or aggregates, and check collector support."
     },
     {
       "type": "table",
       "headers": [
-        "Question / keyword",
-        "Documented aggregation",
+        "Question / API field",
+        "API aggregation example",
         "Meaning and unit"
       ],
       "rows": [
@@ -109,20 +76,65 @@
     },
     {
       "type": "h2",
-      "text": "Choose the aggregation deliberately"
+      "text": "Choose the aggregation deliberately",
+      "id": "choose-the-aggregation-deliberately"
     },
     {
       "type": "bullets",
       "items": [
         "count answers how many; sum answers the total; avg answers the arithmetic mean. The metric defines what is counted or averaged.",
         "median is the 50th percentile. A high percentile, such as p95, describes the slow tail rather than the typical viewer. A percentile query needs its percentile parameter and a supported metric.",
-        "The four Web buttons do not expose median, percentile, a custom time range or arbitrary filters. The existing proxy is a subset of the full Query API.",
+        "The local Web panel uses fixed queries. It does not offer median, percentile, arbitrary periods or free-form filters. Its proxy supports only a subset of the Query API.",
         "Do not average percentages from unequal populations or add unique-user counts across buckets and assume a period total. Keep the metric definition and population visible."
       ]
     },
     {
       "type": "h2",
-      "text": "Keep names, units and populations together"
+      "text": "If you use the local aggregate panel",
+      "id": "start-with-the-four-web-buttons"
+    },
+    {
+      "type": "p",
+      "text": "In local development, open Bitmovin Analytics (server-proxied query). Every button queries the server-selected Analytics license over the last 7 days, without time buckets or category filters. The displayed numbers keep their API units."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Button",
+        "Metric and aggregation",
+        "Meaning / raw unit"
+      ],
+      "rows": [
+        [
+          "Impressions",
+          "count(IMPRESSION_ID)",
+          "Impression/session count; not automatically the dashboard Plays metric."
+        ],
+        [
+          "Avg startup time",
+          "avg(STARTUPTIME)",
+          "Player startup + video startup; milliseconds (ms)."
+        ],
+        [
+          "Avg video startup",
+          "avg(VIDEO_STARTUPTIME)",
+          "Intent to play to the first frame; milliseconds (ms)."
+        ],
+        [
+          "Avg buffered (rebuffer)",
+          "avg(BUFFERED)",
+          "Average buffering duration; milliseconds (ms), not a percentage."
+        ]
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The browser-local startup readout measures SourceLoaded to Playing. Analytics VIDEO_STARTUPTIME measures playback initiation to the first frame, while STARTUPTIME also includes player setup. Equal units do not make these measurements interchangeable."
+    },
+    {
+      "type": "h2",
+      "text": "Keep names, units and populations together",
+      "id": "keep-names-units-and-populations-together"
     },
     {
       "type": "p",

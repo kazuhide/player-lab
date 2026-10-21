@@ -1,11 +1,12 @@
 {
   "id": "analytics-queries",
-  "title": "Retrieve Analytics aggregates",
-  "lead": "Use the existing local Web buttons first, then retrieve a specific time range or breakdown through a server-side query. The public Pages app collects data when configured but does not host aggregate queries.",
+  "title": "Analytics API queries",
+  "lead": "Use the Dashboard for routine inspection. The local aggregate panel and server-side Query API support custom analysis or external integrations. The public Pages app does not host an aggregate-query server.",
   "blocks": [
     {
       "type": "h2",
-      "text": "Use the existing GUI"
+      "text": "Try the local aggregate panel",
+      "id": "use-the-existing-gui"
     },
     {
       "type": "steps",
@@ -18,7 +19,8 @@
     },
     {
       "type": "h2",
-      "text": "Choose the correct credentials"
+      "text": "Choose the correct credentials",
+      "id": "choose-the-correct-credentials"
     },
     {
       "type": "table",
@@ -61,7 +63,8 @@
     },
     {
       "type": "h2",
-      "text": "Read the result and JSON response"
+      "text": "Read the result and JSON response",
+      "id": "read-the-result-and-json-response"
     },
     {
       "type": "p",
@@ -78,7 +81,8 @@
     },
     {
       "type": "h2",
-      "text": "Request a specific time range"
+      "text": "Request a specific time range",
+      "id": "request-a-specific-time-range"
     },
     {
       "type": "p",
@@ -91,7 +95,8 @@
     },
     {
       "type": "h2",
-      "text": "Use the Query API for a breakdown"
+      "text": "Use the Query API for a breakdown",
+      "id": "use-the-query-api-for-a-breakdown"
     },
     {
       "type": "p",
@@ -113,12 +118,13 @@
     },
     {
       "type": "h2",
-      "text": "Keep the same population when comparing"
+      "text": "Keep the same population when comparing",
+      "id": "keep-the-same-population-when-comparing"
     },
     {
       "type": "bullets",
       "items": [
-        "start and end choose an explicit time window. Use UTC timestamps and data within your retention period; the four GUI presets choose the last 7 days automatically.",
+        "start and end choose an explicit time window. Use UTC timestamps and data within your retention period; the local GUI presets choose the last 7 days automatically.",
         "interval groups time into MINUTE, HOUR, DAY or MONTH buckets. It is different from the overall start/end range.",
         "groupBy chooses categories, for example BROWSER, COUNTRY, DEVICE_TYPE or OPERATINGSYSTEM. filters selects the subset, for example BROWSER EQ Chrome or VIDEO_STARTUPTIME GT 0.",
         "Keep the Analytics license, range, timezone, filters, aggregation, unit and collector coverage with any exported result. Do not assume that every collector reports every dimension."
@@ -126,7 +132,8 @@
     },
     {
       "type": "h2",
-      "text": "If a query does not return the expected value"
+      "text": "If a query does not return the expected value",
+      "id": "if-a-query-does-not-return-the-expected-value"
     },
     {
       "type": "table",

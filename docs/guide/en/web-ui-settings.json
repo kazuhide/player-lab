@@ -5,7 +5,8 @@
   "blocks": [
     {
       "type": "h2",
-      "text": "Sixteen UI settings"
+      "text": "Available UI settings",
+      "id": "sixteen-ui-settings"
     },
     {
       "type": "table",
@@ -98,6 +99,69 @@
     },
     {
       "type": "h2",
+      "text": "Compare controls during playback",
+      "id": "compare-controls-during-playback"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select VOD HLS and Premiere. Note the current time and the UI setting values you want to restore. A UI setting change rebuilds the controls while keeping the Player instance; it does not require the Source or Player Config Apply buttons.",
+        "Turn on Autohide controls. Move the pointer outside the video and wait for the controls to hide. Then turn on Keep bar on hover and compare while the pointer remains over the video. Return the switches to their recorded values.",
+        "Turn off Speed item in settings gear, then open the gear menu. The playback-speed selector disappears. Turn it on again to restore the selector. This removes a UI control; it does not disable the Player API playbackSpeed field.",
+        "Turn Seek scrub-preview off and drag the seek bar: the seek applies after release. Turn it on and compare the video while dragging. Thumbnail images are a separate feature of VOD + Sprites.",
+        "Enter de in Player UI language and leave the field. Check the player control labels, then return to en or auto. The app's English/Japanese selector remains separate. Turn Follow subtitle language off when comparing a fixed UI language."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The construction-code panel displays the applied UIConfig overrides, such as playbackSpeedSelectionEnabled and localization.language. The applied configuration export below Player Config includes the same UI overrides. Changing themes retains these overrides. Numeric UI fields need an explicit previous value to restore them; empty input is treated as zero, rather than removing an override."
+    },
+    {
+      "type": "h2",
+      "text": "Check startup and saved-position behavior",
+      "id": "check-startup-and-saved-position-behavior"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Goal",
+        "How to try it",
+        "What to check and restore"
+      ],
+      "rows": [
+        [
+          "Enter fullscreen at first play",
+          "Turn autoplay off in Playback and recreate. Enable Fullscreen on first play in UI settings, then press the player play button.",
+          "The browser must allow fullscreen from that user action. Restore the UI switch and the earlier autoplay value; changing autoplay requires recreation."
+        ],
+        [
+          "Start a VOD from a URL timestamp",
+          "Open the Web app URL with ?t=30 and use VOD HLS. To compare with the option off, disable Read timestamp from URL and select the VOD HLS source again.",
+          "Check the initial time, not a later time after autoplay has advanced. Remove t from the URL and restore the switch afterwards. Saved resume positions and Source start offsets should be excluded from this comparison."
+        ],
+        [
+          "Inspect preference storage",
+          "Use Default or a CSS theme. Keep Disable UI storage off, enable Remember playback preferences and optionally Preference switch in default settings, then change volume, mute or speed.",
+          "Check the switch in the gear menu and the stored state in the browser's storage tools. A prior choice made in that switch can override the initial preference setting."
+        ],
+        [
+          "Compare VOD resume",
+          "Keep UI storage enabled, enable Resume VOD position, play into a VOD and load the same source again.",
+          "Compare the starting position with the option off, using a URL without t and no Source start offset. This applies to on-demand media, not live streams."
+        ]
+      ],
+      "widths": [
+        0.24,
+        0.38,
+        0.38
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Disable UI storage prevents the UI from using browser localStorage; it is separate from Player Config storage.disableStorageApi and does not mean that already saved browser data has been deleted. Restore the switches you changed. For an experiment independent of saved UI state, enable Disable UI storage. The GUI has no button that clears stored preferences."
+    },
+    {
+      "type": "h2",
       "text": "PiP, AirPlay and Chromecast"
     },
     {
@@ -147,6 +211,22 @@
     }
   ],
   "sources": [
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 280
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 391
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 705
+    },
+    {
+      "path": "tests/e2e/specs/app-ui.spec.ts",
+      "line": 214
+    },
     {
       "path": "apps/web/src/controlPanel.ts",
       "line": 254

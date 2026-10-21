@@ -1,17 +1,18 @@
 {
   "id": "analytics-visualization",
-  "title": "再生品質と視聴データを可視化する",
-  "lead": "知りたいことに合う表示を選び、期間・フィルター・単位・集計対象を結果と一緒に残します。ここでは外部の Bitmovin Dashboard、API クライアント、Grafana を使う方法を説明します。Player Lab の集計クエリ画面は結果を行で表示します。",
+  "title": "Dashboardで再生データを確認する",
+  "lead": "Bitmovin Dashboardでグラフや内訳を確認し、問題のある再生をセッション詳細へ絞り込みます。独自の表示が必要な場合は、Query APIやGrafanaを使います。",
   "blocks": [
     {
       "type": "h2",
-      "text": "Dashboard でブラウザーや端末を比較する"
+      "text": "Dashboard でブラウザーや端末を比較する",
+      "id": "compare-browsers-or-devices-in-the-dashboard"
     },
     {
       "type": "steps",
       "items": [
-        "Bitmovin Dashboard の Analytics を開き、再生データの送信先である Analytics ライセンスを選びます。",
-        "終了済みの一日など、固定の期間を指定します。別の人も比較を再現できるように、表示されるタイムゾーンと有効なフィルターを記録します。",
+        "Bitmovin DashboardのObservabilityを開き、再生データの送信先と同じAnalyticsライセンスを選びます。",
+        "再生を含む期間を指定します。比較するときは固定の期間を使い、画面のタイムゾーンと有効なフィルターを記録します。",
         "Video Startup Time を選び、ブラウザー別の内訳を確認します。時間だけでなく併記される Video Starts の数も読みます。少数の視聴で遅い場合と、多くの視聴に影響している場合では次の調査が異なります。",
         "画面で選べる端末・プラットフォーム・ブラウザーのフィルターで対象を絞ります。指標と期間を保ち、条件を一つずつ変えます。",
         "同じ対象の Rebuffering Percentage や Error Percentage も比較します。必要な分類項目や集計方法が Dashboard にない場合は、API クエリの手順を使います。"
@@ -23,7 +24,35 @@
     },
     {
       "type": "h2",
-      "text": "知りたいことに合うグラフを選ぶ"
+      "text": "エラーを絞り込んでセッションを確認する"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Top Errorsでエラーの種類と発生状況を確認します。ライセンス、期間、コンテンツなどの条件は、調べている再生と揃えます。",
+        "エラーを選び、該当するセッションへ進みます。エラーコードだけでなく、プレイヤーやOS、発生時刻も確認します。",
+        "セッション詳細のErrorsで、説明文や追加情報を読みます。取得できる詳細はコレクターやプラットフォームによって異なります。",
+        "アプリ側のログと同じ再生・時刻を照合し、設定変更、通信、コンテンツなど原因を切り分けます。エラーの説明だけで原因を断定せず、関連する動作も確認します。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-errors",
+      "caption": "Bitmovin公式記事のTop Error Codes画面例。選択したエラーの説明と、フィルター適用状態を確認できます。Player Labの検証結果ではありません。© Bitmovin。 画像内のSDKバージョンと数値も公式記事の例です。"
+    },
+    {
+      "type": "figure",
+      "file": "analytics-session-errors",
+      "caption": "同じ公式記事のセッション別Errors画面例。コードと発生時刻に加え、HTTP 401の説明が表示されています。本文末尾に出典を記載しています。© Bitmovin。"
+    },
+    {
+      "type": "p",
+      "text": "画面はBitmovinの公開資料から掲載した例で、アプリ内にDashboardを埋め込んだものではありません。メニューや利用できる詳細は、現在のDashboardと利用中のコレクターで確認します。"
+    },
+    {
+      "type": "h2",
+      "text": "知りたいことに合うグラフを選ぶ",
+      "id": "choose-a-chart-for-the-question"
     },
     {
       "type": "table",
@@ -56,7 +85,8 @@
     },
     {
       "type": "h2",
-      "text": "指標と集計対象を読む"
+      "text": "指標と集計対象を読む",
+      "id": "read-the-metric-and-its-population"
     },
     {
       "type": "table",
@@ -93,7 +123,8 @@
     },
     {
       "type": "h2",
-      "text": "Grafana で独自の表示を作る"
+      "text": "Grafana で独自の表示を作る",
+      "id": "build-a-custom-view-with-grafana"
     },
     {
       "type": "p",
@@ -109,7 +140,8 @@
     },
     {
       "type": "h2",
-      "text": "データとクエリ条件を一緒に残す"
+      "text": "データとクエリ条件を一緒に残す",
+      "id": "keep-data-and-query-settings-together"
     },
     {
       "type": "table",
@@ -171,6 +203,14 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/exporting-your-data",
       "label": "Bitmovin: 生データの Export Task"
+    },
+    {
+      "url": "https://bitmovin.com/blog/ios-error-reporting-bitmovin-player-analytics/",
+      "label": "Bitmovin: Dashboard error-code and session screenshots"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/what-additional-error-data-can-be-retrieved-in-bitmovin-analytics",
+      "label": "Bitmovin: error details by collector and platform"
     }
   ]
 }

@@ -35,11 +35,12 @@
     {
       "type": "steps",
       "items": [
-        "Source で Live HLS または VOD HLS を選びます。起動時は先頭の Live HLS が読み込まれます。自動再生は無効、ミュートは有効です。プレイヤー内の再生ボタンで開始します。",
-        "iOS／iPadOS は Player UI の Default、Sports、Live (DVR)、Cinema を切り替えます。tvOS にこの選択欄はなく、System UI を使います。",
-        "ライブ再生後、巻き戻し可能な範囲が取得されると −10s、−30s、−60s、−120s の補助ボタンが使えます。数字はライブ端からの距離です。",
-        "Go to live edge でライブ位置へ戻ります。移動完了と、LIVE 表示が落ち着くまで待ちます。",
-        "DVR state の mode、dvrAvailable、behindLive、atLiveEdge、windowDuration を読みます。Event log には直近の読み込み・シーク・範囲超過などが表示されます。"
+        "SourceでVOD HLSを選び、プレイヤーの再生ボタンを押します。起動時は自動再生が無効、ミュートが有効です。設定を変える前に映像と再生位置が進むことを確認します。",
+        "Configure source and playbackを開きます。最初の比較ではソースURLを変えず、Start offsetに5を入力してStartを選びます。Applyの効果がReload sourceになることを確認して適用します。必要なら再生を開始し、指定位置付近から始まることを確認します。SDKがメディアの境界に合わせて位置を補正する場合があります。",
+        "編集画面を開き直し、Autoplay after source loadまたはStart mutedを変更します。適用方法がRecreate player and reload sourceに変わることを確認してApplyし、起動時の再生・ミュート状態を確認します。Show applied codeも変更前と比較します。",
+        "iOSとiPadOSではPlayer UIのDefault、Sports、Live (DVR)、Cinemaを切り替え、操作部品と配置を比較します。UIの切り替えでも再生を読み込み直します。tvOSはSystem UIを使い、Web UIの選択欄はありません。",
+        "音声・字幕や映像の拡大方法は以下の設定手順で試します。必要なトラックを含むソースを使ってください。Playback tracksには現在選択されているネイティブトラックを表示します。",
+        "ライブの巻き戻しを試す場合はLive HLSを選んで再生し、巻き戻し範囲が得られるのを待ちます。負の補助オフセットはライブ端から過去への距離です。Go to live edgeで戻り、behindLive、atLiveEdge、イベントログを確認します。"
       ]
     },
     {
@@ -68,6 +69,55 @@
     {
       "type": "p",
       "text": "ソース情報・開始位置・初期トラックの設定だけなら、同じPlayerでソースを再読み込みします。再生設定・拡大方法・ビットレート・バッファーの変更はPlayerと表示ビューを作り直し、タイトル・ポスター・開始位置を含むソースを読み直します。UIモード、アプリのDVRスイッチ、イベントログは保持します。再生は設定した開始位置とAutoplayに従って再開します。プリセットを選ぶとソース固有の項目と初期トラック設定を初期値に戻し、Player設定は保持します。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "設定グループ",
+        "入力例",
+        "適用方法と確認すること"
+      ],
+      "widths": [
+        0.22,
+        0.28,
+        0.5
+      ],
+      "rows": [
+        [
+          "Source",
+          "Title: Player Lab VOD。選択中のHLS URLは維持",
+          "ソースを再読み込みします。Show applied codeのSourceConfig.titleを確認します。タイトルの変更だけでは映像やトラックは変わりません。"
+        ],
+        [
+          "Start position",
+          "Start offset: 5、Offset reference: Start",
+          "ソースを再読み込みします。再生開始位置をVODの先頭と比較します。オフセットを空欄にするとSDK既定値に戻ります。ライブではEndと負の値を組み合わせます。"
+        ],
+        [
+          "Playback",
+          "Autoplay after source load: 無効、Start muted: 有効",
+          "プレイヤーを再作成します。再生ボタンを押すまで待機し、ミュートで始まることを確認します。これらは次回起動時の状態を決める設定で、即時の再生・一時停止や音量操作ではありません。"
+        ],
+        [
+          "Initial tracks",
+          "Audio language: de-AT、Initial subtitles: Preferred language、字幕言語: de",
+          "ソースを再読み込みします。対応するトラックを含むソースで、最初のReady後のPlayback tracksと字幕表示を確認します。一致する言語がなければ既定の選択を維持します。"
+        ],
+        [
+          "Video scaling",
+          "Fill (crop)からFitへ変更",
+          "プレイヤーを再作成します。映像と表示領域の縦横比を変えると、端の切り取りと映像全体の表示を比較できます。"
+        ],
+        [
+          "Adaptation and buffer",
+          "Maximum bitrate: 1500000 bit/s、Forward buffer: 10秒",
+          "プレイヤーを再作成します。適用済みコードのadaptationConfig.maxSelectableBitrateとbufferConfig.audioAndVideo.forwardDurationを確認します。設定するのは上限や目標値で、実際の画質とバッファー内のメディア量はソースや再生状況によって変わります。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "初期のプレイヤー設定に戻す場合は、Autoplayを無効、Start mutedとSDK time shift / DVRを有効、Maximum bitrateとForward bufferを0、Video scalingをFitにしてApplyします。Reset to appliedは下書きを破棄する操作で、既定値への復帰ではありません。VOD HLSを再度選ぶとカスタムソースの項目と初期トラック設定を戻せますが、プレイヤー設定は維持します。適用した設定は現在のアプリセッションで保持します。"
     },
     {
       "type": "h2",
@@ -228,7 +278,7 @@
     },
     {
       "type": "note",
-      "text": "Fit、Fill (crop)、Stretchの違いは、映像と表示枠の縦横比が異なる場合に確認しやすくなります。同じ縦横比では3種類が同じ見た目になることがあります。シミュレーターでの結果は、すべての実機やAirPlay先での動作を示すものではありません。"
+      "text": "Fit、Fill (crop)、Stretchの違いは、映像と表示枠の縦横比が異なる場合に確認しやすくなります。同じ縦横比では見た目が変わらないことがあります。シミュレーターでの結果は、すべての実機やAirPlay先での動作を示すものではありません。"
     }
   ],
   "sources": [

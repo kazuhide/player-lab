@@ -1,7 +1,7 @@
 {
   "id": "controls",
-  "title": "All 41 control-panel items",
-  "lead": "These 41 controls are separate from theme selection, Player Config, and track menus inside the Player. Check each control's input type and the resulting behavior.",
+  "title": "Control-panel reference",
+  "lead": "The control panel is separate from theme selection, Player Config, and track menus inside the Player. Check each control's input type and the resulting behavior.",
   "controls": [
     {
       "group": "source",

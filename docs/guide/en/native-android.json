@@ -30,10 +30,12 @@
     {
       "type": "steps",
       "items": [
-        "Use the source buttons to select Live DASH + DVR, Live HLS, Live DASH with multiple audio tracks or subtitles, VOD HLS, or VOD DASH. The first Live DASH + DVR source loads at startup.",
-        "Start playback with the controls inside the player. Switch between Default, Sports, Live (DVR), and Cinema to compare layouts and displays.",
-        "Use −10s, −30s, or −60s to seek to the specified distance behind the live edge. Use Live edge to return to live. Finite VOD, including a completed live source, disables these live commands.",
-        "Check Allow DVR, mode, dvrAvailable, behindLive, window, and the event log below. Scroll the button rows horizontally on a narrow screen and the whole panel vertically.",
+        "Select VOD HLS or VOD DASH and start playback with the controls inside the player. Confirm that the picture and timeline advance before changing settings.",
+        "Open Configuration and Show applied code. Keep the existing URL, enter Player Lab VOD for Title, and use Apply source (reload). Check the new source-load event and applied SourceConfig without changing player settings.",
+        "For a player-settings comparison, set Startup threshold to 1, Restart threshold to 2 and Forward buffer to 10 seconds. Use Apply & restart player. Check the restart message, retained source and applied BufferConfig, then start playback if Autoplay is off.",
+        "Switch Default, Sports, Live (DVR) and Cinema to compare UI layouts. This replaces PlayerView while keeping the Player. Player-menu gestures and the surrounding form scroll independently.",
+        "Try audio, subtitles and bitrate settings with a source that provides suitable tracks or quality variants, following the examples below. A configured value does not add a missing track or rendition.",
+        "For live rewind, select a live preset and wait for an available window. The negative helper offsets are distances behind the live edge. Check mode, dvrAvailable, behindLive, window and the event log; Live edge returns to live.",
         "If PlayerError or SourceError appears, check its numeric code. First check the application ID allowed by the license and connectivity to the reference source."
       ]
     },
@@ -52,11 +54,11 @@
     },
     {
       "type": "p",
-      "text": "Open Configuration to edit 25 settings. Source fields are a custom HTTP/HTTPS URL, DASH/HLS/Smooth/Progressive type, optional title, optional poster URL, persistent poster, start offset in seconds, SDK-default/Start/End reference, and optional live target latency in seconds. Blank title, poster, and offset use SDK defaults. The default reference is the start for VOD and the end for live streams; the SDK corrects offsets outside stream boundaries. HTTP depends on the device network policy."
+      "text": "Open Configuration to edit source and player settings. Source fields are a custom HTTP/HTTPS URL, DASH/HLS/Smooth/Progressive type, optional title, optional poster URL, persistent poster, start offset in seconds, SDK-default/Start/End reference, and optional live target latency in seconds. Blank title, poster, and offset use SDK defaults. The default reference is the start for VOD and the end for live streams; the SDK corrects offsets outside stream boundaries. HTTP depends on the device network policy."
     },
     {
       "type": "p",
-      "text": "Live target latency maps to SourceLiveConfig.targetLatency. Blank keeps the original SDK defaults (liveConfig = null). An explicit finite value changes the SDK’s definition of the live edge and asks it to approach that latency while avoiding stalls; VOD ignores it. Apply source reloads the source, player recreation retains the applied value, and Reset source draft restores it without applying. This setting alone does not guarantee a seek-completion or latency-convergence deadline; the recorded checks below describe the tested conditions."
+      "text": "Live target latency maps to SourceLiveConfig.targetLatency. Blank keeps the original SDK defaults (liveConfig = null). An explicit finite value changes the SDK’s definition of the live edge and asks it to approach that latency while avoiding stalls; VOD ignores it. Apply source reloads the source, player recreation retains the applied value, and Reset source draft restores it without applying. This setting alone does not guarantee a seek-completion or latency-convergence deadline; the test results describe the checked environments."
     },
     {
       "type": "p",
@@ -82,6 +84,60 @@
       "type": "note",
       "title": "Scrolling menus inside the Android player",
       "text": "The player menu and the surrounding settings form are separate scroll areas. Swipe inside the video menu to reach lower items; start a swipe outside the video to scroll the form. A parent scroll view can intercept a gesture intended for the embedded menu, so the app keeps player touches with the video until they end or are cancelled. Replacing the player also releases that touch ownership."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Editor group",
+        "Example input",
+        "Apply and what to check"
+      ],
+      "widths": [
+        0.22,
+        0.28,
+        0.5
+      ],
+      "rows": [
+        [
+          "Source and start position",
+          "Start offset: 5 seconds; Offset reference: Start",
+          "Apply source (reload). On VOD, compare the first playback position with the beginning. Blank offset uses the SDK default. A retained offset also applies after a later player restart."
+        ],
+        [
+          "Playback",
+          "Autoplay: off; Start muted: on",
+          "Apply & restart player. Check that playback waits for Play and starts muted. These are startup settings, separate from immediate controls in the player UI."
+        ],
+        [
+          "Buffer",
+          "Startup threshold: 1; Restart threshold: 2; Forward buffer: 10, all in seconds",
+          "Apply & restart player. Startup/restart thresholds describe required buffered media before starting or resuming after a stall, not promised wall-clock delays. Inspect BufferConfig in applied code; the current network and source determine the visible effect."
+        ],
+        [
+          "Adaptation",
+          "Maximum automatic video bitrate: 1500000 bps",
+          "Apply & restart player. Inspect maxSelectableVideoBitrate in applied code and compare automatic quality on a multi-bitrate source. This caps automatic selection; higher qualities remain available for manual selection."
+        ],
+        [
+          "Live adaptation",
+          "Live quality / stability balance: 0.8",
+          "Apply & restart player. Values toward 1 favor stability and values toward 0 favor quality near the live edge. VOD is unsuitable for comparing this setting. Preload content and Allow rebuffering are separate adaptation switches."
+        ],
+        [
+          "Audio priority",
+          "Player: en, de; Source: de, en",
+          "Apply the player list with restart, then the source list with reload. On a source containing those languages, check the selected audio in the player menu. The source list takes precedence; clear it to inherit the player list."
+        ],
+        [
+          "Network",
+          "HTTP retry delays: 0, 0.25, 2 seconds",
+          "Apply & restart player. Check the normalized retry list in applied code. A successful playback request cannot demonstrate retries; use a test source you control when investigating failure handling."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "To restore the original player settings, use Reset player draft and then Apply & restart player. Reset player draft alone does not change playback. Reset source draft instead restores the applied source values, not the catalog defaults. Select a source preset to clear custom source settings, including external subtitle metadata; player settings remain. Reapplying valid unchanged values still repeats the corresponding reload or restart on Android."
     },
     {
       "type": "h2",

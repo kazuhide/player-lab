@@ -1,7 +1,7 @@
 {
   "id": "web-ui-customization",
   "title": "UIを変更するためのガイド",
-  "lead": "画面下部の詳細ガイドは、同じプレイヤーに異なるUIを組み合わせる方法を説明します。まずテーマを比較し、必要な変更に対応する節とコードを読みます。",
+  "lead": "まずWeb版でテーマと適用中のUI設定を比較します。自分のプレイヤーへ取り込む際は、対応するファクトリーとスタイルシートを参照します。この章ではGUIで試す操作と、コードを編集する変更を分けて説明します。",
   "blocks": [
     {
       "type": "h2",
@@ -16,7 +16,7 @@
       "rows": [
         [
           "標準の操作を使う",
-          "DefaultUIFactoryの構成を使います。"
+          "アプリではDefault (Bitmovin)を使います。自分のアプリでSDKの画面幅などに応じたUI切り替えを含める場合は、bitmovin-player-uiのUIFactory.buildUIを使います。"
         ],
         [
           "色やサイズを変える",
@@ -42,19 +42,91 @@
     },
     {
       "type": "h2",
+      "text": "GUIの変更からコードを確認する"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Premiereを選び、同じVODソースを再生したまま、歯車メニューの再生速度の項目を確認します。",
+        "UI設定の「設定歯車に再生速度を表示」をオフにします。歯車を開き直して項目が消えたことを確認し、オンへ戻して再表示を確かめます。",
+        "映像の横の「適用中のUIConfigの上書き値」を開きます。playbackSpeedSelectionEnabledが操作に合わせて変わります。その上の構築コードは、テーマの部品構成を説明する例です。",
+        "構築コード下部のソースパスから、liveUi.tsのbuildPremiereUiContainerとbuildSettingsPanelを確認します。この設定が制御する部品はPlaybackSpeedSelectBoxです。配置を変える場合は部品構成のコードを編集します。"
+      ]
+    },
+    {
+      "type": "note",
+      "text": "アプリのDefaultUIFactoryは、自動非表示を設定できるよう、標準のデスクトップ用main構成を包んだものです。UIFactory.buildUIが備える小画面、TV、広告、ソース未読み込み時などの構成をすべて再現するものではありません。CSSテーマも同じ仕組みを使います。このアプリのデスクトップ向けUIの例として比較してください。"
+    },
+    {
+      "type": "h2",
       "text": "基本となる生成と破棄"
     },
     {
       "type": "code",
-      "text": "const player = new Player(element, {\n  key: playerLicense,\n  ui: false,\n});\nconst ui = LiveUIFactory.buildLiveUI(player);\n\n// Release the old UI before replacing it.\nui.release();\nconst nextUi = PremiereUIFactory.buildPremiereUI(player);"
+      "text": "import { Player, type PlayerAPI } from \"bitmovin-player\";\nimport { DefaultUIFactory, PremiereUIFactory } from \"@showcase/ui-shared\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createPlayerWithUi(element: HTMLElement, playerLicense: string): {\n  player: PlayerAPI;\n  usePremiere: () => void;\n  release: () => Promise<void>;\n} {\n  const player = new Player(element, { key: playerLicense, ui: false });\n  let ui = DefaultUIFactory.buildDefaultUI(player, undefined, { hideDelay: -1 });\n\n  return {\n    player,\n    usePremiere() {\n      ui.release();\n      ui = PremiereUIFactory.buildPremiereUI(player, {\n        playbackSpeedSelectionEnabled: false,\n      }, { hideDelay: -1 });\n    },\n    async release() {\n      ui.release();\n      await player.destroy();\n    },\n  };\n}"
     },
     {
       "type": "p",
-      "text": "上のコードは必要な変数やimportを用意した環境で使う抜粋です。アプリのテーマ切り替えも、古いUIをreleaseして新しいUIを同じプレイヤーへ結び付けます。プレイヤー本体を再生成する設定変更とは異なります。"
+      "text": "このTypeScript例は、@showcase/ui-sharedとビルド済みCSSを使えるリポジトリのワークスペース内で実行します。createPlayerWithUiへ映像の表示要素とPlayerライセンスを渡し、返されたplayer.load()で自分のSourceConfigを読み込みます。usePremiereはUIだけを交換し、releaseはUIを解放してからプレイヤーを破棄します。例の設定は上のGUI操作に対応し、trueへ戻すと再生速度の項目が表示されます。"
     },
     {
       "type": "h2",
-      "text": "ガイドの14節"
+      "text": "CSSで見た目を変える"
+    },
+    {
+      "type": "p",
+      "text": "NeonではDefaultの部品構成を保ち、クラスを追加します。次のファクトリー呼び出しはアプリと同じ方法です。共有のスタイルシートにはスキンが含まれているため、自分の色へ変える際はそのルールを基に編集します。"
+    },
+    {
+      "type": "code",
+      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport { DefaultUIFactory } from \"@showcase/ui-shared\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createNeonUi(player: PlayerAPI) {\n  return DefaultUIFactory.buildDefaultUI(player, undefined, {\n    extraCssClasses: [\"ui-skin-neon\"],\n    hideDelay: -1,\n  });\n}"
+    },
+    {
+      "type": "p",
+      "text": "対応するシークバーのルールはui-shared.scssにあります。UIライブラリが部品のクラス名へbmpui-を付けるため、CSSでは次の名前を使います。上書きするCSSは基本のスタイルシートより後に読み込み、スキンのクラスに範囲を限定すると、他のテーマへ影響を広げずに変更できます。"
+    },
+    {
+      "type": "code",
+      "text": ".bmpui-ui-skin-neon .bmpui-seekbar-playbackposition {\n  background: linear-gradient(90deg, #00e5ff, #ff2bd6);\n  box-shadow: 0 0 8px rgba(0, 229, 255, 0.85);\n}"
+    },
+    {
+      "type": "h2",
+      "text": "部品の配置を変える"
+    },
+    {
+      "type": "p",
+      "text": "次の実行可能な例は、Compactの構成から任意のキャストボタンを省いたものです。componentsの順番で操作列の並びが決まります。PlaybackTimeLabelをSeekBarの前へ移し、配置を比較できます。GUIに部品の順番を編集する欄はないため、コードを変更してビルドし、アプリのCompactと結果を比べます。"
+    },
+    {
+      "type": "code",
+      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport {\n  BufferingOverlay, Container, ControlBar, PlaybackTimeLabel,\n  PlaybackTimeLabelMode, PlaybackToggleButton, SeekBar, SeekBarLabel,\n  UIContainer, UIManager, UIVariantIdentifier,\n} from \"bitmovin-player-ui\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createCompactUi(player: PlayerAPI) {\n  const container = new UIContainer({\n    components: [\n      new BufferingOverlay(),\n      new ControlBar({ components: [\n        new Container({\n          components: [\n            new PlaybackToggleButton(),\n            new SeekBar({ label: new SeekBarLabel() }),\n            new PlaybackTimeLabel({\n              timeLabelMode: PlaybackTimeLabelMode.CurrentTime,\n            }),\n          ],\n          cssClasses: [\"controlbar-bottom\"],\n        }),\n      ] }),\n    ],\n    cssClasses: [\"ui-skin-modern\", \"ui-skin-compact\"],\n    hideDelay: -1,\n  });\n  return new UIManager(player, [{\n    ui: container,\n    identifier: UIVariantIdentifier.main,\n  }]);\n}"
+    },
+    {
+      "type": "p",
+      "text": "UIManagerごとに新しい部品を作成します。ui: falseで生成したプレイヤーへ接続する前に、以前のUIManagerを解放してください。この小型の構成例には、中央の再生オーバーレイ、音量操作、設定メニュー、字幕オーバーレイを含めていません。必要な場合は、他のファクトリーの対応する部品を参照して追加します。"
+    },
+    {
+      "type": "h2",
+      "text": "自分のアプリへ取り込む"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "CSSだけを変えるのか、部品の構成を変えるのか、新しい部品を作るのかを選びます。ソースの読み込みや再生設定は、UIを作る処理と分けて扱います。",
+        "このワークスペース内のプロジェクトでは、使うファクトリーと@showcase/ui-shared/cssを読み込みます。@showcase/ui-sharedはワークスペース内のパッケージであり、npmへ公開したインストール用パッケージではありません。",
+        "独立したプロジェクトでは、このリポジトリの採用バージョンを参考にbitmovin-playerとbitmovin-player-uiを導入します。bitmovin-player-ui/dist/css/bitmovinplayer-ui.cssを読み込み、必要なファクトリー、独自部品、スキンのルールをライセンス表示とともに移植・調整します。PremiereUIFactoryなどは、このリポジトリが定義する名前であり、SDKの組み込みAPIではありません。",
+        "適用中のUIConfigの値と、hideDelayなど別途渡すファクトリーの設定を移します。推薦、マーカー、次の動画を読み込むコールバックが必要なテーマでは、自分のアプリからデータと処理を渡します。構築コードの例は、そのアプリ固有の情報をエクスポートするものではありません。",
+        "再生、キーボードのフォーカス、全画面、ソースの切り替え、UIを繰り返し交換した場合を比較します。画面を離れる際は以前のUIへ戻すか、UIを解放してプレイヤーを破棄します。"
+      ]
+    },
+    {
+      "type": "note",
+      "text": "アプリでテーマを変えてもUIConfigの上書き値は残ります。変更結果を比べる際は、変更した設定を戻すか、アプリを再読み込みしてから比較します。ブラウザーに保存した再生設定や再開位置は残る場合があります。各設定に必要なソースや部品は「UI設定と外部表示」で説明しています。"
+    },
+    {
+      "type": "h2",
+      "text": "詳細ガイドで扱う内容",
+      "id": "fourteen-guide-sections"
     },
     {
       "type": "table",
@@ -72,7 +144,7 @@
           "UIManager、UIContainer、Component、UIVariant"
         ],
         [
-          "3つの入り口",
+          "UIの変更方法",
           "標準UI、部品の組み替え、CSSによる変更"
         ],
         [
@@ -113,7 +185,7 @@
         ],
         [
           "クックブック",
-          "よく使う6つの変更例"
+          "よく使うUIの変更例"
         ],
         [
           "参考リンク",
@@ -127,7 +199,8 @@
     },
     {
       "type": "h2",
-      "text": "6つの変更例"
+      "text": "よく使うUIの変更例",
+      "id": "six-common-modifications"
     },
     {
       "type": "bullets",
@@ -166,7 +239,7 @@
     },
     {
       "type": "p",
-      "text": "固定バージョンのUIライブラリには、UIを繰り返し切り替える際に補助部品を解放する修正を含めています。CPUとメモリの代表的な値は、条件とともに「テスト結果」にまとめています。"
+      "text": "共有UIパッケージには、固定バージョンのUIライブラリが使う補助オブジェクトの解放処理も含めています。部品を移植する際は、イベント購読やタイマーとともに解放処理も確認してください。画面から消えても処理が動き続けると、テーマを交換するたびに不要な処理が残る原因になります。"
     },
     {
       "type": "note",
@@ -213,6 +286,50 @@
     {
       "url": "https://kazuhide.github.io/player-lab/web/guide.html",
       "label": "公開UIカスタマイズガイド"
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 136
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 278
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 319
+    },
+    {
+      "path": "packages/ui-shared/src/styles/ui-shared.scss",
+      "line": 108
+    },
+    {
+      "path": "packages/ui-shared/src/index.ts",
+      "line": 19
+    },
+    {
+      "path": "packages/ui-shared/package.json",
+      "line": 5
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 369
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 699
+    },
+    {
+      "path": "apps/web/src/uiGuide.ts",
+      "line": 535
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 298
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/bitmovin-player-ui",
+      "label": "Player UIの概要とカスタマイズ"
     }
   ]
 }

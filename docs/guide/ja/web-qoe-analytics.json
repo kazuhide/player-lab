@@ -1,11 +1,65 @@
 {
   "id": "web-qoe-analytics",
-  "title": "操作しながら再生品質を確認する",
-  "lead": "ソースを再生・一時停止・シークし、現在セッションの計測値とイベントログで変化を確かめます。ブラウザー内の計測値と、送信先で集計するAnalyticsは分けて読みます。",
+  "title": "Analyticsを送信してDashboardで確認する",
+  "lead": "プレイヤーのイベントをAnalyticsコレクターが収集し、Bitmovinへ送信します。収集された再生データはBitmovin DashboardのObservabilityで確認します。アプリ内の状態表示やQoE値は、その場の動作を調べるために使います。",
   "blocks": [
     {
       "type": "h2",
-      "text": "短い再生で試す"
+      "text": "送信から確認までの流れ",
+      "id": "choose-the-right-analytics-view"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "操作",
+        "場所",
+        "確認すること"
+      ],
+      "rows": [
+        [
+          "プレイヤーを操作する",
+          "Player LabのWeb版・Native版",
+          "設定や再生操作を変え、プレイヤーの状態や適用コードを確認します。"
+        ],
+        [
+          "再生データを送信する",
+          "設定済みのAnalyticsコレクター",
+          "対応するプレイヤーのイベントや再生環境を、指定したAnalyticsライセンスへ送ります。"
+        ],
+        [
+          "収集結果を確認する",
+          "Bitmovin DashboardのObservability",
+          "ライセンス・期間・条件を選び、視聴データや再生品質を確認します。"
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Dashboardで再生データを探す"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Analyticsを設定したアプリで動画を再生します。比較したい設定、ソース、端末、再生した時刻を控えます。Web版ではAnalytics送信の通知も確認します。",
+        "Bitmovin Dashboardにログインし、Observabilityを開きます。コレクターの送信先と同じAnalyticsライセンスを選びます。",
+        "再生した時刻を含む期間に変更します。画面のタイムゾーンを確かめ、コンテンツやブラウザーなどのフィルターで対象を絞ります。",
+        "AudienceのPlaysやLatest Sessionsで再生を探します。再生品質を調べる場合はQuality of ExperienceでVideo Startup TimeやRebuffering Percentageを確認します。",
+        "問題がある場合はTop Errorsや対象セッションの詳細へ進みます。アプリのイベントログと照合するときは、時刻と対象の再生を揃えます。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-overview",
+      "caption": "Bitmovin公式資料のデモ画面。ライセンス、期間、Global Filters、Video Titleで表示対象を選びます。画面内の数値はデモデータです。旧画面のためAnalyticsというメニュー表記や配置が現行画面と異なる場合があります。出典は末尾の公式sandbox資料です。© Bitmovin。"
+    },
+    {
+      "type": "note",
+      "text": "Dashboardで選ぶAnalyticsライセンスと閲覧権限が必要です。公開デモを再生しても、その送信先アカウントの閲覧権限は付与されません。自分のデータを確認する場合は、ローカルアプリに自分のAnalyticsライセンスを設定します。送信の通知やブラウザー内の値だけでは、収集先にデータが届いたことまでは確認できません。"
+    },
+    {
+      "type": "h2",
+      "text": "アプリ内の状態とログを確認する",
+      "id": "try-a-short-playback-session"
     },
     {
       "type": "steps",
@@ -18,11 +72,12 @@
     },
     {
       "type": "h2",
-      "text": "QoEの6つの値を読む"
+      "text": "ブラウザー内のQoE値を読む",
+      "id": "read-the-six-qoe-values"
     },
     {
       "type": "p",
-      "text": "QoEはQuality of Experienceの略で、視聴者の再生体験を指します。ここにある6つの値は、現在のプレイヤーのイベントからアプリが計算します。全視聴者を集計した値ではなく、Analyticsダッシュボードとは役割が異なります。"
+      "text": "QoEはQuality of Experienceの略で、視聴者の再生体験を指します。この欄は現在のプレイヤーのイベントからアプリが計算する値です。Dashboardで集計するAnalyticsとは、対象や定義が異なります。"
     },
     {
       "type": "table",
@@ -70,7 +125,8 @@
     },
     {
       "type": "h2",
-      "text": "変化の理由をイベントで確かめる"
+      "text": "変化の理由をイベントで確かめる",
+      "id": "use-events-to-explain-a-change"
     },
     {
       "type": "p",
@@ -81,37 +137,8 @@
       "text": "新しいソースの読み込み、ソースの解除、プレイヤーの破棄で計測が初期化されます。テーマやUIだけの切り替えでは、同じプレイヤーの計測を保ちます。再生終了後は合計値が増えなくなります。別の試行と比べるときは、新しく読み込みます。"
     },
     {
-      "type": "h2",
-      "text": "目的に合うAnalyticsの表示を選ぶ"
-    },
-    {
-      "type": "table",
-      "headers": [
-        "知りたいこと",
-        "確認する場所",
-        "対象"
-      ],
-      "rows": [
-        [
-          "今の再生で何が起きたか",
-          "Player state、QoEメトリクス、イベントログ",
-          "現在のブラウザーセッションです。アカウントの集計クエリは不要です。"
-        ],
-        [
-          "Analyticsを送信する設定か",
-          "送信の通知とAnalyticsコレクター設定",
-          "Analyticsライセンスで送る再生・端末情報です。ローカル表示だけでは、送信先での集計まで確認したことにはなりません。"
-        ],
-        [
-          "ある期間の視聴者の再生品質はどうか",
-          "ローカルのサーバー経由クエリ、Analyticsダッシュボード、Query API",
-          "選択したAnalyticsライセンスと期間に対応する収集済みデータです。"
-        ]
-      ]
-    },
-    {
       "type": "p",
-      "text": "公開Pages版も、設定されていればAnalyticsを送信し、その通知を表示します。Pagesではサーバーの問い合わせ先を動かさないため、集計クエリ欄は非表示です。4つの問い合わせボタンはローカル開発で使い、自分が参照できるデータはAnalyticsダッシュボードでも確認できます。"
+      "text": "公開Pages版も、設定されていればAnalyticsを送信します。アカウントのAPIキーを保持するサーバーをPagesでは動かさないため、集計クエリ欄は非表示です。通常の結果確認はDashboardで行い、独自の集計が必要なときにローカルのクエリ画面やQuery APIを使います。"
     }
   ],
   "sources": [
@@ -146,6 +173,22 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/which-metrics-related-to-the-startup-time-are-collected-by-bitmovin",
       "label": "Analytics startup-time definitions"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-analytics",
+      "label": "Bitmovin: collector setup and Analytics licenses"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/metrics-and-dashboard-walkthrough",
+      "label": "Bitmovin: Metrics & Dashboard"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/is-there-a-sandbox-environment-to-test-bitmovin-analytics",
+      "label": "Bitmovin: official demo Dashboard screen"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/can-i-change-the-timezone-used-for-bitmovin-analytics-data",
+      "label": "Bitmovin: Dashboard time-zone settings"
     }
   ]
 }

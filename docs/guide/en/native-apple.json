@@ -35,11 +35,12 @@
     {
       "type": "steps",
       "items": [
-        "Select Live HLS or VOD HLS under Source. The first Live HLS source loads at startup. Autoplay is off and mute is on. Start playback with the player’s play button.",
-        "On iOS or iPadOS, switch Player UI between Default, Sports, Live (DVR), and Cinema. tvOS has no such selector and uses the system UI.",
-        "After live playback starts and the rewind window becomes available, use the −10s, −30s, −60s, and −120s helper buttons. These numbers are distances from the live edge.",
-        "Use Go to live edge to return to live. Wait for the seek to complete and the LIVE display to settle.",
-        "Read mode, dvrAvailable, behindLive, atLiveEdge, and windowDuration in DVR state. Event log shows recent source loads, seeks, window-expiry events, and related activity."
+        "Select VOD HLS under Source and start playback with the player's Play button. Autoplay is off and mute is on at startup. Confirm that the picture and timeline advance before changing settings.",
+        "Open Configure source and playback. For a first comparison, keep the source URL, enter 5 for Start offset and choose Start. Apply should report Reload source. Start playback if needed and check that it begins near the requested position; the SDK can correct positions to media boundaries.",
+        "Reopen the editor, change Autoplay after source load or Start muted, and check that the pending action changes to Recreate player and reload source. Apply and check the new startup behavior, then compare Show applied code with the baseline.",
+        "On iOS or iPadOS, select Default, Sports, Live (DVR), or Cinema under Player UI to compare controls and layouts. Switching UI reloads playback. tvOS uses System UI and has no Web UI selector.",
+        "For audio and subtitle selection or video scaling, follow the settings below using a source that contains the required tracks. Playback tracks shows the current native selections.",
+        "To try live rewind, select Live HLS, start playback and wait for a rewind window. The negative helper offsets are distances behind the live edge. Use Go to live edge to return, then check behindLive, atLiveEdge and the event log."
       ]
     },
     {
@@ -68,6 +69,55 @@
     {
       "type": "p",
       "text": "Source fields, start position and initial track preferences reload the source on the existing player. Playback, scaling, bitrate and buffer changes recreate the player and native view, then reload the complete source including title, poster and offset options. UI mode, the app DVR switch and event log remain in place. Apply restarts at the configured offset according to Autoplay. Selecting a source preset resets its source fields and initial track preferences while retaining player settings."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Editor group",
+        "Example input",
+        "Apply and what to check"
+      ],
+      "widths": [
+        0.22,
+        0.28,
+        0.5
+      ],
+      "rows": [
+        [
+          "Source",
+          "Title: Player Lab VOD; keep the selected HLS URL",
+          "Reloads the source. Check SourceConfig.title in Show applied code. A title alone does not change the media or its tracks."
+        ],
+        [
+          "Start position",
+          "Start offset: 5; Offset reference: Start",
+          "Reloads the source. Start playback and compare the first position with the beginning of the VOD. Blank offset restores the SDK default; use End with a negative offset for a live source."
+        ],
+        [
+          "Playback",
+          "Autoplay after source load: off; Start muted: on",
+          "Recreates the player. It should wait for Play and begin muted. These fields set the next startup state; they are not immediate play/pause or volume controls."
+        ],
+        [
+          "Initial tracks",
+          "Audio language: de-AT; Initial subtitles: Preferred language; subtitle language: de",
+          "Reloads the source. On a source with matching renditions, check Playback tracks and visible captions after initial Ready. An unavailable preference keeps the default selection."
+        ],
+        [
+          "Video scaling",
+          "Fill (crop), then Fit",
+          "Recreates the player. Use a display area with a different aspect ratio from the video to see cropping versus the full picture."
+        ],
+        [
+          "Adaptation and buffer",
+          "Maximum bitrate: 1500000 bit/s; Forward buffer: 10 seconds",
+          "Recreates the player. Check adaptationConfig.maxSelectableBitrate and bufferConfig.audioAndVideo.forwardDuration in applied code. These are configuration limits/targets; the actual quality and buffered media depend on the source and playback."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "To return to the initial player defaults, enter Autoplay off, Start muted on, SDK time shift / DVR on, Maximum bitrate 0, Forward buffer 0 and Video scaling Fit, then Apply. Reset to applied only abandons draft edits; it does not restore defaults. Selecting VOD HLS again clears custom source fields and initial track preferences while keeping player settings. Applied configuration is kept for the current app session."
     },
     {
       "type": "h2",

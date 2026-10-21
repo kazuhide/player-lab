@@ -1,6 +1,6 @@
 {
   "id": "settings",
-  "title": "Player Config: 144 GUI fields",
+  "title": "Player Config field reference",
   "lead": "Find the scope, application mode, input format and description of each field. A visible control does not establish that a value applies in your environment or that its behavior has been verified there.",
   "notes": [
     "A form fallback is the display value used when the form cannot read an applied value. It is not the SDK default, the current effective value or a recommended value.",
@@ -69,7 +69,7 @@
             "line": 321
           },
           "api": "player.buffer.setTargetLevel",
-          "description": "Immediately change the forward video-buffer target in seconds. This does not extend the available rewind window."
+          "description": "Immediately change the forward video-buffer target in seconds. This does not extend the available rewind window. Try 10 seconds and inspect the refreshed runtime code. This changes video only. Restore the previous number explicitly; empty input leaves the applied target unchanged."
         },
         {
           "scope": "PlayerAPI",
@@ -180,7 +180,7 @@
             "line": 410
           },
           "api": "player.adaptation.setConfig",
-          "description": "Keep automatic video-quality selection within the display size of the video element."
+          "description": "Keep automatic video-quality selection within the display size of the video element. Keep the quality menu on Auto when comparing. Turn off to restore an earlier false value."
         },
         {
           "scope": "PlayerAPI",
@@ -208,7 +208,7 @@
             "line": 426
           },
           "api": "player.adaptation.setConfig",
-          "description": "Set the maximum height for automatic video-quality selection in pixels. If every quality is taller, the smallest height remains allowed. This normally does not remove choices from manual selection."
+          "description": "Set the maximum height for automatic video-quality selection in pixels. If every quality is taller, the smallest height remains allowed. This normally does not remove choices from manual selection. For the bundled sample, try 180 pixels and allow buffered video to play. Use 360 pixels to allow its highest quality again. Empty input does not undo this dynamic setter."
         },
         {
           "scope": "PlayerAPI",
@@ -427,7 +427,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 573
           },
-          "description": "Set the start position in seconds. For on-demand media it applies when the source loads; for live media it applies when playback starts. To start behind the live edge, use a negative value with the end reference. Out-of-range positions are clamped."
+          "description": "Set the start position in seconds. For on-demand media it applies when the source loads; for live media it applies when playback starts. To start behind the live edge, use a negative value with the end reference. Out-of-range positions are clamped. Try 5 seconds with the start reference and reload. Clear and reload to remove the offset override."
         },
         {
           "scope": "SourceConfig",
@@ -473,7 +473,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 603
           },
-          "description": "Choose whether playback starts automatically after loading. Browsers may block autoplay with audio."
+          "description": "Choose whether playback starts automatically after loading. Browsers may block autoplay with audio. Turn off and recreate to check that the loaded video waits for Play. Restore the previous checkbox value and recreate afterwards."
         },
         {
           "scope": "PlayerConfig",
@@ -551,7 +551,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 609
           },
-          "description": "Set the preferred audio language at startup. The source must contain a matching track."
+          "description": "Set the preferred audio language at startup. The source must contain a matching track. The GUI submits a single string, such as de for a matching source; it does not parse comma-separated lists. Recreate to apply or clear and recreate to remove the preference."
         },
         {
           "scope": "PlayerConfig",
@@ -564,7 +564,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 610
           },
-          "description": "Set the preferred subtitle language at startup. The source must contain matching subtitles."
+          "description": "Set the preferred subtitle language at startup. The source must contain matching subtitles. Try en with VOD + Subtitles and recreate, then check a cue. Clear and recreate to remove the startup preference; use the player menu to disable the current subtitle."
         }
       ]
     },
@@ -584,7 +584,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 621
           },
-          "description": "Set the starting bitrate. Leave the field empty for automatic selection. Otherwise use a number in bps or a value with a unit, such as 500kbps."
+          "description": "Set the starting bitrate. Leave the field empty for automatic selection. Otherwise use a number in bps or a value with a unit, such as 500kbps. Try 250kbps (250000 bit/s), recreate, and compare the initial quality. Clear and recreate to remove the override. Later quality can adapt."
         },
         {
           "scope": "PlayerConfig",
@@ -597,7 +597,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 622
           },
-          "description": "Set the maximum starting bitrate. This has no effect when startupBitrate is explicitly set."
+          "description": "Set the maximum starting bitrate. This has no effect when startupBitrate is explicitly set. Try 500kbps (500000 bit/s) with startupBitrate empty and recreate. Clear and recreate to remove this ceiling."
         },
         {
           "scope": "PlayerConfig",
@@ -662,7 +662,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 627
           },
-          "description": "Set the maximum automatically selected video bitrate in bps. If every quality exceeds it, the lowest bitrate remains allowed. This normally does not remove choices from manual selection."
+          "description": "Set the maximum automatically selected video bitrate in bps. If every quality exceeds it, the lowest bitrate remains allowed. This normally does not remove choices from manual selection. Try 500kbps (500000 bit/s) and recreate with the quality menu on Auto. Clear and recreate to remove the ceiling; it does not create a new rendition."
         },
         {
           "scope": "PlayerConfig",
@@ -785,7 +785,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 651
           },
-          "description": "Set the target seconds of video kept ahead of the playhead. A larger value can increase media-buffer memory use."
+          "description": "Set the target seconds of video kept ahead of the playhead. A larger value can increase media-buffer memory use. Try 10 seconds and recreate. Check the applied config and browser media ranges separately; a target is not the current buffered duration."
         },
         {
           "scope": "PlayerConfig",
@@ -798,7 +798,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 652
           },
-          "description": "Set the target seconds of played video to retain. This does not extend the rewind window offered by the live origin."
+          "description": "Set the target seconds of played video to retain. This does not extend the rewind window offered by the live origin. Try 5 seconds and recreate, then compare a backward seek and browser media ranges. Clear and recreate to remove this override."
         },
         {
           "scope": "PlayerConfig",
@@ -811,7 +811,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 653
           },
-          "description": "Set the target seconds of audio kept ahead of the playhead. This is separate from the video setting."
+          "description": "Set the target seconds of audio kept ahead of the playhead. This is separate from the video setting. Try 10 seconds and recreate. Clear and recreate to remove this audio override independently of video."
         },
         {
           "scope": "PlayerConfig",
@@ -824,7 +824,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 654
           },
-          "description": "Set the target seconds of played audio to retain. This is separate from the video setting."
+          "description": "Set the target seconds of played audio to retain. This is separate from the video setting. Try 5 seconds and recreate. Inspect the separate audio/video values in applied code. Clear and recreate to remove this override."
         }
       ]
     },
@@ -870,7 +870,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 667
           },
-          "description": "Default network timeout in seconds. The SDK default is 20 seconds. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply."
+          "description": "Default network timeout in seconds. The SDK default is 20 seconds. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply. Try 5 seconds, recreate and inspect network in applied code. Exercising the timeout requires an actual request to wait beyond this limit."
         },
         {
           "scope": "PlayerConfig",
@@ -883,7 +883,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 669
           },
-          "description": "Timeout in seconds for manifest/dash; overrides the default network timeout. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply."
+          "description": "Timeout in seconds for manifest/dash; overrides the default network timeout. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply. Try 3 seconds with VOD DASH and recreate. HLS master and variant playlists have separate timeout fields."
         },
         {
           "scope": "PlayerConfig",
@@ -922,7 +922,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 669
           },
-          "description": "Timeout in seconds for media/video; overrides the default network timeout. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply."
+          "description": "Timeout in seconds for media/video; overrides the default network timeout. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply. Try 2 seconds and recreate. Audio is a separate request type. Inspect attempts and timing in browser Network tools."
         },
         {
           "scope": "PlayerConfig",
@@ -1084,7 +1084,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 82
           },
-          "description": "Stop new playlist and segment requests while paused. Requests that have already started finish normally."
+          "description": "Stop new playlist and segment requests while paused. Requests that have already started finish normally. Enable and recreate, pause, then compare new requests in browser Network tools. Restore the previous checkbox value and recreate."
         },
         {
           "scope": "PlayerConfig",
@@ -1474,7 +1474,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 94
           },
-          "description": "Retry count for failed manifest requests (default 2). For HLS, this covers both master and variant playlists."
+          "description": "Retry count for failed manifest requests (default 2). For HLS, this covers both master and variant playlists. Try 1, recreate, and compare attempts for a temporarily blocked manifest in browser Network tools. Clear and recreate to remove the override."
         },
         {
           "scope": "PlayerConfig",
@@ -1500,7 +1500,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 95
           },
-          "description": "Set the retry count for failed downloads of the DASH MPD manifest."
+          "description": "Set the retry count for failed downloads of the DASH MPD manifest. Try 1 retry with VOD DASH and recreate. Successful playback alone does not exercise failed-request retry behavior."
         },
         {
           "scope": "PlayerConfig",
@@ -1513,7 +1513,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 95
           },
-          "description": "Set the delay in seconds before retrying a failed MPD request."
+          "description": "Set the delay in seconds before retrying a failed MPD request. Try 1 second and recreate, then compare failed MPD request intervals in browser Network tools. Clear and recreate to remove the override."
         },
         {
           "scope": "PlayerConfig",
@@ -1708,7 +1708,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 101
           },
-          "description": "With true, download audio/video and initialization/data segments sequentially, favoring video when buffer amounts are equal. The default false allows parallel downloads while favoring the media with less buffered data."
+          "description": "With true, download audio/video and initialization/data segments sequentially, favoring video when buffer amounts are equal. The default false allows parallel downloads while favoring the media with less buffered data. Recreate and compare audio/video request overlap in browser Network tools. False permits parallel loading; it does not promise simultaneous requests on every connection."
         },
         {
           "scope": "PlayerConfig",

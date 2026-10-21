@@ -9,7 +9,8 @@
     },
     {
       "type": "h2",
-      "text": "Seven sources"
+      "text": "Choose a test source",
+      "id": "seven-sources"
     },
     {
       "type": "table",
@@ -119,6 +120,72 @@
     },
     {
       "type": "h2",
+      "text": "Set the initial playback position",
+      "id": "set-the-initial-playback-position"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Source and goal",
+        "Source fields",
+        "Result to check"
+      ],
+      "rows": [
+        [
+          "Start an on-demand clip after its beginning",
+          "options.startOffset = 5 seconds; timeline reference = start",
+          "After source reload, playback starts near 5 seconds and then advances. This is a loading setting, rather than a seek command applied to current playback."
+        ],
+        [
+          "Start near the end of an on-demand clip",
+          "options.startOffset = -10 seconds; timeline reference = end",
+          "For the 60-second Pages clip, the requested initial position is near 50 seconds."
+        ],
+        [
+          "Start behind the live edge",
+          "options.startOffset = -20 seconds; timeline reference = end",
+          "Start behind the available live edge. The source must offer a sufficient rewind window; an out-of-range position is limited to the available range."
+        ]
+      ],
+      "widths": [
+        0.28,
+        0.33,
+        0.39
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Choose the source first. To make start-position comparisons easier to interpret, turn off Resume VOD position and avoid a URL timestamp for this experiment.",
+        "Open Source in Player Config, enter the offset and select its reference, then press Reload the source to apply. Confirm SourceLoaded in the event log and compare the initial time on the video or the Player state readout. With autoplay, playback continues while you read it.",
+        "Refresh Show applied configuration code and inspect sourceConfig.options. Other applied source fields stay in place during this reload.",
+        "Clear options.startOffset, set the reference to its default option, and reload to remove these overrides. Selecting a source preset again also clears its source overrides."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The Playback panel's Reload at offset button always uses an end reference. Use the Source editor when you need to choose start or end explicitly. A live start position is constrained by the actual manifest and the source's current availability, rather than the duration of the bundled on-demand clip."
+    },
+    {
+      "type": "h2",
+      "text": "Choose initial audio and subtitle languages",
+      "id": "choose-initial-audio-and-subtitle-languages"
+    },
+    {
+      "type": "p",
+      "text": "The source determines which tracks exist. In this Web GUI, the preferred initial languages are Playback fields in PlayerConfig, so changing them requires Player recreation. They are separate from the Source title/poster/start-position editor and from selecting a current track in the player menu. The text fields submit a language string; they do not parse a comma-separated preference list or a JSON array."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Choose VOD + Multi-audio and a theme with an audio menu, such as Premiere. In Playback, enter de for audioLanguage and press Recreate the player to apply. Check the selected audio track in the player menu, then unmute to compare its sound. The bundled language labels are test metadata, as explained above.",
+        "Choose VOD + Subtitles. In Playback, enter en for subtitleLanguage and recreate. At a time containing a cue, check the rendered text and the selected subtitle in the menu. In local development this preset needs its subtitle URL configured before use.",
+        "Refresh the applied code and inspect playerConfig.playback.audioLanguage or subtitleLanguage. A matching track must exist in the selected source; a preference does not add a missing language.",
+        "Clear the language field and recreate to remove the preference override. To turn off the current subtitle immediately, choose the disabled option in the player's subtitle menu; removing a startup preference is a different action."
+      ]
+    },
+    {
+      "type": "h2",
       "text": "Selecting a source again"
     },
     {
@@ -136,6 +203,22 @@
     }
   ],
   "sources": [
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 540
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 608
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 588
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 688
+    },
     {
       "path": "apps/web/src/sources.ts",
       "line": 73

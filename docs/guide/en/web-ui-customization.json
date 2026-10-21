@@ -1,7 +1,7 @@
 {
   "id": "web-ui-customization",
   "title": "Customize the player UI",
-  "lead": "The detailed guide linked at the bottom of the app explains how to attach different UIs to the same player. Compare themes first, then read the section and code relevant to your change.",
+  "lead": "Start by comparing an existing theme and its applied UI settings in the Web app. Use the matching factory and stylesheet when carrying that change into your own player. This chapter separates GUI experiments from changes that require editing code.",
   "blocks": [
     {
       "type": "h2",
@@ -16,7 +16,7 @@
       "rows": [
         [
           "Use standard controls",
-          "Use the DefaultUIFactory composition."
+          "Use Default (Bitmovin) in the app. For an independent app needing the SDK's complete responsive variant selection, use UIFactory.buildUI from bitmovin-player-ui."
         ],
         [
           "Change colors or sizes",
@@ -42,19 +42,91 @@
     },
     {
       "type": "h2",
+      "text": "Follow a GUI change into code"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select Premiere and keep the same VOD source playing. Open its settings gear and locate the playback-speed selector.",
+        "Turn Speed item in settings gear off in UI settings. Reopen the gear and confirm that the item is absent; turn it on and check that it returns.",
+        "Expand Applied UIConfig overrides beside the video. The playbackSpeedSelectionEnabled value reflects the change. The theme construction example above it still describes the component tree.",
+        "Use the factory path below Construction code to inspect buildPremiereUiContainer and buildSettingsPanel in liveUi.ts. PlaybackSpeedSelectBox is the component that the flag controls; changing its position requires editing that component tree."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The app's DefaultUIFactory wraps the standard desktop/main component tree to expose autohide. It does not reproduce all small-screen, TV, advertising and empty-state variants supplied by UIFactory.buildUI. CSS themes use the same wrapper. Compare them as this app's desktop UI examples."
+    },
+    {
+      "type": "h2",
       "text": "Create and release a UI"
     },
     {
       "type": "code",
-      "text": "const player = new Player(element, {\n  key: playerLicense,\n  ui: false,\n});\nconst ui = LiveUIFactory.buildLiveUI(player);\n\n// Release the old UI before replacing it.\nui.release();\nconst nextUi = PremiereUIFactory.buildPremiereUI(player);"
+      "text": "import { Player, type PlayerAPI } from \"bitmovin-player\";\nimport { DefaultUIFactory, PremiereUIFactory } from \"@showcase/ui-shared\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createPlayerWithUi(element: HTMLElement, playerLicense: string): {\n  player: PlayerAPI;\n  usePremiere: () => void;\n  release: () => Promise<void>;\n} {\n  const player = new Player(element, { key: playerLicense, ui: false });\n  let ui = DefaultUIFactory.buildDefaultUI(player, undefined, { hideDelay: -1 });\n\n  return {\n    player,\n    usePremiere() {\n      ui.release();\n      ui = PremiereUIFactory.buildPremiereUI(player, {\n        playbackSpeedSelectionEnabled: false,\n      }, { hideDelay: -1 });\n    },\n    async release() {\n      ui.release();\n      await player.destroy();\n    },\n  };\n}"
     },
     {
       "type": "p",
-      "text": "This excerpt requires the corresponding imports and variables. Theme changes in the app similarly release the old UI and attach a new UI to the same player. This differs from a configuration change that recreates the player itself."
+      "text": "This TypeScript example runs inside the repository workspace, where @showcase/ui-shared and its compiled CSS are available. Pass the player element and your Player license to createPlayerWithUi, then load your SourceConfig with the returned player.load(). Calling usePremiere replaces only the UI, and release removes the UI before destroying the player. The flag shown matches the GUI experiment above; setting it to true restores the speed selector."
     },
     {
       "type": "h2",
-      "text": "Fourteen guide sections"
+      "text": "Change appearance with CSS"
+    },
+    {
+      "type": "p",
+      "text": "Neon adds a class while retaining the Default component tree. The factory call below is the same approach used by the app. The imported shared stylesheet already contains the skin; use its rules as the starting point when editing your own colors."
+    },
+    {
+      "type": "code",
+      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport { DefaultUIFactory } from \"@showcase/ui-shared\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createNeonUi(player: PlayerAPI) {\n  return DefaultUIFactory.buildDefaultUI(player, undefined, {\n    extraCssClasses: [\"ui-skin-neon\"],\n    hideDelay: -1,\n  });\n}"
+    },
+    {
+      "type": "p",
+      "text": "The corresponding seek-bar rule is in ui-shared.scss. The UI library adds the bmpui- prefix to component classes, which explains the class names used by CSS. Load overrides after the base stylesheet and scope them to the skin class so that other themes are unaffected."
+    },
+    {
+      "type": "code",
+      "text": ".bmpui-ui-skin-neon .bmpui-seekbar-playbackposition {\n  background: linear-gradient(90deg, #00e5ff, #ff2bd6);\n  box-shadow: 0 0 8px rgba(0, 229, 255, 0.85);\n}"
+    },
+    {
+      "type": "h2",
+      "text": "Change the component layout"
+    },
+    {
+      "type": "p",
+      "text": "This executable excerpt follows the Compact tree, omitting its optional casting buttons. The order inside components determines the controls in the row. Move PlaybackTimeLabel before SeekBar to compare the arrangement. There is no component-order editor in the GUI; edit and rebuild the code, then compare the result with Compact in the app."
+    },
+    {
+      "type": "code",
+      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport {\n  BufferingOverlay, Container, ControlBar, PlaybackTimeLabel,\n  PlaybackTimeLabelMode, PlaybackToggleButton, SeekBar, SeekBarLabel,\n  UIContainer, UIManager, UIVariantIdentifier,\n} from \"bitmovin-player-ui\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createCompactUi(player: PlayerAPI) {\n  const container = new UIContainer({\n    components: [\n      new BufferingOverlay(),\n      new ControlBar({ components: [\n        new Container({\n          components: [\n            new PlaybackToggleButton(),\n            new SeekBar({ label: new SeekBarLabel() }),\n            new PlaybackTimeLabel({\n              timeLabelMode: PlaybackTimeLabelMode.CurrentTime,\n            }),\n          ],\n          cssClasses: [\"controlbar-bottom\"],\n        }),\n      ] }),\n    ],\n    cssClasses: [\"ui-skin-modern\", \"ui-skin-compact\"],\n    hideDelay: -1,\n  });\n  return new UIManager(player, [{\n    ui: container,\n    identifier: UIVariantIdentifier.main,\n  }]);\n}"
+    },
+    {
+      "type": "p",
+      "text": "Create fresh components for each UIManager. Release the previous manager before attaching this UI to a player created with ui: false. This compact example deliberately has no central play overlay, volume controls, settings menu or subtitle overlay; choose the corresponding components from another factory if your application needs them."
+    },
+    {
+      "type": "h2",
+      "text": "Reuse the result in your application"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Choose whether you need only CSS, a different component tree or a new component. Keep player loading and playback configuration separate from UI construction.",
+        "For a project in this workspace, import the required factory and @showcase/ui-shared/css. @showcase/ui-shared is a private workspace package, not a package published for npm installation.",
+        "For an independent project, install bitmovin-player and bitmovin-player-ui with the versions used by this repository as a reference. Import bitmovin-player-ui/dist/css/bitmovinplayer-ui.css, then copy or adapt the required factory, custom components and skin rules with their license notices. App-specific names such as PremiereUIFactory are defined in this repository, not in the SDK.",
+        "Transfer the applied UIConfig values and the separate factory options such as hideDelay. If the theme needs recommendations, markers or playlist callbacks, supply those from your own application; the construction example does not export that app data.",
+        "Compare playback, keyboard focus, fullscreen, source changes and repeated UI replacement. Restore the previous UI or release the UI and destroy the player when leaving the screen."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Selecting a theme in the app retains UIConfig overrides. When testing a modification, restore each changed setting or reload the app before comparing. Browser-stored playback preferences and resume positions may remain. The UI settings chapter explains which media and components each setting needs."
+    },
+    {
+      "type": "h2",
+      "text": "Topics in the detailed guide",
+      "id": "fourteen-guide-sections"
     },
     {
       "type": "table",
@@ -72,7 +144,7 @@
           "UIManager, UIContainer, Component and UIVariant"
         ],
         [
-          "Three ways in",
+          "UI customization approaches",
           "Default UI, component composition and CSS changes"
         ],
         [
@@ -113,7 +185,7 @@
         ],
         [
           "Cookbook",
-          "Six common modifications"
+          "Common UI modifications"
         ],
         [
           "References",
@@ -127,7 +199,8 @@
     },
     {
       "type": "h2",
-      "text": "Six common modifications"
+      "text": "Common UI modifications",
+      "id": "six-common-modifications"
     },
     {
       "type": "bullets",
@@ -166,7 +239,7 @@
     },
     {
       "type": "p",
-      "text": "The repository includes a patch that releases auxiliary objects in the pinned UI library during repeated UI replacement. Representative CPU and memory observations are summarized in Test results with their conditions."
+      "text": "The shared UI package also includes cleanup fixes for auxiliary objects in the pinned UI library. When adapting a component, keep its release handling with its event subscriptions and timers; otherwise theme replacement can leave work running after the UI has disappeared."
     },
     {
       "type": "note",
@@ -213,6 +286,50 @@
     {
       "url": "https://kazuhide.github.io/player-lab/web/guide.html",
       "label": "Public UI customization guide"
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 136
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 278
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 319
+    },
+    {
+      "path": "packages/ui-shared/src/styles/ui-shared.scss",
+      "line": 108
+    },
+    {
+      "path": "packages/ui-shared/src/index.ts",
+      "line": 19
+    },
+    {
+      "path": "packages/ui-shared/package.json",
+      "line": 5
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 369
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 699
+    },
+    {
+      "path": "apps/web/src/uiGuide.ts",
+      "line": 535
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 298
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/bitmovin-player-ui",
+      "label": "Player UI customization overview"
     }
   ]
 }
