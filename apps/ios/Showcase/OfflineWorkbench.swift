@@ -27,6 +27,28 @@ struct OfflineTrackRow: Identifiable {
     let action: OfflineTrackAction
 }
 
+struct NativeOfflineMigrationDraft {
+    let url: URL
+    let script: String
+    init(urlText: String, script: String) throws {
+        let canonical = try ConfigurationInput.url.validate(urlText, field: "Migration URL")
+        guard !canonical.isEmpty, let url = URL(string: canonical) else { throw ConfigurationValidationError(message: "Enter the remote asset URL to migrate.") }
+        try NativeScriptRuntime.validate(script, id: "OfflineContentManagerTweaksApi.resourceIdentifierCallback")
+        self.url = url; self.script = script
+    }
+    func callback(journal: NativeCallbackJournal) -> (String) -> String {
+        let runtime = NativeScriptRuntime(sources: ["identifier": script], journal: journal)
+        let canonical = url.absoluteString
+        return { original in runtime.call("identifier", input: ["identifier": original, "url": canonical], fallback: original, convert: NativeScriptRuntime.string) }
+    }
+    var code: String {
+        (["import JavaScriptCore"] + NativeScriptRuntime.codePreamble(["identifier": script], name: "migrationScript") + [
+            "let resourceIdentifierCallback: (String) -> String = { original in",
+            "    migrationScript(\"identifier\", [\"identifier\": original, \"url\": \(swiftString(url.absoluteString))]) as? String ?? original", "}",
+            "offline.tweaks.migrateDownload(remoteAssetUrl: URL(string: \(swiftString(url.absoluteString)))!, resourceIdentifierCallback: resourceIdentifierCallback)"]).joined(separator: "\n")
+    }
+}
+
 /// One explicitly selected asset owns the listener, fetched tracks and displayed state.
 final class OfflineWorkbench: ObservableObject {
     @Published private(set) var state: [ApiStateValue] = []
@@ -126,6 +148,7 @@ final class OfflineWorkbench: ObservableObject {
     func run(_ operation: OfflineOperation) throws {
         guard let manager else { throw invalid("Select an offline asset first.") }
         var appliedDownloadConfig: DownloadConfig?
+        var appliedMigration: NativeOfflineMigrationDraft?
         switch operation {
         case .download: manager.download()
         case .configuredDownload:
@@ -141,19 +164,17 @@ final class OfflineWorkbench: ObservableObject {
         case .renewLicense: manager.renewOfflineLicense()
         case .syncLicense: manager.syncOfflineDrmLicenseInformation()
         case .migrate:
-            let url = try ConfigurationInput.url.validate(migrationUrl, field: "Migration URL")
-            guard !url.isEmpty else { throw invalid("Enter the remote asset URL to migrate.") }
-            let callback = try makeMigrationCallback(remoteAssetUrl: url)
-            manager.tweaks.migrateDownload(remoteAssetUrl: URL(string: url)!, resourceIdentifierCallback: callback)
+            let migration = try makeMigrationConfiguration()
+            manager.tweaks.migrateDownload(remoteAssetUrl: migration.url, resourceIdentifierCallback: migration.callback(journal: migrationJournal))
+            appliedMigration = migration
         }
         let call: String
         switch operation {
         case .configuredDownload: call = "offline.download(downloadConfig: downloadConfig)"
         case .selectedDownload: call = "// Use tracks returned by AvailableTracksFetchedEvent; edit each track.action first.\noffline.download(tracks: selectedTracks, downloadConfig: downloadConfig)"
         case .migrate:
-            call = (["import JavaScriptCore"] + NativeScriptRuntime.codePreamble(["identifier": migrationScript], name: "migrationScript") + [
-                "offline.tweaks.migrateDownload(remoteAssetUrl: URL(string: \(swiftString(migrationUrl)))!, resourceIdentifierCallback: { original in",
-                "    migrationScript(\"identifier\", [\"identifier\": original, \"url\": \(swiftString(migrationUrl))]) as? String ?? original", "})"]).joined(separator: "\n")
+            guard let migration = appliedMigration else { throw invalid("No validated migration configuration was applied.") }
+            call = migration.code
         default: call = operation.rawValue.replacingOccurrences(of: "OfflineContentManager.", with: "offline.")
         }
         generatedCode = (appliedDownloadConfig.map { Self.code(for: $0) + "\n" } ?? "") + call
@@ -161,12 +182,12 @@ final class OfflineWorkbench: ObservableObject {
         refresh()
     }
 
+    func makeMigrationConfiguration() throws -> NativeOfflineMigrationDraft {
+        try NativeOfflineMigrationDraft(urlText: migrationUrl, script: migrationScript)
+    }
+
     func makeMigrationCallback(remoteAssetUrl: String) throws -> (String) -> String {
-        try NativeScriptRuntime.validate(migrationScript, id: "OfflineContentManagerTweaksApi.resourceIdentifierCallback")
-        let runtime = NativeScriptRuntime(sources: ["identifier": migrationScript], journal: migrationJournal)
-        return { original in
-            runtime.call("identifier", input: ["identifier": original, "url": remoteAssetUrl], fallback: original, convert: NativeScriptRuntime.string)
-        }
+        try NativeOfflineMigrationDraft(urlText: remoteAssetUrl, script: migrationScript).callback(journal: migrationJournal)
     }
 
     @MainActor

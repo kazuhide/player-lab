@@ -271,7 +271,8 @@ final class NativeScriptRuntime: @unchecked Sendable {
             "    \(name)Lock.lock(); defer { \(name)Lock.unlock() }",
             "    \(name)Context.exception = nil",
             "    let result = \(name)Engine?.invokeMethod(\"call\", withArguments: [id, input])",
-            "    guard \(name)Context.exception == nil, let result, !result.isNull, !result.isUndefined else { return nil }",
+            "    guard \(name)Context.exception == nil, let result else { return nil }",
+            "    if result.isNull || result.isUndefined { return NSNull() } // Successful cancellation is distinct from evaluation failure.",
             "    return result.toObject()",
             "}",
         ]

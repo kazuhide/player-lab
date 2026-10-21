@@ -4,6 +4,22 @@ import XCTest
 
 final class OfflineConfigurationTests: XCTestCase {
     @MainActor
+    func testMigrationSnapshotUsesOneCanonicalUrlForNativeCallbackAndExport() throws {
+        let workbench = OfflineWorkbench()
+        workbench.migrationUrl = "  https://example.com/master.m3u8 \n"
+        workbench.migrationScript = "return input.url.endsWith('.m3u8') ? input.identifier + ':' + input.url : 'incorrect';"
+        let applied = try workbench.makeMigrationConfiguration()
+        XCTAssertEqual(applied.url.absoluteString, "https://example.com/master.m3u8")
+        let callback = applied.callback(journal: workbench.migrationJournal)
+        XCTAssertEqual(callback("asset"), "asset:https://example.com/master.m3u8")
+        workbench.migrationUrl = "https://example.com/different.m3u8"
+        XCTAssertEqual(callback("asset"), "asset:https://example.com/master.m3u8", "Later draft edits must not mutate the applied callback")
+        XCTAssertFalse(applied.code.contains("  https://")); XCTAssertFalse(applied.code.contains("different.m3u8"))
+        let body = applied.code.components(separatedBy: "\n").filter { !$0.hasPrefix("import ") }.joined(separator: "\n")
+        attach("import JavaScriptCore\nfunc migrate(offline: OfflineContentManager) {\n" + body + "\n}", name: "offline-canonical-migration.swift")
+    }
+
+    @MainActor
     func testMigrationCallbackAcceptsEditedLogicAndFallsBackWithoutPartialStorage() throws {
         let workbench = OfflineWorkbench()
         workbench.migrationScript = "storage.count = (storage.count ?? 0) + 1; return input.url.endsWith('.m3u8') ? input.identifier.toUpperCase() + ':' + storage.count : input.identifier;"

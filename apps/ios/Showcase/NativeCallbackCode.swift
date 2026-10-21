@@ -17,7 +17,7 @@ extension AdvancedConfiguration {
             lines += nativeRemoteCode(sources: sources, name: name)
             if sources["PlaybackConfig.isForcedSubtitleCallback"] != nil {
                 lines += ["playerConfig.playbackConfig.isForcedSubtitleCallback = { track in",
-                    "    \(name)(\"PlaybackConfig.isForcedSubtitleCallback\", \(subtitleInputCode)) as? Bool ?? track.isForced", "}"]
+                    "    guard let value = \(name)(\"PlaybackConfig.isForcedSubtitleCallback\", \(subtitleInputCode)) as? NSNumber, CFGetTypeID(value) == CFBooleanGetTypeID() else { return track.isForced }", "    return value.boolValue", "}"]
             }
             for kind in ["audioLabel", "subtitleLabel"] where sources["LabelingConfig." + kind] != nil {
                 let input = kind == "audioLabel" ? audioInputCode : subtitleInputCode
@@ -36,10 +36,10 @@ extension AdvancedConfiguration {
             }
             if sources["FairplayConfig.prepareOfflineDrmLicenseInformation"] != nil {
                 lines += ["    callbackFairplay.prepareOfflineDrmLicenseInformation = { data in",
-                    "        let output = \(name)(\"FairplayConfig.prepareOfflineDrmLicenseInformation\", \(dataInputCode())) as? [String: Any]",
-                    "        let license = output?[\"licenseDuration\"] as? Double ?? 0",
-                    "        let playback = output?[\"playbackDuration\"] as? Double ?? 0",
-                    "        return DrmLicenseInformation(licenseDuration: license.isFinite ? license : 0, playbackDuration: playback.isFinite ? playback : 0)", "    }"]
+                    "        guard let output = \(name)(\"FairplayConfig.prepareOfflineDrmLicenseInformation\", \(dataInputCode())) as? [String: Any],",
+                    "              let license = output[\"licenseDuration\"] as? NSNumber, CFGetTypeID(license) != CFBooleanGetTypeID(), license.doubleValue.isFinite,",
+                    "              let playback = output[\"playbackDuration\"] as? NSNumber, CFGetTypeID(playback) != CFBooleanGetTypeID(), playback.doubleValue.isFinite else { return DrmLicenseInformation(licenseDuration: 0, playbackDuration: 0) }",
+                    "        return DrmLicenseInformation(licenseDuration: license.doubleValue, playbackDuration: playback.doubleValue)", "    }"]
             }
             #if !os(tvOS)
             if sources["FairplayConfig.provideLicenseData"] != nil {

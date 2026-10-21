@@ -18,10 +18,11 @@ final class NativeRemoteSourceFactory: NSObject {
         let url = try optionalURL(object, "url") ?? original.url
         let type: SourceType
         if let raw = object["type"] {
-            if let text = raw as? String, let parsed = ["none": SourceType.none, "hls": .hls, "dash": .dash, "progressive": .progressive, "movpkg": .movpkg][text] { type = parsed }
+            if let text = raw as? String, let parsed = ["hls": SourceType.hls, "dash": .dash, "progressive": .progressive, "movpkg": .movpkg][text] { type = parsed }
             else if let number = integer(raw), let parsed = SourceType(rawValue: number) { type = parsed }
             else { throw invalid("Unknown SourceType.") }
         } else { type = original.type }
+        guard type != .none else { throw invalid("SourceType.none cannot construct a SourceConfig. Choose hls, dash, progressive or movpkg.") }
         let result = SourceConfig(url: url, type: type)
         result.title = original.title; result.sourceDescription = original.sourceDescription; result.posterSource = original.posterSource
         result.isPosterPersistent = original.isPosterPersistent

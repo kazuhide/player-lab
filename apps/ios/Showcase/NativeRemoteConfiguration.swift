@@ -33,7 +33,8 @@ extension AdvancedConfiguration {
         if sources["RemoteControlConfig.prepareSource"] != nil {
             return [NativeRemoteExample.factorySource,
                 "playerConfig.remoteControlConfig.prepareSource = { type, original in",
-                "    do { return try NativeRemoteSourceFactory.prepare(\(name)(\"RemoteControlConfig.prepareSource\", [\"type\": type == .cast ? \"cast\" : \"unknown\", \"source\": NativeRemoteSourceFactory.input(original)]), original: original) } catch { return original }",
+                "    guard let output = \(name)(\"RemoteControlConfig.prepareSource\", [\"type\": type == .cast ? \"cast\" : \"unknown\", \"source\": NativeRemoteSourceFactory.input(original)]) else { return original }",
+                "    do { return try NativeRemoteSourceFactory.prepare(output, original: original) } catch { return original }",
                 "}"]
         }
         #endif
@@ -74,7 +75,8 @@ extension ApiOperation {
                 try NativeScriptRuntime.validate(body, id: "RemoteControlConfig.prepareSource")
                 lines += ["import JavaScriptCore"] + NativeScriptRuntime.codePreamble(["prepare": body], name: "remoteScript") + [
                     "remote.prepareSource = { type, original in",
-                    "    do { return try NativeRemoteSourceFactory.prepare(remoteScript(\"prepare\", [\"type\": type == .cast ? \"cast\" : \"unknown\", \"source\": NativeRemoteSourceFactory.input(original)]), original: original) } catch { return original }",
+                    "    guard let output = remoteScript(\"prepare\", [\"type\": type == .cast ? \"cast\" : \"unknown\", \"source\": NativeRemoteSourceFactory.input(original)]) else { return original }",
+                    "    do { return try NativeRemoteSourceFactory.prepare(output, original: original) } catch { return original }",
                     "}", "let prepared = remote.prepareSource?(.cast, sourceConfig)"]
 
             } else {
