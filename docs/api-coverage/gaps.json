@@ -547,6 +547,18 @@
       },
       "references": []
     },
+    "web-missing-label-editor-4478836b84": {
+      "kind": "implementation",
+      "en": {
+        "reason": "The SDK accepts a text label, a localization callback or a UI component. The app has no editor for this label. A plain text value is valid and does not require creating a component instance.",
+        "action": "Add a text editor and apply its value to the label configuration. Optional callback and component branches need separate typed factories and controls; do not require them for plain text labels."
+      },
+      "ja": {
+        "reason": "SDKは文字列、表示言語に応じた値を返す関数、UIコンポーネントを受け取れます。このラベルを編集するGUIがありません。通常の文字列も有効で、コンポーネントを生成する必要はありません。",
+        "action": "文字列を編集してラベル設定へ適用する入力を追加します。関数やコンポーネントを使う場合の生成・操作は別に用意し、通常の文字列入力の条件にはしません。"
+      },
+      "references": []
+    },
     "web-missing-map-editor-656b12fe50": {
       "kind": "implementation",
       "en": {
@@ -1888,6 +1900,14 @@
           ]
         },
         {
+          "reason": "web-missing-label-editor-4478836b84",
+          "apis": [
+            "UIComponentConfigMap.InteractiveContextMenuItem.label",
+            "UIComponentConfigMap.InteractiveSettingsPanelItem.label",
+            "UIComponentConfigMap.SettingsPanelSelectOption.label"
+          ]
+        },
+        {
           "reason": "web-missing-map-editor-656b12fe50",
           "apis": [
             "UIComponentConfigMap.ErrorMessageOverlay.messages",
@@ -2379,7 +2399,6 @@
             "UIComponentConfigMap.InteractiveContextMenuItem.hidden",
             "UIComponentConfigMap.InteractiveContextMenuItem.id",
             "UIComponentConfigMap.InteractiveContextMenuItem.isSetting",
-            "UIComponentConfigMap.InteractiveContextMenuItem.label",
             "UIComponentConfigMap.InteractiveContextMenuItem.labelStyle",
             "UIComponentConfigMap.InteractiveContextMenuItem.role",
             "UIComponentConfigMap.InteractiveContextMenuItem.tabIndex",
@@ -2392,7 +2411,6 @@
             "UIComponentConfigMap.InteractiveSettingsPanelItem.hidden",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.id",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.isSetting",
-            "UIComponentConfigMap.InteractiveSettingsPanelItem.label",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.labelStyle",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.role",
             "UIComponentConfigMap.InteractiveSettingsPanelItem.tabIndex",
@@ -2735,7 +2753,6 @@
             "UIComponentConfigMap.SettingsPanelSelectOption.hidden",
             "UIComponentConfigMap.SettingsPanelSelectOption.id",
             "UIComponentConfigMap.SettingsPanelSelectOption.isSetting",
-            "UIComponentConfigMap.SettingsPanelSelectOption.label",
             "UIComponentConfigMap.SettingsPanelSelectOption.labelStyle",
             "UIComponentConfigMap.SettingsPanelSelectOption.role",
             "UIComponentConfigMap.SettingsPanelSelectOption.settingsValue",
