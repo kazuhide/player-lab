@@ -56,6 +56,14 @@ class PlayerOwnershipInstrumentedTest {
                 .second(SourceEvent.Error(SourceErrorCode.UnsupportedStreamType, "test"))
             assertEquals("Retired source must not clear the active error", sourceError, controller.lastErrorCode)
             assertEquals(sourceLog, controller.log.toList())
+            original.subscriptions.single { it.first == PlayerEvent.Error::class }
+                .second(PlayerEvent.Error(PlayerErrorCode.LicenseAuthenticationFailed, "test"))
+            val playerError = controller.lastErrorCode
+            assertEquals(PlayerErrorCode.LicenseAuthenticationFailed.value, playerError)
+            activeSource.subscriptions.single { it.first == SourceEvent.Loaded::class }
+                .second(SourceEvent.Loaded(activeSource.api))
+            assertEquals("Loading a source must not clear the current player's error", playerError, controller.lastErrorCode)
+            assertEquals("SourceLoaded", controller.log.first())
             val source = controller.sourceSettings
             controller.applyPlayerSettings(PlayerSettings(muted = true))
             assertEquals(1, original.destroyCalls)

@@ -187,7 +187,7 @@ internal class PlayerController(
             if (ownsSource()) { lastErrorCode = it.code.value; append("SourceError ${it.code.value}") }
         }
         val loaded: (SourceEvent.Loaded) -> Unit = {
-            if (ownsSource()) { lastErrorCode = null; append("SourceLoaded"); refresh() }
+            if (ownsSource()) { append("SourceLoaded"); refresh() }
         }
         source.on(SourceEvent.Error::class, error)
         source.on(SourceEvent.Loaded::class, loaded)
