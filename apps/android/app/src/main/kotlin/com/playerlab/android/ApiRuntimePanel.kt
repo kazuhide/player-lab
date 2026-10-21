@@ -54,14 +54,22 @@ internal fun ApiRuntimePanel(controller: PlayerController) {
                     }
                 }
                 Button(onClick = {
-                    result = runCatching { apiValue(command.execute(controller, ApiInputs(arguments))) }
+                    result = runCatching {
+                        val inputs = ApiInputs(arguments)
+                        command.validate(inputs)
+                        apiValue(command.execute(controller, inputs))
+                    }
                         .getOrElse { "API failed (${it.javaClass.simpleName}). Check argument types, source state and SDK events." }
                 }, modifier = Modifier.testTag("api-command-run")) { Text("Run SDK API") }
                 SelectionContainer { Text(result, modifier = Modifier.testTag("api-command-result")) }
+                if (command.id.contains("CustomMessage") || command.id == "app:custom-message-send") {
+                    Text("The host endpoint is playerLabMessage(data: String). A custom Web UI must call this endpoint and register its own incoming message handler. Received values stay in this session; only the latest messages are shown.", style = MaterialTheme.typography.bodySmall)
+                    controller.apiHostMessages.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
+                }
                 if (controller.apiAsyncResult.isNotEmpty()) Text(controller.apiAsyncResult, modifier = Modifier.testTag("api-async-result"))
             }
             "State" -> {
-                Text("Refresh reads SDK values once. Keys and opaque SDK request/configuration objects are not exported. Lists show the first entries and text is bounded for display. Ad interface fields use the active client-side ad or the selected SSAI test object; activeAdBreak and activeLinearAd always read the actual SDK state.", style = MaterialTheme.typography.bodySmall)
+                Text("Refresh reads SDK values once. Keys and opaque SDK request/configuration objects are not exported. Lists show the first entries and text is bounded for display. Ad fields use the active client-side ad or selected SSAI test object. Vector3 fields inspect the input passed to the most recent moveViewingDirection command. activeAdBreak and activeLinearAd always read actual SDK state.", style = MaterialTheme.typography.bodySmall)
                 Button(onClick = {
                     observations = ApiRuntime.reads.associate { field -> field.id to runCatching { apiValue(field.read(controller)) }
                         .getOrElse { "Unavailable (${it.javaClass.simpleName})" } }
@@ -79,7 +87,7 @@ internal fun ApiRuntimePanel(controller: PlayerController) {
                 }
                 Text("Values are occurrence counts for this app session. Zero means no occurrence has been recorded. The latest timestamp is read from SDK Event.timestamp in milliseconds since the Unix epoch. Keys, request headers and other payloads are not copied into this log.", style = MaterialTheme.typography.bodySmall)
                 Button(onClick = { controller.apiEvents.clear(); controller.apiEventTimes.clear() }, modifier = Modifier.testTag("api-events-clear")) { Text("Clear event counts") }
-                (ApiEvents.player.map { it.id } + ApiEvents.source.map { it.id } + listOf("OfflineEvent.Error", "OfflineEvent.Info", "OfflineEvent.Warning")).filter { it.contains(query, ignoreCase = true) }.forEach { id ->
+                (ApiEvents.player.map { it.id } + ApiEvents.source.map { it.id } + ApiEvents.views.map { "PlayerView.${it.id}" } + listOf("OfflineEvent.Error", "OfflineEvent.Info", "OfflineEvent.Warning")).filter { it.contains(query, ignoreCase = true) }.forEach { id ->
                     Text("$id: ${controller.apiEvents[id] ?: 0}; latest timestamp=${controller.apiEventTimes[id] ?: "not recorded"}", modifier = Modifier.testTag("api-event-$id"), style = MaterialTheme.typography.bodySmall)
                 }
             }

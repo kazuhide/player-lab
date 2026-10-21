@@ -1,6 +1,7 @@
 package com.playerlab.android
 
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.event.Event
 import com.bitmovin.player.api.event.PlayerEvent
@@ -8,20 +9,30 @@ import com.bitmovin.player.api.event.SourceEvent
 import kotlin.reflect.KClass
 
 internal object ApiEvents {
-    data class PlayerEntry(val id: String, val subscribe: (Player, (String, Long) -> Unit) -> (() -> Unit))
-    data class SourceEntry(val id: String, val subscribe: (Source, (String, Long) -> Unit) -> (() -> Unit))
-    private fun <E : Event> playerEvent(id: String, type: KClass<E>) = PlayerEntry(id) { owner, report ->
+    data class ViewEntry(val id: String, val subscribe: (PlayerView, Boolean, (String, Long) -> Unit) -> (() -> Unit))
+    data class PlayerEntry(val id: String, val view: ViewEntry, val subscribe: (Player, (String, Long) -> Unit) -> (() -> Unit))
+    data class SourceEntry(val id: String, val view: ViewEntry, val subscribe: (Source, (String, Long) -> Unit) -> (() -> Unit))
+    private fun <E : Event> viewEvent(id: String, type: KClass<E>) = ViewEntry(id) { owner, once, report ->
+        val active = java.util.concurrent.atomic.AtomicBoolean(true)
+        val fired = java.util.concurrent.atomic.AtomicBoolean(false)
+        val callback: (E) -> Unit = { if (active.get() && (!once || fired.compareAndSet(false, true))) report(id, it.timestamp) }
+        if (once) owner.next(type, callback) else owner.on(type, callback)
+        val dispose: () -> Unit = { active.set(false); owner.off(type, callback) }
+        dispose
+    }
+    private fun <E : Event> playerEvent(id: String, type: KClass<E>) = PlayerEntry(id, viewEvent(id, type)) { owner, report ->
         val callback: (E) -> Unit = { report(id, it.timestamp) }
         owner.on(type, callback)
         val dispose: () -> Unit = { owner.off(type, callback) }
         dispose
     }
-    private fun <E : SourceEvent> sourceEvent(id: String, type: KClass<E>) = SourceEntry(id) { owner, report ->
+    private fun <E : SourceEvent> sourceEvent(id: String, type: KClass<E>) = SourceEntry(id, viewEvent(id, type)) { owner, report ->
         val callback: (E) -> Unit = { report(id, it.timestamp) }
         owner.on(type, callback)
         val dispose: () -> Unit = { owner.off(type, callback) }
         dispose
     }
+    val views: List<ViewEntry> get() = player.map { it.view } + source.map { it.view }
     val player = listOf(
         playerEvent("PlayerEvent.Active", PlayerEvent.Active::class),
         playerEvent("PlayerEvent.AdBreakFinished", PlayerEvent.AdBreakFinished::class),

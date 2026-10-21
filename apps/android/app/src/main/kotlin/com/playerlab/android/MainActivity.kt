@@ -120,6 +120,20 @@ internal class PlayerController(
     internal var configurationStatus: String by mutableStateOf("")
         private set
     private val views = mutableSetOf<PlayerView>()
+    internal val apiSurfaces = ApiSurfaceBinding()
+    internal var apiViewRevision by mutableStateOf(0)
+        private set
+    private var apiDetachedView: PlayerView? = null
+    private class ApiViewSubscription(val owner: PlayerView) { var dispose: () -> Unit = {} }
+    private val apiViewSubscriptions = mutableMapOf<String, ApiViewSubscription>()
+    private val apiFullscreenHandlers = mutableMapOf<PlayerView, ApiFullscreenHandler>()
+    private val apiCustomMessages = mutableMapOf<PlayerView, ApiCustomMessages>()
+    private val apiCustomMessageTokens = mutableMapOf<PlayerView, Any>()
+    internal var apiFullscreen by mutableStateOf(false)
+        private set
+    internal var apiPictureInPicture by mutableStateOf(false)
+        private set
+    internal val apiHostMessages = mutableStateListOf<String>()
     private val viewLifecycle = PlayerViewLifecycle(lifecycle)
     private val playerSubscriptions = mutableListOf<() -> Unit>()
     private var sourceSubscription: (() -> Unit)? = null
@@ -132,6 +146,8 @@ internal class PlayerController(
     internal val apiSsaiBreaks = androidx.compose.runtime.mutableStateMapOf<String, com.bitmovin.player.api.ssai.SsaiAdBreak>()
     internal var apiSelectedSsaiAd: String? by mutableStateOf(null)
     internal var apiSelectedSsaiBreak: String? by mutableStateOf(null)
+    internal var apiVector: com.bitmovin.player.api.vr.orientation.Vector3? = null
+    internal val apiOriginalOrientations = mutableMapOf<String, com.bitmovin.player.api.vr.orientation.OrientationProvider?>()
     internal var apiEventRecording by mutableStateOf(true)
     internal var apiAsyncResult by mutableStateOf("")
         private set
@@ -162,6 +178,99 @@ internal class PlayerController(
         return overrides.source(source)
     }
     internal fun currentView(): PlayerView? = views.firstOrNull { it.player === player }
+    internal fun setApiFullscreenHandler(enabled: Boolean) {
+        val view = requireNotNull(currentView()) { "Attach a PlayerView first." }
+        val activity = requireNotNull(context.apiActivity()) { "A host Activity is required." }
+        apiFullscreenHandlers.remove(view)?.close()
+        val handler = if (!enabled) null else ApiFullscreenHandler(activity,
+            { !released && currentView() === view }, { apiFullscreen = it })
+        view.setFullscreenHandler(handler)
+        if (handler != null) apiFullscreenHandlers[view] = handler
+    }
+    internal fun setApiPictureInPictureHandler(enabled: Boolean, width: Int, height: Int) {
+        require(width > 0 && height > 0 && width.toDouble() / height in (1.0 / 2.39)..2.39) { "Choose a positive Android PiP aspect ratio between 1:2.39 and 2.39:1." }
+        val view = requireNotNull(currentView()) { "Attach a PlayerView first." }
+        val activity = requireNotNull(context.apiActivity()) { "A host Activity is required." }
+        view.setPictureInPictureHandler(if (!enabled) null else ApiPictureInPictureHandler(activity, view, width, height) { !released && currentView() === view })
+    }
+    internal fun setApiCustomMessageHandler(enabled: Boolean, reply: String) {
+        val view = requireNotNull(currentView()) { "Attach a PlayerView first." }
+        apiCustomMessages.remove(view)
+        apiCustomMessageTokens.remove(view)
+        val token = Any()
+        val messages = if (!enabled) null else ApiCustomMessages(reply) { payload ->
+            apiMain.post {
+                if (!released && currentView() === view && apiCustomMessageTokens[view] === token) {
+                    apiHostMessages.add(0, payload)
+                    while (apiHostMessages.size > 20) apiHostMessages.removeAt(apiHostMessages.lastIndex)
+                }
+            }
+        }
+        view.setCustomMessageHandler(messages?.handler)
+        if (messages != null) { apiCustomMessages[view] = messages; apiCustomMessageTokens[view] = token }
+    }
+    internal fun sendApiCustomMessage(name: String, payload: String) {
+        require(name.matches(Regex("[A-Za-z][A-Za-z0-9_.-]{0,63}")))
+        require(payload.length <= 2048)
+        requireNotNull(apiCustomMessages[currentView()]) { "Install the host message handler first." }.handler.sendMessage(name, payload)
+    }
+    private fun retireApiViewHandlers(view: PlayerView) {
+        apiFullscreenHandlers.remove(view)?.close()
+        apiCustomMessages.remove(view)
+        apiCustomMessageTokens.remove(view)
+        view.setFullscreenHandler(null)
+        view.setPictureInPictureHandler(null)
+        view.setCustomMessageHandler(null)
+    }
+    internal fun pictureInPictureChanged(active: Boolean, configuration: android.content.res.Configuration) {
+        if (released) return
+        apiPictureInPicture = active
+        views.toList().forEach { it.onPictureInPictureModeChanged(active, configuration) }
+    }
+    internal fun subscribeApiView(id: String, event: String, once: Boolean) {
+        require(id.matches(Regex("[A-Za-z0-9_.-]{1,64}"))) { "Use a subscription ID with 1–64 letters, digits, dots, underscores or hyphens." }
+        val view = requireNotNull(currentView()) { "Attach a PlayerView first." }
+        val entry = ApiEvents.views.firstOrNull { it.id == event } ?: error("Choose a supported event.")
+        check(id in apiViewSubscriptions || apiViewSubscriptions.size < 64) { "Remove an existing subscription first (limit 64)." }
+        unsubscribeApiView(id)
+        val handle = ApiViewSubscription(view)
+        apiViewSubscriptions[id] = handle
+        try {
+            handle.dispose = entry.subscribe(view, once) { name, timestamp ->
+                apiEvent("PlayerView.$name", timestamp) {
+                    !released && currentView() === view && apiViewSubscriptions[id] === handle
+                }
+            }
+        } catch (failure: Exception) {
+            apiViewSubscriptions.remove(id)
+            throw failure
+        }
+    }
+    internal fun unsubscribeApiView(id: String) { apiViewSubscriptions.remove(id)?.dispose?.invoke() }
+    private fun retireApiViewSubscriptions(view: PlayerView? = null) {
+        apiViewSubscriptions.filterValues { view == null || it.owner === view }.keys.toList().forEach(::unsubscribeApiView)
+    }
+    internal fun recreateApiView() {
+        if (released) return
+        apiDetachedView = null
+        apiViewRevision++
+    }
+    internal fun setApiViewAttached(attach: Boolean) {
+        check(!released)
+        val view = currentView() ?: apiDetachedView?.takeIf { it in views } ?: error("Create a PlayerView first.")
+        if (attach) {
+            view.player = player
+            apiDetachedView = null
+            viewLifecycle.attach(view, view::onStart, view::onResume, view::onPause, view::onStop)
+        } else {
+            retireApiViewHandlers(view)
+            retireApiViewSubscriptions(view)
+            apiSurfaces.clear(view)
+            viewLifecycle.detach(view)
+            view.player = null
+            apiDetachedView = view
+        }
+    }
     private fun invalidateApiQuery() {
         apiQuerySequence++
         apiQueryTimeout?.let(apiMain::removeCallbacks)
@@ -318,7 +427,9 @@ internal class PlayerController(
         playerSubscriptions.clear()
         val previous = player
         // Detach synchronously, even if another Apply occurs before Compose disposes the old view.
-        views.forEach { viewLifecycle.detach(it); it.player = null }
+        retireApiViewSubscriptions()
+        views.forEach { retireApiViewHandlers(it); apiSurfaces.clear(it); viewLifecycle.detach(it); it.player = null }
+        apiDetachedView = null
         player = replacement
         playerSettings = settings
         apiOverrides = overrides
@@ -328,6 +439,8 @@ internal class PlayerController(
         apiSsaiBreaks.clear()
         apiSelectedSsaiAd = null
         apiSelectedSsaiBreak = null
+        apiVector = null
+        apiOriginalOrientations.clear()
         observePlayer()
         previous.destroy()
         loadCurrentSource(sourceConfig)
@@ -351,6 +464,10 @@ internal class PlayerController(
 
     internal fun releaseView(view: PlayerView) {
         if (!views.remove(view)) return
+        retireApiViewSubscriptions(view)
+        retireApiViewHandlers(view)
+        apiSurfaces.clear(view)
+        if (apiDetachedView === view) apiDetachedView = null
         viewLifecycle.detach(view)
         view.player = null
         view.onDestroy()
@@ -381,6 +498,12 @@ internal class PlayerController(
         apiSsaiBreaks.clear()
         apiSelectedSsaiAd = null
         apiSelectedSsaiBreak = null
+        apiVector = null
+        apiOriginalOrientations.clear()
+        apiSurfaces.clear()
+        retireApiViewSubscriptions()
+        views.forEach(::retireApiViewHandlers)
+        apiDetachedView = null
         apiOffline.dispose()
         offlinePlayback = null
         playerGeneration++
@@ -434,6 +557,10 @@ class MainActivity : ComponentActivity() {
         controller.release()
         super.onDestroy()
     }
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        if (::controller.isInitialized) controller.pictureInPictureChanged(isInPictureInPictureMode, newConfig)
+    }
 
     private fun licenseKey(): String = metaData("BITMOVIN_PLAYER_LICENSE_KEY")
 
@@ -447,16 +574,18 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun PlayerLabScreen(controller: PlayerController) {
     var uiMode by remember { mutableStateOf(UiMode.DEFAULT) }
+    val videoOnly = controller.apiFullscreen || controller.apiPictureInPicture
+    androidx.activity.compose.BackHandler(enabled = controller.apiFullscreen) { controller.currentView()?.exitFullscreen() }
 
     Column(
-        modifier = Modifier.safeDrawingPadding().clipToBounds().testTag("player-lab-scroll")
-            .verticalScroll(rememberScrollState()).padding(12.dp),
+        modifier = if (videoOnly) Modifier.fillMaxSize().clipToBounds().testTag("player-lab-scroll") else
+            Modifier.safeDrawingPadding().clipToBounds().testTag("player-lab-scroll").verticalScroll(rememberScrollState()).padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         // Recreate the PlayerView when the UI mode changes — the UI is fixed at view-construction
         // time via PlayerViewConfig, so swapping factories means a fresh view (the Player persists).
         val displayedPlayer = controller.player
-        key(displayedPlayer, uiMode) {
+        key(displayedPlayer, uiMode, controller.apiViewRevision) {
             AndroidView(
                 factory = { context ->
                     PlayerTouchHost(context,
@@ -469,9 +598,10 @@ private fun PlayerLabScreen(controller: PlayerController) {
                     host.releaseTouchOwnership()
                     controller.releaseView(host.content as PlayerView)
                 },
-                modifier = Modifier.fillMaxWidth().height(220.dp),
+                modifier = if (videoOnly) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(220.dp),
             )
         }
+        if (videoOnly) return@Column
 
         // Player UI: the SDK default vs. our shared @showcase/ui-shared custom factories (§12).
         Row(

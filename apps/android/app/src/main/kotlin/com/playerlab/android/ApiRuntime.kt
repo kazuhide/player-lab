@@ -35,7 +35,14 @@ internal class ApiInputs(private val values: Map<String, String>) {
     fun float(name: String): Float = number(name).toFloat().also { require(it.isFinite()) { "$name exceeds Float range." } }
     fun bool(name: String) = text(name).toBooleanStrictOrNull() ?: error("$name must be true or false.")
 }
-internal data class ApiCommand(val id: String, val arguments: List<ApiArgument> = emptyList(), val label: String = id.removePrefix("android:com.bitmovin.player."), val execute: (PlayerController, ApiInputs) -> Any?)
+internal data class ApiCommand(val id: String, val arguments: List<ApiArgument> = emptyList(), val label: String = id.removePrefix("android:com.bitmovin.player."), val execute: (PlayerController, ApiInputs) -> Any?) {
+    fun validate(inputs: ApiInputs) {
+        arguments.forEach { argument ->
+            val value = inputs.text(argument.name)
+            require(argument.choices.isEmpty() || value in argument.choices) { "Choose a documented ${argument.name} value." }
+        }
+    }
+}
 internal data class ApiRead(val id: String, val read: (PlayerController) -> Any?)
 
 /** Only explicitly selected public values are rendered. Never stringify SDK configs or request payloads. */
@@ -111,7 +118,7 @@ internal object ApiRuntime {
         ApiCommand("android:com.bitmovin.player.api.vr.VrApi.viewingDirectionChangeThreshold", listOf(ApiArgument("value", "1"))) { c, i -> c.player.vr.viewingDirectionChangeThreshold = i.number("value", 0.0) },
         ApiCommand("android:com.bitmovin.player.api.vr.VrApi.viewingDirectionChangeEventInterval", listOf(ApiArgument("value", "1"))) { c, i -> c.player.vr.viewingDirectionChangeEventInterval = i.number("value", 0.0) },
         ApiCommand("android:com.bitmovin.player.api.vr.VrApi.viewingDirection", listOf(ApiArgument("pitch", "0"), ApiArgument("roll", "0"), ApiArgument("yaw", "0"))) { c, i -> c.player.vr.viewingDirection = ViewingDirection(i.number("pitch"), i.number("roll"), i.number("yaw")) },
-        ApiCommand("android:com.bitmovin.player.api.vr.VrApi.moveViewingDirection()", listOf(ApiArgument("phi", "0"), ApiArgument("x", "0"), ApiArgument("y", "0"))) { c, i -> c.player.vr.moveViewingDirection(Vector3(i.number("phi"), i.number("x"), i.number("y"))) },
+        ApiCommand("android:com.bitmovin.player.api.vr.VrApi.moveViewingDirection()", listOf(ApiArgument("phi", "0"), ApiArgument("x", "0"), ApiArgument("y", "0"))) { c, i -> val direction = Vector3(i.number("phi"), i.number("x"), i.number("y")); c.apiVector = direction; c.player.vr.moveViewingDirection(direction) },
         ApiCommand("android:com.bitmovin.player.api.playlist.PlaylistApi.add()", listOf(ApiArgument("url", "https://example.invalid/stream.m3u8"), ApiArgument("type", "Hls", SourceType.entries.map { it.name }), ApiArgument("index", ""))) { c, i -> Source(SourceConfig(i.text("url"), SourceType.valueOf(i.text("type")))).let { source -> if (i.text("index").isBlank()) c.player.playlist.add(source) else c.player.playlist.add(source, i.int("index", 0)) } },
         ApiCommand("android:com.bitmovin.player.api.playlist.PlaylistApi.remove()", listOf(ApiArgument("index", "0"))) { c, i -> c.player.playlist.remove(i.int("index", 0)) },
         ApiCommand("android:com.bitmovin.player.api.playlist.PlaylistApi.seek()", listOf(ApiArgument("index", "0"), ApiArgument("time", "0"))) { c, i -> c.player.playlist.seek(c.player.playlist.sources.getOrNull(i.int("index", 0)) ?: error("No playlist source at that index."), i.number("time", 0.0)) },
@@ -146,7 +153,7 @@ internal object ApiRuntime {
         ApiCommand("android:com.bitmovin.player.api.ssai.SsaiAd.clickThroughUrlOpened()", listOf(ApiArgument("id", "test-ad"), ApiArgument("openedExternally", "false", listOf("true","false")))) { c, i -> require(i.bool("openedExternally")).let { (c.apiSsaiAds[i.text("id")] ?: error("No SSAI test ad.")).clickThroughUrlOpened() } },
         ApiCommand("android:com.bitmovin.player.api.vr.orientation.OrientationProvider.enable()", listOf(ApiArgument("provider", "gyroscopic", listOf("gyroscopic","touch")))) { c, i -> (if (i.text("provider") == "gyroscopic") c.player.vr.gyroscopicOrientationProvider else c.player.vr.touchOrientationProvider)?.enable() ?: error("The selected orientation provider is unavailable.") },
         ApiCommand("android:com.bitmovin.player.api.vr.orientation.OrientationProvider.disable()", listOf(ApiArgument("provider", "gyroscopic", listOf("gyroscopic","touch")))) { c, i -> (if (i.text("provider") == "gyroscopic") c.player.vr.gyroscopicOrientationProvider else c.player.vr.touchOrientationProvider)?.disable() ?: error("The selected orientation provider is unavailable.") }
-    )
+    ) + ApiAdditionalRuntime.commands
     val reads: List<ApiRead> = listOf(
         ApiRead("android:com.bitmovin.player.api.Player.isLive") { c -> c.player.isLive },
         ApiRead("android:com.bitmovin.player.api.Player.currentTime") { c -> c.player.currentTime },
@@ -289,5 +296,5 @@ internal object ApiRuntime {
         ApiRead("android:com.bitmovin.player.api.source.SourceConfig.progressiveSource") { c -> source(c).config.progressiveSource?.let { mapOf("url" to it.url, "type" to it.type.name) } },
         ApiRead("android:com.bitmovin.player.api.source.SourceConfig.smoothSource") { c -> source(c).config.smoothSource?.let { mapOf("url" to it.url, "type" to it.type.name) } },
         ApiRead("android:com.bitmovin.player.api.source.SourceConfig.drmConfigs") { c -> source(c).config.drmConfigs.map { it?.let { mapOf("uuid" to it.uuid.toString(), "licenseUrl" to "[redacted]", "isLicenseRenewable" to it.isLicenseRenewable, "shouldKeepDrmSessionsAlive" to it.shouldKeepDrmSessionsAlive) } } }
-    )
+    ) + ApiAdditionalRuntime.reads
 }

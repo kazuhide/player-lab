@@ -196,6 +196,22 @@ Check the resulting state and events after running a command. Creating an SSAI
 test ad builds a local input object; ad playback must be established separately
 from the active SDK ad state and playback events.
 
+View event subscriptions accept an event name and a subscription ID. `on` keeps
+listening, `next` listens once, and `off` removes the matching ID. Subscriptions
+are retired when their view detaches or is recreated. Their counts appear with
+the `PlayerView.` prefix in Events.
+
+The view-handler commands install host fullscreen, picture-in-picture, or custom
+Web UI message behavior. Fullscreen expands the video and hides the form; Back
+restores it. Picture in picture requires Android and device support. Its width
+and height arguments control the aspect ratio. The custom message handler exposes
+`playerLabMessage(data: String)` and returns the configured reply; a custom Web UI
+must call that endpoint. Incoming messages remain in memory for this session.
+Surface and texture commands use the actual attached rendering view. To change
+the rendering type, first apply `PlayerViewConfig.surfaceType`. Raw surfaces are
+cleared before their holder or owning view is retired. The destroy commands
+recreate the affected player or view so the controls remain usable.
+
 ## Offline controls
 
 The offline panel downloads selected renditions of the current video-on-demand
