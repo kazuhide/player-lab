@@ -7,8 +7,6 @@ interface ScriptField {
   install: (settings: NativeSettings, owner: NativeScriptOwner, body: string) => void;
 }
 type Script = (...values: unknown[]) => unknown;
-const code = new WeakMap<object, string>();
-export const scriptCode = (value: object): string | undefined => code.get(value);
 function functionSource(field: ScriptField, body: string): string {
   return `return ${field.signature.includes("=> Promise") ? "async " : ""}function(${field.parameters.join(", ")}) {\n"use strict";\n${body}\n};`;
 }
@@ -48,7 +46,6 @@ export class NativeScriptOwner {
       enterFullscreen() { owner.assertActive(); handler.enterFullscreen(); },
       exitFullscreen() { owner.assertActive(); handler.exitFullscreen(); },
     };
-    const body = code.get(handler); if (body) code.set(guarded, body);
     return guarded;
   }
   protectMessages(handler: CustomMessageHandler): CustomMessageHandler {
@@ -91,8 +88,6 @@ export class NativeScriptOwner {
       if (!guard(result)) throw new Error(`${id} returned a value outside its SDK contract.`);
       return result;
     };
-    const field = NATIVE_SCRIPT_FIELDS.find((item) => item.id === id)!;
-    code.set(callback, `(${field.parameters.join(", ")}) => {\n${body}\n}`);
     return callback;
   }
 
@@ -104,14 +99,11 @@ export class NativeScriptOwner {
       if (!guard(result)) throw new Error(`${id} returned a value outside its SDK contract.`);
       return result;
     };
-    const field = NATIVE_SCRIPT_FIELDS.find((item) => item.id === id)!;
-    code.set(callback, `async (${field.parameters.join(", ")}) => {\n${body}\n}`);
     return callback;
   }
 
   factory<T extends object>(id: string, body: string, guard: (value: unknown) => value is T): T {
     const result = this.validated(id, body, guard)();
-    code.set(result, `(() => {\n${body}\n})()`);
     return result;
   }
 }

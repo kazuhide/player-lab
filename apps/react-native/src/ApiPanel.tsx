@@ -93,15 +93,15 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
       </View>)}
       <Button title={busy ? "Waiting for API result" : "Run selected API"} disabled={!ready || busy || player.isDestroyed} onPress={() => { void run(); }} />
       <Button title="Recreate player after API experiments" disabled={busy} onPress={onRecreate} />
-      <Text selectable accessibilityLabel="Executed API code" style={styles.mono}>{code}</Text>
-      <Text selectable accessibilityLabel="API result" style={styles.mono}>{result}</Text>
+      <Text selectable accessibilityLabel="Executed API code" accessibilityValue={{ text: code }} style={styles.mono}>{code}</Text>
+      <Text selectable accessibilityLabel="API result" accessibilityValue={{ text: result }} style={styles.mono}>{result}</Text>
       <Text style={styles.heading}>Player events</Text>
       <Text>Named public events are connected. The log retains recent payload summaries and redacts credential fields. Receiving an event requires its matching feature or source.</Text>
       <View style={styles.row}>
         <Button title={recording ? "Pause event log" : "Resume event log"} onPress={() => onRecording(!recording)} />
         <Button title="Clear API event log" onPress={onClearEvents} />
       </View>
-      <Text selectable accessibilityLabel="API event log" style={styles.mono}>{events.slice(0, 12).join("\n")}</Text>
+      <Text selectable accessibilityLabel="API event log" accessibilityValue={{ text: events.slice(0, 12).join("\n") }} style={styles.mono}>{events.slice(0, 12).join("\n")}</Text>
     </>}
   </View>;
 }

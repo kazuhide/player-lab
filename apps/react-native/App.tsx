@@ -123,6 +123,7 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
   };
   return (
     <ScrollView testID="player-lab-screen" contentContainerStyle={styles.container} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+      keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled"
       scrollEnabled={Platform.OS !== "android" || playerTouchOwner === null}>
       {/* Player UI: the SDK default vs. our shared @showcase/ui-shared custom factories (§12). */}
       <View style={styles.row}>

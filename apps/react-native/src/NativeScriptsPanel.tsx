@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Button, Keyboard, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { NATIVE_SCRIPT_FIELDS, type NativeScriptDraft } from "./nativeScripts";
 
 export function NativeScriptsPanel({ value, onChange }: { value: NativeScriptDraft; onChange: (value: NativeScriptDraft) => void }): React.JSX.Element {
@@ -16,6 +16,7 @@ export function NativeScriptsPanel({ value, onChange }: { value: NativeScriptDra
     <View style={styles.row}>{NATIVE_SCRIPT_FIELDS.filter((field) => field.id.toLowerCase().includes(filter.toLowerCase())).map((field) => <Button key={field.id} title={field.id} disabled={field.id === selected.id} onPress={() => setSelectedId(field.id)} />)}</View>
     <Text style={styles.heading}>{selected.id}</Text><Text>{selected.signature}</Text>
     {body === undefined ? <Button title="Edit this callback" onPress={() => update(selected.initial)} /> : <>
+      <Button title="Finish editing JavaScript" onPress={() => Keyboard.dismiss()} />
       <TextInput accessibilityLabel={`JavaScript body for ${selected.id}`} value={body} onChangeText={update} autoCorrect={false} autoCapitalize="none" multiline style={[styles.input, styles.code]} />
       <Button title="Remove this callback" onPress={() => { const bodies = { ...value.bodies }; delete bodies[selected.id]; onChange({ ...value, bodies }); }} />
     </>}

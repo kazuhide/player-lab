@@ -8,7 +8,7 @@ import { HttpRequestType, type PlayerConfig } from "bitmovin-player-react-native
 const runtime = vi.hoisted(() => {
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY = "test-license";
   process.env.EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY = "";
-  return { os: "android", clipboard: vi.fn(async (_code: string) => {}), players: [] as Array<{
+  return { os: "android", keyboardDismiss: vi.fn(), clipboard: vi.fn(async (_code: string) => {}), players: [] as Array<{
     config: PlayerConfig;
     load: ReturnType<typeof vi.fn>;
     destroy: ReturnType<typeof vi.fn>;
@@ -24,6 +24,7 @@ vi.mock("react-native", () => ({
   Button: "Button", Modal: "Modal", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View",
   Platform: { get OS() { return runtime.os; }, get Version() { return runtime.os === "ios" ? "15.1" : 36; }, select: (options: Record<string, string>) => options[runtime.os] ?? options.default },
   StyleSheet: { create: <T,>(styles: T) => styles },
+  Keyboard: { dismiss: runtime.keyboardDismiss },
   NativeModules: {},
 }));
 
@@ -88,6 +89,7 @@ beforeEach(async () => {
   runtime.os = "android";
   runtime.players.length = 0;
   runtime.clipboard.mockClear();
+  runtime.keyboardDismiss.mockClear();
   actEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
   errors = vi.spyOn(console, "error");
 });
@@ -158,6 +160,8 @@ describe("React Native configuration in the mounted App", () => {
     await press("Edit this callback");
     const id = "PlayerConfig.networkConfig.preprocessHttpRequest";
     await text(`JavaScript body for ${id}`, 'return { ...request, url: request.url + "?lab=1" };');
+    await press("Finish editing JavaScript"); expect(runtime.keyboardDismiss).toHaveBeenCalledTimes(1);
+    expect(runtime.players).toHaveLength(1);
     await press("Apply and recreate player");
     expect(runtime.players).toHaveLength(1);
     expect(element("Text", { accessibilityRole: "alert" }).props.children).toContain("Enable execution");
@@ -386,6 +390,8 @@ describe("React Native configuration in the mounted App", () => {
       while (parent && String(parent.type) !== "ScrollView") parent = parent.parent;
       return parent;
     });
+    expect(scrolls[0]?.props.keyboardDismissMode).toBe("on-drag");
+    expect(scrolls[0]?.props.keyboardShouldPersistTaps).toBe("handled");
     expect(scrolls[0]).not.toBeNull();
     expect(new Set(scrolls).size).toBe(1);
     expect(scrolls[0]!.props.automaticallyAdjustKeyboardInsets).toBe(true);
