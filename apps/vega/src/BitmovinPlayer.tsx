@@ -8,6 +8,10 @@ import { installVegaPolyfills, removeVegaPolyfills } from "./polyfills";
 import { releaseVegaBackgroundMedia, startVegaSession } from "./playerSession";
 import { attachSubtitleDisplay } from "./subtitleDisplay";
 import type { RuntimeMonitor, RuntimeOwner } from "./runtimeObservation";
+import { VegaSessionApi } from "./api/sessionApi";
+import type { ConfigInput } from "./api/configInputs";
+
+const EMPTY_INPUTS: ConfigInput[] = [];
 
 export interface BitmovinPlayerProps {
   config: PlayerConfig;
@@ -16,10 +20,12 @@ export interface BitmovinPlayerProps {
   controllerRef: React.MutableRefObject<DvrController | null>;
   timeShiftEnabled: boolean;
   runtimeChecks?: RuntimeMonitor | undefined;
+  apiInputs?: ConfigInput[];
+  onApiSession?: (owner: VegaSessionApi, active: boolean) => void;
 }
 
 export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
-  config, source, onDvr, controllerRef, timeShiftEnabled, runtimeChecks,
+  config, source, onDvr, controllerRef, timeShiftEnabled, runtimeChecks, apiInputs = EMPTY_INPUTS, onApiSession,
 }) => {
   const teardown = useRef<Promise<void>>(Promise.resolve());
   const ownedSession = useRef<{ dispose: (background?: boolean) => Promise<void> } | null>(null);
@@ -63,20 +69,31 @@ export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
         lifecycleRef.current.generation !== lifecycle.generation || !surfaceHandle) return;
     let video: VideoPlayer | null = null;
     let observed: RuntimeOwner | undefined;
+    const api = new VegaSessionApi();
+    const sessionSource = { ...source };
     const session = startVegaSession({
       handle: surfaceHandle,
-      source,
+      source: sessionSource,
       after: teardown.current,
       createVideo: () => { video = new VideoPlayer(); return video; },
       installPolyfills: installVegaPolyfills,
       removePolyfills: removeVegaPolyfills,
-      createPlayer: () => createVegaPlayer(config),
+      createPlayer: () => {
+        const applied = api.prepare(config, source, apiInputs);
+        Object.assign(sessionSource, applied.source);
+        return createVegaPlayer(applied.config);
+      },
       observePlayer: (player, isActive) => {
         observed = runtimeChecks?.attach(player, () => video?.getVideoPlaybackQuality().totalVideoFrames);
         const display = attachSubtitleDisplay(player, isActive, (text) => {
           setSubtitleText(text); observed?.cueVisibility(text !== "");
         });
-        return () => { display.dispose(); observed?.retire(); };
+        try { api.bind(player, isActive); onApiSession?.(api, true); }
+        catch (error) { api.dispose(); display.dispose(); observed?.retire(); throw error; }
+        return () => {
+          try { api.dispose(); onApiSession?.(api, false); }
+          finally { try { display.dispose(); } finally { observed?.retire(); } }
+        };
       },
       createController: (player, isActive) =>
         new DvrController(player, (state, line) => {
@@ -86,14 +103,17 @@ export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
       getTimeShiftEnabled: () => enabled.current,
       onError: (message) => { runtimeChecks?.setupError(); console.warn(message); },
     });
+    api.setRetirement(() => session.dispose());
+    void session.ready.then(() => api.loaded());
     ownedSession.current = session;
     return () => {
       setSubtitleText("");
+      api.dispose(); onApiSession?.(api, false);
       teardown.current = session.dispose();
       void teardown.current.then(() => observed?.released());
       if (ownedSession.current === session) ownedSession.current = null;
     };
-  }, [lifecycle.active, lifecycle.generation, surfaceHandle, source, config, onDvr, controllerRef, runtimeChecks]);
+  }, [lifecycle.active, lifecycle.generation, surfaceHandle, source, config, onDvr, controllerRef, runtimeChecks, apiInputs, onApiSession]);
 
   return (
     <View testID="player-lab-player" style={styles.video}>

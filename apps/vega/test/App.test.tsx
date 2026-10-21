@@ -12,7 +12,7 @@ const runtime = vi.hoisted(() => ({
   appStateListeners: new Set<(state: string) => void>(),
 }));
 vi.mock("react-native", () => ({
-  Button: "Button", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View",
+  Button: "Button", Pressable: "Pressable", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View",
   StyleSheet: { create: <T,>(styles: T) => styles },
   NativeModules: {},
   Platform: { OS: "android", Version: 36 },
@@ -26,10 +26,15 @@ vi.mock("react-native", () => ({
 }));
 // The Vega core installs browser shims when imported. Mock that native boundary, while
 // retaining the real application controller/session and the SDK's declared event names.
-vi.mock("bitmovin-player/modules/bitmovinplayer-core", () => ({
-  PlayerEvent: { TimeChanged: "timechanged", SourceLoaded: "sourceloaded", TimeShifted: "timeshifted", DurationChanged: "durationchanged", DVRWindowExceeded: "dvrwindowexceeded", CueEnter: "cueenter", CueExit: "cueexit", SubtitleDisabled: "subtitledisabled", Error: "error" },
-  TimelineReferencePoint: { Start: "start", End: "end" },
-}));
+vi.mock("bitmovin-player/modules/bitmovinplayer-core", async () => {
+  const { default: schema } = await import("../src/api/schema.json");
+  return {
+    PlayerEvent: Object.fromEntries(schema.rows.filter((row) => row.category === "event").map((row) => [row.name, row.value])),
+    TimelineReferencePoint: { Start: "start", End: "end" },
+    NetworkRequestApi: { Fetch: "fetch", XHR: "xhr" },
+  };
+});
+
 vi.mock("@amazon-devices/react-native-w3cmedia", () => ({
   KeplerVideoSurfaceView: "KeplerVideoSurfaceView",
   MediaSource: class NativeMediaSource {},
@@ -53,7 +58,7 @@ vi.mock("../src/vegaPlayer", () => ({
       on: (event: string, callback: () => void) => { if (!listeners.has(event)) listeners.set(event, new Set()); listeners.get(event)!.add(callback); },
       off: (event: string, callback: () => void) => listeners.get(event)?.delete(callback),
       isLive: () => true, getDuration: () => Infinity, getMaxTimeShift: () => -900, getTimeShift: () => 0, getCurrentTime: () => 0,
-      timeShift: vi.fn(),
+      timeShift: vi.fn(), seek: vi.fn(() => true),
     };
     runtime.players.push(player);
     return player;
@@ -77,6 +82,7 @@ function appliedCode(): string {
     .map((row) => { const value = row.find((node) => String(node.type) === "Text").props.children; return value === "\u00a0" ? "" : value; }).join("\n");
 }
 async function press(title: string) { await act(async () => button(title).props.onPress()); }
+async function action(title: string) { await act(async () => element("Pressable", { accessibilityLabel: title }).props.onPress()); }
 async function text(label: string, value: string) { await act(async () => input(label).props.onChangeText(value)); }
 async function appState(state: string) {
   await act(async () => {
@@ -111,6 +117,63 @@ afterEach(async () => {
 });
 
 describe("Vega configuration in the mounted App and media session", () => {
+  it("applies a typed advanced field from the normal GUI and exports only the applied value", async () => {
+    await mount(); await press("Show configuration"); await action("Show all SDK configuration");
+    await action("Set Vega API value");
+    await text("SDK text value", "GUI source description");
+    expect(current().load).toHaveBeenCalledTimes(1);
+    await press("Apply and recreate player");
+    expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ description: "GUI source description" }));
+    await press("Show applied code");
+    expect(appliedCode()).toContain("GUI source description");
+    await text("SDK text value", "Unapplied advanced description");
+    expect(appliedCode()).not.toContain("Unapplied advanced description");
+    await action("Remove Vega API override"); await press("Apply and recreate player");
+    expect(current().load.mock.calls[0]?.[0]).not.toHaveProperty("description");
+  });
+
+  it("connects an explicitly approved edited callback through the GUI to the SDK configuration boundary", async () => {
+    await mount(); await press("Show configuration"); await action("Show all SDK configuration");
+    await text("Filter Vega configuration APIs", "PlayerConfig.network.preprocessHttpRequest");
+    await action("PlayerConfig.network.preprocessHttpRequest"); await action("Set Vega API value");
+    await text("SDK callback JavaScript body", 'request.headers["X-Lab"] = "GUI callback"; return request;');
+    await press("Apply and recreate player");
+    expect(runtime.players).toHaveLength(1);
+    expect(element("Text", { accessibilityRole: "alert" })).toBeDefined();
+    await act(async () => element("Switch", { accessibilityLabel: "Allow this SDK callback" }).props.onValueChange(true));
+    await press("Apply and recreate player");
+    const network = Reflect.get(current().config, "network");
+    const callback = Reflect.get(network, "preprocessHttpRequest") as (type: string, request: object) => Promise<object>;
+    const request = { method: "GET", url: "https://example.com/a.m3u8", headers: {}, responseType: "text", credentials: "omit" };
+    expect(await callback("manifest", request)).toEqual(expect.objectContaining({ headers: { "X-Lab": "GUI callback" } }));
+    await press("Show applied code"); expect(appliedCode()).toContain('request.headers["X-Lab"]');
+  });
+
+  it("runs a typed SDK operation from the GUI and keeps malformed numbers away from its SDK call", async () => {
+    await mount(); await action("Show SDK API experiments");
+    await text("Filter Vega API operations", "PlayerAPI.seek"); await action("PlayerAPI.seek");
+    await text("SDK numeric value", "12.75"); await action("Run Vega SDK API");
+    const seek = Reflect.get(current(), "seek") as ReturnType<typeof vi.fn>;
+    expect(seek).toHaveBeenCalledWith(12.75);
+    expect(element("Text", { accessibilityLabel: "Vega executed API code" }).props.children).toBe("player.seek(12.75);");
+    expect(element("Text", { accessibilityLabel: "Vega API result" }).props.children).toBe("true");
+    await text("SDK numeric value", "invalid"); await action("Run Vega SDK API");
+    expect(seek).toHaveBeenCalledTimes(1);
+    expect(element("Text", { accessibilityLabel: "Vega API result" }).props.children).toContain("Enter a number");
+  });
+
+  it("shows redacted named SDK events and drops retired owner events after recreation", async () => {
+    await mount(); await action("Show SDK API experiments");
+    const old = current(); const callback = [...old.listeners.get(PlayerEvent.Play)!][0]! as (event: unknown) => void;
+    await act(async () => { callback({ marker: "current owner", authorization: "private-test-value" }); await new Promise((resolve) => setTimeout(resolve, 150)); });
+    const events = () => String(element("Text", { accessibilityLabel: "Vega SDK event log" }).props.children ?? "");
+    expect(events()).toContain("current owner"); expect(events()).not.toContain("private-test-value");
+    await action("Recreate Vega player");
+    await act(async () => { callback({ marker: "retired owner" }); await new Promise((resolve) => setTimeout(resolve, 150)); });
+    expect(events()).not.toContain("retired owner");
+    expect(old.listeners.get(PlayerEvent.Play)?.size).toBe(0);
+  });
+
   it("renders public subtitle cues and clears them on replacement and background without accepting retired callbacks", async () => {
     await mount();
     const old = current();

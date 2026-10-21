@@ -10,6 +10,11 @@ import { ConfigurationPanel } from "./ConfigurationPanel";
 import { configurationCode } from "./configurationCode";
 import { initialDraft, parseConfiguration, presetDraft, sameConfiguration } from "./configuration";
 import type { RuntimeMonitor } from "./runtimeObservation";
+import { ApiPanel } from "./api/ApiPanel";
+import type { VegaSessionApi } from "./api/sessionApi";
+import type { ConfigInput } from "./api/configInputs";
+
+const EMPTY_INPUTS: ConfigInput[] = [];
 
 // Vega has no dotenv toolchain: the Kepler entry sets these globals before the app
 // mounts (values come from the repo-root .env — the same canonical names as every
@@ -26,6 +31,9 @@ export const App: React.FC<{ runtimeChecks?: RuntimeMonitor }> = ({ runtimeCheck
   const [dvr, setDvr] = useState<DvrState | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const [dvrAllowed, setDvrAllowed] = useState(true);
+  const [apiSession, setApiSession] = useState<VegaSessionApi | null>(null);
+  const [revision, setRevision] = useState(0);
+  const onApiSession = useCallback((owner: VegaSessionApi, active: boolean) => setApiSession((current) => active ? owner : current === owner ? null : current), []);
   const controllerRef = useRef<DvrController | null>(null);
   const appliedCode = useMemo(() => configurationCode(applied), [applied]);
   useEffect(() => {
@@ -85,14 +93,17 @@ export const App: React.FC<{ runtimeChecks?: RuntimeMonitor }> = ({ runtimeCheck
   return (
     <View style={styles.root}>
       <BitmovinPlayer
+        key={revision}
         config={config}
         source={applied.source}
         onDvr={onDvr}
         controllerRef={controllerRef}
         timeShiftEnabled={dvrAllowed}
         runtimeChecks={runtimeChecks}
+        apiInputs={applied.draft.apiInputs ?? EMPTY_INPUTS}
+        onApiSession={onApiSession}
       />
-      <ScrollView testID="player-lab-screen">
+      <ScrollView testID="player-lab-screen" keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
         <ControlPanel
           sources={SOURCES}
           activeId={activeId}
@@ -103,6 +114,7 @@ export const App: React.FC<{ runtimeChecks?: RuntimeMonitor }> = ({ runtimeCheck
           dvrAllowed={dvrAllowed}
           onDvrAllowedChange={setDvrAllowed}
         />
+        <ApiPanel session={apiSession} source={applied.source} onRecreate={() => setRevision((value) => value + 1)} />
         <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
           onReset={() => { setDraft(applied.draft); setError(null); }}
           changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} appliedCode={appliedCode} />
