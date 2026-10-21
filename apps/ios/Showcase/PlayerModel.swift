@@ -56,6 +56,7 @@ final class PlayerModel: ObservableObject {
     private var apiPlaylistProgressTime: TimeInterval?
     #if !os(tvOS)
     let offlineWorkbench = OfflineWorkbench()
+    let castWorkbench = NativeCastWorkbench()
     #endif
     private(set) weak var apiPlayerView: PlayerView?
     private var playerApiListener: PlayerApiEventListener?

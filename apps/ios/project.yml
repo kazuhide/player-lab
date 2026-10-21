@@ -14,6 +14,9 @@ packages:
   BitmovinPlayer:
     url: https://github.com/bitmovin/player-ios.git
     exactVersion: "3.128.0"
+  GoogleCast:
+    url: https://github.com/googlecast/google-cast-ios-sdk.git
+    exactVersion: "4.8.6"
   DvrKit:
     path: DvrKit
 
@@ -30,7 +33,7 @@ targets:
   Showcase-iOS:
     type: application
     platform: iOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "16.0"
     sources:
       - path: Showcase
       # The shared Web UI bundle (synced from packages/ui-shared/dist by
@@ -47,6 +50,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.ios
         TARGETED_DEVICE_FAMILY: "1,2"
     dependencies:
+      - package: GoogleCast
+        product: GoogleCastDynamic
       - package: BitmovinPlayer
         product: BitmovinPlayer
       - package: DvrKit
@@ -69,7 +74,7 @@ targets:
   Showcase-iOSRuntimeTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "16.0"
     sources: [ShowcaseTests]
     dependencies:
       - target: Showcase-iOS
@@ -85,7 +90,7 @@ targets:
   Showcase-iOSConfigurationTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "16.0"
     # Hostless tests compile the exact shared app model files. Starting the app
     # itself without a native license is a fatal SDK precondition.
     sources:
@@ -108,6 +113,7 @@ targets:
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
       - Showcase/NativeExtendedApi.swift
+      - Showcase/NativeCastWorkbench.swift
       - Showcase/ApiState.swift
       - Showcase/OfflineWorkbench.swift
       - Showcase/ConfigurationCode.swift
@@ -115,6 +121,8 @@ targets:
       - Showcase/PlayerModel.swift
       - Showcase/Sources.swift
     dependencies:
+      - package: GoogleCast
+        product: GoogleCastDynamic
       - package: BitmovinPlayer
         product: BitmovinPlayer
       - package: DvrKit
@@ -125,7 +133,7 @@ targets:
   Showcase-iOSTrackRuntimeTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "16.0"
     sources: [ShowcaseTrackRuntimeTests]
     dependencies:
       - target: Showcase-iOS
@@ -155,7 +163,7 @@ targets:
   Showcase-iOSFinalizationTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "16.0"
     sources: [ShowcaseFinalizationTests]
     dependencies:
       - target: Showcase-iOS
@@ -208,6 +216,7 @@ targets:
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
       - Showcase/NativeExtendedApi.swift
+      - Showcase/NativeCastWorkbench.swift
       - Showcase/ApiState.swift
       - Showcase/OfflineWorkbench.swift
       - Showcase/ConfigurationCode.swift
@@ -225,7 +234,7 @@ targets:
   Showcase-iOSConfigurationUITests:
     type: bundle.ui-testing
     platform: iOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "16.0"
     sources: [ShowcaseConfigurationUITests]
     dependencies:
       - target: Showcase-iOS

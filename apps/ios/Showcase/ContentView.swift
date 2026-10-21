@@ -35,6 +35,7 @@ struct ControlPanel: View {
     @State private var showsPlaylist = false
     #if !os(tvOS)
     @State private var showsOffline = false
+    @State private var showsCast = false
     #endif
     private let quickOffsets: [TimeInterval] = [-10, -30, -60, -120]
 
@@ -73,6 +74,8 @@ struct ControlPanel: View {
                     #if !os(tvOS)
                     Button("Open offline HLS inspector") { showsOffline = true }
                         .accessibilityIdentifier("offline.open")
+                    Button("Open Google Cast inspector") { showsCast = true }
+                        .accessibilityIdentifier("cast.open")
                     #endif
                 }
 
@@ -145,6 +148,7 @@ struct ControlPanel: View {
         .sheet(isPresented: $showsApiInspector) { ApiInspector(model: model) }
         .sheet(isPresented: $showsPlaylist) { NativePlaylistInspector(model: model, workbench: model.playlistWorkbench) }
         .sheet(isPresented: $showsOffline) { OfflineInspector(player: model, workbench: model.offlineWorkbench) }
+        .sheet(isPresented: $showsCast) { NativeCastInspector(workbench: model.castWorkbench) }
         #endif
     }
 

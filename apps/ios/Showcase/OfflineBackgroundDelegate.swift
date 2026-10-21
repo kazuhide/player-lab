@@ -5,6 +5,7 @@ import BitmovinPlayer
 final class OfflineBackgroundDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions options: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         OfflineStartup.restore()
+        NativeCastStartup.restore()
         return true
     }
 

@@ -1,32 +1,50 @@
 {
-  "pins": [
+  "pins" : [
     {
-      "identity": "player-ios",
-      "kind": "remoteSourceControl",
-      "location": "https://github.com/bitmovin/player-ios.git",
-      "state": {
-        "revision": "2f40e8c7c5fe6a71a339464e611781522cc9f0dd",
-        "version": "3.128.0"
+      "identity" : "bitmovin-analytics-collector-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/bitmovin/bitmovin-analytics-collector-ios.git",
+      "state" : {
+        "revision" : "0c61761bb0f333a99dd21bd173f7fce0ee4c3ab7",
+        "version" : "3.28.1"
       }
     },
     {
-      "identity": "player-ios-core",
-      "kind": "remoteSourceControl",
-      "location": "https://github.com/bitmovin/player-ios-core.git",
-      "state": {
-        "revision": "c0982f570ebd9b41486edbe31aebb1951dbf8226",
-        "version": "3.128.0"
+      "identity" : "google-cast-ios-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/googlecast/google-cast-ios-sdk.git",
+      "state" : {
+        "revision" : "104500df8ce2a827ca3b3392bf16877fae413a33",
+        "version" : "4.8.6"
       }
     },
     {
-      "identity": "bitmovin-analytics-collector-ios",
-      "kind": "remoteSourceControl",
-      "location": "https://github.com/bitmovin/bitmovin-analytics-collector-ios.git",
-      "state": {
-        "revision": "0c61761bb0f333a99dd21bd173f7fce0ee4c3ab7",
-        "version": "3.28.1"
+      "identity" : "gtm-session-fetcher",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/google/gtm-session-fetcher.git",
+      "state" : {
+        "revision" : "a2ab612cb980066ee56d90d60d8462992c07f24b",
+        "version" : "3.5.0"
+      }
+    },
+    {
+      "identity" : "player-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/bitmovin/player-ios.git",
+      "state" : {
+        "revision" : "2f40e8c7c5fe6a71a339464e611781522cc9f0dd",
+        "version" : "3.128.0"
+      }
+    },
+    {
+      "identity" : "player-ios-core",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/bitmovin/player-ios-core.git",
+      "state" : {
+        "revision" : "c0982f570ebd9b41486edbe31aebb1951dbf8226",
+        "version" : "3.128.0"
       }
     }
   ],
-  "version": 2
+  "version" : 2
 }
