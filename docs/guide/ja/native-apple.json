@@ -378,7 +378,8 @@
       "type": "steps",
       "items": [
         "メイン画面でオンデマンドのHLSとDRM設定を適用し、Open offline HLS inspectorを開きます。ライブHLSは有限のダウンロード素材になりません。この画面はtvOSにはありません。",
-        "Wi-Fi制限と必要な空き容量を指定し、既定値またはOfflineConfigで初期化します。初期化はプロセス全体で共通になり、選択した起動設定は次回起動にも使います。",
+        "Wi-Fi制限と必要な空き容量を指定し、既定値またはOfflineConfigで初期化設定を保存します。初期化設定はプロセス全体で共通です。",
+        "初回設定後と起動設定の変更後は、アプリを完全に終了して再起動します。SDKの初期化は起動時に行う必要があり、このとき保存した設定を適用します。オンデマンドのHLSとDRM設定を再びApplyし、オフライン画面を開き直します。",
         "Select applied HLS source as offline assetで対象を選びます。同じ素材を後から指定する場合は識別子を明示します。Fetch available audio and subtitle tracksでトラックを取得し、ダウンロードする音声と字幕を選びます。",
         "ダウンロード操作を選んでRun offline APIを押します。SDKの進行状況、offlineState、イベントを確認します。トラック取得や操作の送信だけではダウンロード完了を表しません。",
         "完了後にキャッシュ済みメディアだけに再生を制限するかを指定し、Create OfflineSourceConfig、Load cached sourceの順に押します。制限を変更した場合は、OfflineSourceConfigを再作成してから読み込みます。現在のPlayerへ読み込み、メイン設定を再びApplyすると、そちらのリモートソースへ戻ります。"
@@ -558,6 +559,15 @@
       "path": "apps/ios/Showcase/OfflineInspector.swift",
       "line": 1,
       "label": "オフラインHLSの操作"
+    },
+    {
+      "path": "apps/ios/Showcase/OfflineBackgroundDelegate.swift",
+      "line": 5,
+      "label": "アプリ起動時のオフライン初期化"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/offlinemanager/initializeofflinemanager(offlineconfig:)",
+      "label": "公式オフライン初期化の要件"
     },
     {
       "path": "apps/ios/Showcase/NativeCastInspector.swift",
