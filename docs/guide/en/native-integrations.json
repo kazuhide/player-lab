@@ -209,5 +209,22 @@
       ]
     }
   ],
-  "sources": []
+  "sources": [
+    {
+      "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/#sources",
+      "label": "React Native implementation sources"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/guide/native-react-native/#sources",
+      "label": "React Native screen-and-controls sources"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/#sources",
+      "label": "Vega OS implementation sources"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/guide/native-vega/#sources",
+      "label": "Vega OS screen-and-controls sources"
+    }
+  ]
 }

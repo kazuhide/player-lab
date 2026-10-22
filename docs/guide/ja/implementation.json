@@ -177,5 +177,26 @@
       ]
     }
   ],
-  "sources": []
+  "sources": [
+    {
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/#sources",
+      "label": "Web版の実装ガイドの参照資料"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/apple-implementation/#sources",
+      "label": "iOS・iPadOS・tvOSの実装ガイドの参照資料"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/android-implementation/#sources",
+      "label": "Android・Android TV・Fire TVの実装ガイドの参照資料"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/react-native-implementation/#sources",
+      "label": "React Nativeの実装ガイドの参照資料"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/vega-implementation/#sources",
+      "label": "Vega OSの実装ガイドの参照資料"
+    }
+  ]
 }

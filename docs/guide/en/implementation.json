@@ -177,5 +177,26 @@
       ]
     }
   ],
-  "sources": []
+  "sources": [
+    {
+      "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/#sources",
+      "label": "Web implementation sources"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/#sources",
+      "label": "iOS / iPadOS / tvOS implementation sources"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/#sources",
+      "label": "Android / Android TV / Fire TV implementation sources"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/#sources",
+      "label": "React Native implementation sources"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/#sources",
+      "label": "Vega OS implementation sources"
+    }
+  ]
 }

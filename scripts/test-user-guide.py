@@ -226,11 +226,11 @@ class GuideTests(unittest.TestCase):
     def test_old_combined_chapter_bookmarks_link_to_independent_platform_guides(self):
         bookmarks = {
             'implementation': ['web-player', 'web-settings', 'web-ui-events', 'apple-player',
-                'android-player', 'react-native-player', 'vega-player', 'analytics-observability'],
+                'android-player', 'react-native-player', 'vega-player', 'analytics-observability', 'sources'],
             'native-integrations': ['react-native-and-expo', 'react-native-additional-configuration-and-lists',
                 'react-native-callbacks-and-native-ui-handlers', 'react-native-operations-state-and-events',
                 'react-native-cast-startup-settings', 'vega-os-and-kepler', 'vega-typed-configuration-and-callbacks',
-                'vega-operations-state-and-events', 'vega-hls-interstitials', 'applied-configuration-code'],
+                'vega-operations-state-and-events', 'vega-hls-interstitials', 'applied-configuration-code', 'sources'],
         }
         for language in ('en', 'ja'):
             search = json.loads(self.pages[f'{"ja/" if language == "ja" else ""}guide/search-index.json'])

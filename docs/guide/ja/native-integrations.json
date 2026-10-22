@@ -209,5 +209,22 @@
       ]
     }
   ],
-  "sources": []
+  "sources": [
+    {
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/react-native-implementation/#sources",
+      "label": "React Nativeの実装ガイドの参照資料"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/native-react-native/#sources",
+      "label": "React Nativeの画面と操作の参照資料"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/vega-implementation/#sources",
+      "label": "Vega OSの実装ガイドの参照資料"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/native-vega/#sources",
+      "label": "Vega OSの画面と操作の参照資料"
+    }
+  ]
 }
