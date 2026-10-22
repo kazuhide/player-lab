@@ -1,4 +1,4 @@
-# Web player playground
+# Player Lab for the Web
 
 The existing Bitmovin Web Player app includes a source and API control panel,
 interface themes, PlayerConfig and SourceConfig settings, named Tweaks

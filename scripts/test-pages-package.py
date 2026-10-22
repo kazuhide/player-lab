@@ -33,7 +33,7 @@ class PagesPackageTests(unittest.TestCase):
         for name in GUIDE_FILES:
             self.write(self.guide, name, b'[]' if name.endswith('.json') else b'public guide')
         self.write(self.web, 'index.html', b'<script type="module" src="/player-lab/web/assets/main-12345678.js"></script>')
-        self.write(self.web, 'guide.html', b'<a href="./index.html">Playground</a>')
+        self.write(self.web, 'guide.html', b'<a href="./index.html">Player Lab</a>')
         self.write(self.web, 'assets/main-12345678.js', b'console.log("public");')
         self.write(self.web, 'assets/main-12345678.css', b'body { color: black; }')
         for name in ['PROJECT-LICENSE.txt', 'BITMOVIN-PLAYER-UI-LICENSE.txt',

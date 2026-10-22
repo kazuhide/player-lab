@@ -4,7 +4,7 @@ This guide describes the examples included in the apps. An available control or
 compiled SDK call is not proof that every browser, device, stream, or account
 supports that feature.
 
-## Web playground
+## Web app
 
 | Area | What to try |
 | --- | --- |
