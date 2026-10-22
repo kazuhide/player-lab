@@ -125,12 +125,12 @@
     },
     {
       "path": "docs/dvr-time-and-start-config.md",
-      "line": 9,
+      "line": 8,
       "label": "DVR and time terminology"
     },
     {
       "path": "docs/local-test-media.md",
-      "line": 71,
+      "line": 109,
       "label": "Segments, AAC, and presentation timestamps"
     },
     {

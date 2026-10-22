@@ -24,7 +24,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 292
+            "line": 301
           },
           "api": "player.setVolume",
           "description": "音量を0～100で即時変更します。このAPIはミュート中のプレイヤーをミュート解除するため、音量変更後に音声が出る場合があります。"
@@ -38,7 +38,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 300
+            "line": 309
           },
           "api": "player.mute / player.unmute",
           "description": "現在の再生のミュートを切り替えます。チェックを外す操作は音声の再生を伴います。"
@@ -52,7 +52,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 313
+            "line": 322
           },
           "api": "player.setPlaybackSpeed",
           "description": "再生速度の倍率です。1が等速、2が2倍です。ライブ端付近では制約があります。"
@@ -66,7 +66,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 321
+            "line": 330
           },
           "api": "player.buffer.setTargetLevel",
           "description": "映像の前方バッファ目標を秒単位で即時変更します。巻き戻し可能時間を広げる設定ではありません。10秒を試し、更新した適用済みコードを確認します。映像だけが対象です。元へ戻す場合は以前の数値を明示します。空欄にしても適用済みの目標は変わりません。"
@@ -93,7 +93,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 338
+            "line": 347
           },
           "api": "player.setViewMode",
           "description": "inline、pictureinpicture、fullscreenから表示モードを選びます。対応環境とユーザー操作が必要です。"
@@ -107,7 +107,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 360
+            "line": 369
           },
           "api": "player.setAspectRatio",
           "description": "16:9や16/9などの比率を指定して縦横比を変更します。幅と高さの両方が固定されている場合、このAPIでは変更できません。"
@@ -121,7 +121,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 373
+            "line": 382
           },
           "api": "player.setPosterImage",
           "description": "ポスター画像を即時設定します。このアプリは第2引数にtrueを渡すため、映像の再生中も画像の表示が残ります。SourceConfig.posterとは適用方法が異なります。"
@@ -156,7 +156,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 386
+            "line": 395
           },
           "api": "player.setLogLevel",
           "description": "コンソールの出力レベルを即時変更します。debugの詳細出力は性能に影響し得ます。"
@@ -177,7 +177,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 410
+            "line": 419
           },
           "api": "player.adaptation.setConfig",
           "description": "自動画質で映像要素の表示サイズより高い解像度を選ばないようにします。比較時は画質メニューをAutoにします。元がfalseならチェックをオフに戻します。"
@@ -191,7 +191,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 418
+            "line": 427
           },
           "api": "player.adaptation.setConfig",
           "description": "0～1で画質と安定性の配分を指定します。0は画質を優先し、1は画質を抑えて再生の安定性を優先します。Low Latencyの適応ロジックで使います。"
@@ -205,7 +205,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 426
+            "line": 435
           },
           "api": "player.adaptation.setConfig",
           "description": "自動選択する映像の高さの上限をピクセルで指定します。全候補が上限を超える場合は高さが最も小さい品質が許可されます。通常は手動選択の候補を削除しません。同梱素材では180ピクセルを試し、取得済みの映像が再生されるのを待ちます。その素材の最高画質を再び許可するには360ピクセルへ戻します。この動的な設定は空欄では解除されません。"
@@ -219,7 +219,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 434
+            "line": 443
           },
           "api": "player.adaptation.setConfig",
           "description": "自動選択する映像の高さの下限をピクセルで指定します。全候補が下限未満の場合は高さが最も大きい品質が許可されます。通常は手動選択の候補を削除しません。"
@@ -233,7 +233,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 442
+            "line": 451
           },
           "api": "player.adaptation.setConfig",
           "description": "自動選択する映像の幅の上限をピクセルで指定します。全候補が上限を超える場合は幅が最も小さい品質が許可されます。通常は手動選択の候補を削除しません。"
@@ -247,7 +247,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 450
+            "line": 459
           },
           "api": "player.adaptation.setConfig",
           "description": "自動選択する映像の幅の下限をピクセルで指定します。全候補が下限未満の場合は幅が最も大きい品質が許可されます。通常は手動選択の候補を削除しません。"
@@ -268,7 +268,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 468
+            "line": 477
           },
           "api": "player.lowlatency.setTargetLatency",
           "description": "目標とするライブ端からの距離を秒単位で指定します。catchupとfallbackを組み合わせて追従動作を試します。"
@@ -282,7 +282,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 485
+            "line": 494
           },
           "api": "player.lowlatency.setCatchupConfig",
           "description": "目標より遅れた量がこの秒数を超えると速度で追いつきます。既定のInfinityは無効を意味します。"
@@ -296,7 +296,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 493
+            "line": 502
           },
           "api": "player.lowlatency.setCatchupConfig",
           "description": "目標より遅れた量がこの秒数を超えるとライブ端の方向へシークします。既定のInfinityは無効です。"
@@ -310,7 +310,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 501
+            "line": 510
           },
           "api": "player.lowlatency.setCatchupConfig",
           "description": "追いつく間の再生倍率です。1を超える値で加速します。"
@@ -324,7 +324,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 509
+            "line": 518
           },
           "api": "player.lowlatency.setFallbackConfig",
           "description": "目標よりライブ端へ近づき過ぎた量がこの秒数を超えると減速します。既定のInfinityは無効です。"
@@ -338,7 +338,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 517
+            "line": 526
           },
           "api": "player.lowlatency.setFallbackConfig",
           "description": "ライブ端へ近づき過ぎた量がこの秒数を超えると、目標位置の方向へ戻ります。既定のInfinityは無効です。"
@@ -352,7 +352,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 525
+            "line": 534
           },
           "api": "player.lowlatency.setFallbackConfig",
           "description": "ライブ端から離れる間の再生倍率です。1未満で減速します。"
@@ -373,7 +373,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 540
+            "line": 549
           },
           "description": "ソースのタイトルです。TitleBarを持つテーマで表示されます。適用にはソースの再読み込みが必要です。"
         },
@@ -386,7 +386,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 549
+            "line": 558
           },
           "description": "ソースの説明です。タイトルと同様にTitleBarを持つテーマで確認します。"
         },
@@ -399,7 +399,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 557
+            "line": 566
           },
           "description": "再生前に表示する画像のURLです。即時のsetPosterImageとは反映方法が異なります。"
         },
@@ -412,7 +412,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 565
+            "line": 574
           },
           "description": "再生中も設定したポスター画像を表示します。音声のみのソースで画像を残したい場合などに使い、ソースを再読み込みして適用します。"
         },
@@ -425,7 +425,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 573
+            "line": 582
           },
           "description": "再生開始位置を秒単位で指定します。VODではソース読み込み時、ライブでは再生開始時に適用されます。ライブ端から戻る場合は負値とend基準を組み合わせ、範囲外は補正されます。start基準で5秒を指定し、ソースを再読み込みして試せます。空欄にして再読み込みするとオフセットの上書きを解除します。"
         },
@@ -451,7 +451,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 582
+            "line": 591
           },
           "description": "startOffsetの基準です。startは映像または巻き戻し窓の先頭、endは映像の終端またはライブ端です。未指定の既定はVODがstart、ライブがendです。"
         }
@@ -471,7 +471,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 603
+            "line": 612
           },
           "description": "読み込み後に自動再生するかを指定します。音声付き自動再生はブラウザーに拒否される場合があります。例えばオフにしてPlayerを再生成し、読み込み後の映像が再生ボタンを待つことを確認します。元のチェック状態へ戻すときも再生成します。"
         },
@@ -484,7 +484,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 604
+            "line": 613
           },
           "description": "新しいプレイヤーの開始時に音声をミュートするかを指定します。即時の mute 操作とは反映時点が異なります。"
         },
@@ -497,7 +497,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 605
+            "line": 614
           },
           "description": "新しいプレイヤーの初期音量を0〜100で指定します。ミュート状態は別項目です。"
         },
@@ -510,7 +510,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 606
+            "line": 615
           },
           "description": "映像要素に playsinline を設定します。対応するモバイルブラウザーでインライン再生を行うための設定です。"
         },
@@ -523,7 +523,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 607
+            "line": 616
           },
           "description": "シークを許可するかを指定します。ライブの巻き戻し許可は操作パネルの timeShift と区別します。"
         },
@@ -536,7 +536,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 608
+            "line": 617
           },
           "description": "映像のデコードエラーから自動復旧するか（既定 true）。有効時はソースを再読み込みし、元の位置とトラックなどを復元します。同じ位置（許容差 0.1 秒）での復旧は 1 回までで、再発や再読み込み失敗時はエラーになります。"
         },
@@ -549,7 +549,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 609
+            "line": 618
           },
           "description": "開始時に優先する音声言語を指定します。ソース側に対応するトラックが必要です。GUIは文字列をそのまま渡します。例えばdeの音声がある素材ではdeを指定します。カンマ区切りのリストは解釈しません。再生成して適用し、解除するときは空欄にして再生成します。"
         },
@@ -562,7 +562,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 610
+            "line": 619
           },
           "description": "開始時に優先する字幕言語を指定します。ソース側に対応する字幕が必要です。例えばVOD + Subtitlesでenを入力して再生成し、字幕のある時刻を確認します。空欄にして再生成すると初期の希望言語を解除します。現在の字幕を無効にする操作はプレイヤーのメニューで行います。"
         }
@@ -582,7 +582,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 621
+            "line": 630
           },
           "description": "開始時のビットレートです。自動選択には空欄を使います。指定時はbpsの数値、または500kbpsなど単位付きの値を使います。例えば250kbps(250000 bit/s)を入力して再生成し、開始時の画質を比較します。空欄にして再生成すると上書きを解除します。その後の画質は自動で変わる場合があります。"
         },
@@ -595,7 +595,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 622
+            "line": 631
           },
           "description": "開始時のビットレート上限です。startupBitrate を明示した場合は効果がありません。startupBitrateを空欄にして500kbps(500000 bit/s)を試し、再生成します。空欄にして再生成すると、この上限を解除します。"
         },
@@ -608,7 +608,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 623
+            "line": 632
           },
           "description": "再生前にコンテンツを先読みするかを指定します。SDKの既定はVODとライブで異なるため実際の適用値を確認します。"
         },
@@ -621,7 +621,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 624
+            "line": 633
           },
           "description": "遅いダウンロードを中断して低画質で再試行する処理を無効にします。通常の自動調整との違いを比較する項目です。"
         },
@@ -634,7 +634,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 625
+            "line": 634
           },
           "description": "Quality Optimized Streaming Data があるソースで、選択する品質に許容する PSNR 差。PSNR は元映像と圧縮映像の差を表す指標です。通常のソースすべてに効く設定ではなく、SDK の型定義でも非公開項目（@hidden）です。"
         },
@@ -647,7 +647,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 626
+            "line": 635
           },
           "description": "対応する品質データを持つソースで、画質選択に使う PSNR の上限目安。PSNR は元映像と圧縮映像の差を表す指標です。SDK の型定義では非公開項目（@hidden）です。"
         },
@@ -660,7 +660,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 627
+            "line": 636
           },
           "description": "自動選択する映像ビットレートの上限です。全候補が上限を超える場合は最も低いビットレートが許可されます。通常は手動選択の候補を削除しません。単位はbpsです。例えば画質メニューをAutoにし、500kbps(500000 bit/s)を入力して再生成します。空欄にして再生成すると上限を解除します。新しい画質の映像を生成する設定ではありません。"
         },
@@ -673,7 +673,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 628
+            "line": 637
           },
           "description": "自動選択する映像ビットレートの下限です。全候補が下限未満の場合は最も高いビットレートが許可されます。通常は手動選択の候補を削除しません。単位はbpsです。"
         },
@@ -686,7 +686,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 629
+            "line": 638
           },
           "description": "自動選択する音声ビットレートの上限です。全候補が上限を超える場合は最も低いビットレートが許可されます。通常は手動選択の候補を削除しません。単位はbpsです。"
         },
@@ -699,7 +699,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 630
+            "line": 639
           },
           "description": "自動選択する音声ビットレートの下限です。全候補が下限未満の場合は最も高いビットレートが許可されます。通常は手動選択の候補を削除しません。単位はbpsです。"
         },
@@ -737,7 +737,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 631
+            "line": 640
           },
           "description": "画質を自動で選ぶロジック。既定は v3（DOWNLOAD_PREDICTION）です。v1 と v2 は非推奨です。low-latency-v1 は小さな CMAF チャンクを使う低遅延ライブ向けで、tweaks.chunked_cmaf_streaming との併用が必要です。"
         },
@@ -763,7 +763,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 639
+            "line": 648
           },
           "description": "通信の往復時間の推定方法。weightedaverage（加重平均、既定）または median（中央値）を選びます。v3 の適応ロジックでのみ有効です。SDK では、性能の低い端末で median が適する場合があるとしています。"
         }
@@ -783,7 +783,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 651
+            "line": 660
           },
           "description": "映像を再生位置より先に保持する目標秒数です。大きいほどメディアバッファの使用量が増え得ます。10秒を入力して再生成します。適用済みのPlayer設定と、ブラウザーが保持する実際の範囲は別に確認します。目標値は現在の蓄積量を表すものではありません。"
         },
@@ -796,7 +796,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 652
+            "line": 661
           },
           "description": "再生済みの映像を保持する目標秒数です。ライブ配信元の巻き戻し可能時間を延長する設定ではありません。5秒を入力して再生成し、後方へのシークとブラウザーの保持範囲を比較します。空欄にして再生成すると上書きを解除します。"
         },
@@ -809,7 +809,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 653
+            "line": 662
           },
           "description": "音声を再生位置より先に保持する目標秒数です。映像の設定とは別項目です。10秒を入力して再生成します。空欄にして再生成すると、映像とは別に音声の上書きを解除します。"
         },
@@ -822,7 +822,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 654
+            "line": 663
           },
           "description": "再生済みの音声を保持する目標秒数です。映像の設定とは別項目です。5秒を入力して再生成します。適用済みコードでは映像と音声の値を分けて確認します。空欄にして再生成すると上書きを解除します。"
         }
@@ -855,7 +855,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 662
+            "line": 671
           },
           "description": "SDKの通信方式をXMLHttpRequest(xhr)またはFetchから選びます。SDKの既定はxhrです。FetchまたはAbortControllerが利用できない場合はxhrになります。適用にはプレイヤーを再生成します。"
         },
@@ -868,7 +868,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 667
+            "line": 676
           },
           "description": "通信全体のタイムアウトを秒で指定します。SDKの既定は20秒です。画面では0以上の有限値を受け付けます。空欄でこの上書きだけを削除し、プレイヤーを再生成して適用します。例えば5秒を入力して再生成し、適用済みコードのnetworkを確認します。タイムアウトの動作を試すには、実際の通信にその上限を超える待ち時間が必要です。"
         },
@@ -881,7 +881,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "manifest/dashのタイムアウトを秒で指定し、全体のタイムアウトより優先します。画面では0以上の有限値を受け付けます。空欄でこの上書きだけを削除し、プレイヤーを再生成して適用します。VOD DASHで3秒を入力し、再生成して試せます。HLSのmaster・variantプレイリストには、それぞれ別のタイムアウト欄を使います。"
         },
@@ -894,7 +894,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "manifest/hls/masterのタイムアウトを秒で指定し、全体のタイムアウトより優先します。画面では0以上の有限値を受け付けます。空欄でこの上書きだけを削除し、プレイヤーを再生成して適用します。"
         },
@@ -907,7 +907,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "manifest/hls/variantのタイムアウトを秒で指定し、全体のタイムアウトより優先します。画面では0以上の有限値を受け付けます。空欄でこの上書きだけを削除し、プレイヤーを再生成して適用します。"
         },
@@ -920,7 +920,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "media/videoのタイムアウトを秒で指定し、全体のタイムアウトより優先します。画面では0以上の有限値を受け付けます。空欄でこの上書きだけを削除し、プレイヤーを再生成して適用します。2秒を入力して再生成して試せます。音声は別のリクエスト種別です。試行や実際の所要時間は、ブラウザーのNetwork調査機能で確認します。"
         },
@@ -933,7 +933,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "media/audioのタイムアウトを秒で指定し、全体のタイムアウトより優先します。画面では0以上の有限値を受け付けます。空欄でこの上書きだけを削除し、プレイヤーを再生成して適用します。"
         },
@@ -946,7 +946,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "media/subtitlesのタイムアウトを秒で指定し、全体のタイムアウトより優先します。画面では0以上の有限値を受け付けます。空欄でこの上書きだけを削除し、プレイヤーを再生成して適用します。"
         },
@@ -959,7 +959,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "media/thumbnailsのタイムアウトを秒で指定し、全体のタイムアウトより優先します。画面では0以上の有限値を受け付けます。空欄でこの上書きだけを削除し、プレイヤーを再生成して適用します。"
         }
@@ -1004,7 +1004,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 682
+            "line": 691
           },
           "description": "低レベル設定側からログレベルを指定します。通常はLogsグループ、再生中の変更はPlayer APIのsetLogLevelを使えます。"
         },
@@ -1017,7 +1017,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 81
+            "line": 86
           },
           "description": "最大バッファ量（秒、既定 40）。非推奨のため、新規設定では buffer.audio.forwardduration と buffer.video.forwardduration を使います。ライブではこの値と HLS プレイリストの長さ、または DASH の timeShiftBufferDepth の小さい方が上限になります。"
         },
@@ -1030,7 +1030,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 81
+            "line": 86
           },
           "description": "初回再生前に蓄えるバッファ量（秒、既定 0.9）。SDK は最大バッファ量から 0.5 秒を引いた値を上限にします。入力値を増やしても、この上限を超えて待つ設定にはなりません。"
         },
@@ -1043,7 +1043,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 81
+            "line": 86
           },
           "description": "バッファ不足による停止から再開する前に蓄える量（秒、既定 0.9）。SDK は最大バッファ量から 0.5 秒を引いた値を上限にします。"
         },
@@ -1056,7 +1056,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 82
+            "line": 87
           },
           "description": "SafariのネイティブHLS再生でプレイリストを解析し、PDTなどのセグメント情報をイベントに含める設定です。"
         },
@@ -1069,7 +1069,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 82
+            "line": 87
           },
           "description": "SafariのネイティブHLS再生で、取得失敗に伴う停止を検出してエラーイベントを出すための設定です。"
         },
@@ -1082,7 +1082,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 82
+            "line": 87
           },
           "description": "一時停止中は新しいプレイリストやセグメントの取得を止めます。すでに開始した通信は完了します。オンにして再生成した後に一時停止し、ブラウザーのNetworkで新しい取得を比較します。元のチェック状態へ戻すときも再生成します。"
         },
@@ -1095,7 +1095,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 83
+            "line": 88
           },
           "description": "Playerのライセンスサーバーを変更します。許可されたURLのみが対象で、コンテンツのDRMサーバーとは別です。"
         },
@@ -1108,7 +1108,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 83
+            "line": 88
           },
           "description": "インプレッション送信先を変更します。許可されたURLのみが対象です。"
         },
@@ -1121,7 +1121,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 83
+            "line": 88
           },
           "description": "指定bpsより低いHLSバリアントを音声のみとみなし、より高い候補がある場合に除外します。"
         },
@@ -1134,7 +1134,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 84
+            "line": 89
           },
           "description": "fileプロトコル向けの設定です。app_idと組み合わせる用途があり、HTTPSのPages配信向けの設定ではありません。"
         },
@@ -1147,7 +1147,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 84
+            "line": 89
           },
           "description": "仕様は公式APIで確認。この公開ソースの項目別説明にはapp_idの定義が含まれていません。"
         },
@@ -1160,7 +1160,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 84
+            "line": 89
           },
           "description": "DASHのAdaptation Setの切り替えに、SupplementalPropertyではなくgroup属性を使います。"
         },
@@ -1173,7 +1173,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 85
+            "line": 90
           },
           "description": "永久失敗と判定された鍵ID（KID）を伴うwaitingforkeyから、ソースを再読み込みするまでの安定化待機をミリ秒で指定します。一般のDRM通信タイムアウトではありません。"
         },
@@ -1186,7 +1186,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 85
+            "line": 90
           },
           "description": "DRMライセンスの直近の状態変化を、安定化処理として扱う期間をミリ秒で指定します。"
         },
@@ -1199,7 +1199,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 86
+            "line": 91
           },
           "description": "再生開始時刻の補正に関わるMP4のedts情報をデコーダーへ渡す前に除去します。ブラウザー差の回避策となる設定です。"
         },
@@ -1212,7 +1212,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 86
+            "line": 91
           },
           "description": "HLSの同名音声を品質候補としてまとめず、それぞれ独立した音声トラックとして扱います。"
         },
@@ -1225,7 +1225,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 86
+            "line": 91
           },
           "description": "映像要素をpreload=noneにします。SafariのネイティブHLSでは、再生開始まで音声トラックや再生時間を取得できなくなる場合があります。メタデータだけを先読みする設定とは区別します。"
         },
@@ -1238,7 +1238,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 87
+            "line": 92
           },
           "description": "対応モジュールが作成するService Workerの適用範囲を指定します。"
         },
@@ -1251,7 +1251,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 87
+            "line": 92
           },
           "description": "FairPlayで同じ初期化データの鍵要求が重複した際のkeyerrorを無視する設定です。"
         },
@@ -1264,7 +1264,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 88
+            "line": 93
           },
           "description": "ブラウザーの容量不足エラー後に、SDKがバッファ目標を自動調整する処理を無効にします。省メモリ化を保証する設定ではありません。"
         },
@@ -1277,7 +1277,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 88
+            "line": 93
           },
           "description": "非推奨の旧設定で、現在の SDK では効果がありません。8.33.0 以降は暗号化状態が変わる境界を標準バッファ処理が扱います。"
         },
@@ -1290,7 +1290,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 89
+            "line": 94
           },
           "description": "SDKのライブ向けseek操作の許可を調整します。通常のDVR操作パネルはtimeShiftを使います。"
         },
@@ -1303,7 +1303,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 89
+            "line": 94
           },
           "description": "true では広告前と同じメディア位置からライブを再開します。既定の false では広告時間分を進め、広告前と同じライブ端からの距離で再開します。広告の replaceContentDuration が設定されている場合、この項目は無視されます。"
         },
@@ -1316,7 +1316,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 90
+            "line": 95
           },
           "description": "Tizenモジュールを非Tizen環境でも使えるようにする設定です。Tizenモジュールが含まれている場合にのみ有効で、一般のブラウザー向け時刻補正設定ではありません。"
         },
@@ -1329,7 +1329,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 90
+            "line": 95
           },
           "description": "セグメント内のデコード開始時刻 BaseMediaDecodeTime を、32 ビットを超えない場合も書き換えます。Tizen または webOS の実行環境と対応モジュールが必要です。短い不連続区間があるストリームでは問題が起きる場合があるため、検証で改善を確認できた場合に使います。"
         },
@@ -1342,7 +1342,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 91
+            "line": 96
           },
           "description": "Tizenで安全とみなすデコード時刻の上限です。超えた値を小さく書き換えます。Tizenモジュールが必要で、SDKの既定値はTVの世代で異なります。"
         },
@@ -1355,7 +1355,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 91
+            "line": 96
           },
           "description": "Tizenで安全とみなす提示時刻オフセットの上限です。超えた値を小さく書き換えます。Tizenモジュールが必要で、SDKの既定値はTVの世代で異なります。"
         },
@@ -1368,7 +1368,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 91
+            "line": 96
           },
           "description": "webOSで安全とみなすデコード時刻の上限です。超えた値を小さく書き換えます。webOSモジュールが必要で、SDKの既定値はTVの世代で異なります。"
         },
@@ -1381,7 +1381,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 92
+            "line": 97
           },
           "description": "webOSで安全とみなす提示時刻オフセットの上限です。超えた値を小さく書き換えます。webOSモジュールが必要で、SDKの既定値はTVの世代で異なります。"
         },
@@ -1394,7 +1394,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 92
+            "line": 97
           },
           "description": "対応する形式のセグメントURLに含まれる日時を解析します。"
         },
@@ -1407,7 +1407,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 92
+            "line": 97
           },
           "description": "後方へシークする際のバッファ保持を変更し、必要なセグメントを再取得させます。"
         },
@@ -1420,7 +1420,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 93
+            "line": 98
           },
           "description": "無効なMP4セグメントを破棄して継続を試みます。再生が続いても欠落によるギャップが生じる可能性があります。"
         },
@@ -1433,7 +1433,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 93
+            "line": 98
           },
           "description": "これより短いタイムラインのギャップはスキップしないようにします。"
         },
@@ -1446,7 +1446,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 93
+            "line": 98
           },
           "description": "正の秒数を指定すると、ギャップの手前で先行してスキップします。"
         },
@@ -1459,7 +1459,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 94
+            "line": 99
           },
           "description": "SDKが手動で復号するHLS AES-128やDASH ClearKeyに、WebCryptoではなくソフトウェア復号を使います。ブラウザーのCDMが処理するWidevineやPlayReadyの復号には作用しません。"
         },
@@ -1472,7 +1472,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 94
+            "line": 99
           },
           "description": "マニフェスト取得失敗時の再試行回数（既定 2）。HLS では master と variant の両方のプレイリストが対象です。例えば1を入力して再生成し、ブラウザーでマニフェスト取得を一時的にブロックして試行を比較します。空欄にして再生成すると上書きを解除します。"
         },
@@ -1485,7 +1485,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 94
+            "line": 99
           },
           "description": "VODでCDNごとに行うダウンロード再試行の回数です。"
         },
@@ -1498,7 +1498,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 95
+            "line": 100
           },
           "description": "DASHマニフェストであるMPDの取得に失敗した際の再試行回数です。VOD DASHで再試行1回を指定して再生成し、試せます。正常な再生だけでは、取得に失敗した場合の再試行は確認できません。"
         },
@@ -1511,7 +1511,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 95
+            "line": 100
           },
           "description": "MPD取得に失敗してから再試行するまでの待機秒数です。1秒を入力して再生成し、失敗したMPDの再取得間隔をブラウザーのNetworkで比べます。空欄にして再生成すると上書きを解除します。"
         },
@@ -1524,7 +1524,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 95
+            "line": 100
           },
           "description": "ライブMPDがminimumUpdatePeriodを超えて古くなっても許容する時間を秒単位で指定します。"
         },
@@ -1537,7 +1537,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 96
+            "line": 101
           },
           "description": "ソースに含まれるCEA-708字幕を、CEA-608の代わりに解析する設定です。WebVTTの字幕選択とは別です。"
         },
@@ -1550,7 +1550,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 96
+            "line": 101
           },
           "description": "HLSの品質切り替え時に、セグメントのメディアシーケンス番号を使って再生時刻を合わせます。"
         },
@@ -1563,7 +1563,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 97
+            "line": 102
           },
           "description": "HLSマニフェストをワーカースレッドで解析します。大きなマニフェストで効果が見込まれる設定で、全処理の並列化ではありません。"
         },
@@ -1576,7 +1576,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 97
+            "line": 102
           },
           "description": "HLSのdiscontinuity境界でSourceBufferをクリアします。切り替えの見え方や性能が変わる可能性があります。"
         },
@@ -1589,7 +1589,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 98
+            "line": 103
           },
           "description": "fetch を使い、取得途中でも完成した CMAF チャンクをデコーダーへ渡します。CMAF は分割した映像・音声の形式です。対応するコンテンツと HTTP の分割転送との組み合わせで、再生開始やシークを早め、低遅延ライブに利用できます。有効にするだけで通常の配信が低遅延になるわけではありません。"
         },
@@ -1602,7 +1602,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 98
+            "line": 103
           },
           "description": "MSEによる再生でMP4のemsgイベントを解析します。ネイティブ再生には作用しません。"
         },
@@ -1615,7 +1615,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 98
+            "line": 103
           },
           "description": "取得に失敗したHLS系統のペナルティが失効するまでの秒数です。バックアップへの切り替えに関係します。"
         },
@@ -1628,7 +1628,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 99
+            "line": 104
           },
           "description": "鍵の状態が変わった際、利用できる全DRMライセンスの状態を確認して再生可否を判断します。"
         },
@@ -1641,7 +1641,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 99
+            "line": 104
           },
           "description": "SafariのネイティブHLS再生で、ID3などのメタデータをSDKのイベントとして中継します。"
         },
@@ -1654,7 +1654,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 99
+            "line": 104
           },
           "description": "利用可能な場合、通常のMediaSourceよりManagedMediaSourceを優先します。対応状況は実行環境に依存します。"
         },
@@ -1667,7 +1667,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 100
+            "line": 105
           },
           "description": "ライブの取得障害で品質候補を試し終えても、エラー終了せず復帰まで再試行を続けます。"
         },
@@ -1680,7 +1680,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 100
+            "line": 105
           },
           "description": "再生済みバッファを除去する処理の最小間隔を秒単位で指定します。"
         },
@@ -1693,7 +1693,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 101
+            "line": 106
           },
           "description": "ライブ時の MediaSource の duration に Infinity を使えない旧環境向けの互換性設定（既定 Infinity）。そのような環境では Number.MAX_SAFE_INTEGER などの有限値で再生開始の問題を回避できる場合があります。"
         },
@@ -1706,7 +1706,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 101
+            "line": 106
           },
           "description": "true では音声・映像と初期化・データセグメントの並列取得を止め、順に取得します。バッファ量が同じ場合は映像を優先します。既定 false では、バッファ量が少ない方を優先しながら並列取得します。変更後に再生成し、ブラウザーのNetworkで音声と映像の取得が重なるか比較します。falseは並列取得を許可する値であり、どの回線でも同時に取得することを保証するものではありません。"
         },
@@ -1719,7 +1719,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 101
+            "line": 106
           },
           "description": "ミュート時にメディア要素の muted を設定する代わりに音量を 0 にし、Chromium 系ブラウザーによるバックグラウンド停止を避けます（既定 false）。SDK の isMuted() と getVolume() の報告は変えません。バックグラウンド再生を続けるため、電池消費が増える場合があります。"
         },
@@ -1732,7 +1732,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 102
+            "line": 107
           },
           "description": "ライブのマニフェスト更新の開始を再生開始まで遅らせます。低速端末の起動に有効な場合があり、HLS低遅延配信は対象外です。"
         },
@@ -1745,7 +1745,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 102
+            "line": 107
           },
           "description": "初回再生までに取得するバッファ量の上限（秒）。到達すると再生開始まで追加取得を止めます。有限値は端末別の推奨値を上書きし、Infinity はこの制限を無効にします。未指定時は webOS・Tizen の対応モジュールと端末世代に応じた上限、または Legacy Microsoft Edge の 6 秒の上限を使います。それ以外の端末ではこの項目による制限はありません。先読みバッファの上限は別途適用されます。"
         },
@@ -1758,7 +1758,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 103
+            "line": 108
           },
           "description": "DASHのperiod切り替え時にSourceBufferをクリアします。互換性のあるコンテンツでも切り替えが目立つ可能性があります。"
         },
@@ -1771,7 +1771,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 103
+            "line": 108
           },
           "description": "SDK標準のDVR範囲外からの自動復旧を無効にします。ただしこのアプリには独自のライブ端へ戻す処理もあります。"
         },
@@ -1784,7 +1784,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 104
+            "line": 109
           },
           "description": "SDK内部処理の所要時間を含むPerformanceログを有効にします。"
         },
@@ -1797,7 +1797,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 104
+            "line": 109
           },
           "description": "この固定版でHLS Interstitialsを処理するための設定です。AdvertisingCoreモジュールと対応コンテンツが必要です。あらゆる広告挿入方式を有効にする汎用スイッチではありません。"
         },
@@ -1810,7 +1810,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 104
+            "line": 109
           },
           "description": "音声切り替え時に再生位置より先へ保持する変更前の音声バッファの秒数です。保持機能が有効で、コーデックとDRM保護が変わらない切り替えに作用します。"
         },
@@ -1823,7 +1823,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 105
+            "line": 110
           },
           "description": "コーデックとDRM保護が変わらない音声切り替えで、変更前のバッファを一部保持します。条件が変わる場合は全体を消去します。環境によって切り替えが遅れ、変更前の音声が短時間残ることがあります。"
         },
@@ -1836,7 +1836,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 105
+            "line": 110
           },
           "description": "TimeChangedイベントの間隔によって広告開始が遅れる分の補正秒数です。対応する広告挿入機能が対象です。"
         }
@@ -1877,7 +1877,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 692
+            "line": 701
           },
           "description": "プレイヤー生成時のコンソール出力レベルです。debugやlogの詳細出力は長時間再生などの性能に影響し得ます。"
         },
@@ -1890,7 +1890,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 692
+            "line": 701
           },
           "description": "コンソールに表示するBitmovinのクレジットを切り替えます。映像上のロゴを変更する項目ではありません。"
         }
@@ -1910,7 +1910,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 699
+            "line": 708
           },
           "description": "プレイヤーの縦横比です。width、height、aspectratioの3項目を同時に指定することは避けます。"
         },
@@ -1923,7 +1923,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 700
+            "line": 709
           },
           "description": "プレイヤー幅をpxや%などで指定します。このアプリのCSSが優先されて表示差が出ない場合があります。"
         },
@@ -1936,7 +1936,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 701
+            "line": 710
           },
           "description": "プレイヤー高さをpxや%などで指定します。このアプリのCSSが優先されて表示差が出ない場合があります。"
         },
@@ -1949,7 +1949,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 702
+            "line": 711
           },
           "description": "ネイティブHLSやプログレッシブファイルで、ブラウザー側の字幕描画を使うための設定です。すべての再生方式に作用する設定ではありません。"
         }
@@ -1969,7 +1969,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 710
+            "line": 719
           },
           "description": "CastConfigのChromecast対応を指定します。操作パネルのキャストボタン追加はremotecontrol設定を使うため別の操作として扱います。"
         },
@@ -1982,7 +1982,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 711
+            "line": 720
           },
           "description": "カスタム Cast レシーバーのアプリケーション ID。空欄ではアプリ独自の ID を設定せず、SDK の標準レシーバーを使います。"
         },
@@ -1995,7 +1995,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 712
+            "line": 721
           },
           "description": "カスタムCastレシーバーとのメッセージ名前空間を指定します。通常のCast操作に必須の値ではありません。"
         },
@@ -2008,7 +2008,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 713
+            "line": 722
           },
           "description": "Castレシーバーが読み込むスタイルシートのURLです。手元のWebプレイヤーのCSSを変更する設定ではありません。"
         }
@@ -2028,7 +2028,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 721
+            "line": 730
           },
           "description": "対応するHLSのPlaylist Delta Updatesで、完全なマニフェスト取得の代わりに増分更新を使います。この固定版の型コメントはHLSを対象としており、すべてのHLSやDASHに効果がある設定ではありません。"
         },
@@ -2041,7 +2041,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 722
+            "line": 731
           },
           "description": "新しいプレイヤーの目標ライブ遅延を秒単位で指定します。再生中の変更は動的Low Latencyグループでも試せます。"
         }
@@ -2061,7 +2061,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 730
+            "line": 739
           },
           "description": "SDKが読み込むUIのJavaScriptの場所です。このアプリは独自にUIManagerを生成するため、通常のテーマ変更は上部のボタンで行います。"
         },
@@ -2074,7 +2074,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 731
+            "line": 740
           },
           "description": "SDKが読み込むUIのCSSの場所です。このアプリが読み込む共有UIのCSSとは反映経路が異なります。"
         },
@@ -2087,7 +2087,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 732
+            "line": 741
           },
           "description": "Google Cast送信側ライブラリの読み込みURLです。"
         },
@@ -2100,7 +2100,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 733
+            "line": 742
           },
           "description": "Google IMA 広告ライブラリの読み込み URL。非推奨の項目で、新規統合には ImaAdvertisingConfig.sdkUrl を使います。この GUI は広告設定一式を編集するものではありません。"
         },
@@ -2113,7 +2113,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 734
+            "line": 743
           },
           "description": "Service WorkerのJavaScriptの場所です。対応するモジュール、ホストHTMLと同じ階層への配置、コンテンツ配信側のCORS許可が必要です。モジュールを追加してパスを指定しない場合はセットアップ警告になります。"
         }
@@ -2133,7 +2133,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 742
+            "line": 751
           },
           "description": "Playerのライセンス要求を発行するまでの遅延をミリ秒で指定します。最大は30,000ミリ秒（30秒）です。コンテンツのDRMライセンスの設定欄ではありません。"
         },
@@ -2146,7 +2146,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 743
+            "line": 752
           },
           "description": "プレイヤーのWeb Storage保存を無効にします。操作パネルにあるUI側の保存設定とは別項目です。"
         }

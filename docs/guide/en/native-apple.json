@@ -465,12 +465,12 @@
     },
     {
       "path": "apps/ios/project.yml",
-      "line": 29,
+      "line": 32,
       "label": "Targets and minimum OS versions"
     },
     {
       "path": "apps/ios/Showcase/ContentView.swift",
-      "line": 28,
+      "line": 27,
       "label": "Existing screen controls and editor presentation"
     },
     {
@@ -480,17 +480,17 @@
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",
-      "line": 68,
+      "line": 71,
       "label": "Source configuration mapping"
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",
-      "line": 150,
+      "line": 158,
       "label": "Draft validation and units"
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 96,
+      "line": 133,
       "label": "Apply, player generation, and retained source"
     },
     {
@@ -509,12 +509,12 @@
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 296,
+      "line": 389,
       "label": "Ready-bound selection on the intended Source"
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",
-      "line": 92,
+      "line": 97,
       "label": "SDK scaling configuration"
     },
     {

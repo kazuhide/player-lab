@@ -60,6 +60,127 @@
     },
     {
       "type": "h2",
+      "text": "2026-10-22に記録したネイティブAPIとライフサイクルの確認"
+    },
+    {
+      "type": "p",
+      "text": "追加した設定画面、API操作、実体の置き換えを確認した記録です。各行に対象のソースと環境を示します。設定、再生、GUI、ビルドは別の確認であり、件数を合算しません。mainへの参照は、対応するアプリ固有のソースファイルを示します。この照合では、共有パッケージ・生成アセット・アプリのバイナリ全体が記録時のビルドと一致することまでは確認していません。マージ後の再実行を示すものではありません。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "対象・記録したソース",
+        "素材と操作内容",
+        "確認した結果",
+        "環境と範囲"
+      ],
+      "rows": [
+        [
+          "iOS / tvOS / Player 3.128.0、ソース640815f2f471",
+          "ライセンスを使う実SDKの再生、編集したコールバック、Sourceの置き換えとイベント購読、ネイティブ表示・Player生成方式を確認。通常のAPI inspectorでも音量を設定して取得。",
+          "iOSはSDK確認4件とGUI確認1件が成功。tvOSもSDK確認4件とGUI確認1件が成功。",
+          "iPhone 18 Pro / iOS 27.0とApple TV 4K（第3世代）/ tvOS 27.0のシミュレーター。受信端末での再生、複数端末のSharePlay、DRMサービスの動作を確認した結果ではありません。"
+        ],
+        [
+          "React Native / wrapper 1.29.0、ソース0bebab9f521c",
+          "通常アプリで通信コールバックを編集し、60秒HLS、load/unloadの反復、Player再作成後の再生進行を確認。",
+          "iOSのGUI確認1件が205.221秒で成功。編集したコールバックで音量が17になり、置き換え後も再生が進行。",
+          "iPhone 17 Pro / iOS 26.4.1のシミュレーター。Expo 57.0.30、React Native 0.86.3、Hermes。mainの参照先でReact Nativeアプリ固有のソースファイルの一致を確認しています。結果は記録時のビルドに対応します。"
+        ],
+        [
+          "React Native Android / wrapper 1.29.0、ソース0bebab9f521c",
+          "通常アプリで同じ60秒HLS、コールバック、load/unload、再作成を確認。シーク・再生後に現在位置を取得。",
+          "音量17、再作成前後の長さ60秒、load/unloadの往復2回。現在位置は13.805秒から19.955秒へ進行。",
+          "Android 16 / API 36のARM64エミュレーター。Expo 57.0.30とHermes。同じ通常アプリのプロセスを複数の段階に分けて観測し、自動操作を再開した記録です。単一の連続テスト時間としては扱いません。"
+        ],
+        [
+          "React NativeのSource所有権、ソース0bebab9f521c",
+          "両OSでload/unloadと再作成を行い、実際に接続したラッパーのSourceを別の読み取り専用処理で観測。",
+          "各OSでSourceを5個追跡し、現行1個・退役4個。退役したSourceにネイティブの観測用マーカーは残っていませんでした。",
+          "iOS 26.4.1のシミュレーターとAndroid 16のエミュレーター。対象はこの操作で接続したSourceだけです。SDK内部の全Source数や長時間のメモリ挙動を測った結果ではありません。"
+        ],
+        [
+          "Vega / Player 8.138.0-beta.28、ソース0bebab9f521c",
+          "通常アプリで実行を許可した通信コールバック、60秒HLS、シーク・再生とAPI取得を確認。",
+          "音量17、長さ59.999993秒。現在位置は12.190秒から14.503秒へ2.313秒進行。",
+          "Vega仮想端末、OS 1.2、開発SDK 0.24.12112、W3C Media 2.3.2。次の広告挿入の観測とは別の通常アプリの操作記録です。"
+        ],
+        [
+          "VegaのHLS広告挿入、07496d6を基にした別の観測用構成",
+          "広告挿入に対応したHLSでスケジュール、再生中の広告、スキップ、メインコンテンツへの復帰を確認。",
+          "SDKから挿入予定と再生中のリニア広告を取得。スキップでAdSkippedとAdBreakFinishedが発火し、再生中の広告が空になってメインコンテンツへ復帰。",
+          "同じVega仮想端末の環境。広告モジュールを含み、AdStartedで一時停止する観測処理を追加して確認しています。SDKの効果を確認した結果は、通常アプリの設定適用・APIの有無の確認と分けています。"
+        ],
+        [
+          "AndroidのDRM / Player 3.171.0+jason、ソースb6368a41cd41",
+          "プロセスを起動し直して実際のWidevine再生を行い、メッセージとライセンスのコールバックに編集した恒等変換を適用。",
+          "起動し直した3回が成功。両方のコールバックが呼ばれ、代替値へ戻る処理は0回。",
+          "ARM64のAndroidエミュレーター。後のライブバッファー値の符号修正より前の再生結果です。実行したAPKとソースの記録を後のビルドとは分けて保持しています。"
+        ],
+        [
+          "AndroidのVR描画、以前のAPKに対応する実行記録",
+          "デコードした映像を独自GL描画へ渡し、一時停止中の同じフレームで視線を変更。コールバックを外して通常のPlayerViewへ復帰。",
+          "SDKを使うinstrumentation 1件が39.744秒で成功。コールバックを外しても描画は続き、退役したコールバックは停止。通常表示へ戻した後も再生位置が進行。",
+          "Androidエミュレーター。入力APKとソースファイルのハッシュで対象の版を特定しています。すべての描画ドライバー、投影方式、保護素材、描画環境の再作成を確認した結果ではありません。"
+        ]
+      ],
+      "widths": [
+        0.19,
+        0.28,
+        0.25,
+        0.28
+      ]
+    },
+    {
+      "type": "p",
+      "text": "別の通常アプリのVega確認では、PlayerAPI.getConfigからenable_sgai_handling=trueを取得し、sgai.list、sgai.getActiveAd、sgai.skipが呼び出せることを確認しました。このときスケジュールは空でした。設定の受け渡しとメソッドの有無を確認した結果であり、上の広告開始・スキップの効果は観測処理を加えた構成で確認したものです。"
+    },
+    {
+      "type": "h2",
+      "text": "設定・生成コード・ビルドの確認"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "対象のソースと確認内容",
+        "結果",
+        "確認できる範囲"
+      ],
+      "rows": [
+        [
+          "Apple 640815f2f471：設定とコールバックの契約",
+          "iOSは79件、tvOSは70件が成功。別のNodeのインタープリター試験は55件成功。",
+          "型付きSDKの値、コールバックの変換・代替処理・所有権、対応する構文の動作を確認します。それぞれ別の試験で、Nodeの試験ではネイティブ再生を実行しません。"
+        ],
+        [
+          "Apple 640815f2f471：出力したSwift",
+          "利用者向けのコード例61件が型検査に成功。生成した試験用コード2件も共通の実装と組み合わせて成功。",
+          "出力した呼び出しを固定SDKに対してコンパイルできることを確認します。コールバックのコード例には、Apple版のガイドで説明する公開の実行用ファイルも必要です。"
+        ],
+        [
+          "React Native 0bebab9f521c",
+          "ラッパー120件、ホスト生成8件と型検査が成功。ラッパーの試験には、実SDKの非同期初期化コードと待機できるネイティブブリッジを使う13件を含みます。",
+          "設定、生成ホストの契約、Sourceの所有権を確認します。ブリッジの試験はラッパーの件数に含み、実端末の再生結果には加えません。"
+        ],
+        [
+          "Vega 0bebab9f521c",
+          "106件、型検査、生成した型情報の照合が成功。armv7・x86_64・aarch64のReleaseパッケージを生成。",
+          "JavaScriptの設定・API呼び出しとパッケージ生成を確認します。ビルドは、上の仮想端末での再生とは別の結果です。"
+        ],
+        [
+          "Androidの符号付きバッファー値修正640815f2f471",
+          "JVM 78件と、デバッグアプリ・instrumentation APKのビルドが成功。",
+          "符号付きのライブバッファー値を従来のPlayer設定とSourceLiveConfigへ渡せることを確認します。以前のライセンスを使う広告・DRM・VRの記録は各ソースとAPKに対応付け、この設定修正で再実行したことにはしません。"
+        ]
+      ],
+      "widths": [
+        0.24,
+        0.33,
+        0.43
+      ]
+    },
+    {
+      "type": "h2",
       "text": "CPUとメモリの値の読み方"
     },
     {
@@ -96,7 +217,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 370,
+      "line": 660,
       "label": "現在のAndroidスマートフォンエミュレーターの結果"
     },
     {
@@ -111,8 +232,53 @@
     },
     {
       "path": "apps/vega/README.md",
-      "line": 304,
+      "line": 403,
       "label": "Vegaランタイムの確認範囲"
+    },
+    {
+      "path": "apps/ios/ShowcaseConfigurationTests/NativeRemoteSourceTests.swift",
+      "line": 1,
+      "label": "Appleの設定と生成コールバックの試験"
+    },
+    {
+      "path": "apps/ios/ShowcaseConfigurationUITests/ApiInspectorUITests.swift",
+      "line": 1,
+      "label": "通常のApple API inspectorの試験"
+    },
+    {
+      "path": "apps/ios/ShowcaseTrackRuntimeTests/NativePresentationRuntimeTests.swift",
+      "line": 1,
+      "label": "実SDKを使うApple表示方式の試験"
+    },
+    {
+      "path": "apps/ios/scripts/test-native-script-engine.cjs",
+      "line": 1,
+      "label": "実行量に上限のあるコールバック実行処理の試験"
+    },
+    {
+      "path": "apps/react-native/test/sourceOwnershipSdk.test.ts",
+      "line": 1,
+      "label": "実SDKのコードを使うReact Native初期化の試験"
+    },
+    {
+      "path": "apps/vega/test/api.test.ts",
+      "line": 1,
+      "label": "Vegaの型付きAPIの試験"
+    },
+    {
+      "path": "apps/android/app/src/test/kotlin/com/playerlab/android/ApiSettingsTest.kt",
+      "line": 1,
+      "label": "Androidの符号付きバッファー設定の試験"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerApiDrmInstrumentedTest.kt",
+      "line": 1,
+      "label": "Androidの実DRMコールバックの試験"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerVrRendererInstrumentedTest.kt",
+      "line": 1,
+      "label": "Androidのデコード済み映像の描画試験"
     }
   ]
 }

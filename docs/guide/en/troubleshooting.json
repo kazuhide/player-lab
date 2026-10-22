@@ -218,6 +218,11 @@
     {
       "type": "note",
       "text": "When sharing findings, report the target SDK, source type, reproduction steps, error codes, and retrieval results without including key values, authentication headers, personal information, or private media URLs."
+    },
+    {
+      "type": "note",
+      "title": "Comparing playback time and the display",
+      "text": "Standard Web time labels omit fractional seconds; Player state’s time (rel) includes a decimal place. The shared VOD controls use the seekable-range start as their origin, which need not match the SDK’s relative-clock origin. Compare values with the same origin and precision. Seeked confirms that seeking has finished, but the display can refresh afterwards. Read the SDK position after the event and wait for the time readout to catch up. The VOD seek bar’s left/right keys calculate the next position from the SDK clock, rounded down to whole seconds, rather than the previous display."
     }
   ],
   "sources": [
@@ -233,7 +238,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 55,
+      "line": 62,
       "label": "Allowed Android application identifiers"
     },
     {
@@ -253,7 +258,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 599,
+      "line": 650,
       "label": "Language switching and unapplied inputs"
     },
     {
@@ -263,7 +268,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 501,
+      "line": 550,
       "label": "Hidden Pages queries and collection notice"
     },
     {
@@ -292,12 +297,12 @@
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 253,
+      "line": 321,
       "label": "Source-owned HLS completion"
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 173,
+      "line": 236,
       "label": "Reloading the same URL with a new Source"
     },
     {
@@ -322,6 +327,37 @@
     {
       "url": "https://dashif.org/DASH-IF-IOP/live2vod/",
       "label": "DASH live-to-VOD transition"
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 660,
+      "label": "Explicit relative and absolute SDK clocks"
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 683,
+      "label": "Player-state time precision"
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 717,
+      "label": "Readout refresh follows time/source/duration events"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/640815f2f47126eeb2e70aaa490400f2b0a33fe0/patches/bitmovin-player-ui%404.23.0.patch#L606",
+      "label": "VOD keyboard seeks use the seekable-range origin"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/utils/StringUtils.ts#L18-L38",
+      "label": "Player UI whole-second time formatting"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/core.playerapi.html",
+      "label": "Player API: current-time mode"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/enums/Core.PlayerEvent.html",
+      "label": "Player event: seek completion"
     }
   ]
 }

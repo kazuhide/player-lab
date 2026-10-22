@@ -451,11 +451,11 @@
     },
     {
       "type": "p",
-      "text": "「状態の取得」でPlayerAPI.getConfigやPlayerAPI.getSourceを選ぶと、送信した設定値を確認できます。setVolumeなどの操作には任意の引数を入力します。取得したSDK実体や関数を後の呼び出しで選ぶこともできます。所有するPlayerなどが入れ替わった場合は取得し直します。コード例からライセンス値を除きます。選択した実体を参照する部分には、先の呼び出しで取得した同じオブジェクトを使ってください。"
+      "text": "「状態の取得」でPlayerAPI.getConfigやPlayerAPI.getSourceを選ぶと、送信した設定値を確認できます。setVolumeなどの操作には任意の引数を入力します。取得したSDK実体や関数を後の呼び出しで選ぶこともできます。所有するPlayerなどが入れ替わった場合は取得し直します。コード例からライセンス値を除きます。選択した実体を参照する部分には、先の呼び出しで取得した同じオブジェクトを使ってください。「イベントとコールバック」には現在のPlayerでの累積回数と直近のイベント内容を表示します。古い内容が履歴から消えても回数は残ります。設定値の反映は「状態の取得」で確認してください。「Playerを再生成」、または「イベント履歴を消去」で記録を消去できます。"
     },
     {
       "type": "p",
-      "text": "PlayerConfig.uiに空のオブジェクト{}を適用するとSDKがUIを生成します。アプリは使用中のUIバージョンに対応するスクリプトとスタイルの読み込み先を指定し、PlayerConfig.locationから変更できます。SDKは設定したstyle.uiManagerFactoryを呼び出します。従来のテーマを選ぶとアプリが生成するUIへ戻り、UIManagerが重複しないようにします。"
+      "text": "PlayerConfig.uiに空のオブジェクト{}を適用するとSDKがUIを生成します。アプリは使用中のUIバージョンに対応するスクリプトとスタイルの読み込み先を指定し、PlayerConfig.locationから変更できます。SDKは設定したstyle.uiManagerFactoryを呼び出します。従来のテーマを選ぶとアプリが生成するUIへ戻り、UIManagerが重複しないようにします。Player UI 4.23.0では、UI設定を合成するときに、空でないSourceConfig.title・descriptionをUIConfig.metadata.title・descriptionより優先します。プリセットのタイトルや説明よりUIConfig側のメタデータを優先させるには、対応するSourceConfigの値を空文字列にして適用します。ソースごとの表示を変える場合はSourceConfigを編集します。"
     },
     {
       "type": "note",
@@ -506,35 +506,35 @@
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 67
+      "line": 72
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 147
+      "line": 152
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 284
+      "line": 293
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 599
+      "line": 608
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 760
+      "line": 769
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 775
+      "line": 784
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 920
+      "line": 929
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 951
+      "line": 960
     },
     {
       "path": "apps/web/test/configState.test.ts",
@@ -563,6 +563,25 @@
     {
       "url": "https://github.com/kazuhide/player-lab/blob/2e01393b86d0c3004114c5ed6474d856676bc90f/apps/web/src/api/values.ts",
       "label": "Optional configuration properties"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/UIManager.ts#L415",
+      "label": "Player UIのメタデータとソースの優先順位（4.23.0）"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 238,
+      "label": "イベント回数と直近の内容"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 185,
+      "label": "Playerの入れ替え時の記録消去"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 270,
+      "label": "イベント履歴の消去操作"
     }
   ]
 }

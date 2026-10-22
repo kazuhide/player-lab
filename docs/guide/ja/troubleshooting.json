@@ -218,6 +218,11 @@
     {
       "type": "note",
       "text": "調査結果を共有するときは、キー値、認証ヘッダー、個人情報、非公開の素材URLを含めずに、対象SDK、ソースの種類、再現操作、エラーコードと取得成否を整理します。"
+    },
+    {
+      "type": "note",
+      "title": "再生位置と時間表示の比較",
+      "text": "Webの標準の時間表示は秒未満を省略し、「プレイヤー状態」のtime (rel)は小数点以下も表示します。共有UIのVOD操作はシーク可能範囲の先頭を起点とし、SDKの相対時刻と起点が同じとは限りません。値を比較するときは起点と精度を揃えます。Seekedは移動完了の通知ですが、画面の表示は後から更新される場合があります。正確な位置は通知後にSDKから読み、時間表示への反映も確認します。VODのシークバーの左右キーは、前の表示値ではなく、その時点のSDKの位置の小数部分を切り捨てて移動先を求めます。"
     }
   ],
   "sources": [
@@ -233,7 +238,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 55,
+      "line": 62,
       "label": "Android識別子の許可"
     },
     {
@@ -253,7 +258,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 599,
+      "line": 650,
       "label": "言語変更と未適用入力"
     },
     {
@@ -263,7 +268,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 501,
+      "line": 550,
       "label": "Pagesのクエリ非表示と送信通知"
     },
     {
@@ -292,12 +297,12 @@
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 253,
+      "line": 321,
       "label": "現在のSourceに対応するHLS完了状態"
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 173,
+      "line": 236,
       "label": "同じURLを新しいSourceで読み直す処理"
     },
     {
@@ -322,6 +327,37 @@
     {
       "url": "https://dashif.org/DASH-IF-IOP/live2vod/",
       "label": "DASHのライブからVODへの移行"
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 660,
+      "label": "相対時刻と絶対時刻の明示取得"
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 683,
+      "label": "Player stateの時間表示の精度"
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 717,
+      "label": "時間・ソース・長さのイベントによる表示更新"
+    },
+    {
+      "url": "https://github.com/kazuhide/player-lab/blob/640815f2f47126eeb2e70aaa490400f2b0a33fe0/patches/bitmovin-player-ui%404.23.0.patch#L606",
+      "label": "シーク可能範囲の先頭を起点にしたVODキー操作"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/utils/StringUtils.ts#L18-L38",
+      "label": "Player UIの秒未満を省略する時間表示"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/core.playerapi.html",
+      "label": "Player APIの再生時刻モード"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/enums/Core.PlayerEvent.html",
+      "label": "Playerの移動完了イベント"
     }
   ]
 }

@@ -233,7 +233,7 @@
     {
       "type": "note",
       "title": "Callback execution",
-      "text": "Scripts receive plain value snapshots and return the field's documented type. They have no Java, Android, Player, file or network object access. The interpreter limits instructions, CPU time, elapsed time and stack depth, and retains native behavior on an invalid result. CPU time measures work done by the script; elapsed time also includes time when the thread is not running. Checking both avoids rejecting a short script solely because another task delayed it, while still limiting slow execution. This runs inside the app process, with no separate memory isolation. Response preprocessing can buffer a whole response; select only the request types you need."
+      "text": "Scripts receive plain value snapshots and return the field's documented type. They have no Java, Android, Player, file or network object access. The interpreter checks budgets of 50,000 instructions, 25 milliseconds of callback-thread CPU time, 250 milliseconds of elapsed time and a stack depth of 64. When CPU accounting is unavailable, the elapsed-time fallback is 75 milliseconds. CPU accounting separates computation from scheduling delay, but time spent waiting still counts toward the elapsed-time budget: even a short callback can be rejected after a long delay. Limits are checked during execution and value conversion; native built-ins are not forcibly interrupted mid-call. Invalid results or exceeded budgets retain the documented native fallback. This runs inside the app process, with no separate memory isolation. Response preprocessing can buffer a whole response; select only the request types you need."
     },
     {
       "type": "h2",

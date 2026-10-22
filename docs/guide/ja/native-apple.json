@@ -465,12 +465,12 @@
     },
     {
       "path": "apps/ios/project.yml",
-      "line": 29,
+      "line": 32,
       "label": "ターゲットと最低 OS"
     },
     {
       "path": "apps/ios/Showcase/ContentView.swift",
-      "line": 28,
+      "line": 27,
       "label": "既存の画面操作と設定画面の表示"
     },
     {
@@ -480,17 +480,17 @@
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",
-      "line": 68,
+      "line": 71,
       "label": "ソース設定の SDK への反映"
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",
-      "line": 150,
+      "line": 158,
       "label": "編集値の検証と単位"
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 96,
+      "line": 133,
       "label": "Apply・Player の再生成・ソースの保持"
     },
     {
@@ -509,12 +509,12 @@
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 296,
+      "line": 389,
       "label": "対象SourceのReadyでの一度だけの選択"
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",
-      "line": 92,
+      "line": 97,
       "label": "SDKへの拡大方法の設定"
     },
     {

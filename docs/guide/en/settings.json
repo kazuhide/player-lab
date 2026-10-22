@@ -24,7 +24,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 292
+            "line": 301
           },
           "api": "player.setVolume",
           "description": "Change volume immediately from 0 to 100. This API also unmutes a muted player, so changing the volume may make audio audible."
@@ -38,7 +38,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 300
+            "line": 309
           },
           "api": "player.mute / player.unmute",
           "description": "Toggle mute for the current playback. Clearing the checkbox enables audio output."
@@ -52,7 +52,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 313
+            "line": 322
           },
           "api": "player.setPlaybackSpeed",
           "description": "Set the playback-rate multiplier: 1 is normal speed and 2 is twice normal speed. Behavior is constrained near the live edge."
@@ -66,7 +66,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 321
+            "line": 330
           },
           "api": "player.buffer.setTargetLevel",
           "description": "Immediately change the forward video-buffer target in seconds. This does not extend the available rewind window. Try 10 seconds and inspect the refreshed runtime code. This changes video only. Restore the previous number explicitly; empty input leaves the applied target unchanged."
@@ -93,7 +93,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 338
+            "line": 347
           },
           "api": "player.setViewMode",
           "description": "Choose inline, pictureinpicture or fullscreen. Browser support and a user gesture are required."
@@ -107,7 +107,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 360
+            "line": 369
           },
           "api": "player.setAspectRatio",
           "description": "Change the aspect ratio using a ratio such as 16:9 or 16/9. This API cannot change it when both width and height are fixed."
@@ -121,7 +121,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 373
+            "line": 382
           },
           "api": "player.setPosterImage",
           "description": "Set the poster immediately. This app passes true as the second argument, so the image remains displayed during video playback. Its application differs from SourceConfig.poster."
@@ -156,7 +156,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 386
+            "line": 395
           },
           "api": "player.setLogLevel",
           "description": "Immediately change console-log verbosity. Detailed debug output can affect performance."
@@ -177,7 +177,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 410
+            "line": 419
           },
           "api": "player.adaptation.setConfig",
           "description": "Keep automatic video-quality selection within the display size of the video element. Keep the quality menu on Auto when comparing. Turn off to restore an earlier false value."
@@ -191,7 +191,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 418
+            "line": 427
           },
           "api": "player.adaptation.setConfig",
           "description": "Set the balance between quality and stability from 0 to 1. Zero favors quality; 1 reduces quality to favor stable playback. This is used by the low-latency adaptation logic."
@@ -205,7 +205,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 426
+            "line": 435
           },
           "api": "player.adaptation.setConfig",
           "description": "Set the maximum height for automatic video-quality selection in pixels. If every quality is taller, the smallest height remains allowed. This normally does not remove choices from manual selection. For the bundled sample, try 180 pixels and allow buffered video to play. Use 360 pixels to allow its highest quality again. Empty input does not undo this dynamic setter."
@@ -219,7 +219,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 434
+            "line": 443
           },
           "api": "player.adaptation.setConfig",
           "description": "Set the minimum height for automatic video-quality selection in pixels. If every quality is shorter, the largest height remains allowed. This normally does not remove choices from manual selection."
@@ -233,7 +233,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 442
+            "line": 451
           },
           "api": "player.adaptation.setConfig",
           "description": "Set the maximum width for automatic video-quality selection in pixels. If every quality is wider, the smallest width remains allowed. This normally does not remove choices from manual selection."
@@ -247,7 +247,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 450
+            "line": 459
           },
           "api": "player.adaptation.setConfig",
           "description": "Set the minimum width for automatic video-quality selection in pixels. If every quality is narrower, the largest width remains allowed. This normally does not remove choices from manual selection."
@@ -268,7 +268,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 468
+            "line": 477
           },
           "api": "player.lowlatency.setTargetLatency",
           "description": "Set the target distance from the live edge in seconds. Use catchup and fallback together to try latency tracking."
@@ -282,7 +282,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 485
+            "line": 494
           },
           "api": "player.lowlatency.setCatchupConfig",
           "description": "Catch up by changing speed when latency exceeds the target by more than this number of seconds. The default Infinity disables this threshold."
@@ -296,7 +296,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 493
+            "line": 502
           },
           "api": "player.lowlatency.setCatchupConfig",
           "description": "Catch up by seeking toward the live edge when latency exceeds the target by more than this number of seconds. The default Infinity disables this threshold."
@@ -310,7 +310,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 501
+            "line": 510
           },
           "api": "player.lowlatency.setCatchupConfig",
           "description": "Set the playback-rate multiplier used to catch up. A value greater than 1 speeds playback up."
@@ -324,7 +324,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 509
+            "line": 518
           },
           "api": "player.lowlatency.setFallbackConfig",
           "description": "Slow down when playback is closer to the live edge than the target by more than this number of seconds. The default Infinity disables this threshold."
@@ -338,7 +338,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 517
+            "line": 526
           },
           "api": "player.lowlatency.setFallbackConfig",
           "description": "Move back toward the target position when playback is too close to the live edge by more than this number of seconds. The default Infinity disables this threshold."
@@ -352,7 +352,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 525
+            "line": 534
           },
           "api": "player.lowlatency.setFallbackConfig",
           "description": "Set the playback-rate multiplier used to fall back from the live edge. A value below 1 slows playback down."
@@ -373,7 +373,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 540
+            "line": 549
           },
           "description": "Set the source title. Themes with a TitleBar display it. Reload the source to apply the change."
         },
@@ -386,7 +386,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 549
+            "line": 558
           },
           "description": "Set the source description. Check it in a theme with a TitleBar, as with the title."
         },
@@ -399,7 +399,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 557
+            "line": 566
           },
           "description": "Set the URL of the image displayed before playback. This applies differently from the immediate setPosterImage API."
         },
@@ -412,7 +412,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 565
+            "line": 574
           },
           "description": "Keep the configured poster visible during playback, for example with an audio-only source. Reload the source to apply it."
         },
@@ -425,7 +425,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 573
+            "line": 582
           },
           "description": "Set the start position in seconds. For on-demand media it applies when the source loads; for live media it applies when playback starts. To start behind the live edge, use a negative value with the end reference. Out-of-range positions are clamped. Try 5 seconds with the start reference and reload. Clear and reload to remove the offset override."
         },
@@ -451,7 +451,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 582
+            "line": 591
           },
           "description": "Set the reference for startOffset. The start value refers to the beginning of the video or rewind window; end refers to the video end or live edge. When omitted, the default is start for on-demand media and end for live media."
         }
@@ -471,7 +471,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 603
+            "line": 612
           },
           "description": "Choose whether playback starts automatically after loading. Browsers may block autoplay with audio. Turn off and recreate to check that the loaded video waits for Play. Restore the previous checkbox value and recreate afterwards."
         },
@@ -484,7 +484,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 604
+            "line": 613
           },
           "description": "Choose whether a new player starts muted. This applies at a different time from the immediate mute control."
         },
@@ -497,7 +497,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 605
+            "line": 614
           },
           "description": "Set the initial volume of a new player from 0 to 100. Mute is a separate setting."
         },
@@ -510,7 +510,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 606
+            "line": 615
           },
           "description": "Add playsinline to the video element. This enables inline playback on supported mobile browsers."
         },
@@ -523,7 +523,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 607
+            "line": 616
           },
           "description": "Choose whether seeking is allowed. Distinguish this from the timeShift control that allows live rewinding."
         },
@@ -536,7 +536,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 608
+            "line": 617
           },
           "description": "Automatically recover from video decoding errors (default true). Recovery reloads the source and restores the position, tracks and other playback state. It is attempted once per position, within 0.1 seconds; a repeated error there or a failed reload surfaces an error."
         },
@@ -549,7 +549,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 609
+            "line": 618
           },
           "description": "Set the preferred audio language at startup. The source must contain a matching track. The GUI submits a single string, such as de for a matching source; it does not parse comma-separated lists. Recreate to apply or clear and recreate to remove the preference."
         },
@@ -562,7 +562,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 610
+            "line": 619
           },
           "description": "Set the preferred subtitle language at startup. The source must contain matching subtitles. Try en with VOD + Subtitles and recreate, then check a cue. Clear and recreate to remove the startup preference; use the player menu to disable the current subtitle."
         }
@@ -582,7 +582,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 621
+            "line": 630
           },
           "description": "Set the starting bitrate. Leave the field empty for automatic selection. Otherwise use a number in bps or a value with a unit, such as 500kbps. Try 250kbps (250000 bit/s), recreate, and compare the initial quality. Clear and recreate to remove the override. Later quality can adapt."
         },
@@ -595,7 +595,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 622
+            "line": 631
           },
           "description": "Set the maximum starting bitrate. This has no effect when startupBitrate is explicitly set. Try 500kbps (500000 bit/s) with startupBitrate empty and recreate. Clear and recreate to remove this ceiling."
         },
@@ -608,7 +608,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 623
+            "line": 632
           },
           "description": "Choose whether content is preloaded before playback. SDK defaults differ for on-demand and live media, so check the applied value."
         },
@@ -621,7 +621,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 624
+            "line": 633
           },
           "description": "Disable cancellation of slow downloads and retries at lower quality. Compare its behavior with normal automatic adaptation."
         },
@@ -634,7 +634,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 625
+            "line": 634
           },
           "description": "Allowed PSNR difference for quality selection when the source carries Quality Optimized Streaming Data. PSNR measures differences between an original and compressed image. This does not affect every source; the SDK marks this field @hidden."
         },
@@ -647,7 +647,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 626
+            "line": 635
           },
           "description": "Upper PSNR target for quality selection with compatible quality data. PSNR measures differences between an original and compressed image. The SDK marks this field @hidden."
         },
@@ -660,7 +660,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 627
+            "line": 636
           },
           "description": "Set the maximum automatically selected video bitrate in bps. If every quality exceeds it, the lowest bitrate remains allowed. This normally does not remove choices from manual selection. Try 500kbps (500000 bit/s) and recreate with the quality menu on Auto. Clear and recreate to remove the ceiling; it does not create a new rendition."
         },
@@ -673,7 +673,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 628
+            "line": 637
           },
           "description": "Set the minimum automatically selected video bitrate in bps. If every quality is below it, the highest bitrate remains allowed. This normally does not remove choices from manual selection."
         },
@@ -686,7 +686,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 629
+            "line": 638
           },
           "description": "Set the maximum automatically selected audio bitrate in bps. If every quality exceeds it, the lowest bitrate remains allowed. This normally does not remove choices from manual selection."
         },
@@ -699,7 +699,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 630
+            "line": 639
           },
           "description": "Set the minimum automatically selected audio bitrate in bps. If every quality is below it, the highest bitrate remains allowed. This normally does not remove choices from manual selection."
         },
@@ -737,7 +737,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 631
+            "line": 640
           },
           "description": "Automatic quality-selection logic. Default: v3 (DOWNLOAD_PREDICTION). v1 and v2 are deprecated. low-latency-v1 is for low-latency live streams using CMAF chunks and requires tweaks.chunked_cmaf_streaming."
         },
@@ -763,7 +763,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 639
+            "line": 648
           },
           "description": "Estimate network round-trip time using weightedaverage (the default) or median. Applies only to v3 adaptation logic. The SDK notes that median may perform better on low-performance devices."
         }
@@ -783,7 +783,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 651
+            "line": 660
           },
           "description": "Set the target seconds of video kept ahead of the playhead. A larger value can increase media-buffer memory use. Try 10 seconds and recreate. Check the applied config and browser media ranges separately; a target is not the current buffered duration."
         },
@@ -796,7 +796,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 652
+            "line": 661
           },
           "description": "Set the target seconds of played video to retain. This does not extend the rewind window offered by the live origin. Try 5 seconds and recreate, then compare a backward seek and browser media ranges. Clear and recreate to remove this override."
         },
@@ -809,7 +809,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 653
+            "line": 662
           },
           "description": "Set the target seconds of audio kept ahead of the playhead. This is separate from the video setting. Try 10 seconds and recreate. Clear and recreate to remove this audio override independently of video."
         },
@@ -822,7 +822,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 654
+            "line": 663
           },
           "description": "Set the target seconds of played audio to retain. This is separate from the video setting. Try 5 seconds and recreate. Inspect the separate audio/video values in applied code. Clear and recreate to remove this override."
         }
@@ -855,7 +855,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 662
+            "line": 671
           },
           "description": "Choose XMLHttpRequest (xhr) or Fetch for SDK network requests. The SDK defaults to xhr. If Fetch or AbortController is unavailable, the SDK falls back to xhr. Recreate the player to apply."
         },
@@ -868,7 +868,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 667
+            "line": 676
           },
           "description": "Default network timeout in seconds. The SDK default is 20 seconds. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply. Try 5 seconds, recreate and inspect network in applied code. Exercising the timeout requires an actual request to wait beyond this limit."
         },
@@ -881,7 +881,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "Timeout in seconds for manifest/dash; overrides the default network timeout. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply. Try 3 seconds with VOD DASH and recreate. HLS master and variant playlists have separate timeout fields."
         },
@@ -894,7 +894,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "Timeout in seconds for manifest/hls/master; overrides the default network timeout. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply."
         },
@@ -907,7 +907,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "Timeout in seconds for manifest/hls/variant; overrides the default network timeout. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply."
         },
@@ -920,7 +920,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "Timeout in seconds for media/video; overrides the default network timeout. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply. Try 2 seconds and recreate. Audio is a separate request type. Inspect attempts and timing in browser Network tools."
         },
@@ -933,7 +933,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "Timeout in seconds for media/audio; overrides the default network timeout. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply."
         },
@@ -946,7 +946,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "Timeout in seconds for media/subtitles; overrides the default network timeout. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply."
         },
@@ -959,7 +959,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 669
+            "line": 678
           },
           "description": "Timeout in seconds for media/thumbnails; overrides the default network timeout. The editor accepts finite values of zero or greater. Empty removes only this override. Recreate the player to apply."
         }
@@ -1004,7 +1004,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 682
+            "line": 691
           },
           "description": "Set the log level through the low-level configuration. The Logs group is the usual initial setting; use Player API setLogLevel for a change during playback."
         },
@@ -1017,7 +1017,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 81
+            "line": 86
           },
           "description": "Maximum buffer amount in seconds (default 40). Deprecated; use buffer.audio.forwardduration and buffer.video.forwardduration instead. For live streams, the smaller of this value and the HLS playlist duration or DASH timeShiftBufferDepth limits the buffer."
         },
@@ -1030,7 +1030,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 81
+            "line": 86
           },
           "description": "Seconds to buffer before initial playback (default 0.9). The SDK caps this at the maximum buffer amount minus 0.5 seconds; a larger input cannot increase the wait beyond that cap."
         },
@@ -1043,7 +1043,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 81
+            "line": 86
           },
           "description": "Seconds to buffer before resuming after a buffering interruption (default 0.9). The SDK caps this at the maximum buffer amount minus 0.5 seconds."
         },
@@ -1056,7 +1056,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 82
+            "line": 87
           },
           "description": "Parse playlists during native HLS playback on Safari and include segment information such as PDT in events."
         },
@@ -1069,7 +1069,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 82
+            "line": 87
           },
           "description": "Enable detection of playback stalls caused by failed requests during native HLS playback on Safari, so an error event can be raised."
         },
@@ -1082,7 +1082,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 82
+            "line": 87
           },
           "description": "Stop new playlist and segment requests while paused. Requests that have already started finish normally. Enable and recreate, pause, then compare new requests in browser Network tools. Restore the previous checkbox value and recreate."
         },
@@ -1095,7 +1095,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 83
+            "line": 88
           },
           "description": "Change the Player license-server URL. Only allowed URLs apply. This is separate from the DRM server for protected content."
         },
@@ -1108,7 +1108,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 83
+            "line": 88
           },
           "description": "Change the impression-reporting URL. Only allowed URLs apply."
         },
@@ -1121,7 +1121,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 83
+            "line": 88
           },
           "description": "Treat HLS variants below the specified bitrate in bps as audio-only and remove them if a higher-bitrate candidate exists."
         },
@@ -1134,7 +1134,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 84
+            "line": 89
           },
           "description": "Configure file-protocol use with app_id. This is not a setting for the HTTPS Pages deployment."
         },
@@ -1147,7 +1147,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 84
+            "line": 89
           },
           "description": "Consult the official API specification. The public per-field documentation used for this catalog does not define app_id."
         },
@@ -1160,7 +1160,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 84
+            "line": 89
           },
           "description": "Use the group attribute rather than SupplementalProperty for switching between DASH Adaptation Sets."
         },
@@ -1173,7 +1173,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 85
+            "line": 90
           },
           "description": "Set the stabilization wait in milliseconds before reloading a source after waitingforkey with a permanently failed key ID (KID). This is not a general DRM-network timeout."
         },
@@ -1186,7 +1186,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 85
+            "line": 90
           },
           "description": "Set the lookback period in milliseconds during which recent DRM-license state changes count as stabilization activity."
         },
@@ -1199,7 +1199,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 86
+            "line": 91
           },
           "description": "Remove MP4 edts information, which can adjust the start time, before passing segments to the decoder. This is a workaround for browser differences."
         },
@@ -1212,7 +1212,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 86
+            "line": 91
           },
           "description": "Treat same-named HLS audio renditions as separate tracks instead of grouping them as quality candidates."
         },
@@ -1225,7 +1225,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 86
+            "line": 91
           },
           "description": "Set the video element to preload=none. In native HLS playback on Safari, audio tracks or duration may remain unavailable until playback starts. This differs from preloading metadata only."
         },
@@ -1238,7 +1238,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 87
+            "line": 92
           },
           "description": "Set the scope of the Service Worker created by the corresponding module."
         },
@@ -1251,7 +1251,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 87
+            "line": 92
           },
           "description": "Ignore FairPlay keyerror events when requests for the same initialization data are duplicated."
         },
@@ -1264,7 +1264,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 88
+            "line": 93
           },
           "description": "Disable the SDK buffer-target adjustment after a browser capacity error. This does not guarantee lower memory use."
         },
@@ -1277,7 +1277,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 88
+            "line": 93
           },
           "description": "Deprecated legacy setting with no effect in the pinned SDK. Standard buffering has handled encryption transitions since 8.33.0."
         },
@@ -1290,7 +1290,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 89
+            "line": 94
           },
           "description": "Adjust permission to use the SDK seek operation on live streams. The ordinary DVR control panel uses timeShift."
         },
@@ -1303,7 +1303,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 89
+            "line": 94
           },
           "description": "With true, resume live media at the same media position as before the ad. The default false advances by the ad duration to retain the previous distance from the live edge. Ignored when the ad sets replaceContentDuration."
         },
@@ -1316,7 +1316,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 90
+            "line": 95
           },
           "description": "Allow use of the Tizen module on non-Tizen platforms. It only applies when that module is included; it is not general browser timestamp correction."
         },
@@ -1329,7 +1329,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 90
+            "line": 95
           },
           "description": "Rewrite every segment BaseMediaDecodeTime, even within 32 bits. Requires the matching Tizen or webOS module and platform. Streams with short discontinuities may develop problems; use it when testing demonstrates an improvement."
         },
@@ -1342,7 +1342,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 91
+            "line": 96
           },
           "description": "Set the decode-time limit considered safe on Tizen. Larger values are rewritten to smaller ones. The Tizen module is required; SDK defaults differ by TV generation."
         },
@@ -1355,7 +1355,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 91
+            "line": 96
           },
           "description": "Set the presentation-time-offset limit considered safe on Tizen. Larger values are rewritten to smaller ones. The Tizen module is required; SDK defaults differ by TV generation."
         },
@@ -1368,7 +1368,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 91
+            "line": 96
           },
           "description": "Set the decode-time limit considered safe on webOS. Larger values are rewritten to smaller ones. The webOS module is required; SDK defaults differ by TV generation."
         },
@@ -1381,7 +1381,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 92
+            "line": 97
           },
           "description": "Set the presentation-time-offset limit considered safe on webOS. Larger values are rewritten to smaller ones. The webOS module is required; SDK defaults differ by TV generation."
         },
@@ -1394,7 +1394,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 92
+            "line": 97
           },
           "description": "Parse the date and time embedded in segment URLs that use the supported format."
         },
@@ -1407,7 +1407,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 92
+            "line": 97
           },
           "description": "Change buffer retention during backward seeks so the necessary segments are requested again."
         },
@@ -1420,7 +1420,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 93
+            "line": 98
           },
           "description": "Drop invalid MP4 segments and try to continue. Playback may continue with gaps caused by the missing data."
         },
@@ -1433,7 +1433,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 93
+            "line": 98
           },
           "description": "Do not skip timeline gaps shorter than this value."
         },
@@ -1446,7 +1446,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 93
+            "line": 98
           },
           "description": "With a positive value in seconds, skip gaps proactively before reaching them."
         },
@@ -1459,7 +1459,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 94
+            "line": 99
           },
           "description": "Use software decryption rather than WebCrypto for content the SDK decrypts itself, such as HLS AES-128 and DASH ClearKey. This does not affect Widevine or PlayReady decryption performed by the browser CDM."
         },
@@ -1472,7 +1472,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 94
+            "line": 99
           },
           "description": "Retry count for failed manifest requests (default 2). For HLS, this covers both master and variant playlists. Try 1, recreate, and compare attempts for a temporarily blocked manifest in browser Network tools. Clear and recreate to remove the override."
         },
@@ -1485,7 +1485,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 94
+            "line": 99
           },
           "description": "Set the download-retry count per CDN for on-demand media."
         },
@@ -1498,7 +1498,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 95
+            "line": 100
           },
           "description": "Set the retry count for failed downloads of the DASH MPD manifest. Try 1 retry with VOD DASH and recreate. Successful playback alone does not exercise failed-request retry behavior."
         },
@@ -1511,7 +1511,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 95
+            "line": 100
           },
           "description": "Set the delay in seconds before retrying a failed MPD request. Try 1 second and recreate, then compare failed MPD request intervals in browser Network tools. Clear and recreate to remove the override."
         },
@@ -1524,7 +1524,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 95
+            "line": 100
           },
           "description": "Set how many seconds a live MPD may remain older than minimumUpdatePeriod before it is considered stale."
         },
@@ -1537,7 +1537,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 96
+            "line": 101
           },
           "description": "Parse CEA-708 captions from the source instead of CEA-608. This is separate from selecting WebVTT subtitles."
         },
@@ -1550,7 +1550,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 96
+            "line": 101
           },
           "description": "Use media-sequence numbers to synchronize HLS segment playback times during quality changes."
         },
@@ -1563,7 +1563,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 97
+            "line": 102
           },
           "description": "Parse HLS manifests in a worker thread. This can help with large manifests; it does not parallelize every playback task."
         },
@@ -1576,7 +1576,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 97
+            "line": 102
           },
           "description": "Clear SourceBuffer at HLS discontinuity transitions. This can affect visible transitions and performance."
         },
@@ -1589,7 +1589,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 98
+            "line": 103
           },
           "description": "Use fetch to pass complete CMAF chunks to the decoder while a request is still in progress. CMAF is a format for fragmented audio and video. Compatible content and HTTP chunked transfer can improve startup and seeking and support low-latency live playback; this switch alone does not make an ordinary stream low latency."
         },
@@ -1602,7 +1602,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 98
+            "line": 103
           },
           "description": "Parse MP4 emsg events during MSE playback. This does not affect native playback."
         },
@@ -1615,7 +1615,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 98
+            "line": 103
           },
           "description": "Set the seconds before a failed HLS stream penalty expires. This affects failover to a backup stream."
         },
@@ -1628,7 +1628,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 99
+            "line": 104
           },
           "description": "Check the state across available DRM licenses when a key status changes, before deciding whether playback can continue."
         },
@@ -1641,7 +1641,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 99
+            "line": 104
           },
           "description": "Relay native HLS metadata such as ID3 as SDK events on Safari."
         },
@@ -1654,7 +1654,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 99
+            "line": 104
           },
           "description": "Prefer ManagedMediaSource to MediaSource when available. Support depends on the runtime environment."
         },
@@ -1667,7 +1667,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 100
+            "line": 105
           },
           "description": "Keep retrying live requests after all qualities have failed, rather than ending with an error, so playback can recover if the stream returns."
         },
@@ -1680,7 +1680,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 100
+            "line": 105
           },
           "description": "Set the minimum interval in seconds for clearing played media from the buffer."
         },
@@ -1693,7 +1693,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 101
+            "line": 106
           },
           "description": "Compatibility setting for older environments that cannot use Infinity as the live MediaSource duration (default Infinity). A finite value such as Number.MAX_SAFE_INTEGER may resolve startup issues on those platforms."
         },
@@ -1706,7 +1706,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 101
+            "line": 106
           },
           "description": "With true, download audio/video and initialization/data segments sequentially, favoring video when buffer amounts are equal. The default false allows parallel downloads while favoring the media with less buffered data. Recreate and compare audio/video request overlap in browser Network tools. False permits parallel loading; it does not promise simultaneous requests on every connection."
         },
@@ -1719,7 +1719,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 101
+            "line": 106
           },
           "description": "Use zero media-element volume instead of its muted flag to avoid Chromium pausing muted background playback (default false). The SDK still reports isMuted() and getVolume() as usual. Continuing background playback may consume more battery."
         },
@@ -1732,7 +1732,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 102
+            "line": 107
           },
           "description": "Delay live-manifest updates until playback starts. This may help startup on slower devices; it does not apply to low-latency HLS."
         },
@@ -1745,7 +1745,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 102
+            "line": 107
           },
           "description": "Maximum seconds to buffer before initial playback; downloads stop at this limit until playback starts. A finite value overrides the platform recommendation; Infinity disables this particular limit. Defaults vary with webOS/Tizen modules and device generation; Legacy Microsoft Edge defaults to 6 seconds. Other platforms have no limit from this setting. The configured forward-buffer limit still applies."
         },
@@ -1758,7 +1758,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 103
+            "line": 108
           },
           "description": "Clear SourceBuffer when switching DASH periods. Transitions may become more visible even with compatible content."
         },
@@ -1771,7 +1771,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 103
+            "line": 108
           },
           "description": "Disable the standard SDK recovery from an expired DVR position. This app also has its own handler that returns to the live edge."
         },
@@ -1784,7 +1784,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 104
+            "line": 109
           },
           "description": "Enable Performance logs containing timings for SDK operations."
         },
@@ -1797,7 +1797,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 104
+            "line": 109
           },
           "description": "Enable HLS Interstitial handling in the pinned version. AdvertisingCore and compatible content are required. This is not a general switch for every ad-insertion method."
         },
@@ -1810,7 +1810,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 104
+            "line": 109
           },
           "description": "Set how many seconds of the previous audio buffer to keep ahead of the playhead during track changes. Retention must be enabled and the codec and DRM protection must remain unchanged."
         },
@@ -1823,7 +1823,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 105
+            "line": 110
           },
           "description": "Keep part of the previous buffer when changing audio tracks with the same codec and DRM protection. Changed conditions clear it completely. In some environments switching is delayed and the old audio remains briefly audible."
         },
@@ -1836,7 +1836,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 105
+            "line": 110
           },
           "description": "Set the compensation in seconds for ad-trigger delay caused by the TimeChanged event interval. A compatible ad-insertion feature is required."
         }
@@ -1877,7 +1877,7 @@
           ],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 692
+            "line": 701
           },
           "description": "Set console verbosity when creating the player. Detailed debug or log output can affect performance during long playback."
         },
@@ -1890,7 +1890,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 692
+            "line": 701
           },
           "description": "Toggle the Bitmovin credit printed in the console. This does not change a logo over the video."
         }
@@ -1910,7 +1910,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 699
+            "line": 708
           },
           "description": "Set the player aspect ratio. Avoid specifying width, height and aspectratio all at once."
         },
@@ -1923,7 +1923,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 700
+            "line": 709
           },
           "description": "Set the player width using a unit such as px or %. App CSS can take precedence, leaving no visible difference."
         },
@@ -1936,7 +1936,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 701
+            "line": 710
           },
           "description": "Set the player height using a unit such as px or %. App CSS can take precedence, leaving no visible difference."
         },
@@ -1949,7 +1949,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 702
+            "line": 711
           },
           "description": "Configure browser-native subtitle rendering for native HLS and progressive files. This does not apply to every playback technology."
         }
@@ -1969,7 +1969,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 710
+            "line": 719
           },
           "description": "Configure Chromecast support through CastConfig. The casting-button control uses remotecontrol and is a separate operation."
         },
@@ -1982,7 +1982,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 711
+            "line": 720
           },
           "description": "Application ID of a custom Cast receiver. Leaving it blank keeps the SDK default receiver without an application-specific ID."
         },
@@ -1995,7 +1995,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 712
+            "line": 721
           },
           "description": "Set the message namespace for a custom Cast receiver. It is not required for ordinary Cast operation."
         },
@@ -2008,7 +2008,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 713
+            "line": 722
           },
           "description": "Set the stylesheet URL loaded by the Cast receiver. This does not change the local Web player CSS."
         }
@@ -2028,7 +2028,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 721
+            "line": 730
           },
           "description": "Use HLS Playlist Delta Updates instead of retrieving a complete manifest on supported sources. The pinned type documentation specifies HLS; this does not affect every HLS or DASH stream."
         },
@@ -2041,7 +2041,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 722
+            "line": 731
           },
           "description": "Set the initial target live latency of a new player in seconds. The dynamic Low Latency group also allows a change during playback."
         }
@@ -2061,7 +2061,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 730
+            "line": 739
           },
           "description": "Set the JavaScript location used by the SDK to load its UI. This app creates a UIManager itself; normally change themes using the buttons at the top."
         },
@@ -2074,7 +2074,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 731
+            "line": 740
           },
           "description": "Set the CSS location used by the SDK to load its UI. Its application differs from the shared UI CSS imported by this app."
         },
@@ -2087,7 +2087,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 732
+            "line": 741
           },
           "description": "Set the URL of the Google Cast sender library."
         },
@@ -2100,7 +2100,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 733
+            "line": 742
           },
           "description": "Loading URL for the Google IMA advertising library. Deprecated; use ImaAdvertisingConfig.sdkUrl for new integrations. This GUI does not edit a complete advertising configuration."
         },
@@ -2113,7 +2113,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 734
+            "line": 743
           },
           "description": "Set the Service Worker JavaScript location. It requires the corresponding module, placement at the same level as the host HTML, and CORS permission on the content origin. Adding the module without a path produces a setup warning."
         }
@@ -2133,7 +2133,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 742
+            "line": 751
           },
           "description": "Set the delay before issuing the Player license request, in milliseconds, up to 30,000 ms (30 seconds). This is not a content-DRM license setting."
         },
@@ -2146,7 +2146,7 @@
           "options": [],
           "source": {
             "path": "apps/web/src/configPanel.ts",
-            "line": 743
+            "line": 752
           },
           "description": "Disable player Web Storage persistence. This is separate from the UI-storage setting in the control panel."
         }

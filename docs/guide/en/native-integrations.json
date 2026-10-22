@@ -478,17 +478,17 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 72,
+      "line": 77,
       "label": "Screen implementation and UI switching"
     },
     {
       "path": "apps/react-native/src/ConfigurationPanel.tsx",
-      "line": 18,
+      "line": 22,
       "label": "React Native editable fields, units and Apply/Reset"
     },
     {
       "path": "apps/react-native/src/configuration.ts",
-      "line": 59,
+      "line": 68,
       "label": "React Native validation and SDK field mappings"
     },
     {
@@ -503,7 +503,7 @@
     },
     {
       "path": "apps/vega/src/App.tsx",
-      "line": 47,
+      "line": 55,
       "label": "Application ID, playback settings, and Analytics"
     },
     {
@@ -518,17 +518,17 @@
     },
     {
       "path": "apps/vega/tsconfig.json",
-      "line": 22,
+      "line": 23,
       "label": "Complete source and JSX type-check scope"
     },
     {
       "path": "apps/vega/src/ConfigurationPanel.tsx",
-      "line": 16,
+      "line": 17,
       "label": "Vega editable fields, units and Apply/Reset"
     },
     {
       "path": "apps/vega/src/configuration.ts",
-      "line": 55,
+      "line": 63,
       "label": "Vega validation and SDK field mappings"
     },
     {

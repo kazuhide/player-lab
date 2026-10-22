@@ -213,11 +213,11 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 588
+      "line": 637
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 688
+      "line": 818
     },
     {
       "path": "apps/web/src/sources.ts",
@@ -225,11 +225,11 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 211
+      "line": 213
     },
     {
       "path": "apps/web/src/gestures.ts",
-      "line": 43
+      "line": 44
     },
     {
       "path": "apps/web/README.md",
@@ -237,19 +237,19 @@
     },
     {
       "path": "docs/local-test-media.md",
-      "line": 59
+      "line": 97
     },
     {
       "path": "tests/e2e/specs/pages.spec.ts",
-      "line": 192
+      "line": 229
     },
     {
       "path": "tests/e2e/specs/pages.spec.ts",
-      "line": 206
+      "line": 243
     },
     {
       "path": "tests/e2e/specs/pages.spec.ts",
-      "line": 220
+      "line": 257
     }
   ]
 }

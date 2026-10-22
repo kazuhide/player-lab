@@ -125,12 +125,12 @@
     },
     {
       "path": "docs/dvr-time-and-start-config.md",
-      "line": 9,
+      "line": 8,
       "label": "DVRと時間の用語"
     },
     {
       "path": "docs/local-test-media.md",
-      "line": 71,
+      "line": 109,
       "label": "セグメント、AAC、提示時刻"
     },
     {

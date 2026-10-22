@@ -193,19 +193,19 @@
   "sources": [
     {
       "path": "apps/web/index.html",
-      "line": 11
+      "line": 12
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 155
+      "line": 158
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 360
+      "line": 386
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 589
+      "line": 640
     },
     {
       "path": "apps/web/src/uiGuide.ts",
@@ -217,11 +217,11 @@
     },
     {
       "path": "packages/ui-shared/src/liveUi.ts",
-      "line": 136
+      "line": 138
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 253
+      "line": 255
     },
     {
       "path": "packages/ui-shared/src/sportsData.ts",
