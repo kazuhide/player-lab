@@ -6,6 +6,7 @@ from html import escape
 from html.parser import HTMLParser
 from pathlib import Path
 import posixpath
+import subprocess
 import tempfile
 import unittest
 from urllib.parse import unquote, urlsplit
@@ -353,6 +354,10 @@ class GuideTests(unittest.TestCase):
                 with self.subTest(chapter=chapter, source=source):
                     lines = (ROOT / source['path']).read_text().splitlines()
                     self.assertEqual(block['text'], '\n'.join(lines[source['line'] - 1:block['endLine']]))
+                    published = subprocess.check_output([
+                        'git', '-C', str(ROOT), 'show', SOURCE_REVISION + ':' + source['path'],
+                    ]).decode().splitlines()
+                    self.assertEqual(block['text'], '\n'.join(published[source['line'] - 1:block['endLine']]))
 
     def test_code_excerpt_rejects_incomplete_or_ambiguous_line_ranges(self):
         for mutation in ('missing-end', 'reversed', 'boolean-end', 'wrong-length', 'external-url'):
