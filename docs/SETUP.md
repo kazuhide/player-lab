@@ -6,6 +6,8 @@ credential convention. The Pages version uses a separate public configuration.
 ## Prerequisites
 
 - Node.js 24.19.0 and pnpm 10.33.0 (`corepack enable` then `corepack prepare pnpm@10.33.0 --activate`)
+- Python 3.10+, available as `python3`, for Web development/build metadata and
+  repository checks. Install it before starting the Vite development server.
 - A Bitmovin account for licensed hosts, native apps or cloud features — https://dashboard.bitmovin.com
 - For encoding: Bitmovin CLI 0.7.0, Python 3.10+ with OpenSSL, `jq`, and
   `envsubst` (from GNU gettext). See the pinned installation below.
@@ -59,11 +61,19 @@ keep the corresponding build setting empty; an empty Analytics value leaves the
 collector off. Local `BITMOVIN_*` names and inherited `VITE_*` values are not
 fallbacks. Account API keys are never needed for Pages.
 
-CI builds and tests the static files under `/player-lab/web/`, then uploads
-those same files with a separate SHA-256 manifest. Pages accepts only a successful
-CI run for the current `main` commit and configured public Player and Analytics
-keys; it verifies the file list and hashes before deployment. A keyless build
-can be tested at `localhost`, but cannot be promoted by the Pages workflow.
+CI (continuous integration) builds and tests the static files under
+`/player-lab/web/`, retains the ZIP with a separate SHA-256 file manifest, and
+signs the archive on `main`. Merging a pull request does not update Pages.
+Publication uses an immutable formal Release whose source commit belongs to
+`main` history and whose required CI jobs passed. Both public Player and
+Analytics licenses must be configured; a keyless build can be tested at
+`localhost` but cannot be promoted to a release.
+
+Pages verifies the retained archive's CI signature, release identity, file list
+and hashes, then deploys those bytes without rebuilding. A previous release can
+be restored after temporary CI artifacts expire; its original CI run and job
+records must still be available. See the [release instructions](releases.md)
+for versioning, publication and recovery.
 
 The artifact scan uses the default secret detectors. It distinguishes only those
 two explicitly configured public license values in the generated main bundle;

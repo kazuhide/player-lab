@@ -2,6 +2,7 @@
 
 [Open the Web app](https://kazuhide.github.io/player-lab/web/)
 · User guide: [English](https://kazuhide.github.io/player-lab/guide/) / [日本語](https://kazuhide.github.io/player-lab/ja/guide/)
+· [Releases](https://github.com/kazuhide/player-lab/releases)
 
 Try Bitmovin Player settings, playback APIs and user interfaces on Web,
 iOS/tvOS, Android/Fire TV, React Native and Vega OS. Change settings in the GUI,
@@ -75,6 +76,9 @@ See [testing instructions](docs/e2e-testing.md) and
 [contribution checks](docs/contributing.md) for the relevant browser and native
 checks. Optional [encoding tools](encoding) can create media in your account and
 incur charges; they are not required to try the public Web app.
+
+Pages follows formal product releases. See the [changelog](CHANGELOG.md) and
+[release instructions](docs/releases.md) for versioning and publication.
 
 ## Analytics and Observability
 
