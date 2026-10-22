@@ -77,7 +77,7 @@ export default defineConfig(({ mode }) => {
     build: {
       target: "es2021",
       chunkSizeWarningLimit: 3000,
-      // Multi-page: the player playground (index) + a standalone customization guide.
+      // Multi-page: the Web app (index) + a standalone customization guide.
       rollupOptions: {
         input: {
           main: fileURLToPath(new URL("./index.html", import.meta.url)),

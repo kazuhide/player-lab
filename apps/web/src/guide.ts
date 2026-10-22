@@ -1,7 +1,7 @@
 /**
  * Standalone "Player UI Customization Guide" page (apps/web/guide.html).
  *
- * The playground's right-hand panels are necessarily terse; this page is the long-form
+ * Player Lab's right-hand panels are necessarily terse; this page is the long-form
  * companion — the architecture, the customization layers with real snippets, a component
  * catalogue, styling, configuration, and the cross-platform story — bilingual (JA/EN),
  * cross-referenced to the official Bitmovin docs and the player-ui source.
@@ -48,8 +48,8 @@ const SECTIONS: Section[] = [
       {
         kind: "p",
         text: {
-          ja: "プレイグラウンドでは、同じプレイヤーに対してUIを実行時に差し替えます。テーマは実装方法ごとに分類され、選択したテーマのコードは「構築コード」パネルに表示されます。このガイドでは、その仕組みと独自のUIを作る手順を説明します。",
-          en: "The playground swaps UI builds against the same player at runtime, grouped by implementation technique. The construction-code panel shows the selected theme's source. This guide explains that mechanism and the steps for building a custom UI.",
+          ja: "Player Labでは、同じプレイヤーに対してUIを実行時に差し替えます。テーマは実装方法ごとに分類され、選択したテーマのコードは「構築コード」パネルに表示されます。このガイドでは、その仕組みと独自のUIを作る手順を説明します。",
+          en: "Player Lab swaps UI builds against the same player at runtime, grouped by implementation technique. The construction-code panel shows the selected theme's source. This guide explains that mechanism and the steps for building a custom UI.",
         },
       },
     ],
@@ -107,8 +107,8 @@ const ui2 = createUi(anotherContainer);`,
         kind: "callout",
         tone: "tip",
         text: {
-          ja: "プレイヤー本体の挙動(自動再生・バッファ・ABR・DVR など)は PlayerConfig 側、見た目と操作は UI 側。混同しないことがカスタマイズの第一歩です。プレイグラウンドの「Player Config」パネルが前者、このガイドが後者です。",
-          en: "Player behavior (autoplay, buffering, ABR, DVR…) lives in PlayerConfig; look and controls live in the UI. Keeping the two apart is the first step to customizing. The playground's “Player Config” panel is the former; this guide is the latter.",
+          ja: "プレイヤー本体の挙動(自動再生・バッファ・ABR・DVR など)は PlayerConfig 側、見た目と操作は UI 側。混同しないことがカスタマイズの第一歩です。Player Labの「Player Config」パネルが前者、このガイドが後者です。",
+          en: "Player behavior (autoplay, buffering, ABR, DVR…) lives in PlayerConfig; look and controls live in the UI. Keeping the two apart is the first step to customizing. Player Lab's “Player Config” panel is the former; this guide is the latter.",
         },
       },
     ],
@@ -217,8 +217,8 @@ new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }])
         kind: "callout",
         tone: "tip",
         text: {
-          ja: "「足す/消す/並べ替える」はこの配列を編集するだけ。プレイグラウンドの各テーマ(Live / Cinema / Premiere…)は、この同じ ControlBar を別の並びにしただけのものです。右の構築コードと見比べてください。",
-          en: "“Add / remove / reorder” is just editing this array. Every playground theme (Live / Cinema / Premiere…) is the same ControlBar in a different arrangement — compare them against the construction-code panel.",
+          ja: "「足す/消す/並べ替える」はこの配列を編集するだけ。Player Labの各テーマ(Live / Cinema / Premiere…)は、この同じ ControlBar を別の並びにしただけのものです。右の構築コードと見比べてください。",
+          en: "“Add / remove / reorder” is just editing this array. Each Player Lab theme (Live / Cinema / Premiere…) is the same ControlBar in a different arrangement — compare them against the construction-code panel.",
         },
       },
     ],
@@ -402,8 +402,8 @@ new UIContainer({ components: [ controlBar, settingsPanel ] });`,
         kind: "callout",
         tone: "tip",
         text: {
-          ja: "選択肢が1つもない項目(例:単一画質のソースでの画質)は自動で隠れます。再生速度の項目は UIConfig.playbackSpeedSelectionEnabled が false だと隠れます — プレイグラウンドの「UI settings」でこの挙動を試せます。",
-          en: "An item with no real choices (e.g. quality on a single-rendition source) auto-hides. The speed item hides when UIConfig.playbackSpeedSelectionEnabled is false — try it in the playground's “UI settings”.",
+          ja: "選択肢が1つもない項目(例:単一画質のソースでの画質)は自動で隠れます。再生速度の項目は UIConfig.playbackSpeedSelectionEnabled が false だと隠れます — Player Labの「UI settings」でこの挙動を試せます。",
+          en: "An item with no real choices (e.g. quality on a single-rendition source) auto-hides. The speed item hides when UIConfig.playbackSpeedSelectionEnabled is false — try it in Player Lab's “UI settings”.",
         },
       },
     ],
@@ -468,8 +468,8 @@ player.on(PlayerEvent.PlaybackFinished, () => { /* … */ });
             en: "Naming — `cssClass: \"ui-livebutton\"` → `.bmpui-ui-livebutton`. State classes are prefixed too (`.bmpui-on` / `.bmpui-off` / `.bmpui-hidden`, plus your own like `.bmpui-at-live-edge`).",
           },
           {
-            ja: "再スキンの足場 — ルートに `extraCssClasses: [\"ui-skin-neon\"]` を足し、`.bmpui-ui-skin-neon …` で配下を上書き。構造は一切触らない(プレイグラウンドの Neon / Glass / Sunset / Bold / Mono がこれ)。",
-            en: "Re-skin hook — add `extraCssClasses: [\"ui-skin-neon\"]` at the root and override descendants under `.bmpui-ui-skin-neon …`. No structure changes (the playground's Neon / Glass / Sunset / Bold / Mono are this).",
+            ja: "再スキンの足場 — ルートに `extraCssClasses: [\"ui-skin-neon\"]` を足し、`.bmpui-ui-skin-neon …` で配下を上書き。構造は一切触らない(Player Labの Neon / Glass / Sunset / Bold / Mono がこれ)。",
+            en: "Re-skin hook — add `extraCssClasses: [\"ui-skin-neon\"]` at the root and override descendants under `.bmpui-ui-skin-neon …`. No structure changes (Player Lab's Neon / Glass / Sunset / Bold / Mono are this).",
           },
         ],
       },
@@ -657,7 +657,7 @@ new UIManager(player, [{ ui: uiContainer, identifier: UIVariantIdentifier.tv, sp
       {
         kind: "recipe",
         title: { ja: "コントロールを常時表示にする", en: "Keep controls always visible" },
-        note: { ja: "UIContainer.hideDelay を -1 に(プレイグラウンドの Autohide オフと同じ)。", en: "Set UIContainer.hideDelay to -1 (same as the playground's Autohide off)." },
+        note: { ja: "UIContainer.hideDelay を -1 に(Player Labの Autohide オフと同じ)。", en: "Set UIContainer.hideDelay to -1 (same as Player Lab's Autohide off)." },
         lang: "ts",
         code: `new UIContainer({ components: [/* … */], hideDelay: -1 });`,
       },
@@ -740,7 +740,7 @@ const TAGLINE: L = {
   ja: "Bitmovin Player UI で何をどう変えられるか — 詳細版。",
   en: "What you can change in the Bitmovin Player UI, and how — the long form.",
 };
-const BACK: L = { ja: "プレイグラウンドに戻る", en: "Back to the playground" };
+const BACK: L = { ja: "Player Labに戻る", en: "Back to Player Lab" };
 
 function renderLangToggle(): void {
   langToggleEl.innerHTML = "";

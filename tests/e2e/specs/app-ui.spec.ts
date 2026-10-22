@@ -726,7 +726,7 @@ test.describe("Web app UI", () => {
     await expect(page.locator(".bmpui-ui-recommendation-overlay")).toHaveCount(0);
   });
 
-  test("the customization guide is a standalone page linked from the playground", async ({ page }) => {
+  test("the customization guide is a standalone page linked from Player Lab", async ({ page }) => {
     await page.goto(`${APP}/`);
     const link = page.locator("#ui-guide .ui-guide-link");
     await expect(link).toBeVisible();
