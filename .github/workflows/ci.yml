@@ -51,6 +51,10 @@ jobs:
           cache: pnpm
       - name: Install
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check the product version and public build metadata
+        run: |
+          python3 scripts/test-product-version.py
+          python3 scripts/product_version.py check
       - name: Check SDK versions and API coverage
         run: |
           python3 scripts/test-sdk-updates.py
@@ -151,20 +155,14 @@ jobs:
           bash scripts/build-pages.sh "$RUNNER_TEMP/test-streams" \
             "$RUNNER_TEMP/pages-release/site" "$RUNNER_TEMP/pages-release/manifest.json"
           python3 - <<'PY'
-          import json
           import os
           from pathlib import Path
           root = Path(os.environ['RUNNER_TEMP']) / 'pages-release'
           if any(b'pages-build-private-canary' in path.read_bytes()
                  for path in (root / 'site').rglob('*') if path.is_file()):
               raise SystemExit('Unselected environment values entered the Pages build.')
-          (root / 'release.json').write_text(json.dumps({
-              'sha': os.environ['GITHUB_SHA'],
-              'base': '/player-lab/web/',
-              'publicPlayerKeyConfigured': bool(os.environ.get('PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY', '').strip()),
-              'publicAnalyticsKeyConfigured': bool(os.environ.get('PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY', '').strip()),
-          }) + '\n', encoding='utf-8')
           PY
+          python3 scripts/product_version.py ci-metadata --output "$RUNNER_TEMP/pages-release/release.json"
       - name: Scan the actual Pages release with Gitleaks 8.30.1
         env:
           PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY: ${{ vars.PLAYER_LAB_PUBLIC_PLAYER_LICENSE_KEY }}

@@ -42,7 +42,16 @@ PY
 
 python3 scripts/build-user-guide.py --content-dir docs/guide --output-dir "$notice_dir/guide"
 
+python3 - "$notice_dir" <<'PY'
+from pathlib import Path
+import shutil
+import sys
+shutil.copytree('site', Path(sys.argv[1]) / 'site', symlinks=True)
+PY
+python3 scripts/product_version.py stamp --directory "$notice_dir/site"
+python3 scripts/product_version.py stamp --directory "$notice_dir/guide"
+
 python3 scripts/package-pages.py \
-  --site-dir site --web-dir apps/web/dist --notices-dir "$notice_dir/notices" \
+  --site-dir "$notice_dir/site" --web-dir apps/web/dist --notices-dir "$notice_dir/notices" \
   --guide-dir "$notice_dir/guide" \
   --media-dir "$1" --output-dir "$2" --manifest "$3"

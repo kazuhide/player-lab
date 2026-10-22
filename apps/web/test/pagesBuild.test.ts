@@ -125,7 +125,9 @@ describe("isolated Pages build", () => {
         },
       },
     });
-    expect(config.plugins).toEqual([]);
+    expect(config.plugins).toEqual([
+      expect.objectContaining({ name: "player-lab-product-build", transformIndexHtml: expect.any(Function) }),
+    ]);
   });
 
   it("preserves canonical license mapping and the proxy outside Pages mode", async () => {
@@ -145,6 +147,7 @@ describe("isolated Pages build", () => {
     expect(config.envDir).toBeUndefined();
     expect(config.define).toBeUndefined();
     expect(config.plugins).toEqual([
+      expect.objectContaining({ name: "player-lab-product-build", transformIndexHtml: expect.any(Function) }),
       expect.objectContaining({ name: "bitmovin-analytics-proxy", apply: "serve" }),
     ]);
   });
