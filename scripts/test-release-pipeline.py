@@ -639,6 +639,31 @@ class ContractTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 contract.json_load(data)
 
+    def test_actions_archive_download_negotiates_json_and_streams_without_forwarding_token(self):
+        from urllib.error import HTTPError
+        token = 'workflow-token-fixture'
+        requests = []
+        payload = b'PK\x03\x04' + bytes(range(256)) * 4097
+        class Opener:
+            def open(self, request, timeout):
+                requests.append(request)
+                if len(requests) == 1:
+                    if request.get_header('Accept') != 'application/vnd.github+json':
+                        raise HTTPError(request.full_url, 415, 'unsupported media type', {}, BytesIO(b''))
+                    raise HTTPError(request.full_url, 302, 'redirect', {'Location': 'https://archive.example.invalid/signed'}, BytesIO(b''))
+                return BytesIO(payload)
+        with patch.dict(os.environ, {'GH_TOKEN': token}):
+            api = pipeline.GitHub()
+        api.opener = Opener()
+        target = self.root / 'actions-download.zip'
+        api.download('actions/artifacts/900/zip', target)
+        self.assertEqual(target.read_bytes(), payload)
+        self.assertEqual(len(requests), 2)
+        self.assertEqual(requests[0].full_url, 'https://api.github.com/repos/' + REPO + '/actions/artifacts/900/zip')
+        self.assertEqual(requests[0].get_header('Accept'), 'application/vnd.github+json')
+        self.assertEqual(requests[0].get_header('Authorization'), 'Bearer ' + token)
+        self.assertIsNone(requests[1].get_header('Authorization'))
+
     def test_asset_redirect_does_not_receive_the_workflow_token(self):
         from urllib.error import HTTPError
         token = 'workflow-token-fixture'
@@ -654,10 +679,17 @@ class ContractTests(unittest.TestCase):
         api.opener = Opener()
         result = api.request('/repos/' + REPO + '/releases/assets/1', binary=True)
         self.assertEqual(result, b'public asset')
+        self.assertEqual(requests[0].get_header('Accept'), 'application/octet-stream')
         self.assertEqual(requests[0].get_header('Authorization'), 'Bearer ' + token)
         self.assertIsNone(requests[1].get_header('Authorization'))
         with self.assertRaisesRegex(ValueError, 'HTTPS'):
             api.redirected('http://asset.example.invalid/insecure')
+        for suffix, method in [('releases/assets/0', 'GET'), ('releases/assets/-1', 'GET'),
+                               ('releases/assets/1/extra', 'GET'), ('releases/assets/1?raw=true', 'GET'),
+                               ('releases/assets/1', 'POST')]:
+            with self.subTest(suffix=suffix, method=method):
+                api.request('/repos/' + REPO + '/' + suffix, binary=True, method=method)
+                self.assertEqual(requests[-1].get_header('Accept'), 'application/vnd.github+json')
 
     def test_filtered_workflow_history_truncation_fails_closed(self):
         api = pipeline.GitHub.__new__(pipeline.GitHub)
