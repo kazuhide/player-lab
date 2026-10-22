@@ -375,10 +375,15 @@
       "text": "Offline HLS on iOS and iPadOS"
     },
     {
+      "type": "p",
+      "text": "Use a physical iPhone or iPad to verify downloads and playback from saved media. In the tested SDK 3.128.0 and iOS 27 Simulator environment, initialization and track discovery succeeded, but the media download did not complete. These simulator operations do not verify offline playback."
+    },
+    {
       "type": "steps",
       "items": [
         "Apply an on-demand HLS source and its DRM settings in the main configuration, then Open offline HLS inspector. Live HLS has no finite download. This panel is unavailable on tvOS.",
-        "Set the Wi-Fi restriction and minimum free space. Initialize with SDK defaults or OfflineConfig. Initialization is process-wide and the selected startup settings are retained for the next launch.",
+        "Set the Wi-Fi restriction and minimum free space. Initialize with SDK defaults or OfflineConfig to save the process-wide startup settings.",
+        "After the first setup or a change to initialization options, fully close and reopen the app. The SDK requires initialization during app launch, when the saved settings are applied. Apply the on-demand HLS source and DRM settings again, then reopen the offline inspector.",
         "Select applied HLS source as offline asset. Use an explicit identifier to address that asset again. Fetch available audio and subtitle tracks and choose their download actions.",
         "Choose a download operation and Run offline API. Inspect progress, offlineState and events; track discovery or a submitted call is not download completion.",
         "After completion, choose whether playback must be restricted to cached media, then Create OfflineSourceConfig and Load cached source. Changing the restriction requires creating OfflineSourceConfig again before loading it. It uses the current player; applying the main configuration returns to its remote source."
@@ -558,6 +563,15 @@
       "path": "apps/ios/Showcase/OfflineInspector.swift",
       "line": 1,
       "label": "Offline HLS workflow"
+    },
+    {
+      "path": "apps/ios/Showcase/OfflineBackgroundDelegate.swift",
+      "line": 5,
+      "label": "Offline initialization at app launch"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ios/3.128.0/documentation/bitmovinplayercore/offlinemanager/initializeofflinemanager(offlineconfig:)",
+      "label": "Official offline initialization requirement"
     },
     {
       "path": "apps/ios/Showcase/NativeCastInspector.swift",
