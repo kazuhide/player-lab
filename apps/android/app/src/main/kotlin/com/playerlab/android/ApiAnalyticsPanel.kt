@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.bitmovin.analytics.api.LogLevel
@@ -47,7 +48,7 @@ internal fun ApiAnalyticsPanel(controller: PlayerController) {
         listOf("Default", "Redact message", "Custom").forEach { strategy -> Button(onClick = { draft = draft.copy(errorStrategy = strategy) }, enabled = draft.errorStrategy != strategy, modifier = Modifier.testTag("analytics-error-strategy-$strategy")) { Text(strategy) } }
         if (draft.errorStrategy == "Custom") {
             Text("Pure JavaScript body using input: {code, message, severity, originalErrorType}. Return a partial {code, message, severity} error object, or null to retain the original error. The public collector callback returns a non-null error. severity is CRITICAL or INFO. Original SDK objects are not exposed. The same callback execution bounds and retirement rules apply.", style = MaterialTheme.typography.bodySmall)
-            OutlinedTextField(draft.errorCallbackBody, { draft = draft.copy(errorCallbackBody = it) }, label = { Text("Analytics error callback body") }, modifier = Modifier.fillMaxWidth().testTag("analytics-error-body"))
+            OutlinedTextField(draft.errorCallbackBody, { draft = draft.copy(errorCallbackBody = it) }, label = { Text("Analytics error callback body") }, textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), modifier = Modifier.fillMaxWidth().testTag("analytics-error-body"))
         }
         AnalyticsMetadataEditor("Default metadata", "analytics-default", analyticsDefaultKeys, draft.defaults) { draft = draft.copy(defaults = it) }
         AnalyticsMetadataEditor("Source / program metadata", "analytics-source", analyticsSourceKeys, draft.source) { draft = draft.copy(source = it) }
@@ -55,7 +56,7 @@ internal fun ApiAnalyticsPanel(controller: PlayerController) {
             draft.playerConfig("validation-only"); controller.applyPlayerSettings(controller.playerSettings, controller.apiOverrides, draft)
         } }, enabled = draft != controller.apiAnalyticsSettings, modifier = Modifier.testTag("analytics-apply")) { Text("Apply Analytics settings and restart player") }
         Button(onClick = { draft = controller.apiAnalyticsSettings }, modifier = Modifier.testTag("analytics-reset")) { Text("Reset Analytics draft") }
-        SelectionContainer { Text(controller.apiAnalyticsSettings.code(), style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("analytics-code")) }
+        SelectionContainer { Text(controller.apiAnalyticsSettings.code(), style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, modifier = Modifier.testTag("analytics-code")) }
         AnalyticsMetadataEditor("Runtime custom data", "analytics-custom", analyticsCustomKeys, custom) { custom = it }
         Button(onClick = { run { requireNotNull(controller.player.analytics).sendCustomDataEvent(analyticsCustomData(custom)) } }, modifier = Modifier.testTag("analytics-custom-event")) { Text("Send custom data event") }
         Button(onClick = { run { requireNotNull(controller.player.source?.analytics).customData = analyticsCustomData(custom) } }, modifier = Modifier.testTag("analytics-source-custom")) { Text("Set current source custom data") }

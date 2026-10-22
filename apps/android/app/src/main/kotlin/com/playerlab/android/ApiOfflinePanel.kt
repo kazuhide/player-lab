@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.bitmovin.player.api.offline.DeviceStateRequirement
@@ -66,7 +67,7 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
             Text("Automatically handle offline DRM licenses")
         }
         Button(onClick = { run { offline.applyConfig(draft.build()); appliedCode = draft.code() } }, modifier = Modifier.testTag("offline-config-apply")) { Text("Apply offline configuration") }
-        if (appliedCode.isNotEmpty()) SelectionContainer { Text(appliedCode, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("offline-config-code")) }
+        if (appliedCode.isNotEmpty()) SelectionContainer { Text(appliedCode, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, modifier = Modifier.testTag("offline-config-code")) }
         Button(onClick = { run {
             val config = OfflineContentManager.offlineConfig
             mapOf("maxSimultaneousDownloads" to config.maxSimultaneousDownloads, "maxSimultaneousSegmentDownloads" to config.maxSimultaneousSegmentDownloads,
@@ -83,7 +84,7 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
             OutlinedTextField(sourceDraft.cacheFolder, { sourceDraft = sourceDraft.copy(cacheFolder = it) }, label = { Text("Cache directory name") }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("offline-factory-cache"))
             OutlinedTextField(sourceDraft.trackStateFile, { sourceDraft = sourceDraft.copy(trackStateFile = it) }, label = { Text("Track-state file name") }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("offline-factory-tracks"))
             Button(onClick = { run { val config = sourceDraft.build(controller.hostContext, controller.sourceSettings.toSourceConfig()); controller.loadOfflineSource(config); sourceFactoryCode = sourceDraft.code(); mapOf("constructed" to true, "isRestrictToOffline" to config.isRestrictToOffline, "drmIdBytes" to config.drmId?.size) } }, modifier = Modifier.testTag("offline-factory-apply")) { Text("Construct and load offline source") }
-            if (sourceFactoryCode.isNotEmpty()) SelectionContainer { Text(sourceFactoryCode, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("offline-factory-code")) }
+            if (sourceFactoryCode.isNotEmpty()) SelectionContainer { Text(sourceFactoryCode, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, modifier = Modifier.testTag("offline-factory-code")) }
         }
 
         Text("Content options", style = MaterialTheme.typography.titleSmall)

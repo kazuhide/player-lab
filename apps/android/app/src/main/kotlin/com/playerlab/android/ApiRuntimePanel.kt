@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -51,7 +52,8 @@ internal fun ApiRuntimePanel(controller: PlayerController) {
                 if (command.id.contains("VrRenderer") || command.id.endsWith("VrApi.setVrRenderer()")) Text("The host renderer replaces PlayerView with a real decoder-backed OpenGL surface. Disabling it restores PlayerView. Update scripts receive {delta, viewingDirection}; return {text?, move?: {phi,x,y}} or null. delta is seconds. everyFrames limits script execution frequency; the SDK frame clock still updates at the display rate. User callbacks are removed with their renderer. Check app:vr-renderer state for decoded frames and callback results.", style = MaterialTheme.typography.bodySmall)
                 command.arguments.forEach { argument ->
                     OutlinedTextField(arguments[argument.name].orEmpty(), { value -> arguments = arguments + (argument.name to value) },
-                        label = { Text(argument.name) }, modifier = Modifier.fillMaxWidth().testTag("api-argument-${argument.name}"), singleLine = !argument.multiline)
+                        label = { Text(argument.name) },
+                        textStyle = if (argument.multiline) MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodyLarge, modifier = Modifier.fillMaxWidth().testTag("api-argument-${argument.name}"), singleLine = !argument.multiline)
                     argument.choices.forEach { choice ->
                         Button(onClick = { arguments = arguments + (argument.name to choice) }) { Text(choice) }
                     }
@@ -64,12 +66,12 @@ internal fun ApiRuntimePanel(controller: PlayerController) {
                     }
                         .getOrElse { "API failed (${it.javaClass.simpleName}). Check argument types, source state and SDK events." }
                 }, modifier = Modifier.testTag("api-command-run")) { Text("Run SDK API") }
-                SelectionContainer { Text(result, modifier = Modifier.testTag("api-command-result")) }
+                SelectionContainer { Text(result, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-command-result")) }
                 if (command.id.contains("CustomMessage") || command.id == "app:custom-message-send") {
                     Text("The host endpoint is playerLabMessage(data: String). A custom Web UI must call this endpoint and register its own incoming message handler. Received values stay in this session; only the latest messages are shown.", style = MaterialTheme.typography.bodySmall)
                     controller.apiHostMessages.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
                 }
-                if (controller.apiAsyncResult.isNotEmpty()) Text(controller.apiAsyncResult, modifier = Modifier.testTag("api-async-result"))
+                if (controller.apiAsyncResult.isNotEmpty()) Text(controller.apiAsyncResult, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-async-result"))
             }
             "State" -> {
                 Text("Refresh reads SDK values once. Keys and opaque SDK request/configuration objects are not exported. Lists show the first entries and text is bounded for display. Ad fields use the active client-side ad or selected SSAI test object. Vector3 fields inspect the input passed to the most recent moveViewingDirection command. activeAdBreak and activeLinearAd always read actual SDK state.", style = MaterialTheme.typography.bodySmall)

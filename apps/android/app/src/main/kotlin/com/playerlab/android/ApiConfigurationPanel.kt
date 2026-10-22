@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -57,6 +58,7 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
         }
         if (field.kind == ApiValueKind.Records && input != "null") ApiRecordEditor(requireNotNull(field.records), input, { input = it })
         else OutlinedTextField(input, { input = it }, label = { Text("SDK field value") },
+            textStyle = if (field.kind == ApiValueKind.Script) MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodyLarge,
             visualTransformation = if (field.secret || field.drmParameter && field.kind in listOf(ApiValueKind.Text, ApiValueKind.StringMap)) PasswordVisualTransformation() else VisualTransformation.None,
             modifier = Modifier.fillMaxWidth().testTag("api-setting-value"))
         Button(onClick = {
@@ -81,10 +83,10 @@ internal fun ApiConfigurationPanel(controller: PlayerController) {
         Button(onClick = { values = controller.apiOverrides.values; input = values[selected].orEmpty(); error = "" },
             modifier = Modifier.testTag("api-settings-reset")) { Text("Reset SDK draft") }
         Text("Applied SDK override code", style = MaterialTheme.typography.titleSmall)
-        if (controller.configurationStatus.isNotEmpty()) Text(controller.configurationStatus)
+        if (controller.configurationStatus.isNotEmpty()) Text(controller.configurationStatus, style = MaterialTheme.typography.bodySmall)
         Text("Apply these assignments to fresh configuration objects before creating Player, Source and PlayerView. Use mutable playerConfig and playerViewConfig variables for copy assignments. No license values are included.", style = MaterialTheme.typography.bodySmall)
         SelectionContainer { Text(controller.apiOverrides.code().ifEmpty { "// No additional SDK overrides." },
-            style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-settings-code")) }
+            style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, modifier = Modifier.testTag("api-settings-code")) }
         Button(onClick = { callbackCounts = controller.apiCallbacks.snapshot() + controller.apiSourceCallbacks.snapshot(); callbackReasons = controller.apiCallbacks.fallbackReasons() + controller.apiSourceCallbacks.fallbackReasons() }, modifier = Modifier.testTag("api-callback-refresh")) { Text("Refresh callback outcomes") }
         callbackCounts.forEach { (id, count) -> Text("${id.removePrefix("android:com.bitmovin.player.api.")}: calls=${count.first}; fallback=${count.second}; last fallback reason=${callbackReasons[id] ?: "none"}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-callback-$id")) }
     }
