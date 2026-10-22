@@ -88,6 +88,17 @@ body {
   color: var(--muted);
 }
 
+.product-build {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.product-build a {
+  color: inherit;
+  text-underline-offset: 0.15em;
+}
+
 .distribution-notices {
   display: flex;
   flex-wrap: wrap;

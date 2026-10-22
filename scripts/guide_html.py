@@ -194,7 +194,7 @@ def legacy_html(language, slug):
 <link rel="stylesheet" href="{esc(relative(page, 'styles.css'))}">
 <link rel="stylesheet" href="{esc(relative(page, 'guide.css'))}">
 </head>
-<body><main class="guide-main"><h1>{title}</h1><p><a href="{esc(destination)}">{message}</a></p></main></body>
+<body><main class="guide-main"><h1>{title}</h1><p><a href="{esc(destination)}">{message}</a></p><!-- PLAYER_LAB_BUILD --></main></body>
 </html>
 '''
 
@@ -246,6 +246,7 @@ def page_html(content, language, slug, title, lead, body, pagination=''):
 {body}{pagination}
 </main></div>
 <footer class="site-footer wrap"><p>{labels['review']} <a href="https://github.com/kazuhide/player-lab">GitHub</a></p>
+<!-- PLAYER_LAB_BUILD -->
 <p>{labels['license']} <a href="{esc(relative(page, 'web/notices/BITMOVIN-PLAYER-NOTICE.txt'))}">SDK notice</a>.</p>
 <p>{labels['credit']} <a href="https://peach.blender.org/about/">Blender Foundation</a> · <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p></footer>
 </body></html>'''

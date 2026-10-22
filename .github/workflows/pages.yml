@@ -1,118 +1,100 @@
-name: Publish project overview
+name: Publish release to Pages
+run-name: Pages release ${{ inputs.release_id }} from ${{ inputs.producer_run_id || 'manual' }}
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      release_id:
+        description: Numeric ID of an immutable published release
+        required: true
+        type: string
+      producer_run_id:
+        description: Automatic producer run ID; leave empty for a manual request
+        required: false
+        default: ''
+        type: string
+      allow_older_release:
+        description: Explicitly restore an older formal release
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
 
 jobs:
   package:
-    if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'main' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
+      attestations: read
     outputs:
-      publish: ${{ steps.current.outputs.publish }}
-      sha: ${{ steps.current.outputs.sha }}
+      state_artifact: verified-release-${{ github.run_id }}-${{ github.run_attempt }}
+      pages_artifact: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - name: Check the successful CI commit is still current
-        id: current
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          script: |
-            const run = context.payload.workflow_run;
-            if (run.path !== '.github/workflows/ci.yml' ||
-                !['push', 'workflow_dispatch'].includes(run.event) ||
-                !/^[0-9a-f]{40}$/.test(run.head_sha)) {
-              throw new Error('Pages requires a completed main CI run from this repository.');
-            }
-            const { data: branch } = await github.rest.repos.getBranch({
-              ...context.repo, branch: 'main'
-            });
-            core.setOutput('sha', run.head_sha);
-            core.setOutput('publish', branch.commit.sha === run.head_sha ? 'true' : 'false');
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        if: steps.current.outputs.publish == 'true'
-        with:
-          ref: ${{ steps.current.outputs.sha }}
+          fetch-depth: 0
           persist-credentials: false
-      - name: Download the files tested by the successful main CI run
-        if: steps.current.outputs.publish == 'true'
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: pages-release
-          path: ${{ runner.temp }}/pages-release
-          github-token: ${{ github.token }}
-          run-id: ${{ github.event.workflow_run.id }}
-      - name: Check the tested release and its public file manifest
-        if: steps.current.outputs.publish == 'true'
+      - name: Verify the immutable release, signed CI archive and retained file manifest
+        id: release
         env:
-          EXPECTED_SHA: ${{ steps.current.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ inputs.release_id }}
+          PRODUCER_RUN_ID: ${{ inputs.producer_run_id }}
+          ALLOW_OLDER_RELEASE: ${{ inputs.allow_older_release && 'true' || 'false' }}
         run: |
-          python3 - <<'PY'
-          import json
-          import os
-          import stat
-          from pathlib import Path
-          root = Path(os.environ['RUNNER_TEMP']) / 'pages-release'
-          if {path.name for path in root.iterdir()} != {'site', 'manifest.json', 'release.json'}:
-              raise SystemExit('The tested release contains unexpected entries.')
-          for name in ['release.json', 'manifest.json']:
-              metadata = (root / name).lstat()
-              if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
-                  raise SystemExit('Release metadata must be regular files without links.')
-          release = json.loads((root / 'release.json').read_text(encoding='utf-8'))
-          expected = {'sha': os.environ['EXPECTED_SHA'], 'base': '/player-lab/web/',
-                      'publicPlayerKeyConfigured': True, 'publicAnalyticsKeyConfigured': True}
-          if release != expected:
-              raise SystemExit('Pages requires the tested main commit and explicitly configured public Player and Analytics keys.')
-          PY
-          python3 scripts/package-pages.py --verify-dir "$RUNNER_TEMP/pages-release/site" \
-            --manifest "$RUNNER_TEMP/pages-release/manifest.json"
-      - name: Upload the tested project overview and Web app
-        if: steps.current.outputs.publish == 'true'
+          python3 scripts/release_pipeline.py prepare-pages \
+            --release-id "$RELEASE_ID" --producer-run-id "$PRODUCER_RUN_ID" \
+            --allow-older-release "$ALLOW_OLDER_RELEASE" --work-dir "$RUNNER_TEMP/release-pages"
+      - name: Retain the verified identity for the deployment gate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verified-release-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.release.outputs.state }}
+          if-no-files-found: error
+          retention-days: 1
+      - name: Upload the retained and verified public files without rebuilding
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
-          path: ${{ runner.temp }}/pages-release/site
+          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.release.outputs.site }}
           retention-days: 1
 
   deploy:
     needs: package
-    if: needs.package.outputs.publish == 'true'
     runs-on: ubuntu-latest
     concurrency:
       group: github-pages-deployment
       cancel-in-progress: false
-      # Preserve newer pending deployments when an older artifact finishes uploading later.
       queue: max
     permissions:
       contents: read
+      actions: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Recheck main after waiting for an earlier deployment
-        id: current
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        env:
-          EXPECTED_SHA: ${{ needs.package.outputs.sha }}
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          script: |
-            const { data: branch } = await github.rest.repos.getBranch({
-              ...context.repo, branch: 'main'
-            });
-            core.setOutput('publish', branch.commit.sha === process.env.EXPECTED_SHA ? 'true' : 'false');
-      - name: Deploy the checked artifact to GitHub Pages
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ needs.package.outputs.state_artifact }}
+          path: ${{ runner.temp }}/release-state
+      - name: Recheck immutable assets and request ordering immediately before deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/release_pipeline.py recheck-pages \
+            --state-file "$RUNNER_TEMP/release-state/verified-release.json"
+      - name: Deploy the checked formal release to GitHub Pages
         id: deployment
-        if: steps.current.outputs.publish == 'true'
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        with:
+          artifact_name: ${{ needs.package.outputs.pages_artifact }}

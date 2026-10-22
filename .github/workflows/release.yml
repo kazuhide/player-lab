@@ -1,0 +1,50 @@
+name: Create release
+run-name: Release v${{ inputs.version }} at ${{ inputs.sha }} from CI ${{ inputs.ci_run_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Product version without v, matching the selected source
+        required: true
+        type: string
+      sha:
+        description: Exact main-history source commit to release
+        required: true
+        type: string
+      ci_run_id:
+        description: Successful canonical main CI run for that commit
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-publication
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+      attestations: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify signed CI bytes and publish or resume the immutable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_SHA: ${{ inputs.sha }}
+          CI_RUN_ID: ${{ inputs.ci_run_id }}
+        run: |
+          python3 scripts/release_pipeline.py publish \
+            --version "$RELEASE_VERSION" --sha "$RELEASE_SHA" --ci-run-id "$CI_RUN_ID" \
+            --work-dir "$RUNNER_TEMP/release-promotion"

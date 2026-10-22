@@ -1,9 +1,25 @@
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import { resolveClientLicenseKey } from "./src/env/clientLicense";
 import { createPagesBuildConfig } from "./src/env/pagesBuild";
 import type { AnalyticsProxyConfig } from "./src/server/analyticsProxy";
 import { createAnalyticsMiddleware } from "./src/server/analyticsMiddleware";
+
+function productBuildPlugin(): Plugin {
+  const script = fileURLToPath(new URL("../../scripts/product_version.py", import.meta.url));
+  const metadata = JSON.parse(execFileSync("python3", [script, "metadata", "--allow-unknown-sha"], { encoding: "utf8" }));
+  return {
+    name: "player-lab-product-build",
+    transformIndexHtml(html) {
+      const marker = "<!-- PLAYER_LAB_BUILD -->";
+      if (html.split(marker).length !== 2 || typeof metadata.labelHtml !== "string") {
+        throw new Error("Each Web page requires one product build label.");
+      }
+      return html.replace(marker, metadata.labelHtml);
+    },
+  };
+}
 
 // Dev-server middleware that mounts the Bitmovin Analytics proxy at POST /api/analytics/query.
 // It holds the SECRET api key server-side (read via loadEnv from a non-VITE_ var, so it is NEVER
@@ -27,6 +43,7 @@ export default defineConfig(({ mode }) => {
     const pages = createPagesBuildConfig(process.env);
     return {
       ...pages,
+      plugins: [productBuildPlugin()],
       build: {
         ...pages.build,
         target: "es2021",
@@ -71,7 +88,7 @@ export default defineConfig(({ mode }) => {
     orgId: env.BITMOVIN_TENANT_ORG_ID || env.BITMOVIN_ANALYTICS_ORG_ID || "",
   };
   return {
-    plugins: [analyticsProxyPlugin(analyticsCfg)],
+    plugins: [productBuildPlugin(), analyticsProxyPlugin(analyticsCfg)],
     // The Bitmovin player is a large single dependency; raise the warning limit
     // rather than code-split a demo.
     build: {
