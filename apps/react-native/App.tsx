@@ -30,6 +30,7 @@ import type { DvrState } from "./src/dvr/state";
 import { SnapshotController } from "./src/dvr/snapshotController";
 import { SOURCES, type ShowcaseSource } from "./src/sources";
 import { ConfigurationPanel } from "./src/ConfigurationPanel";
+import { panelStyles } from "./src/panelStyles";
 import { configurationCode } from "./src/configurationCode";
 import { initialDraft, parseConfiguration, presetDraft, sameConfiguration, supportsSource, type Configuration } from "./src/configuration";
 import type { RuntimeAppState, RuntimeMonitor, RuntimeOwner } from "./src/runtimeObservation";
@@ -400,6 +401,6 @@ const styles = StyleSheet.create({
   fullscreen: { flex: 1, width: "100%", backgroundColor: "#000" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
   label: { marginRight: 6 },
-  mono: { fontFamily: "monospace", fontSize: 12 },
+  mono: panelStyles.mono,
   logBox: { height: 160 },
 });

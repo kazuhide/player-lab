@@ -478,12 +478,12 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 77,
+      "line": 78,
       "label": "実画面と UI 切り替え"
     },
     {
       "path": "apps/react-native/src/ConfigurationPanel.tsx",
-      "line": 22,
+      "line": 23,
       "label": "React Native の編集項目・単位・Apply／Reset"
     },
     {

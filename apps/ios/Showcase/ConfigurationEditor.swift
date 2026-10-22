@@ -139,6 +139,7 @@ struct ConfigurationEditor: View {
                                 }
                             }
                             .padding(.horizontal, 24)
+                            .padding(.vertical, 8)
                         }
                         .frame(height: 260)
                         .accessibilityIdentifier("configuration.code.scroll")
@@ -146,6 +147,7 @@ struct ConfigurationEditor: View {
                         ScrollView([.horizontal, .vertical]) {
                             Text(appliedCode).font(.system(.caption, design: .monospaced))
                                 .fixedSize(horizontal: true, vertical: false)
+                                .padding(.vertical, 8)
                                 .textSelection(.enabled)
                                 .accessibilityIdentifier("configuration.code.text")
                         }

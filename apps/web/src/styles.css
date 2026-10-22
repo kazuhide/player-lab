@@ -63,6 +63,7 @@ body {
   border: none;
   background: var(--card);
   color: var(--ink);
+  font-family: inherit;
   font-size: 0.8rem;
   cursor: pointer;
 }
@@ -294,24 +295,39 @@ body {
    into the Bitmovin player's <button> elements (the full-player play overlay then
    gets a gray box + border that masks the whole video on hover). */
 #ui-theme-bar button,
-#control-panel button {
+#control-panel button,
+.config-code button,
+.api-explorer button {
   padding: 0.3rem 0.6rem;
   border: 1px solid #c4c9d4;
   border-radius: 6px;
   background: #f5f6f8;
   color: var(--ink);
+  font-family: inherit;
+  font-size: 0.82rem;
   cursor: pointer;
 }
 
 #ui-theme-bar button:hover,
-#control-panel button:hover {
+#control-panel button:hover,
+.config-code button:hover,
+.api-explorer button:hover {
   background: #e9ebef;
 }
 
 #control-panel button:disabled,
-#control-panel input:disabled {
+#control-panel input:disabled,
+.config-code button:disabled,
+.api-explorer button:disabled,
+.api-explorer input:disabled,
+.api-explorer select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+#control-panel input,
+#control-panel select {
+  font-family: inherit;
 }
 
 .seek-input {
@@ -522,13 +538,17 @@ body {
   align-items: start;
 }
 
-.config-group {
+.config-group,
+.config-code,
+.api-explorer {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--card);
 }
 
-.config-group > summary {
+.config-group > summary,
+.config-code > summary,
+.api-explorer > summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -538,13 +558,18 @@ body {
   list-style: none;
   font-weight: 600;
   font-size: 0.92rem;
+  line-height: 1.5;
 }
 
-.config-group > summary::-webkit-details-marker {
+.config-group > summary::-webkit-details-marker,
+.config-code > summary::-webkit-details-marker,
+.api-explorer > summary::-webkit-details-marker {
   display: none;
 }
 
-.config-group > summary::before {
+.config-group > summary::before,
+.config-code > summary::before,
+.api-explorer > summary::before {
   content: "▸";
   margin-right: 0.1rem;
   color: var(--muted);
@@ -552,7 +577,9 @@ body {
   transition: transform 0.12s ease;
 }
 
-.config-group[open] > summary::before {
+.config-group[open] > summary::before,
+.config-code[open] > summary::before,
+.api-explorer[open] > summary::before {
   transform: rotate(90deg);
 }
 
@@ -629,11 +656,16 @@ body {
 }
 
 #config-panel input,
-#config-panel select {
+#config-panel select,
+.api-explorer input:not([type="checkbox"]),
+.api-explorer select,
+.api-explorer textarea {
   padding: 0.15rem 0.3rem;
   border: 1px solid #c4c9d4;
   border-radius: 5px;
   background: #fff;
+  color: var(--ink);
+  font-family: inherit;
   font-size: 0.8rem;
 }
 
@@ -666,6 +698,7 @@ body {
   border-radius: 7px;
   background: #f5f6f8;
   color: var(--ink);
+  font-family: inherit;
   font-size: 0.84rem;
   cursor: pointer;
 }
@@ -1027,6 +1060,7 @@ body {
   border-radius: 6px;
   background: #f5f6f8;
   color: var(--ink);
+  font-family: inherit;
   font-size: 0.82rem;
   cursor: pointer;
 }
@@ -1057,28 +1091,204 @@ body {
   white-space: pre-wrap;
   overflow: auto;
 }
-.config-code { margin-top: 1rem; min-width: 0; }
-.config-code summary { cursor: pointer; }
-.config-code button { margin: 0 .5rem .5rem 0; }
-.config-code textarea { display: block; box-sizing: border-box; width: 100%; max-width: 100%; resize: vertical; overflow: auto; font: 12px/1.5 ui-monospace, monospace; }
-/* Detailed SDK inputs share the original page without widening the document. */
-.api-explorer { margin: 1.25rem 0; border: 1px solid var(--border, #d7deea); border-radius: .5rem; padding: .9rem; min-width: 0; }
-.api-explorer > summary { cursor: pointer; font-weight: 650; }
-.api-explorer-content { margin-top: 1rem; min-width: 0; }
-.api-explorer-controls { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .8rem; }
-.api-explorer-layout { display: grid; grid-template-columns: minmax(15rem, 22rem) minmax(0, 1fr); gap: 1rem; }
-.api-explorer-list { display: flex; flex-direction: column; gap: .6rem; min-width: 0; }
-.api-explorer select, .api-explorer input:not([type="checkbox"]), .api-explorer textarea { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; padding: .5rem; font: inherit; }
-.api-explorer select[size] { min-height: 16rem; font-family: ui-monospace, monospace; font-size: .78rem; }
-.api-explorer-form { min-width: 0; }
-.api-explorer-form h3 { font: 600 .86rem ui-monospace, monospace; white-space: nowrap; overflow-x: auto; padding-bottom: .25rem; }
-.api-explorer-form > button { margin: .7rem .4rem .2rem 0; }
-.api-explorer fieldset { min-inline-size: 0; margin: .65rem 0; padding: .7rem; border: 1px solid #d7deea; border-radius: .3rem; }
-.api-explorer legend, .api-explorer label { overflow-wrap: anywhere; }
-.api-explorer legend { max-width: 100%; font-family: ui-monospace, monospace; font-size: .82rem; }
-.api-explorer .api-value > select { margin-bottom: .5rem; }
-.api-explorer textarea, .api-explorer pre { font: .78rem/1.55 ui-monospace, monospace; }
-.api-explorer pre { max-height: 24rem; overflow: auto; white-space: pre; padding: .75rem; border: 1px solid #d7deea; border-radius: .3rem; }
-.api-editor-field { display: block; margin: .6rem 0; }
-.api-editor-field > span { display: block; margin-bottom: .3rem; }
-@media (max-width: 720px) { .api-explorer-layout { grid-template-columns: minmax(0, 1fr); } .api-explorer { padding: .65rem; } }
+/* Applied code and detailed SDK settings use the existing settings card styles. */
+.config-code,
+.api-explorer {
+  margin-top: var(--gap);
+  min-width: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.config-code > summary,
+.api-explorer > summary {
+  justify-content: flex-start;
+}
+
+.config-code > p,
+.api-explorer-content > p {
+  margin: 0 0 0.7rem;
+  color: var(--muted);
+}
+
+.config-code > p {
+  margin-right: 0.8rem;
+  margin-left: 0.8rem;
+}
+
+.config-code button {
+  margin: 0 0.4rem 0.6rem 0;
+}
+
+.config-code button:first-of-type {
+  margin-left: 0.8rem;
+}
+
+.config-code textarea {
+  display: block;
+  box-sizing: border-box;
+  width: calc(100% - 1.6rem);
+  max-width: calc(100% - 1.6rem);
+  margin: 0 0.8rem 0.8rem;
+  resize: vertical;
+  overflow: auto;
+}
+
+.api-explorer-content {
+  min-width: 0;
+  padding: 0 0.8rem 0.8rem;
+}
+
+.api-explorer > p[role="status"] {
+  margin: 0 0.8rem;
+  color: var(--muted);
+}
+
+.api-explorer > p[role="status"]:not(:empty) {
+  padding-bottom: 0.8rem;
+}
+
+.api-explorer-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+.api-explorer-layout {
+  display: grid;
+  grid-template-columns: minmax(15rem, 22rem) minmax(0, 1fr);
+  gap: var(--gap);
+}
+
+.api-explorer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.api-explorer select,
+.api-explorer input:not([type="checkbox"]),
+.api-explorer textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.api-explorer select[size] {
+  min-height: 16rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+}
+
+.api-explorer-form {
+  min-width: 0;
+}
+
+.api-explorer h3 {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.api-explorer-form h3 {
+  margin-top: 0;
+  padding-bottom: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.api-explorer-form > button {
+  margin: 0.7rem 0.4rem 0.2rem 0;
+}
+
+.api-explorer a {
+  color: var(--accent);
+  text-underline-offset: 0.2em;
+}
+
+.api-explorer fieldset {
+  min-inline-size: 0;
+  margin: 0.65rem 0;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+
+.api-explorer legend,
+.api-explorer label {
+  overflow-wrap: anywhere;
+}
+
+.api-explorer legend {
+  max-width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+}
+
+.api-explorer .api-value > select {
+  margin-bottom: 0.5rem;
+}
+
+.api-explorer textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.config-code textarea,
+.api-explorer pre {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--tele-bg);
+  color: var(--tele-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.api-explorer pre {
+  max-height: 24rem;
+  margin: 0;
+  overflow: auto;
+  white-space: pre;
+}
+
+.api-explorer .api-result,
+.api-explorer .api-event-log {
+  padding: 0.5rem 0.6rem;
+  border-left: 3px solid #4a90ff;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.api-explorer .api-event-log {
+  border-left-color: #43c06a;
+}
+
+.api-editor-field {
+  display: block;
+  margin: 0.6rem 0;
+}
+
+.api-editor-field > span {
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+#config-panel :is(summary, button, input, select, textarea):focus-visible,
+.api-explorer :is(summary, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .api-explorer-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

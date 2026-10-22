@@ -356,7 +356,7 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 104,
+      "line": 105,
       "label": "React Nativeのプリセット読み込み・編集後の再作成・下書き復帰"
     },
     {

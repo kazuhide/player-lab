@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-vi.mock("react-native", () => ({ StyleSheet: { create: (value: unknown) => value } }));
+vi.mock("react-native", () => ({ Platform: { OS: "ios" }, StyleSheet: { create: (value: unknown) => value } }));
 import { metadataValue } from "../src/metadataInput";
 
 describe("native metadata values", () => {
