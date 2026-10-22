@@ -1,20 +1,47 @@
 """Explicit public routes and assets for the bilingual user guide."""
 
 CHAPTERS = {
-    'start': 'start', 'local-setup': 'start',
+    'start': 'start', 'local-setup': 'start', 'native-overview': 'start',
     'web-screen-themes': 'web', 'web-sources-tracks': 'web',
-    'web-ui-settings': 'web', 'web-live-dvr': 'web',
+    'web-ui-settings': 'web', 'web-implementation': 'web',
     'web-player-config': 'web', 'web-ui-customization': 'web',
-    'native-overview': 'native', 'native-apple': 'native',
-    'native-android': 'native', 'native-integrations': 'native',
-    'implementation': 'implementation',
+    'apple-implementation': 'apple', 'native-apple': 'apple',
+    'android-implementation': 'android', 'native-android': 'android',
+    'react-native-implementation': 'react-native', 'native-react-native': 'react-native',
+    'vega-implementation': 'vega', 'native-vega': 'vega',
+    'web-live-dvr': 'reference',
     'troubleshooting': 'reference', 'audio-timing': 'reference',
     'test-results': 'reference', 'glossary': 'reference',
     'web-qoe-analytics': 'analytics', 'analytics-metrics': 'analytics',
     'analytics-visualization': 'analytics', 'analytics-queries': 'analytics',
     'analytics-ai': 'analytics',
+    # Retain published bookmarks without keeping combined platform chapters in the contents.
+    'implementation': None, 'native-integrations': None,
 }
-CATEGORIES = ('start', 'web', 'native', 'implementation', 'reference', 'analytics')
+CATEGORIES = ('start', 'web', 'apple', 'android', 'react-native', 'vega', 'reference', 'analytics')
+IMPLEMENTATION_GUIDES = (
+    'web-implementation', 'apple-implementation', 'android-implementation',
+    'react-native-implementation', 'vega-implementation',
+)
+OPERATION_GUIDES = ('native-apple', 'native-android', 'native-react-native', 'native-vega')
+IMPLEMENTATION_TOPICS = (
+    ('player-source-config', 'configuration_guide'), ('ui-customization', 'ui_customization_guide'),
+    ('useful-features', 'useful_features'), ('faq', 'faq'), ('analytics-observability', 'analytics'),
+)
+NAVIGATION_CHILDREN = {
+    'web-implementation': (
+        ('web-player-config', '', 'configuration_guide'),
+        ('web-ui-customization', '', 'ui_customization_guide'),
+        ('web-implementation', 'useful-features', 'useful_features'),
+        ('web-implementation', 'faq', 'faq'),
+        ('web-implementation', 'analytics-observability', 'analytics'),
+    ),
+    **{guide: tuple((guide, identifier, label) for identifier, label in IMPLEMENTATION_TOPICS)
+       for guide in IMPLEMENTATION_GUIDES if guide != 'web-implementation'},
+}
+CHILD_CHAPTERS = frozenset(('web-player-config', 'web-ui-customization'))
+CHAPTER_ORDER = tuple(key for key, category in CHAPTERS.items() if category is not None)
+
 LEGACY_ROUTES = {
     'measurement': 'test-results',
     'media': 'web-sources-tracks',
@@ -32,6 +59,7 @@ THEMES = (
 )
 LANGUAGES = ('en', 'ja')
 SHARED_FIGURES = {
+    'custom-premiere': (983, 554),
     'vega-api-operation': (1920, 1080),
     'vega-api-volume': (1920, 1080),
     'vega-api-callback': (1920, 1080),
@@ -119,7 +147,7 @@ DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
 SOURCE_REVISION = '64107f43007b460af79c1948e3b254400c8001a0'
-CONTENT_REVIEW = '2026-10-22'
+CONTENT_REVIEW = '2026-10-23'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 
 

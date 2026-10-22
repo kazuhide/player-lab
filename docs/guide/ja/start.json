@@ -1,7 +1,7 @@
 {
   "id": "start",
   "title": "このガイドの対象と使い始め方",
-  "lead": "Web版と各OS向けアプリで再生機能、Playerの設定、UIの変更を試し、適用したコードを確認するためのガイドです。",
+  "lead": "Player LabでBitmovin Playerの機能を試し、利用するプラットフォームの実装方法を確認するためのガイドです。",
   "blocks": [
     {
       "type": "p",
@@ -86,6 +86,40 @@
     {
       "type": "p",
       "text": "Web版とネイティブ版のプレイヤーの説明に続き、最後にAnalyticsとObservabilityを説明します。Analyticsのコレクターはプレイヤーから再生イベントを送信し、収集したデータは通常Bitmovin Dashboardで確認します。アプリ内のQoE表示は現在のセッションの値です。末尾の各章ではこの違いと、収集した指標の確認・分析方法を説明します。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "目次でWeb、Apple、Android、React Native、Vega OSのいずれかを選びます。Web版では画面、ソース、UIの操作説明から読み始められます。他の版にも、それぞれ「画面と操作」があります。",
+        "同じプラットフォームの「実装ガイド」を開きます。再生やソースの設定はPlayerConfig / SourceConfig、操作部品の表示や構成はUI変更ガイドを参照してください。",
+        "アプリで設定を適用し、適用済みコード、イベント、実際の表示や再生を確認します。入力した下書きと適用された設定は別です。ソースの再読み込みとPlayerの再生成が必要になる場面を、実装ガイドで説明しています。",
+        "プラットフォームやコンテンツによる違いは「有用な情報」「FAQ」を参照します。再生を確認した後、Analyticsの節から収集設定とBitmovin Dashboardでのセッション確認へ進んでください。"
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/",
+          "label": "Web版の実装ガイド"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/apple-implementation/",
+          "label": "iOS・iPadOS・tvOSの実装ガイド"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/android-implementation/",
+          "label": "Android・Android TV・Fire TVの実装ガイド"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/react-native-implementation/",
+          "label": "React Nativeの実装ガイド"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/vega-implementation/",
+          "label": "Vega OSの実装ガイド"
+        }
+      ]
     }
   ],
   "sources": [

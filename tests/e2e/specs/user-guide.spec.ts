@@ -7,7 +7,10 @@ type Language = "en" | "ja";
 interface Setting { scope: string; path: string }
 interface SettingGroup { id: string; title: string; fields: Setting[] }
 interface Control { id: string; group: string; label: string; description: string }
-interface GuideDocument { id: string; title: string; groups?: SettingGroup[]; controls?: Control[]; blocks?: { type: string }[] }
+interface GuideDocument {
+  id: string; title: string; groups?: SettingGroup[]; controls?: Control[];
+  blocks?: { type: string; items?: string[]; source?: { path: string } }[];
+}
 interface SearchEntry { kind: string; title: string; url: string }
 interface CoverageRow {
   id: string; category: string; scope: string; status: string; deprecated: boolean; officialReference: string;
@@ -38,6 +41,8 @@ declare global {
 }
 
 const languages: Language[] = ["en", "ja"];
+const implementationGuides = ["web-implementation", "apple-implementation", "android-implementation",
+  "react-native-implementation", "vega-implementation"];
 const contentRoot = resolve(__dirname, "../../../docs/guide");
 const coverage = JSON.parse(readFileSync(resolve(contentRoot, "../api-coverage/coverage.json"), "utf8")) as CoverageReport;
 const gapReport = JSON.parse(readFileSync(resolve(contentRoot, "../api-coverage/gaps.json"), "utf8")) as GapReport;
@@ -128,38 +133,65 @@ test.afterEach(({ page }) => {
 
 for (const language of languages) {
   test.describe(`user guide (${language})`, () => {
-    test("implementation guide links the current code and ends with Analytics", async ({ page }) => {
+    test("Web contents keep the operation chapters and nest configuration and UI guides", async ({ page }) => {
       await page.goto(guidePath(language));
-      await page.locator('.guide-topic-group a[href="implementation/"]').click();
-      await expect(page.locator("main > h1")).toHaveText(content[language].implementation!.title);
-      expect(await page.locator("main > h2:not(#sources)").evaluateAll((headings) =>
-        headings.map((heading) => heading.id))).toEqual([
-        "web-player", "web-settings", "web-ui-events", "apple-player", "android-player",
-        "react-native-player", "vega-player", "analytics-observability",
+      const web = page.locator("main .guide-topic-group").filter({
+        has: page.getByRole("heading", { name: language === "ja" ? "Web版" : "Web", exact: true }),
+      });
+      expect(await web.locator(":scope > ol > li > a").evaluateAll((links) => links.map((a) =>
+        a.getAttribute("href")))).toEqual([
+        "web-screen-themes/", "web-sources-tracks/", "web-ui-settings/", "web-implementation/",
       ]);
-      const excerpts = page.locator(".guide-code");
-      expect(await excerpts.count()).toBe(content[language].implementation!.blocks!
-        .filter((block) => block.type === "code").length);
-      for (const excerpt of await excerpts.all()) {
-        await expect(excerpt.locator("figcaption a")).toHaveAttribute("href",
-          /^https:\/\/github\.com\/kazuhide\/player-lab\/blob\/[a-f0-9]{40}\/.+#L[1-9][0-9]*$/);
-        await expect(excerpt.locator("pre")).toHaveAttribute("tabindex", "0");
+      for (const guide of ["web-player-config", "web-ui-customization"]) {
+        await web.locator(`a[href="${guide}/"]`).click();
+        await expect(page.locator("main > h1")).toHaveText(content[language][guide]!.title);
+        await expect(page.locator(".guide-onpage")).toBeVisible();
+        await page.goto(guidePath(language));
       }
-      await page.waitForLoadState("load");
-      await page.evaluate(() => document.fonts.ready);
-      for (const width of [320, 768, 1024, 1440]) {
-        await page.setViewportSize({ width, height: 900 });
-        await expectNoDocumentOverflow(page);
-      }
-      const images = page.locator(".guide-figure img");
-      for (const image of await images.all()) {
-        await image.scrollIntoViewIfNeeded();
-        await expect.poll(() => image.evaluate((element) =>
-          element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0)).toBe(true);
-      }
-      await excerpts.first().locator("figcaption a").focus();
-      await expect(excerpts.first().locator("figcaption a")).toBeFocused();
     });
+
+    for (const guide of implementationGuides) {
+      test(`${guide} explains configuration and UI before Analytics`, async ({ page }) => {
+        await page.goto(guidePath(language));
+        await page.locator(`.guide-topic-group a[href="${guide}/"]`).click();
+        await expect(page.locator("main > h1")).toHaveText(content[language][guide]!.title);
+        expect(await page.locator("main > h2:not(#sources)").evaluateAll((headings) =>
+          headings.map((heading) => heading.id))).toEqual([
+          "integration", "player-source-config", "ui-customization", "useful-features", "faq",
+          "analytics-observability",
+        ]);
+        const excerpts = page.locator(".guide-code");
+        expect(await excerpts.count()).toBe(content[language][guide]!.blocks!
+          .filter((block) => block.type === "code").length);
+        const sourceLinks = excerpts.locator("figcaption a");
+        await expect(sourceLinks).toHaveCount(content[language][guide]!.blocks!
+          .filter((block) => block.type === "code" && block.source).length);
+        for (const source of await sourceLinks.all()) {
+          await expect(source).toHaveAttribute("href",
+            /^https:\/\/github\.com\/kazuhide\/player-lab\/blob\/[a-f0-9]{40}\/.+#L[1-9][0-9]*$/);
+        }
+        for (const excerpt of await excerpts.all()) await expect(excerpt.locator("pre")).toHaveAttribute("tabindex", "0");
+        await page.waitForLoadState("load");
+        await page.evaluate(() => document.fonts.ready);
+        for (const width of [320, 768, 1024, 1440]) {
+          await page.setViewportSize({ width, height: 900 });
+          await expectNoDocumentOverflow(page);
+        }
+        const images = page.locator(".guide-figure img");
+        for (const image of await images.all()) {
+          await image.scrollIntoViewIfNeeded();
+          await expect.poll(() => image.evaluate((element) =>
+            element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0)).toBe(true);
+        }
+        await sourceLinks.first().focus();
+        await expect(sourceLinks.first()).toBeFocused();
+        const faq = page.locator('.guide-onpage a[href="#faq"]');
+        await faq.focus();
+        await page.keyboard.press("Enter");
+        await expect(page).toHaveURL(/#faq$/);
+        await expect(page.locator("h2#faq")).toBeInViewport();
+      });
+    }
 
     test("API gap reasons open with the keyboard and remain readable on narrow screens", async ({ page }) => {
       await page.goto(guidePath(language, "api-coverage/web-ui"));
@@ -618,7 +650,7 @@ for (const language of languages) {
     for (const width of [320, 375, 768, 1024, 1440]) {
       test(`long text, code, tables and images fit a ${width}px document`, async ({ page }, testInfo) => {
         await page.setViewportSize({ width, height: 900 });
-        for (const slug of ["start", "native-apple", "native-android", "native-integrations", "analytics-metrics", "analytics-queries", "analytics-visualization", "analytics-ai", "test-results", "settings/tweaks", "controls", "themes",
+        for (const slug of ["start", "web-player-config", "web-ui-customization", "native-apple", "native-android", "native-react-native", "native-vega", "analytics-metrics", "analytics-queries", "analytics-visualization", "analytics-ai", "test-results", "settings/tweaks", "controls", "themes",
           "api-coverage", "api-coverage/web-ui"]) {
           await test.step(slug, async () => {
             await page.goto(guidePath(language, slug));
@@ -655,7 +687,7 @@ for (const language of languages) {
 
 test("localized guide figures and representative theme images decode", async ({ page }) => {
   for (const language of languages) {
-    for (const slug of ["start", "web-sources-tracks", "web-player-config", "themes", "native-apple", "native-android", "native-integrations",
+    for (const slug of ["start", "web-sources-tracks", "web-player-config", "themes", "native-apple", "native-android", "native-react-native", "native-vega",
       "web-qoe-analytics", "analytics-visualization"]) {
       await page.goto(guidePath(language, slug));
       const fullSizeImages = slug.startsWith("native-") || slug === "web-qoe-analytics" || slug === "analytics-visualization";
@@ -832,7 +864,11 @@ test.describe("guide without JavaScript", () => {
       const firstChapter = page.locator(".guide-sidebar a").filter({ hasText: content[language].start!.title });
       await firstChapter.click();
       await expect(page.locator("main > h1")).toHaveText(content[language].start!.title);
-      await expect(page.locator("main > ol li")).toHaveCount(4);
+      const steps = content[language].start!.blocks!.filter(block => block.type === "steps");
+      await expect(page.locator("main > ol")).toHaveCount(steps.length);
+      for (let index = 0; index < steps.length; index++) {
+        await expect(page.locator("main > ol").nth(index).locator("li")).toHaveText(steps[index]!.items!);
+      }
       await page.goto(guidePath(language, "settings/tweaks"));
       await expectCompleteTweakCatalog(page);
       await expectHeadingStructure(page);

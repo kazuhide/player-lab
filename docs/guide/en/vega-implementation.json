@@ -1,0 +1,466 @@
+{
+  "id": "vega-implementation",
+  "title": "Vega OS implementation guide",
+  "lead": "Trace the existing Kepler app from native media initialization to modular Player configuration, remote controls, subtitles and Analytics. Use the current screen and code to distinguish Vega integration from browser Web and Android Fire TV apps.",
+  "blocks": [
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/native-vega/",
+          "label": "Vega OS screen, setup and operation"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Connect the modular Player to Vega media",
+      "id": "integration"
+    },
+    {
+      "type": "p",
+      "text": "Vega uses the modular Bitmovin Web SDK inside Amazon’s Kepler runtime. It does not use bitmovin-player-react-native or the Android Player SDK. Kepler renders the app’s React Native components, while @amazon-devices/react-native-w3cmedia provides the native media object and video surface. Keep the Vega-specific Player release pinned by apps/vega/package.json; the official sample declares a separate supported release channel from the general browser Player."
+    },
+    {
+      "type": "p",
+      "text": "An SDK is the library and interfaces used to integrate the Player; an API is a public configuration, operation or event exposed by that library. HLS and DASH are streaming formats that can offer several qualities; VOD means on-demand media with a fixed timeline. WebVTT is a text subtitle format with timed cues. DRM controls access to protected media and needs a compatible license service."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Build and launch the existing Kepler host using the operation page. Its identifier is com.playerlab.vega and its main component is com.playerlab.vega.main. The generated ignored runtime configuration must be refreshed before rebuilding when licenses change.",
+        "Follow src/App.tsx: it retains the applied PlayerConfig and SourceConfig and passes them to the Lab component BitmovinPlayer. A separate editable draft prevents incomplete form input from changing playback.",
+        "Follow src/BitmovinPlayer.tsx: KeplerVideoSurfaceView reports a native surface handle. Only an active app and current surface can start a session. The host first waits for the previous session’s release.",
+        "Follow src/playerSession.ts: initialize VideoPlayer, attach the surface, install the media adapters, create the modular SDK Player, bind observers, then load SourceConfig. Preserve this sequence when reusing or extending the host."
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Initialize native media before constructing and loading the SDK Player",
+      "text": "    video = options.createVideo();\n    initializing = Promise.resolve(video.initialize());\n    await initializing;\n    initialized = true;\n    if (cancelled) return;\n    // The native setter caches the handle before its bridge call, which can throw after mutation.\n    surfaceAttached = true;\n    video.setSurfaceHandle(options.handle);\n    options.installPolyfills(video);\n    player = options.createPlayer();\n    removePlayerObservers = options.observePlayer?.(player, () => !cancelled) ?? null;\n    controller = options.createController(player, () => !cancelled);\n    controller.setTimeShiftEnabled(options.getTimeShiftEnabled());\n    options.controllerRef.current = controller;\n    await player.load(options.source);",
+      "source": {
+        "path": "apps/vega/src/playerSession.ts",
+        "line": 145,
+        "label": "Initialize native media before constructing and loading the SDK Player"
+      },
+      "endLine": 159
+    },
+    {
+      "type": "p",
+      "text": "startVegaSession and createVegaPlayer are Lab helpers. VideoPlayer.initialize/setSurfaceHandle are Amazon media APIs; Player.addModule, new Player and Player.load belong to the Bitmovin Web SDK. The callbacks in the excerpt supply the actual constructors, observers and controller from BitmovinPlayer.tsx. This is a fragment of the existing host, not a complete standalone player."
+    },
+    {
+      "type": "code",
+      "title": "Create the modular SDK Player without a browser container",
+      "text": "export function createVegaPlayer(config: PlayerConfig): PlayerAPI {\n  registerVegaPlayerModules();\n  return new Player(undefined as unknown as HTMLElement, vegaPlayerConfig(config));\n}",
+      "source": {
+        "path": "apps/vega/src/vegaPlayer.ts",
+        "line": 77,
+        "label": "Create the modular SDK Player without a browser container"
+      },
+      "endLine": 80
+    },
+    {
+      "type": "p",
+      "text": "vegaPlayer.ts registers the ReactNative media integration together with the format, renderer, adaptation, subtitle, DRM and related modules used by this app. polyfills.ts connects Amazon’s MediaSource, HTMLMediaElement and WebCrypto, plus XML parsing and Base64 helpers. A polyfill is compatibility code for a runtime API expected by the Web SDK; it does not create a browser document or HTML controls. The session-owned gvideo points the SDK at the current native VideoPlayer."
+    },
+    {
+      "type": "h2",
+      "text": "Change PlayerConfig and SourceConfig",
+      "id": "player-source-config"
+    },
+    {
+      "type": "p",
+      "text": "Vega uses the Web SDK’s configuration names. PlayerConfig includes playback, buffer and adaptation; SourceConfig selects hls, dash or progressive. The Lab function parseConfiguration builds the basic objects, while VegaSessionApi.prepare materializes the additional typed values and approved functions before player creation and source loading. A property existing in the Web SDK declaration does not establish that the corresponding browser integration is available in this native host."
+    },
+    {
+      "type": "code",
+      "title": "Map basic playback, buffer and bitrate inputs",
+      "text": "    player: {\n      playback: { autoplay: draft.autoplay, muted: draft.muted },\n      ...(video !== undefined || audio !== undefined ? { buffer: {\n        ...(video !== undefined ? { video: { forwardduration: video } } : {}),\n        ...(audio !== undefined ? { audio: { forwardduration: audio } } : {}),\n      } } : {}),\n      ...(maxVideoBitrate !== undefined ? { adaptation: { bitrates: { maxSelectableVideoBitrate: maxVideoBitrate } } } : {}),\n    },",
+      "source": {
+        "path": "apps/vega/src/configuration.ts",
+        "line": 99,
+        "label": "Map basic playback, buffer and bitrate inputs"
+      },
+      "endLine": 106
+    },
+    {
+      "type": "table",
+      "headers": [
+        "What to change",
+        "Current SDK path",
+        "Practical comparison"
+      ],
+      "rows": [
+        [
+          "Autoplay and startup mute",
+          "PlayerConfig.playback.autoplay / muted",
+          "Turn Autoplay off, Apply, then explicitly call play from SDK experiments. A startup flag and a runtime command affect different points in the session."
+        ],
+        [
+          "Audio/video buffer targets",
+          "PlayerConfig.buffer.audio.forwardduration / video.forwardduration",
+          "Try a positive value such as 10 seconds for one media type. Blank leaves the SDK default. A shorter target may reduce media retained ahead, but actual memory and rebuffering must be checked with the chosen content/device."
+        ],
+        [
+          "Adaptive video bitrate cap",
+          "PlayerConfig.adaptation.bitrates.maxSelectableVideoBitrate",
+          "Try 1500000 bit/s on a source with several representations. Read the selected quality and compare playback; this cap cannot add a representation absent from the source."
+        ],
+        [
+          "Media address",
+          "SourceConfig.hls / dash / progressive",
+          "The basic form emits the selected format key. For progressive it uses the string URL form. Match source format, container and codecs to the target’s capabilities."
+        ],
+        [
+          "Title, poster and position",
+          "SourceConfig.title / poster / options.startOffset / startOffsetTimelineReference",
+          "Try 5 seconds from Start on VOD. Title/poster are passed as metadata; this Kepler screen does not include a poster-artwork renderer. End uses the end/live edge as its reference."
+        ],
+        [
+          "External WebVTT",
+          "SourceConfig.subtitleTracks",
+          "Supply URL, label and language, then enable the external subtitle on load or choose its ID with PlayerAPI.subtitles. The app draws plain cue text in a native overlay."
+        ]
+      ],
+      "widths": [
+        0.2,
+        0.36,
+        0.44
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Keep Fetch as the native transport",
+      "text": "export function vegaPlayerConfig(config: PlayerConfig): PlayerConfig {\n  // Vega's media integration supports Fetch rather than the SDK's default XHR.\n  return { ...config, network: { ...config.network, requestApi: NetworkRequestApi.Fetch } };\n}",
+      "source": {
+        "path": "apps/vega/src/playerConfig.ts",
+        "line": 4,
+        "label": "Keep Fetch as the native transport"
+      },
+      "endLine": 7
+    },
+    {
+      "type": "p",
+      "text": "vegaPlayerConfig always merges requestApi: Fetch into the supplied network configuration. The form rejects XHR before Apply because this host has no XHR media transport. Other network callbacks remain part of PlayerConfig.network. To try a callback, search its path in Show all SDK configuration, read the declared arguments and return type, enable Allow this SDK callback and Apply. It runs when the SDK invokes it; a JavaScript value factory may instead run while preparing a configuration or operation."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Show configuration, retain the baseline source and change one field. Apply and recreate player validates the complete draft, releases the old session, then creates a new one and reloads the source. Reset draft leaves playback alone.",
+        "For more properties, open Show all SDK configuration and search an exact PlayerConfig or SourceConfig path. The input editor supports declared scalar, enumeration, object, dictionary and list values. Add array items in order and complete required fields.",
+        "Use a suitable representation for the SDK type. Binary certificate fields accept hexadecimal or Base64 bytes; object-instance inputs require a current SDK resource rather than an arbitrary object literal. Approved JavaScript executes inside the app without a sandbox.",
+        "Open Show applied code after Apply. The output includes applied values and function bodies, using license/header placeholders. Removing an additional override restores the basic form value or SDK default. Changing source, config or additional inputs starts a replacement session; it does not retain the old playback position."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "vega-code",
+      "caption": "Applied configuration shown by the existing Vega app. D-pad focus allows the code lines to scroll into view; there is no clipboard integration."
+    },
+    {
+      "type": "h2",
+      "text": "Customize the native layout and remote controls",
+      "id": "ui-customization"
+    },
+    {
+      "type": "p",
+      "text": "The Vega app has no browser-based bitmovin-player-ui. App.tsx starts with ui: false, places BitmovinPlayer above a ScrollView, and renders ControlPanel, SDK API experiments and ConfigurationPanel below it. The UI change points are these React Native components and their StyleSheets. Setting PlayerConfig.ui to true or copying a browser theme does not produce HTML controls in Kepler."
+    },
+    {
+      "type": "code",
+      "title": "Keep the native surface and render subtitle text over it",
+      "text": "      {lifecycle.active && <KeplerVideoSurfaceView key={lifecycle.generation}\n        testID=\"vega-video-surface\" style={styles.surface} scalingmode=\"fit\"\n        onSurfaceViewCreated={(handle: string) => {\n          const current = lifecycleRef.current;\n          if (current.active && current.generation === lifecycle.generation) setSurfaceHandle(handle);\n        }} />}\n      {subtitleText !== \"\" && <View pointerEvents=\"none\" style={styles.captions}>\n        <Text testID=\"vega-subtitle-cue\" style={styles.cue}>{subtitleText}</Text>\n      </View>}",
+      "source": {
+        "path": "apps/vega/src/BitmovinPlayer.tsx",
+        "line": 121,
+        "label": "Keep the native surface and render subtitle text over it"
+      },
+      "endLine": 129
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Goal",
+        "Current implementation",
+        "How to change it"
+      ],
+      "rows": [
+        [
+          "Resize the video and panel areas",
+          "BitmovinPlayer styles.video uses height: 50%; its surface fills the parent. App’s root uses flex: 1.",
+          "Adjust the native view dimensions together with the remaining settings area. Retain the current surface callback and handle binding; screen size changes do not replace that media connection."
+        ],
+        [
+          "Change how the image fits",
+          "KeplerVideoSurfaceView receives scalingmode=\"fit\".",
+          "Use the values supported by the installed Amazon surface API when changing this prop. Player source poster/title fields do not control this native surface’s layout."
+        ],
+        [
+          "Restyle subtitle text",
+          "BitmovinPlayer’s captions and cue styles set the native overlay position, color, background and font.",
+          "Edit those StyleSheet entries. This renderer shows plain cue text; it does not implement WebVTT layout, HTML styling or the browser subtitle settings menu."
+        ],
+        [
+          "Change control layout",
+          "ControlPanel.tsx composes rows of native Button components and the Allow DVR Switch.",
+          "Edit those rows, titles or styles and keep controls reachable by D-pad. A visual change must retain an activation handler and visible focus feedback."
+        ],
+        [
+          "Connect a control to playback",
+          "The existing Live edge button calls controllerRef.current?.goToLiveEdge(); seek buttons use the same current controller.",
+          "Use the active controller or current SDK session for an added action. Compare its event/state result; do not retain a Player resource from an earlier session."
+        ]
+      ],
+      "widths": [
+        0.2,
+        0.38,
+        0.42
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Make a native switch reachable by remote focus",
+      "text": "        <Switch\n          focusable\n          style={styles.toggle}\n          accessibilityLabel=\"Allow DVR\"\n          value={dvrAllowed}\n          onValueChange={(v) => {\n            onDvrAllowedChange(v);\n            controllerRef.current?.setTimeShiftEnabled(v);\n          }}\n        />",
+      "source": {
+        "path": "apps/vega/src/ControlPanel.tsx",
+        "line": 51,
+        "label": "Make a native switch reachable by remote focus"
+      },
+      "endLine": 60
+    },
+    {
+      "type": "p",
+      "text": "Use D-pad and Select on a device, or arrow keys and Enter on a Vega Virtual Device. In the current screen, native buttons provide actions and switches explicitly opt into focus. Keep code output and expandable editors reachable after layout changes, including items below the video. Amazon’s focus guide explains why the spatial relationship between controls affects navigation. A touch-oriented React Native layout is not automatically usable with a TV remote."
+    },
+    {
+      "type": "figure",
+      "file": "vega-caption",
+      "caption": "The existing Vega app draws an external WebVTT cue as native text over the video. The surrounding controls are Kepler components, not the browser Player UI."
+    },
+    {
+      "type": "h2",
+      "text": "Try subtitles, SDK operations and HLS insertion",
+      "id": "useful-features"
+    },
+    {
+      "type": "p",
+      "text": "Show SDK API experiments exposes the installed PlayerAPI operations with typed arguments. Inspect current SDK API availability checks that a method exists without invoking it. Run Vega SDK API executes the selected call and reports its value or error. Start with getCurrentTime while media advances; a method existing or returning a constant is not playback verification. Manifest helpers also follow the loaded format: HLS track helpers require HLS, and DASH period helpers require DASH."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "For external subtitles, configure a WebVTT URL, label and language and enable the track on load. After Apply, use PlayerAPI.subtitles.list and PlayerAPI.subtitles.enable with the track ID when needed. Play through a matching cue interval and inspect CueEnter/CueExit events.",
+        "For audio, call PlayerAPI.getAvailableAudio and pass a returned track ID to PlayerAPI.setAudio. Compare PlayerAPI.getAudio with the audible output. For quality and buffer experiments, compare current values and playback after the operation. A source with one quality or one audio track cannot demonstrate switching.",
+        "For HLS interstitials, select a source that actually contains insertion markers and enable PlayerConfig.tweaks.enable_sgai_handling. PlayerAPI.sgai.list returns its schedule; getActiveAd is normally empty outside an insertion. Try skip only while applicable and compare AdStarted, AdSkipped, AdBreakFinished and playback.",
+        "For low-latency controls, use a suitable live stream and compare target/readback and actual behavior. On VOD, a setter may be accepted while latency remains zero. A registered module does not make every source or device support its feature."
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Observe subtitle cues in the native text adapter",
+      "text": "  player.on(PlayerEvent.CueEnter, enter);\n  player.on(PlayerEvent.CueExit, exit);\n  player.on(PlayerEvent.SubtitleDisabled, clear);",
+      "source": {
+        "path": "apps/vega/src/subtitleDisplay.ts",
+        "line": 19,
+        "label": "Observe subtitle cues in the native text adapter"
+      },
+      "endLine": 21
+    },
+    {
+      "type": "p",
+      "text": "attachSubtitleDisplay is the app’s text renderer. It tracks active cue text, removes cues on CueExit, clears the overlay when subtitles are disabled and detaches its event callbacks on disposal. This is why configuring a track and rendering its cues are separate parts of the integration. SGAI means server-guided ad insertion: it follows markers in the HLS source, unlike client-side ad integration. If an insertion falls outside the media window, compare the source’s program date time with the insertion start time."
+    },
+    {
+      "type": "note",
+      "title": "Content and device prerequisites",
+      "text": "The app registers DRM/crypto and additional format modules, but does not thereby supply compatible encrypted media, licenses or decoding capabilities. The official Vega sample excludes the HTML Player UI and client-side ads and documents constraints on server-side ad content. Use this host’s SGAI flow only with appropriate HLS. Keep general Web, Android Fire TV and Vega feature expectations separate."
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-operation",
+      "caption": "PlayerAPI.getCurrentTime executed during playback. Read the return value together with changing video frames and SDK events."
+    },
+    {
+      "type": "h2",
+      "text": "FAQ and troubleshooting",
+      "id": "faq"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Symptom or question",
+        "Cause and next check"
+      ],
+      "rows": [
+        [
+          "Why do browser UI settings have no visible effect?",
+          "Kepler has no browser HTML control layer. Keep ui: false and change native components/styles. A DOM container, canvas or WebGL-dependent browser integration is not supplied by an extra configuration key."
+        ],
+        [
+          "Why does XHR fail?",
+          "The media adapter requires Fetch and the form rejects other transport choices. Retain vegaPlayerConfig and the installed native media/polyfill initialization."
+        ],
+        [
+          "Why is the video black before readiness?",
+          "The native VideoPlayer must initialize and receive the current surface handle before SDK creation/load. Inspect setup/source errors and confirm that the app is active and the surface callback has arrived. A successful JavaScript build alone does not establish a working native surface."
+        ],
+        [
+          "Why does Apply or returning from the background reset playback?",
+          "The app replaces the session and reloads the retained source/configuration. It does not restore playback position. Background handling releases native media before the app can be suspended."
+        ],
+        [
+          "What if cleanup is unconfirmed?",
+          "Restart the app when it reports that the native player or initialization could not be released. The host intentionally prevents a replacement from using global media adapters while the previous owner may still exist; repeatedly pressing Apply cannot confirm release."
+        ],
+        [
+          "Why are subtitles configured but not drawn?",
+          "Enable the external track on load or select its current ID, use cue times that overlap playback and inspect CueEnter. The renderer handles plain cue text; browser-specific styling and layout need their own native implementation."
+        ],
+        [
+          "Why does a licensed build still reject the app?",
+          "Allowlist com.playerlab.vega on the license in use, regenerate the ignored runtime configuration and rebuild the package. Runtime configuration is embedded before App is evaluated; editing the root file alone does not update an installed package."
+        ],
+        [
+          "Can the general browser SDK or a mocked test prove Vega support?",
+          "No. Keep the Vega-specific dependency and compare the official limitations. Unit tests can check validation and ordering, while native build, remote interaction, video and feature behavior require the target runtime."
+        ]
+      ],
+      "widths": [
+        0.34,
+        0.66
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Analytics / Observability",
+      "id": "analytics-observability"
+    },
+    {
+      "type": "p",
+      "text": "vegaPlayer.ts registers the Analytics module. App.tsx adds analytics.key only when BITMOVIN_ANALYTICS_LICENSE_KEY is configured, independently of the Player license. The final PlayerConfig and SourceConfig pass through VegaSessionApi.prepare, so Show all SDK configuration can also supply supported Analytics properties and source labels. Use PlayerConfig.analytics for collector configuration and SourceConfig.analytics for source-level metadata such as videoId, title or customData1."
+    },
+    {
+      "type": "code",
+      "title": "Add the optional collector to the existing Player configuration",
+      "text": "  const config = useMemo<PlayerConfig>(\n    () => ({\n      key: LICENSE_KEY,\n      ui: false,\n      ...applied.player,\n      tweaks: { app_id: \"com.playerlab.vega\" },\n      // §15: the analytics module is registered in vegaPlayer.ts; the collector\n      // only activates when a key is configured here.\n      ...(ANALYTICS_LICENSE_KEY ? { analytics: { key: ANALYTICS_LICENSE_KEY } } : {}),\n    }),\n    [applied.player],\n  );",
+      "source": {
+        "path": "apps/vega/src/App.tsx",
+        "line": 55,
+        "label": "Add the optional collector to the existing Player configuration"
+      },
+      "endLine": 66
+    },
+    {
+      "type": "p",
+      "text": "tweaks.app_id in this fragment identifies the Player app for licensing; it is not an Analytics content identifier. The constructor receives the optional collector key, while source metadata travels with the source loaded later. The API catalog follows the installed Vega SDK surface, which differs from the React Native wrapper’s analyticsConfig and analyticsSourceMetadata names. Do not copy one platform’s configuration path into the other."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Use a collector license authorized for the Vega app, choose a non-sensitive videoId or experiment label, Apply and start playback. If the key changed, regenerate runtime configuration and rebuild before this experiment.",
+        "Open Bitmovin Dashboard with the matching Analytics license and period. Filter the relevant content/app labels and inspect sessions, startup, rebuffering, bitrate and errors alongside the local SDK events. The app sends collection events; aggregate viewing and visualization normally happen in Dashboard.",
+        "Follow the shared Analytics chapters for metric definitions, query access and analysis. Keep account API credentials in a trusted server-side environment; the collector license does not grant account query access."
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-qoe-analytics/",
+          "label": "Analytics collection and Dashboard screenshots"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-metrics/",
+          "label": "Metric definitions"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-visualization/",
+          "label": "Visualize collected data"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-ai/",
+          "label": "Analyze data with LLMs and MCP"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/vega/src/App.tsx",
+      "line": 25,
+      "label": "Applied settings, host layout and collector configuration"
+    },
+    {
+      "path": "apps/vega/src/configuration.ts",
+      "line": 63,
+      "label": "Basic validation and Web SDK field mappings"
+    },
+    {
+      "path": "apps/vega/src/BitmovinPlayer.tsx",
+      "line": 28,
+      "label": "Native media surface, app state and subtitle overlay"
+    },
+    {
+      "path": "apps/vega/src/playerSession.ts",
+      "line": 46,
+      "label": "Native initialization and confirmed session release"
+    },
+    {
+      "path": "apps/vega/src/playerConfig.ts",
+      "line": 4,
+      "label": "Required Fetch transport"
+    },
+    {
+      "path": "apps/vega/src/vegaPlayer.ts",
+      "line": 38,
+      "label": "Registered modular SDK integrations"
+    },
+    {
+      "path": "apps/vega/src/polyfills.ts",
+      "line": 12,
+      "label": "Native media and runtime API adapters"
+    },
+    {
+      "path": "apps/vega/src/ControlPanel.tsx",
+      "line": 18,
+      "label": "Remote-operable app controls"
+    },
+    {
+      "path": "apps/vega/src/subtitleDisplay.ts",
+      "line": 5,
+      "label": "Plain subtitle-cue rendering"
+    },
+    {
+      "path": "apps/vega/src/api/sessionApi.ts",
+      "line": 1,
+      "label": "Configuration materialization and current SDK resources"
+    },
+    {
+      "path": "apps/vega/src/api/ConfigurationInputsPanel.tsx",
+      "line": 1,
+      "label": "Typed configuration controls"
+    },
+    {
+      "path": "apps/vega/README.md",
+      "line": 1,
+      "label": "Vega build, pinned release and feature conditions"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/blob/0c7463104d3c18f56440aeec7beccd0d92c11aaa/README.md#features-and-limitations",
+      "label": "Official Vega sample: supported release channel and limitations"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/mse-players",
+      "label": "Amazon: porting Web media integrations to Vega"
+    },
+    {
+      "url": "https://www.developer.amazon.com/docs/vega/0.24/focus-management",
+      "label": "Amazon: remote focus and native control navigation"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/foreground-background",
+      "label": "Amazon: foreground/background transitions"
+    }
+  ]
+}

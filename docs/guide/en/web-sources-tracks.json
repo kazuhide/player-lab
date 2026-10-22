@@ -4,6 +4,15 @@
   "lead": "Use the source buttons to choose media and the feature you want to check. Pages bundles short on-demand samples and uses external public streams for live playback.",
   "blocks": [
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Implementation guide: configuration, UI changes and FAQ"
+        }
+      ]
+    },
+    {
       "type": "p",
       "text": "The apps use several test streams. The public Pages build includes short Big Buck Bunny clips for its basic VOD controls; local development and native apps also use external HLS, DASH, and live reference streams. Available audio, subtitles, duration, and live rewind range depend on the selected source."
     },
@@ -194,7 +203,16 @@
     },
     {
       "type": "note",
-      "text": "The current GUI has no field for pasting an arbitrary HLS or DASH URL. To use different local media, follow the public documentation to change the source environment settings or source definitions."
+      "text": "The basic source picker selects the listed presets. To use a different HLS or DASH URL, open SDK settings, APIs and events and edit SourceConfig.hls or SourceConfig.dash, or pass a source object through Commands → PlayerAPI.load. The Web implementation guide explains these paths and how to configure a reusable source in code."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/#player-source-config",
+          "label": "Web implementation guide: use your own stream"
+        }
+      ]
     },
     {
       "type": "figure",

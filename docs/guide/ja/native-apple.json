@@ -4,6 +4,15 @@
   "lead": "SwiftUIアプリでPlayer・Source・表示方法を設定し、API inspectorからSDKの操作、現在の状態、イベントを確認します。iOSとiPadOSにはオフラインHLSとGoogle Castの画面もあります。tvOSはネイティブの操作画面を使います。",
   "blocks": [
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/apple-implementation/",
+          "label": "実装ガイド：PlayerConfig・ソース設定・UIの変更・FAQ"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "準備とビルド"
     },

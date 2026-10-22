@@ -10,6 +10,16 @@ from guide_routes import CATEGORIES, CONTENT_REVIEW, LEGACY_ROUTES, PUBLIC_BASE,
 
 TEXT = {
     'en': {
+        'apple': 'iOS / iPadOS / tvOS',
+        'android': 'Android / Android TV / Fire TV',
+        'react-native': 'React Native',
+        'vega': 'Vega OS',
+        'operation_guide': 'Screen and controls',
+        'configuration_guide': 'PlayerConfig / SourceConfig',
+        'ui_customization_guide': 'UI customization',
+        'useful_features': 'Useful features',
+        'faq': 'FAQ',
+        'section_contents': 'On this page',
         'guide': 'User guide', 'home': 'Project home', 'web': 'Web app', 'contents': 'Contents',
         'skip': 'Skip to content', 'search': 'Search the guide', 'search_hint': 'Search topics, settings, or API names',
         'search_loading': 'Searching…', 'search_empty': 'No matching topics.',
@@ -18,7 +28,7 @@ TEXT = {
         'sources': 'Sources', 'code': 'Code sample', 'table': 'Reference table',
         'previous': 'Previous', 'next': 'Next', 'overview': 'Guide overview',
         'start': 'Getting started', 'native': 'Native examples', 'analytics': 'Analytics / Observability',
-        'reference': 'Reference', 'web_group': 'Web controls and UI', 'implementation': 'Implementation guide',
+        'reference': 'Reference', 'web_group': 'Web', 'implementation': 'Implementation guide',
         'settings': 'Player Config reference', 'controls': 'Controls reference', 'themes': 'Theme reference',
         'control_groups': 'Control groups', 'control_source': 'Source presets',
         'control_seek': 'Playback position', 'control_playback': 'Playback behavior',
@@ -39,6 +49,16 @@ TEXT = {
         'reference_intro': 'Find an individual setting, control, or theme. The chapters explain the workflows and their limits.',
     },
     'ja': {
+        'apple': 'iOS・iPadOS・tvOS',
+        'android': 'Android・Android TV・Fire TV',
+        'react-native': 'React Native',
+        'vega': 'Vega OS',
+        'operation_guide': '画面と操作',
+        'configuration_guide': 'PlayerConfig / SourceConfig',
+        'ui_customization_guide': 'UI変更ガイド',
+        'useful_features': '有用な情報',
+        'faq': 'FAQ',
+        'section_contents': 'このページの内容',
         'guide': 'ユーザーガイド', 'home': 'プロジェクトのホーム', 'web': 'Web版', 'contents': '目次',
         'skip': '本文へ移動', 'search': 'ガイド内を検索', 'search_hint': '機能、設定名、API名を検索',
         'search_loading': '検索中…', 'search_empty': '一致する項目はありません。',
@@ -47,7 +67,7 @@ TEXT = {
         'sources': '参照資料', 'code': 'コード例', 'table': '参照表',
         'previous': '前の章', 'next': '次の章', 'overview': 'ガイドの概要',
         'start': '利用の準備', 'native': 'ネイティブ版', 'analytics': 'Analytics / Observability',
-        'reference': 'リファレンス', 'web_group': 'Webの操作とUI', 'implementation': '実装ガイド',
+        'reference': 'リファレンス', 'web_group': 'Web版', 'implementation': '実装ガイド',
         'settings': 'Player Configの設定一覧', 'controls': '操作一覧', 'themes': 'テーマ一覧',
         'control_groups': '操作の分類', 'control_source': 'ソース',
         'control_seek': '再生位置', 'control_playback': '再生動作',
@@ -165,18 +185,39 @@ def field_anchor(field):
     return 'setting-' + anchor(field['scope'] + '-' + field['path'])
 
 
+def chapter_links(content, language, page, category, current='', *, descriptions=False):
+    """Render the same platform hierarchy in the sidebar and guide overview."""
+    from guide_routes import (CHAPTERS, CHILD_CHAPTERS, IMPLEMENTATION_GUIDES,
+                              NAVIGATION_CHILDREN, OPERATION_GUIDES)
+    labels = TEXT[language]
+    entries = [key for key, group in CHAPTERS.items() if group == category and key not in CHILD_CHAPTERS]
+    if category == 'reference':
+        entries = ['settings', 'controls', 'themes', 'api-coverage', *entries]
+    output = []
+    for key in entries:
+        title = (labels['implementation'] if key in IMPLEMENTATION_GUIDES else
+                 labels['operation_guide'] if key in OPERATION_GUIDES else content[key]['title'])
+        href = relative(page, route_file(language, key))
+        active = ' aria-current="page"' if current == key or current.startswith(key + '/') else ''
+        item = f'<a href="{esc(href)}"{active}>{esc(title)}</a>'
+        if descriptions:
+            item += f'<p>{esc(content[key]["lead"])}</p>'
+        children = []
+        for target, identifier, label in NAVIGATION_CHILDREN.get(key, ()):
+            destination = relative(page, route_file(language, target)) + ('#' + identifier if identifier else '')
+            active = ' aria-current="page"' if current == target and not identifier else ''
+            children.append(f'<li><a href="{esc(destination)}"{active}>{esc(labels[label])}</a></li>')
+        if children:
+            item += '<ul class="guide-subchapters">' + ''.join(children) + '</ul>'
+        output.append('<li>' + item + '</li>')
+    return ''.join(output)
+
+
 def navigation(content, language, page, current):
-    from guide_routes import CHAPTERS
     labels, output = TEXT[language], []
     for category in CATEGORIES:
         title = labels['web_group'] if category == 'web' else labels[category]
-        entries = [(key, content[key]['title']) for key, group in CHAPTERS.items() if group == category]
-        if category == 'reference':
-            entries = [('settings', labels['settings']), ('controls', labels['controls']),
-                       ('themes', labels['themes']), ('api-coverage', labels['api-coverage']), *entries]
-        links = ''.join(f'<li><a href="{esc(relative(page, route_file(language, key)))}"'
-                        + (' aria-current="page"' if current == key or current.startswith(key + '/') else '')
-                        + f'>{esc(title)}</a></li>' for key, title in entries)
+        links = chapter_links(content, language, page, category, current)
         output.append(f'<section><h3>{esc(title)}</h3><ol>{links}</ol></section>')
     return f'<nav class="guide-nav" aria-label="{labels["contents"]}">' + ''.join(output) + '</nav>'
 

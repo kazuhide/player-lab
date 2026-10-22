@@ -4,6 +4,15 @@
   "lead": "Use the Web app to compare player controls, change their behavior and inspect the code behind the selected UI. Keep the source unchanged while comparing themes so that a media change does not obscure the difference.",
   "blocks": [
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Implementation guide: configuration, UI changes and FAQ"
+        }
+      ]
+    },
+    {
       "type": "p",
       "text": "Language and theme selectors appear at the top. The video and construction code sit below, followed by controls for sources, seeking, playback, UI settings and casting; state, event and QoE readouts; and the Player Config editor. A link at the bottom opens the detailed UI customization guide."
     },

@@ -4,6 +4,15 @@
   "lead": "Use the Kotlin and Compose app to change source and playback settings, select tracks, compare player interfaces and inspect applied Kotlin code. Live rewind and the offline helper are additional examples. Android-based Fire TV and Vega OS are separate targets.",
   "blocks": [
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/",
+          "label": "Implementation guide: PlayerConfig, source settings, UI customization and FAQ"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "Preparation and build"
     },

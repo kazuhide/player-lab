@@ -1,0 +1,514 @@
+{
+  "id": "web-implementation",
+  "title": "Web implementation guide",
+  "lead": "Configure the Player, load content and customize its controls using the current Web app. Follow each GUI experiment into the relevant SDK setting or UI code.",
+  "blocks": [
+    {
+      "type": "p",
+      "text": "This chapter follows the Web app from a playback experiment to the SDK configuration and UI code you can reuse. The linked PlayerConfig / SourceConfig and UI customization chapters provide the detailed controls and editable examples. The existing app remains the reference implementation."
+    },
+    {
+      "type": "h2",
+      "id": "integration",
+      "text": "Integrate the Player and load a source"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Prepare",
+        "How this app uses it"
+      ],
+      "rows": [
+        [
+          "Player SDK and a browser container",
+          "The Web package imports bitmovin-player. The player element is an existing HTML element; the SDK renders media within it. The shared UI stylesheet supplies the controls’ appearance."
+        ],
+        [
+          "Player license and permitted domain",
+          "PlayerConfig.key receives the Player license. For your own deployment, permit its domain for that license. Local setup and public Pages configuration are documented separately."
+        ],
+        [
+          "A compatible media source",
+          "SourceConfig contains an HLS playlist URL or DASH manifest URL, plus content-specific options. The app supplies presets; the stream determines its codecs, tracks and available qualities."
+        ],
+        [
+          "A UI owner",
+          "The default app configuration has ui: false. The app creates and releases its selected UIManager. SDK-managed UI is an alternative explained in the UI customization chapter."
+        ]
+      ],
+      "widths": [
+        0.3,
+        0.7
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open the Web app and keep VOD HLS selected for the first comparison. Start playback if the browser does not start automatically. Use the Player state and event log to confirm that a source loaded and playback began.",
+        "Choose a theme and compare its Construction code with the source link. A theme changes controls and layout; it does not choose the stream or change the PlayerConfig playback settings.",
+        "Apply one setting, then open Show applied configuration code and refresh it. Inspect the submitted PlayerConfig, SourceConfig, UIConfig and runtime calls. Draft edits are excluded.",
+        "In your integration, pass the PlayerConfig to the Player constructor, attach one UI owner, then pass the SourceConfig to player.load. Keep source-loading errors observable and release the UI and Player when the screen is removed."
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Create the SDK Player and attach the selected UI",
+      "text": "  const instance = new Player(playerEl as HTMLElement, config);\n  player = instance;\n  if (sdkUiEnabled) { renderThemeBar(); renderActiveConstruction(); apiExplorer?.refresh(); }\n  else applyTheme(instance, currentThemeId);\n  wireMetrics(instance);",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 803,
+        "label": "apps/web/src/main.ts"
+      },
+      "endLine": 807
+    },
+    {
+      "type": "p",
+      "text": "Player and PlayerAPI are SDK types. Here, playerEl is the app’s HTML container and config is the assembled PlayerConfig. applyTheme and wireMetrics are Player Lab helpers, not SDK methods. The former attaches the selected UI; the latter observes playback events. The source is loaded later through the function below."
+    },
+    {
+      "type": "code",
+      "title": "Load the configured source through the existing app",
+      "text": "async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, disableSeeking?: boolean): Promise<void> {\n  const isLive = SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false;\n  const settle = controlPanel?.beginSourceLoad(isLive);\n  const base = deepMerge((apiSourceInput ?? sourcePreset) as SourceConfig, sourceOverrides);\n  const source = apiExplorer?.prepare(\"SourceConfig\", base) ?? structuredClone(base);\n  currentSource = source;\n  const request = { player: instance, source, settle };\n  appSourceLoad = request;\n  try {\n    await instance.load(request.source, forceTechnology, disableSeeking);\n  } catch (error) {\n    if (appSourceLoad === request) appSourceLoad = undefined;\n    if (player === instance) request.settle?.();\n    throw error;\n  } finally {\n    if (player === instance) configPanel?.refresh();\n  }\n}",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 478,
+        "label": "apps/web/src/main.ts"
+      },
+      "endLine": 495
+    },
+    {
+      "type": "p",
+      "text": "The SDK call is instance.load(request.source, ...). The surrounding function combines the preset or SDK-editor input with applied source overrides and tracks that load for the app’s controls. deepMerge, apiExplorer.prepare and controlPanel are app helpers. In an integration without these editors, supply your own complete SourceConfig to player.load; copying those helper names alone does not provide their behavior."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Local setup and licenses"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-themes/",
+          "label": "Web screen and theme comparison"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-sources-tracks/",
+          "label": "Source, audio and subtitle operations"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "player-source-config",
+      "text": "Choose the correct configuration scope"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Configuration / API",
+        "What to place there",
+        "Application in this app"
+      ],
+      "rows": [
+        [
+          "PlayerConfig",
+          "Initial playback, adaptation, buffering, network, logging, licensing and collector settings. Passed to new Player(...).",
+          "Edit a creation-time field, then Recreate the player to apply. Existing source settings are loaded into the new instance."
+        ],
+        [
+          "SourceConfig",
+          "Stream URLs, title, poster, external subtitles, thumbnails, DRM and source-specific start options. Passed to player.load(...).",
+          "Apply Source settings or an SDK-editor source field to reload the source. This is separate from a Player recreation."
+        ],
+        [
+          "UIConfig",
+          "UI behavior, localization, displayed metadata and component overrides from bitmovin-player-ui.",
+          "In the app-managed mode, apply by rebuilding the UI. SDK-managed UI edits use the app’s Player recreation path."
+        ],
+        [
+          "PlayerAPI and sub-APIs",
+          "Runtime operations such as setVolume, setAudio, subtitles.enable, adaptation.setConfig and buffer.setTargetLevel.",
+          "Use an immediate field or Commands. Read back state and observe actual playback; an API call does not itself prove that the media changed."
+        ],
+        [
+          "TweaksConfig",
+          "The actual Web SDK type is TweaksConfig, available as PlayerConfig.tweaks. It contains low-level and experimental options.",
+          "Apply through the Tweaks group or SDK settings, then recreate. Naming and behavior may change; use the ordinary supported setting when one covers the requirement."
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.43,
+        0.34
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        "To change initial audio or subtitle preference, use Playback.audioLanguage or subtitleLanguage and recreate. To switch an available track now, use the player’s track controls or the corresponding runtime API. A preferred language cannot create a missing track.",
+        "To change only the content title or start position, use Source rather than Playback. Reload the source and inspect its title or current time. For startOffset, specify whether the value is relative to the start or end.",
+        "To compare automatic quality, leave the quality selector on Auto. Apply a dynamic resolution cap and inspect adaptation.getConfig plus actual media requests. Use the detailed chapter’s source-specific example to avoid setting a cap above the available qualities.",
+        "For nested arrays, objects, callbacks or SDK class instances, use SDK settings, APIs and events. Complete required sibling fields together. A JavaScript function body or a UI component instance is different from a plain JSON object."
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Update automatic quality selection on the current Player",
+      "text": "  function dynAdapt(mutate: (cur: DynamicAdaptationConfig) => DynamicAdaptationConfig): void {\n    const p = options.getPlayer();\n    if (!p) return;\n    p.adaptation.setConfig(mutate(p.adaptation.getConfig()));\n  }",
+      "source": {
+        "path": "apps/web/src/configPanel.ts",
+        "line": 255,
+        "label": "apps/web/src/configPanel.ts"
+      },
+      "endLine": 259
+    },
+    {
+      "type": "p",
+      "text": "dynAdapt is the app’s helper. The SDK operation reads the current dynamic adaptation configuration, changes the chosen field and sends the merged value through adaptation.setConfig. This avoids replacing unrelated dynamic values. Initial adaptation settings are a different PlayerConfig path, split into desktop and mobile."
+    },
+    {
+      "type": "figure",
+      "file": "sdk-configuration",
+      "caption": "The SDK editor exposes configuration paths and their declared input types. Apply a change before using Read state to inspect it."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/",
+          "label": "PlayerConfig / SourceConfig: application, examples and callbacks"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "ui-customization",
+      "text": "Change UI behavior, appearance and composition"
+    },
+    {
+      "type": "p",
+      "text": "Start with the smallest change that meets the requirement. A UIConfig value can hide a settings item or select a UI language. CSS changes colors and sizing. Adding a control or changing its position requires the UI component tree. These changes do not change media encoding, track availability or DRM support."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select Premiere and toggle Speed item in settings gear. Compare the gear menu with Applied UIConfig overrides. The component tree remains the same kind of theme while its settings change.",
+        "Compare Default and Neon to see a skin change, then compare Compact to see a different component tree. Inspect the construction source path rather than treating the displayed abbreviated example as the whole integration.",
+        "Follow Customize the player UI for typed workspace examples, independent-project imports, CSS rules and component composition. The shared theme factories are defined by this repository; they are not exports from the Player SDK.",
+        "For the app-managed mode, keep ui: false and release the old UIManager before attaching its replacement. Keep the Player and loaded source when changing only the UI. When leaving the page, release the UI and then destroy the Player."
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Replace the app-managed UI while retaining the Player",
+      "text": "function applyTheme(p: PlayerAPI, id: ThemeId): void {\n  if (sdkUiEnabled) return;\n  const previousUi = uiManager;\n  uiManager = undefined;\n  apiExplorer?.refresh();\n  previousUi?.release();\n  const theme = THEMES.find((t) => t.id === id) ?? THEMES[0]!;\n  const baseUi = themeConfig(theme.id);\n  activeUiBase = baseUi;\n  const appliedUi = apiExplorer?.prepare(\"UIConfig\", baseUi) ?? baseUi;\n  uiManager = theme.build(p, autohideEnabled ? undefined : -1, appliedUi, castingButtons);\n  currentThemeId = theme.id;\n  renderThemeBar();\n  renderActiveConstruction();\n  apiExplorer?.refresh();\n  refreshUiControls();",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 395,
+        "label": "apps/web/src/main.ts"
+      },
+      "endLine": 410
+    },
+    {
+      "type": "p",
+      "text": "themeConfig, theme.build and apiExplorer are app helpers. UIManager.release is the UI library’s cleanup method. This function keeps the same p (PlayerAPI) and builds a new manager with the selected UIConfig. SDK-managed UI follows a separate path: the SDK loads its UI distribution and calls style.uiManagerFactory. Do not attach another manager on top of an SDK-owned manager."
+    },
+    {
+      "type": "figure",
+      "file": "custom-premiere",
+      "caption": "Premiere provides a component-tree example with title, seeking and a settings menu. Compare the tree and its UIConfig separately."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-ui-customization/",
+          "label": "UI customization: UIManager, CSS and custom components"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-ui-settings/",
+          "label": "UI settings and external displays"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "useful-features",
+      "text": "Connect useful playback features to their APIs"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Goal and GUI experiment",
+        "Implementation entry point",
+        "What to inspect"
+      ],
+      "rows": [
+        [
+          "Switch audio or enable subtitles: select the relevant feature preset, then use the player’s settings menu.",
+          "getAvailableAudio / setAudio; subtitles.list / subtitles.enable. Initial language belongs to PlayerConfig.playback; external subtitle URLs belong to SourceConfig.subtitleTracks.",
+          "Track IDs come from the loaded source. Compare the selected language or subtitle text; the bundled audio tracks are the same nonverbal soundtrack at different levels."
+        ],
+        [
+          "Compare automatic quality: use VOD DASH, Auto quality and a dynamic resolution cap.",
+          "adaptation.getConfig / setConfig. For explicit manual choice, getAvailableVideoQualities / setVideoQuality.",
+          "A manual quality choice and an automatic-selection limit are different tests. Buffered segments may delay a visible change."
+        ],
+        [
+          "Compare buffering: change the forward target or initial audio/video durations.",
+          "buffer.getLevel / setTargetLevel; PlayerConfig.buffer.audio and .video.",
+          "Targets are seconds, not bytes. Inspect buffered duration and the actual playback under the same network conditions; the target is not a memory allocation limit."
+        ],
+        [
+          "Investigate slow or failing requests: edit Network or a network callback.",
+          "PlayerConfig.network.defaultRequestTimeout / requestTimeout / preprocessHttpRequest.",
+          "Use browser Network tools for request status, timing and headers. The event log is a playback log, not a network trace. Browser-native HLS may bypass the SDK request callback."
+        ],
+        [
+          "Try live rewind: select a live preset and compare its seekable range.",
+          "PlayerConfig.playback.timeShift; isLive / getMaxTimeShift / timeShift. Start position can use SourceConfig.options.",
+          "Rewind is bounded by the origin’s available window. UI and buffering settings do not extend it. Follow the live guide for stream finalization and time references."
+        ],
+        [
+          "React to playback errors or source changes: use Events and callbacks.",
+          "PlayerEvent with on / off, or PlayerConfig.events.",
+          "Subscribe once for the owned Player. Reattach observers for a replacement Player and remove app-owned callbacks when their owner is released."
+        ]
+      ],
+      "widths": [
+        0.34,
+        0.32,
+        0.34
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/",
+          "label": "Quality, buffer and network comparison examples"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-sources-tracks/",
+          "label": "Audio, subtitles, thumbnails and source start position"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-live-dvr/",
+          "label": "Live playback and rewind behavior"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "faq",
+      "text": "Frequently asked implementation questions"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Question",
+        "Why it happens and what to do"
+      ],
+      "rows": [
+        [
+          "Why does changing a value appear to do nothing?",
+          "First check the application mode and press its Apply button. Refresh applied code and Read state. Then check whether the stream and UI contain the feature: a missing subtitle track, a quality cap above the highest rendition or a marker outside the clip cannot demonstrate the change."
+        ],
+        [
+          "Why does clearing an immediate field not restore its default?",
+          "Several runtime controls call a setter only when a value exists. An empty field does not issue an undo call. Set the previous value explicitly. For creation-time optional fields, clear the override and recreate; checkboxes still provide explicit true/false."
+        ],
+        [
+          "Why is there no field for my custom stream URL among the preset buttons?",
+          "The buttons choose source definitions. To change a URL in the SDK editor, first select the matching VOD HLS or VOD DASH preset, edit SourceConfig.hls or .dash and apply. If both formats are supplied, the SDK selects a playback technology, so check whether an alternate URL remains. You can also pass a complete SourceConfig through Commands → PlayerAPI.load. Selecting a preset again clears source overrides."
+        ],
+        [
+          "Why does a title from UIConfig not replace the preset title?",
+          "In the installed UI version, a nonempty SourceConfig.title or description wins over UIConfig.metadata. Change source-specific text in SourceConfig. To test UIConfig.metadata, apply an empty string to the matching source field before loading it."
+        ],
+        [
+          "Why can playback fail although the URL opens in another tab?",
+          "A direct navigation does not demonstrate that scripts on your app’s origin may fetch the manifest, segments, subtitles or DRM license. Inspect browser Network and Error/Warning events. Configure the origin’s cross-origin resource sharing (CORS), HTTPS and required authorization. DRM also requires a supported browser/device and matching license configuration; a GUI field does not add platform support."
+        ],
+        [
+          "Why does autoplay, fullscreen, PiP or casting fail despite a setting?",
+          "Browser playback policy, user activation and supported devices still apply. Try user-initiated playback and the matching supported control. Enabling a button only changes UI composition; it does not prove that a receiver or platform capability is available."
+        ],
+        [
+          "Can I paste a function or UI component into JSON?",
+          "A callback must be executable JavaScript with the expected return contract; a UI component must be a constructed SDK object. Use the typed function or constructor input in the SDK editor and inspect its generated code. In your app, define/import the real function or class and preserve its lifetime."
+        ],
+        [
+          "Can I copy the applied configuration as the whole integration?",
+          "The regular snapshot contains the screen’s supported settings and runtime values, with licenses omitted or replaced. The SDK editor shows its own generated code for advanced values. Keep the UI imports, styles, source data, callbacks, licenses and disposal from your integration; they are not all exported by the snapshot."
+        ]
+      ],
+      "widths": [
+        0.32,
+        0.68
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "analytics-observability",
+      "text": "Analytics / Observability"
+    },
+    {
+      "type": "p",
+      "text": "The Web app uses the bundled Analytics collector. The Player license authorizes playback; the Analytics license selects the collection destination. In this app, analyticsKey comes from the configured client Analytics license and is added only when nonempty. These client licenses are different from an account API key used for server-side queries."
+    },
+    {
+      "type": "code",
+      "title": "Add the configured Analytics collector license",
+      "text": "    ...(analyticsKey ? { analytics: { key: analyticsKey } } : {}),",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 771,
+        "label": "apps/web/src/main.ts"
+      },
+      "endLine": 771
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Input",
+        "Try it here",
+        "Expected result"
+      ],
+      "rows": [
+        [
+          "PlayerConfig.analytics",
+          "Use SDK settings for its key, collector configuration and default metadata; apply by recreating the Player. The configured build key provides the normal starting value.",
+          "The collector observes the new Player. Confirm the Analytics license and the permitted domain independently of the Player license."
+        ],
+        [
+          "SourceConfig.analytics",
+          "Set nonidentifying test metadata such as videoId, title or customData1 in the SDK editor, then reload the source.",
+          "Use the same values to locate the playback in your Dashboard. SourceConfig.title is display metadata; explicitly set source Analytics metadata for the comparison."
+        ],
+        [
+          "Events / local QoE",
+          "Inspect Events and callbacks, the event log and the local QoE panel during playback.",
+          "These explain the current browser session. They do not establish Dashboard receipt and can use different metric definitions from the collector."
+        ]
+      ],
+      "widths": [
+        0.25,
+        0.41,
+        0.34
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        "For your own collection, configure a dedicated Analytics license and permit your Web app’s domain. To inspect results, use a Dashboard account with access to that license. The public Player Lab demo does not grant access to its destination account.",
+        "Apply PlayerConfig.analytics, then apply the source metadata and play the source. Note the time, content identifier, browser and settings. In the browser Network tools, inspect collector requests for failures, while retaining the same source and Player for the intended session.",
+        "Open Observability in Bitmovin Dashboard. Select the same Analytics license, a matching period and time zone, then filter by your content identifier or test metadata. Find the corresponding playback in Audience or session details.",
+        "Inspect startup time, rebuffering and errors in that session before comparing aggregate charts. Confirm ingestion in the Dashboard; an app event or an HTTP request alone does not prove the expected session was stored.",
+        "Use the detailed Analytics chapters for metric definitions, queries, visualization and analysis with large language models. Keep time ranges, populations and units consistent. Account API keys belong in a server-side integration, not in PlayerConfig or the public site."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-overview",
+      "caption": "Official Bitmovin demo Dashboard with dummy data. It illustrates license, period and filter selection; the older Analytics label and layout can differ from the current Dashboard. This is not a Player Lab collection result. © Bitmovin."
+    },
+    {
+      "type": "note",
+      "text": "GitHub Pages runs the client collector but has no server endpoint for account-level Analytics queries, so that query panel is hidden. Local development supports the documented server proxy. Keep its account API key server-side. Collection and Dashboard inspection work independently of that query panel."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-qoe-analytics/",
+          "label": "Collection and Dashboard checks"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-metrics/",
+          "label": "Metric definitions"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-queries/",
+          "label": "Analytics queries"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-visualization/",
+          "label": "Visualization"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-ai/",
+          "label": "LLM and MCP analysis"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 478,
+      "label": "Source loading and Player construction"
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 255,
+      "label": "Runtime and initial configuration controls"
+    },
+    {
+      "path": "apps/web/src/sources.ts",
+      "line": 73,
+      "label": "Source presets and feature media"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 108,
+      "label": "SDK editor configuration and runtime APIs"
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 110,
+      "label": "UI creation and theme factories"
+    },
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 23,
+      "label": "Local Analytics query panel"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerConfig.html",
+      "label": "PlayerConfig reference"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfig.html",
+      "label": "SourceConfig reference"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.TweaksConfig.html",
+      "label": "TweaksConfig reference"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerAPI.html",
+      "label": "PlayerAPI reference"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html",
+      "label": "NetworkConfig reference"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html",
+      "label": "UIConfig reference"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-analytics",
+      "label": "Analytics collector and license setup"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlaybackConfig.html",
+      "label": "PlaybackConfig and browser autoplay"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/how-do-i-enable-cors-on-my-web-server-cloud-storage",
+      "label": "Cross-origin resource sharing for streaming"
+    }
+  ]
+}

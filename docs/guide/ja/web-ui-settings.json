@@ -4,6 +4,15 @@
   "lead": "操作パネルのUI設定は、画面部品の挙動を変えます。Player Configの再生設定と区別し、効果の出るテーマや素材を選んで比較します。",
   "blocks": [
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/",
+          "label": "実装ガイド：設定・UI変更・FAQ"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "変更できるUI設定",
       "id": "sixteen-ui-settings"

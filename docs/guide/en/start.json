@@ -1,7 +1,7 @@
 {
   "id": "start",
   "title": "Scope and first steps",
-  "lead": "Use the Web and native apps to try playback features, change Player settings and UI, and inspect the applied code.",
+  "lead": "Try Bitmovin Player features in Player Lab and follow the implementation guide for your platform.",
   "blocks": [
     {
       "type": "p",
@@ -86,6 +86,40 @@
     {
       "type": "p",
       "text": "The guide covers Web and native player features before Analytics and Observability. The Analytics collector sends playback events from the player, and you normally review the collected data in Bitmovin Dashboard. Local QoE readouts describe the current app session. The final chapters explain these differences and show how to inspect collected metrics and analyze them further."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Choose Web, Apple, Android, React Native or Vega OS in the contents. Web operation chapters introduce the screen, sources and UI controls; the other platform sections have their own screen and controls chapter.",
+        "Open the implementation guide in that same platform section. Read PlayerConfig / SourceConfig when changing playback or source settings, and UI customization when changing the displayed controls.",
+        "Apply a change in the app and inspect the applied code, events and visible result. A draft field is not an applied setting; the guide explains when to reload a source or recreate the Player.",
+        "Use Useful features and FAQ to investigate platform or content differences. After playback works, follow the Analytics section to configure collection and inspect the matching session in Bitmovin Dashboard."
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Web implementation guide"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/",
+          "label": "iOS / iPadOS / tvOS implementation guide"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/",
+          "label": "Android / Android TV / Fire TV implementation guide"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/",
+          "label": "React Native implementation guide"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/",
+          "label": "Vega OS implementation guide"
+        }
+      ]
     }
   ],
   "sources": [

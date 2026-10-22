@@ -1,0 +1,734 @@
+{
+  "id": "android-implementation",
+  "title": "Android implementation guide",
+  "lead": "Adapt PlayerConfig, SourceConfig and the player UI in the existing Kotlin app. Follow each change through the screen, SDK code, observed result and common integration questions. Android TV and Android-based Fire TV use this implementation.",
+  "blocks": [
+    {
+      "type": "h2",
+      "text": "Integrate the Android player",
+      "id": "integration"
+    },
+    {
+      "type": "p",
+      "text": "This chapter follows the existing Kotlin app in apps/android. Android phones and tablets, Android TV, and Android-based Fire TV use that Android app and SDK. Fire TV running Vega OS uses the separate Vega implementation guide. Start with a working on-demand (VOD) source, then change one setting at a time and compare the applied Kotlin code with the observed playback."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/native-android/",
+          "label": "Android setup and screen operations"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Local setup and licenses"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The app uses Bitmovin Player Android 3.171.0+jason. The +jason artifact relocates its Media3 dependency so it can coexist with the advertising dependency used here. Keep Player, UI, Analytics and media-session artifacts on the compatible variant defined in app/build.gradle.kts. SDK means software development kit: here it is the native player library, separate from the app’s Compose settings form. An API is the interface your code calls to configure the SDK, control playback or read state."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Object",
+        "Responsibility",
+        "Where to change it"
+      ],
+      "widths": [
+        0.22,
+        0.34,
+        0.44
+      ],
+      "rows": [
+        [
+          "Player / PlayerConfig",
+          "Playback engine and settings fixed when it is created.",
+          "PlayerSettings.toPlayerConfig and PlayerController.createPlayer."
+        ],
+        [
+          "Source / SourceConfig",
+          "A media item: URL, format, start position, tracks and content protection.",
+          "SourceSettings.toSourceConfig and sourceConfiguration."
+        ],
+        [
+          "PlayerView / PlayerViewConfig",
+          "Video surface and the player’s overlaid controls.",
+          "playerViewConfig, AndroidView and releaseView in MainActivity.kt."
+        ],
+        [
+          "Compose screen",
+          "App buttons, configuration forms, event display and layout outside the player.",
+          "PlayerLabScreen and the separate panel composables."
+        ]
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Create the SDK Player from fresh configuration",
+      "text": "    private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides(), analytics: ApiAnalyticsSettings = apiAnalyticsSettings, callbacks: ApiCallbackContext = apiCallbacks): Player {\n        val prepared = ApiNativeFactories.player(context, overrides.player(settings.toPlayerConfig(licenseKey), callbacks), overrides.values)\n        val result = playerFactory?.invoke(prepared.config) ?: Player(context, prepared.config, analytics.playerConfig(analyticsLicenseKey, callbacks))\n        preparedCompanions = prepared.hosts\n        return result\n    }",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
+        "line": 114,
+        "label": "MainActivity.kt:114–119"
+      },
+      "endLine": 119
+    },
+    {
+      "type": "p",
+      "text": "PlayerController, PlayerSettings, ApiOverrides and ApiNativeFactories are Player Lab helpers, not SDK types. The final Player(context, prepared.config, analytics.playerConfig(...)) call is the SDK constructor. The helpers first build a new PlayerConfig, apply the staged SDK overrides and construct any required native resources. In your own integration, supply those SDK objects before constructing the Player; copying this helper call alone is insufficient without its app-owned definitions."
+    },
+    {
+      "type": "p",
+      "text": "MainActivity creates the controller in onCreate, installs the Compose screen and loads the first catalog source. The controller owns the Player across ordinary Compose recomposition and UI-mode changes; creating a new Player inside every composable render would reset playback and leave extra instances to release. A source load is observed through Source and Player events, rather than treating a load call as proof that playback has started."
+    },
+    {
+      "type": "h2",
+      "text": "PlayerConfig and SourceConfig",
+      "id": "player-source-config"
+    },
+    {
+      "type": "p",
+      "text": "The Configuration panel deliberately separates draft text from applied settings. Use it to find the desired behavior, inspect Show applied code, then trace the corresponding SDK construction below. PlayerDraft and SourceDraft validate and normalize app inputs; the SDK receives PlayerConfig and SourceConfig, not those draft classes."
+    },
+    {
+      "type": "code",
+      "title": "Construct PlayerConfig from the standard form",
+      "text": "    fun toPlayerConfig(licenseKey: String) = PlayerConfig(\n        key = licenseKey,\n        playbackConfig = PlaybackConfig(\n            isAutoplayEnabled = autoplay, isMuted = muted, isTimeShiftEnabled = timeShift,\n            preferredAudioLanguages = preferredAudioLanguages.toList(),\n        ),\n        bufferConfig = BufferConfig(\n            audioAndVideo = BufferMediaTypeConfig(forwardDuration),\n            startupThreshold = startupThreshold, restartThreshold = restartThreshold,\n        ),\n        adaptationConfig = AdaptationConfig(\n            maxSelectableVideoBitrate = maxVideoBitrate, preload = preload,\n            isRebufferingAllowed = rebuffering, qualityStabilityBalance = qualityStabilityBalance,\n        ),\n        networkConfig = NetworkConfig(\n            retryHttpRequestConfig = httpRetryDelays?.let { RetryHttpRequestConfig.Retry(it.toList()) }\n                ?: RetryHttpRequestConfig.LinearIncreasingBackoffRetry,\n        ),\n    )",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+        "line": 145,
+        "label": "Configuration.kt:145–163"
+      },
+      "endLine": 163
+    },
+    {
+      "type": "p",
+      "text": "PlaybackConfig sets startup autoplay, mute and player-wide audio-language priority. BufferConfig sets buffered media targets. AdaptationConfig controls automatic quality selection and preloading. NetworkConfig supplies the retry policy. These nested SDK settings are fixed when the Player is created: do not mutate an existing PlayerConfig to change an active player. Use the runtime API for an immediate action, or build a new Player when changing creation-time configuration."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Setting to try",
+        "SDK mapping",
+        "How to apply and verify"
+      ],
+      "widths": [
+        0.22,
+        0.34,
+        0.44
+      ],
+      "rows": [
+        [
+          "Autoplay off; Start muted on",
+          "PlaybackConfig.isAutoplayEnabled / isMuted",
+          "Apply & restart player. Playback waits for Play and starts muted."
+        ],
+        [
+          "Startup 1 s; Restart 2 s; Forward 10 s",
+          "BufferConfig.startupThreshold / restartThreshold; BufferMediaTypeConfig.forwardDuration",
+          "Apply & restart player. Compare the applied config and loading/stall behavior using the same source."
+        ],
+        [
+          "Maximum automatic video bitrate 1500000 bits per second",
+          "AdaptationConfig.maxSelectableVideoBitrate",
+          "Recreate, use automatic quality on a source with several bitrates, then inspect selected quality."
+        ],
+        [
+          "Player audio priority: de, en",
+          "PlaybackConfig.preferredAudioLanguages",
+          "Recreate. Inspect the chosen track on a source containing those languages; source priority can override it."
+        ],
+        [
+          "HTTP retry delays: 0, 0.25, 2 s",
+          "RetryHttpRequestConfig.Retry",
+          "Recreate. This allows a retry for each delay; a successful request does not exercise the retry path."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Startup and restart thresholds are seconds of buffered media, not a promise to start after that many wall-clock seconds. The standard editor requires each threshold to be at most the forward buffer minus 0.5 seconds. A smaller forward buffer can reduce retained media, but also leaves less room for network variation; memory use additionally depends on bitrate and the decoder. The automatic bitrate cap does not remove higher qualities from manual selection. qualityStabilityBalance affects playback near the live edge: values toward 1 favor stability and values toward 0 favor quality. Bitrate values use bits per second (bps)."
+    },
+    {
+      "type": "figure",
+      "file": "android-player-settings",
+      "caption": "The Android Configuration panel. The audio-priority and buffer fields become PlaybackConfig and BufferConfig values when Apply & restart player is used. The picture illustrates a saved screen state, not recommended defaults."
+    },
+    {
+      "type": "code",
+      "title": "Build a new SourceConfig for each load",
+      "text": "    fun toSourceConfig(): SourceConfig {\n        val config = if (!useLegacyMediaSource) SourceConfig(url, type) else when (type) {\n            SourceType.Hls -> SourceConfig(com.bitmovin.player.api.source.HLSSource(url))\n            SourceType.Dash -> SourceConfig(com.bitmovin.player.api.source.DASHSource(url))\n            SourceType.Smooth -> SourceConfig(com.bitmovin.player.api.source.SmoothSource(url))\n            SourceType.Progressive -> SourceConfig(com.bitmovin.player.api.source.ProgressiveSource(url))\n        }\n        return config.apply {\n            title = this@SourceSettings.title.ifBlank { null }\n            posterSource = posterUrl.ifBlank { null }; isPosterPersistent = posterPersistent\n            options = SourceOptions(startOffset, offsetReference)\n            liveConfig = liveTargetLatency?.let { SourceLiveConfig(targetLatency = it) }\n            preferredAudioLanguages = this@SourceSettings.preferredAudioLanguages.toList()\n            subtitleTracks = externalSubtitle?.let { listOf(it.toSubtitleTrack()) } ?: emptyList()\n        }\n    }",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+        "line": 47,
+        "label": "Configuration.kt:47–62"
+      },
+      "endLine": 62
+    },
+    {
+      "type": "p",
+      "text": "The normal path is SourceConfig(url, type). The alternative constructors in the excerpt support the app’s legacy MediaSource comparison and are not necessary for a new integration. SourceSettings adds title, poster, start options, live latency, preferred audio and one external WebVTT subtitle track. WebVTT is a text subtitle format with timed cues. Blank optional fields leave the corresponding SDK option unset."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Source setting",
+        "SDK mapping",
+        "What to check after reload"
+      ],
+      "widths": [
+        0.22,
+        0.34,
+        0.44
+      ],
+      "rows": [
+        [
+          "URL and format",
+          "SourceConfig(url, SourceType)",
+          "Choose the actual manifest/container type. A title or file extension alone does not convert the media format."
+        ],
+        [
+          "Start offset: 5 s; reference: Start",
+          "SourceOptions(startOffset, startOffsetTimelineReference)",
+          "On VOD, compare the first playback position. SDK-default uses the start for VOD and end for live; out-of-range offsets are corrected."
+        ],
+        [
+          "Source audio priority: en, de",
+          "SourceConfig.preferredAudioLanguages",
+          "A nonempty source list takes precedence over the player list. No matching track leaves SDK selection."
+        ],
+        [
+          "External subtitle URL, label and language",
+          "SourceConfig.subtitleTracks with SubtitleTrack",
+          "Reload, then enable the track in the player subtitle menu. isDefault metadata alone does not enable subtitles."
+        ],
+        [
+          "Live target latency",
+          "SourceLiveConfig.targetLatency",
+          "Use a live source. It changes the SDK live-edge target; VOD ignores it and the value is not a guaranteed end-to-end latency."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "SourceConfig describes the media; Source is the SDK’s media-item object. After applying source overrides, loadCurrentSource constructs Source instances and registers their events. The excerpts show the SDK construction and load calls: owner is the current Player, and only an explicit playlist override uses PlaylistConfig. Loading a new Source does not itself require a new Player."
+    },
+    {
+      "type": "code",
+      "title": "Create SDK Source objects",
+      "text": "        val sourceConfigs = configs ?: sourceConfigurations(callbacks = callbacks)\n        val sources = sourceConfigs.map { sourceConfig -> sourceFactory?.invoke(sourceConfig)\n            ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), mediaSessionConfig = apiOverrides.mediaSession()) }",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
+        "line": 533,
+        "label": "MainActivity.kt:533–535"
+      },
+      "endLine": 535
+    },
+    {
+      "type": "code",
+      "title": "Load a single source or configured playlist",
+      "text": "        if (offlinePlayback == null && ApiCollectionSettings.PLAYLIST in apiOverrides.values)\n            owner.load(com.bitmovin.player.api.playlist.PlaylistConfig(sources, apiOverrides.playlistOptions()))\n        else owner.load(sources.single())",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
+        "line": 546,
+        "label": "MainActivity.kt:546–548"
+      },
+      "endLine": 548
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Apply source (reload) builds the source again and loads it into the current Player. It does not apply unapplied player drafts.",
+        "Apply & restart player creates a replacement Player and reloads the applied source, including metadata and start offset. It retains the selected UI and app rewind preference, but does not promise to retain the old playback position.",
+        "Reset source draft restores the applied source. Reset player draft restores the standard defaults. Neither action applies a change. Selecting a catalog preset replaces the source draft and clears custom source metadata/options.",
+        "Open Show applied code for the standard PlayerConfig, SourceConfig and PlayerViewConfig. Read the separate Applied SDK override code when using SDK API settings; the standard code display alone is not the complete set of advanced overrides."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "android-applied-code",
+      "caption": "Applied Kotlin code from the standard editor. The actual license is replaced with a placeholder. Additional SDK overrides have their own code display."
+    },
+    {
+      "type": "p",
+      "text": "For other fields, open SDK API settings, search the public SDK name, edit the typed value and select Use this override. Apply SDK settings and restart constructs fresh objects with those overrides; a staged value alone does nothing. Overrides take precedence over the standard form. Remove this override and Apply to return to the standard value or SDK default. List fields such as SourceConfig.subtitleTracks and PlaylistConfig.sources are edited as collections with child fields, rather than pasted Kotlin."
+    },
+    {
+      "type": "p",
+      "text": "SDK callbacks are functions, not text configuration values. The Lab lets you enter a JavaScript body for supported callbacks and adapts its plain input/output values to the SDK callback. For example, LabelingConfig.videoQualityLabeler can return a label using the provided height and bitrate. Apply it, open the quality menu, then Refresh callback outcomes to inspect calls and fallbacks. The interpreter has execution budgets and no direct Android or Player object access; it is an app helper, not the SDK’s own JavaScript callback API."
+    },
+    {
+      "type": "h2",
+      "text": "Change the player UI and screen layout",
+      "id": "ui-customization"
+    },
+    {
+      "type": "p",
+      "text": "The app has two UI layers. PlayerView renders native video and hosts the SDK’s HTML/JavaScript controls in a WebView, an Android view for web content. Compose renders the outer settings, source buttons and SDK controls. Editing Compose typography changes the outer form; it does not change the HTML player’s fonts. Editing the shared player CSS changes the overlaid controls; it does not change Compose buttons."
+    },
+    {
+      "type": "code",
+      "title": "Choose the SDK default UI or a bundled custom factory",
+      "text": "private fun playerViewConfig(mode: UiMode): PlayerViewConfig =\n    if (mode.factoryFunction == null) {\n        PlayerViewConfig()\n    } else {\n        PlayerViewConfig(\n            uiConfig = UiConfig.WebUi(\n                jsLocation = \"file:///android_asset/bitmovinplayer-ui.js\",\n                cssLocation = \"file:///android_asset/bitmovinplayer-ui.css\",\n                variant = UiConfig.WebUi.Variant.Custom(mode.factoryFunction),\n            ),\n        )\n    }",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
+        "line": 77,
+        "label": "MainActivity.kt:77–88"
+      },
+      "endLine": 88
+    },
+    {
+      "type": "p",
+      "text": "The UI picker passes Default, Sports, Live or Cinema to this helper. Default leaves PlayerViewConfig at its SDK defaults. Custom modes load the built JavaScript/CSS from the APK’s assets and call the registered factory name. The native app does not expose every Web theme in its picker. To add a reusable layout, change the component tree in packages/ui-shared/src/liveUi.ts, register its factory in global.ts and add the corresponding UiMode entry or select its registered name through SDK API settings."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Change",
+        "Where / how",
+        "Expected result"
+      ],
+      "widths": [
+        0.22,
+        0.34,
+        0.44
+      ],
+      "rows": [
+        [
+          "Colors and fonts",
+          "Keep the base CSS and set UiConfig.WebUi.supplementalCssLocation to an additional CSS asset.",
+          "Inspect the overlaid controls; the Compose form is unchanged. Include the CSS in the APK."
+        ],
+        [
+          "Buttons and their order",
+          "Edit the shared factory’s components array and its CSS classes, then rebuild the shared UI.",
+          "Switch to that custom UI. A CSS change alone does not create a new functional control."
+        ],
+        [
+          "Extra UI options",
+          "Use UiConfig.WebUi.customOptions for serialized UIConfig options. The separate UiConfig.WebUi.playbackSpeedSelectionEnabled property controls speed choices.",
+          "Check that the selected factory supports the option and that the menu changes."
+        ],
+        [
+          "Hide overlaid controls",
+          "Run PlayerView.isUiVisible with visible=false in SDK API controls.",
+          "Controls hide immediately. Restore true; the app’s outer Compose controls remain available."
+        ],
+        [
+          "Scale video inside its bounds",
+          "Use PlayerViewConfig.scalingMode at view creation, or runtime PlayerView.scalingMode.",
+          "Fit preserves the whole image; choose other supported modes to compare cropping or stretching."
+        ],
+        [
+          "Change player bounds",
+          "Edit the AndroidView modifier in PlayerLabScreen; the regular view uses full width and 220.dp height.",
+          "Confirm bounds and input after resizing. Video scaling and surrounding form layout are separate choices."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Use SDK API settings for PlayerViewConfig.uiConfig and UiConfig.WebUi fields. Stage only one variant choice: the standard TvUi/SmallScreenUi field and the custom factory field are mutually exclusive. To disable the Web UI with UiConfig.Disabled, first remove staged WebUi field overrides; then apply. This changes the view configuration, while the app’s general Apply SDK settings action also recreates the Player. If you implement Compose-only transport controls, wire them to Player.play/pause/seek and subscribe to playback state; disabling the Web UI does not create those controls automatically."
+    },
+    {
+      "type": "code",
+      "title": "Embed PlayerView in the existing Compose screen",
+      "text": "        } else key(displayedPlayer, uiMode, controller.apiViewRevision) {\n            AndroidView(\n                factory = { context ->\n                    PlayerTouchHost(context,\n                        controller.attachView(PlayerView(context, displayedPlayer, controller.apiOverrides.view(playerViewConfig(uiMode)))))\n                },\n                // Detach the shared player BEFORE releasing the view: PlayerView.onDestroy()\n                // destroys its attached player, but `controller` owns the player's lifecycle\n                // (it persists across UI-mode switches and is destroyed in onDestroy/release).\n                onRelease = { host ->\n                    host.releaseTouchOwnership()\n                    controller.releaseView(host.content as PlayerView)\n                },\n                modifier = if (videoOnly) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(220.dp),\n            )",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
+        "line": 762,
+        "label": "MainActivity.kt:762–776"
+      },
+      "endLine": 776
+    },
+    {
+      "type": "p",
+      "text": "AndroidView is the bridge from Compose to a conventional Android View. The key contains the Player instance, selected UI and view revision: changing them creates a new PlayerView, while changing UI mode alone keeps the Player. PlayerTouchHost keeps player-menu swipes from being taken by the outer scrolling form. A surrounding scroll container in your own app needs the same deliberate treatment of player touches."
+    },
+    {
+      "type": "code",
+      "text": "pnpm --filter @showcase/ui-shared build\nbash scripts/sync-webui-bundle.sh\ncd apps/android\n./gradlew :app:assembleDebug"
+    },
+    {
+      "type": "p",
+      "text": "Run these commands from the repository root after changing the shared UI, then install the rebuilt APK. The synchronization step copies built assets; changing source files without building and reinstalling leaves the old UI in the app. For a CSS-only experiment, supplementalCssLocation adds to the base CSS, whereas cssLocation replaces the stylesheet entry point."
+    },
+    {
+      "type": "note",
+      "title": "Android TV and Android-based Fire TV",
+      "text": "The Manifest includes LEANBACK_LAUNCHER and does not require a touchscreen, so the same app can appear in the TV launcher. It does not automatically choose a dedicated TV screen or establish remote-control usability. To compare the SDK’s TV controls, stage UiConfig.WebUi.variant = TvUi; review focusUiOnInitialization, remove a custom-factory override and apply. Check directional focus, Select, Back, scrolling and playback on the intended TV. The screenshots here show the Android app’s existing settings, not a certified TV layout. Google Play services-dependent options, such as the selected Cronet provider, must not be assumed available on Fire TV."
+    },
+    {
+      "type": "h2",
+      "text": "Playback features, events and lifecycle",
+      "id": "useful-features"
+    },
+    {
+      "type": "p",
+      "text": "Use SDK API controls to separate commands from observations. Commands calls the selected SDK method on the current Player, Source or attached PlayerView. State reads actual SDK values when Refresh SDK state is pressed. Events records counts and the latest SDK timestamps. A command-submission result is not a playback completion event."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "For an immediate seek, choose Player.seek in Commands, enter a time such as 5 seconds and Run SDK API.",
+        "Open State, search Player.currentTime and Refresh SDK state. Check the actual time after the seek, then inspect the relevant seeking/playing events.",
+        "For track or quality changes, inspect the available SDK track IDs first, pass one of those IDs to the matching command and read the selected track/quality again. Input alone cannot add a rendition the media does not contain."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "android-api-state",
+      "caption": "SDK State reads the actual currentTime after a seek. Refresh is a point-in-time read, separate from submitting the command."
+    },
+    {
+      "type": "code",
+      "title": "Register and remove the same guarded SDK listener",
+      "text": "    private fun <E : Event> onPlayer(type: KClass<E>, action: (E) -> Unit) {\n        val owner = player\n        val generation = playerGeneration\n        val guarded: (E) -> Unit = { if (!released && player === owner && generation == playerGeneration) action(it) }\n        owner.on(type, guarded)\n        playerSubscriptions += { owner.off(type, guarded) }\n    }",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
+        "line": 609,
+        "label": "MainActivity.kt:609–615"
+      },
+      "endLine": 615
+    },
+    {
+      "type": "p",
+      "text": "The helper subscribes with owner.on(type, guarded) and retains the same guarded function for owner.off. It also checks that the event belongs to the current Player and generation, so a retired Player cannot update the replacement screen. Source events are observed on Source; view subscriptions are for PlayerView UI events such as fullscreen. In a new integration, retain listener identity for removal and release subscriptions with their owner."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Feature",
+        "Current implementation",
+        "How to try and verify"
+      ],
+      "widths": [
+        0.22,
+        0.34,
+        0.44
+      ],
+      "rows": [
+        [
+          "Audio and subtitles",
+          "Language lists and external WebVTT in Configuration; track methods in SDK controls.",
+          "Use matching content. Reload source preferences, then enable subtitles or choose tracks in the player menu."
+        ],
+        [
+          "Live rewind",
+          "Player.timeShift, maxTimeShift and the app’s window clamping.",
+          "Use a live source with an available window. Compare timeShift/TimeShifted and return to live with timeShift(0.0)."
+        ],
+        [
+          "Fullscreen and picture-in-picture",
+          "Host handlers, video-only Compose layout and Activity mode forwarding.",
+          "Install the matching handler in SDK controls, then enter/exit. Back returns from fullscreen; PiP depends on OS/device support."
+        ],
+        [
+          "Android media controls",
+          "A real MediaSession bound to the current Player.",
+          "Enable Android media session, inspect app:media-session state, then test available system controls. Release it when finished."
+        ],
+        [
+          "Offline playback",
+          "SDK manager, track actions and loading the manager’s OfflineSourceConfig.",
+          "Create a manager, fetch/select download options, process them, wait for completion, then play downloaded source without networking."
+        ],
+        [
+          "Playlists, advertising, content protection and Cast",
+          "Typed SDK configuration and commands are available in the advanced panels.",
+          "Provide matching playlist/ad/DRM inputs or a configured Cast receiver. Inspect SDK events and actual playback, not just command success."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "PiP means picture-in-picture: the OS displays the video in a small window above other apps. The Manifest enables it and MainActivity forwards onPictureInPictureModeChanged to the active views. The handler does not make PiP available on every OS or TV. MediaSession connects the player to Android’s system media-control service; it is separate from remote casting. For protected offline content, the source’s license permissions and the SDK download/license state still determine whether playback is possible."
+    },
+    {
+      "type": "figure",
+      "file": "android-offline-tracks",
+      "caption": "Offline controls with an audio track selected for download. This image shows track selection; completion and playback without networking are separate checks."
+    },
+    {
+      "type": "p",
+      "text": "Treat the Activity, PlayerView and Player as separate lifetimes. attachView forwards the Activity’s start, resume, pause and stop through PlayerViewLifecycle. The observer catches up a new view when the Activity is already resumed. Remove that observer before retiring a view. MainActivity.onDestroy calls controller.release to unsubscribe, release offline/media-session resources and destroy the Player. Do not replace this with repeatedly constructing the Player on resume."
+    },
+    {
+      "type": "code",
+      "title": "Detach the shared Player before retiring its view",
+      "text": "    internal fun releaseView(view: PlayerView) {\n        if (!views.remove(view)) return\n        retireApiViewSubscriptions(view)\n        retireApiViewHandlers(view)\n        apiSurfaces.clear(view)\n        if (apiDetachedView === view) apiDetachedView = null\n        viewLifecycle.detach(view)\n        view.player = null\n        view.onDestroy()\n    }",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
+        "line": 623,
+        "label": "MainActivity.kt:623–632"
+      },
+      "endLine": 632
+    },
+    {
+      "type": "p",
+      "text": "PlayerController owns the Player, so releaseView sets view.player = null before view.onDestroy(). Otherwise retiring a view can also destroy the Player it still holds. This ordering is why changing the app’s UI mode can preserve playback. Controller release is idempotent and ultimately calls player.destroy(); keep the same ownership rule when adding fullscreen surfaces or other hosts."
+    },
+    {
+      "type": "h2",
+      "text": "Useful details and FAQ",
+      "id": "faq"
+    },
+    {
+      "type": "note",
+      "title": "Why did Apply not change the value I see?",
+      "text": "First check which Apply action was used and whether validation succeeded. Player and source drafts are independent. SDK API overrides take precedence over the standard form, and staging Use this override still requires Apply SDK settings and restart. Compare the standard applied code and the separate applied override code. A startup-only setting, such as SDK debug logging, shows a saved next-launch value; fully stop and reopen the app to activate it."
+    },
+    {
+      "type": "note",
+      "title": "Why did my playback position reset?",
+      "text": "Applying player or advanced SDK settings recreates the Player and reloads the source’s configured start offset. That path intentionally does not resume the old position. A UI-picker change alone replaces PlayerView while keeping the Player. If your integration loses playback during a view-only change, verify that it detaches the shared Player before destroying the old view and does not recreate Player during ordinary recomposition."
+    },
+    {
+      "type": "note",
+      "title": "Why is my custom UI missing or unchanged?",
+      "text": "Check the exact globally registered factory name, local asset paths and the applied PlayerViewConfig. Build the shared UI, synchronize its output, rebuild and reinstall the APK. supplementalCssLocation must point to an asset you packaged or a reachable resource; entering its name does not create the file. A factory exported only for Web is not automatically registered for the Android WebView."
+    },
+    {
+      "type": "note",
+      "title": "Why are subtitles off or the requested language absent?",
+      "text": "An external track’s isDefault flag is metadata and does not enable captions. Apply the source, inspect the track list and select the track. Audio priorities can only select languages present in the stream; a nonempty source list overrides the player list. Clear the source list to inherit player preferences. Check the subtitle URL, format and network accessibility before changing the UI."
+    },
+    {
+      "type": "note",
+      "title": "Why does the buffer or bitrate differ from my expectation?",
+      "text": "Buffer values describe media duration, not fixed loading delays or a process-memory limit. Automatic bitrate selection also depends on available renditions and observed conditions. maxSelectableVideoBitrate caps automatic selection, while manual selection can still choose higher qualities. Compare the actual selected quality and stall events with the same content and network before concluding that a config was ignored."
+    },
+    {
+      "type": "note",
+      "title": "Why is a playback event absent from a view subscription?",
+      "text": "PlayerView subscriptions handle view UI events. Observe Playing and seeking events on Player, and source loading/errors on Source. The Events panel records occurrence counts when Record SDK events is enabled; zero means no event was recorded, not that the API was unavailable. State values are refreshed separately."
+    },
+    {
+      "type": "note",
+      "title": "What should I check for license or source errors?",
+      "text": "For player authorization error 1003, verify the installed app’s actual application ID com.playerlab.android and the Player license’s Android allowlist, then synchronize the intended local configuration and rebuild the APK. For source failures, inspect the numeric SourceError and check URL reachability, stream format and content-protection requirements. The standard form accepts HTTP URLs, but the device’s cleartext-network policy can still reject them; prefer HTTPS. Do not infer a licensing cause from every playback error."
+    },
+    {
+      "type": "note",
+      "title": "Why did foregrounding or a TV change the behavior?",
+      "text": "The host forwards lifecycle callbacks, but this does not promise automatic resumption. The recorded phone-emulator check retained a paused state on foreground; use Play if needed. On TV, check focus, remote keys and the selected SDK UI variant separately from phone touch operation. A TV launcher declaration, emulator result or available SDK command does not establish physical-TV or Cast receiver playback."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/native-android/",
+          "label": "Android operation guide: complete field and offline workflow"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/troubleshooting/",
+          "label": "Troubleshooting"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/test-results/",
+          "label": "Recorded test results and environment scope"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Analytics / Observability",
+      "id": "analytics-observability"
+    },
+    {
+      "type": "p",
+      "text": "After Player and source behavior is working, configure the bundled Analytics collector to send playback events to your Bitmovin account. The Analytics license is separate from the Player license. The Android build reads its configured Analytics license through the manifest; an empty build key disables the default collector. An account API key is not an Analytics collection license and should not be placed in the app."
+    },
+    {
+      "type": "p",
+      "text": "ApiAnalyticsSettings.playerConfig creates AnalyticsConfig and returns AnalyticsPlayerConfig.Enabled with DefaultMetadata, or Disabled. The SDK Player constructor shown earlier receives that value. The Analytics settings panel exposes Build key, Deferred license and Disabled modes; Apply Analytics settings and restart player recreates the player. With no override, Deferred license passes the SDK’s DEFERRED marker: the SDK fetches the Analytics license associated with the Player license, if one is enabled. It does not mean that the app has already confirmed data collection. Inspect the collector state and the matching Dashboard session."
+    },
+    {
+      "type": "code",
+      "title": "Attach content metadata through the Analytics SDK type",
+      "text": "internal fun analyticsSourceMetadata(values: Map<String, String>): SourceMetadata {\n    validateAnalyticsMetadata(values, analyticsSourceKeys)\n    return SourceMetadata(\n        title = values[\"title\"], videoId = values[\"videoId\"], cdnProvider = values[\"cdnProvider\"],\n        path = values[\"path\"], isLive = values[\"isLive\"]?.toBooleanStrict(),\n        customData = analyticsCustomData(values.filterKeys { it in analyticsCustomKeys }),\n    )\n}",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalytics.kt",
+        "line": 230,
+        "label": "ApiAnalytics.kt:230–237"
+      },
+      "endLine": 237
+    },
+    {
+      "type": "p",
+      "text": "The app passes this SourceMetadata through AnalyticsSourceConfig.Enabled when creating each SDK Source. Set a stable videoId and a useful title before playback to find the content in Dashboard. Default metadata supports cdnProvider and customUserId; source metadata adds title, videoId, cdnProvider, path and isLive. Both support customData fields and experimentName. These are collector metadata, distinct from SourceConfig.title used by the player UI. Use test identifiers without personal or confidential data."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Apply the Analytics license/mode and metadata, play a source and record the time, content identifier, app version and device.",
+        "Open Bitmovin Dashboard → Observability, select the matching Analytics license and a period containing the playback, then filter by content and device. Verify the Dashboard’s time zone.",
+        "Find the corresponding session and inspect startup, rebuffering, errors and playback information. Match session timing with the app’s SDK events. A local event count or enabled collector alone does not confirm Dashboard receipt.",
+        "For before/after comparisons, keep content, network, device, metric definition and filter scope consistent. Use the linked metric, query and visualization chapters for aggregated results."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-overview",
+      "caption": "Official Bitmovin demo Dashboard with dummy data. Use the license, period and filters to locate collected sessions; labels may differ in the current Dashboard. This is not a Player Lab collection result. © Bitmovin."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://dashboard.bitmovin.com/",
+          "label": "Open Bitmovin Dashboard"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-metrics/",
+          "label": "Metric definitions and collection scope"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-queries/",
+          "label": "Query collected Analytics data"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-visualization/",
+          "label": "Visualize and compare results"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-ai/",
+          "label": "Analyze with LLMs and MCP"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
+      "line": 77,
+      "label": "Player creation, view host, source load and lifecycle"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
+      "line": 34,
+      "label": "Standard PlayerConfig and SourceConfig construction"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiSettings.kt",
+      "line": 846,
+      "label": "Typed PlayerView and Web UI overrides"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiConfigurationPanel.kt",
+      "line": 19,
+      "label": "Staging, applying and removing SDK overrides"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiRuntime.kt",
+      "line": 133,
+      "label": "Runtime view visibility and scaling commands"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAdditionalRuntime.kt",
+      "line": 15,
+      "label": "MediaSession and view host commands"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt",
+      "line": 8,
+      "label": "Lifecycle forwarding to the active view"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerTouchHost.kt",
+      "line": 1,
+      "label": "Touch ownership between player and scroll form"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiOfflinePanel.kt",
+      "line": 1,
+      "label": "SDK-managed offline workflow"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalytics.kt",
+      "line": 243,
+      "label": "Analytics collector configuration and metadata"
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 166,
+      "label": "Shared player component trees"
+    },
+    {
+      "path": "packages/ui-shared/src/global.ts",
+      "line": 31,
+      "label": "Factory names registered in the native WebView"
+    },
+    {
+      "path": "scripts/sync-webui-bundle.sh",
+      "line": 15,
+      "label": "Built UI asset synchronization"
+    },
+    {
+      "path": "apps/android/app/src/main/AndroidManifest.xml",
+      "line": 25,
+      "label": "TV launcher and picture-in-picture declarations"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player-config/index.html",
+      "label": "Bitmovin: PlayerConfig creation-time contract"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.source/-source-config/index.html",
+      "label": "Bitmovin: SourceConfig"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.media/-adaptation-config/index.html",
+      "label": "Bitmovin: adaptation and automatic bitrate cap"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-ui-web/com.bitmovin.player.api.ui/-player-view-config/index.html",
+      "label": "Bitmovin: PlayerViewConfig and video surface"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-ui-web/com.bitmovin.player.api.ui/-ui-config/-web-ui/index.html",
+      "label": "Bitmovin: Web UI, supplemental CSS and UI variants"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-ui-web/com.bitmovin.player/-player-view/index.html",
+      "label": "Bitmovin: PlayerView lifecycle and runtime API"
+    },
+    {
+      "url": "https://developer.android.com/develop/ui/compose/migrate/interoperability-apis/views-in-compose",
+      "label": "Android: Views in Compose"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-analytics",
+      "label": "Bitmovin: Analytics setup"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/analytics-dashboard-metrics-reference",
+      "label": "Bitmovin: Dashboard metric definitions"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/is-there-a-sandbox-environment-to-test-bitmovin-analytics",
+      "label": "Bitmovin: official demo Dashboard image"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-analytics/com.bitmovin.player.api.analytics/-analytics-player-config/-enabled/index.html",
+      "label": "Bitmovin: bundled Analytics and deferred license resolution"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiScriptSettings.kt",
+      "line": 175,
+      "label": "Typed label callback and input values"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiRuntimePanel.kt",
+      "line": 19,
+      "label": "Command, state and event display"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt",
+      "line": 20,
+      "label": "Analytics modes, runtime metadata and SDK state"
+    }
+  ]
+}

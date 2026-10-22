@@ -1,8 +1,30 @@
 {
   "id": "web-player-config",
-  "title": "Apply Player Config changes",
-  "lead": "The editor groups settings by how they take effect. First check whether the change applies immediately, reloads the source or recreates the player.",
+  "title": "PlayerConfig / SourceConfig",
+  "lead": "Use PlayerConfig when creating the player, SourceConfig when loading content, and runtime APIs for the active playback. This chapter connects the GUI application modes to their SDK calls and shows how to reuse the settings.",
   "blocks": [
+    {
+      "type": "h2",
+      "id": "configuration-boundaries",
+      "text": "Separate creation settings, source settings and runtime calls"
+    },
+    {
+      "type": "p",
+      "text": "Editing PlayerConfig is different from calling a setter on the active Player. Creation settings must reach the constructor, while content-specific settings reach the next player.load. Use the active instance’s runtime API when that setting supports immediate updates. UIConfig belongs to the Player UI library and is handled separately from the playback engine."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Web integration flow"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-ui-customization/",
+          "label": "UI behavior, skins and component composition"
+        }
+      ]
+    },
     {
       "type": "h2",
       "text": "How changes take effect",
@@ -75,6 +97,59 @@
     {
       "type": "p",
       "text": "Reload and recreation edits remain staged until their respective Apply button is pressed. The button is disabled when there are no changes. A source reload retains the other applied source settings."
+    },
+    {
+      "type": "h2",
+      "id": "stream-urls-and-sidecar-tracks",
+      "text": "Set stream URLs, subtitles and thumbnails"
+    },
+    {
+      "type": "p",
+      "text": "The original Source group compares title, start position and related values. Edit URLs and external tracks through SourceConfig in SDK settings, APIs and events. For an HLS URL, first select VOD HLS, then edit SourceConfig.hls and apply. For DASH, use VOD DASH and SourceConfig.dash. If both formats remain, the actual format depends on the SDK’s playback-technology selection. When needed, pass a complete SourceConfig to PlayerAPI.load with only the intended format."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Property",
+        "Supply",
+        "Inspect"
+      ],
+      "rows": [
+        [
+          "hls / dash",
+          "A playlist or manifest URL. Apply reloads the source.",
+          "Read state → getSource() and the URL fetched in Network. Opening the URL in another tab is not a CORS check."
+        ],
+        [
+          "subtitleTracks",
+          "An array of external tracks with URL, id, lang and other supported fields. Edit the array as a whole.",
+          "Inspect the subtitle menu or subtitles.list, then enable the track. Subtitle timings must match the video timeline."
+        ],
+        [
+          "thumbnailTrack",
+          "A WebVTT thumbnail-index URL; the index identifies images or regions of a sprite.",
+          "Hover over the seek bar. Inspect Network to confirm both the index and referenced images load."
+        ],
+        [
+          "poster / options.persistentPoster",
+          "A preview image and whether it remains visible during playback.",
+          "Check image loading and its appearance when playback begins. persistentPoster can be useful for audio-only content."
+        ],
+        [
+          "drm",
+          "DRM settings matching the encryption system and license service.",
+          "Use matching encrypted media, a supported browser/device and the license service. The bundled unencrypted media cannot verify DRM authorization."
+        ]
+      ],
+      "widths": [
+        0.25,
+        0.35,
+        0.4
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Complete required fields together before applying an object or array in the SDK editor. Selecting a source preset again clears SourceConfig overrides. PlayerConfig settings survive source selection, so inspect both applied configurations when comparing conditions."
     },
     {
       "type": "h2",
@@ -379,6 +454,78 @@
     },
     {
       "type": "h2",
+      "id": "configuration-in-your-app",
+      "text": "Use the configuration in your integration"
+    },
+    {
+      "type": "p",
+      "text": "This adapted example organizes applied values as reusable TypeScript configuration data. It is not a verbatim source excerpt and is checked against the installed SDK types. Replace the URL and Player license. The numbers are comparison inputs, not recommended defaults. Because ui is false, attach a UIManager and load its stylesheet as described in the UI customization chapter."
+    },
+    {
+      "type": "code",
+      "title": "Configuration data example: replace with your media and license",
+      "text": "import type { PlayerConfig, SourceConfig } from \"bitmovin-player\";\n\nexport const playerConfig: PlayerConfig = {\n  key: \"YOUR_PLAYER_KEY\",\n  ui: false,\n  playback: { autoplay: false, muted: true, audioLanguage: \"en\" },\n  adaptation: {\n    desktop: { bitrates: { maxSelectableVideoBitrate: \"500kbps\" } },\n    mobile: { bitrates: { maxSelectableVideoBitrate: \"500kbps\" } },\n  },\n  buffer: {\n    video: { forwardduration: 10 },\n    audio: { forwardduration: 10 },\n  },\n  network: { defaultRequestTimeout: 5 },\n};\n\nexport const sourceConfig: SourceConfig = {\n  hls: \"https://example.com/master.m3u8\",\n  title: \"Configuration comparison\",\n  options: { startOffset: 5 },\n};"
+    },
+    {
+      "type": "p",
+      "text": "Pass playerConfig to your existing new Player(container, playerConfig) call and sourceConfig to player.load(sourceConfig). The initial language, quality, buffer and network conditions belong to creation settings; title and start position belong to the source. For on-demand media, startOffset: 5 uses the default start reference and starts at 5 seconds. When testing a live end reference, also select startOffsetTimelineReference in Source."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "GUI example",
+        "Integration call",
+        "Read back"
+      ],
+      "rows": [
+        [
+          "Player API volume / mute",
+          "player.setVolume(value), mute() / unmute()",
+          "getVolume() / isMuted(). Browser volume and autoplay restrictions can apply."
+        ],
+        [
+          "Adaptation (dynamic)",
+          "player.adaptation.setConfig(config)",
+          "adaptation.getConfig() and the actual rendition. This is separate from initial adaptation.desktop / mobile."
+        ],
+        [
+          "Source title / poster / options",
+          "Pass the changed SourceConfig to player.load",
+          "getSource(), visible title/poster and start position. The source is reloaded."
+        ],
+        [
+          "Playback / Buffer / Network / Tweaks",
+          "Recreate the Player with the changed PlayerConfig",
+          "getConfig() and playback/network behavior. Mutating your configuration object alone does not update an existing Player."
+        ]
+      ],
+      "widths": [
+        0.27,
+        0.34,
+        0.39
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The Web SDK type is TweaksConfig, rather than TweakConfig, and its configuration path is PlayerConfig.tweaks. It includes options with weaker stability guarantees than the regular configuration. Record the reproduction or workaround purpose and SDK version. A listed field does not necessarily take effect for every stream or device."
+    },
+    {
+      "type": "code",
+      "title": "Where this app applies creation and source settings",
+      "text": "  onRecreate: (overrides) => {\n    apiExplorer?.discardPatch(\"PlayerConfig\", overrides);\n    playerOverrides = deepMerge(playerOverrides, overrides);\n    void build();\n  },\n  onReload: (srcOverrides) => {\n    apiExplorer?.discardPatch(\"SourceConfig\", srcOverrides);\n    sourceOverrides = deepMerge(sourceOverrides, srcOverrides);\n    currentSource = deepMerge(sourcePreset, sourceOverrides);\n    if (player) void loadCurrentSource(player).catch((err: unknown) => console.error(\"config reload failed\", err));\n  },",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 637,
+        "label": "apps/web/src/main.ts"
+      },
+      "endLine": 647
+    },
+    {
+      "type": "p",
+      "text": "onRecreate and onReload are Player Lab configuration-panel callbacks, not SDK APIs. The first retains the patch and starts Player recreation; the second combines the source patch with the preset and calls loadCurrentSource. When building your own settings screen, decide the application scope before committing values to the SDK."
+    },
+    {
+      "type": "h2",
       "text": "Restore a setting"
     },
     {
@@ -477,6 +624,19 @@
     {
       "type": "note",
       "text": "License values are replaced or omitted. The export covers this screen’s settings, rather than all SDK options. Use the existing construction example beside the player for the selected UI. Fullscreen and external-display actions still need a user gesture and a supported device."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Web implementation, features and FAQ"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-ui-customization/",
+          "label": "UI customization guide"
+        }
+      ]
     }
   ],
   "sources": [
@@ -582,6 +742,28 @@
       "path": "apps/web/src/api/explorer.ts",
       "line": 270,
       "label": "Explicit event-history reset"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 637,
+      "label": "Player and source application callbacks"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 758,
+      "label": "PlayerConfig construction"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerConfig.html",
+      "label": "PlayerConfig"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfig.html",
+      "label": "SourceConfig"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.TweaksConfig.html",
+      "label": "TweaksConfig"
     }
   ]
 }

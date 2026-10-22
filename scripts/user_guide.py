@@ -4,9 +4,10 @@ import os
 from pathlib import Path
 import stat
 
-from guide_html import (TEXT, anchor, controls_html, esc, field_anchor, legacy_html, page_html, relative,
+from guide_html import (TEXT, anchor, chapter_links, controls_html, esc, field_anchor, legacy_html, page_html, relative,
                         render_block, settings_group, source_url, sources_html, themes_html)
-from guide_routes import CATEGORIES, CHAPTERS, DOCUMENTS, GUIDE_FILES, LANGUAGES, LEGACY_ROUTES, SETTING_GROUPS, THEMES, route_file
+from guide_routes import (CATEGORIES, CHAPTERS, CHAPTER_ORDER, CHILD_CHAPTERS, DOCUMENTS, GUIDE_FILES, IMPLEMENTATION_GUIDES,
+                          LANGUAGES, LEGACY_ROUTES, SETTING_GROUPS, THEMES, route_file)
 from guide_coverage import coverage_pages, validate_coverage
 from coverage_gaps import validate_gaps
 
@@ -100,6 +101,8 @@ def validate_content(content):
             if [block_shape(b) for b in english['blocks']] != [block_shape(b) for b in japanese['blocks']]:
                 raise ValueError('Language editions must preserve the same section structure.')
             for first, second in zip(english['blocks'], japanese['blocks']):
+                if first['type'] == 'h2' and first.get('id') != second.get('id'):
+                    raise ValueError('Translated explicit section bookmarks must match.')
                 if first['type'] == 'code' and first['text'] != second['text']:
                     raise ValueError('Language editions must preserve executable examples.')
                 if first['type'] == 'code':
@@ -161,7 +164,7 @@ def section_ids(document):
 
 
 def pagination(content, language, page, slug):
-    order = list(CHAPTERS)
+    order = list(CHAPTER_ORDER)
     if slug not in order:
         return ''
     index, output = order.index(slug), []
@@ -173,6 +176,8 @@ def pagination(content, language, page, slug):
 
 
 def search_text(block):
+    if block['type'] == 'note':
+        return ' '.join(filter(None, (block.get('title'), block.get('text'))))
     if block['type'] == 'table':
         return ' '.join([*block['headers'], *(cell for row in block['rows'] for cell in row)])
     if block['type'] in {'steps','bullets'}:
@@ -180,6 +185,13 @@ def search_text(block):
     if block['type'] == 'links':
         return ' '.join(item['label'] for item in block['items'])
     return block.get('text') or block.get('caption') or ''
+
+
+def on_page_contents(document, language, headings):
+    label = TEXT[language]['section_contents']
+    links = ''.join(f'<li><a href="#{esc(identifier)}">{esc(document["blocks"][index]["text"])}</a></li>'
+                    for index, identifier in headings.items())
+    return f'<nav class="guide-onpage" aria-label="{label}"><p>{label}</p><ul>{links}</ul></nav>'
 
 
 def build(content, *, coverage=None, gaps=None):
@@ -200,9 +212,13 @@ def build(content, *, coverage=None, gaps=None):
             document, page = documents[slug], route_file(language, slug)
             blocks = ''.join(render_block(block, language, page, headings[slug].get(index, ''))
                              for index, block in enumerate(document['blocks']))
-            body = blocks + sources_html(document.get('sources', []), language)
+            contents = (on_page_contents(document, language, headings[slug])
+                        if slug in IMPLEMENTATION_GUIDES or slug in CHILD_CHAPTERS else '')
+            body = contents + blocks + sources_html(document.get('sources', []), language)
             pages[page] = page_html(documents, language, slug, document['title'], document['lead'], body,
                                     pagination(documents, language, page, slug)).encode()
+            if CHAPTERS[slug] is None:
+                continue
             search.append({'kind':'chapter','title':document['title'],'url':slug+'/',
                            'excerpt':document['lead'],'text':' '.join(search_text(b) for b in document['blocks'])})
             for index, identifier in headings[slug].items():
@@ -249,12 +265,8 @@ def build(content, *, coverage=None, gaps=None):
         groups = []
         for category in CATEGORIES:
             title = labels['web_group'] if category == 'web' else labels[category]
-            entries = [key for key, group in CHAPTERS.items() if group == category]
-            if category == 'reference':
-                entries = ['settings','controls','themes','api-coverage',*entries]
-            links = ''.join(f'<li><a href="{relative(page, route_file(language, key))}">{esc(documents[key]["title"])}</a>'
-                            f'<p>{esc(documents[key]["lead"])}</p></li>' for key in entries)
-            groups.append(f'<section class="guide-topic-group"><h2>{esc(title)}</h2><ul class="guide-topic-list">{links}</ul></section>')
+            links = chapter_links(documents, language, page, category, descriptions=True)
+            groups.append(f'<section class="guide-topic-group"><h2>{esc(title)}</h2><ol class="guide-topic-list">{links}</ol></section>')
         pages[page] = page_html(documents, language, '', labels['guide'], labels['intro'], ''.join(groups)).encode()
         index = ('ja/' if language == 'ja' else '') + 'guide/search-index.json'
         pages[index] = (json.dumps(search, ensure_ascii=False, allow_nan=False, separators=(',', ':'))+'\n').encode()
