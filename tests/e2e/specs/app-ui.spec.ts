@@ -102,6 +102,65 @@ test("@public live wall-clock text becomes hidden when the source becomes VOD", 
 });
 
 for (const language of ["en", "ja"] as const) {
+  test(`@public detailed panels match the existing controls and support keyboard use (${language})`, async ({ page }) => {
+    await page.goto(`${APP}/`);
+    if (language === "en") await page.getByRole("button", { name: "English", exact: true }).click();
+    const applied = page.locator(".config-code");
+    await applied.locator("summary").focus();
+    await applied.locator("summary").press("Enter");
+    await expect(applied).toHaveAttribute("open", "");
+    await expect(applied.locator("textarea")).toBeVisible();
+    await expect(applied.locator("textarea")).toHaveAttribute("readonly", "");
+
+    const explorer = page.locator(".api-explorer");
+    await explorer.locator("summary").focus();
+    await explorer.locator("summary").press("Space");
+    await expect(explorer).toHaveAttribute("open", "");
+    const search = explorer.locator('input[type="search"]');
+    await expect(search).toBeVisible();
+    await search.fill("SourceConfig.title");
+    await explorer.locator("select[size]").selectOption("SourceConfig.title");
+
+    const style = async (selector: string, properties: string[]) => page.locator(selector).first().evaluate((element, properties) => {
+      const style = getComputedStyle(element);
+      return properties.map(property => style.getPropertyValue(property));
+    }, properties);
+    const summaryProperties = ["font-family", "font-size", "font-weight", "line-height"];
+    const summaryStyle = await style(".config-group > summary", summaryProperties);
+    for (const selector of [".config-code > summary", ".api-explorer > summary"]) {
+      expect(await style(selector, summaryProperties)).toEqual(summaryStyle);
+    }
+    const buttonProperties = ["font-family", "font-size", "color", "border-color", "border-radius", "padding"];
+    const buttonStyle = await style("#control-panel button", buttonProperties);
+    for (const selector of [".config-code button", ".api-explorer button"]) {
+      expect(await style(selector, buttonProperties)).toEqual(buttonStyle);
+    }
+    const inputProperties = ["font-family", "font-size", "border-color", "border-radius"];
+    expect(await style('.api-explorer input[type="search"]', inputProperties)).toEqual(
+      await style('#config-panel input:not([type="checkbox"])', inputProperties),
+    );
+    const codeProperties = ["font-family", "font-size", "line-height", "background-color"];
+    expect(await style(".config-code textarea", codeProperties)).toEqual(await style(".theme-diff-code", codeProperties));
+    expect(await style(".api-event-log", codeProperties)).toEqual(await style(".panel-log", codeProperties));
+
+    for (const width of [320, 390, 768, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await search.focus();
+      await expect(search).toBeFocused();
+      expect(await search.evaluate(element => getComputedStyle(element).outlineStyle)).not.toBe("none");
+      await search.press("Tab");
+      await expect(explorer.locator(".api-explorer-list > select").first()).toBeFocused();
+      const layout = await page.evaluate(() => {
+        const code = document.querySelector(".config-code textarea")!.getBoundingClientRect();
+        return { width: document.documentElement.clientWidth, content: document.documentElement.scrollWidth,
+          codeLeft: code.left, codeRight: code.right };
+      });
+      expect(layout.content, `document overflows at ${width}px`).toBeLessThanOrEqual(layout.width);
+      expect(layout.codeLeft).toBeGreaterThanOrEqual(0);
+      expect(layout.codeRight).toBeLessThanOrEqual(layout.width);
+    }
+  });
+
   test(`@public construction code and applied UI settings remain readable across widths (${language})`, async ({ page }) => {
     await page.goto(`${APP}/`);
     if (language === "en") await page.getByRole("button", { name: "English", exact: true }).click();
