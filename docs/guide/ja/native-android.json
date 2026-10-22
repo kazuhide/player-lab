@@ -297,39 +297,39 @@
   "sources": [
     {
       "label": "ビルドとライセンス",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/README.md"
+      "path": "apps/android/README.md"
     },
     {
       "label": "SDK・Java・application ID・ライセンス優先度",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/build.gradle.kts"
+      "path": "apps/android/app/build.gradle.kts"
     },
     {
       "label": "実画面と PlayerView の再生成",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt"
     },
     {
       "label": "オフライン補助クラス",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt"
     },
     {
       "label": "通常端末・TV のランチャー宣言",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/AndroidManifest.xml"
+      "path": "apps/android/app/src/main/AndroidManifest.xml"
     },
     {
       "label": "公開参照ソースのカタログ",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt"
     },
     {
       "label": "設定エディター",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt"
     },
     {
       "label": "ソース・Player 設定の検証と変換",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt"
     },
     {
       "label": "ビューの lifecycle 所有権",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt"
     },
     {
       "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player/is-stalled.html",
@@ -349,30 +349,30 @@
     },
     {
       "label": "適用済みSDK設定のコード例",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt"
     },
     {
       "url": "https://developer.android.com/reference/android/view/ViewParent#requestDisallowInterceptTouchEvent(boolean)",
       "label": "Androidのタッチ取り込み制御"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiSettings.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiSettings.kt",
       "label": "ApiSettings.kt"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiRuntimePanel.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiRuntimePanel.kt",
       "label": "ApiRuntimePanel.kt"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiOfflinePanel.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiOfflinePanel.kt",
       "label": "ApiOfflinePanel.kt"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt",
       "label": "ApiAnalyticsPanel.kt"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiVrRenderer.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiVrRenderer.kt",
       "label": "ApiVrRenderer.kt"
     }
   ]

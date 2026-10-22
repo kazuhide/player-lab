@@ -297,39 +297,39 @@
   "sources": [
     {
       "label": "Build and licenses",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/README.md"
+      "path": "apps/android/README.md"
     },
     {
       "label": "SDK, Java, application ID, and license precedence",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/build.gradle.kts"
+      "path": "apps/android/app/build.gradle.kts"
     },
     {
       "label": "Screen implementation and PlayerView recreation",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt"
     },
     {
       "label": "Offline helper class",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt"
     },
     {
       "label": "Phone and TV launcher declarations",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/AndroidManifest.xml"
+      "path": "apps/android/app/src/main/AndroidManifest.xml"
     },
     {
       "label": "Public reference source catalog",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt"
     },
     {
       "label": "Configuration editor",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt"
     },
     {
       "label": "Validated source and player settings",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt"
     },
     {
       "label": "View lifecycle ownership",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt"
     },
     {
       "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-player/is-stalled.html",
@@ -349,30 +349,30 @@
     },
     {
       "label": "Applied SDK configuration example",
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt"
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt"
     },
     {
       "url": "https://developer.android.com/reference/android/view/ViewParent#requestDisallowInterceptTouchEvent(boolean)",
       "label": "Android touch interception contract"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiSettings.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiSettings.kt",
       "label": "ApiSettings.kt"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiRuntimePanel.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiRuntimePanel.kt",
       "label": "ApiRuntimePanel.kt"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiOfflinePanel.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiOfflinePanel.kt",
       "label": "ApiOfflinePanel.kt"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt",
       "label": "ApiAnalyticsPanel.kt"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/f99eb97a9ceb58744bc37a19bc6ddf7cf01f57f0/apps/android/app/src/main/kotlin/com/playerlab/android/ApiVrRenderer.kt",
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiVrRenderer.kt",
       "label": "ApiVrRenderer.kt"
     }
   ]
