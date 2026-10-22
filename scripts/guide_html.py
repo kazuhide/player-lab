@@ -18,7 +18,7 @@ TEXT = {
         'sources': 'Sources', 'code': 'Code sample', 'table': 'Reference table',
         'previous': 'Previous', 'next': 'Next', 'overview': 'Guide overview',
         'start': 'Getting started', 'native': 'Native examples', 'analytics': 'Analytics / Observability',
-        'reference': 'Reference', 'web_group': 'Web controls and UI',
+        'reference': 'Reference', 'web_group': 'Web controls and UI', 'implementation': 'Implementation guide',
         'settings': 'Player Config reference', 'controls': 'Controls reference', 'themes': 'Theme reference',
         'control_groups': 'Control groups', 'control_source': 'Source presets',
         'control_seek': 'Playback position', 'control_playback': 'Playback behavior',
@@ -47,7 +47,7 @@ TEXT = {
         'sources': '参照資料', 'code': 'コード例', 'table': '参照表',
         'previous': '前の章', 'next': '次の章', 'overview': 'ガイドの概要',
         'start': '利用の準備', 'native': 'ネイティブ版', 'analytics': 'Analytics / Observability',
-        'reference': 'リファレンス', 'web_group': 'Webの操作とUI',
+        'reference': 'リファレンス', 'web_group': 'Webの操作とUI', 'implementation': '実装ガイド',
         'settings': 'Player Configの設定一覧', 'controls': '操作一覧', 'themes': 'テーマ一覧',
         'control_groups': '操作の分類', 'control_source': 'ソース',
         'control_seek': '再生位置', 'control_playback': '再生動作',
@@ -120,8 +120,16 @@ def render_block(block, language, page, section_id):
     if kind in {'steps', 'bullets'}:
         tag = 'ol' if kind == 'steps' else 'ul'
         return f'<{tag}>' + ''.join(f'<li>{esc(item)}</li>' for item in block['items']) + f'</{tag}>'
+    if kind == 'links':
+        return '<ul>' + ''.join(f'<li><a href="{esc(source_url(item))}">{esc(item["label"])}</a></li>'
+                               for item in block['items']) + '</ul>'
     if kind == 'code':
-        title = f'<figcaption>{esc(block["title"])}</figcaption>' if block.get('title') else ''
+        caption = [esc(block['title'])] if block.get('title') else []
+        if 'source' in block:
+            source = block['source']
+            label = source.get('label') or source.get('path') or source.get('url')
+            caption.append(f'<a href="{esc(source_url(source))}">{esc(label)}</a>')
+        title = '<figcaption>' + ' · '.join(caption) + '</figcaption>' if caption else ''
         return f'<figure class="guide-code">{title}<pre tabindex="0" aria-label="{labels["code"]}"><code>{esc(block["text"])}</code></pre></figure>'
     if kind == 'table':
         head = ''.join(f'<th scope="col">{esc(value)}</th>' for value in block['headers'])

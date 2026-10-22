@@ -98,7 +98,7 @@ class GuideTests(unittest.TestCase):
 
     def test_all_chapters_and_reference_groups_are_public_in_both_languages(self):
         self.assertEqual(set(self.pages), GUIDE_FILES)
-        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 104)
+        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 106)
         for language in ('en', 'ja'):
             fields = [field for group in self.content[language]['settings']['groups'] for field in group['fields']]
             self.assertEqual(len(fields), 144)
@@ -160,6 +160,29 @@ class GuideTests(unittest.TestCase):
             self.assertLess(html.index('native-integrations/'), html.index('web-qoe-analytics/'))
             self.assertLess(html.index('test-results/'), html.index('web-qoe-analytics/'))
             self.assertLess(html.index('analytics-visualization/'), html.index('analytics-queries/'))
+
+    def test_implementation_guide_adds_source_reading_without_replacing_operation_chapters(self):
+        sections = ['web-player', 'web-settings', 'web-ui-events', 'apple-player',
+                    'android-player', 'react-native-player', 'vega-player', 'analytics-observability']
+        for language in ('en', 'ja'):
+            document = self.content[language]['implementation']
+            self.assertEqual([b['id'] for b in document['blocks'] if b['type'] == 'h2'], sections)
+            html = self.pages[route_file(language, 'implementation')].decode()
+            for section in sections:
+                self.assertIn('id="' + section + '"', html)
+            overview = self.pages[route_file(language)].decode()
+            self.assertLess(overview.index('native-integrations/'), overview.index('implementation/'))
+            self.assertLess(overview.index('implementation/'), overview.index('web-qoe-analytics/'))
+            search = json.loads(self.pages[f'{"ja/" if language == "ja" else ""}guide/search-index.json'])
+            for section in sections:
+                self.assertTrue(any(item['url'] == 'implementation/#' + section for item in search))
+            sources = [source.get('url') for source in document['sources']]
+            sources.extend(item.get('url') for block in document['blocks'] if block['type'] == 'links'
+                           for item in block['items'])
+            prefix = 'https://kazuhide.github.io/player-lab/' + ('ja/' if language == 'ja' else '') + 'guide/'
+            for chapter in ('web-player-config', 'web-ui-customization', 'native-apple', 'native-android',
+                            'native-integrations', 'web-qoe-analytics', 'analytics-metrics', 'analytics-ai'):
+                self.assertIn(prefix + chapter + '/', sources)
 
     def test_grouped_controls_keep_every_existing_search_target_and_description(self):
         groups = ('source', 'seek', 'playback', 'ui', 'casting')
@@ -279,6 +302,76 @@ class GuideTests(unittest.TestCase):
         self.assertNotIn('<script>', result)
         result = render_block({'type': 'code', 'text': '<video autoplay>'}, 'en', 'guide/start/index.html', 'section')
         self.assertIn('&lt;video autoplay&gt;', result)
+
+    def test_related_guide_links_are_readable_and_use_the_same_safe_url_rules(self):
+        block = {'type': 'links', 'items': [{'url': 'https://example.test/guide/',
+                                            'label': 'Open <guide>'}]}
+        result = render_block(block, 'en', route_file('en', 'start'), None)
+        self.assertIn('<a href="https://example.test/guide/">Open &lt;guide&gt;</a>', result)
+        block['items'][0]['url'] = 'javascript:alert(1)'
+        with self.assertRaises(ValueError):
+            render_block(block, 'en', route_file('en', 'start'), None)
+
+    def test_code_excerpt_links_to_its_public_source_with_escaped_text(self):
+        block = {'type': 'code', 'title': 'Create <Player>', 'text': '<PlayerView />',
+                 'source': {'path': 'apps/web/src/main.ts', 'line': 803,
+                            'label': 'View <source>'}, 'endLine': 803}
+        result = render_block(block, 'en', route_file('en', 'start'), None)
+        self.assertIn('Create &lt;Player&gt;', result)
+        self.assertIn('View &lt;source&gt;</a>', result)
+        self.assertIn('href="' + source_url(block['source']) + '"', result)
+        self.assertIn('&lt;PlayerView /&gt;', result)
+        block['source'] = {'url': 'javascript:alert(1)', 'label': 'Source'}
+        with self.assertRaises(ValueError):
+            render_block(block, 'en', route_file('en', 'start'), None)
+
+    def test_code_excerpt_translation_preserves_source_and_line_range(self):
+        for mutation in ('line', 'endLine', 'missing'):
+            changed = copy.deepcopy(self.content)
+            for language in ('en', 'ja'):
+                block = next(b for b in changed[language]['local-setup']['blocks'] if b['type'] == 'code')
+                block['source'] = {'path': 'README.md', 'line': 1, 'label': language}
+                block['endLine'] = 1
+                block['text'] = 'One line'
+            translated = next(b for b in changed['ja']['local-setup']['blocks'] if b['type'] == 'code')
+            if mutation == 'line':
+                translated['source']['line'] = 2
+                translated['endLine'] = 2
+            elif mutation == 'endLine':
+                translated['endLine'] = 2
+            else:
+                del translated['source']
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                build(changed)
+
+    def test_code_excerpts_match_the_referenced_repository_lines(self):
+        for chapter, document in self.content['en'].items():
+            for block in document.get('blocks', []):
+                if block['type'] != 'code' or 'source' not in block:
+                    continue
+                source = block['source']
+                with self.subTest(chapter=chapter, source=source):
+                    lines = (ROOT / source['path']).read_text().splitlines()
+                    self.assertEqual(block['text'], '\n'.join(lines[source['line'] - 1:block['endLine']]))
+
+    def test_code_excerpt_rejects_incomplete_or_ambiguous_line_ranges(self):
+        for mutation in ('missing-end', 'reversed', 'boolean-end', 'wrong-length', 'external-url'):
+            changed = copy.deepcopy(self.content)
+            for language in ('en', 'ja'):
+                block = next(b for b in changed[language]['local-setup']['blocks'] if b['type'] == 'code')
+                block.update(text='One line', source={'path': 'README.md', 'line': 2}, endLine=2)
+                if mutation == 'missing-end':
+                    del block['endLine']
+                elif mutation == 'reversed':
+                    block['endLine'] = 1
+                elif mutation == 'boolean-end':
+                    block['endLine'] = True
+                elif mutation == 'wrong-length':
+                    block['endLine'] = 3
+                else:
+                    block['source']['url'] = 'https://example.test/unrelated'
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                build(changed)
 
     def test_sources_reject_script_urls_and_private_or_traversing_paths(self):
         for source in [{'url': 'javascript:alert(1)'}, {'url': 'https://name:password@example.test/doc'},

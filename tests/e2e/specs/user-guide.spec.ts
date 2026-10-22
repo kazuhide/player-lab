@@ -128,6 +128,39 @@ test.afterEach(({ page }) => {
 
 for (const language of languages) {
   test.describe(`user guide (${language})`, () => {
+    test("implementation guide links the current code and ends with Analytics", async ({ page }) => {
+      await page.goto(guidePath(language));
+      await page.locator('.guide-topic-group a[href="implementation/"]').click();
+      await expect(page.locator("main > h1")).toHaveText(content[language].implementation!.title);
+      expect(await page.locator("main > h2:not(#sources)").evaluateAll((headings) =>
+        headings.map((heading) => heading.id))).toEqual([
+        "web-player", "web-settings", "web-ui-events", "apple-player", "android-player",
+        "react-native-player", "vega-player", "analytics-observability",
+      ]);
+      const excerpts = page.locator(".guide-code");
+      expect(await excerpts.count()).toBe(content[language].implementation!.blocks!
+        .filter((block) => block.type === "code").length);
+      for (const excerpt of await excerpts.all()) {
+        await expect(excerpt.locator("figcaption a")).toHaveAttribute("href",
+          /^https:\/\/github\.com\/kazuhide\/player-lab\/blob\/[a-f0-9]{40}\/.+#L[1-9][0-9]*$/);
+        await expect(excerpt.locator("pre")).toHaveAttribute("tabindex", "0");
+      }
+      await page.waitForLoadState("load");
+      await page.evaluate(() => document.fonts.ready);
+      for (const width of [320, 768, 1024, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        await expectNoDocumentOverflow(page);
+      }
+      const images = page.locator(".guide-figure img");
+      for (const image of await images.all()) {
+        await image.scrollIntoViewIfNeeded();
+        await expect.poll(() => image.evaluate((element) =>
+          element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0)).toBe(true);
+      }
+      await excerpts.first().locator("figcaption a").focus();
+      await expect(excerpts.first().locator("figcaption a")).toBeFocused();
+    });
+
     test("API gap reasons open with the keyboard and remain readable on narrow screens", async ({ page }) => {
       await page.goto(guidePath(language, "api-coverage/web-ui"));
       const [api, assessment] = Object.entries(gapAssessments["web-ui"]!)

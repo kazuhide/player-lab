@@ -64,7 +64,7 @@ def block_shape(block):
         if not width or any(len(row) != width for row in block['rows']):
             raise ValueError('A guide table has inconsistent columns.')
         return kind, width, len(block['rows'])
-    if kind in {'steps','bullets'}:
+    if kind in {'steps','bullets','links'}:
         return kind, len(block['items'])
     if kind == 'figure':
         return kind, block['file']
@@ -83,6 +83,18 @@ def validate_content(content):
                 raise ValueError('A guide document is missing its public identity or text.')
             for source in document.get('sources', []):
                 source_url(source)
+            for block in document.get('blocks', []):
+                if block['type'] == 'links':
+                    for item in block['items']:
+                        source_url(item)
+                if block['type'] != 'code' or 'source' not in block:
+                    continue
+                source_url(block['source'])
+                line, end = block['source'].get('line'), block.get('endLine')
+                if ('path' not in block['source'] or 'url' in block['source']
+                        or type(line) is not int or type(end) is not int
+                        or end < line or len(block['text'].splitlines()) != end - line + 1):
+                    raise ValueError('Code excerpts must name their repository source line range.')
         english, japanese = content['en'][name], content['ja'][name]
         if name in CHAPTERS:
             if [block_shape(b) for b in english['blocks']] != [block_shape(b) for b in japanese['blocks']]:
@@ -90,6 +102,11 @@ def validate_content(content):
             for first, second in zip(english['blocks'], japanese['blocks']):
                 if first['type'] == 'code' and first['text'] != second['text']:
                     raise ValueError('Language editions must preserve executable examples.')
+                if first['type'] == 'code':
+                    first_source = source_url(first['source']) if 'source' in first else None
+                    second_source = source_url(second['source']) if 'source' in second else None
+                    if first_source != second_source or first.get('endLine') != second.get('endLine'):
+                        raise ValueError('Translated code excerpts must reference the same source lines.')
     groups = {}
     for language in LANGUAGES:
         groups[language] = content[language]['settings']['groups']
@@ -160,6 +177,8 @@ def search_text(block):
         return ' '.join([*block['headers'], *(cell for row in block['rows'] for cell in row)])
     if block['type'] in {'steps','bullets'}:
         return ' '.join(block['items'])
+    if block['type'] == 'links':
+        return ' '.join(item['label'] for item in block['items'])
     return block.get('text') or block.get('caption') or ''
 
 
