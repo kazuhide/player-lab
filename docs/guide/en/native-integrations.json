@@ -478,12 +478,12 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 77,
+      "line": 78,
       "label": "Screen implementation and UI switching"
     },
     {
       "path": "apps/react-native/src/ConfigurationPanel.tsx",
-      "line": 22,
+      "line": 23,
       "label": "React Native editable fields, units and Apply/Reset"
     },
     {

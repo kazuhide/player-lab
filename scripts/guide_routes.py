@@ -82,6 +82,7 @@ FIGURE_EXTENSIONS = {
         'vega-api-operation',
         'vega-api-volume',
         'vega-api-callback',
+        'rn-ios-code',
         'rn-ios-api-callback',
         'rn-android-api-operation',
         'rn-ios-api-events',
@@ -116,7 +117,7 @@ COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'veg
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = '25ac0a50fb0f5134471a0187ff370a39e58c1e78'
+SOURCE_REVISION = '93c0d0181e859e9cad1d4838097df255c3d3f7e8'
 CONTENT_REVIEW = '2026-10-22'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 
