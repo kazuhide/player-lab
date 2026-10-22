@@ -147,13 +147,13 @@
         ],
         [
           "Offline",
-          "An OfflineManager helper class for Android",
-          "Not connected to the screen. There is no GUI for downloads or offline playback."
+          "Offline inspectors on iOS and Android",
+          "Select tracks, download and load a downloaded source through the inspectors. Media, DRM and platform support determine which paths work; follow the platform chapter and check playback with networking disabled."
         ],
         [
           "Casting / PiP / VR",
-          "SDK support and sample integration are separate",
-          "Do not treat these as verified native GUI or playback features."
+          "Platform-specific API and host integration controls; iOS also has a Google Cast inspector",
+          "Use the platform chapter for supported controls and required media, permissions and devices. An exposed control does not establish receiver playback or physical-device qualification."
         ],
         [
           "TV remote",

@@ -1,0 +1,624 @@
+{
+  "id": "implementation",
+  "title": "実装ガイド",
+  "lead": "現在のPlayer Labのコードを参照し、Playerの生成、設定、UI、イベント、Analyticsの実装を説明します。操作ガイドで同じ機能を試しながら読み進められます。",
+  "blocks": [
+    {
+      "type": "p",
+      "text": "「ローカル実行とライセンス設定」に従って対象のアプリを起動し、ソースや設定を変更して適用します。適用済みのコードとイベントログを確認してから、以下の該当する節を参照してください。コード例はこのリポジトリの実装から抜粋しています。周囲のアプリ側の処理も使っているため、各ソースへのリンクから全体を確認できます。"
+    },
+    {
+      "type": "p",
+      "text": "PlayerConfigはPlayerを生成するときの設定、SourceConfigは読み込むメディアとそのオプションです。Player APIは再生操作や状態の取得に使い、イベントはソースの読み込みや再生開始などの変化を通知します。SDKはアプリが利用するBitmovinのソフトウェア開発キットを指します。設定の型や利用できる機能はプラットフォームによって異なります。詳細は各版の操作ガイドと公開APIリファレンスを参照してください。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Webでは、Playerの生成とソースの読み込みを確認し、設定の変更、UIコンポーネント、イベントの後処理へ進みます。",
+        "ネイティブ版では、Playerを保持する処理と表示用のビューを確認し、適用した設定がソースの読み込みやPlayerの再生成に渡る流れを追います。",
+        "再生を確認した後、最後のAnalytics / Observabilityの節で収集設定を確認し、Bitmovin Dashboardで該当するセッションを調べます。"
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/local-setup/",
+          "label": "操作ガイド：ローカル実行とライセンス設定"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "web-player",
+      "text": "Web Player の生成・読み込み・後処理"
+    },
+    {
+      "type": "p",
+      "text": "既存 Web アプリの apps/web/src/main.ts を起点に読み進めます。以下の抜粋は、このファイルの画面要素、プリセット、共有状態を前提にしています。doBuild() は destroyCurrentPlayer() の完了を待ち、適用済みの PlayerConfig 上書きを重ねてから SDK の new Player() を呼びます。アプリが UI を管理する場合は ui: false とし、applyTheme() で UI を取り付けます。メトリクス、操作パネル、SourceLoaded のハンドラーを登録した後、doBuild() の末尾で loadCurrentSource() を呼ぶため、最初のソースイベントも受け取れます。"
+    },
+    {
+      "type": "code",
+      "title": "Player を生成し、アプリの操作を接続する",
+      "text": "  const instance = new Player(playerEl as HTMLElement, config);\n  player = instance;\n  if (sdkUiEnabled) { renderThemeBar(); renderActiveConstruction(); apiExplorer?.refresh(); }\n  else applyTheme(instance, currentThemeId);\n  wireMetrics(instance);\n  controlPanel = mountControlPanel(instance, panelEl as HTMLElement, SOURCES, {\n    timeShiftEnabled: config.playback?.timeShift ?? true,\n    onTimeShiftToggle: (enabled) => {\n      timeShiftEnabled = enabled;\n      apiExplorer?.discardPatch(\"PlayerConfig\", { playback: { timeShift: enabled } });\n      playerOverrides = deepMerge(playerOverrides, { playback: { timeShift: enabled } });\n      void build();\n    },",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 803,
+        "label": "main.ts の Player 生成処理"
+      },
+      "endLine": 815
+    },
+    {
+      "type": "p",
+      "text": "loadCurrentSource() は SDK エディターで指定したソース入力があればそれを使い、なければ選択中のプリセットを使います。そこに確定済みのソース上書きを重ね、SDK エディターの prepare() を通して PlayerAPI.load() に渡します。失敗時は自分の読み込み要求だけを解除し、その Player が現在のインスタンスである場合だけ操作パネルの読み込み状態を終了します。"
+    },
+    {
+      "type": "code",
+      "title": "現在のソースを組み立てて読み込む",
+      "text": "async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, disableSeeking?: boolean): Promise<void> {\n  const isLive = SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false;\n  const settle = controlPanel?.beginSourceLoad(isLive);\n  const base = deepMerge((apiSourceInput ?? sourcePreset) as SourceConfig, sourceOverrides);\n  const source = apiExplorer?.prepare(\"SourceConfig\", base) ?? structuredClone(base);\n  currentSource = source;\n  const request = { player: instance, source, settle };\n  appSourceLoad = request;\n  try {\n    await instance.load(request.source, forceTechnology, disableSeeking);\n  } catch (error) {\n    if (appSourceLoad === request) appSourceLoad = undefined;\n    if (player === instance) request.settle?.();",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 478,
+        "label": "main.ts のソース読み込み処理"
+      },
+      "endLine": 490
+    },
+    {
+      "type": "p",
+      "text": "build() は破棄と生成を直列化しますが、未完了のソース読み込みが次の再生成を止めない構造です。destroyCurrentPlayer() は playerGeneration を進め、エディターの後処理を開始し、アプリ所有の UIManager を解放します。SDK の destroy() を待つ前に共有の player 参照を空にするため、画面の操作が破棄中のインスタンスに届きません。世代番号を比較し、古い Player に対して遅れて呼ばれた UI ファクトリーは実行しません。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-sources-tracks/",
+          "label": "操作ガイド：ソースとトラック"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "web-settings",
+      "text": "編集中の設定から適用済み設定までを追う"
+    },
+    {
+      "type": "p",
+      "text": "configPanel.ts は Reload と Recreate の編集をローカルの保留オブジェクトに保存し、それぞれの適用ボタンで確定します。以下のコールバックは確定値を main.ts の状態に重ねます。PlayerConfig は build()、SourceConfig は現在のインスタンスに対する loadCurrentSource() へ進みます。即時適用の欄は入力の change 時に setVolume() などを呼びます。この適用区分は Lab の操作方法であり、SDK の設定型が三つに分かれているという意味ではありません。"
+    },
+    {
+      "type": "code",
+      "title": "PlayerConfig と SourceConfig の変更を確定する",
+      "text": "  onRecreate: (overrides) => {\n    apiExplorer?.discardPatch(\"PlayerConfig\", overrides);\n    playerOverrides = deepMerge(playerOverrides, overrides);\n    void build();\n  },\n  onReload: (srcOverrides) => {\n    apiExplorer?.discardPatch(\"SourceConfig\", srcOverrides);\n    sourceOverrides = deepMerge(sourceOverrides, srcOverrides);\n    currentSource = deepMerge(sourcePreset, sourceOverrides);\n    if (player) void loadCurrentSource(player).catch((err: unknown) => console.error(\"config reload failed\", err));\n  },",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 637,
+        "label": "main.ts の設定確定コールバック"
+      },
+      "endLine": 647
+    },
+    {
+      "type": "p",
+      "text": "各ボタンの操作手順は既存の Player Config 章を参照してください。「適用中の設定コード」は現在の Player とソースを読み取るため、編集中の値とは区別できます。値を入力しただけでは適用の確認になりません。SDK エディターには、設定の組み立てに加え、API の実行と現在の状態の読み取りがあります。"
+    },
+    {
+      "type": "figure",
+      "file": "sdk-configuration",
+      "caption": "既存の SDK エディターは、選択した公開設定パスに対応する入力欄を表示します。適用操作はアプリのライフサイクルに接続されています。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-player-config/",
+          "label": "操作ガイド：Player Config と SDK エディター"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "web-ui-events",
+      "text": "UI ファクトリー・API・イベントの関係を読む"
+    },
+    {
+      "type": "p",
+      "text": "@showcase/ui-shared の PremiereUIFactory などは Lab が定義するファクトリーです。SDK の UIManager、UIContainer、ControlBar などの bitmovin-player-ui コンポーネントと、リポジトリ独自の SkipIntroButton などを組み合わせます。DefaultUIFactory は自動非表示を制御するため、SDK の main デスクトップレイアウトを包みます。UIFactory.buildUI の全バリアント選択を再現するものではありません。applyTheme() はアプリ所有の古いマネージャーを解放し、同じ Player に新しい UI を組み立てます。"
+    },
+    {
+      "type": "p",
+      "text": "PlayerConfig.ui で SDK 管理の UI を有効にした場合は、style.uiManagerFactory がマネージャーを作り、SDK がその解放を管理します。main.ts では参照を別に保持します。同じ画面に表示されていても、UI の生成と Player の生成では所有関係が異なります。"
+    },
+    {
+      "type": "p",
+      "text": "SkipIntroButton.configure() では UI の入力と再生イベントを分けて読めます。onClick.subscribe() は seek() を呼び、player.on() は再生状態に応じて表示を更新します。以下の解放コールバックは player.off() で SDK の購読を解除します。既存テーマの構成を追うときは、この後処理もカスタムコンポーネントの一部として確認してください。"
+    },
+    {
+      "type": "code",
+      "title": "UI の解放時にコンポーネントの購読を解除する",
+      "text": "    const events = [\n      PlayerEvent.TimeChanged,\n      PlayerEvent.Seeked,\n      PlayerEvent.SourceLoaded,\n      PlayerEvent.SourceUnloaded,\n      PlayerEvent.Play,\n      PlayerEvent.Paused,\n    ];\n    for (const event of events) player.on(event, update);\n    uimanager.onRelease.subscribe(() => {\n      for (const event of events) player.off(event, update);\n    });\n\n    update();\n  }",
+      "source": {
+        "path": "packages/ui-shared/src/components/SkipIntroButton.ts",
+        "line": 50,
+        "label": "SkipIntroButton のイベント後処理"
+      },
+      "endLine": 64
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-ui-customization/",
+          "label": "操作ガイド：UI のカスタマイズ"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "apple-player",
+      "text": "Apple：PlayerModel とネイティブ描画"
+    },
+    {
+      "type": "p",
+      "text": "ContentView は @StateObject で PlayerModel を保持します。PlayerModel.makePlayer が SDK の Player を生成し、初期設定では標準の PlayerFactory を使います。NativePresentationSurface の初期表示は SDK の VideoPlayerView です。他の描画方式も同じモデルを参照します。iOS のカスタムモードは共通 Web UI バンドルを読み込み、tvOS はネイティブの System UI を選びます。"
+    },
+    {
+      "type": "code",
+      "title": "makePlayer で標準の SDK Player を生成",
+      "text": "        guard !analyticsLicenseKey.isEmpty else {\n            return PlayerFactory.createPlayer(playerConfig: config)\n        }\n        return PlayerFactory.createPlayer(\n            playerConfig: config,\n            analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))\n        )",
+      "source": {
+        "path": "apps/ios/Showcase/PlayerModel.swift",
+        "line": 210,
+        "label": "makePlayer の標準 PlayerFactory 分岐"
+      },
+      "endLine": 216
+    },
+    {
+      "type": "p",
+      "text": "loadInitialSource は先頭のプリセットを選び、reloadCurrentSource が SourceFactory で Source を生成して読み込みます。effect(for:) は、ソースの変更を再読み込み、プレイヤー設定の変更を再生成と判定します。UI や描画方式の変更でも Player を再生成し、playerGeneration の更新で描画面を作り直します。"
+    },
+    {
+      "type": "code",
+      "title": "現在の Source を生成・関連付け・読み込み",
+      "text": "        retireApiSourceEvents()\n        resetSourceCompletion()\n        initialTrackSelection.retire()\n        trackStatus = PlaybackTrackStatus()\n        sourceCallbackJournal = NativeCallbackJournal()\n        let source = SourceFactory.createSource(from: sourceSettings.makeSourceConfig(callbackJournal: sourceCallbackJournal))\n        bindApiSourceEvents(source)\n        // Bind the intended source before load: an older queued event can arrive\n        // while the SDK still reports the old current source.\n        initialTrackSelection.bind(source)\n        player.load(source: source)",
+      "source": {
+        "path": "apps/ios/Showcase/PlayerModel.swift",
+        "line": 239,
+        "label": "reloadCurrentSource 内の Source 初期化"
+      },
+      "endLine": 249
+    },
+    {
+      "type": "p",
+      "text": "recreatePlayer は以前の購読と描画登録を解除し、Player を差し替えて保持中のソースを読み込み、以前の Player を破棄します。NativePlayerSurface.dismantleUIView は PlayerView との接続を外します。対応する設定・描画方式の操作は Apple の操作ガイドを参照してください。"
+    },
+    {
+      "type": "figure",
+      "file": "ios-playback-tracks",
+      "caption": "Apple の操作ガイドで使っている iPad の図。再生トラックと設定画面への入口。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-apple/",
+          "label": "Apple の操作ガイド"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "android-player",
+      "text": "Android：Controller による保持と PlayerView のライフサイクル"
+    },
+    {
+      "type": "p",
+      "text": "MainActivity が PlayerController を生成し、Controller が SDK の Player を Compose の状態として保持します。createPlayer は設定済みのネイティブ Player を生成します。loadCurrentSource は Source オブジェクトを作り、現在の Player に読み込みます。Compose の AndroidView は、この Controller が保持する Player を接続した PlayerView を表示します。"
+    },
+    {
+      "type": "code",
+      "title": "Controller が保持する Player を生成",
+      "text": "    private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides(), analytics: ApiAnalyticsSettings = apiAnalyticsSettings, callbacks: ApiCallbackContext = apiCallbacks): Player {\n        val prepared = ApiNativeFactories.player(context, overrides.player(settings.toPlayerConfig(licenseKey), callbacks), overrides.values)\n        val result = playerFactory?.invoke(prepared.config) ?: Player(context, prepared.config, analytics.playerConfig(analyticsLicenseKey, callbacks))\n        preparedCompanions = prepared.hosts\n        return result\n    }\n\n    var player: Player by mutableStateOf(createPlayer(PlayerSettings()))",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
+        "line": 114,
+        "label": "PlayerController.createPlayer と Player の状態"
+      },
+      "endLine": 121
+    },
+    {
+      "type": "p",
+      "text": "applySource は既存 Player でソースを再読み込みします。applyPlayerSettings は代替 Player を生成し、以前のビューと購読を外して以前の Player を破棄した後、保持中のソース設定を再読み込みします。UI モードの切替では PlayerViewConfig に従って PlayerView だけを作り直し、Player を維持します。カスタム Web UI の操作部分には共通バンドルを使います。"
+    },
+    {
+      "type": "code",
+      "title": "生成済みの Source オブジェクトを読み込み",
+      "text": "        apiSourceCallbacks.close()\n        apiSourceCallbacks = callbacks\n        configuredSource = sources.first()\n        sources.forEach(::observeApiSource)\n        sourceSubscription = ::retireApiSourceSubscriptions\n        lastErrorCode = null\n        if (offlinePlayback == null && ApiCollectionSettings.PLAYLIST in apiOverrides.values)\n            owner.load(com.bitmovin.player.api.playlist.PlaylistConfig(sources, apiOverrides.playlistOptions()))\n        else owner.load(sources.single())\n        refresh()\n    }",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
+        "line": 540,
+        "label": "loadCurrentSource 内のソース読み込み分岐"
+      },
+      "endLine": 550
+    },
+    {
+      "type": "p",
+      "text": "PlayerViewLifecycle は Activity の start/resume/pause/stop を接続中のビューだけに転送します。releaseView は onDestroy より先に view.player を空にするため、ビューの破棄が保持中の Player を破棄することはありません。MainActivity.onDestroy は controller.release を呼び、コールバックとライフサイクルの接続を解除して Player を破棄します。Apply による変化は Android の操作ガイドで確認できます。"
+    },
+    {
+      "type": "figure",
+      "file": "android-player-settings",
+      "caption": "Android の操作ガイドで使っているプレイヤー設定画面。Apply で SDK の Player を再生成します。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-android/",
+          "label": "Android の操作ガイド"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "react-native-player",
+      "text": "React Native：Player の保持と描画準備"
+    },
+    {
+      "type": "p",
+      "text": "App は適用済みの設定、ソース、ログ、ライブ配信の巻き戻し（DVR）の許可状態を、key を指定した PlayerPane の外側に保持します。DVR は、ライブ配信で保持されている再生可能な範囲を巻き戻す機能です。この key は React がコンポーネントを識別するための値です。UI モードや revision が変わると、このコンポーネントを作り直します。ActivePlayerPane は usePlayer でネイティブ SDK の Player を生成します。PlayerView はこの Player と選択中の Web UI 設定を受け取ります。カスタムモードでは共通 UI バンドルとファクトリを再利用し、再生処理はネイティブ SDK が担います。"
+    },
+    {
+      "type": "code",
+      "title": "PlayerView を接続し、準備完了イベントを受信",
+      "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : styles.player}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}",
+      "source": {
+        "path": "apps/react-native/App.tsx",
+        "line": 312,
+        "label": "ネイティブ PlayerView の接続と onPlayerViewReady"
+      },
+      "endLine": 319
+    },
+    {
+      "type": "p",
+      "text": "ソースの読み込みは onPlayerViewReady と保持コンポーネントが有効であることを待ちます。loadOwnedSource はラッパーの実際の Player.load を呼び、そこで生成された Source を識別したまま初期化を直列化します。無効になった要求が新しい保持コンポーネントへ接続されることを防ぎます。"
+    },
+    {
+      "type": "code",
+      "title": "有効なビューの準備が整ってから読み込み",
+      "text": "  useEffect(() => {\n    if (!viewReady || !active.current) return;\n    snapshots.current?.sourceChanged();\n    setDvr(null);\n    append(`load ${source.title || \"source\"}`);\n    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.\n    void loadOwnedSource(player, source).catch(() => { if (active.current) append(\"Source initialization failed; inspect source events or retry after the pending initializer settles.\"); });\n    observed.current?.sourceLoad();\n  }, [source, player, viewReady, append]);",
+      "source": {
+        "path": "apps/react-native/App.tsx",
+        "line": 282,
+        "label": "ビューの準備を条件にした loadOwnedSource の effect"
+      },
+      "endLine": 290
+    },
+    {
+      "type": "p",
+      "text": "apply は下書きを検証し、設定が変われば revision を増やします。通常のプリセット選択は既存 Player での再読み込みですが、スクリプトや全画面プロパティを設定している場合は revision も増やします。終了処理は保持状態を無効にし、SnapshotController と保持中の Source を解放して player.destroy を呼びます。初期化中の Source の破棄は、その初期化の確定を待ちます。準備と操作は React Native の操作ガイドを参照してください。"
+    },
+    {
+      "type": "figure",
+      "file": "rn-ios-code",
+      "caption": "React Native の操作ガイドで使っている図。既存の iOS アプリが表示する適用済み設定コード。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-integrations/",
+          "label": "React Native の操作ガイド"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "vega-player",
+      "text": "Vega：ネイティブ描画面とセッション解放の待機"
+    },
+    {
+      "type": "p",
+      "text": "App は適用済みのソースと設定を保持し、BitmovinPlayer に渡します。このコンポーネントはセッションと teardown の Promise を保持し、有効な世代と Kepler の描画面ハンドルが揃ってから startVegaSession を呼びます。セッションは前回の解放を待ち、ネイティブの VideoPlayer を初期化して描画面を接続し、メディアと暗号処理の互換コード（polyfill）を設定します。createVegaPlayer がモジュールを登録し、ブラウザーの表示要素を渡さずに Web SDK を生成した後、セッションが SourceConfig を読み込みます。"
+    },
+    {
+      "type": "code",
+      "title": "有効な世代と準備済み描画面でのみ開始",
+      "text": "  useEffect(() => {\n    if (!lifecycle.active || !lifecycleRef.current.active ||\n        lifecycleRef.current.generation !== lifecycle.generation || !surfaceHandle) return;\n    let video: VideoPlayer | null = null;\n    let observed: RuntimeOwner | undefined;\n    const api = new VegaSessionApi();\n    const sessionSource = { ...source };\n    const session = startVegaSession({\n      handle: surfaceHandle,\n      source: sessionSource,\n      after: teardown.current,\n      createVideo: () => { video = new VideoPlayer(); return video; },",
+      "source": {
+        "path": "apps/vega/src/BitmovinPlayer.tsx",
+        "line": 68,
+        "label": "セッションの保持、描画面の準備確認、前回の解放待ち"
+      },
+      "endLine": 79
+    },
+    {
+      "type": "p",
+      "text": "apply は変更した設定を検証して差し替えます。ソース、設定、API 入力の変更は、プリセット選択も含めて、解放の完了を待つ仕組みを通してセッションの effect を再実行します。Allow DVR は現在の Controller を更新します。"
+    },
+    {
+      "type": "code",
+      "title": "描画面を接続してから SDK Player を生成・読み込み",
+      "text": "    // The native setter caches the handle before its bridge call, which can throw after mutation.\n    surfaceAttached = true;\n    video.setSurfaceHandle(options.handle);\n    options.installPolyfills(video);\n    player = options.createPlayer();\n    removePlayerObservers = options.observePlayer?.(player, () => !cancelled) ?? null;\n    controller = options.createController(player, () => !cancelled);\n    controller.setTimeShiftEnabled(options.getTimeShiftEnabled());\n    options.controllerRef.current = controller;\n    await player.load(options.source);",
+      "source": {
+        "path": "apps/vega/src/playerSession.ts",
+        "line": 150,
+        "label": "ネイティブ描画面、polyfill、Player 生成、SourceConfig 読み込み"
+      },
+      "endLine": 159
+    },
+    {
+      "type": "p",
+      "text": "終了処理は購読と Controller を解除し、SDK の Player を破棄してネイティブメディアを終了します。解放が確認できなければ、次のセッションへ進む待機は完了しません。バックグラウンド移行ではネイティブメディアを同期的に終了し、復帰後はセッションを作って保持中の設定とソースを再読み込みします。アプリは ui: false のネイティブ描画面、独自の操作部分、字幕オーバーレイを表示し、共通 HTML UI は無効です。操作は Vega の操作ガイドを参照してください。"
+    },
+    {
+      "type": "figure",
+      "file": "vega-code",
+      "caption": "Vega の操作ガイドで使っている図。既存のネイティブメディアホスト内に表示する適用済み設定コード。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-integrations/",
+          "label": "Vega の操作ガイド"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Analytics / Observability",
+      "id": "analytics-observability"
+    },
+    {
+      "type": "p",
+      "text": "Analytics ライセンスは Player ライセンスとは別に設定し、ドメインまたはアプリ識別子を許可リストに登録します。設定済みのコレクターはプレイヤーのイベントを監視し、再生情報を Bitmovin に送信します。Dashboard での確認には、そのライセンスへのアクセス権が必要です。"
+    },
+    {
+      "type": "p",
+      "text": "Web は VITE_BITMOVIN_ANALYTICS_LICENSE_KEY を読み、値がある場合に analytics.key を追加して、上書き設定をマージした後に Player を作成します。ベースのキーが空なら、このフィールドを省略します。Pages では PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY がクライアント用ライセンスの設定元です。これらの収集用ライセンスと、クエリに使うアカウント API キーは別のものです。"
+    },
+    {
+      "type": "code",
+      "title": "Web：PlayerConfig の準備前に Analytics を追加",
+      "text": "    ...(analyticsKey ? { analytics: { key: analyticsKey } } : {}),",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 771,
+        "label": "Web のプレイヤー設定"
+      },
+      "endLine": 771
+    },
+    {
+      "type": "code",
+      "title": "Web：適用済み設定を重ねて PlayerConfig を準備",
+      "text": "  const configBase = deepMerge(baseConfig, structuredClone(playerOverrides));\n  const config = apiExplorer?.prepare(\"PlayerConfig\", configBase) ?? configBase;",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 781,
+        "label": "Web の設定の準備"
+      },
+      "endLine": 782
+    },
+    {
+      "type": "p",
+      "text": "iOS/tvOS は標準ファクトリーでライセンスが空でない場合に Analytics を明示的に有効化します。Core と非推奨ファクトリーの分岐は先に Player を返すため、この Analytics の明示的な設定を通りません。React Native は usePlayer に analyticsConfig を渡します。Vega は AnalyticsModule を登録し、設定に応じて analytics.key を渡します。"
+    },
+    {
+      "type": "code",
+      "title": "iOS/tvOS：設定済みコレクターを PlayerFactory に渡す",
+      "text": "        // §15: the bundled analytics collector reports QoE to the Bitmovin dashboard\n        // when a key is configured (repo-root .env → sync-env.sh → Local.xcconfig).\n        guard !analyticsLicenseKey.isEmpty else {\n            return PlayerFactory.createPlayer(playerConfig: config)\n        }\n        return PlayerFactory.createPlayer(\n            playerConfig: config,\n            analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))\n        )\n    }",
+      "source": {
+        "path": "apps/ios/Showcase/PlayerModel.swift",
+        "line": 208,
+        "label": "Apple のプレイヤーファクトリー"
+      },
+      "endLine": 217
+    },
+    {
+      "type": "p",
+      "text": "Android の既定の Player コンストラクターには ApiAnalyticsSettings.playerConfig(...) を渡します。UI では Build key、Deferred license、Disabled を選べます。任意の既定メタデータには cdnProvider/customUserId、ソースメタデータには title/videoId/cdnProvider/path/isLive を設定できます。両方で customData1–100 と experimentName を扱えます。Analytics 設定の Apply はプレイヤーを再作成します。"
+    },
+    {
+      "type": "code",
+      "title": "Android：対応するソースメタデータを作成",
+      "text": "internal fun analyticsSourceMetadata(values: Map<String, String>): SourceMetadata {\n    validateAnalyticsMetadata(values, analyticsSourceKeys)\n    return SourceMetadata(\n        title = values[\"title\"], videoId = values[\"videoId\"], cdnProvider = values[\"cdnProvider\"],\n        path = values[\"path\"], isLive = values[\"isLive\"]?.toBooleanStrict(),\n        customData = analyticsCustomData(values.filterKeys { it in analyticsCustomKeys }),\n    )\n}\ninternal fun analyticsMetadataValues(value: SourceMetadata): Map<String, Any?> = mapOf(\n    \"title\" to value.title, \"videoId\" to value.videoId, \"cdnProvider\" to value.cdnProvider,\n    \"path\" to value.path, \"isLive\" to value.isLive, \"customData\" to analyticsCustomDataValues(value.customData),\n)",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalytics.kt",
+        "line": 230,
+        "label": "Android のソースメタデータ"
+      },
+      "endLine": 241
+    },
+    {
+      "type": "p",
+      "text": "Webの再生品質（QoE）パネルは現在のセッションを表します。startup は SourceLoaded → Playing の時間で、別のロードによりリセットされます。収集される Video Startup Time は再生開始操作 → 最初のフレームの時間です。Dashboard の集計は収集済みセッションを対象とするため、比較時にはメトリクスの定義、母集団、単位をそろえて確認します。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "設定した Analytics ライセンスを使ってソースを再生し、再生時刻、コンテンツ、端末を記録します。同じ設定で再試行できるよう、適用済みの設定も残します。",
+        "Bitmovin Dashboard の Observability を開き、同じ Analytics ライセンスと再生を含む期間を選びます。表示のタイムゾーンを確認し、コンテンツやブラウザーのフィルターで絞り込みます。",
+        "Audience やセッション詳細から該当する再生を探します。同じ範囲で Video Startup Time、Rebuffering Percentage、Top Errors を確認し、セッションの時刻とプレイヤー情報をアプリのログに照合します。受信は一致する Dashboard セッションで確認します。アプリのイベントや収集通知だけでは、受信を確認できません。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-overview",
+      "caption": "ライセンス、期間、フィルターを示す、ダミーデータを使った Bitmovin 公式デモ Dashboard です。古い Analytics 表記とレイアウトは現在の Dashboard と異なる場合があります。この公開例は Player Lab での収集結果ではありません。© Bitmovin。"
+    },
+    {
+      "type": "p",
+      "text": "Pages ではクライアントのコレクターを実行できますが、集計クエリのパネルは非表示です。ローカル開発では /api/analytics/query を通じて、直近7日間を対象とする固定クエリを利用できます。既存のサーバープロキシがサーバー専用のアカウント API キーを付与します。このキーはクライアント設定に含めません。収集の確認、メトリクス、クエリ、可視化、大規模言語モデル（LLM）と Model Context Protocol（MCP）を使った分析は、参照先の詳細章に進んでください。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-qoe-analytics/",
+          "label": "ユーザーガイド：収集と Dashboard の確認"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-metrics/",
+          "label": "ユーザーガイド：メトリクスの定義"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-queries/",
+          "label": "ユーザーガイド：Analytics クエリ"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-visualization/",
+          "label": "ユーザーガイド：可視化"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-ai/",
+          "label": "ユーザーガイド：LLM と MCP による分析"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 721,
+      "label": "apps/web/src/main.ts"
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 145,
+      "label": "apps/web/src/configPanel.ts"
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 110,
+      "label": "packages/ui-shared/src/liveUi.ts"
+    },
+    {
+      "path": "packages/ui-shared/src/components/SkipIntroButton.ts",
+      "line": 35,
+      "label": "packages/ui-shared/src/components/SkipIntroButton.ts"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerAPI.html",
+      "label": "公式 Web PlayerAPI リファレンス"
+    },
+    {
+      "path": "apps/ios/Showcase/ContentView.swift",
+      "line": 6,
+      "label": "apps/ios/Showcase/ContentView.swift"
+    },
+    {
+      "path": "apps/ios/Showcase/PlayerModel.swift",
+      "line": 104,
+      "label": "apps/ios/Showcase/PlayerModel.swift"
+    },
+    {
+      "path": "apps/ios/Showcase/NativePresentation.swift",
+      "line": 14,
+      "label": "apps/ios/Showcase/NativePresentation.swift"
+    },
+    {
+      "path": "apps/ios/Showcase/NativePlayerSurface.swift",
+      "line": 11,
+      "label": "apps/ios/Showcase/NativePlayerSurface.swift"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
+      "line": 77,
+      "label": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt",
+      "line": 12,
+      "label": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt"
+    },
+    {
+      "path": "apps/react-native/App.tsx",
+      "line": 78,
+      "label": "apps/react-native/App.tsx"
+    },
+    {
+      "path": "apps/react-native/src/sourceOwnership.ts",
+      "line": 50,
+      "label": "apps/react-native/src/sourceOwnership.ts"
+    },
+    {
+      "path": "apps/vega/src/App.tsx",
+      "line": 26,
+      "label": "apps/vega/src/App.tsx"
+    },
+    {
+      "path": "apps/vega/src/BitmovinPlayer.tsx",
+      "line": 31,
+      "label": "apps/vega/src/BitmovinPlayer.tsx"
+    },
+    {
+      "path": "apps/vega/src/playerSession.ts",
+      "line": 57,
+      "label": "apps/vega/src/playerSession.ts"
+    },
+    {
+      "path": "apps/vega/src/vegaPlayer.ts",
+      "line": 77,
+      "label": "apps/vega/src/vegaPlayer.ts"
+    },
+    {
+      "path": "apps/vega/src/polyfills.ts",
+      "line": 18,
+      "label": "apps/vega/src/polyfills.ts"
+    },
+    {
+      "path": "apps/web/src/env/pagesBuild.ts",
+      "line": 14,
+      "label": "apps/web/src/env/pagesBuild.ts"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalytics.kt",
+      "line": 8,
+      "label": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalytics.kt"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt",
+      "line": 53,
+      "label": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt"
+    },
+    {
+      "path": "apps/web/src/analytics/metrics.ts",
+      "line": 79,
+      "label": "apps/web/src/analytics/metrics.ts"
+    },
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 23,
+      "label": "apps/web/src/analyticsView.ts"
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "line": 78,
+      "label": "apps/web/vite.config.ts"
+    },
+    {
+      "path": "apps/web/src/server/analyticsProxy.ts",
+      "line": 130,
+      "label": "apps/web/src/server/analyticsProxy.ts"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-analytics",
+      "label": "Bitmovin：ライセンス認可とイベントコレクター"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/analytics-dashboard-metrics-reference",
+      "label": "Bitmovin：Dashboard メトリクスの定義"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/can-i-change-the-timezone-used-for-bitmovin-analytics-data",
+      "label": "Bitmovin：Analytics のタイムゾーン設定"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/is-there-a-sandbox-environment-to-test-bitmovin-analytics",
+      "label": "Bitmovin：公式デモ Dashboard 画像"
+    },
+    {
+      "url": "https://bitmovin.com/blog/ios-error-reporting-bitmovin-player-analytics/",
+      "label": "Bitmovin：Top Errors とセッション詳細"
+    }
+  ]
+}

@@ -7,13 +7,14 @@ CHAPTERS = {
     'web-player-config': 'web', 'web-ui-customization': 'web',
     'native-overview': 'native', 'native-apple': 'native',
     'native-android': 'native', 'native-integrations': 'native',
+    'implementation': 'implementation',
     'troubleshooting': 'reference', 'audio-timing': 'reference',
     'test-results': 'reference', 'glossary': 'reference',
     'web-qoe-analytics': 'analytics', 'analytics-metrics': 'analytics',
     'analytics-visualization': 'analytics', 'analytics-queries': 'analytics',
     'analytics-ai': 'analytics',
 }
-CATEGORIES = ('start', 'web', 'native', 'reference', 'analytics')
+CATEGORIES = ('start', 'web', 'native', 'implementation', 'reference', 'analytics')
 LEGACY_ROUTES = {
     'measurement': 'test-results',
     'media': 'web-sources-tracks',
