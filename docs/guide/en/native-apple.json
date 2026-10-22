@@ -375,6 +375,10 @@
       "text": "Offline HLS on iOS and iPadOS"
     },
     {
+      "type": "p",
+      "text": "Use a physical iPhone or iPad to verify downloads and playback from saved media. In the tested SDK 3.128.0 and iOS 27 Simulator environment, initialization and track discovery succeeded, but the media download did not complete. These simulator operations do not verify offline playback."
+    },
+    {
       "type": "steps",
       "items": [
         "Apply an on-demand HLS source and its DRM settings in the main configuration, then Open offline HLS inspector. Live HLS has no finite download. This panel is unavailable on tvOS.",
