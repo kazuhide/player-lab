@@ -43,8 +43,11 @@ class GitHub:
         check((endpoint == f'/repos/{REPOSITORY}' or endpoint.startswith(f'/repos/{REPOSITORY}/')) and '\n' not in endpoint,
               'Only canonical repository API endpoints are accepted.')
         host = 'uploads.github.com' if method == 'UPLOAD' else 'api.github.com'
+        # Actions ZIP redirects use JSON negotiation; release asset bytes use octet-stream.
+        release_asset = binary and method == 'GET' and re.fullmatch(
+            r'/repos/' + re.escape(REPOSITORY) + r'/releases/assets/[1-9][0-9]*', endpoint)
         headers = {'Authorization': 'Bearer ' + self.token, 'X-GitHub-Api-Version': '2022-11-28',
-                   'Accept': 'application/octet-stream' if binary else 'application/vnd.github+json',
+                   'Accept': 'application/octet-stream' if release_asset else 'application/vnd.github+json',
                    'User-Agent': 'player-lab-release'}
         if method == 'UPLOAD':
             method = 'POST'
