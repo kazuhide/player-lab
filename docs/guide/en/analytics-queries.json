@@ -188,11 +188,11 @@
     },
     {
       "path": "apps/web/vite.config.ts",
-      "line": 61
+      "line": 78
     },
     {
       "path": "docs/SETUP.md",
-      "line": 208
+      "line": 218
     },
     {
       "url": "https://developer.bitmovin.com/playback/reference/postanalyticsqueriescount",

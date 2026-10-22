@@ -225,7 +225,7 @@
     },
     {
       "path": "tests/e2e/specs/app-ui.spec.ts",
-      "line": 222
+      "line": 281
     },
     {
       "path": "apps/web/src/controlPanel.ts",
@@ -261,7 +261,7 @@
     },
     {
       "path": "tests/e2e/specs/app-ui.spec.ts",
-      "line": 486
+      "line": 545
     },
     {
       "url": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html",

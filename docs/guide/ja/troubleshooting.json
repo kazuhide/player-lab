@@ -228,7 +228,7 @@
   "sources": [
     {
       "path": "docs/SETUP.md",
-      "line": 31,
+      "line": 33,
       "label": "キーの種類とホスト許可"
     },
     {
@@ -344,7 +344,7 @@
       "label": "時間・ソース・長さのイベントによる表示更新"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/93c0d0181e859e9cad1d4838097df255c3d3f7e8/patches/bitmovin-player-ui%404.23.0.patch#L606",
+      "url": "https://github.com/kazuhide/player-lab/blob/64107f43007b460af79c1948e3b254400c8001a0/patches/bitmovin-player-ui%404.23.0.patch#L606",
       "label": "シーク可能範囲の先頭を起点にしたVODキー操作"
     },
     {
