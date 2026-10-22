@@ -69,7 +69,7 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
   const [unknownKind, setUnknownKind] = useState(() => value instanceof ExpressionInput ? "factory" : value instanceof CallbackInput ? "function" : value instanceof NumericInput ? "number" : value instanceof BinaryInput ? "binary" : value instanceof ResourceInput ? "resource" : Array.isArray(value) ? "array" : value === null ? "null" : value === undefined ? "undefined" : typeof value);
   const input = (label: string, text: string, update: (text: string) => void, multiline = false) => <TextInput accessibilityLabel={label} value={text} onChangeText={update} style={[styles.input, multiline ? styles.code : null]} multiline={multiline} autoCapitalize="none" autoCorrect={false} />;
   const child = (schema: string, value: unknown, update: (value: unknown) => void, key: string | number = schema) => <InputEditor key={key} catalog={catalog} schema={schema} value={value} onChange={update} resources={resources} level={level + 1} />;
-  if (level > 20) return <Text style={styles.text}>This editor supports up to 20 nested levels. Remove a containing value to shorten the input.</Text>;
+  if (level > 20) return <Text style={styles.help}>This editor supports up to 20 nested levels. Remove a containing value to shorten the input.</Text>;
   if (schema.kind === "union") return <View style={styles.section}>
     <Text style={styles.text}>Select the input type</Text>
     <View style={styles.row}>{schema.options!.map((option) => <Action key={option} title={catalog.nodes[option]!.label} disabled={branch === option} onPress={() => { setBranch(option); onChange(initialValue(catalog, option)); }} />)}</View>
@@ -78,7 +78,7 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
   if (schema.kind === "undefined" || schema.kind === "void" || schema.kind === "null" || schema.kind === "never" || schema.kind === "literal") return <Text style={styles.text}>{schema.kind === "literal" ? JSON.stringify(schema.value) : schema.label}</Text>;
   if (schema.kind === "string") return input("SDK text value", typeof value === "string" ? value : "", onChange);
   if (schema.kind === "number") return input("SDK numeric value", value instanceof NumericInput ? value.raw : String(value ?? ""), (raw) => onChange(new NumericInput(raw)));
-  if (schema.kind === "boolean") return <View style={styles.row}><Text style={styles.text}>{String(Boolean(value))}</Text><Switch focusable accessibilityLabel="SDK boolean value" value={value === true} onValueChange={onChange} /></View>;
+  if (schema.kind === "boolean") return <View style={styles.row}><Text style={styles.text}>{String(Boolean(value))}</Text><Switch focusable style={styles.toggle} accessibilityLabel="SDK boolean value" value={value === true} onValueChange={onChange} /></View>;
   if (schema.kind === "object") {
     const values = record(value) ? value : {};
     const properties = schema.properties ?? [];
@@ -129,15 +129,15 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
     return <View style={styles.section}>
       <View style={styles.row}>{resources.list(schema).map((resource) => <Action key={resource.id} title={resource.label} disabled={value instanceof ResourceInput && value.id === resource.id} onPress={() => onChange(new ResourceInput(resource.id))} />)}</View>
       {value instanceof ResourceInput ? <>
-        <Text style={styles.text}>Using current callback instance {value.id}. This preserves the identity needed by off.</Text>
+        <Text style={styles.help}>Using current callback instance {value.id}. This preserves the identity needed by off.</Text>
         <Action title="Edit a new SDK callback" onPress={() => onChange(new CallbackInput("return undefined;", signatures[0]!, false, promises(catalog, signatures[0]!.returns)))} />
       </> : <>
-      <Text style={styles.text}>JavaScript function body. It runs in this app when the SDK calls it. It is not sandboxed. Editing the text does not run it. Explicit permission and Apply or Run are required.</Text>
+      <Text style={styles.help}>JavaScript function body. It runs in this app when the SDK calls it. It is not sandboxed. Editing the text does not run it. Explicit permission and Apply or Run are required.</Text>
       {signatures.length > 1 && <View style={styles.row}>{signatures.map((signature, index) => <Action key={index} title={`Callback signature ${index + 1}`} disabled={callback.signature === signature} onPress={() => onChange(new CallbackInput(callback.body, signature, false, promises(catalog, signature.returns)))} />)}</View>}
       <Text style={styles.text}>{parameterNames(callback.signature).map((name, i) => name + ": " + catalog.nodes[callback.signature.parameters[i]!.schema]!.label).join(", ")} → {catalog.nodes[callback.signature.returns]!.label}</Text>
       {input("SDK callback JavaScript body", callback.body, (body) => onChange(new CallbackInput(body, callback.signature, callback.approved, callback.asynchronous)), true)}
-      <View style={styles.row}><Text style={styles.text}>Allow this callback</Text><Switch focusable accessibilityLabel="Allow this SDK callback" value={callback.approved} onValueChange={(approved) => onChange(new CallbackInput(callback.body, callback.signature, approved, callback.asynchronous))} /></View>
-      <Text style={styles.text}>lab.getPlayer() and lab.getSource() refer to the current session. Return the published SDK type. Native objects must come from a real SDK API; plain JSON does not create them. Callback outcomes are logged without request payloads.</Text>
+      <View style={styles.row}><Text style={styles.text}>Allow this callback</Text><Switch focusable style={styles.toggle} accessibilityLabel="Allow this SDK callback" value={callback.approved} onValueChange={(approved) => onChange(new CallbackInput(callback.body, callback.signature, approved, callback.asynchronous))} /></View>
+      <Text style={styles.help}>lab.getPlayer() and lab.getSource() refer to the current session. Return the published SDK type. Native objects must come from a real SDK API; plain JSON does not create them. Callback outcomes are logged without request payloads.</Text>
       </>}
     </View>;
   }
@@ -145,13 +145,13 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
     const binary = value instanceof BinaryInput ? value : new BinaryInput("", "hex", schema.name ?? "ArrayBuffer");
     return <View style={styles.section}><View style={styles.row}>{(["hex", "base64"] as const).map((encoding) => <Action key={encoding} title={encoding} disabled={binary.encoding === encoding} onPress={() => onChange(new BinaryInput("", encoding, binary.name))} />)}</View>
       {input("SDK binary bytes", binary.text, (text) => onChange(new BinaryInput(text, binary.encoding, binary.name)), true)}
-      <Text style={styles.text}>Bytes become a real {binary.name}. Certificates are limited to 64 KiB.</Text>
+      <Text style={styles.help}>Bytes become a real {binary.name}. Certificates are limited to 64 KiB.</Text>
     </View>;
   }
   if (schema.kind === "instance") return <View style={styles.section}>
-    <Text style={styles.text}>Required instance: {schema.label}. Select an actual value returned by the current SDK. Browser DOM objects and browser-only integrations are unavailable on Vega.</Text>
+    <Text style={styles.help}>Required instance: {schema.label}. Select an actual value returned by the current SDK. Browser DOM objects and browser-only integrations are unavailable on Vega.</Text>
     {resources.list(schema).map((resource) => <Action key={resource.id} title={resource.label} disabled={value instanceof ResourceInput && value.id === resource.id} onPress={() => onChange(new ResourceInput(resource.id))} />)}
-    {!resources.list(schema).length && <Text style={styles.text}>No compatible current SDK instance is available. Run the corresponding query first. An object literal cannot satisfy this instance contract.</Text>}
+    {!resources.list(schema).length && <Text style={styles.help}>No compatible current SDK instance is available. Run the corresponding query first. An object literal cannot satisfy this instance contract.</Text>}
   </View>;
   if (schema.kind === "unknown") {
     const types = ["string", "number", "boolean", "null", "undefined", "object", "array", "function", "factory", "binary", "resource"];
@@ -164,19 +164,19 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
     const enriched: ApiSchema = { ...catalog, nodes: { ...catalog.nodes, [synthetic]: unknown, "editor-rest": { kind: "array", label: "unknown[]", item: id } } };
     const expression = value instanceof ExpressionInput ? value : new ExpressionInput("return undefined;", false);
     return <View style={styles.section}>
-      <Text style={styles.text}>The SDK declares this value as {schema.label}. Choose the actual value type. Its meaning depends on this SDK option; accepting a value does not prove a feature has an effect.</Text>
+      <Text style={styles.help}>The SDK declares this value as {schema.label}. Choose the actual value type. Its meaning depends on this SDK option; accepting a value does not prove a feature has an effect.</Text>
       <View style={styles.row}>{types.map((kind) => <Action key={kind} title={kind} disabled={unknownKind === kind} onPress={() => {
         setUnknownKind(kind);
         onChange(kind === "factory" ? new ExpressionInput("return undefined;", false) : kind === "resource" ? undefined : initialValue({ ...enriched, nodes: { ...enriched.nodes, [synthetic]: { ...unknown, kind } } }, synthetic));
       }} />)}</View>
       {unknownKind === "factory" ? <>
-        <Text style={styles.text}>JavaScript value factory. It executes on explicit Apply or Run and on recreation of the approved session. Return an actual value or SDK object. Code runs in this app without a sandbox.</Text>
+        <Text style={styles.help}>JavaScript value factory. It executes on explicit Apply or Run and on recreation of the approved session. Return an actual value or SDK object. Code runs in this app without a sandbox.</Text>
         {input("SDK value factory JavaScript body", expression.body, (body) => onChange(new ExpressionInput(body, expression.approved)), true)}
-        <View style={styles.row}><Text style={styles.text}>Allow this value factory</Text><Switch focusable accessibilityLabel="Allow this SDK value factory" value={expression.approved} onValueChange={(approved) => onChange(new ExpressionInput(expression.body, approved))} /></View>
+        <View style={styles.row}><Text style={styles.text}>Allow this value factory</Text><Switch focusable style={styles.toggle} accessibilityLabel="Allow this SDK value factory" value={expression.approved} onValueChange={(approved) => onChange(new ExpressionInput(expression.body, approved))} /></View>
       </> : unknownKind === "resource" ? <View style={styles.row}>{resources.list(schema).map((resource) => <Action key={resource.id} title={resource.label} onPress={() => onChange(new ResourceInput(resource.id))} />)}</View> : <InputEditor key={unknownKind} catalog={enriched} schema={synthetic} value={value} onChange={onChange} resources={resources} level={level + 1} />}
     </View>;
   }
-  return <Text style={styles.text}>This input requires {schema.label}. A Promise must be returned from an approved callback; it cannot be replaced by a JSON value.</Text>;
+  return <Text style={styles.help}>This input requires {schema.label}. A Promise must be returned from an approved callback; it cannot be replaced by a JSON value.</Text>;
 }
 
 export function ArgumentsEditor({ catalog, signature, values, onChange, resources }: { catalog: ApiSchema; signature: Signature; values: unknown[]; onChange: (values: unknown[]) => void; resources: ResourcePool }): React.JSX.Element {
@@ -188,11 +188,16 @@ export function ArgumentsEditor({ catalog, signature, values, onChange, resource
 }
 
 export const styles = StyleSheet.create({
-  section: { gap: 10, marginVertical: 8 }, row: { flexDirection: "row", flexWrap: "wrap", gap: 10, alignItems: "center" },
-  text: { color: "#dddddd", fontSize: 17 }, heading: { color: "#ffffff", fontWeight: "600", fontSize: 18 },
-  button: { paddingHorizontal: 14, paddingVertical: 10, backgroundColor: "#174c68", borderColor: "#8ac4df", borderWidth: 1, borderRadius: 4 },
+  panel: { gap: 8, padding: 12, borderTopWidth: 1, borderTopColor: "#555555", backgroundColor: "#111111" },
+  section: { gap: 8, marginVertical: 8 }, row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
+  text: { color: "#dddddd", fontSize: 14 }, help: { color: "#dddddd", fontSize: 12 },
+  heading: { color: "#ffffff", fontWeight: "600", fontSize: 14 },
+  button: { paddingHorizontal: 8, paddingVertical: 8, backgroundColor: "#2196f3", borderColor: "#2196f3", borderWidth: 1, borderRadius: 4 },
   focused: { borderColor: "#ffffff", borderWidth: 3, backgroundColor: "#286d91" },
-  buttonText: { color: "#ffffff", fontSize: 17 }, disabled: { opacity: 0.5 },
-  input: { color: "#ffffff", borderColor: "#8ca3b0", borderWidth: 1, padding: 10, borderRadius: 4, minHeight: 50, fontSize: 17 },
-  code: { minHeight: 120, fontFamily: "monospace" },
+  buttonText: { color: "#ffffff", fontSize: 14, fontWeight: "500" }, disabled: { opacity: 0.5 },
+  input: { color: "#ffffff", borderColor: "#888888", borderWidth: 1, padding: 8, borderRadius: 4, minHeight: 44, fontSize: 14 },
+  toggle: { width: 72, height: 36 },
+  code: { minHeight: 120, fontFamily: "monospace", fontSize: 12 },
+  codeText: { color: "#dddddd", fontFamily: "monospace", fontSize: 12 },
+  eventText: { color: "#33ff66", fontFamily: "monospace", fontSize: 12 },
 });

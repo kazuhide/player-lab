@@ -41,36 +41,36 @@ export function ApiPanel({ session, source, onRecreate }: { session: VegaSession
       } finally { if (timer) clearTimeout(timer); }
     } catch (error) { if (session.isActive()) setResult(error instanceof Error ? error.message : "SDK operation failed."); }
   };
-  return <View style={styles.section}>
+  return <View style={styles.panel}>
     <Action title={expanded ? "Hide SDK API experiments" : "Show SDK API experiments"} onPress={() => setExpanded(!expanded)} />
     {expanded && <>
-      <Text style={styles.text}>Enter typed arguments and run a published SDK API. A dispatched call, a constant return or an empty result does not establish that its underlying feature is supported by the Vega integration. Read events and state to check the effect.</Text>
+      <Text style={styles.help}>Enter typed arguments and run a published SDK API. A dispatched call, a constant return or an empty result does not establish that its underlying feature is supported by the Vega integration. Read events and state to check the effect.</Text>
       <Action title="Inspect current SDK API availability" disabled={!session?.isReady()} onPress={() => {
         try { setAvailability(JSON.stringify(session?.availability(), null, 2)); }
         catch { setAvailability("Wait for the current native player before inspecting public APIs."); }
       }} />
-      <Text style={styles.text}>Availability checks whether the current public SDK exposes a callable method. It does not execute the method or establish platform feature support. A callable API can still return a constant, do nothing or require additional content and device capabilities.</Text>
-      {!!availability && <ScrollView focusable style={{ maxHeight: 240 }}><Text selectable accessibilityLabel="Vega SDK API availability" accessibilityValue={{ text: availability }} style={styles.text}>{availability}</Text></ScrollView>}
+      <Text style={styles.help}>Availability checks whether the current public SDK exposes a callable method. It does not execute the method or establish platform feature support. A callable API can still return a constant, do nothing or require additional content and device capabilities.</Text>
+      {!!availability && <ScrollView focusable style={{ maxHeight: 240 }}><Text selectable accessibilityLabel="Vega SDK API availability" accessibilityValue={{ text: availability }} style={styles.codeText}>{availability}</Text></ScrollView>}
       <TextInput accessibilityLabel="Filter Vega API operations" value={filter} onChangeText={setFilter} autoCorrect={false} autoCapitalize="none" style={styles.input} />
       <View style={styles.row}>{operations.filter((entry) => entry.id.toLowerCase().includes(filter.toLowerCase())).slice(0, 12).map((entry) => <Action key={entry.id} title={entry.id} disabled={entry.id === selected.id || Boolean(session?.isBusy())} onPress={() => { setSelectedId(entry.id); setOverload(0); setResult(""); setCode(""); }} />)}</View>
       <Text style={styles.heading}>{selected.id}</Text>
       {signatures.length > 1 && <View style={styles.row}>{signatures.map((_, index) => <Action key={index} title={`Method signature ${index + 1}`} disabled={overload === index} onPress={() => setOverload(index)} />)}</View>}
       {session && <ArgumentsEditor key={argumentKey} catalog={catalog} signature={signature} values={values} onChange={values => setArgumentDraft({ key: argumentKey, values })} resources={session.resources} />}
-      {!session?.isReady() && <Text style={styles.text}>No loaded native player is active. A source may still be loading, or the previous session has been released. Recreate the player to start a new owner after destroy.</Text>}
-      {selected.id === "PlayerAPI.destroy" && <Text style={styles.text}>This operation starts release of the current SDK player and native media owner. The inactive-session status means this owner no longer accepts calls; it does not report completion of native cleanup. Use Recreate Vega player to start a new owner after the cleanup barrier.</Text>}
+      {!session?.isReady() && <Text style={styles.help}>No loaded native player is active. A source may still be loading, or the previous session has been released. Recreate the player to start a new owner after destroy.</Text>}
+      {selected.id === "PlayerAPI.destroy" && <Text style={styles.help}>This operation starts release of the current SDK player and native media owner. The inactive-session status means this owner no longer accepts calls; it does not report completion of native cleanup. Use Recreate Vega player to start a new owner after the cleanup barrier.</Text>}
       <View style={styles.row}>
         <Action title="Run Vega SDK API" disabled={!session?.isReady() || Boolean(session?.isBusy())} onPress={() => { void run(); }} />
         <Action title="Recreate Vega player" onPress={onRecreate} />
       </View>
-      <Text selectable accessibilityLabel="Vega executed API code" accessibilityValue={{ text: code }} style={styles.text}>{code}</Text>
-      <Text selectable accessibilityLabel="Vega API result" accessibilityValue={{ text: result }} style={styles.text}>{result}</Text>
+      <Text selectable accessibilityLabel="Vega executed API code" accessibilityValue={{ text: code }} style={styles.codeText}>{code}</Text>
+      <Text selectable accessibilityLabel="Vega API result" accessibilityValue={{ text: result }} style={styles.codeText}>{result}</Text>
       <Text style={styles.heading}>SDK events</Text>
-      <Text style={styles.text}>Named PlayerEvent values are registered for the current owner. Recent redacted summaries are bounded and old session callbacks are ignored. PlayerAPI.off needs the same callback instance as on; choose that callback from the current SDK resources.</Text>
+      <Text style={styles.help}>Named PlayerEvent values are registered for the current owner. Recent redacted summaries are bounded and old session callbacks are ignored. PlayerAPI.off needs the same callback instance as on; choose that callback from the current SDK resources.</Text>
       <View style={styles.row}>
         <Action title={session?.isRecording() ? "Pause Vega event log" : "Resume Vega event log"} onPress={() => session?.setRecording(!session.isRecording())} />
         <Action title="Clear Vega event log" onPress={() => session?.clearEvents()} />
       </View>
-      <Text selectable accessibilityLabel="Vega SDK event log" accessibilityValue={{ text: session?.eventLines().slice(0, 12).join("\n") ?? "" }} style={styles.text}>{session?.eventLines().slice(0, 12).join("\n")}</Text>
+      <Text selectable accessibilityLabel="Vega SDK event log" accessibilityValue={{ text: session?.eventLines().slice(0, 12).join("\n") ?? "" }} style={styles.eventText}>{session?.eventLines().slice(0, 12).join("\n")}</Text>
     </>}
   </View>;
 }
