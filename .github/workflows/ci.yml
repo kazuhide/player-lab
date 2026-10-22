@@ -55,6 +55,7 @@ jobs:
         run: |
           python3 scripts/test-product-version.py
           python3 scripts/product_version.py check
+          python3 scripts/test-release-pipeline.py
       - name: Check SDK versions and API coverage
         run: |
           python3 scripts/test-sdk-updates.py
@@ -106,6 +107,10 @@ jobs:
 
   web:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -187,11 +192,19 @@ jobs:
       - name: Verify the tested Pages files before upload
         run: python3 scripts/package-pages.py --verify-dir "$RUNNER_TEMP/pages-release/site" --manifest "$RUNNER_TEMP/pages-release/manifest.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        id: pages_artifact
         with:
           name: pages-release
           path: ${{ runner.temp }}/pages-release
           if-no-files-found: error
           retention-days: 1
+      - name: Sign the exact CI artifact ZIP on main
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        id: pages_attestation
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ${{ github.repository }}/pages-release/${{ steps.pages_artifact.outputs.artifact-id }}
+          subject-digest: sha256:${{ steps.pages_artifact.outputs.artifact-digest }}
 
   webkit:
     needs: web
