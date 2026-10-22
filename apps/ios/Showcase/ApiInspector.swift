@@ -98,6 +98,7 @@ struct ApiInspector: View {
                     if showsCode {
                         Text((try? operation.code(arguments: arguments, parsedCues: model.apiObjects.parsedCues)) ?? "Correct the arguments to show valid code.")
                             .font(.system(.caption, design: .monospaced))
+                            .padding(.vertical, 8)
                             .accessibilityIdentifier("api.code")
                             #if os(tvOS)
                             .focusable()
@@ -144,7 +145,7 @@ struct ApiInspector: View {
                         .font(.caption).foregroundStyle(.secondary)
                     ForEach(model.apiEvents.filter { eventFilter.isEmpty || $0.api.localizedCaseInsensitiveContains(eventFilter) || $0.owner.localizedCaseInsensitiveContains(eventFilter) }) { event in
                         Text("\(event.owner) · \(event.api)\nSDK timestamp: \(event.timestamp)")
-                            .font(.system(.caption, design: .monospaced))
+                            .font(.caption).monospacedDigit()
                             .accessibilityIdentifier("api.event.\(event.api)")
                             #if os(tvOS)
                             .focusable()
@@ -158,9 +159,10 @@ struct ApiInspector: View {
         }
         .padding()
         #if os(tvOS)
+        .frame(maxWidth: 1400, maxHeight: .infinity)
         .padding(40)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
+        .frame(maxWidth: .infinity)
+        .background(.background)
         #endif
         .onAppear { model.refreshApiState() }
         .onChange(of: operation) { _ in arguments.removeAll(); error = nil }
@@ -195,7 +197,7 @@ struct ApiInspector: View {
                 .accessibilityIdentifier("api.argument.\(argument.id)")
         case .json, .script:
             VStack(alignment: .leading, spacing: 4) {
-                Text(argument.label).font(.caption)
+                Text(argument.label).font(.caption).foregroundStyle(.secondary)
                 #if os(tvOS)
                 TextField("JSON or function body", text: binding).disableAutocorrection(true)
                     .accessibilityIdentifier("api.argument.\(argument.id)")
@@ -212,7 +214,7 @@ struct ApiInspector: View {
             }
         default:
             VStack(alignment: .leading, spacing: 4) {
-                Text(argument.label).font(.caption)
+                Text(argument.label).font(.caption).foregroundStyle(.secondary)
                 TextField("Value", text: binding).disableAutocorrection(true)
                     #if !os(tvOS)
                     .textInputAutocapitalization(.never)
@@ -232,7 +234,7 @@ private struct TvApiOperationSelector: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Choose SDK operation").font(.title2)
+                Text("Choose SDK operation").font(.title2).bold()
                 Spacer()
                 Button("Cancel") { dismiss() }
             }
@@ -244,9 +246,11 @@ private struct TvApiOperationSelector: View {
                     .accessibilityIdentifier("api.operation.select.\(operation.id)")
             }
         }
-        .padding(60)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
+        .padding()
+        .frame(maxWidth: 1400, maxHeight: .infinity)
+        .padding(40)
+        .frame(maxWidth: .infinity)
+        .background(.background)
     }
 }
 #endif

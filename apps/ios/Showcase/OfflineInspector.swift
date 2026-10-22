@@ -108,7 +108,7 @@ struct OfflineInspector: View {
                     Text("Only event names, the selected asset owner and SDK timestamps are retained, up to 80 records. A registered callback is distinct from an event that has occurred.").font(.caption)
                     ForEach(workbench.events) { event in
                         Text("\(event.api)\nSDK timestamp: \(event.timestamp)")
-                            .font(.system(.caption, design: .monospaced))
+                            .font(.caption).monospacedDigit()
                             .accessibilityIdentifier("offline.event.\(event.api)")
                     }
                 }
@@ -128,7 +128,7 @@ struct OfflineInspector: View {
 
     private func input(_ label: String, value: Binding<String>, id: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.caption)
+            Text(label).font(.caption).foregroundStyle(.secondary)
             TextField("Value", text: value).disableAutocorrection(true).textInputAutocapitalization(.never)
                 .accessibilityIdentifier(id)
         }
