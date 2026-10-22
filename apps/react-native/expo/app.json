@@ -2,7 +2,7 @@
   "expo": {
     "name": "Player Lab React Native",
     "slug": "player-lab-react-native",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "ios": {

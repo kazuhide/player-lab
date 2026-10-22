@@ -4,6 +4,15 @@
   "lead": "KotlinとComposeのアプリでソース・再生設定を変更し、音声や字幕の選択、操作画面の切り替え、適用済みKotlinコードの確認ができます。ライブ配信の巻き戻しとオフライン保存の補助コードも含みます。Android系Fire TVとVega OSは別の対象です。",
   "blocks": [
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/android-implementation/",
+          "label": "実装ガイド：PlayerConfig・ソース設定・UI変更・FAQ"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "準備とビルド"
     },

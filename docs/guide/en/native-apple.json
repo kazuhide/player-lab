@@ -4,6 +4,15 @@
   "lead": "Configure the Apple player, source and presentation in the SwiftUI app. The API inspector runs SDK operations, reads current state and records events. iOS and iPadOS also provide offline HLS and Google Cast panels; tvOS uses native controls.",
   "blocks": [
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/",
+          "label": "Implementation guide: PlayerConfig, source configuration, UI changes and FAQ"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "Preparation and build"
     },

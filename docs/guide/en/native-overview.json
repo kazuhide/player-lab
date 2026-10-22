@@ -1,6 +1,6 @@
 {
   "id": "native-overview",
-  "title": "Native sample scope and preparation",
+  "title": "Native app requirements and supported features",
   "lead": "The native apps provide source and playback editors, applied configuration code, source switching, and live rewind controls. Platform-specific settings include Apple video scaling and initial track preferences, Android language and retry settings, and external WebVTT subtitles. The Web app provides the broader configuration panel; use each platform chapter for build steps, defaults and verified playback scope.",
   "blocks": [
     {
@@ -116,7 +116,7 @@
         "Player: autoplay, startup mute, forward buffer in seconds, and bitrate cap in bits per second. Supported formats, blank/default meanings, and numeric limits differ by platform.",
         "Apple: native video scaling through StyleConfig.scalingMode, plus initial audio/subtitle language preferences implemented by the app with public track-selection APIs. See the Apple chapter for application at the first Ready event and native HLS subtitle requirements.",
         "Android: player-wide and source-specific audio language priorities, external WebVTT track metadata, and HTTP retry delays. See the Android chapter for inheritance, subtitle-menu selection and retry units.",
-        "React Native and Vega: an external WebVTT URL, label and language. React Native exposes default-track metadata; Vega can enable the track on load. See the native integrations chapter for the different display and selection paths."
+        "React Native and Vega: an external WebVTT URL, label and language. React Native exposes default-track metadata; Vega can enable the track on load. Their separate screen-and-controls chapters explain the display and selection paths."
       ]
     },
     {
@@ -236,7 +236,20 @@
     },
     {
       "type": "note",
-      "text": "sync-env.sh writes ignored Apple, Android and React Native license files. Follow the platform chapters to generate and build the native app. The native integrations chapter covers the included Expo generator and Kepler host; Vega additionally requires its separately installed SDK and runtime:config, which sync-env.sh does not run. After a license change, repeat the relevant configuration step and rebuild. Keep generated configuration files, license values and local SDK paths out of the public repository."
+      "text": "sync-env.sh writes ignored Apple, Android and React Native license files. Follow each platform chapter to generate and build the native app. The React Native screen-and-controls chapter covers the included Expo generator; the Vega OS chapter covers the Kepler host. Vega also requires its separately installed SDK and runtime:config, which sync-env.sh does not run. After a license change, repeat the relevant configuration step and rebuild. Keep generated configuration files, license values and local SDK paths out of the public repository."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/native-react-native/",
+          "label": "React Native screen and controls"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/native-vega/",
+          "label": "Vega OS screen and controls"
+        }
+      ]
     },
     {
       "type": "h2",

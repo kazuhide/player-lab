@@ -4,6 +4,19 @@
   "lead": "Start by comparing an existing theme and its applied UI settings in the Web app. Use the matching factory and stylesheet when carrying that change into your own player. This chapter separates GUI experiments from changes that require editing code.",
   "blocks": [
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Web integration flow"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/",
+          "label": "PlayerConfig / SourceConfig"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "Choose a starting point"
     },
@@ -56,6 +69,68 @@
     {
       "type": "note",
       "text": "The app's DefaultUIFactory wraps the standard desktop/main component tree to expose autohide. It does not reproduce all small-screen, TV, advertising and empty-state variants supplied by UIFactory.buildUI. CSS themes use the same wrapper. Compare them as this app's desktop UI examples."
+    },
+    {
+      "type": "h2",
+      "id": "ui-config-and-ownership",
+      "text": "Choose UIConfig and UI ownership"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Change",
+        "Use",
+        "Apply and inspect"
+      ],
+      "rows": [
+        [
+          "UI language, visible settings and component defaults",
+          "UIConfig.localization, componentLayoutOverrides and componentConfigOverrides",
+          "Apply in UI settings or the SDK editor. The app-managed mode rebuilds the UI; the SDK-managed mode recreates the Player."
+        ],
+        [
+          "Colors, dimensions and spacing",
+          "Skin CSS loaded after the base CSS",
+          "Compare Default and Neon and inspect the target classes. A UIConfig change does not rewrite CSS rules."
+        ],
+        [
+          "Components, order and custom behavior",
+          "UIContainer / ControlBar components and custom Button / Label classes",
+          "Edit a factory such as Compact or Premiere and rebuild. GUI theme selection chooses an existing composition; it is not a free-form component-layout editor."
+        ],
+        [
+          "Media, audio and network behavior",
+          "PlayerConfig, SourceConfig and PlayerAPI",
+          "Follow the PlayerConfig / SourceConfig chapter. Adding a UI button cannot create a track absent from the stream."
+        ]
+      ],
+      "widths": [
+        0.29,
+        0.33,
+        0.38
+      ]
+    },
+    {
+      "type": "p",
+      "text": "With app-managed UI, set PlayerConfig.ui to false and let the app create and release UIManager. The adapted attachment function below uses the standard UI’s responsive compositions in an independent project; it is not a verbatim source excerpt. It assumes an existing Player created with ui: false and the required packages installed. Retain the returned UIManager and call release before replacing it or leaving the screen."
+    },
+    {
+      "type": "code",
+      "title": "Pass UIConfig to the standard UI",
+      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport {\n  UIFactory, UIComponentLayoutOverride, type UIConfig,\n} from \"bitmovin-player-ui\";\nimport \"bitmovin-player-ui/dist/css/bitmovinplayer-ui.css\";\n\nexport const uiConfig: UIConfig = {\n  localization: { language: \"en\" },\n  componentLayoutOverrides: {\n    PlaybackSpeedSelectBox: UIComponentLayoutOverride.Exclude,\n  },\n  componentConfigOverrides: {\n    UIContainer: { hideDelay: -1 },\n  },\n};\n\nexport function attachStandardUi(player: PlayerAPI) {\n  return UIFactory.buildUI(player, uiConfig);\n}"
+    },
+    {
+      "type": "p",
+      "text": "This example hides the speed setting, prevents UIContainer autohide and selects English UI text. In the installed UI version, playbackSpeedSelectionEnabled is a deprecated convenience option; new integrations can use componentLayoutOverrides. The existing GUI toggle remains useful for comparison. Layout overrides accept component types supported by the SDK map; they do not add an arbitrary custom class by name."
+    },
+    {
+      "type": "p",
+      "text": "For SDK-managed UI, apply an empty object to PlayerConfig.ui in the SDK editor. This app uses the distribution at location.ui / ui_css and passes settings through style.uiManagerFactory. The SDK owns that manager’s release. Selecting an original theme returns to app-managed UI; do not attach a second manager over the existing one."
+    },
+    {
+      "type": "figure",
+      "file": "custom-premiere",
+      "caption": "Premiere’s component composition. Compare Construction code and the applied UIConfig overrides separately."
     },
     {
       "type": "h2",
@@ -244,6 +319,65 @@
     {
       "type": "note",
       "text": "Guide examples such as UIVariant, TV SpatialNavigation and VR do not mean that every corresponding control is implemented in the current Web app. Distinguish GUI controls, examples requiring code changes and capabilities requiring physical devices."
+    },
+    {
+      "type": "h2",
+      "id": "ui-implementation-faq",
+      "text": "UI customization FAQ"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Question",
+        "Why and what to change"
+      ],
+      "rows": [
+        [
+          "Controls overlap or a click is handled twice",
+          "Check whether SDK-managed UI and an app-created UIManager are both active. For app management, set ui: false and release the previous manager before rebuilding. Remove custom component subscriptions when their owner is released."
+        ],
+        [
+          "There is no setting to move a component",
+          "UIConfig changes supported behavior and overrides. Layout is defined by the UIContainer / ControlBar components arrays. Follow the Compact example, edit the factory and rebuild."
+        ],
+        [
+          "The UI setting changes but its control is missing",
+          "Some compositions, including Compact, omit a settings menu or subtitle overlay. Compare using a theme that contains the needed component. External-display components also depend on browser and device support."
+        ],
+        [
+          "The title or description ignores UIConfig",
+          "A nonempty SourceConfig.title / description takes precedence over UIConfig.metadata. Use SourceConfig for content-specific text. To test UI metadata alone, load the source after setting its corresponding field to an empty string."
+        ],
+        [
+          "A custom label stays visible after hide",
+          "Replacing the base class with cssClass can bypass the standard hidden rule. Follow the custom-label explanation above: retain the base class or add CSS for the custom class together with bmpui-hidden."
+        ],
+        [
+          "A previous setting remains after switching themes",
+          "Theme selection preserves UIConfig overrides. Restore changed values for a comparison. Browser-stored resume positions are separate state; check setting restoration and stored data separately."
+        ]
+      ],
+      "widths": [
+        0.33,
+        0.67
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Web implementation, features and FAQ"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/",
+          "label": "PlayerConfig / SourceConfig"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-ui-settings/",
+          "label": "UI settings and external displays"
+        }
+      ]
     }
   ],
   "sources": [
@@ -330,6 +464,24 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/bitmovin-player-ui",
       "label": "Player UI customization overview"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 395,
+      "label": "Theme replacement and UIManager ownership"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 783,
+      "label": "SDK-managed UI factory"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html",
+      "label": "UIConfig"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/UIComponentLayoutOverrides.ts",
+      "label": "UI 4.23.0 component layout overrides"
     }
   ]
 }

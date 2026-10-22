@@ -1,0 +1,437 @@
+{
+  "id": "react-native-implementation",
+  "title": "React Native実装ガイド",
+  "lead": "既存のiOS・Android画面を使い、React NativeラッパーによるPlayerの生成、ソースの読み込み、UI変更、ネイティブAPI操作、Analyticsの組み込みを学びます。設定画面での操作と現在のコードを対応させて説明します。",
+  "blocks": [
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-react-native/",
+          "label": "React Nativeの画面・起動手順・操作"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "既存画面を組み込む",
+      "id": "integration"
+    },
+    {
+      "type": "p",
+      "text": "bitmovin-player-react-nativeは、iOSとAndroidのネイティブPlayer SDKをJavaScriptから操作するためのラッパーです。同じReactコンポーネントでも再生できる形式は同一ではありません。この画面はiOSでHLS・プログレッシブMP4を受け付け、AndroidではDASHも選べます。以下のSourceConfigとPlayerConfigはラッパーの型であり、ブラウザー向けWeb SDKの設定をそのまま転用することはできません。"
+    },
+    {
+      "type": "p",
+      "text": "SDKはPlayerを組み込むためのライブラリーとそのインターフェース、APIは公開された設定・操作・イベントを指します。HLSとDASHは複数の画質を配信できるストリーミング形式で、VODは決まった時間範囲を持つオンデマンド動画です。WebVTTは時刻付きのキューを記した字幕のテキスト形式です。DRMは保護されたメディアへのアクセスを制御する仕組みで、対応するライセンスサービスも必要です。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "操作ページの手順で共通UIをビルドし、外部のExpoホストを生成します。Expo GoにはPlayerのネイティブモジュールが含まれないため、開発ビルドを使います。ジェネレーターは別のサンプル画面を作るのではなく、本リポジトリのApp.tsxとsrcをコピーします。",
+        "PlayerライセンスのiOS・Android両方の許可一覧にcom.playerlab.reactnativeを追加します。生成したホストは、コピー済みのローカル設定を利用します。元のリポジトリのキーファイルを変更しただけでは、作成済みの外部ホストには反映されません。",
+        "App.tsxを開きます。Appが適用済み設定と編集途中の値を保持し、UI選択とrevisionをキーにしてPlayerPaneを配置します。ActivePlayerPaneがusePlayerで取得したPlayerをPlayerViewへ渡します。",
+        "VODプリセットを読み込んで再生し、Show applied codeを開きます。この状態を基準に項目を一つずつ変更します。SDKへ渡した設定、ネイティブSDKのイベント、実際の表示を合わせて確認します。"
+      ]
+    },
+    {
+      "type": "code",
+      "title": "既存のネイティブPlayerViewを接続する",
+      "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : styles.player}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}",
+      "source": {
+        "path": "apps/react-native/App.tsx",
+        "line": 312,
+        "label": "既存のネイティブPlayerViewを接続する"
+      },
+      "endLine": 319
+    },
+    {
+      "type": "p",
+      "text": "usePlayerとPlayerViewはSDKの公開機能です。applied・revision・PlayerPane・onPlayerTouchChangeはPlayer Lab側の変数やコンポーネントです。ソースはonPlayerViewReadyを受けてから読み込み、ネイティブの表示先を先に用意します。loadOwnedSourceはラッパーのPlayer.loadを包むLabの補助処理で、ネイティブSourceを保持し、古い初期化が置き換え後のPlayerへ接続するのを防ぎます。ラッパー1.29のPlayer.load自体はvoidを返すため、メディアの読み込み結果はSourceLoaded・Player error・Source errorのイベントで確認します。"
+    },
+    {
+      "type": "h2",
+      "text": "PlayerConfigとSourceConfigを変更する",
+      "id": "player-source-config"
+    },
+    {
+      "type": "p",
+      "text": "PlayerConfigは生成時の再生動作や連携サービスを設定し、SourceConfigは再生するストリームと読み込み条件を設定します。src/configuration.tsのparseConfigurationはLabの関数です。文字列入力を検証して数値や列挙値へ変換し、SDKの設定オブジェクトを作ってから追加設定・配列・許可したコールバックを適用します。任意項目の空欄は通常、そのプロパティを省略します。SDKへ空文字列を渡すこととプロパティを削除することは同じではありません。"
+    },
+    {
+      "type": "code",
+      "title": "基本フォームをラッパーのPlayer設定へ変換する",
+      "text": "  const player: PlayerConfig = {\n      playbackConfig: { isAutoplayEnabled: draft.autoplay, isMuted: draft.muted },\n      ...(forwardDuration !== undefined ? { bufferConfig: { audioAndVideo: { forwardDuration } } } : {}),\n      ...(maxBitrate !== undefined ? { adaptationConfig: { maxSelectableBitrate: maxBitrate } } : {}),\n  };",
+      "source": {
+        "path": "apps/react-native/src/configuration.ts",
+        "line": 111,
+        "label": "基本フォームをラッパーのPlayer設定へ変換する"
+      },
+      "endLine": 115
+    },
+    {
+      "type": "table",
+      "headers": [
+        "変更する内容",
+        "現在のSDK設定パス",
+        "試し方と結果の読み方"
+      ],
+      "rows": [
+        [
+          "開始時の動作",
+          "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted",
+          "AutoplayまたはMute on startupを変更し、Apply and recreate playerを押します。再生中の操作にはPlayer.play・pause・mute・unmuteを使います。開始時の設定と現在のセッションへの命令を区別します。"
+        ],
+        [
+          "バッファー目標",
+          "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration",
+          "同じソースで10秒を試します。先読みするメディアの目標量であり、起動時間の保証や実メモリの測定値ではありません。空欄は設定を省略します。このフォームで0を自動選択として扱うのはiOSだけです。"
+        ],
+        [
+          "画質選択の上限",
+          "PlayerConfig.adaptationConfig.maxSelectableBitrate",
+          "複数のビットレートを持つソースで1500000 bit/sを試します。これは画質の選択上限で、エンコーダー設定ではありません。選択可能な画質・実際の画質・再生を比較し、空欄に戻して上限を解除します。"
+        ],
+        [
+          "メディアの指定",
+          "SourceConfig.url / type / title / poster",
+          "URLと形式を一致させます。titleとposterはソースのメタデータで、表示の有無は選択中のPlayer UIに依存します。プリセット選択はソース項目を置き換えますが、Player設定は保持します。"
+        ],
+        [
+          "開始位置",
+          "SourceConfig.options.startOffset / startOffsetTimelineReference",
+          "VODで5秒・Startを試します。EndはVODまたはライブ範囲の終端を基準にします。符号付きオフセットは開始位置の計算に使う値であり、Player.seekによる現在位置の変更とは別です。"
+        ],
+        [
+          "字幕",
+          "SourceConfig.subtitleTracks",
+          "基本フォームではURL・ラベル・言語からWebVTTトラックを追加します。追加の配列エディターでは複数トラックを設定できます。Mark as defaultはメタデータを設定するもので、読み込み後に実際のトラックを選びます。"
+        ]
+      ],
+      "widths": [
+        0.2,
+        0.34,
+        0.46
+      ]
+    },
+    {
+      "type": "code",
+      "title": "ソースと開始位置の設定を組み立てる",
+      "text": "  const source: SourceConfig = {\n    url, type, ...(title ? { title } : {}), ...(poster ? { poster } : {}),\n    ...(subtitleUrl ? { subtitleTracks: [{ url: subtitleUrl, label: subtitleLabel, language: subtitleLanguage,\n      identifier: \"player-lab-external\", format: SubtitleFormat.VTT, isDefault: subtitleDefault }] } : {}),\n    ...(startOffset !== undefined || reference !== undefined ? { options: {\n      ...(startOffset !== undefined ? { startOffset } : {}),\n      ...(reference !== undefined ? { startOffsetTimelineReference: reference } : {}),\n    } } : {}),\n  };",
+      "source": {
+        "path": "apps/react-native/src/configuration.ts",
+        "line": 102,
+        "label": "ソースと開始位置の設定を組み立てる"
+      },
+      "endLine": 110
+    },
+    {
+      "type": "p",
+      "text": "ソースはラッパーのurl/type形式で指定し、Vegaのhls/dash/progressiveとは異なります。開始オフセットの単位は秒です。最大ビットレートは整数で、Androidでは2,147,483,647まで、iOSではJavaScriptが正確に表せる整数の上限までを受け付けます。ネイティブへ値を渡す前に検証することで、整数変換や精度不足による値の変化を避けています。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Show configurationの基本項目を変更し、Apply and recreate playerを押します。編集値全体を検証してからPlayerを置き換えます。フォームからのソース設定変更だけでも再作成し、設定したオフセットから読み直します。",
+        "ほかの項目はAdditional SDK configurationでラッパーの正確なパスを検索します。配列はSubtitle lists and advertising、関数はJavaScript callbacks and native UI handlersを使います。ネイティブSDKのインスタンスが必要な項目を単なる文字列で代用することはできません。",
+        "Apply後にShow applied codeを開きます。追加設定は基本フォームの値より優先し、追加値を削除するとフォームの値またはSDK既定値へ戻ります。Reset draftは未適用の編集値だけを破棄します。",
+        "実装を変更するときも、検証済みのPlayer設定とソース設定を分けて保持します。AppはApply時にrevisionを増やし、ReactのkeyによってPlayerの所有コンポーネントを作り直します。既存のusePlayer呼び出しの引数を書き換えることは、再設定用APIではありません。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "rn-ios-code",
+      "caption": "React Native iOSの適用済み設定です。Apply後の出力を比較します。ネイティブSDK内部の既定値をすべて取得した一覧ではありません。"
+    },
+    {
+      "type": "h2",
+      "text": "Player UIとReact側の操作部を変更する",
+      "id": "ui-customization"
+    },
+    {
+      "type": "p",
+      "text": "UIは二つの層に分かれます。PlayerViewはネイティブ映像とSDKが管理する操作部を表示し、iOS・AndroidではBitmovinのHTML・JavaScript UIを利用できます。その周囲のReact Nativeのボタン・スイッチ・設定フォーム・Modalはアプリ側の実装です。ReactのStyleSheetを変えても、埋め込まれたHTML操作部のスタイルは変わりません。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "変更したい内容",
+        "変更する場所",
+        "反映方法"
+      ],
+      "rows": [
+        [
+          "既存の共通テーマを使う",
+          "UI選択はApp.tsxのUI_MODESでファクトリー名を選びます。Sports・Live・Cinemaはpackages/ui-shared/src/global.tsの公開名へ対応します。",
+          "テーマを選ぶとPlayerPaneを作り直し、適用済みソースを読み込みます。Defaultはファクトリーを指定しません。"
+        ],
+        [
+          "埋め込みUIの外観を変える",
+          "PlayerConfig.styleConfig.playerUiCssはスタイルシートを置き換え、supplementalPlayerUiCssはスタイルを追加します。playerUiJsはJavaScriptバンドルを置き換えます。",
+          "Additional SDK configurationで該当パスを変更してApplyします。同梱アセットを使う場合は、以下の手順で共通UIとネイティブ資源を再ビルドします。"
+        ],
+        [
+          "UIの構成を変える",
+          "packages/ui-shared/src/liveUi.tsの対象ファクトリーとコンポーネントを変更します。新しいファクトリーはglobal.tsにも登録し、その公開名を指定します。",
+          "共通バンドルをビルドし、外部Expoホストのassets/webuiへコピーしてprebuildとネイティブビルドをやり直します。"
+        ],
+        [
+          "映像の収め方や表示先を変える",
+          "PlayerViewProps.scalingModeでFit・Zoom・Stretchを設定します。PlayerViewConfigは表示先の設定、WebUiConfigは埋め込みWeb UIの設定です。",
+          "Additional SDK configurationで該当パスを検索してApplyします。Fitは映像全体を表示し、Zoomは一部を切り取る場合があり、Stretchは縦横比を変える場合があります。"
+        ],
+        [
+          "アプリ側に操作ボタンを追加する",
+          "PlayerViewの周囲にあるReactのボタンを参考にします。現在のplayerへ操作を渡し、SDKの状態やイベントで結果を確認します。",
+          "JavaScriptの変更はMetro経由で反映できますが、新しいネイティブモジュールや同梱UIアセットにはネイティブの再ビルドが必要です。"
+        ]
+      ],
+      "widths": [
+        0.2,
+        0.43,
+        0.37
+      ]
+    },
+    {
+      "type": "code",
+      "title": "カスタムテーマに共通JavaScriptとCSSを渡す",
+      "text": "          styleConfig: {\n            userInterfaceType: UserInterfaceType.Bitmovin,\n            playerUiJs: WEBUI_JS,\n            playerUiCss: WEBUI_CSS,\n            ...playerConfig.styleConfig,\n          },\n        }",
+      "source": {
+        "path": "apps/react-native/App.tsx",
+        "line": 208,
+        "label": "カスタムテーマに共通JavaScriptとCSSを渡す"
+      },
+      "endLine": 214
+    },
+    {
+      "type": "code",
+      "title": "PlayerViewConfigから公開ファクトリーを選ぶ",
+      "text": "  const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction || Object.keys(settings.view).length || Object.keys(settings.webUi).length\n    ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }\n    : undefined;",
+      "source": {
+        "path": "apps/react-native/App.tsx",
+        "line": 302,
+        "label": "PlayerViewConfigから公開ファクトリーを選ぶ"
+      },
+      "endLine": 304
+    },
+    {
+      "type": "p",
+      "text": "CustomUiはUIバンドル内のファクトリー名を指定するラッパーのクラスであり、その名前はURLではありません。このアプリはAndroidでfile:///android_asset/webuiの資源を、iOSでメインアプリのバンドル内のファイル名を使います。ネイティブ資源用のプラグインが同梱するため、Metroをリロードしてもアプリに組み込まれたファイルは更新されません。JavaScriptとCSSは同じ共通UIビルドのものを使います。"
+    },
+    {
+      "type": "p",
+      "text": "SDK UIの設定を試す場合は、ファクトリーのコードを変える前にWebUiConfig.playbackSpeedSelectionEnabledや映像のscalingModeを変更すると対応を追いやすくなります。PlayerConfig.styleConfig.userInterfaceTypeはプラットフォームによって対応が異なり、System UIはApple向けで、Androidのシステム操作部を選ぶ項目ではありません。isUiEnabledをfalseにするとSDKの操作部を非表示にします。代わりにReactで操作部を作る場合は、必要な操作をアプリで用意します。既存のAPIパネルでは、現在のPlayerに対する再生・停止・シーク・トラック選択を試せます。"
+    },
+    {
+      "type": "note",
+      "title": "全画面表示とUIメッセージ",
+      "text": "PlayerViewProps.fullscreenHandlerはスタイルのフラグではなく、処理を持つオブジェクトです。コールバックエディターではisFullscreenActive・enterFullscreen・exitFullscreenを持つ生成関数を指定し、lab.setFullscreenでこのアプリのModalへ接続します。退出時にも対応する処理を呼び、ネイティブ側とReact側の状態をそろえます。カスタムメッセージ用の生成関数は、エディターに示すSDKのCustomMessageHandlerインスタンスを返す必要があります。labとその所有者の検査はアプリの補助機能であり、どのSDK環境にもあるグローバル変数ではありません。"
+    },
+    {
+      "type": "figure",
+      "file": "rn-ios-api-callback",
+      "caption": "iOSアプリのコールバックエディターです。関数の型と、明示的に許可した本体を表示します。JavaScriptの実行はサンドボックスで分離していないため、信頼できるコードだけを使います。"
+    },
+    {
+      "type": "h2",
+      "text": "トラック・API操作・ネイティブ連携を試す",
+      "id": "useful-features"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "字幕はWebVTTのURL・ラベル・言語を設定してApplyします。SourceLoaded後に字幕メニュー、またはPlayer.getAvailableSubtitlesで確認し、返された識別子をPlayer.setSubtitleTrackへ渡します。Labの入力欄で識別子を空欄にすると、SDKへundefinedを渡して字幕を無効にします。SDKを直接呼ぶコードではPlayer.setSubtitleTrack(undefined)を使います。一覧に載るだけでなく、キューの時刻まで再生して表示を確認します。",
+        "音声切り替えには複数の音声トラックを持つソースを使います。Player.getAvailableAudioTracksの識別子をPlayer.setAudioTrackへ渡し、Player.getAudioTrackと実際の音声を確認します。識別子は現在のソースに属するため、別ソースで使い回しません。",
+        "Androidで画質を選ぶ場合は、Player.getAvailableVideoQualitiesとPlayer.getVideoQualityを確認し、返された画質IDをPlayer.setVideoQualityへ渡します。Androidではautoで自動画質選択へ戻します。iOSでは、Labの一覧にこの操作があっても、ラッパー1.29は警告を出して画質を選択せずに戻ります。iOSの自動画質選択を比較する場合は、Maximum bitrate（PlayerConfig.adaptationConfig.maxSelectableBitrate）を変更してApplyし、選択された画質と再生を確認します。このビットレートの上限設定は、特定の画質を固定して選ぶ操作ではありません。",
+        "OSの機能を試すときは、先にPlayerViewとPlayerの設定を確認します。ピクチャーインピクチャーやバックグラウンド再生には生成ホスト側のネイティブ機能が必要で、AirPlayはApple向けです。フラグだけではOSの権限・受信機・コンテンツの対応条件は補えません。",
+        "CastはCast startup configurationで起動時の設定を保存し、アプリを完全に閉じて起動し直します。Read native Cast startup stateで設定を確認してから、探索・接続・受信機での再生を試します。ラッパー1.29の非推奨APIであるBitmovinCastManager.initializeは何もしないため、Playerの再作成やJavaScriptのリロードはネイティブ起動処理の代わりになりません。"
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Show API experimentsは実際のラッパーAPIを呼び、返り値を表示します。状態取得の多くはネイティブとの通信を伴うPromiseを返すため、値を待ってからUIへ反映します。Player eventsには別途イベントの要約を表示します。値を変更するAPIは、対応する状態取得や完了イベントで確認します。呼び出しが戻ったことだけで別の機能の動作までは判断できません。このラッパーにはonDurationChangedがないため、アプリのライブ範囲もonTimeChangedで更新しています。"
+    },
+    {
+      "type": "figure",
+      "file": "rn-android-api-operation",
+      "caption": "AndroidビルドのPlayer.getCurrentTimeです。時刻の基準を選び、再生しながら値を取り直して位置の変化を確認します。"
+    },
+    {
+      "type": "note",
+      "title": "オフライン再生",
+      "text": "独立したOfflineContentConfigと字幕一覧を使い、安定したコンテンツ識別子を設定します。マネージャーを初期化し、オプション取得後のonOptionsAvailableを確認してから、対象のダウンロードを開始します。完了はonCompletedで受け、保存したメディアはPlayer.loadOfflineContentで読み込みます。中断・削除・ライセンス操作は選択中の識別子に対して行われます。保存領域、ダウンロードできるメディア、DRMの権利は別途必要です。"
+    },
+    {
+      "type": "h2",
+      "text": "FAQ・問題の切り分け",
+      "id": "faq"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "症状・疑問",
+        "原因と確認方法"
+      ],
+      "rows": [
+        [
+          "Applyで再生が最初に戻るのはなぜですか？",
+          "フォームは設定変更時にPlayerを再作成する設計です。適用済みの設定は保持しますが、位置はソースの開始オフセットへ戻ります。プリセットは通常ソースだけを読み直しますが、コールバックや全画面表示の設定がある場合は再作成も必要になります。"
+        ],
+        [
+          "CSSの変更が反映されないのはなぜですか？",
+          "Reactのスタイルと埋め込みUIのスタイルは別です。選択したファクトリー、JavaScript・CSSのパス、外部ホストにコピーしたアセットを確認します。同梱する共通UIを変更したらネイティブ資源を再ビルドします。"
+        ],
+        [
+          "字幕は一覧にあるのに表示されません。",
+          "Mark as defaultだけでは有効になりません。返されたトラックを選び、字幕キューとメディアの時間範囲を合わせて、ソースとエラーのイベントを確認します。言語タグの不備やURL・ラベルの不足はApply前に検証します。"
+        ],
+        [
+          "iOSでDASHを選べないのはなぜですか？",
+          "このラッパーはネイティブiOS Playerを利用します。HLSまたはプログレッシブMP4を使います。ブラウザーのDASH対応によってネイティブiOSの対応形式が変わるわけではありません。"
+        ],
+        [
+          "AndroidのPlayerメニューをスクロールできません。",
+          "フォームの外側ではなく映像内のメニューをスワイプします。アプリは映像へのタッチを保持し、親ScrollViewがドラッグを奪わないようにしています。"
+        ],
+        [
+          "元の設定を更新してもライセンスエラーになります。",
+          "外部ホストへ最新の設定をコピーしたか確認し、必要に応じてMetroを起動し直します。同じライセンスの対象プラットフォームでcom.playerlab.reactnativeが許可されているかも確認します。キーはIssueや画面キャプチャへ貼り付けません。"
+        ],
+        [
+          "再作成後にAPIやコールバックが失敗します。",
+          "以前のPlayerやソースに属する資源を参照している場合があります。新しいインスタンスから状態を取得し直し、現在のトラック・ネイティブ識別子と関数の型を確認します。destroyを試した後はRecreate player after API experimentsで適用済み設定から復元します。"
+        ]
+      ],
+      "widths": [
+        0.34,
+        0.66
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Analytics / Observability",
+      "id": "analytics-observability"
+    },
+    {
+      "type": "p",
+      "text": "ラッパーの収集機能はPlayerConfig.analyticsConfigを使い、Playerとは別のライセンスで設定します。App.tsxはEXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEYがある場合に標準のanalyticsConfigを追加します。追加設定フォームでは収集設定とPlayerConfig.analyticsConfig.defaultMetadataを編集できます。ソースごとのvideoId・title・experimentName・customData1などはSourceConfig.analyticsSourceMetadataに指定します。任意のSourceConfig.metadataがDashboardの分類項目になるとは限らないため、Analytics専用の項目を使います。"
+    },
+    {
+      "type": "code",
+      "title": "usePlayerへ渡す前に収集設定を統合する",
+      "text": "  const analyticsConfig = playerConfig.analyticsConfig ? {\n    ...playerConfig.analyticsConfig,\n    licenseKey: Object.prototype.hasOwnProperty.call(settings.draft.apiSettings ?? {}, \"PlayerConfig.analyticsConfig.licenseKey\")\n      ? playerConfig.analyticsConfig.licenseKey : ANALYTICS_LICENSE_KEY,\n  } : ANALYTICS_LICENSE_KEY ? { licenseKey: ANALYTICS_LICENSE_KEY } : undefined;",
+      "source": {
+        "path": "apps/react-native/App.tsx",
+        "line": 196,
+        "label": "usePlayerへ渡す前に収集設定を統合する"
+      },
+      "endLine": 200
+    },
+    {
+      "type": "p",
+      "text": "続くusePlayerの設定でanalyticsConfigをPlayerへ渡します。明示したライセンスの上書きは尊重し、メタデータだけを変更した場合は既定のライセンスを維持します。収集機能がある場合、APIパネルからPlayer.analytics.getUserIdとsendCustomDataEventを試せますが、どちらも集計結果を取得するAPIではありません。分類用のラベルやカスタム項目へ個人情報や機密情報を入れないでください。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "生成したアプリで許可されたAnalyticsライセンスを使い、機密情報を含まない実験ラベルとvideoIdを設定します。再生を開始し、一時停止・シーク・トラック変更などを試します。",
+        "Bitmovin Dashboardで対応するAnalyticsライセンス、期間、アプリやコンテンツの絞り込み条件を選びます。セッションの起動時間・バッファリング・ビットレート・エラーをSDKのイベントログと比較します。アプリでの収集とDashboardでの集計は別の段階です。",
+        "指標の定義・可視化・分析例は以下の共通ガイドを参照します。アカウントAPIの認証情報は信頼できるサーバー側のツールに置きます。Playerや収集用Analyticsのライセンスキーとは別のものであり、アプリへ埋め込みません。"
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-qoe-analytics/",
+          "label": "Analyticsの収集とDashboardの画面"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-metrics/",
+          "label": "取得できる指標と定義"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-visualization/",
+          "label": "収集したデータの可視化"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-ai/",
+          "label": "LLM・MCPを使った分析"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/react-native/App.tsx",
+      "line": 78,
+      "label": "App・Playerの再作成・ネイティブ表示"
+    },
+    {
+      "path": "apps/react-native/src/configuration.ts",
+      "line": 68,
+      "label": "設定の変換とプラットフォームごとの検証"
+    },
+    {
+      "path": "apps/react-native/src/nativeSettings.ts",
+      "line": 1,
+      "label": "ラッパーの追加設定の対応"
+    },
+    {
+      "path": "apps/react-native/src/nativeArrays.ts",
+      "line": 1,
+      "label": "字幕と広告の配列の対応"
+    },
+    {
+      "path": "apps/react-native/src/nativeScripts.ts",
+      "line": 25,
+      "label": "コールバック・全画面表示・メッセージ処理"
+    },
+    {
+      "path": "apps/react-native/src/apiOperations.ts",
+      "line": 54,
+      "label": "ネイティブPlayerの操作と状態取得"
+    },
+    {
+      "path": "apps/react-native/src/sourceOwnership.ts",
+      "line": 1,
+      "label": "ラッパーのソース読み込みと所有者の管理"
+    },
+    {
+      "path": "apps/react-native/expo/plugins/withSharedPlayerUi.cjs",
+      "line": 1,
+      "label": "共通UIのネイティブ資源への同梱"
+    },
+    {
+      "path": "packages/ui-shared/src/global.ts",
+      "line": 30,
+      "label": "CustomUiが参照する共通UIファクトリーの公開名"
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 270,
+      "label": "共通UIのコンポーネント構成"
+    },
+    {
+      "path": "apps/react-native/README.md",
+      "line": 112,
+      "label": "Expoホストの生成と依存関係の固定"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/src/playerConfig.ts",
+      "label": "公式ラッパーのPlayerConfig"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/src/styleConfig.ts",
+      "label": "公式のUI形式とプラットフォーム別スタイル設定"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/src/hooks/usePlayer.ts",
+      "label": "公式usePlayerフックの実装"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/src/bufferConfig.ts",
+      "label": "公式のプラットフォーム別バッファー設定"
+    }
+  ]
+}

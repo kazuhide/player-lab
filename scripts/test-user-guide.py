@@ -13,8 +13,9 @@ from urllib.parse import unquote, urlsplit
 
 from coverage_report import summarize
 from guide_coverage import api_anchor, category_metrics
-from guide_routes import COVERAGE_APPS, GUIDE_ASSETS, GUIDE_FILES, SOURCE_REVISION, route_file
-from user_guide import build, load_content, render_block, source_url
+from guide_routes import (COVERAGE_APPS, GUIDE_ASSETS, GUIDE_FILES, IMPLEMENTATION_GUIDES,
+                          PUBLIC_BASE, SOURCE_REVISION, route_file)
+from user_guide import build, load_content, render_block, search_text, source_url
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -99,7 +100,7 @@ class GuideTests(unittest.TestCase):
 
     def test_all_chapters_and_reference_groups_are_public_in_both_languages(self):
         self.assertEqual(set(self.pages), GUIDE_FILES)
-        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 106)
+        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 120)
         for language in ('en', 'ja'):
             fields = [field for group in self.content[language]['settings']['groups'] for field in group['fields']]
             self.assertEqual(len(fields), 144)
@@ -157,33 +158,96 @@ class GuideTests(unittest.TestCase):
     def test_player_chapters_precede_dashboard_analytics_in_both_languages(self):
         for language in ('en', 'ja'):
             html = self.pages[route_file(language)].decode()
-            self.assertLess(html.index('web-player-config/'), html.index('native-overview/'))
-            self.assertLess(html.index('native-integrations/'), html.index('web-qoe-analytics/'))
+            for chapter in (*IMPLEMENTATION_GUIDES, 'native-apple', 'native-android',
+                            'native-react-native', 'native-vega'):
+                self.assertLess(html.index(chapter + '/'), html.index('web-qoe-analytics/'))
             self.assertLess(html.index('test-results/'), html.index('web-qoe-analytics/'))
             self.assertLess(html.index('analytics-visualization/'), html.index('analytics-queries/'))
 
-    def test_implementation_guide_adds_source_reading_without_replacing_operation_chapters(self):
-        sections = ['web-player', 'web-settings', 'web-ui-events', 'apple-player',
-                    'android-player', 'react-native-player', 'vega-player', 'analytics-observability']
+    def test_platform_outline_keeps_web_workflows_and_nests_implementation_topics(self):
+        import re
+        from xml.etree import ElementTree
+        labels = {
+            'en': ('Web', 'iOS / iPadOS / tvOS', 'Android / Android TV / Fire TV', 'React Native', 'Vega OS'),
+            'ja': ('Web版', 'iOS・iPadOS・tvOS', 'Android・Android TV・Fire TV', 'React Native', 'Vega OS'),
+        }
+        platforms = [
+            ('apple-implementation', 'native-apple'),
+            ('android-implementation', 'native-android'),
+            ('react-native-implementation', 'native-react-native'),
+            ('vega-implementation', 'native-vega'),
+        ]
         for language in ('en', 'ja'):
-            document = self.content[language]['implementation']
-            self.assertEqual([b['id'] for b in document['blocks'] if b['type'] == 'h2'], sections)
-            html = self.pages[route_file(language, 'implementation')].decode()
-            for section in sections:
-                self.assertIn('id="' + section + '"', html)
-            overview = self.pages[route_file(language)].decode()
-            self.assertLess(overview.index('native-integrations/'), overview.index('implementation/'))
-            self.assertLess(overview.index('implementation/'), overview.index('web-qoe-analytics/'))
+            html = self.pages[route_file(language)].decode()
+            markup = re.search(r'<nav class="guide-nav"[^>]*>.*?</nav>', html, re.S).group()
+            nav = ElementTree.fromstring(markup)
+            groups = {section.find('h3').text: section for section in nav.findall('section')}
+            for label in labels[language]:
+                self.assertIn(label, groups)
+            web = groups[labels[language][0]]
+            self.assertEqual([a.get('href') for a in web.findall('./ol/li/a')], [
+                'web-screen-themes/', 'web-sources-tracks/', 'web-ui-settings/', 'web-implementation/'])
+            implementation = web.findall('./ol/li')[3]
+            self.assertEqual([a.get('href') for a in implementation.findall('./ul/li/a')], [
+                'web-player-config/', 'web-ui-customization/', 'web-implementation/#useful-features',
+                'web-implementation/#faq', 'web-implementation/#analytics-observability'])
+            for label, (guide, operations) in zip(labels[language][1:], platforms):
+                group = groups[label]
+                self.assertEqual([a.get('href') for a in group.findall('./ol/li/a')],
+                                 [guide + '/', operations + '/'])
+                topics = group.findall('./ol/li')[0].findall('./ul/li/a')
+                self.assertEqual([a.get('href') for a in topics], [
+                    guide + '/#' + section for section in (
+                        'player-source-config', 'ui-customization', 'useful-features', 'faq',
+                        'analytics-observability')])
+            top_paths = [a.get('href') for a in nav.findall('./section/ol/li/a')]
+            self.assertNotIn('implementation/', top_paths)
+            self.assertNotIn('native-integrations/', top_paths)
+
+    def test_platform_implementation_guides_have_local_contents_source_examples_and_search(self):
+        sections = ['integration', 'player-source-config', 'ui-customization',
+                    'useful-features', 'faq', 'analytics-observability']
+        for language in ('en', 'ja'):
             search = json.loads(self.pages[f'{"ja/" if language == "ja" else ""}guide/search-index.json'])
-            for section in sections:
-                self.assertTrue(any(item['url'] == 'implementation/#' + section for item in search))
-            sources = [source.get('url') for source in document['sources']]
-            sources.extend(item.get('url') for block in document['blocks'] if block['type'] == 'links'
-                           for item in block['items'])
+            for chapter in IMPLEMENTATION_GUIDES:
+                document = self.content[language][chapter]
+                self.assertEqual([b['id'] for b in document['blocks'] if b['type'] == 'h2'], sections)
+                html = self.pages[route_file(language, chapter)].decode()
+                self.assertIn('<nav class="guide-onpage"', html)
+                for section in sections:
+                    self.assertIn('id="' + section + '"', html)
+                    self.assertIn('href="#' + section + '"', html)
+                    self.assertTrue(any(item['url'] == chapter + '/#' + section for item in search))
+                self.assertTrue(any(b['type'] == 'code' and 'source' in b for b in document['blocks']))
+                self.assertTrue(any(b['type'] == 'figure' for b in document['blocks']))
+            for chapter in ('web-player-config', 'web-ui-customization'):
+                self.assertIn('<nav class="guide-onpage"', self.pages[route_file(language, chapter)].decode())
+
+    def test_old_combined_chapter_bookmarks_link_to_independent_platform_guides(self):
+        bookmarks = {
+            'implementation': ['web-player', 'web-settings', 'web-ui-events', 'apple-player',
+                'android-player', 'react-native-player', 'vega-player', 'analytics-observability', 'sources'],
+            'native-integrations': ['react-native-and-expo', 'react-native-additional-configuration-and-lists',
+                'react-native-callbacks-and-native-ui-handlers', 'react-native-operations-state-and-events',
+                'react-native-cast-startup-settings', 'vega-os-and-kepler', 'vega-typed-configuration-and-callbacks',
+                'vega-operations-state-and-events', 'vega-hls-interstitials', 'applied-configuration-code', 'sources'],
+        }
+        for language in ('en', 'ja'):
+            search = json.loads(self.pages[f'{"ja/" if language == "ja" else ""}guide/search-index.json'])
+            for chapter, sections in bookmarks.items():
+                parser = Links()
+                parser.feed(self.pages[route_file(language, chapter)].decode())
+                self.assertTrue(set(sections).issubset(parser.ids))
+                self.assertFalse(any(item['url'].split('/')[0] == chapter for item in search))
             prefix = 'https://kazuhide.github.io/player-lab/' + ('ja/' if language == 'ja' else '') + 'guide/'
-            for chapter in ('web-player-config', 'web-ui-customization', 'native-apple', 'native-android',
-                            'native-integrations', 'web-qoe-analytics', 'analytics-metrics', 'analytics-ai'):
-                self.assertIn(prefix + chapter + '/', sources)
+            combined = Links()
+            combined.feed(self.pages[route_file(language, 'implementation')].decode())
+            for chapter in IMPLEMENTATION_GUIDES:
+                self.assertIn(prefix + chapter + '/', combined.links)
+            operations = Links()
+            operations.feed(self.pages[route_file(language, 'native-integrations')].decode())
+            for chapter in ('native-react-native', 'native-vega'):
+                self.assertIn(prefix + chapter + '/', operations.links)
 
     def test_grouped_controls_keep_every_existing_search_target_and_description(self):
         groups = ('source', 'seek', 'playback', 'ui', 'casting')
@@ -255,9 +319,12 @@ class GuideTests(unittest.TestCase):
                 uri = urlsplit(value)
                 if uri.scheme:
                     self.assertEqual(uri.scheme, 'https')
-                    continue
-                target = posixpath.normpath(posixpath.join(posixpath.dirname(name), uri.path)) if uri.path else name
-                if value.split('#')[0].endswith('/'):
+                    if not value.startswith(PUBLIC_BASE):
+                        continue
+                    target = uri.path.removeprefix(urlsplit(PUBLIC_BASE).path)
+                else:
+                    target = posixpath.normpath(posixpath.join(posixpath.dirname(name), uri.path)) if uri.path else name
+                if uri.path.endswith('/'):
                     target += '/index.html'
                 target = posixpath.normpath(target)
                 if target == '.':
@@ -417,6 +484,13 @@ class GuideTests(unittest.TestCase):
                 changed['ja'][name][name][0]['id'] = 'different-reference'
             with self.subTest(document=name), self.assertRaises(ValueError):
                 build(changed)
+
+    def test_translation_cannot_change_explicit_section_bookmarks(self):
+        changed = copy.deepcopy(self.content)
+        next(b for b in changed['ja']['apple-implementation']['blocks']
+             if b['type'] == 'h2')['id'] = 'different-section'
+        with self.assertRaises(ValueError):
+            build(changed)
 
     def test_every_available_api_id_is_static_once_with_a_stable_bilingual_anchor(self):
         for app in self.report['applications']:
@@ -601,6 +675,24 @@ class GuideTests(unittest.TestCase):
             (folder / 'gaps.json').write_text(json.dumps(gaps))
             with self.assertRaises(ValueError):
                 build(load_content(docs / 'guide'))
+
+
+class GuideRenderingTests(unittest.TestCase):
+    def test_existing_theme_capture_can_illustrate_the_ui_guide(self):
+        html = render_block({'type': 'figure', 'file': 'custom-premiere',
+                             'caption': 'The Premiere theme.'}, 'en',
+                            route_file('en', 'web-ui-customization'), None)
+        self.assertIn('assets/guide/custom-premiere.jpg', html)
+        self.assertIn('width="983" height="554"', html)
+        with self.assertRaises(ValueError):
+            render_block({'type': 'figure', 'file': 'unregistered-image', 'caption': 'Unknown'},
+                         'en', route_file('en', 'web-ui-customization'), None)
+
+    def test_faq_question_and_answer_are_searchable(self):
+        text = search_text({'type': 'note', 'title': 'Why does Apply recreate the player?',
+                            'text': 'PlayerConfig is applied when creating a player.'})
+        self.assertIn('Why does Apply recreate the player?', text)
+        self.assertIn('PlayerConfig is applied when creating a player.', text)
 
 
 if __name__ == '__main__':

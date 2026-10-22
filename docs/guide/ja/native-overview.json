@@ -1,6 +1,6 @@
 {
   "id": "native-overview",
-  "title": "ネイティブ版の範囲と準備",
+  "title": "ネイティブアプリの準備と対応範囲",
   "lead": "ネイティブ版には、ソース・再生設定の編集、適用済みコードの表示、ソース切り替え、ライブ配信の巻き戻し機能があります。Appleの映像の拡大方法と初期トラック設定、Androidの言語・再試行設定、外部WebVTT字幕など、各版に応じた項目も扱います。より広い設定一覧はWeb版で、ビルド手順、既定値、実再生の確認範囲は各プラットフォームの章で確認してください。",
   "blocks": [
     {
@@ -116,7 +116,7 @@
         "再生設定：自動再生、起動時ミュート、先読みバッファ（秒）、ビットレート上限（bit/s）。対応形式、空欄や既定値の意味、数値の範囲はプラットフォームによって異なります。",
         "Apple：StyleConfig.scalingModeによる映像の拡大方法と、公開トラック選択APIを使うアプリ側の初期音声・字幕言語設定。最初のReadyでの適用とHLS内字幕の条件はAppleの章で説明します。",
         "Android：Player全体とソースごとの音声言語の優先順、外部WebVTT字幕の情報、HTTP再試行の待ち時間。設定の継承、字幕メニューでの選択、待ち時間の単位はAndroidの章で説明します。",
-        "React NativeとVega：外部WebVTTのURL・表示名・言語。React Nativeには既定トラックの情報、Vegaには読み込み時に有効にする設定があります。表示と選択の違いはネイティブ統合の章で説明します。"
+        "React NativeとVega：外部WebVTTのURL・表示名・言語。React Nativeには既定トラックの情報、Vegaには読み込み時に有効にする設定があります。表示と選択の違いは、それぞれの「画面と操作」で説明します。"
       ]
     },
     {
@@ -236,7 +236,20 @@
     },
     {
       "type": "note",
-      "text": "sync-env.shはApple、Android、React Native向けに、追跡対象外のライセンス設定ファイルを生成します。各プラットフォームの章に従ってネイティブアプリを生成・ビルドしてください。ネイティブ統合の章では同梱のExpo生成ツールとKeplerアプリを説明しています。Vegaは別途インストールしたSDKとruntime:configも必要で、sync-env.shはVegaの設定を生成しません。ライセンス変更後は該当する設定手順とビルドをやり直します。生成ファイル、ライセンス値、ローカルSDKのパスは公開リポジトリへ追加しないでください。"
+      "text": "sync-env.shはApple、Android、React Native向けに、追跡対象外のライセンス設定ファイルを生成します。各プラットフォームの章に従ってネイティブアプリを生成・ビルドしてください。React Nativeの「画面と操作」では同梱のExpo生成ツール、Vega OSの「画面と操作」ではKeplerアプリを説明しています。Vegaは別途インストールしたSDKとruntime:configも必要で、sync-env.shはVegaの設定を生成しません。ライセンス変更後は該当する設定手順とビルドをやり直します。生成ファイル、ライセンス値、ローカルSDKのパスは公開リポジトリへ追加しないでください。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-react-native/",
+          "label": "React Nativeの画面と操作"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-vega/",
+          "label": "Vega OSの画面と操作"
+        }
+      ]
     },
     {
       "type": "h2",

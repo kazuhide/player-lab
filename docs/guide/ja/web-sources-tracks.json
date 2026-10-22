@@ -4,6 +4,15 @@
   "lead": "ソースのボタンで、再生する素材と確認したい機能を選びます。Pages版は短いVOD素材を同梱し、ライブは外部の公開配信を使います。",
   "blocks": [
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/",
+          "label": "実装ガイド：設定・UI変更・FAQ"
+        }
+      ]
+    },
+    {
       "type": "p",
       "text": "各アプリでは複数のテストストリームを使います。公開Pages版の基本的なVOD操作には短いBig Buck Bunnyを同梱していますが、ローカル開発版とネイティブ版では外部のHLS・DASH・ライブ配信も使います。音声、字幕、長さ、巻き戻せる範囲はソースによって異なります。"
     },
@@ -194,7 +203,16 @@
     },
     {
       "type": "note",
-      "text": "現在のGUIには任意のHLSやDASHのURLを貼り付ける入力欄はありません。ローカルで別素材を使う場合は、公開ドキュメントに沿ってソース用の環境設定またはソース定義を変更します。"
+      "text": "基本のソース選択欄では、一覧にあるプリセットを選びます。別のHLSやDASHのURLを使う場合は「SDKの詳細設定・API・イベント」でSourceConfig.hlsまたはSourceConfig.dashを編集するか、「操作」のPlayerAPI.loadへソースオブジェクトを渡します。これらの操作と、コードにソース設定を組み込む方法はWeb版の実装ガイドで説明します。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/#player-source-config",
+          "label": "Web版の実装ガイド：任意のストリームを使う"
+        }
+      ]
     },
     {
       "type": "figure",

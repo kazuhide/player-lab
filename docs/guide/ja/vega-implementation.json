@@ -1,0 +1,466 @@
+{
+  "id": "vega-implementation",
+  "title": "Vega OS実装ガイド",
+  "lead": "既存のKeplerアプリを参照し、ネイティブメディアの初期化からモジュール版Playerの設定、リモコン操作、字幕、Analyticsまでを説明します。現在の画面とコードを使い、ブラウザー向けWeb版やAndroidベースのFire TV版との違いも確認します。",
+  "blocks": [
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-vega/",
+          "label": "Vega OSの画面・起動手順・操作"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "モジュール版PlayerとVegaのメディアを接続する",
+      "id": "integration"
+    },
+    {
+      "type": "p",
+      "text": "Vega版はAmazonのKepler実行環境でモジュール版Bitmovin Web SDKを使います。bitmovin-player-react-nativeやAndroid Player SDKを使う構成ではありません。KeplerがReact Nativeの画面を描画し、@amazon-devices/react-native-w3cmediaがネイティブのメディアオブジェクトと映像の描画領域を提供します。apps/vega/package.jsonで固定しているVega向けPlayerを使います。公式サンプルでは、一般のブラウザー向けPlayerとは別の対応リリース系統を指定しています。"
+    },
+    {
+      "type": "p",
+      "text": "SDKはPlayerを組み込むためのライブラリーとそのインターフェース、APIは公開された設定・操作・イベントを指します。HLSとDASHは複数の画質を配信できるストリーミング形式で、VODは決まった時間範囲を持つオンデマンド動画です。WebVTTは時刻付きのキューを記した字幕のテキスト形式です。DRMは保護されたメディアへのアクセスを制御する仕組みで、対応するライセンスサービスも必要です。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "操作ページの手順で既存のKeplerホストをビルドして起動します。識別子はcom.playerlab.vega、メインコンポーネントはcom.playerlab.vega.mainです。ライセンスを変更したら、ビルド前にローカル生成のruntime設定を更新します。",
+        "src/App.tsxをたどります。適用済みのPlayerConfigとSourceConfigを保持し、LabのBitmovinPlayerコンポーネントへ渡します。編集用の値を別に持つことで、入力途中の状態が再生に反映されるのを防ぎます。",
+        "src/BitmovinPlayer.tsxをたどります。KeplerVideoSurfaceViewからネイティブの描画領域を示すハンドルを受け取り、アプリが前面にあり、その領域が現在のものと確認してからセッションを開始します。先に前のセッションの解放を待ちます。",
+        "src/playerSession.tsをたどります。VideoPlayerの初期化、描画領域の接続、メディア互換処理の導入、モジュール版SDK Playerの生成、監視の接続、SourceConfigの読み込みの順で進みます。ホストを再利用・拡張するときもこの順序を維持します。"
+      ]
+    },
+    {
+      "type": "code",
+      "title": "SDKのPlayer生成と読み込みの前にネイティブメディアを初期化する",
+      "text": "    video = options.createVideo();\n    initializing = Promise.resolve(video.initialize());\n    await initializing;\n    initialized = true;\n    if (cancelled) return;\n    // The native setter caches the handle before its bridge call, which can throw after mutation.\n    surfaceAttached = true;\n    video.setSurfaceHandle(options.handle);\n    options.installPolyfills(video);\n    player = options.createPlayer();\n    removePlayerObservers = options.observePlayer?.(player, () => !cancelled) ?? null;\n    controller = options.createController(player, () => !cancelled);\n    controller.setTimeShiftEnabled(options.getTimeShiftEnabled());\n    options.controllerRef.current = controller;\n    await player.load(options.source);",
+      "source": {
+        "path": "apps/vega/src/playerSession.ts",
+        "line": 145,
+        "label": "SDKのPlayer生成と読み込みの前にネイティブメディアを初期化する"
+      },
+      "endLine": 159
+    },
+    {
+      "type": "p",
+      "text": "startVegaSessionとcreateVegaPlayerはLabの補助関数です。VideoPlayer.initialize・setSurfaceHandleはAmazonのメディアAPIで、Player.addModule・new Player・Player.loadはBitmovin Web SDKの機能です。抜粋のコールバックには、BitmovinPlayer.tsxから実際の生成処理・監視・操作用コントローラーを渡しています。このコードは既存ホストの一部で、単独で動くPlayer全体ではありません。"
+    },
+    {
+      "type": "code",
+      "title": "ブラウザーのコンテナーを使わずにモジュール版Playerを生成する",
+      "text": "export function createVegaPlayer(config: PlayerConfig): PlayerAPI {\n  registerVegaPlayerModules();\n  return new Player(undefined as unknown as HTMLElement, vegaPlayerConfig(config));\n}",
+      "source": {
+        "path": "apps/vega/src/vegaPlayer.ts",
+        "line": 77,
+        "label": "ブラウザーのコンテナーを使わずにモジュール版Playerを生成する"
+      },
+      "endLine": 80
+    },
+    {
+      "type": "p",
+      "text": "vegaPlayer.tsはReactNative向けのメディア統合と、このアプリで使う形式・描画・自動画質選択・字幕・DRMなどのモジュールを登録します。polyfills.tsはAmazonのMediaSource・HTMLMediaElement・WebCryptoに加え、XML解析とBase64の補助処理を接続します。polyfillはWeb SDKが期待する実行環境のAPIを補う互換処理であり、ブラウザーの文書やHTML操作部を作るものではありません。セッションが所有するgvideoを通じて、SDKを現在のネイティブVideoPlayerへ接続します。"
+    },
+    {
+      "type": "h2",
+      "text": "PlayerConfigとSourceConfigを変更する",
+      "id": "player-source-config"
+    },
+    {
+      "type": "p",
+      "text": "Vega版はWeb SDKの設定名を使います。PlayerConfigにはplayback・buffer・adaptationなどがあり、SourceConfigはhls・dash・progressiveでメディアを指定します。LabのparseConfigurationが基本設定を作り、VegaSessionApi.prepareが追加の型付き入力や許可した関数を実際の値に変換してから、Playerの生成とソースの読み込みへ渡します。Web SDKの型にプロパティが存在していても、このネイティブホストで対応するブラウザー連携が使えるとは限りません。"
+    },
+    {
+      "type": "code",
+      "title": "基本の再生・バッファー・ビットレート入力を対応させる",
+      "text": "    player: {\n      playback: { autoplay: draft.autoplay, muted: draft.muted },\n      ...(video !== undefined || audio !== undefined ? { buffer: {\n        ...(video !== undefined ? { video: { forwardduration: video } } : {}),\n        ...(audio !== undefined ? { audio: { forwardduration: audio } } : {}),\n      } } : {}),\n      ...(maxVideoBitrate !== undefined ? { adaptation: { bitrates: { maxSelectableVideoBitrate: maxVideoBitrate } } } : {}),\n    },",
+      "source": {
+        "path": "apps/vega/src/configuration.ts",
+        "line": 99,
+        "label": "基本の再生・バッファー・ビットレート入力を対応させる"
+      },
+      "endLine": 106
+    },
+    {
+      "type": "table",
+      "headers": [
+        "変更する内容",
+        "現在のSDK設定パス",
+        "比較する内容"
+      ],
+      "rows": [
+        [
+          "自動再生と開始時ミュート",
+          "PlayerConfig.playback.autoplay / muted",
+          "Autoplayを無効にしてApplyし、SDK操作から明示的にplayを呼びます。開始時のフラグと再生中の命令は、作用する時点が異なります。"
+        ],
+        [
+          "音声・映像のバッファー目標",
+          "PlayerConfig.buffer.audio.forwardduration / video.forwardduration",
+          "片方のメディアに10秒などの正の値を指定して比較します。空欄はSDK既定値を使います。目標を短くすると先読み量を減らせる場合がありますが、実メモリと再バッファリングは対象のコンテンツ・端末で確認します。"
+        ],
+        [
+          "映像のビットレート上限",
+          "PlayerConfig.adaptation.bitrates.maxSelectableVideoBitrate",
+          "複数の画質を持つソースで1500000 bit/sを試し、選択された画質と再生を比較します。ソースに存在しない画質をこの上限設定で追加することはできません。"
+        ],
+        [
+          "メディアの指定",
+          "SourceConfig.hls / dash / progressive",
+          "基本フォームは選択した形式のキーを出力します。progressiveはURLの文字列形式です。ソース形式・コンテナー・コーデックが対象端末で扱える組み合わせか確認します。"
+        ],
+        [
+          "タイトル・ポスター・開始位置",
+          "SourceConfig.title / poster / options.startOffset / startOffsetTimelineReference",
+          "VODでStartから5秒を試します。titleとposterはメタデータとして渡しますが、このKepler画面にはポスター画像の描画処理はありません。Endはメディアの終端またはライブエッジを基準にします。"
+        ],
+        [
+          "外部WebVTT字幕",
+          "SourceConfig.subtitleTracks",
+          "URL・ラベル・言語を指定し、読み込み時に字幕を有効にするか、PlayerAPI.subtitlesで識別子を選びます。アプリはキューのプレーンテキストをネイティブの重ね表示で描画します。"
+        ]
+      ],
+      "widths": [
+        0.2,
+        0.36,
+        0.44
+      ]
+    },
+    {
+      "type": "code",
+      "title": "ネイティブ環境の通信方式をFetchにする",
+      "text": "export function vegaPlayerConfig(config: PlayerConfig): PlayerConfig {\n  // Vega's media integration supports Fetch rather than the SDK's default XHR.\n  return { ...config, network: { ...config.network, requestApi: NetworkRequestApi.Fetch } };\n}",
+      "source": {
+        "path": "apps/vega/src/playerConfig.ts",
+        "line": 4,
+        "label": "ネイティブ環境の通信方式をFetchにする"
+      },
+      "endLine": 7
+    },
+    {
+      "type": "p",
+      "text": "vegaPlayerConfigはnetwork設定を保持した上で、requestApiにFetchを設定します。このホストにはXHRによるメディア通信がないため、フォームでもApply前にXHRを拒否します。ほかのネットワークコールバックはPlayerConfig.networkに設定します。Show all SDK configurationで対象のパスを検索し、引数と返り値の型を確認して、Allow this SDK callbackを有効にしてからApplyします。コールバックはSDKが呼ぶときに実行し、JavaScriptの値の生成関数は設定やAPI操作を準備するときに実行する場合があります。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Show configurationを開き、基準のソースを保持して項目を一つ変えます。Apply and recreate playerは編集値全体を検証し、前のセッションを解放してから新しいPlayerとソースを読み込みます。Reset draftでは再生を変えません。",
+        "ほかのプロパティはShow all SDK configurationでPlayerConfigまたはSourceConfigの正確なパスを検索します。型に対応した数値・文字列・列挙値・オブジェクト・辞書・配列を入力できます。配列は順に追加し、必須項目を埋めます。",
+        "SDKの型に合った値を使います。バイナリーの証明書欄は16進数またはBase64のバイト列を受け付けます。インスタンスが必要な引数は、単なるオブジェクトではなく現在のSDKが返した資源を使います。許可したJavaScriptはアプリ内で実行し、サンドボックスで分離していません。",
+        "Apply後にShow applied codeを開きます。適用済みの値と関数本体を表示し、ライセンス・ヘッダーはプレースホルダーに置き換えます。追加設定を削除すると基本フォームまたはSDK既定値へ戻ります。ソース・設定・追加入力の変更はセッションを置き換えるため、以前の再生位置は保持しません。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "vega-code",
+      "caption": "既存Vegaアプリの適用済み設定です。コードの各行へリモコンでフォーカスし、スクロールして読めます。クリップボード連携はありません。"
+    },
+    {
+      "type": "h2",
+      "text": "ネイティブのレイアウトとリモコン操作を変更する",
+      "id": "ui-customization"
+    },
+    {
+      "type": "p",
+      "text": "Vegaアプリにはブラウザー向けbitmovin-player-uiがありません。App.tsxはui: falseを基本にし、BitmovinPlayerを上部、ControlPanel・SDK API操作・ConfigurationPanelをその下のScrollView内に配置します。UI変更の対象は、これらのReact NativeコンポーネントとStyleSheetです。PlayerConfig.uiをtrueにしたりブラウザーのテーマをコピーしたりしても、KeplerにHTMLの操作部は現れません。"
+    },
+    {
+      "type": "code",
+      "title": "ネイティブの描画領域と字幕の重ね表示を構成する",
+      "text": "      {lifecycle.active && <KeplerVideoSurfaceView key={lifecycle.generation}\n        testID=\"vega-video-surface\" style={styles.surface} scalingmode=\"fit\"\n        onSurfaceViewCreated={(handle: string) => {\n          const current = lifecycleRef.current;\n          if (current.active && current.generation === lifecycle.generation) setSurfaceHandle(handle);\n        }} />}\n      {subtitleText !== \"\" && <View pointerEvents=\"none\" style={styles.captions}>\n        <Text testID=\"vega-subtitle-cue\" style={styles.cue}>{subtitleText}</Text>\n      </View>}",
+      "source": {
+        "path": "apps/vega/src/BitmovinPlayer.tsx",
+        "line": 121,
+        "label": "ネイティブの描画領域と字幕の重ね表示を構成する"
+      },
+      "endLine": 129
+    },
+    {
+      "type": "table",
+      "headers": [
+        "変更したい内容",
+        "現在の実装",
+        "変更方法"
+      ],
+      "rows": [
+        [
+          "映像と設定領域の大きさを変える",
+          "BitmovinPlayerのstyles.videoはheight: 50%、surfaceは親領域全体を使い、Appのルートはflex: 1です。",
+          "ネイティブViewの寸法と下部の設定領域を合わせて調整します。現在の描画領域のコールバックとハンドル接続は維持します。画面寸法の変更はメディア接続の代わりにはなりません。"
+        ],
+        [
+          "映像の収め方を変える",
+          "KeplerVideoSurfaceViewへscalingmode=\"fit\"を渡しています。",
+          "このプロパティを変えるときは、導入済みAmazonの描画APIが対応する値を使います。ソースのposterやtitleでこのネイティブ領域のレイアウトが変わるわけではありません。"
+        ],
+        [
+          "字幕の外観を変える",
+          "BitmovinPlayerのcaptionsとcueのスタイルで、重ね表示の位置・色・背景・フォントを指定します。",
+          "StyleSheetの対象項目を変更します。描画するのはキューのプレーンテキストであり、WebVTTの配置指定・HTML装飾・ブラウザーの字幕設定メニュー全体を実装するものではありません。"
+        ],
+        [
+          "操作部の配置を変える",
+          "ControlPanel.tsxはネイティブButtonの行とAllow DVRのSwitchを組み合わせます。",
+          "行・ラベル・スタイルを変更し、リモコンの方向キーで到達できる状態を保ちます。外観だけでなく、決定時の処理とフォーカスの視覚的な表示も維持します。"
+        ],
+        [
+          "操作を再生へ接続する",
+          "既存のLive edgeボタンはcontrollerRef.current?.goToLiveEdge()を呼び、シーク用ボタンも現在のコントローラーを使います。",
+          "操作を追加するときも現在のコントローラーまたはSDKセッションを使います。状態・イベントで結果を確認し、以前のセッションのPlayer資源を使い回しません。"
+        ]
+      ],
+      "widths": [
+        0.2,
+        0.38,
+        0.42
+      ]
+    },
+    {
+      "type": "code",
+      "title": "ネイティブのスイッチをリモコンで選択可能にする",
+      "text": "        <Switch\n          focusable\n          style={styles.toggle}\n          accessibilityLabel=\"Allow DVR\"\n          value={dvrAllowed}\n          onValueChange={(v) => {\n            onDvrAllowedChange(v);\n            controllerRef.current?.setTimeShiftEnabled(v);\n          }}\n        />",
+      "source": {
+        "path": "apps/vega/src/ControlPanel.tsx",
+        "line": 51,
+        "label": "ネイティブのスイッチをリモコンで選択可能にする"
+      },
+      "endLine": 60
+    },
+    {
+      "type": "p",
+      "text": "端末では方向キーと決定、Vega Virtual Deviceでは矢印キーとEnterで操作します。現在の画面はネイティブのボタンに処理を接続し、スイッチは明示的にフォーカス可能にしています。レイアウトを変えたら、映像の下にあるコード表示や開閉するエディターにも到達できるようにします。Amazonのフォーカスガイドでは、操作部の位置関係が移動先に与える影響を説明しています。タッチ操作向けのReact Nativeレイアウトが、そのままTVリモコンで使えるとは限りません。"
+    },
+    {
+      "type": "figure",
+      "file": "vega-caption",
+      "caption": "既存Vegaアプリが外部WebVTTキューを映像上へネイティブの文字として表示した画面です。周囲の操作部はKeplerコンポーネントで、ブラウザーのPlayer UIではありません。"
+    },
+    {
+      "type": "h2",
+      "text": "字幕・SDK操作・HLSの挿入コンテンツを試す",
+      "id": "useful-features"
+    },
+    {
+      "type": "p",
+      "text": "Show SDK API experimentsでは、導入済みPlayerAPIの操作へ型に応じた引数を渡せます。Inspect current SDK API availabilityはメソッドが存在するかを調べるだけで呼び出しません。Run Vega SDK APIで実行し、値またはエラーを表示します。まず再生中にgetCurrentTimeを取り直して位置の変化を確認します。メソッドの存在や定数の返り値だけでは再生の検証にはなりません。マニフェスト用の機能も形式に依存し、HLSのトラック用機能にはHLS、DASHのperiod用機能にはDASHが必要です。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "外部字幕はWebVTTのURL・ラベル・言語を設定し、読み込み時に有効にします。Apply後にPlayerAPI.subtitles.listで一覧を取得し、必要に応じてPlayerAPI.subtitles.enableにトラックIDを指定して有効にします。キューが存在する時間まで再生し、CueEnter・CueExitと表示を確認します。",
+        "音声はPlayerAPI.getAvailableAudioで一覧を取得し、返されたトラックIDをPlayerAPI.setAudioへ渡します。PlayerAPI.getAudioと実際の音声を確認します。画質やバッファーの操作も、現在値と操作後の再生を比較します。画質や音声が一つしかないソースでは切り替えを比較できません。",
+        "HLSの挿入コンテンツは、実際に挿入マーカーを持つソースを選び、PlayerConfig.tweaks.enable_sgai_handlingを有効にします。PlayerAPI.sgai.listで予定を取得し、挿入区間中にgetActiveAdを確認します。区間外で空になるのは通常の状態です。条件を満たす区間でskipを試し、AdStarted・AdSkipped・AdBreakFinishedと再生を比較します。",
+        "低遅延の操作には対応するライブ配信を使い、目標値・取得値・実際の動作を比較します。VODでは設定を受け付けても遅延が0のままの場合があります。モジュールを登録しただけで、すべてのソース・端末がその機能へ対応するわけではありません。"
+      ]
+    },
+    {
+      "type": "code",
+      "title": "ネイティブ字幕表示でキューのイベントを監視する",
+      "text": "  player.on(PlayerEvent.CueEnter, enter);\n  player.on(PlayerEvent.CueExit, exit);\n  player.on(PlayerEvent.SubtitleDisabled, clear);",
+      "source": {
+        "path": "apps/vega/src/subtitleDisplay.ts",
+        "line": 19,
+        "label": "ネイティブ字幕表示でキューのイベントを監視する"
+      },
+      "endLine": 21
+    },
+    {
+      "type": "p",
+      "text": "attachSubtitleDisplayはアプリの字幕描画処理です。表示中のキューを保持し、CueExitで取り除き、字幕を無効にしたら表示を消します。解放時にはイベントの登録も解除します。トラックの設定とキューの描画が、統合の別々の要素である理由をここで確認できます。SGAIはサーバー指示型広告挿入を意味し、HLSソース内のマーカーに従う方式で、クライアント側の広告統合とは異なります。挿入位置がメディア範囲外になる場合は、ソースのprogram date timeというメディアの日時と、挿入区間の開始日時を比較します。"
+    },
+    {
+      "type": "note",
+      "title": "コンテンツと端末の条件",
+      "text": "アプリはDRM・暗号処理・追加の形式モジュールを登録しますが、それだけで対応する暗号化メディア・ライセンス・デコード能力を用意するわけではありません。公式のVegaサンプルはHTML Player UIとクライアント側広告に対応せず、サーバー側広告のメディアにも条件を示しています。このホストのSGAI操作には対応するHLSを使います。一般のWeb版、AndroidベースのFire TV版、Vega版の機能条件は分けて確認します。"
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-operation",
+      "caption": "再生中に実行したPlayerAPI.getCurrentTimeです。返り値と併せて、映像の変化とSDKのイベントを確認します。"
+    },
+    {
+      "type": "h2",
+      "text": "FAQ・問題の切り分け",
+      "id": "faq"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "症状・疑問",
+        "原因と確認方法"
+      ],
+      "rows": [
+        [
+          "ブラウザー向けUI設定を変えても表示が変わりません。",
+          "KeplerにはブラウザーのHTML操作部がありません。ui: falseを維持し、ネイティブのコンポーネントとスタイルを変更します。DOMのコンテナー・canvas・WebGLに依存する連携は、設定キーを追加するだけでは使えません。"
+        ],
+        [
+          "XHRで通信できないのはなぜですか？",
+          "このメディア統合にはFetchが必要で、フォームもほかの通信方式を拒否します。vegaPlayerConfigと、ネイティブメディア・互換処理の初期化を維持します。"
+        ],
+        [
+          "準備中の映像が黒いままです。",
+          "SDKの生成・読み込みより先に、ネイティブVideoPlayerを初期化し、現在の描画領域のハンドルを接続する必要があります。初期化・ソースのエラーと、アプリが前面にあり描画領域のコールバックを受けたかを確認します。JavaScriptのビルド成功だけではネイティブ映像面の動作は確認できません。"
+        ],
+        [
+          "Applyやバックグラウンドから戻ると位置が変わります。",
+          "アプリはセッションを置き換えて、保持していたソースと設定を読み直します。以前の再生位置は復元しません。背景化では、実行が停止される前にネイティブメディアを解放します。"
+        ],
+        [
+          "解放を確認できないという表示が出ました。",
+          "ネイティブPlayerまたは初期化の解放を確認できない場合は、アプリを起動し直します。前の所有者が残っている可能性がある間に、次のセッションがグローバルのメディア互換処理を使わないよう、意図的に開始を止めています。Applyを繰り返しても解放の確認にはなりません。"
+        ],
+        [
+          "字幕を設定しても描画されません。",
+          "読み込み時に外部字幕を有効にするか、現在のトラックIDを選びます。再生位置に合うキューを使い、CueEnterを確認します。描画はキューのプレーンテキストを扱い、ブラウザー固有の装飾や配置には別途ネイティブ実装が必要です。"
+        ],
+        [
+          "ライセンスを設定したビルドでも認証されません。",
+          "使用中のライセンスでcom.playerlab.vegaを許可し、ローカルのruntime設定を生成し直してパッケージを再ビルドします。runtime設定はAppの評価前に埋め込むため、元のファイルを変えただけではインストール済みアプリは更新されません。"
+        ],
+        [
+          "一般のWeb SDKやモックのテストでVega対応を確認できますか？",
+          "できません。Vega専用の依存バージョンを維持し、公式の制限と照合します。単体テストで入力検証や処理順を確認することはできますが、ネイティブのビルド・リモコン・映像・機能の動作には対象の実行環境が必要です。"
+        ]
+      ],
+      "widths": [
+        0.34,
+        0.66
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Analytics / Observability",
+      "id": "analytics-observability"
+    },
+    {
+      "type": "p",
+      "text": "vegaPlayer.tsでAnalyticsモジュールを登録し、App.tsxはPlayerとは別のBITMOVIN_ANALYTICS_LICENSE_KEYがある場合だけanalytics.keyを追加します。最終的なPlayerConfigとSourceConfigはVegaSessionApi.prepareを通るため、Show all SDK configurationから対応するAnalytics設定やソースのラベルも指定できます。収集機能の設定はPlayerConfig.analytics、videoId・title・customData1などのソース単位の情報はSourceConfig.analyticsへ指定します。"
+    },
+    {
+      "type": "code",
+      "title": "既存のPlayer設定へ任意の収集設定を加える",
+      "text": "  const config = useMemo<PlayerConfig>(\n    () => ({\n      key: LICENSE_KEY,\n      ui: false,\n      ...applied.player,\n      tweaks: { app_id: \"com.playerlab.vega\" },\n      // §15: the analytics module is registered in vegaPlayer.ts; the collector\n      // only activates when a key is configured here.\n      ...(ANALYTICS_LICENSE_KEY ? { analytics: { key: ANALYTICS_LICENSE_KEY } } : {}),\n    }),\n    [applied.player],\n  );",
+      "source": {
+        "path": "apps/vega/src/App.tsx",
+        "line": 55,
+        "label": "既存のPlayer設定へ任意の収集設定を加える"
+      },
+      "endLine": 66
+    },
+    {
+      "type": "p",
+      "text": "この抜粋のtweaks.app_idはPlayerの認証に使うアプリ識別子で、Analyticsのコンテンツ識別子ではありません。生成時に任意の収集用キーを渡し、ソースのメタデータは後から読み込むソースに含めます。API一覧は導入済みVega SDKの設定名に従うため、React NativeラッパーのanalyticsConfig・analyticsSourceMetadataとは異なります。別のプラットフォームのパスをそのままコピーしないでください。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Vegaアプリで許可された収集用ライセンスを使い、機密情報を含まないvideoIdや実験ラベルを設定してApplyし、再生します。キーを変更した場合は、先にruntime設定の再生成と再ビルドを行います。",
+        "Bitmovin Dashboardで対応するAnalyticsライセンスと期間を選びます。コンテンツやアプリのラベルで絞り込み、セッション・起動時間・再バッファリング・ビットレート・エラーをローカルのSDKイベントと比較します。アプリは収集イベントを送り、通常の集計確認や可視化はDashboardで行います。",
+        "指標の定義・クエリ・分析は共通のAnalyticsガイドを参照します。アカウントAPIの認証情報は信頼できるサーバー側に置きます。収集用ライセンスだけでアカウントの集計APIを利用できるわけではありません。"
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-qoe-analytics/",
+          "label": "Analyticsの収集とDashboardの画面"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-metrics/",
+          "label": "取得できる指標と定義"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-visualization/",
+          "label": "収集したデータの可視化"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-ai/",
+          "label": "LLM・MCPを使った分析"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/vega/src/App.tsx",
+      "line": 25,
+      "label": "適用済み設定・ホストの配置・収集設定"
+    },
+    {
+      "path": "apps/vega/src/configuration.ts",
+      "line": 63,
+      "label": "基本入力の検証とWeb SDK設定への対応"
+    },
+    {
+      "path": "apps/vega/src/BitmovinPlayer.tsx",
+      "line": 28,
+      "label": "ネイティブ描画領域・アプリ状態・字幕の重ね表示"
+    },
+    {
+      "path": "apps/vega/src/playerSession.ts",
+      "line": 46,
+      "label": "ネイティブ初期化と解放を待つセッション管理"
+    },
+    {
+      "path": "apps/vega/src/playerConfig.ts",
+      "line": 4,
+      "label": "必要なFetch通信方式"
+    },
+    {
+      "path": "apps/vega/src/vegaPlayer.ts",
+      "line": 38,
+      "label": "登録しているSDKモジュール"
+    },
+    {
+      "path": "apps/vega/src/polyfills.ts",
+      "line": 12,
+      "label": "ネイティブメディアと実行環境APIの互換処理"
+    },
+    {
+      "path": "apps/vega/src/ControlPanel.tsx",
+      "line": 18,
+      "label": "リモコンで操作するアプリの操作部"
+    },
+    {
+      "path": "apps/vega/src/subtitleDisplay.ts",
+      "line": 5,
+      "label": "字幕キューのプレーンテキスト表示"
+    },
+    {
+      "path": "apps/vega/src/api/sessionApi.ts",
+      "line": 1,
+      "label": "設定値の変換と現在のSDK資源"
+    },
+    {
+      "path": "apps/vega/src/api/ConfigurationInputsPanel.tsx",
+      "line": 1,
+      "label": "型に対応した設定画面"
+    },
+    {
+      "path": "apps/vega/README.md",
+      "line": 1,
+      "label": "Vegaのビルド・固定リリース・機能の条件"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-web-sample-fire-tv-vega/blob/0c7463104d3c18f56440aeec7beccd0d92c11aaa/README.md#features-and-limitations",
+      "label": "公式Vegaサンプル：対応リリース系統と制限"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/mse-players",
+      "label": "Amazon：Webメディア統合のVega対応"
+    },
+    {
+      "url": "https://www.developer.amazon.com/docs/vega/0.24/focus-management",
+      "label": "Amazon：リモコンのフォーカスとネイティブ操作部の移動"
+    },
+    {
+      "url": "https://developer.amazon.com/docs/vega/0.24/foreground-background",
+      "label": "Amazon：前面・背景への状態変化"
+    }
+  ]
+}

@@ -1,624 +1,202 @@
 {
   "id": "implementation",
-  "title": "Implementation guide",
-  "lead": "Follow the existing Player Lab code from Player creation to configuration, UI, events and Analytics. Use the operation chapters to try the same behavior in the app.",
+  "title": "Implementation guides by platform",
+  "lead": "Choose the platform you use. Each guide explains player and source configuration, UI changes, useful features, FAQ and Analytics.",
   "blocks": [
     {
       "type": "p",
-      "text": "Start by running the app for your platform using the linked local setup chapter. Change a source or setting, apply it, and read the applied code and event log. Then follow the corresponding section below. The excerpts are taken directly from this repository and rely on the surrounding app helpers; open each source link to read the complete implementation."
-    },
-    {
-      "type": "p",
-      "text": "PlayerConfig controls how a Player is created, while SourceConfig describes the media to load and its options. The Player API exposes playback commands and state. Events report changes such as source loading or playback starting. SDK means the Bitmovin software development kit used by the app. Platform-specific types and available features differ; the operation guides and public API reference describe those differences."
-    },
-    {
-      "type": "steps",
-      "items": [
-        "For Web, trace Player creation and source loading, then configuration changes, UI components and event cleanup.",
-        "For a native app, find its Player owner and view, then follow the applied configuration into source loading or Player recreation.",
-        "After playback works, follow Analytics / Observability at the end of this guide to connect collection and inspect the matching session in Bitmovin Dashboard."
-      ]
+      "text": "Start with the implementation guide for your platform, then use its linked operation chapter to try the same settings in Player Lab."
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
-          "label": "Operation guide: Local setup and licenses"
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Web implementation guide"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/",
+          "label": "iOS / iPadOS / tvOS implementation guide"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/",
+          "label": "Android / Android TV / Fire TV implementation guide"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/",
+          "label": "React Native implementation guide"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/",
+          "label": "Vega OS implementation guide"
         }
       ]
     },
     {
       "type": "h2",
       "id": "web-player",
-      "text": "Web Player creation, loading and cleanup"
+      "text": "Web: create and load the Player"
     },
     {
       "type": "p",
-      "text": "Follow apps/web/src/main.ts within the existing Web app. These fragments depend on its page elements, presets and shared state. doBuild() awaits destroyCurrentPlayer(), combines applied PlayerConfig overrides, then calls the SDK's new Player(). In app-managed mode, ui: false lets applyTheme() attach the UI. The app wires metrics, controls and SourceLoaded handlers before calling loadCurrentSource() at the end of doBuild(), so initial source events have listeners."
-    },
-    {
-      "type": "code",
-      "title": "Create the Player and attach app controls",
-      "text": "  const instance = new Player(playerEl as HTMLElement, config);\n  player = instance;\n  if (sdkUiEnabled) { renderThemeBar(); renderActiveConstruction(); apiExplorer?.refresh(); }\n  else applyTheme(instance, currentThemeId);\n  wireMetrics(instance);\n  controlPanel = mountControlPanel(instance, panelEl as HTMLElement, SOURCES, {\n    timeShiftEnabled: config.playback?.timeShift ?? true,\n    onTimeShiftToggle: (enabled) => {\n      timeShiftEnabled = enabled;\n      apiExplorer?.discardPatch(\"PlayerConfig\", { playback: { timeShift: enabled } });\n      playerOverrides = deepMerge(playerOverrides, { playback: { timeShift: enabled } });\n      void build();\n    },",
-      "source": {
-        "path": "apps/web/src/main.ts",
-        "line": 803,
-        "label": "Player construction in main.ts"
-      },
-      "endLine": 815
-    },
-    {
-      "type": "p",
-      "text": "loadCurrentSource() combines the SDK editor's source input, when present, or the selected preset with committed source overrides, passes it through the SDK editor's prepare(), and calls PlayerAPI.load(). Failure handling clears only its own load request and settles controls only if that Player is still current."
-    },
-    {
-      "type": "code",
-      "title": "Prepare and load the current source",
-      "text": "async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, disableSeeking?: boolean): Promise<void> {\n  const isLive = SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false;\n  const settle = controlPanel?.beginSourceLoad(isLive);\n  const base = deepMerge((apiSourceInput ?? sourcePreset) as SourceConfig, sourceOverrides);\n  const source = apiExplorer?.prepare(\"SourceConfig\", base) ?? structuredClone(base);\n  currentSource = source;\n  const request = { player: instance, source, settle };\n  appSourceLoad = request;\n  try {\n    await instance.load(request.source, forceTechnology, disableSeeking);\n  } catch (error) {\n    if (appSourceLoad === request) appSourceLoad = undefined;\n    if (player === instance) request.settle?.();",
-      "source": {
-        "path": "apps/web/src/main.ts",
-        "line": 478,
-        "label": "Source loading in main.ts"
-      },
-      "endLine": 490
-    },
-    {
-      "type": "p",
-      "text": "build() serializes destruction and creation without waiting for an unfinished source load before allowing another rebuild. destroyCurrentPlayer() advances playerGeneration, begins editor cleanup and releases the app-owned UIManager. It clears the shared player reference before awaiting the SDK's destroy(), preventing page controls from using that retiring instance. The generation also guards late SDK UI-factory callbacks."
+      "text": "Continue in the platform-specific guide. It includes the relevant code and links to the existing controls."
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/web-sources-tracks/",
-          "label": "Operation guide: sources and tracks"
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Web: create and load the Player"
         }
       ]
     },
     {
       "type": "h2",
       "id": "web-settings",
-      "text": "Trace draft settings into applied configuration"
+      "text": "Web: PlayerConfig / SourceConfig"
     },
     {
       "type": "p",
-      "text": "configPanel.ts keeps Reload and Recreate edits in local staged objects until their Apply buttons commit them. The callbacks below merge committed values into main.ts state: PlayerConfig calls build(); SourceConfig calls loadCurrentSource() on the current instance. Runtime fields use setters such as setVolume() on input change instead. These application modes describe this Lab's controls; they are not separate SDK configuration types."
-    },
-    {
-      "type": "code",
-      "title": "Commit PlayerConfig and SourceConfig changes",
-      "text": "  onRecreate: (overrides) => {\n    apiExplorer?.discardPatch(\"PlayerConfig\", overrides);\n    playerOverrides = deepMerge(playerOverrides, overrides);\n    void build();\n  },\n  onReload: (srcOverrides) => {\n    apiExplorer?.discardPatch(\"SourceConfig\", srcOverrides);\n    sourceOverrides = deepMerge(sourceOverrides, srcOverrides);\n    currentSource = deepMerge(sourcePreset, sourceOverrides);\n    if (player) void loadCurrentSource(player).catch((err: unknown) => console.error(\"config reload failed\", err));\n  },",
-      "source": {
-        "path": "apps/web/src/main.ts",
-        "line": 637,
-        "label": "Configuration callbacks in main.ts"
-      },
-      "endLine": 647
-    },
-    {
-      "type": "p",
-      "text": "Use the existing Player Config chapter for the button-by-button workflow. Applied configuration code reads the active Player and source; an edited draft is not proof of an applied value. The SDK editor additionally prepares configuration, runs commands and inspects current state."
-    },
-    {
-      "type": "figure",
-      "file": "sdk-configuration",
-      "caption": "The existing SDK editor maps a selected public configuration path to inputs. Apply commits the edit through the app lifecycle."
+      "text": "Continue in the platform-specific guide. It includes the relevant code and links to the existing controls."
     },
     {
       "type": "links",
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/",
-          "label": "Operation guide: Player Config and SDK editor"
+          "label": "Web: PlayerConfig / SourceConfig"
         }
       ]
     },
     {
       "type": "h2",
       "id": "web-ui-events",
-      "text": "Understand UI factories, APIs and events"
+      "text": "Web: customize UI and connect events"
     },
     {
       "type": "p",
-      "text": "@showcase/ui-shared provides Lab factories such as PremiereUIFactory. They compose SDK UIManager, UIContainer, ControlBar and other bitmovin-player-ui components, alongside repository components such as SkipIntroButton. DefaultUIFactory wraps the SDK's main desktop layout to control autohide; it is not UIFactory.buildUI's full variant selection. applyTheme() releases the previous app-owned manager and builds a replacement against the same Player."
-    },
-    {
-      "type": "p",
-      "text": "If PlayerConfig.ui enables SDK-managed UI, style.uiManagerFactory builds that manager and the SDK owns its release. main.ts tracks it separately. UI construction and Player construction therefore have distinct owners, even though both appear on the same screen."
-    },
-    {
-      "type": "p",
-      "text": "SkipIntroButton.configure() distinguishes UI input from playback events: onClick.subscribe() calls seek(), while player.on() updates visibility when playback changes. Its release callback removes those SDK subscriptions with player.off(), as shown below. Keep this cleanup with the custom component when following how the existing theme is assembled."
-    },
-    {
-      "type": "code",
-      "title": "Retire component subscriptions with the UI",
-      "text": "    const events = [\n      PlayerEvent.TimeChanged,\n      PlayerEvent.Seeked,\n      PlayerEvent.SourceLoaded,\n      PlayerEvent.SourceUnloaded,\n      PlayerEvent.Play,\n      PlayerEvent.Paused,\n    ];\n    for (const event of events) player.on(event, update);\n    uimanager.onRelease.subscribe(() => {\n      for (const event of events) player.off(event, update);\n    });\n\n    update();\n  }",
-      "source": {
-        "path": "packages/ui-shared/src/components/SkipIntroButton.ts",
-        "line": 50,
-        "label": "Event cleanup in SkipIntroButton"
-      },
-      "endLine": 64
+      "text": "Continue in the platform-specific guide. It includes the relevant code and links to the existing controls."
     },
     {
       "type": "links",
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-ui-customization/",
-          "label": "Operation guide: UI customization"
+          "label": "Web: customize UI and connect events"
         }
       ]
     },
     {
       "type": "h2",
       "id": "apple-player",
-      "text": "Apple: PlayerModel and native presentation"
+      "text": "Apple implementation guide"
     },
     {
       "type": "p",
-      "text": "ContentView holds PlayerModel in @StateObject. PlayerModel.makePlayer creates the SDK Player, using the standard PlayerFactory path by default; NativePresentationSurface initially renders SDK VideoPlayerView. Other presentation choices use the same model. iOS custom modes load the shared Web UI bundle; tvOS selects the native System UI."
-    },
-    {
-      "type": "code",
-      "title": "Create the standard SDK Player in makePlayer",
-      "text": "        guard !analyticsLicenseKey.isEmpty else {\n            return PlayerFactory.createPlayer(playerConfig: config)\n        }\n        return PlayerFactory.createPlayer(\n            playerConfig: config,\n            analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))\n        )",
-      "source": {
-        "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 210,
-        "label": "Standard PlayerFactory branch in makePlayer"
-      },
-      "endLine": 216
-    },
-    {
-      "type": "p",
-      "text": "loadInitialSource selects the first preset; reloadCurrentSource builds a Source with SourceFactory and loads it. effect(for:) distinguishes source changes, which reload, from player-setting changes, which recreate. UI and presentation changes also recreate the player and rebuild its surface via playerGeneration."
-    },
-    {
-      "type": "code",
-      "title": "Create, bind and load the current Source",
-      "text": "        retireApiSourceEvents()\n        resetSourceCompletion()\n        initialTrackSelection.retire()\n        trackStatus = PlaybackTrackStatus()\n        sourceCallbackJournal = NativeCallbackJournal()\n        let source = SourceFactory.createSource(from: sourceSettings.makeSourceConfig(callbackJournal: sourceCallbackJournal))\n        bindApiSourceEvents(source)\n        // Bind the intended source before load: an older queued event can arrive\n        // while the SDK still reports the old current source.\n        initialTrackSelection.bind(source)\n        player.load(source: source)",
-      "source": {
-        "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 239,
-        "label": "Source initialization inside reloadCurrentSource"
-      },
-      "endLine": 249
-    },
-    {
-      "type": "p",
-      "text": "recreatePlayer retires subscriptions and presentation registration, replaces the player, reloads the retained source and destroys the previous player. NativePlayerSurface.dismantleUIView detaches its PlayerView. Follow the Apple operation guide for the corresponding configuration and presentation controls."
-    },
-    {
-      "type": "figure",
-      "file": "ios-playback-tracks",
-      "caption": "Apple operation guide: playback tracks and the configuration entry on iPad."
+      "text": "Continue in the platform-specific guide. It includes the relevant code and links to the existing controls."
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/native-apple/",
-          "label": "Apple operation guide"
+          "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/",
+          "label": "Apple implementation guide"
         }
       ]
     },
     {
       "type": "h2",
       "id": "android-player",
-      "text": "Android: controller ownership and PlayerView lifecycle"
+      "text": "Android implementation guide"
     },
     {
       "type": "p",
-      "text": "MainActivity creates PlayerController, which owns the SDK Player as Compose state. createPlayer builds the configured native Player; loadCurrentSource constructs Source objects and loads the current player. The Compose AndroidView hosts a PlayerView attached to that controller-owned instance."
-    },
-    {
-      "type": "code",
-      "title": "Create and retain the controller-owned Player",
-      "text": "    private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides(), analytics: ApiAnalyticsSettings = apiAnalyticsSettings, callbacks: ApiCallbackContext = apiCallbacks): Player {\n        val prepared = ApiNativeFactories.player(context, overrides.player(settings.toPlayerConfig(licenseKey), callbacks), overrides.values)\n        val result = playerFactory?.invoke(prepared.config) ?: Player(context, prepared.config, analytics.playerConfig(analyticsLicenseKey, callbacks))\n        preparedCompanions = prepared.hosts\n        return result\n    }\n\n    var player: Player by mutableStateOf(createPlayer(PlayerSettings()))",
-      "source": {
-        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 114,
-        "label": "PlayerController.createPlayer and its Player state"
-      },
-      "endLine": 121
-    },
-    {
-      "type": "p",
-      "text": "applySource reloads sources on the existing player. applyPlayerSettings builds a replacement, detaches old views and observers, destroys the previous player, then reloads retained source settings. Switching UI mode instead rebuilds only PlayerView through PlayerViewConfig; the player persists. Custom Web UI controls come from the shared bundle."
-    },
-    {
-      "type": "code",
-      "title": "Load the constructed Source objects",
-      "text": "        apiSourceCallbacks.close()\n        apiSourceCallbacks = callbacks\n        configuredSource = sources.first()\n        sources.forEach(::observeApiSource)\n        sourceSubscription = ::retireApiSourceSubscriptions\n        lastErrorCode = null\n        if (offlinePlayback == null && ApiCollectionSettings.PLAYLIST in apiOverrides.values)\n            owner.load(com.bitmovin.player.api.playlist.PlaylistConfig(sources, apiOverrides.playlistOptions()))\n        else owner.load(sources.single())\n        refresh()\n    }",
-      "source": {
-        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 540,
-        "label": "Source load branch inside loadCurrentSource"
-      },
-      "endLine": 550
-    },
-    {
-      "type": "p",
-      "text": "PlayerViewLifecycle forwards Activity start/resume/pause/stop only to attached views. releaseView clears view.player before onDestroy so disposing a view cannot destroy the retained player. MainActivity.onDestroy calls controller.release to retire callbacks, release lifecycle bindings and destroy the player. Use the Android operation guide to compare these transitions with Apply."
-    },
-    {
-      "type": "figure",
-      "file": "android-player-settings",
-      "caption": "Android operation guide: player settings whose Apply action recreates the SDK Player."
+      "text": "Continue in the platform-specific guide. It includes the relevant code and links to the existing controls."
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/native-android/",
-          "label": "Android operation guide"
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/",
+          "label": "Android implementation guide"
         }
       ]
     },
     {
       "type": "h2",
       "id": "react-native-player",
-      "text": "React Native: Player ownership and view readiness"
+      "text": "React Native implementation guide"
     },
     {
       "type": "p",
-      "text": "App retains applied configuration, source, log and live rewind (DVR) permission outside the keyed PlayerPane. DVR lets a viewer rewind within a live stream's available playback window. Here, key is the React component identity. UI mode or revision changes remount that pane; ActivePlayerPane creates the native SDK player with usePlayer. PlayerView receives this player and the chosen Web UI configuration. Custom modes reuse the shared UI bundle and factory while playback remains native."
-    },
-    {
-      "type": "code",
-      "title": "Bind PlayerView and receive its readiness event",
-      "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : styles.player}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}",
-      "source": {
-        "path": "apps/react-native/App.tsx",
-        "line": 312,
-        "label": "Native PlayerView binding and onPlayerViewReady"
-      },
-      "endLine": 319
-    },
-    {
-      "type": "p",
-      "text": "Loading waits for onPlayerViewReady and an active owner. loadOwnedSource calls the wrapper's real Player.load, retains the constructed Source identity and serializes initialization. Retired requests cannot attach to a replacement owner."
-    },
-    {
-      "type": "code",
-      "title": "Load only after the active view is ready",
-      "text": "  useEffect(() => {\n    if (!viewReady || !active.current) return;\n    snapshots.current?.sourceChanged();\n    setDvr(null);\n    append(`load ${source.title || \"source\"}`);\n    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.\n    void loadOwnedSource(player, source).catch(() => { if (active.current) append(\"Source initialization failed; inspect source events or retry after the pending initializer settles.\"); });\n    observed.current?.sourceLoad();\n  }, [source, player, viewReady, append]);",
-      "source": {
-        "path": "apps/react-native/App.tsx",
-        "line": 282,
-        "label": "View-gated loadOwnedSource effect"
-      },
-      "endLine": 290
-    },
-    {
-      "type": "p",
-      "text": "apply validates the draft and increments revision for changed settings. Preset selection normally reloads the existing player; configured scripts or fullscreen properties also advance revision. Cleanup marks the owner inactive, disposes SnapshotController, retires owned Sources and calls player.destroy. Pending Source destruction waits for initialization to settle. Follow the React Native operation guide for setup and controls."
-    },
-    {
-      "type": "figure",
-      "file": "rn-ios-code",
-      "caption": "React Native operation guide: applied configuration displayed by the existing iOS app."
+      "text": "Continue in the platform-specific guide. It includes the relevant code and links to the existing controls."
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/native-integrations/",
-          "label": "React Native operation guide"
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/",
+          "label": "React Native implementation guide"
         }
       ]
     },
     {
       "type": "h2",
       "id": "vega-player",
-      "text": "Vega: native surface and session release"
+      "text": "Vega OS implementation guide"
     },
     {
       "type": "p",
-      "text": "App retains applied source and settings and passes them to BitmovinPlayer. That component owns the session and teardown promise, waiting for an active generation and Kepler surface handle before startVegaSession. The session waits for prior teardown, initializes native VideoPlayer, attaches its surface and installs compatibility code (polyfills) for media and cryptography. createVegaPlayer registers modules and constructs the Web SDK without a browser page container, then the session loads SourceConfig."
-    },
-    {
-      "type": "code",
-      "title": "Start only for the active generation and ready surface",
-      "text": "  useEffect(() => {\n    if (!lifecycle.active || !lifecycleRef.current.active ||\n        lifecycleRef.current.generation !== lifecycle.generation || !surfaceHandle) return;\n    let video: VideoPlayer | null = null;\n    let observed: RuntimeOwner | undefined;\n    const api = new VegaSessionApi();\n    const sessionSource = { ...source };\n    const session = startVegaSession({\n      handle: surfaceHandle,\n      source: sessionSource,\n      after: teardown.current,\n      createVideo: () => { video = new VideoPlayer(); return video; },",
-      "source": {
-        "path": "apps/vega/src/BitmovinPlayer.tsx",
-        "line": 68,
-        "label": "Session ownership, surface gate and previous teardown"
-      },
-      "endLine": 79
-    },
-    {
-      "type": "p",
-      "text": "apply validates and replaces changed settings. Source, configuration or API-input changes restart the session effect after waiting for the previous session's confirmed release, including preset selection. Allow DVR updates the controller."
-    },
-    {
-      "type": "code",
-      "title": "Attach the surface, then create and load the SDK Player",
-      "text": "    // The native setter caches the handle before its bridge call, which can throw after mutation.\n    surfaceAttached = true;\n    video.setSurfaceHandle(options.handle);\n    options.installPolyfills(video);\n    player = options.createPlayer();\n    removePlayerObservers = options.observePlayer?.(player, () => !cancelled) ?? null;\n    controller = options.createController(player, () => !cancelled);\n    controller.setTimeShiftEnabled(options.getTimeShiftEnabled());\n    options.controllerRef.current = controller;\n    await player.load(options.source);",
-      "source": {
-        "path": "apps/vega/src/playerSession.ts",
-        "line": 150,
-        "label": "Native surface, polyfills, Player creation and SourceConfig load"
-      },
-      "endLine": 159
-    },
-    {
-      "type": "p",
-      "text": "Disposal retires observers/controller, destroys the SDK player and deinitializes native media; a new session cannot start until release is confirmed. Background handling retires native media synchronously; foreground creates a session and reloads retained settings/source. The app renders a native video surface, its own controls and a subtitle overlay with ui: false. The shared HTML UI is disabled; see the Vega operation guide."
-    },
-    {
-      "type": "figure",
-      "file": "vega-code",
-      "caption": "Vega operation guide: applied configuration shown within the existing native media host."
+      "text": "Continue in the platform-specific guide. It includes the relevant code and links to the existing controls."
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/native-integrations/",
-          "label": "Vega operation guide"
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/",
+          "label": "Vega OS implementation guide"
         }
       ]
     },
     {
       "type": "h2",
-      "text": "Analytics / Observability",
-      "id": "analytics-observability"
+      "id": "analytics-observability",
+      "text": "Analytics / Observability"
     },
     {
       "type": "p",
-      "text": "Configure an Analytics license separately from the Player license and allowlist the domain or app identifier. The configured collector listens to player events and sends playback context to Bitmovin. Dashboard inspection requires access to that license."
-    },
-    {
-      "type": "p",
-      "text": "Web reads VITE_BITMOVIN_ANALYTICS_LICENSE_KEY, conditionally adds analytics.key, merges overrides and constructs the Player. An empty base key omits this field. Pages obtains the client license from PLAYER_LAB_PUBLIC_ANALYTICS_LICENSE_KEY. These collector licenses are separate from account API keys used for queries."
-    },
-    {
-      "type": "code",
-      "title": "Web: add Analytics before preparing PlayerConfig",
-      "text": "    ...(analyticsKey ? { analytics: { key: analyticsKey } } : {}),",
-      "source": {
-        "path": "apps/web/src/main.ts",
-        "line": 771,
-        "label": "Web player configuration"
-      },
-      "endLine": 771
-    },
-    {
-      "type": "code",
-      "title": "Web: merge applied overrides and prepare PlayerConfig",
-      "text": "  const configBase = deepMerge(baseConfig, structuredClone(playerOverrides));\n  const config = apiExplorer?.prepare(\"PlayerConfig\", configBase) ?? configBase;",
-      "source": {
-        "path": "apps/web/src/main.ts",
-        "line": 781,
-        "label": "Web configuration preparation"
-      },
-      "endLine": 782
-    },
-    {
-      "type": "p",
-      "text": "iOS/tvOS explicitly enables Analytics through the standard factory with a nonempty license. The Core and deprecated factory branches return before this explicit Analytics configuration. React Native supplies analyticsConfig to usePlayer. Vega registers AnalyticsModule and conditionally supplies analytics.key."
-    },
-    {
-      "type": "code",
-      "title": "iOS/tvOS: pass the configured collector to PlayerFactory",
-      "text": "        // §15: the bundled analytics collector reports QoE to the Bitmovin dashboard\n        // when a key is configured (repo-root .env → sync-env.sh → Local.xcconfig).\n        guard !analyticsLicenseKey.isEmpty else {\n            return PlayerFactory.createPlayer(playerConfig: config)\n        }\n        return PlayerFactory.createPlayer(\n            playerConfig: config,\n            analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))\n        )\n    }",
-      "source": {
-        "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 208,
-        "label": "Apple player factory"
-      },
-      "endLine": 217
-    },
-    {
-      "type": "p",
-      "text": "Android's default Player constructor receives ApiAnalyticsSettings.playerConfig(...). Its UI offers Build key, Deferred license and Disabled modes. Optional defaults include cdnProvider/customUserId; source metadata includes title/videoId/cdnProvider/path/isLive. Both accept customData1–100 and experimentName. Apply Analytics settings recreates the player."
-    },
-    {
-      "type": "code",
-      "title": "Android: build supported source metadata",
-      "text": "internal fun analyticsSourceMetadata(values: Map<String, String>): SourceMetadata {\n    validateAnalyticsMetadata(values, analyticsSourceKeys)\n    return SourceMetadata(\n        title = values[\"title\"], videoId = values[\"videoId\"], cdnProvider = values[\"cdnProvider\"],\n        path = values[\"path\"], isLive = values[\"isLive\"]?.toBooleanStrict(),\n        customData = analyticsCustomData(values.filterKeys { it in analyticsCustomKeys }),\n    )\n}\ninternal fun analyticsMetadataValues(value: SourceMetadata): Map<String, Any?> = mapOf(\n    \"title\" to value.title, \"videoId\" to value.videoId, \"cdnProvider\" to value.cdnProvider,\n    \"path\" to value.path, \"isLive\" to value.isLive, \"customData\" to analyticsCustomDataValues(value.customData),\n)",
-      "source": {
-        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalytics.kt",
-        "line": 230,
-        "label": "Android source metadata"
-      },
-      "endLine": 241
-    },
-    {
-      "type": "p",
-      "text": "Web's quality of experience (QoE) panel describes the current session: startup measures SourceLoaded → Playing, and another load resets it. Collected Video Startup Time measures playback initiation → first frame. Dashboard aggregates span collected sessions; retain their metric definitions, populations and units when comparing results."
-    },
-    {
-      "type": "steps",
-      "items": [
-        "Play a source using your configured Analytics license. Record the playback time, content and device. Retain the applied configuration so another session can repeat the same settings.",
-        "Open Observability in Bitmovin Dashboard; select the same Analytics license and a period containing that playback. Check the displayed time zone, then narrow the content/browser filters.",
-        "Find the matching playback through Audience/session details. Inspect Video Startup Time, Rebuffering Percentage or Top Errors with the same scope. Match the session timing and player details with the app log. Confirm ingestion from the matching Dashboard session; an app event or collection notice alone does not confirm receipt."
-      ]
-    },
-    {
-      "type": "figure",
-      "file": "analytics-dashboard-overview",
-      "caption": "Official Bitmovin demo Dashboard with dummy data, illustrating license, period and filters. The older Analytics label/layout may differ from the current Dashboard. This public example is not a Player Lab collection result. © Bitmovin."
-    },
-    {
-      "type": "p",
-      "text": "Pages can run the client collector but hides the aggregate-query panel. Local development exposes fixed queries for the last seven days through /api/analytics/query. The existing server proxy injects the server-only account API key; keep it outside client configuration. Follow the linked detailed chapters for collection checks, metrics, queries, visualization and analysis with large language models (LLMs) using the Model Context Protocol (MCP)."
+      "text": "Continue in the platform-specific guide. It includes the relevant code and links to the existing controls."
     },
     {
       "type": "links",
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-qoe-analytics/",
-          "label": "User guide: collection and Dashboard checks"
-        },
-        {
-          "url": "https://kazuhide.github.io/player-lab/guide/analytics-metrics/",
-          "label": "User guide: metric definitions"
-        },
-        {
-          "url": "https://kazuhide.github.io/player-lab/guide/analytics-queries/",
-          "label": "User guide: Analytics queries"
-        },
-        {
-          "url": "https://kazuhide.github.io/player-lab/guide/analytics-visualization/",
-          "label": "User guide: visualization"
-        },
-        {
-          "url": "https://kazuhide.github.io/player-lab/guide/analytics-ai/",
-          "label": "User guide: LLM and MCP analysis"
+          "label": "Analytics / Observability"
         }
       ]
     }
   ],
   "sources": [
     {
-      "path": "apps/web/src/main.ts",
-      "line": 721,
-      "label": "apps/web/src/main.ts"
+      "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/#sources",
+      "label": "Web implementation sources"
     },
     {
-      "path": "apps/web/src/configPanel.ts",
-      "line": 145,
-      "label": "apps/web/src/configPanel.ts"
+      "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/#sources",
+      "label": "iOS / iPadOS / tvOS implementation sources"
     },
     {
-      "path": "packages/ui-shared/src/liveUi.ts",
-      "line": 110,
-      "label": "packages/ui-shared/src/liveUi.ts"
+      "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/#sources",
+      "label": "Android / Android TV / Fire TV implementation sources"
     },
     {
-      "path": "packages/ui-shared/src/components/SkipIntroButton.ts",
-      "line": 35,
-      "label": "packages/ui-shared/src/components/SkipIntroButton.ts"
+      "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/#sources",
+      "label": "React Native implementation sources"
     },
     {
-      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerAPI.html",
-      "label": "Official Web PlayerAPI reference"
-    },
-    {
-      "path": "apps/ios/Showcase/ContentView.swift",
-      "line": 6,
-      "label": "apps/ios/Showcase/ContentView.swift"
-    },
-    {
-      "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 104,
-      "label": "apps/ios/Showcase/PlayerModel.swift"
-    },
-    {
-      "path": "apps/ios/Showcase/NativePresentation.swift",
-      "line": 14,
-      "label": "apps/ios/Showcase/NativePresentation.swift"
-    },
-    {
-      "path": "apps/ios/Showcase/NativePlayerSurface.swift",
-      "line": 11,
-      "label": "apps/ios/Showcase/NativePlayerSurface.swift"
-    },
-    {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-      "line": 77,
-      "label": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt"
-    },
-    {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt",
-      "line": 12,
-      "label": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerViewLifecycle.kt"
-    },
-    {
-      "path": "apps/react-native/App.tsx",
-      "line": 78,
-      "label": "apps/react-native/App.tsx"
-    },
-    {
-      "path": "apps/react-native/src/sourceOwnership.ts",
-      "line": 50,
-      "label": "apps/react-native/src/sourceOwnership.ts"
-    },
-    {
-      "path": "apps/vega/src/App.tsx",
-      "line": 26,
-      "label": "apps/vega/src/App.tsx"
-    },
-    {
-      "path": "apps/vega/src/BitmovinPlayer.tsx",
-      "line": 31,
-      "label": "apps/vega/src/BitmovinPlayer.tsx"
-    },
-    {
-      "path": "apps/vega/src/playerSession.ts",
-      "line": 57,
-      "label": "apps/vega/src/playerSession.ts"
-    },
-    {
-      "path": "apps/vega/src/vegaPlayer.ts",
-      "line": 77,
-      "label": "apps/vega/src/vegaPlayer.ts"
-    },
-    {
-      "path": "apps/vega/src/polyfills.ts",
-      "line": 18,
-      "label": "apps/vega/src/polyfills.ts"
-    },
-    {
-      "path": "apps/web/src/env/pagesBuild.ts",
-      "line": 14,
-      "label": "apps/web/src/env/pagesBuild.ts"
-    },
-    {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalytics.kt",
-      "line": 8,
-      "label": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalytics.kt"
-    },
-    {
-      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt",
-      "line": 53,
-      "label": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt"
-    },
-    {
-      "path": "apps/web/src/analytics/metrics.ts",
-      "line": 79,
-      "label": "apps/web/src/analytics/metrics.ts"
-    },
-    {
-      "path": "apps/web/src/analyticsView.ts",
-      "line": 23,
-      "label": "apps/web/src/analyticsView.ts"
-    },
-    {
-      "path": "apps/web/vite.config.ts",
-      "line": 78,
-      "label": "apps/web/vite.config.ts"
-    },
-    {
-      "path": "apps/web/src/server/analyticsProxy.ts",
-      "line": 130,
-      "label": "apps/web/src/server/analyticsProxy.ts"
-    },
-    {
-      "url": "https://developer.bitmovin.com/playback/docs/setup-analytics",
-      "label": "Bitmovin: license authorization and event collectors"
-    },
-    {
-      "url": "https://developer.bitmovin.com/playback/docs/analytics-dashboard-metrics-reference",
-      "label": "Bitmovin: Dashboard metric definitions"
-    },
-    {
-      "url": "https://developer.bitmovin.com/playback/docs/can-i-change-the-timezone-used-for-bitmovin-analytics-data",
-      "label": "Bitmovin: Analytics time-zone settings"
-    },
-    {
-      "url": "https://developer.bitmovin.com/playback/docs/is-there-a-sandbox-environment-to-test-bitmovin-analytics",
-      "label": "Bitmovin: official demo Dashboard image"
-    },
-    {
-      "url": "https://bitmovin.com/blog/ios-error-reporting-bitmovin-player-analytics/",
-      "label": "Bitmovin: Top Errors and session detail"
+      "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/#sources",
+      "label": "Vega OS implementation sources"
     }
   ]
 }

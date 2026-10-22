@@ -1,0 +1,514 @@
+{
+  "id": "web-implementation",
+  "title": "Web版の実装ガイド",
+  "lead": "現在のWeb版を参照しながら、Playerの設定、コンテンツの読み込み、操作UIの変更方法を説明します。GUIで試した内容を、対応するSDKの設定やUIのコードへ結び付けます。",
+  "blocks": [
+    {
+      "type": "p",
+      "text": "この章では、Web版で再生を試した結果を、実装に使うSDK設定やUIのコードへ結び付けます。PlayerConfig / SourceConfigとUI変更ガイドには、個別の設定方法と編集例をまとめています。コードの参照先は、現在のWeb版の実装です。"
+    },
+    {
+      "type": "h2",
+      "id": "integration",
+      "text": "Playerを組み込んでソースを読み込む"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "準備するもの",
+        "このアプリでの使い方"
+      ],
+      "rows": [
+        [
+          "Player SDKとブラウザー内の表示先",
+          "Webパッケージはbitmovin-playerを読み込みます。player要素は既存のHTML要素で、SDKはその中に映像を表示します。操作部の見た目には共有UIのスタイルシートを使います。"
+        ],
+        [
+          "Playerライセンスと許可するドメイン",
+          "PlayerConfig.keyにPlayerライセンスを渡します。自分のサイトへ配置する際は、そのライセンスで配信先ドメインを許可します。ローカル実行と公開Pagesの設定は別ページに記載しています。"
+        ],
+        [
+          "対応する再生ソース",
+          "SourceConfigにHLSプレイリストまたはDASHマニフェストのURLと、コンテンツごとの設定を指定します。このアプリではプリセットを使います。コーデック、音声・字幕、選択できる画質は配信ソースによって決まります。"
+        ],
+        [
+          "UIの管理主体",
+          "このアプリの初期設定はui: falseです。アプリが選択したUIManagerの生成と解放を担当します。SDKにUIを管理させる方式は、UI変更ガイドで説明します。"
+        ]
+      ],
+      "widths": [
+        0.3,
+        0.7
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Web版を開き、最初の比較にはVOD HLSを使います。自動再生されない場合は再生を開始します。「プレイヤー状態」とイベントログで、ソースの読み込みと再生開始を確認します。",
+        "テーマを選び、「構築コード」とその参照先を比較します。テーマで変わるのは操作部や配置です。再生ソースやPlayerConfigの再生設定を選ぶ操作ではありません。",
+        "設定を一つ適用し、「適用済み設定をコードで表示」を開いて更新します。SDKへ渡したPlayerConfig、SourceConfig、UIConfigと実行時のAPI呼び出しを確認します。未適用の入力は含まれません。",
+        "自分の実装では、PlayerのコンストラクターにPlayerConfigを渡し、UIの管理主体を一つ決めて接続してから、player.loadにSourceConfigを渡します。読み込み失敗を確認できるようにし、画面を閉じる際にUIとPlayerを解放します。"
+      ]
+    },
+    {
+      "type": "code",
+      "title": "SDKのPlayerを生成して選択したUIを接続する",
+      "text": "  const instance = new Player(playerEl as HTMLElement, config);\n  player = instance;\n  if (sdkUiEnabled) { renderThemeBar(); renderActiveConstruction(); apiExplorer?.refresh(); }\n  else applyTheme(instance, currentThemeId);\n  wireMetrics(instance);",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 803,
+        "label": "apps/web/src/main.ts"
+      },
+      "endLine": 807
+    },
+    {
+      "type": "p",
+      "text": "PlayerとPlayerAPIはSDKの型です。この抜粋のplayerElはアプリの表示先となるHTML要素、configは組み立てたPlayerConfigです。applyThemeとwireMetricsはPlayer Lab内の補助関数で、SDKのメソッドではありません。前者は選択したUIを接続し、後者は再生イベントを監視します。ソースは後から次の関数で読み込みます。"
+    },
+    {
+      "type": "code",
+      "title": "現行アプリから設定済みソースを読み込む",
+      "text": "async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, disableSeeking?: boolean): Promise<void> {\n  const isLive = SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false;\n  const settle = controlPanel?.beginSourceLoad(isLive);\n  const base = deepMerge((apiSourceInput ?? sourcePreset) as SourceConfig, sourceOverrides);\n  const source = apiExplorer?.prepare(\"SourceConfig\", base) ?? structuredClone(base);\n  currentSource = source;\n  const request = { player: instance, source, settle };\n  appSourceLoad = request;\n  try {\n    await instance.load(request.source, forceTechnology, disableSeeking);\n  } catch (error) {\n    if (appSourceLoad === request) appSourceLoad = undefined;\n    if (player === instance) request.settle?.();\n    throw error;\n  } finally {\n    if (player === instance) configPanel?.refresh();\n  }\n}",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 478,
+        "label": "apps/web/src/main.ts"
+      },
+      "endLine": 495
+    },
+    {
+      "type": "p",
+      "text": "SDKへの呼び出しはinstance.load(request.source, ...)です。その周囲で、プリセットまたはSDK詳細設定の入力と、適用済みのソース設定をまとめ、操作パネルが読み込みを追跡できるようにしています。deepMerge、apiExplorer.prepare、controlPanelはアプリ内の処理です。設定エディターを持たない実装では、自分で組み立てたSourceConfigをplayer.loadへ渡します。補助関数の名前だけをコピーしても同じ処理にはなりません。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/local-setup/",
+          "label": "ローカル実行とライセンス設定"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-themes/",
+          "label": "Web画面とテーマの比較"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-sources-tracks/",
+          "label": "ソース・音声・字幕の操作"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "player-source-config",
+      "text": "設定の対象と反映方法を選ぶ"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "設定・API",
+        "指定する内容",
+        "このアプリでの反映方法"
+      ],
+      "rows": [
+        [
+          "PlayerConfig",
+          "初期の再生動作、画質適応、バッファ、通信、ログ、ライセンス、Analytics収集の設定。new Player(...)へ渡します。",
+          "生成時の項目を変更して「プレイヤーを再生成して適用」を押します。新しいPlayerへ、それまでのソース設定を読み込みます。"
+        ],
+        [
+          "SourceConfig",
+          "ストリームURL、タイトル、ポスター、外部字幕、サムネイル、DRM、ソースごとの開始位置。player.load(...)へ渡します。",
+          "Sourceの設定またはSDK詳細設定のSourceConfigを適用して、ソースを再読み込みします。Player自体の再生成とは別の操作です。"
+        ],
+        [
+          "UIConfig",
+          "bitmovin-player-uiのUI動作、表示言語、表示用メタデータ、部品ごとの上書き設定。",
+          "アプリ管理のUIでは、UIを再構築して適用します。SDK管理のUIを使う場合、このアプリはPlayerの再生成で反映します。"
+        ],
+        [
+          "PlayerAPIとその配下のAPI",
+          "setVolume、setAudio、subtitles.enable、adaptation.setConfig、buffer.setTargetLevelなどの実行時操作。",
+          "即時反映の項目またはCommandsで呼び出します。値を読み戻し、実際の再生も確認します。呼び出しの成功だけで映像や音声の変更まで確認できたことにはなりません。"
+        ],
+        [
+          "TweaksConfig",
+          "Web SDKの実際の型名はTweaksConfigで、PlayerConfig.tweaksに指定します。低水準の調整や実験的な項目を含みます。",
+          "TweaksグループまたはSDKの詳細設定から適用し、再生成します。名前や動作が変わる可能性があります。通常のサポート対象の設定で目的を満たせる場合は、そちらを使います。"
+        ]
+      ],
+      "widths": [
+        0.23,
+        0.43,
+        0.34
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        "初期の音声・字幕の優先言語はPlaybackのaudioLanguageまたはsubtitleLanguageで設定し、再生成します。現在のトラックを切り替える操作には、プレイヤーのトラックメニューまたは対応する実行時APIを使います。優先言語を指定しても、ソースにないトラックは増えません。",
+        "コンテンツのタイトルや開始位置だけを変える場合は、PlaybackではなくSourceを編集します。ソースを再読み込みし、タイトルや現在時刻を確認します。startOffsetでは、先頭と末尾のどちらを基準にするかも指定します。",
+        "自動画質選択を比較するときは画質をAutoにします。動的な解像度上限を適用し、adaptation.getConfigと実際のメディアリクエストを確認します。配信されている画質より高い上限を指定して変化を見落とさないよう、詳細ページのソース別の例を参照します。",
+        "入れ子の配列やオブジェクト、関数、SDKクラスの実体には「SDKの詳細設定・API・イベント」を使います。必須の関連項目はまとめて入力します。JavaScriptの関数本体やUI部品の実体は、通常のJSONオブジェクトとは異なります。"
+      ]
+    },
+    {
+      "type": "code",
+      "title": "再生中のPlayerの自動画質選択を変更する",
+      "text": "  function dynAdapt(mutate: (cur: DynamicAdaptationConfig) => DynamicAdaptationConfig): void {\n    const p = options.getPlayer();\n    if (!p) return;\n    p.adaptation.setConfig(mutate(p.adaptation.getConfig()));\n  }",
+      "source": {
+        "path": "apps/web/src/configPanel.ts",
+        "line": 255,
+        "label": "apps/web/src/configPanel.ts"
+      },
+      "endLine": 259
+    },
+    {
+      "type": "p",
+      "text": "dynAdaptはアプリ内の補助関数です。SDKの動的な画質適応設定を読み、変更する項目を含めた値をadaptation.setConfigへ渡します。関係のない動的設定を残すための処理です。生成時の画質適応設定は別のPlayerConfigの項目で、desktopとmobileに分かれています。"
+    },
+    {
+      "type": "figure",
+      "file": "sdk-configuration",
+      "caption": "SDKの詳細設定では、設定パスとSDKの型に応じた入力欄を表示します。変更を適用してからRead stateで値を確認します。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-player-config/",
+          "label": "PlayerConfig / SourceConfig：適用方法・設定例・関数"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "ui-customization",
+      "text": "UIの動作・見た目・部品構成を変更する"
+    },
+    {
+      "type": "p",
+      "text": "目的に合う変更方法を選びます。設定メニューの項目やUIの表示言語にはUIConfig、色や寸法にはCSSを使います。操作部品の追加や位置の変更にはUIの部品構成を編集します。どの方法も、メディアのエンコード、選択できるトラック、DRMへの対応を変える設定ではありません。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Premiereを選び、「設定歯車に再生速度を表示」の切り替えを試します。歯車メニューと「適用中のUIConfigの上書き値」を比較します。テーマの種類を維持したまま、その動作設定を変える操作です。",
+        "DefaultとNeonではスキンの違いを、Compactとの比較では部品構成の違いを確認します。画面の短縮された構築例だけで実装全体とせず、表示されたソースの参照先を開きます。",
+        "UI変更ガイドで、ワークスペース内の型付き実装例、独立したプロジェクトでの読み込み、CSS、部品の組み立て方を確認します。共有テーマのファクトリーはこのリポジトリの実装で、Player SDKが公開するクラスではありません。",
+        "アプリがUIを管理する場合はui: falseを維持し、古いUIManagerを解放してから新しいUIを接続します。UIだけの変更ではPlayerと読み込み済みソースを維持できます。画面を閉じる際はUIを解放し、続いてPlayerを破棄します。"
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Playerを維持したままアプリ管理のUIを入れ替える",
+      "text": "function applyTheme(p: PlayerAPI, id: ThemeId): void {\n  if (sdkUiEnabled) return;\n  const previousUi = uiManager;\n  uiManager = undefined;\n  apiExplorer?.refresh();\n  previousUi?.release();\n  const theme = THEMES.find((t) => t.id === id) ?? THEMES[0]!;\n  const baseUi = themeConfig(theme.id);\n  activeUiBase = baseUi;\n  const appliedUi = apiExplorer?.prepare(\"UIConfig\", baseUi) ?? baseUi;\n  uiManager = theme.build(p, autohideEnabled ? undefined : -1, appliedUi, castingButtons);\n  currentThemeId = theme.id;\n  renderThemeBar();\n  renderActiveConstruction();\n  apiExplorer?.refresh();\n  refreshUiControls();",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 395,
+        "label": "apps/web/src/main.ts"
+      },
+      "endLine": 410
+    },
+    {
+      "type": "p",
+      "text": "themeConfig、theme.build、apiExplorerはアプリ内の補助処理です。UIManager.releaseはUIライブラリーの解放処理です。この関数は同じp（PlayerAPI）に対し、選択したUIConfigで新しいUIManagerを組み立てます。SDK管理のUIでは、SDKがUIファイルを読み込み、style.uiManagerFactoryを呼ぶ別の経路を使います。SDKが管理しているUIに別のUIManagerを重ねて接続しないようにします。"
+    },
+    {
+      "type": "figure",
+      "file": "custom-premiere",
+      "caption": "Premiereは、タイトル・シーク操作・設定メニューを持つ部品構成の例です。部品構成とUIConfigの値をそれぞれ確認します。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-ui-customization/",
+          "label": "UI変更ガイド：UIManager・CSS・独自部品"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-ui-settings/",
+          "label": "UI設定と外部表示"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "useful-features",
+      "text": "再生機能と対応するAPIを確認する"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "目的とGUIでの試し方",
+        "実装で使う設定・API",
+        "確認する内容"
+      ],
+      "rows": [
+        [
+          "音声切り替え・字幕表示：対応するプリセットを選び、プレイヤー内のメニューを操作します。",
+          "getAvailableAudio / setAudio、subtitles.list / subtitles.enable。初期の優先言語はPlayerConfig.playback、外部字幕のURLはSourceConfig.subtitleTracksです。",
+          "トラックIDは読み込み済みソースから取得します。選択言語や字幕本文を確認します。同梱の音声トラックは、同じ非言語の音源で音量が異なるテスト用です。"
+        ],
+        [
+          "自動画質選択：VOD DASHをAuto画質で再生し、動的な解像度上限を比較します。",
+          "adaptation.getConfig / setConfig。特定画質を手動指定する場合はgetAvailableVideoQualities / setVideoQualityです。",
+          "手動選択と、自動選択の上限設定は別の検証です。バッファ内の映像が残っている間は表示の変化が遅れる場合があります。"
+        ],
+        [
+          "バッファ：先読みの目標値や、初期の音声・映像の保持時間を変更します。",
+          "buffer.getLevel / setTargetLevel、PlayerConfig.buffer.audioと.video。",
+          "値の単位はバイトではなく秒です。同じ通信条件で保持時間と再生を確認します。目標値はメモリ割り当て量の上限ではありません。"
+        ],
+        [
+          "遅い通信・通信失敗：Networkまたは通信の関数設定を変更します。",
+          "PlayerConfig.network.defaultRequestTimeout / requestTimeout / preprocessHttpRequest。",
+          "HTTPの状態、時間、ヘッダーはブラウザーのNetworkで確認します。イベントログは再生の記録で、通信トレースではありません。ブラウザーのネイティブHLSでは、SDKの通信関数を通らない場合があります。"
+        ],
+        [
+          "ライブの巻き戻し：ライブのプリセットを選び、シーク可能な範囲を比較します。",
+          "PlayerConfig.playback.timeShift、isLive / getMaxTimeShift / timeShift。開始位置にはSourceConfig.optionsも使います。",
+          "巻き戻せる範囲は配信元が保持する範囲に制限されます。UIやバッファの設定では広がりません。配信終了時の扱いや時刻の基準はライブのページを参照します。"
+        ],
+        [
+          "再生エラーやソース変更への対応：Events and callbacksを使います。",
+          "PlayerEventとon / off、またはPlayerConfig.events。",
+          "管理しているPlayerに対して登録します。Playerを入れ替えた場合は新しいインスタンスへ監視を登録し、管理対象の終了時にアプリ側の登録を解除します。"
+        ]
+      ],
+      "widths": [
+        0.34,
+        0.32,
+        0.34
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-player-config/",
+          "label": "画質・バッファ・通信設定の比較例"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-sources-tracks/",
+          "label": "音声・字幕・サムネイル・開始位置"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-live-dvr/",
+          "label": "ライブ再生と巻き戻しの動作"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "faq",
+      "text": "実装時によくある疑問"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "疑問",
+        "原因と対応"
+      ],
+      "rows": [
+        [
+          "値を変更しても変わらないのはなぜですか。",
+          "まず反映方法を確認し、対応する適用ボタンを押します。適用済みコードを更新し、Read stateでも値を確認します。そのうえで、ソースやUIに対象機能があるか確認します。字幕がない、画質上限が最高画質より高い、マーカーが動画の長さを超えている場合などは、変更を見分けられません。"
+        ],
+        [
+          "即時反映の入力を空欄にしても元へ戻らないのはなぜですか。",
+          "値が入力されている場合だけsetterを呼ぶ項目があるためです。空欄は取り消し操作になりません。変更前の値を明示的に設定します。生成時の任意項目は上書きを削除して再生成します。チェックボックスはtrueまたはfalseの明示指定です。"
+        ],
+        [
+          "プリセットのボタンに任意のストリームURL入力欄がないのはなぜですか。",
+          "ボタンは定義済みソースの選択に使います。SDKの詳細設定でURLを変える場合は、まず同じ形式のVOD HLSまたはVOD DASHを選び、SourceConfig.hlsまたは.dashを編集して適用します。両方のURLを渡すとSDKが再生技術を選ぶため、別形式のURLが残っていないかも確認します。CommandsのPlayerAPI.loadへSourceConfig全体を渡す方法もあります。プリセットを再選択するとソースの上書きは消えます。"
+        ],
+        [
+          "UIConfigのタイトルがプリセットのタイトルを上書きしないのはなぜですか。",
+          "使用中のUI版では、空でないSourceConfig.titleやdescriptionがUIConfig.metadataより優先されます。コンテンツの表示内容はSourceConfigで変更します。UIConfig.metadataを試す場合は、対応するSourceConfigの項目へ空文字列を適用してから読み込みます。"
+        ],
+        [
+          "URLを別タブで開けても再生に失敗するのはなぜですか。",
+          "別タブでの表示だけでは、アプリの配信元からスクリプトがマニフェスト、セグメント、字幕、DRMライセンスへアクセスできると確認したことにはなりません。NetworkとError / Warningイベントを確認し、配信元のCORS（別の配信元からのアクセスを許可する仕組み）、HTTPS、必要な認証を設定します。DRMには対応ブラウザー・端末と適切なライセンス設定も必要です。GUIの項目を有効にしてもプラットフォームの対応範囲は増えません。"
+        ],
+        [
+          "自動再生・全画面・PiP・キャストを設定しても使えないのはなぜですか。",
+          "ブラウザーの再生ポリシー、利用者の操作、対応端末の条件があるためです。利用者の操作で再生し、対応する操作部品で確認します。ボタンを有効にするのはUIの構成変更で、受信機や端末機能が利用できることまで保証するものではありません。"
+        ],
+        [
+          "関数やUI部品をJSONへ貼り付ければ使えますか。",
+          "関数にはSDKが求める戻り値を返すJavaScriptが、UI部品にはSDKクラスの実体が必要です。SDKエディターの型に対応した関数入力・コンストラクター入力を使い、生成コードを確認します。自分の実装では実際の関数やクラスを定義・読み込み、その寿命も管理します。"
+        ],
+        [
+          "適用済み設定のコピーだけで実装全体を再現できますか。",
+          "通常のスナップショットは、この画面が対象とする設定と実行時の値を含み、ライセンスは省略または置換します。高度な値はSDKエディター側の生成コードも参照します。UIの読み込み、スタイル、ソースデータ、関数、ライセンス、終了時の解放はすべてがスナップショットに含まれるわけではないため、自分の実装で用意します。"
+        ]
+      ],
+      "widths": [
+        0.32,
+        0.68
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "analytics-observability",
+      "text": "Analytics / Observability"
+    },
+    {
+      "type": "p",
+      "text": "Web版はPlayerに同梱されたAnalytics収集機能を使います。Playerライセンスは再生の許可、Analyticsライセンスはデータの送信先に使います。このアプリのanalyticsKeyは、設定したクライアント用Analyticsライセンスから取得し、空でない場合に設定へ加えます。これらは、サーバー側の問い合わせに使うアカウントAPIキーとは別のものです。"
+    },
+    {
+      "type": "code",
+      "title": "設定済みのAnalytics収集用ライセンスを渡す",
+      "text": "    ...(analyticsKey ? { analytics: { key: analyticsKey } } : {}),",
+      "source": {
+        "path": "apps/web/src/main.ts",
+        "line": 771,
+        "label": "apps/web/src/main.ts"
+      },
+      "endLine": 771
+    },
+    {
+      "type": "table",
+      "headers": [
+        "指定するもの",
+        "このアプリでの設定先",
+        "確認する結果"
+      ],
+      "rows": [
+        [
+          "PlayerConfig.analytics",
+          "SDKの詳細設定からkey、収集動作、共通メタデータを設定し、Playerを再生成します。通常はビルド時に設定したライセンスが初期値になります。",
+          "新しいPlayerを収集機能が監視します。Analytics側のライセンスとドメインの許可は、Player側とは別に確認します。"
+        ],
+        [
+          "SourceConfig.analytics",
+          "SDKエディターでvideoId、title、customData1などへ個人を特定しないテスト用メタデータを設定し、ソースを再読み込みします。",
+          "同じ値を使ってDashboardで再生を探します。SourceConfig.titleは表示用メタデータなので、比較にはAnalytics側のソースメタデータも明示的に設定します。"
+        ],
+        [
+          "イベント・ローカルQoE",
+          "再生中にEvents and callbacks、イベントログ、ローカルQoEパネルを確認します。",
+          "現在のブラウザー内の再生を調べる情報です。Dashboardへの受信を示すものではなく、指標の定義が収集機能と異なる場合もあります。"
+        ]
+      ],
+      "widths": [
+        0.25,
+        0.41,
+        0.34
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        "自分のデータを収集する場合は、専用のAnalyticsライセンスを設定し、Webアプリのドメインを許可します。確認には、そのライセンスへアクセスできるDashboardアカウントを使います。Player Labの公開デモを再生しても、送信先アカウントへのアクセス権は得られません。",
+        "PlayerConfig.analyticsを適用し、次にソースのメタデータを適用して再生します。時刻、コンテンツの識別子、ブラウザー、設定を控えます。意図したセッションでは同じソースとPlayerを維持し、Networkで収集リクエストの失敗を確認します。",
+        "Bitmovin DashboardのObservabilityを開きます。同じAnalyticsライセンス、対応する期間とタイムゾーンを選び、コンテンツの識別子やテスト用メタデータで絞り込みます。Audienceやセッションの詳細から、該当する再生を探します。",
+        "集計グラフを比較する前に、そのセッションの再生開始時間、再バッファ、エラーを確認します。アプリのイベントやHTTPリクエストだけで、意図したセッションが保存されたと判断せず、Dashboardで受信を確認します。",
+        "指標の定義、問い合わせ、可視化、LLM（大規模言語モデル）での分析はAnalyticsの詳細ページを参照します。比較する期間、対象、単位を揃えます。アカウントAPIキーはサーバー側で使い、PlayerConfigや公開サイトには含めません。"
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-overview",
+      "caption": "ダミーデータを使ったBitmovin公式デモDashboardです。ライセンス、期間、フィルターの確認箇所を示します。旧Analytics表記や配置は現在のDashboardと異なる場合があります。Player Labで収集した結果ではありません。© Bitmovin."
+    },
+    {
+      "type": "note",
+      "text": "GitHub Pagesではクライアント側の収集機能は動作しますが、アカウント単位のAnalytics問い合わせに必要なサーバーがないため、そのパネルを非表示にしています。ローカル実行では記載済みのサーバープロキシを使えます。アカウントAPIキーはサーバー側に保持します。データ収集とDashboardでの確認は、この問い合わせパネルとは独立しています。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-qoe-analytics/",
+          "label": "データ送信とDashboardでの確認"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-metrics/",
+          "label": "指標の定義"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-queries/",
+          "label": "Analyticsへの問い合わせ"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-visualization/",
+          "label": "可視化"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-ai/",
+          "label": "LLM・MCPによる分析"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 478,
+      "label": "ソースの読み込みとPlayerの生成"
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 255,
+      "label": "初期設定と再生中の操作"
+    },
+    {
+      "path": "apps/web/src/sources.ts",
+      "line": 73,
+      "label": "ソースのプリセットと機能別のテスト素材"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 108,
+      "label": "SDK設定エディターと再生中のAPI操作"
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 110,
+      "label": "UIの生成とテーマの組み立て"
+    },
+    {
+      "path": "apps/web/src/analyticsView.ts",
+      "line": 23,
+      "label": "ローカル開発用のAnalyticsクエリ画面"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerConfig.html",
+      "label": "PlayerConfigのリファレンス"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfig.html",
+      "label": "SourceConfigのリファレンス"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.TweaksConfig.html",
+      "label": "TweaksConfigのリファレンス"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerAPI.html",
+      "label": "PlayerAPIのリファレンス"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html",
+      "label": "NetworkConfigのリファレンス"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html",
+      "label": "UIConfigのリファレンス"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/setup-analytics",
+      "label": "Analyticsの収集とライセンス設定"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlaybackConfig.html",
+      "label": "PlaybackConfigとブラウザーの自動再生"
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/how-do-i-enable-cors-on-my-web-server-cloud-storage",
+      "label": "配信素材へのクロスオリジンアクセスの設定"
+    }
+  ]
+}

@@ -3,6 +3,17 @@
 Product versions describe Player Lab releases. Bitmovin SDK versions are tracked
 separately in the [API coverage guide](https://kazuhide.github.io/player-lab/guide/api-coverage/).
 
+## 0.1.2
+
+- Organize the guide into Web, Apple, Android, React Native and Vega OS sections.
+  Keep Web screen, source and UI workflows above its implementation guide.
+- Explain configuration, UI customization, useful features and common problems
+  in each platform's implementation guide, with examples from the existing app.
+- Expand the Web configuration and UI guides, add local contents links, and keep
+  published chapter bookmarks working after the platform split.
+
+See the [release notes](docs/releases/0.1.2.md).
+
 ## 0.1.1
 
 - Add an English and Japanese implementation guide that follows the existing

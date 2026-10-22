@@ -4,6 +4,15 @@
   "lead": "UI settings change the behavior of screen components. Keep them separate from Player Config playback settings, and choose a theme and source on which the change can be observed.",
   "blocks": [
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Implementation guide: configuration, UI changes and FAQ"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "Available UI settings",
       "id": "sixteen-ui-settings"
