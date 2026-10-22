@@ -17,7 +17,7 @@ from release_contract import (
     CI_PATH, MAX_ARCHIVE, PAGES_PATH, PRODUCER_PATH, REPOSITORY, REQUIRED_JOBS,
     artifact_identity, asset_file_identity, asset_identity, asset_names, check, check_checksums, checksums,
     effective_jobs, file_digest, identifier, input_identifier, json_bytes, json_load,
-    producer_origin, provenance, release_identity, release_metadata,
+    producer_origin, provenance, qualification_jobs, release_identity, release_metadata,
     repository_identity, request_identity, require_current_request, safe_extract,
     sha256, source_sha, timestamp, verified_attestation, workflow_identity, workflow_run,
 )
@@ -191,38 +191,51 @@ class Context:
         return producer_origin(run, document)
 
 
-def verify_signature(archive, *, artifact, context, run, web_attempt, bundle=None):
+def verify_signature(archive, *, artifact, context, run, web_attempt, web_jobs=(), bundle=None):
     args = ['gh', 'attestation', 'verify', str(archive), '--repo', REPOSITORY,
             '--signer-workflow', REPOSITORY + '/' + CI_PATH, '--source-ref', 'refs/heads/main',
             '--source-digest', run['head_sha'], '--deny-self-hosted-runners', '--format', 'json']
     if bundle is not None:
         args += ['--bundle', str(bundle)]
     results = json_load(command(args, cwd=context.root))
-    if artifact is None:
-        # The signed subject preserves the artifact ID after Actions metadata expires.
-        candidates = []
-        for result in results if type(results) is list else []:
-            statement = result.get('verificationResult', {}).get('statement') or {}
-            for subject in statement.get('subject', []):
-                match = re.fullmatch(re.escape(REPOSITORY) + r'/pages-release/([1-9][0-9]*)', subject.get('name', ''))
-                if match and subject.get('digest') == {'sha256': file_digest(archive)}:
-                    candidates.append({'id': int(match[1]), 'name': 'pages-release',
-                                       'sha256': file_digest(archive), 'size': archive.stat().st_size})
-        matches = []
-        for candidate in candidates:
+    digest, size = file_digest(archive), archive.stat().st_size
+    if artifact is not None:
+        check(size == artifact['size'] and digest == artifact['sha256'],
+              'The retained archive differs from the original CI ZIP.')
+        if web_attempt is not None:
+            signature = verified_attestation(results, version_sha=run['head_sha'], repository_id=context.repository_id,
+                                            run=run, web_attempt=web_attempt, artifact=artifact)
+            return artifact, signature, web_attempt
+    # An interrupted draft may retain the ZIP before its provenance was uploaded.
+    # Recover its generation from the verified certificate, never from the latest attempt.
+    check(type(results) is list and 0 < len(results) <= 100, 'No verified CI attestations were returned.')
+    allowed = ({web_attempt} if web_attempt is not None else {
+        job['run_attempt'] for job in web_jobs if job['name'] == 'web'
+        and job.get('status') == 'completed' and job.get('conclusion') == 'success'})
+    invocation = re.escape(f'https://github.com/{REPOSITORY}/actions/runs/{run["id"]}/attempts/')
+    matches = {}
+    for result in results:
+        verification = result.get('verificationResult', {})
+        certificate = (verification.get('signature') or {}).get('certificate') or {}
+        generation = re.fullmatch(invocation + r'([1-9][0-9]*)', certificate.get('runInvocationURI', ''))
+        if generation is None or int(generation[1]) not in allowed:
+            continue
+        attempt = int(generation[1])
+        for subject in (verification.get('statement') or {}).get('subject', []):
+            match = re.fullmatch(re.escape(REPOSITORY) + r'/pages-release/([1-9][0-9]*)', subject.get('name', ''))
+            if match is None or subject.get('digest') != {'sha256': digest}:
+                continue
+            candidate = {'id': int(match[1]), 'name': 'pages-release', 'sha256': digest, 'size': size}
+            if artifact is not None and candidate != artifact:
+                continue
             try:
                 signature = verified_attestation(results, version_sha=run['head_sha'],
-                    repository_id=context.repository_id, run=run, web_attempt=web_attempt, artifact=candidate)
-                matches.append((candidate, signature))
+                    repository_id=context.repository_id, run=run, web_attempt=attempt, artifact=candidate)
+                matches[(candidate['id'], attempt)] = (candidate, signature, attempt)
             except ValueError:
-                pass
-        check(len(matches) == 1, 'The signed original CI artifact identity is missing or ambiguous.')
-        return matches[0]
-    check(archive.stat().st_size == artifact['size'] and file_digest(archive) == artifact['sha256'],
-          'The retained archive differs from the original CI ZIP.')
-    signature = verified_attestation(results, version_sha=run['head_sha'], repository_id=context.repository_id,
-                                    run=run, web_attempt=web_attempt, artifact=artifact)
-    return artifact, signature
+                continue
+    check(len(matches) == 1, 'The signed original CI artifact identity is missing or ambiguous.')
+    return next(iter(matches.values()))
 
 
 class BuildLabels(HTMLParser):
@@ -319,11 +332,10 @@ def accepted_generations(context, since):
             check(job.get('run_id') == run['id'] and job.get('head_sha') == run['head_sha']
                   and identifier(job.get('run_attempt')) <= run['run_attempt'],
                   'An accepted package gate has an invalid workflow identity.')
-        package_attempt = max((job['run_attempt'] for job in package_jobs), default=0)
-        latest = [job for job in package_jobs if job['run_attempt'] == package_attempt]
-        check(len(latest) <= 1, 'The accepted package gate is ambiguous.')
-        # Only a request whose immutable assets passed the package gate is accepted.
-        if not latest or latest[0].get('status') != 'completed' or latest[0].get('conclusion') != 'success':
+        attempts = [job['run_attempt'] for job in package_jobs]
+        check(len(attempts) == len(set(attempts)), 'The accepted package gate is ambiguous.')
+        # A completed validation establishes a fence that failed retries cannot erase.
+        if not any(job.get('status') == 'completed' and job.get('conclusion') == 'success' for job in package_jobs):
             continue
         release_id, producer_id = request_identity(run)
         release = api.get(f'releases/{release_id}')
@@ -463,6 +475,7 @@ def publish(context, version, sha, ci_id, work):
         document = json_load(files[names['provenance']].read_bytes())
         artifact, web_job = provenance(document, repository_id=context.repository_id, version=version, sha=sha,
                                        run=run, jobs=jobs, all_jobs=all_jobs)
+    restore_generation = archive.exists() and document is None
     if not archive.exists():
         candidates = []
         for candidate in api.pages(f'actions/runs/{ci_id}/artifacts', 'artifacts'):
@@ -478,8 +491,14 @@ def publish(context, version, sha, ci_id, work):
         artifact = candidates[0]
         api.download(f'actions/artifacts/{artifact["id"]}/zip', archive)
         files[names['archive']] = archive
-    artifact, bundle = verify_signature(archive, artifact=artifact, context=context, run=run,
-                web_attempt=web_job['run_attempt'], bundle=files.get(names['attestation']))
+    artifact, bundle, signed_attempt = verify_signature(archive, artifact=artifact, context=context, run=run,
+                web_attempt=None if restore_generation else web_job['run_attempt'], web_jobs=all_jobs,
+                bundle=files.get(names['attestation']))
+    if restore_generation:
+        original = [job for job in all_jobs if job['name'] == 'web' and job['run_attempt'] == signed_attempt
+                    and job.get('status') == 'completed' and job.get('conclusion') == 'success']
+        check(len(original) == 1, 'The signed archive generation has no unique successful web job.')
+        web_job = original[0]
     verify_original(api, artifact, run=run, web_job=web_job, repository_id=context.repository_id)
     if names['attestation'] not in files:
         files[names['attestation']] = work / names['attestation']
@@ -490,10 +509,11 @@ def publish(context, version, sha, ci_id, work):
     verify_package(directory, version=version, sha=sha, run=run,
                    web_attempt=web_job['run_attempt'], root=context.root)
     if document is None:
+        qualified = qualification_jobs(web_job, jobs, all_jobs)
         document = {'schemaVersion': 1, 'repository': REPOSITORY, 'repositoryId': context.repository_id,
             'productVersion': version, 'sha': sha, 'ciRunId': ci_id, 'ciWorkflowId': run['workflow_id'],
-            'ciWorkflowPath': CI_PATH, 'ciWebRunAttempt': jobs['web']['run_attempt'],
-            'qualificationJobs': {name: {'id': jobs[name]['id'], 'attempt': jobs[name]['run_attempt']}
+            'ciWorkflowPath': CI_PATH, 'ciWebRunAttempt': web_job['run_attempt'],
+            'qualificationJobs': {name: {'id': qualified[name]['id'], 'attempt': qualified[name]['run_attempt']}
                                   for name in REQUIRED_JOBS}, 'artifact': artifact,
             'manifestSha256': file_digest(directory / 'manifest.json'),
             'releaseMetadataSha256': file_digest(directory / 'release.json'), 'notesSha256': sha256(notes.encode())}

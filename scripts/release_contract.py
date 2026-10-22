@@ -240,6 +240,22 @@ def check_checksums(data, names, digests):
     check(data == expected, 'The release checksum file differs from its retained assets.')
 
 
+def webkit_qualifies(web_job, webkit_job, all_jobs):
+    return (webkit_job['run_attempt'] >= web_job['run_attempt']
+            and timestamp(webkit_job['started_at']) >= timestamp(web_job['completed_at'])
+            and not any(job['name'] == 'web' and web_job['run_attempt'] < job['run_attempt']
+                        <= webkit_job['run_attempt'] for job in all_jobs))
+
+
+def qualification_jobs(web_job, latest_jobs, all_jobs):
+    """Keep the archive's successful web/WebKit generation while rechecking current CI."""
+    candidates = [job for job in all_jobs if job['name'] == 'webkit'
+                  and job.get('status') == 'completed' and job.get('conclusion') == 'success'
+                  and webkit_qualifies(web_job, job, all_jobs)]
+    check(bool(candidates), 'No successful WebKit gate qualifies the retained archive generation.')
+    return {**latest_jobs, 'web': web_job, 'webkit': max(candidates, key=lambda job: job['run_attempt'])}
+
+
 def provenance(document, *, repository_id, version, sha, run, jobs, all_jobs):
     required = {'schemaVersion', 'repository', 'repositoryId', 'productVersion', 'sha', 'ciRunId',
                 'ciWorkflowId', 'ciWorkflowPath', 'ciWebRunAttempt', 'qualificationJobs', 'artifact',
@@ -279,10 +295,7 @@ def provenance(document, *, repository_id, version, sha, run, jobs, all_jobs):
             source_webkit_job = matches[0]
     check(document['ciWebRunAttempt'] == source_web_job['run_attempt'],
           'The signed archive generation attempt must match the recorded successful web job.')
-    check(source_webkit_job['run_attempt'] >= source_web_job['run_attempt']
-          and timestamp(source_webkit_job['started_at']) >= timestamp(source_web_job['completed_at'])
-          and not any(job['name'] == 'web' and source_web_job['run_attempt'] < job['run_attempt']
-                      <= source_webkit_job['run_attempt'] for job in all_jobs),
+    check(webkit_qualifies(source_web_job, source_webkit_job, all_jobs),
           'The recorded WebKit gate must qualify this archive generation, without an intervening web attempt.')
     return artifact, source_web_job
 

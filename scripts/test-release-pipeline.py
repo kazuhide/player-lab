@@ -283,6 +283,37 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(self.f.api.assets[500][names['archive']]['id'], retained)
         self.assertEqual(sum(entry[0] == 'upload' for entry in self.f.api.mutations[before:]), 3)
 
+    def test_partial_draft_restores_original_signed_generation_after_ci_web_rerun(self):
+        original = self.f.api.request
+        def interrupt_after_archive(path, **kwargs):
+            if kwargs.get('method') == 'UPLOAD' and len(self.f.api.assets.get(500, {})) == 1:
+                raise ValueError('Interrupted after archive upload.')
+            return original(path, **kwargs)
+        with patch.object(self.f.api, 'request', side_effect=interrupt_after_archive):
+            with self.assertRaisesRegex(ValueError, 'Interrupted after archive upload'):
+                self.publish()
+        names = contract.asset_names('0.1.0')
+        self.assertTrue(self.f.api.releases[500]['draft'])
+        self.assertEqual(set(self.f.api.assets[500]), {names['archive']})
+        archive_id = self.f.api.assets[500][names['archive']]['id']
+        web = next(job for job in self.f.jobs if job['name'] == 'web')
+        webkit = next(job for job in self.f.jobs if job['name'] == 'webkit')
+        self.f.jobs.extend([
+            {**web, 'id': 3001, 'run_attempt': 2, 'started_at': '2026-10-22T00:50:00Z', 'completed_at': '2026-10-22T01:00:00Z'},
+            {**webkit, 'id': 3002, 'run_attempt': 2, 'started_at': '2026-10-22T01:01:00Z', 'completed_at': '2026-10-22T01:05:00Z'},
+        ])
+        self.f.run['run_attempt'] = 2
+        self.f.api.artifact_missing = True
+        self.assertEqual(self.publish('partial-after-rerun'), 500)
+        self.assertEqual(self.f.api.assets[500][names['archive']]['id'], archive_id)
+        proof_asset = self.f.api.assets[500][names['provenance']]
+        proof = contract.json_load(self.f.api.asset_data[proof_asset['id']])
+        self.assertEqual(proof['ciWebRunAttempt'], 1)
+        self.assertEqual(proof['qualificationJobs']['web'], {'id': web['id'], 'attempt': 1})
+        self.assertEqual(proof['qualificationJobs']['webkit'], {'id': webkit['id'], 'attempt': 1})
+        self.assertEqual(self.f.api.downloads.count('actions/artifacts/900/zip'), 1)
+        self.prepare('recovered-pages')
+
     def test_mismatched_existing_release_or_asset_is_never_overwritten(self):
         self.publish()
         self.f.api.releases[500]['body'] += 'Changed release notes.'
@@ -460,6 +491,25 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'supersedes'):
             self.publish('old-producer')
         self.assertEqual(len(self.f.api.dispatches), before)
+
+    def test_successful_recovery_generation_survives_in_progress_or_failed_package_retry(self):
+        self.publish()
+        self.f.pages_run['run_attempt'] = 2
+        self.f.api.pages_runs = [self.f.pages_run]
+        self.f.api.page_jobs[300] = [{'name': 'package', 'status': 'completed', 'conclusion': 'success',
+                                      'run_id': 300, 'head_sha': self.f.sha, 'run_attempt': 1}]
+        delayed = self.f.workflow_run(400, 12, contract.PAGES_PATH, 'Pages release 500 from 200', '2026-10-22T00:40:00Z')
+        self.f.api.extra_runs[400] = delayed
+        for status, conclusion in [('in_progress', None), ('completed', 'failure')]:
+            with self.subTest(status=status):
+                self.f.api.page_jobs[300] = self.f.api.page_jobs[300][:1] + [{
+                    'name': 'package', 'status': status, 'conclusion': conclusion,
+                    'run_id': 300, 'head_sha': self.f.sha, 'run_attempt': 2}]
+                with self.assertRaisesRegex(ValueError, 'supersedes'):
+                    self.publish('old-producer-after-' + status)
+                with self.assertRaisesRegex(ValueError, 'supersedes'):
+                    pipeline.prepare_pages(self.f.context(contract.PAGES_PATH, run=delayed), 500, 200, False,
+                                           self.f.work('old-consumer-after-' + status))
 
     def test_unrelated_newer_producer_id_cannot_launder_request_generation(self):
         self.publish()
