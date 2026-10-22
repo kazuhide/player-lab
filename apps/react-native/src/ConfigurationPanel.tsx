@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Button, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Button, Switch, Text, TextInput, View } from "react-native";
 import type { ConfigurationDraft, NativePlatform } from "./configuration";
 import { ConfigurationCodeView } from "./ConfigurationCodeView";
 import { NativeSettingsPanel } from "./NativeSettingsPanel";
 import { NativeArraysPanel } from "./NativeArraysPanel";
 import { NativeScriptsPanel } from "./NativeScriptsPanel";
 import { CastHostPanel } from "./CastHostPanel";
+import { panelStyles as styles } from "./panelStyles";
 
 interface Props {
   draft: ConfigurationDraft;
@@ -81,12 +82,3 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  panel: { gap: 8, borderTopWidth: 1, borderTopColor: "#cccccc", paddingTop: 10 },
-  row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
-  field: { gap: 4 },
-  input: { borderWidth: 1, borderColor: "#888888", borderRadius: 4, padding: 8, minHeight: 44 },
-  help: { fontSize: 12, color: "#444444" },
-  error: { color: "#a00000" },
-});

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Button, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { panelStyles as styles } from "./panelStyles";
+import { Button, Switch, Text, TextInput, View } from "react-native";
 import { AdSourceType, SubtitleFormat, type SideLoadedSubtitleTrack } from "bitmovin-player-react-native";
 import type { NativeArrayDraft } from "./nativeArrays";
 
@@ -50,7 +51,7 @@ export function NativeArraysPanel({ values, onChange }: { values: NativeArrayDra
   };
   return <View style={styles.panel}>
     <Text style={styles.heading}>Subtitle lists and advertising</Text>
-    <Text>Edit complete subtitle tracks, their roles, and ad items with fallback sources. Apply validates the list. An enabled empty list clears it. Source and offline subtitle lists are independent.</Text>
+    <Text style={styles.help}>Edit complete subtitle tracks, their roles, and ad items with fallback sources. Apply validates the list. An enabled empty list clears it. Source and offline subtitle lists are independent.</Text>
     <View style={styles.row}>{(Object.keys(LISTS) as ListKind[]).map((key) => <Button key={key} title={LISTS[key]} disabled={kind === key} onPress={() => { setKind(key); setIndex(0); }} />)}</View>
     <Text>{LISTS[kind]}</Text>
     {list === undefined ? <Button title="Edit this list" onPress={() => onChange({ ...values, [kind]: [] })} /> : <>
@@ -59,7 +60,7 @@ export function NativeArraysPanel({ values, onChange }: { values: NativeArrayDra
         <Button title="Use basic form or SDK default" onPress={() => { const next = { ...values }; delete next[kind]; onChange(next); setIndex(0); }} />
       </View>
       <View style={styles.row}>{list.map((_, i) => <Button key={i} title={`Item ${i + 1}`} disabled={index === i} onPress={() => setIndex(i)} />)}</View>
-      {!list.length && <Text>No items. Apply will set an empty list.</Text>}
+      {!list.length && <Text style={styles.help}>No items. Apply will set an empty list.</Text>}
       {track && <>
         {field("Track URL", track.url, (url) => updateTrack({ ...track, url }))}
         {field("Track label", track.label, (label) => updateTrack({ ...track, label }))}
@@ -101,13 +102,6 @@ export function NativeArraysPanel({ values, onChange }: { values: NativeArrayDra
       </>}
       {(track || ad) && <Button title="Remove list item" onPress={removeItem} />}
     </>}
-    <Text>Subtitle language uses an IETF tag such as en-US. Ad sources in a fallback list must have the same type. Advertising also requires a supported native ad integration and a valid ad tag. Use Player.scheduleAd in API experiments to schedule an applied ad item.</Text>
+    <Text style={styles.help}>Subtitle language uses an IETF tag such as en-US. Ad sources in a fallback list must have the same type. Advertising also requires a supported native ad integration and a valid ad tag. Use Player.scheduleAd in API experiments to schedule an applied ad item.</Text>
   </View>;
 }
-
-const styles = StyleSheet.create({
-  panel: { gap: 8, borderTopWidth: 1, borderTopColor: "#cccccc", paddingTop: 10 },
-  row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
-  field: { gap: 4 }, input: { borderWidth: 1, borderColor: "#888888", borderRadius: 4, padding: 8, minHeight: 44 },
-  heading: { fontWeight: "600" },
-});

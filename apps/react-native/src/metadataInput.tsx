@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { Button, Text, TextInput, View } from "react-native";
 import { finiteNumber } from "./apiValues";
+import { panelStyles as styles } from "./panelStyles";
 
 type Kind = "string" | "number" | "boolean" | "null" | "object" | "array";
 interface Node { kind: Kind; text: string; children: Array<{ key: string; node: Node }>; }
@@ -73,7 +74,7 @@ export function MetadataInput({ value, onChange }: { value: string; onChange: (v
     if (current.kind === "object" && (forbidden(key) || current.children.some((entry) => entry.key === key))) { setError("Choose a unique field name that does not change an object prototype."); return; }
     replace({ ...current, children: [...current.children, { key, node: empty("string") }] }); setName("");
   };
-  return <View style={styles.panel}>
+  return <View style={styles.content}>
     <Text>Metadata value {validPath.length ? validPath.map((index) => `[${index}]`).join("") : "root"}</Text>
     {!!validPath.length && <Button title="Metadata parent" onPress={() => setPath(validPath.slice(0, -1))} />}
     <View style={styles.row}>{(validPath.length ? kinds : ["object", "null"] as Kind[]).map((kind) => <Button key={kind} title={`Metadata ${kind}`} disabled={current.kind === kind} onPress={() => replace(empty(kind))} />)}</View>
@@ -87,11 +88,7 @@ export function MetadataInput({ value, onChange }: { value: string; onChange: (v
       {current.kind === "object" && <TextInput accessibilityLabel="New metadata field name" value={name} onChangeText={setName} style={styles.input} autoCapitalize="none" autoCorrect={false} />}
       <Button title={current.kind === "array" ? "Append metadata array value" : "Add metadata field"} onPress={add} />
     </>}
-    {!!error && <Text accessibilityRole="alert">{error}</Text>}
-    <Text>Object fields and array entries can contain strings, numbers, booleans, null, objects or arrays. Null clears source metadata. Values must be serializable across the native bridge; JavaScript functions and native instances are not metadata.</Text>
+    {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
+    <Text style={styles.help}>Object fields and array entries can contain strings, numbers, booleans, null, objects or arrays. Null clears source metadata. Values must be serializable across the native bridge; JavaScript functions and native instances are not metadata.</Text>
   </View>;
 }
-const styles = StyleSheet.create({
-  panel: { gap: 8 }, row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
-  input: { borderWidth: 1, borderColor: "#888888", borderRadius: 4, padding: 8, minHeight: 44 },
-});

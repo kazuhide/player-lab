@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { Button, Text, TextInput, View } from "react-native";
 import type { Player, SourceConfig } from "bitmovin-player-react-native";
 import { nativeOperations } from "./apiOperations";
 import { apiValue } from "./apiValues";
 import { AuxiliaryOperations } from "./auxiliaryOperations";
 import type { NativeSettings } from "./nativeSettings";
 import { MetadataInput } from "./metadataInput";
+import { panelStyles as styles } from "./panelStyles";
 
 interface Props {
   player: Player;
@@ -76,14 +77,14 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
   return <View style={styles.panel}>
     <Button title={expanded ? "Hide API experiments" : "Show API experiments"} onPress={() => setExpanded(!expanded)} />
     {expanded && <>
-      <Text>Choose an operation, enter its arguments, then run it. A void result means the wrapper dispatched the call; use events and queries to check its effect. Platform and source requirements still apply.</Text>
-      <Text>Offline inputs are edited under Additional SDK configuration. Initialize the offline manager, get options, then download; completion is an event. Delete and cancel affect only the chosen content identifier. The generated host includes the Google Cast SDK. SDK 1.29's deprecated initialize method does not apply edited options. Edit the receiver and namespace under Cast startup settings, select Save Cast options for next launch, then fully close and reopen the app. Use Read native Cast startup state to check the applied startup values and native initialization.</Text>
-      <Text>Offline addListener replaces the app's current offline listener. Select its named callbacks and optionally edit a JavaScript body using event, name and lab.getPlayer()/getSource(). A nonempty body requires explicit execution permission; it runs inside this app on future matching SDK events.</Text>
+      <Text style={styles.help}>Choose an operation, enter its arguments, then run it. A void result means the wrapper dispatched the call; use events and queries to check its effect. Platform and source requirements still apply.</Text>
+      <Text style={styles.help}>Offline inputs are edited under Additional SDK configuration. Initialize the offline manager, get options, then download; completion is an event. Delete and cancel affect only the chosen content identifier. The generated host includes the Google Cast SDK. SDK 1.29's deprecated initialize method does not apply edited options. Edit the receiver and namespace under Cast startup settings, select Save Cast options for next launch, then fully close and reopen the app. Use Read native Cast startup state to check the applied startup values and native initialization.</Text>
+      <Text style={styles.help}>Offline addListener replaces the app's current offline listener. Select its named callbacks and optionally edit a JavaScript body using event, name and lab.getPlayer()/getSource(). A nonempty body requires explicit execution permission; it runs inside this app on future matching SDK events.</Text>
       <TextInput accessibilityLabel="Filter API operations" value={filter} onChangeText={(value) => { setFilter(value); setLimit(12); }} autoCorrect={false} autoCapitalize="none" style={styles.input} />
       <View style={styles.row}>{matches.slice(0, limit).map((operation) => <Button key={operation.id} title={operation.id}
         disabled={busy || selected.id === operation.id} onPress={() => { setSelectedId(operation.id); setResult(""); setCode(""); }} />)}</View>
       {matches.length > limit && <Button title="Show more API operations" onPress={() => setLimit(limit + 12)} />}
-      <Text style={styles.heading}>{selected.id}</Text>
+      <Text style={[styles.heading, styles.mono]}>{selected.id}</Text>
       {selected.arguments.map((argument) => <View key={argument.name} style={styles.field}>
         <Text>{argument.label}</Text>
         {argument.editor === "metadata" ? <MetadataInput key={selected.id + argument.name} value={values[argument.name] ?? argument.initial} onChange={(value) => setValues((current) => ({ ...current, [argument.name]: value }))} /> : argument.choices ? <View style={styles.row}>{argument.choices.map((choice) => <Button key={choice} title={choice} disabled={values[argument.name] === choice}
@@ -96,7 +97,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
       <Text selectable accessibilityLabel="Executed API code" accessibilityValue={{ text: code }} style={styles.mono}>{code}</Text>
       <Text selectable accessibilityLabel="API result" accessibilityValue={{ text: result }} style={styles.mono}>{result}</Text>
       <Text style={styles.heading}>Player events</Text>
-      <Text>Named public events are connected. The log retains recent payload summaries and redacts credential fields. Receiving an event requires its matching feature or source.</Text>
+      <Text style={styles.help}>Named public events are connected. The log retains recent payload summaries and redacts credential fields. Receiving an event requires its matching feature or source.</Text>
       <View style={styles.row}>
         <Button title={recording ? "Pause event log" : "Resume event log"} onPress={() => onRecording(!recording)} />
         <Button title="Clear API event log" onPress={onClearEvents} />
@@ -105,12 +106,3 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
     </>}
   </View>;
 }
-
-const styles = StyleSheet.create({
-  panel: { gap: 8, borderTopWidth: 1, borderTopColor: "#cccccc", paddingTop: 10 },
-  row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
-  field: { gap: 4 },
-  input: { borderWidth: 1, borderColor: "#888888", borderRadius: 4, padding: 8, minHeight: 44 },
-  heading: { fontWeight: "600" },
-  mono: { fontFamily: "monospace", fontSize: 12 },
-});

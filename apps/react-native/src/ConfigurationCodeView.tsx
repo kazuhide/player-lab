@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Platform, StyleSheet, Text, TextInput, View } from "react-native";
+import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
+import { panelStyles } from "./panelStyles";
 
 export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Element {
   const [expanded, setExpanded] = useState(false);
@@ -14,7 +15,7 @@ export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Ele
   return <View style={styles.container}>
     <Button title={expanded ? "Hide applied code" : "Show applied code"} onPress={() => { setExpanded(!expanded); setStatus(undefined); request.current++; }} />
     {expanded && <>
-      <Text>Player, source and UI settings sent to the SDK. Draft edits are excluded and license keys use placeholders.</Text>
+      <Text style={panelStyles.help}>Player, source and UI settings sent to the SDK. Draft edits are excluded and license keys use placeholders.</Text>
       <Button title="Copy code" onPress={() => {
         const ownRequest = ++request.current;
         setStatus(undefined);
@@ -25,13 +26,13 @@ export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Ele
       }} />
       <TextInput accessibilityLabel="Applied configuration code" value={code} editable={false}
         multiline selectTextOnFocus autoCorrect={false} style={styles.code} />
-      {status?.code === code && <Text accessibilityRole="text" accessibilityLiveRegion="polite">{status.text}</Text>}
+      {status?.code === code && <Text accessibilityRole="text" accessibilityLiveRegion="polite" style={panelStyles.help}>{status.text}</Text>}
     </>}
   </View>;
 }
 
 const styles = StyleSheet.create({
   container: { gap: 8, marginTop: 8 },
-  code: { minHeight: 180, maxHeight: 360, borderWidth: 1, borderColor: "#888888", padding: 8,
-    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace", fontSize: 12, textAlignVertical: "top", color: "#111111" },
+  code: { ...panelStyles.input, ...panelStyles.mono, minHeight: 180, maxHeight: 360,
+    textAlignVertical: "top", color: "#111111" },
 });
