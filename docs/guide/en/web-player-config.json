@@ -549,11 +549,11 @@
       "label": "SourceConfigOptions"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/2e01393b86d0c3004114c5ed6474d856676bc90f/apps/web/src/api/explorer.ts",
+      "path": "apps/web/src/api/explorer.ts",
       "label": "SDK editor"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/2e01393b86d0c3004114c5ed6474d856676bc90f/apps/web/src/api/materialize.ts",
+      "path": "apps/web/src/api/materialize.ts",
       "label": "Callbacks and SDK constructors"
     },
     {
@@ -561,7 +561,7 @@
       "label": "StyleConfig"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/2e01393b86d0c3004114c5ed6474d856676bc90f/apps/web/src/api/values.ts",
+      "path": "apps/web/src/api/values.ts",
       "label": "Optional configuration properties"
     },
     {

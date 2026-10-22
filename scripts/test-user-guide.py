@@ -12,7 +12,7 @@ from urllib.parse import unquote, urlsplit
 
 from coverage_report import summarize
 from guide_coverage import api_anchor, category_metrics
-from guide_routes import COVERAGE_APPS, GUIDE_ASSETS, GUIDE_FILES, route_file
+from guide_routes import COVERAGE_APPS, GUIDE_ASSETS, GUIDE_FILES, SOURCE_REVISION, route_file
 from user_guide import build, load_content, render_block, source_url
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -285,6 +285,17 @@ class GuideTests(unittest.TestCase):
                        {'path': '../private.md'}, {'path': '/tmp/local.md'}, {'path': 'docs/a.md', 'line': -1}]:
             with self.subTest(source=source), self.assertRaises(ValueError):
                 source_url(source)
+
+    def test_current_repository_source_urls_use_the_published_revision(self):
+        repository = 'https://github.com/kazuhide/player-lab/blob/'
+
+        for language, chapters in self.content.items():
+            for chapter, document in chapters.items():
+                with self.subTest(language=language, chapter=chapter):
+                    urls = (source.get('url', '') for source in document.get('sources', []))
+                    stale = [url for url in urls if url.startswith(repository)
+                             and not url.startswith(repository + SOURCE_REVISION + '/')]
+                    self.assertEqual(stale, [], 'Current guide source URLs must use SOURCE_REVISION.')
 
     def test_build_is_reproducible_and_does_not_embed_authoring_metadata(self):
         self.assertEqual(self.pages, build(self.content))
