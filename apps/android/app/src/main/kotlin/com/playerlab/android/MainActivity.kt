@@ -8,36 +8,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
@@ -66,7 +48,7 @@ import kotlin.reflect.KClass
 enum class UiMode(val label: String, val factoryFunction: String?) {
     DEFAULT("Default", null),
     SPORTS("Sports", "bitmovin.playerui.UIFactory.buildSportsUI"),
-    LIVE("Live (DVR)", "bitmovin.playerui.UIFactory.buildLiveUI"),
+    LIVE("Live", "bitmovin.playerui.UIFactory.buildLiveUI"),
     CINEMA("Cinema", "bitmovin.playerui.UIFactory.buildCinemaUI"),
 }
 
@@ -74,7 +56,7 @@ enum class UiMode(val label: String, val factoryFunction: String?) {
  * Build a [PlayerViewConfig] for a [UiMode]. `DEFAULT` keeps the SDK's UI configuration defaults; the
  * custom modes point the Web UI at our synced bundle and select the factory by name.
  */
-private fun playerViewConfig(mode: UiMode): PlayerViewConfig =
+internal fun playerViewConfig(mode: UiMode): PlayerViewConfig =
     if (mode.factoryFunction == null) {
         PlayerViewConfig()
     } else {
@@ -427,6 +409,7 @@ internal class PlayerController(
     internal var configuredSource: Source? = null
         private set
     private var playerGeneration = 0
+    internal val apiPlayerGeneration: Int get() = playerGeneration
     private var sourceGeneration = 0
     private var released = false
 
@@ -714,7 +697,7 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.BLACK),
         )
         controller = PlayerController(this, licenseKey(), analyticsLicenseKey(), lifecycle = lifecycle)
-        setContent { MaterialTheme { Surface(modifier = Modifier.fillMaxSize()) { PlayerLabScreen(controller) } } }
+        setContent { PlayerLabTheme { Surface(modifier = Modifier.fillMaxSize()) { PlayerLabScreen(controller) } } }
         Sources.all.firstOrNull()?.let { controller.load(it) }
     }
 
@@ -738,113 +721,5 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun PlayerLabScreen(controller: PlayerController) {
-    var uiMode by remember { mutableStateOf(UiMode.DEFAULT) }
-    val focus = androidx.compose.ui.platform.LocalFocusManager.current
-    androidx.compose.runtime.DisposableEffect(controller, focus) {
-        controller.apiClearFocus = { focus.clearFocus(force = true) }
-        onDispose { controller.apiClearFocus = {} }
-    }
-    val videoOnly = controller.apiFullscreen || controller.apiPictureInPicture
-    androidx.activity.compose.BackHandler(enabled = controller.apiFullscreen) { controller.currentView()?.exitFullscreen() }
-
-    Column(
-        modifier = if (videoOnly) Modifier.fillMaxSize().clipToBounds().testTag("player-lab-scroll") else
-            Modifier.safeDrawingPadding().clipToBounds().testTag("player-lab-scroll").verticalScroll(rememberScrollState()).padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        // Recreate the PlayerView when the UI mode changes — the UI is fixed at view-construction
-        // time via PlayerViewConfig, so swapping factories means a fresh view (the Player persists).
-        val displayedPlayer = controller.player
-        val vrRenderer = controller.apiVrRenderer
-        if (vrRenderer != null) key(vrRenderer) {
-            AndroidView(factory = { vrRenderer }, onRelease = { it.close() },
-                modifier = if (videoOnly) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(220.dp))
-        } else key(displayedPlayer, uiMode, controller.apiViewRevision) {
-            AndroidView(
-                factory = { context ->
-                    PlayerTouchHost(context,
-                        controller.attachView(PlayerView(context, displayedPlayer, controller.apiOverrides.view(playerViewConfig(uiMode)))))
-                },
-                // Detach the shared player BEFORE releasing the view: PlayerView.onDestroy()
-                // destroys its attached player, but `controller` owns the player's lifecycle
-                // (it persists across UI-mode switches and is destroyed in onDestroy/release).
-                onRelease = { host ->
-                    host.releaseTouchOwnership()
-                    controller.releaseView(host.content as PlayerView)
-                },
-                modifier = if (videoOnly) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(220.dp),
-            )
-        }
-        // Keep editors composed during fullscreen/PiP so returning does not discard their drafts.
-        Column(modifier = if (videoOnly) Modifier.height(0.dp) else Modifier,
-            verticalArrangement = Arrangement.spacedBy(10.dp)) {
-
-        // Player UI: the SDK default vs. our shared @showcase/ui-shared custom factories (§12).
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text("UI:")
-            UiMode.entries.forEach { mode ->
-                Button(onClick = { uiMode = mode }, enabled = uiMode != mode) { Text(mode.label) }
-            }
-        }
-
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Sources.all.forEach { source ->
-                Button(onClick = { controller.load(source) }) { Text(source.label) }
-            }
-        }
-
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Button(onClick = { controller.goToLiveEdge() }, enabled = controller.dvr.isLive) { Text("Live edge") }
-            listOf(-10.0, -30.0, -60.0).forEach { offset ->
-                Button(onClick = { controller.seek(offset) }, enabled = controller.dvr.dvrAvailable) {
-                    Text("${offset.toInt()}s")
-                }
-            }
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Allow DVR")
-            Switch(
-                checked = controller.timeShiftEnabled, onCheckedChange = { controller.toggleDvr(it) },
-                modifier = Modifier.testTag("allow-dvr"),
-            )
-        }
-
-        val dvr = controller.dvr
-        Text(
-            "mode=${dvr.mode.raw}  dvrAvailable=${dvr.dvrAvailable}  " +
-                "behindLive=${"%.1f".format(dvr.behindLive)}s  window=${"%.0f".format(dvr.windowDuration)}s",
-            style = MaterialTheme.typography.bodySmall,
-        )
-
-        ConfigurationPanel(controller, uiMode)
-        ApiConfigurationPanel(controller)
-        controller.apiCompanionHosts.forEach { host ->
-            key(host.view) {
-                Text("Companion: ${host.name} (${host.width} × ${host.height})", style = MaterialTheme.typography.labelMedium)
-                AndroidView(factory = { host.view }, onRelease = { (it.parent as? android.view.ViewGroup)?.removeView(it) },
-                    modifier = if (host.width == -1) Modifier.fillMaxWidth().heightIn(min = 50.dp, max = 500.dp)
-                        else Modifier.width(host.width.dp).height(host.height.dp))
-            }
-        }
-        ApiRuntimePanel(controller)
-        ApiOfflinePanel(controller)
-        ApiAnalyticsPanel(controller)
-
-        Column(modifier = Modifier.height(140.dp).verticalScroll(rememberScrollState())) {
-            controller.log.take(12).forEach { line ->
-                Text(line, style = MaterialTheme.typography.bodySmall)
-            }
-        }
-        }
-    }
+    PlayerWorkspace(controller)
 }

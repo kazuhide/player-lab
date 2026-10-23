@@ -40,21 +40,21 @@ class PlayerApiGuideInstrumentedTest {
         field("api-argument-time", "5")
         click("api-command-run")
         await { c.player.currentTime >= 5 }
-        ui.onNodeWithTag("api-command-run").performScrollTo()
+        ui.onNodeWithTag("api-command-run").assertIsDisplayed()
         ApiGuideScreenshot.capture("android-api-operation")
         click("api-section-State")
         field("api-runtime-search", "Player.currentTime")
         click("api-state-refresh")
-        ui.onNodeWithTag("api-state-android:com.bitmovin.player.api.Player.currentTime").assertExists().performScrollTo()
+        workspaceState(ui, "android:com.bitmovin.player.api.Player.currentTime").assertExists().performScrollTo()
         ApiGuideScreenshot.capture("android-api-state")
         click("api-section-Events")
         field("api-runtime-search", "Playing")
         ui.runOnUiThread { assertTrue(c.apiEvents.entries.any { it.key.contains("Playing") && it.value > 0 }) }
-        ui.onNodeWithTag("api-events-clear").performScrollTo()
+        ui.onNodeWithTag("api-events-clear").assertIsDisplayed()
         ApiGuideScreenshot.capture("android-api-events")
     }
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
-    private fun field(tag: String, value: String) { ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value); closeSoftKeyboard() }
+    private fun click(tag: String) = workspaceClick(ui, tag)
+    private fun field(tag: String, value: String) { workspaceField(ui, tag, value); closeSoftKeyboard() }
     private fun await(condition: () -> Boolean) {
         val deadline = SystemClock.uptimeMillis() + 45_000
         while (SystemClock.uptimeMillis() < deadline) {

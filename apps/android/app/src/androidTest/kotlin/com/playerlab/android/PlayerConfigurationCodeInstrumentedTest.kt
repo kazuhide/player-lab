@@ -5,6 +5,8 @@ import android.content.Context
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -31,7 +33,7 @@ class PlayerConfigurationCodeInstrumentedTest {
     @Test
     fun codeAndClipboardUseAppliedSettingsAndCurrentUiWithoutDraftEdits() {
         val controller = ui.activity.controller
-        ui.onNodeWithText("Sports").performScrollTo().performClick()
+        workspaceTheme(ui, "Sports")
         click("configuration-toggle")
         click("configuration-code-toggle")
         val original = code()
@@ -81,9 +83,8 @@ class PlayerConfigurationCodeInstrumentedTest {
         click("reset-source")
         assertEquals("Reset draft keeps the applied export", appliedPlayer, code())
         // Bring the horizontal UI row back into the outer vertical viewport first.
-        ui.onNodeWithTag("player-lab-scroll").performScrollToNode(hasText("Default"))
-        ui.onNodeWithText("Default").performScrollTo().assertIsDisplayed().performClick()
-        ui.onNodeWithText("Default").assertIsNotEnabled()
+        workspaceTheme(ui, "Default")
+        ui.onNodeWithTag("theme-selector").assertTextContains("Default", substring = true).assertIsEnabled()
         val defaultUi = code()
         println("CONFIGURATION_CODE_SAFE phase=ui-selection defaultSelected=true exportedDefault=${defaultUi.contains("val playerViewConfig = PlayerViewConfig()")}")
         assertTrue(defaultUi.contains("val playerViewConfig = PlayerViewConfig()"))
@@ -103,13 +104,13 @@ class PlayerConfigurationCodeInstrumentedTest {
 
     private fun code(): String {
         ui.waitForIdle()
-        return ui.onNodeWithTag("configuration-code-text").fetchSemanticsNode()
+        return workspaceAppliedCode(ui).fetchSemanticsNode()
             .config[SemanticsProperties.Text].joinToString("") { it.text }
     }
 
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().assertIsDisplayed().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
 }

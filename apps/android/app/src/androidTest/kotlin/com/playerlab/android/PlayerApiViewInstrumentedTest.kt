@@ -64,11 +64,14 @@ class PlayerApiViewInstrumentedTest {
         choose("PlayerView.setFullscreenHandler()")
         click("api-command-run")
         choose("PlayerView.enterFullscreen()")
+        val presentationView = c.currentView()
         click("api-command-run")
         await("Fullscreen host and SDK agree") { c.apiFullscreen && c.currentView()?.isFullscreen == true }
+        ui.runOnUiThread { assertSame("Fullscreen preserves the actual view and its handlers", presentationView, c.currentView()) }
         await("PlayerView on event") { (c.apiEvents["PlayerView.PlayerEvent.FullscreenEnter"] ?: 0) == 1 }
         pressBack()
         await("Back restores controls") { !c.apiFullscreen && c.currentView()?.isFullscreen == false }
+        ui.runOnUiThread { assertSame("Restoring controls preserves the actual view", presentationView, c.currentView()) }
         await("PlayerView next event") { (c.apiEvents["PlayerView.PlayerEvent.FullscreenExit"] ?: 0) == 1 }
         choose("PlayerView.off()")
         field("api-argument-subscription", "repeat-enter")
@@ -90,6 +93,7 @@ class PlayerApiViewInstrumentedTest {
         await("Android entered PiP") { ui.activity.isInPictureInPictureMode && c.apiPictureInPicture }
         ui.runOnUiThread { c.currentView()!!.exitPictureInPicture() }
         await("PiP restores activity") { !ui.activity.isInPictureInPictureMode && !c.apiPictureInPicture }
+        ui.runOnUiThread { assertSame("PiP preserves the actual view and installed handlers", presentationView, c.currentView()) }
         choose("PlayerView.setCustomMessageHandler()")
         field("api-argument-reply", "acknowledged")
         click("api-command-run")
@@ -100,9 +104,9 @@ class PlayerApiViewInstrumentedTest {
         field("api-runtime-search", member)
         click("api-command-android:com.bitmovin.player.$member")
     }
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
     private fun await(label: String, timeout: Long = 45_000, condition: () -> Boolean) {

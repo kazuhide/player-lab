@@ -1,45 +1,71 @@
 package com.playerlab.android
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
-/** A field-by-field editor. SDK objects are built only after full schema validation. */
+/** Structured values use the same focused item/property pattern, including nested records. */
 @Composable
-internal fun ApiRecordEditor(schema: ApiRecordSchema, value: String, changed: (String) -> Unit, path: String = "record") {
+internal fun ApiRecordEditor(schema: ApiRecordSchema, value: String, changed: (String) -> Unit,
+    path: String = "record", buttonTag: String = "$path-open") {
+    var open by remember(schema, path) { mutableStateOf(false) }
+    var index by remember(schema, path) { mutableStateOf(0) }
+    var property by remember(schema, path) { mutableStateOf(schema.fields.first().name) }
     val records = remember(value) { ApiRecordValues.decode(value) }
-    Text(schema.label, style = MaterialTheme.typography.titleSmall)
-    records.forEachIndexed { index, record ->
-        Column(Modifier.padding(start = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("${schema.label} ${index + 1}")
-            schema.fields.forEach { field ->
-                val tag = "$path-$index-${field.name}"
-                fun update(input: String) = changed(ApiRecordValues.encode(records.mapIndexed { i, item -> if (i == index) item + (field.name to input) else item }))
-                if (field.nested != null) {
-                    var open by remember(path, index, field.name) { mutableStateOf(false) }
-                    Button(onClick = { open = !open }, modifier = Modifier.testTag("$tag-toggle")) { Text(if (open) "Hide ${field.name}" else "Edit ${field.name}") }
-                    if (open) ApiRecordEditor(field.nested, record.getValue(field.name), ::update, tag)
-                } else {
-                    OutlinedTextField(record.getValue(field.name), ::update, label = { Text(field.name + if (field.nullable) " (null allowed)" else "") },
-                        modifier = Modifier.fillMaxWidth().testTag(tag), singleLine = true)
-                    (field.choices + if (field.nullable) listOf("null") else emptyList()).forEach { choice ->
-                        Button(onClick = { update(choice) }, modifier = Modifier.testTag("$tag-$choice")) { Text(choice) }
+    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth().testTag(buttonTag)) {
+        Text("Edit ${schema.label} (${records.size} items)")
+    }
+    if (!open) return
+    Dialog(onDismissRequest = { open = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(Modifier.fillMaxWidth().fillMaxHeight(0.92f).padding(12.dp), shape = MaterialTheme.shapes.medium) {
+            Column(Modifier.fillMaxSize()) {
+                WorkspaceHeader(!workspaceKeyboardEditing()) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    WorkspaceHeading(schema.label)
+                    if (records.isNotEmpty()) {
+                        WorkspacePicker("Item", index.coerceAtMost(records.lastIndex), records.indices.map { it to "Item ${it + 1}" }, "$path-item", compact = true) { index = it }
+                        WorkspacePicker("Property", property, schema.fields.map { it.name to it.name }, "$path-property", searchable = true, compact = true) { property = it }
+                    }
+                } }
+                Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (records.isEmpty()) Text("Add an item to edit its properties.")
+                    else {
+                        val selected = index.coerceAtMost(records.lastIndex)
+                        val record = records[selected]
+                        val field = schema.fields.first { it.name == property }
+                        val tag = "$path-$selected-${field.name}"
+                        fun update(input: String) = changed(ApiRecordValues.encode(records.mapIndexed { i, item -> if (i == selected) item + (field.name to input) else item }))
+                        if (field.nested != null) ApiRecordEditor(field.nested, record.getValue(field.name), ::update, tag, "$tag-toggle")
+                        else if (field.choices.isNotEmpty()) WorkspacePicker(field.name, record.getValue(field.name),
+                            (field.choices + if (field.nullable) listOf("null") else emptyList()).map { it to it }, "$tag-choice") { update(it) }
+                        else ConfigField(field.name + if (field.nullable) " (null allowed)" else "", record.getValue(field.name), ::update, tag,
+                            helper = if (field.nullable) "Enter null to use the SDK null value." else "")
+                    }
+                    Text("Edits remain in the SDK field draft. Close this editor, then Stage override and Apply SDK.", style = MaterialTheme.typography.bodySmall)
+                }
+                Surface(tonalElevation = 2.dp) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            OutlinedButton(onClick = {
+                                changed(ApiRecordValues.encode(records + schema.defaults(records.size))); index = records.size
+                            }, enabled = records.size < schema.maximumItems, modifier = Modifier.testTag("$path-add")) { Text("Add item") }
+                            OutlinedButton(onClick = {
+                                val selected = index.coerceAtMost(records.lastIndex)
+                                changed(ApiRecordValues.encode(records.filterIndexed { i, _ -> i != selected })); index = (selected - 1).coerceAtLeast(0)
+                            }, enabled = records.isNotEmpty(), modifier = Modifier.testTag("$path-${index.coerceAtMost(records.lastIndex)}-remove")) { Text("Remove item") }
+                        }
+                        Button(onClick = { open = false }, modifier = Modifier.fillMaxWidth().testTag("$path-close")) { Text("Close editor") }
                     }
                 }
             }
-            Button(onClick = { changed(ApiRecordValues.encode(records.filterIndexed { i, _ -> i != index })) }, modifier = Modifier.testTag("$path-$index-remove")) { Text("Remove item") }
         }
     }
-    Button(onClick = { changed(ApiRecordValues.encode(records + schema.defaults(records.size))) }, enabled = records.size < schema.maximumItems,
-        modifier = Modifier.testTag("$path-add")) { Text("Add ${schema.label}") }
-    Text("${records.size} item(s). Changes remain a draft until staged and applied.", style = MaterialTheme.typography.bodySmall)
 }

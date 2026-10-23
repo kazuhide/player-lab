@@ -1,5 +1,7 @@
 package com.playerlab.android
 
+import androidx.compose.ui.test.assertIsDisplayed
+
 import android.os.SystemClock
 import android.view.InputDevice
 import android.view.MotionEvent
@@ -97,8 +99,8 @@ class PlayerControlsInstrumentedTest {
             player.mute()
         }
 
-        ui.onNodeWithText("Sports").performScrollTo().performClick()
-        ui.onNodeWithText("VOD HLS").performScrollTo().performClick()
+        workspaceTheme(ui, "Sports")
+        workspaceSource(ui, "VOD HLS")
         await("finite VOD duration") {
             player.duration > 0 && player.duration.isFinite() && controller.dvr.mode == PlaybackMode.VOD
         }
@@ -127,17 +129,17 @@ class PlayerControlsInstrumentedTest {
         ui.runOnUiThread { start = player.currentTime }
         await("shared UI starts advancing playback") { player.isPlaying && player.currentTime > start + 1 }
 
-        ui.onNodeWithText("Live DASH + DVR").performScrollTo().performClick()
+        workspaceSource(ui, "Live DASH + DVR")
         liveTargetLatency?.let { latency ->
-            ui.onNodeWithTag("configuration-toggle").performScrollTo().performClick()
-            ui.onNodeWithTag("source-live-target").performScrollTo().performTextReplacement(latency)
+            workspaceClick(ui, "configuration-toggle")
+            workspaceConfigurationNode(ui, "source-live-target").performScrollTo().performTextReplacement(latency)
             closeSoftKeyboard()
-            ui.onNodeWithTag("apply-source").performScrollTo().performClick()
+            ui.onNodeWithTag("apply-source").assertIsDisplayed().performClick()
             ui.runOnUiThread {
                 assertEquals(latency.toDouble(), requireNotNull(controller.configuredSource?.config?.liveConfig?.targetLatency), 0.0)
                 assertTrue("Source policy must retain the player", player === controller.player)
             }
-            ui.onNodeWithTag("configuration-toggle").performScrollTo().performClick()
+            workspaceClick(ui, "configuration-toggle")
         }
         await("live source loads") { player.isLive }
         ui.runOnUiThread { player.play() }
@@ -147,6 +149,7 @@ class PlayerControlsInstrumentedTest {
         var liveClock = 0.0
         ui.runOnUiThread { liveClock = player.currentTime }
         await("live playback advances before rewind") { player.currentTime > liveClock + 1 }
+        workspaceMore(ui, "Live controls")
         val rewindButton = ui.onNodeWithText("-${rewindSeconds}s").performScrollTo()
         var beforeRewind = 0
         var rewindTarget = Double.NaN
@@ -169,11 +172,11 @@ class PlayerControlsInstrumentedTest {
             timeShiftCompletions.get() > beforeReturn && timeShiftCompletions.get() == timeShiftRequests.get() &&
                 abs(player.timeShift) < 1
         }
-        ui.onNodeWithTag("allow-dvr").performScrollTo().performClick()
+        workspaceClick(ui, "allow-dvr")
         ui.runOnUiThread { assertFalse(controller.dvr.dvrAvailable) }
-        ui.onNodeWithTag("allow-dvr").performClick()
+        workspaceClick(ui, "allow-dvr")
         ui.runOnUiThread { assertTrue(controller.dvr.dvrAvailable) }
-        ui.onNodeWithText("VOD HLS").performScrollTo().performClick()
+        workspaceSource(ui, "VOD HLS")
         await("VOD state after source switch") { controller.dvr.mode == PlaybackMode.VOD }
         assertTrue("Player/Source error codes: $errors", errors.isEmpty())
     }
@@ -184,8 +187,8 @@ class PlayerControlsInstrumentedTest {
         val controller = ui.activity.controller
         val player = controller.player
         observeErrors()
-        ui.onNodeWithText("Sports").performScrollTo().performClick()
-        ui.onNodeWithText("VOD HLS").performScrollTo().performClick()
+        workspaceTheme(ui, "Sports")
+        workspaceSource(ui, "VOD HLS")
         await("standard UI VOD loads") { player.duration.isFinite() && player.duration > 20 }
         var web = attachedWebView()
         var start = 0.0
@@ -205,7 +208,7 @@ class PlayerControlsInstrumentedTest {
         await("standard UI seek finishes at its native media target") {
             seeked.get() > 0 && abs(player.currentTime - target) <= 3 && player.isPaused
         }
-        ui.onNodeWithText("Default").performScrollTo().performClick()
+        workspaceTheme(ui, "Default")
         web = attachedWebView()
         chooseSetting(web, "Speed", label = "1.5x")
         await("standard speed option reaches the native property") { player.playbackSpeed == 1.5f }
@@ -219,7 +222,7 @@ class PlayerControlsInstrumentedTest {
     fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {
         val player = ui.activity.controller.player
         observeErrors()
-        ui.onNodeWithText("Live DASH + Multi-audio").performScrollTo().performClick()
+        workspaceSource(ui, "Live DASH + Multi-audio")
         await("native reference source exposes tracks and video qualities") {
             val source = player.source
             player.isLive && source != null && source.availableAudioTracks.size >= 2 &&
@@ -273,8 +276,8 @@ class PlayerControlsInstrumentedTest {
     fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {
         val player = ui.activity.controller.player
         observeErrors()
-        ui.onNodeWithText("Sports").performScrollTo().performClick()
-        ui.onNodeWithText("VOD HLS").performScrollTo().performClick()
+        workspaceTheme(ui, "Sports")
+        workspaceSource(ui, "VOD HLS")
         await("reference VOD metadata loads") { player.duration.isFinite() && player.duration > 20 }
         val web = attachedWebView()
         awaitJavascript(web, """
@@ -343,9 +346,7 @@ class PlayerControlsInstrumentedTest {
 
     private fun attachedWebView(): WebView {
         ui.waitForIdle()
-        val scroll = ui.onNodeWithTag("player-lab-scroll")
-        val y = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
-        scroll.performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, -y) }
+        ui.onNodeWithTag("player-preview").assertIsDisplayed()
         var web: WebView? = null
         await("active WebView attaches") {
             val player = ui.activity.controller.player

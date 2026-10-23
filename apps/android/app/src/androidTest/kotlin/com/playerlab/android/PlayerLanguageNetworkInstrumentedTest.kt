@@ -98,7 +98,7 @@ class PlayerLanguageNetworkInstrumentedTest {
         }
         // Sports intentionally has no settings panel. Use the existing Default UI's track menu.
         visibleWebView()
-        ui.onNodeWithText("Default").performScrollTo().assertIsDisplayed().performClick()
+        workspaceTheme(ui, "Default")
         val web = visibleWebView()
         ui.runOnIdle {
             assertTrue("UI replacement retains the configured source", player.source === source)
@@ -168,7 +168,7 @@ class PlayerLanguageNetworkInstrumentedTest {
 
     private fun openFixture() {
         resetFixture(0)
-        ui.onNodeWithText("Sports").performScrollTo().performClick()
+        workspaceTheme(ui, "Sports")
         click("configuration-toggle")
         field("source-url", "$media/vod-multiaudio/master.m3u8")
         click("source-type-Hls")
@@ -218,16 +218,14 @@ class PlayerLanguageNetworkInstrumentedTest {
         ui.runOnIdle { assertNull("$label; numeric Player/Source error", controller.lastErrorCode) }
     }
 
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().assertIsDisplayed().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
 
     private fun visibleWebView(): WebView {
-        val scroll = ui.onNodeWithTag("player-lab-scroll")
-        val y = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
-        scroll.performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, -y) }
+        ui.onNodeWithTag("player-preview").assertIsDisplayed()
         var web: WebView? = null
         await("owned player view is visible") {
             val active = descendants(ui.activity.window.decorView).filterIsInstance<PlayerView>()

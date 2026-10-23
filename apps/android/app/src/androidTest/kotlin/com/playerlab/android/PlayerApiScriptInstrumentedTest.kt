@@ -43,8 +43,8 @@ class PlayerApiScriptInstrumentedTest {
         }
         click("api-callback-refresh")
         ui.onNodeWithTag("api-callback-${id("network.NetworkConfig.preprocessHttpRequestCallback")}").performScrollTo().assertTextContains("fallback=0", substring = true)
-        ui.onNodeWithTag("api-settings-code").assertTextContains("<YOUR_CALLBACK_BODY>", substring = true)
-        ui.onNodeWithTag("api-settings-code").assertTextContains("ApiScriptSettings", substring = true)
+        workspaceAppliedCode(ui, overrides = true).assertTextContains("<YOUR_CALLBACK_BODY>", substring = true)
+        workspaceAppliedCode(ui, overrides = true).assertTextContains("ApiScriptSettings", substring = true)
     }
     private fun stage(member: String, body: String) {
         field("api-settings-search", member)
@@ -52,9 +52,9 @@ class PlayerApiScriptInstrumentedTest {
         field("api-setting-value", body)
         click("api-setting-stage")
     }
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
     private fun await(label: String, condition: () -> Boolean) {

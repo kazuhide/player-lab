@@ -48,7 +48,7 @@ class PlayerOfflineInstrumentedTest {
                 assertEquals(2, OfflineContentManager.offlineConfig.maxSimultaneousDownloads)
                 assertEquals(2, OfflineContentManager.offlineConfig.maxSimultaneousSegmentDownloads)
             }
-            ui.onNodeWithTag("offline-config-code").assertTextContains("maxSimultaneousSegmentDownloads = 2", substring = true)
+            workspaceOfflineCode(ui).assertTextContains("maxSimultaneousSegmentDownloads = 2", substring = true)
             click("offline-options")
             await("SDK download options arrive") { controller.apiOffline.options?.let { it.videoOptions.isNotEmpty() && it.audioOptions.isNotEmpty() } == true }
             var videoKey = ""
@@ -97,9 +97,9 @@ class PlayerOfflineInstrumentedTest {
         }
     }
 
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
     private fun shell(command: String): String = InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(command).use {

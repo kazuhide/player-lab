@@ -1,10 +1,9 @@
 package com.playerlab.android
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -19,81 +18,119 @@ import com.bitmovin.player.api.analytics.SourceAnalyticsApi.Companion.analytics
 
 @Composable
 internal fun ApiAnalyticsPanel(controller: PlayerController) {
-    var expanded by remember { mutableStateOf(false) }
-    var draft by remember(controller.apiAnalyticsSettings) { mutableStateOf(controller.apiAnalyticsSettings) }
+    var page by remember { mutableStateOf("Collection") }
+    var setting by remember { mutableStateOf("Collection mode") }
+    var draft by remember { mutableStateOf(controller.apiAnalyticsSettings) }
     var custom by remember { mutableStateOf(emptyMap<String, String>()) }
+    var operation by remember { mutableStateOf("analytics-state") }
     var result by remember(controller.player, controller.sourceRevision) { mutableStateOf("") }
+    val editors = remember { mutableMapOf<String, AnalyticsMetadataState>() }
+    val keyboardVisible = workspaceKeyboardEditing()
     fun run(action: () -> Any?) {
-        result = runCatching { apiValue(action()) }.getOrElse { "Analytics API failed (${it.javaClass.simpleName}). Check metadata, collection mode and source state." }
+        result = runCatching { apiValue(action()) }.getOrElse { "Analytics API failed (${it.javaClass.simpleName}). Check metadata, collection mode and source state. Draft values are retained." }
     }
-    Button(onClick = { expanded = !expanded }, modifier = Modifier.testTag("analytics-toggle")) { Text(if (expanded) "Hide Analytics controls" else "Analytics controls") }
-    if (!expanded) return
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Analytics collection and metadata", style = MaterialTheme.typography.titleMedium)
-        Text("The collector sends playback samples to the configured Analytics account. Use Bitmovin Dashboard to inspect delivery and session details. A local API result confirms the SDK call, while Dashboard confirms ingestion. Metadata edits remain drafts until Apply or an explicit runtime action.", style = MaterialTheme.typography.bodySmall)
-        listOf("Build key", "Deferred license", "Disabled").forEach { mode ->
-            Button(onClick = { draft = draft.copy(mode = mode) }, enabled = draft.mode != mode, modifier = Modifier.testTag("analytics-mode-$mode")) { Text(mode) }
+    val pages = listOf("Collection", "Identity", "Delivery", "Errors", "Default metadata", "Source metadata", "Runtime custom data", "Runtime actions", "SSAI", "Code")
+    val settings = when (page) {
+        "Collection" -> listOf("Collection mode", "License override", "Ad tracking", "Legacy SSAI flag")
+        "Delivery" -> listOf("Retry policy", "Backend URL", "Log level")
+        else -> emptyList()
+    }
+    val actions = listOf("analytics-state" to "Read Analytics SDK state", "analytics-custom-event" to "Send custom data event",
+        "analytics-source-custom" to "Set current source custom data", "analytics-program-change" to "Signal program change with source draft")
+    Column(Modifier.fillMaxSize()) {
+        WorkspaceHeader(!keyboardVisible) { Column(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            WorkspacePicker("Analytics", page, pages.map { it to it }, "analytics-page", compact = true) { page = it; setting = "" }
+            if (settings.isNotEmpty()) WorkspacePicker("Setting", setting.takeIf { it in settings } ?: settings.first(),
+                settings.map { it to it }, "analytics-setting", compact = true) { setting = it }
+            if (page == "Runtime actions") WorkspacePicker("Operation", operation, actions, "analytics-action-selector", compact = true) { operation = it }
+        } }
+        Box(Modifier.weight(1f)) {
+            RetainedWorkspacePage(page == "SSAI") { AnalyticsSsaiControls(controller) }
+            if (page != "SSAI") Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                when (page) {
+                    "Collection" -> when (setting.takeIf { it in settings } ?: settings.first()) {
+                        "Collection mode" -> {
+                            Choices(listOf("Build key", "Deferred license", "Disabled").map { it to it }, draft.mode, "analytics-mode") { draft = draft.copy(mode = it) }
+                            Text("Build key uses the local build configuration; a blank key disables collection. Deferred license asks the SDK for the associated Analytics license. Inspect received sessions in Bitmovin Dashboard.", style = MaterialTheme.typography.bodySmall)
+                        }
+                        "License override" -> OutlinedTextField(draft.licenseOverride, { draft = draft.copy(licenseOverride = it) }, label = { Text("Optional Analytics license override") }, visualTransformation = PasswordVisualTransformation(), supportingText = { Text("Kept only in this app session; excluded from exported code.") }, modifier = Modifier.fillMaxWidth().testTag("analytics-license"))
+                        "Ad tracking" -> ConfigToggle("Disable client-side ad tracking", draft.adTrackingDisabled, "analytics-ad-tracking") { draft = draft.copy(adTrackingDisabled = it) }
+                        "Legacy SSAI flag" -> { ConfigToggle("Legacy SSAI engagement flag", draft.ssaiEngagementTracking, "analytics-ssai-legacy") { draft = draft.copy(ssaiEngagementTracking = it) }; Text("The SDK ignores this legacy setting. SSAI engagement tracking is always enabled.", style = MaterialTheme.typography.bodySmall) }
+                    }
+                    "Identity" -> ConfigToggle("Randomize user ID", draft.randomizeUserId, "analytics-random-user") { draft = draft.copy(randomizeUserId = it) }
+                    "Delivery" -> when (setting.takeIf { it in settings } ?: settings.first()) {
+                        "Retry policy" -> Choices(RetryPolicy.entries.map { it to it.name }, draft.retryPolicy, "analytics-retry") { draft = draft.copy(retryPolicy = it) }
+                        "Backend URL" -> ConfigField("Analytics backend URL", draft.backendUrl, { draft = draft.copy(backendUrl = it) }, "analytics-backend", helper = "Blank uses the SDK default.")
+                        "Log level" -> { Choices(LogLevel.entries.map { it to it.name }, draft.logLevel, "analytics-log") { draft = draft.copy(logLevel = it) }; Text("DEBUG includes diagnostic details. Keep sensitive logs local.", style = MaterialTheme.typography.bodySmall) }
+                    }
+                    "Errors" -> {
+                        WorkspaceHeader(!keyboardVisible) {
+                            Choices(listOf("Default", "Redact message", "Custom").map { it to it }, draft.errorStrategy, "analytics-error-strategy") { draft = draft.copy(errorStrategy = it) }
+                        }
+                        if (draft.errorStrategy == "Custom") {
+                            OutlinedTextField(draft.errorCallbackBody, { draft = draft.copy(errorCallbackBody = it) }, label = { Text("Analytics error callback body") },
+                                textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), minLines = if (keyboardVisible) 2 else 3, maxLines = 4,
+                                modifier = Modifier.fillMaxWidth().heightIn(min = if (keyboardVisible) 80.dp else 104.dp, max = 160.dp).testTag("analytics-error-body"))
+                            Text("Pure JavaScript using input {code, message, severity, originalErrorType}. Return a partial error object or null to retain the original error. severity is CRITICAL or INFO. SDK objects are not exposed; callback bounds and retirement rules apply.", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                    "Default metadata" -> AnalyticsMetadataEditor("Default metadata", "analytics-default", analyticsDefaultKeys, draft.defaults,
+                        state = editors.getOrPut("default") { AnalyticsMetadataState(analyticsDefaultKeys.first()) }) { draft = draft.copy(defaults = it) }
+                    "Source metadata" -> AnalyticsMetadataEditor("Source / program metadata", "analytics-source", analyticsSourceKeys, draft.source,
+                        state = editors.getOrPut("source") { AnalyticsMetadataState(analyticsSourceKeys.first()) }) { draft = draft.copy(source = it) }
+                    "Runtime custom data" -> AnalyticsMetadataEditor("Runtime custom data", "analytics-custom", analyticsCustomKeys, custom,
+                        state = editors.getOrPut("custom") { AnalyticsMetadataState(analyticsCustomKeys.first()) }) { custom = it }
+                    "Runtime actions" -> {
+                        WorkspaceHeading(actions.first { it.first == operation }.second)
+                        Text("A local result confirms the SDK call. Inspect the matching Bitmovin Dashboard session to confirm ingestion. Custom data uses staged runtime fields; program change uses staged source metadata.", style = MaterialTheme.typography.bodySmall)
+                    }
+                    "Code" -> SelectionContainer { Text(controller.apiAnalyticsSettings.code(), style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, modifier = Modifier.testTag("analytics-code")) }
+                }
+                if (result.isNotEmpty()) SelectionContainer { Text(result, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("analytics-result")) }
+            }
         }
-        Text("Build key uses local build configuration; a blank build key disables collection. Deferred license asks the SDK to obtain the associated Analytics license. An optional override stays in this app session.", style = MaterialTheme.typography.bodySmall)
-        OutlinedTextField(draft.licenseOverride, { draft = draft.copy(licenseOverride = it) }, label = { Text("Optional Analytics license override") }, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth().testTag("analytics-license"))
-        Row { Switch(draft.adTrackingDisabled, { draft = draft.copy(adTrackingDisabled = it) }); Text("Disable client-side ad tracking") }
-        Row { Switch(draft.randomizeUserId, { draft = draft.copy(randomizeUserId = it) }, modifier = Modifier.testTag("analytics-random-user")); Text("Randomize user ID") }
-        Text("Request retry policy", style = MaterialTheme.typography.labelLarge)
-        RetryPolicy.entries.forEach { policy -> Button(onClick = { draft = draft.copy(retryPolicy = policy) }, enabled = draft.retryPolicy != policy) { Text(policy.name) } }
-        OutlinedTextField(draft.backendUrl, { draft = draft.copy(backendUrl = it) }, label = { Text("Analytics backend URL (blank uses SDK default)") }, modifier = Modifier.fillMaxWidth())
-        Text("Collector log level (DEBUG includes diagnostic details)", style = MaterialTheme.typography.labelLarge)
-        LogLevel.entries.forEach { level -> Button(onClick = { draft = draft.copy(logLevel = level) }, enabled = draft.logLevel != level) { Text(level.name) } }
-        Row { Switch(draft.ssaiEngagementTracking, { draft = draft.copy(ssaiEngagementTracking = it) }); Text("Legacy SSAI engagement flag (SDK ignores this setting)") }
-        Text("Error transformation", style = MaterialTheme.typography.labelLarge)
-        listOf("Default", "Redact message", "Custom").forEach { strategy -> Button(onClick = { draft = draft.copy(errorStrategy = strategy) }, enabled = draft.errorStrategy != strategy, modifier = Modifier.testTag("analytics-error-strategy-$strategy")) { Text(strategy) } }
-        if (draft.errorStrategy == "Custom") {
-            Text("Pure JavaScript body using input: {code, message, severity, originalErrorType}. Return a partial {code, message, severity} error object, or null to retain the original error. The public collector callback returns a non-null error. severity is CRITICAL or INFO. Original SDK objects are not exposed. The same callback execution bounds and retirement rules apply.", style = MaterialTheme.typography.bodySmall)
-            OutlinedTextField(draft.errorCallbackBody, { draft = draft.copy(errorCallbackBody = it) }, label = { Text("Analytics error callback body") }, textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), modifier = Modifier.fillMaxWidth().testTag("analytics-error-body"))
+        if (page !in listOf("SSAI", "Code", "Runtime actions", "Runtime custom data")) WorkspaceActions(
+            if (draft == controller.apiAnalyticsSettings) "Analytics settings match the applied configuration." else "Unapplied Analytics changes. Apply recreates the player and reloads its source.",
+            "analytics-reset", "analytics-apply", "Apply Analytics", enabled = draft != controller.apiAnalyticsSettings,
+            reset = { draft = controller.apiAnalyticsSettings; editors.clear() },
+            apply = { run { draft.playerConfig("validation-only"); controller.applyPlayerSettings(controller.playerSettings, controller.apiOverrides, draft) } })
+        if (page == "Runtime actions") Surface(tonalElevation = 2.dp) {
+            Button(onClick = { run {
+                when (operation) {
+                    "analytics-custom-event" -> requireNotNull(controller.player.analytics).sendCustomDataEvent(analyticsCustomData(custom))
+                    "analytics-source-custom" -> { requireNotNull(controller.player.source?.analytics).customData = analyticsCustomData(custom) }
+                    "analytics-program-change" -> requireNotNull(controller.player.analytics).programChange(draft.sourceMetadata())
+                    else -> { val api = requireNotNull(controller.player.analytics); mapOf("impressionId" to api.impressionId, "userId" to api.userId, "sourceMetadata" to controller.player.source?.analytics?.metadata?.let(::analyticsMetadataValues)) }
+                }
+            } }, modifier = Modifier.fillMaxWidth().padding(12.dp).testTag(operation)) { Text(actions.first { it.first == operation }.second) }
         }
-        AnalyticsMetadataEditor("Default metadata", "analytics-default", analyticsDefaultKeys, draft.defaults) { draft = draft.copy(defaults = it) }
-        AnalyticsMetadataEditor("Source / program metadata", "analytics-source", analyticsSourceKeys, draft.source) { draft = draft.copy(source = it) }
-        Button(onClick = { run {
-            draft.playerConfig("validation-only"); controller.applyPlayerSettings(controller.playerSettings, controller.apiOverrides, draft)
-        } }, enabled = draft != controller.apiAnalyticsSettings, modifier = Modifier.testTag("analytics-apply")) { Text("Apply Analytics settings and restart player") }
-        Button(onClick = { draft = controller.apiAnalyticsSettings }, modifier = Modifier.testTag("analytics-reset")) { Text("Reset Analytics draft") }
-        SelectionContainer { Text(controller.apiAnalyticsSettings.code(), style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, modifier = Modifier.testTag("analytics-code")) }
-        AnalyticsMetadataEditor("Runtime custom data", "analytics-custom", analyticsCustomKeys, custom) { custom = it }
-        Button(onClick = { run { requireNotNull(controller.player.analytics).sendCustomDataEvent(analyticsCustomData(custom)) } }, modifier = Modifier.testTag("analytics-custom-event")) { Text("Send custom data event") }
-        Button(onClick = { run { requireNotNull(controller.player.source?.analytics).customData = analyticsCustomData(custom) } }, modifier = Modifier.testTag("analytics-source-custom")) { Text("Set current source custom data") }
-        Button(onClick = { run { requireNotNull(controller.player.analytics).programChange(draft.sourceMetadata()) } }, modifier = Modifier.testTag("analytics-program-change")) { Text("Signal program change with source draft") }
-        Button(onClick = { run {
-            val api = requireNotNull(controller.player.analytics)
-            mapOf("impressionId" to api.impressionId, "userId" to api.userId, "sourceMetadata" to controller.player.source?.analytics?.metadata?.let(::analyticsMetadataValues))
-        } }, modifier = Modifier.testTag("analytics-state")) { Text("Read Analytics SDK state") }
-        AnalyticsSsaiControls(controller)
-        SelectionContainer { Text(result, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("analytics-result")) }
     }
 }
 
+internal class AnalyticsMetadataState(initial: String) {
+    var selected by mutableStateOf(initial)
+    var inputs by mutableStateOf(emptyMap<String, String>())
+    var error by mutableStateOf("")
+}
+
 @Composable
-internal fun AnalyticsMetadataEditor(label: String, tag: String, keys: List<String>, values: Map<String, String>, onChange: (Map<String, String>) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
-    var selected by remember { mutableStateOf(keys.first()) }
-    var input by remember(selected, values) { mutableStateOf(values[selected].orEmpty()) }
-    var error by remember { mutableStateOf("") }
-    Button(onClick = { expanded = !expanded }, modifier = Modifier.testTag("$tag-toggle")) { Text(label) }
-    if (!expanded) return
-    Text("Choose a named field, enter its value and stage it. Remove a field to restore its null/default value. Source metadata takes precedence over default metadata.", style = MaterialTheme.typography.bodySmall)
-    OutlinedTextField(query, { query = it }, label = { Text("Find metadata field") }, modifier = Modifier.fillMaxWidth().testTag("$tag-search"), singleLine = true)
-    val matches = keys.filter { it.contains(query, ignoreCase = true) }
-    matches.take(12).forEach { name ->
-        Button(onClick = { selected = name }, modifier = Modifier.testTag("$tag-select-$name")) { Text(name + if (name in values) " (staged)" else "") }
+internal fun AnalyticsMetadataEditor(label: String, tag: String, keys: List<String>, values: Map<String, String>,
+    state: AnalyticsMetadataState = remember { AnalyticsMetadataState(keys.first()) }, onChange: (Map<String, String>) -> Unit) {
+    val selected = state.selected
+    val input = state.inputs[selected] ?: values[selected].orEmpty()
+    WorkspaceHeader(!workspaceKeyboardEditing()) {
+        WorkspacePicker(label, selected, keys.map { it to it }, "$tag-field", searchable = true, compact = true) { state.selected = it; state.error = "" }
     }
-    if (matches.size > 12) Text("Narrow the search to find another field.", style = MaterialTheme.typography.bodySmall)
-    Text(selected, style = MaterialTheme.typography.labelLarge)
-    if (selected == "isLive") listOf("true", "false").forEach { value -> Button(onClick = { input = value }) { Text(value) } }
-    OutlinedTextField(input, { input = it }, label = { Text("Metadata value") }, modifier = Modifier.fillMaxWidth().testTag("$tag-value"))
-    Button(onClick = {
-        runCatching { (values + (selected to input)).also { validateAnalyticsMetadata(it, keys) } }
-            .onSuccess { onChange(it); error = "" }.onFailure { error = "Invalid metadata type or value." }
-    }, modifier = Modifier.testTag("$tag-stage")) { Text("Stage metadata field") }
-    Button(onClick = { onChange(values - selected); error = "" }, enabled = selected in values, modifier = Modifier.testTag("$tag-remove")) { Text("Remove metadata field") }
-    Text(values.keys.joinToString(", ").ifEmpty { "No metadata staged." }, style = MaterialTheme.typography.bodySmall)
-    if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
+    if (selected == "isLive") Choices(listOf("true", "false").map { it to it }, input, "$tag-choice") { state.inputs = state.inputs + (selected to it) }
+    OutlinedTextField(input, { state.inputs = state.inputs + (selected to it) }, label = { Text("Metadata value") }, modifier = Modifier.fillMaxWidth().testTag("$tag-value"))
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(onClick = {
+            runCatching { (values + (selected to input)).also { validateAnalyticsMetadata(it, keys) } }
+                .onSuccess { onChange(it); state.error = "" }.onFailure { state.error = "Invalid metadata type or value. Your draft is retained." }
+        }, modifier = Modifier.testTag("$tag-stage")) { Text("Stage field") }
+        OutlinedButton(onClick = { onChange(values - selected); state.inputs = state.inputs - selected; state.error = "" }, enabled = selected in values, modifier = Modifier.testTag("$tag-remove")) { Text("Remove") }
+    }
+    Text(if (selected in values) "This field has a staged value." else "This field uses its null or default value.", style = MaterialTheme.typography.bodySmall)
+    Text("Stage a value, then Apply configuration or choose the corresponding runtime action. Source metadata takes precedence over default metadata.", style = MaterialTheme.typography.bodySmall)
+    if (state.error.isNotEmpty()) Text(state.error, color = MaterialTheme.colorScheme.error)
 }

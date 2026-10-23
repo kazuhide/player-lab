@@ -116,8 +116,8 @@ class PlayerApiCollectionInstrumentedTest {
             val source = c.player.source?.config as? com.bitmovin.player.api.offline.OfflineSourceConfig
             source?.isRestrictToOffline == true && source.drmId?.contentEquals(byteArrayOf(0,16,-2,-1)) == true
         }
-        ui.onNodeWithTag("offline-factory-code").assertTextContains("privateDrmIdBytes", substring = true)
-        ui.onNodeWithTag("offline-factory-code").assertTextContains("true, null)", substring = true)
+        workspaceOfflineCode(ui, factory = true).assertTextContains("privateDrmIdBytes", substring = true)
+        workspaceOfflineCode(ui, factory = true).assertTextContains("true, null)", substring = true)
         // Arbitrary bytes are a constructor routing check, not an issued DRM license or successful offline qualification.
     }
 
@@ -159,11 +159,11 @@ class PlayerApiCollectionInstrumentedTest {
         ui.runOnUiThread { assertTrue((c.player.source!!.config.networkConfig.engine as NetworkEngine.HttpURLConnection).allowCrossProtocolRedirects) }
         click("api-runtime-toggle"); click("api-section-State"); field("api-runtime-search", "media.thumbnail.Thumbnail."); click("api-state-refresh")
         for (member in listOf("start", "end", "x", "y", "width", "height", "uri", "text")) {
-            val node = ui.onNodeWithTag("api-state-${id("media.thumbnail.Thumbnail.$member")}").performScrollTo()
+            val node = workspaceState(ui, id("media.thumbnail.Thumbnail.$member")).performScrollTo()
             node.assertExists()
             assertFalse(node.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].joinToString { it.text }.startsWith("Unavailable"))
         }
-        ui.onNodeWithTag("api-state-${id("media.thumbnail.Thumbnail.width")}").assertTextContains("160", substring = true)
+        workspaceState(ui, id("media.thumbnail.Thumbnail.width")).assertTextContains("160", substring = true)
     }
 
     @Test fun namedManualOrientationValuesReachBothNativeProvidersWithoutAxisSwaps() {
@@ -219,8 +219,8 @@ class PlayerApiCollectionInstrumentedTest {
         await("Baseline playback") { c.player.isPlaying && c.player.currentTime > 0.5 }
     }
     private fun select(member: String) { field("api-settings-search", member); click("api-select-${id(member)}") }
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
-    private fun field(tag: String, value: String) { ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value); closeSoftKeyboard() }
+    private fun click(tag: String) = workspaceClick(ui, tag)
+    private fun field(tag: String, value: String) { workspaceField(ui, tag, value); closeSoftKeyboard() }
     private fun await(label: String, condition: () -> Boolean) {
         val deadline = SystemClock.uptimeMillis() + 45_000
         while (SystemClock.uptimeMillis() < deadline) {

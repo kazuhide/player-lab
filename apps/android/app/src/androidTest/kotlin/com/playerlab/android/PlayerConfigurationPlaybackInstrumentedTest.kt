@@ -54,7 +54,7 @@ class PlayerConfigurationPlaybackInstrumentedTest {
         field("config-max-bitrate", "1500000")
         // Observe the replacement in the same main-thread turn as the real Apply action,
         // before asynchronous Ready or render events can be delivered.
-        ui.onNodeWithTag("apply-player").performScrollTo().assertIsDisplayed()
+        ui.onNodeWithTag("apply-player").assertIsDisplayed()
             .performSemanticsAction(SemanticsActions.OnClick) { action ->
                 assertTrue("Apply action must run", action())
                 assertTrue("Player must restart", controller.player !== previous)
@@ -120,9 +120,9 @@ class PlayerConfigurationPlaybackInstrumentedTest {
         assertEquals("$label; app error code", null, ui.activity.controller.lastErrorCode)
     }
 
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().assertIsDisplayed().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
 }

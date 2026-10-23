@@ -133,11 +133,11 @@ class PlayerVrRendererInstrumentedTest {
         click("api-command-run")
         ui.onNodeWithTag("api-command-result").assertTextContains("Command submitted", substring = true)
     }
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
     private fun step(message: String) = InstrumentationRegistry.getInstrumentation().sendStatus(2,
         Bundle().apply { putString("stream", "VR qualification: $message\n") })
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
     private fun await(label: String, condition: () -> Boolean) {

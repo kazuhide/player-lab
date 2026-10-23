@@ -71,9 +71,9 @@ class PlayerAnalyticsInstrumentedTest {
         field("$tag-value", value)
         click("$tag-stage")
     }
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
     private fun await(label: String, condition: () -> Boolean) {
