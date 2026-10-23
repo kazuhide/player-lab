@@ -21,8 +21,9 @@ function deviceLanguage(): Language {
 /** Only application copy is translated. SDK identifiers, values and user input remain verbatim. */
 export function translateCopy(value: string, language: Language): string {
   if (language === "en") return value;
-  const direct = japaneseCopy[value] ?? japaneseCopy[value.replace(/\s+/g, " ").trim()];
-  if (direct !== undefined) return direct;
+  for (const key of [value, value.replace(/\s+/g, " ").trim()]) {
+    if (Object.prototype.hasOwnProperty.call(japaneseCopy, key) && typeof japaneseCopy[key] === "string") return japaneseCopy[key]!;
+  }
   const patterns: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
     [/^(.+) ●$/, (match) => `${translateCopy(match[1]!, language)} ●`],
     [/^Method signature (\d+)$/, (match) => `メソッドの引数形式 ${match[1]}`],
@@ -83,9 +84,9 @@ export function Switch(props: SwitchProps): React.JSX.Element {
   return <NativeSwitch {...localizedProps(props, language)} />;
 }
 
-export function Pressable(props: PressableProps): React.JSX.Element {
+export function Pressable({ verbatim = false, ...props }: PressableProps & { verbatim?: boolean }): React.JSX.Element {
   const { language } = useLocale();
-  return <NativePressable {...localizedProps(props, language)} />;
+  return <NativePressable {...(verbatim ? props : localizedProps(props, language))} />;
 }
 
 export function LanguageSelector({ dark = false }: { dark?: boolean }): React.JSX.Element {

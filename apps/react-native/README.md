@@ -40,14 +40,22 @@ the Web UI, a video surface, or a stream.
 
 ## Configuration controls
 
-The application follows the device language for English and Japanese. Use **English** or **日本語** at the top of the screen to change labels and help without reloading the player or discarding edits. SDK identifiers, code, event payloads and user-entered values retain their original text. The SDK's player menus use the languages supported by the selected UI bundle.
+The application follows the device language for English and Japanese. Use **English** or **日本語** above the source selector, or in **More** in compact layouts, to change labels and help without reloading the player or discarding edits. SDK identifiers, code, event payloads and user-entered values retain their original text. The SDK's player menus use the languages supported by the selected UI bundle.
 
-Open **Show configuration** to edit the source URL, HLS/DASH/progressive type,
+Open **Settings**, choose a configuration category, then select the property
+to edit directly. Apply and Reset stay outside the editor's scrolling content.
+The source category includes the URL, HLS/DASH/progressive type,
 title, poster URL, signed start offset and its timeline reference. iOS starts
 with HLS and hides DASH sources/types because its native player does not support
 DASH. Android retains the existing HLS and DASH presets.
 
-The same panel exposes autoplay, startup mute, forward buffer duration and the
+`App` owns the screen's safe-area handling. The generated `index.tsx` registers
+it directly; do not add another `SafeAreaView` around it. An extra wrapper moves
+the editor's origin while keyboard events still use screen coordinates, which
+can hide fixed actions. When updating an existing generated host, copy the
+current `expo/index.tsx` as its `index.tsx`, together with `App.tsx` and `src`.
+
+The player category exposes autoplay, startup mute, forward buffer duration and the
 adaptation bitrate cap. URL fields accept HTTP/HTTPS; optional fields can be
 cleared. Start offsets and buffer durations accept finite decimal seconds.
 The bitrate cap uses whole bits per second: 1–2,147,483,647 on Android, and
@@ -323,7 +331,7 @@ Verify these behaviors in the external Expo build with a valid player license.
 
 ## Applied configuration code
 
-Open **Show configuration → Show applied code** to inspect the Player, Source and
+Open **Code** to inspect the Player, Source and
 selected UI settings sent to the SDK. The output excludes draft edits and license
 values. **Copy code** uses Expo Clipboard 57.0.2, matched to Expo 57. Regenerate and
 build the external native host after changing native dependencies; refreshing
@@ -339,11 +347,10 @@ Applied examples import this helper. Include it when moving the example into ano
 
 ## Scrolling Android player menus
 
-Swipe inside the video menu to reach lower settings, and outside the video
-to scroll the configuration form. While a gesture started in the Android player
-is active, the app pauses the surrounding form's scrolling. The last player
-pointer ending or being cancelled releases it; replacing the player also
-releases the retired pane's touch state. iOS keeps its existing scroll handling.
+The video is outside the settings ScrollView. Swipe inside the video to move a
+Player menu and within the editor to scroll its fields. A player gesture retains
+its owner until the last pointer ends or is cancelled; replacing the player also
+releases the retired pane's touch state.
 
 ## Cast startup settings
 

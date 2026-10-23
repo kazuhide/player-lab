@@ -6,6 +6,12 @@ import { japaneseCopy } from "./translations";
 
 export type Language = "en" | "ja";
 
+function copyEntry(key: string): string | undefined {
+  if (!Object.prototype.hasOwnProperty.call(japaneseCopy, key)) return undefined;
+  const value = japaneseCopy[key];
+  return typeof value === "string" ? value : undefined;
+}
+
 export function languageFromLocale(locale: unknown): Language {
   return typeof locale === "string" && /^ja(?:[-_]|$)/i.test(locale) ? "ja" : "en";
 }
@@ -21,7 +27,7 @@ function deviceLanguage(): Language {
 /** Only application copy is translated. SDK identifiers, values and user input remain verbatim. */
 export function translateCopy(value: string, language: Language): string {
   if (language === "en") return value;
-  const direct = japaneseCopy[value] ?? japaneseCopy[value.replace(/\s+/g, " ").trim()];
+  const direct = copyEntry(value) ?? copyEntry(value.replace(/\s+/g, " ").trim());
   if (direct !== undefined) return direct;
   const patterns: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
     [/^Find (.+)$/, (match) => `${translateCopy(match[1]!, language)}を検索`],

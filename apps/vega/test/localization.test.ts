@@ -11,8 +11,12 @@ vi.mock("react-native", () => ({
   StyleSheet: { create: (styles: unknown) => styles },
 }));
 
-import { languageFromLocale, LocaleProvider, translateCopy } from "../src/localization";
+import { languageFromLocale, LocaleProvider, translateCopy, useLocale } from "../src/localization";
 import { ConfigurationCodeView } from "../src/ConfigurationCodeView";
+import { InputEditor } from "../src/api/InputEditor";
+import { catalog } from "../src/api/catalog";
+import { ApiMaterializer, ResourcePool } from "../src/api/materialize";
+import { configurationOverrides, overrideCode } from "../src/api/configInputs";
 
 function sourceFiles(directory: string): string[] {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -33,6 +37,55 @@ describe("application language", () => {
     expect(translateCopy("Show configuration", "en")).toBe("Show configuration");
     for (const value of ["PlayerConfig.playbackConfig.isAutoplayEnabled", "Player.play", "return request;", "https://example.com/a.m3u8", "A user's title"])
       expect(translateCopy(value, "ja")).toBe(value);
+  });
+
+  it("does not use inherited prototype properties as translation strings", () => {
+    for (const value of ["toString", "constructor", "prototype", "__proto__", "valueOf", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", " toString "])
+      expect(translateCopy(value, "ja")).toBe(value);
+  });
+
+  it("keeps edited metadata keys identical in Japanese headings, actions, SDK input and exported code", () => {
+    const schema = catalog.rows.find(entry => entry.id === "SourceConfig.metadata")!.schema!;
+    const resources = new ResourcePool({});
+    let current: unknown = {};
+    let changeLanguage!: (language: "en" | "ja") => void;
+    function Editor(): React.JSX.Element {
+      const [value, setValue] = React.useState<unknown>({});
+      current = value;
+      changeLanguage = useLocale().setLanguage;
+      return React.createElement(InputEditor, { catalog, schema, value, resources, onChange: setValue });
+    }
+    let tree!: TestRenderer.ReactTestRenderer;
+    act(() => { tree = TestRenderer.create(React.createElement(LocaleProvider, { initialLanguage: "ja", children: React.createElement(Editor) })); });
+    const host = (type: string, label: string) => tree.root.find(node =>
+      typeof node.type === "string" && node.type === type && node.props.accessibilityLabel === label);
+    const textValues = () => tree.root.findAll(node => typeof node.type === "string" && String(node.type) === "Text")
+      .map(node => node.children.filter(child => typeof child === "string").join(""));
+    const expected: Record<string, string> = {};
+    for (const name of ["Language", "toString", "valueOf", "hasOwnProperty", "Set Language"]) {
+      act(() => host("TextInput", translateCopy("New SDK map field", "ja")).props.onChangeText(name));
+      act(() => host("Pressable", translateCopy("Add SDK map field", "ja")).props.onPress());
+      expect(textValues()).toContain(name);
+      expect(host("Pressable", name + "（設定済み）").props.accessibilityLabel).toBe(name + "（設定済み）");
+      expected[name] = name + " value";
+      act(() => host("TextInput", translateCopy("SDK text value", "ja")).props.onChangeText(expected[name]));
+      expect(current).toEqual(expected);
+    }
+    act(() => changeLanguage("en"));
+    expect(textValues()).toContain("Set Language");
+    act(() => changeLanguage("ja"));
+    expect(textValues()).toContain("Set Language");
+    expect(current).toEqual(expected);
+    const inputs = [{ id: "SourceConfig.metadata", indices: [], value: current }];
+    const materializer = new ApiMaterializer(catalog, {}, resources, {}, () => {});
+    const applied = configurationOverrides(inputs).apply("SourceConfig", { metadata: {} }, value => materializer.materialize(value));
+    expect(applied.metadata).toEqual(expected);
+    const code = overrideCode(inputs)[0]!;
+    expect(JSON.parse(code.slice(code.indexOf(" = ") + 3, -1))).toEqual(expected);
+    expect(code).not.toContain("表示言語");
+    materializer.dispose();
+    resources.clear();
+    act(() => tree.unmount());
   });
 
   it("localizes applied-code accessibility labels while preserving the actual code", () => {

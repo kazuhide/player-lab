@@ -31,6 +31,13 @@ describe("application language", () => {
       expect(translateCopy(value, "ja")).toBe(value);
   });
 
+  it("keeps prototype property names as literal strings rather than translation entries", () => {
+    for (const value of ["toString", "constructor", "hasOwnProperty", "__proto__", "valueOf", "  toString  "]) {
+      expect(translateCopy(value, "ja")).toBe(value);
+      expect(typeof translateCopy(value, "ja")).toBe("string");
+    }
+  });
+
   it("provides Japanese copy for literal application labels and help in the actual UI components", () => {
     const files = [...sourceFiles("src"), ...["App.tsx"]];
     const omitted = new Set(["English", "日本語", "HLS", "DASH", "Progressive MP4", "SourceLoaded", "TimeShifted"]);

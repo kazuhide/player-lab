@@ -9,7 +9,7 @@ const runtime = vi.hoisted(() => {
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY = "test-license";
   process.env.EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY = "";
   return { castHost: undefined as undefined | { readOptions: ReturnType<typeof vi.fn>; saveOptions: ReturnType<typeof vi.fn> }, os: "android", keyboardDismiss: vi.fn(),
-    keyboardListeners: new Map<string, Set<() => void>>(), window: { width: 393, height: 852, fontScale: 1, scale: 1 },
+    keyboardListeners: new Map<string, Set<() => void>>(), window: { width: 393, height: 852, fontScale: 1, scale: 1 }, hostTop: 0,
     clipboard: vi.fn(async (_code: string) => {}), players: [] as Array<{
     config: PlayerConfig;
     load: ReturnType<typeof vi.fn>;
@@ -36,7 +36,9 @@ vi.mock("react-native", () => ({
 }));
 
 vi.mock("expo-clipboard", () => ({ setStringAsync: runtime.clipboard }));
-vi.mock("react-native-safe-area-context", () => ({ SafeAreaProvider: "SafeAreaProvider", SafeAreaView: "SafeAreaView" }));
+vi.mock("react-native-safe-area-context", () => ({ SafeAreaProvider: "SafeAreaProvider", SafeAreaView: "SafeAreaView",
+  useSafeAreaFrame: () => ({ x: 0, y: runtime.hostTop, width: runtime.window.width, height: runtime.window.height }),
+}));
 
 vi.mock("bitmovin-player-react-native", async () => {
   const { useState } = await import("react");
@@ -189,6 +191,7 @@ beforeEach(async () => {
   runtime.keyboardDismiss.mockClear();
   runtime.keyboardListeners.clear();
   runtime.window = { width: 393, height: 852, fontScale: 1, scale: 1 };
+  runtime.hostTop = 0;
   actEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
   errors = vi.spyOn(console, "error");
 });
@@ -221,9 +224,11 @@ describe("React Native configuration in the mounted App", () => {
     runtime.os = os;
     await mount(); await ready(); await basicField("source", "title");
     const owner = current();
+    expect(element("SafeAreaView").props.edges).toContain("bottom");
     await act(async () => input("Source title").props.onChangeText("Landscape draft"));
     await act(async () => { runtime.window = { width: 852, height: 393, fontScale: 1.5, scale: 1 }; screen.update(<App />); });
     await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(element("SafeAreaView").props.edges).toEqual(["top", "left", "right"]);
     expect(input("Source title").props.disableFullscreenUI).toBe(true);
     expect(element("Pressable", { testID: "workspace-nav-settings" })).toBeUndefined();
     expect(element("View", { testID: "player-lab-player" }).props.accessibilityElementsHidden).toBe(true);
@@ -231,6 +236,7 @@ describe("React Native configuration in the mounted App", () => {
     for (let parent = done.parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
     await tap("configuration-done");
     await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
+    expect(element("SafeAreaView").props.edges).toContain("bottom");
     expect(input("Source title").props.value).toBe("Landscape draft");
     await text("Filter API operations", "Player.setVolume"); await press("Player.setVolume");
     await act(async () => input("Volume (0–100)").props.onChangeText("42"));
@@ -264,10 +270,12 @@ describe("React Native configuration in the mounted App", () => {
 
   it.each(["android", "ios"])("keeps the %s picker keyboard-aware in portrait and landscape", async (os) => {
     runtime.os = os;
+    runtime.hostTop = os === "ios" ? 62 : 24;
     await mount(); await ready();
     expect(element("StatusBar")?.props.barStyle).toBe("dark-content");
     expect(element("KeyboardAvoidingView", { testID: "player-lab-screen" }).props.behavior).toBe(os === "ios" ? "padding" : "height");
     const screenAvoidance = element("KeyboardAvoidingView", { testID: "player-lab-screen" });
+    expect(screenAvoidance.props.keyboardVerticalOffset).toBe(runtime.hostTop);
     for (let parent = screenAvoidance.parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("SafeAreaView");
     expect(screenAvoidance.findAll(node => String(node.type) === "SafeAreaView")).toHaveLength(1);
     await tap("workspace-setting-selector");
@@ -282,6 +290,8 @@ describe("React Native configuration in the mounted App", () => {
     expect(input("Find Setting").props.value).toBe("");
     await act(async () => close.props.onPress());
     expect(element("Modal")).toBeUndefined();
+    await act(async () => { runtime.hostTop = 0; runtime.window = { width: 852, height: 393, fontScale: 1, scale: 1 }; screen.update(<App />); });
+    expect(element("KeyboardAvoidingView", { testID: "player-lab-screen" }).props.keyboardVerticalOffset).toBe(0);
   });
 
   it("applies a UI setting through its own direct editor and exports the effective SDK value", async () => {

@@ -17,7 +17,7 @@
  */
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StatusBar, StyleSheet, View, useWindowDimensions, type GestureResponderEvent } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView, useSafeAreaFrame } from "react-native-safe-area-context";
 import { Button, LanguageSelector, LocaleProvider, Switch, Text } from "./src/localization";
 import {
   CustomUi,
@@ -84,6 +84,7 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
 }
 
 function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | undefined }): React.JSX.Element {
+  const hostFrame = useSafeAreaFrame();
   const platform = Platform.OS === "ios" ? "ios" : "android";
   const sources = SOURCES.filter((source) => supportsSource(source, platform));
   const [uiMode, setUiMode] = useState<UiMode>(DEFAULT_MODE);
@@ -167,9 +168,10 @@ function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | unde
     </View>,
   };
   return (
-    <KeyboardAvoidingView testID="player-lab-screen" style={styles.safeArea} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView testID="player-lab-screen" style={styles.safeArea} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={hostFrame.y}>
     <StatusBar barStyle="dark-content" />
-    <SafeAreaView style={[styles.container, workspace.wide && (tab === "settings" || tab === "code") && styles.horizontal]}>
+    <SafeAreaView edges={keyboardVisible ? ["top", "left", "right"] : ["top", "right", "bottom", "left"]}
+      style={[styles.container, workspace.wide && (tab === "settings" || tab === "code") && styles.horizontal]}>
       <PlayerPane key={`${uiMode.label}:${revision}`} uiMode={uiMode} source={applied.source} playerConfig={applied.player} settings={applied}
         sources={sources} onSelectSource={selectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={setTimeShiftEnabled}
         log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} onRecreate={recreate} workspace={workspace} />
