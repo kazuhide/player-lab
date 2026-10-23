@@ -36,8 +36,10 @@ enum WorkspaceUITestNavigation {
         let button = app.buttons[picker].firstMatch
         try activate(button, in: app)
         #if os(tvOS)
-        let option = app.buttons[value].firstMatch
+        let option = app.buttons["workspace.choice.option.\(value)"].firstMatch
         try activate(option, in: app)
+        XCTAssertTrue(app.textFields["workspace.choice.filter"].waitForNonExistence(timeout: 5))
+        XCTAssertEqual(button.value as? String, value)
         #else
         let candidates = app.buttons.matching(NSPredicate(format: "label == %@", value))
         let visible = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
@@ -53,16 +55,56 @@ enum WorkspaceUITestNavigation {
 
     static func activate(_ element: XCUIElement, in app: XCUIApplication) throws {
         #if os(tvOS)
-        for direction: XCUIRemote.Button in [.down, .right, .up, .left] {
-            for _ in 0..<35 {
-                if element.exists && (element.hasFocus || element.descendants(matching: .any).allElementsBoundByIndex.contains(where: { $0.hasFocus })) {
-                    XCUIRemote.shared.press(.select)
-                    return
-                }
-                XCUIRemote.shared.press(direction)
-            }
+        guard element.exists || element.waitForExistence(timeout: 5) else {
+            XCTFail("Remote target must exist before moving focus")
+            throw NavigationFailure.unreachable
         }
-        XCTFail("Remote focus must reach \(element.identifier)")
+        let identifier = element.identifier
+        var attempts: [String: Int] = [:]
+        let editorLeft = app.buttons["configuration.open"].frame.minX
+        for _ in 0..<24 {
+            guard element.exists else {
+                recordFocusFailure(app, message: "Remote target disappeared: \(identifier)")
+                throw NavigationFailure.unreachable
+            }
+            if element.hasFocus || element.descendants(matching: .any).allElementsBoundByIndex.contains(where: { $0.hasFocus }) {
+                XCUIRemote.shared.press(.select)
+                return
+            }
+            let focused = app.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true"))
+                .allElementsBoundByIndex.last { $0.frame.width > 0 && $0.frame.height > 0 }
+            guard let focused else {
+                recordFocusFailure(app, message: "No focused control while reaching \(identifier)")
+                throw NavigationFailure.unreachable
+            }
+            if focused.elementType == .cell && !identifier.isEmpty && focused.descendants(matching: .any).matching(identifier: identifier).firstMatch.exists {
+                // A native TV List row owns focus for its identified Button.
+                XCUIRemote.shared.press(.select)
+                return
+            }
+            let current = focused.frame
+            let target = element.frame
+            let direction: XCUIRemote.Button
+            if current.midX < editorLeft && target.midX >= editorLeft {
+                // Enter the editor before moving down past AVKit transport controls.
+                direction = .right
+            } else if target.maxX < editorLeft && current.midX >= editorLeft && current.minY > target.maxY {
+                direction = .up
+            } else if abs(current.midY - target.midY) > 8 {
+                // Focus enlargement may overlap an adjacent row's rectangle.
+                direction = target.midY < current.midY ? .up : .down
+            } else {
+                direction = target.midX < current.midX ? .left : .right
+            }
+            let step = "\(focused.identifier)|\(current)|\(direction)"
+            attempts[step, default: 0] += 1
+            guard attempts[step, default: 0] <= 2 else {
+                recordFocusFailure(app, message: "Remote focus stopped before \(identifier): \(step)")
+                throw NavigationFailure.unreachable
+            }
+            XCUIRemote.shared.press(direction)
+        }
+        recordFocusFailure(app, message: "Remote focus must reach \(identifier) in a bounded route")
         throw NavigationFailure.unreachable
         #else
         XCTAssertTrue(element.exists || element.waitForExistence(timeout: 10))
@@ -71,6 +113,22 @@ enum WorkspaceUITestNavigation {
         control.tap()
         #endif
     }
+
+    #if os(tvOS)
+    private static func recordFocusFailure(_ app: XCUIApplication, message: String) {
+        XCTContext.runActivity(named: message) { activity in
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = "native-workspace-tv-focus-accessibility"
+            hierarchy.lifetime = .keepAlways
+            activity.add(hierarchy)
+            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            screenshot.name = "native-workspace-tv-focus-screen"
+            screenshot.lifetime = .keepAlways
+            activity.add(screenshot)
+        }
+        XCTFail(message)
+    }
+    #endif
 
     private static func interactiveControl(_ element: XCUIElement, in app: XCUIApplication) -> XCUIElement {
         guard element.elementType == .switch, !element.isHittable else { return element }
@@ -104,7 +162,17 @@ enum WorkspaceUITestNavigation {
 
     static func dismissKeyboard(in app: XCUIApplication) {
         #if os(tvOS)
-        if app.keyboards.firstMatch.exists { XCUIRemote.shared.press(.menu) }
+        if app.keyboards.firstMatch.exists {
+            XCUIRemote.shared.press(.menu)
+            XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+            let focused = app.descendants(matching: .any).matching(NSPredicate(format: "hasFocus == true"))
+            let settled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in focused.count > 0 }, object: nil)
+            if XCTWaiter.wait(for: [settled], timeout: 2) != .completed {
+                // Native TV text entry can return with no focused element until
+                // the next directional input. Resume with the user's Down action.
+                XCUIRemote.shared.press(.down)
+            }
+        }
         #else
         for id in ["workspace.keyboard.done", "offline.keyboard.done", "cast.keyboard.done"] {
             let done = app.buttons[id]

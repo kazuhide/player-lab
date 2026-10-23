@@ -30,6 +30,16 @@ final class TrackPreferenceUITests: XCTestCase {
         try activate(app.buttons["configuration.apply"], in: app)
         try expectPlayback(audio: expectedAudio, subtitle: "de", app: app, stage: "German")
         #if !os(tvOS)
+        try WorkspaceUITestNavigation.choose("Advanced SDK", picker: "configuration.category", in: app)
+        XCTAssertTrue(app.buttons["playback.compact.toggle"].isHittable)
+        XCTAssertEqual(app.buttons["playback.compact.toggle"].label, "Play")
+        try activate(app.buttons["playback.compact.toggle"], in: app)
+        capture(app, name: "Advancing playback miniature")
+        try activate(app.buttons["playback.preview.expand"], in: app)
+        try expectPlayback(audio: expectedAudio, subtitle: "de", app: app, stage: "German after preview expansion")
+        try activate(app.buttons["playback.preview.collapse"], in: app)
+        XCTAssertTrue(app.buttons["playback.compact.toggle"].isHittable)
+        try WorkspaceUITestNavigation.setting("configuration.audioLanguage", in: app)
         try choose("Sports", picker: "player.theme", in: app)
         try expectPlayback(audio: "de", subtitle: "de", app: app, stage: "German in Sports after UI recreation")
         #endif
@@ -94,6 +104,17 @@ final class TrackPreferenceUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [advances], timeout: 15), .completed, stage)
         XCTAssertTrue(selected(), "Current audio/subtitle selection at visible advancing position")
         capture(app, name: stage)
+        // Pause through the app after proving playback. The short fixture must
+        // not reach its end while subsequent settings are being entered.
+        try activate(app.buttons["api.open"], in: app)
+        if !app.staticTexts["api.target"].label.contains("Player.pause()") {
+            try activate(app.buttons["api.operation"], in: app)
+            try WorkspaceUITestNavigation.replace(app.textFields["api.operation.filter"], with: "Player.pause()", in: app)
+            try activate(app.buttons["api.operation.select.Player.pause()"], in: app)
+        }
+        try activate(app.buttons["api.run"], in: app)
+        XCTAssertEqual(app.staticTexts["api.related.Player.isPaused"].label, "true")
+        try activate(app.buttons["configuration.open"], in: app)
     }
 
     private func capture(_ app: XCUIApplication, name: String) {

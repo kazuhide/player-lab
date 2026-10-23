@@ -35,7 +35,7 @@ struct AdvancedConfigurationFields: View {
     var body: some View {
         Group {
         if workspaceActive {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 TextField("Search SDK settings", text: $filter)
                     .disableAutocorrection(true)
@@ -57,6 +57,7 @@ struct AdvancedConfigurationFields: View {
                         id.replacingOccurrences(of: "-swift.property", with: "").components(separatedBy: ".").last ?? id
                     })
                     .accessibilityIdentifier("advanced.setting")
+
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(height: keyboardVisible && !choicePresented ? 0 : nil).clipped().accessibilityHidden(keyboardVisible && !choicePresented)
@@ -74,12 +75,16 @@ struct AdvancedConfigurationFields: View {
         }
         }
         }
-        .onChange(of: reveal) { id in
-            guard let id else { return }
-            filter = id
-            group = "All settings"
-            selection = id
-        }
+        .onAppear { handleReveal(reveal) }
+        .onChange(of: reveal) { handleReveal($0) }
+    }
+
+    private func handleReveal(_ id: String?) {
+        guard let id else { return }
+        filter = id
+        group = "All settings"
+        selection = id
+        reveal = nil
     }
 }
 
@@ -103,11 +108,37 @@ private struct AdvancedConfigurationFieldView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            WorkspaceToggle(title: "Override", isOn: enabled, identifier: "advanced.\(field.id).enabled", accessibilityTitle: "Override SDK default")
-                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-                .accessibilityHint(appliedValues == nil ? "Stages a source draft override; Save source draft retains it" : "Off inherits the SDK default; changes remain in the draft until Apply")
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(height: keyboardVisible ? 0 : nil).clipped().accessibilityHidden(keyboardVisible)
+            HStack(spacing: 8) {
+                WorkspaceToggle(title: "Override", isOn: enabled, identifier: "advanced.\(field.id).enabled", accessibilityTitle: "Override SDK default")
+                    .accessibilityHint(appliedValues == nil ? "Stages a source draft override; Save source draft retains it" : "Off inherits the SDK default; changes remain in the draft until Apply")
+                Button { showsDetails = true } label: {
+                    Image(systemName: "info.circle")
+                        .frame(width: 44, height: 44).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("SDK setting details")
+                .accessibilityIdentifier("advanced.details")
+                #if os(tvOS)
+                .alert("SDK setting details", isPresented: $showsDetails) {
+                    Button("Close", role: .cancel) {}
+                } message: {
+                    Text("\(field.id)\nOwner: \(field.owner.rawValue)\n\(field.note)\n\nTurning Override off restores SDK inheritance when applied. Edits remain in the draft until Apply. Script syntax and limits are documented in the app's NativeScripts guide.")
+                }
+                #else
+                .sheet(isPresented: $showsDetails) {
+                    NavigationStack {
+                        ScrollView { AdvancedConfigurationHelp(field: field, sourceDraft: appliedValues == nil).padding() }
+                            .navigationTitle("SDK setting details")
+                            .toolbar { ToolbarItem(placement: .navigationBarTrailing) {
+                                Button("Close") { showsDetails = false }.frame(minWidth: 44, minHeight: 44)
+                            } }
+                    }
+                }
+                #endif
+            }
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(height: keyboardVisible ? 0 : nil).clipped().accessibilityHidden(keyboardVisible)
             if values[field.id] != nil {
                 Text(appliedValues == nil ? "Source draft override" : values[field.id] == appliedValues?[field.id] ? "Applied override" : "Unapplied override")
                     .font(.caption.weight(.medium)).foregroundStyle(Color.workspaceTint)
@@ -120,34 +151,7 @@ private struct AdvancedConfigurationFieldView: View {
                     .font(.caption).foregroundStyle(Color.workspaceSecondary)
                     .dynamicTypeSize(...DynamicTypeSize.xxxLarge).lineLimit(1)
             }
-            Group {
-            #if os(tvOS)
-            Button("Details") { showsDetails = true }
-                .alert("SDK setting details", isPresented: $showsDetails) {
-                    Button("Close", role: .cancel) {}
-                } message: {
-                    Text("\(field.id)\nOwner: \(field.owner.rawValue)\n\(field.note)\n\nTurning Override off restores SDK inheritance when applied. Edits remain in the draft until Apply. Script syntax and limits are documented in the app's NativeScripts guide.")
-                }
-            #else
-            DisclosureGroup("Details", isExpanded: $showsDetails) {
-                Text(appliedValues == nil ? "Overrides belong to this source draft. Save source draft retains them; load the playlist to use them." : "An override sends the selected value instead of the SDK default. Edits and removals remain in the draft until Apply. Turning Override off restores inheritance when applied.")
-                    .font(.caption).foregroundStyle(Color.workspaceSecondary)
-                Text(field.id).font(.caption).foregroundStyle(Color.workspaceSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text("Owner: \(field.owner.rawValue)").font(.caption)
-                if !field.note.isEmpty { Text(field.note).font(.caption).foregroundStyle(Color.workspaceSecondary) }
-                if case .script = field.input {
-                    Text("Function body for a JavaScript subset. input contains the arguments; storage is shared by this player, source or view. Use let or const. CPU, elapsed-time and value-size limits apply; failures use the documented fallback.")
-                        .font(.caption).foregroundStyle(Color.workspaceSecondary)
-                    Link("Supported syntax and limits", destination: URL(string: "https://github.com/kazuhide/player-lab/blob/main/apps/ios/Showcase/NativeScripts/README.md")!).font(.caption)
-                }
-            }
-            #endif
-            }
-            .font(.caption)
-            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(height: keyboardVisible ? 0 : nil).clipped().accessibilityHidden(keyboardVisible)
+
         }
         .padding(.vertical, 4)
     }
@@ -193,3 +197,24 @@ private struct AdvancedConfigurationFieldView: View {
         }
     }
 }
+
+#if !os(tvOS)
+private struct AdvancedConfigurationHelp: View {
+    let field: AdvancedConfigurationField
+    var sourceDraft: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(field.id).font(.headline)
+            Text("Owner: \(field.owner.rawValue)")
+            Text(sourceDraft ? "Overrides belong to this source draft. Save source draft retains them; load the playlist to use them." : "An override sends the selected value instead of the SDK default. Edits and removals remain in the draft until Apply. Turning Override off restores inheritance when applied.")
+            if !field.note.isEmpty { Text(field.note) }
+            if case .script = field.input {
+                Text("Function body for a JavaScript subset. input contains the arguments; storage is shared by this player, source or view. Use let or const. CPU, elapsed-time and value-size limits apply; failures use the documented fallback.")
+                Link("Supported syntax and limits", destination: URL(string: "https://github.com/kazuhide/player-lab/blob/main/apps/ios/Showcase/NativeScripts/README.md")!)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+#endif

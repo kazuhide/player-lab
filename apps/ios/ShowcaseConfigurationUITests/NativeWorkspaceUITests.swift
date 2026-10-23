@@ -41,6 +41,18 @@ final class NativeWorkspaceUITests: XCTestCase {
         XCTAssertFalse(app.buttons["configuration.apply"].isEnabled)
         WorkspaceUITestNavigation.capture(app, named: "native-workspace-persistent-player-settings", test: self)
 
+        try WorkspaceUITestNavigation.setting("configuration.title", in: app)
+        let longTitle = String(repeating: "A long source title ", count: 25)
+        try WorkspaceUITestNavigation.replace(app.textFields["configuration.title"], with: longTitle, in: app)
+        app.buttons["configuration.apply"].tap()
+        XCTAssertEqual(app.staticTexts["source.current"].label, longTitle)
+        let titleInput = app.textFields["configuration.title"]
+        XCTAssertTrue(titleInput.isHittable)
+        XCTAssertGreaterThanOrEqual(titleInput.frame.intersection(app.scrollViews["configuration.form"].frame).height, 44, "Readonly titles must leave the selected input usable")
+        XCTAssertTrue(app.buttons["configuration.apply"].isHittable)
+        try WorkspaceUITestNavigation.replace(titleInput, with: "VOD HLS", in: app)
+        app.buttons["configuration.apply"].tap()
+
         // Every common setting has an explicit selector, with Apply visible without a swipe.
         for id in WorkspaceUITestNavigation.fields.keys.sorted() {
             try WorkspaceUITestNavigation.setting("configuration.\(id)", in: app)
@@ -111,6 +123,16 @@ final class NativeWorkspaceUITests: XCTestCase {
         XCTAssertTrue(done.isHittable)
         XCTAssertEqual(app.buttons.matching(identifier: "workspace.keyboard.done").count, 1)
         WorkspaceUITestNavigation.capture(app, named: "native-workspace-large-text-keyboard", test: self)
+        try WorkspaceUITestNavigation.activate(app.buttons["playback.preview.expand"], in: app)
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5), "Expand dismisses the keyboard before growing the preview")
+        XCTAssertTrue(app.buttons["playback.preview.collapse"].isHittable)
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-expanded-after-keyboard", test: self)
+        try WorkspaceUITestNavigation.activate(app.buttons["playback.preview.collapse"], in: app)
+        XCTAssertEqual(offset.value as? String, "10")
+        offset.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["playback.preview.expand"].isHittable)
+        XCTAssertFalse(app.buttons["playback.preview.collapse"].exists)
         done.tap()
         XCTAssertTrue(app.buttons["configuration.apply"].isHittable)
         XCTAssertTrue(app.buttons["configuration.reset"].isHittable)
@@ -140,14 +162,66 @@ final class NativeWorkspaceUITests: XCTestCase {
         WorkspaceUITestNavigation.capture(app, named: "native-workspace-shareplay-activity-draft", test: self)
     }
 
+    func testInvalidSdkFieldRevealSurvivesCategoryChanges() throws {
+        let app = XCUIApplication()
+        app.launch()
+        try WorkspaceUITestNavigation.activate(app.buttons["configuration.open"], in: app)
+        try WorkspaceUITestNavigation.choose("Advanced SDK", picker: "configuration.category", in: app)
+        try WorkspaceUITestNavigation.replace(app.textFields["advanced.filter"], with: "SourceConfig.tracks", in: app)
+        try WorkspaceUITestNavigation.activate(app.switches["advanced.SourceConfig.tracks.enabled"], in: app)
+        try WorkspaceUITestNavigation.replace(app.textViews["advanced.SourceConfig.tracks.value"], with: "{", in: app)
+        XCTAssertFalse(app.buttons["configuration.apply"].isEnabled)
+        try WorkspaceUITestNavigation.setting("configuration.title", in: app)
+        try WorkspaceUITestNavigation.activate(app.buttons["configuration.error.reveal"], in: app)
+        XCTAssertEqual(app.textFields["advanced.filter"].value as? String, "SourceConfig.tracks")
+        let editor = app.textViews["advanced.SourceConfig.tracks.value"]
+        XCTAssertEqual(editor.value as? String, "{")
+        XCTAssertTrue(editor.isHittable)
+        XCTAssertGreaterThanOrEqual(editor.frame.intersection(app.scrollViews["advanced.editor"].frame).height, 64)
+        try WorkspaceUITestNavigation.replace(app.textFields["advanced.filter"], with: "LabelingConfig.audioLabel", in: app)
+        try WorkspaceUITestNavigation.activate(app.buttons["configuration.code.toggle"], in: app)
+        try WorkspaceUITestNavigation.activate(app.buttons["configuration.open"], in: app)
+        XCTAssertEqual(app.textFields["advanced.filter"].value as? String, "LabelingConfig.audioLabel", "A handled reveal must not overwrite a later retained filter")
+        try WorkspaceUITestNavigation.activate(app.buttons["configuration.error.reveal"], in: app)
+        XCTAssertEqual(app.textFields["advanced.filter"].value as? String, "SourceConfig.tracks", "The same invalid field can be requested again")
+        XCTAssertEqual(editor.value as? String, "{")
+        XCTAssertTrue(editor.isHittable)
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-invalid-sdk-field-revealed", test: self)
+        try WorkspaceUITestNavigation.activate(app.buttons["configuration.reset"], in: app)
+    }
+
     @available(iOS 17.0, *)
     func testMainSettingsAccessibilityAudit() throws {
         let app = XCUIApplication()
         app.launch()
         XCTAssertTrue(app.buttons["configuration.open"].waitForExistence(timeout: 20))
         try WorkspaceUITestNavigation.setting("configuration.startMuted", in: app)
+        XCTAssertFalse(app.buttons["configuration.apply"].isEnabled)
         try app.performAccessibilityAudit(for: [.contrast, .textClipped, .hitRegion, .trait])
-        WorkspaceUITestNavigation.capture(app, named: "native-workspace-accessibility-audit", test: self)
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-disabled-apply-audit", test: self)
+        try WorkspaceUITestNavigation.activate(app.switches["configuration.startMuted"], in: app)
+        XCTAssertTrue(app.buttons["configuration.apply"].isEnabled)
+        try WorkspaceUITestNavigation.choose("Advanced SDK", picker: "configuration.category", in: app)
+        XCTAssertTrue(app.buttons["playback.compact.toggle"].isHittable)
+        XCTAssertGreaterThanOrEqual(app.buttons["playback.compact.toggle"].frame.height, 44)
+        XCTAssertTrue(app.buttons["playback.preview.expand"].isHittable)
+        try app.performAccessibilityAudit(for: [.contrast, .textClipped, .hitRegion, .trait])
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-enabled-apply-mini-audit", test: self)
+        try WorkspaceUITestNavigation.activate(app.buttons["advanced.details"], in: app)
+        XCTAssertTrue(app.navigationBars["SDK setting details"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Close"].isHittable)
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-sdk-setting-help", test: self)
+        app.buttons["Close"].tap()
+        try WorkspaceUITestNavigation.activate(app.buttons["playback.preview.expand"], in: app)
+        XCTAssertTrue(app.buttons["playback.preview.collapse"].isHittable)
+        let metadata = XCTAttachment(string: app.debugDescription)
+        metadata.name = "native-workspace-expanded-audit-accessibility"
+        metadata.lifetime = .keepAlways
+        add(metadata)
+        try app.performAccessibilityAudit(for: [.contrast, .textClipped, .hitRegion, .trait])
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-expanded-player-audit", test: self)
+        try WorkspaceUITestNavigation.activate(app.buttons["playback.preview.collapse"], in: app)
+        try WorkspaceUITestNavigation.activate(app.buttons["configuration.reset"], in: app)
     }
 
     func testLongApiAndScriptSettingKeepInputAndActionsVisible() throws {

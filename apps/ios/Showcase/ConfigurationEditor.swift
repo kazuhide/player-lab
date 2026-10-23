@@ -111,7 +111,7 @@ struct ConfigurationEditor: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             if workspaceActive {
             HStack {
                 WorkspaceChoice(title: "Category", selection: $category, options: NativeSettingsCategory.allCases, label: { $0.rawValue })

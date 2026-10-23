@@ -92,6 +92,13 @@ last for the current app session. tvOS uses remote focus and the system text
 keyboard. At enlarged accessibility text sizes, the reset label is shortened to
 **Reset**. Live-only actions are under More and are hidden for video on demand.
 
+When editing SDK settings, using large text, or opening the keyboard, the player
+can appear as a small preview. Use its **Play/Pause** button for playback or
+**Expand player** to use the full player controls. Expanding dismisses the
+keyboard. **Collapse player** returns room to the editor; opening the keyboard
+also collapses an expanded preview. These layout changes keep the same player,
+source, and unapplied settings.
+
 | Field | Accepted value and behavior |
 | --- | --- |
 | Source URL | Absolute HTTP or HTTPS URL; HLS or progressive MP4 only. |

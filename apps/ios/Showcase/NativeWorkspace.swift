@@ -81,9 +81,21 @@ struct WorkspaceChoice<Value: Hashable>: View {
     var body: some View {
         Group {
         #if os(tvOS)
-        Picker(title, selection: $selection) {
-            ForEach(options, id: \.self) { Text(label($0)).tag($0) }
-        }
+        Button { filter = ""; choosing = true } label: { choiceLabel }
+            .buttonStyle(.bordered)
+            .sheet(isPresented: $choosing) {
+                VStack(alignment: .leading, spacing: 24) {
+                    HStack {
+                        Text(title).font(.title2)
+                        Spacer()
+                        Button("Close") { choosing = false }
+                    }
+                    choiceList
+                }
+                .padding(48)
+            }
+            .accessibilityLabel(title)
+            .accessibilityValue(label(selection))
         #else
         Button { filter = ""; choosing = true } label: { choiceLabel }
                 .popover(isPresented: $choosing) {
@@ -127,21 +139,39 @@ struct WorkspaceChoice<Value: Hashable>: View {
                         Spacer(minLength: 0)
                         if option == selection { Image(systemName: "checkmark") }
                     }
-                    .frame(minHeight: 44)
+                    .frame(minHeight: choiceRowHeight)
                     .contentShape(Rectangle())
                 }
                 .accessibilityLabel(label(option))
+                .accessibilityIdentifier("workspace.choice.option.\(label(option))")
                 .accessibilityAddTraits(option == selection ? .isSelected : [])
+                #if os(tvOS)
+                .buttonStyle(.bordered)
+                #else
                 .buttonStyle(.plain)
+                #endif
                 .padding(.horizontal, 12)
                 Divider()
               }
               }
             }
         }
+        #if os(tvOS)
+        .font(.body)
+        .frame(width: 1000, height: min(720, CGFloat(options.count) * 80 + 120))
+        #else
         .font(.caption)
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .frame(width: 320, height: min(440, CGFloat(options.count) * 45 + 64))
+        #endif
+    }
+
+    private var choiceRowHeight: CGFloat {
+        #if os(tvOS)
+        return 64
+        #else
+        return 44
+        #endif
     }
 }
 
