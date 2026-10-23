@@ -293,18 +293,26 @@ private fun navigateOffline(ui: WorkspaceRule, tag: String) {
     if (page == "Actions") workspaceChoose(ui, "offline-action-selector", tag)
 }
 
-/** Routes a real touch through the owned app window rather than a detached DOM or View. */
-internal fun workspaceTapVisiblePlayer(ui: WorkspaceRule, view: View, fractionX: Float = .15f, fractionY: Float = .25f) {
+/** Routes real input through the owned app window rather than a detached DOM or View. */
+internal fun workspaceTapVisiblePlayer(ui: WorkspaceRule, view: View, fractionX: Float = .15f, fractionY: Float = .25f) =
+    workspaceTouchVisiblePlayer(ui, view, fractionX, fractionY, fractionY)
+
+internal fun workspaceSwipeVisiblePlayer(ui: WorkspaceRule, view: View, fractionX: Float, fromY: Float, toY: Float) =
+    workspaceTouchVisiblePlayer(ui, view, fractionX, fromY, toY)
+
+private fun workspaceTouchVisiblePlayer(ui: WorkspaceRule, view: View, fractionX: Float, fractionY: Float, toFractionY: Float) {
     var x = 0f
     var y = 0f
+    var endY = 0f
     ui.runOnUiThread {
         val visible = Rect()
         val location = IntArray(2)
         view.getLocationOnScreen(location)
         x = location[0] + view.width * fractionX
         y = location[1] + view.height * fractionY
+        endY = location[1] + view.height * toFractionY
         assertTrue("Reveal touch must be inside the current visible player", view.isAttachedToWindow && view.isShown &&
-            view.getGlobalVisibleRect(visible) && visible.contains(x.toInt(), y.toInt()))
+            view.getGlobalVisibleRect(visible) && visible.contains(x.toInt(), y.toInt()) && visible.contains(x.toInt(), endY.toInt()))
     }
     val down = SystemClock.uptimeMillis()
     val handled = ConcurrentHashMap<Int, Boolean>()
@@ -322,8 +330,12 @@ internal fun workspaceTapVisiblePlayer(ui: WorkspaceRule, view: View, fractionX:
         ui.activity.window.callback = observer
     }
     try {
-        for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
-            val event = MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, x, y, 0)
+        val steps = if (y == endY) listOf(MotionEvent.ACTION_DOWN to y, MotionEvent.ACTION_UP to y) else
+            listOf(MotionEvent.ACTION_DOWN to y) + (1..8).map { MotionEvent.ACTION_MOVE to (y + (endY - y) * it / 8) } +
+                listOf(MotionEvent.ACTION_UP to endY)
+        for ((action, atY) in steps) {
+            if (action == MotionEvent.ACTION_MOVE) SystemClock.sleep(20)
+            val event = MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, x, atY, 0)
             event.source = InputDevice.SOURCE_TOUCHSCREEN
             try { assertTrue("The owned app window must accept native touch input", InstrumentationRegistry.getInstrumentation().uiAutomation.injectInputEvent(event, true)) }
             finally { event.recycle() }

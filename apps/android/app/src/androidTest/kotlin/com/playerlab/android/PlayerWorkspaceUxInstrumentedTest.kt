@@ -128,12 +128,19 @@ class PlayerWorkspaceUxInstrumentedTest {
                 PlayerLabTheme { Surface(Modifier.requiredSize(width = 360.dp, height = 740.dp)) { PlayerWorkspace(controller) } }
             }
         }
+        workspaceSetting(ui, "source-title")
+        ui.onNodeWithTag("source-title").performTextReplacement("A long user-entered source title that describes a sample stream for testing playback preferences. ".repeat(3))
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        ui.onNodeWithTag("apply-source").performClick()
         workspaceSetting(ui, "source-subtitle-default")
         assertFullyVisible("source-subtitle-default", 48)
         ui.onNodeWithTag("apply-source").assertIsDisplayed()
         ui.onNodeWithTag("reset-source").assertIsDisplayed()
         ui.onNodeWithTag("workspace-navigation").assertIsDisplayed()
         capture("android-workspace-large-text")
+        workspaceMore(ui, "Playback options")
+        capture("android-workspace-playback-options")
+        assertFullyVisible("allow-dvr", 48)
     }
 
     @Test

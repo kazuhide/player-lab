@@ -34,10 +34,17 @@ class PlayerApiDrmInstrumentedTest {
         }
         val deadline = SystemClock.uptimeMillis() + 45_000
         var played = false
+        var callbacksObserved = false
         while (SystemClock.uptimeMillis() < deadline) {
             ui.waitForIdle()
-            ui.runOnUiThread { played = c.player.isPlaying && c.player.currentTime > 0.5 }
-            if (played) break
+            ui.runOnUiThread {
+                played = c.player.isPlaying && c.player.currentTime > 0.5
+                val callbacks = c.apiSourceCallbacks.snapshot()
+                callbacksObserved = listOf("prepareMessageCallback", "prepareLicenseCallback").all {
+                    (callbacks[id("WidevineConfig.$it")]?.first ?: 0) > 0
+                }
+            }
+            if (played && callbacksObserved) break
             SystemClock.sleep(100)
         }
         ui.runOnUiThread {

@@ -168,13 +168,13 @@ private fun MoreWorkspace(controller: PlayerController) {
         Box(Modifier.weight(1f)) {
             RetainedWorkspacePage(page == "Playback options") {
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ConfigToggle("Enable live rewind controls", controller.timeShiftEnabled, "allow-dvr", controller::toggleDvr)
+                    Text("App preference for live sources. Rewind also requires SDK live time shifting and an available live window. This does not change video-on-demand playback.", style = MaterialTheme.typography.bodySmall)
                     WorkspaceHeading("Current playback")
                     PlaybackSummary(controller)
                     Text("Source type: ${controller.sourceSettings.type}")
                     Text("Title: ${controller.sourceSettings.title.ifBlank { "Not set" }}")
                     Text("Autoplay: ${controller.playerSettings.autoplay}; start muted: ${controller.playerSettings.muted}")
-                    ConfigToggle("Enable live rewind controls", controller.timeShiftEnabled, "allow-dvr", controller::toggleDvr)
-                    Text("App preference for live sources. Rewind also requires SDK live time shifting and an available live window. This does not change video-on-demand playback.", style = MaterialTheme.typography.bodySmall)
                     Text("Use Settings to change the source or player. APIs provides track selection, playback controls, state and events.", style = MaterialTheme.typography.bodySmall)
                 }
             }
