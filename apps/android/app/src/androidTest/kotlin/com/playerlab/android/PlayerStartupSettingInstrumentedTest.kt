@@ -15,7 +15,7 @@ class PlayerStartupSettingInstrumentedTest {
     @get:Rule val ui = createAndroidComposeRule<MainActivity>()
     @Test fun saveTrueForNextLaunch() {
         assertFalse(DebugConfig.isLoggingEnabled)
-        click("api-settings-toggle")
+        workspaceMore(ui, "Startup and integrations")
         ui.onNodeWithTag("api-startup-logging").performScrollTo().assertIsOff().performClick()
         click("api-startup-save")
         assertTrue(ApiStartupSettings.read(ui.activity))
@@ -24,15 +24,15 @@ class PlayerStartupSettingInstrumentedTest {
     }
     @Test fun verifyEnabledAndSaveFalse() {
         assertTrue("Application applies the saved value before any Player/Source/View", DebugConfig.isLoggingEnabled)
-        click("api-settings-toggle")
+        workspaceMore(ui, "Startup and integrations")
         ui.onNodeWithTag("api-startup-logging").performScrollTo().assertIsOn().performClick()
         click("api-startup-save")
         assertFalse(ApiStartupSettings.read(ui.activity)); assertTrue(DebugConfig.isLoggingEnabled)
     }
     @Test fun verifyDisabledAfterRestart() {
         assertFalse(DebugConfig.isLoggingEnabled); assertFalse(ApiStartupSettings.read(ui.activity))
-        click("api-settings-toggle")
+        workspaceMore(ui, "Startup and integrations")
         ui.onNodeWithTag("api-startup-state").performScrollTo().assertTextContains("Current process: false; saved for next launch: false", substring = true)
     }
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
 }

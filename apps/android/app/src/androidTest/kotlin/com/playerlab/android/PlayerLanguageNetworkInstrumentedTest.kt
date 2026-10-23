@@ -1,5 +1,6 @@
 package com.playerlab.android
 
+import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
@@ -28,6 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.net.HttpURLConnection
 import java.net.URL
+import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -97,9 +99,10 @@ class PlayerLanguageNetworkInstrumentedTest {
             }
         }
         // Sports intentionally has no settings panel. Use the existing Default UI's track menu.
-        visibleWebView()
-        ui.onNodeWithText("Default").performScrollTo().assertIsDisplayed().performClick()
+        recordTrackState(visibleWebView(), "before-theme")
+        workspaceTheme(ui, "Default")
         val web = visibleWebView()
+        recordTrackState(web, "after-theme")
         ui.runOnIdle {
             assertTrue("UI replacement retains the configured source", player.source === source)
             assertNull("Track metadata alone does not enable subtitles", source.selectedSubtitleTrack)
@@ -107,15 +110,13 @@ class PlayerLanguageNetworkInstrumentedTest {
         webAction(web, "const button = visible('.bmpui-ui-settingstogglebutton'); if (!button) return false; button.click(); return true;")
         webAction(web, """
             const item = [...document.querySelectorAll('.bmpui-ui-settings-panel-item:not(.bmpui-ui-settings-panel-item-select-option)')]
-              .find(e => e.textContent.trim().startsWith('Subtitles') && visible('#' + e.id));
-            if (!item) return false;
-            item.click(); return true;
+              .find(e => e.textContent.trim().startsWith('Subtitles'));
+            return chooseVisibleMenuItem(item);
         """)
         webAction(web, """
             const option = [...document.querySelectorAll('.bmpui-ui-settings-panel-item-select-option')]
-              .find(e => e.textContent.trim() === 'External English' && visible('#' + e.id));
-            if (!option) return false;
-            option.click(); return true;
+              .find(e => e.textContent.trim() === 'External English');
+            return chooseVisibleMenuItem(option);
         """)
         ui.runOnIdle {
             println("SUBTITLE_CONFIGURATION_SAFE phase=menu-choice nativeSelected=${source.selectedSubtitleTrack?.id == "player-lab-external-webvtt"} freshCue=${cue.get()} sourceRetained=${player.source === source} position=${player.currentTime}")
@@ -168,7 +169,7 @@ class PlayerLanguageNetworkInstrumentedTest {
 
     private fun openFixture() {
         resetFixture(0)
-        ui.onNodeWithText("Sports").performScrollTo().performClick()
+        workspaceTheme(ui, "Sports")
         click("configuration-toggle")
         field("source-url", "$media/vod-multiaudio/master.m3u8")
         click("source-type-Hls")
@@ -178,7 +179,9 @@ class PlayerLanguageNetworkInstrumentedTest {
     }
 
     private fun apply(tag: String) {
-        ui.onNodeWithTag(tag).performScrollTo().assertIsDisplayed()
+        ui.onNodeWithTag("workspace-settings").performClick()
+        workspaceChoose(ui, "settings-page", if (tag == "apply-player") "Player" else "Source")
+        ui.onNodeWithTag(tag).assertIsDisplayed()
             .performSemanticsAction(SemanticsActions.OnClick) { action ->
                 assertTrue("Real Apply action must execute", action())
                 val player = controller.player
@@ -218,16 +221,14 @@ class PlayerLanguageNetworkInstrumentedTest {
         ui.runOnIdle { assertNull("$label; numeric Player/Source error", controller.lastErrorCode) }
     }
 
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().assertIsDisplayed().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
 
     private fun visibleWebView(): WebView {
-        val scroll = ui.onNodeWithTag("player-lab-scroll")
-        val y = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
-        scroll.performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, -y) }
+        ui.onNodeWithTag("player-preview").assertIsDisplayed()
         var web: WebView? = null
         await("owned player view is visible") {
             val active = descendants(ui.activity.window.decorView).filterIsInstance<PlayerView>()
@@ -241,7 +242,8 @@ class PlayerLanguageNetworkInstrumentedTest {
     private fun webAction(web: WebView, action: String) = awaitWeb(web, action, "visible subtitle menu action")
 
     private fun awaitWeb(web: WebView, action: String, label: String) {
-        ui.waitUntil(40_000) {
+        var lastTouchReveal = 0L
+        try { ui.waitUntil(40_000) {
             val done = CountDownLatch(1)
             var result: String? = null
             ui.runOnUiThread {
@@ -256,12 +258,93 @@ class PlayerLanguageNetworkInstrumentedTest {
                         }
                         return true;
                     });
-                    $action
+                    const chooseVisibleMenuItem = item => {
+                        if (!item) return false;
+                        const row=item.getBoundingClientRect();
+                        const exposed=visible('#'+item.id) && [row.top+1,(row.top+row.bottom)/2,row.bottom-1].every(y=>{
+                            const hit=document.elementFromPoint(row.left+row.width/2,y);
+                            return !!hit && (hit===item || item.contains(hit));
+                        });
+                        if (exposed) { item.click(); return true; }
+                        for (let n=item.parentElement; n; n=n.parentElement) {
+                            const style=getComputedStyle(n);
+                            if (style.display==='none' || style.visibility!=='visible' || Number(style.opacity)<=0) return false;
+                            if (/auto|scroll/.test(style.overflowY) && n.scrollHeight > n.clientHeight+1) {
+                                const clip=n.getBoundingClientRect(), row=item.getBoundingClientRect();
+                                if (clip.top < 0 || clip.bottom > innerHeight || clip.height < 30) return false;
+                                const down=row.top < clip.top;
+                                return {scrollMenu:{x:(clip.left+clip.width*.7)/innerWidth,
+                                    fromY:(clip.top+clip.height*(down ? .2 : .8))/innerHeight,
+                                    toY:(clip.top+clip.height*(down ? .8 : .2))/innerHeight}};
+                            }
+                        }
+                        return false;
+                    };
+                    const complete = (() => { $action })();
+                    if (complete) return complete;
+                    return !!document.elementFromPoint(innerWidth*.15, innerHeight*.25)?.matches('.bmpui-ui-touch-control-overlay') &&
+                        !visible('.bmpui-ui-controlbar') && !visible('.bmpui-ui-settings-panel') ? 'reveal-touch' : false;
                 })()""".trimIndent()) { result = it; done.countDown() }
             }
             assertTrue("$label JavaScript callback", done.await(5, TimeUnit.SECONDS))
+            val scroll = runCatching { JSONObject(result ?: "{}").optJSONObject("scrollMenu") }.getOrNull()
+            if (scroll != null && android.os.SystemClock.uptimeMillis() - lastTouchReveal >= 500) {
+                workspaceSwipeVisiblePlayer(ui, web, scroll.getDouble("x").toFloat(), scroll.getDouble("fromY").toFloat(), scroll.getDouble("toY").toFloat())
+                lastTouchReveal = android.os.SystemClock.uptimeMillis()
+            }
+            if (result == "\"reveal-touch\"" && android.os.SystemClock.uptimeMillis() - lastTouchReveal >= 1000) {
+                workspaceTapVisiblePlayer(ui, web)
+                lastTouchReveal = android.os.SystemClock.uptimeMillis()
+            }
             result == "true"
+        } } catch (failure: androidx.compose.ui.test.ComposeTimeoutException) {
+            recordTrackState(web, "menu-timeout")
+            val captured = CountDownLatch(1)
+            var safeDom: String? = null
+            ui.runOnUiThread {
+                web.evaluateJavascript("""JSON.stringify({ready:document.readyState,viewport:{width:innerWidth,height:innerHeight},
+                    target:document.elementFromPoint(innerWidth*.15,innerHeight*.25)?.className,
+                    controls:[...document.querySelectorAll('.bmpui-ui-settingstogglebutton,.bmpui-ui-controlbar,.bmpui-ui-touch-control-overlay,.bmpui-ui-settings-panel,.bmpui-ui-settings-panel-item,.bmpui-ui-subtitleselectbox,.bmpui-ui-audiotrackselectbox')].map(e=>{
+                        const r=e.getBoundingClientRect();return {classes:e.className,label:e.textContent?.trim().slice(0,80),rect:{x:r.x,y:r.y,width:r.width,height:r.height},
+                            hiddenBy:[e,...(function*(){for(let p=e.parentElement;p;p=p.parentElement)yield p;})()].flatMap(p=>{
+                                const s=getComputedStyle(p);return s.display==='none'||s.visibility!=='visible'||Number(s.opacity)<=0
+                                  ? [{classes:p.className,display:s.display,visibility:s.visibility,opacity:s.opacity}]:[];})};})})""") {
+                    safeDom = it; captured.countDown()
+                }
+            }
+            captured.await(5, TimeUnit.SECONDS)
+            File(ui.activity.getExternalFilesDir(null), "android-subtitle-ui-diagnostic.json").writeText(safeDom ?: "null")
+            val bitmap = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            if (bitmap != null) {
+                File(ui.activity.getExternalFilesDir(null), "android-subtitle-ui-diagnostic.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                bitmap.recycle()
+            }
+            throw AssertionError("$label; safe UI diagnostics saved", failure)
         }
+    }
+
+    private fun recordTrackState(web: WebView, phase: String) {
+        val native = JSONObject()
+        ui.runOnIdle {
+            val player = controller.player
+            val source = player.source
+            native.put("phase", phase).put("position", player.currentTime).put("duration", player.duration)
+                .put("playing", player.isPlaying).put("loading", source?.loadingState?.toString())
+                .put("audioTracks", source?.availableAudioTracks?.size ?: 0)
+                .put("subtitleTracks", source?.availableSubtitleTracks?.size ?: 0)
+                .put("configuredSourceRetained", source === controller.configuredSource)
+        }
+        val captured = CountDownLatch(1)
+        ui.runOnUiThread {
+            web.evaluateJavascript("""JSON.stringify((() => {
+                const count = read => { try { const value=read(); return Array.isArray(value) ? value.length : -1; } catch { return -2; } };
+                return {ready:document.readyState,
+                    subtitleCount:count(()=>JSON.parse(Android.getAvailableSubtitles())),
+                    audioCount:count(()=>JSON.parse(Android.getAvailableAudio()))};
+            })())""") { native.put("web", it); captured.countDown() }
+        }
+        assertTrue("Safe track state is readable", captured.await(5, TimeUnit.SECONDS))
+        File(ui.activity.getExternalFilesDir(null), "android-subtitle-track-state.jsonl").appendText(native.toString() + "\n")
     }
 
     private fun descendants(view: View): List<View> = if (view is ViewGroup) {

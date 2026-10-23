@@ -27,7 +27,7 @@ export const SOURCES: VegaSource[] = [
     isLive: true,
     config: {
       title: "Live HLS (Unified Streaming)",
-      hls: "https://demo.unified-streaming.com/k8s/live/scte35.isml/.m3u8",
+      hls: "https://demo.unified-streaming.com/k8s/vod2live/stable/unified-learning.isml/.m3u8",
     },
   },
   {

@@ -100,21 +100,26 @@ The shared UI uses `bitmovin-player-ui` 4.x. A successful Android build does not
 establish that it renders correctly in the native player library's WebView;
 check rendering and input on each target.
 
-The control rows scroll horizontally on narrow displays, so all existing source,
-UI, and seek buttons remain reachable. The full panel scrolls vertically, including
-the collapsible **Configuration** editor. Its buttons, fields, and switches support
-directional focus; focused configuration switches show an outline.
+The player stays visible beside or above the workspace. Use **Source** and
+**Theme** to choose named presets, then **Settings**, **APIs**, **Code**, or
+**More**. Selectors mark the current choice and keep it available for selection.
+Unavailable actions use a separate disabled state. The workspace supports
+directional focus; focused switches show an outline. Live-only controls are
+under **More → Live controls** and are hidden
+for video on demand.
 
 ## Configuration editor
 
-Configuration changes remain drafts until Apply. **Apply source (reload)** builds
+In **Settings**, choose **Source**, **Player**, or **SDK overrides**, then choose
+the setting to edit. The selected editor is shown directly; Apply and Reset stay
+outside its scroll area. Changes remain drafts until Apply. **Apply source** builds
 a fresh source configuration and reloads the existing player. It exposes a custom
 HTTP/HTTPS stream URL, DASH/HLS/Smooth/Progressive type, optional title and poster
 URL, persistent poster, start offset in seconds, Start/End/SDK-default offset
 reference, and optional live target latency in seconds. HTTP requests still depend on the device's cleartext network policy.
 The SDK-default reference is the start for VOD and the end for live streams;
 out-of-window offsets are corrected by the SDK. A blank offset uses the SDK
-default. **Reset source draft** returns to the currently applied source without
+default. **Reset draft** returns to the currently applied source without
 reloading. Selecting any catalog source, including the same preset again, replaces
 the source draft and clears custom metadata, offsets, and live target latency.
 
@@ -146,8 +151,8 @@ The definitions follow the pinned
 [HTTP retry schedule](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.network/-retry-http-request-config/-retry/retry-timeouts.html)
 contracts.
 
-**Apply & restart player** creates a new player and reloads the currently applied
-source, retaining its metadata/options, selected UI mode, Allow DVR setting, and
+**Apply player** creates a new player and reloads the currently applied
+source, retaining its metadata/options, selected UI mode, live-control preference, and
 event log. Playback restarts according to autoplay and the source start offset.
 Used SDK configuration objects are never mutated. PlayerViews detach before the
 previous player is destroyed, and retired player/source callbacks cannot update
@@ -156,14 +161,15 @@ the active controller. Invalid drafts leave the active player and source intact.
 | Player field | Unit / default |
 | --- | --- |
 | Autoplay / Start muted | Off / off |
-| Enable SDK live time shifting | On; separate from the app's Allow DVR switch |
+| Enable SDK live time shifting | On; separate from More → Playback options → Enable live rewind controls |
 | Startup / restart threshold | Seconds; 2.5 / 5; nonnegative, at most forward buffer minus 0.5 |
 | Forward buffer | Seconds; 50; at least 0.5 to leave threshold headroom |
 | Maximum automatic video bitrate | Whole bits per second; blank uses `Int.MAX_VALUE` (2147483647, no ABR cap); higher qualities remain available for manual selection |
 | Preload content / Allow rebuffering | On / on |
 | Live quality / stability balance | 0 through 1; 0.5; relevant near the live edge only |
 
-**Reset player draft** restores these SDK defaults without applying them. All
+**Reset draft** restores the currently applied Player values without applying them.
+Changing tabs or settings retains unapplied values. All
 numeric fields reject non-finite values; bitrate uses the SDK's nonnegative `Int`
 range. The field definitions and defaults follow the pinned
 [PlaybackConfig](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api/-playback-config/index.html),
@@ -173,7 +179,7 @@ range. The field definitions and defaults follow the pinned
 [SourceLiveConfig.targetLatency](https://cdn.bitmovin.com/player/android/3.171.0/docs/player-core/com.bitmovin.player.api.live/-source-live-config/target-latency.html)
 references. Keys continue to come from build configuration.
 
-**Show applied code** displays Kotlin `PlayerConfig`, `SourceConfig`, and
+**Code** displays Kotlin `PlayerConfig`, `SourceConfig`, and
 `PlayerViewConfig` values for the applied settings and current UI. Draft edits are
 excluded. **Copy code** writes that text to the Android clipboard; license keys
 are placeholders. The source's optional live target latency is included. The
@@ -193,20 +199,35 @@ exactly-once destruction, listener removal, and retired callback rejection:
   -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=
 ```
 
+`PlayerWorkspaceUxInstrumentedTest` checks direct access to every common setting,
+visible Apply actions, draft retention, selection semantics, API search targets,
+and large-text layouts with the software keyboard open. It also checks that
+rotation retains the actual PlayerView. Use a device reserved for tests,
+complete keyboard onboarding, and use a docked on-screen keyboard for the input
+visibility checks.
+
+```sh
+./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.playerlab.android.PlayerWorkspaceUxInstrumentedTest
+```
+
 ## SDK API settings and controls
 
-Open **SDK API settings** to find additional public SDK configuration fields by
-name. Choose a typed value, stage the override, then apply it to recreate the
-player and reload its source. The applied Kotlin code appears below the editor.
+Open **Settings → SDK overrides** to find public SDK configuration fields by
+feature or name. Choose a typed value, stage the override, then apply it to
+recreate the player and reload its source. Applied override code is available
+in **Code**. Staging a value does not change playback.
 Removing an override restores the standard configuration or the SDK default on
 the next Apply. DRM secrets appear as placeholders in exported code. DRM callback
 fields accept editable JavaScript byte transformations as well as the Identity
 and Base64 examples. Their code uses the same callback editor described below.
 
-**SDK API controls** provides commands with named arguments, a refreshable state
+**APIs** provides commands with named arguments, a refreshable state
 inspector, and event occurrence counts with SDK timestamps. Commands can require
 an active source, an attached view, compatible media or a connected service.
-Check the resulting state and events after running a command. Creating an SSAI
+The Run action names its target. Search narrows the chooser; it does not run an
+API. Check the separately observed state and events after running a command.
+Creating an SSAI
 test ad builds a local input object; ad playback must be established separately
 from the active SDK ad state and playback events.
 
@@ -391,7 +412,7 @@ duration=60000
 The editor lists the supported metadata fields. Duration is in milliseconds;
 track and disc numbers are integers. Ratings use `Heart:true`, `Thumb:false`,
 `Percentage:75` or `Star:5:4.5`. Set a value to `null` to leave it unset.
-Apply the settings, then run **Enable Android media session** in SDK API controls.
+Apply the settings, then run **Enable Android media session** in **APIs**.
 The session follows the current player when it is recreated. Disable the same
 control to release it. This optional integration uses the SDK's
 `player-media-session` module and does not request notification permission.
@@ -403,8 +424,8 @@ The offline panel downloads selected renditions of the current video-on-demand
 source. Downloaded files remain in the app's private storage until explicitly
 deleted or the app is removed.
 
-1. Select a downloadable source in Configuration, or choose **Use sample DASH
-   source** in Offline controls. The sample is a short Big Buck Bunny asset.
+1. Open **More → Offline**. Select a downloadable source in Settings, or choose
+   **Use sample DASH source** in Offline. The sample is a short Big Buck Bunny asset.
 2. Allow download notifications, enter a stable content ID, then create a manager.
    Reuse the same ID to inspect the same stored content. Use a different ID for a
    different source.
@@ -440,7 +461,7 @@ device reserved for the test, with a valid allowed license:
 
 ## Analytics controls
 
-The Analytics panel configures collection separately from player playback. It
+Open **More → Analytics** to configure collection separately from playback. It
 uses the local build key by default, allows a session-only license override,
 or can request the Analytics license associated with the Player license. Choose
 Disabled to stop collection. Applying settings recreates the player and source.
@@ -679,18 +700,20 @@ do not measure complete internal SDK resource reclamation.
 
 ## Applied configuration code
 
-Open **Configuration → Show applied code** to read the Player, Source and selected
+Open **Code** to read the Player, Source and selected
 UI settings sent to the SDK. Draft edits do not change this output. **Copy code**
 writes the code to the Android clipboard; you can also select the text. License
-values are excluded and the Player key is a placeholder. The app's Allow DVR
-switch remains separate from the SDK configuration.
+values are excluded and the Player key is a placeholder. Lines wrap by default;
+turn wrapping off when comparing indentation. The app's live-control switch
+remains separate from the SDK configuration.
 
 ## Scrolling player menus
 
-The embedded player menu and the surrounding Compose form can both scroll.
-Swipe inside the video menu to reach lower settings; swipe outside the video
-to move the form. A parent scroll container can intercept a gesture intended
-for the embedded menu. The host keeps a handled player gesture with the video
+The embedded player menu can scroll independently of the selected editor.
+Swipe inside the video menu to reach its lower items. The fixed workspace
+navigation and Apply actions do not require scrolling through a form. A parent
+scroll container can intercept a gesture intended for the embedded menu. The
+host keeps a handled player gesture with the video
 until it ends or is cancelled, and releases it when the view is removed.
 This uses Android's public
 [touch interception contract](https://developer.android.com/reference/android/view/ViewParent#requestDisallowInterceptTouchEvent(boolean)).

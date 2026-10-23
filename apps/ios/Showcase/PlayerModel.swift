@@ -41,6 +41,8 @@ final class PlayerModel: ObservableObject {
     @Published private(set) var uiMode: UiMode = .default
     @Published private(set) var playerGeneration = UUID()
     @Published private(set) var sourceSettings: SourceSettings?
+    @Published private(set) var sourcePresetRevision = UUID()
+    @Published private(set) var apiObservationRevision = UUID()
     @Published private(set) var playerSettings = PlayerSettings()
     @Published private(set) var configurationStatus = "Startup defaults active"
     @Published private(set) var trackStatus = PlaybackTrackStatus()
@@ -218,6 +220,7 @@ final class PlayerModel: ObservableObject {
 
     func load(_ source: ShowcaseSource) {
         sourceSettings = SourceSettings(source)
+        sourcePresetRevision = UUID()
         append("load \(source.label)")
         reloadCurrentSource()
     }
@@ -249,8 +252,14 @@ final class PlayerModel: ObservableObject {
         player.load(source: source)
     }
 
+    var hasCurrentLiveSource: Bool {
+        guard let source = player.source else { return false }
+        return initialTrackSelection.owns(source) && completionSource === source
+            && source.loadingState == .loaded && player.isLive && dvr.isLive && !liveSourceFinalized
+    }
+
     func goToLiveEdge() {
-        guard !liveSourceFinalized else { return }
+        guard hasCurrentLiveSource else { return }
         player.timeShift = 0
     }
 
@@ -264,7 +273,7 @@ final class PlayerModel: ObservableObject {
 
     /// Seek to an offset relative to the live edge (timeShift semantics), clamped.
     func seek(toOffsetFromEdge offset: TimeInterval) {
-        guard !liveSourceFinalized else { return }
+        guard hasCurrentLiveSource else { return }
         guard timeShiftEnabled && playerSettings.sdkTimeShiftEnabled else {
             player.timeShift = 0
             return
@@ -373,6 +382,10 @@ final class PlayerModel: ObservableObject {
                 if self.apiPlaylistContexts[ObjectIdentifier(event.source)] != nil { self.followApiPlaylistSource() }
                 guard self.initialTrackSelection.owns(event.source) else { return }
                 self.bindSourceCompletion(player)
+                if let current = player.source,
+                   self.initialTrackSelection.recordLoaded(eventSource: event.source, currentSource: current) {
+                    self.applyInitialTracks(player, source: event.source)
+                }
                 self.append("SourceLoaded"); self.refresh()
             }
             .store(in: &cancellables)
@@ -393,8 +406,11 @@ final class PlayerModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self, weak player] source in
                 guard let self, let player, self.player === player,
-                      self.completionSource === source, player.source === source else { return }
-                self.applyInitialTracks(player, source: source)
+                      let current = player.source, current === source else { return }
+                if self.initialTrackSelection.recordReady(eventSource: source, currentSource: current),
+                   self.completionSource === source {
+                    self.applyInitialTracks(player, source: source)
+                }
                 self.refresh()
             }
             .store(in: &cancellables)
@@ -435,8 +451,9 @@ final class PlayerModel: ObservableObject {
         guard let preferences = apiPlaylistContexts[ObjectIdentifier(source)]?.settings.initialTracks ?? sourceSettings?.initialTracks,
               let current = player.source else { return }
         guard initialTrackSelection.claim(eventSource: source, currentSource: current) else { return }
-        // Select once at initial Ready: the tested 3.128 HLS startup restored its
-        // default audio between SourceLoaded and Ready. Later UI choices stay intact.
+        // Wait for both Ready and SourceLoaded, in either callback order. Selecting
+        // only at Ready loses the attempt when its source has not been bound yet.
+        // The source-owned gate keeps later user choices intact.
         switch preferences.subtitleMode {
         case .automatic: break
         case .off: player.setSubtitle(trackIdentifier: nil)
@@ -594,6 +611,7 @@ final class PlayerModel: ObservableObject {
     }
 
     private func retireApiSourceEvents(retireObjects: Bool = true) {
+        apiObservationRevision = UUID()
         sourceApiPublishers.removeAll()
         if retireObjects { apiObjects.retireSource() }
         if let listener = sourceApiListener { apiSource?.remove(listener: listener) }

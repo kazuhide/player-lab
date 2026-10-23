@@ -5,6 +5,9 @@ import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -43,7 +46,7 @@ class PlayerUiHandoffInstrumentedTest {
             player.on(SourceEvent.Error::class) { errors.add(it.code.value) }
             player.mute()
         }
-        ui.onNodeWithText("VOD HLS").performScrollTo().performClick()
+        workspaceSource(ui, "VOD HLS")
         await("VOD source loaded") { player.duration.isFinite() && player.duration > 0 }
         ui.runOnUiThread { player.play() }
         await("VOD playback starts") { player.isPlaying && player.currentTime > 1 }
@@ -51,8 +54,8 @@ class PlayerUiHandoffInstrumentedTest {
         repeat(3) { cycle ->
             for (mode in listOf("Sports", "Live (DVR)", "Cinema", "Default")) {
                 val previous = onMain { playerViews().single { it.player === player } }
-                ui.onNodeWithText(mode).performScrollTo().performClick()
-                ui.onNodeWithText(mode).assertIsNotEnabled()
+                workspaceTheme(ui, mode)
+                ui.onNodeWithTag("theme-selector").assertTextContains(if (mode == "Live (DVR)") "Live" else mode, substring = true).assertIsEnabled()
                 await("$mode view attaches in cycle $cycle") {
                     val views = playerViews()
                     views.size == 1 && views.single() !== previous && views.single().player === player
@@ -82,11 +85,11 @@ class PlayerUiHandoffInstrumentedTest {
             player.on(SourceEvent.Error::class) { recordError(it.code.value, it.message, it.deficiencyData) }
             player.mute()
         }
-        ui.onNodeWithText("VOD HLS").performScrollTo().performClick()
+        workspaceSource(ui, "VOD HLS")
         await("VOD source loaded") { player.duration.isFinite() && player.duration > 0 }
         ui.runOnUiThread { player.play() }
         await("VOD playback starts") { player.isPlaying && player.currentTime > 1 }
-        ui.onNodeWithTag("allow-dvr").performScrollTo().performClick()
+        workspaceClick(ui, "allow-dvr")
         val source = controller.configuredSource
         val settings = controller.playerSettings
         val allowDvr = controller.timeShiftEnabled
@@ -104,10 +107,10 @@ class PlayerUiHandoffInstrumentedTest {
             phase = "$mode host resume"
             ui.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
             ui.runOnUiThread { lifecycleSnapshots += "$mode after resume at=${SystemClock.uptimeMillis()} playing=${player.isPlaying} paused=${player.isPaused} position=${player.currentTime}" }
-            ui.onNodeWithText(selectedUi).assertIsNotEnabled()
+            ui.onNodeWithTag("theme-selector").assertTextContains(if (selectedUi == "Live (DVR)") "Live" else selectedUi, substring = true).assertIsEnabled()
             phase = "$mode UI replacement"
-            ui.onNodeWithText(mode).performScrollTo().performClick()
-            ui.onNodeWithText(mode).assertIsNotEnabled()
+            workspaceTheme(ui, mode)
+            ui.onNodeWithTag("theme-selector").assertTextContains(if (mode == "Live (DVR)") "Live" else mode, substring = true).assertIsEnabled()
             selectedUi = mode
             await("$mode replacement attaches after resume") {
                 playerViews().singleOrNull()?.let { it !== previous && it.player === player } == true

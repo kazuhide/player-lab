@@ -1,5 +1,10 @@
 package com.playerlab.android
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Surface
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,21 +44,38 @@ internal fun analyticsAdMetadata(values: Map<String, String>): AdMetadata = AdMe
 internal fun AnalyticsSsaiControls(controller: PlayerController) {
     var values by remember { mutableStateOf(emptyMap<String, String>()) }
     var result by remember(controller.player) { mutableStateOf("") }
-    fun run(action: () -> Unit) {
-        result = runCatching { action(); "Analytics SSAI signal submitted. Check the matching Dashboard session." }
-            .getOrElse { "Analytics SSAI API failed (${it.javaClass.simpleName}). Check metadata types and collector state." }
+    var signal by remember { mutableStateOf("analytics-ssai-break-start") }
+    val metadata = remember { AnalyticsMetadataState(ssaiMetadataKeys.first()) }
+    val signals = listOf("analytics-ssai-break-start" to "Signal ad break start", "analytics-ssai-ad-start" to "Signal ad start") +
+        SsaiAdQuartile.entries.map { "analytics-ssai-quartile-${it.name}" to "Signal ${it.name} quartile" } +
+        listOf("analytics-ssai-break-end" to "Signal ad break end")
+    Column(Modifier.fillMaxSize()) {
+        WorkspaceHeader(!workspaceKeyboardEditing()) {
+            WorkspacePicker("SSAI signal", signal, signals, "analytics-ssai-signal", compact = true,
+                modifier = Modifier.padding(horizontal = 12.dp)) { signal = it }
+        }
+        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            AnalyticsMetadataEditor("SSAI metadata", "analytics-ssai", ssaiMetadataKeys, values, state = metadata) { values = it }
+            Text("Report stitched-ad transitions at actual ad boundaries. Inspect the matching Bitmovin Dashboard session to confirm ingestion. Ad position is PREROLL, MIDROLL or POSTROLL; counts and durationInMs are nonnegative whole numbers; isSlate is true or false.", style = MaterialTheme.typography.bodySmall)
+            if (result.isNotEmpty()) Text(result, style = MaterialTheme.typography.bodySmall)
+        }
+        Surface(tonalElevation = 2.dp) {
+            Button(onClick = {
+                result = runCatching {
+                    val ssai = requireNotNull(controller.player.analytics).ssai
+                    when (signal) {
+                        "analytics-ssai-break-start" -> ssai.adBreakStart(analyticsAdBreakMetadata(values))
+                        "analytics-ssai-ad-start" -> ssai.adStart(analyticsAdMetadata(values))
+                        "analytics-ssai-break-end" -> ssai.adBreakEnd()
+                        else -> {
+                            val quartile = SsaiAdQuartile.valueOf(signal.removePrefix("analytics-ssai-quartile-"))
+                            val metadata = AdQuartileMetadata.Builder().apply { values["failedBeaconUrl"]?.let(::setFailedBeaconUrl) }.build()
+                            ssai.adQuartileFinished(quartile, metadata)
+                        }
+                    }
+                    "Analytics SSAI signal submitted. Check the matching Dashboard session."
+                }.getOrElse { "Analytics SSAI API failed (${it.javaClass.simpleName}). Check metadata types and collector state." }
+            }, modifier = Modifier.fillMaxWidth().padding(12.dp).testTag(signal)) { Text(signals.first { it.first == signal }.second) }
+        }
     }
-    Text("Analytics SSAI signals", style = MaterialTheme.typography.titleSmall)
-    Text("These commands report stitched-ad transitions to the collector. Send them at the actual ad transitions in a compatible stream. Ad position accepts PREROLL, MIDROLL or POSTROLL; counts and durationInMs are nonnegative whole numbers, and isSlate is true or false.", style = MaterialTheme.typography.bodySmall)
-    AnalyticsMetadataEditor("SSAI metadata", "analytics-ssai", ssaiMetadataKeys, values) { values = it }
-    Button(onClick = { run { requireNotNull(controller.player.analytics).ssai.adBreakStart(analyticsAdBreakMetadata(values)) } }, modifier = Modifier.testTag("analytics-ssai-break-start")) { Text("Signal ad break start") }
-    Button(onClick = { run { requireNotNull(controller.player.analytics).ssai.adStart(analyticsAdMetadata(values)) } }, modifier = Modifier.testTag("analytics-ssai-ad-start")) { Text("Signal ad start") }
-    SsaiAdQuartile.entries.forEach { quartile ->
-        Button(onClick = { run {
-            val metadata = AdQuartileMetadata.Builder().apply { values["failedBeaconUrl"]?.let(::setFailedBeaconUrl) }.build()
-            requireNotNull(controller.player.analytics).ssai.adQuartileFinished(quartile, metadata)
-        } }) { Text("Signal ${quartile.name} quartile") }
-    }
-    Button(onClick = { run { requireNotNull(controller.player.analytics).ssai.adBreakEnd() } }, modifier = Modifier.testTag("analytics-ssai-break-end")) { Text("Signal ad break end") }
-    Text(result, style = MaterialTheme.typography.bodySmall)
 }

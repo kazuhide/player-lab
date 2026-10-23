@@ -3,6 +3,15 @@ import SwiftUI
 import UIKit
 #endif
 
+private enum NativePlaylistPane: String, CaseIterable, Identifiable {
+    case drafts = "Sources"
+    case options = "Options"
+    case operations = "Operations"
+    case state = "State"
+    case code = "Code"
+    var id: String { rawValue }
+}
+
 struct NativePlaylistInspector: View {
     @ObservedObject var model: PlayerModel
     @ObservedObject var workbench: NativePlaylistWorkbench
@@ -10,6 +19,7 @@ struct NativePlaylistInspector: View {
     @State private var operation = NativePlaylistOperation.load
     @State private var editing: NativePlaylistEntry?
     @State private var error: String?
+    @State private var pane = NativePlaylistPane.drafts
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -18,7 +28,10 @@ struct NativePlaylistInspector: View {
                 Spacer()
                 Button("Close") { dismiss() }.accessibilityIdentifier("playlist.close")
             }
+            WorkspaceChoice(title: "Section", selection: $pane, options: NativePlaylistPane.allCases, label: { $0.rawValue })
+            .accessibilityIdentifier("playlist.section")
             Form {
+                if pane == .drafts {
                 Section(header: Text("Source drafts")) {
                     Text("Each source has its own URL, offsets, metadata, subtitles and DRM settings. Editing a draft does not change the active SDK playlist until Load, Add or Insert. Applying the main player configuration recreates its normal single-source setup.").font(.caption)
                     Button("Add a copy of the applied source") {
@@ -26,29 +39,25 @@ struct NativePlaylistInspector: View {
                     }
                     .disabled(model.sourceSettings == nil)
                     .accessibilityIdentifier("playlist.addDraft")
-                    ForEach(workbench.entries) { entry in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(entry.source.title.isEmpty ? "Untitled source" : entry.source.title)
-                            HStack {
-                                Button("Edit") { editing = entry }.accessibilityIdentifier("playlist.edit.\(entry.id)")
-                                Button("Remove draft") { workbench.removeDraft(entry.id) }.accessibilityIdentifier("playlist.removeDraft.\(entry.id)")
-                                Button("Move up") { move(entry.id, offset: -1) }
-                                    .disabled(workbench.entries.first?.id == entry.id)
-                                Button("Move down") { move(entry.id, offset: 1) }
-                                    .disabled(workbench.entries.last?.id == entry.id)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    if !workbench.entries.isEmpty {
-                        Picker("Source draft for Add/Insert", selection: $workbench.selectedEntry) {
-                            ForEach(workbench.entries) { entry in Text(entry.source.title.isEmpty ? "Untitled" : entry.source.title).tag(Optional(entry.id)) }
+                    if let entry = workbench.entries.first(where: { $0.id == workbench.selectedEntry }) ?? workbench.entries.first {
+                        Picker("Source draft", selection: $workbench.selectedEntry) {
+                            ForEach(workbench.entries) { row in Text(row.source.title.isEmpty ? "Untitled" : row.source.title).tag(Optional(row.id)) }
                         }
                         .accessibilityIdentifier("playlist.selectedDraft")
+                        Text(entry.source.title.isEmpty ? "Untitled source" : entry.source.title)
+                        HStack {
+                            Button("Edit") { editing = entry }.accessibilityIdentifier("playlist.edit.\(entry.id)")
+                            Button("Remove") { workbench.removeDraft(entry.id) }.accessibilityIdentifier("playlist.removeDraft.\(entry.id)")
+                            Button("Move up") { move(entry.id, offset: -1) }.disabled(workbench.entries.first?.id == entry.id)
+                            Button("Move down") { move(entry.id, offset: 1) }.disabled(workbench.entries.last?.id == entry.id)
+                        }
+                        .buttonStyle(.bordered)
                     }
                     Picker("Source factory", selection: $workbench.sourceFactory) { ForEach(NativeSourceFactory.allCases) { Text($0.rawValue).tag($0) } }
                         .accessibilityIdentifier("playlist.sourceFactory")
                 }
+                }
+                if pane == .options {
                 Section(header: Text("PlaylistConfig options")) {
                     Toggle("Preload all sources", isOn: $workbench.preloadAllSources).accessibilityIdentifier("playlist.preload")
                     Picker("Replay mode", selection: $workbench.replayMode) {
@@ -58,6 +67,8 @@ struct NativePlaylistInspector: View {
                     .accessibilityIdentifier("playlist.replayMode")
                     Text("Preloading more sources can increase memory and network use. Only enable it when testing that SDK behavior.").font(.caption)
                 }
+                }
+                if pane == .operations {
                 Section(header: Text("SDK operation")) {
                     Picker("Operation", selection: $operation) { ForEach(NativePlaylistOperation.allCases) { Text($0.rawValue).tag($0) } }
                         #if os(tvOS)
@@ -66,24 +77,22 @@ struct NativePlaylistInspector: View {
                         .accessibilityIdentifier("playlist.operation")
                     if [.insert, .remove, .seek].contains(operation) { input("SDK source index (zero-based)", value: $workbench.index, id: "playlist.index") }
                     if operation == .seek { input("Position (seconds)", value: $workbench.time, id: "playlist.time") }
-                    Button("Run playlist API") {
-                        do { try workbench.run(operation, model: model); error = nil }
-                        catch { self.error = error.localizedDescription }
-                    }
-                    .accessibilityIdentifier("playlist.run")
+
                 }
+                }
+                if pane == .state {
                 Section(header: Text("Result and current SDK playlist")) {
-                    if let error { Text(error).foregroundStyle(.red).accessibilityIdentifier("playlist.error") }
-                    Text(workbench.result).font(.caption).accessibilityIdentifier("playlist.result")
                     Button("Refresh playlist state") { workbench.refresh(model: model) }.accessibilityIdentifier("playlist.refresh")
                     ForEach(workbench.state) { row in
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(row.id).font(.caption).foregroundStyle(.secondary)
+                            Text(row.id).font(.caption).foregroundStyle(Color.workspaceSecondary)
                             Text(row.value).font(.system(.caption, design: .monospaced))
                                 .accessibilityIdentifier("playlist.state." + row.id)
                         }
                     }
                 }
+                }
+                if pane == .code {
                 Section(header: Text("Operation code")) {
                     Text(workbench.code).font(.system(.caption, design: .monospaced))
                         #if !os(tvOS)
@@ -91,8 +100,21 @@ struct NativePlaylistInspector: View {
                         #endif
                         .accessibilityIdentifier("playlist.code")
                 }
+                }
             }
             .accessibilityIdentifier("playlist.form")
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Run target: \(operation.rawValue)").font(.caption.weight(.semibold))
+                Button("Run playlist API") {
+                        do { try workbench.run(operation, model: model); error = nil }
+                        catch { self.error = error.localizedDescription }
+                    }
+                    .accessibilityIdentifier("playlist.run")
+                if let error { Text(error).font(.caption).foregroundStyle(.red).accessibilityIdentifier("playlist.error") }
+                Text(workbench.result).font(.caption).accessibilityIdentifier("playlist.result")
+            }
+            .padding(10)
+            .background(.background, in: RoundedRectangle(cornerRadius: 12))
         }
         .padding()
         .onAppear { workbench.refresh(model: model) }

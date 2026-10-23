@@ -43,23 +43,27 @@
     },
     {
       "type": "p",
-      "text": "映像の下にスクロールできる操作パネルがあります。Sourceはプリセット、Configurationは設定、Public SDK APIsはAPI・プレイリスト・対応機能の画面を開きます。Playback tracksは現在の選択と再生位置を表示します。設定画面はiPhone・iPadではシート、tvOSでは全画面フォームで開きます。tvOSではリモコンでフォーカスを移動し、Selectとシステムキーボードで操作します。"
+      "text": "iOSとiPadOSでは、再生プレビューの近くにSourceとThemeがあります。tvOSではSourceとPlay/Pauseを表示し、SDKのSystem UIを使います。Settings、APIs、Code、Moreのタブから、それぞれの機能へ移動します。Settingsはグループと項目を選ぶ設定画面、APIsはOperations・State・Events・Host、Codeは適用済みコードです。Moreにはトラック、補助機能、診断があります。tvOSではリモコンでフォーカスを移動し、Selectとシステムキーボードで操作します。対応する環境では、OfflineやCastの専用画面も開けます。"
+    },
+    {
+      "type": "p",
+      "text": "iOSとiPadOSでは、入力欄の領域を確保するために再生プレビューを縮小表示します。隣の再生・一時停止ボタンで操作でき、Expand playerで大きなプレビュー、Collapse playerで縮小表示へ戻せます。入力中に拡大すると、先にキーボードが閉じます。この切り替えではPlayerやソースを作り直しません。"
     },
     {
       "type": "figure",
       "file": "ios-playback-tracks",
-      "caption": "トラック設定を適用した後のiPad画面。映像・Playback tracks・設定の入口を確認できます。German字幕は、この記録例で選んだものです。"
+      "caption": "SettingsでSourceのTitleを選択した画面です。右側の選択欄から他の項目へ移れます。Reset to appliedとApplyは画面下部に固定されています。iPhoneシミュレーターでの画面です。"
     },
     {
       "type": "steps",
       "items": [
-        "SourceでVOD HLSを選び、プレイヤーの再生ボタンを押します。起動時は自動再生が無効、ミュートが有効です。設定を変える前に映像と再生位置が進むことを確認します。",
-        "Configure source and playbackを開きます。最初の比較ではソースURLを変えず、Start offsetに5を入力してStartを選びます。Apply時の動作がReload sourceになることを確認して適用します。必要なら再生を開始し、指定位置付近から始まることを確認します。SDKがメディアの境界に合わせて位置を補正する場合があります。",
-        "設定を開き直し、起動時のAutoplayを無効から有効へ変え、Start mutedは有効のままにします。Recreate player and reload sourceの表示を確認してApplyを押し、自動でミュート再生が始まることを確認します。Player設定に差がある場合だけ再生成し、変更がなければApplyは無効になります。",
-        "iOSとiPadOSではPlayer UIのDefault、Sports、Live (DVR)、Cinemaを切り替え、ボタンやメニューの配置を比較します。UIの切り替えでもソースを読み込み直します。tvOSはSystem UIを使い、Web UIの選択欄はありません。",
-        "音声・字幕や映像の拡大方法は以下の設定手順で試します。必要なトラックを含むソースを使ってください。Playback tracksには現在選択されているネイティブトラックを表示します。",
-        "ConfigurationのShow applied codeで変更した値と適用済みコードを比較します。続いて、後述の手順でAPI inspectorのOperations・State・Eventsを使い、操作と結果を確認します。",
-        "ライブの巻き戻しを試す場合はLive HLSを選んで再生し、巻き戻し範囲が得られるのを待ちます。負の補助オフセットはライブ端から過去への距離です。Go to live edgeで戻り、behindLive、atLiveEdge、イベントログを確認します。"
+        "SourceでVOD HLSを選び、Playで再生します。初期状態はAutoplayが無効、ミュートが有効です。iOS・iPadOSでプレビューが縮小表示の場合は、Expand playerで拡大するとPositionも表示されます。映像と再生位置が進むことを確認してから設定を変更します。",
+        "Settings → Start positionでStart offsetを選び、5を入力します。次にOffset referenceを選んでStartを指定します。Applyの近くにReload sourceと表示されていることを確認して適用し、再生開始後の位置を比較します。SDKがメディアの境界に合わせて位置を補正する場合があります。",
+        "Settings → Playback → Autoplayを有効にします。Start mutedは有効のままにし、Recreate player and reload sourceを確認してApplyを押します。Player設定に差がある場合だけ再生成し、変更がなければApplyは無効です。自動でミュート再生が始まることを確認します。",
+        "iOSとiPadOSではThemeでDefault、Sports、Live (DVR)、Cinemaを切り替え、操作部を比較します。UIの切り替えでもソースを読み込み直します。tvOSはSystem UIを使い、Web UIのテーマ選択欄はありません。",
+        "初期の音声・字幕はSettings → Tracks、映像の拡大方法はPlayer UIで設定します。必要なトラックを含むソースを使ってください。More → TracksにはSDKが現在選択しているトラックを表示します。",
+        "Codeで変更した値と適用済みコードを比較します。APIsのOperations・State・Eventsで操作し、結果を確認します。",
+        "ライブの巻き戻しはLive HLSで再生し、範囲が得られるのを待ってからMore → Live controlsを開きます。Live edge、負のオフセット操作、アプリのライブ巻き戻し設定はここにあります。More → Diagnosticsにはイベントログがあります。"
       ]
     },
     {
@@ -74,7 +78,7 @@
     {
       "type": "figure",
       "file": "tvos-playback-tracks",
-      "caption": "リモコン操作を確認した際のtvOS画面。Play/Pauseで再生を操作し、設定へフォーカスを移します。すべての実機での動作を示す画像ではありません。"
+      "caption": "以前のレイアウトで撮影した記録例です。リモコン操作を確認した際のtvOS画面。Play/Pauseで再生を操作し、設定へフォーカスを移します。すべての実機での動作を示す画像ではありません。"
     },
     {
       "type": "h2",
@@ -83,16 +87,16 @@
     {
       "type": "steps",
       "items": [
-        "ソースのプリセットの下にある Configure source and playback を選びます。iPhone／iPad はシート、tvOS は全画面のネイティブフォームを開きます。tvOS はリモコンでフォーカスを移動し、Select で操作します。文字入力は OS のキーボードを使います。",
-        "HTTP(S)の絶対URLをSource URLへ入力し、HLSまたはProgressive MP4を選びます。タイトルとHTTP(S)のPoster URLは任意で、空欄にすると削除します。キャッシュ済みHLSは別のオフライン画面を使います。DASHには対応していません。",
-        "開始位置を指定する場合は Start offset に秒数を入力し、Automatic／Start／End を選びます。オフセットの空欄は SDK の既定値です。Automatic は VOD では先頭、ライブではライブ端を基準にします。正負の有限値を受け付け、SDK がストリームの範囲へ補正します。ライブのオフセットは再生開始時に適用されます。",
-        "Autoplay after source load、Start muted、SDK time shift / DVR を選びます。既定は順に無効・有効・有効です。別の Allow DVR controls (app) もアプリのクイックシークを制御します。Maximum bitrate は整数の bit/s（0 は上限なし）、Forward buffer は 0 以上の有限の秒数（0 は SDK に任せる）で入力します。",
-        "Apply の前に Reload source または Recreate player and reload source の表示を確認します。不正な入力には説明が表示され、Apply は無効になります。Reset to applied は編集中の値だけを適用済みの値へ戻し、Cancel は編集を破棄します。適用済み設定は現在のアプリ起動中に保持されます。"
+        "SettingsでCategoryとSettingを選び、変更する項目を開きます。再生プレビュー、タブ、下書きの要約、Reset to applied（文字を拡大するとReset）、Applyは入力欄の外に表示します。tvOSではリモコンでフォーカスを移動し、Selectで操作します。文字入力はOSのキーボードを使います。",
+        "SourceでHTTP(S)の絶対URLをSource URLへ入力し、HLSまたはProgressive MP4を選びます。TitleとPoster URLは任意で、空欄にすると削除します。対応する環境ではMore → Tools → Offline HLSでキャッシュ済みソースを扱います。DASHには対応していません。",
+        "Start positionでStart offsetに秒数を入力し、Offset referenceからAutomatic、Start、Endを選びます。空欄はSDK既定値です。AutomaticはVODでは先頭、ライブではライブ端を基準にします。正負の有限値を受け付け、SDKがストリームの範囲へ補正します。ライブのオフセットは再生開始時に適用します。",
+        "PlaybackでAutoplay、Start muted、Live time shiftを選びます。既定は順に無効・有効・有効です。More → Live controlsのAllow live rewind controlsはアプリのクイックシークを別に制御します。Quality and bufferには整数のbit/sを指定するMaximum bitrate（0は上限なし）と、0以上の有限の秒数を指定するForward buffer（0はSDKに任せる）があります。",
+        "Applyの前に下書きの要約とReload sourceまたはRecreate player and reload sourceを確認します。不正な入力には説明が表示され、Applyは無効になります。Show fieldで対象の入力へ戻れます。Resetは再生を変えずに下書きを破棄します。分類やタブを変えても下書きは残り、適用済みの設定は現在のアプリ起動中に保持します。"
       ]
     },
     {
       "type": "p",
-      "text": "ソース情報・開始位置・初期トラックの設定だけなら、同じPlayerでソースを再読み込みします。再生設定・拡大方法・ビットレート・バッファーの変更はPlayerと表示ビューを作り直し、タイトル・ポスター・開始位置を含むソースを読み直します。UIモード、アプリのDVRスイッチ、イベントログは保持します。再生は設定した開始位置とAutoplayに従って再開します。プリセットを選ぶとソース固有の項目と初期トラック設定を初期値に戻し、Player設定は保持します。"
+      "text": "ソース情報・開始位置・初期トラックの設定だけなら、同じPlayerでソースを再読み込みします。再生設定・拡大方法・ビットレート・バッファーの変更はPlayerと表示ビューを作り直し、タイトル・ポスター・開始位置を含むソースを読み直します。UIモード、アプリのライブ巻き戻し設定、イベントログは保持します。再生は設定した開始位置とAutoplayに従って再開します。プリセットを選ぶとソース固有の項目と初期トラック設定を初期値に戻し、Player設定は保持します。"
     },
     {
       "type": "table",
@@ -110,7 +114,7 @@
         [
           "Source",
           "Title: Player Lab VOD。選択中のHLS URLは維持",
-          "ソースを再読み込みします。Show applied codeのSourceConfig.titleを確認します。タイトルの変更だけでは映像やトラックは変わりません。"
+          "ソースを再読み込みします。CodeのSourceConfig.titleを確認します。タイトルの変更だけでは映像やトラックは変わりません。"
         ],
         [
           "Start position",
@@ -125,7 +129,7 @@
         [
           "Initial tracks",
           "Audio language: de-AT、Initial subtitles: Preferred language、字幕言語: de",
-          "ソースを再読み込みします。対応するトラックを含むソースで、最初のReady後のPlayback tracksと字幕表示を確認します。一致する言語がなければ既定の選択を維持します。"
+          "ソースを再読み込みします。対応するトラックを含むソースで、読み込みと再生準備の完了後にMore → Tracksと字幕表示を確認します。一致する言語がなければ既定の選択を維持します。"
         ],
         [
           "Video scaling",
@@ -141,29 +145,29 @@
     },
     {
       "type": "p",
-      "text": "初期のプレイヤー設定に戻す場合は、Autoplayを無効、Start mutedとSDK time shift / DVRを有効、Maximum bitrateとForward bufferを0、Video scalingをFitにしてApplyします。Reset to appliedは下書きを破棄する操作で、既定値への復帰ではありません。VOD HLSを再度選ぶとカスタムソースの項目と初期トラック設定を戻せますが、プレイヤー設定は維持します。適用した設定は現在のアプリセッションで保持します。"
+      "text": "初期のプレイヤー設定に戻す場合は、Autoplayを無効、Start mutedとLive time shiftを有効、Maximum bitrateとForward bufferを0、Video scalingをFitにしてApplyします。Resetは下書きを破棄する操作で、既定値への復帰ではありません。VOD HLSを再度選ぶとカスタムソースの項目と初期トラック設定を戻せますが、プレイヤー設定は維持します。適用した設定は現在のアプリセッションで保持します。"
     },
     {
       "type": "note",
       "title": "Applyとリセット",
-      "text": "No configuration changesと表示されているときは、適用済みの設定と同じためApplyは無効です。Reset to appliedは編集中の値を適用済みへ戻し、Cancelは編集を破棄します。どちらも再生中の状態は変えません。"
+      "text": "下書きと適用済みの値が同じときはApplyが無効になります。Reset to appliedは下書きを適用済みへ戻します。分類やタブを切り替えても下書きは残り、適用はしません。Applyの後も設定画面は開いたままになり、変更した項目を表示します。"
     },
     {
       "type": "steps",
       "items": [
-        "Apply後にShow applied codeを開き、適用したPlayer・Source・UIの値を確認します。",
-        "Applyせずに編集して、出力が変わらないことを確認します。iPhone・iPadはCopy codeと文字の選択、tvOSはコード行へのフォーカス移動で読みます。tvOSにクリップボード連携はありません。"
+        "Applyの後にCodeを選び、適用中のPlayer・Source・UIの値を確認します。iPhoneとiPadではWrap linesが初期状態で有効です。元の行の長さを比較する場合は無効にできます。tvOSのコードは常に折り返して表示します。",
+        "Applyせずに編集して、Codeの出力が変わらないことを確認します。iPhone・iPadはCopy codeと文字の選択、tvOSは折り返したコード行へのフォーカス移動で読みます。tvOSにクリップボード連携はありません。"
       ]
     },
     {
       "type": "figure",
       "file": "ios-applied-code",
-      "caption": "iPadの適用済みSwiftコード。映像の拡大方法とソース設定を含み、編集中の値は含みません。Playerキーは置き換え用の文字列です。"
+      "caption": "Codeに表示した適用済みのSwiftコードです。Wrap linesを有効にすると長い行を折り返します。未適用の編集値は含まれず、ライセンス値はYOUR_PLAYER_KEYに置き換わります。縮小したプレビューと再生操作も表示されます。"
     },
     {
       "type": "figure",
       "file": "tvos-applied-code",
-      "caption": "tvOSの適用済みSwiftコード。折り返した各行へフォーカスを移して読めます。このTVアプリにクリップボード連携はありません。"
+      "caption": "以前のレイアウトで撮影した記録例です。tvOSの適用済みSwiftコード。折り返した各行へフォーカスを移して読めます。このTVアプリにクリップボード連携はありません。"
     },
     {
       "type": "h2",
@@ -172,10 +176,10 @@
     {
       "type": "steps",
       "items": [
-        "Configure source and playbackを開き、Advanced SDK settingsのEdit additional Player, Source and view settingsを有効にします。Filter configuration API nameでプロパティを検索します。",
-        "その項目のOverrideを有効にします。型に応じてスイッチ、SDKの選択肢、値の入力欄、構造化したJSON、コールバック本文が表示されます。説明で入力可能な値と単位を確認します。Overrideを無効にすると、基本フォームの値またはSDK既定値へ戻ります。",
-        "表示された適用方法を確認してApplyを押します。Sourceの設定はソースを再読み込みし、Playerと表示ビューの設定はプレイヤーを再作成します。無効な値は適用されません。Show applied codeで適用済みのSwift設定を確認します。",
-        "API inspector → StateでRefresh SDK stateを押し、ソース、トラック、対象のPlayerの値を確認します。項目によっては、対応するコンテンツ、サービス、端末がある場合にだけ効果が現れます。"
+        "Settings → Advanced SDKを選びます。API名で検索するかSDKのグループを選び、Settingから一つの項目を開きます。情報ボタン（SDK setting details）で、項目の説明・入力可能な値・単位を確認できます。",
+        "その項目のOverrideを有効にします。値の入力欄は別にあり、型に応じてスイッチ、選択肢、文字列、構造化したJSON、コールバック本文を表示します。入力可能な値と単位を確認してください。上書きを無効にしてApplyを押すと、基本フォームの値またはSDK既定値へ戻ります。",
+        "適用方法を確認してApplyを押します。Sourceの設定はソースを再読み込みし、Playerと表示ビューの設定はプレイヤーを再作成します。無効な値は適用されません。Codeで適用済みのSwift設定を確認します。",
+        "APIs → StateでRefreshを押し、ソース、トラック、対象のPlayerの値を確認します。対応するコンテンツ、サービス、端末がある場合だけ効果が現れる項目もあります。"
       ]
     },
     {
@@ -185,7 +189,7 @@
     {
       "type": "figure",
       "file": "ios-subtitle-array-editor",
-      "caption": "iPhoneのSourceConfig.tracks入力欄。各オブジェクトが字幕トラックを表し、入力可能なプロパティは下の説明に記載されています。"
+      "caption": "以前のレイアウトで撮影した記録例です。iPhoneのSourceConfig.tracks入力欄。各オブジェクトが字幕トラックを表し、入力可能なプロパティは下の説明に記載されています。"
     },
     {
       "type": "p",
@@ -194,11 +198,11 @@
     {
       "type": "figure",
       "file": "ios-subtitle-array-sdk-state",
-      "caption": "配列を適用した後のPlayer.availableSubtitles。ソース内のトラックに加えてmanual-exampleが表示されています。"
+      "caption": "以前のレイアウトで撮影した記録例です。配列を適用した後のPlayer.availableSubtitles。ソース内のトラックに加えてmanual-exampleが表示されています。"
     },
     {
       "type": "p",
-      "text": "適用済みの設定を戻す場合はOverrideを無効にしてApplyを押します。Reset to appliedは編集中の値を戻すだけで、有効なOverrideは解除しません。設定によっては、対応するメディア・端末・外部サービスがないと違いが現れません。"
+      "text": "適用済みの設定を戻す場合はOverrideを無効にしてApplyを押します。Resetは編集中の値を戻すだけで、有効なOverrideは解除しません。設定によっては、対応するメディア・端末・外部サービスがないと違いが現れません。"
     },
     {
       "type": "h2",
@@ -209,19 +213,19 @@
       "items": [
         "LabelingConfig.audioLabelなどのコールバックを検索してOverrideを有効にします。説明でinputの内容と戻り値の型を確認します。",
         "音声ラベルの例ではreturn 'GUI ' + input.label;のように関数の本文を入力し、Applyを押します。下書きの編集だけでは登録・実行されません。",
-        "SDKがその関数を呼ぶ条件のコンテンツを使います。API inspector → StateでCallbackを検索して更新し、呼び出し回数と失敗回数を確認します。登録済みであることと、実際に呼ばれたことを区別できます。",
-        "Show applied codeで適用した本文を確認します。SDK既定の処理へ戻す場合はOverrideを無効にしてApplyを押します。"
+        "SDKがその関数を呼ぶ条件のコンテンツを使います。APIs → StateでCallbackを検索して更新し、呼び出し回数と失敗回数を確認します。登録済みであることと、実際に呼ばれたことを区別できます。",
+        "Codeで適用した本文を確認します。SDK既定の処理へ戻す場合はOverrideを無効にしてApplyを押します。"
       ]
     },
     {
       "type": "figure",
       "file": "ios-callback-editor",
-      "caption": "音声ラベルのコールバック本文。inputで受け取ったラベルに対して、返した文字列をSDKへ渡します。"
+      "caption": "以前のレイアウトで撮影した記録例です。音声ラベルのコールバック本文。inputで受け取ったラベルに対して、返した文字列をSDKへ渡します。"
     },
     {
       "type": "figure",
       "file": "ios-callback-sdk-status",
-      "caption": "SDKが適用済みの音声ラベル関数を呼んだ後の状態。引数をログに出さず、呼び出し回数と失敗回数を表示します。"
+      "caption": "以前のレイアウトで撮影した記録例です。SDKが適用済みの音声ラベル関数を呼んだ後の状態。引数をログに出さず、呼び出し回数と失敗回数を表示します。"
     },
     {
       "type": "note",
@@ -244,7 +248,7 @@
     {
       "type": "steps",
       "items": [
-        "HLS内に音声・字幕のrenditionを持つソースを使います。Initial tracksで任意の音声言語（例：de-AT）を入力し、字幕はAutomatic、Off、Preferred languageから選びます。字幕の言語入力はPreferred languageの場合だけ必要です。",
+        "HLS内に音声・字幕のrenditionを持つソースを使います。Settings → Tracksで任意の音声言語（例：de-AT）を入力し、字幕はAutomatic、Off、Preferred languageから選びます。字幕の言語入力はPreferred languageの場合だけ必要です。",
         "音声の空欄とAutomatic字幕はSDK・OSの選択を使います。言語タグ全体を先に照合し、次に主言語を照合するため、de-ATでdeを選べます。一致する言語がなければ既定の選択を保ちます。OffはSDKの字幕選択APIへnilを渡します。",
         "Fit、Fill (crop)、Stretchから映像の拡大方法を選びます。Fitは縦横比を保って枠内へ収め、Fillは縦横比を保って枠を埋めるため端を切り取ります。Stretchは縦横比を保たず枠を埋めます。変更内容を確認してApplyします。Resetは編集中の値だけを戻します。"
       ]
@@ -252,21 +256,21 @@
     {
       "type": "figure",
       "file": "ios-initial-tracks",
-      "caption": "iPadの初期トラック設定。PlayerConfigの言語プロパティではなく、最初のReadyで一度だけ使う、ソースごとのアプリ設定です。"
+      "caption": "以前のレイアウトで撮影した記録例です。iPadの初期トラック設定です。PlayerConfigの言語プロパティではなく、起動時に一度だけ使うソースごとのアプリ設定です。"
     },
     {
       "type": "figure",
       "file": "ios-video-scaling",
-      "caption": "字幕の優先言語とFill (crop)。拡大方法はSDKのStyleConfig.scalingModeへ渡す設定で、Playerを再生成します。"
+      "caption": "以前のレイアウトで撮影した記録例です。字幕の優先言語とFill (crop)。拡大方法はSDKのStyleConfig.scalingModeへ渡す設定で、Playerを再生成します。"
     },
     {
       "type": "p",
-      "text": "言語の入力値は、対象のSourceが読み込まれて最初のReadyに達した後、公開APIのavailableAudio・availableSubtitlesとsetAudio・setSubtitleで適用します。PlayerConfigの設定項目を増やすものではありません。その後SDKのトラックメニューで選び直した値は、次のソース読み込みまで保ちます。拡大方法は別のSDK設定で、Player生成時にStyleConfig.scalingModeへ渡します。"
+      "text": "言語の入力値は、対象のSourceのSourceLoadedとReadyを両方確認した後、公開APIのavailableAudio・availableSubtitlesとsetAudio・setSubtitleで適用します。PlayerConfigの設定項目を増やすものではありません。その後SDKのトラックメニューで選び直した値は、次のソース読み込みまで保ちます。拡大方法は別のSDK設定で、Player生成時にStyleConfig.scalingModeへ渡します。"
     },
     {
       "type": "note",
-      "title": "Readyで一度だけ選択する理由",
-      "text": "確認したPlayer 3.128.0とHLSでは、SourceLoadedでGermanを選んでも一時的な切り替えにとどまり、Readyより前の音声変更通知でEnglishへ戻りました。音声と字幕の呼び出し順を逆にしても防げませんでした。このため、初期メディアの準備が整う最初のReadyを待ち、対象のSourceが現在も有効であることを確認して一度だけ選択します。このSDKと素材で確認した挙動であり、すべてのストリームへの保証ではありません。"
+      "title": "読み込みと再生準備の完了を待つ理由",
+      "text": "確認したPlayer 3.128.0とHLSでは、SourceLoadedで選んだGermanがReadyの前に音声変更通知でEnglishへ戻る場合がありました。ReadyがSourceLoadedより先に届く場合もあります。アプリは現在の対象Sourceについて両方の通知を記録し、揃った時点で一度だけ選択します。早すぎる適用や適用の欠落を防ぎ、その後の利用者による変更を保ちます。このSDKと素材で確認した挙動であり、すべてのストリームへの保証ではありません。"
     },
     {
       "type": "p",
@@ -275,12 +279,12 @@
     {
       "type": "figure",
       "file": "tvos-initial-tracks",
-      "caption": "tvOSの初期言語設定。リモコンでフォーカスを移し、Selectとシステムキーボードで入力します。"
+      "caption": "以前のレイアウトで撮影した記録例です。tvOSの初期言語設定。リモコンでフォーカスを移し、Selectとシステムキーボードで入力します。"
     },
     {
       "type": "figure",
       "file": "tvos-video-scaling",
-      "caption": "tvOSのフォームでもFit、Fill (crop)、Stretchをリモコンで選べます。"
+      "caption": "以前のレイアウトで撮影した記録例です。tvOSのフォームでもFit、Fill (crop)、Stretchをリモコンで選べます。"
     },
     {
       "type": "p",
@@ -302,7 +306,7 @@
     },
     {
       "type": "p",
-      "text": "プログレッシブMP4を試す場合は、Configure source and playbackにアクセス可能なHTTPまたはHTTPS URLを入力し、Progressive MP4を選んでApplyを押します。シーク用のバイト範囲取得など、Playerが要求する通信にサーバーが対応している必要があります。HLSと再生・シークを比較できます。"
+      "text": "プログレッシブMP4を試す場合は、SettingsのSource URLにMP4のHTTPまたはHTTPS URLを入力し、Source typeでProgressive MP4を選んでApplyを押します。シーク用のバイト範囲取得など、Playerが要求する通信にサーバーが対応している必要があります。HLSと再生・シークを比較できます。"
     },
     {
       "type": "links",
@@ -326,12 +330,12 @@
       "items": [
         "iPhone・iPadはDefaultを選び、tvOSはネイティブのSystem UIを使います。比較したい音声・字幕を含むメディアで再生を開始します。tvOSではリモコンのPlay/Pauseを使います。",
         "一時停止、再開、タイムラインのドラッグを試します。Settingsから速度のプリセットや使用可能な音声・字幕トラックを選べます。",
-        "任意の音量や速度はAPI inspector → Operationsで入力します。全画面表示と表示ビューのAPIを試すときはNative PlayerViewを選びます。"
+        "任意の音量や速度はAPIs → Operationsで入力します。全画面表示と表示ビューのAPIを試すときはNative PlayerViewを選びます。"
       ]
     },
     {
       "type": "p",
-      "text": "既定メニューでは、用意されたプリセットから速度を選びます。スピーカーボタンでミュートを切り替えられても、数値を指定する音量スライダーがない場合があります。これは既定UIでの操作の制限です。API inspectorで使えるAPIや入力値が、このUIに制限されるわけではありません。"
+      "text": "既定メニューでは、用意されたプリセットから速度を選びます。スピーカーボタンでミュートを切り替えられても、数値を指定する音量スライダーがない場合があります。これは既定UIでの操作の制限です。APIsで使えるAPIや入力値が、このUIに制限されるわけではありません。"
     },
     {
       "type": "p",
@@ -343,29 +347,29 @@
     },
     {
       "type": "p",
-      "text": "inspectorはOperations・State・Eventsに分かれています。OperationsはSDKの操作、Stateは現在値の取得、Eventsは通知の記録です。同じソースで項目を一つずつ変えると、操作と結果を対応付けやすくなります。"
+      "text": "APIsはOperations・State・Events・Hostに分かれています。OperationsはSDKの操作、Stateは現在値の取得、Eventsは通知の記録、HostはPlayerの生成方法と映像の表示先です。検索は操作の候補を絞るためのものです。実行するAPIを明示的に選び、Run APIの近くにある選択中の操作名を確認してください。検索への入力だけで実行対象を変えることはありません。関連する状態と直近のイベントで反映を確認し、詳しい調査にはStateとEventsを使います。"
     },
     {
       "type": "steps",
       "items": [
-        "API inspectorのOperationsでPlayer.volumeを検索して選びます。0〜100の整数で50などを入力してRun APIを押し、引数のエラーがないか確認します。Show operation codeは現在の正しい入力に対応するSwift呼び出しを表示します。"
+        "APIsのOperationsでPlayer.volumeを検索して選びます。0〜100の整数で50などを入力してRun APIを押し、引数のエラーがないか確認します。Codeは現在の正しい入力に対応するSwift呼び出しを表示し、Argumentsで入力へ戻ります。"
       ]
     },
     {
       "type": "figure",
       "file": "ios-api-operation",
-      "caption": "Player.volumeの数値を入力してRun APIを実行する画面。Show operation codeで対応するSwift呼び出しを表示できます。"
+      "caption": "OperationsでVolumeを選択した画面です。Run APIは入力欄の下に固定され、Related SDK stateには呼び出し後にPlayerから取得した値を表示します。iOSシミュレーターでの画面です。"
     },
     {
       "type": "steps",
       "items": [
-        "Stateへ切り替え、Player.volumeで絞り込み、Refresh SDK stateで指定値と比較します。別の操作の後も必要に応じて更新します。試し終えたら同じ操作で元の値へ戻します。"
+        "Stateへ切り替え、Player.volumeで絞り込み、Refreshで指定値と比較します。別の操作の後も必要に応じて更新します。試し終えたら同じ操作で元の値へ戻します。"
       ]
     },
     {
       "type": "figure",
       "file": "ios-api-volume-state",
-      "caption": "操作後に現在のSDK Playerから取得したPlayer.volume。"
+      "caption": "StateでPlayer.volumeを絞り込んだ画面です。Refreshで現在のSDK Playerから値を取得します。操作の送信とは別に確認できます。"
     },
     {
       "type": "steps",
@@ -377,7 +381,7 @@
     {
       "type": "figure",
       "file": "tvos-api-state",
-      "caption": "tvOSのAPI inspector。Operations・State・Eventsをリモコンのフォーカス移動とSelectで操作します。"
+      "caption": "以前のレイアウトで撮影した記録例です。tvOSのAPI inspector。Operations・State・Eventsをリモコンのフォーカス移動とSelectで操作します。"
     },
     {
       "type": "note",
@@ -390,7 +394,7 @@
     },
     {
       "type": "p",
-      "text": "API inspectorのPlayer view hostはOperations・State・Eventsの上にあります。PresentationではSDK SwiftUI・SDK SwiftUI with bindings・Native PlayerView・AVPlayerLayer・AVPlayerViewControllerを選べます。変更するとPlayerを再生成して適用済みソースを読み込み、既定値はSDK SwiftUIです。"
+      "text": "映像の表示先やPlayerの生成方法はAPIs → Hostを開き、Host settingでPresentationまたはPlayer factoryを選んで変更します。PresentationではSDK SwiftUI・SDK SwiftUI with bindings・Native PlayerView・AVPlayerLayer・AVPlayerViewControllerを選べます。変更するとPlayerを再生成して適用済みソースを読み込み、既定値はSDK SwiftUIです。Hostの設定はAPI操作の選択欄とは別に表示します。"
     },
     {
       "type": "p",
@@ -423,7 +427,7 @@
     },
     {
       "type": "p",
-      "text": "Picture-in-Pictureとリモート再生には対応するOSと端末が必要です。利用可能状態を確認して使います。Show presentation codeには、選択したビュー・レイヤー・コントローラーを同じBitmovin Playerへ登録するコードを表示します。"
+      "text": "Picture-in-Pictureとリモート再生には対応するOSと端末が必要です。利用可能状態を確認して使います。APIs → HostのHost settingでPresentation codeを選ぶと、選択したビュー・レイヤー・コントローラーを同じBitmovin Playerへ登録するコードを表示します。"
     },
     {
       "type": "p",
@@ -436,10 +440,10 @@
     {
       "type": "steps",
       "items": [
-        "API inspector → OperationsのSharePlay GroupSessionでListen for sessionsを選びます。OSが作った実際のセッションを受け取り、自動的には参加しません。",
-        "ソースを読み込んだ状態でActivate current source activityを押すと、OSへSharePlayの開始を要求します。ソースのURLとタイトルを共有するため、開始前に使うソースを確認します。",
-        "実際のOSセッションを選び、Coordinate current playerまたはCoordinate and joinを使います。参加するPlayerはSourceConfig.options.sharePlayIdentifierを一致させる必要があります。",
-        "Refresh group stateで状態と参加者数を取得します。Leave selected sessionはこのアプリの退出を要求し、Stop listeningは監視だけを止めます。"
+        "More → SharePlayを開き、SharePlayの選択欄でSessionsを選びます。Listen for sessionsはOSが作った実際のセッションを受け取り、自動的には参加しません。",
+        "Activityを選びます。ソースを読み込んだ状態でActivate current source activityを押すと、OSへSharePlayの開始を要求します。ソースのURLとタイトルを共有するため、開始前に使うソースを確認します。",
+        "Coordinateを開いて実際のOSセッションを選び、Coordinate current playerまたはCoordinate and joinを使います。参加するPlayerはSourceConfig.options.sharePlayIdentifierを一致させる必要があります。",
+        "Refresh group stateで状態と参加者数を取得します。CoordinateのLeave selected sessionはこのアプリの退出を要求し、SessionsのStop listeningは監視だけを止めます。"
       ]
     },
     {
@@ -457,18 +461,18 @@
     {
       "type": "steps",
       "items": [
-        "メイン画面でオンデマンドのHLSとDRM設定を適用し、Open offline HLS inspectorを開きます。ライブHLSは有限のダウンロード素材になりません。この画面はtvOSにはありません。",
-        "Wi-Fi制限と必要な空き容量を指定し、既定値またはOfflineConfigで初期化設定を保存します。初期化設定はプロセス全体で共通です。",
-        "初回設定後と起動設定の変更後は、アプリを完全に終了して再起動します。SDKの初期化は起動時に行う必要があり、このとき保存した設定を適用します。オンデマンドのHLSとDRM設定を再びApplyし、オフライン画面を開き直します。",
-        "Select applied HLS source as offline assetで対象を選びます。同じ素材を後から指定する場合は識別子を明示します。Fetch available audio and subtitle tracksでトラックを取得し、ダウンロードする音声と字幕を選びます。",
-        "ダウンロード操作を選んでRun offline APIを押します。SDKの進行状況、offlineState、イベントを確認します。トラック取得や操作の送信だけではダウンロード完了を表しません。",
-        "完了後にキャッシュ済みメディアだけに再生を制限するかを指定し、Create OfflineSourceConfig、Load cached sourceの順に押します。制限を変更した場合は、OfflineSourceConfigを再作成してから読み込みます。現在のPlayerへ読み込み、メイン設定を再びApplyすると、そちらのリモートソースへ戻ります。"
+        "SettingsでオンデマンドのHLSとDRM設定を適用し、More → Tools → Offline HLSを開きます。ライブHLSは有限のダウンロード素材になりません。この画面はtvOSにはありません。",
+        "SectionでManagerを選び、Wi-Fi制限と必要な空き容量を指定します。既定値またはOfflineConfigで初期化設定を保存します。初期化設定はプロセス全体で共通です。",
+        "初回設定後と起動設定の変更後は、アプリを完全に終了して再起動します。SDKの初期化は起動時に行う必要があり、このとき保存した設定を適用します。オンデマンドのHLSとDRM設定を再びApplyし、More → Tools → Offline HLSを開き直します。",
+        "SectionでAssetを選びます。同じ素材を後から指定する場合は識別子を明示し、Select applied HLS source as offline assetで対象を選びます。Fetch available audio and subtitle tracksでトラックを取得し、Download settingsのTracksでダウンロードする音声と字幕を選びます。",
+        "SectionでOperationsを選び、ダウンロード操作を選んでRun offline APIを押します。StateでSDKの進行状況とofflineState、Eventsで通知を確認します。トラック取得や操作の送信だけではダウンロード完了を表しません。",
+        "完了後にSectionでCached playbackを選び、キャッシュ済みメディアだけに再生を制限するかを指定します。Create OfflineSourceConfig、Load cached sourceの順に押します。制限を変更した場合は、OfflineSourceConfigを再作成してから読み込みます。現在のPlayerへ読み込み、Settingsを再びApplyすると、設定したリモートソースへ戻ります。"
       ]
     },
     {
       "type": "figure",
       "file": "ios-offline-track-selection",
-      "caption": "SDKから取得した音声・字幕トラック。各トラックをダウンロード対象にするか選択できます。"
+      "caption": "以前のレイアウトで撮影した記録例です。SDKから取得した音声・字幕トラック。各トラックをダウンロード対象にするか選択できます。"
     },
     {
       "type": "p",
@@ -476,7 +480,7 @@
     },
     {
       "type": "p",
-      "text": "Refresh offline stateで進捗とofflineStateを確認します。別の素材を選ぶと画面のlistenerは外れますが、ダウンロードは取り消しません。止める場合は対象のsuspendやcancelを使います。Deleteはキャッシュを削除します。メイン設定を適用したりソースを再読み込みしたりすると、キャッシュ再生からリモートソースへ戻ります。"
+      "text": "SectionでStateを選び、Refresh offline stateで進捗とofflineStateを確認します。別の素材を選ぶと画面のlistenerは外れますが、ダウンロードは取り消しません。止める場合は対象のsuspendやcancelを使います。Deleteはキャッシュを削除します。Settingsを適用したりソースを再読み込みしたりすると、キャッシュ再生からリモートソースへ戻ります。"
     },
     {
       "type": "h2",
@@ -485,21 +489,21 @@
     {
       "type": "steps",
       "items": [
-        "Open Google Cast inspectorを開きます。受信アプリIDと任意のurn:x-cast:…形式の名前空間を入力し、バックグラウンドセッション、端末探索、セッション終了時の受信側の停止を選びます。",
-        "initializeCasting(options:)を選んでRun Cast APIを実行してから、Player設定のRemoteControlConfig.isCastEnabledを有効にします。受信アプリの欄が空の場合はSDK既定値を使います。",
+        "More → Tools → Google Castを開き、SectionでReceiver settingsを選びます。Settingから受信アプリIDと任意のurn:x-cast:…形式の名前空間を入力し、バックグラウンドセッション、端末探索、セッション終了時の受信側の停止を選びます。",
+        "SectionでOperationsを選び、initializeCasting(options:)とRun Cast APIを実行してから、Settings → Advanced SDKでRemoteControlConfig.isCastEnabledを有効にします。受信アプリの欄が空の場合はSDK既定値を使います。",
         "初期化はプロセス全体で共通です。初期化後の変更は次の起動用に保存するので、アプリを完全に終了して開き直します。Playerだけを再作成してもCastは置き換わりません。",
-        "Refresh Cast stateで初期化、端末の利用可能状態、接続をそれぞれ確認します。操作の選択欄から受信側の再生やメッセージ送信を実行し、通知を確認するときはリスナーを追加します。"
+        "SectionでStateを選び、Refresh Cast stateで初期化、端末の利用可能状態、接続をそれぞれ確認します。Operationsには受信側の再生、メッセージ送信、リスナー登録があり、Eventsで受信した通知を確認します。"
       ]
     },
     {
       "type": "figure",
       "file": "ios-cast-options",
-      "caption": "Google Castの受信アプリと端末探索の設定。アプリのプロセス起動時に使う設定です。"
+      "caption": "以前のレイアウトで撮影した記録例です。Google Castの受信アプリと端末探索の設定。アプリのプロセス起動時に使う設定です。"
     },
     {
       "type": "figure",
       "file": "ios-cast-sdk-state",
-      "caption": "SDKが送信側の初期化済み状態を返した画面。受信端末の利用可能状態と接続状態は別の値です。"
+      "caption": "以前のレイアウトで撮影した記録例です。SDKが送信側の初期化済み状態を返した画面。受信端末の利用可能状態と接続状態は別の値です。"
     },
     {
       "type": "note",
@@ -516,7 +520,7 @@
     },
     {
       "type": "p",
-      "text": "ConfigurationのShow applied codeで、SDKへ渡した設定を確認・保存できます。Applyの前後で比較してください。設定手順の画像はiPadとtvOSの出力です。未適用の編集値は含めず、ライセンス値は置き換え用の文字列です。"
+      "text": "CodeでSDKへ渡した設定を確認・保存できます。Applyの前後で比較してください。未適用の編集値は含めず、ライセンス値は置き換え用の文字列です。以前のレイアウトで撮影した例は、画像の説明に記載しています。"
     },
     {
       "type": "p",
@@ -590,7 +594,7 @@
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
       "line": 389,
-      "label": "対象SourceのReadyでの一度だけの選択"
+      "label": "対象Sourceの初期トラック選択"
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",
@@ -657,6 +661,10 @@
       "path": "apps/ios/Showcase/NativeSharePlay.swift",
       "line": 1,
       "label": "SharePlayセッションの操作"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeWorkspace.swift",
+      "label": "適用済みコードと補助機能の画面"
     }
   ]
 }

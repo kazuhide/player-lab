@@ -28,7 +28,7 @@ object Sources {
         ),
         PlayerSource(
             "live-hls", "Live HLS",
-            "https://demo.unified-streaming.com/k8s/live/scte35.isml/.m3u8",
+            "https://demo.unified-streaming.com/k8s/vod2live/stable/unified-learning.isml/.m3u8",
             SourceType.Hls, isLive = true,
         ),
         PlayerSource(

@@ -19,6 +19,7 @@ from android_scope import build_scope
 from dokka_public import collect
 
 MAIN = 'apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt'
+PLAYER_VIEW = 'apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt'
 SOURCE = 'apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt'
 OFFLINE = 'apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt'
 TIMELINE = 'apps/android/playback/src/main/kotlin/com/playerlab/android/playback/PlaybackTimeline.kt'
@@ -26,7 +27,7 @@ CONFIG = 'apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.k
 EDITOR = 'apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt'
 CONTROL_TEST = 'apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt'
 CODE = 'apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt'
-APP_INPUTS = (MAIN, SOURCE, OFFLINE, TIMELINE, CONFIG, EDITOR, CODE, CONTROL_TEST)
+APP_INPUTS = (MAIN, PLAYER_VIEW, SOURCE, OFFLINE, TIMELINE, CONFIG, EDITOR, CODE, CONTROL_TEST)
 GUI_STATUSES = {'direct', 'preset'}
 
 
@@ -41,10 +42,10 @@ def canonical_id(row):
     return 'android:' + row['owner'] + '.' + member + suffix
 
 
-def reference_evidence(repo, needle='PlayerView(context, displayedPlayer, playerViewConfig(uiMode))', symbol='ShowcaseScreen'):
-    content = (repo / MAIN).read_bytes()
+def reference_evidence(repo, needle='PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,', symbol='PlayerView'):
+    content = (repo / PLAYER_VIEW).read_bytes()
     line = next(i + 1 for i, text in enumerate(content.decode().splitlines()) if needle in text)
-    return {'kind':'app', 'file':MAIN, 'sha256':sha256(content), 'line':line, 'symbol':symbol}
+    return {'kind':'app', 'file':PLAYER_VIEW, 'sha256':sha256(content), 'line':line, 'symbol':symbol}
 
 
 def portable_evidence(items):

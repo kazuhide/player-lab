@@ -25,7 +25,7 @@ export const REFERENCE = {
   /** DASH-IF livesim2 — live, 1 image AdaptationSet (thumbnail tiles). type="dynamic". */
   liveDashThumbnails: "https://livesim2.dashif.org/livesim2/testpic_2s/Manifest_thumbs.mpd",
   /** Unified Streaming — live HLS, sliding window (no EXT-X-ENDLIST in the variant). */
-  liveHls: "https://demo.unified-streaming.com/k8s/live/scte35.isml/.m3u8",
+  liveHls: "https://demo.unified-streaming.com/k8s/vod2live/stable/unified-learning.isml/.m3u8",
 
   // ---- VOD ----
   /** Unified Streaming Tears of Steel — VOD HLS, 7-variant ABR ladder. */

@@ -9,6 +9,8 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -48,7 +50,6 @@ class PlayerFinalizationInstrumentedTest {
     @Test fun dashStaticManifestKeepsSourceOwnershipAndSwitchesFromDvrToVodControls() = finalizedSource("Dash", "manifest.mpd")
 
     private fun finalizedSource(type: String, manifest: String) {
-        control("reset")
         val controller = ui.activity.controller
         val player = controller.player
         val loaded = AtomicBoolean()
@@ -68,15 +69,20 @@ class PlayerFinalizationInstrumentedTest {
                 }
             }
         }
-        ui.onNodeWithText("Sports").performScrollTo().performClick()
+        workspaceTheme(ui, "Sports")
         click("configuration-toggle")
         field("source-url", "http://localhost:5272/$manifest")
         click("source-type-$type")
+        field("source-live-target", "20")
         field("source-title", "Finalization fixture")
-        ui.onNodeWithTag("apply-source").performScrollTo().assertIsDisplayed()
+        // The finite live fixture must not age while its GUI draft is edited.
+        // Leave room before its end for the real rewind and end-of-event checks.
+        control("reset")
+        ui.onNodeWithTag("apply-source").assertIsDisplayed()
             .performSemanticsAction(SemanticsActions.OnClick) { action ->
                 assertTrue(action())
                 source = requireNotNull(controller.configuredSource)
+                assertEquals(20.0, requireNotNull(source!!.config.liveConfig?.targetLatency), 0.0)
                 source!!.on(SourceEvent.Loaded::class) { loaded.set(true) }
             }
         click("configuration-toggle")
@@ -95,6 +101,7 @@ class PlayerFinalizationInstrumentedTest {
         await("live fixture advances") { player.isPlaying && player.currentTime > clock + 1 }
         var target = 0.0
         ui.runOnUiThread { target = player.currentTime - player.timeShift - 10 }
+        workspaceMore(ui, "Live controls")
         ui.onNodeWithText("-10s").performScrollTo().performClick()
         await("rewind finishes at the captured media reference") { shifted.get() > 0 && player.timeShift < 0 && abs(player.currentTime - target) <= 3 }
         awaitWeb(view, """(() => { $visibleScript
@@ -109,8 +116,9 @@ class PlayerFinalizationInstrumentedTest {
             assertEquals("Completed source must derive VOD state", PlaybackMode.VOD, controller.dvr.mode)
             assertTrue("Completed source must disable DVR", !controller.dvr.dvrAvailable)
         }
-        ui.onNodeWithText("-10s").assertIsNotEnabled()
-        ui.onNodeWithText("Live edge").assertIsNotEnabled()
+        workspaceMore(ui, "Live controls")
+        ui.onNodeWithText("-10s").assertDoesNotExist()
+        ui.onNodeWithText("Live edge").assertDoesNotExist()
         awaitWeb(view, """(() => { $visibleScript
           return !visible('.bmpui-ui-livebutton') && !visible('.bmpui-ui-label-behindlive') &&
             !!visible('.bmpui-ui-hugereplaybutton'); })()""", "completed source hides live controls and shows Replay")
@@ -132,10 +140,11 @@ class PlayerFinalizationInstrumentedTest {
         click("apply-source")
         click("configuration-toggle")
         await("new load resets the completed-source state") { controller.configuredSource !== source && player.isLive && controller.dvr.dvrAvailable }
+        workspaceMore(ui, "Live controls")
         ui.onNodeWithText("Live edge").assertIsEnabled()
         awaitWeb(view, """(() => { $visibleScript
           return !!visible('.bmpui-ui-livebutton') && !!visible('.bmpui-ui-label-behindlive'); })()""", "new live load restores visible live controls")
-        ui.onNodeWithText("VOD HLS").performScrollTo().performClick()
+        workspaceSource(ui, "VOD HLS")
         await("explicit VOD source switch remains available") { !player.isLive && controller.dvr.mode == PlaybackMode.VOD }
         println("FINALIZATION_SAFE phase=passed type=$type loaded=${loaded.get()} shifted=${shifted.get()} finished=${finished.get()} sought=${sought.get()} ownerRetained=true")
     }
@@ -150,9 +159,9 @@ class PlayerFinalizationInstrumentedTest {
             return JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
         } finally { connection.disconnect() }
     }
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().assertIsDisplayed().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
     private fun fieldAfterOpen(tag: String, value: String) { click("configuration-toggle"); field(tag, value) }
@@ -176,6 +185,7 @@ class PlayerFinalizationInstrumentedTest {
         const element=visible('${selector}');if(!element)return false;element.click();return true;})()""", "visible $selector")
     private fun awaitWeb(view: WebView, script: String, label: String) {
         val deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(40)
+        var lastTouchReveal=0L
         while(System.nanoTime()<deadline && errors.isEmpty() && ui.activity.controller.lastErrorCode==null) {
             ui.runOnUiThread {
                 val now=android.os.SystemClock.uptimeMillis()
@@ -184,6 +194,12 @@ class PlayerFinalizationInstrumentedTest {
                 try { view.dispatchGenericMotionEvent(event) } finally { event.recycle() }
             }
             if(javascript(view,script)=="true")return
+            if(android.os.SystemClock.uptimeMillis()-lastTouchReveal>=1000 && javascript(view,"""(() => { $visibleScript
+                return !!document.elementFromPoint(innerWidth*.15,innerHeight*.25)?.matches('.bmpui-ui-touch-control-overlay') &&
+                    !visible('.bmpui-ui-controlbar') && !visible('.bmpui-ui-settings-panel'); })()""")=="true") {
+                workspaceTapVisiblePlayer(ui,view)
+                lastTouchReveal=android.os.SystemClock.uptimeMillis()
+            }
             Thread.sleep(100)
         }
         assertTrue("$label; native error codes: $errors",false)

@@ -36,7 +36,7 @@ class PlayerApiInstrumentedTest {
             assertEquals(0.5, controller.player.config.tweaksConfig.timeChangedInterval, 0.0)
         }
         await("VOD resumes after typed settings Apply") { controller.player.isPlaying && controller.player.currentTime > 0.5 }
-        ui.onNodeWithTag("api-settings-code").assertTextContains("timeChangedInterval = 0.5", substring = true)
+        workspaceAppliedCode(ui, overrides = true).assertTextContains("timeChangedInterval = 0.5", substring = true)
         click("api-settings-toggle")
         click("api-runtime-toggle")
         choose("api.Player.volume")
@@ -52,11 +52,11 @@ class PlayerApiInstrumentedTest {
         click("api-section-State")
         field("api-runtime-search", "api.Player.isPlaying")
         click("api-state-refresh")
-        ui.onNodeWithTag("api-state-android:com.bitmovin.player.api.Player.isPlaying").assertTextEquals("true")
+        workspaceState(ui, "android:com.bitmovin.player.api.Player.isPlaying").assertTextEquals("true")
         click("api-section-Events")
         field("api-runtime-search", "PlayerEvent.Playing")
         ui.runOnUiThread { assertTrue((controller.apiEvents["PlayerEvent.Playing"] ?: 0) > 0) }
-        ui.onNodeWithTag("api-event-PlayerEvent.Playing").performScrollTo().assertIsDisplayed()
+        workspaceEvent(ui, "PlayerEvent.Playing").performScrollTo().assertIsDisplayed()
         ui.runOnUiThread { assertNull("No SDK playback error", controller.lastErrorCode) }
     }
 
@@ -77,16 +77,16 @@ class PlayerApiInstrumentedTest {
         click("api-section-State")
         field("api-runtime-search", "api.ssai.SsaiAd.duration")
         click("api-state-refresh")
-        ui.onNodeWithTag("api-state-android:com.bitmovin.player.api.ssai.SsaiAd.duration").assertTextEquals("12.5")
+        workspaceState(ui, "android:com.bitmovin.player.api.ssai.SsaiAd.duration").assertTextEquals("12.5")
     }
 
     private fun choose(member: String) {
         field("api-runtime-search", member)
         click("api-command-android:com.bitmovin.player.$member")
     }
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
+    private fun click(tag: String) = workspaceClick(ui, tag)
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
     private fun await(label: String, condition: () -> Boolean) {

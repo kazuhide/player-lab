@@ -79,13 +79,25 @@ entries while allowing empty values for compilation without credentials.
 
 ## Configure a source and playback
 
-Choose **Configure source and playback** below the source presets. iPhone and
-iPad show a sheet; tvOS opens a full-screen native form with focusable fields,
-inline choices, and the system text keyboard. Edit the draft, check the pending
-action, then choose **Apply**. Invalid fields show an explanation and disable
-Apply. **Reset to applied** restores the current applied values in the draft;
-**Cancel** discards the draft. Neither action reloads or changes the player.
-Applied settings last for the current app session.
+The player stays above or beside the workspace. iPhone and iPad provide **Source**
+and **Theme** selectors; tvOS provides **Source** and **Play/Pause** and uses System
+UI. Use **Settings**, **APIs**, **Code**, or **More**. In Settings, choose a category
+and a setting to open its editor directly. **Apply** and **Reset to applied** stay
+outside the editor's scroll area. Edit the draft, check the pending action, then
+choose Apply. Invalid fields show an explanation and disable Apply; **Show field**
+returns to the relevant setting. Reset restores applied values without changing
+playback. Changing tabs or categories retains the draft. Choosing a source preset
+replaces Source edits while retaining unapplied Player edits. Applied settings
+last for the current app session. tvOS uses remote focus and the system text
+keyboard. At enlarged accessibility text sizes, the reset label is shortened to
+**Reset**. Live-only actions are under More and are hidden for video on demand.
+
+When editing SDK settings, using large text, or opening the keyboard, the player
+can appear as a small preview. Use its **Play/Pause** button for playback or
+**Expand player** to use the full player controls. Expanding dismisses the
+keyboard. **Collapse player** returns room to the editor; opening the keyboard
+also collapses an expanded preview. These layout changes keep the same player,
+source, and unapplied settings.
 
 | Field | Accepted value and behavior |
 | --- | --- |
@@ -96,7 +108,7 @@ Applied settings last for the current app session.
 | Offset reference | Automatic, Start, or End. Automatic uses the beginning for VOD and the live edge for live. The SDK corrects offsets to stream boundaries. A VOD offset applies on load; a live offset applies when playback starts. |
 | Autoplay after source load | Starts the source automatically after Apply or source selection when enabled. Default: off. |
 | Start muted | Initial mute setting when the player is created. Default: on. |
-| SDK time shift / DVR | Enables live DVR in the SDK. Default: on. The separate **Allow DVR controls (app)** switch also governs the app's quick-seek buttons. |
+| Live time shift | Enables the SDK's live rewind support. Default: on. The separate **Allow live rewind controls** preference under More governs the app's quick-seek buttons. |
 | Maximum bitrate | Nonnegative whole bit/s; `0` means unlimited. |
 | Forward buffer | Nonnegative finite seconds; `0` lets the SDK choose. |
 | Initial audio language (app) | Optional two- or three-letter language code, with optional script/region subtags, such as `en`, `de-AT`, or `zh-Hant`. Empty keeps the SDK/OS choice. |
@@ -188,8 +200,8 @@ Replay overlay. Replay can advance the same source again without restoring live
 commands; a new source load clears the completion state. Native SDK timing
 values remain unchanged.
 
-For finite VOD seeking after this completion, open **Configure source and
-playback**, keep the URL and player settings, change only the title, and choose
+For finite VOD seeking after this completion, open **Settings → Source → Title**,
+keep the URL and player settings, change only the title, and choose
 **Apply** when the pending action says **Reload source**. This explicitly loads
 the finalized HLS manifest into a new Source on the same Player. It resets the
 playback position; it is not an automatic reload. `seek(time:)` is a VOD API and
@@ -457,6 +469,12 @@ offset accuracy, bitrate enforcement, physical devices, casting, offline
 playback, or Analytics receipt. The separate `Showcase-iOS-Runtime` scheme above
 checks the shared UI and playback behavior.
 
+`NativeWorkspaceUITests` checks direct setting access, fixed Apply actions,
+draft retention across tabs and rotation, source-preset replacement, API search
+targets, observed SDK state, and enlarged text. It retains screenshots of the
+tested workspace. Automated accessibility audits check the app's exposed
+controls; they do not replace testing with VoiceOver on a physical device.
+
 On 2026-10-20, the configuration schemes passed six tests each on iOS and tvOS
 simulators. The GUI scheme passed one test each on iPhone 17 Pro / iOS 26.4,
 iPad Pro 11-inch (M5) / iOS 26.4, and Apple TV 4K (3rd generation) / tvOS 26.4.
@@ -486,8 +504,9 @@ This packaging check does not establish licensed playback on a device.
 
 ## Applied configuration code
 
-In **Configuration**, open **Show applied code** to read the applied Player,
-Source and UI settings. Draft edits are excluded. iOS provides **Copy code** and
+Open **Code** to read the applied Player, Source and UI settings. Lines wrap by
+default. On iPhone and iPad, turn wrapping off when comparing indentation; tvOS
+always wraps lines. Draft edits are excluded. iOS provides **Copy code** and
 text selection; tvOS displays the code without clipboard integration. The Player
 key is a placeholder, and Analytics license values are not included.
 When initial track preferences are applied, the export includes a retained

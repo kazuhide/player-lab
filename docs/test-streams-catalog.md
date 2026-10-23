@@ -20,7 +20,7 @@ curl -s <url> | grep -E 'type="dynamic"|timeShiftBufferDepth|EXT-X-ENDLIST|EXT-X
 | Live DASH + DVR + multi-audio (~15min) | `https://vs-dash-ww-rd-live.akamaized.net/pl/testcard2020/avc-full.mpd` | BBC R&D testcard (akamai origin that `rdmedia.bbc.co.uk/testcard/simulcast/manifests/avc-full.mpd` 301s to) | `type="dynamic"`, `PT15M`, `lang` deu/eng/fra |
 | Live DASH + subtitles | `https://livesim2.dashif.org/livesim2/testpic_2s/multi_subs.mpd` | DASH-IF livesim2 | `type="dynamic"`, 5 segmented-TTML text AdaptationSets |
 | Live DASH + thumbnails | `https://livesim2.dashif.org/livesim2/testpic_2s/Manifest_thumbs.mpd` | DASH-IF livesim2 | `type="dynamic"`, 1 image AdaptationSet (tiles) |
-| Live HLS | `https://demo.unified-streaming.com/k8s/live/scte35.isml/.m3u8` | Unified Streaming | variant playlist has **no** `EXT-X-ENDLIST` (sliding) |
+| Live HLS | `https://demo.unified-streaming.com/k8s/vod2live/stable/unified-learning.isml/.m3u8` | Unified Streaming | variant playlist has **no** `EXT-X-ENDLIST` (sliding) |
 
 ## VOD
 
@@ -36,15 +36,13 @@ curl -s <url> | grep -E 'type="dynamic"|timeShiftBufferDepth|EXT-X-ENDLIST|EXT-X
 | VOD HLS + sprite scrubbing | `…/test-streams/vod-sprites/master.m3u8` (+ `…/thumbnails/thumbnails.vtt`) | `getThumbnail()` tiles resolve to a real sheet (`specs/sprites.spec.ts`) |
 | VOD HLS + multi-audio (en/de) | `…/test-streams/vod-multiaudio/master.m3u8` | 2 `EXT-X-MEDIA:TYPE=AUDIO`; `setAudio()` switches (`specs/multiaudio.spec.ts`) |
 
-## Known gap
+## Preview images and trick play
 
-- **HLS I-frame playlist (trick-play)** — no verified public reference stream was
-  found (Apple's bipbop URLs now redirect to a generic page; Unified Streaming's
-  ToS base muxes audio and exposes no I-frame variant; the Bitmovin Encoding
-  Templates API can't emit one — see `encoding/test-streams/README.md`). Trick-play
-  scrubbing is still covered by **sprites** (HLS, provisioned) and **thumbnails**
-  (DASH, livesim2). If an HLS I-frame demo is required, host a stream packaged with
-  `EXT-X-I-FRAME-STREAM-INF` and add it here once verified.
+The Live HLS master advertises `EXT-X-I-FRAME-STREAM-INF` entries for I-frame
+playlists. These contain independently decodable video frames for seeking;
+the manifest entries alone do not establish that an SDK uses them. Sprite
+scrubbing uses the separate HLS fixture above, while the DASH thumbnail stream
+provides an image AdaptationSet.
 
 ## Browser test requirements
 

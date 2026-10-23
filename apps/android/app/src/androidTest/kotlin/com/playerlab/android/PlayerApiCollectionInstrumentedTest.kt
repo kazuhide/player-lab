@@ -116,8 +116,8 @@ class PlayerApiCollectionInstrumentedTest {
             val source = c.player.source?.config as? com.bitmovin.player.api.offline.OfflineSourceConfig
             source?.isRestrictToOffline == true && source.drmId?.contentEquals(byteArrayOf(0,16,-2,-1)) == true
         }
-        ui.onNodeWithTag("offline-factory-code").assertTextContains("privateDrmIdBytes", substring = true)
-        ui.onNodeWithTag("offline-factory-code").assertTextContains("true, null)", substring = true)
+        workspaceOfflineCode(ui, factory = true).assertTextContains("privateDrmIdBytes", substring = true)
+        workspaceOfflineCode(ui, factory = true).assertTextContains("true, null)", substring = true)
         // Arbitrary bytes are a constructor routing check, not an issued DRM license or successful offline qualification.
     }
 
@@ -155,15 +155,25 @@ class PlayerApiCollectionInstrumentedTest {
         field("api-setting-value", "https://kazuhide.github.io/player-lab/web/media/vod-sprites/thumbnails/thumbnails.vtt"); click("api-setting-stage")
         select("source.NetworkEngine.HttpURLConnection.allowCrossProtocolRedirects"); click("api-choice-true"); click("api-setting-stage")
         select("source.SourceNetworkConfig.engine"); click("api-choice-HttpURLConnection"); click("api-setting-stage"); click("api-settings-apply")
-        await("SDK loads the real thumbnail track") { c.player.isPlaying && c.player.source?.getThumbnail(c.player.currentTime) != null }
+        try {
+            ui.runOnUiThread {
+                assertEquals("https://kazuhide.github.io/player-lab/web/media/vod-sprites/thumbnails/thumbnails.vtt", c.apiOverrides.values[id("source.SourceConfig.thumbnailTrack")])
+                assertNotNull("The actual source must receive the external thumbnail track", c.player.source?.config?.thumbnailTrack)
+            }
+            await("SDK loads the real thumbnail track") { c.player.isPlaying && c.player.source?.getThumbnail(c.player.currentTime) != null }
+        } finally {
+            ui.runOnUiThread {
+                println("API_COLLECTION_SAFE thumbnailConfigured=${c.player.source?.config?.thumbnailTrack != null} playing=${c.player.isPlaying} paused=${c.player.isPaused} position=${c.player.currentTime} duration=${c.player.duration} thumbnailAtFive=${c.player.source?.getThumbnail(5.0) != null} errorCode=${c.lastErrorCode}")
+            }
+        }
         ui.runOnUiThread { assertTrue((c.player.source!!.config.networkConfig.engine as NetworkEngine.HttpURLConnection).allowCrossProtocolRedirects) }
         click("api-runtime-toggle"); click("api-section-State"); field("api-runtime-search", "media.thumbnail.Thumbnail."); click("api-state-refresh")
         for (member in listOf("start", "end", "x", "y", "width", "height", "uri", "text")) {
-            val node = ui.onNodeWithTag("api-state-${id("media.thumbnail.Thumbnail.$member")}").performScrollTo()
+            val node = workspaceState(ui, id("media.thumbnail.Thumbnail.$member")).performScrollTo()
             node.assertExists()
             assertFalse(node.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].joinToString { it.text }.startsWith("Unavailable"))
         }
-        ui.onNodeWithTag("api-state-${id("media.thumbnail.Thumbnail.width")}").assertTextContains("160", substring = true)
+        workspaceState(ui, id("media.thumbnail.Thumbnail.width")).assertTextContains("160", substring = true)
     }
 
     @Test fun namedManualOrientationValuesReachBothNativeProvidersWithoutAxisSwaps() {
@@ -198,6 +208,24 @@ class PlayerApiCollectionInstrumentedTest {
         command("playlist.PlaylistApi.seek()"); field("api-argument-index", "1"); click("api-command-run")
         await("Added source actually plays and publishes SourceEvent.Loaded") { c.player.source?.config?.type == SourceType.Dash && c.player.isPlaying && c.player.currentTime > 0.5 && (c.apiEvents["SourceEvent.Loaded"] ?: 0) > loadedBefore }
         ui.runOnUiThread { assertNotNull(c.apiEventTimes["SourceEvent.Loaded"]); assertTrue(c.log.any { it == "SourceLoaded" }) }
+        command("Player.play()"); click("api-command-run")
+        ui.onNodeWithTag("api-command-result").assertTextContains("Command submitted", substring = true)
+        ui.onNodeWithTag("api-related-state").assertTextContains("Read at", substring = true)
+        val revision = c.sourceRevision
+        val previousSource = c.configuredSource
+        // Simulate a native transition outside Run. The event, not a GUI wrapper,
+        // must publish the new owner and retire the previous receipt and observation.
+        ui.runOnUiThread { c.player.playlist.seek(c.player.playlist.sources[0], null) }
+        await("Native playlist transition publishes a different source at the same revision") {
+            c.configuredSource !== previousSource && c.configuredSource === c.player.playlist.sources[0]
+        }
+        ui.runOnUiThread { assertEquals(revision, c.sourceRevision) }
+        ui.onNodeWithTag("api-command-result").assertDoesNotExist()
+        ui.onNodeWithTag("api-related-state").assertTextContains("Not read yet", substring = true)
+        command("playlist.PlaylistApi.seek()"); field("api-argument-index", "1"); click("api-command-run")
+        await("GUI seek restores the added DASH source after the external transition") {
+            c.player.source?.config?.type == SourceType.Dash && c.player.isPlaying && c.player.currentTime > 0.5
+        }
         command("playlist.PlaylistApi.add()"); field("api-argument-url", sample + "intentionally-missing-source.m3u8"); field("api-argument-type", "Hls"); click("api-command-run")
         command("playlist.PlaylistApi.seek()"); field("api-argument-index", "2"); click("api-command-run")
         await("Added invalid source publishes its actual SDK error and transforms the Analytics error") {
@@ -219,8 +247,8 @@ class PlayerApiCollectionInstrumentedTest {
         await("Baseline playback") { c.player.isPlaying && c.player.currentTime > 0.5 }
     }
     private fun select(member: String) { field("api-settings-search", member); click("api-select-${id(member)}") }
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
-    private fun field(tag: String, value: String) { ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value); closeSoftKeyboard() }
+    private fun click(tag: String) = workspaceClick(ui, tag)
+    private fun field(tag: String, value: String) { workspaceField(ui, tag, value); closeSoftKeyboard() }
     private fun await(label: String, condition: () -> Boolean) {
         val deadline = SystemClock.uptimeMillis() + 45_000
         while (SystemClock.uptimeMillis() < deadline) {

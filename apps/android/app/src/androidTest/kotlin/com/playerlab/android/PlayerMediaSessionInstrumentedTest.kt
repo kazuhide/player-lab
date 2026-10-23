@@ -57,8 +57,8 @@ class PlayerMediaSessionInstrumentedTest {
             await("Session released") { session.isReleased && c.apiMediaSession == null }
         } finally { automation.dropShellPermissionIdentity() }
     }
-    private fun click(tag: String) = ui.onNodeWithTag(tag).performScrollTo().performClick()
-    private fun field(tag: String, value: String) { ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value); closeSoftKeyboard() }
+    private fun click(tag: String) = workspaceClick(ui, tag)
+    private fun field(tag: String, value: String) { workspaceField(ui, tag, value); closeSoftKeyboard() }
     private fun await(label: String, condition: () -> Boolean) {
         val deadline = SystemClock.uptimeMillis() + 45_000
         while (SystemClock.uptimeMillis() < deadline) {

@@ -1,93 +1,145 @@
 package com.playerlab.android
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
+internal class ApiConfigurationWorkspaceState(applied: ApiOverrides) {
+    var selected by mutableStateOf(ApiSettings.fields.first().id)
+    var purpose by mutableStateOf(apiPurpose(selected))
+    var values by mutableStateOf(applied.values)
+    var inputs by mutableStateOf(applied.values)
+    var error by mutableStateOf("")
+    var message by mutableStateOf("")
+    fun select(id: String) { selected = id; purpose = apiPurpose(id); error = ""; message = "" }
+    var input: String
+        get() = inputs[selected].orEmpty()
+        set(value) { inputs = inputs + (selected to value); message = ""; error = "" }
+}
+
 @Composable
-internal fun ApiConfigurationPanel(controller: PlayerController) {
-    var expanded by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
-    var selected by remember { mutableStateOf(ApiSettings.fields.first().id) }
-    var values by remember(controller.apiOverrides) { mutableStateOf(controller.apiOverrides.values) }
-    var input by remember(selected, controller.apiOverrides) { mutableStateOf(values[selected].orEmpty()) }
-    var error by remember { mutableStateOf("") }
-    var callbackReasons by remember(controller.player, controller.sourceRevision) { mutableStateOf(emptyMap<String, String>()) }
-    var callbackCounts by remember(controller.player, controller.sourceRevision) { mutableStateOf(emptyMap<String, Pair<Int, Int>>()) }
-    Button(onClick = { expanded = !expanded }, modifier = Modifier.testTag("api-settings-toggle")) {
-        Text(if (expanded) "Hide SDK API settings" else "SDK API settings")
-    }
-    if (!expanded) return
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Additional Player, Source and Tweaks configuration", style = MaterialTheme.typography.titleMedium)
-        Text("Each entry is a typed SDK field. An override takes precedence over the standard form. Apply recreates the player and reloads the current source. Removing an override restores the standard form or SDK default on the next Apply.", style = MaterialTheme.typography.bodySmall)
-        ApiStartupPanel(controller)
-        OutlinedTextField(query, { query = it }, label = { Text("Find SDK field") },
-            singleLine = true, modifier = Modifier.fillMaxWidth().testTag("api-settings-search"))
-        ApiSettings.fields.filter { it.id.contains(query, ignoreCase = true) }.forEach { field ->
-            Button(onClick = { selected = field.id; input = values[field.id].orEmpty(); error = "" },
-                modifier = Modifier.testTag("api-select-${field.id}")) {
-                Text(field.id.removePrefix("android:com.bitmovin.player.api.") + if (field.id in values) " (overridden)" else "")
+internal fun ApiConfigurationPanel(controller: PlayerController, state: ApiConfigurationWorkspaceState) {
+    val field = ApiSettings.byId.getValue(state.selected)
+    var showHelp by remember { mutableStateOf(false) }
+    var showPresets by remember(state.selected) { mutableStateOf(false) }
+    val focus = LocalFocusManager.current
+    val keyboardVisible = workspaceKeyboardEditing()
+    val purposes = listOf("All features") + ApiSettings.fields.map { apiPurpose(it.id) }.distinct().sorted()
+    Column(Modifier.fillMaxSize().testTag("api-settings-panel")) {
+        WorkspaceHeader(!keyboardVisible) { Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            WorkspacePicker("Feature", state.purpose, purposes.map { it to it }, "api-settings-category", compact = true) { purpose ->
+                state.purpose = purpose
+                if (purpose != "All features" && apiPurpose(state.selected) != purpose) state.select(ApiSettings.fields.first { apiPurpose(it.id) == purpose }.id)
+                focus.clearFocus()
+            }
+            WorkspacePicker("SDK setting", state.selected,
+                ApiSettings.fields.filter { state.purpose == "All features" || apiPurpose(it.id) == state.purpose }.map { it.id to apiDisplayName(it.id) },
+                "api-settings-field", searchable = true, compact = true) { state.select(it); focus.clearFocus() }
+        } }
+        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (field.kind == ApiValueKind.Choice || field.kind == ApiValueKind.Boolean) {
+                val choices = field.choices.ifEmpty { listOf("true", "false") } + if (field.nullable) listOf("null") else emptyList()
+                Choices(choices.map { it to it }, state.input, "api-choice") { state.input = it }
+            }
+            if (field.kind == ApiValueKind.Records) {
+                if (state.input == "null") TextButton(onClick = { state.input = "" }) { Text("Edit list") }
+                if (field.nullable) TextButton(onClick = { state.input = "null" }) { Text("Use null") }
+            }
+            if (field.kind == ApiValueKind.Records && state.input != "null") ApiRecordEditor(requireNotNull(field.records), state.input, { state.input = it })
+            else if (field.kind != ApiValueKind.Boolean && field.kind != ApiValueKind.Choice) OutlinedTextField(state.input, { state.input = it }, label = { Text("${field.kind} value") },
+                textStyle = if (field.kind == ApiValueKind.Script) MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodyLarge,
+                visualTransformation = if (field.secret || field.drmParameter && field.kind in listOf(ApiValueKind.Text, ApiValueKind.StringMap)) PasswordVisualTransformation() else VisualTransformation.None,
+                minLines = if (field.kind == ApiValueKind.Script) if (keyboardVisible) 2 else 3 else 1,
+                maxLines = 4,
+                // Script and list choices are presets, not a restriction on custom input.
+                trailingIcon = if (field.choices.isEmpty()) null else ({ Box {
+                    IconButton(onClick = { showPresets = true }, modifier = Modifier.testTag("api-setting-presets")
+                        .semantics { contentDescription = "Preset values" }) { Text("⋮", style = MaterialTheme.typography.titleMedium) }
+                    DropdownMenu(expanded = showPresets, onDismissRequest = { showPresets = false }) {
+                        (field.choices + if (field.nullable) listOf("null") else emptyList()).distinct().forEachIndexed { index, value ->
+                            DropdownMenuItem(text = { Text(value, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+                                onClick = { state.input = value; showPresets = false; focus.clearFocus() },
+                                modifier = Modifier.testTag("api-setting-preset-$index"))
+                        }
+                    }
+                } }),
+                modifier = Modifier.fillMaxWidth().then(if (field.kind == ApiValueKind.Script)
+                    Modifier.heightIn(min = if (keyboardVisible) 80.dp else 104.dp, max = 160.dp) else Modifier)
+                    .testTag("api-setting-value"))
+            val unstaged = state.inputs.containsKey(state.selected) && state.inputs[state.selected] != state.values[state.selected]
+            Text(when {
+                unstaged -> "Edited value is not staged. Stage override before Apply."
+                state.selected in state.values && state.values[state.selected] != controller.apiOverrides.values[state.selected] -> "Staged override; not applied."
+                state.selected in state.values -> "Applied override"
+                state.selected in controller.apiOverrides.values -> "Removal staged. Apply to restore the standard form or SDK default."
+                else -> "Using the standard form or SDK default"
+            }, style = MaterialTheme.typography.labelMedium, modifier = Modifier.testTag("api-setting-draft-status"))
+            TextButton(onClick = { showHelp = true }, modifier = Modifier.testTag("api-setting-help")) { Text("Setting details and requirements") }
+            if (field.id.contains("NetworkEngine.Cronet") || field.id.endsWith("SourceNetworkConfig.engine")) {
+                OutlinedButton(onClick = { ApiNativeFactories.prepareCronet(controller.hostContext) }, modifier = Modifier.testTag("api-cronet-prepare")) { Text("Prepare Google Play services Cronet") }
+                Text(ApiNativeFactories.providerStatus, modifier = Modifier.testTag("api-cronet-status"), style = MaterialTheme.typography.bodySmall)
             }
         }
-        val field = ApiSettings.byId.getValue(selected)
-        Text(field.id.removePrefix("android:"), style = MaterialTheme.typography.labelLarge)
-        Text("${field.kind}. ${field.help}", style = MaterialTheme.typography.bodySmall)
-        if (field.kind == ApiValueKind.Script) Text("Callbacks accept a pure input value snapshot and return the documented value. Only your staged body is executed; code is kept in memory, with no Java/Android access. Budgets are 50000 interpreter instructions, 25 milliseconds of thread CPU time, 250 milliseconds of wall time, and a stack depth of 64. If CPU time is unavailable, the wall limit is 75 milliseconds. Limits are checked at execution/conversion checkpoints; native built-ins are not preempted. This is not a separate-process memory sandbox.", style = MaterialTheme.typography.bodySmall)
-        if (field.choices.isNotEmpty() || field.kind == ApiValueKind.Boolean) {
-            val choices = field.choices.ifEmpty { listOf("true", "false") } + if (field.nullable) listOf("null") else emptyList()
-            choices.forEach { choice ->
-                Button(onClick = { input = choice }, modifier = Modifier.testTag("api-choice-$choice")) { Text(choice) }
-            }
+        if (state.error.isNotEmpty()) Text(state.error, color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(horizontal = 12.dp).testTag("api-settings-error"), style = MaterialTheme.typography.bodySmall)
+        if (state.message.isNotEmpty()) Text(state.message, maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 12.dp).testTag("api-setting-stage-status"), style = MaterialTheme.typography.bodySmall)
+        Row(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TextButton(onClick = {
+                runCatching { field.normalize(state.input) }.onSuccess {
+                    state.values = state.values + (state.selected to it); state.inputs = state.inputs + (state.selected to it); state.error = ""
+                    state.message = "Override staged. Choose Apply SDK to send it to the player."
+                }.onFailure { state.error = it.message ?: "Invalid SDK field value." }
+                focus.clearFocus()
+            }, modifier = Modifier.weight(1f).testTag("api-setting-stage")) { Text("Stage override") }
+            TextButton(onClick = { state.values = state.values - state.selected; state.inputs = state.inputs - state.selected; state.error = ""; state.message = "Override removal staged." },
+                enabled = state.selected in state.values, modifier = Modifier.testTag("api-setting-remove")) { Text("Remove") }
         }
-        if (field.kind == ApiValueKind.Records) {
-            if (input == "null") Button(onClick = { input = "" }) { Text("Edit list") }
-            if (field.nullable) Button(onClick = { input = "null" }) { Text("Use null") }
-        }
-        if (field.kind == ApiValueKind.Records && input != "null") ApiRecordEditor(requireNotNull(field.records), input, { input = it })
-        else OutlinedTextField(input, { input = it }, label = { Text("SDK field value") },
-            textStyle = if (field.kind == ApiValueKind.Script) MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodyLarge,
-            visualTransformation = if (field.secret || field.drmParameter && field.kind in listOf(ApiValueKind.Text, ApiValueKind.StringMap)) PasswordVisualTransformation() else VisualTransformation.None,
-            modifier = Modifier.fillMaxWidth().testTag("api-setting-value"))
-        Button(onClick = {
-            runCatching { field.normalize(input) }.onSuccess {
-                values = values + (selected to it); error = ""
-            }.onFailure { error = it.message ?: "Invalid SDK field value." }
-        }, modifier = Modifier.testTag("api-setting-stage")) { Text("Use this override") }
-        Button(onClick = { values = values - selected; input = ""; error = "" },
-            enabled = selected in values, modifier = Modifier.testTag("api-setting-remove")) { Text("Remove this override") }
-        if (field.id.contains("NetworkEngine.Cronet") || field.id.endsWith("SourceNetworkConfig.engine")) {
-            Button(onClick = { ApiNativeFactories.prepareCronet(controller.hostContext) }, modifier = Modifier.testTag("api-cronet-prepare")) { Text("Prepare Google Play services Cronet") }
-            Text(ApiNativeFactories.providerStatus, modifier = Modifier.testTag("api-cronet-status"), style = MaterialTheme.typography.bodySmall)
-        }
-        Text("Staged overrides", style = MaterialTheme.typography.titleSmall)
-        values.keys.forEach { Text(it.removePrefix("android:com.bitmovin.player.api."), style = MaterialTheme.typography.bodySmall) }
-        if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("api-settings-error"))
-        Button(onClick = {
-            runCatching { ApiOverrides.validate(values) }.onSuccess {
-                controller.applyPlayerSettings(controller.playerSettings, it); error = ""
-            }.onFailure { error = it.message ?: "Invalid SDK configuration." }
-        }, enabled = values != controller.apiOverrides.values, modifier = Modifier.testTag("api-settings-apply")) { Text("Apply SDK settings and restart") }
-        Button(onClick = { values = controller.apiOverrides.values; input = values[selected].orEmpty(); error = "" },
-            modifier = Modifier.testTag("api-settings-reset")) { Text("Reset SDK draft") }
-        Text("Applied SDK override code", style = MaterialTheme.typography.titleSmall)
-        if (controller.configurationStatus.isNotEmpty()) Text(controller.configurationStatus, style = MaterialTheme.typography.bodySmall)
-        Text("Apply these assignments to fresh configuration objects before creating Player, Source and PlayerView. Use mutable playerConfig and playerViewConfig variables for copy assignments. No license values are included.", style = MaterialTheme.typography.bodySmall)
-        SelectionContainer { Text(controller.apiOverrides.code().ifEmpty { "// No additional SDK overrides." },
-            style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, modifier = Modifier.testTag("api-settings-code")) }
-        Button(onClick = { callbackCounts = controller.apiCallbacks.snapshot() + controller.apiSourceCallbacks.snapshot(); callbackReasons = controller.apiCallbacks.fallbackReasons() + controller.apiSourceCallbacks.fallbackReasons() }, modifier = Modifier.testTag("api-callback-refresh")) { Text("Refresh callback outcomes") }
-        callbackCounts.forEach { (id, count) -> Text("${id.removePrefix("android:com.bitmovin.player.api.")}: calls=${count.first}; fallback=${count.second}; last fallback reason=${callbackReasons[id] ?: "none"}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-callback-$id")) }
+        val changed = state.values.count { (id, value) -> controller.apiOverrides.values[id] != value }
+        val removed = controller.apiOverrides.values.keys.count { it !in state.values }
+        WorkspaceActions("Applied overrides: ${controller.apiOverrides.values.size}. Pending changes: $changed; removals: $removed. Apply recreates the player and reloads its source.",
+            "api-settings-reset", "api-settings-apply", "Apply SDK", enabled = state.values != controller.apiOverrides.values,
+            reset = { state.values = controller.apiOverrides.values; state.inputs = state.values; state.error = ""; state.message = ""; focus.clearFocus() },
+            apply = {
+                focus.clearFocus()
+                runCatching { ApiOverrides.validate(state.values) }.onSuccess {
+                    controller.applyPlayerSettings(controller.playerSettings, it)
+                    state.error = ""
+                    state.message = controller.configurationStatus
+                }.onFailure { state.error = it.message ?: "Invalid SDK configuration. Draft values are retained." }
+            })
     }
+    if (showHelp) AlertDialog(onDismissRequest = { showHelp = false }, title = { Text(apiDisplayName(field.id)) },
+        text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(field.help)
+            if (field.kind == ApiValueKind.Script) Text("Pure JavaScript using a bounded value snapshot. No Java or Android access. Limits: 50000 interpreter instructions, 25 ms thread CPU time, 250 ms wall time, stack depth 64. Without CPU timing the wall limit is 75 ms. Native built-ins are not preempted; this is not a separate-process memory sandbox.")
+        } }, confirmButton = { TextButton(onClick = { showHelp = false }) { Text("Close") } })
+}
+
+@Composable
+internal fun ApiCallbackOutcomes(controller: PlayerController) {
+    var reasons by remember(controller.player, controller.sourceRevision) { mutableStateOf(emptyMap<String, String>()) }
+    var counts by remember(controller.player, controller.sourceRevision) { mutableStateOf(emptyMap<String, Pair<Int, Int>>()) }
+    OutlinedButton(onClick = {
+        counts = controller.apiCallbacks.snapshot() + controller.apiSourceCallbacks.snapshot()
+        reasons = controller.apiCallbacks.fallbackReasons() + controller.apiSourceCallbacks.fallbackReasons()
+    }, modifier = Modifier.testTag("api-callback-refresh")) { Text("Refresh callback outcomes") }
+    if (counts.isEmpty()) Text("No callback outcomes have been read.", style = MaterialTheme.typography.bodySmall)
+    counts.forEach { (id, count) -> Text("${apiDisplayName(id)}: calls=${count.first}; fallback=${count.second}; last fallback reason=${reasons[id] ?: "none"}",
+        style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-callback-$id")) }
 }

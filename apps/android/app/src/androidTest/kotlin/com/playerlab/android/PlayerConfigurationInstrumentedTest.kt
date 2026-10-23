@@ -11,6 +11,9 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -44,7 +47,7 @@ class PlayerConfigurationInstrumentedTest {
     @Test
     fun extensionDraftsValidateApplyAndResetWithoutChangingOwnershipRules() {
         val controller = ui.activity.controller
-        ui.onNodeWithText("Sports").performScrollTo().performClick()
+        workspaceTheme(ui, "Sports")
         click("allow-dvr")
         openConfiguration()
         val original = controller.player
@@ -89,21 +92,21 @@ class PlayerConfigurationInstrumentedTest {
             assertFalse(controller.timeShiftEnabled)
         }
         click("reset-player")
-        ui.onNodeWithTag("config-audio-languages").assert(editable(""))
-        ui.onNodeWithTag("config-http-retries").assert(editable(""))
+        workspaceConfigurationNode(ui, "config-audio-languages").assert(editable("de, en"))
+        workspaceConfigurationNode(ui, "config-http-retries").assert(editable("0.0, 0.25"))
         field("source-audio-languages", "fr")
         field("source-subtitle-label", "Unapplied")
         click("reset-source")
-        ui.onNodeWithTag("source-audio-languages").assert(editable("en, de"))
-        ui.onNodeWithTag("source-subtitle-label").assert(editable("External captions"))
+        workspaceConfigurationNode(ui, "source-audio-languages").assert(editable("en, de"))
+        workspaceConfigurationNode(ui, "source-subtitle-label").assert(editable("External captions"))
         ui.runOnIdle { assertTrue("Reset only changes drafts", replacement === controller.player) }
         scrollToTop()
-        ui.onNodeWithText("Sports").assertIsNotEnabled()
-        ui.onNodeWithText("Live DASH + DVR").performScrollTo().performClick()
+        ui.onNodeWithTag("theme-selector").assertTextContains("Sports", substring = true).assertIsEnabled()
+        workspaceSource(ui, "Live DASH + DVR")
         for (tag in listOf("source-audio-languages", "source-subtitle-url", "source-subtitle-label", "source-subtitle-language")) {
-            ui.onNodeWithTag(tag).assert(editable(""))
+            workspaceConfigurationNode(ui, tag).assert(editable(""))
         }
-        ui.onNodeWithTag("source-subtitle-default").assertIsOff()
+        workspaceConfigurationNode(ui, "source-subtitle-default").assertIsOff()
     }
 
     @Test
@@ -128,7 +131,7 @@ class PlayerConfigurationInstrumentedTest {
         field("source-live-target", "45")
         val applied = controller.configuredSource
         click("reset-source")
-        ui.onNodeWithTag("source-live-target").assert(editable("30.0"))
+        workspaceConfigurationNode(ui, "source-live-target").assert(editable("30.0"))
         ui.runOnUiThread {
             assertTrue("Reset is draft-only", applied === controller.configuredSource)
             controller.applyPlayerSettings(controller.playerSettings.copy(muted = true))
@@ -143,8 +146,8 @@ class PlayerConfigurationInstrumentedTest {
             assertNull("Blank must preserve SDK defaults", controller.configuredSource?.config?.liveConfig)
         }
         scrollToTop()
-        ui.onNodeWithText("Live DASH + DVR").performScrollTo().performClick()
-        ui.onNodeWithTag("source-live-target").assert(editable(""))
+        workspaceSource(ui, "Live DASH + DVR")
+        workspaceConfigurationNode(ui, "source-live-target").assert(editable(""))
     }
 
     @Test
@@ -162,7 +165,7 @@ class PlayerConfigurationInstrumentedTest {
         }
         field("source-url", Sources.all.first { it.id == "vod-hls" }.url)
         click("source-type-Hls")
-        ui.onNodeWithTag("source-type-Hls").assertIsNotEnabled()
+        workspaceConfigurationNode(ui, "source-type-Hls").assertTextContains("Hls").assertIsEnabled()
         field("source-title", "GUI source")
         field("source-poster", "https://example.com/poster.jpg")
         click("source-poster-persistent")
@@ -179,27 +182,27 @@ class PlayerConfigurationInstrumentedTest {
             assertEquals(-12.5, requireNotNull(config.options.startOffset), 0.0)
             assertEquals(TimelineReferencePoint.End, config.options.startOffsetTimelineReference)
         }
-        ui.onNodeWithTag("source-title").performScrollTo()
+        workspaceConfigurationNode(ui, "source-title").performScrollTo()
         screenshot("android-source-configuration.png")
         field("source-title", "Discard this draft")
         val applied = controller.configuredSource
         click("reset-source")
-        ui.onNodeWithTag("source-title").assert(editable("GUI source"))
+        workspaceConfigurationNode(ui, "source-title").assert(editable("GUI source"))
         ui.runOnUiThread { assertTrue("Reset is draft-only", applied === controller.configuredSource) }
         scrollToTop()
-        ui.onNodeWithText("Live DASH + DVR").performScrollTo().assertIsDisplayed().performClick()
+        workspaceSource(ui, "Live DASH + DVR")
         field("source-title", "Stale same-preset draft")
         scrollToTop()
-        ui.onNodeWithText("Live DASH + DVR").performScrollTo().assertIsDisplayed().performClick()
-        ui.onNodeWithTag("source-title").assert(editable(""))
-        ui.onNodeWithTag("source-offset").assert(editable(""))
-        ui.onNodeWithTag("source-poster").assert(editable(""))
+        workspaceSource(ui, "Live DASH + DVR")
+        workspaceConfigurationNode(ui, "source-title").assert(editable(""))
+        workspaceConfigurationNode(ui, "source-offset").assert(editable(""))
+        workspaceConfigurationNode(ui, "source-poster").assert(editable(""))
     }
 
     @Test
     fun playerApplyRetainsSourceUiAndDvrAndRetiresDetachedPlayers() {
         val controller = ui.activity.controller
-        ui.onNodeWithText("Cinema").performScrollTo().performClick()
+        workspaceTheme(ui, "Cinema")
         click("allow-dvr")
         openConfiguration()
         field("source-title", "Retained source")
@@ -259,16 +262,16 @@ class PlayerConfigurationInstrumentedTest {
             assertFalse(controller.timeShiftEnabled)
             assertFalse(controller.dvr.dvrAvailable)
         }
-        ui.onNodeWithTag("config-startup").performScrollTo()
+        workspaceConfigurationNode(ui, "config-startup").performScrollTo()
         screenshot("android-player-configuration.png")
-        ui.onNodeWithText("Cinema").assertIsNotEnabled()
+        ui.onNodeWithTag("theme-selector").assertTextContains("Cinema", substring = true).assertIsEnabled()
         val active = controller.player
         scrollToTop()
-        ui.onNodeWithText("Sports").performScrollTo().assertIsDisplayed().performClick()
+        workspaceTheme(ui, "Sports")
         ui.runOnUiThread { assertTrue("UI change must retain player", active === controller.player) }
         click("reset-player")
-        ui.onNodeWithTag("config-autoplay").assertIsOff()
-        ui.onNodeWithTag("config-timeshift").assertIsOn()
+        workspaceConfigurationNode(ui, "config-autoplay").assertIsOn()
+        workspaceConfigurationNode(ui, "config-timeshift").assertIsOff()
         ui.runOnUiThread { assertTrue("Reset must not recreate", active === controller.player) }
 
         // Two immediate restarts exercise the interval before Compose can release the prior view.
@@ -291,10 +294,9 @@ class PlayerConfigurationInstrumentedTest {
         // A real D-pad key exits Android touch mode; RequestFocus alone does not do that.
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
         ui.waitForIdle()
-        ui.onNodeWithTag("config-autoplay").performScrollTo()
+        workspaceSetting(ui, "config-muted")
+        ui.onNodeWithTag("config-muted").assertIsDisplayed()
             .performSemanticsAction(SemanticsActions.RequestFocus) { assertTrue("Remote-mode focus request", it()) }
-        ui.onNodeWithTag("config-autoplay").assertIsFocused()
-        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
         ui.onNodeWithTag("config-muted").assertIsFocused().assertIsOff()
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
         ui.onNodeWithTag("config-muted").assertIsOn()
@@ -304,24 +306,18 @@ class PlayerConfigurationInstrumentedTest {
 
     private fun openConfiguration() = click("configuration-toggle")
     private fun click(tag: String) {
-        val node = ui.onNodeWithTag(tag).performScrollTo()
-        try {
-            node.assertIsDisplayed()
-        } catch (failure: AssertionError) {
+        try { workspaceClick(ui, tag) } catch (failure: AssertionError) {
             screenshot("android-offscreen-control.png")
             throw failure
         }
-        node.performClick()
     }
     private fun field(tag: String, value: String) {
-        ui.onNodeWithTag(tag).performScrollTo().performTextReplacement(value)
+        workspaceField(ui, tag, value)
         closeSoftKeyboard()
     }
     private fun editable(value: String) = SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString(value))
     private fun scrollToTop() {
-        val scroll = ui.onNodeWithTag("player-lab-scroll")
-        val position = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
-        scroll.performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, -position) }
+        ui.onNodeWithTag("player-preview").assertIsDisplayed()
     }
     private fun playerViews(): List<PlayerView> = descendants(ui.activity.window.decorView).filterIsInstance<PlayerView>()
     private fun descendants(view: View): List<View> = if (view is ViewGroup) {
