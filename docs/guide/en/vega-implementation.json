@@ -15,7 +15,8 @@
     {
       "type": "h2",
       "text": "Connect the modular Player to Vega media",
-      "id": "integration"
+      "id": "integration",
+      "summary": "Connect the modular Player to Kepler’s native media and video surface, preserving initialization order and session release across app state changes."
     },
     {
       "type": "p",
@@ -26,12 +27,16 @@
       "text": "An SDK is the library and interfaces used to integrate the Player; an API is a public configuration, operation or event exposed by that library. HLS and DASH are streaming formats that can offer several qualities; VOD means on-demand media with a fixed timeline. WebVTT is a text subtitle format with timed cues. DRM controls access to protected media and needs a compatible license service."
     },
     {
+      "type": "h3",
+      "id": "kepler-host-and-native-surface",
+      "text": "Prepare the Kepler host and native surface"
+    },
+    {
       "type": "steps",
       "items": [
         "Build and launch the existing Kepler host following Build the Kepler application in the Vega README linked below. Its identifier is com.playerlab.vega and its main component is com.playerlab.vega.main. Refresh the generated ignored runtime configuration before rebuilding when licenses change.",
         "Follow src/App.tsx: it retains the applied PlayerConfig and SourceConfig and passes them to the Lab component BitmovinPlayer. A separate editable draft prevents incomplete form input from changing playback.",
-        "Follow src/BitmovinPlayer.tsx: KeplerVideoSurfaceView reports a native surface handle. Only an active app and current surface can start a session. The host first waits for the previous session’s release.",
-        "Follow src/playerSession.ts: initialize VideoPlayer, attach the surface, install the media adapters, create the modular SDK Player, bind observers, then load SourceConfig. Preserve this sequence when reusing or extending the host."
+        "Follow src/BitmovinPlayer.tsx: KeplerVideoSurfaceView reports a native surface handle. Only an active app and current surface can start a session. The host first waits for the previous session’s release."
       ]
     },
     {
@@ -45,6 +50,17 @@
           "url": "https://github.com/kazuhide/player-lab/blob/main/apps/vega/README.md#build-the-kepler-application",
           "label": "Vega README: build the Kepler host"
         }
+      ]
+    },
+    {
+      "type": "h3",
+      "id": "native-media-lifecycle",
+      "text": "Initialize native media and manage its lifecycle"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Follow src/playerSession.ts: initialize VideoPlayer, attach the surface, install the media adapters, create the modular SDK Player, bind observers, then load SourceConfig. Preserve this sequence when reusing or extending the host."
       ]
     },
     {
@@ -78,13 +94,23 @@
       "text": "vegaPlayer.ts registers the ReactNative media integration together with the format, renderer, adaptation, subtitle, DRM and related modules used by this app. polyfills.ts connects Amazon’s MediaSource, HTMLMediaElement and WebCrypto, plus XML parsing and Base64 helpers. A polyfill is compatibility code for a runtime API expected by the Web SDK; it does not create a browser document or HTML controls. The session-owned gvideo points the SDK at the current native VideoPlayer."
     },
     {
+      "type": "p",
+      "text": "When the app moves to the background, the host releases native media before suspension. Returning to the foreground starts a replacement session with the retained configuration and source; it does not restore the previous position. A replacement waits for the previous owner’s release before using the global media adapters."
+    },
+    {
       "type": "h2",
       "text": "Change PlayerConfig and SourceConfig",
-      "id": "player-source-config"
+      "id": "player-source-config",
+      "summary": "Map inputs to the Web SDK’s PlayerConfig and SourceConfig, keep Fetch transport and apply typed settings through the current native session."
     },
     {
       "type": "p",
       "text": "Vega uses the Web SDK’s configuration names. PlayerConfig includes playback, buffer and adaptation; SourceConfig selects hls, dash or progressive. The Lab function parseConfiguration builds the basic objects, while VegaSessionApi.prepare materializes the additional typed values and approved functions before player creation and source loading. A property existing in the Web SDK declaration does not establish that the corresponding browser integration is available in this native host."
+    },
+    {
+      "type": "h3",
+      "id": "basic-configuration-fields",
+      "text": "Map the basic configuration fields"
     },
     {
       "type": "code",
@@ -199,11 +225,17 @@
     {
       "type": "h2",
       "text": "Customize the native layout and remote controls",
-      "id": "ui-customization"
+      "id": "ui-customization",
+      "summary": "Change Kepler’s native layout, subtitle overlay and controls while keeping each action reachable by remote focus."
     },
     {
       "type": "p",
       "text": "The Vega app has no browser-based bitmovin-player-ui. App.tsx starts with ui: false, places BitmovinPlayer above a ScrollView, and renders ControlPanel, SDK API experiments and ConfigurationPanel below it. The UI change points are these React Native components and their StyleSheets. Setting PlayerConfig.ui to true or copying a browser theme does not produce HTML controls in Kepler."
+    },
+    {
+      "type": "h3",
+      "id": "native-layout-and-subtitle-overlay",
+      "text": "Change the native layout and subtitle overlay"
     },
     {
       "type": "code",
@@ -238,7 +270,32 @@
           "Restyle subtitle text",
           "BitmovinPlayer’s captions and cue styles set the native overlay position, color, background and font.",
           "Edit those StyleSheet entries. This renderer shows plain cue text; it does not implement WebVTT layout, HTML styling or the browser subtitle settings menu."
-        ],
+        ]
+      ],
+      "widths": [
+        0.2,
+        0.38,
+        0.42
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "vega-caption",
+      "caption": "The existing Vega app draws an external WebVTT cue as native text over the video. The surrounding controls are Kepler components, not the browser Player UI."
+    },
+    {
+      "type": "h3",
+      "id": "remote-focus-and-controls",
+      "text": "Keep remote focus and control actions connected"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Goal",
+        "Current implementation",
+        "How to change it"
+      ],
+      "rows": [
         [
           "Change control layout",
           "ControlPanel.tsx composes rows of native Button components and the Allow DVR Switch.",
@@ -272,14 +329,15 @@
       "text": "Use D-pad and Select on a device, or arrow keys and Enter on a Vega Virtual Device. In the current screen, native buttons provide actions and switches explicitly opt into focus. Keep code output and expandable editors reachable after layout changes, including items below the video. Amazon’s focus guide explains why the spatial relationship between controls affects navigation. A touch-oriented React Native layout is not automatically usable with a TV remote."
     },
     {
-      "type": "figure",
-      "file": "vega-caption",
-      "caption": "The existing Vega app draws an external WebVTT cue as native text over the video. The surrounding controls are Kepler components, not the browser Player UI."
-    },
-    {
       "type": "h2",
       "text": "Try subtitles, SDK operations and HLS insertion",
-      "id": "useful-features"
+      "id": "useful-features",
+      "summary": "Call the installed SDK, render native subtitle cues and try HLS insertion using content and device capabilities suited to each feature."
+    },
+    {
+      "type": "h3",
+      "id": "current-sdk-operations",
+      "text": "Run operations on the current SDK session"
     },
     {
       "type": "p",
@@ -288,10 +346,24 @@
     {
       "type": "steps",
       "items": [
-        "For external subtitles, configure a WebVTT URL, label and language and enable the track on load. After Apply, use PlayerAPI.subtitles.list and PlayerAPI.subtitles.enable with the track ID when needed. Play through a matching cue interval and inspect CueEnter/CueExit events.",
         "For audio, call PlayerAPI.getAvailableAudio and pass a returned track ID to PlayerAPI.setAudio. Compare PlayerAPI.getAudio with the audible output. For quality and buffer experiments, compare current values and playback after the operation. A source with one quality or one audio track cannot demonstrate switching.",
-        "For HLS interstitials, select a source that actually contains insertion markers and enable PlayerConfig.tweaks.enable_sgai_handling. PlayerAPI.sgai.list returns its schedule; getActiveAd is normally empty outside an insertion. Try skip only while applicable and compare AdStarted, AdSkipped, AdBreakFinished and playback.",
         "For low-latency controls, use a suitable live stream and compare target/readback and actual behavior. On VOD, a setter may be accepted while latency remains zero. A registered module does not make every source or device support its feature."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-operation",
+      "caption": "PlayerAPI.getCurrentTime executed during playback. Read the return value together with changing video frames and SDK events."
+    },
+    {
+      "type": "h3",
+      "id": "native-subtitle-rendering",
+      "text": "Render subtitle cues in native text"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "For external subtitles, configure a WebVTT URL, label and language and enable the track on load. After Apply, use PlayerAPI.subtitles.list and PlayerAPI.subtitles.enable with the track ID when needed. Play through a matching cue interval and inspect CueEnter/CueExit events."
       ]
     },
     {
@@ -307,7 +379,22 @@
     },
     {
       "type": "p",
-      "text": "attachSubtitleDisplay is the app’s text renderer. It tracks active cue text, removes cues on CueExit, clears the overlay when subtitles are disabled and detaches its event callbacks on disposal. This is why configuring a track and rendering its cues are separate parts of the integration. SGAI means server-guided ad insertion: it follows markers in the HLS source, unlike client-side ad integration. If an insertion falls outside the media window, compare the source’s program date time with the insertion start time."
+      "text": "attachSubtitleDisplay is the app’s text renderer. It tracks active cue text, removes cues on CueExit, clears the overlay when subtitles are disabled and detaches its event callbacks on disposal. This is why configuring a track and rendering its cues are separate parts of the integration."
+    },
+    {
+      "type": "h3",
+      "id": "hls-interstitials",
+      "text": "Handle insertion markers in HLS"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "For HLS interstitials, select a source that actually contains insertion markers and enable PlayerConfig.tweaks.enable_sgai_handling. PlayerAPI.sgai.list returns its schedule; getActiveAd is normally empty outside an insertion. Try skip only while applicable and compare AdStarted, AdSkipped, AdBreakFinished and playback."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "SGAI means server-guided ad insertion: it follows markers in the HLS source, unlike client-side ad integration. If an insertion falls outside the media window, compare the source’s program date time with the insertion start time."
     },
     {
       "type": "note",
@@ -315,14 +402,10 @@
       "text": "The app registers DRM/crypto and additional format modules, but does not thereby supply compatible encrypted media, licenses or decoding capabilities. The official Vega sample excludes the HTML Player UI and client-side ads and documents constraints on server-side ad content. Use this host’s SGAI flow only with appropriate HLS. Keep general Web, Android Fire TV and Vega feature expectations separate."
     },
     {
-      "type": "figure",
-      "file": "vega-api-operation",
-      "caption": "PlayerAPI.getCurrentTime executed during playback. Read the return value together with changing video frames and SDK events."
-    },
-    {
       "type": "h2",
       "text": "FAQ and troubleshooting",
-      "id": "faq"
+      "id": "faq",
+      "summary": "Diagnose native surface, transport, lifecycle, subtitle and licensing issues without confusing Vega with a browser or Android Fire TV integration."
     },
     {
       "type": "table",
@@ -370,9 +453,36 @@
       ]
     },
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/integration/#native-media-lifecycle",
+          "label": "Check native initialization and session release"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/player-source-config/#native-transport-and-apply",
+          "label": "Check Fetch transport and configuration application"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/ui-customization/",
+          "label": "Change native controls, focus and subtitle appearance"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/useful-features/#native-subtitle-rendering",
+          "label": "Check subtitle cue rendering and content requirements"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "Analytics / Observability",
-      "id": "analytics-observability"
+      "id": "analytics-observability",
+      "summary": "Configure the Vega collector and source labels, then find the corresponding playback sessions and metrics in Bitmovin Dashboard."
+    },
+    {
+      "type": "h3",
+      "id": "collector-and-source-metadata",
+      "text": "Configure collection and source metadata"
     },
     {
       "type": "p",
@@ -392,6 +502,11 @@
     {
       "type": "p",
       "text": "tweaks.app_id in this fragment identifies the Player app for licensing; it is not an Analytics content identifier. The constructor receives the optional collector key, while source metadata travels with the source loaded later. The API catalog follows the installed Vega SDK surface, which differs from the React Native wrapper’s analyticsConfig and analyticsSourceMetadata names. Do not copy one platform’s configuration path into the other."
+    },
+    {
+      "type": "h3",
+      "id": "dashboard-session-check",
+      "text": "Find playback sessions in Dashboard"
     },
     {
       "type": "steps",

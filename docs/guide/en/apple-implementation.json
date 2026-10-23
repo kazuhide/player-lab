@@ -6,7 +6,8 @@
     {
       "type": "h2",
       "text": "Integrate the Player and its view",
-      "id": "integration"
+      "id": "integration",
+      "summary": "Create and retain the SDK Player, attach its view, and load a source in the SwiftUI app for iOS, iPadOS, and tvOS."
     },
     {
       "type": "p",
@@ -20,7 +21,7 @@
       "type": "steps",
       "items": [
         "Complete Local setup and licenses, then build Showcase-iOS or Showcase-tvOS in Xcode. The app pins Player 3.128.0 and targets iOS/iPadOS 16.0 or later and tvOS 15.0 or later. Use the dependency versions in this repository when reproducing a result.",
-        "Allow com.playerlab.ios or com.playerlab.tvos on the Player license for the selected target. Configure signing for a physical device. Analytics uses a separate license and is explained at the end of this chapter.",
+        "Allow com.playerlab.ios or com.playerlab.tvos on the Player license for the selected target. Configure signing for a physical device. Analytics uses a separate license; see Analytics / Observability in this implementation guide.",
         "Run the app, choose VOD HLS under Source and press Play. Autoplay is initially off and mute is on. Check that Playback tracks reports an advancing position before comparing another setting.",
         "Open Configure source and playback. After Apply, choose Show applied code to inspect the configuration actually sent to the SDK. The code excludes unapplied drafts and replaces license values with placeholders."
       ]
@@ -59,13 +60,18 @@
         {
           "url": "https://kazuhide.github.io/player-lab/guide/native-apple/",
           "label": "Screen and controls: iOS / iPadOS / tvOS"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/analytics-observability/",
+          "label": "Analytics / Observability"
         }
       ]
     },
     {
       "type": "h2",
       "text": "Configure PlayerConfig and SourceConfig",
-      "id": "player-source-config"
+      "id": "player-source-config",
+      "summary": "Map form values to PlayerConfig and SourceConfig, apply startup and source changes, and configure initial tracks or FairPlay-protected HLS."
     },
     {
       "type": "p",
@@ -157,14 +163,14 @@
       "text": "effect(for:) is an app policy, not an SDK method. A changed PlayerSettings, including view overrides, recreates the Player and surface, then loads the retained source configuration. Source-only changes load a new Source on the existing Player. Both paths restart at the configured offset or SDK default and follow Autoplay; the app does not preserve the current position or playing state. Reset to applied only resets the draft. Selecting a source preset clears its custom source fields and initial track preferences while keeping player settings."
     },
     {
-      "type": "figure",
-      "file": "ios-initial-tracks",
-      "caption": "Initial track preferences on iPad. These fields are app preferences applied through SDK track-selection APIs, rather than language properties on PlayerConfig."
-    },
-    {
       "type": "h3",
       "id": "initial-track-selection",
       "text": "Select initial audio and subtitle tracks"
+    },
+    {
+      "type": "figure",
+      "file": "ios-initial-tracks",
+      "caption": "Initial track preferences on iPad. These fields are app preferences applied through SDK track-selection APIs, rather than language properties on PlayerConfig."
     },
     {
       "type": "p",
@@ -175,6 +181,11 @@
       "text": "Initial preferences are selected once at the intended Source’s first Ready. In the checked HLS startup, selecting during SourceLoaded was overwritten before Ready; the app therefore waits for initial playback readiness and verifies the current Source before selecting. Later choices from the player menu are left intact. For preloaded playlist transitions the app also waits for that source’s playback clock to advance. In your integration, retain the event subscription, verify which source it belongs to, and remove it when retiring that owner."
     },
     {
+      "type": "h3",
+      "id": "fairplay-protected-media",
+      "text": "FairPlay and protected sources"
+    },
+    {
       "type": "note",
       "title": "Protected media and external services",
       "text": "For FairPlay-protected HLS, enable SourceConfig.drmConfig = fairplay in additional settings, provide the certificate URL and the license service URL required by that service, then configure any request headers or preparation callbacks it requires. The form creates FairplayConfig; it does not provide a certificate, rights or a license server. Widevine/PlayReady fields in this Apple app describe receiver configuration and do not add local Apple support for those DRM systems. DRM means Digital Rights Management, the mechanism used to authorize access to encrypted media."
@@ -182,7 +193,8 @@
     {
       "type": "h2",
       "text": "Change the player UI and native presentation",
-      "id": "ui-customization"
+      "id": "ui-customization",
+      "summary": "Change Web UI resources on iOS and iPadOS, select native presentation and scaling, and customize tvOS System UI."
     },
     {
       "type": "table",
@@ -213,6 +225,11 @@
           "API inspector → Presentation. Show presentation code displays the corresponding SDK integration."
         ]
       ]
+    },
+    {
+      "type": "h3",
+      "id": "ios-web-ui",
+      "text": "Web UI on iOS and iPadOS"
     },
     {
       "type": "p",
@@ -254,14 +271,14 @@
       "endLine": 290
     },
     {
-      "type": "figure",
-      "file": "tvos-video-scaling",
-      "caption": "The tvOS native configuration form offers Fit, Fill (crop) and Stretch. These affect the video inside its presentation area, rather than the SwiftUI form’s size."
-    },
-    {
       "type": "h3",
       "id": "native-presentation",
       "text": "Native presentation and scaling"
+    },
+    {
+      "type": "figure",
+      "file": "tvos-video-scaling",
+      "caption": "The tvOS native configuration form offers Fit, Fill (crop) and Stretch. These affect the video inside its presentation area, rather than the SwiftUI form’s size."
     },
     {
       "type": "p",
@@ -283,6 +300,11 @@
       "endLine": 20
     },
     {
+      "type": "h3",
+      "id": "tvos-system-ui",
+      "text": "System UI on tvOS"
+    },
+    {
       "type": "p",
       "text": "For tvOS customization, use SystemUserInterfaceConfig fields such as showSeekBar or showInfoViews in additional settings. For runtime SystemUiApi menu/actions, first select Native PlayerView and keep the System UI engine. The app builds native menu/action objects from structured inputs; contextual and info actions accept actions, while transport-bar menus may be nested. Open the native controls to inspect the result. SwiftUI test buttons outside the player are still edited in ContentView rather than through these SDK settings."
     },
@@ -290,7 +312,7 @@
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/#ui-customization",
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/ui-customization/",
           "label": "Web implementation: shared UI components and CSS"
         },
         {
@@ -302,7 +324,8 @@
     {
       "type": "h2",
       "text": "Integrate useful playback features",
-      "id": "useful-features"
+      "id": "useful-features",
+      "summary": "Call runtime APIs, observe SDK state and events, and integrate offline playback, Cast, SharePlay, and OS playback features with their required hosts and services."
     },
     {
       "type": "p",
@@ -365,6 +388,11 @@
       "endLine": 115
     },
     {
+      "type": "h3",
+      "id": "offline-cast-shareplay",
+      "text": "Offline playback, Cast and SharePlay"
+    },
+    {
       "type": "note",
       "title": "Offline HLS: iOS and iPadOS",
       "text": "Open offline HLS inspector after applying an on-demand HLS source and its DRM settings. Initialize OfflineManager at app launch using the saved settings; after changing process-wide startup options, close and reopen the app. Select the applied source as an offline asset, discover/select tracks, start the download and inspect progress, offlineState and events. Only after completion, create OfflineSourceConfig and load the cached source. The current panel is not provided on tvOS. Use a physical iPhone/iPad for download and offline-playback validation; the recorded simulator run initialized and discovered tracks but did not complete a media download. Offline FairPlay also requires the appropriate persistent-license service."
@@ -400,6 +428,11 @@
       "endLine": 101
     },
     {
+      "type": "h3",
+      "id": "event-owner-lifecycle",
+      "text": "Events and owner lifecycle"
+    },
+    {
       "type": "p",
       "text": "When adopting an event handler, retain it for the lifetime of its SDK owner and remove it before replacing that owner. The API inspector can use listener or publisher transport. In the listener path below, player.add/remove are SDK APIs; playerApiListener and recordApiEvent are app helpers. The identity check prevents a notification queued by a retired player from updating the replacement player’s screen. The same principle applies to source and view listeners. Keep normal playback state handling separate from the bounded visible event history."
     },
@@ -417,7 +450,8 @@
     {
       "type": "h2",
       "text": "Integration FAQ",
-      "id": "faq"
+      "id": "faq",
+      "summary": "Diagnose configuration resets, licensing, UI resources, track selection, and asynchronous operations using the applied code and SDK state."
     },
     {
       "type": "note",
@@ -475,7 +509,8 @@
     {
       "type": "h2",
       "text": "Add Analytics and inspect playback in Observability",
-      "id": "analytics-observability"
+      "id": "analytics-observability",
+      "summary": "Enable the app’s Analytics collector, then find the matching playback session and inspect its metrics in Bitmovin Dashboard Observability."
     },
     {
       "type": "p",

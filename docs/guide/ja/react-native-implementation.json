@@ -15,23 +15,36 @@
     {
       "type": "h2",
       "text": "既存画面を組み込む",
-      "id": "integration"
+      "id": "integration",
+      "summary": "Expoの開発用ホストを用意し、ネイティブPlayerをPlayerViewへ接続します。表示先とソースを現在のPlayerに結びつける実装を説明します。"
     },
     {
       "type": "p",
-      "text": "bitmovin-player-react-nativeは、iOSとAndroidのネイティブPlayer SDKをJavaScriptから操作するためのラッパーです。同じReactコンポーネントでも再生できる形式は同一ではありません。この画面はiOSでHLS・プログレッシブMP4を受け付け、AndroidではDASHも選べます。以下のSourceConfigとPlayerConfigはラッパーの型であり、ブラウザー向けWeb SDKの設定をそのまま転用することはできません。"
+      "text": "bitmovin-player-react-nativeは、iOSとAndroidのネイティブPlayer SDKをJavaScriptから操作するためのラッパーです。同じReactコンポーネントでも再生できる形式は同一ではありません。この画面はiOSでHLS・プログレッシブMP4を受け付け、AndroidではDASHも選べます。SourceConfigとPlayerConfigはラッパーの型であり、ブラウザー向けWeb SDKの設定をそのまま転用することはできません。項目と反映方法は「PlayerConfigとSourceConfig」の節で説明します。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/react-native-implementation/player-source-config/",
+          "label": "PlayerConfigとSourceConfig"
+        }
+      ]
     },
     {
       "type": "p",
       "text": "SDKはPlayerを組み込むためのライブラリーとそのインターフェース、APIは公開された設定・操作・イベントを指します。HLSとDASHは複数の画質を配信できるストリーミング形式で、VODは決まった時間範囲を持つオンデマンド動画です。WebVTTは時刻付きのキューを記した字幕のテキスト形式です。DRMは保護されたメディアへのアクセスを制御する仕組みで、対応するライセンスサービスも必要です。"
     },
     {
+      "type": "h3",
+      "id": "expo-development-host",
+      "text": "Expoの開発用ホストを用意する"
+    },
+    {
       "type": "steps",
       "items": [
         "以下のReact Native READMEの「Build in an Expo project」に従い、共有UIのビルドと外部Expoホストの生成を行います。Expo GoにはネイティブPlayerモジュールが含まれないため、開発用ビルドを使います。生成スクリプトは別のサンプル画面を作るのではなく、このリポジトリのApp.tsxとsrcディレクトリをコピーします。",
-        "PlayerライセンスのiOS・Android両方の許可一覧にcom.playerlab.reactnativeを追加します。生成したホストは、コピー済みのローカル設定を利用します。元のリポジトリのキーファイルを変更しただけでは、作成済みの外部ホストには反映されません。",
-        "App.tsxを開きます。Appが適用済み設定と編集途中の値を保持し、UI選択とrevisionをキーにしてPlayerPaneを配置します。ActivePlayerPaneがusePlayerで取得したPlayerをPlayerViewへ渡します。",
-        "VODプリセットを読み込んで再生し、Show applied codeを開きます。この状態を基準に項目を一つずつ変更します。SDKへ渡した設定、ネイティブSDKのイベント、実際の表示を合わせて確認します。"
+        "PlayerライセンスのiOS・Android両方の許可一覧にcom.playerlab.reactnativeを追加します。生成したホストは、コピー済みのローカル設定を利用します。元のリポジトリのキーファイルを変更しただけでは、作成済みの外部ホストには反映されません。"
       ]
     },
     {
@@ -45,6 +58,18 @@
           "url": "https://github.com/kazuhide/player-lab/blob/main/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README：Expoホストの生成とビルド"
         }
+      ]
+    },
+    {
+      "type": "h3",
+      "id": "native-player-ownership",
+      "text": "現在のネイティブPlayerと表示先を接続する"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "App.tsxを開きます。Appが適用済み設定と編集途中の値を保持し、UI選択とrevisionをキーにしてPlayerPaneを配置します。ActivePlayerPaneがusePlayerで取得したPlayerをPlayerViewへ渡します。",
+        "VODプリセットを読み込んで再生し、Show applied codeを開きます。この状態を基準に項目を一つずつ変更します。SDKへ渡した設定、ネイティブSDKのイベント、実際の表示を合わせて確認します。"
       ]
     },
     {
@@ -65,11 +90,17 @@
     {
       "type": "h2",
       "text": "PlayerConfigとSourceConfigを変更する",
-      "id": "player-source-config"
+      "id": "player-source-config",
+      "summary": "フォームの入力をラッパーのPlayerConfigとSourceConfigへ変換し、プラットフォームごとの条件を検証します。設定の適用とPlayerの再作成も説明します。"
     },
     {
       "type": "p",
       "text": "PlayerConfigは生成時の再生動作や連携サービスを設定し、SourceConfigは再生するストリームと読み込み条件を設定します。src/configuration.tsのparseConfigurationはLabの関数です。文字列入力を検証して数値や列挙値へ変換し、SDKの設定オブジェクトを作ってから追加設定・配列・許可したコールバックを適用します。任意項目の空欄は通常、そのプロパティを省略します。SDKへ空文字列を渡すこととプロパティを削除することは同じではありません。"
+    },
+    {
+      "type": "h3",
+      "id": "basic-configuration-fields",
+      "text": "基本設定をSDKへ対応づける"
     },
     {
       "type": "code",
@@ -179,7 +210,8 @@
     {
       "type": "h2",
       "text": "Player UIとReact側の操作部を変更する",
-      "id": "ui-customization"
+      "id": "ui-customization",
+      "summary": "埋め込みのPlayer UI、共通テーマの同梱、React Native側の操作部、全画面表示の処理を設定します。"
     },
     {
       "type": "p",
@@ -226,6 +258,11 @@
       ]
     },
     {
+      "type": "h3",
+      "id": "bundled-player-ui",
+      "text": "共通Player UIを同梱して選択する"
+    },
+    {
       "type": "code",
       "title": "カスタムテーマに共通JavaScriptとCSSを渡す",
       "text": "          styleConfig: {\n            userInterfaceType: UserInterfaceType.Bitmovin,\n            playerUiJs: WEBUI_JS,\n            playerUiCss: WEBUI_CSS,\n            ...playerConfig.styleConfig,\n          },\n        }",
@@ -252,6 +289,11 @@
       "text": "CustomUiはUIバンドル内のファクトリー名を指定するラッパーのクラスであり、その名前はURLではありません。このアプリはAndroidでfile:///android_asset/webuiの資源を、iOSでメインアプリのバンドル内のファイル名を使います。ネイティブ資源用のプラグインが同梱するため、Metroをリロードしてもアプリに組み込まれたファイルは更新されません。JavaScriptとCSSは同じ共通UIビルドのものを使います。"
     },
     {
+      "type": "h3",
+      "id": "native-view-and-fullscreen",
+      "text": "ネイティブ表示と全画面表示の処理を設定する"
+    },
+    {
       "type": "p",
       "text": "SDK UIの設定を試す場合は、ファクトリーのコードを変える前にWebUiConfig.playbackSpeedSelectionEnabledや映像のscalingModeを変更すると対応を追いやすくなります。PlayerConfig.styleConfig.userInterfaceTypeはプラットフォームによって対応が異なり、System UIはApple向けで、Androidのシステム操作部を選ぶ項目ではありません。isUiEnabledをfalseにするとSDKの操作部を非表示にします。代わりにReactで操作部を作る場合は、必要な操作をアプリで用意します。既存のAPIパネルでは、現在のPlayerに対する再生・停止・シーク・トラック選択を試せます。"
     },
@@ -268,16 +310,20 @@
     {
       "type": "h2",
       "text": "トラック・API操作・ネイティブ連携を試す",
-      "id": "useful-features"
+      "id": "useful-features",
+      "summary": "現在のSDKが返す識別子でトラックを選び、画質を比較します。OS連携、Castの起動設定、オフライン再生の実装上の条件も説明します。"
+    },
+    {
+      "type": "h3",
+      "id": "tracks-and-quality",
+      "text": "トラックを選択して画質を比較する"
     },
     {
       "type": "steps",
       "items": [
         "字幕はWebVTTのURL・ラベル・言語を設定してApplyします。SourceLoaded後に字幕メニュー、またはPlayer.getAvailableSubtitlesで確認し、返された識別子をPlayer.setSubtitleTrackへ渡します。Labの入力欄で識別子を空欄にすると、SDKへundefinedを渡して字幕を無効にします。SDKを直接呼ぶコードではPlayer.setSubtitleTrack(undefined)を使います。一覧に載るだけでなく、キューの時刻まで再生して表示を確認します。",
         "音声切り替えには複数の音声トラックを持つソースを使います。Player.getAvailableAudioTracksの識別子をPlayer.setAudioTrackへ渡し、Player.getAudioTrackと実際の音声を確認します。識別子は現在のソースに属するため、別ソースで使い回しません。",
-        "Androidで画質を選ぶ場合は、Player.getAvailableVideoQualitiesとPlayer.getVideoQualityを確認し、返された画質IDをPlayer.setVideoQualityへ渡します。Androidではautoで自動画質選択へ戻します。iOSでは、Labの一覧にこの操作があっても、ラッパー1.29は警告を出して画質を選択せずに戻ります。iOSの自動画質選択を比較する場合は、Maximum bitrate（PlayerConfig.adaptationConfig.maxSelectableBitrate）を変更してApplyし、選択された画質と再生を確認します。このビットレートの上限設定は、特定の画質を固定して選ぶ操作ではありません。",
-        "OSの機能を試すときは、先にPlayerViewとPlayerの設定を確認します。ピクチャーインピクチャーやバックグラウンド再生には生成ホスト側のネイティブ機能が必要で、AirPlayはApple向けです。フラグだけではOSの権限・受信機・コンテンツの対応条件は補えません。",
-        "CastはCast startup configurationで起動時の設定を保存し、アプリを完全に閉じて起動し直します。Read native Cast startup stateで設定を確認してから、探索・接続・受信機での再生を試します。ラッパー1.29の非推奨APIであるBitmovinCastManager.initializeは何もしないため、Playerの再作成やJavaScriptのリロードはネイティブ起動処理の代わりになりません。"
+        "Androidで画質を選ぶ場合は、Player.getAvailableVideoQualitiesとPlayer.getVideoQualityを確認し、返された画質IDをPlayer.setVideoQualityへ渡します。Androidではautoで自動画質選択へ戻します。iOSでは、Labの一覧にこの操作があっても、ラッパー1.29は警告を出して画質を選択せずに戻ります。iOSの自動画質選択を比較する場合は、Maximum bitrate（PlayerConfig.adaptationConfig.maxSelectableBitrate）を変更してApplyし、選択された画質と再生を確認します。このビットレートの上限設定は、特定の画質を固定して選ぶ操作ではありません。"
       ]
     },
     {
@@ -305,6 +351,18 @@
       "caption": "AndroidビルドのPlayer.getCurrentTimeです。時刻の基準を選び、再生しながら値を取り直して位置の変化を確認します。"
     },
     {
+      "type": "h3",
+      "id": "native-features-and-cast",
+      "text": "Castの起動設定とネイティブ連携を設定する"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "OSの機能を試すときは、先にPlayerViewとPlayerの設定を確認します。ピクチャーインピクチャーやバックグラウンド再生には生成ホスト側のネイティブ機能が必要で、AirPlayはApple向けです。フラグだけではOSの権限・受信機・コンテンツの対応条件は補えません。",
+        "CastはCast startup configurationで起動時の設定を保存し、アプリを完全に閉じて起動し直します。Read native Cast startup stateで設定を確認してから、探索・接続・受信機での再生を試します。ラッパー1.29の非推奨APIであるBitmovinCastManager.initializeは何もしないため、Playerの再作成やJavaScriptのリロードはネイティブ起動処理の代わりになりません。"
+      ]
+    },
+    {
       "type": "note",
       "title": "オフライン再生",
       "text": "独立したOfflineContentConfigと字幕一覧を使い、安定したコンテンツ識別子を設定します。マネージャーを初期化し、オプション取得後のonOptionsAvailableを確認してから、対象のダウンロードを開始します。完了はonCompletedで受け、保存したメディアはPlayer.loadOfflineContentで読み込みます。中断・削除・ライセンス操作は選択中の識別子に対して行われます。保存領域、ダウンロードできるメディア、DRMの権利は別途必要です。"
@@ -312,7 +370,8 @@
     {
       "type": "h2",
       "text": "FAQ・問題の切り分け",
-      "id": "faq"
+      "id": "faq",
+      "summary": "再生位置のリセット、UI変更が反映されない場合、字幕や形式の制約、生成ホストの設定更新について原因と確認方法を整理します。"
     },
     {
       "type": "table",
@@ -356,9 +415,36 @@
       ]
     },
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/react-native-implementation/integration/#expo-development-host",
+          "label": "Expoホストとネイティブ設定を更新する"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/react-native-implementation/player-source-config/",
+          "label": "PlayerConfigとSourceConfigを適用する"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/react-native-implementation/ui-customization/",
+          "label": "同梱UIアセットと全画面表示の処理を確認する"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/react-native-implementation/useful-features/",
+          "label": "トラック選択とネイティブ連携の条件を確認する"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "Analytics / Observability",
-      "id": "analytics-observability"
+      "id": "analytics-observability",
+      "summary": "ラッパーの収集設定とソースのメタデータを指定し、対応する再生セッションをBitmovin Dashboardで確認します。"
+    },
+    {
+      "type": "h3",
+      "id": "collector-and-source-metadata",
+      "text": "収集設定とソースのメタデータを指定する"
     },
     {
       "type": "p",
@@ -377,7 +463,12 @@
     },
     {
       "type": "p",
-      "text": "続くusePlayerの設定でanalyticsConfigをPlayerへ渡します。明示したライセンスの上書きは尊重し、メタデータだけを変更した場合は既定のライセンスを維持します。収集機能がある場合、APIパネルからPlayer.analytics.getUserIdとsendCustomDataEventを試せますが、どちらも集計結果を取得するAPIではありません。分類用のラベルやカスタム項目へ個人情報や機密情報を入れないでください。"
+      "text": "App.tsxでは、この後のusePlayer呼び出しへanalyticsConfigを渡します。明示したライセンスの上書きは尊重し、メタデータだけを変更した場合は既定のライセンスを維持します。収集機能がある場合、APIパネルからPlayer.analytics.getUserIdとsendCustomDataEventを試せますが、どちらも集計結果を取得するAPIではありません。分類用のラベルやカスタム項目へ個人情報や機密情報を入れないでください。"
+    },
+    {
+      "type": "h3",
+      "id": "dashboard-session-check",
+      "text": "Dashboardで再生セッションを確認する"
     },
     {
       "type": "steps",

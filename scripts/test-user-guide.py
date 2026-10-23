@@ -13,7 +13,7 @@ from urllib.parse import unquote, urlsplit
 
 from coverage_report import summarize
 from guide_coverage import api_anchor, category_metrics
-from guide_routes import (COVERAGE_APPS, GUIDE_ASSETS, GUIDE_FILES, IMPLEMENTATION_GUIDES,
+from guide_routes import (COVERAGE_APPS, GUIDE_ASSETS, GUIDE_FILES, IMPLEMENTATION_GUIDES, IMPLEMENTATION_SECTIONS,
                           PUBLIC_BASE, SOURCE_REVISION, route_file)
 from user_guide import build, load_content, render_block, search_text, source_url
 
@@ -100,7 +100,7 @@ class GuideTests(unittest.TestCase):
 
     def test_all_chapters_and_reference_groups_are_public_in_both_languages(self):
         self.assertEqual(set(self.pages), GUIDE_FILES)
-        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 122)
+        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 182)
         for language in ('en', 'ja'):
             fields = [field for group in self.content[language]['settings']['groups'] for field in group['fields']]
             self.assertEqual(len(fields), 144)
@@ -222,15 +222,57 @@ class GuideTests(unittest.TestCase):
                 document = self.content[language][chapter]
                 self.assertEqual([b['id'] for b in document['blocks'] if b['type'] == 'h2'], sections)
                 html = self.pages[route_file(language, chapter)].decode()
-                self.assertIn('<nav class="guide-onpage"', html)
+                self.assertIn('class="guide-implementation-contents"', html)
+                self.assertNotIn('class="guide-code"', html)
                 for section in sections:
                     self.assertIn('id="' + section + '"', html)
-                    self.assertIn('href="#' + section + '"', html)
-                    self.assertTrue(any(item['url'] == chapter + '/#' + section for item in search))
+                    self.assertIn('href="' + section + '/"', html)
+                    self.assertTrue(any(item['url'] == chapter + '/' + section + '/' for item in search))
                 self.assertTrue(any(b['type'] == 'code' and 'source' in b for b in document['blocks']))
                 self.assertTrue(any(b['type'] == 'figure' for b in document['blocks']))
             for chapter in ('web-player-config', 'web-ui-customization'):
                 self.assertIn('<nav class="guide-onpage"', self.pages[route_file(language, chapter)].decode())
+
+    def test_implementation_sections_keep_code_images_bookmarks_and_platform_context(self):
+        for language in ('en', 'ja'):
+            for guide in IMPLEMENTATION_GUIDES:
+                document = self.content[language][guide]
+                starts = [i for i, block in enumerate(document['blocks']) if block['type'] == 'h2']
+                for start, end in zip(starts, [*starts[1:], len(document['blocks'])]):
+                    heading = document['blocks'][start]
+                    slug = guide + '/' + heading['id']
+                    html = self.pages[route_file(language, slug)].decode()
+                    parser = Links()
+                    parser.feed(html)
+                    self.assertIn(escape(heading['summary']), html)
+                    self.assertIn(heading['id'], parser.ids)
+                    self.assertIn('../', parser.links)
+                    self.assertIn('guide-breadcrumb', html)
+                    self.assertIn(escape(document['title']), html)
+                    blocks = document['blocks'][start + 1:end]
+                    self.assertEqual(html.count('class="guide-code"'), sum(b['type'] == 'code' for b in blocks))
+                    self.assertEqual(html.count('class="guide-figure"'), sum(b['type'] == 'figure' for b in blocks))
+                    for block in blocks:
+                        if block['type'] == 'code':
+                            self.assertIn(escape(block['text']), html)
+                        elif block['type'] == 'h3':
+                            self.assertIn(block['id'], parser.ids)
+                            self.assertIn('id="' + block['id'] + '" href="' + heading['id'] + '/#' + block['id'] + '"',
+                                          self.pages[route_file(language, guide)].decode())
+
+    def test_implementation_child_navigation_marks_only_the_actual_page(self):
+        import re
+        from xml.etree import ElementTree
+        for language in ('en', 'ja'):
+            for guide in IMPLEMENTATION_GUIDES:
+                for section in IMPLEMENTATION_SECTIONS:
+                    html = self.pages[route_file(language, guide + '/' + section)].decode()
+                    markup = re.search(r'<nav class="guide-nav"[^>]*>.*?</nav>', html, re.S).group()
+                    nav = ElementTree.fromstring(markup)
+                    active = nav.findall('.//a[@aria-current="page"]')
+                    self.assertEqual(len(active), 1)
+                    self.assertEqual(active[0].get('href'), './')
+                    self.assertEqual(len(nav.findall('.//ul[@class="guide-section-links"]/li')), 6)
 
     def test_old_combined_chapter_bookmarks_link_to_independent_platform_guides(self):
         bookmarks = {
