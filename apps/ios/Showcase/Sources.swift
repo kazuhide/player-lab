@@ -27,7 +27,7 @@ enum Sources {
     static let all: [ShowcaseSource] = [
         ShowcaseSource(
             id: "live-hls", label: "Live HLS", kind: .liveHls,
-            url: URL(string: "https://demo.unified-streaming.com/k8s/live/scte35.isml/.m3u8")!
+            url: URL(string: "https://demo.unified-streaming.com/k8s/vod2live/stable/unified-learning.isml/.m3u8")!
         ),
         // VOD
         ShowcaseSource(

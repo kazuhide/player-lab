@@ -26,7 +26,7 @@ export const SOURCES: ShowcaseSource[] = [
   {
     id: "live-hls",
     label: "Live HLS",
-    url: "https://demo.unified-streaming.com/k8s/live/scte35.isml/.m3u8",
+    url: "https://demo.unified-streaming.com/k8s/vod2live/stable/unified-learning.isml/.m3u8",
     kind: "live-hls",
     isLive: true,
   },

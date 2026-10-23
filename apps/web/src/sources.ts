@@ -32,7 +32,7 @@ const LIVE_DASH =
 const LIVE_HLS =
   (IS_PAGES ? undefined : import.meta.env.VITE_LIVE_HLS_URL) ??
   // Unified Streaming — live HLS, sliding window (no EXT-X-ENDLIST).
-  "https://demo.unified-streaming.com/k8s/live/scte35.isml/.m3u8";
+  "https://demo.unified-streaming.com/k8s/vod2live/stable/unified-learning.isml/.m3u8";
 
 // VOD reference streams (Unified Streaming Tears of Steel + DASH-IF), verified.
 const VOD_HLS =
