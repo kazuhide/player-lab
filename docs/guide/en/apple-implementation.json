@@ -189,7 +189,11 @@
     },
     {
       "type": "p",
-      "text": "Initial preferences are selected once at the intended Source’s first Ready. In the checked HLS startup, selecting during SourceLoaded was overwritten before Ready; the app therefore waits for initial playback readiness and verifies the current Source before selecting. Later choices from the player menu are left intact. For preloaded playlist transitions the app also waits for that source’s playback clock to advance. In your integration, retain the event subscription, verify which source it belongs to, and remove it when retiring that owner."
+      "text": "For ordinary source loads, the app waits for both SourceLoaded (source loading finished) and Ready (playback can start) for the same source. In the tested Player 3.128.0, these notifications can arrive in either order. Remembering both avoids skipping language preferences when Ready arrives first. Selection happens once, so later track changes made by the user or through an API are preserved."
+    },
+    {
+      "type": "p",
+      "text": "In the checked HLS startup, selecting during SourceLoaded was overwritten before Ready, so source loading alone is not sufficient. For preloaded playlist transitions that omit readiness callbacks, the app instead waits for the current source’s playback clock to advance before selecting once. In your integration, retain the event subscription, verify which source it belongs to, and remove it when retiring that owner."
     },
     {
       "type": "h3",
@@ -453,10 +457,10 @@
       "text": "    private func bindApiPlayerEvents() {\n        guard apiEventsEnabled else { return }\n        let player = self.player\n        let listener = PlayerApiEventListener { [weak self, weak player] api, timestamp in\n            guard let self, let player, self.player === player else { return }\n            self.recordApiEvent(api, timestamp: timestamp, owner: \"Player\")\n        }\n        playerApiListener = listener\n        if apiEventTransport == .listener { player.add(listener: listener) }\n        else { playerApiPublishers = NativePublisherSubscriptions.player(player, receiver: listener) }\n    }\n\n    private func retireApiPlayerEvents() {\n        playerApiPublishers.removeAll()\n        if let listener = playerApiListener { player.remove(listener: listener) }\n        playerApiListener = nil\n    }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 566,
-        "label": "PlayerModel.swift:566–582"
+        "line": 574,
+        "label": "PlayerModel.swift:574–590"
       },
-      "endLine": 582
+      "endLine": 590
     },
     {
       "type": "h2",
@@ -482,7 +486,7 @@
     {
       "type": "note",
       "title": "Why are audio/subtitles unavailable or reset?",
-      "text": "A language field cannot create a missing track. Inspect availableAudio/availableSubtitles with matching media, then select after initial Ready for the intended source. The app’s startup workaround is specific to its checked SDK/fixture, rather than a guarantee for every stream. Prefer native HLS subtitle renditions for a workflow shared by iOS and tvOS System UI; adding external SourceConfig subtitle tracks does not give tvOS System UI the same rendering route. Inspect the applied track selection as well as the visible captions."
+      "text": "A language field cannot create a missing track. Inspect availableAudio/availableSubtitles with matching media, then select after SourceLoaded and Ready have both been recorded for the intended source. The app’s startup handling is specific to its checked SDK/fixture, rather than a guarantee for every stream. Prefer native HLS subtitle renditions for a workflow shared by iOS and tvOS System UI; adding external SourceConfig subtitle tracks does not give tvOS System UI the same rendering route. Inspect the applied track selection as well as the visible captions."
     },
     {
       "type": "note",

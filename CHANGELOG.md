@@ -11,6 +11,8 @@ separately in the [API coverage guide](https://kazuhide.github.io/player-lab/gui
 - Improve inputs with large text and the software keyboard, separate API calls
   from observed SDK state, and update the English and Japanese native guides.
 - Replace the unavailable public Live HLS sample used by the apps.
+- Keep initial audio and subtitle preferences when changing Apple player themes
+  or reloading a source.
 
 ## 0.1.3
 

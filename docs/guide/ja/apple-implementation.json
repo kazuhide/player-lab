@@ -189,7 +189,11 @@
     },
     {
       "type": "p",
-      "text": "初期トラックは、対象Sourceが最初にReadyになった時点で一度だけ選択します。確認したHLSの起動ではSourceLoadedで行った音声選択がReadyまでに上書きされたため、再生準備の完了を待ち、現在のSourceを確認してから反映しています。その後にメニューで選んだ値は変更しません。先読みしたプレイリストの切り替えでは、対象ソースの再生時刻が進むことも待ちます。自分のアプリでもイベントの購読を保持し、通知が対象のソースから届いたことを確認します。購読を管理するオブジェクトを破棄するときは、購読も解除してください。"
+      "text": "通常のソース読み込みでは、アプリは同じソースについてSourceLoaded（ソースの読み込み完了）とReady（再生の準備完了）の両方を確認してから初期トラックを選びます。検証したPlayer 3.128.0ではReadyが先に届く場合があるため、通知の順序を固定せずに扱っています。初期選択はソースごとに一度だけ行い、その後の利用者やAPIによるトラック変更を上書きしません。"
+    },
+    {
+      "type": "p",
+      "text": "確認したHLSの起動では、SourceLoadedで行った音声選択がReadyまでに上書きされました。読み込みの完了だけでは適用に早すぎる場合があります。先読みしたプレイリストへの切り替えで準備完了の通知が届かない場合は、現在のソースの再生時刻が進んだことを確認してから一度だけ選択します。自分のアプリでもイベントの購読を保持し、通知が対象ソースに属することを確認します。購読を管理するオブジェクトを破棄するときは、購読も解除してください。"
     },
     {
       "type": "h3",
@@ -453,10 +457,10 @@
       "text": "    private func bindApiPlayerEvents() {\n        guard apiEventsEnabled else { return }\n        let player = self.player\n        let listener = PlayerApiEventListener { [weak self, weak player] api, timestamp in\n            guard let self, let player, self.player === player else { return }\n            self.recordApiEvent(api, timestamp: timestamp, owner: \"Player\")\n        }\n        playerApiListener = listener\n        if apiEventTransport == .listener { player.add(listener: listener) }\n        else { playerApiPublishers = NativePublisherSubscriptions.player(player, receiver: listener) }\n    }\n\n    private func retireApiPlayerEvents() {\n        playerApiPublishers.removeAll()\n        if let listener = playerApiListener { player.remove(listener: listener) }\n        playerApiListener = nil\n    }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 566,
-        "label": "PlayerModel.swift:566–582"
+        "line": 574,
+        "label": "PlayerModel.swift:574–590"
       },
-      "endLine": 582
+      "endLine": 590
     },
     {
       "type": "h2",
@@ -482,7 +486,7 @@
     {
       "type": "note",
       "title": "音声・字幕が選べない、または元に戻るのはなぜですか？",
-      "text": "言語の入力だけでは存在しないトラックを追加できません。対象のメディアでavailableAudio・availableSubtitlesを確認し、対象Sourceの最初のReadyの後に選択します。このアプリでReadyを待つ処理は、確認したSDKとテスト素材に基づきます。すべてのストリームで同じ挙動になるとは限りません。iOSとtvOSのSystem UIで同じように試す場合は、HLS内の字幕トラックを使います。SourceConfigで追加した外部字幕は、tvOSのSystem UIでは同じようには表示できません。字幕の見た目と適用済みの選択状態を両方確認します。"
+      "text": "言語の入力だけでは存在しないトラックを追加できません。対象のメディアでavailableAudio・availableSubtitlesを確認し、対象SourceのSourceLoadedとReadyを両方確認した後に選択します。このアプリの初期選択処理は、確認したSDKとテスト素材に基づきます。すべてのストリームで同じ挙動になるとは限りません。iOSとtvOSのSystem UIで同じように試す場合は、HLS内の字幕トラックを使います。SourceConfigで追加した外部字幕は、tvOSのSystem UIでは同じようには表示できません。字幕の見た目と適用済みの選択状態を両方確認します。"
     },
     {
       "type": "note",

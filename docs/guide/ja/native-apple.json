@@ -129,7 +129,7 @@
         [
           "Initial tracks",
           "Audio language: de-AT、Initial subtitles: Preferred language、字幕言語: de",
-          "ソースを再読み込みします。対応するトラックを含むソースで、最初のReady後のMore → Tracksと字幕表示を確認します。一致する言語がなければ既定の選択を維持します。"
+          "ソースを再読み込みします。対応するトラックを含むソースで、読み込みと再生準備の完了後にMore → Tracksと字幕表示を確認します。一致する言語がなければ既定の選択を維持します。"
         ],
         [
           "Video scaling",
@@ -256,7 +256,7 @@
     {
       "type": "figure",
       "file": "ios-initial-tracks",
-      "caption": "以前のレイアウトで撮影した記録例です。iPadの初期トラック設定。PlayerConfigの言語プロパティではなく、最初のReadyで一度だけ使う、ソースごとのアプリ設定です。"
+      "caption": "以前のレイアウトで撮影した記録例です。iPadの初期トラック設定です。PlayerConfigの言語プロパティではなく、起動時に一度だけ使うソースごとのアプリ設定です。"
     },
     {
       "type": "figure",
@@ -265,12 +265,12 @@
     },
     {
       "type": "p",
-      "text": "言語の入力値は、対象のSourceが読み込まれて最初のReadyに達した後、公開APIのavailableAudio・availableSubtitlesとsetAudio・setSubtitleで適用します。PlayerConfigの設定項目を増やすものではありません。その後SDKのトラックメニューで選び直した値は、次のソース読み込みまで保ちます。拡大方法は別のSDK設定で、Player生成時にStyleConfig.scalingModeへ渡します。"
+      "text": "言語の入力値は、対象のSourceのSourceLoadedとReadyを両方確認した後、公開APIのavailableAudio・availableSubtitlesとsetAudio・setSubtitleで適用します。PlayerConfigの設定項目を増やすものではありません。その後SDKのトラックメニューで選び直した値は、次のソース読み込みまで保ちます。拡大方法は別のSDK設定で、Player生成時にStyleConfig.scalingModeへ渡します。"
     },
     {
       "type": "note",
-      "title": "Readyで一度だけ選択する理由",
-      "text": "確認したPlayer 3.128.0とHLSでは、SourceLoadedでGermanを選んでも一時的な切り替えにとどまり、Readyより前の音声変更通知でEnglishへ戻りました。音声と字幕の呼び出し順を逆にしても防げませんでした。このため、初期メディアの準備が整う最初のReadyを待ち、対象のSourceが現在も有効であることを確認して一度だけ選択します。このSDKと素材で確認した挙動であり、すべてのストリームへの保証ではありません。"
+      "title": "読み込みと再生準備の完了を待つ理由",
+      "text": "確認したPlayer 3.128.0とHLSでは、SourceLoadedで選んだGermanがReadyの前に音声変更通知でEnglishへ戻る場合がありました。ReadyがSourceLoadedより先に届く場合もあります。アプリは現在の対象Sourceについて両方の通知を記録し、揃った時点で一度だけ選択します。早すぎる適用や適用の欠落を防ぎ、その後の利用者による変更を保ちます。このSDKと素材で確認した挙動であり、すべてのストリームへの保証ではありません。"
     },
     {
       "type": "p",
@@ -594,7 +594,7 @@
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
       "line": 389,
-      "label": "対象SourceのReadyでの一度だけの選択"
+      "label": "対象Sourceの初期トラック選択"
     },
     {
       "path": "apps/ios/Showcase/Configuration.swift",

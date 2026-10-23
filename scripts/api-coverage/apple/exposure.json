@@ -7544,7 +7544,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 509,
+            "line": 517,
             "symbol": "player.load(playlistConfig: config)"
           },
           {
@@ -7584,7 +7584,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 494,
+            "line": 502,
             "symbol": "player.load(sourceConfig: config)"
           },
           {
@@ -8104,7 +8104,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 475,
+            "line": 483,
             "symbol": "player.unload()"
           },
           {
@@ -8799,7 +8799,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 574,
+            "line": 582,
             "symbol": "if apiEventTransport == .listener { player.add(listener: listener) }"
           },
           {
@@ -8819,7 +8819,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 580,
+            "line": 588,
             "symbol": "if let listener = playerApiListener { player.remove(listener: listener) }"
           },
           {
@@ -8849,7 +8849,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 655,
+            "line": 663,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -8869,7 +8869,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 655,
+            "line": 663,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -9326,7 +9326,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 655,
+            "line": 663,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -11201,7 +11201,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 601,
+            "line": 609,
             "symbol": "if apiEventTransport == .listener { source.add(listener: listener) }"
           },
           {
@@ -11221,7 +11221,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 609,
+            "line": 617,
             "symbol": "if let listener = sourceApiListener { apiSource?.remove(listener: listener) }"
           },
           {
@@ -11251,7 +11251,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 655,
+            "line": 663,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -13526,7 +13526,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 625,
+            "line": 633,
             "symbol": "if apiEventTransport == .listener { view.add(listener: listener) }"
           },
           {
@@ -13546,7 +13546,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 633,
+            "line": 641,
             "symbol": "if let listener = viewApiListener { view.remove(listener: listener) }"
           },
           {
@@ -18989,7 +18989,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 509,
+            "line": 517,
             "symbol": "player.load(playlistConfig: config)"
           },
           {
@@ -19029,7 +19029,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 494,
+            "line": 502,
             "symbol": "player.load(sourceConfig: config)"
           },
           {
@@ -19549,7 +19549,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 475,
+            "line": 483,
             "symbol": "player.unload()"
           },
           {
@@ -20209,7 +20209,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 574,
+            "line": 582,
             "symbol": "if apiEventTransport == .listener { player.add(listener: listener) }"
           },
           {
@@ -20229,7 +20229,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 580,
+            "line": 588,
             "symbol": "if let listener = playerApiListener { player.remove(listener: listener) }"
           },
           {
@@ -20259,7 +20259,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 655,
+            "line": 663,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -20279,7 +20279,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 655,
+            "line": 663,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -20691,7 +20691,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 655,
+            "line": 663,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -22566,7 +22566,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 601,
+            "line": 609,
             "symbol": "if apiEventTransport == .listener { source.add(listener: listener) }"
           },
           {
@@ -22586,7 +22586,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 609,
+            "line": 617,
             "symbol": "if let listener = sourceApiListener { apiSource?.remove(listener: listener) }"
           },
           {
@@ -22616,7 +22616,7 @@
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 655,
+            "line": 663,
             "symbol": "func setApiEventTransport"
           }
         ],
@@ -25006,7 +25006,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 625,
+            "line": 633,
             "symbol": "if apiEventTransport == .listener { view.add(listener: listener) }"
           },
           {
@@ -25026,7 +25026,7 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
-            "line": 633,
+            "line": 641,
             "symbol": "if let listener = viewApiListener { view.remove(listener: listener) }"
           },
           {

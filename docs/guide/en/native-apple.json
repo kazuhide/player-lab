@@ -129,7 +129,7 @@
         [
           "Initial tracks",
           "Audio language: de-AT; Initial subtitles: Preferred language; subtitle language: de",
-          "Reloads the source. On a source with matching renditions, check More → Tracks and visible captions after initial Ready. An unavailable preference keeps the default selection."
+          "Reloads the source. On a source with matching renditions, check More → Tracks and visible captions after source loading and playback readiness. An unavailable preference keeps the default selection."
         ],
         [
           "Video scaling",
@@ -256,7 +256,7 @@
     {
       "type": "figure",
       "file": "ios-initial-tracks",
-      "caption": "Recorded with the earlier app layout. Initial track preferences in the iPad form. These are source-local application preferences, applied once at initial Ready, rather than PlayerConfig language properties."
+      "caption": "Recorded with the earlier app layout. Initial track preferences in the iPad form. These are source-local application preferences, applied once during startup, rather than PlayerConfig language properties."
     },
     {
       "type": "figure",
@@ -265,12 +265,12 @@
     },
     {
       "type": "p",
-      "text": "The language fields use the public availableAudio/availableSubtitles and setAudio/setSubtitle APIs after the intended Source loads and reaches its first Ready. They are application preferences, not additional PlayerConfig fields. Later choices in the SDK track menu remain until the next source load. Scaling is a separate creation-time SDK field, StyleConfig.scalingMode."
+      "text": "The language fields use the public availableAudio/availableSubtitles and setAudio/setSubtitle APIs after SourceLoaded and Ready have both been recorded for the intended Source. They are application preferences, not additional PlayerConfig fields. Later choices in the SDK track menu remain until the next source load. Scaling is a separate creation-time SDK field, StyleConfig.scalingMode."
     },
     {
       "type": "note",
-      "title": "Why selection waits for Ready",
-      "text": "In the checked Player 3.128.0 HLS startup, SourceLoaded selection briefly changed audio to German, then a native audio-change event restored English before Ready. Reversing the audio/subtitle call order did not prevent this. The app selects once at initial Ready, when initial media is ready, and verifies the intended current Source before selecting. This is an observation of this SDK and fixture, not a promise about every stream."
+      "title": "Why wait for source loading and playback readiness?",
+      "text": "In the checked Player 3.128.0 HLS startup, selecting German during SourceLoaded was overwritten by a native audio change before Ready. Ready can also arrive before SourceLoaded. The app records both notifications for the intended current Source, then selects once. This avoids early or missed selection while preserving later user choices. These observations are specific to the checked SDK and fixture."
     },
     {
       "type": "p",

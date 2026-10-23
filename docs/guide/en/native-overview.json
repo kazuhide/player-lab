@@ -114,7 +114,7 @@
       "items": [
         "Source: HTTP/HTTPS URL and type, optional title and poster URL, start offset in seconds, and offset reference.",
         "Player: autoplay, startup mute, forward buffer in seconds, and bitrate cap in bits per second. Supported formats, blank/default meanings, and numeric limits differ by platform.",
-        "Apple: native video scaling through StyleConfig.scalingMode, plus initial audio/subtitle language preferences implemented by the app with public track-selection APIs. See the Apple chapter for application at the first Ready event and native HLS subtitle requirements.",
+        "Apple: native video scaling through StyleConfig.scalingMode, plus initial audio/subtitle language preferences implemented by the app with public track-selection APIs. See the Apple chapter for initial selection and native HLS subtitle requirements.",
         "Android: player-wide and source-specific audio language priorities, external WebVTT track metadata, and HTTP retry delays. See the Android chapter for inheritance, subtitle-menu selection and retry units.",
         "React Native and Vega: an external WebVTT URL, label and language. React Native exposes default-track metadata; Vega can enable the track on load. Their separate screen-and-controls chapters explain the display and selection paths."
       ]
