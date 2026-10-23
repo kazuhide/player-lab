@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Button, Text, TextInput, View } from "react-native";
+import { View } from "react-native";
+import { Button, Text, TextInput } from "./localization";
 import { finiteNumber } from "./apiValues";
 import { panelStyles as styles } from "./panelStyles";
 

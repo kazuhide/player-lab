@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, NativeModules, Text, View } from "react-native";
+import { NativeModules, View } from "react-native";
+import { Button, Text } from "./localization";
 import type { SettingValues } from "./nativeSettings";
 import { panelStyles as styles } from "./panelStyles";
 

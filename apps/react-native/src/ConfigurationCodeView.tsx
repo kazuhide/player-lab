@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Button, Text, TextInput } from "./localization";
 import * as Clipboard from "expo-clipboard";
 import { panelStyles } from "./panelStyles";
 
-export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Element {
-  const [expanded, setExpanded] = useState(false);
+export function ConfigurationCodeView({ code, initiallyExpanded = false }: { code: string; initiallyExpanded?: boolean }): React.JSX.Element {
+  const [expanded, setExpanded] = useState(initiallyExpanded);
   const [status, setStatus] = useState<{ code: string; text: string }>();
   const request = useRef(0);
   const mounted = useRef(true);

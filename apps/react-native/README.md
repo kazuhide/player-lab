@@ -40,6 +40,8 @@ the Web UI, a video surface, or a stream.
 
 ## Configuration controls
 
+The application follows the device language for English and Japanese. Use **English** or **日本語** at the top of the screen to change labels and help without reloading the player or discarding edits. SDK identifiers, code, event payloads and user-entered values retain their original text. The SDK's player menus use the languages supported by the selected UI bundle.
+
 Open **Show configuration** to edit the source URL, HLS/DASH/progressive type,
 title, poster URL, signed start offset and its timeline reference. iOS starts
 with HLS and hides DASH sources/types because its native player does not support
