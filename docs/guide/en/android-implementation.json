@@ -17,7 +17,7 @@
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/native-android/",
-          "label": "Android setup and screen operations"
+          "label": "Screen and controls: Android"
         },
         {
           "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
@@ -93,6 +93,11 @@
       "text": "The Configuration panel deliberately separates draft text from applied settings. Use it to find the desired behavior, inspect Show applied code, then trace the corresponding SDK construction below. PlayerDraft and SourceDraft validate and normalize app inputs; the SDK receives PlayerConfig and SourceConfig, not those draft classes."
     },
     {
+      "type": "h3",
+      "id": "player-creation-settings",
+      "text": "Creation-time player settings"
+    },
+    {
       "type": "code",
       "title": "Construct PlayerConfig from the standard form",
       "text": "    fun toPlayerConfig(licenseKey: String) = PlayerConfig(\n        key = licenseKey,\n        playbackConfig = PlaybackConfig(\n            isAutoplayEnabled = autoplay, isMuted = muted, isTimeShiftEnabled = timeShift,\n            preferredAudioLanguages = preferredAudioLanguages.toList(),\n        ),\n        bufferConfig = BufferConfig(\n            audioAndVideo = BufferMediaTypeConfig(forwardDuration),\n            startupThreshold = startupThreshold, restartThreshold = restartThreshold,\n        ),\n        adaptationConfig = AdaptationConfig(\n            maxSelectableVideoBitrate = maxVideoBitrate, preload = preload,\n            isRebufferingAllowed = rebuffering, qualityStabilityBalance = qualityStabilityBalance,\n        ),\n        networkConfig = NetworkConfig(\n            retryHttpRequestConfig = httpRetryDelays?.let { RetryHttpRequestConfig.Retry(it.toList()) }\n                ?: RetryHttpRequestConfig.LinearIncreasingBackoffRetry,\n        ),\n    )",
@@ -155,6 +160,11 @@
       "type": "figure",
       "file": "android-player-settings",
       "caption": "The Android Configuration panel. The audio-priority and buffer fields become PlaybackConfig and BufferConfig values when Apply & restart player is used. The picture illustrates a saved screen state, not recommended defaults."
+    },
+    {
+      "type": "h3",
+      "id": "source-specific-settings",
+      "text": "Source-specific settings and loading"
     },
     {
       "type": "code",
@@ -250,6 +260,11 @@
       "type": "figure",
       "file": "android-applied-code",
       "caption": "Applied Kotlin code from the standard editor. The actual license is replaced with a placeholder. Additional SDK overrides have their own code display."
+    },
+    {
+      "type": "h3",
+      "id": "additional-sdk-settings",
+      "text": "Additional typed settings and callbacks"
     },
     {
       "type": "p",
@@ -452,6 +467,11 @@
       "caption": "Offline controls with an audio track selected for download. This image shows track selection; completion and playback without networking are separate checks."
     },
     {
+      "type": "h3",
+      "id": "host-lifecycle",
+      "text": "Release the view and Player with their owners"
+    },
+    {
       "type": "p",
       "text": "Treat the Activity, PlayerView and Player as separate lifetimes. attachView forwards the Activity’s start, resume, pause and stop through PlayerViewLifecycle. The observer catches up a new view when the Activity is already resumed. Remove that observer before retiring a view. MainActivity.onDestroy calls controller.release to unsubscribe, release offline/media-session resources and destroy the Player. Do not replace this with repeatedly constructing the Player on resume."
     },
@@ -520,7 +540,7 @@
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/native-android/",
-          "label": "Android operation guide: complete field and offline workflow"
+          "label": "Screen and controls: Android"
         },
         {
           "url": "https://kazuhide.github.io/player-lab/guide/troubleshooting/",

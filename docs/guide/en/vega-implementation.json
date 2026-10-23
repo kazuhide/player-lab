@@ -8,7 +8,7 @@
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/native-vega/",
-          "label": "Vega OS screen, setup and operation"
+          "label": "Screen and controls: Vega OS"
         }
       ]
     },
@@ -28,10 +28,23 @@
     {
       "type": "steps",
       "items": [
-        "Build and launch the existing Kepler host using the operation page. Its identifier is com.playerlab.vega and its main component is com.playerlab.vega.main. The generated ignored runtime configuration must be refreshed before rebuilding when licenses change.",
+        "Build and launch the existing Kepler host following Build the Kepler application in the Vega README linked below. Its identifier is com.playerlab.vega and its main component is com.playerlab.vega.main. Refresh the generated ignored runtime configuration before rebuilding when licenses change.",
         "Follow src/App.tsx: it retains the applied PlayerConfig and SourceConfig and passes them to the Lab component BitmovinPlayer. A separate editable draft prevents incomplete form input from changing playback.",
         "Follow src/BitmovinPlayer.tsx: KeplerVideoSurfaceView reports a native surface handle. Only an active app and current surface can start a session. The host first waits for the previous session’s release.",
         "Follow src/playerSession.ts: initialize VideoPlayer, attach the surface, install the media adapters, create the modular SDK Player, bind observers, then load SourceConfig. Preserve this sequence when reusing or extending the host."
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Local setup and licenses"
+        },
+        {
+          "url": "https://github.com/kazuhide/player-lab/blob/main/apps/vega/README.md#build-the-kepler-application",
+          "label": "Vega README: build the Kepler host"
+        }
       ]
     },
     {
@@ -128,6 +141,31 @@
         0.36,
         0.44
       ]
+    },
+    {
+      "type": "h3",
+      "id": "source-config-data",
+      "text": "Build source data for the selected format"
+    },
+    {
+      "type": "code",
+      "title": "Map media format, subtitles and start options to SourceConfig",
+      "text": "  const media = draft.type === \"hls\" ? { hls: url } : draft.type === \"dash\" ? { dash: url } : { progressive: url };\n  const result: Configuration = {\n    source: {\n      ...media, ...(title ? { title } : {}), ...(poster ? { poster } : {}),\n      ...(subtitleUrl ? { subtitleTracks: [{ url: subtitleUrl, label: subtitleLabel, lang: subtitleLanguage,\n        id: \"player-lab-external\", kind: \"subtitle\", enabled: subtitleEnabled }] } : {}),\n      ...(startOffset !== undefined || reference !== undefined ? { options: {\n        ...(startOffset !== undefined ? { startOffset } : {}),\n        ...(reference !== undefined ? { startOffsetTimelineReference: reference } : {}),\n      } } : {}),\n    },",
+      "source": {
+        "path": "apps/vega/src/configuration.ts",
+        "line": 88,
+        "label": "configuration.ts:88–98"
+      },
+      "endLine": 98
+    },
+    {
+      "type": "p",
+      "text": "media is an app-created object containing exactly the selected hls, dash or progressive URL. The source object also holds the external subtitle’s lang/id/enabled values and initial-position options. These Web SDK property names differ from the React Native wrapper’s language/identifier/isDefault names. Apply uses the validated source, then the existing session loads it only after native media and its surface are connected."
+    },
+    {
+      "type": "h3",
+      "id": "native-transport-and-apply",
+      "text": "Apply configuration through the native session"
     },
     {
       "type": "code",
@@ -362,6 +400,11 @@
         "Open Bitmovin Dashboard with the matching Analytics license and period. Filter the relevant content/app labels and inspect sessions, startup, rebuffering, bitrate and errors alongside the local SDK events. The app sends collection events; aggregate viewing and visualization normally happen in Dashboard.",
         "Follow the shared Analytics chapters for metric definitions, query access and analysis. Keep account API credentials in a trusted server-side environment; the collector license does not grant account query access."
       ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-overview",
+      "caption": "Official Bitmovin demo Dashboard with dummy data, showing license, period and filtering. Locate the matching collected app session in your own Dashboard; this is not a Player Lab collection result. The current layout may differ. © Bitmovin."
     },
     {
       "type": "links",

@@ -1,7 +1,7 @@
 {
   "id": "native-overview",
   "title": "Native app requirements and supported features",
-  "lead": "The native apps provide source and playback editors, applied configuration code, source switching, and live rewind controls. Platform-specific settings include Apple video scaling and initial track preferences, Android language and retry settings, and external WebVTT subtitles. The Web app provides the broader configuration panel; use each platform chapter for build steps, defaults and verified playback scope.",
+  "lead": "The native apps let you edit sources and playback settings, try platform controls, inspect applied code and use SDK operations, state reads and event logs. Each platform has Screen and controls for the workflow and an Implementation guide for the code behind it.",
   "blocks": [
     {
       "type": "h2",
@@ -107,7 +107,7 @@
     },
     {
       "type": "p",
-      "text": "The editors expose selected SourceConfig, PlayerConfig and platform-specific settings, together with application preferences. The Web app provides broader lists, including TweaksConfig. Editable examples include:"
+      "text": "The configuration forms cover common source, playback and UI choices. The SDK configuration and API inspector provide additional inputs based on each platform's SDK types. Names, application timing and available features differ by SDK; follow that platform's guides rather than transferring Web properties unchanged. Common examples include:"
     },
     {
       "type": "bullets",
@@ -236,7 +236,7 @@
     },
     {
       "type": "note",
-      "text": "sync-env.sh writes ignored Apple, Android and React Native license files. Follow each platform chapter to generate and build the native app. The React Native screen-and-controls chapter covers the included Expo generator; the Vega OS chapter covers the Kepler host. Vega also requires its separately installed SDK and runtime:config, which sync-env.sh does not run. After a license change, repeat the relevant configuration step and rebuild. Keep generated configuration files, license values and local SDK paths out of the public repository."
+      "text": "sync-env.sh writes ignored Apple, Android and React Native license files. Follow the platform README and implementation guide to generate and build the app, then use Screen and controls for operation. Vega also requires its separately installed SDK and runtime:config; sync-env.sh does not generate Vega configuration. Never commit license values."
     },
     {
       "type": "links",

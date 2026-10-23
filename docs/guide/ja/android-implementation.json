@@ -17,7 +17,7 @@
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/native-android/",
-          "label": "Androidの準備と画面操作"
+          "label": "画面と操作：Android"
         },
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/local-setup/",
@@ -93,6 +93,11 @@
       "text": "Configurationパネルは、編集中の値と適用済みの設定を分けて管理します。画面で動作を確かめ、Show applied codeでコードを確認したうえで、以下のSDK設定の生成箇所を参照してください。PlayerDraftとSourceDraftは、アプリの入力を検証して整えるための型です。SDKへ渡すのはそれらのDraftではなくPlayerConfigとSourceConfigです。"
     },
     {
+      "type": "h3",
+      "id": "player-creation-settings",
+      "text": "Player生成時の設定"
+    },
+    {
       "type": "code",
       "title": "標準フォームからPlayerConfigを組み立てる",
       "text": "    fun toPlayerConfig(licenseKey: String) = PlayerConfig(\n        key = licenseKey,\n        playbackConfig = PlaybackConfig(\n            isAutoplayEnabled = autoplay, isMuted = muted, isTimeShiftEnabled = timeShift,\n            preferredAudioLanguages = preferredAudioLanguages.toList(),\n        ),\n        bufferConfig = BufferConfig(\n            audioAndVideo = BufferMediaTypeConfig(forwardDuration),\n            startupThreshold = startupThreshold, restartThreshold = restartThreshold,\n        ),\n        adaptationConfig = AdaptationConfig(\n            maxSelectableVideoBitrate = maxVideoBitrate, preload = preload,\n            isRebufferingAllowed = rebuffering, qualityStabilityBalance = qualityStabilityBalance,\n        ),\n        networkConfig = NetworkConfig(\n            retryHttpRequestConfig = httpRetryDelays?.let { RetryHttpRequestConfig.Retry(it.toList()) }\n                ?: RetryHttpRequestConfig.LinearIncreasingBackoffRetry,\n        ),\n    )",
@@ -155,6 +160,11 @@
       "type": "figure",
       "file": "android-player-settings",
       "caption": "AndroidのConfigurationパネル。音声の優先順位とバッファーの入力は、Apply & restart playerでPlaybackConfigとBufferConfigへ反映されます。画像の値は撮影時の設定であり、推奨値を示すものではありません。"
+    },
+    {
+      "type": "h3",
+      "id": "source-specific-settings",
+      "text": "ソース固有の設定と読み込み"
     },
     {
       "type": "code",
@@ -250,6 +260,11 @@
       "type": "figure",
       "file": "android-applied-code",
       "caption": "標準エディターの適用済みKotlinコード。実際のライセンス値はプレースホルダーに置き換わります。追加のSDK上書きには別のコード表示があります。"
+    },
+    {
+      "type": "h3",
+      "id": "additional-sdk-settings",
+      "text": "追加の型付き設定とコールバック"
     },
     {
       "type": "p",
@@ -452,6 +467,11 @@
       "caption": "Offline controlsで音声トラックをダウンロード対象に選んだ画面。画像は選択の段階を示します。ダウンロード完了と通信なしでの再生は別に確認します。"
     },
     {
+      "type": "h3",
+      "id": "host-lifecycle",
+      "text": "ビューとPlayerを所有元に合わせて解放する"
+    },
+    {
       "type": "p",
       "text": "Activity、PlayerView、Playerの有効期間を分けて扱います。attachViewはPlayerViewLifecycleを通じてActivityのstart、resume、pause、stopをビューへ渡します。Activityがすでに再開済みでも、新しいビューに現在の状態が伝わります。ビューを破棄する前にはこの監視を外します。MainActivity.onDestroyはcontroller.releaseを呼び、購読、オフライン処理、MediaSessionを解放してPlayerを破棄します。これを再開のたびにPlayerを作り直す処理へ置き換えないでください。"
     },
@@ -520,7 +540,7 @@
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/native-android/",
-          "label": "Android操作ガイド：各入力とオフライン操作"
+          "label": "画面と操作：Android"
         },
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/troubleshooting/",

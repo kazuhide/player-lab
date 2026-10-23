@@ -90,7 +90,7 @@
     {
       "type": "steps",
       "items": [
-        "Choose Web, Apple, Android, React Native or Vega OS in the contents. Web operation chapters introduce the screen, sources and UI controls; the other platform sections have their own screen and controls chapter.",
+        "Choose your platform in the contents. Each platform has Screen and controls for the app workflow and Implementation guide for integration code, configuration and UI changes. Start with Screen and controls to reproduce an operation, then follow its implementation references.",
         "Open the implementation guide in that same platform section. Read PlayerConfig / SourceConfig when changing playback or source settings, and UI customization when changing the displayed controls.",
         "Apply a change in the app and inspect the applied code, events and visible result. A draft field is not an applied setting; the guide explains when to reload a source or recreate the Player.",
         "Use Useful features and FAQ to investigate platform or content differences. After playback works, follow the Analytics section to configure collection and inspect the matching session in Bitmovin Dashboard."

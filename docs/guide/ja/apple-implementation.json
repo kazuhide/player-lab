@@ -58,7 +58,7 @@
         },
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/native-apple/",
-          "label": "Apple版の操作ガイド：ビルドと画面操作"
+          "label": "画面と操作：iOS / iPadOS / tvOS"
         }
       ]
     },
@@ -162,6 +162,11 @@
       "caption": "iPadの初期トラック設定。PlayerConfigの言語プロパティではなく、SDKのトラック選択APIで反映するアプリ側の設定です。"
     },
     {
+      "type": "h3",
+      "id": "initial-track-selection",
+      "text": "開始時の音声・字幕トラックを選ぶ"
+    },
+    {
       "type": "p",
       "text": "音声と字幕の確認には、必要なHLSのトラックを含むコンテンツを使います。Initial tracksでde-ATなどの音声言語を入力し、字幕はAutomatic・Off・Preferred languageを選びます。アプリは言語タグ全体を優先し、なければ主言語を照合するため、de-ATでdeを選ぶことがあります。一致するトラックがなければSDK・OSの選択を維持します。実際の結果はPlayback tracksで確認します。テストストリームの言語名はトラックを識別するラベルであり、翻訳音声を示すものではありません。"
     },
@@ -254,6 +259,11 @@
       "caption": "tvOSのネイティブ設定画面。Fit・Fill (crop)・Stretchは、表示枠内の映像の拡大方法であり、SwiftUIフォームの大きさを変える設定ではありません。"
     },
     {
+      "type": "h3",
+      "id": "native-presentation",
+      "text": "ネイティブの表示方法と拡大縮小"
+    },
+    {
       "type": "p",
       "text": "映像の拡大方法は操作部のテーマとは別です。Fitは映像全体を表示し、余白が出ることがあります。Fill (crop)はSDKの.zoomに対応し、縦横比を保って端を切り取ります。Stretchは縦横比を変えて枠を埋めます。映像と表示枠の縦横比を変えて比較してください。基本フォームは再生成時にStyleConfig.scalingModeへ渡します。バインディング付きSwiftUI・レイヤー・コントローラーの表示先では、API inspectorから現在の拡大方法も操作できます。"
     },
@@ -280,8 +290,8 @@
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-ui-customization/",
-          "label": "共有Web UI：部品配置とCSS"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/#ui-customization",
+          "label": "Web実装ガイド：共有UIの部品とCSS"
         },
         {
           "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/styleconfig/index.html",
@@ -454,7 +464,7 @@
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/native-apple/",
-          "label": "Apple版の詳しい画面手順と現在の制約"
+          "label": "画面と操作：iOS / iPadOS / tvOS"
         },
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/troubleshooting/",

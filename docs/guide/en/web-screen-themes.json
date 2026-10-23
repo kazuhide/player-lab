@@ -7,6 +7,10 @@
       "type": "links",
       "items": [
         {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#themes",
+          "label": "Screen and controls: the combined Web workflow"
+        },
+        {
           "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
           "label": "Implementation guide: configuration, UI changes and FAQ"
         }

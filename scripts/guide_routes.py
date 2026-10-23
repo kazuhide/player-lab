@@ -2,13 +2,12 @@
 
 CHAPTERS = {
     'start': 'start', 'local-setup': 'start', 'native-overview': 'start',
-    'web-screen-themes': 'web', 'web-sources-tracks': 'web',
-    'web-ui-settings': 'web', 'web-implementation': 'web',
+    'web-screen-controls': 'web', 'web-implementation': 'web',
     'web-player-config': 'web', 'web-ui-customization': 'web',
-    'apple-implementation': 'apple', 'native-apple': 'apple',
-    'android-implementation': 'android', 'native-android': 'android',
-    'react-native-implementation': 'react-native', 'native-react-native': 'react-native',
-    'vega-implementation': 'vega', 'native-vega': 'vega',
+    'native-apple': 'apple', 'apple-implementation': 'apple',
+    'native-android': 'android', 'android-implementation': 'android',
+    'native-react-native': 'react-native', 'react-native-implementation': 'react-native',
+    'native-vega': 'vega', 'vega-implementation': 'vega',
     'web-live-dvr': 'reference',
     'troubleshooting': 'reference', 'audio-timing': 'reference',
     'test-results': 'reference', 'glossary': 'reference',
@@ -17,29 +16,21 @@ CHAPTERS = {
     'analytics-ai': 'analytics',
     # Retain published bookmarks without keeping combined platform chapters in the contents.
     'implementation': None, 'native-integrations': None,
+    'web-screen-themes': None, 'web-sources-tracks': None, 'web-ui-settings': None,
 }
 CATEGORIES = ('start', 'web', 'apple', 'android', 'react-native', 'vega', 'reference', 'analytics')
 IMPLEMENTATION_GUIDES = (
     'web-implementation', 'apple-implementation', 'android-implementation',
     'react-native-implementation', 'vega-implementation',
 )
-OPERATION_GUIDES = ('native-apple', 'native-android', 'native-react-native', 'native-vega')
-IMPLEMENTATION_TOPICS = (
-    ('player-source-config', 'configuration_guide'), ('ui-customization', 'ui_customization_guide'),
-    ('useful-features', 'useful_features'), ('faq', 'faq'), ('analytics-observability', 'analytics'),
-)
-NAVIGATION_CHILDREN = {
-    'web-implementation': (
-        ('web-player-config', '', 'configuration_guide'),
-        ('web-ui-customization', '', 'ui_customization_guide'),
-        ('web-implementation', 'useful-features', 'useful_features'),
-        ('web-implementation', 'faq', 'faq'),
-        ('web-implementation', 'analytics-observability', 'analytics'),
-    ),
-    **{guide: tuple((guide, identifier, label) for identifier, label in IMPLEMENTATION_TOPICS)
-       for guide in IMPLEMENTATION_GUIDES if guide != 'web-implementation'},
-}
+OPERATION_GUIDES = ('web-screen-controls', 'native-apple', 'native-android',
+                    'native-react-native', 'native-vega')
 CHILD_CHAPTERS = frozenset(('web-player-config', 'web-ui-customization'))
+CHAPTER_PARENTS = {
+    'web-player-config': 'web-implementation', 'web-ui-customization': 'web-implementation',
+    'web-screen-themes': 'web-screen-controls', 'web-sources-tracks': 'web-screen-controls',
+    'web-ui-settings': 'web-screen-controls',
+}
 CHAPTER_ORDER = tuple(key for key, category in CHAPTERS.items() if category is not None)
 
 LEGACY_ROUTES = {
@@ -166,5 +157,6 @@ GUIDE_ASSETS = {
     *(shared_figure_path(name) for name in SHARED_FIGURES),
     *(f'assets/guide/{name}.jpg' for name in THEMES),
     *(f'assets/guide/{name}-{language}.jpg'
-      for name in ('overview', 'source-controls', 'config', 'sdk-configuration', 'sdk-callback') for language in LANGUAGES),
+      for name in ('overview', 'source-controls', 'config', 'sdk-configuration', 'sdk-callback',
+                   'ui-controls', 'applied-settings') for language in LANGUAGES),
 }

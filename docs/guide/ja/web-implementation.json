@@ -5,7 +5,7 @@
   "blocks": [
     {
       "type": "p",
-      "text": "この章では、Web版で再生を試した結果を、実装に使うSDK設定やUIのコードへ結び付けます。PlayerConfig / SourceConfigとUI変更ガイドには、個別の設定方法と編集例をまとめています。コードの参照先は、現在のWeb版の実装です。"
+      "text": "Webアプリの画面構成、設定、比較の手順は「画面と操作」で説明します。この実装ガイドでは、試したPlayerConfig、SourceConfig、UIコードを自分のアプリへ取り込む方法を説明します。既存アプリを参照しながら、以下のTypeScript例ではエディター固有の補助実装を省いています。"
     },
     {
       "type": "h2",
@@ -88,12 +88,12 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-themes/",
-          "label": "Web画面とテーマの比較"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#screen",
+          "label": "画面と操作：Web画面"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-sources-tracks/",
-          "label": "ソース・音声・字幕の操作"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#sources-tracks",
+          "label": "画面と操作：ソース・音声・字幕"
         }
       ]
     },
@@ -147,7 +147,7 @@
       "items": [
         "初期の音声・字幕の優先言語はPlaybackのaudioLanguageまたはsubtitleLanguageで設定し、再生成します。現在のトラックを切り替える操作には、プレイヤーのトラックメニューまたは対応する実行時APIを使います。優先言語を指定しても、ソースにないトラックは増えません。",
         "コンテンツのタイトルや開始位置だけを変える場合は、PlaybackではなくSourceを編集します。ソースを再読み込みし、タイトルや現在時刻を確認します。startOffsetでは、先頭と末尾のどちらを基準にするかも指定します。",
-        "自動画質選択を比較するときは画質をAutoにします。動的な解像度上限を適用し、adaptation.getConfigと実際のメディアリクエストを確認します。配信されている画質より高い上限を指定して変化を見落とさないよう、詳細ページのソース別の例を参照します。",
+        "自動画質選択を比較するときは画質をAutoにします。動的な解像度上限を適用し、adaptation.getConfigと実際のメディアリクエストを確認します。配信に含まれる画質の差を比較できる上限を選びます。最高画質より高い上限では変化を確認できません。",
         "入れ子の配列やオブジェクト、関数、SDKクラスの実体には「SDKの詳細設定・API・イベント」を使います。必須の関連項目はまとめて入力します。JavaScriptの関数本体やUI部品の実体は、通常のJSONオブジェクトとは異なります。"
       ]
     },
@@ -167,6 +167,59 @@
       "text": "dynAdaptはアプリ内の補助関数です。SDKの動的な画質適応設定を読み、変更する項目を含めた値をadaptation.setConfigへ渡します。関係のない動的設定を残すための処理です。生成時の画質適応設定は別のPlayerConfigの項目で、desktopとmobileに分かれています。"
     },
     {
+      "type": "h3",
+      "id": "configuration-data",
+      "text": "再利用できる設定データ"
+    },
+    {
+      "type": "p",
+      "text": "この例は、再利用するPlayerConfigとSourceConfigを、アプリのフォーム用の補助実装から分けたものです。インストール済みSDKの型で検査しています。メディアURLとPlayerライセンスは自分の値へ置き換えてください。設定値は比較用の入力例であり、推奨値ではありません。ui: falseの場合は、後述のUIManagerとスタイルシートを組み込みます。"
+    },
+    {
+      "type": "code",
+      "title": "設定データの例（自分の配信先へ置換）",
+      "text": "import type { PlayerConfig, SourceConfig } from \"bitmovin-player\";\n\nexport const playerConfig: PlayerConfig = {\n  key: \"YOUR_PLAYER_KEY\",\n  ui: false,\n  playback: { autoplay: false, muted: true, audioLanguage: \"en\" },\n  adaptation: {\n    desktop: { bitrates: { maxSelectableVideoBitrate: \"500kbps\" } },\n    mobile: { bitrates: { maxSelectableVideoBitrate: \"500kbps\" } },\n  },\n  buffer: {\n    video: { forwardduration: 10 },\n    audio: { forwardduration: 10 },\n  },\n  network: { defaultRequestTimeout: 5 },\n};\n\nexport const sourceConfig: SourceConfig = {\n  hls: \"https://example.com/master.m3u8\",\n  title: \"Configuration comparison\",\n  options: { startOffset: 5 },\n};"
+    },
+    {
+      "type": "p",
+      "text": "playerConfigは既存のnew Player(container, playerConfig)へ、sourceConfigはplayer.load(sourceConfig)へ渡します。音声の優先言語と初期の画質・バッファ・通信条件を生成時に指定し、ソース側では表示名と開始位置を指定しています。startOffset: 5はオンデマンド素材の既定の先頭基準で5秒です。ライブで末尾基準を使う場合は、SourceのstartOffsetTimelineReferenceも選びます。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "GUIの例",
+        "実装での呼び出し",
+        "確認する値"
+      ],
+      "rows": [
+        [
+          "Player APIのvolume / mute",
+          "player.setVolume(value)、mute() / unmute()",
+          "getVolume() / isMuted()。ブラウザーによって音量や自動再生の制約があります。"
+        ],
+        [
+          "Adaptation（動的）",
+          "player.adaptation.setConfig(config)",
+          "adaptation.getConfig()と実際の配信画質。初期設定のadaptation.desktop / mobileとは別です。"
+        ],
+        [
+          "Sourceのtitle / poster / options",
+          "変更したSourceConfigをplayer.loadへ渡す",
+          "getSource()、表示中のタイトル・ポスター、再生開始位置。ソースは再読み込みされます。"
+        ],
+        [
+          "Playback / Buffer / Network / Tweaks",
+          "変更したPlayerConfigでPlayerを再生成する",
+          "getConfig()と再生・通信の挙動。既存のPlayerが設定オブジェクトの変更だけで更新されるわけではありません。"
+        ]
+      ],
+      "widths": [
+        0.27,
+        0.34,
+        0.39
+      ]
+    },
+    {
       "type": "figure",
       "file": "sdk-configuration",
       "caption": "SDKの詳細設定では、設定パスとSDKの型に応じた入力欄を表示します。変更を適用してからRead stateで値を確認します。"
@@ -175,8 +228,8 @@
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-player-config/",
-          "label": "PlayerConfig / SourceConfig：適用方法・設定例・関数"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#player-source-settings",
+          "label": "画面と操作：Player・ソース設定"
         }
       ]
     },
@@ -194,9 +247,27 @@
       "items": [
         "Premiereを選び、「設定歯車に再生速度を表示」の切り替えを試します。歯車メニューと「適用中のUIConfigの上書き値」を比較します。テーマの種類を維持したまま、その動作設定を変える操作です。",
         "DefaultとNeonではスキンの違いを、Compactとの比較では部品構成の違いを確認します。画面の短縮された構築例だけで実装全体とせず、表示されたソースの参照先を開きます。",
-        "UI変更ガイドで、ワークスペース内の型付き実装例、独立したプロジェクトでの読み込み、CSS、部品の組み立て方を確認します。共有テーマのファクトリーはこのリポジトリの実装で、Player SDKが公開するクラスではありません。",
+        "この章のUI変更の節で、ワークスペース内の型付き実装例、独立したプロジェクトでの読み込み、CSS、部品の組み立て方を確認します。共有テーマのファクトリーはこのリポジトリの実装で、Player SDKが公開するクラスではありません。",
         "アプリがUIを管理する場合はui: falseを維持し、古いUIManagerを解放してから新しいUIを接続します。UIだけの変更ではPlayerと読み込み済みソースを維持できます。画面を閉じる際はUIを解放し、続いてPlayerを破棄します。"
       ]
+    },
+    {
+      "type": "h3",
+      "id": "ui-configuration-and-owner",
+      "text": "UIConfigとUIの所有者を決める"
+    },
+    {
+      "type": "p",
+      "text": "アプリ管理の方式ではPlayerConfig.uiをfalseにし、アプリがUIManagerを生成・解放します。以下の例は、独立したプロジェクトで標準UIのレスポンシブな構成を使うためのUI接続関数です。現行ソースの抜粋ではありません。Playerはui: falseで生成済みとし、必要な依存パッケージをインストールします。戻り値のUIManagerを保持し、入れ替えや画面終了時にreleaseを呼びます。"
+    },
+    {
+      "type": "code",
+      "title": "標準UIへ設定を渡す例",
+      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport {\n  UIFactory, UIComponentLayoutOverride, type UIConfig,\n} from \"bitmovin-player-ui\";\nimport \"bitmovin-player-ui/dist/css/bitmovinplayer-ui.css\";\n\nexport const uiConfig: UIConfig = {\n  localization: { language: \"en\" },\n  componentLayoutOverrides: {\n    PlaybackSpeedSelectBox: UIComponentLayoutOverride.Exclude,\n  },\n  componentConfigOverrides: {\n    UIContainer: { hideDelay: -1 },\n  },\n};\n\nexport function attachStandardUi(player: PlayerAPI) {\n  return UIFactory.buildUI(player, uiConfig);\n}"
+    },
+    {
+      "type": "p",
+      "text": "この例は速度の設定項目を隠し、UIContainerの自動非表示を止めます。表示言語はenです。使用中のUI版ではplaybackSpeedSelectionEnabledは旧形式の設定なので、新しい実装ではcomponentLayoutOverridesを使えます。GUIの既存トグルも比較用として利用できます。レイアウト上書きで指定できる部品はSDKの対応表にある型に限られ、任意の独自クラスを名前だけで追加する機能ではありません。"
     },
     {
       "type": "code",
@@ -222,14 +293,56 @@
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-ui-customization/",
-          "label": "UI変更ガイド：UIManager・CSS・独自部品"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#ui-settings",
+          "label": "画面と操作：UI設定"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-ui-settings/",
-          "label": "UI設定と外部表示"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#external-displays",
+          "label": "画面と操作：外部表示"
         }
       ]
+    },
+    {
+      "type": "h3",
+      "id": "ui-skin-css",
+      "text": "CSSで見た目を変える"
+    },
+    {
+      "type": "p",
+      "text": "次の例は、このリポジトリのワークスペースパッケージ@showcase/ui-sharedを使います。独立したプロジェクト向けにnpmで公開されたパッケージではありません。別のプロジェクトではbitmovin-player-uiの基本スタイルシートを読み込み、自分のファクトリーへスキンクラスとCSSルールを適用してください。"
+    },
+    {
+      "type": "p",
+      "text": "NeonではDefaultの部品構成を保ち、クラスを追加します。次のファクトリー呼び出しはアプリと同じ方法です。共有のスタイルシートにはスキンが含まれているため、自分の色へ変える際はそのルールを基に編集します。"
+    },
+    {
+      "type": "code",
+      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport { DefaultUIFactory } from \"@showcase/ui-shared\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createNeonUi(player: PlayerAPI) {\n  return DefaultUIFactory.buildDefaultUI(player, undefined, {\n    extraCssClasses: [\"ui-skin-neon\"],\n    hideDelay: -1,\n  });\n}"
+    },
+    {
+      "type": "p",
+      "text": "対応するシークバーのルールはui-shared.scssにあります。UIライブラリが部品のクラス名へbmpui-を付けるため、CSSでは次の名前を使います。上書きするCSSは基本のスタイルシートより後に読み込み、スキンのクラスに範囲を限定すると、他のテーマへ影響を広げずに変更できます。"
+    },
+    {
+      "type": "code",
+      "text": ".bmpui-ui-skin-neon .bmpui-seekbar-playbackposition {\n  background: linear-gradient(90deg, #00e5ff, #ff2bd6);\n  box-shadow: 0 0 8px rgba(0, 229, 255, 0.85);\n}"
+    },
+    {
+      "type": "h3",
+      "id": "ui-component-composition",
+      "text": "部品の構成と順番を変える"
+    },
+    {
+      "type": "p",
+      "text": "次の実行可能な例は、Compactの構成から任意のキャストボタンを省いたものです。componentsの順番で操作列の並びが決まります。PlaybackTimeLabelをSeekBarの前へ移し、配置を比較できます。GUIに部品の順番を編集する欄はないため、コードを変更してビルドし、アプリのCompactと結果を比べます。"
+    },
+    {
+      "type": "code",
+      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport {\n  BufferingOverlay, Container, ControlBar, PlaybackTimeLabel,\n  PlaybackTimeLabelMode, PlaybackToggleButton, SeekBar, SeekBarLabel,\n  UIContainer, UIManager, UIVariantIdentifier,\n} from \"bitmovin-player-ui\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createCompactUi(player: PlayerAPI) {\n  const container = new UIContainer({\n    components: [\n      new BufferingOverlay(),\n      new ControlBar({ components: [\n        new Container({\n          components: [\n            new PlaybackToggleButton(),\n            new SeekBar({ label: new SeekBarLabel() }),\n            new PlaybackTimeLabel({\n              timeLabelMode: PlaybackTimeLabelMode.CurrentTime,\n            }),\n          ],\n          cssClasses: [\"controlbar-bottom\"],\n        }),\n      ] }),\n    ],\n    cssClasses: [\"ui-skin-modern\", \"ui-skin-compact\"],\n    hideDelay: -1,\n  });\n  return new UIManager(player, [{\n    ui: container,\n    identifier: UIVariantIdentifier.main,\n  }]);\n}"
+    },
+    {
+      "type": "p",
+      "text": "UIManagerごとに新しい部品を作成します。ui: falseで生成したプレイヤーへ接続する前に、以前のUIManagerを解放してください。この小型の構成例には、中央の再生オーバーレイ、音量操作、設定メニュー、字幕オーバーレイを含めていません。必要な場合は、他のファクトリーの対応する部品を参照して追加します。"
     },
     {
       "type": "h2",
@@ -285,16 +398,16 @@
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-player-config/",
-          "label": "画質・バッファ・通信設定の比較例"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#player-source-settings",
+          "label": "画面と操作：Player・ソース設定"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-sources-tracks/",
-          "label": "音声・字幕・サムネイル・開始位置"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#sources-tracks",
+          "label": "画面と操作：ソース・音声・字幕"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-live-dvr/",
-          "label": "ライブ再生と巻き戻しの動作"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#sources-tracks",
+          "label": "画面と操作：ソースとライブ再生"
         }
       ]
     },
@@ -509,6 +622,204 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/how-do-i-enable-cors-on-my-web-server-cloud-storage",
       "label": "配信素材へのクロスオリジンアクセスの設定"
+    },
+    {
+      "path": "packages/ui-shared/src/components/WallClockLabel.ts",
+      "line": 14
+    },
+    {
+      "path": "packages/ui-shared/src/styles/ui-shared.scss",
+      "line": 96
+    },
+    {
+      "path": "apps/web/src/uiGuide.ts",
+      "line": 536
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 34
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 58
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 265
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 557
+    },
+    {
+      "path": "apps/web/src/guide.ts",
+      "line": 637
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/ja/guide/test-results/",
+      "label": "代表的なテスト結果"
+    },
+    {
+      "url": "https://kazuhide.github.io/player-lab/web/guide.html",
+      "label": "公開UIカスタマイズガイド"
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 138
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 280
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 321
+    },
+    {
+      "path": "packages/ui-shared/src/styles/ui-shared.scss",
+      "line": 108
+    },
+    {
+      "path": "packages/ui-shared/src/index.ts",
+      "line": 19
+    },
+    {
+      "path": "packages/ui-shared/package.json",
+      "line": 5
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 395
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 832
+    },
+    {
+      "path": "apps/web/src/uiGuide.ts",
+      "line": 535
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 300
+    },
+    {
+      "url": "https://developer.bitmovin.com/playback/docs/bitmovin-player-ui",
+      "label": "Player UIの概要とカスタマイズ"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 783,
+      "label": "SDK-managed UI factory"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/UIComponentLayoutOverrides.ts",
+      "label": "UI 4.23.0 component layout overrides"
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 330
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 624
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 656
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 667
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 974
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 72
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 152
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 293
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 608
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 769
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 784
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 929
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 960
+    },
+    {
+      "path": "apps/web/test/configState.test.ts",
+      "line": 5
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfigOptions.html",
+      "label": "SourceConfigOptions"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "label": "SDK editor"
+    },
+    {
+      "path": "apps/web/src/api/materialize.ts",
+      "label": "Callbacks and SDK constructors"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.StyleConfig.html",
+      "label": "StyleConfig"
+    },
+    {
+      "path": "apps/web/src/api/values.ts",
+      "label": "Optional configuration properties"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/UIManager.ts#L415",
+      "label": "Player UIのメタデータとソースの優先順位（4.23.0）"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 238,
+      "label": "イベント回数と直近の内容"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 185,
+      "label": "Playerの入れ替え時の記録消去"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 270,
+      "label": "イベント履歴の消去操作"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 637,
+      "label": "Player and source application callbacks"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 758,
+      "label": "PlayerConfig construction"
     }
   ]
 }

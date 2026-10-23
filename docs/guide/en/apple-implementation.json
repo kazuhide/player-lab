@@ -58,7 +58,7 @@
         },
         {
           "url": "https://kazuhide.github.io/player-lab/guide/native-apple/",
-          "label": "Apple operation guide: build and screen controls"
+          "label": "Screen and controls: iOS / iPadOS / tvOS"
         }
       ]
     },
@@ -162,6 +162,11 @@
       "caption": "Initial track preferences on iPad. These fields are app preferences applied through SDK track-selection APIs, rather than language properties on PlayerConfig."
     },
     {
+      "type": "h3",
+      "id": "initial-track-selection",
+      "text": "Select initial audio and subtitle tracks"
+    },
+    {
       "type": "p",
       "text": "For audio and subtitles, begin with content that contains the required HLS renditions. In Initial tracks, enter an audio language such as de-AT and choose Automatic, Off or Preferred language for subtitles. The app matches the full language tag before its primary language, so de-AT may select de. Missing matches keep the SDK/OS selection. Playback tracks shows what the SDK actually selected. The test stream’s language labels identify test renditions; they do not imply a translated soundtrack."
     },
@@ -254,6 +259,11 @@
       "caption": "The tvOS native configuration form offers Fit, Fill (crop) and Stretch. These affect the video inside its presentation area, rather than the SwiftUI form’s size."
     },
     {
+      "type": "h3",
+      "id": "native-presentation",
+      "text": "Native presentation and scaling"
+    },
+    {
       "type": "p",
       "text": "Scaling is a separate choice from the controls’ theme. Fit keeps the whole picture with possible unused space; Fill (crop), mapped to SDK .zoom, preserves the aspect ratio while cropping; Stretch changes the aspect ratio to fill the bounds. Compare them with a video and display area of different aspect ratios. The main form applies StyleConfig.scalingMode during recreation. The bound SwiftUI, layer and controller hosts also expose a current scaling choice in API inspector."
     },
@@ -280,8 +290,8 @@
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/web-ui-customization/",
-          "label": "Shared Web UI: component layout and CSS"
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/#ui-customization",
+          "label": "Web implementation: shared UI components and CSS"
         },
         {
           "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/styleconfig/index.html",
@@ -454,7 +464,7 @@
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/native-apple/",
-          "label": "Detailed Apple screen procedures and current platform limits"
+          "label": "Screen and controls: iOS / iPadOS / tvOS"
         },
         {
           "url": "https://kazuhide.github.io/player-lab/guide/troubleshooting/",

@@ -44,11 +44,8 @@
 .guide-nav { display: block; font-size: 0.875rem; }
 .guide-nav h2 { font-size: 1rem; margin-bottom: 0.75rem; }
 .guide-nav h3 { margin: 1.25rem 0 0.5rem; color: var(--muted); font-size: 0.8125rem; font-weight: 650; }
-.guide-nav ol { display: grid; gap: 0.25rem; padding-left: 1.25rem; margin: 0; }
+.guide-nav ul { display: grid; gap: 0.25rem; padding-left: 0; margin: 0; list-style: none; }
 .guide-nav a { display: block; padding-block: 0.25rem; font-weight: 400; }
-.guide-subchapters { display: grid; gap: 0.125rem; padding-left: 1rem; margin-block: 0.25rem 0.5rem; list-style: none; }
-.guide-nav .guide-subchapters { border-left: 1px solid var(--line); font-size: 0.8125rem; }
-.guide-nav .guide-subchapters li + li { margin-top: 0; }
 .guide-onpage { display: block; margin-block: 1.25rem; font-size: 0.875rem; }
 .guide-onpage p { margin-bottom: 0.375rem; font-weight: 650; }
 .guide-main .guide-onpage ul { display: flex; flex-wrap: wrap; gap: 0.375rem 1.25rem; margin: 0; padding: 0; list-style: none; }

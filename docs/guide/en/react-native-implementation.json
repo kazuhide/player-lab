@@ -8,7 +8,7 @@
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/native-react-native/",
-          "label": "React Native screen, setup and operation"
+          "label": "Screen and controls: React Native"
         }
       ]
     },
@@ -28,10 +28,23 @@
     {
       "type": "steps",
       "items": [
-        "Build the shared UI and generate the external Expo host using the operation page. Use an Expo development build; Expo Go does not contain these native Player modules. The generator copies this repository’s App.tsx and src directory rather than generating a separate sample screen.",
+        "Build the shared UI and generate the external Expo host following Build in an Expo project in the React Native README linked below. Use an Expo development build; Expo Go does not contain these native Player modules. The generator copies this repository’s App.tsx and src directory rather than generating a separate sample screen.",
         "Allowlist com.playerlab.reactnative for the iOS and Android entries of the Player license. The generated host reads the copied local configuration at build/development time. Changing the repository’s key file alone does not update an already generated external host.",
         "Open App.tsx. App owns the applied settings and editable draft. PlayerPane is keyed by UI choice and revision; ActivePlayerPane obtains a Player through usePlayer and passes that instance into PlayerView.",
         "Load a VOD preset, start playback and open Show applied code. Keep this baseline while changing one option. Compare the submitted configuration, the native SDK event log and the visible result together."
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Local setup and licenses"
+        },
+        {
+          "url": "https://github.com/kazuhide/player-lab/blob/main/apps/react-native/README.md#build-in-an-expo-project",
+          "label": "React Native README: generate and build the Expo host"
+        }
       ]
     },
     {
@@ -137,6 +150,26 @@
         "Open Show applied code after Apply. Advanced settings override the basic form; removing the advanced value restores the form value or SDK default. Reset draft only discards pending edits.",
         "When editing the implementation itself, keep the validated player/source objects separate. App increments revision on Apply; its React key remounts the Player owner because changing an argument to the existing usePlayer call is not a reconfiguration API."
       ]
+    },
+    {
+      "type": "h3",
+      "id": "source-loading-and-ownership",
+      "text": "Apply settings and load the current source"
+    },
+    {
+      "type": "code",
+      "title": "Load after the current native view becomes ready",
+      "text": "  useEffect(() => {\n    if (!viewReady || !active.current) return;\n    snapshots.current?.sourceChanged();\n    setDvr(null);\n    append(`load ${source.title || \"source\"}`);\n    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.\n    void loadOwnedSource(player, source).catch(() => { if (active.current) append(\"Source initialization failed; inspect source events or retry after the pending initializer settles.\"); });\n    observed.current?.sourceLoad();\n  }, [source, player, viewReady, append]);",
+      "source": {
+        "path": "apps/react-native/App.tsx",
+        "line": 282,
+        "label": "App.tsx:282–290"
+      },
+      "endLine": 290
+    },
+    {
+      "type": "p",
+      "text": "The source-loading effect handles a new source on the retained Player after the current native view is ready. loadOwnedSource is the app’s ownership helper around the wrapper’s void Player.load, not an SDK Promise-returning load method. In your own screen, connect loading to the current view/player owner and use source/error events to observe media readiness. The form’s Apply path additionally remounts the Player when its configuration changes."
     },
     {
       "type": "figure",
@@ -248,6 +281,21 @@
       ]
     },
     {
+      "type": "code",
+      "title": "Call the wrapper’s track and quality setters",
+      "text": "  one(\"Player.setVideoQuality\", { ...value, initial: \"auto\", label: \"Quality ID (getAvailableVideoQualities, or auto)\" }, (raw) => raw, (v) => player.setVideoQuality(v));\n  one(\"Player.setAudioTrack\", { ...value, label: \"Audio track identifier (getAvailableAudioTracks)\" }, (raw) => raw, (v) => player.setAudioTrack(v));\n  one(\"Player.setSubtitleTrack\", { ...value, label: \"Subtitle identifier (blank disables subtitles)\" }, (raw) => raw || undefined, (v) => player.setSubtitleTrack(v));",
+      "source": {
+        "path": "apps/react-native/src/apiOperations.ts",
+        "line": 73,
+        "label": "apiOperations.ts:73–75"
+      },
+      "endLine": 75
+    },
+    {
+      "type": "p",
+      "text": "one is the Lab helper that creates an argument input and operation handler. The callbacks call the real Player.setVideoQuality, setAudioTrack and setSubtitleTrack APIs. Reuse the SDK call in your own event handler after obtaining a current track identifier; the Lab’s form-registration helper is not required. Keep the iOS quality-selection limitation above when adapting the first operation."
+    },
+    {
       "type": "p",
       "text": "Show API experiments runs actual wrapper calls and displays their returned values. Many reads cross the native bridge and return Promises, so await the value before using it in a UI. Player events provides payload summaries separately. For a setter, compare the corresponding getter or completion event; the call returning does not establish that an unrelated feature worked. onTimeChanged also refreshes the app’s live-window snapshot because this wrapper does not expose onDurationChanged."
     },
@@ -338,6 +386,11 @@
         "In Bitmovin Dashboard, select the matching Analytics license, time range and app/content filters. Inspect the session and compare startup, buffering, bitrate and errors with the SDK event log. Collection and Dashboard aggregation are separate steps.",
         "Use the shared metric, visualization and analysis chapters below for definitions and query examples. Account API credentials belong in trusted server-side tools; they are not Player or Analytics collector license keys and must not be embedded in the app."
       ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-overview",
+      "caption": "Official Bitmovin demo Dashboard with dummy data, showing license, period and filtering. Locate the matching collected app session in your own Dashboard; this is not a Player Lab collection result. The current layout may differ. © Bitmovin."
     },
     {
       "type": "links",

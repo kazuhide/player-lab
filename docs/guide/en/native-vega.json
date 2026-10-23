@@ -1,218 +1,220 @@
 {
   "id": "native-vega",
-  "title": "Vega OS: screen and configuration",
-  "lead": "Run the Kepler app for Vega OS, edit Player and source settings with a remote, and inspect playback, SDK operations and events. Vega OS is separate from Android-based Fire TV.",
+  "title": "Vega OS: Screen and controls",
+  "lead": "Use the Vega app with a remote to load a source, edit playback settings, inspect applied code and compare SDK results and events. Its native screen differs from the browser UI and the Android-based Fire TV app.",
   "blocks": [
+    {
+      "type": "h2",
+      "text": "Open the Vega screen",
+      "id": "vega-os-and-kepler"
+    },
+    {
+      "type": "p",
+      "text": "The video occupies the upper part of the screen; the controls and editors scroll below it. Use D-pad and Select on a device, or arrow keys and Enter on a Vega Virtual Device. Buttons and focusable switches operate the app. There is no browser Player control bar or shared HTML theme picker on this screen."
+    },
+    {
+      "type": "note",
+      "title": "Before opening the screen",
+      "text": "Use the Kepler build for Vega OS, not the Android Fire TV package. The Player app identifier is com.playerlab.vega and the component is com.playerlab.vega.main. Generate the local runtime configuration and rebuild when licenses change. Follow the linked setup and Vega README for the supported SDK profile, build and device-selection commands."
+    },
     {
       "type": "links",
       "items": [
         {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Local setup and licenses"
+        },
+        {
+          "path": "apps/vega/README.md",
+          "line": 1,
+          "label": "Build and launch the Kepler app"
+        },
+        {
           "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/",
-          "label": "Implementation guide: configuration, UI changes and FAQ"
+          "label": "Implementation guide: native media, settings and UI changes"
         }
       ]
     },
     {
       "type": "h2",
-      "text": "Vega OS and Kepler"
+      "text": "Choose a source and apply a change",
+      "id": "source-and-apply"
     },
     {
-      "type": "p",
-      "text": "Vega OS is separate from Android-based Fire TV. The included apps/vega host connects the modular Web Player to W3C Media and retains the existing React Native/Kepler controls. It does not use the browser-based bitmovin-player-ui. The tested combination is Player 8.138.0-beta.28, React Native 0.72.0, React 18.2.0, Kepler 2.1.0+rn0.72.0 and W3C Media 2.3.2, with Vega SDK 0.24.12112 and Kepler CLI platform 0.22.14. The official Vega sample supports the beta.XX channel; the general Web stable release is not a supported substitute."
-    },
-    {
-      "type": "p",
-      "text": "Player Lab Vega uses com.playerlab.vega and the com.playerlab.vega.main component. Authorize this identifier for the configured Player license before a licensed device run."
-    },
-    {
-      "type": "steps",
-      "items": [
-        "Install the official Vega SDK and documented prerequisites. Normal JavaScript installation, unit tests and type checks do not require the native SDK or a license.",
-        "Use the included application host. Generate its ignored runtime configuration from your local licenses before bundling.",
-        "For licensed playback, load the repository-root .env with scripts/env-lib.sh and rerun runtime:config before rebuilding. It copies only the Player and optional Analytics licenses; index.js installs them before evaluating App. Authorize com.playerlab.vega on the Player license. Keep generated configuration, bundles, packages and logs private.",
-        "Run build:vega through the Vega SDK environment. It creates JS/Hermes bundles and aarch64, armv7 and x86_64 Release packages. The generic workspace build does not run the native SDK.",
-        "Start a Vega Virtual Device or connect a compatible device, verify its OS/profile, select its serial explicitly and launch the matching package. Check changing video frames and advancing SDK position together; a CLI ready message alone does not prove that the OS or app booted."
-      ]
-    },
-    {
-      "type": "code",
-      "title": "Load local licenses and build",
-      "text": "source scripts/env-lib.sh\nload_env_defaults .env\npnpm --filter @showcase/vega runtime:config\nvega exec pnpm --filter @showcase/vega build:vega"
-    },
-    {
-      "type": "code",
-      "title": "Inspect and run on a Vega Virtual Device",
-      "text": "vega virtual-device start --timeout 120\nvega exec vda devices -l\nvega device info --device <VVD_SERIAL>\nvega run-app apps/vega/build/aarch64-release/vega_aarch64.vpkg \\\n  com.playerlab.vega.main --deviceId <VVD_SERIAL>"
-    },
-    {
-      "type": "p",
-      "text": "The Vega screen provides source presets, the basic configuration form, SDK API experiments, state and events alongside its native video surface. Autoplay and startup mute are initially enabled. Use D-pad and Select (arrow keys and Enter on VVD) to navigate focusable controls. Playback and track operations are available in API experiments, while the basic controls retain their live-rewind shortcuts."
+      "type": "figure",
+      "file": "vega-subtitles",
+      "caption": "The configuration form below the native video. This view shows external subtitle fields, a start offset and the Autoplay/Mute switches; the form continues below the capture."
     },
     {
       "type": "steps",
       "items": [
-        "Select VOD HLS and wait for moving video and an advancing position value. Autoplay is useful for comparison; if it is off, use PlayerAPI.play in SDK API experiments.",
-        "Open Show configuration, record the baseline values, enter 5 for Start offset (seconds), choose Start and use Apply and recreate player. Check the new source load and the position displayed below the video after playback starts.",
-        "Use the example buffer and bitrate values below, Apply, and compare Show applied code with the baseline. A source edit also recreates the player; it waits for the previous native player to release its resources.",
-        "To discard edits use Reset draft. To restore initial player settings, set Autoplay and Mute on startup on, clear both buffer fields and Maximum video bitrate, then Apply. Select the VOD preset again to restore source fields. If Autoplay was turned off, turn it on and Apply to start a fresh playback session."
+        "Select a VOD preset and confirm that video frames and the position advance. VOD means on-demand media with a fixed timeline. Autoplay and Mute on startup are initially enabled; if Autoplay is off, use PlayerAPI.play in SDK API experiments.",
+        "Open Show configuration and record the current values. Enter an HTTP/HTTPS source URL and choose its actual HLS, DASH or progressive MP4 type. HLS and DASH can provide multiple qualities. Optional title and poster values are stored with the source; this native screen does not draw poster artwork.",
+        "For an initial-position comparison, keep the source URL, enter 5 in Start offset (seconds), choose Start and select Apply and recreate player. After the source loads, compare the position and picture with the original playback.",
+        "Apply validates the whole draft, waits for the old native session to close and recreates the Player. A source-only form edit also restarts playback from its configured offset. Invalid or unchanged values do not replace the session.",
+        "Reset draft discards unapplied edits. To undo an applied experiment, restore the recorded values and Apply. To restore the initial Player inputs, enable Autoplay and Mute on startup and clear both buffer fields and Maximum video bitrate. A VOD preset restores its source fields, not all Player settings."
       ]
     },
     {
       "type": "table",
       "headers": [
-        "Setting",
-        "Example input",
+        "Control",
+        "Example",
         "What to compare"
-      ],
-      "widths": [
-        0.24,
-        0.26,
-        0.5
       ],
       "rows": [
         [
+          "Start offset / reference",
+          "5 seconds, Start",
+          "Compare the starting position after Apply. Start uses the beginning of the media/live window; End uses the end/live edge. SDK default is Start for VOD and End for live. Signed offsets are accepted."
+        ],
+        [
+          "Autoplay / Mute on startup",
+          "On, then Off",
+          "Compare the new session after Apply. If automatic playback is disabled, use the SDK API play command. A startup flag is not an immediate pause or unmute command."
+        ],
+        [
           "Video / audio forward buffer",
-          "Video: 10 seconds; Audio: 10 seconds",
-          "Apply recreates the player. Check buffer.video.forwardduration and buffer.audio.forwardduration in applied code. The fields are separate targets for media held ahead; they do not extend a live stream's retained history."
+          "10 seconds each",
+          "Compare buffer.video.forwardduration and buffer.audio.forwardduration in applied code. Positive values set media buffer targets; blank restores SDK defaults. This does not extend the live rewind window."
         ],
         [
           "Maximum video bitrate",
           "1500000 bits per second",
-          "Apply recreates the player. Check adaptation.bitrates.maxSelectableVideoBitrate in applied code and use a multi-bitrate source. For an explicit rendition, inspect available qualities and the corresponding SDK API operation."
-        ],
-        [
-          "External WebVTT",
-          "Your HTTPS WebVTT URL; label Test captions; language en; Enable external subtitle on load on",
-          "Apply, then play through a cue's time range. Vega draws plain subtitle text over the native video. Unlike React Native, this setting enables the configured track without a subtitle menu."
-        ],
-        [
-          "Source title / poster",
-          "Title: Player Lab VOD; your HTTPS poster URL, if needed",
-          "Check the values in applied source code. This host displays no artwork overlay, so storing a poster does not create a visible poster image."
+          "Compare adaptation.bitrates.maxSelectableVideoBitrate, the selected quality and playback on a source with several qualities. Blank removes the cap; enter the value without units or commas."
         ]
+      ],
+      "widths": [
+        0.24,
+        0.32,
+        0.44
       ]
     },
     {
       "type": "p",
-      "text": "Show configuration edits an HTTP/HTTPS source URL, HLS/DASH/progressive MP4 type, optional title/poster URL, signed start offset in seconds and Start/End/SDK default reference. Start means beginning of media/DVR window, End means end/live edge; the SDK default is Start for VOD and End for live. Blank title/poster/offset fields remove those optional values. The Kepler screen has no artwork overlay, so a poster value is stored with the source without adding a visible poster."
+      "text": "The form accepts finite decimal offsets and positive buffer/bitrate targets. The native media integration requires Fetch; choosing XHR in advanced configuration is rejected before Apply. Additional type-level choices do not create missing browser capabilities. See the implementation guide for the configuration paths and platform conditions."
     },
     {
-      "type": "p",
-      "text": "External subtitle settings include External WebVTT URL, Subtitle label, Subtitle language and Enable external subtitle on load. Supply URL, label and an IETF language tag together; en-us becomes en-US. Blank URL removes the track and clears its metadata. The public Subtitles and WebVTT parser modules deliver cue events to a native plain-text overlay, which clears on source/player retirement or background transition. HTML cue styling is not rendered. HTTPS delivery produced visible cues in the checked runtime; the same local HTTP fixture did not. Reset only restores the draft; Apply recreates through the existing release barrier, and code export contains applied values only."
-    },
-    {
-      "type": "figure",
-      "file": "vega-subtitles",
-      "caption": "Vega: the external WebVTT fields."
+      "type": "h2",
+      "text": "Check playback and subtitles",
+      "id": "playback-and-subtitles"
     },
     {
       "type": "figure",
       "file": "vega-caption",
-      "caption": "Vega: the native video with the external WebVTT cue drawn by the app."
+      "caption": "A plain WebVTT cue displayed over the native video. The settings below it remain usable; this is an app-rendered text overlay rather than the browser subtitle UI."
     },
     {
-      "type": "p",
-      "text": "Autoplay and Mute on startup apply at player creation. Separate audio/video forward buffer targets are in seconds; this form accepts positive values, and blank keeps the SDK default of 40 seconds per media type. Live windows can limit the effective buffer. Maximum video bitrate is a positive adaptation cap in bits per second; blank means no cap. Numbers must be finite decimals. Format, buffering and adaptation support still depends on the stream, engine and target device."
+      "type": "steps",
+      "items": [
+        "Keep Autoplay enabled for a basic playback comparison, or use PlayerAPI.play and PlayerAPI.pause in SDK API experiments. On live media with a rewind window, compare Live edge and the available rewind buttons with the position/state line. Allow DVR controls the app’s rewind helper.",
+        "For an external subtitle, enter a reachable HTTPS WebVTT URL, Subtitle label and Subtitle language together. WebVTT contains timed subtitle cues; use a file aligned with the selected media. A language tag such as en-US identifies the language.",
+        "Enable external subtitle on load and Apply. Play through the cue times and check the text over the picture. This switch enables the track on load; unlike React Native’s Mark as default metadata field, it does not require selecting a browser subtitle menu.",
+        "To remove the external subtitle, clear its URL and Apply. The label/language are cleared with it. Reset draft only cancels pending edits; it does not remove an already applied track. The native text display renders plain cue text rather than HTML subtitle styling."
+      ]
     },
     {
       "type": "note",
-      "text": "Apply and recreate player validates the draft, waits for the previous player to close, and reloads the selected source from its start offset. Playback position resets and playback starts according to Autoplay; the selected/custom source, log and Allow DVR setting are retained. Invalid or unchanged settings do not recreate the player. Reset draft only discards edits. Preset source buttons still load immediately. The HTML Player UI remains disabled on Vega; Allow DVR controls an application helper."
-    },
-    {
-      "type": "p",
-      "text": "When the Vega app returns from the background, it creates a new playback session and reloads the retained source and applied settings. Playback restarts according to the configured start offset and Autoplay value. This does not restore an arbitrary previous playback position."
-    },
-    {
-      "type": "p",
-      "text": "The native runtime connects Amazon's published media and WebCrypto APIs before constructing the player. Its network transport must be Fetch. The advanced editor exposes the SDK declaration, but rejects an XHR requestApi override before Apply. Other network hooks remain configurable. PlayerAPI.getCurrentTime returns seconds; live sources can use an absolute media timeline."
-    },
-    {
-      "type": "p",
-      "text": "If the app reports that the previous native player could not be released, restart the app before trying again. Creating another player while the previous one still owns native resources can prevent playback. This safeguard stops replacement and keeps the diagnostic visible."
+      "title": "Returning to the app",
+      "text": "Returning from the background creates a new session from the retained source and applied settings, using its start offset and Autoplay choice. It does not restore an arbitrary previous position. If the app reports that native media release is unconfirmed, restart the app before trying again; repeated Apply cannot confirm that the old media resources were released."
     },
     {
       "type": "h2",
-      "text": "Vega: typed configuration and callbacks"
-    },
-    {
-      "type": "steps",
-      "items": [
-        "Open Show configuration → Show all SDK configuration. Search a PlayerConfig or SourceConfig path and choose Set Vega API value.",
-        "Use the input for the declared type: SDK enumeration, object fields, dictionary entries, list items or bytes. Parent object/list forms let you complete required sibling fields together. For an array path, choose its index and add items in order.",
-        "Function fields contain editable JavaScript bodies. Enable Allow this SDK callback and Apply to install the function. Values typed any also offer a separate JavaScript value factory that runs on Apply or Run.",
-        "Apply and recreate player, then compare Show applied code. The export contains applied values and bodies, with license and header placeholders. Removing an override restores the basic form or SDK default."
-      ]
-    },
-    {
-      "type": "p",
-      "text": "Edited Vega JavaScript runs inside the app without a sandbox. Factories may run again during session recreation; callbacks run when the SDK calls them. lab.getPlayer() and lab.getSource() provide the current public SDK objects. Binary inputs accept hexadecimal or Base64 and create a buffer or typed array; a certificate still needs compatible DRM content, a license service and a supported device."
-    },
-    {
-      "type": "figure",
-      "file": "vega-api-callback",
-      "caption": "Vega callback editor showing the SDK signature and an editable function body. Approve the callback and Apply before testing the request."
-    },
-    {
-      "type": "h2",
-      "text": "Vega: operations, state and events"
-    },
-    {
-      "type": "steps",
-      "items": [
-        "Open Show SDK API experiments. Search a method, choose an overload if offered and enter typed arguments. Optional arguments can be set or omitted.",
-        "Select Run Vega SDK API. The panel shows the actual call and its return or error. For PlayerAPI.getCurrentTime, run it again during playback and compare changing video with the position.",
-        "Inspect current SDK API availability checks whether a public method exists without executing it. Format-specific queries require their matching source: HLS track methods need HLS and DASH period methods need DASH.",
-        "Read state after a setter and inspect the SDK events below the result. Pause Vega event log or Clear Vega event log to isolate an experiment. Inputs requiring SDK objects use current-session resources; they expire when the player is recreated."
-      ]
-    },
-    {
-      "type": "figure",
-      "file": "vega-api-operation",
-      "caption": "Vega API experiments with PlayerAPI.getCurrentTime and a position returned while Big Buck Bunny plays."
-    },
-    {
-      "type": "figure",
-      "file": "vega-api-volume",
-      "caption": "The Vega SDK returns volume 17 after the edited request callback changes it. The video and event log remain visible alongside the result."
-    },
-    {
-      "type": "p",
-      "text": "Low-latency operations apply to a suitable live source. VOD can accept a target setter while its latency readings remain zero. Use a matching live stream, read the target back and compare the relevant events before assessing actual delay."
-    },
-    {
-      "type": "h2",
-      "text": "Vega: HLS interstitials"
-    },
-    {
-      "type": "steps",
-      "items": [
-        "Use an HLS source containing interstitial markers. In Show all SDK configuration, select PlayerConfig.tweaks.enable_sgai_handling, choose true from its declared choices, then Apply.",
-        "In Show SDK API experiments, run PlayerAPI.sgai.list to inspect the schedule. PlayerAPI.sgai.getActiveAd returns the current interstitial; an empty result outside an interstitial is expected.",
-        "During an interstitial, use PlayerAPI.sgai.skip and check AdStarted, AdSkipped and AdBreakFinished together with the resulting playback state."
-      ]
-    },
-    {
-      "type": "p",
-      "text": "This is server-guided advertising (SGAI), driven by markers in the HLS source. It is separate from the client-side advertising integration. If the scheduled position is unexpected, compare the stream's program date with the interstitial's start date: inconsistent timelines can place an interstitial outside the media. The Vega README links to the public interstitial example; use a compatible source URL."
-    },
-    {
-      "type": "note",
-      "title": "Vega feature requirements",
-      "text": "The native integration requires Fetch; selecting XHR is rejected before Apply. The browser HTML UI, browser DOM containers, client-side advertising and canvas/WebGL rendering are not supplied by this native media host. A declared input, a callable method or a constant return does not establish that its feature works on Vega. Content, SDK modules, services and device capabilities determine the effective behavior. Check the current Vega README for feature-specific requirements."
-    },
-    {
-      "type": "h2",
-      "id": "applied-code",
-      "text": "Applied configuration code"
-    },
-    {
-      "type": "p",
-      "text": "Show applied code uses the applied configuration and edited callback bodies rather than pending edits. License and header values use placeholders. Use D-pad Down/Up to read lines below the video; this TV app has no clipboard integration. Reusing the displayed settings still requires the existing native media initialization, surface attachment and release sequence explained in the implementation guide."
+      "text": "Read the applied configuration",
+      "id": "applied-code"
     },
     {
       "type": "figure",
       "file": "vega-code",
-      "caption": "Vega: remote-readable applied configuration code with a license-key placeholder."
+      "caption": "Show applied code in the Vega app. Code lines can receive remote focus so the ScrollView reveals lines below the video. License values use placeholders."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "After Apply, open Show applied code. Compare the source and Player settings with the recorded baseline. The output contains applied values and approved callback bodies, not pending draft edits.",
+        "Use D-pad Down/Up to read the output. Each line participates in focus and scrolling. This TV app has no clipboard integration; it does not provide React Native’s Copy code action.",
+        "Edit a value without applying and confirm that the output still represents the active configuration. Reset draft cancels that edit. To undo an applied value, restore the previous value and Apply.",
+        "For integration details, follow the implementation guide. Reusing the displayed configuration still requires the existing native media initialization, surface connection and release sequence; the output is not a standalone browser player."
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/",
+          "label": "How configuration connects to native media and UI"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Edit typed settings and callbacks",
+      "id": "vega-typed-configuration-and-callbacks"
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-callback",
+      "caption": "The typed configuration editor shows a callback signature, body and explicit permission control. Apply installs the approved callback before the matching request is tried."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Show configuration and Show all SDK configuration. Search an exact PlayerConfig or SourceConfig path and select Set Vega API value. The SDK is the Player library; its API defines the available configuration, commands and events.",
+        "Use the displayed type to enter scalar values, enumeration choices, object fields, dictionaries, lists or bytes. Add array items in order and fill required related fields. Keep the previous value or whether an override was absent.",
+        "For a function, enter its JavaScript body, read its argument/return contract and enable Allow this SDK callback. Apply installs the function; it runs when the SDK invokes it. A JavaScript value factory for an any-typed value can run during Apply or Run.",
+        "After Apply, compare Show applied code and the relevant result or event. Remove the override and Apply to restore the basic form value or SDK default. Removing a callback stops future calls after replacement; restore any Player state that the callback deliberately changed."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Edited JavaScript runs inside the app without a sandbox, so enable only code you trust. Binary inputs accept hexadecimal or Base64 and become buffers or typed arrays; entering a DRM certificate does not supply compatible content, a license service or device support. The implementation guide explains configuration types and native limitations."
+    },
+    {
+      "type": "h2",
+      "text": "Run commands and inspect state and events",
+      "id": "vega-operations-state-and-events"
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-operation",
+      "caption": "PlayerAPI.getCurrentTime during playback. The result appears below Run Vega SDK API; the picture and SDK events provide additional context."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Show SDK API experiments, search PlayerAPI.getCurrentTime and choose a call signature if needed. Optional arguments can be supplied or omitted. Select Run Vega SDK API and read the call and its value or error.",
+        "Run the time query again while media advances, and compare seconds with the picture. Inspect current SDK API availability only checks whether methods exist; it does not call them or demonstrate their feature behavior.",
+        "To compare a command, read PlayerAPI.getVolume, record its value, run PlayerAPI.setVolume and read it again. Restore the recorded volume afterward. A returned value, a setter or an empty result should be checked against the relevant state/events.",
+        "Use SDK events, Pause Vega event log and Clear Vega event log to isolate the relevant notifications. For on/off experiments, remove the same callback instance that was registered. Query any required SDK objects from the current session after recreation.",
+        "Use Recreate Vega player after destroying the Player or to return to the applied configuration. The replacement waits for the previous media session to release. It does not undo saved source/configuration changes; restore those in the form when needed."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "vega-api-volume",
+      "caption": "The SDK returned volume 17 after a callback changed it in this captured experiment. Compare a setter with the getter, then restore the value recorded before your own test."
+    },
+    {
+      "type": "p",
+      "text": "Manifest methods depend on the loaded format: HLS track helpers need HLS, while DASH period helpers need DASH. Low-latency controls need an appropriate live source; on VOD a target may be accepted while latency remains zero. Match the content and native capabilities to the feature instead of treating every callable Web API as active on Vega."
+    },
+    {
+      "type": "h2",
+      "text": "Inspect HLS insertion content",
+      "id": "vega-hls-interstitials"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Use an HLS source containing insertion markers; the Vega README links a public sample. In Show all SDK configuration, select PlayerConfig.tweaks.enable_sgai_handling, choose true and Apply.",
+        "In SDK API experiments, inspect PlayerAPI.sgai.list for the schedule. PlayerAPI.sgai.getActiveAd reports the active inserted content and is normally empty outside an insertion interval.",
+        "While an applicable insertion is active, try PlayerAPI.sgai.skip and compare AdStarted, AdSkipped, AdBreakFinished and subsequent playback. A scheduled insertion alone does not show that the content was reached.",
+        "To end the experiment, restore the previous source and remove the SGAI override if it was added, then Apply. Compare the loaded source and applied code with the recorded baseline."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "SGAI means server-guided ad insertion: playback follows HLS insertion markers rather than a client-side ad integration. If the scheduled position is outside the media window, compare the stream’s program date time with the insertion start. The browser HTML UI and client-side advertising are not supplied by this native host. See the implementation guide and official Vega limitations for feature prerequisites."
     }
   ],
   "sources": [

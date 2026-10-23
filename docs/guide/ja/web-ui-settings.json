@@ -7,6 +7,10 @@
       "type": "links",
       "items": [
         {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#ui-settings",
+          "label": "画面と操作：Web版の操作をまとめて確認する"
+        },
+        {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/",
           "label": "実装ガイド：設定・UI変更・FAQ"
         }
