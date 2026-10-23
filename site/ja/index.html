@@ -86,7 +86,7 @@
           <div>
             <dt>再生操作と状態の確認</dt>
             <dd>画面上のボタンや選択欄から再生・一時停止、再生位置の移動、再生速度の変更、
-              画質・音声・字幕の選択を実行します。これらの操作にはプレイヤーのAPI（アプリから機能を呼び出す仕組み）を使います。
+              画質・音声・字幕の選択ができます。これらの操作にはプレイヤーのAPI（アプリから機能を呼び出す仕組み）を使います。
               ライブ配信では巻き戻し可能な範囲と現在位置を表示します。プレイヤーが通知するイベントも記録します。
               再生開始までの時間や再生中にデータの読み込み待ちが発生した回数などをブラウザー内で測定して表示します。
               Pages版には複数音声、外部字幕、プレビュー画像のテスト素材を含みます。
@@ -117,8 +117,8 @@ pnpm --filter @showcase/web dev</code></pre>
       <section class="platform-section wrap" id="platforms" aria-labelledby="platform-title">
         <div class="section-intro">
           <h2 id="platform-title">プラットフォーム別の実装</h2>
-          <p>アプリの起動手順と対応機能は各ガイドに記載しています。
-            対応する機能や操作画面はプラットフォームごとに異なります。日英のユーザーガイドで操作手順と制限を説明しています。</p>
+          <p>対応する機能や操作画面はプラットフォームごとに異なります。
+            日英のユーザーガイドで、各アプリの起動手順、操作方法、利用上の制限を説明しています。</p>
           <p>各アプリでは複数のテストストリームを使います。Pages版には短いBig Buck Bunnyを同梱し、
             ローカル開発版やネイティブ版では外部の参照ストリームも使います。
             音声・字幕・巻き戻せる範囲はソースによって異なります。
@@ -152,7 +152,7 @@ pnpm --filter @showcase/web dev</code></pre>
           <a href="guide/web-qoe-analytics/">イベント送信とDashboardでの確認</a>
           <a href="guide/analytics-metrics/">収集される指標</a>
           <a href="guide/analytics-visualization/">Dashboardと可視化</a>
-          <a href="guide/analytics-queries/">必要に応じたAPIの利用</a>
+          <a href="guide/analytics-queries/">APIでデータを取得</a>
         </div>
       </section>
     </main>

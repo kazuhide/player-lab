@@ -1,7 +1,7 @@
 {
   "id": "themes",
   "title": "テーマの画面例",
-  "lead": "公開Web版の同じ60秒素材を15秒付近で停止した画面を比較できます。表示は画面幅、素材、再生位置、対応機能によって変わります。スポーツ中継のスコアや選手情報はサンプルです。",
+  "lead": "公開Web版で同じ60秒の素材を15秒付近で停止した画面を比較できます。表示は画面幅、素材、再生位置、対応機能によって変わります。スポーツ中継のスコアや選手情報はサンプルです。",
   "themes": [
     {
       "id": "default",
@@ -95,7 +95,7 @@
       "id": "custom-binge",
       "category": "custom",
       "label": "連続再生",
-      "description": "イントロのスキップと次の動画への操作を追加します。",
+      "description": "イントロのスキップと、次の動画へ進む操作を追加します。",
       "code": "BingeUIFactory.buildBingeUI(player)",
       "source": {
         "path": "apps/web/src/main.ts",

@@ -92,7 +92,7 @@ TEXT = {
         'credit': '画面例の映像: Big Buck Bunny © 2008 Blender Foundation。Creative Commons Attribution 3.0で利用しています。',
         'license': 'プロジェクトのコードはMITライセンスです。Bitmovin Player SDKには別の利用条件が適用されます。',
         'no_script': '本文と参照資料はJavaScriptを使わずに読めます。目次またはブラウザーのページ内検索を利用してください。',
-        'intro': '再生機能、各種設定、UIの変更を試し、適用されたコードや再生品質のデータを確認するためのガイドです。',
+        'intro': '再生機能、各種設定、UIの変更を試し、設定を反映したコード例や再生品質のデータを確認するためのガイドです。',
         'reference_intro': '個別の設定、操作、テーマを探すための一覧です。操作の流れと制限は各章で説明しています。',
     },
 }

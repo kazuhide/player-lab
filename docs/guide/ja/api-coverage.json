@@ -1,7 +1,7 @@
 {
   "id": "api-coverage",
   "title": "公開APIの対応状況",
-  "lead": "アプリの設定・操作と公開SDK APIの対応を確認できます。元の一覧と分母を保ち、GUIの個別編集、固定候補、コード内のみの利用、SDKの型や対応環境による制約を区別して示します。",
+  "lead": "アプリの設定・操作と公開SDK APIの対応を確認できます。集計対象と分母を示し、GUIの個別編集、固定候補、コード内のみの利用、SDKの型や対応環境による制約を説明します。",
   "noteTranslations": {
     "web": [
       {
@@ -22,7 +22,7 @@
       },
       {
         "source": "Callback bodies run only after explicit approval and Apply. Real SDK/browser objects are created by public constructors or selected from current owned instances; JSON data is not cast to those instances. Callback and query owners are retired when their Player, Source or UI is replaced.",
-        "text": "関数本体は実行を許可して適用した後にSDKから呼ばれます。SDKやブラウザーの実体は公開コンストラクターで生成するか、現在のインスタンスから選択します。JSONを実体として扱いません。Player・Source・UIの入れ替え後に古い処理結果を表示しないようにしています。"
+        "text": "関数本体は実行を許可して適用した後にSDKから呼ばれます。SDKやブラウザーのオブジェクトは公開コンストラクターで生成するか、現在使っているインスタンスから選択します。JSONをそのままインスタンスとして扱うことはありません。Player・Source・UIの入れ替え後に古い処理結果を表示しないようにしています。"
       },
       {
         "source": "Named Player events are subscribed on the current Player and shown in a bounded log. A subscription route is not proof that every event was delivered. Runtime reads and controls remain dependent on SDK feature, media, device and service prerequisites.",
@@ -30,7 +30,7 @@
       },
       {
         "source": "The mapping is static source evidence. Browser playback and targeted GUI regressions are separate checks and do not establish that every option, event, browser, device, DRM system or external service works.",
-        "text": "対応付けはソースの静的な証跡に基づきます。ブラウザーでの再生と対象を絞ったGUI検証は別の確認です。全ての設定値・イベント・ブラウザー・機器・コンテンツ保護方式・外部サービスの動作確認を表すものではありません。"
+        "text": "対応付けはソースコードの静的な確認に基づきます。ブラウザーでの再生と対象を絞ったGUI検証は別の確認です。全ての設定値・イベント・ブラウザー・機器・コンテンツ保護方式・外部サービスの動作確認を表すものではありません。"
       }
     ],
     "web-ui": [
@@ -44,11 +44,11 @@
       },
       {
         "source": "The typed SDK editor maps component configuration and layout paths to UIConfig overrides. The existing theme factories construct components inside the SDK override scope. Component-instance inputs use real public constructors; EventDispatcher uses its own constructor rather than a Component.",
-        "text": "SDKの詳細欄からコンポーネント設定とレイアウト設定をUIConfigの上書き値へ渡します。既存テーマはSDKの上書き処理の中でコンポーネントを生成します。部品の実体は公開コンストラクターで生成し、EventDispatcherには専用のコンストラクターを使います。"
+        "text": "SDKの詳細欄からコンポーネント設定とレイアウト設定をUIConfigの上書き値へ渡します。既存テーマはSDKの上書き処理の中でコンポーネントを生成します。部品のインスタンスは公開コンストラクターで生成し、EventDispatcherには専用のコンストラクターを使います。"
       },
       {
         "source": "Published UI 4.23.0 declares Partial<ToggleSettingsPanelItem> where constructor configuration is expected. Its 61 lifecycle-method and readonly-event paths remain incomplete rather than being counted as settings. The editor separately exposes the actual ToggleSettingsPanelItem constructor configuration.",
-        "text": "UI 4.23.0の公開型には、コンストラクター設定の代わりにPartial<ToggleSettingsPanelItem>を参照する箇所があります。そこから列挙されたメソッドと読み取り専用イベントの61パスは、設定として加点せず未対応に残します。実際のToggleSettingsPanelItemのコンストラクター設定は、別の入力として編集できます。"
+        "text": "UI 4.23.0の公開型には、コンストラクター設定の代わりにPartial<ToggleSettingsPanelItem>を参照する箇所があります。そこから列挙されたメソッドと読み取り専用イベントの61パスは、設定の対応件数には含めず、未対応として示します。実際のToggleSettingsPanelItemのコンストラクター設定は、別の入力として編集できます。"
       },
       {
         "source": "UIManager methods accept edited arguments and expose results; its named dispatchers are subscribed on the current manager. Their availability does not establish that each event fired or every component/variant combination was exercised.",
@@ -66,7 +66,7 @@
       },
       {
         "source": "Configuration drafts support typed values, arrays, native objects and edited callback bodies. Apply reloads the source or recreates the player. Parent configuration objects are credited only where an editable child reaches an actual SDK consumer.",
-        "text": "設定の下書きでは型付きの値、配列、ネイティブの実体、関数本体を編集できます。Applyでソースを再読込するかPlayerを再生成します。親の設定オブジェクトは、編集可能な子項目が実際のSDK処理へ渡る場合に対応済みとします。"
+        "text": "設定の下書きでは型付きの値、配列、ネイティブのオブジェクト、関数本体を編集できます。Applyでソースを再読み込みするかPlayerを再生成します。親の設定オブジェクトは、編集可能な子項目が実際のSDK処理へ渡る場合に対応済みとします。"
       },
       {
         "source": "The API inspector invokes typed SDK operations, displays current state and records named callbacks through listeners or Combine publishers. A returned value, accepted configuration or subscribed event does not qualify every media, operating system, device or remote service.",
@@ -74,11 +74,11 @@
       },
       {
         "source": "Native callback bodies use a JavaScript subset with CPU, elapsed-time, instruction and value-size limits. Generated Swift uses the same public bundled interpreter resources; those files and their license must be copied with the example.",
-        "text": "ネイティブの関数本体はJavaScriptの一部の構文を使い、CPU時間、経過時間、命令数、値の大きさに上限を設けます。生成Swiftも同じ公開の実行用ファイルを利用するため、コード例と一緒にそのファイルとライセンスをコピーします。"
+        "text": "ネイティブの関数本体はJavaScriptの一部の構文を使い、CPU時間、経過時間、命令数、値の大きさに上限を設けます。生成したSwiftコードも同じ公開の実行用ファイルを利用するため、コード例と一緒にそのファイルとライセンスをコピーします。"
       },
       {
         "source": "The source DRM editor constructs FairPlay, ClearKey and receiver-side Widevine or PlayReady objects. The remote-source callback and receiver-conversion preview provide additional typed routes. Constructing a Widevine or PlayReady object does not add local Apple decoding support for that DRM system.",
-        "text": "ソースのDRM編集ではFairPlay、ClearKey、受信機向けのWidevine・PlayReadyの実体を生成できます。リモートソースの関数や受信機向け変換のプレビューでも型に沿って試せます。WidevineやPlayReadyの実体を生成しても、Apple端末でそのDRMを復号できるようになるわけではありません。"
+        "text": "ソースのDRM編集ではFairPlay、ClearKey、受信機向けのWidevine・PlayReadyのオブジェクトを生成できます。リモートソースの関数や受信機向け変換のプレビューでも型に沿って試せます。WidevineやPlayReadyのオブジェクトを生成しても、Apple端末でそのDRMを復号できるようになるわけではありません。"
       },
       {
         "source": "Original getter-only advertisement protocol members, SDK-internal ad lifecycle methods and system background-session callbacks retain individual limitations. They remain in the original denominator; no adjusted percentage is substituted for the reported coverage.",
@@ -96,7 +96,7 @@
       },
       {
         "source": "Configuration drafts support typed values, arrays, native objects and edited callback bodies. Apply reloads the source or recreates the player. Parent configuration objects are credited only where an editable child reaches an actual SDK consumer.",
-        "text": "設定の下書きでは型付きの値、配列、ネイティブの実体、関数本体を編集できます。Applyでソースを再読込するかPlayerを再生成します。親の設定オブジェクトは、編集可能な子項目が実際のSDK処理へ渡る場合に対応済みとします。"
+        "text": "設定の下書きでは型付きの値、配列、ネイティブのオブジェクト、関数本体を編集できます。Applyでソースを再読み込みするかPlayerを再生成します。親の設定オブジェクトは、編集可能な子項目が実際のSDK処理へ渡る場合に対応済みとします。"
       },
       {
         "source": "The API inspector invokes typed SDK operations, displays current state and records named callbacks through listeners or Combine publishers. A returned value, accepted configuration or subscribed event does not qualify every media, operating system, device or remote service.",
@@ -104,11 +104,11 @@
       },
       {
         "source": "Native callback bodies use a JavaScript subset with CPU, elapsed-time, instruction and value-size limits. Generated Swift uses the same public bundled interpreter resources; those files and their license must be copied with the example.",
-        "text": "ネイティブの関数本体はJavaScriptの一部の構文を使い、CPU時間、経過時間、命令数、値の大きさに上限を設けます。生成Swiftも同じ公開の実行用ファイルを利用するため、コード例と一緒にそのファイルとライセンスをコピーします。"
+        "text": "ネイティブの関数本体はJavaScriptの一部の構文を使い、CPU時間、経過時間、命令数、値の大きさに上限を設けます。生成したSwiftコードも同じ公開の実行用ファイルを利用するため、コード例と一緒にそのファイルとライセンスをコピーします。"
       },
       {
         "source": "The source DRM editor constructs FairPlay, ClearKey and receiver-side Widevine or PlayReady objects. The remote-source callback and receiver-conversion preview provide additional typed routes. Constructing a Widevine or PlayReady object does not add local Apple decoding support for that DRM system.",
-        "text": "ソースのDRM編集ではFairPlay、ClearKey、受信機向けのWidevine・PlayReadyの実体を生成できます。リモートソースの関数や受信機向け変換のプレビューでも型に沿って試せます。WidevineやPlayReadyの実体を生成しても、Apple端末でそのDRMを復号できるようになるわけではありません。"
+        "text": "ソースのDRM編集ではFairPlay、ClearKey、受信機向けのWidevine・PlayReadyのオブジェクトを生成できます。リモートソースの関数や受信機向け変換のプレビューでも型に沿って試せます。WidevineやPlayReadyのオブジェクトを生成しても、Apple端末でそのDRMを復号できるようになるわけではありません。"
       },
       {
         "source": "Original getter-only advertisement protocol members, SDK-internal ad lifecycle methods and system background-session callbacks retain individual limitations. They remain in the original denominator; no adjusted percentage is substituted for the reported coverage.",
@@ -126,15 +126,15 @@
       },
       {
         "source": "SDK API settings provides typed values, lists, dictionaries, native object factories and editable callback bodies. The standard form remains available. Staged overrides take precedence after explicit Apply and player recreation; startup-only debug logging uses a saved next-process setting.",
-        "text": "SDK API settingsでは、型に沿った値、配列、辞書、ネイティブの実体、関数本体を入力します。従来のフォームも利用できます。上書きは明示的な適用とPlayerの再生成後に優先され、起動時のデバッグログ設定は次のプロセスで反映します。"
+        "text": "SDK API settingsでは、型に沿った値、配列、辞書、ネイティブのオブジェクト、関数本体を入力します。従来のフォームも利用できます。上書きは明示的な適用とPlayerの再生成後に優先され、起動時のデバッグログ設定は次にアプリのプロセスを起動したときに反映します。"
       },
       {
         "source": "Commands invoke the current Player, Source, view or native host with edited arguments; reads refresh visible SDK state. Source identity and generation are checked for asynchronous results. Submitting a command does not establish its playback or service effect.",
-        "text": "操作は入力した引数を現在のPlayer・Source・View・ホストへ渡し、状態取得はSDKの値を表示します。非同期の結果ではソースの実体と世代を確認します。要求を送っただけで再生や外部サービスへの効果が確認できるわけではありません。"
+        "text": "操作は入力した引数を現在のPlayer・Source・View・ホストへ渡し、状態取得はSDKの値を表示します。非同期の結果を表示する前に、取得元のSourceと読み込みの世代が現在のものと一致するか確認します。要求を送っただけで再生や外部サービスへの効果が確認できるわけではありません。"
       },
       {
         "source": "Named events have current-owner subscriptions and visible occurrence counts with SDK timestamps. Subscription wiring is not a record that every event fired; the matching source, feature, device or service is still required.",
-        "text": "名前付きイベントは現在の所有者で購読し、件数とSDKの時刻を表示します。購読経路があることと、全イベントの発火を確認したことは異なります。対応する素材・機能・端末・サービスが必要です。"
+        "text": "名前付きイベントは現在使っているインスタンスで購読し、件数とSDKの時刻を表示します。購読経路があることと、全イベントの発火を確認したことは異なります。対応する素材・機能・端末・サービスが必要です。"
       },
       {
         "source": "The app uses release 3.171.0 with the vendor +jason binary flavor required by IMA. The original standard source inventory is retained and compared with both published binary flavors. Only the explicit Media3 package relocation is normalized; standard source hashes are not presented as +jason binary hashes.",
@@ -142,11 +142,11 @@
       },
       {
         "source": "The 27 remaining configuration entries describe SDK-owned or internal metadata rather than supported independent inputs. They stay in the original denominator with a per-ID contract explanation. An unused constructed object or a read of SDK output does not become an editable setting.",
-        "text": "残る設定27件はSDKが所有する値や内部用のメタデータで、独立して適用する公開入力ではありません。元の分母に残し、IDごとの契約上の理由を示します。未使用のオブジェクトを生成したり、SDKの出力値を読み取ったりしても、設定を編集したことにはしません。"
+        "text": "残る設定27件はSDKが所有する値や内部用のメタデータで、独立して適用する公開入力ではありません。元の分母に残し、個別に編集できない理由をIDごとに示します。未使用のオブジェクトを生成したり、SDKの出力値を読み取ったりしても、設定を編集したことにはしません。"
       },
       {
         "source": "These are source-level route mappings. Java virtual machine (JVM) unit tests, builds and representative licensed emulator checks are separate evidence. They do not qualify every argument combination, device, graphics driver, protected stream, Cast receiver or Analytics dashboard receipt.",
-        "text": "この対応表はソース上の操作経路を示します。Java仮想マシン上の単体テスト、ビルド、ライセンスを使った代表的なエミュレーター検証は別の証跡です。全引数・端末・描画ドライバー・保護素材・Cast受信機・Analytics Dashboardへの反映を確認したという意味ではありません。"
+        "text": "この対応表はソース上の操作経路を示します。Java仮想マシン上の単体テスト、ビルド、ライセンスを使った代表的なエミュレーター検証は別の確認結果です。全引数・端末・描画ドライバー・保護素材・Cast受信機・Analytics Dashboardへの反映を確認したという意味ではありません。"
       }
     ],
     "react-native": [
@@ -164,7 +164,7 @@
       },
       {
         "source": "Source changes retain creation identity until initialization settles and check ownership immediately before native attachment. A displayed operation timeout does not cancel an SDK call. Repeated requests keep one active initializer and the latest waiting request instead of accumulating native sources.",
-        "text": "Sourceの切替では初期化完了まで生成した実体を保持し、ネイティブへ接続する直前にも所有者を確認します。画面上のタイムアウトはSDKの呼び出しを取り消す処理ではありません。反復要求では初期化中の実体と最新の待機要求を管理し、Sourceが増え続けないようにします。"
+        "text": "Sourceの切り替えでは初期化完了まで生成したインスタンスを保持し、ネイティブへ接続する直前にも現在の読み込み要求に対応するものか確認します。画面上のタイムアウトはSDKの呼び出しを取り消す処理ではありません。要求が繰り返された場合は、初期化中のインスタンスと最新の待機要求を管理し、Sourceが増え続けないようにします。"
       },
       {
         "source": "Cast receiver and namespace options are saved through the native startup adapter and take effect after the app process is fully restarted. Wrapper 1.29 initialize(options) is deprecated and does not apply those options. Startup values and native initialization do not establish receiver discovery, a connection or remote playback.",
@@ -172,7 +172,7 @@
       },
       {
         "source": "Named events have current-owner subscriptions and a bounded visible log. Editable callback bodies require explicit execution permission and run inside the app. Offline completion, advertising, protected media, casting and other services require matching inputs and environments; source-level routes are separate from those qualification tests.",
-        "text": "名前付きイベントは現在の所有者で購読し、上限を設けたログに表示します。編集した関数の実行には明示的な許可が必要で、アプリ内で動作します。オフライン保存の完了、広告、保護素材、Castなどには対応する入力と環境が必要です。ソース上の操作経路と、それぞれの実行検証は別の証跡です。"
+        "text": "名前付きイベントは現在使っているインスタンスで購読し、上限を設けたログに表示します。編集した関数の実行には明示的な許可が必要で、アプリ内で動作します。オフライン保存の完了、広告、保護素材、Castなどには対応する入力と環境が必要です。ソース上の操作経路と、それぞれの実行検証は別の確認結果です。"
       },
       {
         "source": "The latest checked wrapper is 1.29.0, with its supported native dependency group: Apple Player 3.128.0 and Android Player 3.170.0+jason. The standalone Android sample uses 3.171.0+jason independently; changing only the wrapper native pin is not a verified wrapper upgrade.",
@@ -186,11 +186,11 @@
       },
       {
         "source": "The typed editor stages scalar values, nested objects, arrays, dictionaries, callbacks and resource references. Apply materializes them into the actual SDK configuration; API experiments invoke current-owner methods and display SDK results. A declared field or generated code does not establish that its corresponding renderer or feature is supported on Vega.",
-        "text": "型付きエディターで値、入れ子のオブジェクト、配列、辞書、関数、実体への参照を登録します。ApplyでSDKの設定へ変換し、API experimentsで現在の所有者のメソッドを実行して結果を表示します。型定義や生成コードがあるだけで、その描画方式や機能がVegaで動くことにはなりません。"
+        "text": "型付きエディターで値、入れ子のオブジェクト、配列、辞書、関数、オブジェクトへの参照を登録します。ApplyでSDKの設定へ変換し、API experimentsで現在使っているインスタンスのメソッドを実行し、結果を表示します。型定義や生成コードがあるだけで、その描画方式や機能がVegaで動くことにはなりません。"
       },
       {
         "source": "The runtime shows method availability from the actual SDK object. Media-dependent operations require an appropriate source. Named events are subscribed with their SDK names and displayed in a bounded owner-fenced log; this does not establish that every event has occurred.",
-        "text": "実際のSDKオブジェクトからメソッドの有無を確認できます。メディアに依存する操作には対応するソースが必要です。名前付きイベントはSDKの名称で購読し、所有者を確認して上限付きログへ表示します。全イベントが発火したという意味ではありません。"
+        "text": "実際のSDKオブジェクトからメソッドの有無を確認できます。メディアに依存する操作には対応するソースが必要です。名前付きイベントはSDKの名称で購読し、現在使っているPlayerからの通知かを確認し、件数に上限を設けたログへ表示します。全イベントが発火したという意味ではありません。"
       },
       {
         "source": "Client-side advertising and VR retain individual limitations in the original denominator. Browser DOM-return callbacks cannot be satisfied by a JSON object or Kepler media surface. Fields that can be edited and exported but lack a supported native feature consumer retain code-only status. Fetch is the supported native transport; XHR is rejected.",
@@ -198,7 +198,7 @@
       },
       {
         "source": "Player recreation and foreground restoration wait for confirmed release of the previous native media owner and SDK player. An unconfirmed release blocks replacement. Settings, drafts and logs remain in the app instance; playback restarts from the configured source offset rather than an arbitrary previous position.",
-        "text": "Playerの再生成やフォアグラウンド復帰では、前のネイティブメディア実体とSDK Playerの解放を確認してから置き換えます。解放を確認できなければ生成を止めます。設定・編集中の値・ログは同じアプリ内で保持しますが、再生は以前の任意の位置ではなく、設定した開始位置から再開します。"
+        "text": "Playerの再生成やフォアグラウンド復帰では、前のネイティブメディアオブジェクトとSDK Playerの解放を確認してから置き換えます。解放を確認できなければ生成を止めます。設定・編集中の値・ログは同じアプリ内で保持しますが、再生は以前の任意の位置ではなく、設定した開始位置から再開します。"
       },
       {
         "source": "These mappings describe GUI and SDK routes. Representative virtual-device playback checks, unit tests and builds are separate records. They do not qualify every argument, media format, protected stream, physical device, remote service or long-running memory workload.",
@@ -315,10 +315,10 @@
     "vega-supported-beta": "Vega対応ベータ版"
   },
   "coverageGoal": [
-    "対応するSDKの設定、操作、状態取得、イベントをアプリから試せることが目標です。現在の経路では型に応じた値、配列、編集したコールバック、実際のSDKオブジェクトを扱います。読み取り専用のプロパティ、SDKが所有するライフサイクル、利用できない描画方式などの制約がある行には、元の分類を維持して個別の理由を示します。",
+    "対応するSDKの設定、操作、状態取得、イベントをアプリから試せることが目標です。現在の編集画面では型に応じた値、配列、編集したコールバック、実際のSDKオブジェクトを扱います。読み取り専用のプロパティ、SDKが所有するライフサイクル、利用できない描画方式などの制約がある行には、元の分類を維持して個別の理由を示します。",
     "「設定APIの使用数」はGUIの個別編集、固定候補の選択、コード内のみの合計です。利用者が編集できる設定の割合ではありません。各表の割合は元のAPI一覧から計算し、理由を付けた項目も分母に含めます。",
     "Web UIの設定一覧には、初期化用の設定型ではなくコンポーネント本体のPartial<ToggleSettingsPanelItem>から列挙されたパスが含まれます。これらはインスタンスのメソッドやイベント購読を表します。設定として渡してもメソッドの実行や購読にはならないため、該当する行で型と適用経路の不一致を説明します。",
-    "コールバックの本文は実行を明示的に許可して使い、オブジェクトの入力には対応する生成処理や現在のSDK実体を使います。固定の処理を選ぶ方式はプリセットとして数えます。素材、端末、外部サービスは機能を実行する条件であり、GUIの経路の代わりにはなりません。処理を行わないとされるAPIも、呼び出しと結果の表示は可能です。",
+    "コールバックの本文は実行を明示的に許可して使い、オブジェクトの入力には対応する生成処理や現在使っているSDKのインスタンスを使います。固定の処理を選ぶ方式はプリセットとして数えます。素材、端末、外部サービスは機能を実行する条件であり、GUIの経路の代わりにはなりません。処理を行わないとされるAPIも、呼び出しと結果の表示は可能です。",
     "アプリからのAPI利用と実行検証の結果は別に扱います。購読を登録しただけでは、全イベントの発火を確認したことにはなりません。設定の受理や戻り値についても、再生、受信端末の動作、外部サービスでの受信を確認するには、それぞれに応じた検証が必要です。"
   ]
 }
