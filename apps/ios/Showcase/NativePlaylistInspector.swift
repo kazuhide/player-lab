@@ -111,7 +111,7 @@ struct NativePlaylistInspector: View {
                     }
                     .accessibilityIdentifier("playlist.run")
                 if let error { Text(error).font(.caption).foregroundStyle(.red).accessibilityIdentifier("playlist.error") }
-                Text(workbench.result).font(.caption).accessibilityIdentifier("playlist.result")
+                Text(NativeLocalization.operationResult(workbench.result)).font(.caption).accessibilityIdentifier("playlist.result")
             }
             .padding(10)
             .background(.background, in: RoundedRectangle(cornerRadius: 12))

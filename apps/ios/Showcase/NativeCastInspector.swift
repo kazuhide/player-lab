@@ -85,7 +85,7 @@ struct NativeCastInspector: View {
                         .accessibilityIdentifier("cast.startup.disable")
                 }
                 if let error { Text(error).font(.caption).foregroundStyle(.red).lineLimit(2).accessibilityIdentifier("cast.error") }
-                Text(workbench.result).font(.caption).lineLimit(2).accessibilityIdentifier("cast.result")
+                Text(NativeLocalization.operationResult(workbench.result)).font(.caption).lineLimit(2).accessibilityIdentifier("cast.result")
             }
             .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             .padding(10)
@@ -94,7 +94,7 @@ struct NativeCastInspector: View {
         .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }.accessibilityIdentifier("cast.keyboard.done") } }
     }
     private func input(_ label: String, value: Binding<String>, id: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) { Text(label).font(.caption); TextField("Value", text: value).textInputAutocapitalization(.never).disableAutocorrection(true).accessibilityIdentifier(id) }
+        VStack(alignment: .leading, spacing: 4) { Text(LocalizedStringKey(label)).font(.caption); TextField("Value", text: value).textInputAutocapitalization(.never).disableAutocorrection(true).accessibilityIdentifier(id) }
     }
 }
 #endif

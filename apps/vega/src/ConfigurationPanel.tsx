@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Button, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Button, Switch, Text, TextInput } from "./localization";
 import type { ConfigurationDraft } from "./configuration";
 import { ConfigurationCodeView } from "./ConfigurationCodeView";
 import { ConfigurationInputsPanel } from "./api/ConfigurationInputsPanel";

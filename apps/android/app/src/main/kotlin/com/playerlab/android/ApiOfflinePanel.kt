@@ -40,7 +40,7 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
         result = if (allowed) "Download notifications enabled." else "Download notifications are disabled in system settings."
     }
     fun run(action: () -> Any?) {
-        result = runCatching { apiValue(action()) }.getOrElse { "Offline API failed (${it.javaClass.simpleName}). Check source, selection, storage and SDK events. Draft values are retained." }
+        result = runCatching { apiResultText(controller.hostContext, action()) }.getOrElse { controller.hostContext.getString(R.string.ui_offline_api_failed, it.javaClass.simpleName) }
     }
     val actions = listOf(
         "offline-options" to "Fetch SDK track options", "offline-suspend" to "Suspend downloads", "offline-resume" to "Resume downloads",
@@ -70,9 +70,9 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
                 "Manager" -> {
                     ConfigField("Stable content ID", id, { id = it }, "offline-content-id")
                     WorkspaceHeading("Offline downloads", "Use downloadable video on demand. Files remain when a manager is released; Delete all removes them.")
-                    if (Build.VERSION.SDK_INT >= 33) OutlinedButton(onClick = { permission.launch(Manifest.permission.POST_NOTIFICATIONS) }) { Text("Allow download notifications") }
-                    OutlinedButton(onClick = { controller.applySource(SourceSettings("https://kazuhide.github.io/player-lab/web/media/vod-baseline/manifest.mpd", SourceType.Dash)) }, modifier = Modifier.testTag("offline-use-sample")) { Text("Use sample DASH source") }
-                    Text("Current source type: ${controller.sourceSettings.type}", style = MaterialTheme.typography.bodySmall)
+                    if (Build.VERSION.SDK_INT >= 33) OutlinedButton(onClick = { permission.launch(Manifest.permission.POST_NOTIFICATIONS) }) { UiText("Allow download notifications") }
+                    OutlinedButton(onClick = { controller.applySource(SourceSettings("https://kazuhide.github.io/player-lab/web/media/vod-baseline/manifest.mpd", SourceType.Dash)) }, modifier = Modifier.testTag("offline-use-sample")) { UiText("Use sample DASH source") }
+                    UiText(uiFormat(R.string.ui_current_source_type, controller.sourceSettings.type.toString()), style = MaterialTheme.typography.bodySmall)
                 }
                 "Download settings" -> when (setting) {
                     "Downloads" -> ConfigField("Maximum simultaneous downloads", draft.downloads, { draft = draft.copy(downloads = it) }, "offline-config-downloads")
@@ -82,34 +82,34 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
                         ConfigToggle(requirement.name, requirement in draft.requirements, "offline-requirement-${requirement.name}") { selected ->
                             draft = draft.copy(requirements = if (selected) draft.requirements + requirement else draft.requirements - requirement)
                         }
-                        Text("Downloads wait until every selected device requirement is met.", style = MaterialTheme.typography.bodySmall)
+                        UiText("Downloads wait until every selected device requirement is met.", style = MaterialTheme.typography.bodySmall)
                     }
                     "DRM license handling" -> ConfigToggle("Automatically handle offline DRM licenses", draft.automaticDrm, "offline-config-automatic-drm") { draft = draft.copy(automaticDrm = it) }
                 }
                 "Offline source" -> {
                     when (factorySetting) {
-                        "DRM ID" -> OutlinedTextField(sourceDraft.drmIdHex, { sourceDraft = sourceDraft.copy(drmIdHex = it) }, label = { Text("drmId: hexadecimal bytes or null") }, visualTransformation = PasswordVisualTransformation(), supportingText = { Text("Offline session key-set ID, not a Player key.") }, modifier = Modifier.fillMaxWidth().testTag("offline-factory-drm"))
+                        "DRM ID" -> OutlinedTextField(sourceDraft.drmIdHex, { sourceDraft = sourceDraft.copy(drmIdHex = it) }, label = { UiText("drmId: hexadecimal bytes or null") }, visualTransformation = PasswordVisualTransformation(), supportingText = { UiText("Offline session key-set ID, not a Player key.") }, modifier = Modifier.fillMaxWidth().testTag("offline-factory-drm"))
                         "Offline restriction" -> ConfigToggle("Restrict playback to cached content", sourceDraft.restrictToOffline, "offline-factory-restrict") { sourceDraft = sourceDraft.copy(restrictToOffline = it) }
                         "Cache directory" -> ConfigField("Cache directory name", sourceDraft.cacheFolder, { sourceDraft = sourceDraft.copy(cacheFolder = it) }, "offline-factory-cache")
                         "Track-state file" -> ConfigField("Track-state file name", sourceDraft.trackStateFile, { sourceDraft = sourceDraft.copy(trackStateFile = it) }, "offline-factory-tracks")
                     }
-                    Text("Advanced constructor for the current URL and type. It uses named directories in this app's private api-offline-source storage and does not copy SDK-managed downloads. Restriction requires matching cached resources and track state. Usually use Play downloaded source.", style = MaterialTheme.typography.bodySmall)
+                    UiText("Advanced constructor for the current URL and type. It uses named directories in this app's private api-offline-source storage and does not copy SDK-managed downloads. Restriction requires matching cached resources and track state. Usually use Play downloaded source.", style = MaterialTheme.typography.bodySmall)
                 }
                 "Track selection" -> {
                     val revision = offline.revision
                     val entries = remember(offline.options, revision) { offline.entries() }
                     val selected = entries.firstOrNull { it.first == selectedTrack } ?: entries.firstOrNull()
-                    if (selected == null) Text("No options received. Use Actions > Fetch SDK track options after creating a manager.")
+                    if (selected == null) UiText("No options received. Use Actions > Fetch SDK track options after creating a manager.")
                     else {
                         val (key, entry) = selected
                         Choices(listOf(null to "None", OfflineOptionEntryAction.Download to "Download", OfflineOptionEntryAction.Delete to "Delete"), entry.action, "offline-action-$key") { action -> run { offline.setAction(key, action) } }
                         SelectionContainer { Text(apiValue(offlineEntrySummary(entry)), style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("offline-option-$key")) }
-                        Text("Stage Download, Delete or None for this track. Process applies all selected track actions. The SDK may reject actions incompatible with track state.", style = MaterialTheme.typography.bodySmall)
+                        UiText("Stage Download, Delete or None for this track. Process applies all selected track actions. The SDK may reject actions incompatible with track state.", style = MaterialTheme.typography.bodySmall)
                     }
                 }
                 "Actions" -> {
                     WorkspaceHeading(actions.first { it.first == operation }.second)
-                    Text(when {
+                    UiText(when {
                         operation == "offline-delete" -> "Permanently removes downloaded files for the current content ID."
                         "license" in operation -> "Requires an offline-capable DRM source and license."
                         operation == "offline-release" -> "Releases this manager and keeps downloaded files."
@@ -123,8 +123,8 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
                         fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("offline-factory-code")) }
                 }
             }
-            Text(offline.status, modifier = Modifier.testTag("offline-status"), style = MaterialTheme.typography.bodySmall)
-            Text("Progress: ${offline.progress}%", style = MaterialTheme.typography.bodySmall)
+            UiText(offline.status, modifier = Modifier.testTag("offline-status"), style = MaterialTheme.typography.bodySmall)
+            UiText(uiFormat(R.string.ui_progress, offline.progress.toString()), style = MaterialTheme.typography.bodySmall)
             if (result.isNotEmpty()) SelectionContainer { Text(result, modifier = Modifier.testTag("offline-result"), style = MaterialTheme.typography.bodySmall) }
         }
         when (page) {
@@ -169,5 +169,5 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
 
 @Composable
 private fun FixedOfflineAction(tag: String, label: String, enabled: Boolean, action: () -> Unit) {
-    Surface(tonalElevation = 2.dp) { Button(action, enabled = enabled, modifier = Modifier.fillMaxWidth().padding(12.dp).testTag(tag)) { Text(label) } }
+    Surface(tonalElevation = 2.dp) { Button(action, enabled = enabled, modifier = Modifier.fillMaxWidth().padding(12.dp).testTag(tag)) { UiText(label) } }
 }

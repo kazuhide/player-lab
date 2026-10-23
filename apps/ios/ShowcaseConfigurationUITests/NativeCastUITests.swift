@@ -7,7 +7,7 @@ final class NativeCastUITests: XCTestCase {
 
     func testGuiConfiguresActualCastSdkAndShowsUnconnectedState() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         try WorkspaceUITestNavigation.activate(app.buttons["workspace.more"], in: app)
         try WorkspaceUITestNavigation.activate(app.buttons["cast.open"], in: app)
         let application = app.textFields["cast.applicationId"]

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { View } from "react-native";
+import { Text, TextInput } from "../localization";
 import { catalog } from "./catalog";
 import { Action, InputEditor, initialValue, styles } from "./InputEditor";
 import { ResourcePool } from "./materialize";

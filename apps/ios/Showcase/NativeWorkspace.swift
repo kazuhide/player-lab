@@ -86,7 +86,7 @@ struct WorkspaceChoice<Value: Hashable>: View {
             .sheet(isPresented: $choosing) {
                 VStack(alignment: .leading, spacing: 24) {
                     HStack {
-                        Text(title).font(.title2)
+                        Text(LocalizedStringKey(title)).font(.title2)
                         Spacer()
                         Button("Close") { choosing = false }
                     }
@@ -94,8 +94,8 @@ struct WorkspaceChoice<Value: Hashable>: View {
                 }
                 .padding(48)
             }
-            .accessibilityLabel(title)
-            .accessibilityValue(label(selection))
+            .accessibilityLabel(Text(LocalizedStringKey(title)))
+            .accessibilityValue(Text(LocalizedStringKey(label(selection))))
         #else
         Button { filter = ""; choosing = true } label: { choiceLabel }
                 .popover(isPresented: $choosing) {
@@ -105,8 +105,8 @@ struct WorkspaceChoice<Value: Hashable>: View {
         .font(.caption.weight(.semibold))
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .controlSize(.regular)
-        .accessibilityLabel(title)
-        .accessibilityValue(label(selection))
+        .accessibilityLabel(Text(LocalizedStringKey(title)))
+        .accessibilityValue(Text(LocalizedStringKey(label(selection))))
         #endif
         }
         .preference(key: WorkspaceChoicePresentationPreference.self, value: choosing)
@@ -114,7 +114,7 @@ struct WorkspaceChoice<Value: Hashable>: View {
 
     private var choiceLabel: some View {
         HStack(spacing: 6) {
-            Text(label(selection)).lineLimit(1)
+            Text(LocalizedStringKey(label(selection))).lineLimit(1)
             Image(systemName: "chevron.up.chevron.down").font(.caption2)
         }
         .frame(minHeight: 32).contentShape(Rectangle())
@@ -122,7 +122,7 @@ struct WorkspaceChoice<Value: Hashable>: View {
 
     private var choiceList: some View {
         VStack(spacing: 0) {
-            TextField("Find \(title.lowercased())", text: $filter)
+            TextField(NativeLocalization.format("Find %@", title.nativeLocalized), text: $filter)
                 .disableAutocorrection(true)
                 #if !os(tvOS)
                 .submitLabel(.done)
@@ -132,17 +132,17 @@ struct WorkspaceChoice<Value: Hashable>: View {
                 .accessibilityIdentifier("workspace.choice.filter")
             ScrollView {
               LazyVStack(spacing: 0) {
-              ForEach(options.filter { filter.isEmpty || label($0).localizedCaseInsensitiveContains(filter) }, id: \.self) { option in
+              ForEach(options.filter { filter.isEmpty || label($0).localizedCaseInsensitiveContains(filter) || label($0).nativeLocalized.localizedCaseInsensitiveContains(filter) }, id: \.self) { option in
                 Button { selection = option; choosing = false } label: {
                     HStack {
-                        Text(label(option)).lineLimit(2)
+                        Text(LocalizedStringKey(label(option))).lineLimit(2)
                         Spacer(minLength: 0)
                         if option == selection { Image(systemName: "checkmark") }
                     }
                     .frame(minHeight: choiceRowHeight)
                     .contentShape(Rectangle())
                 }
-                .accessibilityLabel(label(option))
+                .accessibilityLabel(Text(LocalizedStringKey(label(option))))
                 .accessibilityIdentifier("workspace.choice.option.\(label(option))")
                 .accessibilityAddTraits(option == selection ? .isSelected : [])
                 #if os(tvOS)
@@ -200,12 +200,12 @@ struct WorkspaceToggle: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            Text(title).font(.subheadline).accessibilityHidden(true)
+            Text(LocalizedStringKey(title)).font(.subheadline).accessibilityHidden(true)
             Spacer(minLength: 0)
-            Toggle(title, isOn: $isOn).labelsHidden()
+            Toggle(title.nativeLocalized, isOn: $isOn).labelsHidden()
                 .frame(minHeight: 44)
                 .accessibilityIdentifier(identifier)
-                .accessibilityLabel(accessibilityTitle ?? title)
+                .accessibilityLabel((accessibilityTitle ?? title).nativeLocalized)
         }
     }
 }
@@ -253,7 +253,7 @@ struct WorkspaceCode: View {
                 #endif
                 Spacer()
                 #if !os(tvOS)
-                Button(copied == code ? "Copied" : "Copy code") {
+                Button((copied == code ? "Copied" : "Copy code").nativeLocalized) {
                     UIPasteboard.general.string = code
                     copied = code
                 }
@@ -354,8 +354,8 @@ struct NativeMoreWorkspace: View {
                     case .sharePlay:
                         NativeSharePlayControls(model: model, workbench: model.sharePlayWorkbench)
                     case .tracks:
-                        Text("Audio: \(model.trackStatus.audio)")
-                        Text("Subtitles: \(model.trackStatus.subtitles)")
+                        Text(NativeLocalization.format("Audio: %@", model.trackStatus.audio))
+                        Text(NativeLocalization.format("Subtitles: %@", model.trackStatus.subtitles))
                         Text("Use the player track menu to change the current selection. Settings → Tracks sets preferences for the next source load.")
                             .font(.caption).foregroundStyle(Color.workspaceSecondary)
                     case .live:
@@ -366,7 +366,7 @@ struct NativeMoreWorkspace: View {
                         Button("Live edge") { model.goToLiveEdge() }
                             .accessibilityIdentifier("playback.liveEdge")
                         ForEach([-10.0, -30, -60, -120], id: \.self) { offset in
-                            Button("\(Int(offset)) seconds behind live") { model.seek(toOffsetFromEdge: offset) }
+                            Button(NativeLocalization.format("%ld seconds behind live", Int(offset))) { model.seek(toOffsetFromEdge: offset) }
                                 .disabled(!model.dvr.dvrAvailable)
                         }
                         }
@@ -376,7 +376,7 @@ struct NativeMoreWorkspace: View {
                         }
                     case .diagnostics:
                         if model.hasCurrentLiveSource {
-                            Text("Live window: \(Int(model.dvr.windowDuration))s · Behind live: \(Int(model.dvr.behindLive))s")
+                            Text(NativeLocalization.format("Live window: %ld s · Behind live: %ld s", Int(model.dvr.windowDuration), Int(model.dvr.behindLive)))
                                 .font(.caption).monospacedDigit()
                         }
                         Text("Recent app events").font(.headline)

@@ -30,14 +30,14 @@ internal fun ConfigurationCodeView(controller: PlayerController, uiMode: UiMode)
         Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             WorkspacePicker("Applied code", section,
                 listOf("Player, source and UI" to "Player, source and UI", "SDK overrides" to "SDK overrides"), "configuration-code-section") { section = it }
-            Text("Only applied settings are exported. Draft edits are excluded and license keys use placeholders.", style = MaterialTheme.typography.bodySmall)
-            if (section == "SDK overrides") Text("Assign these values to fresh configuration objects before creating Player, Source and PlayerView. Copy assignments use mutable playerConfig and playerViewConfig variables.", style = MaterialTheme.typography.bodySmall)
+            UiText("Only applied settings are exported. Draft edits are excluded and license keys use placeholders.", style = MaterialTheme.typography.bodySmall)
+            if (section == "SDK overrides") UiText("Assign these values to fresh configuration objects before creating Player, Source and PlayerView. Copy assignments use mutable playerConfig and playerViewConfig variables.", style = MaterialTheme.typography.bodySmall)
             Row {
-                FilterChip(wrap, onClick = { wrap = !wrap }, label = { Text("Wrap lines") },
-                    leadingIcon = if (wrap) ({ Text("✓") }) else null, modifier = Modifier.testTag("configuration-code-wrap"))
+                FilterChip(wrap, onClick = { wrap = !wrap }, label = { UiText("Wrap lines") },
+                    leadingIcon = if (wrap) ({ UiText("✓") }) else null, modifier = Modifier.testTag("configuration-code-wrap"))
                 Spacer(Modifier.weight(1f))
                 Button(onClick = { clipboard?.setPrimaryClip(ClipData.newPlainText("Player configuration", code)); copied = true },
-                    enabled = clipboard != null, modifier = Modifier.testTag("configuration-code-copy")) { Text(if (copied) "Copied" else "Copy code") }
+                    enabled = clipboard != null, modifier = Modifier.testTag("configuration-code-copy")) { UiText(if (copied) "Copied" else "Copy code") }
             }
         }
         SelectionContainer(Modifier.weight(1f).fillMaxWidth()) {

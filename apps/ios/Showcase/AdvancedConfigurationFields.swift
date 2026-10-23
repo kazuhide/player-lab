@@ -25,7 +25,7 @@ struct AdvancedConfigurationFields: View {
     }
     private var filteredFields: [AdvancedConfigurationField] {
         AdvancedConfiguration.fields.filter {
-            owners.contains($0.owner) && (filter.isEmpty ? group == "All settings" || $0.id.hasPrefix(group + ".") : $0.id.localizedCaseInsensitiveContains(filter) || $0.note.localizedCaseInsensitiveContains(filter))
+            owners.contains($0.owner) && (filter.isEmpty ? group == "All settings" || $0.id.hasPrefix(group + ".") : $0.id.localizedCaseInsensitiveContains(filter) || $0.note.localizedCaseInsensitiveContains(filter) || $0.note.nativeLocalized.localizedCaseInsensitiveContains(filter))
         }
     }
     private var selectedField: AdvancedConfigurationField? {
@@ -110,7 +110,7 @@ private struct AdvancedConfigurationFieldView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 WorkspaceToggle(title: "Override", isOn: enabled, identifier: "advanced.\(field.id).enabled", accessibilityTitle: "Override SDK default")
-                    .accessibilityHint(appliedValues == nil ? "Stages a source draft override; Save source draft retains it" : "Off inherits the SDK default; changes remain in the draft until Apply")
+                    .accessibilityHint((appliedValues == nil ? "Stages a source draft override; Save source draft retains it" : "Off inherits the SDK default; changes remain in the draft until Apply").nativeLocalized)
                 Button { showsDetails = true } label: {
                     Image(systemName: "info.circle")
                         .frame(width: 44, height: 44).contentShape(Rectangle())
@@ -122,7 +122,7 @@ private struct AdvancedConfigurationFieldView: View {
                 .alert("SDK setting details", isPresented: $showsDetails) {
                     Button("Close", role: .cancel) {}
                 } message: {
-                    Text("\(field.id)\nOwner: \(field.owner.rawValue)\n\(field.note)\n\nTurning Override off restores SDK inheritance when applied. Edits remain in the draft until Apply. Script syntax and limits are documented in the app's NativeScripts guide.")
+                    Text(field.id + "\n" + NativeLocalization.format("Owner: %@", field.owner.rawValue) + "\n" + field.note.nativeLocalized + "\n\n" + "Turning Override off restores SDK inheritance when applied. Edits remain in the draft until Apply. Script syntax and limits are documented in the app's NativeScripts guide.".nativeLocalized)
                 }
                 #else
                 .sheet(isPresented: $showsDetails) {
@@ -140,14 +140,14 @@ private struct AdvancedConfigurationFieldView: View {
             .fixedSize(horizontal: false, vertical: true)
             .frame(height: keyboardVisible ? 0 : nil).clipped().accessibilityHidden(keyboardVisible)
             if values[field.id] != nil {
-                Text(appliedValues == nil ? "Source draft override" : values[field.id] == appliedValues?[field.id] ? "Applied override" : "Unapplied override")
+                Text(LocalizedStringKey(appliedValues == nil ? "Source draft override" : values[field.id] == appliedValues?[field.id] ? "Applied override" : "Unapplied override"))
                     .font(.caption.weight(.medium)).foregroundStyle(Color.workspaceTint)
                     .dynamicTypeSize(...DynamicTypeSize.xxxLarge).lineLimit(1)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(height: keyboardVisible ? 0 : nil).clipped().accessibilityHidden(keyboardVisible)
                 input.accessibilityIdentifier("advanced.\(field.id).value")
             } else {
-                Text(appliedValues?[field.id] == nil ? "Inherits SDK default" : "Unapplied removal")
+                Text(LocalizedStringKey(appliedValues?[field.id] == nil ? "Inherits SDK default" : "Unapplied removal"))
                     .font(.caption).foregroundStyle(Color.workspaceSecondary)
                     .dynamicTypeSize(...DynamicTypeSize.xxxLarge).lineLimit(1)
             }
@@ -206,9 +206,9 @@ private struct AdvancedConfigurationHelp: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(field.id).font(.headline)
-            Text("Owner: \(field.owner.rawValue)")
-            Text(sourceDraft ? "Overrides belong to this source draft. Save source draft retains them; load the playlist to use them." : "An override sends the selected value instead of the SDK default. Edits and removals remain in the draft until Apply. Turning Override off restores inheritance when applied.")
-            if !field.note.isEmpty { Text(field.note) }
+            Text(NativeLocalization.format("Owner: %@", field.owner.rawValue))
+            Text(LocalizedStringKey(sourceDraft ? "Overrides belong to this source draft. Save source draft retains them; load the playlist to use them." : "An override sends the selected value instead of the SDK default. Edits and removals remain in the draft until Apply. Turning Override off restores inheritance when applied."))
+            if !field.note.isEmpty { Text(LocalizedStringKey(field.note)) }
             if case .script = field.input {
                 Text("Function body for a JavaScript subset. input contains the arguments; storage is shared by this player, source or view. Use let or const. CPU, elapsed-time and value-size limits apply; failures use the documented fallback.")
                 Link("Supported syntax and limits", destination: URL(string: "https://github.com/kazuhide/player-lab/blob/main/apps/ios/Showcase/NativeScripts/README.md")!)

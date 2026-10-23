@@ -7,7 +7,7 @@ final class TrackPreferenceUITests: XCTestCase {
 
     func testInitialLanguagesScalingAndSourceReloadThroughNormalGui() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         defer { app.terminate() }
         let open = app.buttons["configuration.open"]
         XCTAssertTrue(open.waitForExistence(timeout: 20))

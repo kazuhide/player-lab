@@ -27,7 +27,7 @@ internal fun ApiAnalyticsPanel(controller: PlayerController) {
     val editors = remember { mutableMapOf<String, AnalyticsMetadataState>() }
     val keyboardVisible = workspaceKeyboardEditing()
     fun run(action: () -> Any?) {
-        result = runCatching { apiValue(action()) }.getOrElse { "Analytics API failed (${it.javaClass.simpleName}). Check metadata, collection mode and source state. Draft values are retained." }
+        result = runCatching { apiResultText(controller.hostContext, action()) }.getOrElse { controller.hostContext.getString(R.string.ui_analytics_api_failed, it.javaClass.simpleName) }
     }
     val pages = listOf("Collection", "Identity", "Delivery", "Errors", "Default metadata", "Source metadata", "Runtime custom data", "Runtime actions", "SSAI", "Code")
     val settings = when (page) {
@@ -51,27 +51,27 @@ internal fun ApiAnalyticsPanel(controller: PlayerController) {
                     "Collection" -> when (setting.takeIf { it in settings } ?: settings.first()) {
                         "Collection mode" -> {
                             Choices(listOf("Build key", "Deferred license", "Disabled").map { it to it }, draft.mode, "analytics-mode") { draft = draft.copy(mode = it) }
-                            Text("Build key uses the local build configuration; a blank key disables collection. Deferred license asks the SDK for the associated Analytics license. Inspect received sessions in Bitmovin Dashboard.", style = MaterialTheme.typography.bodySmall)
+                            UiText("Build key uses the local build configuration; a blank key disables collection. Deferred license asks the SDK for the associated Analytics license. Inspect received sessions in Bitmovin Dashboard.", style = MaterialTheme.typography.bodySmall)
                         }
-                        "License override" -> OutlinedTextField(draft.licenseOverride, { draft = draft.copy(licenseOverride = it) }, label = { Text("Optional Analytics license override") }, visualTransformation = PasswordVisualTransformation(), supportingText = { Text("Kept only in this app session; excluded from exported code.") }, modifier = Modifier.fillMaxWidth().testTag("analytics-license"))
+                        "License override" -> OutlinedTextField(draft.licenseOverride, { draft = draft.copy(licenseOverride = it) }, label = { UiText("Optional Analytics license override") }, visualTransformation = PasswordVisualTransformation(), supportingText = { UiText("Kept only in this app session; excluded from exported code.") }, modifier = Modifier.fillMaxWidth().testTag("analytics-license"))
                         "Ad tracking" -> ConfigToggle("Disable client-side ad tracking", draft.adTrackingDisabled, "analytics-ad-tracking") { draft = draft.copy(adTrackingDisabled = it) }
-                        "Legacy SSAI flag" -> { ConfigToggle("Legacy SSAI engagement flag", draft.ssaiEngagementTracking, "analytics-ssai-legacy") { draft = draft.copy(ssaiEngagementTracking = it) }; Text("The SDK ignores this legacy setting. SSAI engagement tracking is always enabled.", style = MaterialTheme.typography.bodySmall) }
+                        "Legacy SSAI flag" -> { ConfigToggle("Legacy SSAI engagement flag", draft.ssaiEngagementTracking, "analytics-ssai-legacy") { draft = draft.copy(ssaiEngagementTracking = it) }; UiText("The SDK ignores this legacy setting. SSAI engagement tracking is always enabled.", style = MaterialTheme.typography.bodySmall) }
                     }
                     "Identity" -> ConfigToggle("Randomize user ID", draft.randomizeUserId, "analytics-random-user") { draft = draft.copy(randomizeUserId = it) }
                     "Delivery" -> when (setting.takeIf { it in settings } ?: settings.first()) {
                         "Retry policy" -> Choices(RetryPolicy.entries.map { it to it.name }, draft.retryPolicy, "analytics-retry") { draft = draft.copy(retryPolicy = it) }
                         "Backend URL" -> ConfigField("Analytics backend URL", draft.backendUrl, { draft = draft.copy(backendUrl = it) }, "analytics-backend", helper = "Blank uses the SDK default.")
-                        "Log level" -> { Choices(LogLevel.entries.map { it to it.name }, draft.logLevel, "analytics-log") { draft = draft.copy(logLevel = it) }; Text("DEBUG includes diagnostic details. Keep sensitive logs local.", style = MaterialTheme.typography.bodySmall) }
+                        "Log level" -> { Choices(LogLevel.entries.map { it to it.name }, draft.logLevel, "analytics-log") { draft = draft.copy(logLevel = it) }; UiText("DEBUG includes diagnostic details. Keep sensitive logs local.", style = MaterialTheme.typography.bodySmall) }
                     }
                     "Errors" -> {
                         WorkspaceHeader(!keyboardVisible) {
                             Choices(listOf("Default", "Redact message", "Custom").map { it to it }, draft.errorStrategy, "analytics-error-strategy") { draft = draft.copy(errorStrategy = it) }
                         }
                         if (draft.errorStrategy == "Custom") {
-                            OutlinedTextField(draft.errorCallbackBody, { draft = draft.copy(errorCallbackBody = it) }, label = { Text("Analytics error callback body") },
+                            OutlinedTextField(draft.errorCallbackBody, { draft = draft.copy(errorCallbackBody = it) }, label = { UiText("Analytics error callback body") },
                                 textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), minLines = if (keyboardVisible) 2 else 3, maxLines = 4,
                                 modifier = Modifier.fillMaxWidth().heightIn(min = if (keyboardVisible) 80.dp else 104.dp, max = 160.dp).testTag("analytics-error-body"))
-                            Text("Pure JavaScript using input {code, message, severity, originalErrorType}. Return a partial error object or null to retain the original error. severity is CRITICAL or INFO. SDK objects are not exposed; callback bounds and retirement rules apply.", style = MaterialTheme.typography.bodySmall)
+                            UiText("Pure JavaScript using input {code, message, severity, originalErrorType}. Return a partial error object or null to retain the original error. severity is CRITICAL or INFO. SDK objects are not exposed; callback bounds and retirement rules apply.", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                     "Default metadata" -> AnalyticsMetadataEditor("Default metadata", "analytics-default", analyticsDefaultKeys, draft.defaults,
@@ -82,7 +82,7 @@ internal fun ApiAnalyticsPanel(controller: PlayerController) {
                         state = editors.getOrPut("custom") { AnalyticsMetadataState(analyticsCustomKeys.first()) }) { custom = it }
                     "Runtime actions" -> {
                         WorkspaceHeading(actions.first { it.first == operation }.second)
-                        Text("A local result confirms the SDK call. Inspect the matching Bitmovin Dashboard session to confirm ingestion. Custom data uses staged runtime fields; program change uses staged source metadata.", style = MaterialTheme.typography.bodySmall)
+                        UiText("A local result confirms the SDK call. Inspect the matching Bitmovin Dashboard session to confirm ingestion. Custom data uses staged runtime fields; program change uses staged source metadata.", style = MaterialTheme.typography.bodySmall)
                     }
                     "Code" -> SelectionContainer { Text(controller.apiAnalyticsSettings.code(), style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, modifier = Modifier.testTag("analytics-code")) }
                 }
@@ -102,7 +102,7 @@ internal fun ApiAnalyticsPanel(controller: PlayerController) {
                     "analytics-program-change" -> requireNotNull(controller.player.analytics).programChange(draft.sourceMetadata())
                     else -> { val api = requireNotNull(controller.player.analytics); mapOf("impressionId" to api.impressionId, "userId" to api.userId, "sourceMetadata" to controller.player.source?.analytics?.metadata?.let(::analyticsMetadataValues)) }
                 }
-            } }, modifier = Modifier.fillMaxWidth().padding(12.dp).testTag(operation)) { Text(actions.first { it.first == operation }.second) }
+            } }, modifier = Modifier.fillMaxWidth().padding(12.dp).testTag(operation)) { UiText(actions.first { it.first == operation }.second) }
         }
     }
 }
@@ -122,15 +122,15 @@ internal fun AnalyticsMetadataEditor(label: String, tag: String, keys: List<Stri
         WorkspacePicker(label, selected, keys.map { it to it }, "$tag-field", searchable = true, compact = true) { state.selected = it; state.error = "" }
     }
     if (selected == "isLive") Choices(listOf("true", "false").map { it to it }, input, "$tag-choice") { state.inputs = state.inputs + (selected to it) }
-    OutlinedTextField(input, { state.inputs = state.inputs + (selected to it) }, label = { Text("Metadata value") }, modifier = Modifier.fillMaxWidth().testTag("$tag-value"))
+    OutlinedTextField(input, { state.inputs = state.inputs + (selected to it) }, label = { UiText("Metadata value") }, modifier = Modifier.fillMaxWidth().testTag("$tag-value"))
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Button(onClick = {
             runCatching { (values + (selected to input)).also { validateAnalyticsMetadata(it, keys) } }
                 .onSuccess { onChange(it); state.error = "" }.onFailure { state.error = "Invalid metadata type or value. Your draft is retained." }
-        }, modifier = Modifier.testTag("$tag-stage")) { Text("Stage field") }
-        OutlinedButton(onClick = { onChange(values - selected); state.inputs = state.inputs - selected; state.error = "" }, enabled = selected in values, modifier = Modifier.testTag("$tag-remove")) { Text("Remove") }
+        }, modifier = Modifier.testTag("$tag-stage")) { UiText("Stage field") }
+        OutlinedButton(onClick = { onChange(values - selected); state.inputs = state.inputs - selected; state.error = "" }, enabled = selected in values, modifier = Modifier.testTag("$tag-remove")) { UiText("Remove") }
     }
-    Text(if (selected in values) "This field has a staged value." else "This field uses its null or default value.", style = MaterialTheme.typography.bodySmall)
-    Text("Stage a value, then Apply configuration or choose the corresponding runtime action. Source metadata takes precedence over default metadata.", style = MaterialTheme.typography.bodySmall)
-    if (state.error.isNotEmpty()) Text(state.error, color = MaterialTheme.colorScheme.error)
+    UiText(if (selected in values) "This field has a staged value." else "This field uses its null or default value.", style = MaterialTheme.typography.bodySmall)
+    UiText("Stage a value, then Apply configuration or choose the corresponding runtime action. Source metadata takes precedence over default metadata.", style = MaterialTheme.typography.bodySmall)
+    if (state.error.isNotEmpty()) UiText(state.error, color = MaterialTheme.colorScheme.error)
 }

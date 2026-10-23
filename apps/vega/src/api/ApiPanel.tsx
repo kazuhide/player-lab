@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import { ScrollView, View } from "react-native";
+import { Text, TextInput } from "../localization";
 import type { SourceConfig } from "bitmovin-player";
 import { catalog } from "./catalog";
 import { Action, ArgumentsEditor, initialValue, styles } from "./InputEditor";
@@ -50,7 +51,7 @@ export function ApiPanel({ session, source, onRecreate }: { session: VegaSession
         catch { setAvailability("Wait for the current native player before inspecting public APIs."); }
       }} />
       <Text style={styles.help}>Availability checks whether the current public SDK exposes a callable method. It does not execute the method or establish platform feature support. A callable API can still return a constant, do nothing or require additional content and device capabilities.</Text>
-      {!!availability && <ScrollView focusable style={{ maxHeight: 240 }}><Text selectable accessibilityLabel="Vega SDK API availability" accessibilityValue={{ text: availability }} style={styles.codeText}>{availability}</Text></ScrollView>}
+      {!!availability && <ScrollView focusable style={{ maxHeight: 240 }}><Text verbatim selectable accessibilityLabel="Vega SDK API availability" accessibilityValue={{ text: availability }} style={styles.codeText}>{availability}</Text></ScrollView>}
       <TextInput accessibilityLabel="Filter Vega API operations" value={filter} onChangeText={setFilter} autoCorrect={false} autoCapitalize="none" style={styles.input} />
       <View style={styles.row}>{operations.filter((entry) => entry.id.toLowerCase().includes(filter.toLowerCase())).slice(0, 12).map((entry) => <Action key={entry.id} title={entry.id} disabled={entry.id === selected.id || Boolean(session?.isBusy())} onPress={() => { setSelectedId(entry.id); setOverload(0); setResult(""); setCode(""); }} />)}</View>
       <Text style={styles.heading}>{selected.id}</Text>
@@ -62,15 +63,15 @@ export function ApiPanel({ session, source, onRecreate }: { session: VegaSession
         <Action title="Run Vega SDK API" disabled={!session?.isReady() || Boolean(session?.isBusy())} onPress={() => { void run(); }} />
         <Action title="Recreate Vega player" onPress={onRecreate} />
       </View>
-      <Text selectable accessibilityLabel="Vega executed API code" accessibilityValue={{ text: code }} style={styles.codeText}>{code}</Text>
-      <Text selectable accessibilityLabel="Vega API result" accessibilityValue={{ text: result }} style={styles.codeText}>{result}</Text>
+      <Text verbatim selectable accessibilityLabel="Vega executed API code" accessibilityValue={{ text: code }} style={styles.codeText}>{code}</Text>
+      <Text verbatim selectable accessibilityLabel="Vega API result" accessibilityValue={{ text: result }} style={styles.codeText}>{result}</Text>
       <Text style={styles.heading}>SDK events</Text>
       <Text style={styles.help}>Named PlayerEvent values are registered for the current owner. Recent redacted summaries are bounded and old session callbacks are ignored. PlayerAPI.off needs the same callback instance as on; choose that callback from the current SDK resources.</Text>
       <View style={styles.row}>
         <Action title={session?.isRecording() ? "Pause Vega event log" : "Resume Vega event log"} onPress={() => session?.setRecording(!session.isRecording())} />
         <Action title="Clear Vega event log" onPress={() => session?.clearEvents()} />
       </View>
-      <Text selectable accessibilityLabel="Vega SDK event log" accessibilityValue={{ text: session?.eventLines().slice(0, 12).join("\n") ?? "" }} style={styles.eventText}>{session?.eventLines().slice(0, 12).join("\n")}</Text>
+      <Text verbatim selectable accessibilityLabel="Vega SDK event log" accessibilityValue={{ text: session?.eventLines().slice(0, 12).join("\n") ?? "" }} style={styles.eventText}>{session?.eventLines().slice(0, 12).join("\n")}</Text>
     </>}
   </View>;
 }

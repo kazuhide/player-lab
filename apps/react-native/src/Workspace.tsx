@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from "react-native";
+import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { Pressable, Text, TextInput, translateCopy, useLocale } from "./localization";
 
 export type WorkspaceTab = "settings" | "apis" | "code" | "more";
@@ -59,6 +59,7 @@ export function WorkspaceChoice({ label, selected, options, onSelect, testID }: 
   const { change } = useContext(ChoiceContext);
   useEffect(() => () => change(owner, false), [change, owner]);
   const { language } = useLocale();
+  const compact = useWindowDimensions().height < 500;
   const current = options.find(option => option.id === selected);
   const query = filter.toLocaleLowerCase();
   const matches = options.filter(option => `${option.id} ${option.label} ${translateCopy(option.label, language)}`.toLocaleLowerCase().includes(query));
@@ -70,13 +71,16 @@ export function WorkspaceChoice({ label, selected, options, onSelect, testID }: 
       <Text maxFontSizeMultiplier={1.3} style={styles.choiceLabel}>{label}</Text>
       <Text maxFontSizeMultiplier={1.3} numberOfLines={2} style={styles.choiceValue}>{current?.label ?? selected}</Text>
     </Pressable>
-    {open && <Modal transparent visible onRequestClose={close} animationType="fade">
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <View style={styles.scrim}>
-        <View style={styles.dialog} accessibilityViewIsModal>
-          <Text style={styles.dialogTitle}>{label}</Text>
+    {open && <Modal transparent visible onRequestClose={close} animationType="fade" supportedOrientations={["portrait", "landscape"]}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <View style={[styles.scrim, compact && styles.compactScrim]}>
+        <View style={styles.dialog} accessibilityViewIsModal accessibilityLabel={label}>
+          {!compact && <Text style={styles.dialogTitle}>{label}</Text>}
+          <View style={compact && styles.searchRow}>
           <TextInput accessibilityLabel={`Find ${label}`} placeholder="Find an item"
-            value={filter} onChangeText={setFilter} autoCapitalize="none" autoCorrect={false} style={styles.search} />
+            value={filter} onChangeText={setFilter} autoCapitalize="none" autoCorrect={false} style={[styles.search, compact && styles.searchFlex]} />
+          {compact && <WorkspaceAction title="Close" onPress={close} />}
+          </View>
           <ScrollView keyboardShouldPersistTaps="handled" style={styles.options}>
             {matches.map(option => <Pressable key={option.id} testID={`${testID}-option-${option.id}`}
               accessibilityRole="button" accessibilityLabel={option.label} accessibilityState={{ selected: selected === option.id }}
@@ -86,7 +90,7 @@ export function WorkspaceChoice({ label, selected, options, onSelect, testID }: 
             </Pressable>)}
             {!matches.length && <Text style={styles.empty}>No matching items.</Text>}
           </ScrollView>
-          <WorkspaceAction title="Close" onPress={close} />
+          {!compact && <WorkspaceAction title="Close" onPress={close} />}
         </View>
       </View>
       </KeyboardAvoidingView>
@@ -104,6 +108,8 @@ const styles = StyleSheet.create({
   choice: { flexGrow: 1, flexShrink: 1, minWidth: 0 }, choiceButton: { minHeight: 48, padding: 8, borderWidth: 1, borderColor: "#7b899b", borderRadius: 8, backgroundColor: "#ffffff" },
   choiceLabel: { fontSize: 12, color: "#445469" }, choiceValue: { color: "#005caf", fontWeight: "600" },
   scrim: { flex: 1, backgroundColor: "#00000066", padding: 20, paddingTop: 48, paddingBottom: 32, justifyContent: "center" },
+  compactScrim: { paddingTop: 12, paddingBottom: 12 },
+  searchRow: { flexDirection: "row", gap: 8 }, searchFlex: { flex: 1 },
   dialog: { maxHeight: "100%", gap: 8, padding: 12, backgroundColor: "#ffffff", borderRadius: 12 },
   dialogTitle: { fontWeight: "600", fontSize: 18, color: "#182c45" },
   search: { borderWidth: 1, borderColor: "#7b899b", borderRadius: 8, minHeight: 48, padding: 10, color: "#111111" },

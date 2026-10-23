@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Keyboard, ScrollView, View } from "react-native";
 import { Button, Text, TextInput } from "./localization";
 import type { Player, SourceConfig } from "bitmovin-player-react-native";
 import { nativeOperations } from "./apiOperations";
@@ -22,10 +22,11 @@ interface Props {
   onSourceMutation: () => void;
   settings: NativeSettings;
   onEvent: (name: string, value: unknown) => void;
+  compactEditing?: boolean;
 }
 
 /** The selected typed operation is dispatched only by an explicit user action. */
-export function ApiPanel({ player, source, ready, events, recording, onRecording, onClearEvents, onRecreate, onSourceMutation, settings, onEvent }: Props): React.JSX.Element {
+export function ApiPanel({ player, source, ready, events, recording, onRecording, onClearEvents, onRecreate, onSourceMutation, settings, onEvent, compactEditing = false }: Props): React.JSX.Element {
   const [page, setPage] = useState("operations");
   const currentSettings = useRef(settings);
   currentSettings.current = settings;
@@ -78,7 +79,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
   const targets = page === "state" ? operations.filter(operation => isQuery(operation.id)) : operations;
   const validTarget = targets.some(operation => operation.id === selected.id);
   return <View style={{ flex: 1, minHeight: 0 }}>
-    <View style={{ padding: 10, gap: 8 }}>
+    {!compactEditing && <View style={{ padding: 10, gap: 8 }}>
       <WorkspaceChoice label="API view" selected={page} options={[
         { id: "operations", label: "Operations" }, { id: "state", label: "State" },
         { id: "events", label: "Events" }, { id: "help", label: "API help" },
@@ -86,11 +87,11 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
       {(page === "operations" || page === "state") && <WorkspaceChoice label="API operation" selected={selected.id}
         options={targets.map(operation => ({ id: operation.id, label: operation.id }))} testID="api-operation-selector"
         onSelect={id => { setSelectedId(id); setResult(""); setCode(""); setExecutedId(""); }} />}
-    </View>
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 12, gap: 10 }} keyboardShouldPersistTaps="handled">
+    </View>}
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 10 }} keyboardShouldPersistTaps="handled">
       <WorkspacePage active={page === "help"}>
       <Text style={styles.help}>Choose an operation, enter its arguments, then run it. A void result means the wrapper dispatched the call; use events and queries to check its effect. Platform and source requirements still apply.</Text>
-      <Text style={styles.help}>Offline inputs are edited under Additional SDK configuration. Initialize the offline manager, get options, then download; completion is an event. Delete and cancel affect only the chosen content identifier. The generated host includes the Google Cast SDK. SDK 1.29's deprecated initialize method does not apply edited options. Edit the receiver and namespace under Cast startup settings, select Save Cast options for next launch, then fully close and reopen the app. Use Read native Cast startup state to check the applied startup values and native initialization.</Text>
+      <Text style={styles.help}>Offline inputs are edited under SDK overrides in Settings. Initialize the offline manager, get options, then download; completion is an event. Delete and cancel affect only the chosen content identifier. The generated host includes the Google Cast SDK. SDK 1.29's deprecated initialize method does not apply edited options. Edit the receiver and namespace under Cast startup settings, select Save Cast options for next launch, then fully close and reopen the app. Use Read native Cast startup state to check the applied startup values and native initialization.</Text>
       <Text style={styles.help}>Offline addListener replaces the app's current offline listener. Select its named callbacks and optionally edit a JavaScript body using event, name and lab.getPlayer()/getSource(). A nonempty body requires explicit execution permission; it runs inside this app on future matching SDK events.</Text>
       <Button title="Recreate player after API experiments" disabled={busy} onPress={onRecreate} />
       </WorkspacePage>
@@ -119,10 +120,15 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
       <Text verbatim selectable accessibilityLabel="API event log" accessibilityValue={{ text: events.slice(0, 12).join("\n") }} style={styles.mono}>{events.slice(0, 12).join("\n")}</Text>
       </WorkspacePage>
     </ScrollView>
-    {(page === "operations" || page === "state") && <View style={{ padding: 12, gap: 6, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
-      <Text verbatim style={styles.mono}>{selected.id}</Text>
+    {(page === "operations" || page === "state") && <View style={{ padding: compactEditing ? 8 : 12, gap: 6, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
+      {!compactEditing && <Text verbatim style={styles.mono}>{selected.id}</Text>}
+      <View style={{ flexDirection: "row", gap: 8 }}>
+      {compactEditing && <WorkspaceAction title="Done" testID="api-done" onPress={() => Keyboard.dismiss()} />}
+      <View style={{ flex: 1 }}>
       <WorkspaceAction title={busy ? "Waiting for API result" : page === "state" ? "Read state" : "Run selected API"}
         testID="api-run" primary disabled={!ready || busy || player.isDestroyed || !validTarget} onPress={() => { void run(); }} />
+      </View>
+      </View>
     </View>}
   </View>;
 }

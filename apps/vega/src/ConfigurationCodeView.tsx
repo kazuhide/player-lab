@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Button, Text, translateCopy, useLocale } from "./localization";
 
 export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Element {
+  const { language } = useLocale();
   const [expanded, setExpanded] = useState(false);
   const lines = code.split("\n");
   return <View style={styles.container}>
@@ -9,11 +11,11 @@ export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Ele
     {expanded && <>
       <Text style={styles.help}>Player and source settings sent to the SDK. Draft edits are excluded and license keys use placeholders.</Text>
       <Text style={styles.help}>This TV host has no clipboard integration.</Text>
-      <View accessibilityLabel="Applied configuration code" style={styles.code}>
+      <View accessibilityLabel={translateCopy("Applied configuration code", language)} style={styles.code}>
         {lines.map((line, index) => <View key={index} focusable accessible
           testID={`applied-code-line-${index}${index === lines.length - 1 ? "-last" : ""}`}
-          accessibilityLabel={line || "Blank code line"}>
-          <Text selectable style={styles.line}>{line || "\u00a0"}</Text>
+          accessibilityLabel={line || translateCopy("Blank code line", language)}>
+          <Text verbatim selectable style={styles.line}>{line || "\u00a0"}</Text>
         </View>)}
       </View>
     </>}

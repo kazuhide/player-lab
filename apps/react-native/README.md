@@ -205,6 +205,13 @@ The supplied CocoaPods lock was generated with CocoaPods **1.17.0**. Keep
 generated project. A subsequent prebuild can refresh native files; restore the
 locks again if generating a fresh project. Expo Go cannot load the native Player.
 
+Expo's precompiled iOS modules can include generated-host paths in their podspec
+source and preparation command. In a fresh host, normal `pod install` can therefore
+update the `ExpoModulesCore` specification checksum while keeping every dependency
+version unchanged. Review that lockfile diff: a host-specific checksum change is
+different from a dependency update. Do not remove the lockfile or change pinned
+versions to work around a checksum mismatch.
+
 The wrapper-supported native resolutions are:
 
 | Dependency | React Native host |

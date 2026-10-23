@@ -9,9 +9,83 @@ final class NativeWorkspaceUITests: XCTestCase {
         XCUIApplication().terminate()
     }
 
+    func testKeyboardKeepsWorkspaceAxisAndDraftThroughRotation() throws {
+        XCUIDevice.shared.orientation = .portrait
+        let app = XCUIApplication()
+        WorkspaceUITestNavigation.launch(app)
+        XCTAssertTrue(app.buttons["configuration.open"].waitForExistence(timeout: 20))
+        try WorkspaceUITestNavigation.setting("configuration.title", in: app)
+        let field = app.textFields["configuration.title"]
+        let portraitFrame = field.frame
+        let initialTitle = field.value as? String ?? ""
+        try WorkspaceUITestNavigation.activate(field, in: app)
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+
+        func assertVisibleEditorAndActions(landscape: Bool = false) {
+            let keyboard = app.keyboards.firstMatch
+            let controls = [field, app.buttons["configuration.apply"], app.buttons["configuration.reset"]]
+            let settled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                guard keyboard.exists, field.exists,
+                      (app.frame.width > app.frame.height) == landscape,
+                      abs(field.frame.height - portraitFrame.height) < 0.5 else { return false }
+                let visible = CGRect(x: app.frame.minX, y: app.frame.minY, width: app.frame.width,
+                                     height: keyboard.frame.minY - app.frame.minY)
+                guard controls.allSatisfy({
+                    $0.exists && $0.isHittable && abs($0.frame.intersection(visible).height - $0.frame.height) < 0.5
+                }) else { return false }
+                let screenSize = XCUIScreen.main.screenshot().image.size
+                return (screenSize.width > screenSize.height) == landscape
+            }, object: app)
+            XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 5), .completed,
+                           "Wait for the real rotation to finish before reading editor and keyboard geometry")
+            let visible = CGRect(x: app.frame.minX, y: app.frame.minY, width: app.frame.width,
+                                 height: keyboard.frame.minY - app.frame.minY)
+            for element in controls {
+                XCTAssertTrue(WorkspaceUITestNavigation.waitUntilHittable(element))
+                XCTAssertEqual(element.frame.intersection(visible).height, element.frame.height, accuracy: 0.5,
+                               "The editor and fixed actions must remain above the software keyboard")
+            }
+        }
+
+        let portraitLayout = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            field.exists && abs(field.frame.minX - portraitFrame.minX) < 1 &&
+                abs(field.frame.width - portraitFrame.width) < 1 && app.buttons["workspace.keyboard.done"].isHittable
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [portraitLayout], timeout: 5), .completed,
+                       "The keyboard must not turn a portrait workspace into columns")
+        assertVisibleEditorAndActions()
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "native-workspace-portrait-keyboard-accessibility"
+        hierarchy.lifetime = .keepAlways
+        add(hierarchy)
+        func captureScreen(_ name: String) {
+            let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            screenshot.name = name
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
+        }
+        captureScreen("native-workspace-portrait-keyboard-axis")
+        app.typeText(" draft")
+        XCTAssertEqual(field.value as? String, initialTitle + " draft")
+
+        XCUIDevice.shared.orientation = .landscapeLeft
+        assertVisibleEditorAndActions(landscape: true)
+        XCTAssertEqual(field.value as? String, initialTitle + " draft")
+        captureScreen("native-workspace-landscape-keyboard-axis")
+        XCUIDevice.shared.orientation = .portrait
+        assertVisibleEditorAndActions()
+        XCTAssertEqual(field.frame.minX, portraitFrame.minX, accuracy: 1)
+        XCTAssertEqual(field.frame.width, portraitFrame.width, accuracy: 1)
+        XCTAssertEqual(field.value as? String, initialTitle + " draft")
+        WorkspaceUITestNavigation.dismissKeyboard(in: app)
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+        XCTAssertEqual(field.value as? String, initialTitle + " draft")
+        XCTAssertTrue(app.buttons["configuration.apply"].isEnabled)
+    }
+
     func testInitialLiveHlsSourceLoadsAndAdvances() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         let source = app.buttons["source.preset"]
         XCTAssertTrue(source.waitForExistence(timeout: 20))
         XCTAssertEqual(source.value as? String, "Live HLS")
@@ -43,7 +117,7 @@ final class NativeWorkspaceUITests: XCTestCase {
 
     func testSettingsAndDraftSurviveTabsRotationAndPresetSelection() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         XCTAssertTrue(app.buttons["configuration.open"].waitForExistence(timeout: 20))
         try WorkspaceUITestNavigation.setting("configuration.autoplay", in: app)
         let autoplay = app.switches["configuration.autoplay"]
@@ -132,7 +206,7 @@ final class NativeWorkspaceUITests: XCTestCase {
 
     func testOperationFilterRequiresExplicitSelectionAndShowsSdkOutcome() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         XCTAssertTrue(app.buttons["api.open"].waitForExistence(timeout: 20))
         app.buttons["api.open"].tap()
         app.buttons["api.operation"].tap()
@@ -166,7 +240,7 @@ final class NativeWorkspaceUITests: XCTestCase {
     func testLargeTextKeepsSelectedSettingAndApplyAccessible() throws {
         let app = XCUIApplication()
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         XCTAssertTrue(app.buttons["configuration.open"].waitForExistence(timeout: 20))
         try WorkspaceUITestNavigation.setting("configuration.startOffset", in: app)
         let offset = app.textFields["configuration.startOffset"]
@@ -206,7 +280,7 @@ final class NativeWorkspaceUITests: XCTestCase {
 
     func testSharePlayActivityDraftSurvivesWorkspaceChanges() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         try WorkspaceUITestNavigation.activate(app.buttons["workspace.more"], in: app)
         try WorkspaceUITestNavigation.choose("SharePlay", picker: "workspace.more.section", in: app)
         try WorkspaceUITestNavigation.choose("Activity", picker: "shareplay.section", in: app)
@@ -223,7 +297,7 @@ final class NativeWorkspaceUITests: XCTestCase {
 
     func testInvalidSdkFieldRevealSurvivesCategoryChanges() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         try WorkspaceUITestNavigation.activate(app.buttons["configuration.open"], in: app)
         try WorkspaceUITestNavigation.choose("Advanced SDK", picker: "configuration.category", in: app)
         try WorkspaceUITestNavigation.replace(app.textFields["advanced.filter"], with: "SourceConfig.tracks", in: app)
@@ -252,7 +326,7 @@ final class NativeWorkspaceUITests: XCTestCase {
     @available(iOS 17.0, *)
     func testMainSettingsAccessibilityAudit() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         XCTAssertTrue(app.buttons["configuration.open"].waitForExistence(timeout: 20))
         try WorkspaceUITestNavigation.setting("configuration.startMuted", in: app)
         XCTAssertFalse(app.buttons["configuration.apply"].isEnabled)
@@ -286,7 +360,7 @@ final class NativeWorkspaceUITests: XCTestCase {
     func testLongApiAndScriptSettingKeepInputAndActionsVisible() throws {
         let app = XCUIApplication()
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         XCTAssertTrue(app.buttons["api.open"].waitForExistence(timeout: 20))
         app.buttons["api.open"].tap()
         app.buttons["api.operation"].tap()

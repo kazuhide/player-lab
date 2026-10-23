@@ -16,7 +16,7 @@
  * types. Native playback requires an external Expo development build; see README.
  */
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View, useWindowDimensions, type GestureResponderEvent } from "react-native";
+import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StatusBar, StyleSheet, View, useWindowDimensions, type GestureResponderEvent } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Button, LanguageSelector, LocaleProvider, Switch, Text } from "./src/localization";
 import {
@@ -103,6 +103,7 @@ function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | unde
   const choicePresented = useChoicePresented();
   const editing = keyboardVisible && !choicePresented;
   const dimensions = useWindowDimensions();
+  const compactEditing = editing && dimensions.height < 500;
   useEffect(() => {
     const shown = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
     const hidden = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
@@ -148,11 +149,12 @@ function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | unde
   const selectedSource = sources.find(item => item.id === selectedPreset && matchesSource(item)) ?? sources.find(matchesSource);
   const workspace = {
     tab,
-    wide: dimensions.width >= 600 && dimensions.width > dimensions.height,
+    wide: !compactEditing && dimensions.width >= 600 && dimensions.width > dimensions.height,
     compact: dimensions.height < 500 || dimensions.fontScale >= 1.3,
-    previewHeight: editing || dimensions.fontScale >= 1.3 ? 64
+    compactEditing,
+    previewHeight: compactEditing ? 0 : editing || dimensions.fontScale >= 1.3 ? 64
       : dimensions.width >= 600 && dimensions.width > dimensions.height ? Math.min(200, dimensions.width * 0.4 * 9 / 16) : 180,
-    navigation: <WorkspaceNavigation selected={tab} onSelect={setTab} />,
+    navigation: !compactEditing && <WorkspaceNavigation selected={tab} onSelect={setTab} />,
     selectors: !editing && <View style={styles.selectors}>
       {dimensions.height >= 500 && dimensions.fontScale < 1.3 && <LanguageSelector />}
       <View style={styles.sourceRow}>
@@ -165,28 +167,29 @@ function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | unde
     </View>,
   };
   return (
-    <SafeAreaView style={styles.safeArea}>
-    <KeyboardAvoidingView testID="player-lab-screen" style={[styles.container, workspace.wide && (tab === "settings" || tab === "code") && styles.horizontal]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView testID="player-lab-screen" style={styles.safeArea} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={[styles.container, workspace.wide && (tab === "settings" || tab === "code") && styles.horizontal]}>
       <PlayerPane key={`${uiMode.label}:${revision}`} uiMode={uiMode} source={applied.source} playerConfig={applied.player} settings={applied}
         sources={sources} onSelectSource={selectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={setTimeShiftEnabled}
         log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} onRecreate={recreate} workspace={workspace} />
       <WorkspacePage active={tab === "settings"} testID="workspace-settings">
       <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
         onReset={() => { setDraft(applied.draft); setError(null); }}
-        changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} appliedCode={appliedCode} sourceEditRequest={sourceEditRequest} keyboardVisible={editing} />
+        changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} appliedCode={appliedCode} sourceEditRequest={sourceEditRequest} keyboardVisible={editing} compactEditing={compactEditing} />
       </WorkspacePage>
       <WorkspacePage active={tab === "code"} testID="workspace-code">
         <ScrollView contentContainerStyle={styles.editorContent} keyboardShouldPersistTaps="handled">
           <ConfigurationCodeView code={appliedCode} initiallyExpanded />
         </ScrollView>
       </WorkspacePage>
-    </KeyboardAvoidingView>
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
 interface PlayerPaneProps {
-  workspace: { tab: WorkspaceTab; wide: boolean; compact: boolean; previewHeight: number; navigation: React.ReactNode; selectors: React.ReactNode };
+  workspace: { tab: WorkspaceTab; wide: boolean; compact: boolean; compactEditing: boolean; previewHeight: number; navigation: React.ReactNode; selectors: React.ReactNode };
   uiMode: UiMode;
   source: SourceConfig;
   playerConfig: Configuration["player"];
@@ -340,7 +343,9 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
     ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }
     : undefined;
 
-  const playerView = <View testID="player-lab-player" style={fullscreen ? styles.fullscreen : { height: workspace.previewHeight }} {...(Platform.OS === "android" ? {
+  const playerView = <View testID="player-lab-player" style={fullscreen ? styles.fullscreen : { height: workspace.previewHeight, overflow: "hidden" }}
+    pointerEvents={workspace.previewHeight === 0 ? "none" : "auto"}
+    accessibilityElementsHidden={workspace.previewHeight === 0} importantForAccessibility={workspace.previewHeight === 0 ? "no-hide-descendants" : "auto"} {...(Platform.OS === "android" ? {
         // Let the embedded SDK menu consume video gestures before the outer form.
         onTouchStartCapture: startPlayerTouch,
         onTouchEndCapture: finishPlayerTouch,
@@ -429,6 +434,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
       </WorkspacePage>
       <WorkspacePage active={workspace.tab === "apis"} testID="workspace-apis">
       <ApiPanel player={player} source={source} ready={viewReady} events={apiEvents} recording={recordingEvents}
+        compactEditing={workspace.compactEditing}
         onRecording={setRecordingEvents} onClearEvents={() => { eventBuffer.current = []; setApiEvents([]); }} onRecreate={onRecreate}
         settings={settings} onEvent={recordApiEvent} onSourceMutation={sourceMutated} />
       </WorkspacePage>

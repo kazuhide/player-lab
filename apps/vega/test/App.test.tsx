@@ -117,6 +117,25 @@ afterEach(async () => {
 });
 
 describe("Vega configuration in the mounted App and media session", () => {
+  it("changes application language while retaining the native owner, draft, code and API result", async () => {
+    await mount(); await press("Show configuration");
+    await text("Source title", "Unapplied user title"); await press("Show applied code");
+    const code = appliedCode(); const owner = current(); const count = runtime.players.length;
+    await action("Show SDK API experiments"); await action("Run Vega SDK API");
+    const result = element("Text", { accessibilityLabel: "Vega API result" }).props.children;
+    const executed = element("Text", { accessibilityLabel: "Vega executed API code" }).props.children;
+    await press("日本語");
+    expect(input("ソースのタイトル").props.value).toBe("Unapplied user title");
+    expect(button("適用してプレイヤーを再作成").props.disabled).toBe(false);
+    expect(appliedCode()).toBe(code);
+    expect(element("Text", { accessibilityLabel: "VegaのAPI実行結果" }).props.children).toBe(result);
+    expect(element("Text", { accessibilityLabel: "Vegaで実行したAPIのコード" }).props.children).toBe(executed);
+    expect(current()).toBe(owner); expect(runtime.players).toHaveLength(count);
+    expect(owner.destroy).not.toHaveBeenCalled();
+    await press("English");
+    expect(input("Source title").props.value).toBe("Unapplied user title"); expect(current()).toBe(owner);
+  });
+
   it("preserves the native cleanup barrier across explicit repeated recreation", async () => {
     await mount();
     const old = current();

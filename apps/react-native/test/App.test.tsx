@@ -23,7 +23,7 @@ const runtime = vi.hoisted(() => {
 });
 
 vi.mock("react-native", () => ({
-  Button: "Button", Modal: "Modal", Pressable: "Pressable", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View", SafeAreaView: "SafeAreaView", KeyboardAvoidingView: "KeyboardAvoidingView",
+  Button: "Button", Modal: "Modal", Pressable: "Pressable", ScrollView: "ScrollView", StatusBar: "StatusBar", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View", SafeAreaView: "SafeAreaView", KeyboardAvoidingView: "KeyboardAvoidingView",
   useWindowDimensions: () => runtime.window,
   Platform: { get OS() { return runtime.os; }, get Version() { return runtime.os === "ios" ? "15.1" : 36; }, select: (options: Record<string, string>) => options[runtime.os] ?? options.default },
   StyleSheet: { create: <T,>(styles: T) => styles },
@@ -217,6 +217,73 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it.each(["android", "ios"])("retains the %s player, draft and API inputs in a compact keyboard workspace", async (os) => {
+    runtime.os = os;
+    await mount(); await ready(); await basicField("source", "title");
+    const owner = current();
+    await act(async () => input("Source title").props.onChangeText("Landscape draft"));
+    await act(async () => { runtime.window = { width: 852, height: 393, fontScale: 1.5, scale: 1 }; screen.update(<App />); });
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(input("Source title").props.disableFullscreenUI).toBe(true);
+    expect(element("Pressable", { testID: "workspace-nav-settings" })).toBeUndefined();
+    expect(element("View", { testID: "player-lab-player" }).props.accessibilityElementsHidden).toBe(true);
+    const done = element("Pressable", { testID: "configuration-done" });
+    for (let parent = done.parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
+    await tap("configuration-done");
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
+    expect(input("Source title").props.value).toBe("Landscape draft");
+    await text("Filter API operations", "Player.setVolume"); await press("Player.setVolume");
+    await act(async () => input("Volume (0–100)").props.onChangeText("42"));
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(element("Pressable", { testID: "api-operation-selector" })).toBeUndefined();
+    expect(input("Volume (0–100)").props.value).toBe("42");
+    expect(element("Pressable", { testID: "api-done" })).toBeDefined();
+    await tap("api-run");
+    expect(owner.setVolume).toHaveBeenCalledWith(42);
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it("renders exported code as selectable text with one scrolling owner", async () => {
+    await mount(); await ready(); await tap("workspace-nav-code");
+    const code = element("Text", { accessibilityLabel: "Applied configuration code" });
+    expect(code).toBeDefined();
+    expect(code.props.selectable).toBe(true);
+    expect(code.props.children).toMatch(/^import /);
+    expect(input("Applied configuration code")).toBeUndefined();
+    const scrolls: ReactTestInstance[] = [];
+    for (let parent = code.parent; parent; parent = parent.parent) if (String(parent.type) === "ScrollView") scrolls.push(parent);
+    expect(scrolls).toHaveLength(1);
+    await press("Copy code");
+    expect(runtime.clipboard).toHaveBeenLastCalledWith(code.props.children);
+    const feedback = element("Text", { accessibilityLiveRegion: "polite" });
+    const texts = screen.root.findAll(node => String(node.type) === "Text");
+    expect(texts.indexOf(feedback)).toBeGreaterThanOrEqual(0);
+    expect(texts.indexOf(feedback)).toBeLessThan(texts.indexOf(code));
+  });
+
+  it.each(["android", "ios"])("keeps the %s picker keyboard-aware in portrait and landscape", async (os) => {
+    runtime.os = os;
+    await mount(); await ready();
+    expect(element("StatusBar")?.props.barStyle).toBe("dark-content");
+    expect(element("KeyboardAvoidingView", { testID: "player-lab-screen" }).props.behavior).toBe(os === "ios" ? "padding" : "height");
+    const screenAvoidance = element("KeyboardAvoidingView", { testID: "player-lab-screen" });
+    for (let parent = screenAvoidance.parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("SafeAreaView");
+    expect(screenAvoidance.findAll(node => String(node.type) === "SafeAreaView")).toHaveLength(1);
+    await tap("workspace-setting-selector");
+    const modal = element("Modal");
+    expect(modal.props.supportedOrientations).toEqual(["portrait", "landscape"]);
+    const avoidance = modal.find(node => String(node.type) === "KeyboardAvoidingView");
+    expect(avoidance.props.behavior).toBe(os === "ios" ? "padding" : "height");
+    const close = modal.find(node => String(node.type) === "Pressable" && node.props.accessibilityLabel === "Close");
+    for (let parent = close.parent; parent && parent !== modal; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(modal.props.visible).toBe(true);
+    expect(input("Find Setting").props.value).toBe("");
+    await act(async () => close.props.onPress());
+    expect(element("Modal")).toBeUndefined();
+  });
+
   it("applies a UI setting through its own direct editor and exports the effective SDK value", async () => {
     await mount(); await ready(); await settingsGroup("ui");
     await tap("ui-setting-selector");
@@ -226,7 +293,7 @@ describe("React Native configuration in the mounted App", () => {
     await press("TextureView"); await press("Apply and recreate player"); await ready();
     expect(element("PlayerView").props.config.surfaceType).toBe("TextureView");
     await tap("workspace-nav-code");
-    expect(input("Applied configuration code").props.value).toContain("SDK.SurfaceType.TextureView");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain("SDK.SurfaceType.TextureView");
   });
 
   it("requires a query target in State and keeps its read action outside scrolling content", async () => {
@@ -281,7 +348,7 @@ describe("React Native configuration in the mounted App", () => {
     await tap("api-run");
     expect(element("Text", { accessibilityLabel: "API result" }).props.children).toContain("100");
     await tap("workspace-nav-code");
-    expect(input("Applied configuration code").props.value).not.toContain("A retained draft");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).not.toContain("A retained draft");
     await tap("workspace-nav-settings");
     expect(input("Source title").props.value).toBe("A retained draft");
     await press("日本語");
@@ -295,7 +362,7 @@ describe("React Native configuration in the mounted App", () => {
     await mount(); await ready(); await press("Show configuration");
     await text("Source title", "Unapplied title in the user's language");
     await press("Show applied code");
-    const applied = input("Applied configuration code").props.value;
+    const applied = element("Text", { accessibilityLabel: "Applied configuration code" }).props.children;
     await press("Show API experiments"); await text("Filter API operations", "Player.getVolume");
     await press("Player.getVolume"); await press("Run selected API");
     const owner = current(); const count = runtime.players.length;
@@ -304,7 +371,7 @@ describe("React Native configuration in the mounted App", () => {
     await press("日本語");
     await tap("workspace-nav-settings");
     expect(input("ソースのタイトル").props.value).toBe("Unapplied title in the user's language");
-    expect(input("適用済み設定のコード").props.value).toBe(applied);
+    expect(element("Text", { accessibilityLabel: "適用済み設定のコード" }).props.children).toBe(applied);
     expect(button("適用してプレイヤーを再作成").props.disabled).toBe(false);
     expect(element("Text", { accessibilityLabel: "実行したAPIのコード" }).props.children).toBe(code);
     expect(element("Text", { accessibilityLabel: "APIの実行結果" }).props.children).toBe(result);
@@ -389,7 +456,7 @@ describe("React Native configuration in the mounted App", () => {
     expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ description: "Applied description" }));
     expect(element("PlayerView").props.config).toMatchObject({ surfaceType: "TextureView" });
     await press("Show applied code");
-    const code = input("Applied configuration code").props.value;
+    const code = element("Text", { accessibilityLabel: "Applied configuration code" }).props.children;
     expect(code).toContain('"timeChangedInterval": 0.25');
     expect(code).toContain("SDK.SurfaceType.TextureView");
     expect(code).toContain("Applied description");
@@ -431,7 +498,7 @@ describe("React Native configuration in the mounted App", () => {
     const result = await callback!(HttpRequestType.Unknown, { method: "GET", url: "https://example.com/manifest.mpd", headers: {} });
     expect(result.url).toBe("https://example.com/manifest.mpd?lab=1");
     await press("Show applied code");
-    const code = input("Applied configuration code").props.value;
+    const code = element("Text", { accessibilityLabel: "Applied configuration code" }).props.children;
     expect(code).toContain('return { ...request, url: request.url + "?lab=1" };');
     expect(code).toContain("async (type, request)");
     expectValidCode(code);
@@ -452,7 +519,7 @@ describe("React Native configuration in the mounted App", () => {
     expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ drmConfig: { widevine: {
       licenseUrl: "https://example.com/license", httpHeaders: { Authorization: "PRIVATE_HEADER" },
     } } }));
-    expect(input("Applied configuration code").props.value).not.toContain("PRIVATE_HEADER");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).not.toContain("PRIVATE_HEADER");
   });
 
   it("removes an applied SDK override and rejects invalid typed input before creating a player", async () => {
@@ -526,11 +593,11 @@ describe("React Native configuration in the mounted App", () => {
     await press("BitmovinCastManagerOptions.applicationId"); await press("Set this API value");
     await text("Value for BitmovinCastManagerOptions.applicationId", "ABCDEF12");
     await press("Apply and recreate player"); await press("Show applied code");
-    expect(input("Applied configuration code").props.value).toContain('"appId": "ABCDEF12"');
-    expect(input("Applied configuration code").props.value).toContain("SDK 1.29 initialize does not read castOptions");
-    expect(input("Applied configuration code").props.value).toContain("PlayerLabCastHost.saveOptions");
-    expect(input("Applied configuration code").props.value).toContain('"android": "21.3.0"');
-    expect(input("Applied configuration code").props.value).toContain('"ios": "4.8.4"');
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain('"appId": "ABCDEF12"');
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain("SDK 1.29 initialize does not read castOptions");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain("PlayerLabCastHost.saveOptions");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain('"android": "21.3.0"');
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain('"ios": "4.8.4"');
   });
 
   it("shows named event payloads, redacts credentials and ignores retired event proxies", async () => {
@@ -622,7 +689,7 @@ describe("React Native configuration in the mounted App", () => {
       identifier: "player-lab-external", format: "vtt", isDefault: true,
     }] }));
     await press("Show applied code");
-    expect(input("Applied configuration code").props.value).toContain('"isDefault": true');
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain('"isDefault": true');
     await text("Subtitle label", "Only a draft");
     await press("Reset draft");
     expect(input("Subtitle label").props.value).toBe("English captions");
@@ -719,15 +786,15 @@ describe("React Native configuration in the mounted App", () => {
     await ready();
     await press("Show configuration");
     await press("Show applied code");
-    const original = input("Applied configuration code").props.value as string;
+    const original = element("Text", { accessibilityLabel: "Applied configuration code" }).props.children as string;
     expect(original).toContain("YOUR_PLAYER_KEY");
     expect(original).not.toContain("test-license");
     await text("Source title", "ONLY_AFTER_APPLY");
     await press("Copy code");
     expect(runtime.clipboard).toHaveBeenLastCalledWith(original);
-    expect(input("Applied configuration code").props.value).not.toContain("ONLY_AFTER_APPLY");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).not.toContain("ONLY_AFTER_APPLY");
     await press("Apply and recreate player");
-    expect(input("Applied configuration code").props.value).toContain("ONLY_AFTER_APPLY");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain("ONLY_AFTER_APPLY");
     await press("Sports");
     await press("Copy code");
     const copied = runtime.clipboard.mock.calls[runtime.clipboard.mock.calls.length - 1]?.[0];

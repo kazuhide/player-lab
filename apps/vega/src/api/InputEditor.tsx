@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { StyleSheet, Switch, Text, TextInput, Pressable, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Switch, Text, TextInput, Pressable } from "../localization";
 import { BinaryInput, CallbackInput, ExpressionInput, NumericInput, ResourceInput, type ApiSchema, type InputSchema, type Signature } from "./types";
 import { safeKey } from "./values";
 import { parameterNames, ResourcePool } from "./materialize";

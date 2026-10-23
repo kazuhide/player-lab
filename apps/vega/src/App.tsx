@@ -13,6 +13,7 @@ import type { RuntimeMonitor } from "./runtimeObservation";
 import { ApiPanel } from "./api/ApiPanel";
 import type { VegaSessionApi } from "./api/sessionApi";
 import type { ConfigInput } from "./api/configInputs";
+import { LanguageSelector, LocaleProvider } from "./localization";
 
 const EMPTY_INPUTS: ConfigInput[] = [];
 
@@ -24,6 +25,10 @@ const LICENSE_KEY = ENV.BITMOVIN_PLAYER_LICENSE_KEY ?? "YOUR_PLAYER_KEY";
 const ANALYTICS_LICENSE_KEY = ENV.BITMOVIN_ANALYTICS_LICENSE_KEY ?? "";
 
 export const App: React.FC<{ runtimeChecks?: RuntimeMonitor }> = ({ runtimeChecks }) => {
+  return <LocaleProvider><LocalizedApp runtimeChecks={runtimeChecks} /></LocaleProvider>;
+};
+
+const LocalizedApp: React.FC<{ runtimeChecks?: RuntimeMonitor | undefined }> = ({ runtimeChecks }) => {
   const [activeId, setActiveId] = useState(SOURCES[0]!.id);
   const [applied, setApplied] = useState(() => parseConfiguration(initialDraft(SOURCES[0]!)));
   const [draft, setDraft] = useState(applied.draft);
@@ -104,6 +109,7 @@ export const App: React.FC<{ runtimeChecks?: RuntimeMonitor }> = ({ runtimeCheck
         onApiSession={onApiSession}
       />
       <ScrollView testID="player-lab-screen" keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
+        <LanguageSelector dark />
         <ControlPanel
           sources={SOURCES}
           activeId={activeId}

@@ -2,6 +2,11 @@ import XCTest
 
 /// Uses explicit workspace choices; no scrolling is used to reach editable settings or Apply.
 enum WorkspaceUITestNavigation {
+    static func launch(_ app: XCUIApplication, language: String = "en") {
+        app.launchArguments += ["-AppleLanguages", "(\(language))", "-AppleLocale", language == "ja" ? "ja_JP" : "en_US"]
+        app.launch()
+    }
+
     static let fields: [String: (String, String)] = [
         "sourceURL": ("Source", "Source URL"), "sourceType": ("Source", "Source type"),
         "title": ("Source", "Title"), "posterURL": ("Source", "Poster URL"),
@@ -37,10 +42,16 @@ enum WorkspaceUITestNavigation {
         try activate(button, in: app)
         #if os(tvOS)
         let option = app.buttons["workspace.choice.option.\(value)"].firstMatch
+        let expectedLabel = option.label
         try activate(option, in: app)
         XCTAssertTrue(app.textFields["workspace.choice.filter"].waitForNonExistence(timeout: 5))
-        XCTAssertEqual(button.value as? String, value)
+        XCTAssertEqual(button.value as? String, expectedLabel)
         #else
+        let identified = app.buttons["workspace.choice.option.\(value)"].firstMatch
+        if identified.exists {
+            try activate(identified, in: app)
+            return
+        }
         let candidates = app.buttons.matching(NSPredicate(format: "label == %@", value))
         let visible = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             candidates.allElementsBoundByIndex.contains { $0.isHittable && $0.identifier != picker }
@@ -84,7 +95,7 @@ enum WorkspaceUITestNavigation {
             }
             let current = focused.frame
             let target = element.frame
-            let direction: XCUIRemote.Button
+            var direction: XCUIRemote.Button
             if current.midX < editorLeft && target.midX >= editorLeft {
                 // Enter the editor before moving down past AVKit transport controls.
                 direction = .right
@@ -94,6 +105,13 @@ enum WorkspaceUITestNavigation {
                 // Focus enlargement may overlap an adjacent row's rectangle.
                 direction = target.midY < current.midY ? .up : .down
             } else {
+                direction = target.midX < current.midX ? .left : .right
+            }
+            let verticalStep = "\(focused.identifier)|\(current)|\(direction)"
+            if (direction == .up || direction == .down), attempts[verticalStep, default: 0] > 0,
+               current.maxX < target.minX || target.maxX < current.minX {
+                // A narrow field can be in another column from its header choice.
+                // Align horizontally before repeating a vertical route that did not reach it.
                 direction = target.midX < current.midX ? .left : .right
             }
             let step = "\(focused.identifier)|\(current)|\(direction)"
@@ -159,8 +177,17 @@ enum WorkspaceUITestNavigation {
         try activate(field, in: app)
         let current = field.value as? String ?? ""
         #if !os(tvOS)
-        field.typeKey("a", modifierFlags: .command)
-        field.typeText(text)
+        if field.elementType == .textField {
+            // Move the real caret to the end without platform-specific End or
+            // Command shortcuts. Send keys to the explicitly focused app.
+            for _ in 0..<current.utf16.count {
+                app.typeKey(XCUIKeyboardKey.rightArrow.rawValue, modifierFlags: [])
+            }
+            app.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.utf16.count + 5) + text)
+        } else {
+            field.typeKey("a", modifierFlags: .command)
+            field.typeText(text)
+        }
         #else
         field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count + 5) + text)
         #endif

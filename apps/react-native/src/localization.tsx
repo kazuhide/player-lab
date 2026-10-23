@@ -80,7 +80,7 @@ export function Button(props: ButtonProps): React.JSX.Element {
 
 export const TextInput = forwardRef<NativeTextInput, TextInputProps>(function LocalizedTextInput(props, ref) {
   const { language } = useLocale();
-  return <NativeTextInput {...localizedProps(props, language)} ref={ref}
+  return <NativeTextInput disableFullscreenUI {...localizedProps(props, language)} ref={ref}
     {...(props.placeholder ? { placeholder: translateCopy(props.placeholder, language) } : {})} />;
 });
 

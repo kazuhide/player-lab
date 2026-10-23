@@ -81,6 +81,8 @@ through SDK events; disposing the controller stops later progress updates.
 
 ## Configuration controls
 
+Use **English** or **日本語** above the controls to change the application's labels and help. The initial language follows the device locale when available. Switching language retains the native player, configuration draft and API results. SDK identifiers, generated code, event payloads and subtitle cues keep their original text.
+
 Open **Show configuration** to edit a source URL/type (HLS, DASH or progressive
 MP4), title, poster URL, signed start offset and timeline reference. The panel
 also exposes autoplay, startup mute, separate audio/video forward buffer targets

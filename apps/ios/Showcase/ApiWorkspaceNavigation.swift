@@ -35,18 +35,18 @@ struct NativeApiHostSettings: View {
                         switch setting {
                         case .factory:
                             Picker("Player factory", selection: Binding(get: { model.nativePlayerFactory }, set: { model.setNativePlayerFactory($0) })) {
-                                ForEach(NativePlayerFactory.allCases) { Text($0.rawValue).tag($0) }
+                                ForEach(NativePlayerFactory.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
                             }
                             .accessibilityIdentifier("api.factory")
-                            Text(model.nativePlayerFactory.rawValue).font(.subheadline)
+                            Text(LocalizedStringKey(model.nativePlayerFactory.rawValue)).font(.subheadline)
                             Text("Changing the factory immediately recreates the player. The standard factory attaches configured Analytics; Core and deprecated factories do not attach that wrapper.")
                                 .font(.caption).foregroundStyle(Color.workspaceSecondary)
                         case .presentation:
                             Picker("Presentation", selection: Binding(get: { model.presentation }, set: { model.setPresentation($0) })) {
-                                ForEach(NativePresentation.allCases) { Text($0.rawValue).tag($0) }
+                                ForEach(NativePresentation.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
                             }
                             .accessibilityIdentifier("api.presentation")
-                            Text(model.presentation.rawValue).font(.subheadline)
+                            Text(LocalizedStringKey(model.presentation.rawValue)).font(.subheadline)
                             Text("Changing the host immediately recreates the player and reloads the applied source.")
                                 .font(.caption).foregroundStyle(Color.workspaceSecondary)
                         case .nativeHost:

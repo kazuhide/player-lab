@@ -20,10 +20,11 @@ interface Props {
   appliedCode: string;
   sourceEditRequest?: number;
   keyboardVisible?: boolean;
+  compactEditing?: boolean;
 }
 
 /** Creation-time settings stay in the draft until Apply. Existing playback controls remain separate. */
-export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed, error, platform, sourceEditRequest = 0, keyboardVisible = false }: Props): React.JSX.Element {
+export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed, error, platform, sourceEditRequest = 0, keyboardVisible = false, compactEditing = false }: Props): React.JSX.Element {
   const [group, setGroup] = useState("source");
   const [sourceField, setSourceField] = useState("url");
   const [playerField, setPlayerField] = useState("autoplay");
@@ -55,10 +56,10 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         {(group === "source" || group === "player") && <WorkspaceChoice label="Setting" selected={selected}
           options={group === "player" ? playerFields : sourceFields} onSelect={group === "player" ? setPlayerField : setSourceField} testID="workspace-setting-selector" />}
       </View>}
-      {keyboardVisible && <View style={{ paddingHorizontal: 12, paddingVertical: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+      {keyboardVisible && !compactEditing && <View style={{ paddingHorizontal: 12, paddingVertical: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Text>Editing</Text><WorkspaceAction title="Done" onPress={() => Keyboard.dismiss()} />
       </View>}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 12, gap: 8 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 8 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
       {group === "source" && <>
         {selected === "url" && field("Source URL", "url")}
         {selected === "type" && <>
@@ -111,10 +112,11 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
       <WorkspacePage active={group === "callbacks"}><NativeScriptsPanel value={draft.scripts ?? { allowed: false, bodies: {} }} onChange={(scripts) => onChange({ ...draft, scripts })} /></WorkspacePage>
       <Text style={styles.help}>Apply recreates the player and reloads the selected source from its start offset. Playback position is not retained. Reset only discards draft edits.</Text>
       </ScrollView>
-      <View testID="configuration-actions" style={{ gap: 8, padding: 12, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
+      <View testID="configuration-actions" style={{ gap: 8, padding: compactEditing ? 8 : 12, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
         {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
-        <Text style={styles.help}>{changed ? "Draft changes have not been applied." : "The draft matches the applied configuration."}</Text>
+        {!compactEditing && <Text style={styles.help}>{changed ? "Draft changes have not been applied." : "The draft matches the applied configuration."}</Text>}
         <View style={{ flexDirection: "row", gap: 8 }}>
+          {compactEditing && <WorkspaceAction title="Done" testID="configuration-done" onPress={() => Keyboard.dismiss()} />}
           <View style={{ flex: 1 }}><WorkspaceAction title="Reset draft" testID="configuration-reset" onPress={onReset} disabled={!changed && !error} /></View>
           <View style={{ flex: 1 }}><WorkspaceAction title="Apply configuration" testID="configuration-apply" primary onPress={onApply} disabled={!changed} /></View>
         </View>

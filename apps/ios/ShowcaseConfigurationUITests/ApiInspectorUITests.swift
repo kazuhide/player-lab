@@ -14,7 +14,7 @@ final class ApiInspectorUITests: XCTestCase {
 
     func testVolumeOperationStateAndNativeFullscreenHost() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         try WorkspaceUITestNavigation.choose("VOD HLS", picker: "source.preset", in: app)
         XCTAssertTrue(app.buttons["api.open"].waitForExistence(timeout: 20))
         try WorkspaceUITestNavigation.activate(app.buttons["api.open"], in: app)

@@ -46,7 +46,7 @@ struct OfflineInspector: View {
                 }
                 if pane == .asset {
                 Section(header: Text("Selected asset")) {
-                    Text("Applied source: \(player.sourceSettings?.title ?? "None")").font(.caption)
+                    Text(NativeLocalization.format("Applied source: %@", player.sourceSettings?.title ?? "None".nativeLocalized)).font(.caption)
                     Text("Configure the source in the main player first, including its DRM settings. Selecting another offline asset removes its UI listener; SDK-managed downloads continue until you suspend or cancel them.")
                         .font(.caption)
                     Toggle("Use an explicit offline asset identifier", isOn: $workbench.usesExplicitIdentifier)
@@ -111,7 +111,7 @@ struct OfflineInspector: View {
                 if pane == .state {
                 Section(header: Text("SDK result and state")) {
                     Button("Refresh offline state") { workbench.refresh() }.accessibilityIdentifier("offline.refresh")
-                    if let progress = workbench.progress { Text("SDK download progress: \(progress)").font(.caption) }
+                    if let progress = workbench.progress { Text(NativeLocalization.format("SDK download progress: %@", String(describing: progress))).font(.caption) }
                     ForEach(workbench.state) { row in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(row.id).font(.caption).foregroundStyle(Color.workspaceSecondary)
@@ -173,7 +173,7 @@ struct OfflineInspector: View {
                     .accessibilityIdentifier("offline.cachedSource.load")
                 }
                 if let error { Text(error).font(.caption).foregroundStyle(.red).accessibilityIdentifier("offline.error") }
-                Text(workbench.result).font(.caption).accessibilityIdentifier("offline.result")
+                Text(NativeLocalization.operationResult(workbench.result)).font(.caption).accessibilityIdentifier("offline.result")
             }
             .padding(10)
             .background(.background, in: RoundedRectangle(cornerRadius: 12))
@@ -191,7 +191,7 @@ struct OfflineInspector: View {
 
     private func input(_ label: String, value: Binding<String>, id: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.caption).foregroundStyle(Color.workspaceSecondary)
+            Text(LocalizedStringKey(label)).font(.caption).foregroundStyle(Color.workspaceSecondary)
             TextField("Value", text: value).disableAutocorrection(true).textInputAutocapitalization(.never)
                 .accessibilityIdentifier(id)
         }
