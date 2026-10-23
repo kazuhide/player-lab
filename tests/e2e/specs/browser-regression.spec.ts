@@ -93,7 +93,7 @@ test.describe("controlled live rewind through the existing application GUI", () 
         const response = await route.fetch();
         const body = await response.text();
         const reference = format === "hls"
-          ? "https://demo.unified-streaming.com/k8s/live/scte35.isml/.m3u8"
+          ? "https://demo.unified-streaming.com/k8s/vod2live/stable/unified-learning.isml/.m3u8"
           : "https://vs-dash-ww-rd-live.akamaized.net/pl/testcard2020/avc-full.mpd";
         expect(body.split(reference)).toHaveLength(2);
         // Substitute the public fixture address only; SDK/UI code is unchanged.
