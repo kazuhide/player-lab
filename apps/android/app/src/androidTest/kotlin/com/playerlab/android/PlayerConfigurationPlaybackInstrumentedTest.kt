@@ -82,6 +82,44 @@ class PlayerConfigurationPlaybackInstrumentedTest {
         await("Configured playback advances") { controller.player.isPlaying && controller.player.currentTime > firstPosition + 1 }
     }
 
+    @Test
+    fun publicLiveHlsPresetPlaysDecodedFramesAndAdvancesWithoutErrors() {
+        val controller = ui.activity.controller
+        val player = controller.player
+        val preset = Sources.all.single { it.id == "live-hls" }
+        val rendered = AtomicBoolean()
+        ui.runOnUiThread {
+            fun ownsPreset() = controller.player === player && controller.sourceSettings.url == preset.url
+            player.on(PlayerEvent.Error::class) { if (ownsPreset()) errors += it.code.value }
+            player.on(SourceEvent.Error::class) { if (ownsPreset()) errors += it.code.value }
+            player.on(PlayerEvent.RenderFirstFrame::class) {
+                if (ownsPreset() && player.source === controller.configuredSource && player.source?.config?.url == preset.url) rendered.set(true)
+            }
+        }
+        workspaceSource(ui, "Live HLS")
+        await("The selected public HLS preset loads as a native live source") {
+            player === controller.player && player.source === controller.configuredSource &&
+                player.source?.config?.url == preset.url && player.source?.loadingState == LoadingState.Loaded && player.isLive
+        }
+        ui.runOnUiThread {
+            assertEquals(preset.type, player.source?.config?.type)
+            assertTrue("Changing the preset retains the actual player", player === controller.player)
+        }
+        workspaceCommand(ui, "android:com.bitmovin.player.api.Player.play()")
+        ui.onNodeWithTag("api-command-run").assertIsDisplayed().performClick()
+        await("GUI Play produces decoded frames for the current live HLS source") { player.isPlaying && player.isLive && rendered.get() }
+        var start = 0.0
+        ui.runOnUiThread { start = player.currentTime; assertTrue("Native live position is finite", start.isFinite()) }
+        await("Current live HLS playback advances without Player or Source errors") {
+            player.source === controller.configuredSource && player.isPlaying && player.isLive && player.currentTime > start + 1.0
+        }
+        ui.runOnUiThread {
+            assertTrue(errors.isEmpty())
+            assertEquals(null, controller.lastErrorCode)
+            assertTrue("Fresh native video frames were rendered", rendered.get())
+        }
+    }
+
     private fun observe(player: Player, startup: Boolean = false) {
         player.on(PlayerEvent.Error::class) { errors += it.code.value }
         player.on(SourceEvent.Error::class) { errors += it.code.value }
