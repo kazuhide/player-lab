@@ -109,6 +109,7 @@ targets:
     sources:
       - ShowcaseConfigurationTests
       - Showcase/Configuration.swift
+      - Showcase/NativeWorkspaceDraft.swift
       - Showcase/AdvancedConfiguration.swift
       - Showcase/SourceObjectConfiguration.swift
       - Showcase/SourceObjectCode.swift
@@ -232,6 +233,7 @@ targets:
     sources:
       - ShowcaseConfigurationTests
       - Showcase/Configuration.swift
+      - Showcase/NativeWorkspaceDraft.swift
       - Showcase/AdvancedConfiguration.swift
       - Showcase/SourceObjectConfiguration.swift
       - Showcase/SourceObjectCode.swift

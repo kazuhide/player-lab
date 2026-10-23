@@ -28,6 +28,9 @@ struct NativeGroupSessionRow: Identifiable {
 
 /// Only OS-created GroupSession handles can be selected for SDK coordination.
 final class NativeSharePlayWorkbench: ObservableObject {
+    @Published var activityTitle = ""
+    @Published var controlsPane = "Sessions"
+    @Published var controlsError: String?
     @Published private(set) var rows: [NativeGroupSessionRow] = []
     @Published private(set) var observing = false
     @Published private(set) var eligible = false
@@ -167,39 +170,50 @@ final class NativeSharePlayWorkbench: ObservableObject {
 struct NativeSharePlayControls: View {
     @ObservedObject var model: PlayerModel
     @ObservedObject var workbench: NativeSharePlayWorkbench
-    @State private var title = ""
-    @State private var showsCode = false
-    @State private var error: String?
 
     var body: some View {
-        Section(header: Text("SharePlay GroupSession")) {
-            Text("OS eligibility: \(workbench.eligible). Sessions are received from GroupActivities; an eligible SharePlay setup and the Group Activities signing capability are required.")
-                .font(.caption).foregroundStyle(.secondary)
-            HStack {
-                Button("Listen for sessions") { workbench.start() }.disabled(workbench.observing)
-                Button("Stop listening") { workbench.stop() }.disabled(!workbench.observing)
+        VStack(alignment: .leading, spacing: 12) {
+            Picker("SharePlay", selection: $workbench.controlsPane) {
+                ForEach(["Sessions", "Activity", "Coordinate", "Code"], id: \.self) { Text($0).tag($0) }
             }
-            TextField("Activity title (empty uses source title)", text: $title)
-            Button("Activate current source activity") {
-                guard let source = model.player.source?.sourceConfig else { error = "Load a source first."; return }
-                error = nil; workbench.activate(source: source, title: title)
+            .accessibilityIdentifier("shareplay.section")
+            .font(.caption).dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            if workbench.controlsPane == "Sessions" {
+                HStack {
+                    Button("Listen for sessions") { workbench.start() }.disabled(workbench.observing)
+                    Button("Stop listening") { workbench.stop() }.disabled(!workbench.observing)
+                }
+                Text("OS eligibility: \(workbench.eligible). Sessions come from GroupActivities. SharePlay setup and the Group Activities signing capability are required.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
-            .disabled(workbench.activating)
-            Text("Activation shares the current source URL and title with the native SharePlay activity. No activation or session join happens automatically.")
-                .font(.caption).foregroundStyle(.secondary)
-            Picker("Actual OS session", selection: $workbench.selected) {
-                Text("None").tag(Optional<UUID>.none)
-                ForEach(workbench.rows) { Text("\($0.title); \($0.participants) participants").tag(Optional($0.id)) }
+            if workbench.controlsPane == "Activity" {
+                TextField("Activity title (empty uses source title)", text: $workbench.activityTitle)
+                    .frame(minHeight: 44)
+                    .accessibilityIdentifier("shareplay.activity.title")
+                Button("Activate current source activity") {
+                    guard let source = model.player.source?.sourceConfig else { workbench.controlsError = "Load a source first."; return }
+                    workbench.controlsError = nil; workbench.activate(source: source, title: workbench.activityTitle)
+                }
+                .disabled(workbench.activating)
+                Text("Activation shares the current source URL and title with the native SharePlay activity. No activation or join happens automatically.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
-            Button("Coordinate current player") { run { try workbench.coordinate(player: model.player, join: false) } }.disabled(workbench.selected == nil)
-            Button("Coordinate and join") { run { try workbench.coordinate(player: model.player, join: true) } }.disabled(workbench.selected == nil)
-            Button("Leave selected session") { run { try workbench.leave() } }.disabled(workbench.selected == nil)
+            if workbench.controlsPane == "Coordinate" {
+                Picker("Actual OS session", selection: $workbench.selected) {
+                    Text("None").tag(Optional<UUID>.none)
+                    ForEach(workbench.rows) { Text("\($0.title); \($0.participants) participants").tag(Optional($0.id)) }
+                }
+                Button("Coordinate current player") { run { try workbench.coordinate(player: model.player, join: false) } }.disabled(workbench.selected == nil)
+                Button("Coordinate and join") { run { try workbench.coordinate(player: model.player, join: true) } }.disabled(workbench.selected == nil)
+                Button("Leave selected session") { run { try workbench.leave() } }.disabled(workbench.selected == nil)
+            }
+            if workbench.controlsPane == "Code" {
+                Text(NativeSharePlayWorkbench.code).font(.system(.caption, design: .monospaced))
+            }
             Button("Refresh group state") { workbench.refresh(); model.refreshApiState() }
             Text(workbench.status).font(.caption)
-            if let error { Text(error).foregroundStyle(.red) }
-            Toggle("Show SharePlay code", isOn: $showsCode)
-            if showsCode { Text(NativeSharePlayWorkbench.code).font(.system(.caption, design: .monospaced)) }
+            if let error = workbench.controlsError { Text(error).font(.caption).foregroundStyle(.red) }
         }
     }
-    private func run(_ action: () throws -> Void) { do { try action(); error = nil } catch { self.error = error.localizedDescription } }
+    private func run(_ action: () throws -> Void) { do { try action(); workbench.controlsError = nil } catch { workbench.controlsError = error.localizedDescription } }
 }

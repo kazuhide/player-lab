@@ -1,142 +1,80 @@
 import XCTest
 
-/// Uses the licensed app, its real SDK player and native accessibility controls.
+/// Uses the real SDK and checks effective state separately from invocation messages.
 final class ApiInspectorUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
     override func tearDownWithError() throws { XCUIApplication().terminate() }
 
-    #if os(tvOS)
-    func testRemoteCanInvokeApiAndReadCurrentSdkState() throws {
-        let app = XCUIApplication()
-        app.launch()
-        let open = app.buttons["api.open"]
-        XCTAssertTrue(open.waitForExistence(timeout: 20))
-        try focus(open)
-        XCUIRemote.shared.press(.select)
-        let nativeRow = app.cells["Use native PlayerView host"]
-        try focus(nativeRow)
-        XCUIRemote.shared.press(.select)
-        XCTAssertEqual(app.switches["api.nativeHost"].firstMatch.value as? String, "1")
-        let run = app.buttons["api.run"]
-        try focus(run)
-        XCUIRemote.shared.press(.select)
-        XCTAssertTrue(app.staticTexts["api.result"].label.contains("Player.play() invoked"))
-        let state = app.buttons["State"]
-        let operations = app.buttons["Operations"]
-        try focus(operations)
-        XCUIRemote.shared.press(.right)
-        if state.hasFocus { XCUIRemote.shared.press(.select) }
-        let refresh = app.buttons["api.refresh"]
-        try focus(refresh)
-        XCUIRemote.shared.press(.select)
-        XCTAssertEqual(app.staticTexts["api.state.PlayerFactory.sdkVersion"].label, "3.128.0")
-        let versionCell = app.cells.containing(.staticText, identifier: "api.state.PlayerFactory.sdkVersion").firstMatch
-        try focus(versionCell)
-        let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = "tvOS-native-api-state"
-        screenshot.lifetime = .keepAlways
-        add(screenshot)
-    }
-
-    private func focus(_ element: XCUIElement) throws {
-        for direction: XCUIRemote.Button in [.down, .up] {
-            for _ in 0..<110 {
-                if element.exists && (element.hasFocus || element.descendants(matching: .any).allElementsBoundByIndex.contains(where: { $0.hasFocus })) { return }
-                if element.elementType == .button && !element.identifier.isEmpty {
-                    let cell = XCUIApplication().cells.containing(.button, identifier: element.identifier).firstMatch
-                    if cell.exists && cell.hasFocus { return }
-                }
-                XCUIRemote.shared.press(direction)
-            }
-        }
-        let hierarchy = XCTAttachment(string: XCUIApplication().debugDescription)
-        hierarchy.name = "tvOS-api-focus-hierarchy"
-        hierarchy.lifetime = .keepAlways
-        add(hierarchy)
-        XCTFail("Remote focus did not reach the API control")
-        throw ApiFocusFailure.unreachable
-    }
-
-    private enum ApiFocusFailure: Error { case unreachable }
-    #else
     func testVolumeOperationStateAndNativeFullscreenHost() throws {
         let app = XCUIApplication()
         app.launch()
-        let open = app.buttons["api.open"]
-        XCTAssertTrue(open.waitForExistence(timeout: 20))
-        open.tap()
-        let filter = app.textFields["api.operation.filter"]
-        XCTAssertTrue(filter.waitForExistence(timeout: 10))
-        filter.tap()
-        filter.typeText("volume")
-        dismissKeyboard(in: app)
-        app.buttons["api.operation"].tap()
-        app.buttons["Player.volume"].tap()
-        let value = app.textFields["api.argument.value"]
-        reveal(value, in: app)
-        value.tap()
-        value.typeText(XCUIKeyboardKey.delete.rawValue + "42")
-        dismissKeyboard(in: app)
-        app.buttons["api.run"].tap()
+        try WorkspaceUITestNavigation.choose("VOD HLS", picker: "source.preset", in: app)
+        XCTAssertTrue(app.buttons["api.open"].waitForExistence(timeout: 20))
+        try WorkspaceUITestNavigation.activate(app.buttons["api.open"], in: app)
+        try selectOperation("Player.volume", search: "volume", in: app)
+        try WorkspaceUITestNavigation.replace(app.textFields["api.argument.value"], with: "42", in: app)
+        try WorkspaceUITestNavigation.activate(app.buttons["configuration.open"], in: app)
+        XCTAssertFalse(app.buttons["api.run"].exists, "Inactive command footers must leave the rendered accessibility tree")
+        try WorkspaceUITestNavigation.activate(app.buttons["api.open"], in: app)
+        XCTAssertEqual(app.textFields["api.argument.value"].value as? String, "42", "Tab changes retain the selected API argument")
+        XCTAssertTrue(app.staticTexts["api.target"].label.contains("Player.volume"))
+        try WorkspaceUITestNavigation.activate(app.buttons["api.run"], in: app)
         XCTAssertTrue(app.staticTexts["api.result"].label.contains("Player.volume invoked"))
-        let operationCapture = XCTAttachment(screenshot: app.screenshot())
-        operationCapture.name = "iOS-native-api-operation"
-        operationCapture.lifetime = .keepAlways
-        add(operationCapture)
-        app.segmentedControls["api.pane"].buttons["State"].tap()
-        let stateFilter = app.textFields["api.state.filter"]
-        reveal(stateFilter, in: app)
-        stateFilter.tap()
-        stateFilter.typeText("Player.volume")
-        dismissKeyboard(in: app)
-        reveal(app.staticTexts["api.state.Player.volume"], in: app)
-        XCTAssertEqual(app.staticTexts["api.state.Player.volume"].label, "42")
-        let stateCapture = XCTAttachment(screenshot: app.screenshot())
-        stateCapture.name = "iOS-native-api-volume-state"
-        stateCapture.lifetime = .keepAlways
-        add(stateCapture)
+        XCTAssertEqual(app.staticTexts["api.related.Player.volume"].label, "42")
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-api-volume-result", test: self)
 
-        let nativeHost = app.switches["api.nativeHost"]
-        for _ in 0..<8 {
-            if nativeHost.exists && nativeHost.isHittable { break }
-            app.collectionViews["api.form"].swipeDown()
-        }
-        XCTAssertTrue(nativeHost.waitForExistence(timeout: 5))
-        nativeHost.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
-        app.segmentedControls["api.pane"].buttons["Operations"].tap()
-        reveal(filter, in: app)
-        filter.tap()
-        filter.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 10) + "enterFullscreen")
-        dismissKeyboard(in: app)
-        app.buttons["api.operation"].tap()
-        app.buttons["UserInterfaceApi.enterFullscreen()"].tap()
-        reveal(app.buttons["api.run"], in: app)
-        app.buttons["api.run"].tap()
+        try WorkspaceUITestNavigation.activate(app.segmentedControls["api.pane"].buttons["State"], in: app)
+        try WorkspaceUITestNavigation.replace(app.textFields["api.state.filter"], with: "Player.volume", in: app)
+        try WorkspaceUITestNavigation.activate(app.buttons["api.refresh"], in: app)
+        XCTAssertEqual(app.staticTexts["api.state.Player.volume"].label, "42")
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-api-sdk-state", test: self)
+
+        try WorkspaceUITestNavigation.activate(app.segmentedControls["api.pane"].buttons["Host"], in: app)
+        try WorkspaceUITestNavigation.choose("Native PlayerView host", picker: "api.host.setting", in: app)
+        try WorkspaceUITestNavigation.activate(app.switches["api.nativeHost"], in: app)
+        XCTAssertEqual(app.switches["api.nativeHost"].value as? String, "1")
+
+        #if !os(tvOS)
+        try WorkspaceUITestNavigation.activate(app.segmentedControls["api.pane"].buttons["State"], in: app)
+        try WorkspaceUITestNavigation.replace(app.textFields["api.state.filter"], with: "events", in: app)
+        app.buttons["api.refresh"].tap()
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-event-list-viewport", test: self)
+        let original = try eventIdentities(in: app)
+        XCUIDevice.shared.orientation = .landscapeLeft
+        XCTAssertTrue(app.buttons["api.refresh"].isHittable)
+        let rotated = try eventIdentities(in: app)
+        XCTAssertEqual(rotated, original, "Rotation retains the real SDK player/source/view objects")
+        XCUIDevice.shared.orientation = .portrait
+        try WorkspaceUITestNavigation.activate(app.segmentedControls["api.pane"].buttons["Operations"], in: app)
+        try selectOperation("UserInterfaceApi.enterFullscreen()", search: "enterFullscreen", in: app)
+        try WorkspaceUITestNavigation.activate(app.buttons["api.run"], in: app)
         let exit = app.buttons["api.fullscreen.exit"]
         XCTAssertTrue(exit.waitForExistence(timeout: 10))
-        let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = "iOS-native-api-fullscreen"
-        screenshot.lifetime = .keepAlways
-        add(screenshot)
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-native-fullscreen", test: self)
         exit.tap()
-        XCTAssertTrue(app.buttons["api.close"].waitForExistence(timeout: 10))
-        app.buttons["api.close"].tap()
-        XCTAssertTrue(open.waitForExistence(timeout: 10))
-        open.tap()
+        XCTAssertTrue(app.buttons["api.open"].waitForExistence(timeout: 10))
+        try WorkspaceUITestNavigation.activate(app.segmentedControls["api.pane"].buttons["Host"], in: app)
+        try WorkspaceUITestNavigation.choose("Native PlayerView host", picker: "api.host.setting", in: app)
         XCTAssertEqual(app.switches["api.nativeHost"].value as? String, "1")
+        #endif
     }
 
-    private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
-        for _ in 0..<8 {
-            if element.exists && element.isHittable { return }
-            app.collectionViews["api.form"].swipeUp()
+    private func eventIdentities(in app: XCUIApplication) throws -> [String: String] {
+        var values: [String: String] = [:]
+        for id in ["Player.events", "Source.events", "PlayerView.events"] {
+            try WorkspaceUITestNavigation.replace(app.textFields["api.state.filter"], with: id, in: app)
+            try WorkspaceUITestNavigation.activate(app.buttons["api.refresh"], in: app)
+            let row = app.staticTexts["api.state.\(id)"]
+            XCTAssertTrue(row.waitForExistence(timeout: 5), "Exact filtering materializes the current SDK identity without scrolling")
+            XCTAssertTrue(row.isHittable)
+            values[id] = row.label
         }
-        XCTAssertTrue(element.exists && element.isHittable, "API control is not reachable")
+        return values
     }
 
-    private func dismissKeyboard(in app: XCUIApplication) {
-        let done = app.buttons["api.keyboard.done"]
-        if done.waitForExistence(timeout: 2) { done.tap() }
+    private func selectOperation(_ id: String, search: String, in app: XCUIApplication) throws {
+        try WorkspaceUITestNavigation.activate(app.buttons["api.operation"], in: app)
+        try WorkspaceUITestNavigation.replace(app.textFields["api.operation.filter"], with: search, in: app)
+        try WorkspaceUITestNavigation.activate(app.buttons["api.operation.select.\(id)"], in: app)
     }
-    #endif
 }

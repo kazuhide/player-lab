@@ -8,44 +8,26 @@ final class NativeCastUITests: XCTestCase {
     func testGuiConfiguresActualCastSdkAndShowsUnconnectedState() throws {
         let app = XCUIApplication()
         app.launch()
-        let open = app.buttons["cast.open"]
-        reveal(open, in: app.scrollViews["controls.scroll"])
-        XCTAssertTrue(open.waitForExistence(timeout: 15)); open.tap()
-        let form = app.collectionViews["cast.form"]
+        try WorkspaceUITestNavigation.activate(app.buttons["workspace.more"], in: app)
+        try WorkspaceUITestNavigation.activate(app.buttons["cast.open"], in: app)
         let application = app.textFields["cast.applicationId"]
-        XCTAssertTrue(application.waitForExistence(timeout: 10))
-        application.tap(); application.typeText("FFE417E5")
-        app.buttons["cast.keyboard.done"].tap()
+        try WorkspaceUITestNavigation.replace(application, with: "FFE417E5", in: app)
+        try WorkspaceUITestNavigation.choose("Message namespace", picker: "cast.setting", in: app)
         let namespace = app.textFields["cast.namespace"]
-        namespace.tap(); namespace.typeText("urn:x-cast:com.bitmovin.player.caf")
-        app.buttons["cast.keyboard.done"].tap()
+        try WorkspaceUITestNavigation.replace(namespace, with: "urn:x-cast:com.bitmovin.player.caf", in: app)
+        try WorkspaceUITestNavigation.choose("Receiver application ID", picker: "cast.setting", in: app)
         XCTAssertEqual(application.value as? String, "FFE417E5")
-        XCTAssertEqual(namespace.value as? String, "urn:x-cast:com.bitmovin.player.caf")
-        capture(app, name: "iOS-cast-initialization-options")
-        let run = app.buttons["cast.run"]
-        reveal(run, in: form); run.tap()
+        WorkspaceUITestNavigation.capture(app, named: "iOS-cast-initialization-options", test: self)
+        try WorkspaceUITestNavigation.activate(app.buttons["cast.run"], in: app)
         XCTAssertFalse(app.staticTexts["cast.error"].exists)
+        try WorkspaceUITestNavigation.choose("State", picker: "cast.section", in: app)
         let initialized = app.staticTexts["cast.state.BitmovinCastManager.isInitialized()"]
-        reveal(initialized, in: form)
+        XCTAssertTrue(initialized.waitForExistence(timeout: 10))
         XCTAssertEqual(initialized.label, "true")
-        capture(app, name: "iOS-cast-sdk-initialized-state")
-        let disable = app.buttons["cast.startup.disable"]
-        reveal(disable, in: form); disable.tap()
+        WorkspaceUITestNavigation.capture(app, named: "iOS-cast-sdk-initialized-state", test: self)
+        try WorkspaceUITestNavigation.choose("Receiver settings", picker: "cast.section", in: app)
+        try WorkspaceUITestNavigation.activate(app.buttons["cast.startup.disable"], in: app)
         XCTAssertTrue(app.staticTexts["cast.result"].label.contains("disabled for the next launch"))
-    }
-
-    private func reveal(_ element: XCUIElement, in form: XCUIElement) {
-        for forward in [true, false] {
-            for _ in 0..<12 {
-                if element.exists && element.isHittable { return }
-                if forward { form.swipeUp() } else { form.swipeDown() }
-            }
-        }
-        XCTAssertTrue(element.exists && element.isHittable, "Cast control is not reachable")
-    }
-    private func capture(_ app: XCUIApplication, name: String) {
-        let attachment = XCTAttachment(screenshot: app.screenshot())
-        attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
 }
 #endif
