@@ -15,7 +15,7 @@
     },
     {
       "type": "p",
-      "text": "ここでのSDKは、アプリへ組み込む再生ライブラリーを指します。APIは、そのライブラリーを設定・操作するための公開されたクラス・プロパティ・メソッドです。フォームはAPIを試すための画面であり、PlayerSettingsやSourceSettingsなどの補助実装は、アプリの状態を整理する型です。SDKの設定型が追加されるわけではありません。"
+      "text": "ここでのSDKは、アプリへ組み込む再生ライブラリーを指します。APIは、そのライブラリーを設定・操作するための公開されたクラス・プロパティ・メソッドです。フォームはAPIを試すための画面です。PlayerSettingsやSourceSettingsなどの補助実装はアプリの状態を管理する型で、SDK自体の設定型ではありません。"
     },
     {
       "type": "steps",
@@ -88,7 +88,7 @@
         [
           "Playback → Autoplay after source load / Start muted",
           "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted",
-          "初期状態のAutoplayを無効から有効へ変え、Start mutedは有効のままApplyします。適用済みと異なるPlayer設定がある場合に再生成し、自動でミュート再生が始まることを確認します。すべての値が適用済みと同じ場合はNo configuration changesと表示し、Applyを無効にします。"
+          "初期状態のAutoplayを無効から有効へ変え、Start mutedは有効のままApplyを押します。適用済みと異なるPlayer設定がある場合に再生成し、自動でミュート再生が始まることを確認します。すべての値が適用済みと同じ場合はNo configuration changesと表示され、Applyは無効になります。"
         ],
         [
           "Adaptation and buffer → Maximum bitrate",
@@ -98,7 +98,7 @@
         [
           "Adaptation and buffer → Forward buffer",
           "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration。秒で、0はSDKに任せる",
-          "10を入力してApplyし、適用済みコードと再生中のバッファー状態を確認します。設定値は目標であり、実際の蓄積量が常に同じになるわけではありません。"
+          "10を入力してApplyを押し、適用済みコードと再生中のバッファー状態を確認します。設定値は目標であり、実際の蓄積量が常に同じになるわけではありません。"
         ],
         [
           "Source → URL・type・title・poster",
@@ -112,8 +112,8 @@
         ],
         [
           "Advanced SDK settings → Player・Source・viewのプロパティ",
-          "所有元の生成・読み込み前に、対応するSDKのプロパティへ反映",
-          "API名で検索してOverrideを有効にし、値を入力してApplyします。Overrideを無効にしてApplyすると、基本フォームの値またはSDK既定値へ戻ります。"
+          "Player・Source・ビューを生成・読み込みする前に、対応するSDKのプロパティへ反映",
+          "API名で検索してOverrideを有効にし、値を入力してApplyを押します。Overrideを無効にしてApplyを押すと、基本フォームの値またはSDK既定値へ戻ります。"
         ]
       ]
     },
@@ -178,7 +178,7 @@
     },
     {
       "type": "p",
-      "text": "初期設定は、対象Sourceが最初にReadyになった時点で一度だけ選択します。確認したHLSの起動ではSourceLoadedで行った音声選択がReadyまでに上書きされたため、再生準備の完了を待ち、現在のSourceを確認してから反映しています。その後にメニューで選んだ値は変更しません。先読みしたプレイリストの切り替えでは、対象ソースの再生時刻が進むことも待ちます。自分のアプリでもイベントの購読を保持し、対象のソースを確認して、その所有元を破棄するときに購読を解除します。"
+      "text": "初期トラックは、対象Sourceが最初にReadyになった時点で一度だけ選択します。確認したHLSの起動ではSourceLoadedで行った音声選択がReadyまでに上書きされたため、再生準備の完了を待ち、現在のSourceを確認してから反映しています。その後にメニューで選んだ値は変更しません。先読みしたプレイリストの切り替えでは、対象ソースの再生時刻が進むことも待ちます。自分のアプリでもイベントの購読を保持し、通知が対象のソースから届いたことを確認します。購読を管理するオブジェクトを破棄するときは、購読も解除してください。"
     },
     {
       "type": "h3",
@@ -286,11 +286,11 @@
     },
     {
       "type": "p",
-      "text": "UIKitへ直接組み込む場合はNative PlayerViewを選び、Show presentation codeを確認します。NativePlayerSurfaceは保持しているPlayerでPlayerViewを作り、保持されたFullscreenHandlerを設定して、制約でビューを配置します。終了時には全画面を解除し、イベントの登録を外してplayerView.playerをnilにします。AVPlayerLayerとAVPlayerViewControllerはplayer.register(...)で登録し、終了時は登録した同じPlayerと表示先の組み合わせを解除します。AVPlayerLayer自体は映像を描くもので、再生操作部は持ちません。"
+      "text": "UIKitへ直接組み込む場合はNative PlayerViewを選び、Show presentation codeを確認します。NativePlayerSurfaceは保持しているPlayerを使ってPlayerViewを作り、FullscreenHandlerを保持して設定し、制約でビューを配置します。終了時には全画面を解除し、イベントの登録を外してplayerView.playerをnilにします。AVPlayerLayerとAVPlayerViewControllerはplayer.register(...)で登録し、終了時は登録した同じPlayerと表示先の組み合わせを解除します。AVPlayerLayer自体は映像を描くもので、再生操作部は持ちません。"
     },
     {
       "type": "code",
-      "title": "PlayerViewを配置して全画面操作の担当を保持する",
+      "title": "PlayerViewを配置して全画面操作のハンドラーを保持する",
       "text": "    func makeUIView(context: Context) -> UIView {\n        let container = UIView()\n        let view = PlayerView(player: model.player, frame: .zero, playerViewConfig: model.makePlayerViewConfig())\n        context.coordinator.container = container\n        context.coordinator.playerView = view\n        context.coordinator.embed(view, in: container)\n        view.fullscreenHandler = context.coordinator\n        model.attachApiView(view)\n        return container\n    }",
       "source": {
         "path": "apps/ios/Showcase/NativePlayerSurface.swift",
@@ -329,7 +329,7 @@
     },
     {
       "type": "p",
-      "text": "生成済みのPlayerを操作する機能はAPI inspectorで試します。Operationsでは引数を入力し、対応するSwift呼び出しを表示できます。StateのRefresh SDK stateは現在の値をSDKから取得し、EventsはSDKの通知を記録します。呼び出しが成功しても、非同期の処理が完了したとは限りません。結果の状態と完了・エラーイベントを、確認中のPlayerとSourceに対応付けて読みます。"
+      "text": "生成済みのPlayerを操作する機能はAPI inspectorで試します。Operationsでは引数を入力し、対応するSwift呼び出しを表示できます。StateのRefresh SDK stateは現在の値をSDKから取得し、EventsはSDKの通知を記録します。呼び出しが成功しても、非同期の処理が完了したとは限りません。確認中のPlayerとSourceについて、操作後の状態と完了・エラーイベントを確認します。"
     },
     {
       "type": "figure",
@@ -356,17 +356,17 @@
         ],
         [
           "バックグラウンド音声・Now Playing：対応コンテンツとアプリの権限",
-          "追加設定でPlaybackConfig.isBackgroundPlaybackEnabledやNowPlayingConfig.isNowPlayingInfoEnabledを検索し、Applyして背景での動作を確認します。",
-          "再生とシステムのメディア情報を設定します。OSのバックグラウンド機能を付与したり、すべての動画の背景再生を可能にしたりする設定ではありません。"
+          "追加設定でPlaybackConfig.isBackgroundPlaybackEnabledやNowPlayingConfig.isNowPlayingInfoEnabledを検索し、Applyを押してバックグラウンドでの動作を確認します。",
+          "再生とシステムのメディア情報を設定します。OSのバックグラウンド機能を付与したり、すべての動画をバックグラウンドで再生可能にしたりする設定ではありません。"
         ],
         [
           "広告：有効な広告タグと対応する広告配信側",
-          "追加設定のAdvertisingConfig.scheduleで入力形式を確認してApplyします。現在のPlayerへのスケジュール追加APIも試せます。",
+          "追加設定のAdvertisingConfig.scheduleで入力形式を確認してApplyを押します。現在のPlayerへのスケジュール追加APIも試せます。",
           "アプリはSDKのAdItemを作り、advertisingConfigへ渡します。広告の開始・終了・エラーイベントと再生を確認します。空のスケジュールや到達できないタグからは広告を再生できません。"
         ],
         [
           "リクエスト処理：対象の要求がSDKから発生すること",
-          "追加設定でNetworkConfig.preprocessHttpRequestやpreprocessHttpResponseを検索します。用意された無変更で返す本文から始め、Applyして対象ソースを読み込みます。",
+          "追加設定でNetworkConfig.preprocessHttpRequestやpreprocessHttpResponseを検索します。用意された、入力を変更せずに返す本文から始め、Applyを押して対象ソースを読み込みます。",
           "アプリは制限付きのJavaScript本文をSDKのコールバックへ接続し、完了ハンドラーを呼びます。Stateで呼び出し数と失敗を確認します。この評価処理はアプリの補助実装で、Apple SDKがJavaScript本文を受け付けるAPIではありません。"
         ],
         [
@@ -395,7 +395,7 @@
     {
       "type": "note",
       "title": "オフラインHLS：iOS・iPadOS",
-      "text": "オンデマンドのHLSとDRM設定を適用してからOpen offline HLS inspectorを開きます。OfflineManagerは保存した設定でアプリ起動時に初期化するため、プロセス全体の起動設定を変えた後はアプリを完全に終了して開き直します。適用済みソースをオフライン資産として選び、トラックを取得・選択してダウンロードを開始し、進捗・offlineState・イベントを確認します。完了後にOfflineSourceConfigを作ってキャッシュから読み込みます。tvOSにはこのパネルを用意していません。ダウンロードとオフライン再生の検証には実機のiPhone・iPadを使います。記録済みのシミュレーター実行は初期化とトラック取得まで成功し、メディアのダウンロードは完了していません。オフラインのFairPlayには対応する永続ライセンスのサービスも必要です。"
+      "text": "オンデマンドのHLSとDRM設定を適用してからOpen offline HLS inspectorを開きます。OfflineManagerは保存した設定でアプリ起動時に初期化するため、プロセス全体の起動設定を変えた後はアプリを完全に終了して開き直します。適用済みソースをオフライン保存の対象として選び、トラックを取得・選択してダウンロードを開始し、進捗・offlineState・イベントを確認します。完了後にOfflineSourceConfigを作ってキャッシュから読み込みます。tvOSにはこのパネルを用意していません。ダウンロードとオフライン再生の検証には実機のiPhone・iPadを使います。記録済みのシミュレーター実行では初期化とトラック取得まで成功しましたが、メディアのダウンロードは完了していません。オフラインのFairPlayには対応する永続ライセンスのサービスも必要です。"
     },
     {
       "type": "figure",
@@ -414,7 +414,7 @@
     },
     {
       "type": "p",
-      "text": "SharePlayはAPI inspectorのOperationsにあるSharePlay GroupSessionで試します。セッションの受信を開始し、必要な場合に現在のソースのアクティビティを明示的に開始します。OSが生成した実際のセッションを選び、Coordinate current playerまたはCoordinate and joinを実行します。参加側のソースには同じSourceConfig.options.sharePlayIdentifierを設定します。次のコードでselectedSessionが取り出すのはOSのセッションであり、アプリが作った代替オブジェクトではありません。アクティビティの開始は現在のソースURLとタイトルを共有します。OSでの利用資格・Group Activitiesの署名設定・適切なシステムセッションが必要です。参加状態と同期再生は参加端末でも確認します。"
+      "text": "SharePlayはAPI inspectorのOperationsにあるSharePlay GroupSessionで試します。セッションの受信を開始し、必要に応じて現在のソースのアクティビティを開始します。OSが生成した実際のセッションを選び、Coordinate current playerまたはCoordinate and joinを実行します。参加側のソースには同じSourceConfig.options.sharePlayIdentifierを設定します。次のコードのselectedSessionは、OSが生成したセッションを取得します。アプリ独自の代替オブジェクトは使いません。アクティビティを開始すると、現在のソースURLとタイトルを共有します。OSの利用条件・Group Activitiesの署名設定・適切なシステムセッションが必要です。参加状態と同期再生は参加端末でも確認します。"
     },
     {
       "type": "code",
@@ -430,11 +430,11 @@
     {
       "type": "h3",
       "id": "event-owner-lifecycle",
-      "text": "イベントと所有元のライフサイクル"
+      "text": "イベントを購読・解除するタイミング"
     },
     {
       "type": "p",
-      "text": "イベント処理を取り込むときは、SDKの対象インスタンスが生きている間だけ購読を保持し、その対象を置き換える前に解除します。API inspectorはlistenerとpublisherの経路を切り替えられます。次のlistener経路ではplayer.add/removeがSDKのAPIで、playerApiListenerとrecordApiEventはアプリの補助実装です。同じPlayerであることを確認し、破棄したPlayerから遅れて届いた通知が新しいPlayerの画面を更新しないようにします。Sourceとビューのlistenerにも同じ考え方を使います。再生状態を処理する購読と、表示件数を制限したイベント履歴は分けて扱います。"
+      "text": "イベント処理を組み込むときは、SDKの対象インスタンスが有効な間だけ購読を保持し、その対象を置き換える前に解除します。API inspectorはlistenerとpublisherの購読方式を切り替えられます。次のlistener方式ではplayer.add/removeがSDKのAPIで、playerApiListenerとrecordApiEventはアプリの補助実装です。通知元が現在のPlayerと同じかを確認し、破棄したPlayerから遅れて届いた通知が新しいPlayerの画面を更新しないようにします。Sourceとビューのlistenerでも同じ確認を行います。再生状態を処理する購読と、表示件数を制限したイベント履歴は分けて扱います。"
     },
     {
       "type": "code",
@@ -455,8 +455,8 @@
     },
     {
       "type": "note",
-      "title": "Applyで再生が始め直しになるのはなぜですか？",
-      "text": "フォームは適用済み設定との差を比較し、ソースの再読み込みまたはPlayerの再生成を行います。PlayerConfigは、動作中のPlayerをその場で変更するための設定ではありません。現在の再生だけを操作する場合は、Operationsの対応する実行時APIを使います。自分の製品で再生成をまたいで再生位置を維持する場合は、VODとライブに合った状態の保存・復元を実装します。このフォームに再生継続の復元処理はありません。"
+      "title": "Applyで再生がリセットされるのはなぜですか？",
+      "text": "フォームは適用済み設定との差を比較し、ソースの再読み込みまたはPlayerの再生成を行います。PlayerConfigは、動作中のPlayerをその場で変更するための設定ではありません。現在の再生だけを操作する場合は、Operationsの対応する実行時APIを使います。自分のアプリでPlayerの再生成後も再生位置を維持する場合は、VODとライブに合った状態の保存・復元を実装します。このフォームには、変更前の再生状態を復元する処理はありません。"
     },
     {
       "type": "note",
@@ -471,7 +471,7 @@
     {
       "type": "note",
       "title": "音声・字幕が選べない、または元に戻るのはなぜですか？",
-      "text": "言語の入力だけでは存在しないトラックを追加できません。対象のメディアでavailableAudio・availableSubtitlesを確認し、対象Sourceの最初のReadyの後に選択します。このアプリの起動時の対処は確認したSDKとテスト素材に基づくもので、すべてのストリームで同じになる保証ではありません。iOSとtvOSのSystem UIで共通に使う場合は、HLS内の字幕トラックを使います。SourceConfigへ外部字幕を追加しても、tvOSのSystem UIで同じ表示経路になるわけではありません。字幕の見た目と適用済みの選択状態を両方確認します。"
+      "text": "言語の入力だけでは存在しないトラックを追加できません。対象のメディアでavailableAudio・availableSubtitlesを確認し、対象Sourceの最初のReadyの後に選択します。このアプリでReadyを待つ処理は、確認したSDKとテスト素材に基づきます。すべてのストリームで同じ挙動になるとは限りません。iOSとtvOSのSystem UIで同じように試す場合は、HLS内の字幕トラックを使います。SourceConfigで追加した外部字幕は、tvOSのSystem UIでは同じようには表示できません。字幕の見た目と適用済みの選択状態を両方確認します。"
     },
     {
       "type": "note",
@@ -491,7 +491,7 @@
     {
       "type": "note",
       "title": "コールバックの入力欄では通常のJavaScriptをそのまま使えますか？",
-      "text": "Apple版の設定コールバックは、アプリの制限付きの値評価処理を経由し、結果をSDKのSwiftコールバックへ渡します。入力欄にある引数・戻り値・失敗時の動作を確認してください。構文はApply前に検証しますが、実行するのはSDKがそのコールバックを呼んだときだけです。ホスト側オブジェクト・非同期処理・動的コード実行は使えません。呼び出し数と失敗を確認し、生成コードを再利用する場合は公開済みのパーサー・評価処理のリソースとAcornのライセンス表示も含めます。"
+      "text": "Apple版の設定コールバックは、扱う値を制限したアプリ側の評価処理で実行し、結果をSDKのSwiftコールバックへ渡します。入力欄にある引数・戻り値・失敗時の動作を確認してください。構文はApply前に検証しますが、実行するのはSDKがそのコールバックを呼んだときだけです。ホスト側オブジェクト・非同期処理・動的コード実行は使えません。呼び出し数と失敗を確認し、生成コードを再利用する場合は公開済みのパーサー・評価処理のリソースとAcornのライセンス表示も含めます。"
     },
     {
       "type": "links",
@@ -514,11 +514,11 @@
     },
     {
       "type": "p",
-      "text": "Playerの組み込みを確認した後にAnalyticsの収集機能を設定します。対応するPlayerのイベントを監視し、アプリで指定したAnalyticsライセンスへ再生データを送ります。収集したセッション・視聴状況・再生品質は、主にBitmovin DashboardのObservabilityで確認します。Apple版のAPI inspectorにあるローカルのイベント一覧は実装時の調査に使えますが、Dashboardそのものではなく、サーバーでの受信を証明するものでもありません。"
+      "text": "Playerの組み込みを確認した後にAnalyticsの収集機能を設定します。対応するPlayerのイベントを監視し、アプリで指定したAnalyticsライセンスへ再生データを送ります。収集したセッション・視聴状況・再生品質は、主にBitmovin DashboardのObservabilityで確認します。Apple版のAPI inspectorにあるローカルのイベント一覧は実装時の調査用です。この一覧だけでは、サーバーで再生データを受信したことは確認できません。"
     },
     {
       "type": "p",
-      "text": "現在のアプリは、ローカル設定から任意のAnalyticsライセンスを受け取ります。PlayerModel.makePlayerのStandard経路は、値があればAnalyticsConfig(licenseKey:)を使い、空の場合はAnalytics設定を明示しないファクトリーを呼びます。CoreとLegacyの経路は、この有効化処理より前にreturnします。このアプリの設定済み収集経路を再現する場合はStandardを使います。他の組み込み方で収集機能を接続できないという意味ではありません。"
+      "text": "現在のアプリは、ローカル設定から任意のAnalyticsライセンスを受け取ります。PlayerModel.makePlayerでStandardを選んだ場合は、値があればAnalyticsConfig(licenseKey:)を使い、空の場合はAnalytics設定を明示しないファクトリーを呼びます。CoreとLegacyでは先に処理を終えるため、この有効化処理を通りません。このアプリと同じ方法でAnalyticsを有効にする場合はStandardを使います。他の組み込み方で収集機能を接続できないという意味ではありません。"
     },
     {
       "type": "code",

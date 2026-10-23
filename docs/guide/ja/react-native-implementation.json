@@ -1,7 +1,7 @@
 {
   "id": "react-native-implementation",
   "title": "React Native実装ガイド",
-  "lead": "既存のiOS・Android画面を使い、React NativeラッパーによるPlayerの生成、ソースの読み込み、UI変更、ネイティブAPI操作、Analyticsの組み込みを学びます。設定画面での操作と現在のコードを対応させて説明します。",
+  "lead": "このリポジトリのiOS・Android画面を使い、React NativeラッパーによるPlayerの生成、ソースの読み込み、UI変更、ネイティブAPI操作、Analyticsの組み込みを学びます。設定画面の操作がコードにどう反映されるかを説明します。",
   "blocks": [
     {
       "type": "links",
@@ -16,11 +16,11 @@
       "type": "h2",
       "text": "既存画面を組み込む",
       "id": "integration",
-      "summary": "Expoの開発用ホストを用意し、ネイティブPlayerをPlayerViewへ接続します。表示先とソースを現在のPlayerに結びつける実装を説明します。"
+      "summary": "Expoの開発用ホストを用意し、ネイティブPlayerをPlayerViewへ渡します。ビューの準備を待ってソースを読み込む手順を説明します。"
     },
     {
       "type": "p",
-      "text": "bitmovin-player-react-nativeは、iOSとAndroidのネイティブPlayer SDKをJavaScriptから操作するためのラッパーです。同じReactコンポーネントでも再生できる形式は同一ではありません。この画面はiOSでHLS・プログレッシブMP4を受け付け、AndroidではDASHも選べます。SourceConfigとPlayerConfigはラッパーの型であり、ブラウザー向けWeb SDKの設定をそのまま転用することはできません。項目と反映方法は「PlayerConfigとSourceConfig」の節で説明します。"
+      "text": "bitmovin-player-react-nativeは、iOSとAndroidのネイティブPlayer SDKをJavaScriptから操作するためのラッパーです。再生できる形式はiOSとAndroidで異なります。この画面はiOSでHLS・プログレッシブMP4を受け付け、AndroidではDASHも選べます。SourceConfigとPlayerConfigはラッパーの型であり、ブラウザー向けWeb SDKの設定をそのまま転用することはできません。項目と反映方法は「PlayerConfigとSourceConfig」の節で説明します。"
     },
     {
       "type": "links",
@@ -43,7 +43,7 @@
     {
       "type": "steps",
       "items": [
-        "以下のReact Native READMEの「Build in an Expo project」に従い、共有UIのビルドと外部Expoホストの生成を行います。Expo GoにはネイティブPlayerモジュールが含まれないため、開発用ビルドを使います。生成スクリプトは別のサンプル画面を作るのではなく、このリポジトリのApp.tsxとsrcディレクトリをコピーします。",
+        "以下のReact Native READMEの「Build in an Expo project」に従い、共有UIのビルドと外部Expoホストの生成を行います。Expo GoにはネイティブPlayerモジュールが含まれないため、開発用ビルドを使います。生成スクリプトは、このリポジトリのApp.tsxとsrcディレクトリを外部ホストへコピーします。",
         "PlayerライセンスのiOS・Android両方の許可一覧にcom.playerlab.reactnativeを追加します。生成したホストは、コピー済みのローカル設定を利用します。元のリポジトリのキーファイルを変更しただけでは、作成済みの外部ホストには反映されません。"
       ]
     },
@@ -95,12 +95,12 @@
     },
     {
       "type": "p",
-      "text": "PlayerConfigは生成時の再生動作や連携サービスを設定し、SourceConfigは再生するストリームと読み込み条件を設定します。src/configuration.tsのparseConfigurationはLabの関数です。文字列入力を検証して数値や列挙値へ変換し、SDKの設定オブジェクトを作ってから追加設定・配列・許可したコールバックを適用します。任意項目の空欄は通常、そのプロパティを省略します。SDKへ空文字列を渡すこととプロパティを削除することは同じではありません。"
+      "text": "PlayerConfigは生成時の再生動作や連携サービスを設定し、SourceConfigは再生するストリームと読み込み条件を設定します。src/configuration.tsのparseConfigurationはLabの関数です。文字列入力を検証して数値や列挙値へ変換し、SDKの設定オブジェクトを作ってから追加設定・配列・許可したコールバックを適用します。任意項目を空欄にすると、通常はそのプロパティを省略します。SDKへ空文字列を渡す指定とは異なります。"
     },
     {
       "type": "h3",
       "id": "basic-configuration-fields",
-      "text": "基本設定をSDKへ対応づける"
+      "text": "基本フォームの値をSDK設定に変換する"
     },
     {
       "type": "code",
@@ -124,12 +124,12 @@
         [
           "開始時の動作",
           "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted",
-          "AutoplayまたはMute on startupを変更し、Apply and recreate playerを押します。再生中の操作にはPlayer.play・pause・mute・unmuteを使います。開始時の設定と現在のセッションへの命令を区別します。"
+          "AutoplayまたはMute on startupを変更し、Apply and recreate playerを押します。再生中の操作にはPlayer.play・pause・mute・unmuteを使います。起動時の設定と、再生中に行う操作を区別します。"
         ],
         [
           "バッファー目標",
           "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration",
-          "同じソースで10秒を試します。先読みするメディアの目標量であり、起動時間の保証や実メモリの測定値ではありません。空欄は設定を省略します。このフォームで0を自動選択として扱うのはiOSだけです。"
+          "同じソースで10秒を試します。先読みするメディアの目標量であり、起動時間の保証やメモリー使用量の測定値ではありません。空欄にすると設定を省略します。このフォームで0を自動選択として扱うのはiOSだけです。"
         ],
         [
           "画質選択の上限",
@@ -179,7 +179,7 @@
         "Show configurationの基本項目を変更し、Apply and recreate playerを押します。編集値全体を検証してからPlayerを置き換えます。フォームからのソース設定変更だけでも再作成し、設定したオフセットから読み直します。",
         "ほかの項目はAdditional SDK configurationでラッパーの正確なパスを検索します。配列はSubtitle lists and advertising、関数はJavaScript callbacks and native UI handlersを使います。ネイティブSDKのインスタンスが必要な項目を単なる文字列で代用することはできません。",
         "Apply後にShow applied codeを開きます。追加設定は基本フォームの値より優先し、追加値を削除するとフォームの値またはSDK既定値へ戻ります。Reset draftは未適用の編集値だけを破棄します。",
-        "実装を変更するときも、検証済みのPlayer設定とソース設定を分けて保持します。AppはApply時にrevisionを増やし、ReactのkeyによってPlayerの所有コンポーネントを作り直します。既存のusePlayer呼び出しの引数を書き換えることは、再設定用APIではありません。"
+        "実装を変更するときも、検証済みのPlayer設定とソース設定を分けて保持します。AppはApply時にrevisionを増やし、ReactのkeyによってPlayerを管理するコンポーネントを作り直します。usePlayerの引数を書き換えても、既存のPlayerを再設定する操作にはなりません。"
       ]
     },
     {
@@ -200,7 +200,7 @@
     },
     {
       "type": "p",
-      "text": "このソース読み込み処理は、現在のネイティブビューの準備を待って、保持中のPlayerへ新しいソースを渡します。loadOwnedSourceは、戻り値を持たないラッパーのPlayer.loadを包むアプリの所有関係管理であり、SDKがPromiseを返すloadメソッドではありません。自分の画面でも、現在のビューとPlayerに読み込みを結びつけ、ソースやエラーのイベントで準備状態を確認します。フォームから設定を適用する経路では、構成が変わったPlayerも作り直します。"
+      "text": "ソースは、ネイティブビューの準備を待ってから、現在のPlayerへ読み込みます。loadOwnedSourceは、ネイティブSourceと読み込み先のPlayerを管理するアプリの補助処理です。ラッパーのPlayer.load自体はPromiseを返しません。自分の画面でも、準備ができたビューのPlayerへソースを読み込み、ソースやエラーのイベントで読み込み結果を確認します。フォームから設定を適用する場合は、Playerも作り直します。"
     },
     {
       "type": "figure",
@@ -233,7 +233,7 @@
         [
           "埋め込みUIの外観を変える",
           "PlayerConfig.styleConfig.playerUiCssはスタイルシートを置き換え、supplementalPlayerUiCssはスタイルを追加します。playerUiJsはJavaScriptバンドルを置き換えます。",
-          "Additional SDK configurationで該当パスを変更してApplyします。同梱アセットを使う場合は、以下の手順で共通UIとネイティブ資源を再ビルドします。"
+          "Additional SDK configurationで該当パスを変更してApplyします。同梱アセットを使う場合は、以下の手順で共通UIとネイティブアセットを再ビルドします。"
         ],
         [
           "UIの構成を変える",
@@ -286,7 +286,7 @@
     },
     {
       "type": "p",
-      "text": "CustomUiはUIバンドル内のファクトリー名を指定するラッパーのクラスであり、その名前はURLではありません。このアプリはAndroidでfile:///android_asset/webuiの資源を、iOSでメインアプリのバンドル内のファイル名を使います。ネイティブ資源用のプラグインが同梱するため、Metroをリロードしてもアプリに組み込まれたファイルは更新されません。JavaScriptとCSSは同じ共通UIビルドのものを使います。"
+      "text": "CustomUiはUIバンドル内のファクトリー名を指定するラッパーのクラスであり、その名前はURLではありません。このアプリはAndroidでfile:///android_asset/webuiのアセットを、iOSでメインアプリのバンドル内のファイル名を使います。これらはプラグインがネイティブアセットとして同梱するため、Metroをリロードしても更新されません。JavaScriptとCSSは同じ共通UIビルドのものを使います。"
     },
     {
       "type": "h3",
@@ -295,17 +295,17 @@
     },
     {
       "type": "p",
-      "text": "SDK UIの設定を試す場合は、ファクトリーのコードを変える前にWebUiConfig.playbackSpeedSelectionEnabledや映像のscalingModeを変更すると対応を追いやすくなります。PlayerConfig.styleConfig.userInterfaceTypeはプラットフォームによって対応が異なり、System UIはApple向けで、Androidのシステム操作部を選ぶ項目ではありません。isUiEnabledをfalseにするとSDKの操作部を非表示にします。代わりにReactで操作部を作る場合は、必要な操作をアプリで用意します。既存のAPIパネルでは、現在のPlayerに対する再生・停止・シーク・トラック選択を試せます。"
+      "text": "SDK UIの設定を試す場合は、ファクトリーのコードを変える前にWebUiConfig.playbackSpeedSelectionEnabledや映像のscalingModeを変更すると、設定と表示の関係を確認しやすくなります。PlayerConfig.styleConfig.userInterfaceTypeはプラットフォームによって対応が異なり、System UIはApple向けで、Androidのシステム操作部を選ぶ項目ではありません。isUiEnabledをfalseにするとSDKの操作部を非表示にします。代わりにReactで操作部を作る場合は、必要な操作をアプリで用意します。既存のAPIパネルでは、現在のPlayerに対する再生・停止・シーク・トラック選択を試せます。"
     },
     {
       "type": "note",
       "title": "全画面表示とUIメッセージ",
-      "text": "PlayerViewProps.fullscreenHandlerはスタイルのフラグではなく、処理を持つオブジェクトです。コールバックエディターではisFullscreenActive・enterFullscreen・exitFullscreenを持つ生成関数を指定し、lab.setFullscreenでこのアプリのModalへ接続します。退出時にも対応する処理を呼び、ネイティブ側とReact側の状態をそろえます。カスタムメッセージ用の生成関数は、エディターに示すSDKのCustomMessageHandlerインスタンスを返す必要があります。labとその所有者の検査はアプリの補助機能であり、どのSDK環境にもあるグローバル変数ではありません。"
+      "text": "PlayerViewProps.fullscreenHandlerはスタイルのフラグではなく、処理を持つオブジェクトです。コールバックエディターではisFullscreenActive・enterFullscreen・exitFullscreenを持つ生成関数を指定し、lab.setFullscreenでこのアプリのModalへ接続します。全画面表示を終了するときも対応する処理を呼び、ネイティブ側とReact側の状態をそろえます。カスタムメッセージ用の生成関数は、エディターに示すSDKのCustomMessageHandlerインスタンスを返す必要があります。labはこのアプリが用意する補助機能で、SDK共通のグローバル変数ではありません。古いPlayerへの呼び出しを防ぐ確認処理も、アプリ側の実装です。"
     },
     {
       "type": "figure",
       "file": "rn-ios-api-callback",
-      "caption": "iOSアプリのコールバックエディターです。関数の型と、明示的に許可した本体を表示します。JavaScriptの実行はサンドボックスで分離していないため、信頼できるコードだけを使います。"
+      "caption": "iOSアプリのコールバックエディターです。関数の型と、実行を許可した関数本体を表示します。JavaScriptの実行はほかのアプリ処理から隔離されていないため、信頼できるコードだけを使います。"
     },
     {
       "type": "h2",
@@ -339,11 +339,11 @@
     },
     {
       "type": "p",
-      "text": "oneは引数入力と操作ハンドラーを作るアプリの補助関数です。コールバックの中では、実際のPlayer.setVideoQuality、setAudioTrack、setSubtitleTrackを呼びます。自分のイベント処理では、現在のトラックIDを取得してからSDK APIを呼んでください。アプリの入力登録用の補助関数を組み込む必要はありません。最初の操作を移植する際は、前述のiOSでの画質選択の制約にも注意します。"
+      "text": "oneは引数入力と操作ハンドラーを作るアプリの補助関数です。コールバックの中ではPlayer.setVideoQuality、setAudioTrack、setSubtitleTrackを呼びます。自分のイベント処理では、現在のトラックIDを取得してからSDK APIを呼んでください。アプリの入力登録用の補助関数を組み込む必要はありません。自分のアプリに組み込む際は、前述のiOSでの画質選択の制約にも注意します。"
     },
     {
       "type": "p",
-      "text": "Show API experimentsは実際のラッパーAPIを呼び、返り値を表示します。状態取得の多くはネイティブとの通信を伴うPromiseを返すため、値を待ってからUIへ反映します。Player eventsには別途イベントの要約を表示します。値を変更するAPIは、対応する状態取得や完了イベントで確認します。呼び出しが戻ったことだけで別の機能の動作までは判断できません。このラッパーにはonDurationChangedがないため、アプリのライブ範囲もonTimeChangedで更新しています。"
+      "text": "Show API experimentsは実際のラッパーAPIを呼び、返り値を表示します。状態取得の多くはネイティブとの通信を伴うPromiseを返すため、結果を待ってからUIへ反映します。Player eventsには別途イベントの要約を表示します。値を変更するAPIは、対応する状態取得や完了イベントで確認します。呼び出しが終了しても、意図した状態に変わったとは限りません。このラッパーにはonDurationChangedがないため、アプリのライブ範囲もonTimeChangedで更新しています。"
     },
     {
       "type": "figure",
@@ -358,7 +358,7 @@
     {
       "type": "steps",
       "items": [
-        "OSの機能を試すときは、先にPlayerViewとPlayerの設定を確認します。ピクチャーインピクチャーやバックグラウンド再生には生成ホスト側のネイティブ機能が必要で、AirPlayはApple向けです。フラグだけではOSの権限・受信機・コンテンツの対応条件は補えません。",
+        "OSの機能を試すときは、先にPlayerViewとPlayerの設定を確認します。ピクチャーインピクチャーやバックグラウンド再生には、生成したホストアプリ側のネイティブ機能が必要で、AirPlayはApple向けです。フラグだけではOSの権限・受信機・コンテンツの対応条件は補えません。",
         "CastはCast startup configurationで起動時の設定を保存し、アプリを完全に閉じて起動し直します。Read native Cast startup stateで設定を確認してから、探索・接続・受信機での再生を試します。ラッパー1.29の非推奨APIであるBitmovinCastManager.initializeは何もしないため、Playerの再作成やJavaScriptのリロードはネイティブ起動処理の代わりになりません。"
       ]
     },
@@ -386,7 +386,7 @@
         ],
         [
           "CSSの変更が反映されないのはなぜですか？",
-          "Reactのスタイルと埋め込みUIのスタイルは別です。選択したファクトリー、JavaScript・CSSのパス、外部ホストにコピーしたアセットを確認します。同梱する共通UIを変更したらネイティブ資源を再ビルドします。"
+          "Reactのスタイルと埋め込みUIのスタイルは別です。選択したファクトリー、JavaScript・CSSのパス、外部ホストにコピーしたアセットを確認します。同梱する共通UIを変更したらネイティブアセットを再ビルドします。"
         ],
         [
           "字幕は一覧にあるのに表示されません。",
@@ -463,7 +463,7 @@
     },
     {
       "type": "p",
-      "text": "App.tsxでは、この後のusePlayer呼び出しへanalyticsConfigを渡します。明示したライセンスの上書きは尊重し、メタデータだけを変更した場合は既定のライセンスを維持します。収集機能がある場合、APIパネルからPlayer.analytics.getUserIdとsendCustomDataEventを試せますが、どちらも集計結果を取得するAPIではありません。分類用のラベルやカスタム項目へ個人情報や機密情報を入れないでください。"
+      "text": "App.tsxでは、この後のusePlayer呼び出しへanalyticsConfigを渡します。ライセンスを明示的に上書きした場合はその値を使い、メタデータだけを変更した場合は既定のライセンスを維持します。収集機能がある場合、APIパネルからPlayer.analytics.getUserIdとsendCustomDataEventを試せますが、どちらも集計結果を取得するAPIではありません。分類用のラベルやカスタム項目へ個人情報や機密情報を入れないでください。"
     },
     {
       "type": "h3",
@@ -481,7 +481,7 @@
     {
       "type": "figure",
       "file": "analytics-dashboard-overview",
-      "caption": "ライセンス、期間、絞り込みを示す公式BitmovinデモDashboardのダミーデータです。収集したアプリのセッションは自分のDashboardで探してください。この画像はPlayer Labの収集結果ではなく、現行画面とは構成が異なる場合があります。© Bitmovin。"
+      "caption": "ライセンス、期間、絞り込み条件を示すBitmovin公式デモDashboardのダミーデータです。自分のアプリの再生セッションは、自分のDashboardで探してください。この画像はPlayer Labの収集結果ではなく、現行画面とは構成が異なる場合があります。© Bitmovin。"
     },
     {
       "type": "links",

@@ -1,7 +1,7 @@
 {
   "id": "android-implementation",
   "title": "Androidの実装ガイド",
-  "lead": "既存のKotlinアプリを使い、PlayerConfig、SourceConfig、プレイヤーUIの変更方法を説明します。画面での操作、SDKコード、結果の確認、よくある疑問を対応づけます。Android TVとAndroidベースのFire TVもこの実装を使います。",
+  "lead": "同梱のKotlinアプリを使い、PlayerConfig、SourceConfig、プレイヤーUIの変更方法を説明します。操作手順とSDKコードを示し、結果の確認方法やよくある疑問を説明します。Android TVとAndroidベースのFire TVもこの実装を使います。",
   "blocks": [
     {
       "type": "h2",
@@ -156,7 +156,7 @@
     },
     {
       "type": "p",
-      "text": "StartupとRestartの値は、先読み済みコンテンツに必要な秒数です。その秒数だけ待てば必ず再生が始まるという意味ではありません。標準エディターでは、各値をForward bufferより0.5秒以上小さくする必要があります。Forward bufferを小さくすると保持するメディア量を減らせますが、通信の変動に対する余裕も減ります。メモリ使用量はビットレートやデコーダーにも左右されます。自動画質の上限を設定しても、手動選択できる高画質は消えません。qualityStabilityBalanceはライブ端付近に適用され、1に近いほど安定性、0に近いほど画質を優先します。ビットレートの単位bpsは、1秒あたりのビット数です。"
+      "text": "StartupとRestartの値は、再生の開始・再開に必要なバッファー内のメディア時間です。その秒数だけ待てば必ず再生が始まるという意味ではありません。標準エディターでは、各値をForward bufferより0.5秒以上小さくする必要があります。Forward bufferを小さくすると保持するメディア量を減らせますが、通信の変動に対する余裕も減ります。メモリ使用量はビットレートやデコーダーにも左右されます。自動画質の上限を設定しても、手動選択できる高画質は消えません。qualityStabilityBalanceはライブ端付近に適用され、1に近いほど安定性、0に近いほど画質を優先します。ビットレートの単位bpsは、1秒あたりのビット数です。"
     },
     {
       "type": "figure",
@@ -181,7 +181,7 @@
     },
     {
       "type": "p",
-      "text": "通常はSourceConfig(url, type)を使います。抜粋中の別コンストラクターは、アプリで旧MediaSource方式を比較するためのもので、新規の組み込みには必要ありません。SourceSettingsは、タイトル、ポスター、開始位置、ライブ遅延、音声の優先順位、外部WebVTT字幕を設定します。WebVTTは表示時刻を持つテキスト字幕形式です。任意項目が空欄の場合は、対応するSDK設定を未指定にします。"
+      "text": "通常はSourceConfig(url, type)を使います。抜粋中の別コンストラクターは、アプリで旧MediaSource方式を比較するためのもので、新規の組み込みには必要ありません。SourceSettingsには、タイトル、ポスター、開始位置、ライブ遅延、音声の優先順位、外部WebVTT字幕の設定を保持します。WebVTTは表示時刻を持つテキスト字幕形式です。任意項目が空欄の場合は、対応するSDK設定を未指定にします。"
     },
     {
       "type": "table",
@@ -219,7 +219,7 @@
         [
           "Live target latency",
           "SourceLiveConfig.targetLatency",
-          "ライブソースで確認します。SDKがライブ端とする目標を変えます。オンデマンドには適用されず、実際の配信遅延を保証する値でもありません。"
+          "ライブソースで確認します。SDKがライブ端とみなす位置を変えます。オンデマンドには適用されず、実際の配信遅延を保証する値でもありません。"
         ]
       ]
     },
@@ -254,8 +254,8 @@
       "items": [
         "Apply source (reload)はソースを作り直し、現在のPlayerで読み込みます。未適用のPlayer設定は反映しません。",
         "Apply & restart playerは新しいPlayerを作り、メタデータと開始位置を含む適用済みソースを読み直します。UIモードとアプリ側の巻き戻し許可は保持しますが、以前の再生位置を維持する処理ではありません。",
-        "Reset source draftは適用済みソースへ戻します。Reset player draftは標準の初期値へ戻します。どちらも適用はしません。カタログのプリセットを選ぶとソースの編集内容が置き換わり、独自のメタデータやオプションが消えます。",
-        "Show applied codeで標準のPlayerConfig、SourceConfig、PlayerViewConfigを確認します。SDK API settingsを使った場合は、別のApplied SDK override codeも確認してください。標準コードだけでは高度な上書きをすべて含みません。"
+        "Reset source draftはソースの編集値を適用済みの値へ戻します。Reset player draftはPlayerの編集値を標準の初期値へ戻します。どちらも適用はしません。カタログのプリセットを選ぶとソースの編集内容が置き換わり、独自のメタデータやオプションが消えます。",
+        "Show applied codeで標準のPlayerConfig、SourceConfig、PlayerViewConfigを確認します。SDK API settingsを使った場合は、別のApplied SDK override codeも確認してください。追加の上書き設定は、標準コードにすべて含まれるわけではありません。"
       ]
     },
     {
@@ -270,11 +270,11 @@
     },
     {
       "type": "p",
-      "text": "標準フォームにない項目はSDK API settingsを開き、SDKの項目名で検索します。型に合う値を入力してUse this overrideを選び、Apply SDK settings and restartで新しい設定とPlayerを作ります。入力を登録しただけでは反映しません。上書きは標準フォームより優先されます。Remove this overrideのあとにApplyすると、標準フォームの値またはSDKの既定値に戻ります。SourceConfig.subtitleTracksやPlaylistConfig.sourcesのようなリストは、Kotlinを貼り付けるのではなく、要素と子項目を追加して編集します。"
+      "text": "標準フォームにない項目はSDK API settingsを開き、SDKの項目名で検索します。型に合う値を入力してUse this overrideを選び、Apply SDK settings and restartで新しい設定とPlayerを作ります。入力を登録しただけでは反映しません。上書きは標準フォームより優先されます。Remove this overrideのあとにApplyを押すと、標準フォームの値またはSDKの既定値に戻ります。SourceConfig.subtitleTracksやPlaylistConfig.sourcesのようなリストは、Kotlinを貼り付けるのではなく、要素と子項目を追加して編集します。"
     },
     {
       "type": "p",
-      "text": "SDKのコールバックは、単なる文字列設定ではなく、SDKから呼び出される関数です。このアプリでは対応する項目のJavaScript本体を入力し、単純な入出力値をSDKのコールバックへ変換します。例えばLabelingConfig.videoQualityLabelerでは、渡された高さとビットレートから表示名を返せます。適用後に画質メニューを開き、Refresh callback outcomesで呼び出しと代替処理の回数を確認します。インタープリターには実行量の制限があり、AndroidやPlayerのオブジェクトを直接操作できません。これはアプリの補助機能であり、SDK自身が提供するJavaScriptコールバックAPIではありません。"
+      "text": "SDKのコールバックは、SDKから呼び出される関数です。このアプリでは、対応する項目にJavaScript関数の本文を入力します。SDKのコールバックでこの関数を実行し、数値や文字列などの値を受け渡します。例えばLabelingConfig.videoQualityLabelerでは、渡された高さとビットレートから表示名を返せます。適用後に画質メニューを開き、Refresh callback outcomesで呼び出しと代替処理の回数を確認します。インタープリターには実行量の制限があり、AndroidやPlayerのオブジェクトを直接操作できません。これはアプリの補助機能であり、SDK自身が提供するJavaScriptコールバックAPIではありません。"
     },
     {
       "type": "h2",
@@ -299,7 +299,7 @@
     },
     {
       "type": "p",
-      "text": "UIの選択はDefault、Sports、Live、Cinemaをこの関数へ渡します。DefaultはPlayerViewConfigのSDK既定値を使います。カスタムモードはAPK内のJavaScriptとCSSを読み込み、登録済みのファクトリー名でUIを作ります。Web版の全テーマがAndroidの選択肢に並ぶわけではありません。共有できるレイアウトを加える場合はpackages/ui-shared/src/liveUi.tsのコンポーネント構成を変更し、global.tsへファクトリーを登録してUiModeへ追加するか、SDK API settingsで登録済みの名前を指定します。"
+      "text": "選択したUIモード（Default、Sports、Live、Cinemaのいずれか）を、この関数へ渡します。DefaultはPlayerViewConfigのSDK既定値を使います。カスタムモードはAPK内のJavaScriptとCSSを読み込み、登録済みのファクトリー名でUIを作ります。Web版の全テーマがAndroidの選択肢に並ぶわけではありません。共有レイアウトを加える場合はpackages/ui-shared/src/liveUi.tsのコンポーネント構成を変更し、global.tsへファクトリーを登録してUiModeへ追加するか、SDK API settingsで登録済みの名前を指定します。"
     },
     {
       "type": "table",
@@ -363,7 +363,7 @@
     },
     {
       "type": "p",
-      "text": "AndroidViewはComposeから従来のAndroid Viewを使うための橋渡しです。keyにはPlayerのインスタンス、UIモード、ビューの変更番号が含まれ、それらの変更でPlayerViewを作り直します。UIモードだけの変更ではPlayerを維持します。PlayerTouchHostは、プレイヤーメニュー内のスワイプが外側の設定フォームのスクロールに取られないようにします。自分のアプリでプレイヤーをスクロール領域に埋め込む場合も、タッチの扱いを決める必要があります。"
+      "text": "AndroidViewはComposeから従来のAndroid Viewを使うための仕組みです。keyにはPlayerのインスタンス、UIモード、ビューの変更番号が含まれ、それらが変わるとPlayerViewを作り直します。UIモードだけの変更ではPlayerを維持します。PlayerTouchHostは、プレイヤーメニュー内のスワイプを外側の設定フォームがスクロール操作として受け取らないようにします。自分のアプリでプレイヤーをスクロール領域に埋め込む場合も、どちらでタッチを処理するか決める必要があります。"
     },
     {
       "type": "code",
@@ -381,7 +381,7 @@
     {
       "type": "note",
       "title": "リモコン操作とサービスの利用条件",
-      "text": "ManifestにはLEANBACK_LAUNCHERがあり、タッチスクリーンも必須ではないため、同じアプリをTVのランチャーへ表示できます。ただし、専用のTV画面を自動選択したり、リモコン操作を保証したりするものではありません。SDKのTV向け操作部を比較する場合は、UiConfig.WebUi.variant = TvUiを登録します。focusUiOnInitializationを確認し、カスタムファクトリーの上書きを外して適用してください。対象TVで方向キー、決定、戻る、スクロール、再生を確認します。この章の画像はAndroidアプリの既存設定画面であり、TV向けレイアウトの動作認定ではありません。Google Play開発者サービスに依存するCronetプロバイダーなどは、Fire TVにもあるとは限りません。"
+      "text": "ManifestにはLEANBACK_LAUNCHERがあり、タッチスクリーンも必須ではないため、同じアプリをTVのランチャーへ表示できます。ただし、専用のTV画面を自動選択したり、リモコン操作を保証したりするものではありません。SDKのTV向け操作部を比較する場合は、UiConfig.WebUi.variant = TvUiを登録します。focusUiOnInitializationを確認し、カスタムファクトリーの上書きを外して適用してください。対象TVで方向キー、決定、戻る、スクロール、再生を確認します。この章の画像はAndroidアプリの設定画面であり、TV向けレイアウトの動作確認結果ではありません。Google Play開発者サービスに依存するCronetプロバイダーなどは、Fire TVにもあるとは限りません。"
     },
     {
       "type": "h2",
@@ -396,7 +396,7 @@
     },
     {
       "type": "p",
-      "text": "SDK API controlsでは、操作の実行と結果の観測を分けて確認できます。Commandsは現在のPlayer、Source、または接続済みのPlayerViewのSDK APIを呼び出します。StateはRefresh SDK stateを押した時点のSDK値を読み取ります。Eventsは発生回数と最後のSDKタイムスタンプを記録します。コマンドの送信結果は、その操作が再生上で完了したことを示すイベントではありません。"
+      "text": "SDK API controlsでは操作を実行し、状態とイベントで結果を確認できます。Commandsは現在のPlayer、Source、または接続済みのPlayerViewのSDK APIを呼び出します。StateはRefresh SDK stateを押した時点のSDK値を読み取ります。Eventsは発生回数と最後のSDKタイムスタンプを記録します。コマンドの送信結果だけでは、実際の再生でその操作が完了したかは分かりません。"
     },
     {
       "type": "steps",
@@ -425,7 +425,7 @@
     },
     {
       "type": "p",
-      "text": "この補助関数はowner.on(type, guarded)で登録し、同じguarded関数を保持してowner.offで解除します。現在のPlayerと変更世代に属するイベントかも確認し、置き換え前のPlayerが新しい画面を更新しないようにしています。SourceのイベントはSourceで観測し、PlayerViewの購読は全画面表示などのビューイベントに使います。自分のアプリでも、解除に使うリスナーを保持し、所有元とともに購読を解放します。"
+      "text": "この補助関数はowner.on(type, guarded)で登録し、同じguarded関数を保持してowner.offで解除します。通知元が現在のPlayerか、Playerの生成世代も一致するかを確認し、置き換え前のPlayerからの通知が新しい画面を更新しないようにしています。SourceのイベントはSourceで確認し、PlayerViewの購読は全画面表示などのビューイベントに使います。自分のアプリでも、解除に使うリスナーを保持し、対象のPlayerやSourceを破棄するときに購読を解除します。"
     },
     {
       "type": "h3",
@@ -489,7 +489,7 @@
     {
       "type": "h3",
       "id": "host-lifecycle",
-      "text": "ビューとPlayerを所有元に合わせて解放する"
+      "text": "ビューとPlayerを適切なタイミングで解放する"
     },
     {
       "type": "p",
@@ -508,7 +508,7 @@
     },
     {
       "type": "p",
-      "text": "Playerの所有者はPlayerControllerなので、releaseViewはview.onDestroy()より先にview.player = nullを実行します。接続したままビューを破棄すると、そのPlayerまで破棄される場合があるためです。この順序で、UIモードを変えてもPlayerを維持できます。コントローラーのreleaseは重複呼び出しを防ぎ、最後にplayer.destroy()を実行します。全画面用の表示面や別のホストを加える場合も、同じ所有関係を保ってください。"
+      "text": "PlayerControllerがPlayerの生成・破棄を管理するため、releaseViewはview.onDestroy()より先にview.player = nullを実行します。接続したままビューを破棄すると、そのPlayerまで破棄される場合があるためです。この順序を守ることで、UIモードを変えてもPlayerを維持できます。コントローラーのreleaseは重複呼び出しを防ぎ、最後にplayer.destroy()を実行します。全画面用の表示面や別のホストを加える場合も、Playerの破棄をコントローラーで管理する構成を保ってください。"
     },
     {
       "type": "h2",
@@ -524,12 +524,12 @@
     {
       "type": "note",
       "title": "再生位置が戻ったのはなぜですか？",
-      "text": "Player設定や高度なSDK設定の適用ではPlayerを再生成し、ソースの開始位置設定で読み直します。以前の位置から再開する経路ではありません。UI選択だけの変更ではPlayerViewを置き換え、Playerを維持します。自分の組み込みでビューだけの変更でも再生が失われる場合は、古いビューの破棄前に共有Playerを切り離しているか、通常の再描画でPlayerを再生成していないか確認してください。"
+      "text": "Player設定や高度なSDK設定の適用ではPlayerを再生成し、ソースの開始位置設定で読み直します。以前の位置からは再開しません。UI選択だけの変更ではPlayerViewを置き換え、Playerを維持します。自分のアプリでビューだけを変更しても再生がリセットされる場合は、古いビューの破棄前に共有Playerを切り離しているか、通常の再描画でPlayerを再生成していないか確認してください。"
     },
     {
       "type": "note",
       "title": "カスタムUIが表示されない、変更が出ない場合は？",
-      "text": "グローバルに登録したファクトリー名、ローカルアセットのパス、適用済みPlayerViewConfigを確認します。共有UIをビルドし、出力を同期してAPKを再ビルド・再インストールしてください。supplementalCssLocationの参照先は、APKに同梱したファイルまたは到達可能な資源である必要があります。名前を入力するだけではファイルは作られません。Web向けのexportだけでは、AndroidのWebView用に自動登録されません。"
+      "text": "グローバルに登録したファクトリー名、ローカルアセットのパス、適用済みPlayerViewConfigを確認します。共有UIをビルドし、出力を同期してAPKを再ビルド・再インストールしてください。supplementalCssLocationの参照先は、APKに同梱したファイルまたはアクセス可能なリソースである必要があります。名前を入力するだけではファイルは作られません。Web向けのexportに加え、AndroidのWebView用の登録も必要です。"
     },
     {
       "type": "note",
@@ -543,7 +543,7 @@
     },
     {
       "type": "note",
-      "title": "ビューの購読に再生イベントが来ないのはなぜですか？",
+      "title": "PlayerViewを購読しても再生イベントが来ないのはなぜですか？",
       "text": "PlayerViewの購読はビューのUIイベント用です。PlayingやシークはPlayer、ソースの読み込みやエラーはSourceで観測します。EventsパネルはRecord SDK eventsが有効なときに発生回数を記録します。0は未記録という意味で、APIが使えないという意味ではありません。Stateの値は別途更新します。"
     },
     {
@@ -554,7 +554,7 @@
     {
       "type": "note",
       "title": "アプリの再開時やTVで動作が違う場合は？",
-      "text": "ホストはライフサイクル通知を渡しますが、それだけで自動再開を保証するものではありません。記録済みのスマートフォン向けエミュレーター確認では、再開後も一時停止が続いたため、必要に応じてPlayを使います。TVではフォーカス、リモコンのキー、SDKのUIバリアントをタッチ操作とは別に確認します。TVランチャーの宣言、エミュレーターでの結果、SDKコマンドの存在だけで、TV実機やCast受信機での再生確認にはなりません。"
+      "text": "ホストはライフサイクル通知を渡しますが、それだけで自動的に再生を再開するとは限りません。スマートフォン向けエミュレーターでの確認では、アプリに戻った後も一時停止が続いたため、必要に応じてPlayを使います。TVではフォーカス、リモコンのキー、SDKのUIバリアントをタッチ操作とは別に確認します。TVランチャーの宣言、エミュレーターでの結果、SDKコマンドの存在だけでは、TV実機やCast受信機で再生できたかは確認できません。"
     },
     {
       "type": "links",
@@ -581,7 +581,7 @@
     },
     {
       "type": "p",
-      "text": "Playerとソースの動作を確認した後、同梱のAnalytics収集機能を設定して再生イベントをBitmovinアカウントへ送ります。AnalyticsライセンスはPlayerライセンスとは別です。AndroidビルドはManifest経由で設定済みのAnalyticsライセンスを読み、既定のビルドキーが空なら収集機能を無効にします。アカウントAPIキーは収集用ライセンスではなく、アプリへ入れるものでもありません。"
+      "text": "Playerとソースの動作を確認した後、同梱のAnalytics収集機能を設定して再生イベントをBitmovinアカウントへ送ります。AnalyticsライセンスはPlayerライセンスとは別です。Android版は、ビルド時に設定したAnalyticsライセンスをManifest経由で読み込みます。既定のビルドキーが空なら収集機能を無効にします。アカウントAPIキーは収集用ライセンスとは別の認証情報です。アプリへ含めないでください。"
     },
     {
       "type": "p",
@@ -609,7 +609,7 @@
     },
     {
       "type": "p",
-      "text": "各SDK Sourceの生成時に、このSourceMetadataをAnalyticsSourceConfig.Enabledへ渡します。再生前に一定のvideoIdと分かりやすいtitleを設定すると、Dashboardでコンテンツを探せます。既定のメタデータはcdnProviderとcustomUserId、ソースのメタデータはtitle、videoId、cdnProvider、path、isLiveを扱います。どちらにもcustomDataとexperimentNameがあります。これらは収集用メタデータであり、プレイヤーUI用のSourceConfig.titleとは別です。個人情報や機密情報を含まないテスト識別子を使ってください。"
+      "text": "SDKの各Sourceを生成するときに、このSourceMetadataをAnalyticsSourceConfig.Enabledへ渡します。再生前に固定のvideoIdと分かりやすいtitleを設定すると、Dashboardでコンテンツを探しやすくなります。既定のメタデータはcdnProviderとcustomUserId、ソースのメタデータはtitle、videoId、cdnProvider、path、isLiveを扱います。どちらにもcustomDataとexperimentNameがあります。これらは収集用メタデータであり、プレイヤーUI用のSourceConfig.titleとは別です。個人情報や機密情報を含まないテスト識別子を使ってください。"
     },
     {
       "type": "steps",

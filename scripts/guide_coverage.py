@@ -54,8 +54,8 @@ LABELS = {
         'latest': '確認した最新版', 'checked': '確認日', 'sources': '公式資料',
         'revision': 'アプリコードの基準コミット', 'report': 'レポート確認日', 'scope': '集計範囲',
         'scopes': '範囲別の件数', 'scope_notes': '対象範囲と制限', 'status': '対応状況',
-        'deprecated': '非推奨', 'yes': '該当', 'no': '非該当', 'reference': '公式資料とコード証跡',
-        'official': '公式API資料', 'evidence': 'アプリ／SDKの証跡', 'excluded': '集計から除外したID',
+        'deprecated': '非推奨', 'yes': '該当', 'no': '非該当', 'reference': '公式資料と参照コード',
+        'official': '公式API資料', 'evidence': 'アプリ／SDKの参照箇所', 'excluded': '集計から除外したID',
         'reason': '除外理由', 'all_ids': '全API ID', 'none': 'この区分に対象APIはありません。',
         'not_applicable': '対象なし', 'applications': 'アプリ別の全API一覧',
         'overview': 'API対応状況の概要', 'channel': '提供区分', 'hash': 'SHA-256',
@@ -71,7 +71,7 @@ LABELS = {
         'limit_note': 'アプリの設定・GUI操作・表示と公開コードの対応を示す一覧です。未確認のSDK UIは確認済みの件数に含めません。アプリごとの対象範囲と制限も確認してください。件数は実再生や実機試験の結果を示すものではありません。全区分を混ぜた対応率は算出しません。',
         'status_note': '内部使用とコードのみの項目はGUI操作に含めません。「対応するGUIなし」は調査したアプリの範囲での判定です。内部構造を確認していないSDK UIの機能有無を示すものではありません。',
         'excluded_note': '除外したIDは各区分の分母に含めません。利用可能な非推奨APIは集計対象に残します。',
-        'notes_language': '対象範囲の説明は、公開インベントリに対応する日本語訳です。',
+        'notes_language': '対象範囲の説明は、公開API一覧の日本語訳です。',
     },
 }
 

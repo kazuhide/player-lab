@@ -1,6 +1,6 @@
 {
   "id": "web-qoe-analytics",
-  "title": "Analyticsを送信してDashboardで確認する",
+  "title": "再生データをAnalyticsへ送信してDashboardで確認する",
   "lead": "プレイヤーのイベントをAnalyticsコレクターが収集し、Bitmovinへ送信します。収集された再生データはBitmovin DashboardのObservabilityで確認します。アプリ内の状態表示やQoE値は、その場の動作を調べるために使います。",
   "blocks": [
     {
@@ -64,7 +64,7 @@
     {
       "type": "steps",
       "items": [
-        "WebアプリでVOD HLSまたは自分の有限長ソースを選び、Playで再生します。プレイヤー下のPlayer stateとQoEメトリクスを確認します。",
+        "WebアプリでVOD HLSまたは自分で用意した、長さが決まっているソースを選び、Playで再生します。プレイヤー下のPlayer stateとQoEメトリクスを確認します。",
         "プレイヤーの操作でシークします。イベントログのSeek/Seekedとseek timeを見比べます。ライブではTimeShift/TimeShiftedが対応します。",
         "一時停止してから再開します。この計測では手動の一時停止は再バッファに含めません。再生開始後に実際のStallStarted/StallEndedが発生すると、停止回数が増えます。",
         "設定変更の前後を比較するときは「適用済み設定をコードで表示」を開き、適用済みの設定をコピーします。編集中の値は含みません。同じソースを読み込み直すと、新しい計測を始められます。"
@@ -90,7 +90,7 @@
         [
           "startup",
           "ms",
-          "SourceLoadedから最初のPlayingまでです。手動Playを待つ時間も入り得るため、AnalyticsのVIDEO_STARTUPTIMEとは定義が異なります。"
+          "SourceLoadedから最初のPlayingまでです。手動でPlayを押すまでの待ち時間も含む場合があるため、AnalyticsのVIDEO_STARTUPTIMEとは定義が異なります。"
         ],
         [
           "rebuffering",
@@ -100,7 +100,7 @@
         [
           "errors",
           "イベント数",
-          "現在セッションで受けたErrorイベント数です。影響を受けた視聴者数ではありません。"
+          "現在のセッションで受けたErrorイベント数です。影響を受けた視聴者数ではありません。"
         ],
         [
           "seek time",
@@ -115,13 +115,13 @@
         [
           "edge latency",
           "秒",
-          "SDKのlowlatency.getLatency()が返す、ライブ端からの距離です。実時刻からの距離とは異なります。"
+          "SDKのlowlatency.getLatency()が返す、ライブエッジからの距離です。実時刻からの距離とは異なります。"
         ]
       ]
     },
     {
       "type": "note",
-      "text": "「—」やneeds PDTは、遅延がゼロという意味ではありません。時刻が取得できなくなると、QoE欄が直前の有効値を保つことがあるため、現在ソースのPlayer stateも確認します。"
+      "text": "「—」やneeds PDTは、遅延がゼロという意味ではありません。時刻が取得できなくなると、QoE欄が直前の有効値を保つことがあるため、現在のソースのPlayer stateも確認します。"
     },
     {
       "type": "h2",
@@ -130,7 +130,7 @@
     },
     {
       "type": "p",
-      "text": "イベントログにはSourceLoaded、Play、Playing、Paused、Seek、TimeShift、StallStarted、Errorなどが端末の時刻とともに表示されます。新しいものが上に入り、最大80行です。頻度の高いTimeChangedは表示値の更新には使いますが、ログには並べません。"
+      "text": "イベントログにはSourceLoaded、Play、Playing、Paused、Seek、TimeShift、StallStarted、Errorなどが端末の時刻とともに表示されます。新しいイベントが上に表示され、最大80行を保持します。頻度の高いTimeChangedは表示値の更新には使いますが、ログには並べません。"
     },
     {
       "type": "p",

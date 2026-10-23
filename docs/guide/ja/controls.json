@@ -107,7 +107,7 @@
       "id": "seek-submit",
       "label": "シーク",
       "kind": "button",
-      "description": "入力したオフセットへ移動します。指定範囲は利用可能なDVRウィンドウ内に収まるよう補正されます。",
+      "description": "入力したオフセットへ移動します。指定範囲は巻き戻し可能な範囲内に収まるよう補正されます。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
         "line": 234
@@ -195,7 +195,7 @@
       "id": "start-reload",
       "label": "オフセットで再読み込み",
       "kind": "button",
-      "description": "指定した開始位置でソースを読み込み直します。単なるシークとは異なり、QoEのセッション計測も始め直します。",
+      "description": "指定した開始位置でソースを読み込み直します。単なるシークとは異なり、QoEパネルのセッション計測も最初から行います。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
         "line": 544
@@ -272,7 +272,7 @@
       "id": "disableAutoHideWhenHovered",
       "label": "ホバー中はバーを隠さない",
       "kind": "checkbox",
-      "description": "自動非表示がオンの場合に、プレイヤー上のポインターを理由にバーを表示し続けます。",
+      "description": "自動非表示がオンの場合に、プレイヤー上にポインターがある間はバーを表示し続けます。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
         "line": 293
@@ -338,7 +338,7 @@
       "id": "seekbarSnappingRange",
       "label": "スナップ範囲 (%)",
       "kind": "number",
-      "description": "シークバー幅に対して何%以内をマーカーへ合わせるかを指定します。初期表示は1です。",
+      "description": "マーカーからの距離がシークバー幅の何%以内なら、そのマーカーに位置を合わせるかを指定します。初期表示は1です。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
         "line": 395

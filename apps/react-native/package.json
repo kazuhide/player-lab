@@ -1,6 +1,6 @@
 {
   "name": "@showcase/react-native",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "description": "React Native (Expo) build of the Bitmovin Player Playground — async player API",
   "scripts": {
