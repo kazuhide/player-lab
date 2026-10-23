@@ -9,6 +9,10 @@
         {
           "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/",
           "label": "Implementation guide: PlayerConfig, source settings, UI customization and FAQ"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/test-results/",
+          "label": "Test results and verification scope"
         }
       ]
     },

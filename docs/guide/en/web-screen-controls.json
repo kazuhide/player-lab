@@ -35,7 +35,7 @@
       "items": [
         "Open the Web app. If autoplay does not start, press Play. Playback starts muted; choose a suitable volume before unmuting.",
         "Choose the display language at the top. Keep the same source while comparing themes, then use the source controls to try audio, subtitles or thumbnails.",
-        "Read the live player state and event log after each operation. A changed input is a draft until the relevant Apply action has completed."
+        "Read the live player state and event log after each operation. Settings marked reload or recreate remain drafts until the corresponding Apply action completes; instant and UI settings apply when the input change is committed."
       ]
     },
     {
@@ -904,7 +904,7 @@
     },
     {
       "type": "p",
-      "text": "Open SDK settings, APIs and events below the original Player Config form. Search by the public API name and choose Configuration, Commands, Read state or Events. Each entry links to the official reference."
+      "text": "Search by the public API name and choose Configuration, Commands, Read state or Events. Each entry links to the official reference."
     },
     {
       "type": "steps",

@@ -95,8 +95,8 @@ FIGURE_DIMENSIONS = {
     'config': {'en': (293, 368), 'ja': (293, 353)},
     'sdk-configuration': {'en': (1240, 466), 'ja': (1240, 449)},
     'sdk-callback': {'en': (1240, 538), 'ja': (1240, 523)},
-    'ui-controls': {'en': (301, 662), 'ja': (301, 718)},
-    'applied-settings': {'en': (1240, 506), 'ja': (1240, 508)},
+    'ui-controls': {'en': (301, 663), 'ja': (301, 718)},
+    'applied-settings': {'en': (1240, 506), 'ja': (1240, 509)},
 }
 
 

@@ -9,6 +9,10 @@
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/android-implementation/",
           "label": "実装ガイド：PlayerConfig・ソース設定・UI変更・FAQ"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/test-results/",
+          "label": "テスト結果と確認範囲"
         }
       ]
     },
@@ -86,7 +90,7 @@
     },
     {
       "type": "p",
-      "text": "Live target latency は SourceLiveConfig.targetLatency に対応します。空欄では従来の SDK 既定値（liveConfig = null）を維持します。有限数を明示すると SDK のライブ端の定義が変わり、stall を避けながらその遅延に近づけます。VOD では無視されます。Apply source でソースを再読込し、Player 再生成でも適用値を保持します。Reset source draft は適用せずに下書きを戻します。この設定だけで seek 完了や遅延収束の期限を保証するものではありません。記録した検証範囲は後述します。"
+      "text": "Live target latency は SourceLiveConfig.targetLatency に対応します。空欄では従来の SDK 既定値（liveConfig = null）を維持します。有限数を明示すると SDK のライブ端の定義が変わり、stall を避けながらその遅延に近づけます。VOD では無視されます。Apply source でソースを再読込し、Player 再生成でも適用値を保持します。Reset source draft は適用せずに下書きを戻します。この設定だけで seek 完了や遅延収束の期限を保証するものではありません。確認環境と結果は「テスト結果」のページを参照してください。"
     },
     {
       "type": "p",
