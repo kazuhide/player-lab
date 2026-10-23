@@ -22,29 +22,40 @@
       "items": [
         "「ローカル実行とライセンス設定」を済ませ、XcodeでShowcase-iOSまたはShowcase-tvOSをビルドします。このアプリはPlayer 3.128.0を固定し、iOS・iPadOS 16.0以降とtvOS 15.0以降を対象にしています。同じ結果を比較するときは、このリポジトリの依存バージョンを使います。",
         "実行するターゲットに合わせ、Playerライセンスでcom.playerlab.iosまたはcom.playerlab.tvosを許可します。実機では署名も設定します。Analyticsは別のライセンスを使います。設定方法は実装ガイドの「Analytics / Observability」を参照してください。",
-        "起動したらSourceでVOD HLSを選び、Playを押します。初期状態では自動再生が無効、ミュートが有効です。Playback tracksの再生位置が進むことを確認してから設定を比較します。",
-        "Configure source and playbackを開きます。Applyの後にShow applied codeを選ぶと、SDKへ渡した設定を確認できます。編集中の値は含めず、ライセンス値は置き換え用の文字列で表示します。"
+        "起動したらSourceでVOD HLSを選び、Playを押します。初期状態では自動再生が無効、ミュートが有効です。iOS・iPadOSでプレビューが縮小表示の場合は、Expand playerで拡大します。プレビューの近くにあるPositionが進むことを確認してから設定を比較します。",
+        "Settingsを開きます。Applyの後にCodeを選ぶと、SDKへ渡した設定を確認できます。編集中の値は含めず、ライセンス値は置き換え用の文字列で表示します。"
       ]
     },
     {
       "type": "figure",
       "file": "ios-applied-code",
-      "caption": "iPadの設定画面に表示した適用済みSwiftコード。自分のアプリへ取り込む設定を比較できます。Playerキーは置き換え用の文字列です。"
+      "caption": "Codeに表示した適用済みのSwiftコードです。Copy codeでは適用済みの値をコピーし、ライセンス値にはプレースホルダーを使います。"
     },
     {
       "type": "p",
-      "text": "ContentViewはPlayerModelを@StateObjectで保持するため、SwiftUIの画面更新ごとにPlayerを作り直しません。NativePresentationSurfaceが映像を表示し、ControlPanelが設定や検証操作を表示します。onAppearでは、まだソースが選ばれていない場合だけプリセットを読み込みます。SwiftUIのbodyを評価するたびにSDKのPlayerを生成しないようにします。"
+      "text": "ContentViewはPlayerModelを@StateObjectで保持するため、SwiftUIの画面更新ごとにPlayerを作り直しません。PlayerPreviewはNativePresentationSurface、ソースの選択欄、再生位置を表示します。ControlPanelは下書きを保持しながらSettings・APIs・Code・Moreを切り替えます。幅のある横向き画面ではプレビューと操作領域を左右に並べます。onAppearでは、まだソースが選ばれていない場合だけプリセットを読み込みます。SwiftUIのbodyを評価するたびにSDKのPlayerを生成しないようにします。"
     },
     {
       "type": "code",
-      "title": "保持しているPlayerの表示と初回のソース読み込み",
-      "text": "    var body: some View {\n        VStack(spacing: 12) {\n            NativePresentationSurface(model: model)\n                .aspectRatio(16.0 / 9.0, contentMode: .fit)\n            ControlPanel(model: model)\n        }\n        .padding()\n        .onAppear {\n            model.loadInitialSource()\n        }\n        #if os(tvOS)\n        .onPlayPauseCommand { model.togglePlayback() }\n        #endif\n    }",
+      "title": "画面の再描画でもPlayerModelを保持する",
+      "text": "    @StateObject private var model = PlayerModel(\n        licenseKey: bitmovinLicenseKey(),\n        analyticsLicenseKey: bitmovinAnalyticsLicenseKey()\n    )",
       "source": {
         "path": "apps/ios/Showcase/ContentView.swift",
         "line": 11,
-        "label": "ContentView.swift · 11–24"
+        "label": "ContentView.swift:11–14"
       },
-      "endLine": 24
+      "endLine": 14
+    },
+    {
+      "type": "code",
+      "title": "画面の表示時に最初のソースを読み込む",
+      "text": "        .onAppear { model.loadInitialSource() }",
+      "source": {
+        "path": "apps/ios/Showcase/ContentView.swift",
+        "line": 61,
+        "label": "ContentView.swift:61"
+      },
+      "endLine": 61
     },
     {
       "type": "p",
@@ -86,17 +97,17 @@
       ],
       "rows": [
         [
-          "Playback → Autoplay after source load / Start muted",
+          "Playback → Autoplay / Start muted",
           "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted",
           "初期状態のAutoplayを無効から有効へ変え、Start mutedは有効のままApplyを押します。適用済みと異なるPlayer設定がある場合に再生成し、自動でミュート再生が始まることを確認します。すべての値が適用済みと同じ場合はNo configuration changesと表示され、Applyは無効になります。"
         ],
         [
-          "Adaptation and buffer → Maximum bitrate",
+          "Quality and buffer → Maximum bitrate",
           "PlayerConfig.adaptationConfig.maxSelectableBitrate。整数のbit/sで、0は上限なし",
-          "複数画質のあるHLSで1500000を試します。適用済みコードとAPI inspectorの画質状態を比較します。特定の映像トラックを強制する設定ではありません。"
+          "複数画質のあるHLSで1500000を試します。適用済みコードとAPIsの画質状態を比較します。特定の映像トラックを強制する設定ではありません。"
         ],
         [
-          "Adaptation and buffer → Forward buffer",
+          "Quality and buffer → Forward buffer",
           "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration。秒で、0はSDKに任せる",
           "10を入力してApplyを押し、適用済みコードと再生中のバッファー状態を確認します。設定値は目標であり、実際の蓄積量が常に同じになるわけではありません。"
         ],
@@ -111,9 +122,9 @@
           "VODでは5秒・Startを試します。ライブでは負の値・Endを使います。SDKは指定位置をメディアの境界に合わせて調整することがあります。"
         ],
         [
-          "Advanced SDK settings → Player・Source・viewのプロパティ",
+          "Settings → Advanced SDK → Player・Source・viewのプロパティ",
           "Player・Source・ビューを生成・読み込みする前に、対応するSDKのプロパティへ反映",
-          "API名で検索してOverrideを有効にし、値を入力してApplyを押します。Overrideを無効にしてApplyを押すと、基本フォームの値またはSDK既定値へ戻ります。"
+          "API名で検索してOverride SDK defaultを有効にし、値を入力してApplyを押します。Override SDK defaultを無効にしてApplyを押すと、基本フォームの値またはSDK既定値へ戻ります。"
         ]
       ]
     },
@@ -124,7 +135,7 @@
       "source": {
         "path": "apps/ios/Showcase/Configuration.swift",
         "line": 91,
-        "label": "Configuration.swift · 91–99"
+        "label": "Configuration.swift:91–99"
       },
       "endLine": 99
     },
@@ -139,7 +150,7 @@
       "source": {
         "path": "apps/ios/Showcase/Configuration.swift",
         "line": 71,
-        "label": "Configuration.swift · 71–79"
+        "label": "Configuration.swift:71–79"
       },
       "endLine": 79
     },
@@ -153,14 +164,14 @@
       "text": "    func effect(for configuration: ValidatedConfiguration) -> ConfigurationEffect {\n        if configuration.player != playerSettings { return .recreatePlayer }\n        if configuration.source != sourceSettings { return .reloadSource }\n        return .none\n    }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 125,
-        "label": "PlayerModel.swift · 125–129"
+        "line": 127,
+        "label": "PlayerModel.swift:127–131"
       },
-      "endLine": 129
+      "endLine": 131
     },
     {
       "type": "p",
-      "text": "effect(for:)はアプリ側の判断であり、SDKのメソッドではありません。ビューのOverrideを含むPlayerSettingsの変更ではPlayerと表示先を再生成し、保持しているソース設定を読み込みます。ソースだけの変更では、現在のPlayerへ新しいSourceを読み込みます。どちらも指定した開始位置またはSDK既定位置からAutoplayに従って始めるため、変更前の再生位置や再生中・停止中の状態は保持しません。Reset to appliedは編集中の値だけを戻します。ソースプリセットを選ぶと独自のソース設定と初期トラック設定を初期化し、Player設定は保持します。"
+      "text": "effect(for:)はアプリ側の判断であり、SDKのメソッドではありません。ビューのOverrideを含むPlayerSettingsの変更ではPlayerと表示先を再生成し、保持しているソース設定を読み込みます。ソースだけの変更では、現在のPlayerへ新しいSourceを読み込みます。どちらも指定した開始位置またはSDK既定位置からAutoplayに従って始めるため、変更前の再生位置や再生中・停止中の状態は保持しません。Reset to applied（文字を拡大するとReset）は編集中の値だけを戻します。ソースプリセットを選ぶと独自のソース設定と初期トラック設定を初期化し、Player設定は保持します。"
     },
     {
       "type": "h3",
@@ -170,11 +181,11 @@
     {
       "type": "figure",
       "file": "ios-initial-tracks",
-      "caption": "iPadの初期トラック設定。PlayerConfigの言語プロパティではなく、SDKのトラック選択APIで反映するアプリ側の設定です。"
+      "caption": "以前のレイアウトで撮影した記録例です。iPadの初期トラック設定。PlayerConfigの言語プロパティではなく、SDKのトラック選択APIで反映するアプリ側の設定です。"
     },
     {
       "type": "p",
-      "text": "音声と字幕の確認には、必要なHLSのトラックを含むコンテンツを使います。Initial tracksでde-ATなどの音声言語を入力し、字幕はAutomatic・Off・Preferred languageを選びます。アプリは言語タグ全体を優先し、なければ主言語を照合するため、de-ATでdeを選ぶことがあります。一致するトラックがなければSDK・OSの選択を維持します。実際の結果はPlayback tracksで確認します。テストストリームの言語名はトラックを識別するラベルであり、翻訳音声を示すものではありません。"
+      "text": "音声と字幕の確認には、必要なHLSのトラックを含むコンテンツを使います。Settings → Tracksでde-ATなどの音声言語を入力し、字幕はAutomatic・Off・Preferred languageを選びます。アプリは言語タグ全体を優先し、なければ主言語を照合するため、de-ATでdeを選ぶことがあります。一致するトラックがなければSDK・OSの選択を維持します。実際の結果はMore → Tracksで確認します。テストストリームの言語名はトラックを識別するラベルであり、翻訳音声を示すものではありません。"
     },
     {
       "type": "p",
@@ -207,7 +218,7 @@
         [
           "iOS・iPadOSの映像に重なる操作部",
           "SDKのWeb UI、または同梱したJavaScript・CSSの共有UIファクトリー",
-          "Player UIでDefault・Sports・Live (DVR)・Cinemaを選びます。追加設定のStyleConfig・BitmovinUserInterfaceConfigも確認します。"
+          "ThemeでDefault・Sports・Live (DVR)・Cinemaを選びます。追加設定のStyleConfig・BitmovinUserInterfaceConfigも確認します。"
         ],
         [
           "tvOSの操作部とリモコン用メニュー",
@@ -222,7 +233,7 @@
         [
           "映像の表示先とネイティブの振る舞い",
           "SDKのVideoPlayerView・バインディング付きSwiftUIビュー・PlayerView・AVPlayerLayer・AVPlayerViewController",
-          "API inspectorのPresentationで選びます。Show presentation codeで対応するSDKの組み込み方法を表示します。"
+          "APIs → HostのHost settingでPresentationを選びます。同じ選択欄のPresentation codeで対応するSDKの組み込み方法を表示します。"
         ]
       ]
     },
@@ -241,15 +252,15 @@
       "text": "        if let factory = uiMode.factoryFunction,\n           let js = Bundle.main.url(forResource: \"bitmovinplayer-ui\", withExtension: \"js\"),\n           let css = Bundle.main.url(forResource: \"bitmovinplayer-ui\", withExtension: \"css\") {\n            config.styleConfig.playerUiJs = js\n            config.styleConfig.playerUiCss = css\n            let uiConfig = BitmovinUserInterfaceConfig()\n            uiConfig.uiManagerFactoryFunction = factory\n            config.styleConfig.userInterfaceConfig = uiConfig\n        }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 186,
-        "label": "PlayerModel.swift · 186–194"
+        "line": 188,
+        "label": "PlayerModel.swift:188–196"
       },
-      "endLine": 194
+      "endLine": 196
     },
     {
       "type": "steps",
       "items": [
-        "再生速度メニューなどのWeb UI設定では、追加設定でBitmovinUserInterfaceConfig.playbackSpeedSelectionEnabledを検索し、Overrideを有効にして値を選びます。StyleConfig.userInterfaceTypeはbitmovinにします。Applyの後、Playerの設定メニューを開き、適用済みSwiftコードと比較します。",
+        "再生速度メニューなどのWeb UI設定では、Settings → Advanced SDKでBitmovinUserInterfaceConfig.playbackSpeedSelectionEnabledを検索し、Override SDK defaultを有効にして値を選びます。StyleConfig.userInterfaceTypeはbitmovinにします。Applyの後、Playerの設定メニューを開き、適用済みSwiftコードと比較します。",
         "CSSを追加する場合は、Web UIから読めるリソースURLをStyleConfig.supplementalPlayerUiCssに指定します。選択した基本CSSへ規則を追加する設定です。StyleConfig.playerUiCssは基本CSSを置き換えるため、必要なスタイル一式を用意する場合に使います。",
         "共有UIの部品配置やスタイルを変える場合は、packages/ui-shared/src/liveUi.tsまたはsrc/styles/ui-shared.scssを編集します。@showcase/ui-sharedをビルドしてpnpm sync:webuiを実行し、WebUIのリソースが含まれるようXcodeプロジェクトを再生成してiOSターゲットを再ビルドします。生成済みファイルだけを変更しても、元の実装には反映されません。",
         "再ビルド後は同じメディアでテーマ・字幕の表示・トラックメニュー・関連するUIイベントを確認します。CSSを変えても、ネイティブSDKの機能やメディアに存在しないトラックは追加されません。"
@@ -266,7 +277,7 @@
       "source": {
         "path": "apps/ios/Showcase/AdvancedConfiguration.swift",
         "line": 288,
-        "label": "AdvancedConfiguration.swift · 288–290"
+        "label": "AdvancedConfiguration.swift:288–290"
       },
       "endLine": 290
     },
@@ -278,15 +289,15 @@
     {
       "type": "figure",
       "file": "tvos-video-scaling",
-      "caption": "tvOSのネイティブ設定画面。Fit・Fill (crop)・Stretchは、表示枠内の映像の拡大方法であり、SwiftUIフォームの大きさを変える設定ではありません。"
+      "caption": "以前のレイアウトで撮影した記録例です。tvOSのネイティブ設定画面。Fit・Fill (crop)・Stretchは、表示枠内の映像の拡大方法であり、SwiftUIフォームの大きさを変える設定ではありません。"
     },
     {
       "type": "p",
-      "text": "映像の拡大方法は操作部のテーマとは別です。Fitは映像全体を表示し、余白が出ることがあります。Fill (crop)はSDKの.zoomに対応し、縦横比を保って端を切り取ります。Stretchは縦横比を変えて枠を埋めます。映像と表示枠の縦横比を変えて比較してください。基本フォームは再生成時にStyleConfig.scalingModeへ渡します。バインディング付きSwiftUI・レイヤー・コントローラーの表示先では、API inspectorから現在の拡大方法も操作できます。"
+      "text": "映像の拡大方法は操作部のテーマとは別です。Fitは映像全体を表示し、余白が出ることがあります。Fill (crop)はSDKの.zoomに対応し、縦横比を保って端を切り取ります。Stretchは縦横比を変えて枠を埋めます。映像と表示枠の縦横比を変えて比較してください。基本フォームは再生成時にStyleConfig.scalingModeへ渡します。バインディング付きSwiftUI・レイヤー・コントローラーの表示先では、APIsから現在の拡大方法も操作できます。"
     },
     {
       "type": "p",
-      "text": "UIKitへ直接組み込む場合はNative PlayerViewを選び、Show presentation codeを確認します。NativePlayerSurfaceは保持しているPlayerを使ってPlayerViewを作り、FullscreenHandlerを保持して設定し、制約でビューを配置します。終了時には全画面を解除し、イベントの登録を外してplayerView.playerをnilにします。AVPlayerLayerとAVPlayerViewControllerはplayer.register(...)で登録し、終了時は登録した同じPlayerと表示先の組み合わせを解除します。AVPlayerLayer自体は映像を描くもので、再生操作部は持ちません。"
+      "text": "UIKitへ直接組み込む場合はAPIs → HostのHost settingでPresentationを開き、Native PlayerViewを選びます。同じHost settingのPresentation codeで組み込み方法を確認します。NativePlayerSurfaceは保持しているPlayerを使ってPlayerViewを作り、FullscreenHandlerを保持して設定し、制約でビューを配置します。終了時には全画面を解除し、イベントの登録を外してplayerView.playerをnilにします。AVPlayerLayerとAVPlayerViewControllerはplayer.register(...)で登録し、終了時は登録した同じPlayerと表示先の組み合わせを解除します。AVPlayerLayer自体は映像を描くもので、再生操作部は持ちません。"
     },
     {
       "type": "code",
@@ -295,7 +306,7 @@
       "source": {
         "path": "apps/ios/Showcase/NativePlayerSurface.swift",
         "line": 11,
-        "label": "NativePlayerSurface.swift · 11–20"
+        "label": "NativePlayerSurface.swift:11–20"
       },
       "endLine": 20
     },
@@ -329,12 +340,12 @@
     },
     {
       "type": "p",
-      "text": "生成済みのPlayerを操作する機能はAPI inspectorで試します。Operationsでは引数を入力し、対応するSwift呼び出しを表示できます。StateのRefresh SDK stateは現在の値をSDKから取得し、EventsはSDKの通知を記録します。呼び出しが成功しても、非同期の処理が完了したとは限りません。確認中のPlayerとSourceについて、操作後の状態と完了・エラーイベントを確認します。"
+      "text": "生成済みのPlayerを操作する機能はAPIsで試します。Operationsは引数と実行対象をRun APIの近くに表示し、検索は候補だけを絞ります。関連するSDKの状態と直近のイベントで反映を確認できます。StateのRefreshは現在値を読み取り、Eventsは通知を記録します。Playerの生成方法と映像の表示先はHostで別に設定します。呼び出しが成功しても、非同期の処理が完了したとは限りません。確認中のPlayerとSourceについて、操作後の状態と完了・エラーイベントを確認します。"
     },
     {
       "type": "figure",
       "file": "ios-api-operation",
-      "caption": "OperationsのPlayer.volume。引数を入力し、対応するコードを表示できます。実行時の変更は値を変えて実行し、Stateを更新して確認します。"
+      "caption": "Volumeの入力欄と、画面下部に固定されたRun APIです。引数と、呼び出し後にSDKから取得した値を分けて表示します。Codeで対応するSwift呼び出しを開けます。"
     },
     {
       "type": "table",
@@ -346,12 +357,12 @@
       "rows": [
         [
           "プレイリスト：到達できる対応形式のソース",
-          "Open playlist inspectorでソースの編集値を作り、プレイリストを読み込みます。次・前・追加・削除・シークを比較します。",
+          "More → Tools → Playlistでソースの編集値を作り、プレイリストを読み込みます。次・前・追加・削除・シークを比較します。",
           "各編集値からSDKのSourceを作り、player.load(playlistConfig:)とplayer.playlistでキューを操作します。ソース一覧とPlaylistTransitionEventを確認します。編集値の保存だけでは読み込みません。"
         ],
         [
           "Picture-in-Picture（PiP）：対応OS・端末とアプリ設定",
-          "API inspectorのPresentationでSDK SwiftUI with bindingsを選び、PiPを有効にして利用可能状態を確認してからactiveを変えます。Native PlayerViewにもPiPのAPI操作があります。",
+          "APIs → HostのHost settingでPresentationを開き、SDK SwiftUI with bindingsを選び、PiPを有効にして利用可能状態を確認してからactiveを変えます。Native PlayerViewにもPiPのAPI操作があります。",
           "VideoPlayerViewの有効・利用可能・動作中の状態をSwiftUIへ結び付けます。PlayerViewではpictureInPictureの設定とAPIを使います。有効化と開始成功は別で、有効にするだけで小窓表示が始まるわけではありません。"
         ],
         [
@@ -371,7 +382,7 @@
         ],
         [
           "ライブの巻き戻し：巻き戻せる範囲を保持するライブHLS",
-          "Live HLSを再生して負のオフセットボタンを押し、Go to live edgeで戻ります。",
+          "Live HLSを再生し、More → Live controlsで負のオフセット操作を試してからLive edgeで戻ります。",
           "player.maxTimeShiftの範囲内でplayer.timeShiftを設定し、アプリが表示状態を計算します。アプリの操作スイッチとSDKのtime-shift設定が両方影響します。保持されたメディアがなければ巻き戻せる範囲もありません。"
         ]
       ]
@@ -383,7 +394,7 @@
       "source": {
         "path": "apps/ios/Showcase/NativePresentation.swift",
         "line": 104,
-        "label": "NativePresentation.swift · 104–115"
+        "label": "NativePresentation.swift:104–115"
       },
       "endLine": 115
     },
@@ -395,26 +406,26 @@
     {
       "type": "note",
       "title": "オフラインHLS：iOS・iPadOS",
-      "text": "オンデマンドのHLSとDRM設定を適用してからOpen offline HLS inspectorを開きます。OfflineManagerは保存した設定でアプリ起動時に初期化するため、プロセス全体の起動設定を変えた後はアプリを完全に終了して開き直します。適用済みソースをオフライン保存の対象として選び、トラックを取得・選択してダウンロードを開始し、進捗・offlineState・イベントを確認します。完了後にOfflineSourceConfigを作ってキャッシュから読み込みます。tvOSにはこのパネルを用意していません。ダウンロードとオフライン再生の検証には実機のiPhone・iPadを使います。記録済みのシミュレーター実行では初期化とトラック取得まで成功しましたが、メディアのダウンロードは完了していません。オフラインのFairPlayには対応する永続ライセンスのサービスも必要です。"
+      "text": "SettingsでオンデマンドのHLSとDRM設定を適用してからMore → Tools → Offline HLSを開きます。OfflineManagerは保存した設定でアプリ起動時に初期化するため、プロセス全体の起動設定を変えた後はアプリを完全に終了して開き直します。適用済みソースをオフライン保存の対象として選び、トラックを取得・選択してダウンロードを開始し、進捗・offlineState・イベントを確認します。完了後にOfflineSourceConfigを作ってキャッシュから読み込みます。tvOSにはこのパネルを用意していません。ダウンロードとオフライン再生の検証には実機のiPhone・iPadを使います。記録済みのシミュレーター実行では初期化とトラック取得まで成功しましたが、メディアのダウンロードは完了していません。オフラインのFairPlayには対応する永続ライセンスのサービスも必要です。"
     },
     {
       "type": "figure",
       "file": "ios-offline-track-selection",
-      "caption": "オフライン画面でSDKから取得した音声・字幕トラック。トラックの取得は準備段階であり、ダウンロード状態とキャッシュからの再生は別に確認します。"
+      "caption": "以前のレイアウトで撮影した記録例です。オフライン画面でSDKから取得した音声・字幕トラック。トラックの取得は準備段階であり、ダウンロード状態とキャッシュからの再生は別に確認します。"
     },
     {
       "type": "note",
       "title": "Google Cast：iOS・iPadOS",
-      "text": "Open Google Cast inspectorで受信アプリと探索の設定を行い、Castを初期化してからRemoteControlConfig.isCastEnabledを有効にします。初期化はプロセス全体に対する処理なので、設定変更後はPlayerの再生成ではなくアプリ全体の再起動が必要です。受信側の再生には対応するCast受信機・ローカルネットワークの許可・受信機が読み込めるメディアとDRMも必要です。独自の受信アプリではBonjourのサービス登録とネイティブの再ビルドが必要になる場合があります。initialized・available・connectedを分けて確認し、その後に受信側の再生イベントを確認します。tvOS版にはこのCastパネルを組み込んでいません。"
+      "text": "More → Tools → Google Castで受信アプリと探索の設定を行い、Castを初期化してからRemoteControlConfig.isCastEnabledを有効にします。初期化はプロセス全体に対する処理なので、設定変更後はPlayerの再生成ではなくアプリ全体の再起動が必要です。受信側の再生には対応するCast受信機・ローカルネットワークの許可・受信機が読み込めるメディアとDRMも必要です。独自の受信アプリではBonjourのサービス登録とネイティブの再ビルドが必要になる場合があります。initialized・available・connectedを分けて確認し、その後に受信側の再生イベントを確認します。tvOS版にはこのCastパネルを組み込んでいません。"
     },
     {
       "type": "figure",
       "file": "ios-cast-options",
-      "caption": "iOSのCast画面にある受信アプリと探索の設定。起動時の設定であり、受信機の発見や再生成功を示す画面ではありません。"
+      "caption": "以前のレイアウトで撮影した記録例です。iOSのCast画面にある受信アプリと探索の設定。起動時の設定であり、受信機の発見や再生成功を示す画面ではありません。"
     },
     {
       "type": "p",
-      "text": "SharePlayはAPI inspectorのOperationsにあるSharePlay GroupSessionで試します。セッションの受信を開始し、必要に応じて現在のソースのアクティビティを開始します。OSが生成した実際のセッションを選び、Coordinate current playerまたはCoordinate and joinを実行します。参加側のソースには同じSourceConfig.options.sharePlayIdentifierを設定します。次のコードのselectedSessionは、OSが生成したセッションを取得します。アプリ独自の代替オブジェクトは使いません。アクティビティを開始すると、現在のソースURLとタイトルを共有します。OSの利用条件・Group Activitiesの署名設定・適切なシステムセッションが必要です。参加状態と同期再生は参加端末でも確認します。"
+      "text": "SharePlayはMore → SharePlayで試します。セッションの受信を開始し、必要に応じて現在のソースのアクティビティを開始します。OSが生成した実際のセッションを選び、Coordinate current playerまたはCoordinate and joinを実行します。参加側のソースには同じSourceConfig.options.sharePlayIdentifierを設定します。次のコードのselectedSessionは、OSが生成したセッションを取得します。アプリ独自の代替オブジェクトは使いません。アクティビティを開始すると、現在のソースURLとタイトルを共有します。OSの利用条件・Group Activitiesの署名設定・適切なシステムセッションが必要です。参加状態と同期再生は参加端末でも確認します。"
     },
     {
       "type": "code",
@@ -422,10 +433,10 @@
       "text": "    func coordinate(player: Player, join: Bool) throws {\n        let session = try selectedSession()\n        guard !player.isDestroyed else { throw failure(\"Create a player before coordinating it.\") }\n        player.sharePlay.coordinate(with: session)\n        if join { session.join() }\n        status = join ? \"The current SDK player was coordinated with the selected OS session; join was requested.\" : \"The current SDK player was coordinated with the selected OS session.\"\n        refresh()\n    }",
       "source": {
         "path": "apps/ios/Showcase/NativeSharePlay.swift",
-        "line": 94,
-        "label": "NativeSharePlay.swift · 94–101"
+        "line": 97,
+        "label": "NativeSharePlay.swift:97–104"
       },
-      "endLine": 101
+      "endLine": 104
     },
     {
       "type": "h3",
@@ -434,7 +445,7 @@
     },
     {
       "type": "p",
-      "text": "イベント処理を組み込むときは、SDKの対象インスタンスが有効な間だけ購読を保持し、その対象を置き換える前に解除します。API inspectorはlistenerとpublisherの購読方式を切り替えられます。次のlistener方式ではplayer.add/removeがSDKのAPIで、playerApiListenerとrecordApiEventはアプリの補助実装です。通知元が現在のPlayerと同じかを確認し、破棄したPlayerから遅れて届いた通知が新しいPlayerの画面を更新しないようにします。Sourceとビューのlistenerでも同じ確認を行います。再生状態を処理する購読と、表示件数を制限したイベント履歴は分けて扱います。"
+      "text": "イベント処理を組み込むときは、SDKの対象インスタンスが有効な間だけ購読を保持し、その対象を置き換える前に解除します。APIsはlistenerとpublisherの購読方式を切り替えられます。次のlistener方式ではplayer.add/removeがSDKのAPIで、playerApiListenerとrecordApiEventはアプリの補助実装です。通知元が現在のPlayerと同じかを確認し、破棄したPlayerから遅れて届いた通知が新しいPlayerの画面を更新しないようにします。Sourceとビューのlistenerでも同じ確認を行います。再生状態を処理する購読と、表示件数を制限したイベント履歴は分けて扱います。"
     },
     {
       "type": "code",
@@ -442,10 +453,10 @@
       "text": "    private func bindApiPlayerEvents() {\n        guard apiEventsEnabled else { return }\n        let player = self.player\n        let listener = PlayerApiEventListener { [weak self, weak player] api, timestamp in\n            guard let self, let player, self.player === player else { return }\n            self.recordApiEvent(api, timestamp: timestamp, owner: \"Player\")\n        }\n        playerApiListener = listener\n        if apiEventTransport == .listener { player.add(listener: listener) }\n        else { playerApiPublishers = NativePublisherSubscriptions.player(player, receiver: listener) }\n    }\n\n    private func retireApiPlayerEvents() {\n        playerApiPublishers.removeAll()\n        if let listener = playerApiListener { player.remove(listener: listener) }\n        playerApiListener = nil\n    }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 557,
-        "label": "PlayerModel.swift · 557–573"
+        "line": 566,
+        "label": "PlayerModel.swift:566–582"
       },
-      "endLine": 573
+      "endLine": 582
     },
     {
       "type": "h2",
@@ -486,7 +497,7 @@
     {
       "type": "note",
       "title": "ライブの巻き戻しが無効、または位置が補正されるのはなぜですか？",
-      "text": "再生を開始し、ソースがライブで、有効な巻き戻し範囲を持つか確認します。SDK time shift / DVRとAllow DVR controls (app)は別のスイッチです。負のオフセットはライブ端からの距離で、VODの先頭からの時刻ではありません。利用できるメディアの境界へSDKが位置を補正することがあります。停止中の位置が保持範囲から外れるとアプリはライブ端へ戻し、ライブがVOD化した後はその復帰処理を行いません。配信元で削除したメディアを操作部から復元することはできません。"
+      "text": "再生を開始し、ソースがライブで、有効な巻き戻し範囲を持つか確認します。Live time shiftとAllow live rewind controlsは別のスイッチです。負のオフセットはライブ端からの距離で、VODの先頭からの時刻ではありません。利用できるメディアの境界へSDKが位置を補正することがあります。停止中の位置が保持範囲から外れるとアプリはライブ端へ戻し、ライブがVOD化した後はその復帰処理を行いません。配信元で削除したメディアを操作部から復元することはできません。"
     },
     {
       "type": "note",
@@ -514,7 +525,7 @@
     },
     {
       "type": "p",
-      "text": "Playerの組み込みを確認した後にAnalyticsの収集機能を設定します。対応するPlayerのイベントを監視し、アプリで指定したAnalyticsライセンスへ再生データを送ります。収集したセッション・視聴状況・再生品質は、主にBitmovin DashboardのObservabilityで確認します。Apple版のAPI inspectorにあるローカルのイベント一覧は実装時の調査用です。この一覧だけでは、サーバーで再生データを受信したことは確認できません。"
+      "text": "Playerの組み込みを確認した後にAnalyticsの収集機能を設定します。対応するPlayerのイベントを監視し、アプリで指定したAnalyticsライセンスへ再生データを送ります。収集したセッション・視聴状況・再生品質は、主にBitmovin DashboardのObservabilityで確認します。Apple版のAPIsにあるローカルのイベント一覧は実装時の調査用です。この一覧だけでは、サーバーで再生データを受信したことは確認できません。"
     },
     {
       "type": "p",
@@ -526,10 +537,10 @@
       "text": "        guard !analyticsLicenseKey.isEmpty else {\n            return PlayerFactory.createPlayer(playerConfig: config)\n        }\n        return PlayerFactory.createPlayer(\n            playerConfig: config,\n            analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))\n        )",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 210,
-        "label": "PlayerModel.swift · 210–216"
+        "line": 212,
+        "label": "PlayerModel.swift:212–218"
       },
-      "endLine": 216
+      "endLine": 218
     },
     {
       "type": "steps",
@@ -686,6 +697,10 @@
     {
       "url": "https://developer.bitmovin.com/playback/docs/is-there-a-sandbox-environment-to-test-bitmovin-analytics",
       "label": "公式Dashboardデモ画像の出典"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeWorkspace.swift",
+      "label": "適用済みコードと補助機能の画面"
     }
   ]
 }

@@ -4,8 +4,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigToggle(\"Autoplay\", player.autoplay, \"config-autoplay\") { player = player.copy(autoplay = it) }",
-          "symbol": "ConfigToggle(\"Autoplay\", player.autoplay, \"config-autoplay\") { player = player.copy(autoplay = it) }"
+          "needle": "ConfigToggle(\"Autoplay\", player.autoplay, \"config-autoplay\") { state.player = player.copy(autoplay = it) }",
+          "symbol": "ConfigToggle(\"Autoplay\", player.autoplay, \"config-autoplay\") { state.player = player.copy(autoplay = it) }"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -14,8 +14,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
-          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
+          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings,",
+          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings,"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
@@ -35,8 +35,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigToggle(\"Start muted\", player.muted, \"config-muted\") { player = player.copy(muted = it) }",
-          "symbol": "ConfigToggle(\"Start muted\", player.muted, \"config-muted\") { player = player.copy(muted = it) }"
+          "needle": "ConfigToggle(\"Start muted\", player.muted, \"config-muted\") { state.player = player.copy(muted = it) }",
+          "symbol": "ConfigToggle(\"Start muted\", player.muted, \"config-muted\") { state.player = player.copy(muted = it) }"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -45,8 +45,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
-          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
+          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings,",
+          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings,"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
@@ -66,8 +66,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigToggle(\"Enable SDK live time shifting\", player.timeShift, \"config-timeshift\") { player = player.copy(timeShift = it) }",
-          "symbol": "ConfigToggle(\"Enable SDK live time shifting\", player.timeShift, \"config-timeshift\") { player = player.copy(timeShift = it) }"
+          "needle": "ConfigToggle(\"Enable SDK live time shifting\", player.timeShift, \"config-timeshift\") { state.player = player.copy(timeShift = it) }",
+          "symbol": "ConfigToggle(\"Enable SDK live time shifting\", player.timeShift, \"config-timeshift\") { state.player = player.copy(timeShift = it) }"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -76,8 +76,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
-          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
+          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings,",
+          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings,"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
@@ -141,8 +141,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"Restart threshold (s)\", player.restartThreshold, { player = player.copy(restartThreshold = it) }, \"config-restart\", playerErrors[\"restartThreshold\"], \"Default 5; buffer needed after a stall\", KeyboardType.Decimal)",
-          "symbol": "ConfigField(\"Restart threshold (s)\", player.restartThreshold, { player = player.copy(restartThreshold = it) }, \"config-restart\", playerErrors[\"restartThreshold\"], \"Default 5; buffer needed after a stall\", KeyboardType.Decimal)"
+          "needle": "ConfigField(\"Restart threshold (s)\", player.restartThreshold",
+          "symbol": "ConfigField(\"Restart threshold (s)\", player.restartThreshold"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -151,8 +151,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
-          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
+          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings,",
+          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings,"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
@@ -172,8 +172,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"Startup threshold (s)\", player.startupThreshold, { player = player.copy(startupThreshold = it) }, \"config-startup\", playerErrors[\"startupThreshold\"], \"Default 2.5; nonnegative and at most forward buffer minus 0.5\", KeyboardType.Decimal)",
-          "symbol": "ConfigField(\"Startup threshold (s)\", player.startupThreshold, { player = player.copy(startupThreshold = it) }, \"config-startup\", playerErrors[\"startupThreshold\"], \"Default 2.5; nonnegative and at most forward buffer minus 0.5\", KeyboardType.Decimal)"
+          "needle": "ConfigField(\"Startup threshold (s)\", player.startupThreshold",
+          "symbol": "ConfigField(\"Startup threshold (s)\", player.startupThreshold"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -182,8 +182,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
-          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
+          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings,",
+          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings,"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
@@ -203,8 +203,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"Forward buffer (s)\", player.forwardDuration, { player = player.copy(forwardDuration = it) }, \"config-forward\", playerErrors[\"forwardDuration\"], \"Default 50; at least 0.5 for threshold headroom\", KeyboardType.Decimal)",
-          "symbol": "ConfigField(\"Forward buffer (s)\", player.forwardDuration, { player = player.copy(forwardDuration = it) }, \"config-forward\", playerErrors[\"forwardDuration\"], \"Default 50; at least 0.5 for threshold headroom\", KeyboardType.Decimal)"
+          "needle": "ConfigField(\"Forward buffer (s)\", player.forwardDuration",
+          "symbol": "ConfigField(\"Forward buffer (s)\", player.forwardDuration"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -213,8 +213,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
-          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
+          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings,",
+          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings,"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
@@ -234,8 +234,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigToggle(\"Allow rebuffering\", player.rebuffering, \"config-rebuffering\") { player = player.copy(rebuffering = it) }",
-          "symbol": "ConfigToggle(\"Allow rebuffering\", player.rebuffering, \"config-rebuffering\") { player = player.copy(rebuffering = it) }"
+          "needle": "ConfigToggle(\"Allow rebuffering\", player.rebuffering, \"config-rebuffering\") { state.player = player.copy(rebuffering = it) }",
+          "symbol": "ConfigToggle(\"Allow rebuffering\", player.rebuffering, \"config-rebuffering\") { state.player = player.copy(rebuffering = it) }"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -244,8 +244,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
-          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
+          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings,",
+          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings,"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
@@ -265,8 +265,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"Maximum automatic video bitrate (bps)\", player.maxVideoBitrate, { player = player.copy(maxVideoBitrate = it) }, \"config-max-bitrate\", playerErrors[\"maxVideoBitrate\"], \"Blank = no ABR cap (2147483647). Higher qualities remain available for manual selection.\", KeyboardType.Number)",
-          "symbol": "ConfigField(\"Maximum automatic video bitrate (bps)\", player.maxVideoBitrate, { player = player.copy(maxVideoBitrate = it) }, \"config-max-bitrate\", playerErrors[\"maxVideoBitrate\"], \"Blank = no ABR cap (2147483647). Higher qualities remain available for manual selection.\", KeyboardType.Number)"
+          "needle": "ConfigField(\"Maximum automatic video bitrate (bps)\", player.maxVideoBitrate",
+          "symbol": "ConfigField(\"Maximum automatic video bitrate (bps)\", player.maxVideoBitrate"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -275,8 +275,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
-          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
+          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings,",
+          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings,"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
@@ -296,8 +296,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigToggle(\"Preload content\", player.preload, \"config-preload\") { player = player.copy(preload = it) }",
-          "symbol": "ConfigToggle(\"Preload content\", player.preload, \"config-preload\") { player = player.copy(preload = it) }"
+          "needle": "ConfigToggle(\"Preload content\", player.preload, \"config-preload\") { state.player = player.copy(preload = it) }",
+          "symbol": "ConfigToggle(\"Preload content\", player.preload, \"config-preload\") { state.player = player.copy(preload = it) }"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -306,8 +306,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
-          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
+          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings,",
+          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings,"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
@@ -327,8 +327,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"Live quality / stability balance\", player.qualityStabilityBalance, { player = player.copy(qualityStabilityBalance = it) }, \"config-balance\", playerErrors[\"qualityStabilityBalance\"], \"0 = quality; 1 = stability; default 0.5. Live streams near the live edge only.\", KeyboardType.Decimal)",
-          "symbol": "ConfigField(\"Live quality / stability balance\", player.qualityStabilityBalance, { player = player.copy(qualityStabilityBalance = it) }, \"config-balance\", playerErrors[\"qualityStabilityBalance\"], \"0 = quality; 1 = stability; default 0.5. Live streams near the live edge only.\", KeyboardType.Decimal)"
+          "needle": "ConfigField(\"Live quality / stability balance\", player.qualityStabilityBalance",
+          "symbol": "ConfigField(\"Live quality / stability balance\", player.qualityStabilityBalance"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -337,8 +337,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings) {",
-          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings) {"
+          "needle": "internal fun applyPlayerSettings(settings: PlayerSettings,",
+          "symbol": "internal fun applyPlayerSettings(settings: PlayerSettings,"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
@@ -358,8 +358,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigToggle(\"Keep poster visible\", source.posterPersistent, \"source-poster-persistent\") { source = source.copy(posterPersistent = it) }",
-          "symbol": "ConfigToggle(\"Keep poster visible\", source.posterPersistent, \"source-poster-persistent\") { source = source.copy(posterPersistent = it) }"
+          "needle": "ConfigToggle(\"Keep poster visible\", source.posterPersistent, \"source-poster-persistent\") { state.source = source.copy(posterPersistent = it) }",
+          "symbol": "ConfigToggle(\"Keep poster visible\", source.posterPersistent, \"source-poster-persistent\") { state.source = source.copy(posterPersistent = it) }"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -378,8 +378,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "owner.load(source)",
-          "symbol": "owner.load(source)"
+          "needle": "owner.load(sources.single())",
+          "symbol": "owner.load(sources.single())"
         }
       ],
       "limitation": "Boolean; default false.",
@@ -400,8 +400,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"Poster URL\", source.posterUrl, { source = source.copy(posterUrl = it) }, \"source-poster\", sourceErrors[\"posterUrl\"], \"Optional HTTP or HTTPS image URL\")",
-          "symbol": "ConfigField(\"Poster URL\", source.posterUrl, { source = source.copy(posterUrl = it) }, \"source-poster\", sourceErrors[\"posterUrl\"], \"Optional HTTP or HTTPS image URL\")"
+          "needle": "ConfigField(\"Poster URL\", source.posterUrl",
+          "symbol": "ConfigField(\"Poster URL\", source.posterUrl"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -420,8 +420,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "owner.load(source)",
-          "symbol": "owner.load(source)"
+          "needle": "owner.load(sources.single())",
+          "symbol": "owner.load(sources.single())"
         }
       ],
       "limitation": "Optional HTTP/HTTPS URI; asset filenames are not edited.",
@@ -431,8 +431,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"Title\", source.title, { source = source.copy(title = it) }, \"source-title\", helper = \"Optional; blank uses the SDK default\")",
-          "symbol": "ConfigField(\"Title\", source.title, { source = source.copy(title = it) }, \"source-title\", helper = \"Optional; blank uses the SDK default\")"
+          "needle": "ConfigField(\"Title\", source.title",
+          "symbol": "ConfigField(\"Title\", source.title"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -451,8 +451,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "owner.load(source)",
-          "symbol": "owner.load(source)"
+          "needle": "owner.load(sources.single())",
+          "symbol": "owner.load(sources.single())"
         }
       ],
       "limitation": "Optional string; blank becomes null.",
@@ -462,8 +462,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "Choices(SourceType.entries.map { it to it.name }, source.type, \"source-type\") { source = source.copy(type = it) }",
-          "symbol": "Choices(SourceType.entries.map { it to it.name }, source.type, \"source-type\") { source = source.copy(type = it) }"
+          "needle": "WorkspacePicker(\"Source type\", source.type, SourceType.entries.map { it to it.name }, \"source-type\") { state.source = source.copy(type = it) }",
+          "symbol": "WorkspacePicker(\"Source type\", source.type, SourceType.entries.map { it to it.name }, \"source-type\") { state.source = source.copy(type = it) }"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -482,8 +482,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "owner.load(source)",
-          "symbol": "owner.load(source)"
+          "needle": "owner.load(sources.single())",
+          "symbol": "owner.load(sources.single())"
         }
       ],
       "limitation": "Dash/Hls/Smooth/Progressive.",
@@ -493,8 +493,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"Source URL\", source.url, { source = source.copy(url = it) }, \"source-url\", sourceErrors[\"url\"], \"HTTP or HTTPS stream URL\")",
-          "symbol": "ConfigField(\"Source URL\", source.url, { source = source.copy(url = it) }, \"source-url\", sourceErrors[\"url\"], \"HTTP or HTTPS stream URL\")"
+          "needle": "ConfigField(\"Source URL\", source.url",
+          "symbol": "ConfigField(\"Source URL\", source.url"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -513,8 +513,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "owner.load(source)",
-          "symbol": "owner.load(source)"
+          "needle": "owner.load(sources.single())",
+          "symbol": "owner.load(sources.single())"
         }
       ],
       "limitation": "HTTP/HTTPS URI with a host; device cleartext policy still applies.",
@@ -524,8 +524,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"Start offset (s)\", source.startOffset, { source = source.copy(startOffset = it) }, \"source-offset\", sourceErrors[\"startOffset\"], \"Blank = SDK default. Start uses positive seconds; End uses negative seconds. Out-of-window offsets are corrected by the SDK.\")",
-          "symbol": "ConfigField(\"Start offset (s)\", source.startOffset, { source = source.copy(startOffset = it) }, \"source-offset\", sourceErrors[\"startOffset\"], \"Blank = SDK default. Start uses positive seconds; End uses negative seconds. Out-of-window offsets are corrected by the SDK.\")"
+          "needle": "ConfigField(\"Start offset (s)\", source.startOffset",
+          "symbol": "ConfigField(\"Start offset (s)\", source.startOffset"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -544,8 +544,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "owner.load(source)",
-          "symbol": "owner.load(source)"
+          "needle": "owner.load(sources.single())",
+          "symbol": "owner.load(sources.single())"
         }
       ],
       "limitation": "Finite Double seconds; blank=null; no sign restriction; SDK corrects boundaries.",
@@ -555,8 +555,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "source.offsetReference, \"source-reference\",",
-          "symbol": "source.offsetReference, \"source-reference\","
+          "needle": "WorkspacePicker(\"Offset reference\", source.offsetReference, listOf(null to \"SDK default\", TimelineReferencePoint.Start to \"Start\", TimelineReferencePoint.End to \"End\"), \"source-reference\") { state.source = source.copy(offsetReference = it) }",
+          "symbol": "WorkspacePicker(\"Offset reference\", source.offsetReference, listOf(null to \"SDK default\", TimelineReferencePoint.Start to \"Start\", TimelineReferencePoint.End to \"End\"), \"source-reference\") { state.source = source.copy(offsetReference = it) }"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -575,8 +575,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "owner.load(source)",
-          "symbol": "owner.load(source)"
+          "needle": "owner.load(sources.single())",
+          "symbol": "owner.load(sources.single())"
         }
       ],
       "limitation": "null/Start/End; default VOD Start/live End.",
@@ -588,8 +588,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "\"Live target latency (s)\", source.liveTargetLatency, { source = source.copy(liveTargetLatency = it) },",
-          "symbol": "\"Live target latency (s)\", source.liveTargetLatency, { source = source.copy(liveTargetLatency = it) },"
+          "needle": "ConfigField(\"Live target latency (s)\", source.liveTargetLatency",
+          "symbol": "ConfigField(\"Live target latency (s)\", source.liveTargetLatency"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -598,8 +598,8 @@
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "owner.load(source)",
-          "symbol": "owner.load(source)"
+          "needle": "owner.load(sources.single())",
+          "symbol": "owner.load(sources.single())"
         }
       ]
     },
@@ -662,8 +662,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"WebVTT URL\", source.subtitleUrl, { source = source.copy(subtitleUrl = it) },",
-          "symbol": "ConfigField(\"WebVTT URL\", source.subtitleUrl, { source = source.copy(subtitleUrl = it) },"
+          "needle": "ConfigField(\"WebVTT URL\", source.subtitleUrl",
+          "symbol": "ConfigField(\"WebVTT URL\", source.subtitleUrl"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -683,8 +683,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"Subtitle label\", source.subtitleLabel, { source = source.copy(subtitleLabel = it) },",
-          "symbol": "ConfigField(\"Subtitle label\", source.subtitleLabel, { source = source.copy(subtitleLabel = it) },"
+          "needle": "ConfigField(\"Subtitle label\", source.subtitleLabel",
+          "symbol": "ConfigField(\"Subtitle label\", source.subtitleLabel"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -704,8 +704,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "ConfigField(\"Subtitle language\", source.subtitleLanguage, { source = source.copy(subtitleLanguage = it) },",
-          "symbol": "ConfigField(\"Subtitle language\", source.subtitleLanguage, { source = source.copy(subtitleLanguage = it) },"
+          "needle": "ConfigField(\"Subtitle language\", source.subtitleLanguage",
+          "symbol": "ConfigField(\"Subtitle language\", source.subtitleLanguage"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -746,8 +746,8 @@
       "evidence": [
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-          "needle": "\"HTTP retry delays (s)\", player.httpRetryDelays, { player = player.copy(httpRetryDelays = it) },",
-          "symbol": "\"HTTP retry delays (s)\", player.httpRetryDelays, { player = player.copy(httpRetryDelays = it) },"
+          "needle": "ConfigField(\"HTTP retry delays (s)\", player.httpRetryDelays",
+          "symbol": "ConfigField(\"HTTP retry delays (s)\", player.httpRetryDelays"
         },
         {
           "file": "apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt",
@@ -829,9 +829,9 @@
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -846,9 +846,9 @@
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -863,9 +863,9 @@
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -880,9 +880,9 @@
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -897,9 +897,9 @@
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -914,9 +914,9 @@
           "symbol": "fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -931,9 +931,9 @@
           "symbol": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -948,9 +948,9 @@
           "symbol": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -965,9 +965,9 @@
           "symbol": "fun standardTrackAndQualityChoicesReachTheCurrentNativeSource() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -982,9 +982,9 @@
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -999,9 +999,9 @@
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -1016,9 +1016,9 @@
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -1033,9 +1033,9 @@
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -1050,9 +1050,9 @@
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -1067,9 +1067,9 @@
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -1084,9 +1084,9 @@
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -1101,9 +1101,9 @@
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     },
@@ -1118,9 +1118,9 @@
           "symbol": "fun standardUnavailableRoutesAndNativeThumbnailQueryAreRecorded() {"
         },
         {
-          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-          "needle": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))",
-          "symbol": "PlayerView(context, displayedPlayer, playerViewConfig(uiMode))"
+          "file": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+          "needle": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,",
+          "symbol": "PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,"
         }
       ]
     }

@@ -71,10 +71,10 @@
       "text": "    private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides(), analytics: ApiAnalyticsSettings = apiAnalyticsSettings, callbacks: ApiCallbackContext = apiCallbacks): Player {\n        val prepared = ApiNativeFactories.player(context, overrides.player(settings.toPlayerConfig(licenseKey), callbacks), overrides.values)\n        val result = playerFactory?.invoke(prepared.config) ?: Player(context, prepared.config, analytics.playerConfig(analyticsLicenseKey, callbacks))\n        preparedCompanions = prepared.hosts\n        return result\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 114,
-        "label": "MainActivity.kt:114–119"
+        "line": 97,
+        "label": "MainActivity.kt:97–102"
       },
-      "endLine": 119
+      "endLine": 102
     },
     {
       "type": "p",
@@ -92,7 +92,7 @@
     },
     {
       "type": "p",
-      "text": "Configurationパネルは、編集中の値と適用済みの設定を分けて管理します。画面で動作を確かめ、Show applied codeでコードを確認したうえで、以下のSDK設定の生成箇所を参照してください。PlayerDraftとSourceDraftは、アプリの入力を検証して整えるための型です。SDKへ渡すのはそれらのDraftではなくPlayerConfigとSourceConfigです。"
+      "text": "Settingsは、編集中の値と適用済みの設定を分けて管理します。ConfigurationでSourceまたはPlayerを選び、Settingから一つの入力を開きます。Apply sourceまたはApply playerは下書きの状態と一緒に表示します。Codeで適用済みの値を確認したうえで、以下のSDK設定の生成箇所を参照してください。PlayerDraftとSourceDraftは、アプリの入力を検証して整えるための型です。SDKへ渡すのはそれらのDraftではなくPlayerConfigとSourceConfigです。"
     },
     {
       "type": "h3",
@@ -130,7 +130,7 @@
         [
           "Autoplayをオフ、Start mutedをオン",
           "PlaybackConfig.isAutoplayEnabled / isMuted",
-          "Apply & restart player。Playを押すまで再生されず、ミュートで始まることを確認します。"
+          "Apply player。Playを押すまで再生されず、ミュートで始まることを確認します。"
         ],
         [
           "Startup 1秒、Restart 2秒、Forward 10秒",
@@ -161,7 +161,7 @@
     {
       "type": "figure",
       "file": "android-player-settings",
-      "caption": "AndroidのConfigurationパネル。音声の優先順位とバッファーの入力は、Apply & restart playerでPlaybackConfigとBufferConfigへ反映されます。画像の値は撮影時の設定であり、推奨値を示すものではありません。"
+      "caption": "SettingsでPlayerのAutoplayを選択した画面です。Apply playerでPlayerConfigを組み立て、Playerを再生成します。選択した項目の入力欄と、画面下部の適用操作を同時に確認できます。"
     },
     {
       "type": "h3",
@@ -233,10 +233,10 @@
       "text": "        val sourceConfigs = configs ?: sourceConfigurations(callbacks = callbacks)\n        val sources = sourceConfigs.map { sourceConfig -> sourceFactory?.invoke(sourceConfig)\n            ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), mediaSessionConfig = apiOverrides.mediaSession()) }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 533,
-        "label": "MainActivity.kt:533–535"
+        "line": 517,
+        "label": "MainActivity.kt:517–519"
       },
-      "endLine": 535
+      "endLine": 519
     },
     {
       "type": "code",
@@ -244,24 +244,24 @@
       "text": "        if (offlinePlayback == null && ApiCollectionSettings.PLAYLIST in apiOverrides.values)\n            owner.load(com.bitmovin.player.api.playlist.PlaylistConfig(sources, apiOverrides.playlistOptions()))\n        else owner.load(sources.single())",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 546,
-        "label": "MainActivity.kt:546–548"
+        "line": 530,
+        "label": "MainActivity.kt:530–532"
       },
-      "endLine": 548
+      "endLine": 532
     },
     {
       "type": "steps",
       "items": [
-        "Apply source (reload)はソースを作り直し、現在のPlayerで読み込みます。未適用のPlayer設定は反映しません。",
-        "Apply & restart playerは新しいPlayerを作り、メタデータと開始位置を含む適用済みソースを読み直します。UIモードとアプリ側の巻き戻し許可は保持しますが、以前の再生位置を維持する処理ではありません。",
-        "Reset source draftはソースの編集値を適用済みの値へ戻します。Reset player draftはPlayerの編集値を標準の初期値へ戻します。どちらも適用はしません。カタログのプリセットを選ぶとソースの編集内容が置き換わり、独自のメタデータやオプションが消えます。",
-        "Show applied codeで標準のPlayerConfig、SourceConfig、PlayerViewConfigを確認します。SDK API settingsを使った場合は、別のApplied SDK override codeも確認してください。追加の上書き設定は、標準コードにすべて含まれるわけではありません。"
+        "Apply sourceはソースを作り直し、現在のPlayerで読み込みます。未適用のPlayer設定は反映しません。",
+        "Apply playerは新しいPlayerを作り、メタデータと開始位置を含む適用済みソースを読み直します。UIモードとアプリ側の巻き戻し設定は保持しますが、以前の再生位置は維持しません。",
+        "Reset draftは、選択したSourceまたはPlayerの編集値を適用済みへ戻します。適用はしません。プリセットを選ぶとカスタムのソース項目とオプションを置き換えます。項目やタブの切り替えでは下書きを保持します。",
+        "Codeで標準のPlayerConfig、SourceConfig、PlayerViewConfigを確認します。追加のSDK設定を使った場合は、別のCode → SDK overridesも確認してください。追加の上書き設定は、標準コードにすべて含まれるわけではありません。"
       ]
     },
     {
       "type": "figure",
       "file": "android-applied-code",
-      "caption": "標準エディターの適用済みKotlinコード。実際のライセンス値はプレースホルダーに置き換わります。追加のSDK上書きには別のコード表示があります。"
+      "caption": "Codeに表示した適用済みのKotlinコードです。実際のライセンス値はプレースホルダーに置き換わります。追加のSDK上書きには別のコード表示があります。"
     },
     {
       "type": "h3",
@@ -270,11 +270,11 @@
     },
     {
       "type": "p",
-      "text": "標準フォームにない項目はSDK API settingsを開き、SDKの項目名で検索します。型に合う値を入力してUse this overrideを選び、Apply SDK settings and restartで新しい設定とPlayerを作ります。入力を登録しただけでは反映しません。上書きは標準フォームより優先されます。Remove this overrideのあとにApplyを押すと、標準フォームの値またはSDKの既定値に戻ります。SourceConfig.subtitleTracksやPlaylistConfig.sourcesのようなリストは、Kotlinを貼り付けるのではなく、要素と子項目を追加して編集します。"
+      "text": "標準設定にない項目はSettings → Configuration → SDK overridesでFeatureとSDK settingから選びます。SDK名で検索することもできます。型に合う値を入力してStage overrideで仮登録し、Apply SDKで新しい設定とPlayerを作ります。仮登録だけでは反映しません。上書きは基本設定より優先されます。Removeの後にApplyを押すと、標準設定またはSDK既定値に戻ります。SourceConfig.subtitleTracksやPlaylistConfig.sourcesのようなリストは、Kotlinを貼り付けるのではなく、要素と子項目を追加して編集します。"
     },
     {
       "type": "p",
-      "text": "SDKのコールバックは、SDKから呼び出される関数です。このアプリでは、対応する項目にJavaScript関数の本文を入力します。SDKのコールバックでこの関数を実行し、数値や文字列などの値を受け渡します。例えばLabelingConfig.videoQualityLabelerでは、渡された高さとビットレートから表示名を返せます。適用後に画質メニューを開き、Refresh callback outcomesで呼び出しと代替処理の回数を確認します。インタープリターには実行量の制限があり、AndroidやPlayerのオブジェクトを直接操作できません。これはアプリの補助機能であり、SDK自身が提供するJavaScriptコールバックAPIではありません。"
+      "text": "SDKのコールバックは、SDKから呼び出される関数です。このアプリでは、対応する項目にJavaScript関数の本文を入力します。SDKのコールバックでこの関数を実行し、数値や文字列などの値を受け渡します。例えばLabelingConfig.videoQualityLabelerでは、渡された高さとビットレートから表示名を返せます。適用後に画質メニューを開き、More → Diagnosticsで呼び出しと代替処理の回数を確認します。インタープリターには実行量の制限があり、AndroidやPlayerのオブジェクトを直接操作できません。これはアプリの補助機能であり、SDK自身が提供するJavaScriptコールバックAPIではありません。"
     },
     {
       "type": "h2",
@@ -284,22 +284,22 @@
     },
     {
       "type": "p",
-      "text": "このアプリにはUIの層が二つあります。PlayerViewはネイティブ映像を表示し、Webコンテンツを表示するAndroidのWebView内でSDKのHTML・JavaScript操作部を動かします。外側の設定フォーム、ソース選択、SDK操作パネルはComposeで描画します。Composeのフォントを変えてもHTML製のプレイヤー操作部は変わりません。共有UIのCSSを変えてもComposeのボタンは変わりません。"
+      "text": "このアプリにはUIの層が二つあります。PlayerViewはネイティブ映像を表示し、Webコンテンツを表示するAndroidのWebView内でSDKのHTML・JavaScript操作部を動かします。プレビューの選択欄、タブ、設定エディターはComposeで描画します。Composeのフォントを変えてもHTML製のプレイヤー操作部は変わりません。共有UIのCSSを変えてもComposeのボタンは変わりません。"
     },
     {
       "type": "code",
       "title": "SDKの既定UIと同梱したカスタムUIを選ぶ",
-      "text": "private fun playerViewConfig(mode: UiMode): PlayerViewConfig =\n    if (mode.factoryFunction == null) {\n        PlayerViewConfig()\n    } else {\n        PlayerViewConfig(\n            uiConfig = UiConfig.WebUi(\n                jsLocation = \"file:///android_asset/bitmovinplayer-ui.js\",\n                cssLocation = \"file:///android_asset/bitmovinplayer-ui.css\",\n                variant = UiConfig.WebUi.Variant.Custom(mode.factoryFunction),\n            ),\n        )\n    }",
+      "text": "internal fun playerViewConfig(mode: UiMode): PlayerViewConfig =\n    if (mode.factoryFunction == null) {\n        PlayerViewConfig()\n    } else {\n        PlayerViewConfig(\n            uiConfig = UiConfig.WebUi(\n                jsLocation = \"file:///android_asset/bitmovinplayer-ui.js\",\n                cssLocation = \"file:///android_asset/bitmovinplayer-ui.css\",\n                variant = UiConfig.WebUi.Variant.Custom(mode.factoryFunction),\n            ),\n        )\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 77,
-        "label": "MainActivity.kt:77–88"
+        "line": 60,
+        "label": "MainActivity.kt:60–71"
       },
-      "endLine": 88
+      "endLine": 71
     },
     {
       "type": "p",
-      "text": "選択したUIモード（Default、Sports、Live、Cinemaのいずれか）を、この関数へ渡します。DefaultはPlayerViewConfigのSDK既定値を使います。カスタムモードはAPK内のJavaScriptとCSSを読み込み、登録済みのファクトリー名でUIを作ります。Web版の全テーマがAndroidの選択肢に並ぶわけではありません。共有レイアウトを加える場合はpackages/ui-shared/src/liveUi.tsのコンポーネント構成を変更し、global.tsへファクトリーを登録してUiModeへ追加するか、SDK API settingsで登録済みの名前を指定します。"
+      "text": "選択したUIモード（Default、Sports、Live、Cinemaのいずれか）を、この関数へ渡します。DefaultはPlayerViewConfigのSDK既定値を使います。カスタムモードはAPK内のJavaScriptとCSSを読み込み、登録済みのファクトリー名でUIを作ります。Web版の全テーマがAndroidの選択肢に並ぶわけではありません。共有レイアウトを加える場合はpackages/ui-shared/src/liveUi.tsのコンポーネント構成を変更し、global.tsへファクトリーを登録してUiModeへ追加するか、Settings → Configuration → SDK overridesで登録済みの名前を指定します。"
     },
     {
       "type": "table",
@@ -331,7 +331,7 @@
         ],
         [
           "映像上の操作部を隠す",
-          "SDK API controlsでPlayerView.isUiVisibleを選び、visible=falseを実行します。",
+          "APIsでPlayerView.isUiVisibleを選び、visible=falseを実行します。",
           "すぐに非表示になります。trueで戻します。外側のCompose操作部は残ります。"
         ],
         [
@@ -348,22 +348,22 @@
     },
     {
       "type": "p",
-      "text": "PlayerViewConfig.uiConfigやUiConfig.WebUiはSDK API settingsから編集できます。TvUi・SmallScreenUiの選択とカスタムファクトリー名は同時指定できないため、どちらか一方を登録します。UiConfig.DisabledでWeb UIを無効にする場合は、先にWebUi配下の上書きを削除してから適用します。これはビュー設定の変更ですが、このアプリのApply SDK settingsという共通操作ではPlayerも再生成します。Composeだけで再生操作を作る場合はPlayer.play・pause・seekへ接続し、再生状態のイベントも購読します。Web UIを無効にしただけで、その操作部が作られるわけではありません。"
+      "text": "PlayerViewConfig.uiConfigやUiConfig.WebUiはSettings → Configuration → SDK overridesから編集できます。TvUi・SmallScreenUiの選択とカスタムファクトリー名は同時指定できないため、どちらか一方を登録します。UiConfig.DisabledでWeb UIを無効にする場合は、先にWebUi配下の上書きを削除してから適用します。これはビュー設定の変更ですが、このアプリのApply SDKという共通操作ではPlayerも再生成します。Composeだけで再生操作を作る場合はPlayer.play・pause・seekへ接続し、再生状態のイベントも購読します。Web UIを無効にしただけで、その操作部が作られるわけではありません。"
     },
     {
       "type": "code",
       "title": "既存のCompose画面へPlayerViewを埋め込む",
-      "text": "        } else key(displayedPlayer, uiMode, controller.apiViewRevision) {\n            AndroidView(\n                factory = { context ->\n                    PlayerTouchHost(context,\n                        controller.attachView(PlayerView(context, displayedPlayer, controller.apiOverrides.view(playerViewConfig(uiMode)))))\n                },\n                // Detach the shared player BEFORE releasing the view: PlayerView.onDestroy()\n                // destroys its attached player, but `controller` owns the player's lifecycle\n                // (it persists across UI-mode switches and is destroyed in onDestroy/release).\n                onRelease = { host ->\n                    host.releaseTouchOwnership()\n                    controller.releaseView(host.content as PlayerView)\n                },\n                modifier = if (videoOnly) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(220.dp),\n            )",
+      "text": "private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, modifier: Modifier) {\n    val displayedPlayer = controller.player\n    val vrRenderer = controller.apiVrRenderer\n    if (vrRenderer != null) key(vrRenderer) {\n        AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)\n    } else key(displayedPlayer, uiMode, controller.apiViewRevision) {\n        AndroidView(factory = { context ->\n            PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,\n                controller.apiOverrides.view(playerViewConfig(uiMode)))))\n        }, onRelease = { host ->\n            host.releaseTouchOwnership()\n            controller.releaseView(host.content as PlayerView)\n        }, modifier = modifier)\n    }\n}",
       "source": {
-        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 762,
-        "label": "MainActivity.kt:762–776"
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+        "line": 123,
+        "label": "PlayerWorkspace.kt:123–137"
       },
-      "endLine": 776
+      "endLine": 137
     },
     {
       "type": "p",
-      "text": "AndroidViewはComposeから従来のAndroid Viewを使うための仕組みです。keyにはPlayerのインスタンス、UIモード、ビューの変更番号が含まれ、それらが変わるとPlayerViewを作り直します。UIモードだけの変更ではPlayerを維持します。PlayerTouchHostは、プレイヤーメニュー内のスワイプを外側の設定フォームがスクロール操作として受け取らないようにします。自分のアプリでプレイヤーをスクロール領域に埋め込む場合も、どちらでタッチを処理するか決める必要があります。"
+      "text": "AndroidViewはComposeから従来のAndroid Viewを使うための仕組みです。keyにはPlayerのインスタンス、UIモード、ビューの変更番号が含まれ、それらが変わるとPlayerViewを作り直します。UIモードだけの変更ではPlayerを維持します。PlayerTouchHostは、動画内で始まったジェスチャーを終了またはキャンセルまで動画側に保持します。自分のアプリでプレイヤーをスクロール領域に埋め込む場合も、外側の領域がプレイヤーメニューの操作を取り込まないようにします。"
     },
     {
       "type": "code",
@@ -396,13 +396,13 @@
     },
     {
       "type": "p",
-      "text": "SDK API controlsでは操作を実行し、状態とイベントで結果を確認できます。Commandsは現在のPlayer、Source、または接続済みのPlayerViewのSDK APIを呼び出します。StateはRefresh SDK stateを押した時点のSDK値を読み取ります。Eventsは発生回数と最後のSDKタイムスタンプを記録します。コマンドの送信結果だけでは、実際の再生でその操作が完了したかは分かりません。"
+      "text": "APIsでCommands・State・Eventsを切り替え、分類とAPIの選択欄から対象を開きます。Commandsは現在のPlayer、Source、接続済みのPlayerViewのSDK APIを呼び出します。検索で候補を絞っても、現在選択中の実行対象を明示します。まず関連する状態と直近のイベントで比較し、StateのRefresh SDK stateで詳しい値を読み取ります。Eventsは発生回数とSDKタイムスタンプを記録します。コマンドの送信結果だけでは、実際の再生で操作が完了したかは分かりません。"
     },
     {
       "type": "steps",
       "items": [
         "再生位置を比較する前に、VODのHLSまたはDASHソースを選択して適用し、再生を開始します。",
-        "その場でシークするにはCommandsでPlayer.seekを選び、例えば5秒を指定してRun SDK APIを押します。",
+        "その場でシークするにはCommandsでPlayer.seekを選び、例えば5秒を指定してRun APIを押します。",
         "StateでPlayer.currentTimeを検索し、Refresh SDK stateでシーク後の実際の時刻を確認します。続いてシークや再生に対応するイベントを調べます。",
         "トラックや画質の変更では、先にSDKが返す候補のIDを確認し、そのIDを対応するコマンドへ渡して選択結果を読み直します。入力だけでメディアに含まれない画質が増えることはありません。"
       ]
@@ -410,7 +410,7 @@
     {
       "type": "figure",
       "file": "android-api-state",
-      "caption": "シーク後のcurrentTimeをSDKのStateで読み取る画面。Refreshは押した時点の値を取得する操作で、コマンド送信とは別です。"
+      "caption": "StateでPlayer.isPausedの値を取得した画面です。Refreshは押した時点の値を取得する操作で、コマンド送信とは別です。"
     },
     {
       "type": "code",
@@ -418,10 +418,10 @@
       "text": "    private fun <E : Event> onPlayer(type: KClass<E>, action: (E) -> Unit) {\n        val owner = player\n        val generation = playerGeneration\n        val guarded: (E) -> Unit = { if (!released && player === owner && generation == playerGeneration) action(it) }\n        owner.on(type, guarded)\n        playerSubscriptions += { owner.off(type, guarded) }\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 609,
-        "label": "MainActivity.kt:609–615"
+        "line": 593,
+        "label": "MainActivity.kt:593–599"
       },
-      "endLine": 615
+      "endLine": 599
     },
     {
       "type": "p",
@@ -447,7 +447,7 @@
       "rows": [
         [
           "音声と字幕",
-          "Configurationの言語リスト・外部WebVTTと、SDK操作パネルのトラックAPI。",
+          "Settings → ConfigurationのSource・Playerにある言語と外部字幕の設定、APIsのトラック操作。",
           "対応するトラックを含むソースを使います。優先順位を適用した後、プレイヤーのメニューで字幕やトラックを選択します。"
         ],
         [
@@ -458,7 +458,7 @@
         [
           "全画面とピクチャーインピクチャー",
           "ホストのハンドラー、映像だけのCompose配置、Activityのモード通知。",
-          "SDK操作パネルで対応ハンドラーを設定してから開始・終了します。全画面は戻る操作で終了します。小窓表示はOSや機器の対応が必要です。"
+          "APIsで対応ハンドラーを設定してから開始・終了します。全画面は戻る操作で終了します。小窓表示はOSや機器の対応が必要です。"
         ],
         [
           "Androidのメディア操作",
@@ -484,7 +484,7 @@
     {
       "type": "figure",
       "file": "android-offline-tracks",
-      "caption": "Offline controlsで音声トラックをダウンロード対象に選んだ画面。画像は選択の段階を示します。ダウンロード完了と通信なしでの再生は別に確認します。"
+      "caption": "以前のレイアウトで撮影した記録例です。Offline controlsで音声トラックをダウンロード対象に選んだ画面。画像は選択の段階を示します。ダウンロード完了と通信なしでの再生は別に確認します。"
     },
     {
       "type": "h3",
@@ -501,10 +501,10 @@
       "text": "    internal fun releaseView(view: PlayerView) {\n        if (!views.remove(view)) return\n        retireApiViewSubscriptions(view)\n        retireApiViewHandlers(view)\n        apiSurfaces.clear(view)\n        if (apiDetachedView === view) apiDetachedView = null\n        viewLifecycle.detach(view)\n        view.player = null\n        view.onDestroy()\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 623,
-        "label": "MainActivity.kt:623–632"
+        "line": 607,
+        "label": "MainActivity.kt:607–616"
       },
-      "endLine": 632
+      "endLine": 616
     },
     {
       "type": "p",
@@ -519,7 +519,7 @@
     {
       "type": "note",
       "title": "Apply後も想定した値にならないのはなぜですか？",
-      "text": "まず適用ボタンの種類と検証エラーを確認します。PlayerとSourceの下書きは独立しています。SDK APIの上書きは標準フォームより優先され、Use this overrideで登録した後もApply SDK settings and restartが必要です。標準の適用済みコードと、上書き用のコードを併せて確認してください。SDKのデバッグログなど起動時だけの設定は、保存した次回起動値と現在値が別です。アプリを完全に終了して開き直すと反映されます。"
+      "text": "まず適用ボタンの種類と検証エラーを確認します。PlayerとSourceの下書きは独立しています。SDK APIの上書きは標準フォームより優先され、Stage overrideで登録した後もApply SDKが必要です。標準の適用済みコードと、上書き用のコードを併せて確認してください。SDKのデバッグログなど起動時だけの設定は、保存した次回起動値と現在値が別です。アプリを完全に終了して開き直すと反映されます。"
     },
     {
       "type": "note",
@@ -585,7 +585,7 @@
     },
     {
       "type": "p",
-      "text": "ApiAnalyticsSettings.playerConfigはAnalyticsConfigを作り、DefaultMetadataを含むAnalyticsPlayerConfig.Enabled、またはDisabledを返します。この値をSDKのPlayerコンストラクターへ渡します。呼び出し例は「Androidプレイヤーの組み込み」を参照してください。Analytics設定パネルにはBuild key、Deferred license、Disabledがあり、Apply Analytics settings and restart playerはPlayerを再生成します。上書きがない場合、Deferred licenseはSDKのDEFERRED指定を渡し、SDKがPlayerライセンスに関連づけられた有効なAnalyticsライセンスを取得します。この選択だけで収集を確認したことにはならないため、収集機能の状態とDashboardの対応セッションを確認してください。"
+      "text": "ApiAnalyticsSettings.playerConfigはAnalyticsConfigを作り、DefaultMetadataを含むAnalyticsPlayerConfig.Enabled、またはDisabledを返します。この値をSDKのPlayerコンストラクターへ渡します。呼び出し例は「Androidプレイヤーの組み込み」を参照してください。Analytics設定パネルにはBuild key、Deferred license、Disabledがあり、Apply AnalyticsはPlayerを再生成します。上書きがない場合、Deferred licenseはSDKのDEFERRED指定を渡し、SDKがPlayerライセンスに関連づけられた有効なAnalyticsライセンスを取得します。この選択だけで収集を確認したことにはならないため、収集機能の状態とDashboardの対応セッションを確認してください。"
     },
     {
       "type": "links",
@@ -690,7 +690,7 @@
     {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerTouchHost.kt",
       "line": 1,
-      "label": "プレイヤーとスクロールフォームのタッチ処理"
+      "label": "プレイヤーのタッチ処理"
     },
     {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiOfflinePanel.kt",
@@ -780,6 +780,14 @@
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiAnalyticsPanel.kt",
       "line": 20,
       "label": "Analyticsモード・実行時メタデータ・SDK状態"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/WorkspaceUi.kt",
+      "label": "タブ、選択欄、固定の適用操作"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
+      "label": "再生プレビューと設定画面の配置"
     }
   ]
 }

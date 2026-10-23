@@ -3,6 +3,15 @@
 Product versions describe Player Lab releases. Bitmovin SDK versions are tracked
 separately in the [API coverage guide](https://kazuhide.github.io/player-lab/guide/api-coverage/).
 
+## Unreleased
+
+- Give Android and Apple apps direct setting selection, fixed Apply and Reset
+  actions, and separate workspaces for APIs, applied code, and additional tools.
+  Preserve drafts and the native player across navigation and layout changes.
+- Improve inputs with large text and the software keyboard, separate API calls
+  from observed SDK state, and update the English and Japanese native guides.
+- Replace the unavailable public Live HLS sample used by the apps.
+
 ## 0.1.3
 
 - Split each platform's implementation guide into pages for integration,

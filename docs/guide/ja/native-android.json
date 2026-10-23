@@ -47,18 +47,18 @@
     },
     {
       "type": "p",
-      "text": "映像の下に、横へスクロールするUI・ソースの選択欄とライブのシークボタン、縦にスクロールするフォームがあります。Configurationでは基本のソース・Player設定を編集します。SDK API settingsは追加Override、SDK API controlsは操作・状態・イベント、Offline controlsはオフライン保存のパネルです。下へスクロールして各パネルを開きます。"
+      "text": "再生プレビューの近くにSourceとThemeの選択欄があります。Settings、APIs、Code、Moreのタブは常に表示され、他のパネルをスクロールせずに開けます。Settingsは目的別の設定、APIsはSDKの操作・状態・イベント、Codeは適用済みコード、Moreは補助機能と診断です。"
     },
     {
       "type": "steps",
       "items": [
-        "VOD HLSまたはVOD DASHを選び、プレイヤー内の再生ボタンを押します。設定を変える前に映像と再生位置が進むことを確認します。",
-        "Configurationを開き、URLは変えずにTitleをPlayer Lab VODにしてApply source (reload)を押します。Player設定を変えずに、新しいソースの読み込みイベントと適用したタイトルを確認します。",
-        "プレイヤー設定を比較する場合はStartup thresholdを1秒、Restart thresholdを2秒、Forward bufferを10秒にしてApply & restart playerを押します。再起動のメッセージ、保持されたソース、適用済みBufferConfigを確認します。Autoplayが無効なら再生を開始します。",
-        "Default、Sports、Live (DVR)、Cinemaを切り替えてUIの配置を比較します。AndroidではPlayerを維持してPlayerViewを交換します。プレイヤー内のメニューと外側のフォームは別々にスクロールします。",
-        "音声・字幕・ビットレートを試す場合は、対応するトラックや画質を含むソースで以下の入力例を使います。設定値を入れても、ソースにないトラックや画質は増えません。",
-        "Show applied codeで適用した設定を比較します。続いてSDK API controlsのCommands・State・Eventsで、操作後の状態とイベントを確認します。以下では、各操作に対応する画像と手順を示します。",
-        "ライブの巻き戻しを試す場合はライブのプリセットを選び、範囲が得られるのを待ちます。負の補助オフセットはライブ端から過去への距離です。mode、dvrAvailable、behindLive、window、イベントログを確認します。Live edgeでライブ端に戻ります。",
+        "SourceでVOD HLSまたはVOD DASHを選び、再生を開始します。設定を変える前に映像と再生位置が進むことを確認します。",
+        "Settings → Configuration → Sourceを選び、SettingでTitleを開きます。URLは変えずにPlayer Lab VODと入力してApply sourceを押します。Player設定を変えずに、再読み込みのメッセージと適用したタイトルを確認します。",
+        "ConfigurationでPlayerを選びます。SettingからStartup buffer、Restart buffer、Forward bufferを開き、それぞれ1秒、2秒、10秒を入力してApply playerを押します。再起動のメッセージ、保持されたソース、適用済みBufferConfigを確認します。Autoplayが無効なら再生を開始します。",
+        "ThemeでDefault、Sports、Live、Cinemaを切り替え、操作部を比較します。AndroidではPlayerを維持してPlayerViewを交換します。プレイヤー内のメニューとアプリの設定画面は別のものです。",
+        "音声・字幕・ビットレートはSourceまたはPlayerの項目から選びます。必要なトラックや画質を含むソースを使ってください。設定値を入れても、ソースにないトラックや画質は増えません。",
+        "Codeで適用した設定を比較します。APIsのCommands・State・Eventsで操作し、結果を確認します。",
+        "ライブの巻き戻しはライブのプリセットで、範囲が得られるのを待ってから試します。Live edgeでライブ端へ戻れます。Moreには追加のライブ操作と診断があり、VODの基本設定とは分かれています。",
         "PlayerErrorやSourceErrorが出た場合は数値コードを確認します。まずライセンスに許可したアプリIDと参照ソースへの通信を確認してください。"
       ]
     },
@@ -77,50 +77,50 @@
     },
     {
       "type": "p",
-      "text": "SourceとPlayerの設定は別々に編集・適用します。Player設定を適用すると適用済みソースを読み直し、まだ適用していないソースの編集値は使いません。操作名を確認し、入力欄のエラーを修正してから適用します。"
+      "text": "SettingsのConfigurationでSource、Player、SDK overridesから選び、変更する項目を開きます。SourceとPlayerの下書きは別々に保持します。固定の操作欄には未適用の状態と、Applyでソースを読み直すかPlayerを再生成するかを表示します。Playerの適用に、未適用のSource編集値は含めません。入力に誤りがある場合は下書きを保持し、対象の項目を開きます。"
     },
     {
       "type": "p",
-      "text": "Configurationを開くとソースとプレイヤーの設定を編集できます。ソース設定は HTTP／HTTPS URL、DASH／HLS／Smooth／Progressive、タイトル、ポスター URL、ポスターの継続表示、開始オフセット（秒）、SDK default／Start／End の基準、任意のライブ目標遅延（秒）です。タイトル・ポスター・オフセットの空欄は SDK 既定値です。既定の基準は VOD が先頭、ライブが末尾で、範囲外のオフセットは SDK が補正します。HTTP の可否は端末のネットワークポリシーに従います。"
+      "text": "Settingsでソースのグループを選び、変更する項目を開きます。ソース設定はHTTP／HTTPS URL、DASH／HLS／Smooth／Progressive、タイトル、ポスターURL、ポスターの継続表示、開始オフセット（秒）、SDK default／Start／Endの基準、任意のライブ目標遅延（秒）です。タイトル・ポスター・オフセットの空欄はSDK既定値です。既定の基準はVODが先頭、ライブが末尾で、範囲外のオフセットはSDKが補正します。HTTPの可否は端末のネットワークポリシーに従います。"
     },
     {
       "type": "figure",
       "file": "android-source-settings",
-      "caption": "Androidのソース設定。ソースの音声言語一覧はPlayer側の指定より優先されます。外部WebVTT字幕にはURL・表示名・言語・既定フラグを設定し、表示はプレイヤーの字幕メニューで有効にします。Android 16エミュレーターでの画面です。"
+      "caption": "SettingsでSourceを選択した画面です。Settingから項目を選ぶと、その入力欄が表示されます。Reset draftとApply sourceは画面下部に固定されています。Android 16エミュレーターでの画面です。"
     },
     {
       "type": "p",
-      "text": "Live target latencyはSourceLiveConfig.targetLatencyに対応します。空欄では従来のSDK既定値（liveConfig = null）を維持します。有限の数値を指定するとSDKのライブ端の定義が変わり、再生の停止を避けながらその遅延に近づけます。VODでは無視されます。Apply sourceでソースを再読み込みし、Playerを再生成しても適用値を保持します。Reset source draftは適用せずに下書きを戻します。この設定だけでは、シークの完了や目標の遅延に達するまでの時間は保証されません。確認環境と結果は「テスト結果」のページを参照してください。"
+      "text": "Live target latencyはSourceLiveConfig.targetLatencyに対応します。空欄では従来のSDK既定値（liveConfig = null）を維持します。有限の数値を指定するとSDKのライブ端の定義が変わり、再生の停止を避けながらその遅延に近づけます。VODでは無視されます。Apply sourceでソースを再読み込みし、Playerを再生成しても適用値を保持します。Reset draftは適用せずに下書きを戻します。この設定だけでは、シークの完了や目標の遅延に達するまでの時間は保証されません。確認環境と結果は「テスト結果」のページを参照してください。"
     },
     {
       "type": "p",
-      "text": "Player 設定は Autoplay（オフ）、Start muted（オフ）、SDK のライブ time shifting（オン）、開始バッファ閾値（2.5 秒）、再開閾値（5 秒）、先読みバッファ（50 秒）、自動選択の最大映像ビットレート（整数 bps、空欄は Int.MAX_VALUE＝2147483647 で上限なし）、preload（オン）、rebuffering（オン）、ライブの品質／安定性バランス（0～1、既定 0.5）です。閾値は 0 以上かつ先読みバッファから 0.5 秒を引いた値以下、先読みバッファは 0.5 秒以上にします。非有限の数値は適用できません。ビットレート上限を超える品質も手動選択は可能です。バランスはライブ端付近でのみ有効です。"
+      "text": "Player 設定は Autoplay（オフ）、Start muted（オフ）、SDK のライブ time shifting（オン）、開始バッファ閾値（2.5 秒）、再開閾値（5 秒）、先読みバッファ（50 秒）、自動選択の最大映像ビットレート（整数 bps、空欄は Int.MAX_VALUE＝2147483647 で上限なし）、preload（オン）、rebuffering（オン）、ライブの品質／安定性バランス（0～1、既定 0.5）です。閾値は 0 以上かつ先読みバッファから 0.5 秒を引いた値以下、先読みバッファは 0.5 秒以上にします。非有限の数値は適用できません。ビットレート上限を超える品質も手動選択は可能です。バランスはライブ端付近でのみ有効です。Player → Live time shiftingはSDK生成時の設定です。More → Playback optionsのEnable live rewind controlsは別のアプリ設定で、VODを表示中でも変更できます。VODの再生動作は変えません。More → Live controlsには、読み込んだソースで利用できるライブ操作だけを表示します。"
     },
     {
       "type": "figure",
       "file": "android-player-settings",
-      "caption": "AndroidのPlayer設定。自動再生、開始時のミュート、Player全体の音声言語の優先順を指定します。適用するとPlayerを再生成します。ソース側に音声言語の指定があれば、そちらが優先されます。"
+      "caption": "Player設定のAutoplayを表示した画面です。Apply playerを押すとPlayerを再生成し、ソースを読み込み直します。他のPlayer設定もSettingから選択できます。"
     },
     {
       "type": "steps",
       "items": [
-        "下書きを編集し、Apply source (reload) で現在の Player にソースを読み込み直します。入力に誤りがあれば、適用中のソースと Player は変わりません。",
-        "再生・バッファ・画質の自動選択設定はApply & restart playerで新しいPlayerに反映します。現在のソースとメタデータ・オプション、UIモード、Allow DVR、イベントログを引き継ぎます。再生位置は開始オフセットに戻り、Autoplayの設定に従って再生を開始します。",
-        "Reset source draft は適用中のソースへ、Reset player draft は SDK 既定値へ下書きを戻します。いずれも適用はしません。カタログの同じプリセットを再選択した場合も、ソースの下書きを置き換えて独自のメタデータ・オフセット・ライブ目標遅延を消去します。"
+        "ConfigurationでSourceを選び、Settingから対象を編集します。Apply sourceで現在のPlayerにソースを読み込み直します。入力に誤りがあれば、適用中のソースとPlayerは変わりません。",
+        "再生・バッファー・画質の自動選択設定はConfigurationのPlayerで編集し、Apply playerで反映します。新しいPlayerは適用済みのソースとメタデータ・オプション、UIモード、アプリの巻き戻し設定、イベントログを引き継ぎます。再生位置は開始オフセットに戻り、Autoplayの設定に従って再生を開始します。",
+        "Reset draftは、選択したSourceまたはPlayerの編集値を適用済みへ戻します。既定値への復帰や再生のやり直しは行いません。項目やタブを変えても未適用の編集値は残ります。ソースのプリセットを選ぶと、カスタムのソース項目とオプションを置き換えます。"
       ]
     },
     {
       "type": "p",
-      "text": "パネル全体を縦にスクロールして全項目へ移動します。既存のソース・UI・シーク列は横スクロールのまま、新しい設定の選択肢と操作ボタンは狭い幅で折り返します。操作部品はシステムバーやカットアウトの安全領域内に配置します。方向キーでフォーカスを移動でき、設定スイッチのフォーカスは枠線で表示します。"
+      "text": "グループと項目を選ぶと、その入力欄を直接開けます。Reset、Apply、下書きの状態は入力欄の外に表示します。SourceとThemeは選択欄から候補を確認でき、選択済みの項目には選択状態を示します。利用できない操作は別の状態で表示します。長い構造化入力はエディター内でスクロールでき、再生プレビューやタブは移動しません。"
     },
     {
       "type": "p",
-      "text": "Show applied codeは、適用中の設定と現在のUIに対応するKotlinのPlayerConfig・SourceConfig・PlayerViewConfigを表示します。ライブ目標遅延を指定した場合はその値も含め、未適用の下書きは含めません。Copy codeはAndroidのクリップボードへコピーし、Copiedを表示します。ライセンスキーはプレースホルダーです。組み込むアプリでは、自分のキーを設定し、ビューの接続とライフサイクル通知の転送を実装します。"
+      "text": "Codeは、適用中の設定と現在のUIに対応するKotlinのPlayerConfig・SourceConfig・PlayerViewConfigを表示します。ライブ目標遅延を指定した場合はその値も含め、未適用の下書きは含めません。Wrap linesで行の折り返しを切り替え、Copy codeでAndroidのクリップボードへコピーします。コピー後はCopiedと表示します。ライセンスキーはプレースホルダーです。組み込むアプリでは、自分のキーを設定し、ビューの接続とライフサイクル通知の転送を実装します。"
     },
     {
       "type": "note",
-      "title": "Androidでのプレイヤーメニューのスクロール",
-      "text": "動画内の設定メニューとアプリの設定フォームは別々にスクロールします。メニューの下にある項目を表示するには動画内をスワイプし、フォームをスクロールするときは動画の外から操作してください。外側のスクロールが動画内のスワイプを取り込むことがあるため、アプリはプレイヤーで扱うタッチを動画側に保持します。指を離したとき、操作をキャンセルしたとき、プレイヤーを置き換えたときに解除します。"
+      "title": "Androidのプレイヤー内メニュー",
+      "text": "動画内の設定メニューでは、下にある項目を表示するときにメニュー内をスクロールします。アプリの設定は別のSettingsから選びます。PlayerTouchHostは動画内で始まったジェスチャーを、指を離すかキャンセルするまで動画側に保持します。プレイヤーを置き換えた場合も解除します。"
     },
     {
       "type": "table",
@@ -138,27 +138,27 @@
         [
           "Sourceと再生開始位置",
           "Start offset: 5秒、Offset reference: Start",
-          "Apply source (reload)を使います。VODで再生開始位置を先頭と比較します。オフセットを空欄にするとSDK既定値になります。設定したオフセットは、その後のプレイヤー再起動にも適用します。"
+          "Apply sourceを使います。VODで再生開始位置を先頭と比較します。オフセットを空欄にするとSDK既定値になります。設定したオフセットは、その後のプレイヤー再起動にも適用します。"
         ],
         [
           "Playback",
           "Autoplay: 無効、Start muted: 有効",
-          "Apply & restart playerを使います。再生ボタンを押すまで待機し、ミュートで始まることを確認します。これらは起動時の設定で、プレイヤーUIの即時操作とは別です。"
+          "Apply playerを使います。再生ボタンを押すまで待機し、ミュートで始まることを確認します。これらは起動時の設定で、プレイヤーUIの即時操作とは別です。"
         ],
         [
           "Buffer",
           "Startup threshold: 1、Restart threshold: 2、Forward buffer: 10。単位はいずれも秒",
-          "Apply & restart playerを使います。開始・再開のしきい値は、再生開始時や読み込み待ち後の再開に必要なバッファー内のメディア時間で、実時間の待ち時間を保証する値ではありません。適用済みコードのBufferConfigを確認します。見える効果は通信やソースによって変わります。"
+          "Apply playerを使います。開始・再開のしきい値は、再生開始時や読み込み待ち後の再開に必要なバッファー内のメディア時間で、実時間の待ち時間を保証する値ではありません。適用済みコードのBufferConfigを確認します。見える効果は通信やソースによって変わります。"
         ],
         [
           "Adaptation",
           "Maximum automatic video bitrate: 1500000 bps",
-          "Apply & restart playerを使います。適用済みコードのmaxSelectableVideoBitrateと、複数ビットレートを含むソースの自動画質選択を比較します。自動選択の上限なので、手動選択ではより高い画質も選べます。"
+          "Apply playerを使います。適用済みコードのmaxSelectableVideoBitrateと、複数ビットレートを含むソースの自動画質選択を比較します。自動選択の上限なので、手動選択ではより高い画質も選べます。"
         ],
         [
           "ライブのAdaptation",
           "Live quality / stability balance: 0.8",
-          "Apply & restart playerを使います。ライブ端付近では1側が安定性、0側が画質を優先します。VODでは比較できません。Preload contentとAllow rebufferingは別のAdaptation設定です。"
+          "Apply playerを使います。ライブ端付近では1側が安定性、0側が画質を優先します。VODでは比較できません。Preload contentとAllow rebufferingは別のAdaptation設定です。"
         ],
         [
           "音声の優先言語",
@@ -168,30 +168,30 @@
         [
           "Network",
           "HTTP retry delays: 0, 0.25, 2秒",
-          "Apply & restart playerを使い、適用済みコードのリトライ間隔を確認します。成功した再生リクエストだけではリトライは確認できません。失敗時の挙動を調べる場合は自分で管理するテストソースを使います。"
+          "Apply playerを使い、適用済みコードのリトライ間隔を確認します。成功した再生リクエストだけではリトライは確認できません。失敗時の挙動を調べる場合は自分で管理するテストソースを使います。"
         ]
       ]
     },
     {
       "type": "p",
-      "text": "初期のプレイヤー設定に戻す場合はReset player draftを押してからApply & restart playerを実行します。Reset player draftだけでは再生を変更しません。一方、Reset source draftは適用済みのソース値を下書きに戻す操作で、プリセットの既定値には戻りません。カスタムソース設定や外部字幕のメタデータを消す場合はソースのプリセットを選びます。プレイヤー設定は維持します。Androidでは同じ有効値を再適用した場合も、再読み込みまたは再起動を繰り返します。"
+      "text": "Reset draftは未適用の編集を破棄し、選択したグループの値を適用済みへ戻します。SDK既定値と比較する場合は、各項目で説明する既定値を入力してApplyを押してください。カスタムソース設定や外部字幕のメタデータを消す場合はソースのプリセットを選びます。Player設定は維持します。変更がない場合も有効な値なら再適用し、ソースの再読み込みやPlayerの再生成を明示的に繰り返せます。"
     },
     {
       "type": "steps",
       "items": [
-        "Apply後にShow applied codeを開き、PlayerConfig・SourceConfig・現在のUI設定を比較します。Copy codeはAndroidのクリップボードへコピーし、ボタンがCopiedになります。",
-        "Applyせずに編集して、出力が変わらないことを確認します。実際のライセンス値は置き換え用の文字列です。追加のSDK OverrideはSDK API settingsのApplied SDK override codeに別に表示します。"
+        "Applyの後にCode → Player, source and UIを選び、PlayerConfig・SourceConfig・現在のUI設定を比較します。長い行はWrap linesを有効にすると端末の幅で読めます。Copy codeで表示中のコードをAndroidのクリップボードへコピーし、コピー後はCopiedと表示します。",
+        "Applyせずに編集して、出力が変わらないことを確認します。実際のライセンス値は置き換え用の文字列です。追加設定はApplied codeの選択欄でSDK overridesを選んで確認します。"
       ]
     },
     {
       "type": "figure",
       "file": "android-applied-code",
-      "caption": "HTTP再試行の待ち時間と適用済みのKotlinコード。コードには適用した値とYOUR_PLAYER_KEYを表示し、未適用の編集値や実際のライセンスは含めません。画像を選択すると元のサイズで確認できます。"
+      "caption": "Codeに表示した適用済みのKotlinコードです。Wrap linesで長い行を折り返します。未適用の編集値は含まれず、ライセンス値はYOUR_PLAYER_KEYに置き換わります。"
     },
     {
       "type": "note",
       "title": "リセットと適用は別の操作",
-      "text": "Reset source draftはソースの編集値を適用済みの値へ戻します。Reset player draftはPlayerの既定値を編集欄へ戻すだけで、Apply & restart playerが必要です。別に適用したSDK OverrideはSDK API settingsで解除するまで残ります。Androidの基本フォームでは同じ値でも、入力が有効なら適用するたびに再読み込み・再生成を行います。"
+      "text": "Reset draftは、選択したグループの入力を適用済みの値へ戻す操作で、再生は変えません。SourceとPlayerの下書きは別々に保持します。別に適用したSDK Overrideは、追加設定のエディターで解除してApplyを押すまで有効です。基本設定に変更がなくても、有効な値の再適用で再読み込みや再生成を行います。適用前に操作の種類を確認してください。"
     },
     {
       "type": "links",
@@ -220,14 +220,14 @@
     },
     {
       "type": "note",
-      "text": "ソース設定は現在のPlayerで再読み込みし、Playerの言語・再試行設定はPlayerを再生成して適用します。適用済みソースのメタデータ、選択中のUI、アプリの巻き戻し設定を引き継ぎます。Resetは下書きだけを変更します。Show applied codeには、入力を整えてSDKへ渡した設定を表示します。未適用の入力と実際のライセンス値は含めません。"
+      "text": "ソース設定は現在のPlayerで再読み込みし、Playerの言語・再試行設定はPlayerを再生成して適用します。適用済みソースのメタデータ、選択中のUI、アプリの巻き戻し設定を引き継ぎます。Resetは下書きだけを変更します。Codeには、入力を整えてSDKへ渡した設定を表示します。未適用の入力と実際のライセンス値は含めません。"
     },
     {
       "type": "steps",
       "items": [
         "音声の優先順はPlayer側にen, deを指定して再生成し、Source側にde, enを指定して再読み込みして比較します。Playerの音声メニューで結果を確認します。Source側を空にして再読み込みするとPlayer側を引き継ぎます。",
         "外部字幕を削除する場合はURLとメタデータを一緒に消してApply sourceを押すか、カタログのプリセットを選びます。Default external subtitleはメタデータであり、字幕の表示を有効にしません。",
-        "HTTP再試行をSDK既定の動作へ戻す場合はHTTP retry delaysを空にし、Apply & restart playerを押します。成功した要求では再試行の待ち時間は確認できません。失敗の比較には自分で管理するソースを使います。"
+        "HTTP再試行をSDK既定の動作へ戻す場合はHTTP retry delaysを空にし、Apply playerを押します。成功した要求では再試行の待ち時間は確認できません。失敗の比較には自分で管理するソースを使います。"
       ]
     },
     {
@@ -237,10 +237,10 @@
     {
       "type": "steps",
       "items": [
-        "SDK API settingsを開き、Find SDK fieldでプロパティを選びます。型・入力可能な値・単位を確認します。",
-        "値を入力してUse this overrideで仮登録します。Staged overridesを確認してApply SDK settings and restartを押します。仮登録だけでは再生に影響せず、適用したOverrideは基本フォームより優先します。",
-        "Applied SDK override codeと、対応するStateを更新して確認します。Remove this overrideの後にApplyを押すと、基本フォームまたはSDK既定値へ戻ります。Reset SDK draftは仮登録中の編集値を適用済みへ戻す操作で、有効なOverrideを解除しません。",
-        "LabelingConfig.videoQualityLabelerなどのコールバックではinputと戻り値を確認し、本文を仮登録してApplyを押します。SDKがコールバックを呼び出す操作を行い、Refresh callback outcomesで呼び出し数・代替動作・直近の理由を確認します。"
+        "Settings → Configuration → SDK overridesを選びます。Featureで分類を選び、SDK settingから一つの項目を開きます。候補を検索することもできます。SDK名・型・入力可能な値・単位を確認します。",
+        "値を入力してStage overrideで仮登録し、変更を確認してApply SDKを押します。仮登録だけでは再生に影響せず、適用したOverrideは基本設定より優先します。 プリセットのある関数や一覧では、Preset valuesで入力例を選んだ後も内容を編集できます。",
+        "Code → SDK overridesと、対応するAPIのStateを更新して確認します。Removeの後にApplyを押すと、基本設定またはSDK既定値へ戻ります。Reset draftは仮登録中の編集値を適用済みへ戻す操作で、有効なOverrideを解除しません。",
+        "LabelingConfig.videoQualityLabelerなどのコールバックではinputと戻り値を確認し、本文を仮登録してApplyを押します。SDKがコールバックを呼び出す操作を行い、More → Diagnosticsで結果を更新して呼び出し数・代替動作・直近の理由を確認します。"
       ]
     },
     {
@@ -259,7 +259,7 @@
         [
           "配列",
           "SourceConfig.subtitleTracks / PlaylistConfig.sources",
-          "項目を追加して子フィールドを編集し、配列全体を登録します。字幕のdefault属性は字幕を有効にする操作ではありません。プレイリストの先読みは通信量やメモリ使用量が増える場合があります。"
+          "構造化した一覧はEditボタンで開き、ItemとPropertyから一つの項目を編集します。Close editorで閉じても下書きを保持します。一覧全体をStageし、Apply SDKで適用します。字幕のdefault指定だけでは字幕表示を有効にしません。プレイリストの事前読み込みは通信量とメモリ使用量を増やす場合があります。"
         ],
         [
           "Androidオブジェクト",
@@ -281,7 +281,7 @@
     {
       "type": "figure",
       "file": "android-api-callback",
-      "caption": "画質名を作る関数の適用例です。登録した関数と有効な上書き項目が表示されています。Applyが無効な状態は、未適用の変更がないことを示します。"
+      "caption": "以前のレイアウトで撮影した記録例です。画質名を作る関数の適用例です。登録した関数と有効な上書き項目が表示されています。Applyが無効な状態は、未適用の変更がないことを示します。"
     },
     {
       "type": "note",
@@ -303,18 +303,18 @@
     },
     {
       "type": "p",
-      "text": "SDK API controlsはCommands・State・Eventsに分かれています。非同期処理を要求する場合、操作結果のメッセージと実際の再生結果は別です。次のシーク例ではVODを読み込んで比較します。"
+      "text": "APIsはCommands・State・Eventsに分かれています。分類または検索で候補を絞り、実行する操作を明示的に選びます。検索だけではAPIを実行しません。非同期処理を要求する場合、送信結果のメッセージとSDKの状態・イベントは別です。次のシーク例ではVODを読み込んで比較します。"
     },
     {
       "type": "steps",
       "items": [
-        "CommandsでPlayer.seekを検索し、timeに5を入力してRun SDK APIを押します。引数やソースの状態のエラーがないか確認します。"
+        "CommandsでPlayer.seekを検索し、timeに5を入力してRun APIを押します。引数やソースの状態のエラーがないか確認します。"
       ]
     },
     {
       "type": "figure",
       "file": "android-api-operation",
-      "caption": "再生位置の引数を入力してseekを実行する画面です。"
+      "caption": "Commandsでapi.Player.pause()を選択した画面です。Run APIは画面下部に固定されています。呼び出しの結果と、SDKから取得した再生状態を分けて表示します。"
     },
     {
       "type": "steps",
@@ -325,7 +325,7 @@
     {
       "type": "figure",
       "file": "android-api-state",
-      "caption": "seekの後にPlayer.currentTimeを読み取った例です。要求の送信結果とSDKの現在値を分けて確認します。"
+      "caption": "StateでPlayer.isPausedを選択した画面です。Refresh SDK stateで選択した値を取得します。"
     },
     {
       "type": "steps",
@@ -337,7 +337,7 @@
     {
       "type": "figure",
       "file": "android-api-events",
-      "caption": "Playingイベントの記録です。発生していないイベントは0のまま表示します。"
+      "caption": "EventsでPlayerEvent.Pausedを選択した画面です。選択したイベントの記録件数と、アプリ起動後のSDKイベント履歴を分けて表示します。"
     },
     {
       "type": "p",
@@ -350,7 +350,7 @@
     {
       "type": "figure",
       "file": "android-media-session",
-      "caption": "MediaSessionの操作画面です。現在のPlayerをAndroidのメディア操作へ接続します。外部機器での動作は利用環境によって異なります。"
+      "caption": "以前のレイアウトで撮影した記録例です。MediaSessionの操作画面です。現在のPlayerをAndroidのメディア操作へ接続します。外部機器での動作は利用環境によって異なります。"
     },
     {
       "type": "p",
@@ -358,7 +358,7 @@
     },
     {
       "type": "p",
-      "text": "Analytics controlsは収集とメタデータを別に編集します。Apply Analytics settings and restart playerで適用し、Reset Analytics draftは未適用の編集を捨てます。確認用の再生を行い、収集したセッションはBitmovin Dashboardで確認します。ローカルのSDK結果だけではサーバーの受信を確認できません。Analytics/Observabilityは実装ガイドでPlayerの組み込みの後に説明します。"
+      "text": "More → Analyticsを開き、Analyticsの選択欄で収集設定、メタデータ、実行時の操作を切り替えます。Apply Analyticsは収集設定の下書きを適用してPlayerを再生成し、ソースを再読み込みします。Reset draftは適用済みの設定に戻します。確認用の再生を行い、収集したセッションはBitmovin Dashboardで確認します。ローカルのSDK結果だけではサーバーの受信を確認できません。Analytics/Observabilityは実装ガイドでPlayerの組み込みの後に説明します。"
     },
     {
       "type": "links",
@@ -376,21 +376,21 @@
     {
       "type": "steps",
       "items": [
-        "Offline controlsでUse sample DASH sourceを選ぶか、保存できるオンデマンドソースを適用します。Stable content IDを決め、Create manager for current sourceを押します。同じコンテンツを再び指定できるよう、IDを控えます。",
-        "同時ダウンロード数・セグメント数・端末や通信の条件・オフラインDRMの扱いを選び、Apply offline configurationを押します。選んだ条件がすべて満たされるまで開始を待つ場合があります。",
-        "Fetch SDK optionsで必要なトラックを取得し、Download・Delete・Noneを選んでProcess selected actionsを押します。自動では選択しません。SDKのトラック状態に合わない操作は拒否される場合があります。"
+        "More → Offlineを開き、Offlineの選択欄でManagerを選びます。Use sample DASH sourceを選ぶか、保存できるオンデマンドソースを適用します。Stable content IDを決め、Create managerを押します。同じコンテンツを再び指定できるよう、IDを控えます。",
+        "Offlineの選択欄でDownload settingsを選び、Settingから同時ダウンロード数、セグメント数、端末や通信の条件、オフラインDRMの扱いを編集します。Apply offline settingsで適用します。選んだ条件がすべて満たされるまで開始を待つ場合があります。",
+        "ActionsでFetch SDK track optionsを実行します。続いてTrack selectionで対象のトラックを一つずつ選び、Download・Delete・Noneを指定します。Process selected actionsは選択済みの操作をまとめて送信します。自動では選択しません。SDKのトラック状態に合わない操作は拒否される場合があります。"
       ]
     },
     {
       "type": "figure",
       "file": "android-offline-tracks",
-      "caption": "保存する音声トラックの選択例です。この画面は選択段階で、保存完了を示すものではありません。"
+      "caption": "以前のレイアウトで撮影した記録例です。保存する音声トラックの選択例です。この画面は選択段階で、保存完了を示すものではありません。"
     },
     {
       "type": "steps",
       "items": [
-        "ProgressとRead offline SDK stateを確認し、managerの完了状態を待ちます。その後にPlay downloaded sourceを使い、ネットワークを無効にして映像・音声を確認します。トラックの選択や要求の送信は完了とは別です。",
-        "進行中の処理はSuspend・Resumeで操作します。Delete all content for this IDはキャッシュを削除し、Release managerはファイルを残してmanagerを解放します。リモートソースへ戻す場合はカタログのプリセットを選びます。"
+        "ProgressとActionsのRead offline SDK stateを確認し、managerの完了状態を待ちます。その後にActionsのPlay downloaded sourceを使い、ネットワークを無効にして映像・音声を確認します。トラックの選択や要求の送信は完了とは別です。",
+        "進行中の処理はActionsのSuspend downloads・Resume downloadsで操作します。Delete all content for this IDはキャッシュを削除し、Release managerはファイルを残してmanagerを解放します。リモートソースへ戻す場合はソースのプリセットを選びます。"
       ]
     },
     {
@@ -487,6 +487,10 @@
     {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ApiVrRenderer.kt",
       "label": "ApiVrRenderer.kt"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/WorkspaceUi.kt",
+      "label": "タブ、選択欄、固定の適用操作"
     }
   ]
 }

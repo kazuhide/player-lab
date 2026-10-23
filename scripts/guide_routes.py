@@ -96,10 +96,10 @@ SHARED_FIGURES = {
     'android-api-events': (1080, 2400),
     'android-offline-tracks': (1080, 2400),
     'android-media-session': (1080, 2400),
-    'ios-playback-tracks': (1668, 2420),
+    'ios-playback-tracks': (1206, 2622),
     'ios-initial-tracks': (1668, 2420),
     'ios-video-scaling': (1668, 2420),
-    'ios-applied-code': (1668, 2420),
+    'ios-applied-code': (1206, 2622),
     'tvos-playback-tracks': (3840, 2160),
     'tvos-initial-tracks': (3840, 2160),
     'tvos-video-scaling': (3840, 2160),
@@ -124,6 +124,7 @@ FIGURE_EXTENSIONS = {
         'rn-ios-api-events',
         'rn-android-cast-startup',
         'ios-applied-code',
+        'ios-playback-tracks',
         'tvos-applied-code',
         'ios-offline-track-selection',
         'ios-callback-sdk-status',
@@ -136,6 +137,9 @@ FIGURE_EXTENSIONS = {
         'ios-cast-options',
         'ios-cast-sdk-state',
         'analytics-dashboard-overview', 'analytics-dashboard-errors', 'analytics-session-errors',
+        'android-source-settings',
+        'android-player-settings',
+        'android-applied-code',
         'android-api-callback',
         'android-api-operation',
         'android-api-state',
@@ -153,7 +157,7 @@ COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'veg
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *IMPLEMENTATION_PAGES, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = '42cb8fbe9c8eac8198cabeea104f77d3c1a9ef41'
+SOURCE_REVISION = 'ed644ea5cec256c69c500259314268aa613f43be'
 CONTENT_REVIEW = '2026-10-23'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 
