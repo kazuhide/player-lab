@@ -163,7 +163,7 @@ for (const language of languages) {
         await page.goto(guidePath(language));
         await page.locator(`.guide-topic-group a[href="${guide}/"]`).click();
         await expect(page.locator("main > h1")).toHaveText(content[language][guide]!.title);
-        expect(await page.locator("main > h2:not(#sources)").evaluateAll((headings) =>
+        expect(await page.locator(".guide-implementation-contents h2").evaluateAll((headings) =>
           headings.map((heading) => heading.id))).toEqual([
           "integration", "player-source-config", "ui-customization", "useful-features", "faq",
           "analytics-observability",
