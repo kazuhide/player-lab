@@ -1,6 +1,7 @@
 import AVFoundation
 import BitmovinPlayer
 import Combine
+import SwiftUI
 import UIKit
 import XCTest
 #if os(tvOS)
@@ -16,6 +17,7 @@ final class TrackRuntimeTests: XCTestCase {
     private var errors: [Int] = []
     private var sourceLoads = 0
     private var observations: [Observation] = []
+    private weak var observedModel: PlayerModel?
 
     private struct Observation: Codable {
         let stage: String
@@ -30,7 +32,116 @@ final class TrackRuntimeTests: XCTestCase {
         let selectedSubtitle: String?
         let selectedSubtitleLabel: String?
         let errorCodes: [Int]
+        let timestamp: TimeInterval
+        let playerOwner: String
+        let sourceOwner: String?
+        let emittedSourceOwner: String?
+        let audioIdentifiers: [String]
+        let selectedAudioIdentifier: String?
+        let audioPreference: String?
+        let subtitlePreference: String?
+        let recentLog: [String]
     }
+
+    #if !os(tvOS)
+    func testSportsSourceOnlySubtitleOffRetainsPreferredAudio() async throws {
+        XCTAssertFalse(bitmovinLicenseKey().isEmpty, "Configure the normal app Player license first")
+        let model = PlayerModel(licenseKey: bitmovinLicenseKey())
+        let players = model.$player.sink { [weak self, weak model] player in
+            guard let self, let model else { return }
+            self.subscriptions.removeAll()
+            self.observe(player, model: model)
+        }
+        let controller = NativePreviewController(model: model)
+        controller.setInteractive(false)
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        window.frame = scene.coordinateSpace.bounds
+        window.rootViewController = controller
+        window.windowLevel = .alert + 1
+        window.makeKeyAndVisible()
+        defer {
+            record("final Sports source-only Off", player: model.player)
+            attachObservations(name: "sports-source-only-off-events.json")
+            attach(window, name: "Sports source-only Off final")
+            model.player.destroy()
+            subscriptions.removeAll()
+            players.cancel()
+            window.isHidden = true
+        }
+        XCTAssertEqual(model.presentation, .sdkSwiftUI)
+        var draft = model.configurationDraft
+        draft.sourceURL = ProcessInfo.processInfo.environment["PLAYER_LAB_TEST_MEDIA_URL"]
+            ?? "http://127.0.0.1:5284/vod-multiaudio/master.m3u8"
+        draft.title = "Sports source-only subtitle Off"
+        draft.autoplay = true
+        draft.startOffset = "5"
+        draft.audioLanguage = "de-AT"
+        draft.subtitleMode = .language
+        draft.subtitleLanguage = "de"
+        draft.videoScaling = .fill
+        _ = try model.apply(draft)
+        try await eventually("initial preferred audio and subtitles") {
+            model.player.audio?.language == "de" && model.player.subtitle.language == "de"
+        }
+        try await progress(model.player, stage: "default UI preferred tracks") {
+            model.player.audio?.language == "de" && model.player.subtitle.language == "de"
+        }
+        controller.setInteractive(true)
+        try await progress(model.player, stage: "expanded default UI preferred tracks") {
+            model.player.audio?.language == "de" && model.player.subtitle.language == "de"
+        }
+        controller.setInteractive(false)
+        model.player.pause()
+        try await eventually("default UI pauses before recreation") { model.player.isPaused }
+        let oldPlayer = model.player
+        let oldGeneration = model.playerGeneration
+        model.setUiMode(.sports)
+        XCTAssertTrue(oldPlayer.isDestroyed)
+        XCTAssertFalse(model.player === oldPlayer)
+        XCTAssertNotEqual(model.playerGeneration, oldGeneration)
+        let interface = try XCTUnwrap(model.player.config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig)
+        XCTAssertEqual(interface.uiManagerFactoryFunction,
+                       "bitmovin.playerui.UIFactory.buildSportsUI")
+        controller.setInteractive(true)
+        try await eventually("Sports UI preferred audio and subtitles") {
+            model.player.audio?.language == "de" && model.player.subtitle.language == "de"
+        }
+        try await progress(model.player, stage: "Sports preferred tracks") {
+            model.player.audio?.language == "de" && model.player.subtitle.language == "de"
+        }
+        model.player.pause()
+        try await eventually("Sports UI pauses before source-only reload") { model.player.isPaused }
+        let samePlayer = model.player
+        let sameGeneration = model.playerGeneration
+        let previousSource = try XCTUnwrap(model.player.source)
+        let beforeLoads = sourceLoads
+        draft = model.configurationDraft
+        XCTAssertEqual(draft.audioLanguage.lowercased(), "de-at")
+        draft.subtitleMode = .off
+        record("before subtitle Off Apply", player: model.player)
+        XCTAssertEqual(try model.apply(draft), .reloadSource)
+        XCTAssertTrue(model.player === samePlayer)
+        XCTAssertEqual(model.playerGeneration, sameGeneration)
+        XCTAssertFalse(model.player.source === previousSource)
+        XCTAssertTrue(window.rootViewController === controller)
+        XCTAssertEqual(model.configurationDraft.audioLanguage.lowercased(), "de-at")
+        record("after subtitle Off Apply", player: model.player)
+        try await eventually("Sports source-only Off keeps preferred German audio") {
+            self.sourceLoads > beforeLoads && model.player.isPlaying
+                && model.player.audio?.language == "de"
+        }
+        let item = try XCTUnwrap(videoLayer(controller.view.layer)?.player?.currentItem)
+        let loadedLegible = try await item.asset.loadMediaSelectionGroup(for: .legible)
+        let legible = try XCTUnwrap(loadedLegible)
+        XCTAssertGreaterThanOrEqual(legible.options.count, 2)
+        try await progress(model.player, stage: "Sports source-only Off") {
+            model.player.audio?.language == "de"
+                && item.currentMediaSelection.selectedMediaOption(in: legible) == nil
+        }
+        XCTAssertTrue(errors.isEmpty, "Player/Source error codes: \(errors)")
+    }
+    #endif
 
     func testInitialTrackSelectionReloadRecreationAndNativeScaling() async throws {
         XCTAssertFalse(bitmovinLicenseKey().isEmpty, "Configure the normal app Player license first")
@@ -177,25 +288,38 @@ final class TrackRuntimeTests: XCTestCase {
     }
 
     private func observe(_ player: Player, model: PlayerModel) {
+        observedModel = model
         errors.removeAll()
         player.events.on(SourceLoadedEvent.self).receive(on: DispatchQueue.main)
             .sink { [weak self, weak model, weak player] event in
                 guard let self, let model, let player, model.player === player,
                       player.source === event.source else { return }
                 self.sourceLoads += 1
-                self.record("SourceLoaded", player: player)
+                self.record("SourceLoaded", player: player, emittedSource: event.source)
             }.store(in: &subscriptions)
-        player.events.on(ReadyEvent.self).receive(on: DispatchQueue.main)
-            .sink { [weak self, weak player] _ in
-                if let player { self?.record("Ready", player: player) }
+        player.events.on(ReadyEvent.self)
+            .compactMap { [weak player] _ in player?.source }.receive(on: DispatchQueue.main)
+            .sink { [weak self, weak model, weak player] source in
+                guard let model, let player, model.player === player, player.source === source else { return }
+                self?.record("Ready", player: player, emittedSource: source)
             }.store(in: &subscriptions)
-        player.events.on(AudioAddedEvent.self).receive(on: DispatchQueue.main)
-            .sink { [weak self, weak player] _ in
-                if let player { self?.record("AudioAdded", player: player) }
+        player.events.on(AudioAddedEvent.self)
+            .compactMap { [weak player] _ in player?.source }.receive(on: DispatchQueue.main)
+            .sink { [weak self, weak model, weak player] source in
+                guard let model, let player, model.player === player, player.source === source else { return }
+                self?.record("AudioAdded", player: player, emittedSource: source)
             }.store(in: &subscriptions)
-        player.events.on(AudioChangedEvent.self).receive(on: DispatchQueue.main)
-            .sink { [weak self, weak player] _ in
-                if let player { self?.record("AudioChanged", player: player) }
+        player.events.on(AudioChangedEvent.self)
+            .compactMap { [weak player] _ in player?.source }.receive(on: DispatchQueue.main)
+            .sink { [weak self, weak model, weak player] source in
+                guard let model, let player, model.player === player, player.source === source else { return }
+                self?.record("AudioChanged", player: player, emittedSource: source)
+            }.store(in: &subscriptions)
+        player.events.on(SubtitleChangedEvent.self)
+            .compactMap { [weak player] _ in player?.source }.receive(on: DispatchQueue.main)
+            .sink { [weak self, weak model, weak player] source in
+                guard let model, let player, model.player === player, player.source === source else { return }
+                self?.record("SubtitleChanged", player: player, emittedSource: source)
             }.store(in: &subscriptions)
         player.events.on(PlayerErrorEvent.self).receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.errors.append($0.code.rawValue) }.store(in: &subscriptions)
@@ -225,7 +349,7 @@ final class TrackRuntimeTests: XCTestCase {
         throw QualificationFailure.deadline
     }
 
-    private func record(_ stage: String, player: Player) {
+    private func record(_ stage: String, player: Player, emittedSource: Source? = nil) {
         observations.append(Observation(stage: stage, sourceLoads: sourceLoads,
             duration: player.duration.isFinite ? player.duration : nil,
             position: player.currentTime.isFinite ? player.currentTime : nil,
@@ -235,7 +359,24 @@ final class TrackRuntimeTests: XCTestCase {
             selectedAudio: player.audio?.language,
             selectedSubtitle: player.availableSubtitles.isEmpty ? nil : player.subtitle.language,
             selectedSubtitleLabel: player.availableSubtitles.isEmpty ? nil : player.subtitle.label,
-            errorCodes: errors))
+            errorCodes: errors, timestamp: Date().timeIntervalSince1970,
+            playerOwner: String(describing: ObjectIdentifier(player)),
+            sourceOwner: player.source.map { String(describing: ObjectIdentifier($0)) },
+            emittedSourceOwner: emittedSource.map { String(describing: ObjectIdentifier($0)) },
+            audioIdentifiers: player.availableAudio.map(\.identifier),
+            selectedAudioIdentifier: player.audio?.identifier,
+            audioPreference: observedModel?.configurationDraft.audioLanguage,
+            subtitlePreference: observedModel?.configurationDraft.subtitleMode.rawValue,
+            recentLog: observedModel.map { Array($0.log.prefix(12)) } ?? []))
+    }
+
+    private func attachObservations(name: String) {
+        if let data = try? JSONEncoder().encode(observations) {
+            let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+            attachment.name = name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
     }
 
     private func videoLayer(_ layer: CALayer) -> AVPlayerLayer? {

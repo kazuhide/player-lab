@@ -56,7 +56,7 @@ enum NativeSetting: String, CaseIterable, Identifiable {
         case .autoplay: return "Starts playback after the source loads. Applying creation settings recreates the player and reloads the source."
         case .startMuted: return "Sets the initial mute state when creating the player. This does not toggle the currently playing instance."
         case .sdkTimeShift: return "Enables the SDK's live rewind support. More → Live controls separately enables the app's quick seek buttons."
-        case .audioLanguage: return "Optional language tag, such as de-AT. Applied once at the initial Ready event; an unavailable language keeps the default."
+        case .audioLanguage: return "Optional language tag, such as de-AT. Applied once after the source is loaded and ready; an unavailable language keeps the default."
         case .subtitleMode: return "Automatic keeps the SDK/OS choice. Preferred language uses Initial subtitle language. Off disables subtitles."
         case .subtitleLanguage: return "Language tag, such as en or de. Required only when Initial subtitles is Preferred language."
         case .maximumBitrate: return "Maximum selectable bitrate in whole bit/s. Zero means unlimited. This is a player creation setting."

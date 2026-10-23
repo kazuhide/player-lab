@@ -86,6 +86,8 @@ final class ConfigurationTests: XCTestCase {
         XCTAssertFalse(code.contains("playerConfig.audioLanguage"))
         XCTAssertTrue(code.contains("player.source === event.source"))
         XCTAssertTrue(code.contains("func onReady(_ event: ReadyEvent"))
+        XCTAssertTrue(code.contains("guard loaded, ready, !applied"))
+        XCTAssertEqual(code.components(separatedBy: "        applyInitialTracks(player)").count - 1, 2)
         XCTAssertLessThan(try XCTUnwrap(code.range(of: "player.setSubtitle(trackIdentifier: id)")?.lowerBound),
                           try XCTUnwrap(code.range(of: "player.setAudio(trackIdentifier: id)")?.lowerBound))
         XCTAssertLessThan(try XCTUnwrap(code.range(of: "player.add(listener: initialTracks)")?.lowerBound),

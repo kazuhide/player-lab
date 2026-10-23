@@ -245,7 +245,7 @@ private struct NativePreviewSurface: UIViewControllerRepresentable {
 
 /// Owns an ordinary UIKit container inside the SwiftUI representable boundary.
 /// SwiftUI may manage its outer view's accessibility; the nested gate remains ours.
-private final class NativePreviewController: UIViewController {
+final class NativePreviewController: UIViewController {
     private let host: UIHostingController<NativePreviewRoot>
     private let accessibilityGate = UIView()
 
