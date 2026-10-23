@@ -323,12 +323,12 @@
       "label": "Web のデバイス機能の説明範囲"
     },
     {
-      "path": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+      "path": "apps/ios/PlaybackCore/Sources/PlaybackCore/PlaybackTimeline.swift",
       "line": 66,
       "label": "ライブ座標と状態計算"
     },
     {
-      "path": "apps/android/dvr/src/main/kotlin/com/playerlab/android/dvr/Dvr.kt",
+      "path": "apps/android/playback/src/main/kotlin/com/playerlab/android/playback/PlaybackTimeline.kt",
       "line": 43,
       "label": "Android のライブ座標と状態計算"
     },

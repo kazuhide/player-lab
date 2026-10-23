@@ -34,7 +34,7 @@ test.describe("Live DVR — genuine live stream", () => {
     // DVR window present and substantial — assert a real timeshift buffer (well past
     // the −60s we shift to below) rather than a loose "any negative". livesim2 reports
     // ~300s, the BBC testcard ~900s; the bounds accommodate either. NOTE for freshly
-    // started channels (E2E_LIVE_DASH_URL at the dvr-showcase encoder): the player
+    // started channels (E2E_LIVE_DASH_URL at the Player Lab live encoder): the player
     // derives the window from ACCUMULATED content, not the manifest's
     // timeShiftBufferDepth — run this only after the window has filled
     // (≥ timeshift + liveEdgeOffset seconds of ingest).

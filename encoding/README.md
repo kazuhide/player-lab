@@ -24,7 +24,7 @@ the 54,000 manifest-element limit.
   needs the pinned Python SDK from `encoding/requirements.txt`.
 - Storage follows the repo rule — **bootstrap once, reference by name**: the S3
   output resource (`BITMOVIN_OUTPUT_NAME` in `config/encoding.conf`, default
-  `dvr-showcase-output`) is resolved by name at run time and created
+  `player-lab-output`) is resolved by name at run time and created
   automatically from `BITMOVIN_OUTPUT_*` the first time a script needs it.
   Multiple exact-name matches stop the run; use a unique name or set `OUTPUT_ID`
   to choose an existing output. S3 credentials are read from the environment

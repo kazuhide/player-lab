@@ -262,7 +262,7 @@
       "label": "言語変更と未適用入力"
     },
     {
-      "path": "apps/web/src/dvr/state.ts",
+      "path": "apps/web/src/playback/state.ts",
       "line": 37,
       "label": "有限のdurationによるVOD判定"
     },

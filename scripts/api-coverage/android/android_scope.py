@@ -25,7 +25,7 @@ def build_scope(inventory, repo, scratch, version):
     MAIN = 'apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt'
     SOURCES = 'apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt'
     OFFLINE = 'apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt'
-    DVR = 'apps/android/dvr/src/main/kotlin/com/playerlab/android/dvr/Dvr.kt'
+    TIMELINE = 'apps/android/playback/src/main/kotlin/com/playerlab/android/playback/PlaybackTimeline.kt'
     CONFIG = 'apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt'
     EDITOR = 'apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt'
 
@@ -207,9 +207,9 @@ def build_scope(inventory, repo, scratch, version):
         elif owner.endswith('.Player') and name=='timeShift' and m['kind']=='function':
             result.update(status='constrained_preset',evidence=[ev(MAIN,'player.timeShift(if','PlayerController.seek','Fixed offsets -10/-30/-60 with clamp; live edge passes 0.'),ev(MAIN,'controller.goToLiveEdge()','ShowcaseScreen live-edge button')])
         elif owner.endswith('.Player') and name in ('duration','maxTimeShift','timeShift') and m['kind']=='property':
-            result.update(status='observed',evidence=[ev(MAIN,name+' = player.'+name,'PlayerController.snapshot'),ev(DVR,'fun deriveState(','Dvr.deriveState','Value contributes to rendered DVR mode/window/behindLive.'),ev(MAIN,'"mode=${dvr.mode.raw}','ShowcaseScreen DVR text')])
+            result.update(status='observed',evidence=[ev(MAIN,name+' = player.'+name,'PlayerController.snapshot'),ev(TIMELINE,'fun deriveState(','PlaybackTimeline.deriveState','Value contributes to rendered DVR mode/window/behindLive.'),ev(MAIN,'"mode=${dvr.mode.raw}','ShowcaseScreen playback timing')])
         elif owner.endswith('.Player') and name in ('isLive','currentTime'):
-            result.update(status='code_only',evidence=[ev(MAIN,name+' = player.'+name,'PlayerController.snapshot'),ev(DVR,'fun deriveState(','Dvr.deriveState','Snapshot copies the value but deriveState never reads it; no GUI observation credit.')])
+            result.update(status='code_only',evidence=[ev(MAIN,name+' = player.'+name,'PlayerController.snapshot'),ev(TIMELINE,'fun deriveState(','PlaybackTimeline.deriveState','Snapshot copies the value but deriveState never reads it; no GUI observation credit.')])
         elif owner.endswith('.Player') and name=='destroy':
             result.update(status='code_only',evidence=[ev(MAIN,'player.destroy()','PlayerController.release','Lifecycle only.'),
                 ev(MAIN,'previous.destroy()','PlayerController.applyPlayerSettings','Cleanup after player replacement; no standalone destroy control.')])
@@ -248,7 +248,7 @@ def build_scope(inventory, repo, scratch, version):
                 else:
                     evidence = [ev(MAIN,needle,'PlayerController.observePlayer')]
                 evidence.append(ev(MAIN,'controller.log.take(12)' if name != 'TimeChanged' else '"mode=${dvr.mode.raw}',
-                                   'ShowcaseScreen event log' if name != 'TimeChanged' else 'ShowcaseScreen DVR text'))
+                                   'ShowcaseScreen event log' if name != 'TimeChanged' else 'ShowcaseScreen playback timing'))
                 result.update(status='observed',evidence=evidence)
         return result
 
@@ -354,7 +354,7 @@ def build_scope(inventory, repo, scratch, version):
            'No aggregate percentage is emitted: configuration structures, method overloads, getter observations and concrete event types are different units.'
         ],
         'excluded_unavailable_internal_nonpublic':[],
-        'app_non_sdk_controls':[{'control':'Allow DVR','reason':'Changes app-owned DvrConfig.timeShiftEnabled, not SDK PlayerConfig or SourceConfig.',
+        'app_non_sdk_controls':[{'control':'Allow DVR','reason':'Changes app-owned TimelineConfig.timeShiftEnabled, not SDK PlayerConfig or SourceConfig.',
             'evidence':[ev(MAIN,'fun toggleDvr(enabled: Boolean)','PlayerController.toggleDvr')]}],
         'configuration_type_pages':[{'owner':r['qualified_owner'],'url':r['url'],'sha256':r['sha256']} for r in config_pages],
         'summary':summary,'rows':rows}

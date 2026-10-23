@@ -40,7 +40,7 @@ android {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
-    implementation(project(":dvr"))
+    implementation(project(":playback"))
     // Pin to the current Bitmovin Player v3 release (§18).
     implementation("com.bitmovin.player:player:3.171.0+jason")
     implementation("com.bitmovin.player:player-media-session:3.171.0+jason")

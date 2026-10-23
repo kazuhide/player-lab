@@ -9,7 +9,7 @@ import { expect, test } from "@playwright/test";
 // runs when BOTH env vars are set — e.g. against the provisioned live DVR
 // channel while encoding/live-dvr/start.sh has it running:
 //
-//   E2E_ANALYTICS_LIVE_DASH_URL=https://…/live/dvr-showcase/main.mpd \
+//   E2E_ANALYTICS_LIVE_DASH_URL=https://…/live/player-lab/main.mpd \
 //   E2E_ANALYTICS_LICENSE_KEY=$BITMOVIN_ANALYTICS_LICENSE_KEY \
 //     pnpm exec playwright test live-analytics
 //

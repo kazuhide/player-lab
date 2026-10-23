@@ -1,6 +1,6 @@
 import SwiftUI
 import BitmovinPlayer
-import DvrKit
+import PlaybackCore
 
 struct ContentView: View {
     @StateObject private var model = PlayerModel(

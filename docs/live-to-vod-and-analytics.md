@@ -12,13 +12,13 @@ duration-based rule implemented in each language is:
 > `0`, or `NaN` means live. `detectLiveToVod(prev, next)` fires once, on the
 > transition.
 
-This calculation is unit-tested in the Web, Vega, React Native, Apple `DvrKit`
-and Android `:dvr` modules. The apps refresh their snapshots at these points:
+This calculation is unit-tested in the Web, Vega, React Native, Apple `PlaybackCore`
+and Android `:playback` modules. The apps refresh their snapshots at these points:
 
 | App | Trigger | Note |
 | --- | --- | --- |
 | Web | `DurationChanged` (≥ v8.19.0) | duration starts `Infinity`; don't trust `isLive()` alone |
-| Vega | `DurationChanged` (modular web player) | same as web — `DvrController` re-evaluates |
+| Vega | `DurationChanged` (modular web player) | same as web — the playback controller re-evaluates |
 | iOS / tvOS | `TimeChanged` and source-owned `PlaybackFinished` | completion also handles live/infinite SDK getters that persist after the last frame |
 | Android | `TimeChanged`, source load and seek completion | live-return acceptance waits for a fresh native completion and visible LIVE state |
 | React Native | poll on `onTimeChanged` | **no `onDurationChanged` event** at all |

@@ -56,7 +56,7 @@ vr.enableGyroscope() / vr.disableGyroscope();
   changes the viewing direction; cardboard mode splits the view for a headset.
 - **Show the toggle when:** the loaded source is a 360 source (`SourceConfig.vr`
   present) — otherwise **hide** it; a flat stream has no VR controls.
-- Not wired in the showcase: it needs a 360° source, which the DVR demo doesn't ship.
+- Not wired in Player Lab: it needs a 360° source, which is not bundled.
 
 ## Toggle-visibility summary
 

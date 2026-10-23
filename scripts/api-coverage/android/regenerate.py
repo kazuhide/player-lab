@@ -21,12 +21,12 @@ from dokka_public import collect
 MAIN = 'apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt'
 SOURCE = 'apps/android/app/src/main/kotlin/com/playerlab/android/Sources.kt'
 OFFLINE = 'apps/android/app/src/main/kotlin/com/playerlab/android/OfflineManager.kt'
-DVR = 'apps/android/dvr/src/main/kotlin/com/playerlab/android/dvr/Dvr.kt'
+TIMELINE = 'apps/android/playback/src/main/kotlin/com/playerlab/android/playback/PlaybackTimeline.kt'
 CONFIG = 'apps/android/app/src/main/kotlin/com/playerlab/android/Configuration.kt'
 EDITOR = 'apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt'
 CONTROL_TEST = 'apps/android/app/src/androidTest/kotlin/com/playerlab/android/PlayerControlsInstrumentedTest.kt'
 CODE = 'apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationCode.kt'
-APP_INPUTS = (MAIN, SOURCE, OFFLINE, DVR, CONFIG, EDITOR, CODE, CONTROL_TEST)
+APP_INPUTS = (MAIN, SOURCE, OFFLINE, TIMELINE, CONFIG, EDITOR, CODE, CONTROL_TEST)
 GUI_STATUSES = {'direct', 'preset'}
 
 
@@ -212,9 +212,9 @@ def normalize(scoped, all_public, inventory, repo):
         'Fullscreen/PiP entry, exit and state controls and the mobile volume slider were verified absent from the configured phone UI. They remain missing and receive no GUI credit; reading a false native getter in a test does not count as an app observation.',
         'Current UI choices are Default/Sports/Live/Cinema. Shared assets and custom factories were exercised in the native phone tests. No TvUi/focus selector is exposed.',
         'Cast, IMA, DRM, offline, low-latency, VR, PiP and Analytics remain SDK-available with their media, dependency, license, hardware or integration prerequisites; lack of a test device does not remove them.',
-        'OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned DvrConfig; the separate SDK time shifting editor changes PlaybackConfig.isTimeShiftEnabled.',
+        'OfflineManager is not wired to a GUI. Its helper calls receive code-only status. Allow DVR changes app-owned TimelineConfig; the separate SDK time shifting editor changes PlaybackConfig.isTimeShiftEnabled.',
         'jsLocation/cssLocation remain constant and match SDK defaults, so the UI mode picker does not receive GUI field credit for them.',
-        'duration/maxTimeShift/timeShift contribute to the rendered DVR text. isLive/currentTime are copied but unused by Dvr.deriveState and receive no observed GUI credit.',
+        'duration/maxTimeShift/timeShift contribute to the rendered DVR text. isLive/currentTime are copied but unused by PlaybackTimeline.deriveState and receive no observed GUI credit.',
         'Source evidence reads tracked public app and control-test files, including the configuration editor, SDK mapping and applied-code export. No environment files, native local properties, license values or device state are read by this generator.',
         '25 individual creation/source configuration leaves are editable. They include player/source audio-language priorities, one external WebVTT track\'s URL/label/language/default metadata and HTTP retry delays, alongside source target latency. Blank target latency leaves SourceConfig.liveConfig unset.',
         'PlayerConfig playback/buffer/adaptation/network bindings, SourceConfig options/liveConfig/subtitleTracks and BufferConfig.audioAndVideo are code-only owner bindings; they do not expose arbitrary objects or arrays. External track ID and WebVTT MIME type are fixed code-only values.',

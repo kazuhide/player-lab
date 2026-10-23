@@ -3,8 +3,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ScrollView, StyleSheet, View } from "react-native";
 import { BitmovinPlayer } from "./BitmovinPlayer";
 import { ControlPanel } from "./ControlPanel";
-import type { DvrController } from "./dvrController";
-import type { DvrState } from "./dvr/state";
+import type { PlaybackController } from "./playbackController";
+import type { TimelineState } from "./playback/state";
 import { SOURCES } from "./Sources";
 import { ConfigurationPanel } from "./ConfigurationPanel";
 import { configurationCode } from "./configurationCode";
@@ -28,13 +28,13 @@ export const App: React.FC<{ runtimeChecks?: RuntimeMonitor }> = ({ runtimeCheck
   const [applied, setApplied] = useState(() => parseConfiguration(initialDraft(SOURCES[0]!)));
   const [draft, setDraft] = useState(applied.draft);
   const [error, setError] = useState<string | null>(null);
-  const [dvr, setDvr] = useState<DvrState | null>(null);
+  const [dvr, setDvr] = useState<TimelineState | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const [dvrAllowed, setDvrAllowed] = useState(true);
   const [apiSession, setApiSession] = useState<VegaSessionApi | null>(null);
   const [revision, setRevision] = useState(0);
   const onApiSession = useCallback((owner: VegaSessionApi, active: boolean) => setApiSession((current) => active ? owner : current === owner ? null : current), []);
-  const controllerRef = useRef<DvrController | null>(null);
+  const controllerRef = useRef<PlaybackController | null>(null);
   const appliedCode = useMemo(() => configurationCode(applied), [applied]);
   useEffect(() => {
     runtimeChecks?.appState({ dvrAllowed, logCount: log.length, sourceType: applied.draft.type,
@@ -47,7 +47,7 @@ export const App: React.FC<{ runtimeChecks?: RuntimeMonitor }> = ({ runtimeCheck
     runtimeChecks?.appliedCode(appliedCode);
   }, [runtimeChecks, dvrAllowed, log.length, applied, appliedCode]);
 
-  const onDvr = useCallback((state: DvrState, line?: string) => {
+  const onDvr = useCallback((state: TimelineState, line?: string) => {
     setDvr(state);
     if (line) setLog((l) => [line, ...l].slice(0, 40));
   }, []);

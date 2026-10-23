@@ -2,7 +2,7 @@ import type { PlayerConfig, SourceConfig } from "bitmovin-player";
 import { KeplerVideoSurfaceView, VideoPlayer } from "@amazon-devices/react-native-w3cmedia";
 import React, { useEffect, useRef, useState } from "react";
 import { AppState, StyleSheet, Text, View, type AppStateStatus } from "react-native";
-import { DvrController, type DvrUpdate } from "./dvrController";
+import { PlaybackController, type PlaybackUpdate } from "./playbackController";
 import { createVegaPlayer } from "./vegaPlayer";
 import { installVegaPolyfills, removeVegaPolyfills } from "./polyfills";
 import { releaseVegaBackgroundMedia, startVegaSession } from "./playerSession";
@@ -17,8 +17,8 @@ export interface BitmovinPlayerProps {
   config: PlayerConfig;
   revision?: number;
   source: SourceConfig;
-  onDvr: DvrUpdate;
-  controllerRef: React.MutableRefObject<DvrController | null>;
+  onDvr: PlaybackUpdate;
+  controllerRef: React.MutableRefObject<PlaybackController | null>;
   timeShiftEnabled: boolean;
   runtimeChecks?: RuntimeMonitor | undefined;
   apiInputs?: ConfigInput[];
@@ -97,7 +97,7 @@ export const BitmovinPlayer: React.FC<BitmovinPlayerProps> = ({
         };
       },
       createController: (player, isActive) =>
-        new DvrController(player, (state, line) => {
+        new PlaybackController(player, (state, line) => {
           if (isActive()) onDvr(state, line);
         }),
       controllerRef,

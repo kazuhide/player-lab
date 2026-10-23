@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createSourceLoadHint } from "../src/dvr/sourceLoad";
-import { deriveDvrState, type PlayerSnapshot } from "../src/dvr/state";
+import { createSourceLoadHint } from "../src/playback/sourceLoad";
+import { deriveTimelineState, type PlayerSnapshot } from "../src/playback/state";
 const live: PlayerSnapshot = { isLive: true, duration: Infinity, maxTimeShift: -300, timeShift: -30, currentTime: 80 };
 const vod: PlayerSnapshot = { isLive: false, duration: 120, maxTimeShift: 0, timeShift: 0, currentTime: 4 };
-const mode = (snap: PlayerSnapshot) => deriveDvrState(snap, { timeShiftEnabled: true }).mode;
+const mode = (snap: PlayerSnapshot) => deriveTimelineState(snap, { timeShiftEnabled: true }).mode;
 
 describe("source loading hint", () => {
   it("uses the selected live source during a rebuild instead of the first VOD preset", () => {

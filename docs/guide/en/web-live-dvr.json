@@ -137,11 +137,11 @@
       "line": 713
     },
     {
-      "path": "apps/web/src/dvr/state.ts",
+      "path": "apps/web/src/playback/state.ts",
       "line": 47
     },
     {
-      "path": "apps/web/src/dvr/window.ts",
+      "path": "apps/web/src/playback/window.ts",
       "line": 11
     },
     {

@@ -323,12 +323,12 @@
       "label": "Scope of the Web device-feature documentation"
     },
     {
-      "path": "apps/ios/DvrKit/Sources/DvrKit/Dvr.swift",
+      "path": "apps/ios/PlaybackCore/Sources/PlaybackCore/PlaybackTimeline.swift",
       "line": 66,
       "label": "Live coordinates and state calculation"
     },
     {
-      "path": "apps/android/dvr/src/main/kotlin/com/playerlab/android/dvr/Dvr.kt",
+      "path": "apps/android/playback/src/main/kotlin/com/playerlab/android/playback/PlaybackTimeline.kt",
       "line": 43,
       "label": "Android live coordinates and state calculation"
     },

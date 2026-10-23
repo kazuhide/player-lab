@@ -198,7 +198,7 @@ without creating outputs or starting encoders in an account.
 
 The apps' live sources default to public live streams
 (`docs/test-streams-catalog.md`), so UI and DVR behavior work with **no**
-Bitmovin encoder running. Point `VITE_LIVE_*_URL` (web) at the `dvr-showcase`
+Bitmovin encoder running. Point `VITE_LIVE_*_URL` (web) at the Player Lab live
 channel while `encoding/live-dvr` is running.
 
 ## Optional feature media

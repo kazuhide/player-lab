@@ -1,14 +1,14 @@
 # Bitmovin Player sample for React Native and Expo
 
-This folder contains the React Native showcase screen, rewind-window logic, and
+This folder contains the React Native sample screen, playback state helpers, and
 a generator for an external Expo development project using that same screen.
-The player library bridges to native iOS and Android players. Its reads return
-Promises, so the screen awaits a snapshot before calculating the live window.
-DVR means the window of live media that a viewer can rewind.
+The player library bridges to native iOS and Android players. State reads return
+Promises, so the screen waits for a snapshot before deriving playback state.
 
 ## Layout
 
-- `src/dvr/`: TypeScript rewind calculations and state handling.
+- `src/playback/`: TypeScript playback timeline calculations and state handling,
+  including live rewind.
 - `src/sources.ts`: test source definitions; `App.tsx` maps source kind to
   the player's `SourceType`.
 - `App.tsx`: player, control panel, and snapshot refresh on `onTimeChanged`.
@@ -83,7 +83,8 @@ unapplied playback/buffer/adaptation edits remain in the draft.
 
 The complete applied source, chosen UI, log and **Allow DVR** setting survive
 recreation. Playback starts according to the Autoplay setting. Source/player
-errors add log entries. **Allow DVR** controls the application's DVR helper;
+errors add log entries. DVR means the window of live media that a viewer can
+rewind. **Allow DVR** controls the application's live-rewind helper;
 it does not edit the SDK's creation-time `isTimeShiftEnabled` property.
 
 The direct editable mappings are:

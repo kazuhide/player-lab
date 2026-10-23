@@ -262,7 +262,7 @@
       "label": "Language switching and unapplied inputs"
     },
     {
-      "path": "apps/web/src/dvr/state.ts",
+      "path": "apps/web/src/playback/state.ts",
       "line": 37,
       "label": "Finite-duration VOD classification"
     },

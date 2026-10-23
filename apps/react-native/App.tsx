@@ -1,7 +1,7 @@
 /**
  * React Native (Expo) build of the Bitmovin Player Playground.
  *
- * The DVR coordinate logic lives in `src/dvr` (pure, unit-tested in this package).
+ * The playback timing logic lives in `src/playback` (pure, unit-tested in this package).
  * RN's player API is async/Promise-based, so this app awaits the reads into a
  * `PlayerSnapshot` and feeds the sync helpers. RN has **no `onDurationChanged`**
  * event, so live→VOD is detected by polling snapshots on `onTimeChanged`.
@@ -26,8 +26,8 @@ import {
   type PlayerViewConfig,
   type WebUiConfig,
 } from "bitmovin-player-react-native";
-import type { DvrState } from "./src/dvr/state";
-import { SnapshotController } from "./src/dvr/snapshotController";
+import type { TimelineState } from "./src/playback/state";
+import { SnapshotController } from "./src/playback/snapshotController";
 import { SOURCES, type ShowcaseSource } from "./src/sources";
 import { ConfigurationPanel } from "./src/ConfigurationPanel";
 import { panelStyles } from "./src/panelStyles";
@@ -214,7 +214,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
         }
       : { licenseKey: LICENSE_KEY, ...ANALYTICS, ...playerConfig, ...(analyticsConfig ? { analyticsConfig } : {}) },
   );
-  const [dvr, setDvr] = useState<DvrState | null>(null);
+  const [dvr, setDvr] = useState<TimelineState | null>(null);
   scriptOwner.bind(player);
   const [viewReady, setViewReady] = useState(false);
   const snapshots = useRef<SnapshotController | null>(null);
