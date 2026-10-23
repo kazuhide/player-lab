@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
@@ -406,7 +407,7 @@ internal class PlayerController(
         }
         if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) record() else apiMain.post { record() }
     }
-    internal var configuredSource: Source? = null
+    internal var configuredSource: Source? by mutableStateOf(null, referentialEqualityPolicy())
         private set
     private var playerGeneration = 0
     internal val apiPlayerGeneration: Int get() = playerGeneration

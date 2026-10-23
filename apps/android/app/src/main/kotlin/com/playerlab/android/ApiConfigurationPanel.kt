@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -32,6 +34,7 @@ internal class ApiConfigurationWorkspaceState(applied: ApiOverrides) {
 internal fun ApiConfigurationPanel(controller: PlayerController, state: ApiConfigurationWorkspaceState) {
     val field = ApiSettings.byId.getValue(state.selected)
     var showHelp by remember { mutableStateOf(false) }
+    var showPresets by remember(state.selected) { mutableStateOf(false) }
     val focus = LocalFocusManager.current
     val keyboardVisible = workspaceKeyboardEditing()
     val purposes = listOf("All features") + ApiSettings.fields.map { apiPurpose(it.id) }.distinct().sorted()
@@ -48,7 +51,7 @@ internal fun ApiConfigurationPanel(controller: PlayerController, state: ApiConfi
         } }
         Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (field.choices.isNotEmpty() || field.kind == ApiValueKind.Boolean) {
+            if (field.kind == ApiValueKind.Choice || field.kind == ApiValueKind.Boolean) {
                 val choices = field.choices.ifEmpty { listOf("true", "false") } + if (field.nullable) listOf("null") else emptyList()
                 Choices(choices.map { it to it }, state.input, "api-choice") { state.input = it }
             }
@@ -57,11 +60,23 @@ internal fun ApiConfigurationPanel(controller: PlayerController, state: ApiConfi
                 if (field.nullable) TextButton(onClick = { state.input = "null" }) { Text("Use null") }
             }
             if (field.kind == ApiValueKind.Records && state.input != "null") ApiRecordEditor(requireNotNull(field.records), state.input, { state.input = it })
-            else if (field.kind != ApiValueKind.Boolean && field.choices.isEmpty()) OutlinedTextField(state.input, { state.input = it }, label = { Text("${field.kind} value") },
+            else if (field.kind != ApiValueKind.Boolean && field.kind != ApiValueKind.Choice) OutlinedTextField(state.input, { state.input = it }, label = { Text("${field.kind} value") },
                 textStyle = if (field.kind == ApiValueKind.Script) MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodyLarge,
                 visualTransformation = if (field.secret || field.drmParameter && field.kind in listOf(ApiValueKind.Text, ApiValueKind.StringMap)) PasswordVisualTransformation() else VisualTransformation.None,
                 minLines = if (field.kind == ApiValueKind.Script) if (keyboardVisible) 2 else 3 else 1,
                 maxLines = 4,
+                // Script and list choices are presets, not a restriction on custom input.
+                trailingIcon = if (field.choices.isEmpty()) null else ({ Box {
+                    IconButton(onClick = { showPresets = true }, modifier = Modifier.testTag("api-setting-presets")
+                        .semantics { contentDescription = "Preset values" }) { Text("⋮", style = MaterialTheme.typography.titleMedium) }
+                    DropdownMenu(expanded = showPresets, onDismissRequest = { showPresets = false }) {
+                        (field.choices + if (field.nullable) listOf("null") else emptyList()).distinct().forEachIndexed { index, value ->
+                            DropdownMenuItem(text = { Text(value, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+                                onClick = { state.input = value; showPresets = false; focus.clearFocus() },
+                                modifier = Modifier.testTag("api-setting-preset-$index"))
+                        }
+                    }
+                } }),
                 modifier = Modifier.fillMaxWidth().then(if (field.kind == ApiValueKind.Script)
                     Modifier.heightIn(min = if (keyboardVisible) 80.dp else 104.dp, max = 160.dp) else Modifier)
                     .testTag("api-setting-value"))

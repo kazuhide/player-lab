@@ -241,6 +241,7 @@ class PlayerLanguageNetworkInstrumentedTest {
     private fun webAction(web: WebView, action: String) = awaitWeb(web, action, "visible subtitle menu action")
 
     private fun awaitWeb(web: WebView, action: String, label: String) {
+        var lastTouchReveal = 0L
         ui.waitUntil(40_000) {
             val done = CountDownLatch(1)
             var result: String? = null
@@ -256,10 +257,17 @@ class PlayerLanguageNetworkInstrumentedTest {
                         }
                         return true;
                     });
-                    $action
+                    const complete = (() => { $action })();
+                    if (complete) return true;
+                    return !!document.elementFromPoint(innerWidth*.15, innerHeight*.25)?.matches('.bmpui-ui-touch-control-overlay') &&
+                        !visible('.bmpui-ui-controlbar') && !visible('.bmpui-ui-settings-panel') ? 'reveal-touch' : false;
                 })()""".trimIndent()) { result = it; done.countDown() }
             }
             assertTrue("$label JavaScript callback", done.await(5, TimeUnit.SECONDS))
+            if (result == "\"reveal-touch\"" && android.os.SystemClock.uptimeMillis() - lastTouchReveal >= 1000) {
+                workspaceTapVisiblePlayer(ui, web)
+                lastTouchReveal = android.os.SystemClock.uptimeMillis()
+            }
             result == "true"
         }
     }

@@ -12,16 +12,23 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 
+internal class ApiRuntimeOwnerIdentity(private val owner: Any?) {
+    override fun equals(other: Any?) = other is ApiRuntimeOwnerIdentity && owner === other.owner
+    override fun hashCode() = System.identityHashCode(owner)
+}
+
 internal data class ApiRuntimeContext(
     val playerGeneration: Int,
     val sourceRevision: Int,
+    val source: ApiRuntimeOwnerIdentity,
     val viewRevision: Int,
-    val vrRenderer: ApiVrRenderer?,
+    val vrRenderer: ApiRuntimeOwnerIdentity,
     val uiMode: UiMode,
 )
 
 private fun runtimeContext(controller: PlayerController, uiMode: UiMode) = ApiRuntimeContext(
-    controller.apiPlayerGeneration, controller.sourceRevision, controller.apiViewRevision, controller.apiVrRenderer, uiMode,
+    controller.apiPlayerGeneration, controller.sourceRevision, ApiRuntimeOwnerIdentity(controller.configuredSource),
+    controller.apiViewRevision, ApiRuntimeOwnerIdentity(controller.apiVrRenderer), uiMode,
 )
 
 internal class ApiRuntimeWorkspaceState {
@@ -36,6 +43,11 @@ internal class ApiRuntimeWorkspaceState {
     var observations by mutableStateOf(emptyMap<String, String>())
     var stateSelected by mutableStateOf(ApiRuntime.reads.first().id)
     var eventSelected by mutableStateOf(ApiEvents.player.first().id)
+    fun invalidateFor(context: ApiRuntimeContext) {
+        if (resultContext != context) { result = ""; resultContext = null }
+        observed = ""
+        observations = emptyMap()
+    }
     fun select(id: String) { selected = id; purpose = apiPurpose(id); argument = ""; result = ""; resultContext = null; observed = "" }
     fun arguments(command: ApiCommand) = commandArguments[command.id] ?: command.arguments.associate { it.name to it.example }
     fun setArgument(command: ApiCommand, name: String, value: String) {
@@ -52,9 +64,7 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
     LaunchedEffect(context) {
         // A synchronous command can replace its own view or source. Keep only its
         // receipt for that resulting context; unrelated ownership changes retire it.
-        if (state.resultContext != context) { state.result = ""; state.resultContext = null }
-        state.observed = ""
-        state.observations = emptyMap()
+        state.invalidateFor(context)
     }
     Column(Modifier.fillMaxSize().testTag("api-runtime-panel")) {
         WorkspaceHeader(!keyboardVisible) { Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

@@ -50,7 +50,6 @@ class PlayerFinalizationInstrumentedTest {
     @Test fun dashStaticManifestKeepsSourceOwnershipAndSwitchesFromDvrToVodControls() = finalizedSource("Dash", "manifest.mpd")
 
     private fun finalizedSource(type: String, manifest: String) {
-        control("reset")
         val controller = ui.activity.controller
         val player = controller.player
         val loaded = AtomicBoolean()
@@ -74,11 +73,16 @@ class PlayerFinalizationInstrumentedTest {
         click("configuration-toggle")
         field("source-url", "http://localhost:5272/$manifest")
         click("source-type-$type")
+        field("source-live-target", "20")
         field("source-title", "Finalization fixture")
+        // The finite live fixture must not age while its GUI draft is edited.
+        // Leave room before its end for the real rewind and end-of-event checks.
+        control("reset")
         ui.onNodeWithTag("apply-source").assertIsDisplayed()
             .performSemanticsAction(SemanticsActions.OnClick) { action ->
                 assertTrue(action())
                 source = requireNotNull(controller.configuredSource)
+                assertEquals(20.0, requireNotNull(source!!.config.liveConfig?.targetLatency), 0.0)
                 source!!.on(SourceEvent.Loaded::class) { loaded.set(true) }
             }
         click("configuration-toggle")

@@ -195,6 +195,18 @@ class PlayerWorkspaceUxInstrumentedTest {
         ui.onNodeWithTag("api-setting-stage").assertIsDisplayed()
         ui.onNodeWithTag("api-settings-apply").assertIsDisplayed()
         capture("android-workspace-long-sdk-setting")
+        val presetScript = ApiSettings.fields.first { it.kind == ApiValueKind.Script && it.choices.isNotEmpty() }
+        workspaceSdkSetting(ui, presetScript.id)
+        assertFullyVisible("api-setting-value", 104)
+        ui.onNodeWithTag("api-setting-presets").assertIsDisplayed().performClick()
+        ui.onNodeWithTag("api-setting-preset-0").assertIsDisplayed().performClick()
+        ui.onNodeWithTag("api-setting-value").assert(editable(presetScript.choices.first()))
+        ui.onNodeWithTag("api-setting-value").performTextReplacement("return input;")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        ui.onNodeWithTag("api-setting-value").assert(editable("return input;"))
+        assertFullyVisible("api-setting-value", 104)
+        ui.onNodeWithTag("api-setting-stage").assertIsDisplayed()
+        ui.onNodeWithTag("api-settings-apply").assertIsDisplayed()
     }
 
     @Test

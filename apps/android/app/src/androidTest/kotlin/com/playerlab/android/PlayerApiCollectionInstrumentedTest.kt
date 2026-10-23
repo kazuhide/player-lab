@@ -208,6 +208,24 @@ class PlayerApiCollectionInstrumentedTest {
         command("playlist.PlaylistApi.seek()"); field("api-argument-index", "1"); click("api-command-run")
         await("Added source actually plays and publishes SourceEvent.Loaded") { c.player.source?.config?.type == SourceType.Dash && c.player.isPlaying && c.player.currentTime > 0.5 && (c.apiEvents["SourceEvent.Loaded"] ?: 0) > loadedBefore }
         ui.runOnUiThread { assertNotNull(c.apiEventTimes["SourceEvent.Loaded"]); assertTrue(c.log.any { it == "SourceLoaded" }) }
+        command("Player.play()"); click("api-command-run")
+        ui.onNodeWithTag("api-command-result").assertTextContains("Command submitted", substring = true)
+        ui.onNodeWithTag("api-related-state").assertTextContains("Read at", substring = true)
+        val revision = c.sourceRevision
+        val previousSource = c.configuredSource
+        // Simulate a native transition outside Run. The event, not a GUI wrapper,
+        // must publish the new owner and retire the previous receipt and observation.
+        ui.runOnUiThread { c.player.playlist.seek(c.player.playlist.sources[0], null) }
+        await("Native playlist transition publishes a different source at the same revision") {
+            c.configuredSource !== previousSource && c.configuredSource === c.player.playlist.sources[0]
+        }
+        ui.runOnUiThread { assertEquals(revision, c.sourceRevision) }
+        ui.onNodeWithTag("api-command-result").assertDoesNotExist()
+        ui.onNodeWithTag("api-related-state").assertTextContains("Not read yet", substring = true)
+        command("playlist.PlaylistApi.seek()"); field("api-argument-index", "1"); click("api-command-run")
+        await("GUI seek restores the added DASH source after the external transition") {
+            c.player.source?.config?.type == SourceType.Dash && c.player.isPlaying && c.player.currentTime > 0.5
+        }
         command("playlist.PlaylistApi.add()"); field("api-argument-url", sample + "intentionally-missing-source.m3u8"); field("api-argument-type", "Hls"); click("api-command-run")
         command("playlist.PlaylistApi.seek()"); field("api-argument-index", "2"); click("api-command-run")
         await("Added invalid source publishes its actual SDK error and transforms the Analytics error") {
