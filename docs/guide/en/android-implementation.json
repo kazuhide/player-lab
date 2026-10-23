@@ -401,6 +401,7 @@
     {
       "type": "steps",
       "items": [
+        "Select a VOD HLS or DASH source, apply it and start playback before comparing seek positions.",
         "For an immediate seek, choose Player.seek in Commands, enter a time such as 5 seconds and Run SDK API.",
         "Open State, search Player.currentTime and Refresh SDK state. Check the actual time after the seek, then inspect the relevant seeking/playing events.",
         "For track or quality changes, inspect the available SDK track IDs first, pass one of those IDs to the matching command and read the selected track/quality again. Input alone cannot add a rendition the media does not contain."
