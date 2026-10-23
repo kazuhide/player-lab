@@ -11,6 +11,10 @@ final class TrackPreferenceUITests: XCTestCase {
         defer { app.terminate() }
         let open = app.buttons["configuration.open"]
         XCTAssertTrue(open.waitForExistence(timeout: 20))
+        // Configure this VOD fixture from a VOD preset. The initial live source
+        // has its own playback/state/advancement smoke test.
+        try WorkspaceUITestNavigation.choose("VOD HLS", picker: "source.preset", in: app)
+        XCTAssertEqual(app.buttons["source.preset"].value as? String, "VOD HLS")
         try activate(open, in: app)
         let environment = ProcessInfo.processInfo.environment
         let media = environment["PLAYER_LAB_TEST_MEDIA_URL"]
