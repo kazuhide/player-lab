@@ -6,10 +6,12 @@ separately in the [API coverage guide](https://kazuhide.github.io/player-lab/gui
 ## 0.1.2
 
 - Organize the guide into Web, Apple, Android, React Native and Vega OS sections.
-  Keep Web screen, source and UI workflows above its implementation guide.
+  Give each platform unnumbered Screen and controls and Implementation guide chapters.
+- Explain operation workflows with screen captures beside the relevant steps,
+  including Web UI settings and applied configuration code.
 - Explain configuration, UI customization, useful features and common problems
   in each platform's implementation guide, with examples from the existing app.
-- Expand the Web configuration and UI guides, add local contents links, and keep
+- Include reusable Web configuration and UI examples, add local contents links, and keep
   published chapter bookmarks working after the platform split.
 
 See the [release notes](docs/releases/0.1.2.md).

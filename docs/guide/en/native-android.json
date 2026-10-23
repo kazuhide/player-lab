@@ -1,7 +1,7 @@
 {
   "id": "native-android",
-  "title": "Android and Android-based Fire TV",
-  "lead": "Use the Kotlin and Compose app to change source and playback settings, select tracks, compare player interfaces and inspect applied Kotlin code. Live rewind and the offline helper are additional examples. Android-based Fire TV and Vega OS are separate targets.",
+  "title": "Android, Android TV, and Fire TV: Screen and controls",
+  "lead": "Choose a source, edit separate source/player drafts and compare applied code, SDK state and events. This app also declares a TV launcher for Android TV and Android-based Fire TV; Vega OS is covered separately.",
   "blocks": [
     {
       "type": "links",
@@ -9,6 +9,10 @@
         {
           "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/",
           "label": "Implementation guide: PlayerConfig, source settings, UI customization and FAQ"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/test-results/",
+          "label": "Test results and verification scope"
         }
       ]
     },
@@ -18,43 +22,49 @@
     },
     {
       "type": "p",
-      "text": "Java 17 and the Android SDK are required. Player 3.171.0 requires compileSdk 37; the project uses AGP 9.1.1 and Gradle 9.3.1, with targetSdk 36 and minSdk 23. Install platform 37.0 (platforms;android-37.0) and Build Tools 36.0.0 (build-tools;36.0.0), matching CI. Set the SDK location with ANDROID_HOME, ANDROID_SDK_ROOT, or apps/android/local.properties. After synchronizing licenses and the shared UI in the common preparation, run the following from the repository root."
+      "text": "Build and launch apps/android using Android Studio or the documented command-line setup. Java 17 and required Android SDK packages are listed in Local setup and licenses and the implementation guide. The app uses Player 3.171.0. Allow com.playerlab.android on the Player license used by the build."
     },
     {
       "type": "p",
-      "text": "This app uses Player release 3.171.0 with the vendor's +jason artifact, as required by Google's Interactive Media Ads SDK (IMA). The flavor separates its Media3 dependency namespace. The API table retains the original release inventory and compares both published flavors; it does not relabel standard source hashes as +jason binary evidence."
+      "text": "The same app declares a TV launcher for Android TV and Android-based Fire TV. Vega OS uses a separate app. The screenshots below were captured in a phone emulator; they do not establish remote-control reachability or playback on every TV or physical device."
     },
     {
-      "type": "code",
-      "text": "cd apps/android\n./gradlew :app:assembleDebug"
-    },
-    {
-      "type": "p",
-      "text": "The output is apps/android/app/build/outputs/apk/debug/app-debug.apk. You can also open apps/android in Android Studio and run on a connected device or emulator. Allow the application ID com.playerlab.android on the Player license."
-    },
-    {
-      "type": "p",
-      "text": "sync-env.sh transfers licenses from the root .env file to bitmovinLicenseKey and bitmovinAnalyticsLicenseKey in local.properties. The script preserves the local SDK path. Gradle’s -PbitmovinLicenseKey and -PbitmovinAnalyticsLicenseKey override local.properties, but the generated file is preferable for normal use to avoid leaving values in command history. An empty Analytics license disables the collector."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Local setup and licenses"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/",
+          "label": "Android implementation guide"
+        }
+      ]
     },
     {
       "type": "h2",
       "text": "Suggested screen workflow"
     },
     {
+      "type": "p",
+      "text": "Below the video are horizontal UI/source rows, live-seek buttons and a vertically scrollable form. Configuration edits basic source/player drafts; SDK API settings adds overrides; SDK API controls runs commands and reads state/events; Offline controls manages downloads. Scroll down to reach the panels."
+    },
+    {
       "type": "steps",
       "items": [
         "Select VOD HLS or VOD DASH and start playback with the controls inside the player. Confirm that the picture and timeline advance before changing settings.",
-        "Open Configuration and Show applied code. Keep the existing URL, enter Player Lab VOD for Title, and use Apply source (reload). Check the new source-load event and applied SourceConfig without changing player settings.",
+        "Open Configuration. Keep the current URL, enter Player Lab VOD for Title and choose Apply source (reload). Check the new source-load event and applied title without changing player settings.",
         "For a player-settings comparison, set Startup threshold to 1, Restart threshold to 2 and Forward buffer to 10 seconds. Use Apply & restart player. Check the restart message, retained source and applied BufferConfig, then start playback if Autoplay is off.",
         "Switch Default, Sports, Live (DVR) and Cinema to compare UI layouts. This replaces PlayerView while keeping the Player. Player-menu gestures and the surrounding form scroll independently.",
         "Try audio, subtitles and bitrate settings with a source that provides suitable tracks or quality variants, following the examples below. A configured value does not add a missing track or rendition.",
+        "Open Show applied code and compare the applied settings. Then use SDK API controls → Commands, State and Events to connect an operation with its result. The following sections show these panels beside the relevant steps.",
         "For live rewind, select a live preset and wait for an available window. The negative helper offsets are distances behind the live edge. Check mode, dvrAvailable, behindLive, window and the event log; Live edge returns to live.",
         "If PlayerError or SourceError appears, check its numeric code. First check the application ID allowed by the license and connectivity to the reference source."
       ]
     },
     {
       "type": "p",
-      "text": "Changing the Android UI recreates PlayerView while keeping the Player. This differs from iOS and React Native, which recreate the Player. The Sports, Live, and Cinema JavaScript and CSS load from file:///android_asset/. If the custom UI does not appear, build and synchronize the shared UI, then rebuild the APK. The Activity forwards start, resume, pause and stop to the active PlayerView. A replacement catches up to an already resumed Activity. The lifecycle observer is removed before detaching and destroying a retired view; the controller retains Player ownership across UI changes. In the recorded SDK 3.171.0 phone-emulator check, foregrounding kept playback paused; use the player’s Play control to resume when needed."
+      "text": "Changing UI replaces PlayerView while retaining the Player and source. Return to Default after comparison. The custom modes need the bundled shared JavaScript/CSS; if absent, follow the implementation guide to build and synchronize them. In the recorded SDK 3.171.0 phone-emulator check, foregrounding kept playback paused; press Play to resume when needed."
     },
     {
       "type": "note",
@@ -67,7 +77,16 @@
     },
     {
       "type": "p",
+      "text": "Source and Player have separate drafts. Applying player settings reloads the current applied source, not any source edits that have not been applied. Read the action label before submitting and correct highlighted validation errors."
+    },
+    {
+      "type": "p",
       "text": "Open Configuration to edit source and player settings. Source fields are a custom HTTP/HTTPS URL, DASH/HLS/Smooth/Progressive type, optional title, optional poster URL, persistent poster, start offset in seconds, SDK-default/Start/End reference, and optional live target latency in seconds. Blank title, poster, and offset use SDK defaults. The default reference is the start for VOD and the end for live streams; the SDK corrects offsets outside stream boundaries. HTTP depends on the device network policy."
+    },
+    {
+      "type": "figure",
+      "file": "android-source-settings",
+      "caption": "Android source settings: the source language list overrides the player list. An external WebVTT track has a URL, label, language and default metadata; enable it separately in the player subtitle menu. Android 16 emulator."
     },
     {
       "type": "p",
@@ -76,6 +95,11 @@
     {
       "type": "p",
       "text": "Player fields are Autoplay (off), Start muted (off), SDK live time shifting (on), startup threshold (2.5 s), restart threshold (5 s), forward buffer (50 s), maximum automatic video bitrate (whole bps; blank means Int.MAX_VALUE / 2147483647, no ABR cap), preload (on), rebuffering (on), and live quality/stability balance (0–1; default 0.5). Thresholds must be nonnegative and at most forward buffer minus 0.5 s; forward buffer must be at least 0.5 s. Numeric fields reject non-finite values. The bitrate cap affects automatic selection; higher qualities remain available for manual selection. Balance applies near the live edge only."
+    },
+    {
+      "type": "figure",
+      "file": "android-player-settings",
+      "caption": "Android player settings: autoplay, mute and player-wide audio language priority. Applying these settings recreates the player; the source-specific audio list still takes precedence."
     },
     {
       "type": "steps",
@@ -153,6 +177,32 @@
       "text": "To restore the original player settings, use Reset player draft and then Apply & restart player. Reset player draft alone does not change playback. Reset source draft instead restores the applied source values, not the catalog defaults. Select a source preset to clear custom source settings, including external subtitle metadata; player settings remain. Reapplying valid unchanged values still repeats the corresponding reload or restart on Android."
     },
     {
+      "type": "steps",
+      "items": [
+        "After Apply, open Show applied code and compare PlayerConfig, SourceConfig and the current UI configuration. Copy code writes the text to the Android clipboard and changes the button to Copied.",
+        "Edit a draft without applying and check that the output stays unchanged. Actual license values are placeholders. Additional SDK overrides are displayed separately under SDK API settings → Applied SDK override code."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "android-applied-code",
+      "caption": "HTTP retry delays and applied Kotlin code. The displayed code uses the applied values and YOUR_PLAYER_KEY; draft-only edits and the actual license are excluded. Select the image to read it at full size."
+    },
+    {
+      "type": "note",
+      "title": "Reset is not Apply",
+      "text": "Reset source draft restores the applied source. Reset player draft stages player defaults; Apply & restart player is still required. Separately applied SDK overrides remain until removed in SDK API settings. Android basic forms repeat their reload/restart when valid unchanged values are applied again."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/#player-source-config",
+          "label": "Configuration implementation"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "Audio language, external subtitles and retries"
     },
@@ -165,16 +215,6 @@
       "text": "WebVTT is a text-based subtitle format with timed cues. To add one external track, enter its HTTP or HTTPS WebVTT URL and optionally a label and language code such as en-US. Default external subtitle sets isDefault metadata; it does not enable the subtitles. Apply source, then select the track in the Default UI settings menu. Clearing the URL also requires clearing its metadata. Existing in-stream subtitles remain available."
     },
     {
-      "type": "figure",
-      "file": "android-source-settings",
-      "caption": "Android source settings: the source language list overrides the player list. An external WebVTT track has a URL, label, language and default metadata; enable it separately in the player subtitle menu. Android 16 emulator."
-    },
-    {
-      "type": "figure",
-      "file": "android-player-settings",
-      "caption": "Android player settings: autoplay, mute and player-wide audio language priority. Applying these settings recreates the player; the source-specific audio list still takes precedence."
-    },
-    {
       "type": "p",
       "text": "HTTP retry delays (s) controls the wait before each retry. Blank uses the SDK policy that increases the wait between retries, none disables retries, and a comma-separated list such as 0, 0.25, 2 permits one retry for each finite nonnegative value. The setting applies after player recreation. This standard field does not edit callbacks, request credentials or content-protection license renewal retries; use the separate SDK settings for their supported inputs."
     },
@@ -183,17 +223,25 @@
       "text": "Source changes reload the current player; player language and retry changes recreate it. Both paths keep the applied source metadata, selected UI and app rewind preference. Reset changes the draft only. Show applied code contains the same normalized settings and excludes unapplied text and actual license values."
     },
     {
-      "type": "figure",
-      "file": "android-applied-code",
-      "caption": "HTTP retry delays and applied Kotlin code. The displayed code uses the applied values and YOUR_PLAYER_KEY; draft-only edits and the actual license are excluded. Select the image to read it at full size."
+      "type": "steps",
+      "items": [
+        "To compare audio priority, apply Player en, de with restart, then Source de, en with reload. Read the selected audio in the player menu. Clear the source list and reload to inherit the player list.",
+        "To remove the external subtitle, clear its URL and metadata together and Apply source, or select a catalog preset. The Default external subtitle flag is metadata and does not enable captions.",
+        "To restore the normal HTTP retry policy, clear HTTP retry delays and Apply & restart player. A successful request cannot demonstrate retry timing; compare failed requests only on a source you control."
+      ]
     },
     {
       "type": "h2",
       "text": "Additional SDK settings"
     },
     {
-      "type": "p",
-      "text": "Open SDK API settings and search for the public SDK field name. Edit its typed value, choose Use this override, then Apply SDK settings and restart. Staging alone does not change playback. The override takes precedence over the standard form; Remove this override restores the standard value or SDK default on the next Apply."
+      "type": "steps",
+      "items": [
+        "Open SDK API settings and use Find SDK field to select a property. Read its type, accepted values and units.",
+        "Enter the value and choose Use this override to stage it. Check Staged overrides, then Apply SDK settings and restart. Staging alone does not affect playback; an applied override takes precedence over the basic form.",
+        "Inspect Applied SDK override code and refresh the matching State. Remove this override followed by Apply restores the basic form or SDK default. Reset SDK draft discards staged edits and restores the applied overrides; it does not remove an active override.",
+        "For a callback such as LabelingConfig.videoQualityLabeler, read input and the required result, stage a body and Apply. Trigger the matching SDK path, then Refresh callback outcomes to read calls, fallback and the last fallback reason."
+      ]
     },
     {
       "type": "table",
@@ -231,10 +279,6 @@
       ]
     },
     {
-      "type": "code",
-      "text": "return input.height + 'p (' + Math.round(input.bitrate / 1000) + ' kbps)';"
-    },
-    {
       "type": "figure",
       "file": "android-api-callback",
       "caption": "An applied video-quality label callback. The staged body and active override are visible; the disabled Apply button indicates no pending change."
@@ -242,18 +286,29 @@
     {
       "type": "note",
       "title": "Callback execution",
-      "text": "Scripts receive plain value snapshots and return the field's documented type. They have no Java, Android, Player, file or network object access. The interpreter checks budgets of 50,000 instructions, 25 milliseconds of callback-thread CPU time, 250 milliseconds of elapsed time and a stack depth of 64. When CPU accounting is unavailable, the elapsed-time fallback is 75 milliseconds. CPU accounting separates computation from scheduling delay, but time spent waiting still counts toward the elapsed-time budget: even a short callback can be rejected after a long delay. Limits are checked during execution and value conversion; native built-ins are not forcibly interrupted mid-call. Invalid results or exceeded budgets retain the documented native fallback. This runs inside the app process, with no separate memory isolation. Response preprocessing can buffer a whole response; select only the request types you need."
+      "text": "Callbacks use bounded plain values without Java/Android/Player object access. Invalid results or execution limits use the documented fallback. A zero call count means the SDK has not invoked that path. Read the implementation guide for language support, detailed limits and code reuse."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/#player-source-config",
+          "label": "Configuration and callback implementation"
+        }
+      ]
     },
     {
       "type": "h2",
       "text": "SDK operations, state and events"
     },
     {
+      "type": "p",
+      "text": "SDK API controls separates Commands, State and Events. A command can submit asynchronous work; its status message is separate from the actual playback effect. Keep a VOD source loaded for this seek comparison."
+    },
+    {
       "type": "steps",
       "items": [
-        "Open SDK API controls, choose Commands and search for Player.seek. Enter 5 for time and Run SDK API. This submits the request; it does not establish the resulting playback position.",
-        "Choose State, search for Player.currentTime and Refresh SDK state. Read the actual SDK result. Cast, advertising, encrypted media and VR operations need their matching content, device or connected service.",
-        "Choose Events to inspect occurrence counts and SDK timestamps. A zero means the event has not been recorded. PlayerView UI events use a separate prefix; playback events are observed on Player and source events on Source."
+        "Open Commands, search Player.seek, enter 5 for time and Run SDK API. Read any argument or source-state error."
       ]
     },
     {
@@ -262,9 +317,22 @@
       "caption": "Submitting a seek with an editable time argument."
     },
     {
+      "type": "steps",
+      "items": [
+        "Choose State, search Player.currentTime and Refresh SDK state. Read the value after seek completion; during playback it continues advancing. Refresh again after another command."
+      ]
+    },
+    {
       "type": "figure",
       "file": "android-api-state",
       "caption": "Reading Player.currentTime after the seek. This is SDK state, separate from the command-submission message."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Choose Events and enable Record SDK events. Clear event counts before the next trial, perform Play/Pause or a supported seek, and inspect occurrence counts and latest SDK timestamps.",
+        "Zero means no occurrence has been recorded. PlayerView UI events use a separate prefix; playback belongs to Player and source events to Source. Clear event counts clears the history, not SDK playback state."
+      ]
     },
     {
       "type": "figure",
@@ -273,12 +341,33 @@
     },
     {
       "type": "p",
-      "text": "View commands install fullscreen, picture-in-picture and custom Web UI message handlers. Fullscreen keeps editor drafts and returns with Back. MediaSession connects the player to Android's media controls. The VR renderer uses a real decoding surface; set a compatible source VR content type before enabling it. Check playback and state after changing any host integration."
+      "text": "View commands install fullscreen, Picture-in-Picture and custom Web UI message handlers. Check availability before entering PiP, then inspect its actual view state. Fullscreen returns with Back without discarding editor drafts. Use the matching exit/disable action when finishing a host-feature comparison."
+    },
+    {
+      "type": "p",
+      "text": "MediaSession connects the current player to Android media controls. Enable the native MediaSession command, inspect the controls, then disable/release it when finished. External-device behavior depends on the host system."
     },
     {
       "type": "figure",
       "file": "android-media-session",
       "caption": "The native MediaSession command. Enabling it connects the current player to Android media controls; external-device behavior depends on the host system."
+    },
+    {
+      "type": "p",
+      "text": "Cast, advertising, encrypted media and VR need matching content, a receiver/device or a connected service. Read availability and active state rather than the submission message alone. The VR renderer uses a real decoding surface and requires a compatible source VR content type; disable the renderer to restore normal PlayerView presentation."
+    },
+    {
+      "type": "p",
+      "text": "Analytics controls edits collection and metadata separately. Apply Analytics settings and restart player applies its draft; Reset Analytics draft discards unapplied edits. Perform a known playback and inspect collected sessions in Bitmovin Dashboard. A local SDK result does not prove backend receipt; the implementation guide explains Analytics/Observability after player integration."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/#useful-features",
+          "label": "Feature prerequisites and implementation"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -287,10 +376,9 @@
     {
       "type": "steps",
       "items": [
-        "Open Offline controls. Use the current source and an item ID to create an offline manager. Apply the desired download and segment concurrency, network requirements and offline DRM handling before starting.",
-        "Fetch SDK options. Select Download, Delete or None for each track, then process the selected actions. The SDK can reject an action that does not match its track state. Nothing is selected automatically.",
-        "Wait for the manager's completed state, then use Play downloaded source. Check video and audio with networking disabled. Track selection or successful compilation alone does not prove offline playback.",
-        "Use the manager's delete and release actions when finished. Downloaded files and offline licenses need the required space, permissions and content rights."
+        "Open Offline controls. Choose Use sample DASH source or apply a downloadable on-demand source. Set Stable content ID, then Create manager for current source. Keep the ID to address the same asset again.",
+        "Choose simultaneous download/segment limits, device/network requirements and offline DRM handling, then Apply offline configuration. Downloads can wait until all selected requirements hold.",
+        "Fetch SDK options. Set each required track to Download, Delete or None, then Process selected actions. Nothing is selected automatically; the SDK can reject an action that does not match the track state."
       ]
     },
     {
@@ -299,8 +387,24 @@
       "caption": "Selecting an audio track for download. This figure shows the selection step, before completion is established."
     },
     {
+      "type": "steps",
+      "items": [
+        "Inspect Progress and Read offline SDK state, then wait for the manager’s completed state. Only then use Play downloaded source and compare video/audio with networking disabled. Track selection or submission is not completion.",
+        "Suspend/Resume controls work in progress. Delete all content for this ID removes its cached content; Release manager keeps the files while releasing the manager. Select a catalog preset to return to a remote source."
+      ]
+    },
+    {
       "type": "p",
-      "text": "Advanced offline source constructor edits the public OfflineSourceConfig inputs, including hidden DRM key-set bytes and the restriction to offline playback. It does not import a managed download or issue a license. For SDK-managed downloads, use Play downloaded source so the manager supplies the matching cache and track metadata."
+      "text": "Offline DRM needs suitable rights, a license service and storage. License download/renew/release is separate from media-download completion. Advanced offline source constructor does not import an SDK-managed download or issue a license. For ordinary managed downloads use Play downloaded source so the SDK supplies matching cache/track metadata."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/#useful-features",
+          "label": "Offline implementation and limitations"
+        }
+      ]
     }
   ],
   "sources": [

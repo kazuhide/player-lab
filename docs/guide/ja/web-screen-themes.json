@@ -7,6 +7,10 @@
       "type": "links",
       "items": [
         {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#themes",
+          "label": "画面と操作：Web版の操作をまとめて確認する"
+        },
+        {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/",
           "label": "実装ガイド：設定・UI変更・FAQ"
         }
@@ -18,7 +22,7 @@
     },
     {
       "type": "note",
-      "text": "初期状態はVOD HLS、Live (DVR)テーマ、自動再生、ミュート、コントロールの自動非表示はオフです。Liveというテーマ名でも、VODを再生できます。テーマは配信方式を選ぶボタンではありません。"
+      "text": "初期ソースはVOD HLS、テーマはLive (DVR)です。自動再生とミュートはオン、コントロールの自動非表示はオフです。Liveというテーマ名でもVODを再生できます。テーマは配信方式を選ぶボタンではありません。"
     },
     {
       "type": "h2",

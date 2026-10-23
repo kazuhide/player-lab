@@ -1,0 +1,1529 @@
+{
+  "id": "web-screen-controls",
+  "title": "Web screen and controls",
+  "lead": "Use the Web app to compare player controls, change sources and settings, and inspect the configuration and SDK state. The steps below explain what to change, where to apply it and which result to check.",
+  "blocks": [
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Implementation guide: configuration, UI changes and FAQ"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "screen",
+      "text": "Screen layout and language"
+    },
+    {
+      "type": "p",
+      "text": "Language and theme selectors appear at the top. The video and construction code sit below, followed by controls for sources, seeking, playback, UI settings and casting; state, event and QoE readouts; and the Player Config editor. A link at the bottom opens the detailed UI customization guide."
+    },
+    {
+      "type": "note",
+      "text": "The initial source is VOD HLS with the Live (DVR) theme. Autoplay and mute are enabled; control autohide is off. A theme named Live can also play on-demand media. Theme buttons do not select the streaming format."
+    },
+    {
+      "type": "figure",
+      "file": "overview",
+      "caption": "The Web app with its theme selector, video, construction code and operation panels. The layout adapts to the available width."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open the Web app. If autoplay does not start, press Play. Playback starts muted; choose a suitable volume before unmuting.",
+        "Choose the display language at the top. Keep the same source while comparing themes, then use the source controls to try audio, subtitles or thumbnails.",
+        "Read the live player state and event log after each operation. Settings marked reload or recreate remain drafts until the corresponding Apply action completes; instant and UI settings apply when the input change is committed."
+      ]
+    },
+    {
+      "type": "h3",
+      "text": "Display language",
+      "id": "display-language"
+    },
+    {
+      "type": "p",
+      "text": "Use the Japanese and English buttons at the top to change language. Technical field names such as autoplay remain in English so they match SDK identifiers. The browser remembers the language across navigation between the app and detailed guide."
+    },
+    {
+      "type": "note",
+      "text": "Changing language rebuilds the Player Config form and discards edits that have not been applied. Apply the changes you need first. Changing language alone does not reset the state readout, event log or applied settings."
+    },
+    {
+      "type": "h2",
+      "id": "themes",
+      "text": "Compare themes and construction code"
+    },
+    {
+      "type": "h3",
+      "text": "Ways to customize the UI",
+      "id": "three-customization-methods"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Category",
+        "What changes"
+      ],
+      "rows": [
+        [
+          "Default UI",
+          "Default (Bitmovin) uses the standard desktop component tree through the app's DefaultUIFactory wrapper. Start here when comparing a custom layout."
+        ],
+        [
+          "Default UI + CSS",
+          "Neon, Glass, Sunset, Bold and Mono retain the standard structure and change colors, sizes and other styling through CSS."
+        ],
+        [
+          "Custom UI",
+          "Live (DVR), Sports, Binge, Cinema, Compact, Premiere, Creator and Studio change the choice and arrangement of components."
+        ]
+      ],
+      "widths": [
+        0.24,
+        0.76
+      ]
+    },
+    {
+      "type": "h3",
+      "text": "Available themes",
+      "id": "available-themes"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Theme",
+        "Main display and controls"
+      ],
+      "rows": [
+        [
+          "Default (Bitmovin)",
+          "Compare behavior against the standard UI."
+        ],
+        [
+          "Neon",
+          "Apply bright colors and gradients to the standard UI."
+        ],
+        [
+          "Glass",
+          "Show a translucent control bar."
+        ],
+        [
+          "Sunset",
+          "Apply a warm gradient palette."
+        ],
+        [
+          "Bold",
+          "Show larger controls with high contrast."
+        ],
+        [
+          "Mono",
+          "Use a monochrome palette with the standard UI."
+        ],
+        [
+          "Live (DVR)",
+          "Show the live edge, wall-clock time, distance behind live and 10-second skip controls."
+        ],
+        [
+          "Sports",
+          "Overlay sample scores and player information. The INFO button shows them again."
+        ],
+        [
+          "Binge",
+          "Try skipping the sample intro from 5 to 18 seconds and moving to the next episode near the end."
+        ],
+        [
+          "Cinema",
+          "Use a central play control and a slim control bar."
+        ],
+        [
+          "Compact",
+          "Use a compact single row without a central playback overlay."
+        ],
+        [
+          "Premiere",
+          "Show a title, full-width seek bar, settings menu and recommendations at the end."
+        ],
+        [
+          "Creator",
+          "Show a title and full-width seek bar with a row for playback, volume, time and settings."
+        ],
+        [
+          "Studio",
+          "Show a title and a single-row seek bar between the time labels."
+        ]
+      ],
+      "widths": [
+        0.27,
+        0.73
+      ]
+    },
+    {
+      "type": "h3",
+      "text": "Compare the video and code",
+      "id": "compare-the-video-and-code"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Start VOD HLS and select Default (Bitmovin). Check the current time, pause/resume, volume and seek bar before changing the UI.",
+        "Select Neon, then return to Default. Compare the seek-bar color, button appearance and control-bar background while checking that playback continues. These themes share the same component tree.",
+        "Select Premiere, Creator and Studio on the same source. Compare the title, current/remaining time, settings gear and seek-bar position. These themes build different component trees.",
+        "Open the construction code beside the video. Its difference summary explains the changed components; the source path below the code identifies the factory or stylesheet to inspect.",
+        "In UI settings, change Speed item in settings gear while using Premiere. Reopen the gear menu and check the applied UIConfig overrides beside the video. Change the setting back and confirm the item returns."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "custom-premiere",
+      "caption": "The Premiere composition. Compare its controls and layout with Default while keeping the same source; the code beside the player describes the selected composition."
+    },
+    {
+      "type": "note",
+      "text": "A theme change keeps the player and current source, but releases and rebuilds its UI. Construction code is an abbreviated implementation example, not an editable browser field. Applied UIConfig overrides shows the UI values explicitly changed in the GUI; it excludes theme defaults, the app's sample metadata, autohide, casting options and PlayerConfig/SourceConfig. Copying either panel does not save the complete app state."
+    },
+    {
+      "type": "h3",
+      "text": "Try theme-specific controls",
+      "id": "try-theme-specific-controls"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Theme and source",
+        "Action and expected result"
+      ],
+      "rows": [
+        [
+          "Sports with a playing source",
+          "Wait for the sample score and player-information overlays to hide, then press INFO to show them again. Their content is supplied by sportsData.ts; it is not a live sports feed."
+        ],
+        [
+          "Binge with VOD HLS",
+          "During the sample intro from 5 to 18 seconds, use Skip Intro and check the playback position. Near the end, inspect Next episode and the Next-up card. Continuous play controls automatic advancement through the configured playlist."
+        ],
+        [
+          "Premiere, Creator or Studio with VOD",
+          "Open the gear menu and compare speed, quality and audio choices. Available choices depend on the source and UI settings. Finish playback to inspect the recommendation overlay, then select a recommendation and check the loaded source."
+        ],
+        [
+          "Live (DVR) with VOD, then an available live preset",
+          "Compare elapsed/total time on VOD with the LIVE and time labels on a live stream. The theme name does not make a source live or provide a rewind window; those depend on the loaded media."
+        ]
+      ],
+      "widths": [
+        0.3,
+        0.7
+      ]
+    },
+    {
+      "type": "h3",
+      "text": "Return to a comparison baseline",
+      "id": "return-to-a-comparison-baseline"
+    },
+    {
+      "type": "p",
+      "text": "Selecting Default changes the UI composition; it does not reset the source, playback settings or UIConfig overrides. Restore the toggles changed during an experiment, keep Autohide controls off while inspecting the layout, and select the same source before comparing again. Reloading the page restores the app's initial in-memory settings. The selected app language and any enabled Player UI storage preferences or resume positions can survive a reload."
+    },
+    {
+      "type": "p",
+      "text": "The GUI selects existing compositions and changes UI behavior. To add a control, move a component or edit a skin, follow the source paths below the construction code and the Implementation guide. This page's UI behavior and external-display sections explain the controls and their requirements."
+    },
+    {
+      "type": "h2",
+      "id": "sources-tracks",
+      "text": "Sources, playback, audio and subtitles"
+    },
+    {
+      "type": "p",
+      "text": "The apps use several test streams. The public Pages build includes short Big Buck Bunny clips for its basic VOD controls; local development and native apps also use external HLS, DASH, and live reference streams. Available audio, subtitles, duration, and live rewind range depend on the selected source."
+    },
+    {
+      "type": "figure",
+      "file": "source-controls",
+      "caption": "Source selection. VOD is on-demand media; Live selects live streams."
+    },
+    {
+      "type": "h3",
+      "text": "Choose a test source",
+      "id": "seven-sources"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Button",
+        "What to check"
+      ],
+      "rows": [
+        [
+          "VOD HLS",
+          "Play the 60-second Big Buck Bunny sample over HLS."
+        ],
+        [
+          "VOD DASH",
+          "Play the same 60-second sample over DASH and compare the formats."
+        ],
+        [
+          "Live DASH + DVR",
+          "Use an external public live stream to check rewinding, multiple audio tracks and subtitles."
+        ],
+        [
+          "Live HLS",
+          "Play an external public HLS live stream."
+        ],
+        [
+          "VOD + Sprites",
+          "Check image thumbnails on the seek bar."
+        ],
+        [
+          "VOD + Multi-audio",
+          "Choose between two audio tracks."
+        ],
+        [
+          "VOD + Subtitles",
+          "Enable and display separately loaded WebVTT subtitles."
+        ]
+      ],
+      "widths": [
+        0.31,
+        0.69
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The provider controls the availability, content and rewind window of external live streams. This guide does not guarantee their future availability. In local development, unconfigured feature presets are disabled and list the required environment-variable names."
+    },
+    {
+      "type": "h3",
+      "text": "Basic playback and seeking",
+      "id": "basic-playback-and-seeking"
+    },
+    {
+      "type": "p",
+      "text": "Use the controls inside the video for play/pause, volume and fullscreen. The seek bar represents the whole video for on-demand media and the available rewind window for live media. On custom themes, a single click on the video surface toggles playback."
+    },
+    {
+      "type": "p",
+      "text": "With Double-click set to Fullscreen, a double-click on the video surface toggles fullscreen. With Seek ±10s, a double-click on the left half moves back 10 seconds and the right half moves forward 10 seconds. Targets are clamped to the video duration or live DVR window. Default (Bitmovin) uses the stock UI behavior."
+    },
+    {
+      "type": "h3",
+      "text": "Switch audio tracks",
+      "id": "switch-audio-tracks"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select VOD + Multi-audio.",
+        "Select a theme with an audio menu, such as Default or Premiere.",
+        "Open the player settings menu and choose another Audio track.",
+        "Unmute and adjust the volume if you want to listen."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Both bundled audio tracks contain the same nonverbal soundtrack at different volumes. The en/de labels are test metadata for track selection, not English and German translations."
+    },
+    {
+      "type": "h3",
+      "text": "Display subtitles",
+      "id": "display-subtitles"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select VOD + Subtitles.",
+        "Choose English in the subtitle menu inside the player.",
+        "Move to a time containing a cue and check its display. Select the disabled option to check that it disappears."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The subtitle text comes from Sintel and has been retimed for a short test. It does not describe Big Buck Bunny. Available subtitle and audio lists can change when you select another source."
+    },
+    {
+      "type": "h3",
+      "text": "Check seek thumbnails",
+      "id": "check-seek-thumbnails"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select VOD + Sprites.",
+        "Move the pointer along the seek bar inside the video.",
+        "Check that the displayed time and image change with the position."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "A sprite sheet combines several small images into one file. A WebVTT file maps times to image regions, and the player displays the corresponding region. Seek scrub-preview in UI settings is a separate feature: it controls whether the playing video follows the scrubber while dragging."
+    },
+    {
+      "type": "h3",
+      "text": "Set the initial playback position",
+      "id": "set-the-initial-playback-position"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Source and goal",
+        "Source fields",
+        "Result to check"
+      ],
+      "rows": [
+        [
+          "Start an on-demand clip after its beginning",
+          "options.startOffset = 5 seconds; timeline reference = start",
+          "After source reload, playback starts near 5 seconds and then advances. This is a loading setting, rather than a seek command applied to current playback."
+        ],
+        [
+          "Start near the end of an on-demand clip",
+          "options.startOffset = -10 seconds; timeline reference = end",
+          "For the 60-second Pages clip, the requested initial position is near 50 seconds."
+        ],
+        [
+          "Start behind the live edge",
+          "options.startOffset = -20 seconds; timeline reference = end",
+          "Start behind the available live edge. The source must offer a sufficient rewind window; an out-of-range position is limited to the available range."
+        ]
+      ],
+      "widths": [
+        0.28,
+        0.33,
+        0.39
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Choose the source first. To make start-position comparisons easier to interpret, turn off Resume VOD position and avoid a URL timestamp for this experiment.",
+        "Open Source in Player Config, enter the offset and select its reference, then press Reload the source to apply. Confirm SourceLoaded in the event log and compare the initial time on the video or the Player state readout. With autoplay, playback continues while you read it.",
+        "Refresh Show applied configuration code and inspect sourceConfig.options. Other applied source fields stay in place during this reload.",
+        "Clear options.startOffset, set the reference to its default option, and reload to remove these overrides. Selecting a source preset again also clears its source overrides."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The Playback panel's Reload at offset button always uses an end reference. Use the Source editor when you need to choose start or end explicitly. A live start position is constrained by the actual manifest and the source's current availability, rather than the duration of the bundled on-demand clip."
+    },
+    {
+      "type": "h3",
+      "text": "Choose initial audio and subtitle languages",
+      "id": "choose-initial-audio-and-subtitle-languages"
+    },
+    {
+      "type": "p",
+      "text": "The source determines which tracks exist. In this Web GUI, the preferred initial languages are Playback fields in PlayerConfig, so changing them requires Player recreation. They are separate from the Source title/poster/start-position editor and from selecting a current track in the player menu. The text fields submit a language string; they do not parse a comma-separated preference list or a JSON array."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Choose VOD + Multi-audio and a theme with an audio menu, such as Premiere. In Playback, enter de for audioLanguage and press Recreate the player to apply. Check the selected audio track in the player menu, then unmute to compare its sound. The bundled language labels are test metadata, as explained above.",
+        "Switch to Default, which includes subtitle controls, then choose VOD + Subtitles. In Playback, enter en for subtitleLanguage and recreate. At a time containing a cue, check the rendered text and the selected subtitle in the menu. In local development this preset needs its subtitle URL configured before use.",
+        "Refresh the applied code and inspect playerConfig.playback.audioLanguage or subtitleLanguage. A matching track must exist in the selected source; a preference does not add a missing language.",
+        "Clear the language field and recreate to remove the preference override. To turn off the current subtitle immediately, choose the disabled option in the player's subtitle menu; removing a startup preference is a different action."
+      ]
+    },
+    {
+      "type": "h3",
+      "text": "Selecting a source again",
+      "id": "selecting-a-source-again"
+    },
+    {
+      "type": "p",
+      "text": "Source changes such as a title or start position retain the other applied source settings when the same source reloads. Selecting a preset through a source button or an end-of-playback recommendation clears the previous source overrides, even if you select the same preset again."
+    },
+    {
+      "type": "note",
+      "text": "The basic source picker selects the listed presets. To use a different HLS or DASH URL, open SDK settings, APIs and events and edit SourceConfig.hls or SourceConfig.dash, or pass a source object through Commands → PlayerAPI.load. The Web implementation guide explains these paths and how to configure a reusable source in code."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/#player-source-config",
+          "label": "Web implementation guide: use your own stream"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "player-source-settings",
+      "text": "Player and source settings"
+    },
+    {
+      "type": "p",
+      "text": "The original Player Config form separates calls on the active player, source reloads and player recreation. Use this form for the common settings below; the SDK editor in the next section exposes additional typed properties and API calls."
+    },
+    {
+      "type": "figure",
+      "file": "config",
+      "caption": "SourceConfig fields. The Apply button is below the complete configuration panel."
+    },
+    {
+      "type": "h3",
+      "text": "How changes take effect",
+      "id": "three-application-modes"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Mode",
+        "Scope and application",
+        "Fields"
+      ],
+      "rows": [
+        [
+          "Instant",
+          "Player API, dynamic Adaptation and Low Latency. Calls an API when the input change is committed.",
+          "21"
+        ],
+        [
+          "Reload",
+          "SourceConfig title, description, poster and start settings. Reloads the source to apply changes.",
+          "6"
+        ],
+        [
+          "Recreate",
+          "Initial PlayerConfig settings. Creates a new player to apply changes.",
+          "117"
+        ]
+      ],
+      "widths": [
+        0.18,
+        0.69,
+        0.13
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The separate control panel also contains live rewind, UI and casting controls. Open or close a configuration group using its heading. Dynamic groups start open; recreation groups start closed."
+    },
+    {
+      "type": "h3",
+      "text": "Try an immediate setting",
+      "id": "try-an-immediate-setting"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open Player API and inspect current values such as volume and mute.",
+        "Change one field, then commit it by leaving the input or using its selector. Inputs apply on a change event, not on every keystroke.",
+        "Check the actual change in volume, playback speed or view mode. Changing volume may unmute the player and make audio audible.",
+        "Compare another value while retaining the same playback."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Fullscreen and PiP require a supported environment and a user gesture. Some runtime fields do not implement removal of a value when cleared. Leaving aspect ratio, poster, resolution limits or latency values empty does not necessarily restore the SDK default."
+    },
+    {
+      "type": "h3",
+      "text": "Apply source settings",
+      "id": "apply-source-settings"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Change title in Source. Use a theme such as Premiere that displays the title.",
+        "Change description, poster, startOffset and its reference if needed.",
+        "Press Reload the source to apply.",
+        "Check the on-video display and start position after reloading."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Reload and recreation edits remain staged until their respective Apply button is pressed. The button is disabled when there are no changes. A source reload retains the other applied source settings."
+    },
+    {
+      "type": "h3",
+      "id": "stream-urls-and-sidecar-tracks",
+      "text": "Set stream URLs, subtitles and thumbnails"
+    },
+    {
+      "type": "p",
+      "text": "The original Source group compares title, start position and related values. Edit URLs and external tracks through SourceConfig in SDK settings, APIs and events. For an HLS URL, first select VOD HLS, then edit SourceConfig.hls and apply. For DASH, use VOD DASH and SourceConfig.dash. If both formats remain, the actual format depends on the SDK’s playback-technology selection. When needed, pass a complete SourceConfig to PlayerAPI.load with only the intended format."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Property",
+        "Supply",
+        "Inspect"
+      ],
+      "rows": [
+        [
+          "hls / dash",
+          "A playlist or manifest URL. Apply reloads the source.",
+          "Read state → getSource() and the URL fetched in Network. Opening the URL in another tab is not a CORS check."
+        ],
+        [
+          "subtitleTracks",
+          "An array of external tracks with URL, id, lang and other supported fields. Edit the array as a whole.",
+          "Inspect the subtitle menu or subtitles.list, then enable the track. Subtitle timings must match the video timeline."
+        ],
+        [
+          "thumbnailTrack",
+          "A WebVTT thumbnail-index URL; the index identifies images or regions of a sprite.",
+          "Hover over the seek bar. Inspect Network to confirm both the index and referenced images load."
+        ],
+        [
+          "poster / options.persistentPoster",
+          "A preview image and whether it remains visible during playback.",
+          "Check image loading and its appearance when playback begins. persistentPoster can be useful for audio-only content."
+        ],
+        [
+          "drm",
+          "DRM settings matching the encryption system and license service.",
+          "Use matching encrypted media, a supported browser/device and the license service. The bundled unencrypted media cannot verify DRM authorization."
+        ]
+      ],
+      "widths": [
+        0.25,
+        0.35,
+        0.4
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Complete required fields together before applying an object or array in the SDK editor. Selecting a source preset again clears SourceConfig overrides. PlayerConfig settings survive source selection, so inspect both applied configurations when comparing conditions."
+    },
+    {
+      "type": "h3",
+      "text": "Apply initial settings",
+      "id": "apply-initial-settings"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open the groups you need, such as Playback, Adaptation or Buffer.",
+        "Change a small number of values to compare.",
+        "Press Recreate the player to apply.",
+        "Check applied values and playback behavior after loading again."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Initial Adaptation settings are applied to both desktop and mobile. Initial buffer settings separate audio/video and forward/backward retention. After recreation, runtime fields such as volume are read again from the new instance."
+    },
+    {
+      "type": "h3",
+      "text": "Configuration groups",
+      "id": "configuration-groups"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Group",
+        "Fields",
+        "Scope"
+      ],
+      "rows": [
+        [
+          "Player API",
+          "8",
+          "Volume, mute, speed, buffer, view mode, aspect ratio, poster and logs"
+        ],
+        [
+          "Adaptation (dynamic)",
+          "6",
+          "Display-size limits, quality stability and resolution limits"
+        ],
+        [
+          "Low Latency (dynamic)",
+          "7",
+          "Target latency, catchup and fallback"
+        ],
+        [
+          "Source",
+          "6",
+          "Title, description, poster, start position and reference"
+        ],
+        [
+          "Playback",
+          "8",
+          "Initial playback behavior and languages"
+        ],
+        [
+          "Adaptation (initial)",
+          "12",
+          "Starting bitrate, bitrate limits and adaptation logic"
+        ],
+        [
+          "Buffer (initial)",
+          "4",
+          "Forward and backward buffers for audio and video"
+        ],
+        [
+          "Network",
+          "9",
+          "Request API and timeout seconds by request type"
+        ],
+        [
+          "Tweaks",
+          "65",
+          "64 primitive fields plus log_level"
+        ],
+        [
+          "Logs",
+          "2",
+          "Verbosity and the console credit"
+        ],
+        [
+          "Style",
+          "4",
+          "Aspect ratio, dimensions and native subtitles"
+        ],
+        [
+          "Cast",
+          "4",
+          "CastConfig support and receiver settings"
+        ],
+        [
+          "Live",
+          "2",
+          "Incremental manifests and target latency"
+        ],
+        [
+          "Location",
+          "5",
+          "UI, CSS, Cast, IMA and Service Worker locations"
+        ],
+        [
+          "Misc",
+          "2",
+          "License-request delay and player storage"
+        ]
+      ],
+      "widths": [
+        0.32,
+        0.09,
+        0.59
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Initial display values in the settings catalog are form fallbacks when an applied value cannot be read. They are not SDK defaults, current effective values or recommendations. A Tweaks checkbox documented as false does not establish that the SDK default is false."
+    },
+    {
+      "type": "p",
+      "text": "Network timeouts are in seconds, including decimal values. They are not milliseconds. A per-request timeout overrides the default. Invalid or negative values keep Apply disabled and leave the active player unchanged. Empty removes only the chosen override. Use options.persistentPoster to retain a poster during playback, for example with an audio-only source."
+    },
+    {
+      "type": "h3",
+      "text": "Compare automatic video quality",
+      "id": "compare-automatic-video-quality"
+    },
+    {
+      "type": "p",
+      "text": "Adaptive bitrate selection (ABR) chooses a video quality as playback conditions change. Select VOD DASH and Premiere, then leave the player quality menu on Auto. The bundled Pages sample offers 180p and 360p video. A cap above its highest quality cannot demonstrate a change, and a manual quality selection does not test automatic selection."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "In Adaptation (dynamic), set resolution.maxSelectableVideoHeight to 180 pixels and leave the field to apply it immediately. Playback continues on the same Player.",
+        "Open Show applied configuration code and refresh it. Find maxSelectableVideoHeight in player.adaptation.setConfig. The snapshot confirms the setting submitted to the SDK; inspect actual media requests or decoded resolution in the browser's media tools to check the selected quality.",
+        "Allow already buffered video to play before comparing the image. A configuration change does not replace every buffered segment immediately, and the manual quality menu may still list 360p.",
+        "For this bundled sample, set the height back to 360 pixels to allow its highest quality again. Clearing this dynamic field does not remove an applied cap. Reload the page for a fresh in-memory configuration when you need to remove the experiment entirely."
+      ]
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Setting",
+        "Example change and application",
+        "What the comparison means"
+      ],
+      "rows": [
+        [
+          "limitToPlayerSize",
+          "Turn on in Adaptation (dynamic); immediate.",
+          "Restrict automatic selection to the video display size. Compare at a smaller browser width; a source already below that size may look unchanged. Turn off to restore the previous false value."
+        ],
+        [
+          "bitrates.maxSelectableVideoBitrate",
+          "Enter 500kbps (500000 bit/s) in Adaptation (initial), then Recreate the player to apply.",
+          "A bitrate ceiling for automatic selection. It chooses from the source's available qualities, rather than producing a new 500000 bit/s stream. Clear and recreate to remove this override."
+        ],
+        [
+          "startupBitrate",
+          "Enter 250kbps (250000 bit/s) in Adaptation (initial), then recreate.",
+          "Compare the initial quality after loading, rather than a later steady-state quality. The player can subsequently adapt. Clear and recreate to restore automatic startup selection."
+        ],
+        [
+          "maxStartupBitrate",
+          "Clear startupBitrate, enter 500kbps (500000 bit/s) here, then recreate.",
+          "Limit automatic startup selection. This setting has no effect while startupBitrate is explicitly specified."
+        ],
+        [
+          "qualityStabilityBalance",
+          "Use only with a compatible low-latency adaptation setup.",
+          "This balance does not affect the default adaptation logic. A changed number alone is not a comparison of playback stability."
+        ]
+      ],
+      "widths": [
+        0.25,
+        0.32,
+        0.43
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Initial Adaptation changes are written to both desktop and mobile configuration. Network speed, available renditions, buffered segments and the playback technology affect the result. Native HLS does not necessarily follow the same adaptation path as SDK-managed DASH. Use the same source and browser when comparing settings."
+    },
+    {
+      "type": "h3",
+      "text": "Compare retained media buffers",
+      "id": "compare-retained-media-buffers"
+    },
+    {
+      "type": "p",
+      "text": "A forward buffer holds media ahead of playback; a backward buffer retains media already played. These values are durations in seconds, not file sizes. The target can differ from the amount currently buffered because downloads, segment boundaries, available memory and live availability constrain the actual buffer."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Control",
+        "Example and application",
+        "Check and restore"
+      ],
+      "rows": [
+        [
+          "Player API: buffer target forward (s)",
+          "Enter 10 seconds; applies immediately to video only.",
+          "Refresh applied code and inspect player.buffer.setTargetLevel. This does not change the audio target. Return to the recorded previous value, such as 40 seconds; clearing the field does not undo the setter."
+        ],
+        [
+          "Playback panel: Buffer target (s)",
+          "Enter 10 seconds and press Set buffer target.",
+          "The event log reports the requested target. This is another route to the same video-forward-buffer API; its input is not a live buffer-level meter."
+        ],
+        [
+          "Buffer (initial)",
+          "Set video/audio forwardduration to 10 seconds and backwardduration to 5 seconds, then recreate.",
+          "Refresh applied code to check the separate video and audio settings. Inspect media buffering in the browser, then seek backward to compare retention. Clear the initial overrides and recreate to remove them."
+        ],
+        [
+          "Tweaks: startup_threshold / restart_threshold",
+          "Try 2 seconds for the threshold being compared, then recreate.",
+          "The startup threshold affects the initial start; the restart threshold affects recovery after a buffering interruption. They are separate from the forward-buffer target. Clear the override and recreate to restore the underlying setting."
+        ]
+      ],
+      "widths": [
+        0.27,
+        0.31,
+        0.42
+      ]
+    },
+    {
+      "type": "note",
+      "text": "A larger buffer may use more memory and absorb a temporary download interruption, but it does not extend a live origin's rewind window or guarantee lower latency. Read state in the SDK editor provides PlayerAPI.buffer.getLevel for the selected media and buffer type. Browser media tools can inspect actual buffered ranges. The example inputs are comparison values rather than recommended settings."
+    },
+    {
+      "type": "h3",
+      "text": "Set request timeouts and retries",
+      "id": "set-request-timeouts-and-retries"
+    },
+    {
+      "type": "p",
+      "text": "A timeout limits how long an individual request may wait. A retry starts another attempt after a failure. Network contains timeout settings; Tweaks contains the retry controls exposed by this app. Both groups require Recreate the player to apply. A request-type timeout takes precedence over defaultRequestTimeout."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Setting",
+        "Example input",
+        "Scope"
+      ],
+      "rows": [
+        [
+          "network.defaultRequestTimeout",
+          "5 seconds",
+          "Fallback timeout for requests without a type-specific override."
+        ],
+        [
+          "network.requestTimeout[media/video]",
+          "2 seconds",
+          "Video requests; audio keeps its own override or the default. This is not a limit on total playback duration."
+        ],
+        [
+          "network.requestTimeout[manifest/dash]",
+          "3 seconds",
+          "The DASH manifest. HLS uses the separate master and variant request types."
+        ],
+        [
+          "tweaks.max_retries",
+          "1 retry",
+          "Failed manifest requests, including HLS master and variant playlists."
+        ],
+        [
+          "tweaks.max_mpd_retries / mpd_retry_delay",
+          "1 retry / 1 second",
+          "Failed DASH manifest downloads and the wait before another MPD attempt. MPD is the DASH manifest."
+        ],
+        [
+          "tweaks.max_cdn_retries",
+          "1 retry",
+          "Retries per content delivery network for on-demand download failures."
+        ],
+        [
+          "tweaks.infinite_retries_for_live",
+          "On or off",
+          "Whether unreachable live media keeps retrying after the available qualities have failed. It is not an on-demand retry setting."
+        ]
+      ],
+      "widths": [
+        0.38,
+        0.18,
+        0.44
+      ]
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select VOD DASH. Open the browser's Network tools and record the behavior before changing a setting.",
+        "Set a timeout or retry value, recreate the Player, then refresh applied configuration code. Confirm the value under network or tweaks; draft text alone is not applied configuration.",
+        "To exercise a timeout, use the browser's network tools to delay a request beyond the configured timeout. To compare retries, temporarily block a manifest request and reload the source. Inspect actual attempts and their timing in Network; the app event log shows event names such as Error, not an HTTP request trace.",
+        "Remove browser throttling or request blocking. Clear the optional numeric overrides and recreate the Player. For a checkbox, restore the previously recorded on/off value. Reload the source to check normal playback again."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Browser caching, native HLS and the request type affect which requests exercise these settings. Total time before a playback error can include multiple requests, retries and delays. The SDK editor below also provides retryHttpRequest and preprocessing callbacks for custom request logic."
+    },
+    {
+      "type": "h2",
+      "id": "sdk-settings",
+      "text": "SDK settings, API calls and events"
+    },
+    {
+      "type": "p",
+      "text": "Open SDK settings, APIs and events below Player Config. Configuration edits, commands, state reads and events serve different purposes: a submitted configuration is not proof that the feature has become active."
+    },
+    {
+      "type": "p",
+      "text": "Search by the public API name and choose Configuration, Commands, Read state or Events. Each entry links to the official reference."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "For a setting such as SourceConfig.title, select its input type when alternatives are offered, enter a value, and choose Apply setting. PlayerConfig recreates the Player, SourceConfig reloads the source, and UI configuration rebuilds the UI.",
+        "Enable optional object fields individually. Use Add item for arrays and Add property for dictionaries. For a new object with required siblings, choose its containing path, such as PlayerConfig.playback.preferredTech or SourceConfig.subtitleTracks, and complete the fields together before Apply. An indexed leaf edits an existing array item; keep the preceding items in place.",
+        "Remove this override restores the corresponding base setting. A later edit in the original form replaces overlapping SDK-editor overrides while retaining unrelated values. Object edits retain untouched base fields; an array edit replaces that whole array.",
+        "For a method, choose its signature, enable optional arguments where needed, enter values and choose Run API or Read state. The result appears below the generated code. Destroy and Recreate Player use the same ownership lifecycle as the rest of the app.",
+        "Events lists the subscriptions on the current Player and UIManager. The log shows counts and bounded payload previews when events occur. Recreating the Player retires the previous subscriptions and history."
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Choosing undefined for an optional configuration property omits that property from the SDK input. Web SDK 8.281.0, for example, rejects an explicitly undefined playback object but accepts an omitted one. Remove this override restores the application's base value instead. This handling applies to configuration properties; callback arguments retain the values and argument count supplied by the SDK."
+    },
+    {
+      "type": "figure",
+      "file": "sdk-configuration",
+      "caption": "The SDK editor searches public paths and provides inputs for the selected setting. This example edits the source title."
+    },
+    {
+      "type": "h3",
+      "text": "Edit a callback",
+      "id": "edit-a-callback"
+    },
+    {
+      "type": "p",
+      "text": "A callback is a function that the SDK invokes. Select the function input type, use the displayed parameter names and return type, and enter its JavaScript body. Enable Allow this callback to run in this page after Apply, then apply the setting. For network.preprocessHttpRequest, this body returns the request unchanged:"
+    },
+    {
+      "type": "code",
+      "text": "return Promise.resolve(request);"
+    },
+    {
+      "type": "p",
+      "text": "The body runs as JavaScript in this page. lab.ui provides the imported UI classes and lab.getPlayer() returns the current Player. The callback log records invocation and return-contract errors. Removing an unfinished request callback can recreate the Player without waiting for that request to finish."
+    },
+    {
+      "type": "note",
+      "text": "Native HLS lets the browser load media requests, so an SDK network callback may not run for those requests. To test the scripted HLS transport, edit PlayerConfig.playback.preferredTech as an array, add an item with player set to PlayerType.Html5 and streaming set to StreamType.Hls, then Apply. The Read state result and callback log show which configuration and calls were used."
+    },
+    {
+      "type": "figure",
+      "file": "sdk-callback",
+      "caption": "The request callback has editable code, a published signature and an explicit execution control. The SDK invokes it after Apply."
+    },
+    {
+      "type": "h3",
+      "text": "Use SDK objects and inspect runtime state",
+      "id": "use-sdk-objects-and-inspect-runtime-state"
+    },
+    {
+      "type": "p",
+      "text": "Inputs that require a UI component or EventDispatcher use a public constructor or an owned SDK instance selected in the editor. Constructor arguments and overloads are editable. Certificate buffers accept hexadecimal or Base64 bytes. Arbitrary JSON is used only where the SDK type allows data; it does not create native or SDK class instances."
+    },
+    {
+      "type": "note",
+      "text": "UI components subscribe to language changes when they are constructed. The app installs the selected localization configuration before creating GUI-defined components, so they use the same event dispatcher as the UIManager. The generated code preserves this order. Components created by the editor and their internal children are released when their owner is replaced; previously selected SDK-owned components remain borrowed."
+    },
+    {
+      "type": "p",
+      "text": "Choose PlayerAPI.getConfig or PlayerAPI.getSource in Read state to inspect submitted values. Commands such as setVolume accept edited arguments. Returned SDK objects and callbacks can be selected in later calls; obtain them again after their owner is replaced. Generated code omits license values. References to selected instances must use the same objects obtained by earlier calls. The Events and callbacks panel shows cumulative counts for the current Player and a limited history of recent payloads. An earlier payload can disappear while its count remains. Use Read state to verify an applied value. Recreate Player or Clear event history resets these records."
+    },
+    {
+      "type": "p",
+      "text": "Apply an empty object {} to PlayerConfig.ui to enable SDK-managed UI. The app supplies pinned UI script and style locations; these are editable through PlayerConfig.location. The SDK calls the configured style.uiManagerFactory. Selecting an original theme returns to the app-managed UI and avoids overlapping managers. In Player UI 4.23.0, a nonempty SourceConfig.title or description takes precedence over UIConfig.metadata.title or description when the UI configuration is merged. To test metadata from UIConfig against a preset title or description, first apply an empty string to the corresponding SourceConfig field. To change source-specific text, edit SourceConfig."
+    },
+    {
+      "type": "note",
+      "text": "The existence of a field does not establish that it applies in the current environment or has been verified on every platform. Use compatible media and environments for conditional settings such as TV, DRM, advertising and native HLS."
+    },
+    {
+      "type": "h3",
+      "id": "commands-state-events",
+      "text": "Compare a command with a state read and an event"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Choose Commands, search for PlayerAPI.pause and run the API. The video should pause; use the player controls or PlayerAPI.play to resume.",
+        "Choose Read state and PlayerAPI.getCurrentTime, then Read state. Read it again after playback advances. The result is a snapshot, rather than a continuously updated control.",
+        "Choose Events and select a relevant event. Operate the player and inspect the event log below. Counts and payloads change when that event occurs; choosing its name does not create an event."
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "applied-code",
+      "text": "Read and copy applied configuration"
+    },
+    {
+      "type": "p",
+      "text": "Open Show applied configuration code below the configuration bands. The snapshot reads the current Player configuration and source, plus GUI-controlled runtime values and UI overrides. Unapplied draft edits are excluded. Refresh code captures later changes; Copy code refreshes and copies the snapshot. If browser clipboard access is unavailable, select the text and use the device copy command."
+    },
+    {
+      "type": "note",
+      "text": "License values are replaced or omitted. The export covers this screen’s settings, rather than all SDK options. Use the existing construction example beside the player for the selected UI. Fullscreen and external-display actions still need a user gesture and a supported device."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Wait for the source to load and apply the setting you want to inspect.",
+        "Open Show applied configuration code below the configuration form, then choose Refresh code. Repeat Refresh code after later changes.",
+        "Compare the output with the selected theme's construction code. The configuration export describes applied player, source and UI overrides; the construction panel explains the theme's component composition."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "applied-settings",
+      "caption": "Applied configuration code after the source has loaded and Refresh code has run. The Player key is a placeholder; draft edits are excluded."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
+          "label": "Implementation guide: reproduce the configuration and UI changes in your app"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "ui-settings",
+      "text": "UI behavior and saved preferences"
+    },
+    {
+      "type": "p",
+      "text": "Keep the same source while changing UI behavior. Restore the original value after each comparison so that stored preferences, URL start positions and source offsets do not overlap unexpectedly."
+    },
+    {
+      "type": "figure",
+      "file": "ui-controls",
+      "caption": "The UI settings panel. Each checkbox or input changes a particular behavior of the current theme; some settings require a compatible source or browser feature."
+    },
+    {
+      "type": "h3",
+      "text": "Available UI settings",
+      "id": "sixteen-ui-settings"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Setting",
+        "What to check"
+      ],
+      "rows": [
+        [
+          "Autohide controls",
+          "Hide the bar after inactivity. Initially off; applies to every theme, including Default."
+        ],
+        [
+          "Seek scrub-preview",
+          "Make the video follow the scrubber while dragging. When off, seek after release."
+        ],
+        [
+          "Keep bar on hover",
+          "With autohide enabled, keep the bar visible while the pointer is over the player."
+        ],
+        [
+          "Speed item in settings gear",
+          "Toggle the playback-speed selector. Check it in a theme with a settings menu."
+        ],
+        [
+          "Snap seeks to markers",
+          "Snap a seek near a marker to its position."
+        ],
+        [
+          "Fullscreen on first play",
+          "Enter fullscreen when the first playback begins through the play button. This is difficult to observe with the default autoplay behavior."
+        ],
+        [
+          "Keep subtitles in view",
+          "Keep overflowing subtitles inside the display area. Use a source with subtitles."
+        ],
+        [
+          "Disable UI storage",
+          "Disable Player UI localStorage access, including preferences and resume positions."
+        ],
+        [
+          "Snap range (%)",
+          "Set the snapping distance as a percentage of seek-bar width."
+        ],
+        [
+          "CEA-608 small-player px",
+          "Set the player-height threshold for small-player placement of compatible captions."
+        ],
+        [
+          "Remember playback preferences",
+          "Store volume, mute and playback speed in the browser. Initially off. Requires UI storage; a choice already made with the preferences switch takes precedence."
+        ],
+        [
+          "Resume VOD position",
+          "Store VOD positions and resume on a later source load. Initially off. Requires UI storage; live streams are excluded."
+        ],
+        [
+          "Read timestamp from URL",
+          "Read a VOD start position such as t=30 from the query or fragment. Initially on. Reload the source after changing this setting because it applies on the first source load after UI creation."
+        ],
+        [
+          "Preference switch in default settings",
+          "Show the playback-preferences switch in Default and CSS themes. Initially off. Hidden when UI storage is disabled. Custom component layouts do not add this switch."
+        ],
+        [
+          "Player UI language",
+          "Use auto for the browser language, or en, de, es, fr, nl or pt. Other languages fall back to English. Separate from the app Japanese/English selector."
+        ],
+        [
+          "Follow subtitle language",
+          "Use the selected subtitle language for Player UI. Initially off. If its translation is unavailable, use the configured UI language."
+        ]
+      ],
+      "widths": [
+        0.38,
+        0.62
+      ]
+    },
+    {
+      "type": "note",
+      "text": "The sample chapter markers are at 120, 360 and 600 seconds. The 60-second Pages sample cannot reach them, so it cannot demonstrate marker snapping. The CEA-608 setting also cannot be checked using only the separate WebVTT subtitle file."
+    },
+    {
+      "type": "p",
+      "text": "Changing a checkbox or number rebuilds the active theme UI. Settings that do not recreate the player retain the current playback session. Changing a value on media that cannot exercise the feature is not evidence that the feature worked."
+    },
+    {
+      "type": "p",
+      "text": "The construction panel also shows applied UIConfig overrides as code. Its Player UI language is separate from the app language. Changes rebuild the UI without recreating the Player; source-load settings such as timestamp links require a subsequent source load."
+    },
+    {
+      "type": "h3",
+      "text": "Compare controls during playback",
+      "id": "compare-controls-during-playback"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Select VOD HLS and Premiere. Note the current time and the UI setting values you want to restore. A UI setting change rebuilds the controls while keeping the Player instance; it does not require the Source or Player Config Apply buttons.",
+        "Turn on Autohide controls. Move the pointer outside the video and wait for the controls to hide. Then turn on Keep bar on hover and compare while the pointer remains over the video. Return the switches to their recorded values.",
+        "Turn off Speed item in settings gear, then open the gear menu. The playback-speed selector disappears. Turn it on again to restore the selector. This removes a UI control; it does not disable the Player API playbackSpeed field.",
+        "Turn Seek scrub-preview off and drag the seek bar: the seek applies after release. Turn it on and compare the video while dragging. Thumbnail images are a separate feature of VOD + Sprites.",
+        "Enter de in Player UI language and leave the field. Check the player control labels, then return to en or auto. The app's English/Japanese selector remains separate. Turn Follow subtitle language off when comparing a fixed UI language."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The construction-code panel displays the applied UIConfig overrides, such as playbackSpeedSelectionEnabled and localization.language. The applied configuration export below Player Config includes the same UI overrides. Changing themes retains these overrides. Numeric UI fields need an explicit previous value to restore them; empty input is treated as zero, rather than removing an override."
+    },
+    {
+      "type": "h3",
+      "text": "Check startup and saved-position behavior",
+      "id": "check-startup-and-saved-position-behavior"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Goal",
+        "How to try it",
+        "What to check and restore"
+      ],
+      "rows": [
+        [
+          "Enter fullscreen at first play",
+          "Turn autoplay off in Playback and recreate. Enable Fullscreen on first play in UI settings, then press the player play button.",
+          "The browser must allow fullscreen from that user action. Restore the UI switch and the earlier autoplay value; changing autoplay requires recreation."
+        ],
+        [
+          "Start a VOD from a URL timestamp",
+          "Open the Web app URL with ?t=30 and use VOD HLS. To compare with the option off, disable Read timestamp from URL and select the VOD HLS source again.",
+          "Check the initial time, not a later time after autoplay has advanced. Remove t from the URL and restore the switch afterwards. Saved resume positions and Source start offsets should be excluded from this comparison."
+        ],
+        [
+          "Inspect preference storage",
+          "Use Default or a CSS theme. Keep Disable UI storage off, enable Remember playback preferences and optionally Preference switch in default settings, then change volume, mute or speed.",
+          "Check the switch in the gear menu and the stored state in the browser's storage tools. A prior choice made in that switch can override the initial preference setting."
+        ],
+        [
+          "Compare VOD resume",
+          "Keep UI storage enabled, enable Resume VOD position, play into a VOD and load the same source again.",
+          "Compare the starting position with the option off, using a URL without t and no Source start offset. This applies to on-demand media, not live streams."
+        ]
+      ],
+      "widths": [
+        0.24,
+        0.38,
+        0.38
+      ]
+    },
+    {
+      "type": "note",
+      "text": "Disable UI storage prevents the UI from using browser localStorage; it is separate from Player Config storage.disableStorageApi and does not mean that already saved browser data has been deleted. Restore the switches you changed. For an experiment independent of saved UI state, enable Disable UI storage. The GUI has no button that clears stored preferences."
+    },
+    {
+      "type": "h3",
+      "text": "Continuous play",
+      "id": "continuous-play"
+    },
+    {
+      "type": "p",
+      "text": "The Binge playlist advances through configured presets in this order: VOD HLS, VOD DASH, VOD + Multi-audio and VOD + Subtitles. Automatic advancement is initially enabled. When disabled, use the Next button near the end. Skip Intro appears from 5 to 18 seconds. Those are sample times, not automatically detected intro boundaries."
+    },
+    {
+      "type": "h2",
+      "id": "external-displays",
+      "text": "Picture-in-Picture and external displays"
+    },
+    {
+      "type": "p",
+      "text": "Picture-in-Picture, AirPlay and Cast depend on the browser, operating system and receiver. First check that the local playback is working; enabling a button does not establish a connection to another device."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Control",
+        "Scope and prerequisites"
+      ],
+      "rows": [
+        [
+          "Playback panel PiP toggle",
+          "Change the player view mode. Browser and OS support are required."
+        ],
+        [
+          "Casting & PiP: PiP button",
+          "Add a small-window button to custom UIs. It is hidden in unsupported environments."
+        ],
+        [
+          "AirPlay button",
+          "Add AirPlay to custom UIs. A compatible Safari environment is required."
+        ],
+        [
+          "Chromecast button",
+          "Add Cast to custom UIs. The player is recreated to enable remotecontrol. A compatible receiver is required."
+        ]
+      ],
+      "widths": [
+        0.39,
+        0.61
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Default and the CSS themes use the standard UI structure, which already includes these buttons. The add/remove checkboxes change the custom UI component trees. Enabling a checkbox does not make a button or receiver available unless the browser, connection and device requirements are met."
+    },
+    {
+      "type": "note",
+      "text": "The Cast control is wired to remotecontrol using the default receiver. The existence of its settings is separate from verification on a physical receiver. TV remote navigation and VR playback controls are not provided as features of the current Web screen."
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/web/index.html",
+      "line": 12
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 158
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 386
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 640
+    },
+    {
+      "path": "apps/web/src/uiGuide.ts",
+      "line": 535
+    },
+    {
+      "path": "apps/web/src/i18n.ts",
+      "line": 18
+    },
+    {
+      "path": "packages/ui-shared/src/liveUi.ts",
+      "line": 138
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 255
+    },
+    {
+      "path": "packages/ui-shared/src/sportsData.ts",
+      "line": 1
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 540
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 608
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 637
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 818
+    },
+    {
+      "path": "apps/web/src/sources.ts",
+      "line": 73
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 213
+    },
+    {
+      "path": "apps/web/src/gestures.ts",
+      "line": 44
+    },
+    {
+      "path": "apps/web/README.md",
+      "line": 38
+    },
+    {
+      "path": "docs/local-test-media.md",
+      "line": 97
+    },
+    {
+      "path": "tests/e2e/specs/pages.spec.ts",
+      "line": 229
+    },
+    {
+      "path": "tests/e2e/specs/pages.spec.ts",
+      "line": 243
+    },
+    {
+      "path": "tests/e2e/specs/pages.spec.ts",
+      "line": 257
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 282
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 393
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 840
+    },
+    {
+      "path": "tests/e2e/specs/app-ui.spec.ts",
+      "line": 281
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 256
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 276
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 415
+    },
+    {
+      "path": "apps/web/src/controlPanel.ts",
+      "line": 488
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 149
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 448
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 743
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 834
+    },
+    {
+      "path": "tests/e2e/specs/app-ui.spec.ts",
+      "line": 545
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/UIConfig.html",
+      "label": "UIConfig"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ui/4/docs/interfaces/LocalizationConfig.html",
+      "label": "LocalizationConfig"
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 255
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 330
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 624
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 656
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 667
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 974
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 72
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 152
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 293
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 769
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 784
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 929
+    },
+    {
+      "path": "apps/web/src/configPanel.ts",
+      "line": 960
+    },
+    {
+      "path": "apps/web/test/configState.test.ts",
+      "line": 5
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.NetworkConfig.html",
+      "label": "NetworkConfig"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfigOptions.html",
+      "label": "SourceConfigOptions"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "label": "SDK editor"
+    },
+    {
+      "path": "apps/web/src/api/materialize.ts",
+      "label": "Callbacks and SDK constructors"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.StyleConfig.html",
+      "label": "StyleConfig"
+    },
+    {
+      "path": "apps/web/src/api/values.ts",
+      "label": "Optional configuration properties"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/UIManager.ts#L415",
+      "label": "Player UI metadata and source precedence (4.23.0)"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 238,
+      "label": "Event counts and recent-payload history"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 185,
+      "label": "Record reset on Player replacement"
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 270,
+      "label": "Explicit event-history reset"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 637,
+      "label": "Player and source application callbacks"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "line": 758,
+      "label": "PlayerConfig construction"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.PlayerConfig.html",
+      "label": "PlayerConfig"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.SourceConfig.html",
+      "label": "SourceConfig"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/web/8/docs/interfaces/Core.TweaksConfig.html",
+      "label": "TweaksConfig"
+    },
+    {
+      "path": "apps/web/src/configurationCodeView.ts",
+      "line": 1
+    },
+    {
+      "path": "apps/web/src/api/explorer.ts",
+      "line": 263
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "id": "native-apple",
-  "title": "iOS, iPadOS, and tvOS",
-  "lead": "Configure the Apple player, source and presentation in the SwiftUI app. The API inspector runs SDK operations, reads current state and records events. iOS and iPadOS also provide offline HLS and Google Cast panels; tvOS uses native controls.",
+  "title": "iOS, iPadOS, and tvOS: Screen and controls",
+  "lead": "Use the running Apple app to choose a source, change playback settings, compare controls and inspect applied code. Follow operations with SDK state and events. iPhone/iPad and tvOS differences are explained beside the relevant steps.",
   "blocks": [
     {
       "type": "links",
@@ -18,37 +18,47 @@
     },
     {
       "type": "p",
-      "text": "Xcode and XcodeGen 2.46.0 are required. The app targets iOS 16.0 or later and tvOS 15.0 or later, with Player 3.128.0. The iOS target includes Google Cast 4.8.6, which requires iOS 16. The Player is a binary XCFramework, so swift build alone cannot build the app. Synchronize the licenses and shared UI in the common preparation, then run the following from the repository root."
-    },
-    {
-      "type": "code",
-      "text": "xcodegen version\ncd apps/ios\nxcodegen generate\nmkdir -p Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm\ncp Package.resolved Showcase.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved\nopen Showcase.xcodeproj"
+      "text": "Build and launch Showcase-iOS or Showcase-tvOS using Local setup and licenses. This chapter starts with the running app; Swift integration and UI source changes are in the implementation guide."
     },
     {
       "type": "p",
-      "text": "Check that xcodegen version reports 2.46.0. In Xcode, choose Showcase-iOS or Showcase-tvOS, select a destination, and run. Configure a development team and signing for a physical device. Allow com.playerlab.ios for iOS or com.playerlab.tvos for tvOS on the Player license. Both apps display Player Lab."
+      "text": "The app uses Player 3.128.0, with iOS/iPadOS 16.0 or later and tvOS 15.0 or later. Allow com.playerlab.ios or com.playerlab.tvos on the Player license for the target you run. A successful build alone does not confirm authentication or playback."
     },
     {
-      "type": "note",
-      "text": "Synchronize the shared UI before running xcodegen generate. The generated iOS target includes the WebUI JavaScript and CSS as resources. Without those files, selecting a custom mode will not show the intended UI. tvOS does not use this Web UI."
-    },
-    {
-      "type": "code",
-      "title": "Unsigned iOS Simulator build from apps/ios",
-      "text": "xcodebuild -project Showcase.xcodeproj -scheme Showcase-iOS \\\n  -destination 'generic/platform=iOS Simulator' \\\n  -onlyUsePackageVersionsFromResolvedFile \\\n  CODE_SIGNING_ALLOWED=NO build"
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Local setup and licenses"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/",
+          "label": "Apple implementation guide"
+        }
+      ]
     },
     {
       "type": "h2",
       "text": "Suggested screen workflow"
     },
     {
+      "type": "p",
+      "text": "The video sits above a scrollable control panel. Source selects a preset; Configuration opens settings; Public SDK APIs opens the API, playlist and supported feature panels. Playback tracks reports current selections and position. iPhone/iPad uses sheets; tvOS uses full-screen forms, remote focus, Select and the system keyboard."
+    },
+    {
+      "type": "figure",
+      "file": "ios-playback-tracks",
+      "caption": "The iPad screen after an applied track selection. The video, Playback tracks and configuration entry show where to begin. The German subtitle belongs to this recorded example."
+    },
+    {
       "type": "steps",
       "items": [
         "Select VOD HLS under Source and start playback with the player's Play button. Autoplay is off and mute is on at startup. Confirm that the picture and timeline advance before changing settings.",
         "Open Configure source and playback. For a first comparison, keep the source URL, enter 5 for Start offset and choose Start. Apply should report Reload source. Start playback if needed and check that it begins near the requested position; the SDK can correct positions to media boundaries.",
-        "Reopen the editor, change Autoplay after source load or Start muted, and check that the pending action changes to Recreate player and reload source. Apply and check the new startup behavior, then compare Show applied code with the baseline.",
+        "Reopen the editor. From startup defaults, turn Autoplay from off to on while keeping Start muted on. Check Recreate player and reload source, then Apply. Compare automatic muted startup. Only a changed player setting recreates the player; unchanged values disable Apply.",
         "On iOS or iPadOS, select Default, Sports, Live (DVR), or Cinema under Player UI to compare controls and layouts. Switching UI reloads playback. tvOS uses System UI and has no Web UI selector.",
         "For audio and subtitle selection or video scaling, follow the settings below using a source that contains the required tracks. Playback tracks shows the current native selections.",
+        "Open Show applied code in Configuration and compare the applied values with your change. Then use API inspector → Operations, State and Events to run a command and check its result, following the detailed steps below.",
         "To try live rewind, select Live HLS, start playback and wait for a rewind window. The negative helper offsets are distances behind the live edge. Use Go to live edge to return, then check behindLive, atLiveEdge and the event log."
       ]
     },
@@ -60,6 +70,11 @@
       "type": "note",
       "title": "Do not add DASH to the Apple catalog",
       "text": "The Apple SDK in this configuration accepts HLS and progressive MP4. The app’s catalog contains only HLS. Loading DASH with the pinned SDK causes a precondition failure and terminates the app. Do not add it to the catalog even though SourceKind includes a DASH enum case. Use Web or Android to compare DASH behavior."
+    },
+    {
+      "type": "figure",
+      "file": "tvos-playback-tracks",
+      "caption": "A tvOS screen from the recorded remote-input test. Use Play/Pause on the remote and move focus to configuration. This screenshot does not establish behavior on every physical device."
     },
     {
       "type": "h2",
@@ -104,8 +119,8 @@
         ],
         [
           "Playback",
-          "Autoplay after source load: off; Start muted: on",
-          "Recreates the player. It should wait for Play and begin muted. These fields set the next startup state; they are not immediate play/pause or volume controls."
+          "Autoplay: off → on; Start muted: on",
+          "From startup defaults, turn Autoplay on and Apply. A changed player setting recreates the player. Check automatic muted playback; unchanged values disable Apply."
         ],
         [
           "Initial tracks",
@@ -127,6 +142,28 @@
     {
       "type": "p",
       "text": "To return to the initial player defaults, enter Autoplay off, Start muted on, SDK time shift / DVR on, Maximum bitrate 0, Forward buffer 0 and Video scaling Fit, then Apply. Reset to applied only abandons draft edits; it does not restore defaults. Selecting VOD HLS again clears custom source fields and initial track preferences while keeping player settings. Applied configuration is kept for the current app session."
+    },
+    {
+      "type": "note",
+      "title": "Apply and reset",
+      "text": "No configuration changes means the draft matches the applied values and Apply is disabled. Reset to applied restores those applied values in the draft; Cancel discards edits. Neither changes current playback."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "After Apply, open Show applied code and inspect active Player, Source and UI values.",
+        "Edit a draft without applying and confirm the output stays unchanged. iPhone/iPad supports Copy code and text selection; tvOS provides focusable code lines without clipboard integration."
+      ]
+    },
+    {
+      "type": "figure",
+      "file": "ios-applied-code",
+      "caption": "Applied Swift configuration on iPad. The export shows scaling and source options, excludes drafts and uses a Player key placeholder."
+    },
+    {
+      "type": "figure",
+      "file": "tvos-applied-code",
+      "caption": "Applied Swift configuration on tvOS. Focusable wrapped lines support remote reading; this TV host has no clipboard integration."
     },
     {
       "type": "h2",
@@ -151,11 +188,6 @@
       "caption": "SourceConfig.tracks in the iPhone editor. Each object describes a subtitle track, with accepted properties listed below the input."
     },
     {
-      "type": "code",
-      "title": "Manual subtitle track example",
-      "text": "[{\"identifier\":\"manual-example\",\"label\":\"Manual English\",\"language\":\"en\",\"url\":null}]"
-    },
-    {
       "type": "p",
       "text": "This adds a manual track without a remote file or subtitle cues. After Apply, inspect Player.availableSubtitles, then use the subtitle and cue operations to supply and select cues. For a file, provide its HTTP(S) URL and format, such as webVtt. External subtitle rendering depends on the selected UI; native HLS subtitle renditions remain the common route for tvOS System UI."
     },
@@ -163,6 +195,10 @@
       "type": "figure",
       "file": "ios-subtitle-array-sdk-state",
       "caption": "Player.availableSubtitles after Apply includes manual-example alongside the source's native tracks."
+    },
+    {
+      "type": "p",
+      "text": "To undo an applied setting, disable its Override and Apply. Reset to applied only abandons draft edits; it does not remove an override that is already active. A setting may need matching media, a supported device or an external service before it has a visible effect."
     },
     {
       "type": "h2",
@@ -190,20 +226,20 @@
     {
       "type": "note",
       "title": "Execution and fallback",
-      "text": "Apple callbacks use a bounded plain-value interpreter. Supported let/const, function, array, string and JSON operations are available; host objects, asynchronous code and dynamic execution are unavailable. Invalid syntax is rejected before Apply. Execution errors, quota failures or a wrong SDK return type use the documented fallback. Successful evaluations share storage within their owner. Interpreter errors discard that evaluation's changes; a subsequent SDK type rejection retains them. The public interpreter README describes the supported subset. Use let or const instead of var. JSON.parse and JSON.stringify accept one argument; reviver, replacer and indentation options are rejected."
+      "text": "Callbacks use a bounded plain-value interpreter. Invalid syntax prevents Apply; execution errors or an invalid result use the documented fallback. Stage and Apply do not prove a callback ran: trigger its SDK path and inspect calls/failures. Disable the Override and Apply to restore behavior. The implementation guide describes supported syntax and reuse."
     },
     {
-      "type": "p",
-      "text": "The evaluator limits CPU work and elapsed time separately. CPU time measures execution on the callback thread; elapsed time also includes periods when that thread is not running. Separate limits allow brief scheduling delays while bounding both computation and total waiting. When thread CPU accounting is unavailable at the start of a call, the evaluator uses its elapsed-time fallback. These are interpreter value limits, not a separate process or an isolated native heap."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/#player-source-config",
+          "label": "Callback and configuration implementation"
+        }
+      ]
     },
     {
       "type": "h2",
       "text": "Initial tracks and video scaling"
-    },
-    {
-      "type": "figure",
-      "file": "ios-playback-tracks",
-      "caption": "Player Lab on iPadOS 26.4 after Apply: the test HLS plays with German test subtitles, and Playback tracks shows the current native selections. Configure source and playback opens the editor."
     },
     {
       "type": "steps",
@@ -238,11 +274,6 @@
     },
     {
       "type": "figure",
-      "file": "tvos-playback-tracks",
-      "caption": "Player Lab on tvOS 26.4 after real remote input and Apply, with visible German native HLS subtitles and the configuration entry."
-    },
-    {
-      "type": "figure",
       "file": "tvos-initial-tracks",
       "caption": "The tvOS configuration form uses remote focus, Select and the system keyboard for initial language preferences."
     },
@@ -250,6 +281,10 @@
       "type": "figure",
       "file": "tvos-video-scaling",
       "caption": "Fit, Fill (crop) and Stretch are native focusable choices in the tvOS form."
+    },
+    {
+      "type": "p",
+      "text": "To remove initial track preferences, clear the audio language, choose Automatic subtitles and Apply, or select a source preset. To return scaling to startup behavior, choose Fit and Apply when it differs. Equal video/view aspect ratios can make the scaling choices look identical."
     },
     {
       "type": "h2",
@@ -270,6 +305,15 @@
       "text": "To try a progressive MP4, enter a reachable HTTP or HTTPS URL in Configure source and playback, select Progressive MP4, and Apply. The server must support the requests required by the Player, including byte ranges for seeking. Compare playback and seeking with an HLS source."
     },
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/#faq",
+          "label": "Implementation FAQ: configuration and UI issues"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "Use the SDK default player controls"
     },
@@ -280,7 +324,7 @@
     {
       "type": "steps",
       "items": [
-        "Select Default, load a source with audio or subtitle renditions and start playback.",
+        "On iPhone/iPad select Default; tvOS uses native System UI. Load media with the audio/subtitle tracks you want to compare and start playback. On tvOS use the remote’s Play/Pause command.",
         "Pause, resume and drag the timeline. In Settings, choose a speed preset or an available audio/subtitle track.",
         "Use API inspector → Operations for an arbitrary volume or speed value. Choose Native PlayerView to try fullscreen and view APIs."
       ]
@@ -290,16 +334,21 @@
       "text": "Stock speed choices are presets, and its speaker control can toggle mute without a numeric volume slider. These limits describe the default controls only; they do not describe the API inspector's coverage or accepted arguments."
     },
     {
+      "type": "p",
+      "text": "Return to Default on iPhone/iPad after comparing a custom mode. UI changes and the app’s surrounding forms are separate: changing colors, component layout or SwiftUI controls requires the code changes described in the implementation guide."
+    },
+    {
       "type": "h2",
       "text": "Run APIs and read their results"
     },
     {
+      "type": "p",
+      "text": "The inspector separates Operations, State and Events. Operations invokes an SDK command; State reads current values; Events records notifications. Keep the same source and change one item at a time to connect an action with its result."
+    },
+    {
       "type": "steps",
       "items": [
-        "Select Open API inspector. In Operations, filter by API name and select an operation. Its inputs describe the accepted argument types and units.",
-        "Choose Player.volume, enter a whole number from 0 to 100 and select Run API. A submitted call does not by itself establish a playback effect.",
-        "Switch to State, filter Player.volume and Refresh SDK state to read it from the current player. For asynchronous operations such as seeking, also check the completion event and resulting position.",
-        "Enable Show operation code for the Swift call with the current valid arguments. Configuration code creates or loads the player; operation code acts on the running instance."
+        "Open API inspector → Operations, filter Player.volume and choose it. Enter a whole number such as 50 within 0–100 and Run API. Read argument errors. Show operation code displays the Swift call for the current valid arguments."
       ]
     },
     {
@@ -308,13 +357,22 @@
       "caption": "Player.volume with an editable numeric argument and Run API. Show operation code displays its Swift call."
     },
     {
+      "type": "steps",
+      "items": [
+        "Switch to State, filter Player.volume and choose Refresh SDK state. Compare the actual value with your command. Refresh after later operations as needed. When finished, use the same operation to restore the previous value."
+      ]
+    },
+    {
       "type": "figure",
       "file": "ios-api-volume-state",
       "caption": "The State pane reads Player.volume from the current SDK player after the operation."
     },
     {
-      "type": "p",
-      "text": "Events records typed Player, Source and view callbacks. Filter event name or owner and Clear events help isolate an experiment. Entries show API identity, owner and SDK timestamp. Listener registration and receiving an event are separate states; both Player and Source listeners can report the same event. Subscription transport switches between Typed listeners and Combine publishers; both report the same SDK event types."
+      "type": "steps",
+      "items": [
+        "In Events, clear the old entries and enable recording before the next trial. Use Play/Pause or a supported seek, then inspect event name, owner and SDK timestamp. For asynchronous actions, also check the completion event and resulting position.",
+        "Filter by event or owner. Typed listeners and Combine publishers select the subscription method. Registration alone does not mean an event occurred; Player and Source listeners can report the same playback event."
+      ]
     },
     {
       "type": "figure",
@@ -322,12 +380,17 @@
       "caption": "The tvOS API inspector uses the same Operations, State and Events workflow with remote focus and Select."
     },
     {
+      "type": "note",
+      "title": "Command and completion",
+      "text": "A submitted call does not establish receiver playback, a SharePlay participant or active Picture-in-Picture. Inspect state/events and use the required source, host and device. PlayerView operations need the Native PlayerView host described next."
+    },
+    {
       "type": "h2",
       "text": "Choose the video presentation"
     },
     {
       "type": "p",
-      "text": "In API inspector → State, Presentation offers SDK SwiftUI, SDK SwiftUI with bindings, Native PlayerView, AVPlayerLayer and AVPlayerViewController. A change recreates the player and reloads the applied source. SDK SwiftUI remains the default."
+      "text": "In API inspector, the Player view host section is above the Operations, State and Events panes. Presentation offers SDK SwiftUI, SDK SwiftUI with bindings, Native PlayerView, AVPlayerLayer and AVPlayerViewController. A change recreates the player and reloads the applied source; SDK SwiftUI is the default."
     },
     {
       "type": "p",
@@ -361,6 +424,10 @@
     {
       "type": "p",
       "text": "Picture-in-Picture and remote playback require compatible platforms and devices. Read availability state before use. Show presentation code explains how the selected view, layer or controller is registered with the same Bitmovin player."
+    },
+    {
+      "type": "p",
+      "text": "To return to the default display method, choose SDK SwiftUI. For the configured Analytics collection path, choose PlayerFactory (with configured Analytics) in the separate factory selector. Enabling Picture-in-Picture is separate from availability and active state; check all three before treating it as working."
     },
     {
       "type": "h2",
@@ -408,6 +475,10 @@
       "text": "Suspend, resume, cancel, delete and offline-license operations affect the selected asset. Delete removes its cached media. FairPlay renewal and synchronization need a suitable license service. Last operation code, SDK state and events distinguish an accepted call from a completed operation."
     },
     {
+      "type": "p",
+      "text": "Refresh offline state reads progress and offlineState. Selecting a different asset removes its UI listener but does not cancel an existing download; use the asset’s suspend or cancel operation to stop it. Delete removes its cached media. Applying or reloading the main configuration returns from cached playback to the remote source."
+    },
+    {
       "type": "h2",
       "text": "Google Cast on iOS and iPadOS"
     },
@@ -436,34 +507,29 @@
       "text": "Receiver playback needs a compatible Cast device, local-network permission and suitable media. Custom receivers also need their _APPID._googlecast._tcp entry in Info.plist and a native rebuild; the default service is included. Initialization alone does not establish discovery or receiver playback. Google Cast is not provided by the tvOS sample."
     },
     {
+      "type": "p",
+      "text": "Run remove(listener:) to stop recording Cast notifications. Disable automatic initialization next launch affects the next process startup; it does not uninitialize the current sender. End a receiver session explicitly when needed, considering Stop receiver when ending session. The setup screenshots do not establish receiver discovery or playback."
+    },
+    {
       "type": "h2",
       "text": "Applied configuration code"
     },
     {
       "type": "p",
-      "text": "In Configuration, open Show applied code to read the Player, Source and UI settings already sent to the SDK. Editing the draft does not change the code until Apply. iOS provides Copy code and text selection. tvOS displays the code and has no clipboard integration in this sample. License values are omitted; the Player key is shown as a placeholder."
+      "text": "Use Configuration → Show applied code to retain the settings already sent to the SDK. Compare it before and after Apply. The screenshots beside the configuration steps show the iPad and tvOS output. Unapplied edits are excluded and license values are placeholders."
     },
     {
       "type": "p",
-      "text": "With initial track preferences, the Swift export includes a retained listener that verifies the explicit loaded Source and selects once at initial Ready. It uses the same full-tag/primary-language matching as the app. License keys remain placeholders and unapplied draft text is excluded."
+      "text": "Initial track preferences appear as one-time selection logic. This output is a reference for integration, not a complete independent app. Follow the implementation guide for configuration types, UI changes, callback resources, useful features and Analytics/Observability."
     },
     {
-      "type": "p",
-      "text": "When reusing callback code, include the public NativeScripts/acorn.js, NativeScripts/engine.js and ACORN-LICENSE.txt resources from apps/ios/Showcase in your Xcode app bundle. The generated Swift loads those bundled files instead of embedding the parser in every callback owner. Evaluation is unavailable if the parser or interpreter resource is missing. Retain Acorn's MIT notice when distributing the parser."
-    },
-    {
-      "type": "figure",
-      "file": "ios-applied-code",
-      "caption": "Applied Swift configuration on iPad. The export shows scaling and source options, excludes drafts and uses a Player key placeholder."
-    },
-    {
-      "type": "figure",
-      "file": "tvos-applied-code",
-      "caption": "Applied Swift configuration on tvOS. Focusable wrapped lines support remote reading; this TV host has no clipboard integration."
-    },
-    {
-      "type": "note",
-      "text": "Fit, Fill (crop), and Stretch are easiest to compare when the video and its display area have different aspect ratios. If both ratios match, the three options can look the same. A simulator result does not establish behavior on every physical device or AirPlay target."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/",
+          "label": "Apple implementation guide"
+        }
+      ]
     }
   ],
   "sources": [

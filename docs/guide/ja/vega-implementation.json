@@ -8,7 +8,7 @@
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/native-vega/",
-          "label": "Vega OSの画面・起動手順・操作"
+          "label": "画面と操作：Vega OS"
         }
       ]
     },
@@ -28,10 +28,23 @@
     {
       "type": "steps",
       "items": [
-        "操作ページの手順で既存のKeplerホストをビルドして起動します。識別子はcom.playerlab.vega、メインコンポーネントはcom.playerlab.vega.mainです。ライセンスを変更したら、ビルド前にローカル生成のruntime設定を更新します。",
+        "以下のVega READMEの「Build the Kepler application」に従い、既存のKeplerホストをビルドして起動します。識別子はcom.playerlab.vega、メインコンポーネントはcom.playerlab.vega.mainです。ライセンスを変更した場合は、バージョン管理対象外の実行時設定を生成し直してから再ビルドしてください。",
         "src/App.tsxをたどります。適用済みのPlayerConfigとSourceConfigを保持し、LabのBitmovinPlayerコンポーネントへ渡します。編集用の値を別に持つことで、入力途中の状態が再生に反映されるのを防ぎます。",
         "src/BitmovinPlayer.tsxをたどります。KeplerVideoSurfaceViewからネイティブの描画領域を示すハンドルを受け取り、アプリが前面にあり、その領域が現在のものと確認してからセッションを開始します。先に前のセッションの解放を待ちます。",
         "src/playerSession.tsをたどります。VideoPlayerの初期化、描画領域の接続、メディア互換処理の導入、モジュール版SDK Playerの生成、監視の接続、SourceConfigの読み込みの順で進みます。ホストを再利用・拡張するときもこの順序を維持します。"
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/local-setup/",
+          "label": "ローカル実行とライセンス設定"
+        },
+        {
+          "url": "https://github.com/kazuhide/player-lab/blob/main/apps/vega/README.md#build-the-kepler-application",
+          "label": "Vega README：Keplerホストのビルド"
+        }
       ]
     },
     {
@@ -128,6 +141,31 @@
         0.36,
         0.44
       ]
+    },
+    {
+      "type": "h3",
+      "id": "source-config-data",
+      "text": "選択した形式のソース設定を作る"
+    },
+    {
+      "type": "code",
+      "title": "形式・字幕・開始位置をSourceConfigへ対応づける",
+      "text": "  const media = draft.type === \"hls\" ? { hls: url } : draft.type === \"dash\" ? { dash: url } : { progressive: url };\n  const result: Configuration = {\n    source: {\n      ...media, ...(title ? { title } : {}), ...(poster ? { poster } : {}),\n      ...(subtitleUrl ? { subtitleTracks: [{ url: subtitleUrl, label: subtitleLabel, lang: subtitleLanguage,\n        id: \"player-lab-external\", kind: \"subtitle\", enabled: subtitleEnabled }] } : {}),\n      ...(startOffset !== undefined || reference !== undefined ? { options: {\n        ...(startOffset !== undefined ? { startOffset } : {}),\n        ...(reference !== undefined ? { startOffsetTimelineReference: reference } : {}),\n      } } : {}),\n    },",
+      "source": {
+        "path": "apps/vega/src/configuration.ts",
+        "line": 88,
+        "label": "configuration.ts:88–98"
+      },
+      "endLine": 98
+    },
+    {
+      "type": "p",
+      "text": "mediaは、選択したhls・dash・progressiveのいずれかのURLを持つアプリ側のオブジェクトです。ソース設定には、外部字幕のlang・id・enabledと開始位置のオプションも含みます。これらはWeb SDKの項目名で、React Nativeラッパーのlanguage・identifier・isDefaultとは異なります。Applyは検証済みのソースを使い、既存のセッションがネイティブメディアと表示面の接続後に読み込みます。"
+    },
+    {
+      "type": "h3",
+      "id": "native-transport-and-apply",
+      "text": "ネイティブセッションへ設定を適用する"
     },
     {
       "type": "code",
@@ -362,6 +400,11 @@
         "Bitmovin Dashboardで対応するAnalyticsライセンスと期間を選びます。コンテンツやアプリのラベルで絞り込み、セッション・起動時間・再バッファリング・ビットレート・エラーをローカルのSDKイベントと比較します。アプリは収集イベントを送り、通常の集計確認や可視化はDashboardで行います。",
         "指標の定義・クエリ・分析は共通のAnalyticsガイドを参照します。アカウントAPIの認証情報は信頼できるサーバー側に置きます。収集用ライセンスだけでアカウントの集計APIを利用できるわけではありません。"
       ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-overview",
+      "caption": "ライセンス、期間、絞り込みを示す公式BitmovinデモDashboardのダミーデータです。収集したアプリのセッションは自分のDashboardで探してください。この画像はPlayer Labの収集結果ではなく、現行画面とは構成が異なる場合があります。© Bitmovin。"
     },
     {
       "type": "links",

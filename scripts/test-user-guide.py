@@ -100,7 +100,7 @@ class GuideTests(unittest.TestCase):
 
     def test_all_chapters_and_reference_groups_are_public_in_both_languages(self):
         self.assertEqual(set(self.pages), GUIDE_FILES)
-        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 120)
+        self.assertEqual(sum(path.endswith('.html') for path in self.pages), 122)
         for language in ('en', 'ja'):
             fields = [field for group in self.content[language]['settings']['groups'] for field in group['fields']]
             self.assertEqual(len(fields), 144)
@@ -164,45 +164,54 @@ class GuideTests(unittest.TestCase):
             self.assertLess(html.index('test-results/'), html.index('web-qoe-analytics/'))
             self.assertLess(html.index('analytics-visualization/'), html.index('analytics-queries/'))
 
-    def test_platform_outline_keeps_web_workflows_and_nests_implementation_topics(self):
+    def test_every_platform_has_two_unnumbered_screen_and_implementation_chapters(self):
         import re
         from xml.etree import ElementTree
-        labels = {
-            'en': ('Web', 'iOS / iPadOS / tvOS', 'Android / Android TV / Fire TV', 'React Native', 'Vega OS'),
-            'ja': ('Web版', 'iOS・iPadOS・tvOS', 'Android・Android TV・Fire TV', 'React Native', 'Vega OS'),
+        from guide_html import TEXT
+        platforms = {
+            'web_group': ('web-screen-controls', 'web-implementation'),
+            'apple': ('native-apple', 'apple-implementation'),
+            'android': ('native-android', 'android-implementation'),
+            'react-native': ('native-react-native', 'react-native-implementation'),
+            'vega': ('native-vega', 'vega-implementation'),
         }
-        platforms = [
-            ('apple-implementation', 'native-apple'),
-            ('android-implementation', 'native-android'),
-            ('react-native-implementation', 'native-react-native'),
-            ('vega-implementation', 'native-vega'),
-        ]
         for language in ('en', 'ja'):
             html = self.pages[route_file(language)].decode()
             markup = re.search(r'<nav class="guide-nav"[^>]*>.*?</nav>', html, re.S).group()
             nav = ElementTree.fromstring(markup)
             groups = {section.find('h3').text: section for section in nav.findall('section')}
-            for label in labels[language]:
-                self.assertIn(label, groups)
-            web = groups[labels[language][0]]
-            self.assertEqual([a.get('href') for a in web.findall('./ol/li/a')], [
-                'web-screen-themes/', 'web-sources-tracks/', 'web-ui-settings/', 'web-implementation/'])
-            implementation = web.findall('./ol/li')[3]
-            self.assertEqual([a.get('href') for a in implementation.findall('./ul/li/a')], [
-                'web-player-config/', 'web-ui-customization/', 'web-implementation/#useful-features',
-                'web-implementation/#faq', 'web-implementation/#analytics-observability'])
-            for label, (guide, operations) in zip(labels[language][1:], platforms):
-                group = groups[label]
-                self.assertEqual([a.get('href') for a in group.findall('./ol/li/a')],
-                                 [guide + '/', operations + '/'])
-                topics = group.findall('./ol/li')[0].findall('./ul/li/a')
-                self.assertEqual([a.get('href') for a in topics], [
-                    guide + '/#' + section for section in (
-                        'player-source-config', 'ui-customization', 'useful-features', 'faq',
-                        'analytics-observability')])
-            top_paths = [a.get('href') for a in nav.findall('./section/ol/li/a')]
-            self.assertNotIn('implementation/', top_paths)
-            self.assertNotIn('native-integrations/', top_paths)
+            for category, chapters in platforms.items():
+                group = groups[TEXT[language][category]]
+                self.assertIsNone(group.find('ol'))
+                links = group.findall('./ul/li/a')
+                self.assertEqual([a.get('href') for a in links], [name + '/' for name in chapters])
+                self.assertEqual([a.text for a in links], [TEXT[language]['operation_guide'],
+                                                         TEXT[language]['implementation']])
+                self.assertFalse(group.findall('./ul/li/ul'))
+            top_paths = [a.get('href') for a in nav.findall('./section/ul/li/a')]
+            for retired in ('implementation', 'native-integrations', 'web-screen-themes',
+                            'web-sources-tracks', 'web-ui-settings'):
+                self.assertNotIn(retired + '/', top_paths)
+                self.assertIn(route_file(language, retired), self.pages)
+
+    def test_operation_guides_have_local_contents_and_web_screens_explain_the_workflow(self):
+        for language in ('en', 'ja'):
+            for chapter in ('web-screen-controls', 'native-apple', 'native-android',
+                            'native-react-native', 'native-vega'):
+                self.assertIn('<nav class="guide-onpage"', self.pages[route_file(language, chapter)].decode())
+            web = self.content[language]['web-screen-controls']
+            self.assertEqual([b['id'] for b in web['blocks'] if b['type'] == 'h2'], [
+                'screen', 'themes', 'sources-tracks', 'player-source-settings', 'sdk-settings',
+                'applied-code', 'ui-settings', 'external-displays'])
+            figures = {b['file'] for b in web['blocks'] if b['type'] == 'figure'}
+            self.assertTrue({'overview', 'custom-premiere', 'source-controls', 'config',
+                             'sdk-configuration', 'sdk-callback'}.issubset(figures))
+            self.assertTrue(any(b['type'] == 'h3' for b in web['blocks']))
+
+    def test_subheadings_are_escaped_and_keep_their_section_bookmarks(self):
+        self.assertEqual(render_block({'type': 'h3', 'text': 'API <value>'}, 'en',
+                                      route_file('en', 'web-screen-controls'), 'api-detail'),
+                         '<h3 id="api-detail">API &lt;value&gt;</h3>')
 
     def test_platform_implementation_guides_have_local_contents_source_examples_and_search(self):
         sections = ['integration', 'player-source-config', 'ui-customization',

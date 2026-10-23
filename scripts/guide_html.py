@@ -95,6 +95,8 @@ FIGURE_DIMENSIONS = {
     'config': {'en': (293, 368), 'ja': (293, 353)},
     'sdk-configuration': {'en': (1240, 466), 'ja': (1240, 449)},
     'sdk-callback': {'en': (1240, 538), 'ja': (1240, 523)},
+    'ui-controls': {'en': (301, 663), 'ja': (301, 718)},
+    'applied-settings': {'en': (1240, 506), 'ja': (1240, 509)},
 }
 
 
@@ -132,8 +134,8 @@ def render_block(block, language, page, section_id):
     text = esc(block.get('text', '')).replace('\n', '<br>')
     if kind == 'p':
         return f'<p>{text}</p>'
-    if kind == 'h2':
-        return f'<h2 id="{esc(section_id)}">{text}</h2>'
+    if kind in {'h2', 'h3'}:
+        return f'<{kind} id="{esc(section_id)}">{text}</{kind}>'
     if kind == 'note':
         title = f'<strong>{esc(block["title"])}</strong>' if block.get('title') else ''
         return f'<aside class="guide-note">{title}<p>{text}</p></aside>'
@@ -167,9 +169,8 @@ def render_block(block, language, page, section_id):
         else:
             raise ValueError('The guide contains an unknown figure.')
         picture = f'<img src="{esc(src)}" width="{width}" height="{height}" alt="{esc(block["caption"])}" loading="lazy" decoding="async">'
-        if name in SHARED_FIGURES:
-            label = 'Open full-size image' if language == 'en' else '元のサイズの画像を開く'
-            picture = f'<a href="{esc(src)}" aria-label="{label}: {esc(block["caption"])}">{picture}</a>'
+        label = 'Open full-size image' if language == 'en' else '元のサイズの画像を開く'
+        picture = f'<a href="{esc(src)}" aria-label="{label}: {esc(block["caption"])}">{picture}</a>'
         return f'<figure class="guide-figure">{picture}<figcaption>{esc(block["caption"])}</figcaption></figure>'
     raise ValueError('The guide contains an unknown block type.')
 
@@ -187,8 +188,7 @@ def field_anchor(field):
 
 def chapter_links(content, language, page, category, current='', *, descriptions=False):
     """Render the same platform hierarchy in the sidebar and guide overview."""
-    from guide_routes import (CHAPTERS, CHILD_CHAPTERS, IMPLEMENTATION_GUIDES,
-                              NAVIGATION_CHILDREN, OPERATION_GUIDES)
+    from guide_routes import (CHAPTERS, CHAPTER_PARENTS, CHILD_CHAPTERS, IMPLEMENTATION_GUIDES, OPERATION_GUIDES)
     labels = TEXT[language]
     entries = [key for key, group in CHAPTERS.items() if group == category and key not in CHILD_CHAPTERS]
     if category == 'reference':
@@ -198,17 +198,11 @@ def chapter_links(content, language, page, category, current='', *, descriptions
         title = (labels['implementation'] if key in IMPLEMENTATION_GUIDES else
                  labels['operation_guide'] if key in OPERATION_GUIDES else content[key]['title'])
         href = relative(page, route_file(language, key))
-        active = ' aria-current="page"' if current == key or current.startswith(key + '/') else ''
+        active_page = CHAPTER_PARENTS.get(current, current)
+        active = ' aria-current="page"' if active_page == key or active_page.startswith(key + '/') else ''
         item = f'<a href="{esc(href)}"{active}>{esc(title)}</a>'
         if descriptions:
             item += f'<p>{esc(content[key]["lead"])}</p>'
-        children = []
-        for target, identifier, label in NAVIGATION_CHILDREN.get(key, ()):
-            destination = relative(page, route_file(language, target)) + ('#' + identifier if identifier else '')
-            active = ' aria-current="page"' if current == target and not identifier else ''
-            children.append(f'<li><a href="{esc(destination)}"{active}>{esc(labels[label])}</a></li>')
-        if children:
-            item += '<ul class="guide-subchapters">' + ''.join(children) + '</ul>'
         output.append('<li>' + item + '</li>')
     return ''.join(output)
 
@@ -218,7 +212,7 @@ def navigation(content, language, page, current):
     for category in CATEGORIES:
         title = labels['web_group'] if category == 'web' else labels[category]
         links = chapter_links(content, language, page, category, current)
-        output.append(f'<section><h3>{esc(title)}</h3><ol>{links}</ol></section>')
+        output.append(f'<section><h3>{esc(title)}</h3><ul>{links}</ul></section>')
     return f'<nav class="guide-nav" aria-label="{labels["contents"]}">' + ''.join(output) + '</nav>'
 
 

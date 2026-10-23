@@ -133,20 +133,26 @@ test.afterEach(({ page }) => {
 
 for (const language of languages) {
   test.describe(`user guide (${language})`, () => {
-    test("Web contents keep the operation chapters and nest configuration and UI guides", async ({ page }) => {
-      await page.goto(guidePath(language));
-      const web = page.locator("main .guide-topic-group").filter({
-        has: page.getByRole("heading", { name: language === "ja" ? "Web版" : "Web", exact: true }),
-      });
-      expect(await web.locator(":scope > ol > li > a").evaluateAll((links) => links.map((a) =>
-        a.getAttribute("href")))).toEqual([
-        "web-screen-themes/", "web-sources-tracks/", "web-ui-settings/", "web-implementation/",
-      ]);
-      for (const guide of ["web-player-config", "web-ui-customization"]) {
-        await web.locator(`a[href="${guide}/"]`).click();
-        await expect(page.locator("main > h1")).toHaveText(content[language][guide]!.title);
-        await expect(page.locator(".guide-onpage")).toBeVisible();
+    test("each platform has unnumbered Screen and controls and Implementation guide chapters", async ({ page }) => {
+      const pairs: [string, string][] = [
+        ["web-screen-controls", "web-implementation"], ["native-apple", "apple-implementation"],
+        ["native-android", "android-implementation"], ["native-react-native", "react-native-implementation"],
+        ["native-vega", "vega-implementation"],
+      ];
+      for (const [operations, implementation] of pairs) {
         await page.goto(guidePath(language));
+        const group = page.locator("main .guide-topic-group").filter({has: page.locator(`a[href="${operations}/"]`)});
+        const links = group.locator(":scope > ul > li > a");
+        await expect(links).toHaveText(language === "ja"
+          ? ["\u753b\u9762\u3068\u64cd\u4f5c", "\u5b9f\u88c5\u30ac\u30a4\u30c9"]
+          : ["Screen and controls", "Implementation guide"]);
+        expect(await links.evaluateAll((elements) => elements.map(element => element.getAttribute("href"))))
+          .toEqual([operations + "/", implementation + "/"]);
+        await expect(group.locator("ol, li > ul")).toHaveCount(0);
+        await links.first().click();
+        await expect(page.locator("main > h1")).toHaveText(content[language][operations]!.title);
+        await expect(page.locator(".guide-onpage")).toBeVisible();
+        await expectHeadingStructure(page);
       }
     });
 
@@ -650,7 +656,7 @@ for (const language of languages) {
     for (const width of [320, 375, 768, 1024, 1440]) {
       test(`long text, code, tables and images fit a ${width}px document`, async ({ page }, testInfo) => {
         await page.setViewportSize({ width, height: 900 });
-        for (const slug of ["start", "web-player-config", "web-ui-customization", "native-apple", "native-android", "native-react-native", "native-vega", "analytics-metrics", "analytics-queries", "analytics-visualization", "analytics-ai", "test-results", "settings/tweaks", "controls", "themes",
+        for (const slug of ["start", "web-screen-controls", ...implementationGuides, "web-player-config", "web-ui-customization", "native-apple", "native-android", "native-react-native", "native-vega", "analytics-metrics", "analytics-queries", "analytics-visualization", "analytics-ai", "test-results", "settings/tweaks", "controls", "themes",
           "api-coverage", "api-coverage/web-ui"]) {
           await test.step(slug, async () => {
             await page.goto(guidePath(language, slug));
@@ -687,10 +693,10 @@ for (const language of languages) {
 
 test("localized guide figures and representative theme images decode", async ({ page }) => {
   for (const language of languages) {
-    for (const slug of ["start", "web-sources-tracks", "web-player-config", "themes", "native-apple", "native-android", "native-react-native", "native-vega",
+    for (const slug of ["start", "web-screen-controls", "web-sources-tracks", "web-player-config", "themes", "native-apple", "native-android", "native-react-native", "native-vega",
       "web-qoe-analytics", "analytics-visualization"]) {
       await page.goto(guidePath(language, slug));
-      const fullSizeImages = slug.startsWith("native-") || slug === "web-qoe-analytics" || slug === "analytics-visualization";
+      const fullSizeImages = slug !== "themes";
       const images = slug === "themes"
         ? page.locator("#default img, #custom-premiere img")
         : page.locator(".guide-figure img");

@@ -8,7 +8,7 @@
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/native-react-native/",
-          "label": "React Nativeの画面・起動手順・操作"
+          "label": "画面と操作：React Native"
         }
       ]
     },
@@ -28,10 +28,23 @@
     {
       "type": "steps",
       "items": [
-        "操作ページの手順で共通UIをビルドし、外部のExpoホストを生成します。Expo GoにはPlayerのネイティブモジュールが含まれないため、開発ビルドを使います。ジェネレーターは別のサンプル画面を作るのではなく、本リポジトリのApp.tsxとsrcをコピーします。",
+        "以下のReact Native READMEの「Build in an Expo project」に従い、共有UIのビルドと外部Expoホストの生成を行います。Expo GoにはネイティブPlayerモジュールが含まれないため、開発用ビルドを使います。生成スクリプトは別のサンプル画面を作るのではなく、このリポジトリのApp.tsxとsrcディレクトリをコピーします。",
         "PlayerライセンスのiOS・Android両方の許可一覧にcom.playerlab.reactnativeを追加します。生成したホストは、コピー済みのローカル設定を利用します。元のリポジトリのキーファイルを変更しただけでは、作成済みの外部ホストには反映されません。",
         "App.tsxを開きます。Appが適用済み設定と編集途中の値を保持し、UI選択とrevisionをキーにしてPlayerPaneを配置します。ActivePlayerPaneがusePlayerで取得したPlayerをPlayerViewへ渡します。",
         "VODプリセットを読み込んで再生し、Show applied codeを開きます。この状態を基準に項目を一つずつ変更します。SDKへ渡した設定、ネイティブSDKのイベント、実際の表示を合わせて確認します。"
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/local-setup/",
+          "label": "ローカル実行とライセンス設定"
+        },
+        {
+          "url": "https://github.com/kazuhide/player-lab/blob/main/apps/react-native/README.md#build-in-an-expo-project",
+          "label": "React Native README：Expoホストの生成とビルド"
+        }
       ]
     },
     {
@@ -137,6 +150,26 @@
         "Apply後にShow applied codeを開きます。追加設定は基本フォームの値より優先し、追加値を削除するとフォームの値またはSDK既定値へ戻ります。Reset draftは未適用の編集値だけを破棄します。",
         "実装を変更するときも、検証済みのPlayer設定とソース設定を分けて保持します。AppはApply時にrevisionを増やし、ReactのkeyによってPlayerの所有コンポーネントを作り直します。既存のusePlayer呼び出しの引数を書き換えることは、再設定用APIではありません。"
       ]
+    },
+    {
+      "type": "h3",
+      "id": "source-loading-and-ownership",
+      "text": "設定の適用と現在のソースの読み込み"
+    },
+    {
+      "type": "code",
+      "title": "現在のネイティブビューが準備できてから読み込む",
+      "text": "  useEffect(() => {\n    if (!viewReady || !active.current) return;\n    snapshots.current?.sourceChanged();\n    setDvr(null);\n    append(`load ${source.title || \"source\"}`);\n    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.\n    void loadOwnedSource(player, source).catch(() => { if (active.current) append(\"Source initialization failed; inspect source events or retry after the pending initializer settles.\"); });\n    observed.current?.sourceLoad();\n  }, [source, player, viewReady, append]);",
+      "source": {
+        "path": "apps/react-native/App.tsx",
+        "line": 282,
+        "label": "App.tsx:282–290"
+      },
+      "endLine": 290
+    },
+    {
+      "type": "p",
+      "text": "このソース読み込み処理は、現在のネイティブビューの準備を待って、保持中のPlayerへ新しいソースを渡します。loadOwnedSourceは、戻り値を持たないラッパーのPlayer.loadを包むアプリの所有関係管理であり、SDKがPromiseを返すloadメソッドではありません。自分の画面でも、現在のビューとPlayerに読み込みを結びつけ、ソースやエラーのイベントで準備状態を確認します。フォームから設定を適用する経路では、構成が変わったPlayerも作り直します。"
     },
     {
       "type": "figure",
@@ -248,6 +281,21 @@
       ]
     },
     {
+      "type": "code",
+      "title": "ラッパーのトラック・画質変更APIを呼び出す",
+      "text": "  one(\"Player.setVideoQuality\", { ...value, initial: \"auto\", label: \"Quality ID (getAvailableVideoQualities, or auto)\" }, (raw) => raw, (v) => player.setVideoQuality(v));\n  one(\"Player.setAudioTrack\", { ...value, label: \"Audio track identifier (getAvailableAudioTracks)\" }, (raw) => raw, (v) => player.setAudioTrack(v));\n  one(\"Player.setSubtitleTrack\", { ...value, label: \"Subtitle identifier (blank disables subtitles)\" }, (raw) => raw || undefined, (v) => player.setSubtitleTrack(v));",
+      "source": {
+        "path": "apps/react-native/src/apiOperations.ts",
+        "line": 73,
+        "label": "apiOperations.ts:73–75"
+      },
+      "endLine": 75
+    },
+    {
+      "type": "p",
+      "text": "oneは引数入力と操作ハンドラーを作るアプリの補助関数です。コールバックの中では、実際のPlayer.setVideoQuality、setAudioTrack、setSubtitleTrackを呼びます。自分のイベント処理では、現在のトラックIDを取得してからSDK APIを呼んでください。アプリの入力登録用の補助関数を組み込む必要はありません。最初の操作を移植する際は、前述のiOSでの画質選択の制約にも注意します。"
+    },
+    {
       "type": "p",
       "text": "Show API experimentsは実際のラッパーAPIを呼び、返り値を表示します。状態取得の多くはネイティブとの通信を伴うPromiseを返すため、値を待ってからUIへ反映します。Player eventsには別途イベントの要約を表示します。値を変更するAPIは、対応する状態取得や完了イベントで確認します。呼び出しが戻ったことだけで別の機能の動作までは判断できません。このラッパーにはonDurationChangedがないため、アプリのライブ範囲もonTimeChangedで更新しています。"
     },
@@ -338,6 +386,11 @@
         "Bitmovin Dashboardで対応するAnalyticsライセンス、期間、アプリやコンテンツの絞り込み条件を選びます。セッションの起動時間・バッファリング・ビットレート・エラーをSDKのイベントログと比較します。アプリでの収集とDashboardでの集計は別の段階です。",
         "指標の定義・可視化・分析例は以下の共通ガイドを参照します。アカウントAPIの認証情報は信頼できるサーバー側のツールに置きます。Playerや収集用Analyticsのライセンスキーとは別のものであり、アプリへ埋め込みません。"
       ]
+    },
+    {
+      "type": "figure",
+      "file": "analytics-dashboard-overview",
+      "caption": "ライセンス、期間、絞り込みを示す公式BitmovinデモDashboardのダミーデータです。収集したアプリのセッションは自分のDashboardで探してください。この画像はPlayer Labの収集結果ではなく、現行画面とは構成が異なる場合があります。© Bitmovin。"
     },
     {
       "type": "links",
