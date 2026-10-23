@@ -88,6 +88,19 @@ class PlayerWorkspaceUxInstrumentedTest {
         capture("android-workspace-events")
         workspaceAppliedCode(ui).assertIsDisplayed()
         capture("android-workspace-code")
+        val previousView = ui.activity.controller.currentView()
+        workspaceCommand(ui, "android:com.bitmovin.player.PlayerView.onDestroy()")
+        ui.onNodeWithTag("api-command-run").assertIsDisplayed().performClick()
+        ui.waitUntil(5_000) {
+            var replaced = false
+            ui.runOnUiThread { replaced = ui.activity.controller.currentView()?.let { it !== previousView } == true }
+            replaced
+        }
+        ui.onNodeWithTag("api-command-result").assertTextContains("Command submitted", substring = true)
+        ui.onNodeWithTag("api-related-state").assertTextContains("Not read yet", substring = true)
+        workspaceTheme(ui, "Cinema")
+        ui.onNodeWithTag("api-command-result").assertDoesNotExist()
+        ui.onNodeWithTag("api-related-state").assertTextContains("Not read yet", substring = true)
     }
 
     @Test

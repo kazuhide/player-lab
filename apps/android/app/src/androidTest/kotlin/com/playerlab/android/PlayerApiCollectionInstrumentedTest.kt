@@ -155,7 +155,17 @@ class PlayerApiCollectionInstrumentedTest {
         field("api-setting-value", "https://kazuhide.github.io/player-lab/web/media/vod-sprites/thumbnails/thumbnails.vtt"); click("api-setting-stage")
         select("source.NetworkEngine.HttpURLConnection.allowCrossProtocolRedirects"); click("api-choice-true"); click("api-setting-stage")
         select("source.SourceNetworkConfig.engine"); click("api-choice-HttpURLConnection"); click("api-setting-stage"); click("api-settings-apply")
-        await("SDK loads the real thumbnail track") { c.player.isPlaying && c.player.source?.getThumbnail(c.player.currentTime) != null }
+        try {
+            ui.runOnUiThread {
+                assertEquals("https://kazuhide.github.io/player-lab/web/media/vod-sprites/thumbnails/thumbnails.vtt", c.apiOverrides.values[id("source.SourceConfig.thumbnailTrack")])
+                assertNotNull("The actual source must receive the external thumbnail track", c.player.source?.config?.thumbnailTrack)
+            }
+            await("SDK loads the real thumbnail track") { c.player.isPlaying && c.player.source?.getThumbnail(c.player.currentTime) != null }
+        } finally {
+            ui.runOnUiThread {
+                println("API_COLLECTION_SAFE thumbnailConfigured=${c.player.source?.config?.thumbnailTrack != null} playing=${c.player.isPlaying} paused=${c.player.isPaused} position=${c.player.currentTime} duration=${c.player.duration} thumbnailAtFive=${c.player.source?.getThumbnail(5.0) != null} errorCode=${c.lastErrorCode}")
+            }
+        }
         ui.runOnUiThread { assertTrue((c.player.source!!.config.networkConfig.engine as NetworkEngine.HttpURLConnection).allowCrossProtocolRedirects) }
         click("api-runtime-toggle"); click("api-section-State"); field("api-runtime-search", "media.thumbnail.Thumbnail."); click("api-state-refresh")
         for (member in listOf("start", "end", "x", "y", "width", "height", "uri", "text")) {

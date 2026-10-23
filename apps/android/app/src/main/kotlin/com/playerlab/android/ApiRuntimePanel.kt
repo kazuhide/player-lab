@@ -12,6 +12,18 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 
+internal data class ApiRuntimeContext(
+    val playerGeneration: Int,
+    val sourceRevision: Int,
+    val viewRevision: Int,
+    val vrRenderer: ApiVrRenderer?,
+    val uiMode: UiMode,
+)
+
+private fun runtimeContext(controller: PlayerController, uiMode: UiMode) = ApiRuntimeContext(
+    controller.apiPlayerGeneration, controller.sourceRevision, controller.apiViewRevision, controller.apiVrRenderer, uiMode,
+)
+
 internal class ApiRuntimeWorkspaceState {
     var section by mutableStateOf("Commands")
     var selected by mutableStateOf(ApiRuntime.commands.first().id)
@@ -19,11 +31,12 @@ internal class ApiRuntimeWorkspaceState {
     var commandArguments by mutableStateOf(emptyMap<String, Map<String, String>>())
     var argument by mutableStateOf("")
     var result by mutableStateOf("")
+    var resultContext: ApiRuntimeContext? = null
     var observed by mutableStateOf("")
     var observations by mutableStateOf(emptyMap<String, String>())
     var stateSelected by mutableStateOf(ApiRuntime.reads.first().id)
     var eventSelected by mutableStateOf(ApiEvents.player.first().id)
-    fun select(id: String) { selected = id; purpose = apiPurpose(id); argument = ""; result = ""; observed = "" }
+    fun select(id: String) { selected = id; purpose = apiPurpose(id); argument = ""; result = ""; resultContext = null; observed = "" }
     fun arguments(command: ApiCommand) = commandArguments[command.id] ?: command.arguments.associate { it.name to it.example }
     fun setArgument(command: ApiCommand, name: String, value: String) {
         commandArguments = commandArguments + (command.id to (arguments(command) + (name to value)))
@@ -35,7 +48,14 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
     val focus = LocalFocusManager.current
     val keyboardVisible = workspaceKeyboardEditing()
     val command = ApiRuntime.commands.first { it.id == state.selected }
-    LaunchedEffect(controller.player, controller.sourceRevision, controller.apiViewRevision, uiMode) { state.result = ""; state.observed = ""; state.observations = emptyMap() }
+    val context = runtimeContext(controller, uiMode)
+    LaunchedEffect(context) {
+        // A synchronous command can replace its own view or source. Keep only its
+        // receipt for that resulting context; unrelated ownership changes retire it.
+        if (state.resultContext != context) { state.result = ""; state.resultContext = null }
+        state.observed = ""
+        state.observations = emptyMap()
+    }
     Column(Modifier.fillMaxSize().testTag("api-runtime-panel")) {
         WorkspaceHeader(!keyboardVisible) { Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             WorkspaceSections(listOf("Commands", "State", "Events"), state.section, "api-section") { state.section = it; focus.clearFocus() }
@@ -122,6 +142,7 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
                                 val inputs = ApiInputs(state.arguments(command)); command.validate(inputs)
                                 apiValue(command.execute(controller, inputs))
                             }.getOrElse { "API failed (${it.javaClass.simpleName}). Check argument types, source state and SDK events." }
+                            state.resultContext = runtimeContext(controller, uiMode)
                             state.observed = observedPlayback(controller)
                         }, modifier = Modifier.fillMaxWidth().testTag("api-command-run")) { Text("Run API") }
                     }

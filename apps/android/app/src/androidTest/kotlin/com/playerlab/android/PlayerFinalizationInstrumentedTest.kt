@@ -181,6 +181,7 @@ class PlayerFinalizationInstrumentedTest {
         const element=visible('${selector}');if(!element)return false;element.click();return true;})()""", "visible $selector")
     private fun awaitWeb(view: WebView, script: String, label: String) {
         val deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(40)
+        var lastTouchReveal=0L
         while(System.nanoTime()<deadline && errors.isEmpty() && ui.activity.controller.lastErrorCode==null) {
             ui.runOnUiThread {
                 val now=android.os.SystemClock.uptimeMillis()
@@ -189,6 +190,12 @@ class PlayerFinalizationInstrumentedTest {
                 try { view.dispatchGenericMotionEvent(event) } finally { event.recycle() }
             }
             if(javascript(view,script)=="true")return
+            if(android.os.SystemClock.uptimeMillis()-lastTouchReveal>=1000 && javascript(view,"""(() => { $visibleScript
+                return !!document.elementFromPoint(innerWidth*.15,innerHeight*.25)?.matches('.bmpui-ui-touch-control-overlay') &&
+                    !visible('.bmpui-ui-controlbar') && !visible('.bmpui-ui-settings-panel'); })()""")=="true") {
+                workspaceTapVisiblePlayer(ui,view)
+                lastTouchReveal=android.os.SystemClock.uptimeMillis()
+            }
             Thread.sleep(100)
         }
         assertTrue("$label; native error codes: $errors",false)

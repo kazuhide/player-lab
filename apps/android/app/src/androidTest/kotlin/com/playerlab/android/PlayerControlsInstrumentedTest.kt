@@ -451,7 +451,7 @@ class PlayerControlsInstrumentedTest {
     ) {
         val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(40)
         var readyPolls = 0
-        var interactionPrepared = false
+        var lastTouchReveal = 0L
         while (System.nanoTime() < deadline && errors.isEmpty() && ui.activity.controller.lastErrorCode == null) {
             var ready = false
             ui.runOnUiThread {
@@ -474,8 +474,11 @@ class PlayerControlsInstrumentedTest {
                         return
                     }
                 }
-                // Try an already visible control before adding any reveal gesture.
-                if (revealControls && !interactionPrepared) interactionPrepared = revealTouchControls(view)
+                // Touch UI can auto-hide again while a native seek settles. Reveal
+                // only an empty, currently hidden overlay, using the real window route.
+                if (revealControls && SystemClock.uptimeMillis() - lastTouchReveal >= 1000 && revealTouchControls(view)) {
+                    lastTouchReveal = SystemClock.uptimeMillis()
+                }
             }
             Thread.sleep(100)
         }
@@ -521,21 +524,8 @@ class PlayerControlsInstrumentedTest {
         if (!needsTouch) return false
         // TouchControlOverlay consumes video-area mouse events; a real single tap reveals its controls.
         // Never click a hidden menu item or change the UI's visibility styles to pass the oracle.
+        workspaceTapVisiblePlayer(ui, view)
         ui.runOnUiThread {
-            val visible = android.graphics.Rect()
-            val location = IntArray(2)
-            view.getLocationOnScreen(location)
-            val x = view.width * .15f
-            val y = view.height * .25f
-            assertTrue("Reveal gesture must be inside the actual visible WebView",
-                view.getGlobalVisibleRect(visible) && visible.contains((location[0] + x).toInt(), (location[1] + y).toInt()))
-            val down = SystemClock.uptimeMillis()
-            for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
-                val event = MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, x, y, 0)
-                event.source = InputDevice.SOURCE_TOUCHSCREEN
-                try { assertTrue("Native touch input must be consumed", view.dispatchTouchEvent(event)) }
-                finally { event.recycle() }
-            }
             println("NATIVE_UI_SAFE action=reveal-touch emptyOverlayTarget=true centerHitsButton=$centerHitsButton nativeTap=true visibleViewport=true priorPlaying=${ui.activity.controller.player.isPlaying}")
         }
         return true

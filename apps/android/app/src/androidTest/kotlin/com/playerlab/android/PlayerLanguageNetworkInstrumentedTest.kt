@@ -178,7 +178,9 @@ class PlayerLanguageNetworkInstrumentedTest {
     }
 
     private fun apply(tag: String) {
-        ui.onNodeWithTag(tag).performScrollTo().assertIsDisplayed()
+        ui.onNodeWithTag("workspace-settings").performClick()
+        workspaceChoose(ui, "settings-page", if (tag == "apply-player") "Player" else "Source")
+        ui.onNodeWithTag(tag).assertIsDisplayed()
             .performSemanticsAction(SemanticsActions.OnClick) { action ->
                 assertTrue("Real Apply action must execute", action())
                 val player = controller.player

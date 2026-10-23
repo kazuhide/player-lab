@@ -1,17 +1,30 @@
 package com.playerlab.android
 
+import android.graphics.Rect
+import android.os.SystemClock
+import android.view.InputDevice
+import android.view.MotionEvent
+import android.view.View
+import android.view.Window
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.Assert.assertTrue
+import java.util.concurrent.ConcurrentHashMap
 
 internal typealias WorkspaceRule = AndroidComposeTestRule<ActivityScenarioRule<MainActivity>, MainActivity>
 
 /** Uses the same visible selectors as a person; it never mutates controller or editor state. */
 internal fun workspaceChoose(ui: WorkspaceRule, tag: String, value: String, search: String? = null) {
     workspaceCloseDialog(ui)
+    // System keyboard dismissal can outlive Espresso's input connection. Wait for
+    // its actual window transition before using a header restored from IME mode.
+    closeSoftKeyboard()
+    InstrumentationRegistry.getInstrumentation().uiAutomation.waitForIdle(100, 5_000)
+    ui.waitForIdle()
     ui.waitUntil(5_000) { runCatching { ui.onNodeWithTag(tag).assertIsDisplayed() }.isSuccess }
     ui.onNodeWithTag(tag).assertIsDisplayed().performClick()
     if (search != null) {
@@ -74,6 +87,7 @@ internal fun workspaceSdkSetting(ui: WorkspaceRule, id: String) {
     workspaceChoose(ui, "settings-page", "SDK overrides")
     workspaceChoose(ui, "api-settings-category", apiPurpose(id))
     workspaceChoose(ui, "api-settings-field", id, id)
+    ui.onNodeWithTag("api-settings-field").assertTextContains(apiDisplayName(id), substring = true)
 }
 
 internal fun workspaceCommand(ui: WorkspaceRule, id: String) {
@@ -135,7 +149,7 @@ internal fun workspaceClick(ui: WorkspaceRule, tag: String) {
         tag == "allow-dvr" -> workspaceMore(ui, "Playback options")
         tag == "live-edge" -> workspaceMore(ui, "Live controls")
         tag.startsWith("api-select-") -> { workspaceSdkSetting(ui, tag.removePrefix("api-select-")); return }
-        tag.startsWith("api-setting-") || tag in listOf("api-settings-apply", "api-settings-reset") -> {
+        tag in listOf("api-settings-apply", "api-settings-reset") -> {
             ui.onNodeWithTag("workspace-settings").performClick(); workspaceChoose(ui, "settings-page", "SDK overrides")
         }
         tag.startsWith("api-command-") && tag != "api-command-run" -> { workspaceCommand(ui, tag.removePrefix("api-command-")); return }
@@ -191,7 +205,7 @@ internal fun workspaceField(ui: WorkspaceRule, tag: String, value: String) {
             return
         }
         tag.startsWith("api-argument-") -> workspaceChoose(ui, "api-argument-selector", tag.removePrefix("api-argument-"))
-        tag == "api-setting-value" -> { ui.onNodeWithTag("workspace-settings").performClick(); workspaceChoose(ui, "settings-page", "SDK overrides") }
+        tag == "api-setting-value" -> ui.onNodeWithTag("api-settings-field").assertIsDisplayed()
         tag == "offline-options-search" -> {
             workspaceMore(ui, "Offline"); workspaceChoose(ui, "offline-page", "Track selection")
             workspaceChoose(ui, "offline-track-selector", value, value); return
@@ -206,6 +220,10 @@ internal fun workspaceField(ui: WorkspaceRule, tag: String, value: String) {
         configurationItems.any { it.id == tag } -> workspaceSetting(ui, tag)
         tag.startsWith("offline-") -> navigateOffline(ui, tag)
         tag.startsWith("analytics-") -> navigateAnalytics(ui, tag)
+    }
+    ui.waitUntil(5_000) {
+        ui.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty() ||
+            tag == "api-setting-value" && ui.onAllNodesWithTag("api-choice-$value").fetchSemanticsNodes().isNotEmpty()
     }
     if (tag == "api-setting-value" && ui.onAllNodesWithTag("api-choice-$value").fetchSemanticsNodes().isNotEmpty()) {
         ui.onNodeWithTag("api-choice-$value").assertIsDisplayed().performClick()
@@ -256,6 +274,7 @@ private fun workspaceCloseDialog(ui: WorkspaceRule) {
 private fun navigateOffline(ui: WorkspaceRule, tag: String) {
     workspaceMore(ui, "Offline")
     val page = when {
+        tag == "offline-options" -> "Actions"
         tag.startsWith("offline-factory") -> "Offline source"
         tag.startsWith("offline-config") && tag != "offline-config-read" -> "Download settings"
         tag.startsWith("offline-action-") || tag.startsWith("offline-option") || tag == "offline-process" -> "Track selection"
@@ -272,6 +291,49 @@ private fun navigateOffline(ui: WorkspaceRule, tag: String) {
         workspaceChoose(ui, "offline-factory-setting", setting)
     }
     if (page == "Actions") workspaceChoose(ui, "offline-action-selector", tag)
+}
+
+/** Routes a real touch through the owned app window rather than a detached DOM or View. */
+internal fun workspaceTapVisiblePlayer(ui: WorkspaceRule, view: View, fractionX: Float = .15f, fractionY: Float = .25f) {
+    var x = 0f
+    var y = 0f
+    ui.runOnUiThread {
+        val visible = Rect()
+        val location = IntArray(2)
+        view.getLocationOnScreen(location)
+        x = location[0] + view.width * fractionX
+        y = location[1] + view.height * fractionY
+        assertTrue("Reveal touch must be inside the current visible player", view.isAttachedToWindow && view.isShown &&
+            view.getGlobalVisibleRect(visible) && visible.contains(x.toInt(), y.toInt()))
+    }
+    val down = SystemClock.uptimeMillis()
+    val handled = ConcurrentHashMap<Int, Boolean>()
+    lateinit var previous: Window.Callback
+    lateinit var observer: Window.Callback
+    ui.runOnUiThread {
+        previous = ui.activity.window.callback
+        observer = object : Window.Callback by previous {
+            override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+                val consumed = previous.dispatchTouchEvent(event)
+                if (event.actionMasked == MotionEvent.ACTION_DOWN || event.actionMasked == MotionEvent.ACTION_UP) handled[event.actionMasked] = consumed
+                return consumed
+            }
+        }
+        ui.activity.window.callback = observer
+    }
+    try {
+        for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+            val event = MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, x, y, 0)
+            event.source = InputDevice.SOURCE_TOUCHSCREEN
+            try { assertTrue("The owned app window must accept native touch input", InstrumentationRegistry.getInstrumentation().uiAutomation.injectInputEvent(event, true)) }
+            finally { event.recycle() }
+        }
+        ui.waitUntil(5_000) { handled.keys.containsAll(listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) }
+        assertTrue("Native player touch down must be consumed", handled[MotionEvent.ACTION_DOWN] == true)
+        assertTrue("Native player touch up must be consumed", handled[MotionEvent.ACTION_UP] == true)
+    } finally {
+        ui.runOnUiThread { if (ui.activity.window.callback === observer) ui.activity.window.callback = previous }
+    }
 }
 
 private fun navigateAnalytics(ui: WorkspaceRule, tag: String) {

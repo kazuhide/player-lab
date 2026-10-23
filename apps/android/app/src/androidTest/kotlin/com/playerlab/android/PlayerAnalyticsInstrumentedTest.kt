@@ -54,6 +54,19 @@ class PlayerAnalyticsInstrumentedTest {
         stage("analytics-source", "videoId", "player-lab-android-program-test")
         click("analytics-source-toggle")
         val source = controller.player.source
+        ui.runOnUiThread {
+            println("ANALYTICS_GUI_SAFE beforeProgramSeek position=${controller.player.currentTime} duration=${controller.player.duration} playing=${controller.player.isPlaying}")
+        }
+        // Explicit editor navigation can outlast the 60-second fixture. Resume the
+        // same native source through the real API controls before measuring programChange.
+        workspaceCommand(ui, "android:com.bitmovin.player.api.Player.seek()")
+        workspaceField(ui, "api-argument-time", "0")
+        workspaceClick(ui, "api-command-run")
+        workspaceCommand(ui, "android:com.bitmovin.player.api.Player.play()")
+        workspaceClick(ui, "api-command-run")
+        await("The same source advances before program change") {
+            controller.player.source === source && controller.player.isPlaying && controller.player.currentTime > 0.5
+        }
         val impression = controller.player.analytics!!.impressionId
         click("analytics-program-change")
         await("Program change creates a new local impression on the same media source") {
