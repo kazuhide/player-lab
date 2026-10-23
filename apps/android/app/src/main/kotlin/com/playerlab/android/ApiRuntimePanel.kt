@@ -48,6 +48,8 @@ internal class ApiRuntimeWorkspaceState {
         observed = ""
         observations = emptyMap()
     }
+    val selectedMatchesFeature: Boolean get() = purpose == "All features" || apiPurpose(selected) == purpose
+    fun filterByPurpose(purpose: String) { this.purpose = purpose }
     fun select(id: String) { selected = id; purpose = apiPurpose(id); argument = ""; result = ""; resultContext = null; observed = "" }
     fun arguments(command: ApiCommand) = commandArguments[command.id] ?: command.arguments.associate { it.name to it.example }
     fun setArgument(command: ApiCommand, name: String, value: String) {
@@ -73,12 +75,11 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
                 "Commands" -> {
                     val purposes = listOf("All features") + ApiRuntime.commands.map { apiPurpose(it.id) }.distinct().sorted()
                     WorkspacePicker("Feature", state.purpose, purposes.map { it to it }, "api-command-category", compact = true) { purpose ->
-                        state.purpose = purpose
-                        if (purpose != "All features" && apiPurpose(state.selected) != purpose) state.select(ApiRuntime.commands.first { apiPurpose(it.id) == purpose }.id)
+                        state.filterByPurpose(purpose)
                         focus.clearFocus()
                     }
                     WorkspacePicker("Operation", state.selected, ApiRuntime.commands.filter { state.purpose == "All features" || apiPurpose(it.id) == state.purpose }.map { it.id to it.label },
-                        "api-command-selector", searchable = true, compact = true) { state.select(it); focus.clearFocus() }
+                        "api-command-selector", searchable = true, compact = true, selectedLabel = command.label) { state.select(it); focus.clearFocus() }
                 }
                 "State" -> WorkspacePicker("SDK state", state.stateSelected, ApiRuntime.reads.map { it.id to apiDisplayName(it.id) },
                     "api-state-selector", searchable = true) { state.stateSelected = it; focus.clearFocus() }
@@ -146,7 +147,10 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
                     "Commands" -> {
                         Text("Run target: ${command.label}", style = MaterialTheme.typography.labelMedium, maxLines = 2,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.testTag("api-run-target"))
+                        if (!state.selectedMatchesFeature) Text("Choose an operation in ${state.purpose} to enable Run.",
+                            style = MaterialTheme.typography.labelSmall, maxLines = 2, modifier = Modifier.testTag("api-command-filter-status"))
                         Button(onClick = {
+                            if (!state.selectedMatchesFeature) return@Button
                             focus.clearFocus()
                             state.result = runCatching {
                                 val inputs = ApiInputs(state.arguments(command)); command.validate(inputs)
@@ -154,7 +158,7 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
                             }.getOrElse { "API failed (${it.javaClass.simpleName}). Check argument types, source state and SDK events." }
                             state.resultContext = runtimeContext(controller, uiMode)
                             state.observed = observedPlayback(controller)
-                        }, modifier = Modifier.fillMaxWidth().testTag("api-command-run")) { Text("Run API") }
+                        }, enabled = state.selectedMatchesFeature, modifier = Modifier.fillMaxWidth().testTag("api-command-run")) { Text("Run API") }
                     }
                     "State" -> Button(onClick = {
                         val field = ApiRuntime.reads.first { it.id == state.stateSelected }

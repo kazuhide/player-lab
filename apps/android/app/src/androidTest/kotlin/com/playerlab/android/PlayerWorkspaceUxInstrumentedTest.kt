@@ -104,6 +104,42 @@ class PlayerWorkspaceUxInstrumentedTest {
     }
 
     @Test
+    fun featureFiltersPreserveTheRunTargetUntilAnOperationIsExplicitlySelected() {
+        val pause = ApiRuntime.commands.first { it.id.endsWith("api.Player.pause()") }
+        val volume = ApiRuntime.commands.first { it.id.endsWith("api.Player.volume") }
+        val controller = ui.activity.controller
+        workspaceCommand(ui, pause.id)
+        val player = controller.player
+        val source = controller.configuredSource
+        var originalVolume = 0
+        ui.runOnUiThread { originalVolume = player.volume }
+        workspaceChoose(ui, "api-command-category", "Casting")
+        ui.onNodeWithTag("api-command-selector").assertTextContains(pause.label, substring = true)
+        ui.onNodeWithTag("api-run-target").assertTextContains(pause.label, substring = true)
+        ui.onNodeWithTag("api-command-run").assertIsNotEnabled()
+        ui.onNodeWithTag("api-command-filter-status").assertTextContains("Choose an operation in Casting", substring = true)
+        ui.onNodeWithTag("api-command-result").assertDoesNotExist()
+        ui.runOnUiThread {
+            assertSame(player, controller.player)
+            assertSame(source, controller.configuredSource)
+            assertEquals(originalVolume, player.volume)
+            assertFalse(player.isCasting)
+        }
+        capture("android-workspace-api-feature-filter")
+        workspaceChoose(ui, "api-command-category", "Playback")
+        ui.onNodeWithTag("api-run-target").assertTextContains(pause.label, substring = true)
+        workspaceChoose(ui, "api-command-selector", volume.id, volume.id)
+        ui.onNodeWithTag("api-run-target").assertTextContains(volume.label, substring = true)
+        ui.onNodeWithTag("api-command-filter-status").assertDoesNotExist()
+        workspaceField(ui, "api-argument-volume", "42")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        ui.onNodeWithTag("api-command-run").assertIsEnabled().performClick()
+        ui.onNodeWithTag("api-command-result").assertTextContains("Command submitted", substring = true)
+        ui.runOnUiThread { assertEquals(42, player.volume) }
+        capture("android-workspace-api-feature-selection")
+    }
+
+    @Test
     fun selectedSourceThemeAndValuesStayEnabledAndVodHasNoLiveActions() {
         workspaceTheme(ui, "Cinema")
         ui.onNodeWithTag("theme-selector").performClick()

@@ -45,4 +45,39 @@ class ApiRuntimeWorkspaceStateTest {
         assertEquals("", state.result)
         assertNull(state.resultContext)
     }
+
+    @Test fun changingTheFeatureFilterPreservesTheExplicitTargetAndItsDraftButBlocksAMismatch() {
+        val pause = ApiRuntime.commands.first { it.id.endsWith("api.Player.pause()") }
+        val state = ApiRuntimeWorkspaceState().apply {
+            select(pause.id)
+            argument = "retained argument selection"
+            result = "Previous pause call"
+            observed = "Previous pause observation"
+        }
+        state.filterByPurpose("Casting")
+        assertEquals("Filtering must never select a replacement operation", pause.id, state.selected)
+        assertEquals("Casting", state.purpose)
+        assertEquals("retained argument selection", state.argument)
+        assertEquals("Previous pause call", state.result)
+        assertEquals("Previous pause observation", state.observed)
+        assertFalse("An out-of-feature target cannot run", state.selectedMatchesFeature)
+    }
+
+    @Test fun onlyExplicitOperationSelectionChangesTheTargetAndAllFeaturesPreservesIt() {
+        val pause = ApiRuntime.commands.first { it.id.endsWith("api.Player.pause()") }
+        val volume = ApiRuntime.commands.first { it.id.endsWith("api.Player.volume") }
+        val state = ApiRuntimeWorkspaceState().apply { select(pause.id) }
+        state.filterByPurpose("Casting")
+        state.filterByPurpose("Playback")
+        assertEquals(pause.id, state.selected)
+        assertTrue(state.selectedMatchesFeature)
+        state.select(volume.id)
+        state.setArgument(volume, "volume", "42")
+        assertEquals(volume.id, state.selected)
+        assertTrue(state.selectedMatchesFeature)
+        state.filterByPurpose("All features")
+        assertEquals(volume.id, state.selected)
+        assertEquals("42", state.arguments(volume)["volume"])
+        assertTrue(state.selectedMatchesFeature)
+    }
 }

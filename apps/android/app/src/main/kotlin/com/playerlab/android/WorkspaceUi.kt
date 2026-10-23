@@ -123,11 +123,12 @@ internal fun <T> WorkspacePicker(
     searchable: Boolean = false,
     compact: Boolean = false,
     modifier: Modifier = Modifier,
+    selectedLabel: String? = null,
     change: (T) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
-    val current = choices.firstOrNull { it.first == selected }?.second ?: selected.toString()
+    val current = selectedLabel ?: choices.firstOrNull { it.first == selected }?.second ?: selected.toString()
     OutlinedButton(onClick = { query = ""; open = true }, modifier = modifier.fillMaxWidth().testTag(tag),
         shape = MaterialTheme.shapes.small, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
         if (compact) Text("$label: $current", style = MaterialTheme.typography.bodyMedium,
