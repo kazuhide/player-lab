@@ -344,7 +344,7 @@
       "label": "Readout refresh follows time/source/duration events"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/9d81079b3b2638ea267afa1ee6e67eaf390565fc/patches/bitmovin-player-ui%404.23.0.patch#L606",
+      "url": "https://github.com/kazuhide/player-lab/blob/42cb8fbe9c8eac8198cabeea104f77d3c1a9ef41/patches/bitmovin-player-ui%404.23.0.patch#L606",
       "label": "VOD keyboard seeks use the seekable-range origin"
     },
     {
