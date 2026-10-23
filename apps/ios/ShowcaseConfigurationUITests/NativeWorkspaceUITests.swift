@@ -9,6 +9,38 @@ final class NativeWorkspaceUITests: XCTestCase {
         XCUIApplication().terminate()
     }
 
+    func testInitialLiveHlsSourceLoadsAndAdvances() throws {
+        let app = XCUIApplication()
+        app.launch()
+        let source = app.buttons["source.preset"]
+        XCTAssertTrue(source.waitForExistence(timeout: 20))
+        XCTAssertEqual(source.value as? String, "Live HLS")
+        let play = app.buttons["playback.compact.toggle"]
+        XCTAssertTrue(play.waitForExistence(timeout: 10))
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in play.isEnabled }, object: play)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 40), .completed)
+        try WorkspaceUITestNavigation.activate(play, in: app)
+        try WorkspaceUITestNavigation.expandPlaybackPreview(in: app)
+        let position = app.staticTexts["playback.position"]
+        func seconds() -> Double {
+            Double(position.label.replacingOccurrences(of: "Position: ", with: "").replacingOccurrences(of: "s", with: "")) ?? 0
+        }
+        let started = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in position.exists && seconds() > 0 }, object: position)
+        XCTAssertEqual(XCTWaiter.wait(for: [started], timeout: 40), .completed)
+        let initial = seconds()
+        let advances = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in seconds() > initial + 0.5 }, object: position)
+        XCTAssertEqual(XCTWaiter.wait(for: [advances], timeout: 15), .completed)
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-initial-live-hls-playing", test: self)
+        try WorkspaceUITestNavigation.activate(app.buttons["api.open"], in: app)
+        try WorkspaceUITestNavigation.activate(app.segmentedControls["api.pane"].buttons["State"], in: app)
+        for name in ["Player.isLive", "Player.isPlaying"] {
+            try WorkspaceUITestNavigation.replace(app.textFields["api.state.filter"], with: name, in: app)
+            try WorkspaceUITestNavigation.activate(app.buttons["api.refresh"], in: app)
+            XCTAssertEqual(app.staticTexts["api.state.\(name)"].label, "true")
+            WorkspaceUITestNavigation.capture(app, named: "native-workspace-initial-live-hls-\(name)", test: self)
+        }
+    }
+
     func testSettingsAndDraftSurviveTabsRotationAndPresetSelection() throws {
         let app = XCUIApplication()
         app.launch()
@@ -18,7 +50,28 @@ final class NativeWorkspaceUITests: XCTestCase {
         try WorkspaceUITestNavigation.activate(autoplay, in: app)
         XCTAssertEqual(autoplay.value as? String, "1")
         try WorkspaceUITestNavigation.setting("configuration.title", in: app)
-        try WorkspaceUITestNavigation.replace(app.textFields["configuration.title"], with: "Unapplied title", in: app)
+        let titleField = app.textFields["configuration.title"]
+        let titleTarget = app.otherElements["configuration.title.target"]
+        // CGRect subtraction can represent 44 points as 43.99999999999994.
+        // Normalize to a thousandth of a point before checking the minimum.
+        XCTAssertGreaterThanOrEqual((titleTarget.frame.height * 1_000).rounded() / 1_000, 44)
+        XCTAssertGreaterThanOrEqual((titleField.frame.height * 1_000).rounded() / 1_000, 44)
+        let inputGeometry = XCTAttachment(string: "Target: \(titleTarget.frame)\nNative editor: \(titleField.frame)")
+        inputGeometry.name = "native-title-input-geometry"
+        inputGeometry.lifetime = .keepAlways
+        add(inputGeometry)
+        // The focusable row naturally gives the native element a 44-point
+        // frame. Prove both edges focus it without a query-driven tap.
+        for (fraction, value) in [(CGFloat(0.01), "Top-edge title"), (CGFloat(0.99), "Unapplied title")] {
+            XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5), "Each edge must focus the editor from a dismissed keyboard")
+            titleTarget.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fraction)).tap()
+            XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+            // Global keyboard events cannot silently tap/focus the queried field.
+            app.typeKey("a", modifierFlags: .command)
+            app.typeText(value)
+            XCTAssertEqual(titleField.value as? String, value)
+            WorkspaceUITestNavigation.dismissKeyboard(in: app)
+        }
 
         app.buttons["api.open"].tap()
         app.buttons["configuration.open"].tap()
@@ -31,6 +84,7 @@ final class NativeWorkspaceUITests: XCTestCase {
 
         // Presets deliberately replace Source drafts while retaining unapplied Player edits.
         try WorkspaceUITestNavigation.choose("VOD HLS", picker: "source.preset", in: app)
+        try WorkspaceUITestNavigation.expandPlaybackPreview(in: app)
         XCTAssertEqual(app.staticTexts["source.current"].label, "VOD HLS")
         XCTAssertEqual(app.textFields["configuration.title"].value as? String, "VOD HLS")
         try WorkspaceUITestNavigation.setting("configuration.autoplay", in: app)
@@ -42,13 +96,18 @@ final class NativeWorkspaceUITests: XCTestCase {
         WorkspaceUITestNavigation.capture(app, named: "native-workspace-persistent-player-settings", test: self)
 
         try WorkspaceUITestNavigation.setting("configuration.title", in: app)
+        WorkspaceUITestNavigation.capture(app, named: "native-workspace-applied-source-title", test: self)
         let longTitle = String(repeating: "A long source title ", count: 25)
         try WorkspaceUITestNavigation.replace(app.textFields["configuration.title"], with: longTitle, in: app)
         app.buttons["configuration.apply"].tap()
+        try WorkspaceUITestNavigation.expandPlaybackPreview(in: app)
         XCTAssertEqual(app.staticTexts["source.current"].label, longTitle)
         let titleInput = app.textFields["configuration.title"]
         XCTAssertTrue(titleInput.isHittable)
-        XCTAssertGreaterThanOrEqual(titleInput.frame.intersection(app.scrollViews["configuration.form"].frame).height, 44, "Readonly titles must leave the selected input usable")
+        let viewport = app.scrollViews["configuration.form"].frame
+        XCTAssertGreaterThanOrEqual((titleTarget.frame.height * 1_000).rounded() / 1_000, 44)
+        XCTAssertEqual(titleTarget.frame.intersection(viewport).height, titleTarget.frame.height, accuracy: 0.001, "Readonly titles must leave the complete input target usable")
+        XCTAssertGreaterThanOrEqual(titleInput.frame.intersection(viewport).height, titleInput.frame.height - 0.5, "The native editor must be fully visible inside its target")
         XCTAssertTrue(app.buttons["configuration.apply"].isHittable)
         try WorkspaceUITestNavigation.replace(titleInput, with: "VOD HLS", in: app)
         app.buttons["configuration.apply"].tap()

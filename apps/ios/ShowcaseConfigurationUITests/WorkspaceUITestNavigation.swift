@@ -147,6 +147,14 @@ enum WorkspaceUITestNavigation {
         return XCTWaiter.wait(for: [ready], timeout: 5) == .completed
     }
 
+    static func expandPlaybackPreview(in app: XCUIApplication) throws {
+        #if !os(tvOS)
+        let expand = app.buttons["playback.preview.expand"]
+        if expand.exists { try activate(expand, in: app) }
+        #endif
+        XCTAssertTrue(app.staticTexts["source.current"].waitForExistence(timeout: 5), "Playback metadata is shown in the expanded preview")
+    }
+
     static func replace(_ field: XCUIElement, with text: String, in app: XCUIApplication) throws {
         try activate(field, in: app)
         let current = field.value as? String ?? ""

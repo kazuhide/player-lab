@@ -80,6 +80,7 @@ struct ConfigurationEditor: View {
     @State private var appliedSummary = ""
     @State private var advancedReveal: String?
     @State private var showsDetails = false
+    @FocusState private var focusedInput: String?
 
     private var draft: Binding<ConfigurationDraft> { $session.value }
     private var pendingEffect: ConfigurationEffect? {
@@ -147,6 +148,7 @@ struct ConfigurationEditor: View {
         .onChange(of: category) { next in
             if setting.category != next, let first = NativeSetting.allCases.first(where: { $0.category == next }) { setting = first }
         }
+        .onChange(of: setting) { _ in focusedInput = nil }
         .onChange(of: session.value) { _ in applyError = nil }
         .onChange(of: model.configurationDraft) { session.synchronize($0) }
         .onChange(of: model.sourcePresetRevision) { _ in
@@ -312,15 +314,31 @@ struct ConfigurationEditor: View {
             Text(label).font(typeSize.isAccessibilitySize ? .caption : .subheadline.weight(.semibold))
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(height: keyboardVisible ? 0 : nil).clipped().accessibilityHidden(keyboardVisible)
+            #if os(tvOS)
             TextField(placeholder, text: text)
                 .disableAutocorrection(true)
-                #if !os(tvOS)
-                .textInputAutocapitalization(.never)
-                .textFieldStyle(.roundedBorder)
-                .submitLabel(.done)
-                #endif
                 .accessibilityIdentifier("configuration.\(id)")
                 .accessibilityLabel(label)
+            #else
+            // Keep the native editor and give its surrounding row a full tap
+            // target. A layout frame alone does not enlarge the native field.
+            ZStack {
+                TextField(placeholder, text: text)
+                    .disableAutocorrection(true)
+                    .textInputAutocapitalization(.never)
+                    .textFieldStyle(.roundedBorder)
+                    .submitLabel(.done)
+                    .focused($focusedInput, equals: id)
+                    .accessibilityIdentifier("configuration.\(id)")
+                    .accessibilityLabel(label)
+            }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+            .simultaneousGesture(TapGesture().onEnded { focusedInput = id })
+            .accessibilityElement(children: .contain)
+            .accessibilityRemoveTraits(.isButton)
+            .accessibilityIdentifier("configuration.\(id).target")
+            #endif
         }
     }
 }

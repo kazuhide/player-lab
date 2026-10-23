@@ -36,7 +36,7 @@ final class TrackPreferenceUITests: XCTestCase {
         try activate(app.buttons["playback.compact.toggle"], in: app)
         capture(app, name: "Advancing playback miniature")
         try activate(app.buttons["playback.preview.expand"], in: app)
-        try expectPlayback(audio: expectedAudio, subtitle: "de", app: app, stage: "German after preview expansion")
+        try expectPlayback(audio: expectedAudio, subtitle: "de", app: app, stage: "German after preview expansion", pauseAfterProof: false)
         try activate(app.buttons["playback.preview.collapse"], in: app)
         XCTAssertTrue(app.buttons["playback.compact.toggle"].isHittable)
         try WorkspaceUITestNavigation.setting("configuration.audioLanguage", in: app)
@@ -84,7 +84,8 @@ final class TrackPreferenceUITests: XCTestCase {
         try activate(app.buttons["configuration.open"], in: app)
     }
 
-    private func expectPlayback(audio: String, subtitle: String?, app: XCUIApplication, stage: String) throws {
+    private func expectPlayback(audio: String, subtitle: String?, app: XCUIApplication, stage: String, pauseAfterProof: Bool = true) throws {
+        try WorkspaceUITestNavigation.expandPlaybackPreview(in: app)
         let audioLabel = app.staticTexts["playback.audio"]
         let subtitleLabel = app.staticTexts["playback.subtitles"]
         let position = app.staticTexts["playback.position"]
@@ -104,6 +105,7 @@ final class TrackPreferenceUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [advances], timeout: 15), .completed, stage)
         XCTAssertTrue(selected(), "Current audio/subtitle selection at visible advancing position")
         capture(app, name: stage)
+        guard pauseAfterProof else { return }
         // Pause through the app after proving playback. The short fixture must
         // not reach its end while subsequent settings are being entered.
         try activate(app.buttons["api.open"], in: app)
