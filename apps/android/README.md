@@ -17,17 +17,18 @@ its native `Cache` type must use the relocated Media3 namespace.
 
 ## Layout
 
-- `dvr/`: Kotlin module with rewind-window calculations and tests for the Java
-  Virtual Machine; these tests do not need the Android SDK.
+- `playback/`: Kotlin module with playback timeline calculations, including live
+  rewind, and tests for the Java Virtual Machine; these tests do not need the
+  Android SDK.
 - `app/`: Android player and controls. Shared Web UI assets are loaded through
   `UiConfig.WebUi` from `file:///android_asset/`.
 
-## Test the rewind logic
+## Test playback logic
 
 From the repository root, with a Java development kit installed:
 
 ```bash
-cd apps/android && ./gradlew :dvr:test
+cd apps/android && ./gradlew :playback:test
 ```
 
 ## Build the app

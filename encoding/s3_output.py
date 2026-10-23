@@ -32,7 +32,7 @@ def create_output(api=None):
         region = os.environ.get("BITMOVIN_OUTPUT_REGION")
         cloud_region = AwsCloudRegion(region.upper().replace("-", "_")) if region else None
         output = api.encoding.outputs.s3.create(s3_output=S3Output(
-            name=os.environ.get("BITMOVIN_OUTPUT_NAME", "dvr-showcase-output"),
+            name=os.environ.get("BITMOVIN_OUTPUT_NAME", "player-lab-output"),
             bucket_name=os.environ["BITMOVIN_OUTPUT_BUCKET"],
             access_key=os.environ["BITMOVIN_OUTPUT_ACCESS_KEY"],
             secret_key=os.environ["BITMOVIN_OUTPUT_SECRET_KEY"],

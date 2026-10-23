@@ -1,6 +1,6 @@
 import BitmovinPlayer
 import Combine
-import DvrKit
+import PlaybackCore
 import UIKit
 import WebKit
 import XCTest

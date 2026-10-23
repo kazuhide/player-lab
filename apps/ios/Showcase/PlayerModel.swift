@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 import BitmovinPlayer
-import DvrKit
+import PlaybackCore
 
 /// Which UI renders over the player. `default` is the SDK's own Web UI; the rest load our shared
 /// `@showcase/ui-shared` bundle (bundled as an app resource — see scripts/sync-webui-bundle.sh)
@@ -28,8 +28,8 @@ enum UiMode: String, CaseIterable, Identifiable {
     }
 }
 
-/// Wraps the Bitmovin Player and exposes DVR state (via `DvrKit`) to SwiftUI. The
-/// DVR coordinate logic lives in `DvrKit`; this is the thin platform glue.
+/// Coordinates Player configuration, source loading, and playback state for SwiftUI.
+/// SDK-independent playback timing calculations live in `PlaybackCore`.
 ///
 /// The Bitmovin SDK usage below (event classes, config properties, `events.on`)
 /// type-checks against the SDK pinned in project.yml. CI builds the app for the
@@ -83,9 +83,9 @@ final class PlayerModel: ObservableObject {
         ConfigurationDraft(source: sourceSettings, player: playerSettings)
     }
 
-    @Published private(set) var dvr: DvrState = Dvr.deriveState(
+    @Published private(set) var dvr: TimelineState = PlaybackTimeline.deriveState(
         PlayerSnapshot(isLive: false, duration: 0, maxTimeShift: 0, timeShift: 0, currentTime: 0),
-        config: DvrConfig(timeShiftEnabled: true)
+        config: TimelineConfig(timeShiftEnabled: true)
     )
     @Published private(set) var log: [String] = []
     @Published var timeShiftEnabled = true {
@@ -269,7 +269,7 @@ final class PlayerModel: ObservableObject {
             player.timeShift = 0
             return
         }
-        player.timeShift = Dvr.clampToWindow(offset, maxTimeShift: player.maxTimeShift)
+        player.timeShift = PlaybackTimeline.clampToWindow(offset, maxTimeShift: player.maxTimeShift)
     }
 
     // MARK: - internals
@@ -289,11 +289,11 @@ final class PlayerModel: ObservableObject {
         let snap = snapshot()
         // §9: iOS can miss DurationChanged on live→VOD, so detect it from the
         // snapshot poll driven by TimeChanged.
-        if let prev = lastSnapshot, Dvr.detectLiveToVod(prev: prev, next: snap) {
+        if let prev = lastSnapshot, PlaybackTimeline.detectLiveToVod(prev: prev, next: snap) {
             append("live→VOD detected (poll)")
         }
         lastSnapshot = snap
-        dvr = Dvr.deriveState(snap, config: DvrConfig(
+        dvr = PlaybackTimeline.deriveState(snap, config: TimelineConfig(
             timeShiftEnabled: timeShiftEnabled && playerSettings.sdkTimeShiftEnabled))
         if let source = player.source, completionSource === source {
             let audio = player.audio

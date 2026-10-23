@@ -50,10 +50,10 @@ import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.api.ui.PlayerViewConfig
 import com.bitmovin.player.api.ui.UiConfig
-import com.playerlab.android.dvr.Dvr
-import com.playerlab.android.dvr.DvrConfig
-import com.playerlab.android.dvr.DvrState
-import com.playerlab.android.dvr.PlayerSnapshot
+import com.playerlab.android.playback.PlaybackTimeline
+import com.playerlab.android.playback.TimelineConfig
+import com.playerlab.android.playback.TimelineState
+import com.playerlab.android.playback.PlayerSnapshot
 import kotlin.reflect.KClass
 
 /**
@@ -88,10 +88,10 @@ private fun playerViewConfig(mode: UiMode): PlayerViewConfig =
     }
 
 /**
- * Holds the Bitmovin Player and exposes DVR state (via the `:dvr` Kotlin module)
- * as Compose state. Compiles against Bitmovin Player 3.171.0 — `:app:assembleDebug`
- * produces a debug APK (built in CI). On-device DVR behaviour still needs a real
- * device and a license-allow-listed build.
+ * Coordinates Player configuration, source loading, and playback state for Compose.
+ * SDK-independent playback timing calculations live in the `:playback` module.
+ * The Player SDK is pinned in app/build.gradle.kts. Device playback requires
+ * a license that allows this app identifier.
  */
 internal class PlayerController(
     private val context: Context,
@@ -430,7 +430,7 @@ internal class PlayerController(
     private var sourceGeneration = 0
     private var released = false
 
-    var dvr: DvrState by mutableStateOf(Dvr.deriveState(snapshot(), DvrConfig(timeShiftEnabled = true)))
+    var dvr: TimelineState by mutableStateOf(PlaybackTimeline.deriveState(snapshot(), TimelineConfig(timeShiftEnabled = true)))
         private set
     var timeShiftEnabled: Boolean by mutableStateOf(true)
         private set
@@ -638,7 +638,7 @@ internal class PlayerController(
 
     fun seek(offsetFromEdge: Double) {
         if (released) return
-        player.timeShift(if (timeShiftEnabled && playerSettings.timeShift) Dvr.clampToWindow(offsetFromEdge, player.maxTimeShift) else 0.0)
+        player.timeShift(if (timeShiftEnabled && playerSettings.timeShift) PlaybackTimeline.clampToWindow(offsetFromEdge, player.maxTimeShift) else 0.0)
     }
 
     fun toggleDvr(enabled: Boolean) {
@@ -692,7 +692,7 @@ internal class PlayerController(
     )
 
     private fun refresh() {
-        dvr = Dvr.deriveState(snapshot(), DvrConfig(timeShiftEnabled = timeShiftEnabled && playerSettings.timeShift))
+        dvr = PlaybackTimeline.deriveState(snapshot(), TimelineConfig(timeShiftEnabled = timeShiftEnabled && playerSettings.timeShift))
     }
 
     private fun append(message: String) {

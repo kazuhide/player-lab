@@ -413,7 +413,7 @@ def _resolve_output():
     output_id = os.environ.get("OUTPUT_ID")
     if output_id:
         return api.encoding.outputs.s3.get(output_id=output_id)
-    name = os.environ.get("BITMOVIN_OUTPUT_NAME", "dvr-showcase-output")
+    name = os.environ.get("BITMOVIN_OUTPUT_NAME", "player-lab-output")
     offset = 0
     matches = {}
     while True:
@@ -469,7 +469,7 @@ def main():
 
     print("plan: source=https://%s%s" % (host, input_path))
     print("      output=%r  ->  %s/{manifest.mpd,master.m3u8}"
-          % (os.environ.get("BITMOVIN_OUTPUT_NAME", "dvr-showcase-output"), OUTPUT_BASE))
+          % (os.environ.get("BITMOVIN_OUTPUT_NAME", "player-lab-output"), OUTPUT_BASE))
     print("      BITMOVIN_API_KEY set: %s" % bool(os.environ.get("BITMOVIN_API_KEY")))
     if os.environ.get("DRY_RUN"):
         print("DRY_RUN — configuration resolved; no API calls made, nothing created.")

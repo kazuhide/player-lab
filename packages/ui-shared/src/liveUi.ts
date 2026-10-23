@@ -158,7 +158,7 @@ export const DefaultUIFactory = {
 };
 
 /**
- * The DVR-focused `UIContainer`. It mirrors the library's default modern control
+ * The live playback `UIContainer`. It mirrors the library's default modern control
  * bar and injects a LIVE / go-to-edge button next to the play control. The
  * `SeekBar` already branches on `isLive()` and sizes the DVR window via
  * `getMaxTimeShift()`, so it doubles as the DVR scrubber — no rewrite needed.

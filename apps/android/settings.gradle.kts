@@ -17,11 +17,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "PlayerLabAndroid"
 
-include(":dvr")
+include(":playback")
 
 // The app module needs the Android SDK + Bitmovin Maven. Include it automatically
 // whenever an SDK is available — CI exports ANDROID_HOME, Android Studio writes
-// local.properties — so `:dvr:test` still runs on a bare clone without the SDK.
+// local.properties — so `:playback:test` still runs on a bare clone without the SDK.
 val androidSdkAvailable = System.getenv("ANDROID_HOME") != null ||
     System.getenv("ANDROID_SDK_ROOT") != null ||
     rootDir.resolve("local.properties").exists()

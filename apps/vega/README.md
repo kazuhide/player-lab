@@ -3,8 +3,7 @@
 Vega OS is a separate target from Android-based Fire TV. This example uses the
 modular Bitmovin web player attached to a W3C media element, with React Native /
 Kepler controls. It does not use the browser-based `bitmovin-player-ui` because
-that library requires a browser document. DVR means the window of live media that
-a viewer can rewind.
+that library requires a browser document.
 
 This folder includes an opt-in Kepler application host for the existing App.
 Its public dependencies retain `bitmovin-player@8.138.0-beta.28` and use Amazon's
@@ -23,8 +22,9 @@ supported on Vega by that sample.
 
 ## Layout
 
-- `src/dvr/`: TypeScript rewind-window calculations and state handling.
-- `src/dvrController.ts`: player events, clamped live seeking, live-to-on-demand
+- `src/playback/`: TypeScript playback timeline calculations and state handling,
+  including live rewind.
+- `src/playbackController.ts`: player events, clamped live seeking, live-to-on-demand
   transition handling, and expired-position recovery.
 - `src/vegaPlayer.ts`: modular player registration and construction.
 - `src/playerSession.ts`: session ownership, foreground teardown and synchronous
@@ -89,6 +89,8 @@ numbers are accepted. This form requires positive buffer/bitrate targets;
 blank omits the overrides. The SDK buffer default is 40 seconds per media type,
 and live media windows can constrain the effective buffer. Bitrates are in bits
 per second. Format/engine/device support still requires target-device testing.
+
+DVR means the window of live media that a viewer can rewind.
 
 Use D-pad navigation and Select (arrow keys and Enter on VVD) to operate the
 controls. Autoplay, startup mute and **Allow DVR** are explicitly focusable, as

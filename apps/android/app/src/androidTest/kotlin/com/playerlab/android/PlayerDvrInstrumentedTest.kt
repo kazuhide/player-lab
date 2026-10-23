@@ -7,10 +7,10 @@ import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.event.PlayerEvent
-import com.playerlab.android.dvr.Dvr
-import com.playerlab.android.dvr.DvrConfig
-import com.playerlab.android.dvr.PlaybackMode
-import com.playerlab.android.dvr.PlayerSnapshot
+import com.playerlab.android.playback.PlaybackTimeline
+import com.playerlab.android.playback.TimelineConfig
+import com.playerlab.android.playback.PlaybackMode
+import com.playerlab.android.playback.PlayerSnapshot
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Runs on an emulator/device: `./gradlew :app:connectedAndroidTest`. The player
  * passes the app's manifest license into PlayerConfig, so the build needs
  * `-PbitmovinLicenseKey=...` and `com.playerlab.android` allow-listed. The pure DVR math
- * is covered separately by the `:dvr` unit tests; this verifies the real player API.
+ * is covered separately by the `:playback` unit tests; this verifies the real player API.
  */
 @RunWith(AndroidJUnit4::class)
 class PlayerDvrInstrumentedTest {
@@ -70,7 +70,7 @@ class PlayerDvrInstrumentedTest {
                 assertFalse("VOD must not report isLive", player.isLive)
                 assertTrue("VOD duration must be finite and positive", player.duration > 0 && player.duration.isFinite())
 
-                val state = Dvr.deriveState(
+                val state = PlaybackTimeline.deriveState(
                     PlayerSnapshot(
                         isLive = player.isLive,
                         duration = player.duration,
@@ -78,7 +78,7 @@ class PlayerDvrInstrumentedTest {
                         timeShift = player.timeShift,
                         currentTime = player.currentTime,
                     ),
-                    DvrConfig(timeShiftEnabled = true),
+                    TimelineConfig(timeShiftEnabled = true),
                 )
                 assertEquals(PlaybackMode.VOD, state.mode)
             }

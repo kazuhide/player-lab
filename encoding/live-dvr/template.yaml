@@ -1,4 +1,4 @@
-# Bitmovin Encoding Template — Live DVR showcase channel.
+# Bitmovin Encoding Template — Player Lab live test channel.
 #
 # Single RTMP ingest, CMAF (fMP4) serving both DASH and HLS, manifestGenerator V2.
 # The DVR (timeshift) window is the entire point of this channel:
@@ -15,13 +15,13 @@
 
 metadata:
   type: LIVE
-  name: dvr-showcase-live
+  name: player-lab-live
 
 inputs:
   redundantRtmp:
     main-rtmp-input:
       properties:
-        name: dvr-showcase-live RTMP input
+        name: player-lab-live RTMP input
         # Dynamic ingest point = classic encoder-IP RTMP. (staticIngestPoints,
         # which routes to rtmps://live-input.bitmovin.com, is a separate feature
         # requiring account access; this template uses the encoder IP.)
@@ -58,7 +58,7 @@ configurations:
 encodings:
   main-encoding:
     properties:
-      name: dvr-showcase-live
+      name: player-lab-live
       cloudRegion: AWS_AP_NORTHEAST_1   # Tokyo (encoder); set the bucket's AWS region in .env
       encoderVersion: STABLE
 
@@ -101,7 +101,7 @@ encodings:
               - streamId: $/encodings/main-encoding/streams/s-720p
             outputs:
               - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
-                outputPath: "live/dvr-showcase/video/720p/"
+                outputPath: "live/player-lab/video/720p/"
                 acl:
                   - permission: PUBLIC_READ
             segmentLength: 4.0
@@ -112,7 +112,7 @@ encodings:
               - streamId: $/encodings/main-encoding/streams/s-480p
             outputs:
               - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
-                outputPath: "live/dvr-showcase/video/480p/"
+                outputPath: "live/player-lab/video/480p/"
                 acl:
                   - permission: PUBLIC_READ
             segmentLength: 4.0
@@ -123,7 +123,7 @@ encodings:
               - streamId: $/encodings/main-encoding/streams/s-240p
             outputs:
               - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
-                outputPath: "live/dvr-showcase/video/240p/"
+                outputPath: "live/player-lab/video/240p/"
                 acl:
                   - permission: PUBLIC_READ
             segmentLength: 4.0
@@ -134,7 +134,7 @@ encodings:
               - streamId: $/encodings/main-encoding/streams/s-audio
             outputs:
               - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
-                outputPath: "live/dvr-showcase/audio/128000/"
+                outputPath: "live/player-lab/audio/128000/"
                 acl:
                   - permission: PUBLIC_READ
             segmentLength: 4.0
@@ -169,7 +169,7 @@ manifests:
         manifestName: main.m3u8
         outputs:
           - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
-            outputPath: "live/dvr-showcase/"
+            outputPath: "live/player-lab/"
             acl:
               - permission: PUBLIC_READ
       media:
@@ -223,7 +223,7 @@ manifests:
         manifestName: main.mpd
         outputs:
           - outputId: ${OUTPUT_ID}   # resolved by start.sh (BITMOVIN_OUTPUT_NAME, config/encoding.conf)
-            outputPath: "live/dvr-showcase/"
+            outputPath: "live/player-lab/"
             acl:
               - permission: PUBLIC_READ
       periods:

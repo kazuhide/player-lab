@@ -24,7 +24,7 @@ encoding_load_config() {
   }
   : "${BITMOVIN_API_KEY:?BITMOVIN_API_KEY not set (see .env.example / docs/SETUP.md)}"
   # Same default as the python script; config/encoding.conf normally sets it.
-  BITMOVIN_OUTPUT_NAME="${BITMOVIN_OUTPUT_NAME:-dvr-showcase-output}"
+  BITMOVIN_OUTPUT_NAME="${BITMOVIN_OUTPUT_NAME:-player-lab-output}"
   # Org-scoped accounts: the python script and the web proxy send
   # BITMOVIN_TENANT_ORG_ID as X-Tenant-Org-Id themselves, but the bitmovin CLI
   # selects its organization via its own `bitmovin config` — surface that gap

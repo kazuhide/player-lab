@@ -291,7 +291,7 @@
       "label": "React Native の入力検証と SDK 項目への対応"
     },
     {
-      "path": "apps/react-native/src/dvr/snapshotController.ts",
+      "path": "apps/react-native/src/playback/snapshotController.ts",
       "line": 28,
       "label": "非同期状態取得の上限と更新"
     },

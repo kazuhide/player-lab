@@ -2,7 +2,7 @@
  * The runtime control panel (§13): switch sources, jump to the edge / seek to a
  * relative offset, toggle DVR + absolute/relative time, change the buffer target
  * (§8), and watch the live event log (§10) + a player-state readout. It uses the web
- * app's own DVR logic (src/dvr) for clamping and state.
+ * app's playback timing logic (src/playback) for clamping and state.
  *
  * The panel emits intents for things that need the player's lifecycle (source
  * selection, DVR on/off); `main.ts` owns the player and acts on them — e.g. the
@@ -12,10 +12,10 @@
 import type { PlayerAPI } from "bitmovin-player";
 import type { CastingButtons, UIConfig } from "@showcase/ui-shared";
 import { missingSourceSettings, type ShowcaseSource } from "./sources";
-import { createSourceLoadHint } from "./dvr/sourceLoad";
+import { createSourceLoadHint } from "./playback/sourceLoad";
 import type { DoubleClickMode } from "./gestures";
-import { clampToWindow, liveLatencySeconds } from "./dvr/window";
-import { deriveDvrState, type PlayerSnapshot } from "./dvr/state";
+import { clampToWindow, liveLatencySeconds } from "./playback/window";
+import { deriveTimelineState, type PlayerSnapshot } from "./playback/state";
 import { infoChip } from "./infoChip";
 import type { L } from "./i18n";
 import { LangBinder } from "./i18nDom";
@@ -652,7 +652,7 @@ export function mountControlPanel(
 
   function refresh(): void {
     const snap = sourceHint.snapshot(snapshot());
-    const state = deriveDvrState(snap, { timeShiftEnabled });
+    const state = deriveTimelineState(snap, { timeShiftEnabled });
     // §7 — both times, from the real TimeMode API:
     //  - relative: scrubber position / "behind live" (window start = 0)
     //  - absolute: wall-clock (Unix ts from PDT on live HLS / availabilityStartTime

@@ -254,8 +254,8 @@ jobs:
           path: packages/ui-shared/dist
       - name: Sync existing shared UI resources
         run: bash scripts/sync-webui-bundle.sh
-      - name: Test DvrKit
-        run: swift test --package-path apps/ios/DvrKit
+      - name: Test PlaybackCore
+        run: swift test --package-path apps/ios/PlaybackCore
       - name: Install XcodeGen 2.46.0
         run: |
           curl -fsSL https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip -o "$RUNNER_TEMP/xcodegen.zip"
@@ -335,7 +335,7 @@ jobs:
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.0.0" >/dev/null
-      - name: Test DVR and configuration, build the app, compile the instrumented test
-        run: cd apps/android && ./gradlew :dvr:test :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest -PbitmovinLicenseKey=dummy
+      - name: Test playback and configuration, build the app, compile the instrumented test
+        run: cd apps/android && ./gradlew :playback:test :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest -PbitmovinLicenseKey=dummy
       - name: Check packaged Android shared UI
         run: python3 scripts/check-native-ui.py apps/android/app/build/outputs/apk/debug/app-debug.apk

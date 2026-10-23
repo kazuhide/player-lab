@@ -36,7 +36,8 @@ bundled. See [test stream configuration](test-streams-config.md).
 | React Native | Screen, source/player configuration editor, and controls for a development build; native media and shared UI delivery need the Expo toolchain |
 | Vega OS | Modular player, source/player configuration editor, and custom native controls; Vega tooling, full runtime polyfills, and device checks are separate |
 
-The shared UI is in `packages/ui-shared`. Each platform keeps its own DVR logic.
+The shared UI is in `packages/ui-shared`. Each platform keeps its own playback
+state logic, including live rewind.
 Read the platform README before attempting a build or device run.
 
 ## Optional encoding tools

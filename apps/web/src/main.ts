@@ -19,7 +19,7 @@ import {
 import "@showcase/ui-shared/css";
 import { SOURCES, missingSourceSettings, nextPlaylistSource, type ShowcaseSource } from "./sources";
 import { configValue, deepMerge } from "./configState";
-import { liveLatencySeconds } from "./dvr/window";
+import { liveLatencySeconds } from "./playback/window";
 import { mountControlPanel, relocalizeControlPanel, type ControlPanelHandle } from "./controlPanel";
 import { mountConfigPanel, type DeepPartial, type ConfigPanelOptions, type ConfigPanelHandle } from "./configPanel";
 import { renderConstruction, renderUiGuide } from "./uiGuide";

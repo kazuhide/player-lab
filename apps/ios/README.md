@@ -2,8 +2,7 @@
 
 SwiftUI sample using the Bitmovin Player library. iPhone and iPad can use the
 shared Web UI from `@showcase/ui-shared`; tvOS uses the native System UI because
-the Web UI is unavailable there. DVR means the window of live media that a viewer
-can rewind.
+the Web UI is unavailable there.
 
 The Apple sample offers HLS presets and a configuration editor for custom HLS
 and progressive MP4 sources. The pinned native library accepts these formats;
@@ -13,17 +12,18 @@ the app. DASH remains available in the Web and Android samples. See the
 
 ## Layout
 
-- `DvrKit/`: Swift package containing the rewind-window calculations and tests.
+- `PlaybackCore/`: Swift package containing playback timeline calculations and
+  tests, including live rewind.
 - `Showcase/`: player and control panel, shared by the iOS and tvOS targets.
 - `project.yml`: XcodeGen configuration and Swift Package Manager dependencies.
 
-## Test the rewind logic
+## Test playback logic
 
 This needs a Swift toolchain, but not the player library or a running simulator.
 From the repository root:
 
 ```bash
-cd apps/ios/DvrKit && swift test
+cd apps/ios/PlaybackCore && swift test
 ```
 
 ## Build the app
@@ -173,8 +173,9 @@ WebView; check that combination on your target device or simulator.
 
 ## Playback checks
 
-A successful build or `DvrKit` test does not verify licensed playback. With your
-license and a running live source, check seeking within the window, returning to
+DVR means the window of live media that a viewer can rewind.
+A successful build or `PlaybackCore` test does not verify licensed playback.
+With your license and a running live source, check seeking within the window, returning to
 live, recovery when paused media expires, and a live stream becoming on-demand.
 The app also checks for the latter transition from `TimeChanged` snapshots,
 because relying only on `DurationChanged` can miss it.

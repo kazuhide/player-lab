@@ -291,7 +291,7 @@
       "label": "React Native validation and SDK field mappings"
     },
     {
-      "path": "apps/react-native/src/dvr/snapshotController.ts",
+      "path": "apps/react-native/src/playback/snapshotController.ts",
       "line": 28,
       "label": "Bounded asynchronous state reads and updates"
     },

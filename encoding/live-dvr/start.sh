@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start the Live DVR showcase channel (template.yaml) with the repo's config
+# Start the Player Lab live test channel (template.yaml) with the repo's config
 # convention: secrets from the repo-root .env, the S3 output resolved by NAME
 # (BITMOVIN_OUTPUT_NAME in config/encoding.conf; created from BITMOVIN_OUTPUT_*
 # on first use). No ids are ever hand-pasted into the template.
@@ -75,7 +75,7 @@ echo "         -c:v libx264 -preset veryfast -tune zerolatency -b:v 3M -g 60 -c:
 echo "         -t 420 -f flv \"rtmp://<encoderIp>/live/dvrshowcase\""
 echo
 echo "Manifests (once the window fills):"
-echo "  HLS:  https://${BITMOVIN_OUTPUT_BUCKET:-<bucket>}.s3.${BITMOVIN_OUTPUT_REGION:-<region>}.amazonaws.com/live/dvr-showcase/main.m3u8"
-echo "  DASH: https://${BITMOVIN_OUTPUT_BUCKET:-<bucket>}.s3.${BITMOVIN_OUTPUT_REGION:-<region>}.amazonaws.com/live/dvr-showcase/main.mpd"
+echo "  HLS:  https://${BITMOVIN_OUTPUT_BUCKET:-<bucket>}.s3.${BITMOVIN_OUTPUT_REGION:-<region>}.amazonaws.com/live/player-lab/main.m3u8"
+echo "  DASH: https://${BITMOVIN_OUTPUT_BUCKET:-<bucket>}.s3.${BITMOVIN_OUTPUT_REGION:-<region>}.amazonaws.com/live/player-lab/main.mpd"
 echo
 echo "Stop billing:  bitmovin encoding jobs stop $ENC"

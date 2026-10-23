@@ -47,7 +47,7 @@ step "Public Web E2E (localhost)" pnpm --filter @showcase/e2e e2e:public
 
 # ---- iOS (macOS + Xcode) ----
 if [ "$(uname)" = "Darwin" ] && command -v xcodebuild >/dev/null 2>&1; then
-  step "iOS DvrKit tests" swift test --package-path apps/ios/DvrKit
+  step "iOS PlaybackCore tests" swift test --package-path apps/ios/PlaybackCore
   if command -v xcodegen >/dev/null 2>&1; then
     step "Generate locked iOS project" bash -c '
       cd apps/ios &&
@@ -72,11 +72,11 @@ if [ -d "$ANDROID_SDK" ] && [ -n "$JDK" ] && [ -x "$JDK/bin/java" ]; then
   # Real license keys when .env provides them (an installable, allow-listed APK);
   # falls back to a dummy so the compile still runs on a bare clone. Passed via the
   # environment (never interpolated into the command string).
-  step "Android :dvr test + app build" \
+  step "Android playback tests + app build" \
     env JAVA_HOME="$JDK" ANDROID_HOME="$ANDROID_SDK" \
       PLAYER_KEY="${BITMOVIN_PLAYER_LICENSE_KEY:-dummy}" \
       ANALYTICS_KEY="${BITMOVIN_ANALYTICS_LICENSE_KEY:-}" \
-    bash -c 'cd apps/android && ./gradlew --console=plain :dvr:test :app:assembleDebug :app:assembleDebugAndroidTest -PbitmovinLicenseKey="$PLAYER_KEY" -PbitmovinAnalyticsLicenseKey="$ANALYTICS_KEY"'
+    bash -c 'cd apps/android && ./gradlew --console=plain :playback:test :app:assembleDebug :app:assembleDebugAndroidTest -PbitmovinLicenseKey="$PLAYER_KEY" -PbitmovinAnalyticsLicenseKey="$ANALYTICS_KEY"'
 else
   skip "Android" "JDK 17 ($JDK) or Android SDK ($ANDROID_SDK) not found"
 fi

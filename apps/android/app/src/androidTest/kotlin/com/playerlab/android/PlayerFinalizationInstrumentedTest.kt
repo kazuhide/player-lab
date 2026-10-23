@@ -22,7 +22,7 @@ import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.api.event.SourceEvent
 import com.bitmovin.player.api.source.Source
-import com.playerlab.android.dvr.PlaybackMode
+import com.playerlab.android.playback.PlaybackMode
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

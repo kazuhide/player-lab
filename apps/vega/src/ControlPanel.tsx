@@ -1,16 +1,16 @@
 import React from "react";
 import { Button, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
-import type { DvrController } from "./dvrController";
-import type { DvrState } from "./dvr/state";
+import type { PlaybackController } from "./playbackController";
+import type { TimelineState } from "./playback/state";
 import type { VegaSource } from "./Sources";
 
 export interface ControlPanelProps {
   sources: VegaSource[];
   activeId: string;
-  dvr: DvrState | null;
+  dvr: TimelineState | null;
   log: string[];
   onSelectSource: (index: number) => void;
-  controllerRef: React.MutableRefObject<DvrController | null>;
+  controllerRef: React.MutableRefObject<PlaybackController | null>;
   dvrAllowed: boolean;
   onDvrAllowedChange: (enabled: boolean) => void;
 }

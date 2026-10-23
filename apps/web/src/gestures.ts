@@ -16,7 +16,7 @@
  */
 import type { PlayerAPI } from "bitmovin-player";
 import { PlayerUtils } from "@showcase/ui-shared";
-import { clampToDuration, clampToWindow } from "./dvr/window";
+import { clampToDuration, clampToWindow } from "./playback/window";
 
 export type DoubleClickMode = "fullscreen" | "seek";
 

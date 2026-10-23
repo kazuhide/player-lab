@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { SnapshotController, type SnapshotPlayer } from "../src/dvr/snapshotController";
-import type { DvrState } from "../src/dvr/state";
+import { SnapshotController, type SnapshotPlayer } from "../src/playback/snapshotController";
+import type { TimelineState } from "../src/playback/state";
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -18,7 +18,7 @@ function fixture() {
     getCurrentTime: vi.fn(async () => 1000),
     timeShift: vi.fn(),
   };
-  const states: DvrState[] = [];
+  const states: TimelineState[] = [];
   const logs: string[] = [];
   const controller = new SnapshotController(player, (state) => states.push(state), (line) => logs.push(line));
   return { player, states, logs, controller };

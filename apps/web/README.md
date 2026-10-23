@@ -97,9 +97,9 @@ pnpm --filter @showcase/web build
 pnpm --filter @showcase/web test
 ```
 
-The build checks types and bundles both HTML pages. Unit tests cover the DVR
-logic, metrics, client-license handling, and Analytics proxy. Browser checks
-are separate; see [testing](../../docs/e2e-testing.md).
+The build checks types and bundles both HTML pages. Unit tests cover playback
+timeline logic, metrics, client-license handling, and Analytics proxy. Browser
+checks are separate; see [testing](../../docs/e2e-testing.md).
 
 To reproduce the Pages artifact with the generated fixture:
 

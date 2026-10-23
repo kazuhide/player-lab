@@ -16,12 +16,12 @@ bash scripts/test-env-lib.sh
 
 | Target | Existing checks |
 | --- | --- |
-| Web | DVR logic, measurements, client-license handling, and server-side Analytics proxy tests |
+| Web | Playback timeline logic, measurements, client-license handling, and server-side Analytics proxy tests |
 | Shared UI | Formatting, live state, and exported UI factories |
 | React Native | Configuration, lifecycle and observation tests; TypeScript includes the app and panels |
 | Vega | Configuration, session, subtitle and lifecycle tests; TypeScript includes the app and native surface |
-| iOS/tvOS | `swift test --package-path apps/ios/DvrKit` |
-| Android | `cd apps/android` then `./gradlew :dvr:test` |
+| iOS/tvOS | `swift test --package-path apps/ios/PlaybackCore` |
+| Android | `cd apps/android` then `./gradlew :playback:test` |
 
 The CI workflow runs workspace checks, environment-loader tests, a public browser
 subset, and native compilation. Native jobs receive the same shared UI build;
@@ -210,7 +210,7 @@ TSX, extending the earlier DVR-only/type-check entry.
 | Check | Recorded result and scope |
 | --- | --- |
 | Android JVM | Six DVR and six configuration tests passed without a valid Player license; validation and exact SDK mapping, not playback. |
-| Apple logic and hostless configuration | Six DvrKit tests, six iOS configuration tests, and six local tvOS configuration tests passed without a valid Player license. The hostless schemes compile the app's model/configuration sources and use a synthetic key to construct SDK objects. |
+| Apple logic and hostless configuration | Six playback timing tests, six iOS configuration tests, and six local tvOS configuration tests passed without a valid Player license. The hostless schemes compile the app's model/configuration sources and use a synthetic key to construct SDK objects. |
 | Apple configuration GUI | One test each passed on iPhone 17 Pro / iOS 26.4, iPad Pro 11-inch (M5) / iOS 26.4, and Apple TV 4K (3rd generation) / tvOS 26.4. These use the SDK default UI and check editor operations, retained configuration, and tvOS remote focus/Select; they do not assert advancing playback. |
 | Android configuration and ownership | Four checks passed on an Android 16 phone emulator with a dummy license in 41.737 seconds, covering the Compose editor, scrolling, D-pad focus, source retention, view detachment, and recording-API ownership checks. A separate licensed, GUI-configured VOD autoplay case passed in 18.342 seconds, checking mute, the 10-second start offset, and advancing playback. |
 | React Native / Vega | 57 / 42 tests passed, respectively. App interaction and lifecycle tests use mocked native hosts and player/media objects; type checks passed against the installed declarations. They do not qualify native layout, TV focus, keyboards, device builds, or playback. |
@@ -222,12 +222,12 @@ packages; create an empty ignored `Local.xcconfig` for that setup rather than
 providing a playback license. From the repository root:
 
 ```sh
-swift test --package-path apps/ios/DvrKit
+swift test --package-path apps/ios/PlaybackCore
 pnpm --filter @showcase/react-native test
 pnpm --filter @showcase/react-native typecheck
 pnpm --filter @showcase/vega test
 pnpm --filter @showcase/vega typecheck
-(cd apps/android && ./gradlew :dvr:test :app:testDebugUnitTest \
+(cd apps/android && ./gradlew :playback:test :app:testDebugUnitTest \
   -PbitmovinLicenseKey=dummy -PbitmovinAnalyticsLicenseKey=)
 ```
 
