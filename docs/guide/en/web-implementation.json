@@ -5,12 +5,13 @@
   "blocks": [
     {
       "type": "p",
-      "text": "Use Screen and controls for the Web app’s screen layout, settings and comparison workflow. This implementation guide explains how to reuse the resulting PlayerConfig, SourceConfig and UI code in your own integration. The existing app is the reference; the adapted TypeScript examples below remove its editor-specific helpers."
+      "text": "Use Screen and controls for the Web app’s screen layout, settings and comparison workflow. The implementation sections explain how to reuse the resulting PlayerConfig, SourceConfig and UI code in your own integration. The existing app is the reference; the adapted TypeScript examples in those sections remove its editor-specific helpers."
     },
     {
       "type": "h2",
       "id": "integration",
-      "text": "Integrate the Player and load a source"
+      "text": "Integrate the Player and load a source",
+      "summary": "Prepare the Web SDK, Player license and browser container, then create the Player and load a compatible source. Follow the app’s source-loading flow and distinguish SDK calls from app helpers."
     },
     {
       "type": "table",
@@ -33,7 +34,7 @@
         ],
         [
           "A UI owner",
-          "The default app configuration has ui: false. The app creates and releases its selected UIManager. SDK-managed UI is an alternative explained in the UI customization chapter."
+          "The default app configuration has ui: false. The app creates and releases its selected UIManager. SDK-managed UI is an alternative explained in the UI customization section."
         ]
       ],
       "widths": [
@@ -100,7 +101,8 @@
     {
       "type": "h2",
       "id": "player-source-config",
-      "text": "Choose the correct configuration scope"
+      "text": "Choose the correct configuration scope",
+      "summary": "Separate creation settings, source settings and runtime APIs, then carry applied values into PlayerConfig and SourceConfig data. Check which changes require a source reload or a new Player."
     },
     {
       "type": "table",
@@ -173,7 +175,7 @@
     },
     {
       "type": "p",
-      "text": "This adapted example separates reusable PlayerConfig and SourceConfig data from this app’s form helpers. It is checked against the installed SDK types. Replace the media URL and Player license. The values are comparison inputs, not recommended defaults. With ui: false, attach the UIManager and stylesheet shown in the UI section below."
+      "text": "This adapted example separates reusable PlayerConfig and SourceConfig data from this app’s form helpers. It is checked against the installed SDK types. Replace the media URL and Player license. The values are comparison inputs, not recommended defaults. With ui: false, attach the UIManager and stylesheet described in the UI customization section."
     },
     {
       "type": "code",
@@ -230,13 +232,22 @@
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#player-source-settings",
           "label": "Screen and controls: Player and source settings"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/",
+          "label": "PlayerConfig / SourceConfig in detail"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/ui-customization/",
+          "label": "Attach UIManager and its stylesheet"
         }
       ]
     },
     {
       "type": "h2",
       "id": "ui-customization",
-      "text": "Change UI behavior, appearance and composition"
+      "text": "Change UI behavior, appearance and composition",
+      "summary": "Use UIConfig for supported UI behavior, CSS for appearance and component composition for layout. Keep one UI owner and release it before replacing the controls."
     },
     {
       "type": "p",
@@ -247,7 +258,7 @@
       "items": [
         "Select Premiere and toggle Speed item in settings gear. Compare the gear menu with Applied UIConfig overrides. The component tree remains the same kind of theme while its settings change.",
         "Compare Default and Neon to see a skin change, then compare Compact to see a different component tree. Inspect the construction source path rather than treating the displayed abbreviated example as the whole integration.",
-        "Use the configuration and UI examples in this chapter for workspace imports, independent-project imports, CSS rules and component composition. The shared theme factories are defined by this repository; they are not exports from the Player SDK.",
+        "Use the examples in this section for workspace imports, independent-project imports, CSS rules and component composition. The shared theme factories are defined by this repository; they are not exports from the Player SDK.",
         "For the app-managed mode, keep ui: false and release the old UIManager before attaching its replacement. Keep the Player and loaded source when changing only the UI. When leaving the page, release the UI and then destroy the Player."
       ]
     },
@@ -299,6 +310,10 @@
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#external-displays",
           "label": "Screen and controls: external displays"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-ui-customization/",
+          "label": "UI customization in detail"
         }
       ]
     },
@@ -347,7 +362,8 @@
     {
       "type": "h2",
       "id": "useful-features",
-      "text": "Connect useful playback features to their APIs"
+      "text": "Connect useful playback features to their APIs",
+      "summary": "Connect audio, subtitles, automatic quality, buffering, network behavior and live playback to their SDK APIs. Check source and browser conditions before interpreting a changed value."
     },
     {
       "type": "table",
@@ -414,7 +430,8 @@
     {
       "type": "h2",
       "id": "faq",
-      "text": "Frequently asked implementation questions"
+      "text": "Frequently asked implementation questions",
+      "summary": "Resolve common issues with applied settings, source URLs, metadata, browser restrictions and generated code. Use the cause and the required application step to choose the next check."
     },
     {
       "type": "table",
@@ -464,7 +481,8 @@
     {
       "type": "h2",
       "id": "analytics-observability",
-      "text": "Analytics / Observability"
+      "text": "Analytics / Observability",
+      "summary": "Configure the bundled Analytics collector, add test metadata and locate playback in Bitmovin Dashboard. Distinguish local events, collected sessions and server-side account queries."
     },
     {
       "type": "p",

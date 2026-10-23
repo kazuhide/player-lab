@@ -1,8 +1,8 @@
 {
   "name": "@showcase/react-native",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
-  "description": "React Native (Expo) build of the Bitmovin Player Playground \u2014 async player API",
+  "description": "React Native (Expo) build of the Bitmovin Player Playground — async player API",
   "scripts": {
     "test": "vitest run && node --test test/expo-project.check.mjs",
     "typecheck": "tsc --noEmit",

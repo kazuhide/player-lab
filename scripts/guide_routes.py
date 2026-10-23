@@ -23,15 +23,31 @@ IMPLEMENTATION_GUIDES = (
     'web-implementation', 'apple-implementation', 'android-implementation',
     'react-native-implementation', 'vega-implementation',
 )
+IMPLEMENTATION_SECTIONS = {
+    'integration': 'integration_guide',
+    'player-source-config': 'configuration_guide',
+    'ui-customization': 'ui_customization_guide',
+    'useful-features': 'features_guide',
+    'faq': 'faq',
+    'analytics-observability': 'analytics',
+}
+IMPLEMENTATION_PAGES = {
+    f'{guide}/{section}': guide
+    for guide in IMPLEMENTATION_GUIDES for section in IMPLEMENTATION_SECTIONS
+}
 OPERATION_GUIDES = ('web-screen-controls', 'native-apple', 'native-android',
                     'native-react-native', 'native-vega')
 CHILD_CHAPTERS = frozenset(('web-player-config', 'web-ui-customization'))
 CHAPTER_PARENTS = {
+    **IMPLEMENTATION_PAGES,
     'web-player-config': 'web-implementation', 'web-ui-customization': 'web-implementation',
     'web-screen-themes': 'web-screen-controls', 'web-sources-tracks': 'web-screen-controls',
     'web-ui-settings': 'web-screen-controls',
 }
-CHAPTER_ORDER = tuple(key for key, category in CHAPTERS.items() if category is not None)
+CHAPTER_ORDER = tuple(page for key, category in CHAPTERS.items()
+                      if category is not None and key not in CHILD_CHAPTERS
+                      for page in (key, *(f'{key}/{section}' for section in IMPLEMENTATION_SECTIONS
+                                         if key in IMPLEMENTATION_GUIDES)))
 
 LEGACY_ROUTES = {
     'measurement': 'test-results',
@@ -135,7 +151,7 @@ def shared_figure_path(name):
 
 COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'vega')
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
-SLUGS = ('', *DOCUMENTS, *(f'settings/{name}' for name in SETTING_GROUPS),
+SLUGS = ('', *DOCUMENTS, *IMPLEMENTATION_PAGES, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
 SOURCE_REVISION = '64107f43007b460af79c1948e3b254400c8001a0'
 CONTENT_REVIEW = '2026-10-23'

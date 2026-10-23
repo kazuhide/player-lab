@@ -15,6 +15,10 @@ TEXT = {
         'react-native': 'React Native',
         'vega': 'Vega OS',
         'operation_guide': 'Screen and controls',
+        'integration_guide': 'Integration',
+        'features_guide': 'Playback features and events',
+        'implementation_sections': 'Implementation sections',
+        'related_guides': 'Related guides',
         'configuration_guide': 'PlayerConfig / SourceConfig',
         'ui_customization_guide': 'UI customization',
         'useful_features': 'Useful features',
@@ -54,6 +58,10 @@ TEXT = {
         'react-native': 'React Native',
         'vega': 'Vega OS',
         'operation_guide': '画面と操作',
+        'integration_guide': '組み込み',
+        'features_guide': '再生機能とイベント',
+        'implementation_sections': '実装ガイドの内容',
+        'related_guides': '関連するガイド',
         'configuration_guide': 'PlayerConfig / SourceConfig',
         'ui_customization_guide': 'UI変更ガイド',
         'useful_features': '有用な情報',
@@ -188,7 +196,8 @@ def field_anchor(field):
 
 def chapter_links(content, language, page, category, current='', *, descriptions=False):
     """Render the same platform hierarchy in the sidebar and guide overview."""
-    from guide_routes import (CHAPTERS, CHAPTER_PARENTS, CHILD_CHAPTERS, IMPLEMENTATION_GUIDES, OPERATION_GUIDES)
+    from guide_routes import (CHAPTERS, CHAPTER_PARENTS, CHILD_CHAPTERS, IMPLEMENTATION_GUIDES,
+                              IMPLEMENTATION_PAGES, IMPLEMENTATION_SECTIONS, OPERATION_GUIDES)
     labels = TEXT[language]
     entries = [key for key, group in CHAPTERS.items() if group == category and key not in CHILD_CHAPTERS]
     if category == 'reference':
@@ -199,8 +208,18 @@ def chapter_links(content, language, page, category, current='', *, descriptions
                  labels['operation_guide'] if key in OPERATION_GUIDES else content[key]['title'])
         href = relative(page, route_file(language, key))
         active_page = CHAPTER_PARENTS.get(current, current)
-        active = ' aria-current="page"' if active_page == key or active_page.startswith(key + '/') else ''
+        active = (' aria-current="page"' if current == key else
+                  ' data-section-current="true"' if active_page == key or active_page.startswith(key + '/') else '')
         item = f'<a href="{esc(href)}"{active}>{esc(title)}</a>'
+        if (not descriptions and key in IMPLEMENTATION_GUIDES
+                and (current == key or IMPLEMENTATION_PAGES.get(current) == key)):
+            children = []
+            for section, label in IMPLEMENTATION_SECTIONS.items():
+                target = f'{key}/{section}'
+                selected = ' aria-current="page"' if current == target else ''
+                children.append(f'<li><a href="{esc(relative(page, route_file(language, target)))}"{selected}>'
+                                f'{esc(labels[label])}</a></li>')
+            item += '<ul class="guide-section-links">' + ''.join(children) + '</ul>'
         if descriptions:
             item += f'<p>{esc(content[key]["lead"])}</p>'
         output.append('<li>' + item + '</li>')
@@ -242,7 +261,7 @@ def legacy_html(language, slug):
 '''
 
 
-def page_html(content, language, slug, title, lead, body, pagination=''):
+def page_html(content, language, slug, title, lead, body, pagination='', *, heading_id=''):
     labels, page = TEXT[language], route_file(language, slug)
     other = 'ja' if language == 'en' else 'en'
     language_label = '日本語' if other == 'ja' else 'English'
@@ -255,6 +274,11 @@ def page_html(content, language, slug, title, lead, body, pagination=''):
     stylesheet = esc(relative(page, 'styles.css'))
     guide_css = esc(relative(page, 'guide.css'))
     script = esc(relative(page, 'guide.js'))
+    from guide_routes import CHAPTER_PARENTS
+    parent = CHAPTER_PARENTS.get(slug)
+    breadcrumb = (f'<a href="{esc(relative(page, route_file(language, parent)))}">{esc(content[parent]["title"])}</a>'
+                  if parent else '')
+    heading = f' id="{esc(heading_id)}"' if heading_id else ''
     return f'''<!doctype html>
 <html lang="{language}">
 <head>
@@ -277,14 +301,14 @@ def page_html(content, language, slug, title, lead, body, pagination=''):
 <div class="guide-shell wrap">
 <aside class="guide-sidebar"><h2>{labels['contents']}</h2>{nav}</aside>
 <main id="main" class="guide-main" tabindex="-1">
-<nav class="guide-breadcrumb" aria-label="{labels['home']}"><a href="{esc(relative(page, home))}">Player Lab</a><a href="{esc(relative(page, route_file(language)))}">{labels['guide']}</a></nav>
+<nav class="guide-breadcrumb" aria-label="{labels['home']}"><a href="{esc(relative(page, home))}">Player Lab</a><a href="{esc(relative(page, route_file(language)))}">{labels['guide']}</a>{breadcrumb}</nav>
 <div class="guide-search" data-guide-search-container hidden data-search-index="{esc(search_index)}" {search_messages}>
 <label for="guide-search">{labels['search']}</label>
 <input id="guide-search" data-guide-search type="search" placeholder="{labels['search_hint']}" autocomplete="off" aria-describedby="guide-search-help guide-search-status">
 <p id="guide-search-help">{labels['search_help']}</p><p id="guide-search-status" data-search-status role="status" aria-live="polite"></p>
 <ol data-search-results hidden></ol></div>
 <details class="guide-mobile-contents"><summary>{labels['contents']}</summary>{nav}</details>
-<h1>{esc(title)}</h1><p class="guide-lead">{esc(lead)}</p>
+<h1{heading}>{esc(title)}</h1><p class="guide-lead">{esc(lead)}</p>
 <noscript><p class="guide-note">{labels['no_script']}</p></noscript>
 {body}{pagination}
 </main></div>

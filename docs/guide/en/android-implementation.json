@@ -6,7 +6,8 @@
     {
       "type": "h2",
       "text": "Integrate the Android player",
-      "id": "integration"
+      "id": "integration",
+      "summary": "Create the SDK Player and connect its PlayerView to the existing Compose screen, keeping app helpers and SDK objects distinct."
     },
     {
       "type": "p",
@@ -86,7 +87,8 @@
     {
       "type": "h2",
       "text": "PlayerConfig and SourceConfig",
-      "id": "player-source-config"
+      "id": "player-source-config",
+      "summary": "Build fresh PlayerConfig and SourceConfig objects, compare draft and applied values, and add typed SDK overrides or callbacks."
     },
     {
       "type": "p",
@@ -277,7 +279,8 @@
     {
       "type": "h2",
       "text": "Change the player UI and screen layout",
-      "id": "ui-customization"
+      "id": "ui-customization",
+      "summary": "Change WebView-based player controls and Compose layout, package custom UI resources, and account for TV focus and input."
     },
     {
       "type": "p",
@@ -371,14 +374,25 @@
       "text": "Run these commands from the repository root after changing the shared UI, then install the rebuilt APK. The synchronization step copies built assets; changing source files without building and reinstalling leaves the old UI in the app. For a CSS-only experiment, supplementalCssLocation adds to the base CSS, whereas cssLocation replaces the stylesheet entry point."
     },
     {
+      "type": "h3",
+      "id": "android-tv-fire-tv",
+      "text": "Android TV and Android-based Fire TV"
+    },
+    {
       "type": "note",
-      "title": "Android TV and Android-based Fire TV",
+      "title": "TV input and service availability",
       "text": "The Manifest includes LEANBACK_LAUNCHER and does not require a touchscreen, so the same app can appear in the TV launcher. It does not automatically choose a dedicated TV screen or establish remote-control usability. To compare the SDK’s TV controls, stage UiConfig.WebUi.variant = TvUi; review focusUiOnInitialization, remove a custom-factory override and apply. Check directional focus, Select, Back, scrolling and playback on the intended TV. The screenshots here show the Android app’s existing settings, not a certified TV layout. Google Play services-dependent options, such as the selected Cronet provider, must not be assumed available on Fire TV."
     },
     {
       "type": "h2",
       "text": "Playback features, events and lifecycle",
-      "id": "useful-features"
+      "id": "useful-features",
+      "summary": "Use runtime commands with SDK state and events, integrate system media and offline playback, and release views and players with their owners."
+    },
+    {
+      "type": "h3",
+      "id": "runtime-api-events",
+      "text": "Runtime commands, state and events"
     },
     {
       "type": "p",
@@ -411,6 +425,11 @@
     {
       "type": "p",
       "text": "The helper subscribes with owner.on(type, guarded) and retains the same guarded function for owner.off. It also checks that the event belongs to the current Player and generation, so a retired Player cannot update the replacement screen. Source events are observed on Source; view subscriptions are for PlayerView UI events such as fullscreen. In a new integration, retain listener identity for removal and release subscriptions with their owner."
+    },
+    {
+      "type": "h3",
+      "id": "system-media-offline",
+      "text": "Playback features and system integration"
     },
     {
       "type": "table",
@@ -493,7 +512,8 @@
     {
       "type": "h2",
       "text": "Useful details and FAQ",
-      "id": "faq"
+      "id": "faq",
+      "summary": "Investigate unapplied settings, playback resets, UI and subtitle issues, licensing, and lifecycle behavior through the applied code and SDK state."
     },
     {
       "type": "note",
@@ -555,7 +575,8 @@
     {
       "type": "h2",
       "text": "Analytics / Observability",
-      "id": "analytics-observability"
+      "id": "analytics-observability",
+      "summary": "Configure the bundled Analytics collector and content metadata, then locate the playback session and inspect its metrics in Bitmovin Dashboard Observability."
     },
     {
       "type": "p",
@@ -563,7 +584,16 @@
     },
     {
       "type": "p",
-      "text": "ApiAnalyticsSettings.playerConfig creates AnalyticsConfig and returns AnalyticsPlayerConfig.Enabled with DefaultMetadata, or Disabled. The SDK Player constructor shown earlier receives that value. The Analytics settings panel exposes Build key, Deferred license and Disabled modes; Apply Analytics settings and restart player recreates the player. With no override, Deferred license passes the SDK’s DEFERRED marker: the SDK fetches the Analytics license associated with the Player license, if one is enabled. It does not mean that the app has already confirmed data collection. Inspect the collector state and the matching Dashboard session."
+      "text": "ApiAnalyticsSettings.playerConfig creates AnalyticsConfig and returns AnalyticsPlayerConfig.Enabled with DefaultMetadata, or Disabled. Pass that result to the SDK Player constructor, as shown in the Integration section. The Analytics settings panel exposes Build key, Deferred license and Disabled modes; Apply Analytics settings and restart player recreates the player. With no override, Deferred license passes the SDK’s DEFERRED marker: the SDK fetches the Analytics license associated with the Player license, if one is enabled. It does not mean that the app has already confirmed data collection. Inspect the collector state and the matching Dashboard session."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/integration/",
+          "label": "Integration: create the SDK Player"
+        }
+      ]
     },
     {
       "type": "code",

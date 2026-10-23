@@ -15,23 +15,36 @@
     {
       "type": "h2",
       "text": "Integrate the existing screen",
-      "id": "integration"
+      "id": "integration",
+      "summary": "Build an Expo development host and connect the native Player to PlayerView, keeping the view and source tied to the current Player instance."
     },
     {
       "type": "p",
-      "text": "The bitmovin-player-react-native package is a JavaScript interface to the native iOS and Android Player SDKs. The same React component therefore does not imply identical media support: this screen accepts HLS or progressive MP4 on iOS, and also DASH on Android. SourceConfig and PlayerConfig below are wrapper types; browser Web SDK configuration cannot be copied into them unchanged."
+      "text": "The bitmovin-player-react-native package is a JavaScript interface to the native iOS and Android Player SDKs. The same React component therefore does not imply identical media support: this screen accepts HLS or progressive MP4 on iOS, and also DASH on Android. SourceConfig and PlayerConfig are wrapper types; browser Web SDK configuration cannot be copied into them unchanged. The PlayerConfig and SourceConfig section explains their fields and application."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/player-source-config/",
+          "label": "PlayerConfig and SourceConfig"
+        }
+      ]
     },
     {
       "type": "p",
       "text": "An SDK is the library and interfaces used to integrate the Player; an API is a public configuration, operation or event exposed by that library. HLS and DASH are streaming formats that can offer several qualities; VOD means on-demand media with a fixed timeline. WebVTT is a text subtitle format with timed cues. DRM controls access to protected media and needs a compatible license service."
     },
     {
+      "type": "h3",
+      "id": "expo-development-host",
+      "text": "Build the Expo development host"
+    },
+    {
       "type": "steps",
       "items": [
         "Build the shared UI and generate the external Expo host following Build in an Expo project in the React Native README linked below. Use an Expo development build; Expo Go does not contain these native Player modules. The generator copies this repository’s App.tsx and src directory rather than generating a separate sample screen.",
-        "Allowlist com.playerlab.reactnative for the iOS and Android entries of the Player license. The generated host reads the copied local configuration at build/development time. Changing the repository’s key file alone does not update an already generated external host.",
-        "Open App.tsx. App owns the applied settings and editable draft. PlayerPane is keyed by UI choice and revision; ActivePlayerPane obtains a Player through usePlayer and passes that instance into PlayerView.",
-        "Load a VOD preset, start playback and open Show applied code. Keep this baseline while changing one option. Compare the submitted configuration, the native SDK event log and the visible result together."
+        "Allowlist com.playerlab.reactnative for the iOS and Android entries of the Player license. The generated host reads the copied local configuration at build/development time. Changing the repository’s key file alone does not update an already generated external host."
       ]
     },
     {
@@ -45,6 +58,18 @@
           "url": "https://github.com/kazuhide/player-lab/blob/main/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README: generate and build the Expo host"
         }
+      ]
+    },
+    {
+      "type": "h3",
+      "id": "native-player-ownership",
+      "text": "Connect the current native Player and view"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Open App.tsx. App owns the applied settings and editable draft. PlayerPane is keyed by UI choice and revision; ActivePlayerPane obtains a Player through usePlayer and passes that instance into PlayerView.",
+        "Load a VOD preset, start playback and open Show applied code. Keep this baseline while changing one option. Compare the submitted configuration, the native SDK event log and the visible result together."
       ]
     },
     {
@@ -65,11 +90,17 @@
     {
       "type": "h2",
       "text": "Change PlayerConfig and SourceConfig",
-      "id": "player-source-config"
+      "id": "player-source-config",
+      "summary": "Convert form inputs into the wrapper’s PlayerConfig and SourceConfig, validate platform-specific values and recreate the Player when applying settings."
     },
     {
       "type": "p",
       "text": "PlayerConfig describes creation-time behavior and services. SourceConfig describes a particular stream and its loading options. parseConfiguration in src/configuration.ts is a Lab function: it validates form text, converts numbers and enums, builds both SDK objects and then applies additional configuration, lists and approved callbacks. Empty optional inputs usually omit the property; entering an empty string is not the same SDK operation as removing a property."
+    },
+    {
+      "type": "h3",
+      "id": "basic-configuration-fields",
+      "text": "Map the basic configuration fields"
     },
     {
       "type": "code",
@@ -179,7 +210,8 @@
     {
       "type": "h2",
       "text": "Customize Player UI and React controls",
-      "id": "ui-customization"
+      "id": "ui-customization",
+      "summary": "Configure the embedded Player UI, package shared themes and connect React Native controls and fullscreen handlers."
     },
     {
       "type": "p",
@@ -226,6 +258,11 @@
       ]
     },
     {
+      "type": "h3",
+      "id": "bundled-player-ui",
+      "text": "Package and select the shared Player UI"
+    },
+    {
       "type": "code",
       "title": "Use the shared JavaScript and CSS in the custom-theme branch",
       "text": "          styleConfig: {\n            userInterfaceType: UserInterfaceType.Bitmovin,\n            playerUiJs: WEBUI_JS,\n            playerUiCss: WEBUI_CSS,\n            ...playerConfig.styleConfig,\n          },\n        }",
@@ -252,6 +289,11 @@
       "text": "CustomUi is the wrapper class that names a factory in the UI bundle; its name is not a URL. In this app, Android loads file:///android_asset/webui resources and iOS loads filenames from the main application bundle. The native asset plugin supplies those files. A Metro reload does not replace resources already packaged into the native application. Keep the JavaScript and CSS from the same shared UI build."
     },
     {
+      "type": "h3",
+      "id": "native-view-and-fullscreen",
+      "text": "Configure the native view and fullscreen handlers"
+    },
+    {
       "type": "p",
       "text": "For SDK UI experiments, try WebUiConfig.playbackSpeedSelectionEnabled or a scaling-mode change before changing factory code. PlayerConfig.styleConfig.userInterfaceType is platform-specific: System UI is an Apple option, not an Android system-controls switch. Setting isUiEnabled to false removes SDK controls; any replacement React controls must provide the interactions your app needs. The existing API panel already exposes play, pause, seek and track selection against the active Player."
     },
@@ -268,16 +310,20 @@
     {
       "type": "h2",
       "text": "Try tracks, commands and native integrations",
-      "id": "useful-features"
+      "id": "useful-features",
+      "summary": "Select tracks and compare quality with the current SDK identifiers, then configure native features, Cast startup and offline playback."
+    },
+    {
+      "type": "h3",
+      "id": "tracks-and-quality",
+      "text": "Select tracks and compare quality"
     },
     {
       "type": "steps",
       "items": [
         "For subtitles, apply an external WebVTT URL with a label and language. After SourceLoaded, use the subtitle menu or Player.getAvailableSubtitles, then Player.setSubtitleTrack with the returned identifier. Leaving the identifier blank in the Lab input passes undefined to the SDK to disable subtitles; direct SDK code should call Player.setSubtitleTrack(undefined). Play through the cue times rather than checking only that a track is listed.",
         "For alternate audio, load a source that contains multiple audio tracks. Run Player.getAvailableAudioTracks, pass a returned identifier to Player.setAudioTrack, then inspect Player.getAudioTrack and listen to playback. Track identifiers belong to the current source.",
-        "For video quality on Android, compare Player.getAvailableVideoQualities and Player.getVideoQuality, then pass a returned quality ID to Player.setVideoQuality. On Android, auto returns selection to adaptation. On iOS, wrapper 1.29 logs a warning and returns without selecting a quality, even though the Lab panel lists this operation. To compare iOS adaptation, change Maximum bitrate (PlayerConfig.adaptationConfig.maxSelectableBitrate), Apply and observe the selected quality and playback. This bitrate boundary does not select a fixed representation.",
-        "For native system features, inspect the available PlayerView and Player configuration first. Picture in picture and background playback need the generated host’s native capabilities; AirPlay is an Apple feature. Enabling a flag does not create missing OS permissions, receiver hardware or content support.",
-        "For Cast, save the startup options in Cast startup configuration and fully close/reopen the app. Read native Cast startup state before attempting discovery and receiver playback. Wrapper 1.29’s deprecated BitmovinCastManager.initialize is a no-op; Player recreation or a JavaScript reload does not replace native process startup."
+        "For video quality on Android, compare Player.getAvailableVideoQualities and Player.getVideoQuality, then pass a returned quality ID to Player.setVideoQuality. On Android, auto returns selection to adaptation. On iOS, wrapper 1.29 logs a warning and returns without selecting a quality, even though the Lab panel lists this operation. To compare iOS adaptation, change Maximum bitrate (PlayerConfig.adaptationConfig.maxSelectableBitrate), Apply and observe the selected quality and playback. This bitrate boundary does not select a fixed representation."
       ]
     },
     {
@@ -305,6 +351,18 @@
       "caption": "Player.getCurrentTime in the Android build. Choose the time mode and compare repeated reads while playback advances."
     },
     {
+      "type": "h3",
+      "id": "native-features-and-cast",
+      "text": "Configure Cast startup and native features"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "For native system features, inspect the available PlayerView and Player configuration first. Picture in picture and background playback need the generated host’s native capabilities; AirPlay is an Apple feature. Enabling a flag does not create missing OS permissions, receiver hardware or content support.",
+        "For Cast, save the startup options in Cast startup configuration and fully close/reopen the app. Read native Cast startup state before attempting discovery and receiver playback. Wrapper 1.29’s deprecated BitmovinCastManager.initialize is a no-op; Player recreation or a JavaScript reload does not replace native process startup."
+      ]
+    },
+    {
       "type": "note",
       "title": "Offline playback",
       "text": "Use the separate OfflineContentConfig and subtitle list with a stable content identifier. Initialize the manager, obtain options and inspect onOptionsAvailable before starting the selected download. onCompleted reports completion; Player.loadOfflineContent loads the stored asset. Cancellation, deletion and license operations affect the selected identifier. Storage, downloadable media and DRM rights remain prerequisites."
@@ -312,7 +370,8 @@
     {
       "type": "h2",
       "text": "FAQ and troubleshooting",
-      "id": "faq"
+      "id": "faq",
+      "summary": "Check the causes of playback resets, missing UI changes, subtitle and format issues, and outdated configuration in a generated host."
     },
     {
       "type": "table",
@@ -356,9 +415,36 @@
       ]
     },
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/integration/#expo-development-host",
+          "label": "Refresh the Expo host and native configuration"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/player-source-config/",
+          "label": "Apply PlayerConfig and SourceConfig"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/ui-customization/",
+          "label": "Check bundled UI assets and fullscreen handlers"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/useful-features/",
+          "label": "Check track selection and native integration prerequisites"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "Analytics / Observability",
-      "id": "analytics-observability"
+      "id": "analytics-observability",
+      "summary": "Configure the wrapper’s collector and source metadata, then find the corresponding playback sessions in Bitmovin Dashboard."
+    },
+    {
+      "type": "h3",
+      "id": "collector-and-source-metadata",
+      "text": "Configure collection and source metadata"
     },
     {
       "type": "p",
@@ -377,7 +463,12 @@
     },
     {
       "type": "p",
-      "text": "The following usePlayer configuration passes analyticsConfig into the Player. Explicit license overrides are honored, while metadata-only edits retain the configured default license. Player.analytics.getUserId and sendCustomDataEvent are available in the API panel when the collector exists; neither call queries aggregate results. Avoid personal or confidential data in labels and custom dimensions."
+      "text": "In App.tsx, the subsequent usePlayer call passes analyticsConfig into the Player. Explicit license overrides are honored, while metadata-only edits retain the configured default license. Player.analytics.getUserId and sendCustomDataEvent are available in the API panel when the collector exists; neither call queries aggregate results. Avoid personal or confidential data in labels and custom dimensions."
+    },
+    {
+      "type": "h3",
+      "id": "dashboard-session-check",
+      "text": "Find playback sessions in Dashboard"
     },
     {
       "type": "steps",

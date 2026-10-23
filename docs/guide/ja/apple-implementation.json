@@ -6,7 +6,8 @@
     {
       "type": "h2",
       "text": "Playerと表示先を組み込む",
-      "id": "integration"
+      "id": "integration",
+      "summary": "SwiftUIアプリでSDKのPlayerを保持し、映像の表示先を接続してソースを読み込む流れを説明します。iOS・iPadOS・tvOSが対象です。"
     },
     {
       "type": "p",
@@ -20,7 +21,7 @@
       "type": "steps",
       "items": [
         "「ローカル実行とライセンス設定」を済ませ、XcodeでShowcase-iOSまたはShowcase-tvOSをビルドします。このアプリはPlayer 3.128.0を固定し、iOS・iPadOS 16.0以降とtvOS 15.0以降を対象にしています。同じ結果を比較するときは、このリポジトリの依存バージョンを使います。",
-        "実行するターゲットに合わせ、Playerライセンスでcom.playerlab.iosまたはcom.playerlab.tvosを許可します。実機では署名も設定します。Analyticsは別のライセンスを使い、この章の最後で説明します。",
+        "実行するターゲットに合わせ、Playerライセンスでcom.playerlab.iosまたはcom.playerlab.tvosを許可します。実機では署名も設定します。Analyticsは別のライセンスを使います。設定方法は実装ガイドの「Analytics / Observability」を参照してください。",
         "起動したらSourceでVOD HLSを選び、Playを押します。初期状態では自動再生が無効、ミュートが有効です。Playback tracksの再生位置が進むことを確認してから設定を比較します。",
         "Configure source and playbackを開きます。Applyの後にShow applied codeを選ぶと、SDKへ渡した設定を確認できます。編集中の値は含めず、ライセンス値は置き換え用の文字列で表示します。"
       ]
@@ -59,13 +60,18 @@
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/native-apple/",
           "label": "画面と操作：iOS / iPadOS / tvOS"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/apple-implementation/analytics-observability/",
+          "label": "Analytics / Observability"
         }
       ]
     },
     {
       "type": "h2",
       "text": "PlayerConfigとSourceConfigを設定する",
-      "id": "player-source-config"
+      "id": "player-source-config",
+      "summary": "フォームの値をPlayerConfigとSourceConfigへ渡す方法と、設定変更の反映、開始時のトラック選択、FairPlayで保護したHLSの扱いを説明します。"
     },
     {
       "type": "p",
@@ -157,14 +163,14 @@
       "text": "effect(for:)はアプリ側の判断であり、SDKのメソッドではありません。ビューのOverrideを含むPlayerSettingsの変更ではPlayerと表示先を再生成し、保持しているソース設定を読み込みます。ソースだけの変更では、現在のPlayerへ新しいSourceを読み込みます。どちらも指定した開始位置またはSDK既定位置からAutoplayに従って始めるため、変更前の再生位置や再生中・停止中の状態は保持しません。Reset to appliedは編集中の値だけを戻します。ソースプリセットを選ぶと独自のソース設定と初期トラック設定を初期化し、Player設定は保持します。"
     },
     {
-      "type": "figure",
-      "file": "ios-initial-tracks",
-      "caption": "iPadの初期トラック設定。PlayerConfigの言語プロパティではなく、SDKのトラック選択APIで反映するアプリ側の設定です。"
-    },
-    {
       "type": "h3",
       "id": "initial-track-selection",
       "text": "開始時の音声・字幕トラックを選ぶ"
+    },
+    {
+      "type": "figure",
+      "file": "ios-initial-tracks",
+      "caption": "iPadの初期トラック設定。PlayerConfigの言語プロパティではなく、SDKのトラック選択APIで反映するアプリ側の設定です。"
     },
     {
       "type": "p",
@@ -175,6 +181,11 @@
       "text": "初期設定は、対象Sourceが最初にReadyになった時点で一度だけ選択します。確認したHLSの起動ではSourceLoadedで行った音声選択がReadyまでに上書きされたため、再生準備の完了を待ち、現在のSourceを確認してから反映しています。その後にメニューで選んだ値は変更しません。先読みしたプレイリストの切り替えでは、対象ソースの再生時刻が進むことも待ちます。自分のアプリでもイベントの購読を保持し、対象のソースを確認して、その所有元を破棄するときに購読を解除します。"
     },
     {
+      "type": "h3",
+      "id": "fairplay-protected-media",
+      "text": "FairPlayと保護コンテンツ"
+    },
+    {
       "type": "note",
       "title": "保護コンテンツと外部サービス",
       "text": "FairPlayで保護したHLSでは、追加設定のSourceConfig.drmConfigでfairplayを選び、証明書URLとサービスが要求するライセンスURLを指定します。必要に応じて認証ヘッダーや送受信データを変換するコールバックも設定します。フォームはFairplayConfigを作りますが、証明書・視聴権限・ライセンスサーバーを用意するものではありません。Apple版にあるWidevine・PlayReadyの項目は受信側向けの設定で、Apple端末内での対応形式を増やしません。DRMはDigital Rights Managementの略で、暗号化したメディアへのアクセスを許可する仕組みです。"
@@ -182,7 +193,8 @@
     {
       "type": "h2",
       "text": "Player UIとネイティブの表示方法を変更する",
-      "id": "ui-customization"
+      "id": "ui-customization",
+      "summary": "iOS・iPadOSのWeb UIリソース、ネイティブの表示先と映像の拡大方法、tvOSのSystem UIを変更する方法を説明します。"
     },
     {
       "type": "table",
@@ -213,6 +225,11 @@
           "API inspectorのPresentationで選びます。Show presentation codeで対応するSDKの組み込み方法を表示します。"
         ]
       ]
+    },
+    {
+      "type": "h3",
+      "id": "ios-web-ui",
+      "text": "iOS・iPadOSのWeb UI"
     },
     {
       "type": "p",
@@ -254,14 +271,14 @@
       "endLine": 290
     },
     {
-      "type": "figure",
-      "file": "tvos-video-scaling",
-      "caption": "tvOSのネイティブ設定画面。Fit・Fill (crop)・Stretchは、表示枠内の映像の拡大方法であり、SwiftUIフォームの大きさを変える設定ではありません。"
-    },
-    {
       "type": "h3",
       "id": "native-presentation",
       "text": "ネイティブの表示方法と拡大縮小"
+    },
+    {
+      "type": "figure",
+      "file": "tvos-video-scaling",
+      "caption": "tvOSのネイティブ設定画面。Fit・Fill (crop)・Stretchは、表示枠内の映像の拡大方法であり、SwiftUIフォームの大きさを変える設定ではありません。"
     },
     {
       "type": "p",
@@ -283,6 +300,11 @@
       "endLine": 20
     },
     {
+      "type": "h3",
+      "id": "tvos-system-ui",
+      "text": "tvOSのSystem UI"
+    },
+    {
       "type": "p",
       "text": "tvOSのUI変更では、追加設定のSystemUserInterfaceConfigにあるshowSeekBarやshowInfoViewsなどを使います。SystemUiApiのメニュー・アクションを実行時に操作する場合は、Native PlayerViewとSystem UIを選びます。アプリは構造化した入力からネイティブのメニューやアクションを作ります。contextualActionsとinfoViewActionsはアクションを受け付け、transport barのメニューは階層化できます。ネイティブの操作部を開いて結果を確認してください。Player外のSwiftUIの検証ボタンを変更する場合は、SDK設定ではなくContentViewを編集します。"
     },
@@ -290,7 +312,7 @@
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/#ui-customization",
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/ui-customization/",
           "label": "Web実装ガイド：共有UIの部品とCSS"
         },
         {
@@ -302,7 +324,8 @@
     {
       "type": "h2",
       "text": "再生機能を組み込んで確認する",
-      "id": "useful-features"
+      "id": "useful-features",
+      "summary": "実行時APIと状態・イベントの確認方法を説明し、オフライン再生、Cast、SharePlayなどに必要な表示先やOS・外部サービスの条件を整理します。"
     },
     {
       "type": "p",
@@ -365,6 +388,11 @@
       "endLine": 115
     },
     {
+      "type": "h3",
+      "id": "offline-cast-shareplay",
+      "text": "オフライン再生・Cast・SharePlay"
+    },
+    {
       "type": "note",
       "title": "オフラインHLS：iOS・iPadOS",
       "text": "オンデマンドのHLSとDRM設定を適用してからOpen offline HLS inspectorを開きます。OfflineManagerは保存した設定でアプリ起動時に初期化するため、プロセス全体の起動設定を変えた後はアプリを完全に終了して開き直します。適用済みソースをオフライン資産として選び、トラックを取得・選択してダウンロードを開始し、進捗・offlineState・イベントを確認します。完了後にOfflineSourceConfigを作ってキャッシュから読み込みます。tvOSにはこのパネルを用意していません。ダウンロードとオフライン再生の検証には実機のiPhone・iPadを使います。記録済みのシミュレーター実行は初期化とトラック取得まで成功し、メディアのダウンロードは完了していません。オフラインのFairPlayには対応する永続ライセンスのサービスも必要です。"
@@ -400,6 +428,11 @@
       "endLine": 101
     },
     {
+      "type": "h3",
+      "id": "event-owner-lifecycle",
+      "text": "イベントと所有元のライフサイクル"
+    },
+    {
       "type": "p",
       "text": "イベント処理を取り込むときは、SDKの対象インスタンスが生きている間だけ購読を保持し、その対象を置き換える前に解除します。API inspectorはlistenerとpublisherの経路を切り替えられます。次のlistener経路ではplayer.add/removeがSDKのAPIで、playerApiListenerとrecordApiEventはアプリの補助実装です。同じPlayerであることを確認し、破棄したPlayerから遅れて届いた通知が新しいPlayerの画面を更新しないようにします。Sourceとビューのlistenerにも同じ考え方を使います。再生状態を処理する購読と、表示件数を制限したイベント履歴は分けて扱います。"
     },
@@ -417,7 +450,8 @@
     {
       "type": "h2",
       "text": "実装時のFAQ",
-      "id": "faq"
+      "id": "faq",
+      "summary": "設定適用時の再生リセット、認証、UIリソース、トラック選択、非同期操作の結果を、適用済みコードとSDKの状態から調べます。"
     },
     {
       "type": "note",
@@ -475,7 +509,8 @@
     {
       "type": "h2",
       "text": "Analyticsを組み込み、Observabilityで再生を確認する",
-      "id": "analytics-observability"
+      "id": "analytics-observability",
+      "summary": "アプリのAnalytics収集機能を設定し、対応する再生セッションと指標をBitmovin DashboardのObservabilityで確認します。"
     },
     {
       "type": "p",

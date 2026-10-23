@@ -5,12 +5,13 @@
   "blocks": [
     {
       "type": "p",
-      "text": "Webアプリの画面構成、設定、比較の手順は「画面と操作」で説明します。この実装ガイドでは、試したPlayerConfig、SourceConfig、UIコードを自分のアプリへ取り込む方法を説明します。既存アプリを参照しながら、以下のTypeScript例ではエディター固有の補助実装を省いています。"
+      "text": "Webアプリの画面構成、設定、比較の手順は「画面と操作」で説明します。実装ガイドの各節では、試したPlayerConfig、SourceConfig、UIコードを自分のアプリへ取り込む方法を説明します。既存アプリを参照しながら、各節のTypeScript例ではエディター固有の補助実装を省いています。"
     },
     {
       "type": "h2",
       "id": "integration",
-      "text": "Playerを組み込んでソースを読み込む"
+      "text": "Playerを組み込んでソースを読み込む",
+      "summary": "Web SDK、Playerライセンス、映像の表示先を用意し、Playerの生成からソースの読み込みまでを確認します。現行アプリを参照し、SDKの呼び出しとアプリ内の補助処理を区別します。"
     },
     {
       "type": "table",
@@ -33,7 +34,7 @@
         ],
         [
           "UIの管理主体",
-          "このアプリの初期設定はui: falseです。アプリが選択したUIManagerの生成と解放を担当します。SDKにUIを管理させる方式は、UI変更ガイドで説明します。"
+          "このアプリの初期設定はui: falseです。アプリが選択したUIManagerの生成と解放を担当します。SDKにUIを管理させる方式は、UI変更の節で説明します。"
         ]
       ],
       "widths": [
@@ -100,7 +101,8 @@
     {
       "type": "h2",
       "id": "player-source-config",
-      "text": "設定の対象と反映方法を選ぶ"
+      "text": "設定の対象と反映方法を選ぶ",
+      "summary": "生成時設定、ソース設定、再生中のAPI操作を使い分け、適用した値をPlayerConfigとSourceConfigへ整理します。ソースの再読み込みやPlayerの再生成が必要な変更も確認します。"
     },
     {
       "type": "table",
@@ -173,7 +175,7 @@
     },
     {
       "type": "p",
-      "text": "この例は、再利用するPlayerConfigとSourceConfigを、アプリのフォーム用の補助実装から分けたものです。インストール済みSDKの型で検査しています。メディアURLとPlayerライセンスは自分の値へ置き換えてください。設定値は比較用の入力例であり、推奨値ではありません。ui: falseの場合は、後述のUIManagerとスタイルシートを組み込みます。"
+      "text": "この例は、再利用するPlayerConfigとSourceConfigを、アプリのフォーム用の補助実装から分けたものです。インストール済みSDKの型で検査しています。メディアURLとPlayerライセンスは自分の値へ置き換えてください。設定値は比較用の入力例であり、推奨値ではありません。ui: falseの場合は、UI変更の節を参照し、UIManagerとスタイルシートを組み込みます。"
     },
     {
       "type": "code",
@@ -230,13 +232,22 @@
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#player-source-settings",
           "label": "画面と操作：Player・ソース設定"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-player-config/",
+          "label": "PlayerConfig / SourceConfigの詳細"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/ui-customization/",
+          "label": "UIManagerとスタイルシートの組み込み"
         }
       ]
     },
     {
       "type": "h2",
       "id": "ui-customization",
-      "text": "UIの動作・見た目・部品構成を変更する"
+      "text": "UIの動作・見た目・部品構成を変更する",
+      "summary": "UIConfigによる動作設定、CSSによる外観変更、部品構成による配置変更を説明します。UIの管理主体を一つに決め、入れ替え時のUIManagerの解放まで含めて実装します。"
     },
     {
       "type": "p",
@@ -247,7 +258,7 @@
       "items": [
         "Premiereを選び、「設定歯車に再生速度を表示」の切り替えを試します。歯車メニューと「適用中のUIConfigの上書き値」を比較します。テーマの種類を維持したまま、その動作設定を変える操作です。",
         "DefaultとNeonではスキンの違いを、Compactとの比較では部品構成の違いを確認します。画面の短縮された構築例だけで実装全体とせず、表示されたソースの参照先を開きます。",
-        "この章のUI変更の節で、ワークスペース内の型付き実装例、独立したプロジェクトでの読み込み、CSS、部品の組み立て方を確認します。共有テーマのファクトリーはこのリポジトリの実装で、Player SDKが公開するクラスではありません。",
+        "この節の例で、ワークスペース内の読み込み、独立したプロジェクトでの読み込み、CSS、部品の組み立て方を確認します。共有テーマのファクトリーはこのリポジトリの実装で、Player SDKが公開するクラスではありません。",
         "アプリがUIを管理する場合はui: falseを維持し、古いUIManagerを解放してから新しいUIを接続します。UIだけの変更ではPlayerと読み込み済みソースを維持できます。画面を閉じる際はUIを解放し、続いてPlayerを破棄します。"
       ]
     },
@@ -299,6 +310,10 @@
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#external-displays",
           "label": "画面と操作：外部表示"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-ui-customization/",
+          "label": "UI変更の詳細"
         }
       ]
     },
@@ -347,7 +362,8 @@
     {
       "type": "h2",
       "id": "useful-features",
-      "text": "再生機能と対応するAPIを確認する"
+      "text": "再生機能と対応するAPIを確認する",
+      "summary": "音声・字幕、自動画質選択、バッファ、通信、ライブ再生と対応するSDK APIを確認します。設定の変更と実際の再生結果を区別し、素材やブラウザーによる条件も確認します。"
     },
     {
       "type": "table",
@@ -414,7 +430,8 @@
     {
       "type": "h2",
       "id": "faq",
-      "text": "実装時によくある疑問"
+      "text": "実装時によくある疑問",
+      "summary": "設定が反映されない場合、任意のソースURL、表示用メタデータ、ブラウザーの制約、生成コードの扱いを説明します。現象ごとの原因と、次に確認する設定や操作をまとめます。"
     },
     {
       "type": "table",
@@ -464,7 +481,8 @@
     {
       "type": "h2",
       "id": "analytics-observability",
-      "text": "Analytics / Observability"
+      "text": "Analytics / Observability",
+      "summary": "Playerに同梱されたAnalytics収集機能を設定し、テスト用のメタデータからBitmovin Dashboardで再生を探します。ローカルのイベント、収集されたセッション、サーバー側の問い合わせを区別して確認します。"
     },
     {
       "type": "p",

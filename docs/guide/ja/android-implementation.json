@@ -6,7 +6,8 @@
     {
       "type": "h2",
       "text": "Androidプレイヤーの組み込み",
-      "id": "integration"
+      "id": "integration",
+      "summary": "SDKのPlayerを生成し、PlayerViewを既存のCompose画面へ接続する流れを説明します。アプリの補助実装とSDKのオブジェクトを区別します。"
     },
     {
       "type": "p",
@@ -86,7 +87,8 @@
     {
       "type": "h2",
       "text": "PlayerConfigとSourceConfig",
-      "id": "player-source-config"
+      "id": "player-source-config",
+      "summary": "PlayerConfigとSourceConfigを新しく作り、編集中と適用済みの値を比較する方法と、型付きの上書き設定・コールバックを説明します。"
     },
     {
       "type": "p",
@@ -277,7 +279,8 @@
     {
       "type": "h2",
       "text": "プレイヤーUIと画面レイアウトの変更",
-      "id": "ui-customization"
+      "id": "ui-customization",
+      "summary": "WebView内のプレイヤー操作部とComposeの配置を変更し、カスタムUIの同梱方法とTVでのフォーカス・入力を確認します。"
     },
     {
       "type": "p",
@@ -371,14 +374,25 @@
       "text": "共有UIの変更後は、リポジトリのルートから上のコマンドを実行し、ビルドし直したAPKをインストールします。同期処理がコピーするのはビルド済みアセットです。ソースだけを変更しても、ビルドと再インストールをしなければアプリには古いUIが残ります。CSSだけを試す場合、supplementalCssLocationは基本CSSへの追加、cssLocationは基本スタイルシートの読み込み先の置き換えです。"
     },
     {
+      "type": "h3",
+      "id": "android-tv-fire-tv",
+      "text": "Android TVとAndroidベースのFire TV"
+    },
+    {
       "type": "note",
-      "title": "Android TVとAndroidベースのFire TV",
+      "title": "リモコン操作とサービスの利用条件",
       "text": "ManifestにはLEANBACK_LAUNCHERがあり、タッチスクリーンも必須ではないため、同じアプリをTVのランチャーへ表示できます。ただし、専用のTV画面を自動選択したり、リモコン操作を保証したりするものではありません。SDKのTV向け操作部を比較する場合は、UiConfig.WebUi.variant = TvUiを登録します。focusUiOnInitializationを確認し、カスタムファクトリーの上書きを外して適用してください。対象TVで方向キー、決定、戻る、スクロール、再生を確認します。この章の画像はAndroidアプリの既存設定画面であり、TV向けレイアウトの動作認定ではありません。Google Play開発者サービスに依存するCronetプロバイダーなどは、Fire TVにもあるとは限りません。"
     },
     {
       "type": "h2",
       "text": "再生機能・イベント・ライフサイクル",
-      "id": "useful-features"
+      "id": "useful-features",
+      "summary": "実行時の操作をSDKの状態・イベントで確認し、システムのメディア操作やオフライン再生を組み込む方法と、ビュー・Playerの解放を説明します。"
+    },
+    {
+      "type": "h3",
+      "id": "runtime-api-events",
+      "text": "実行時の操作・状態・イベント"
     },
     {
       "type": "p",
@@ -411,6 +425,11 @@
     {
       "type": "p",
       "text": "この補助関数はowner.on(type, guarded)で登録し、同じguarded関数を保持してowner.offで解除します。現在のPlayerと変更世代に属するイベントかも確認し、置き換え前のPlayerが新しい画面を更新しないようにしています。SourceのイベントはSourceで観測し、PlayerViewの購読は全画面表示などのビューイベントに使います。自分のアプリでも、解除に使うリスナーを保持し、所有元とともに購読を解放します。"
+    },
+    {
+      "type": "h3",
+      "id": "system-media-offline",
+      "text": "再生機能とシステム連携"
     },
     {
       "type": "table",
@@ -493,7 +512,8 @@
     {
       "type": "h2",
       "text": "役立つ情報とFAQ",
-      "id": "faq"
+      "id": "faq",
+      "summary": "未反映の設定、再生リセット、UIや字幕の問題、認証、ライフサイクルの挙動を、適用済みコードとSDKの状態から調べます。"
     },
     {
       "type": "note",
@@ -555,7 +575,8 @@
     {
       "type": "h2",
       "text": "Analytics / Observability",
-      "id": "analytics-observability"
+      "id": "analytics-observability",
+      "summary": "同梱のAnalytics収集機能とコンテンツのメタデータを設定し、再生セッションと指標をBitmovin DashboardのObservabilityで確認します。"
     },
     {
       "type": "p",
@@ -563,7 +584,16 @@
     },
     {
       "type": "p",
-      "text": "ApiAnalyticsSettings.playerConfigはAnalyticsConfigを作り、DefaultMetadataを含むAnalyticsPlayerConfig.Enabled、またはDisabledを返します。前述のSDK Playerコンストラクターはこの値を受け取ります。Analytics設定パネルにはBuild key、Deferred license、Disabledがあり、Apply Analytics settings and restart playerはPlayerを再生成します。上書きがない場合、Deferred licenseはSDKのDEFERRED指定を渡し、SDKがPlayerライセンスに関連づけられた有効なAnalyticsライセンスを取得します。この選択だけで収集を確認したことにはならないため、収集機能の状態とDashboardの対応セッションを確認してください。"
+      "text": "ApiAnalyticsSettings.playerConfigはAnalyticsConfigを作り、DefaultMetadataを含むAnalyticsPlayerConfig.Enabled、またはDisabledを返します。この値をSDKのPlayerコンストラクターへ渡します。呼び出し例は「Androidプレイヤーの組み込み」を参照してください。Analytics設定パネルにはBuild key、Deferred license、Disabledがあり、Apply Analytics settings and restart playerはPlayerを再生成します。上書きがない場合、Deferred licenseはSDKのDEFERRED指定を渡し、SDKがPlayerライセンスに関連づけられた有効なAnalyticsライセンスを取得します。この選択だけで収集を確認したことにはならないため、収集機能の状態とDashboardの対応セッションを確認してください。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/android-implementation/integration/",
+          "label": "組み込み：SDKのPlayerを生成する"
+        }
+      ]
     },
     {
       "type": "code",

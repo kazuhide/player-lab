@@ -7,7 +7,8 @@ import stat
 from guide_html import (TEXT, anchor, chapter_links, controls_html, esc, field_anchor, legacy_html, page_html, relative,
                         render_block, settings_group, source_url, sources_html, themes_html)
 from guide_routes import (CATEGORIES, CHAPTERS, CHAPTER_ORDER, CHILD_CHAPTERS, DOCUMENTS, GUIDE_FILES, IMPLEMENTATION_GUIDES,
-                          LANGUAGES, LEGACY_ROUTES, OPERATION_GUIDES, SETTING_GROUPS, THEMES, route_file)
+                          IMPLEMENTATION_SECTIONS, LANGUAGES, LEGACY_ROUTES, OPERATION_GUIDES, SETTING_GROUPS,
+                          THEMES, route_file)
 from guide_coverage import coverage_pages, validate_coverage
 from coverage_gaps import validate_gaps
 
@@ -97,6 +98,13 @@ def validate_content(content):
                         or end < line or len(block['text'].splitlines()) != end - line + 1):
                     raise ValueError('Code excerpts must name their repository source line range.')
         english, japanese = content['en'][name], content['ja'][name]
+        if name in IMPLEMENTATION_GUIDES:
+            for document in (english, japanese):
+                sections = [block for block in document['blocks'] if block['type'] == 'h2']
+                if ([section.get('id') for section in sections] != list(IMPLEMENTATION_SECTIONS)
+                        or any(not isinstance(section.get('summary'), str) or not section['summary'].strip()
+                               for section in sections)):
+                    raise ValueError('Implementation sections need stable routes and localized introductions.')
         if name in CHAPTERS:
             if [block_shape(b) for b in english['blocks']] != [block_shape(b) for b in japanese['blocks']]:
                 raise ValueError('Language editions must preserve the same section structure.')
@@ -171,7 +179,9 @@ def pagination(content, language, page, slug):
     for delta, key in [(-1,'previous'), (1,'next')]:
         if 0 <= index + delta < len(order):
             target = order[index + delta]
-            output.append(f'<a href="{relative(page, route_file(language, target))}"><span>{TEXT[language][key]}</span>{esc(content[target]["title"])}</a>')
+            title = (content[target]['title'] if target in content else
+                     TEXT[language][IMPLEMENTATION_SECTIONS[target.rsplit('/', 1)[1]]])
+            output.append(f'<a href="{relative(page, route_file(language, target))}"><span>{TEXT[language][key]}</span>{esc(title)}</a>')
     return '<nav class="guide-pagination" aria-label="' + TEXT[language]['contents'] + '">' + ''.join(output) + '</nav>'
 
 
@@ -191,7 +201,73 @@ def on_page_contents(document, language, headings):
     label = TEXT[language]['section_contents']
     links = ''.join(f'<li><a href="#{esc(identifier)}">{esc(document["blocks"][index]["text"])}</a></li>'
                     for index, identifier in headings.items() if document['blocks'][index]['type'] == 'h2')
-    return f'<nav class="guide-onpage" aria-label="{label}"><p>{label}</p><ul>{links}</ul></nav>'
+    return f'<nav class="guide-onpage" aria-label="{label}"><p>{label}</p><ul>{links}</ul></nav>' if links else ''
+
+
+def implementation_sections(document, headings):
+    """Publish each authored section once, retaining its existing heading bookmarks."""
+    starts = [i for i, block in enumerate(document['blocks']) if block['type'] == 'h2']
+    result = []
+    for start, end in zip(starts, [*starts[1:], len(document['blocks'])]):
+        heading = document['blocks'][start]
+        blocks = [dict(block, type='h2') if block['type'] == 'h3' else block
+                  for block in document['blocks'][start + 1:end]]
+        references = {}
+        for block in blocks:
+            sources = ([block['source']] if block['type'] == 'code' and 'source' in block else
+                       block['items'] if block['type'] == 'links' else [])
+            for source in sources:
+                if not source_url(source).startswith('https://kazuhide.github.io/player-lab/'):
+                    references.setdefault(source_url(source), source)
+        result.append({'id': heading['id'], 'title': heading['text'], 'lead': heading['summary'],
+                       'blocks': blocks, 'sources': list(references.values()),
+                       'headings': {i - start - 1: identifier for i, identifier in headings.items()
+                                    if start < i < end}})
+    return result
+
+
+def implementation_overview(document, sections, language, page):
+    label = TEXT[language]['implementation_sections']
+    first = next(i for i, block in enumerate(document['blocks']) if block['type'] == 'h2')
+    intro = ''.join(render_block(block, language, page, '') for block in document['blocks'][:first])
+    items = []
+    for section in sections:
+        target = relative(page, route_file(language, document['id'] + '/' + section['id']))
+        topics = ''.join(f'<li><a id="{esc(identifier)}" href="{esc(target)}#{esc(identifier)}">'
+                         f'{esc(section["blocks"][index]["text"])}</a></li>'
+                         for index, identifier in section['headings'].items())
+        topics = '<ul>' + topics + '</ul>' if topics else ''
+        items.append(f'<li><h2 id="{esc(section["id"])}"><a href="{esc(target)}">{esc(section["title"])}</a></h2>'
+                     f'<p>{esc(section["lead"])}</p>{topics}</li>')
+    return intro + f'<nav class="guide-implementation-contents" aria-label="{label}"><ul>' + ''.join(items) + '</ul></nav>'
+
+
+def section_related_links(language, page, guide):
+    labels = TEXT[language]
+    operation = OPERATION_GUIDES[IMPLEMENTATION_GUIDES.index(guide)]
+    targets = [(guide, labels['implementation']), (operation, labels['operation_guide']),
+               ('glossary', 'Glossary' if language == 'en' else '用語集')]
+    links = ''.join(f'<li><a href="{esc(relative(page, route_file(language, target)))}">{esc(title)}</a></li>'
+                    for target, title in targets)
+    sources = relative(page, route_file(language, guide)) + '#sources'
+    links += f'<li><a href="{esc(sources)}">{labels["sources"]}</a></li>'
+    return f'<nav class="guide-related" aria-label="{labels["related_guides"]}"><ul>{links}</ul></nav>'
+
+
+def append_search(search, document, slug, headings, *, title=None):
+    title = title or document['title']
+    search.append({'kind': 'chapter', 'title': title, 'url': slug + '/',
+                   'excerpt': document['lead'], 'text': ' '.join(search_text(b) for b in document['blocks'])})
+    for index, identifier in headings.items():
+        following = []
+        for block in document['blocks'][index + 1:]:
+            if block['type'] in {'h2', 'h3'}:
+                break
+            following.append(search_text(block))
+        text = ' '.join(following)
+        if text:
+            search.append({'kind': 'section', 'title': title + ' / ' + document['blocks'][index]['text'],
+                           'url': slug + '/#' + identifier, 'excerpt': text[:200], 'text': text})
 
 
 def build(content, *, coverage=None, gaps=None):
@@ -210,6 +286,28 @@ def build(content, *, coverage=None, gaps=None):
         search = []
         for slug in CHAPTERS:
             document, page = documents[slug], route_file(language, slug)
+            if slug in IMPLEMENTATION_GUIDES:
+                sections = implementation_sections(document, headings[slug])
+                body = implementation_overview(document, sections, language, page)
+                body += sources_html(document.get('sources', []), language)
+                pages[page] = page_html(documents, language, slug, document['title'], document['lead'], body,
+                                       pagination(documents, language, page, slug)).encode()
+                search.append({'kind': 'chapter', 'title': document['title'], 'url': slug + '/',
+                               'excerpt': document['lead'], 'text': ' '.join(s['lead'] for s in sections)})
+                for section in sections:
+                    target = slug + '/' + section['id']
+                    child = route_file(language, target)
+                    body = section_related_links(language, child, slug)
+                    body += on_page_contents(section, language, section['headings'])
+                    body += ''.join(render_block(block, language, child, section['headings'].get(index, ''))
+                                    for index, block in enumerate(section['blocks']))
+                    body += sources_html(section['sources'], language)
+                    pages[child] = page_html(documents, language, target, section['title'], section['lead'], body,
+                                             pagination(documents, language, child, target),
+                                             heading_id=section['id']).encode()
+                    append_search(search, section, target, section['headings'],
+                                  title=document['title'] + ' / ' + section['title'])
+                continue
             blocks = ''.join(render_block(block, language, page, headings[slug].get(index, ''))
                              for index, block in enumerate(document['blocks']))
             contents = (on_page_contents(document, language, headings[slug])
@@ -219,18 +317,7 @@ def build(content, *, coverage=None, gaps=None):
                                     pagination(documents, language, page, slug)).encode()
             if CHAPTERS[slug] is None:
                 continue
-            search.append({'kind':'chapter','title':document['title'],'url':slug+'/',
-                           'excerpt':document['lead'],'text':' '.join(search_text(b) for b in document['blocks'])})
-            for index, identifier in headings[slug].items():
-                following = []
-                for block in document['blocks'][index+1:]:
-                    if block['type'] in {'h2', 'h3'}:
-                        break
-                    following.append(search_text(block))
-                text = ' '.join(following)
-                if text:
-                    search.append({'kind':'section','title':document['title']+' / '+document['blocks'][index]['text'],
-                                   'url':slug+'/#'+identifier,'excerpt':text[:200], 'text':text})
+            append_search(search, document, slug, headings[slug])
         for group in documents['settings']['groups']:
             slug, title = 'settings/'+group['id'], group['title']
             pages[route_file(language, slug)] = page_html(documents, language, slug, title,

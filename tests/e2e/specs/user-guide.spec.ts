@@ -9,7 +9,7 @@ interface SettingGroup { id: string; title: string; fields: Setting[] }
 interface Control { id: string; group: string; label: string; description: string }
 interface GuideDocument {
   id: string; title: string; groups?: SettingGroup[]; controls?: Control[];
-  blocks?: { type: string; items?: string[]; source?: { path: string } }[];
+  blocks?: { type: string; id?: string; text?: string; summary?: string; items?: string[]; source?: { path: string } }[];
 }
 interface SearchEntry { kind: string; title: string; url: string }
 interface CoverageRow {
@@ -43,6 +43,8 @@ declare global {
 const languages: Language[] = ["en", "ja"];
 const implementationGuides = ["web-implementation", "apple-implementation", "android-implementation",
   "react-native-implementation", "vega-implementation"];
+const implementationSections = ["integration", "player-source-config", "ui-customization", "useful-features",
+  "faq", "analytics-observability"];
 const contentRoot = resolve(__dirname, "../../../docs/guide");
 const coverage = JSON.parse(readFileSync(resolve(contentRoot, "../api-coverage/coverage.json"), "utf8")) as CoverageReport;
 const gapReport = JSON.parse(readFileSync(resolve(contentRoot, "../api-coverage/gaps.json"), "utf8")) as GapReport;
@@ -157,7 +159,7 @@ for (const language of languages) {
     });
 
     for (const guide of implementationGuides) {
-      test(`${guide} explains configuration and UI before Analytics`, async ({ page }) => {
+      test(`${guide} opens independent sections and keeps Analytics last`, async ({ page }) => {
         await page.goto(guidePath(language));
         await page.locator(`.guide-topic-group a[href="${guide}/"]`).click();
         await expect(page.locator("main > h1")).toHaveText(content[language][guide]!.title);
@@ -166,38 +168,79 @@ for (const language of languages) {
           "integration", "player-source-config", "ui-customization", "useful-features", "faq",
           "analytics-observability",
         ]);
-        const excerpts = page.locator(".guide-code");
-        expect(await excerpts.count()).toBe(content[language][guide]!.blocks!
-          .filter((block) => block.type === "code").length);
-        const sourceLinks = excerpts.locator("figcaption a");
-        await expect(sourceLinks).toHaveCount(content[language][guide]!.blocks!
-          .filter((block) => block.type === "code" && block.source).length);
-        for (const source of await sourceLinks.all()) {
-          await expect(source).toHaveAttribute("href",
-            /^https:\/\/github\.com\/kazuhide\/player-lab\/blob\/[a-f0-9]{40}\/.+#L[1-9][0-9]*$/);
+        await expect(page.locator(".guide-code, .guide-figure")).toHaveCount(0);
+        const sectionLinks = page.locator(".guide-implementation-contents h2 > a");
+        expect(await sectionLinks.evaluateAll(elements => elements.map(element => element.getAttribute("href"))))
+          .toEqual(implementationSections.map(section => section + "/"));
+        const authored = content[language][guide]!.blocks!;
+        for (const section of implementationSections) {
+          const start = authored.findIndex(block => block.type === "h2" && block.id === section);
+          expect(start).toBeGreaterThanOrEqual(0);
+          const next = authored.findIndex((block, index) => index > start && block.type === "h2");
+          const blocks = authored.slice(start + 1, next === -1 ? authored.length : next);
+          await page.goto(guidePath(language, `${guide}/${section}`));
+          await expect(page.locator("main > h1")).toHaveText(authored[start]!.text!);
+          await expect(page.locator("main > .guide-lead")).toHaveText(authored[start]!.summary!);
+          await expect(page.locator(".guide-breadcrumb")).toContainText(content[language][guide]!.title);
+          await expect(page.locator(".guide-sidebar .guide-section-links > li")).toHaveCount(6);
+          await expect(page.locator('.guide-sidebar a[aria-current="page"]')).toHaveCount(1);
+          await expect(page.locator('.guide-sidebar a[aria-current="page"]')).toHaveAttribute("href", "./");
+          await expectHeadingStructure(page);
+          const excerpts = page.locator(".guide-code");
+          await expect(excerpts).toHaveCount(blocks.filter(block => block.type === "code").length);
+          const sourceLinks = excerpts.locator("figcaption a");
+          await expect(sourceLinks).toHaveCount(blocks.filter(block => block.type === "code" && block.source).length);
+          for (const source of await sourceLinks.all()) {
+            await expect(source).toHaveAttribute("href",
+              /^https:\/\/github\.com\/kazuhide\/player-lab\/blob\/[a-f0-9]{40}\/.+#L[1-9][0-9]*$/);
+          }
+          for (const excerpt of await excerpts.all()) await expect(excerpt.locator("pre")).toHaveAttribute("tabindex", "0");
+          await page.waitForLoadState("load");
+          await page.evaluate(() => document.fonts.ready);
+          for (const width of [320, 768, 1024, 1440]) {
+            await page.setViewportSize({ width, height: 900 });
+            await expectNoDocumentOverflow(page);
+          }
+          for (const image of await page.locator(".guide-figure img").all()) {
+            await image.scrollIntoViewIfNeeded();
+            await expect.poll(() => image.evaluate(element =>
+              element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0)).toBe(true);
+          }
+          if (await sourceLinks.count()) {
+            await sourceLinks.first().focus();
+            await expect(sourceLinks.first()).toBeFocused();
+          }
         }
-        for (const excerpt of await excerpts.all()) await expect(excerpt.locator("pre")).toHaveAttribute("tabindex", "0");
-        await page.waitForLoadState("load");
-        await page.evaluate(() => document.fonts.ready);
-        for (const width of [320, 768, 1024, 1440]) {
-          await page.setViewportSize({ width, height: 900 });
-          await expectNoDocumentOverflow(page);
-        }
-        const images = page.locator(".guide-figure img");
-        for (const image of await images.all()) {
-          await image.scrollIntoViewIfNeeded();
-          await expect.poll(() => image.evaluate((element) =>
-            element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0)).toBe(true);
-        }
-        await sourceLinks.first().focus();
-        await expect(sourceLinks.first()).toBeFocused();
-        const faq = page.locator('.guide-onpage a[href="#faq"]');
+        await page.goto(guidePath(language, guide));
+        const faq = page.locator('.guide-implementation-contents a[href="faq/"]');
         await faq.focus();
         await page.keyboard.press("Enter");
-        await expect(page).toHaveURL(/#faq$/);
-        await expect(page.locator("h2#faq")).toBeInViewport();
+        await expect(page).toHaveURL(/\/faq\/$/);
+        await expect(page.locator("h1#faq")).toBeInViewport();
       });
     }
+
+    test("old implementation subheadings open the matching child section and retain their language", async ({ page }) => {
+      for (const guide of implementationGuides) {
+        const blocks = content[language][guide]!.blocks!;
+        const index = blocks.findIndex(block => block.type === "h3");
+        expect(index).toBeGreaterThanOrEqual(0);
+        const heading = blocks[index]!;
+        const previous = blocks.slice(0, index).filter(block => block.type === "h2");
+        const section = previous[previous.length - 1]!;
+        await page.goto(guidePath(language, guide) + "#" + heading.id);
+        const link = page.locator(`a[id="${heading.id}"]`);
+        await expect(link).toBeInViewport();
+        await link.focus();
+        await page.keyboard.press("Enter");
+        await expect(page).toHaveURL(guidePath(language, `${guide}/${section.id}`) + "#" + heading.id);
+        await expect(page.locator(`h2#${heading.id}`)).toBeInViewport();
+        await page.locator("[data-guide-language]").click();
+        const other = language === "en" ? "ja" : "en";
+        await expect(page).toHaveURL(guidePath(other, `${guide}/${section.id}`) + "#" + heading.id);
+        await expect(page.locator(`h2#${heading.id}`)).toBeInViewport();
+      }
+    });
 
     test("API gap reasons open with the keyboard and remain readable on narrow screens", async ({ page }) => {
       await page.goto(guidePath(language, "api-coverage/web-ui"));
