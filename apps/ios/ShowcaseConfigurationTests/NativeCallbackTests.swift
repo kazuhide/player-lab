@@ -19,6 +19,10 @@ final class NativeCallbackTests: XCTestCase {
         let config = applied.source.makeSourceConfig(callbackJournal: journal)
         let fairplay = try XCTUnwrap(config.drmConfig as? FairplayConfig)
         XCTAssertEqual(fairplay.prepareContentId?("abc"), "asset:ABC")
+        let firstCallMetrics = journal.runtime(
+            sources: applied.source.advanced.callbackSources(owner: .source), owner: "source"
+        ).metricsSnapshot()["FairplayConfig.prepareContentId"] ?? [:]
+        print("Callback interpreter first-call trusted metrics: \(firstCallMetrics)")
         XCTAssertEqual(fairplay.prepareMessage?(Data([1, 254]), "id"), Data([3, 1]), "\(journal.snapshot)")
         XCTAssertEqual(fairplay.prepareLicenseServerUrl?("https://example.com/old"), "https://example.com/new")
         let information = try XCTUnwrap(fairplay.prepareOfflineDrmLicenseInformation?(Data([1, 2, 3])))
