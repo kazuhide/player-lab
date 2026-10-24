@@ -231,6 +231,21 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it.each(["android", "ios"])("reserves the %s portrait editor for large text while the keyboard is open", async os => {
+    runtime.os = os;
+    runtime.window = { width: 393, height: 852, fontScale: 2, scale: 1 };
+    await mount(); await ready(); await text("Source title", "Large-text draft");
+    const owner = current();
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(element("Pressable", { testID: "configuration-done" })).toBeDefined();
+    expect(element("Pressable", { testID: "workspace-nav-settings" })).toBeUndefined();
+    expect(element("Text", { children: "Draft changes have not been applied." })).toBeUndefined();
+    expect(input("Source title").props.value).toBe("Large-text draft");
+    expect(element("Pressable", { testID: "configuration-apply" }).props.disabled).toBe(false);
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
   it.each(["android", "ios"])("reveals selected %s API inputs while retaining their values across workspace navigation", async os => {
     runtime.os = os;
     await mount(); await ready();

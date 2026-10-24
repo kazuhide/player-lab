@@ -104,7 +104,7 @@ function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | unde
   const choicePresented = useChoicePresented();
   const editing = keyboardVisible && !choicePresented;
   const dimensions = useWindowDimensions();
-  const compactEditing = editing && dimensions.height < 500;
+  const compactEditing = editing && (dimensions.height < 500 || dimensions.fontScale >= 1.3);
   useEffect(() => {
     const shown = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
     const hidden = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
