@@ -341,6 +341,10 @@ schemes:
         Showcase-iOS: all
     test:
       targets: [Showcase-iOSConfigurationTests]
+      # Keep interpreter semantics independent of test-host JIT compilation.
+      environmentVariables:
+        JSC_useJIT: "false"
+        JSC_dumpOptions: "1"
   Showcase-iOS-Finalization:
     build:
       targets:

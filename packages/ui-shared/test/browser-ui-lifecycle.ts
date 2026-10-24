@@ -1,4 +1,4 @@
-import type { PlayerAPI } from "bitmovin-player";
+import type { PlayerAPI, PlayerEvent } from "bitmovin-player";
 import type { UIManager } from "bitmovin-player-ui";
 import { DefaultUIFactory, LiveUIFactory } from "../src/liveUi";
 
@@ -10,14 +10,34 @@ export async function inspectQueuedUiEvents(player: PlayerAPI) {
   host.style.cssText = "width:640px;height:360px;position:relative";
   document.body.appendChild(host);
   const results = [];
+  const observe = async (event: PlayerEvent, trigger: () => void | Promise<void>): Promise<void> => {
+    let resolve!: () => void;
+    const delivered = new Promise<void>(done => { resolve = done; });
+    const received = () => resolve();
+    player.on(event, received);
+    try { await trigger(); await delivered; }
+    finally { player.off(event, received); }
+  };
   try {
     for (const event of [player.exports.PlayerEvent.SourceLoaded, player.exports.PlayerEvent.SourceUnloaded,
       player.exports.PlayerEvent.Playing]) {
+      // Exercise a real transition, rather than depending on reloading a cached source.
+      if (event === player.exports.PlayerEvent.SourceLoaded) {
+        if (player.getSource()) await observe(player.exports.PlayerEvent.SourceUnloaded, () => player.unload());
+      } else if (!player.getSource()) {
+        await observe(player.exports.PlayerEvent.SourceLoaded, () => player.load(source));
+      }
+      if (event === player.exports.PlayerEvent.Playing) {
+        if (!player.isPlaying()) await observe(player.exports.PlayerEvent.Playing, () => player.play());
+        await observe(player.exports.PlayerEvent.Paused, () => player.pause());
+      }
       let previous: UIManager | undefined;
       let replacement: UIManager | undefined;
       let oldRoot: HTMLElement | undefined;
       let replaced = false;
       let detachedDuringEvent = false;
+      let resolve!: () => void;
+      const delivered = new Promise<void>(done => { resolve = done; });
       const replace = (): void => {
         if (!previous || replaced) return;
         replaced = true;
@@ -26,12 +46,16 @@ export async function inspectQueuedUiEvents(player: PlayerAPI) {
         previous.release();
         detachedDuringEvent = !oldRoot.isConnected;
         replacement = DefaultUIFactory.buildDefaultUI(player, { container: host });
+        resolve();
       };
       player.on(event, replace);
       previous = LiveUIFactory.buildLiveUI(player, { container: host });
       try {
-        await player.load(source);
-        if (event === player.exports.PlayerEvent.Playing && !replaced) await player.play();
+        if (event === player.exports.PlayerEvent.SourceLoaded) await player.load(source);
+        else if (event === player.exports.PlayerEvent.SourceUnloaded) await player.unload();
+        else await player.play();
+        // load()/play() can settle before the SDK delivers their event listeners.
+        await delivered;
         await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
         results.push({ event, replaced, detachedDuringEvent, oldRootReconnected: oldRoot?.isConnected,
           remainingRoots: host.querySelectorAll(".bmpui-ui-uicontainer").length });
