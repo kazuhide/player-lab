@@ -22,16 +22,16 @@
     },
     {
       "type": "p",
-      "text": "Build and launch apps/android using Android Studio or the documented command-line setup. Java 17 and required Android SDK packages are listed in Local setup and licenses and the implementation guide. The app uses Player 3.171.0. Allow com.playerlab.android on the Player license used by the build."
+      "text": "Build and launch apps/android with Android Studio or the command-line steps in Local setup and licenses. That chapter also covers Java 17, Android SDK packages and licensing."
     },
     {
       "type": "note",
       "title": "Display language",
-      "text": "The app supports English and Japanese through the system or per-app language preference. This guide uses captures from the English app. SDK identifiers, code and returned data are not translated. The standard Player controls also depend on SDK and system language settings."
+      "text": "The app follows the system or per-app language preference. This guide shows the English app. SDK identifiers, code and returned data retain their original spelling. Standard Player controls also depend on SDK and system language settings."
     },
     {
       "type": "p",
-      "text": "The same app declares a TV launcher for Android TV and Android-based Fire TV. This chapter includes separate phone and Android TV emulator captures. Vega OS uses a separate app. The TV checks below cover the recorded emulator, with physical-device playback and services checked separately on the intended hardware."
+      "text": "Android TV and Android-based Fire TV use the same app. Vega OS uses a separate app. Phone and Android TV emulator captures are identified below."
     },
     {
       "type": "links",
@@ -57,24 +57,22 @@
     {
       "type": "steps",
       "items": [
-        "Select VOD HLS or VOD DASH under Source and start playback. Confirm that the picture and position advance before changing settings.",
-        "Choose Settings → Configuration → Source, then Setting → Title. Keep the URL, enter Player Lab VOD and choose Apply source. Check the reload message and applied title without changing player settings.",
-        "Choose Player in Settings → Configuration. Use Setting to edit Startup buffer, Restart buffer and Forward buffer to 1, 2 and 10 seconds. Choose Apply player. Check the restart message, retained source and applied BufferConfig, then start playback if Autoplay is off.",
-        "Use Theme to compare Default, Sports, Live and Cinema. Android replaces PlayerView while keeping the Player. The player’s own menu is independent of the app settings workspace.",
-        "Use the Source or Player setting selector for audio, subtitles and bitrate with a source that provides suitable tracks or quality variants. A configured value does not add a missing track or rendition.",
-        "Choose Code to compare the applied settings. Use APIs → Commands, State and Events to connect an operation with its result.",
-        "For live rewind, load a live preset and wait for a seekable window. Live edge returns to the moving edge. More contains additional live controls and diagnostics; these are separate from the VOD settings.",
-        "If PlayerError or SourceError appears, note its numeric code. Check the allowed app identifier and source connectivity before treating the failure as a configuration issue."
+        "Select VOD HLS or VOD DASH under Source and start playback. Check that the picture and position advance.",
+        "Open Settings → Configuration → Source and Setting → Title. Keep the URL, enter Player Lab VOD and Apply source. Check the reload and title.",
+        "Choose Player and set Startup buffer, Restart buffer and Forward buffer to 1, 2 and 10 seconds. Apply player, inspect BufferConfig in Code, and start playback if Autoplay is off.",
+        "Switch Theme between Default, Sports, Live and Cinema. The Player and source stay in place while the overlaid controls are replaced.",
+        "Inspect applied settings in Code. Use APIs → Commands, State and Events to compare an operation with its result.",
+        "Play a live preset and wait for a rewind window before using its controls. Live edge returns to the moving edge. More contains additional live controls and diagnostics."
       ]
     },
     {
       "type": "p",
-      "text": "Changing UI replaces PlayerView while retaining the Player and source. Return to Default after comparison. The custom modes need the bundled shared JavaScript/CSS; if absent, follow the implementation guide to build and synchronize them. In the recorded SDK 3.171.0 phone-emulator check, foregrounding kept playback paused; press Play to resume when needed."
+      "text": "Return to Default after comparing themes. If a custom theme is missing, follow the implementation guide’s shared-UI build and sync steps. Press Play if playback remains paused after returning from the background."
     },
     {
       "type": "note",
       "title": "Mobile and TV controls",
-      "text": "The shared Compose workspace adapts text, safe margins and focus presentation when the device reports television mode. Default explicitly selects SDK TvUi with focusUiOnInitialization = true; custom Sports, Live and Cinema retain their own factories. The implementation guide explains these two UI layers and the host’s remote-input policy."
+      "text": "Default uses touch controls on mobile and remote controls on TV. Sports, Live and Cinema keep their custom themes on TV. See below for TV presentation and remote-input implementation."
     },
     {
       "type": "links",
@@ -92,7 +90,7 @@
     },
     {
       "type": "p",
-      "text": "These 1920 × 1080 captures come from the normal app on an Android TV API 36 emulator. Default renders the SDK TV controls beside the shared Compose workspace. D-pad and Select operate the focused control. Back from the SDK preview closes its menu and returns focus to Source; fullscreen and native dialogs keep their own Back handling."
+      "text": "These 1920 × 1080 captures show the normal app on an Android TV API 36 emulator. Default places SDK controls beside the app workspace. D-pad and Select operate the focused item; Back within the SDK preview closes its menu and returns to Source. Fullscreen and native dialogs use their own Back handling."
     },
     {
       "type": "figure",
@@ -119,11 +117,11 @@
     },
     {
       "type": "p",
-      "text": "In Settings, choose Configuration → Source, Player or SDK overrides, then the required Setting. Source and Player have separate drafts. The fixed action area reports unapplied changes and whether Apply reloads the source or recreates the Player. Applying Player settings uses the applied source, not unapplied Source edits. A validation failure keeps the draft and opens the affected field."
+      "text": "Choose Source, Player or SDK overrides under Settings → Configuration, then open a Setting. Source and Player have separate drafts. The fixed action area shows unapplied changes and the pending reload or recreation. Validation errors retain the draft and open the affected field."
     },
     {
       "type": "p",
-      "text": "In Settings, choose the source group and the field you want to edit. Source fields are a custom HTTP/HTTPS URL, DASH/HLS/Smooth/Progressive type, optional title, optional poster URL, persistent poster, start offset in seconds, SDK-default/Start/End reference, and optional live target latency in seconds. Blank title, poster, and offset use SDK defaults. The default reference is the start for VOD and the end for live streams; the SDK corrects offsets outside stream boundaries. HTTP depends on the device network policy."
+      "text": "In Source, enter an HTTP(S) URL and choose DASH, HLS, Smooth or Progressive. Title, poster and start position are optional. To compare a VOD starting position, set Start offset to 5 seconds, choose Start and Apply source."
     },
     {
       "type": "figure",
@@ -132,11 +130,11 @@
     },
     {
       "type": "p",
-      "text": "Live target latency maps to SourceLiveConfig.targetLatency. Blank keeps the original SDK defaults (liveConfig = null). An explicit finite value changes the SDK’s definition of the live edge and asks it to approach that latency while avoiding stalls; VOD ignores it. Apply source reloads the source, player recreation retains the applied value, and Reset draft restores it without applying. This setting alone does not guarantee a seek-completion or latency-convergence deadline; the test results describe the checked environments."
+      "text": "For live target latency, enter a value on a live source and Apply source. The applied value survives Player recreation. Clear it and reapply to restore the SDK default. See the implementation guide and test results for its meaning and validation scope."
     },
     {
       "type": "p",
-      "text": "Player fields are Autoplay (off), Start muted (off), SDK live time shifting (on), startup threshold (2.5 s), restart threshold (5 s), forward buffer (50 s), maximum automatic video bitrate (whole bps; blank means Int.MAX_VALUE / 2147483647, no ABR cap), preload (on), rebuffering (on), and live quality/stability balance (0–1; default 0.5). Thresholds must be nonnegative and at most forward buffer minus 0.5 s; forward buffer must be at least 0.5 s. Numeric fields reject non-finite values. The bitrate cap affects automatic selection; higher qualities remain available for manual selection. Balance applies near the live edge only. Player → Live time shifting is the SDK creation setting. More → Playback options → Enable live rewind controls is a separate app preference, available even while viewing VOD. It does not change VOD playback. More → Live controls shows current live actions only when the loaded source supports them."
+      "text": "Player contains playback, buffer and automatic-quality settings. Fields show their units and accepted inputs. The implementation guide’s PlayerConfig section lists defaults and constraints."
     },
     {
       "type": "figure",
@@ -146,83 +144,25 @@
     {
       "type": "steps",
       "items": [
-        "Choose Source in Settings → Configuration, edit the required Setting and use Apply source to reload it on the existing Player. Invalid drafts leave the applied source and Player unchanged.",
-        "Choose Player in Settings → Configuration and use Apply player for playback, buffer or adaptation changes. It creates a new Player with the applied source and its metadata/options, retaining UI mode, app rewind preference and the event log. Playback restarts according to the source start offset and Autoplay.",
-        "Reset draft restores the applied values for the selected Source or Player group. It does not apply defaults or restart playback. Changing the setting or workspace tab retains unapplied edits. Selecting a source preset replaces custom source fields and options."
+        "Apply source reloads the source on the current Player. Invalid input leaves the active source and Player unchanged.",
+        "Apply player recreates the Player with the applied source, excluding unapplied Source edits. Playback restarts at the start offset according to Autoplay.",
+        "Reset draft restores the selected Source or Player draft to applied values. Fields and tabs retain drafts. A preset replaces custom source fields and options while retaining Player settings."
       ]
     },
     {
       "type": "p",
-      "text": "Choose a group and a field to open its editor directly. Reset, Apply and draft status remain outside the field content. Source and Theme use selectors that show their available choices; a selected item has an explicit selection indicator. A disabled action has a separate unavailable state. Long structured inputs can scroll within their editor without moving the playback preview or workspace navigation."
-    },
-    {
-      "type": "p",
-      "text": "Code displays Kotlin PlayerConfig, SourceConfig and PlayerViewConfig for the applied settings and current UI, including optional live target latency. Draft edits are excluded. Wrap lines controls line wrapping; Copy code writes the text to the Android clipboard and shows Copied. License keys use placeholders. The example still needs the integrating app’s keys, view attachment and lifecycle forwarding."
+      "text": "Long structured inputs scroll within the editor. The preview, tabs, draft status and Reset/Apply actions remain outside it. Selected values and unavailable actions have distinct indicators."
     },
     {
       "type": "note",
       "title": "Menus inside the Android player",
-      "text": "The player has its own settings menu inside the video. Scroll within that menu when an option is below its viewport. App settings are selected separately in Settings. PlayerTouchHost keeps a gesture that begins in the player with that view until it ends or is cancelled; replacing the player releases that touch ownership."
-    },
-    {
-      "type": "table",
-      "headers": [
-        "Editor group",
-        "Example input",
-        "Apply and what to check"
-      ],
-      "widths": [
-        0.22,
-        0.28,
-        0.5
-      ],
-      "rows": [
-        [
-          "Source and start position",
-          "Start offset: 5 seconds; Offset reference: Start",
-          "Apply source. On VOD, compare the first playback position with the beginning. Blank offset uses the SDK default. A retained offset also applies after a later player restart."
-        ],
-        [
-          "Playback",
-          "Autoplay: off; Start muted: on",
-          "Apply player. Check that playback waits for Play and starts muted. These are startup settings, separate from immediate controls in the player UI."
-        ],
-        [
-          "Buffer",
-          "Startup threshold: 1; Restart threshold: 2; Forward buffer: 10, all in seconds",
-          "Apply player. Startup/restart thresholds describe required buffered media before starting or resuming after a stall, not promised wall-clock delays. Inspect BufferConfig in applied code; the current network and source determine the visible effect."
-        ],
-        [
-          "Adaptation",
-          "Maximum automatic video bitrate: 1500000 bps",
-          "Apply player. Inspect maxSelectableVideoBitrate in applied code and compare automatic quality on a multi-bitrate source. This caps automatic selection; higher qualities remain available for manual selection."
-        ],
-        [
-          "Live adaptation",
-          "Live quality / stability balance: 0.8",
-          "Apply player. Values toward 1 favor stability and values toward 0 favor quality near the live edge. VOD is unsuitable for comparing this setting. Preload content and Allow rebuffering are separate adaptation switches."
-        ],
-        [
-          "Audio priority",
-          "Player: en, de; Source: de, en",
-          "Apply the player list with restart, then the source list with reload. On a source containing those languages, check the selected audio in the player menu. The source list takes precedence; clear it to inherit the player list."
-        ],
-        [
-          "Network",
-          "HTTP retry delays: 0, 0.25, 2 seconds",
-          "Apply player. Check the normalized retry list in applied code. A successful playback request cannot demonstrate retries; use a test source you control when investigating failure handling."
-        ]
-      ]
-    },
-    {
-      "type": "p",
-      "text": "Reset draft abandons unapplied edits and restores the selected group’s applied values. To compare an SDK default, enter that field’s documented default and Apply; Reset is not a restore-defaults command. Select a source preset to clear custom source settings, including external subtitle metadata; player settings remain. Valid unchanged values can be applied again to explicitly reload the source or recreate the Player."
+      "text": "The menu inside the video is separate from the app’s Settings workspace. Scroll inside the Player menu to reach hidden options."
     },
     {
       "type": "steps",
       "items": [
-        "After Apply, choose Code → Player, source and UI and compare PlayerConfig, SourceConfig and the current UI configuration. Use Wrap lines to read long lines within the available width. Copy code writes the displayed text to the Android clipboard and changes the button to Copied.",
-        "Edit a draft without applying and check that the output stays unchanged. Actual license values are placeholders. Choose SDK overrides in the Applied code selector for the separately applied additional settings."
+        "After applying, inspect Kotlin settings in Code → Player, source and UI. Use Wrap lines for long lines and Copy code for the Android clipboard. The button then shows Copied.",
+        "Code excludes unapplied drafts and replaces license values with placeholders. Choose SDK overrides in the code selector for separately applied overrides."
       ]
     },
     {
@@ -233,7 +173,7 @@
     {
       "type": "note",
       "title": "Reset is not Apply",
-      "text": "Reset draft restores the selected group’s applied values without changing playback. Source and Player drafts remain separate. Separately applied SDK overrides remain active until removed and applied in the additional settings editor. Applying valid unchanged basic values deliberately repeats the selected reload or restart; check the action label before submitting."
+      "text": "Reset draft neither changes playback nor restores defaults. An active SDK override remains until removed and applied in its editor. On Android, reapplying valid unchanged basic values deliberately repeats the reload or recreation."
     },
     {
       "type": "links",
@@ -249,27 +189,11 @@
       "text": "Audio language, external subtitles and retries"
     },
     {
-      "type": "p",
-      "text": "Player audio language priority sets an ordered list such as de, en when the player is created. Source audio language priority overrides it for that source when nonempty; blank inherits the player list. Codes keep their priority after trimming and removing duplicates without regard to case. No match leaves the SDK default track."
-    },
-    {
-      "type": "p",
-      "text": "WebVTT is a text-based subtitle format with timed cues. To add one external track, enter its HTTP or HTTPS WebVTT URL and optionally a label and language code such as en-US. Default external subtitle sets isDefault metadata; it does not enable the subtitles. Apply source, then select the track in the Default UI settings menu. Clearing the URL also requires clearing its metadata. Existing in-stream subtitles remain available."
-    },
-    {
-      "type": "p",
-      "text": "HTTP retry delays (s) controls the wait before each retry. Blank uses the SDK policy that increases the wait between retries, none disables retries, and a comma-separated list such as 0, 0.25, 2 permits one retry for each finite nonnegative value. The setting applies after player recreation. This standard field does not edit callbacks, request credentials or content-protection license renewal retries; use the separate SDK settings for their supported inputs."
-    },
-    {
-      "type": "note",
-      "text": "Source changes reload the current player; player language and retry changes recreate it. Both paths keep the applied source metadata, selected UI and app rewind preference. Reset changes the draft only. Code contains the same normalized settings and excludes unapplied text and actual license values."
-    },
-    {
       "type": "steps",
       "items": [
-        "To compare audio priority, apply Player en, de with restart, then Source de, en with reload. Read the selected audio in the player menu. Clear the source list and reload to inherit the player list.",
-        "To remove the external subtitle, clear its URL and metadata together and Apply source, or select a catalog preset. The Default external subtitle flag is metadata and does not enable captions.",
-        "To restore the normal HTTP retry policy, clear HTTP retry delays and Apply player. A successful request cannot demonstrate retry timing; compare failed requests only on a source you control."
+        "Set Player audio priority to en, de and Apply player, then Source priority to de, en and Apply source. Compare the selected track in the player menu. Clear the source list and reapply to inherit Player priority.",
+        "Enter an HTTP(S) WebVTT URL with an optional label and language such as en-US. Apply source, then select it in the Default UI subtitle menu. To remove it, clear its URL and metadata and reapply, or select a source preset.",
+        "Enter HTTP retry delays in seconds, such as 0, 0.25, 2, and Apply player. Blank restores SDK defaults; none disables retries. Compare failed requests on a source you control."
       ]
     },
     {
@@ -289,34 +213,20 @@
       "type": "table",
       "headers": [
         "Input",
-        "Example",
-        "What to check"
-      ],
-      "widths": [
-        0.22,
-        0.3,
-        0.48
+        "Screen action"
       ],
       "rows": [
         [
-          "Collections",
-          "SourceConfig.subtitleTracks or PlaylistConfig.sources",
-          "Choose the collection’s Edit button, then use Item and Property to edit one child field. Close editor retains the draft. Stage the entire list and Apply SDK. Subtitle default metadata does not enable captions; playlist preloading may increase network and memory use."
-        ],
-        [
-          "Native resources",
-          "Companion ad container, SimpleCache or Cronet engine",
-          "These controls create real Android objects. Prepare the Google Play services Cronet provider before applying Cronet. The cache tweak reads existing cached media; ordinary playback does not fill it."
+          "Array",
+          "Open the … editor and edit Item/Property. Closing retains the draft. Stage the whole list, then Apply SDK."
         ],
         [
           "Callback body",
-          "LabelingConfig.videoQualityLabeler",
-          "Enter a JavaScript function body using input. The field explains the return type. Stage and Apply before it runs. Inspect callback counts and fallback results afterward."
+          "Read input and return-type details, stage the body and apply. Trigger its SDK path and inspect call counts in Diagnostics."
         ],
         [
-          "Startup-only setting",
-          "DebugConfig.isLoggingEnabled",
-          "In More → Startup and integrations, save the setting, fully stop the app and reopen it. The current process value and saved next-launch value are shown separately. Debug logs can contain confidential information; keep them local."
+          "Startup setting",
+          "Save in More → Startup and integrations, fully close and reopen the app. Compare current and saved next-launch values."
         ]
       ]
     },
@@ -324,11 +234,6 @@
       "type": "figure",
       "file": "android-api-callback",
       "caption": "An applied video-quality label callback. The staged body and active override are visible; the disabled Apply button indicates no pending change."
-    },
-    {
-      "type": "note",
-      "title": "Callback execution",
-      "text": "Callbacks use bounded plain values without Java/Android/Player object access. Invalid results or execution limits use the documented fallback. A zero call count means the SDK has not invoked that path. Read the implementation guide for language support, detailed limits and code reuse."
     },
     {
       "type": "links",
@@ -345,7 +250,7 @@
     },
     {
       "type": "p",
-      "text": "APIs separates Commands, State and Events. Choose the exact operation before running it; search filters candidates and never executes them. Call result and observed playback state have separate readouts. State shows the value at the last refresh, and Events shows this app session’s counts and history. The implementation guide explains asynchronous completion, timestamp units and special state prerequisites."
+      "text": "APIs separates Commands, State and Events. Select the target before running; search filters candidates. Inspect the call result, state at the last refresh and event history for this app session."
     },
     {
       "type": "steps",
@@ -396,11 +301,11 @@
     },
     {
       "type": "p",
-      "text": "Cast, advertising, encrypted media and VR need matching content, a receiver/device or a connected service. Read availability and active state rather than the submission message alone. The VR renderer uses a real decoding surface and requires a compatible source VR content type; disable the renderer to restore normal PlayerView presentation."
+      "text": "Use a compatible source for the VR renderer. Inspect decoded-frame and callback state after starting, then disable the renderer to return to PlayerView. The implementation guide lists content and service requirements."
     },
     {
       "type": "p",
-      "text": "Open More → Analytics and use the Analytics selector to choose collection settings, metadata or runtime actions. Apply Analytics recreates the player and reloads its source with the collection draft; Reset draft restores the applied settings. Perform a known playback and inspect collected sessions in Bitmovin Dashboard. A local SDK result does not prove backend receipt; the implementation guide explains Analytics/Observability after player integration."
+      "text": "In More → Analytics, choose collection settings, metadata or runtime actions. Apply Analytics recreates the Player and reloads the source; Reset draft changes only the draft. See Analytics / Observability in the implementation guide for collected-session inspection."
     },
     {
       "type": "links",
@@ -408,6 +313,10 @@
         {
           "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/#useful-features",
           "label": "Feature prerequisites and implementation"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/analytics-observability/",
+          "label": "Analytics / Observability"
         }
       ]
     },
@@ -418,9 +327,11 @@
     {
       "type": "steps",
       "items": [
-        "Open More → Offline and choose Manager in the Offline selector. Choose Use sample DASH source or apply a downloadable on-demand source. Set Stable content ID, then Create manager. Keep the ID to address the same asset again.",
-        "Choose Download settings in the Offline selector, then use Setting to edit download/segment limits, device/network requirements and offline DRM handling. Choose Apply offline settings. Downloads can wait until all selected requirements hold.",
-        "Choose Actions → Fetch SDK track options. Then choose Track selection, select each required track and set Download, Delete or None. Process selected actions submits all selected track actions. Nothing is selected automatically; the SDK can reject an action that does not match the track state."
+        "Open More → Offline → Manager. Use sample DASH source or apply a downloadable on-demand source, set Stable content ID and Create manager. Reuse the ID for the same asset.",
+        "In Download settings, edit download/segment limits, device/network requirements and offline DRM, then apply. Work may wait until all selected requirements hold.",
+        "In Actions, Fetch SDK track options.",
+        "In Track selection, set each track to Download, Delete or None. Nothing is selected automatically.",
+        "Process selected actions submits the selected set. The SDK may reject actions incompatible with the track state."
       ]
     },
     {
@@ -437,7 +348,7 @@
     },
     {
       "type": "p",
-      "text": "Offline DRM needs suitable rights, a license service and storage. License download/renew/release is separate from media-download completion. Advanced offline source constructor does not import an SDK-managed download or issue a license. For ordinary managed downloads use Play downloaded source so the SDK supplies matching cache/track metadata."
+      "text": "For DRM, inspect media-download completion separately from license download, renew and release. Load saved content with Play downloaded source. The implementation guide covers rights, services and cache requirements."
     },
     {
       "type": "links",

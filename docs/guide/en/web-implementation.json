@@ -1,17 +1,17 @@
 {
   "id": "web-implementation",
   "title": "Web implementation guide",
-  "lead": "Configure the Player, load content and customize its controls using the current Web app. Follow each GUI experiment into the relevant SDK setting or UI code.",
+  "lead": "Integrate the Web player and adapt its playback settings and UI, with examples from Player Lab.",
   "blocks": [
     {
       "type": "p",
-      "text": "Use Screen and controls for the Web app’s screen layout, settings and comparison workflow. The implementation sections explain how to reuse the resulting PlayerConfig, SourceConfig and UI code in your own integration. The existing app is the reference; the adapted TypeScript examples in those sections remove its editor-specific helpers."
+      "text": "Follow the sections below to create a player, load content, configure playback and build its UI. Examples identify SDK calls and Player Lab helpers separately. Use Screen and controls when you want to try the same behavior in the app."
     },
     {
       "type": "h2",
       "id": "integration",
       "text": "Integrate the Player and load a source",
-      "summary": "Prepare the Web SDK, Player license and browser container, then create the Player and load a compatible source. Follow the app’s source-loading flow and distinguish SDK calls from app helpers."
+      "summary": "Create the player, attach its UI, load a source and release resources when the screen closes."
     },
     {
       "type": "table",
@@ -45,10 +45,10 @@
     {
       "type": "steps",
       "items": [
-        "Open the Web app and keep VOD HLS selected for the first comparison. Start playback if the browser does not start automatically. Use the Player state and event log to confirm that a source loaded and playback began.",
-        "Choose a theme and compare its Construction code with the source link. A theme changes controls and layout; it does not choose the stream or change the PlayerConfig playback settings.",
-        "Apply one setting, then open Show applied configuration code and refresh it. Inspect the submitted PlayerConfig, SourceConfig, UIConfig and runtime calls. Draft edits are excluded.",
-        "In your integration, pass the PlayerConfig to the Player constructor, attach one UI owner, then pass the SourceConfig to player.load. Keep source-loading errors observable and release the UI and Player when the screen is removed."
+        "Install the Player SDK, provide a video container and allow your host in the Player license.",
+        "Construct the Player with PlayerConfig. Choose whether the SDK or your app manages the UI, and attach it accordingly.",
+        "Register playback and error handlers, then await player.load(sourceConfig). Handle a rejected load rather than treating a submitted configuration as successful playback.",
+        "When leaving the screen, release an app-managed UI and destroy the player."
       ]
     },
     {
@@ -64,7 +64,7 @@
     },
     {
       "type": "p",
-      "text": "Player and PlayerAPI are SDK types. Here, playerEl is the app’s HTML container and config is the assembled PlayerConfig. applyTheme and wireMetrics are Player Lab helpers, not SDK methods. The former attaches the selected UI; the latter observes playback events. The source is loaded later through the function below."
+      "text": "playerEl is the target HTML element and config is the assembled PlayerConfig. applyTheme attaches the selected UI and wireMetrics subscribes to playback events; both are Player Lab helpers. Player and PlayerAPI are SDK types."
     },
     {
       "type": "code",
@@ -79,7 +79,7 @@
     },
     {
       "type": "p",
-      "text": "The SDK call is instance.load(request.source, ...). The surrounding function combines the preset or SDK-editor input with applied source overrides and tracks that load for the app’s controls. deepMerge, apiExplorer.prepare and controlPanel are app helpers. In an integration without these editors, supply your own complete SourceConfig to player.load; copying those helper names alone does not provide their behavior."
+      "text": "The SDK call is instance.load(request.source, ...). The surrounding app code merges the preset and applied source overrides and tracks the in-flight load. In an app without this editor, assemble a SourceConfig and pass it directly to player.load."
     },
     {
       "type": "links",
@@ -102,7 +102,7 @@
       "type": "h2",
       "id": "player-source-config",
       "text": "Choose the correct configuration scope",
-      "summary": "Separate creation settings, source settings and runtime APIs, then carry applied values into PlayerConfig and SourceConfig data. Check which changes require a source reload or a new Player."
+      "summary": "Choose between PlayerConfig, SourceConfig and runtime APIs, then reuse the settings in code."
     },
     {
       "type": "table",
@@ -145,12 +145,16 @@
       ]
     },
     {
-      "type": "steps",
+      "type": "p",
+      "text": "Initial language preferences belong to PlayerConfig.playback; content titles and start offsets belong to SourceConfig. Runtime track and adaptation APIs work on the loaded source. Changing a preference or limit does not add missing tracks or renditions."
+    },
+    {
+      "type": "links",
       "items": [
-        "To change initial audio or subtitle preference, use Playback.audioLanguage or subtitleLanguage and recreate. To switch an available track now, use the player’s track controls or the corresponding runtime API. A preferred language cannot create a missing track.",
-        "To change only the content title or start position, use Source rather than Playback. Reload the source and inspect its title or current time. For startOffset, specify whether the value is relative to the start or end.",
-        "To compare automatic quality, leave the quality selector on Auto. Apply a dynamic resolution cap and inspect adaptation.getConfig plus actual media requests. Choose a cap that separates the source’s available qualities; a cap above the highest one will not demonstrate a change.",
-        "For nested arrays, objects, callbacks or SDK class instances, use SDK settings, APIs and events. Complete required sibling fields together. A JavaScript function body or a UI component instance is different from a plain JSON object."
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/",
+          "label": "Detailed fields, callback inputs and configuration comparisons"
+        }
       ]
     },
     {
@@ -247,7 +251,7 @@
       "type": "h2",
       "id": "ui-customization",
       "text": "Change UI behavior, appearance and composition",
-      "summary": "Use UIConfig for supported UI behavior, CSS for appearance and component composition for layout. Keep one UI owner and release it before replacing the controls."
+      "summary": "Change UIConfig, CSS or component composition and manage the UIManager lifetime."
     },
     {
       "type": "p",
@@ -256,10 +260,9 @@
     {
       "type": "steps",
       "items": [
-        "Select Premiere and toggle Speed item in settings gear. Compare the gear menu with Applied UIConfig overrides. The component tree remains the same kind of theme while its settings change.",
-        "Compare Default and Neon to see a skin change, then compare Compact to see a different component tree. Inspect the construction source path rather than treating the displayed abbreviated example as the whole integration.",
-        "Use the examples in this section for workspace imports, independent-project imports, CSS rules and component composition. The shared theme factories are defined by this repository; they are not exports from the Player SDK.",
-        "For the app-managed mode, keep ui: false and release the old UIManager before attaching its replacement. Keep the Player and loaded source when changing only the UI. When leaving the page, release the UI and then destroy the Player."
+        "Use UIConfig for supported behavior and component overrides, CSS for appearance, and component arrays for layout.",
+        "For an app-managed UI, create the Player with ui: false and retain its UIManager. Release the previous manager before attaching another to the same player.",
+        "Release the UI before destroying the player when the screen closes. Shared theme factories are repository code, not Player SDK classes."
       ]
     },
     {
@@ -363,7 +366,7 @@
       "type": "h2",
       "id": "useful-features",
       "text": "Connect useful playback features to their APIs",
-      "summary": "Connect audio, subtitles, automatic quality, buffering, network behavior and live playback to their SDK APIs. Check source and browser conditions before interpreting a changed value."
+      "summary": "Find APIs and requirements for tracks, quality selection, buffers, networking and live playback."
     },
     {
       "type": "table",
@@ -415,15 +418,25 @@
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#player-source-settings",
-          "label": "Screen and controls: Player and source settings"
-        },
+          "label": "Try playback settings in the Web screen"
+        }
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#sources-tracks",
-          "label": "Screen and controls: sources, audio and subtitles"
-        },
+          "label": "Try sources, audio and subtitles"
+        }
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#sources-tracks",
-          "label": "Screen and controls: source and live playback"
+          "url": "https://kazuhide.github.io/player-lab/guide/web-live-dvr/",
+          "label": "Live rewind and time references"
         }
       ]
     },
@@ -431,7 +444,7 @@
       "type": "h2",
       "id": "faq",
       "text": "Frequently asked implementation questions",
-      "summary": "Resolve common issues with applied settings, source URLs, metadata, browser restrictions and generated code. Use the cause and the required application step to choose the next check."
+      "summary": "Resolve common questions about configuration, browser constraints and generated code."
     },
     {
       "type": "table",
@@ -482,7 +495,7 @@
       "type": "h2",
       "id": "analytics-observability",
       "text": "Analytics / Observability",
-      "summary": "Configure the bundled Analytics collector, add test metadata and locate playback in Bitmovin Dashboard. Distinguish local events, collected sessions and server-side account queries."
+      "summary": "Configure collection and source metadata, then find the playback session in Dashboard."
     },
     {
       "type": "p",
@@ -532,11 +545,9 @@
     {
       "type": "steps",
       "items": [
-        "For your own collection, configure a dedicated Analytics license and permit your Web app’s domain. To inspect results, use a Dashboard account with access to that license. The public Player Lab demo does not grant access to its destination account.",
-        "Apply PlayerConfig.analytics, then apply the source metadata and play the source. Note the time, content identifier, browser and settings. In the browser Network tools, inspect collector requests for failures, while retaining the same source and Player for the intended session.",
-        "Open Observability in Bitmovin Dashboard. Select the same Analytics license, a matching period and time zone, then filter by your content identifier or test metadata. Find the corresponding playback in Audience or session details.",
-        "Inspect startup time, rebuffering and errors in that session before comparing aggregate charts. Confirm ingestion in the Dashboard; an app event or an HTTP request alone does not prove the expected session was stored.",
-        "Use the detailed Analytics chapters for metric definitions, queries, visualization and analysis with large language models. Keep time ranges, populations and units consistent. Account API keys belong in a server-side integration, not in PlayerConfig or the public site."
+        "Configure a dedicated Analytics license that allows your host. Use a Dashboard account that has access to that license; playing the public demo does not grant access to its destination account.",
+        "Apply PlayerConfig.analytics, then source metadata such as videoId and a non-personal test label. Record the time and browser, and keep the player and source unchanged while inspecting one session.",
+        "Check for failed collection requests in Network, then follow the Dashboard guide to find the same session. An event or HTTP request alone does not confirm it was stored."
       ]
     },
     {

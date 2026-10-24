@@ -1,70 +1,45 @@
 {
   "id": "start",
-  "title": "Scope and first steps",
-  "lead": "Try Bitmovin Player features in Player Lab and follow the implementation guide for your platform.",
+  "title": "Using this guide",
+  "lead": "Try Bitmovin Player in Player Lab, then follow the implementation guide for your platform.",
   "blocks": [
     {
       "type": "p",
-      "text": "Player Lab currently uses Bitmovin Player. Each app exposes a different set of settings and controls. Start with a feature you want to try, apply one change, then check the player, event log, and available code example. The API coverage reference distinguishes individual GUI fields, presets, code-only examples, and APIs not yet exposed by the app."
-    },
-    {
-      "type": "table",
-      "headers": [
-        "Goal",
-        "Where to start"
-      ],
-      "widths": [
-        0.32,
-        0.68
-      ],
-      "rows": [
-        [
-          "Try playback without installation",
-          "Open the public Web app and follow the steps below."
-        ],
-        [
-          "Compare UI and code",
-          "Use the Web themes and UI customization chapters."
-        ],
-        [
-          "Change source or Player settings",
-          "Use the configuration chapters, field reference, and native app forms. Check whether a change applies immediately, reloads the source, or recreates the Player."
-        ],
-        [
-          "Run a native app",
-          "Follow local setup and the chapter for iOS/tvOS, Android, React Native, or Vega."
-        ],
-        [
-          "Check implemented APIs or representative results",
-          "Use the API coverage reference and test results. Results identify their environment and scope."
-        ],
-        [
-          "Review collected playback data",
-          "After trying the player, use Analytics and Observability to check playback data in Bitmovin Dashboard. The final chapters also explain metrics, API queries, external visualization, and LLM analysis."
-        ]
-      ]
+      "text": "Player Lab currently uses Bitmovin Player. Settings and controls differ by platform. Try the public Web app first, then choose the guide for the app you will use."
     },
     {
       "type": "h2",
       "text": "Open the public Web app"
     },
     {
-      "type": "p",
-      "text": "Public Web app: https://kazuhide.github.io/player-lab/web/\nProject overview in Japanese: https://kazuhide.github.io/player-lab/ja/\nDetailed UI guide: https://kazuhide.github.io/player-lab/web/guide.html"
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/web/",
+          "label": "Open the public Web app"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/",
+          "label": "Project overview in Japanese"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/web/guide.html",
+          "label": "Detailed UI guide"
+        }
+      ]
     },
     {
       "type": "steps",
       "items": [
-        "Open the public Web app in a browser. To use Japanese, select the language switch at the top. The initial source is VOD HLS, which plays a 60-second Big Buck Bunny clip. Audio starts muted. Press the play button if playback does not start automatically.",
-        "Switch between themes such as Default (Bitmovin), Neon, and Live (DVR) to compare controls and layouts using the same video. The construction example to the right or below the player shows the code for the selected theme.",
-        "Select VOD DASH, VOD + Multi-audio, VOD + Subtitles, and VOD + Sprites in turn. Try audio and subtitle selection and thumbnail previews. The additional audio and subtitles are functional test tracks, not translations of the video.",
-        "Open Runtime / Player API in Player Config and change volume. Fields in this group apply immediately. Changing the volume unmutes the player and may produce sound. For Source Config and Recreate fields, press the displayed apply button before checking the result."
+        "Open the public Web app. Select the language switch at the top if you want Japanese. The initial VOD HLS source is a 60-second Big Buck Bunny clip with muted audio. Press Play if playback does not start automatically.",
+        "Keep the same video and switch from Default (Bitmovin) to Neon. Compare the controls and layout, then inspect the construction code beside or below the player.",
+        "To try other settings or sources, continue to Web: Screen and controls below. Apply one change at a time and check the video, event log and applied code."
       ]
     },
     {
       "type": "note",
       "title": "Before you start",
-      "text": "A theme named Live does not determine the source’s streaming mode. Construction code is an example for the selected theme, not an automatic export of all settings. The short public demo media cannot demonstrate a long rewind window or sample chapter markers at 120 seconds and beyond."
+      "text": "A theme named Live does not select a live source. Construction code shows the selected theme rather than exporting all settings. The short public clips cannot demonstrate a long rewind window or chapter markers at 120 seconds and beyond."
     },
     {
       "type": "figure",
@@ -77,47 +52,63 @@
     },
     {
       "type": "p",
-      "text": "UI refers to the controls and displays on screen. An API provides operations that code can call, and an SDK is a development library used to integrate the Player. HLS and DASH deliver video in segments, VOD is on-demand video, and DVR refers here to the available live rewind window.\nThe guide uses the English field labels shown in the app alongside property names used in code. Check the input labels because units differ between fields, including seconds, milliseconds, and bits per second. The glossary explains abbreviations. Use the guide contents and chapter links to navigate."
-    },
-    {
-      "type": "p",
-      "text": "Test results summarize checks performed in the stated environment. They do not imply that every SDK API, device, source, or Analytics ingestion path is covered. Use the platform chapters and API reference to find the controls available today."
-    },
-    {
-      "type": "p",
-      "text": "The guide covers Web and native player features before Analytics and Observability. The Analytics collector sends playback events from the player, and you normally review the collected data in Bitmovin Dashboard. Local QoE readouts describe the current app session. The final chapters explain these differences and show how to inspect collected metrics and analyze them further."
-    },
-    {
-      "type": "steps",
-      "items": [
-        "Choose your platform in the contents. Each platform has Screen and controls for the app workflow and Implementation guide for integration code, configuration and UI changes. Start with Screen and controls to reproduce an operation, then follow its implementation references.",
-        "Open the implementation guide in that same platform section. Read PlayerConfig / SourceConfig when changing playback or source settings, and UI customization when changing the displayed controls.",
-        "Apply a change in the app and inspect the applied code, events and visible result. A draft field is not an applied setting; the guide explains when to reload a source or recreate the Player.",
-        "Use Useful features and FAQ to investigate platform or content differences. After playback works, follow the Analytics section to configure collection and inspect the matching session in Bitmovin Dashboard."
-      ]
+      "text": "Choose your platform below. Screen and controls explains the app workflow; Implementation guide explains SDK calls, configuration and UI changes. Try an operation, then use the same platform’s implementation guide to inspect the code. SDK property names and code retain their original notation. Check each input’s unit, such as seconds, milliseconds or bit/s."
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
-          "label": "Web implementation guide"
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/",
+          "label": "Web: Screen and controls"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/",
-          "label": "iOS / iPadOS / tvOS implementation guide"
+          "url": "https://kazuhide.github.io/player-lab/guide/native-apple/",
+          "label": "iOS / iPadOS / tvOS: Screen and controls"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/",
-          "label": "Android / Android TV / Fire TV implementation guide"
+          "url": "https://kazuhide.github.io/player-lab/guide/native-android/",
+          "label": "Android / Android TV / Fire TV: Screen and controls"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/",
-          "label": "React Native implementation guide"
+          "url": "https://kazuhide.github.io/player-lab/guide/native-react-native/",
+          "label": "React Native: Screen and controls"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/",
-          "label": "Vega OS implementation guide"
+          "url": "https://kazuhide.github.io/player-lab/guide/native-vega/",
+          "label": "Vega OS: Screen and controls"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "text": "API coverage distinguishes individual GUI fields, presets, code-only implementations and APIs not exposed by the app. Test results apply to the stated environment and scope; they do not cover every SDK API, device, source or Analytics ingestion path."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Local setup and licenses"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/native-overview/",
+          "label": "Native app requirements and supported features"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/api-coverage/",
+          "label": "API coverage"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/test-results/",
+          "label": "Test results and scope"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-qoe-analytics/",
+          "label": "Send and inspect Analytics"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/glossary/",
+          "label": "Glossary"
         }
       ]
     }

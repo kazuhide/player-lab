@@ -1,7 +1,7 @@
 {
   "id": "analytics-metrics",
   "title": "Analyticsの指標を選ぶ",
-  "lead": "Dashboardで知りたいことに合う指標を選び、単位・集計方法・対象の再生を確認します。独自の集計を作る場合は、対応するAPIのフィールド名と条件も揃えます。",
+  "lead": "Analyticsの指標を、定義・単位・集計方法から選びます。Dashboard、ローカル集計画面、APIで名前や対象が異なる点も確認します。",
   "blocks": [
     {
       "type": "h2",
@@ -9,7 +9,16 @@
     },
     {
       "type": "p",
-      "text": "視聴状況はAudience、再生開始までの時間や読み込み待ちの時間はQuality of Experience、エラーの内容はTop Errorsから調べます。同じAnalyticsライセンス・期間・フィルターで比較し、品質の値だけでなく、その集計対象となった再生数や視聴時間も確認します。"
+      "text": "視聴状況はAudience、再生開始と読み込み待ちはQuality of Experience、エラーはTop Errorsから調べます。品質の値には、対象の再生数や視聴時間も添えて比較します。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-visualization/",
+          "label": "Dashboardで指標を比較する手順"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -18,7 +27,7 @@
     },
     {
       "type": "p",
-      "text": "AudienceやQuality of Experienceで使う代表的な指標です。APIの集計例も併記します。Dashboardで利用できる項目は画面によって異なるため、独自の分類や集計が必要な場合はAPIを使います。各コレクターの対応範囲も確認します。"
+      "text": "代表的な指標とAPIの集計例を示します。Dashboardの項目は画面によって異なり、収集できるフィールドもコレクターに依存します。"
     },
     {
       "type": "table",
@@ -31,48 +40,53 @@
         [
           "再生が開始したセッション（Plays）／IMPRESSION_ID",
           "count、VIDEO_STARTUPTIME > 0で絞る",
-          "最初の映像が表示されたセッション数です。この条件が、アプリの条件なしインプレッション集計との違いです。"
+          "最初の映像が表示されたセッション数。条件なしのインプレッション数とは異なります。"
         ],
         [
-          "最初の映像が表示されるまでの時間の代表値／VIDEO_STARTUPTIME",
+          "映像が表示されるまでの時間／VIDEO_STARTUPTIME",
           "median、VIDEO_STARTUPTIME > 0で絞る",
-          "単位はミリ秒です。Observabilityのカタログではaverageとpercentileにも対応し、既定はmedianです。"
+          "単位はミリ秒。Observabilityカタログはaverageとpercentileにも対応し、既定はmedianです。"
         ],
         [
           "合計視聴時間／PLAYED",
           "sum、PLAYED > 0で絞る",
-          "合計の再生時間をミリ秒で表します。3,600,000で割ると時間になります。"
+          "再生時間の合計（ミリ秒）。3,600,000で割ると時間になります。"
         ],
         [
           "再バッファの割合／REBUFFER_PERCENTAGE",
           "avg",
-          "視聴中にメディアを待った時間の割合（%）です。BUFFEREDの平均時間とは別の指標です。"
+          "視聴中にメディアを待った時間の割合（%）。BUFFEREDの平均時間や、アプリ内QoEの計算とは別です。比較には対応するPlayedの時間も残します。"
+        ],
+        [
+          "バッファ待ちの時間／BUFFERED",
+          "avg",
+          "単位はミリ秒で、割合ではありません。DashboardのBuffering TimeはPlayあたりの平均時間と説明されています。"
         ],
         [
           "再生映像のビットレート／VIDEO_BITRATE",
           "avg、VIDEO_BITRATE > 0で絞る",
-          "単位はbits/秒（bps）です。1,000,000で割るとMbpsになります。映像のビットレートであり、回線の転送速度ではありません。"
+          "単位はbits/秒（bps）。1,000,000で割るとMbpsです。映像のビットレートで、回線の転送速度ではありません。"
         ],
         [
           "ダウンロード速度／DOWNLOAD_SPEED",
           "avg",
-          "セグメントのダウンロード速度で、単位はbits/秒です。収集の可否はコレクターによって異なります。"
+          "セグメントのダウンロード速度（bits/秒）。収集の可否はコレクターに依存します。"
         ],
         [
           "エラーの割合／ERROR_PERCENTAGE",
           "avg",
-          "対象セッションに対する割合（%）です。映像の開始前に失敗する場合も含むため、比較では分母を揃えます。"
+          "対象セッションに対する割合（%）。再生開始前の失敗も含むため、正常に開始したPlaysを分母にすると意味が変わります。"
         ],
         [
           "シークの所要時間／SEEKED",
           "median、SEEKED > 0で絞る",
-          "シーク後に再生を再開するまでのミリ秒です。"
+          "シーク後に再生を再開するまでのミリ秒。"
         ]
       ]
     },
     {
       "type": "p",
-      "text": "公式ダッシュボード資料には、AVFoundationとBitmovin iOSでのダウンロード速度・ダウンロード量の取得制約が記載されています。項目がない、または結果が空の場合は、ゼロと解釈せず、使用中のコレクターの対応状況を確認してください。ほかのSDKやプラットフォームで同じ項目を取得できるとは限りません。"
+      "text": "公式資料には、AVFoundationとBitmovin iOSのダウンロード速度・量の取得制約があります。フィールドの欠落や空の結果をゼロと解釈せず、利用中のコレクターの対応を確認してください。"
     },
     {
       "type": "h2",
@@ -82,10 +96,9 @@
     {
       "type": "bullets",
       "items": [
-        "countは個数、sumは合計、avgは算術平均です。何を数え、何の平均を取るかは指標の定義で決まります。",
-        "medianは50パーセンタイルです。p95などの高いパーセンタイルは、時間が長くかかった側の再生状況を示します。percentileクエリには、パーセンタイル値の指定と、それに対応する指標が必要です。",
-        "ローカルWebアプリの集計画面は固定の問い合わせを使います。median、percentile、任意期間、自由な絞り込みの入力はありません。既存プロキシもQuery API全体の一部に対応するものです。",
-        "対象数の異なる割合を単純平均したり、時間ごとのユニークユーザー数を足して期間全体の人数と見なしたりしません。指標の定義と集計対象を併記します。"
+        "countは個数、sumは合計、avgは算術平均です。数える対象や平均する値は、指標の定義に従います。",
+        "medianは50パーセンタイル、p95などは時間が長くかかった側の値です。percentileクエリには値の指定と、対応する指標が必要です。",
+        "対象数の異なる割合の単純平均や、時間別ユニークユーザー数の足し算を期間全体の値にしないでください。定義と集計対象を併記します。"
       ]
     },
     {
@@ -95,7 +108,7 @@
     },
     {
       "type": "p",
-      "text": "ローカル開発では「Bitmovin Analytics（サーバー経由クエリ）」を開きます。どのボタンも、サーバーで選んだAnalyticsライセンスの直近7日間を集計します。時間ごとの区切りや分類条件は付けず、数値はAPIの単位のまま表示します。"
+      "text": "ローカルの「Bitmovin Analytics（サーバー経由クエリ）」には、次の4つの固定集計があります。起動・認証・実行手順は「AnalyticsをAPIで取得する」を参照してください。"
     },
     {
       "type": "table",
@@ -129,7 +142,20 @@
     },
     {
       "type": "note",
-      "text": "ブラウザー内のstartup欄はSourceLoadedからPlayingまでを計ります。AnalyticsのVIDEO_STARTUPTIMEは再生開始操作から最初の映像までで、STARTUPTIMEにはプレイヤーの起動時間も含まれます。単位が同じでも、同じ計測とは限りません。"
+      "text": "ブラウザー内のstartupはSourceLoadedからPlayingまでです。VIDEO_STARTUPTIMEは再生開始操作から最初の映像まで、STARTUPTIMEはPlayerの起動時間も含みます。単位が同じでも、同じ計測ではありません。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-queries/",
+          "label": "ローカル集計画面とQuery APIの使い方"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-qoe-analytics/#read-the-six-qoe-values",
+          "label": "ブラウザー内QoE値の定義"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -138,11 +164,20 @@
     },
     {
       "type": "p",
-      "text": "RESTの属性名は、VIDEO_STARTUPTIMEなど公式資料どおりの大文字表記を使います。Observability MCPではvideo_startuptimeやplaysなどの専用キーワードを使い、指標に応じた条件が加わる場合があります。ダッシュボードの表示名をそのままAPI項目と見なさず、利用できる場合はsearchMetrics、またはgetAvailableMetricsで確かめます。"
+      "text": "RESTの属性名はVIDEO_STARTUPTIMEなど、大文字表記をそのまま使います。Observability MCPはvideo_startuptimeやplaysなど別のキーワードを使い、指標固有の条件を加える場合があります。接続先のsearchMetrics、またはgetAvailableMetricsで確かめます。"
     },
     {
       "type": "note",
-      "text": "MCPのカタログはerror_percentageと、視聴時間で補正するerror_ratioを区別しています。どちらもブラウザーのErrorイベント数とは異なります。独自の割合を計算する前に、選んだ指標の定義・単位・分母をダッシュボードやAPIカタログで確認します。"
+      "text": "MCPのerror_percentageと、視聴時間で補正するerror_ratioは別の指標です。どちらもブラウザーのErrorイベント数ではありません。独自の割合を作る前に、定義・単位・分母を確認してください。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-ai/",
+          "label": "MCPの指標名と問い合わせ範囲"
+        }
+      ]
     }
   ],
   "sources": [

@@ -1,7 +1,7 @@
 {
   "id": "local-setup",
   "title": "Local setup and licenses",
-  "lead": "Try the basic Web controls on localhost. Native apps, custom Web hosts, and Analytics require the appropriate license settings.",
+  "lead": "Start the Web app and configure licenses for local development, native apps or a public host.",
   "blocks": [
     {
       "type": "h2",
@@ -43,11 +43,11 @@
     },
     {
       "type": "p",
-      "text": "Open the URL shown in the startup message using the hostname localhost. The Web SDK can run on this hostname without a Player key. LAN IP addresses, custom hostnames, GitHub Pages, and native apps require an appropriate license."
+      "text": "Open the startup URL using localhost. The Web SDK can run on this hostname without a Player key. LAN IP addresses, custom hostnames, GitHub Pages and native apps require an appropriate license."
     },
     {
       "type": "p",
-      "text": "The normal development mode does not automatically use the same 60-second media as the public Pages build. Basic HLS uses Tears of Steel, DASH uses a public Big Buck Bunny stream, and live playback uses external reference streams. Some additional audio, subtitle, and image preview options remain unavailable until their media URLs are configured."
+      "text": "Development mode does not automatically use the public Pages build’s 60-second clips. Basic HLS uses Tears of Steel, DASH uses a public Big Buck Bunny stream, and live playback uses external streams. Some audio, subtitle and image-preview options require configured media URLs."
     },
     {
       "type": "h2",
@@ -60,7 +60,7 @@
     },
     {
       "type": "p",
-      "text": "Edit .env in your own editor. Normal local settings take precedence in this order: shell environment variables, the root .env file, then the public config/encoding.conf file. Explicit Web-specific VITE_* settings take priority. Restart the development server after changing settings. For native apps, synchronize the settings and rebuild."
+      "text": "Edit .env in your editor. Normal settings take precedence in this order: shell environment, root .env, then config/encoding.conf. Explicit Web-specific VITE_* values take priority. Restart the development server after a change; synchronize settings and rebuild native apps."
     },
     {
       "type": "table",
@@ -94,7 +94,7 @@
     {
       "type": "note",
       "title": "Keep client licenses separate from account API keys",
-      "text": "Player and Analytics licenses are delivered to clients. Manage their allowed domains and application identifiers. Keep account API keys on the server; do not place them in VITE_*, HTML, or client code. Use dedicated client licenses for a public demo."
+      "text": "Player and Analytics licenses reach the client. Manage their allowed domains or application identifiers, and use dedicated licenses for a public demo. Keep account API keys on the server, outside VITE_*, HTML and client code."
     },
     {
       "type": "h2",
@@ -134,12 +134,25 @@
       ]
     },
     {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/native-overview/",
+          "label": "Native preparation and application identifiers"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-queries/#choose-the-correct-credentials",
+          "label": "Credentials for Analytics queries"
+        }
+      ]
+    },
+    {
       "type": "h2",
       "text": "Publishing your own Pages build"
     },
     {
       "type": "p",
-      "text": "For a fork or another deployment, configure the two public client licenses below as GitHub Repository variables and enable the included Pages workflow. Local .env files and inherited VITE_* values do not replace this configuration. CI builds and tests the artifact before Pages publishes it."
+      "text": "To publish a fork or another deployment, set both licenses below as GitHub Repository variables and enable the included Pages workflow. Local .env files and inherited VITE_* values do not replace these settings. Pages receives the artifact built and tested by CI."
     },
     {
       "type": "table",
@@ -164,7 +177,7 @@
     },
     {
       "type": "p",
-      "text": "The current public host is kazuhide.github.io. For another host, allow that hostname and check the paths, Pages settings, and applicable terms. These values are expected to be included in the distributed JavaScript. The current Pages workflow only deploys artifacts configured with both public client licenses. An account API key is not required."
+      "text": "The current public host is kazuhide.github.io. For another host, check license permissions, paths, Pages settings and applicable terms. License values are included in distributed JavaScript. The current workflow requires both public client licenses and does not use an account API key."
     }
   ],
   "sources": [

@@ -1,70 +1,45 @@
 {
   "id": "start",
-  "title": "このガイドの対象と使い始め方",
-  "lead": "Player LabでBitmovin Playerの機能を試し、利用するプラットフォームの実装方法を確認するためのガイドです。",
+  "title": "このガイドの使い方",
+  "lead": "Player LabでBitmovin Playerの機能を試し、利用するプラットフォームの実装方法を確認します。",
   "blocks": [
     {
       "type": "p",
-      "text": "現在はBitmovin Playerを対象としています。設定画面と操作項目はプラットフォームごとに異なります。試したい機能を選び、設定を一つ変更して適用し、再生画面・イベントログ・利用できるコード例を確認します。APIの対応状況では、GUIの個別編集、プリセット、コード内のみの実装、アプリ未対応を区別しています。"
-    },
-    {
-      "type": "table",
-      "headers": [
-        "目的",
-        "使う場所・読む章"
-      ],
-      "widths": [
-        0.32,
-        0.68
-      ],
-      "rows": [
-        [
-          "インストールせず再生を試す",
-          "公開Web版を開き、この章の手順に沿って操作します。"
-        ],
-        [
-          "UIとコードを比較する",
-          "WebのテーマとUIカスタマイズの章を使います。"
-        ],
-        [
-          "ソースやPlayerの設定を変える",
-          "設定の章、項目別リファレンス、各OSのフォームを使います。即時反映、ソース再読み込み、Player再生成のどれに当たるかを確認します。"
-        ],
-        [
-          "ネイティブ版を動かす",
-          "ローカル環境の準備と、iOS/tvOS、Android、React Native、Vegaの各章に進みます。"
-        ],
-        [
-          "APIの対応状況や代表的な検証結果を見る",
-          "APIの対応状況とテスト結果を参照します。結果には対象環境と範囲を記載しています。"
-        ],
-        [
-          "収集した再生データを調べる",
-          "プレイヤーの操作を試した後、AnalyticsとObservabilityの章でBitmovin Dashboardの確認方法を読みます。末尾の各章では指標、APIクエリ、外部ツールでの可視化、LLMによる分析も説明します。"
-        ]
-      ]
+      "text": "現在はBitmovin Playerを対象としています。設定や操作項目はプラットフォームごとに異なります。まず公開Web版で操作を試し、利用する版のガイドへ進んでください。"
     },
     {
       "type": "h2",
       "text": "公開Web版を開く"
     },
     {
-      "type": "p",
-      "text": "公開Web版: https://kazuhide.github.io/player-lab/web/\nプロジェクトの日本語案内: https://kazuhide.github.io/player-lab/ja/\nUIの詳細ガイド: https://kazuhide.github.io/player-lab/web/guide.html"
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/web/",
+          "label": "公開Web版を開く"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/",
+          "label": "プロジェクトの日本語案内"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/web/guide.html",
+          "label": "UIの詳細ガイド"
+        }
+      ]
     },
     {
       "type": "steps",
       "items": [
-        "ブラウザーで公開Web版を開きます。日本語でなければ、上部の日本語切り替えを選びます。初期ソースはVOD HLSで、60秒のBig Buck Bunnyを再生します。音声は最初はミュートです。自動再生されない場合は再生ボタンを押します。",
-        "テーマをDefault (Bitmovin)、Neon、Live (DVR)などに切り替え、同じ映像で操作部品や配置を比較します。右側または下側の構築例で、選んだテーマのコードを確認します。",
-        "VOD DASH、VOD + Multi-audio、VOD + Subtitles、VOD + Spritesを順に選びます。音声・字幕の選択やサムネイル表示を試します。追加音声と字幕は機能確認用で、映像内容の翻訳ではありません。",
-        "Player ConfigのRuntime / Player APIを開き、volumeを変更します。この種の項目は即時適用です。音量を変えるとミュートが解除され、音が出る場合があります。Source ConfigとRecreateでは、画面に表示される適用ボタンを押してから結果を確認します。"
+        "公開Web版を開きます。日本語にする場合は上部の言語切り替えを選びます。初期ソースは60秒のBig Buck Bunnyを使うVOD HLSで、音声はミュートです。自動再生されなければ再生ボタンを押します。",
+        "同じ映像のまま、テーマをDefault (Bitmovin)からNeonへ切り替えます。操作部品と配置を比較し、映像の横または下に表示される構築コードを確認します。",
+        "続けて設定やソースを変える場合は、下の「Web：画面と操作」へ進みます。変更を一つずつ適用し、映像・イベントログ・適用済みコードで結果を確認します。"
       ]
     },
     {
       "type": "note",
       "title": "利用前の注意点",
-      "text": "テーマのLiveという名称はソースの配信方式とは別です。構築コードは選択したテーマの例で、全設定の自動書き出しではありません。公開版の短い素材だけでは、長時間の巻き戻しや120秒以降のチャプターマーカーは確認できません。"
+      "text": "Liveというテーマ名とソースの配信方式は別です。構築コードは選んだテーマの例で、全設定の書き出しではありません。短い公開素材では長時間の巻き戻しや120秒以降のチャプターマーカーを確認できません。"
     },
     {
       "type": "figure",
@@ -77,47 +52,63 @@
     },
     {
       "type": "p",
-      "text": "UIは画面の操作部品と表示の構成、APIはプログラムから機能を呼び出す仕組み、SDKはPlayerを組み込むための開発用ライブラリを指します。HLSとDASHは分割した動画を配信する方式、VODは録画済みの動画配信、DVRはライブの巻き戻し可能範囲です。\n本文では画面に表示される英語の項目名と、コードで使うプロパティ名を併記します。値の単位が秒・ミリ秒・ビット毎秒などで異なるため、入力欄のラベルも確認してください。略語の意味は「用語集」で調べられます。ガイドの目次や各章へのリンクから移動できます。"
-    },
-    {
-      "type": "p",
-      "text": "テスト結果は、記載した環境での確認をまとめたものです。すべてのSDK API、端末、ソース、Analyticsの受信を網羅する結果ではありません。現在試せる操作は各プラットフォームの章とAPIの対応状況で確認できます。"
-    },
-    {
-      "type": "p",
-      "text": "Web版とネイティブ版のプレイヤーの説明に続き、最後にAnalyticsとObservabilityを説明します。Analyticsのコレクターはプレイヤーから再生イベントを送信し、収集したデータは通常Bitmovin Dashboardで確認します。アプリ内のQoE表示は現在のセッションの値です。末尾の各章ではこの違いと、収集した指標の確認・分析方法を説明します。"
-    },
-    {
-      "type": "steps",
-      "items": [
-        "目次から利用するプラットフォームを選びます。各版の「画面と操作」はアプリで試す手順、「実装ガイド」は組み込みコード、設定、UI変更の説明です。まず「画面と操作」で動作を試し、対応する実装箇所へ進んでください。",
-        "同じプラットフォームの「実装ガイド」を開きます。再生やソースの設定はPlayerConfig / SourceConfig、操作部品の表示や構成はUI変更ガイドを参照してください。",
-        "アプリで設定を適用し、適用済みコード、イベント、実際の表示や再生を確認します。入力した下書きと適用された設定は別です。ソースの再読み込みとPlayerの再生成が必要になる場面を、実装ガイドで説明しています。",
-        "プラットフォームやコンテンツによる違いは「有用な情報」「FAQ」を参照します。再生を確認した後、Analyticsの節から収集設定とBitmovin Dashboardでのセッション確認へ進んでください。"
-      ]
+      "text": "利用するプラットフォームを選んでください。「画面と操作」はアプリで試す手順、「実装ガイド」はSDKの呼び出し、設定、UI変更の説明です。操作を試した後、同じプラットフォームの実装ガイドで対応するコードを確認します。SDKのプロパティ名とコードは元の表記を使います。秒・ミリ秒・bit/sなど、入力欄の単位も確認してください。"
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/",
-          "label": "Web版の実装ガイド"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/",
+          "label": "Web：画面と操作"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/apple-implementation/",
-          "label": "iOS・iPadOS・tvOSの実装ガイド"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-apple/",
+          "label": "iOS・iPadOS・tvOS：画面と操作"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/android-implementation/",
-          "label": "Android・Android TV・Fire TVの実装ガイド"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-android/",
+          "label": "Android・Android TV・Fire TV：画面と操作"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/react-native-implementation/",
-          "label": "React Nativeの実装ガイド"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-react-native/",
+          "label": "React Native：画面と操作"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/vega-implementation/",
-          "label": "Vega OSの実装ガイド"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-vega/",
+          "label": "Vega OS：画面と操作"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "text": "APIの対応状況は、GUIで個別に編集できる項目、プリセット、コード内の実装、アプリ未対応を区別します。テスト結果は記載した環境と範囲の確認です。すべてのSDK API、端末、ソース、Analyticsの受信を網羅するものではありません。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/local-setup/",
+          "label": "ローカル実行とライセンス設定"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/native-overview/",
+          "label": "ネイティブ版の準備と対応範囲"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/api-coverage/",
+          "label": "APIの対応状況"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/test-results/",
+          "label": "テスト結果と確認範囲"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-qoe-analytics/",
+          "label": "Analyticsの送信と確認"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/glossary/",
+          "label": "用語集"
         }
       ]
     }

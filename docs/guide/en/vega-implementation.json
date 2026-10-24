@@ -1,7 +1,7 @@
 {
   "id": "vega-implementation",
   "title": "Vega OS implementation guide",
-  "lead": "Trace the existing Kepler app from native media initialization to modular Player configuration, remote controls, subtitles and Analytics. Use the current screen and code to distinguish Vega integration from browser Web and Android Fire TV apps.",
+  "lead": "Use the current code to connect Kepler and native media, configure the Player, and implement remote UI, subtitles and Analytics.",
   "blocks": [
     {
       "type": "links",
@@ -20,16 +20,7 @@
     },
     {
       "type": "p",
-      "text": "Vega uses the modular Bitmovin Web SDK inside Amazon’s Kepler runtime. It does not use bitmovin-player-react-native or the Android Player SDK. Kepler renders the app’s React Native components, while @amazon-devices/react-native-w3cmedia provides the native media object and video surface. Keep the Vega-specific Player release pinned by apps/vega/package.json; the official sample declares a separate supported release channel from the general browser Player."
-    },
-    {
-      "type": "note",
-      "title": "Display language",
-      "text": "Use the app language selector to switch between English and Japanese. This guide uses captures from the English app. SDK identifiers, code and returned data retain their original spelling. Subtitle language belongs to the content and is selected separately from the application language."
-    },
-    {
-      "type": "p",
-      "text": "An SDK is the library and interfaces used to integrate the Player; an API is a public configuration, operation or event exposed by that library. HLS and DASH are streaming formats that can offer several qualities; VOD means on-demand media with a fixed timeline. WebVTT is a text subtitle format with timed cues. DRM controls access to protected media and needs a compatible license service."
+      "text": "The Vega app runs the Vega-compatible modular Bitmovin Web SDK in Amazon’s Kepler runtime. Its setup differs from Android-based Fire TV and bitmovin-player-react-native. Kepler renders the React Native screen; @amazon-devices/react-native-w3cmedia supplies native media objects and the video surface. Use the pinned versions in apps/vega/package.json. The official sample also specifies a supported release line distinct from the general browser Player."
     },
     {
       "type": "h3",
@@ -39,9 +30,9 @@
     {
       "type": "steps",
       "items": [
-        "Build and launch the existing Kepler host following Build the Kepler application in the Vega README linked below. Its identifier is com.playerlab.vega and its main component is com.playerlab.vega.main. Refresh the generated ignored runtime configuration before rebuilding when licenses change.",
-        "Follow src/App.tsx: it retains the applied PlayerConfig and SourceConfig and passes them to the Lab component BitmovinPlayer. A separate editable draft prevents incomplete form input from changing playback.",
-        "Follow src/BitmovinPlayer.tsx: KeplerVideoSurfaceView reports a native surface handle. Only an active app and current surface can start a session. The host first waits for the previous session’s release."
+        "Follow Build the Kepler application in the Vega README to build and launch the existing host. The app ID is com.playerlab.vega and its main component is com.playerlab.vega.main. After a license change, regenerate the ignored runtime configuration and rebuild.",
+        "App.tsx retains applied PlayerConfig and SourceConfig and passes them to BitmovinPlayer. Drafts are separate, so incomplete edits do not affect playback.",
+        "BitmovinPlayer.tsx receives the current surface handle from KeplerVideoSurfaceView. It starts a session only while the app is foregrounded, with a current handle and after the previous session has been released."
       ]
     },
     {
@@ -63,7 +54,7 @@
     },
     {
       "type": "p",
-      "text": "The TextInput editors use Vega’s OS keyboard for remote text entry. manifest.toml requests com.amazon.inputmethod.service so that keyboard can open on Vega Virtual Device and hardware."
+      "text": "TextInput uses Vega’s on-screen keyboard. manifest.toml declares com.amazon.inputmethod.service in wants.service so it can open on devices and Vega Virtual Device."
     },
     {
       "type": "h3",
@@ -73,7 +64,7 @@
     {
       "type": "steps",
       "items": [
-        "Follow src/playerSession.ts: initialize VideoPlayer, attach the surface, install the media adapters, create the modular SDK Player, bind observers, then load SourceConfig. Preserve this sequence when reusing or extending the host."
+        "playerSession.ts initializes VideoPlayer, attaches the surface, installs media compatibility APIs, creates the modular Player, registers events and loads SourceConfig, in that order. Preserve this sequence when extending the host."
       ]
     },
     {
@@ -89,7 +80,7 @@
     },
     {
       "type": "p",
-      "text": "startVegaSession and createVegaPlayer are Lab helpers. VideoPlayer.initialize/setSurfaceHandle are Amazon media APIs; Player.addModule, new Player and Player.load belong to the Bitmovin Web SDK. The callbacks in the excerpt supply the actual constructors, observers and controller from BitmovinPlayer.tsx. This is a fragment of the existing host, not a complete standalone player."
+      "text": "startVegaSession and createVegaPlayer are app helpers. VideoPlayer.initialize and setSurfaceHandle are Amazon media APIs; Player.addModule, new Player and Player.load belong to the Bitmovin Web SDK. BitmovinPlayer.tsx supplies the creation, event and controller callbacks in the excerpt. This code is part of the existing host."
     },
     {
       "type": "code",
@@ -104,7 +95,12 @@
     },
     {
       "type": "p",
-      "text": "vegaPlayer.ts registers the ReactNative media integration together with the format, renderer, adaptation, subtitle, DRM and related modules used by this app. polyfills.ts connects Amazon’s MediaSource, HTMLMediaElement and WebCrypto, plus XML parsing and Base64 helpers. A polyfill is compatibility code for a runtime API expected by the Web SDK; it does not create a browser document or HTML controls. The session-owned gvideo points the SDK at the current native VideoPlayer."
+      "text": "vegaPlayer.ts registers the ReactNative media integration and modules for formats, rendering, adaptation, subtitles and DRM. polyfills.ts connects Amazon’s MediaSource, HTMLMediaElement and WebCrypto with XML and Base64 compatibility helpers. The session-owned gvideo connects the SDK to the current native VideoPlayer."
+    },
+    {
+      "type": "note",
+      "title": "Available Web APIs",
+      "text": "The compatibility layer does not create a browser document or HTML UI. Configuration fields do not supply DOM elements, canvas/WebGL VR, browser UI factories, Cast receivers or device sensors. A plain object cannot replace a real HTML element required by a callback. Check host support separately from the presence of a field in the SDK types."
     },
     {
       "type": "p",
@@ -118,7 +114,7 @@
     },
     {
       "type": "p",
-      "text": "Vega uses the Web SDK’s configuration names. PlayerConfig includes playback, buffer and adaptation; SourceConfig selects hls, dash or progressive. The Lab function parseConfiguration builds the basic objects, while VegaSessionApi.prepare materializes the additional typed values and approved functions before player creation and source loading. A property existing in the Web SDK declaration does not establish that the corresponding browser integration is available in this native host."
+      "text": "PlayerConfig uses Web SDK fields such as playback, buffer and adaptation; SourceConfig selects media through hls, dash or progressive. parseConfiguration builds basic settings, then VegaSessionApi.prepare converts typed overrides and allowed functions. The result is used for Player creation and source loading."
     },
     {
       "type": "h3",
@@ -139,40 +135,40 @@
     {
       "type": "table",
       "headers": [
-        "What to change",
-        "Current SDK path",
-        "Practical comparison"
+        "Setting",
+        "SDK path",
+        "Meaning and prerequisites"
       ],
       "rows": [
         [
-          "Autoplay and startup mute",
+          "Autoplay and initial mute",
           "PlayerConfig.playback.autoplay / muted",
-          "Turn Autoplay off, Apply, then explicitly call play from SDK experiments. A startup flag and a runtime command affect different points in the session."
+          "Apply at startup of a new Player. Both app defaults are on. Use PlayerAPI.play, pause and other commands during playback."
         ],
         [
           "Audio/video buffer targets",
           "PlayerConfig.buffer.audio.forwardduration / video.forwardduration",
-          "Try a positive value such as 10 seconds for one media type. Blank leaves the SDK default of 40 seconds per media type. The live playlist or rewind window can limit the effective forward buffer; compare actual playback and buffer state with the chosen content/device."
+          "Positive finite seconds. Blank uses the SDK default of 40 seconds each for audio and video. Live playlists and available media can limit actual buffering; check the target content and device. These fields do not extend the rewind window."
         ],
         [
-          "Adaptive video bitrate cap",
+          "Video bitrate cap",
           "PlayerConfig.adaptation.bitrates.maxSelectableVideoBitrate",
-          "Try 1500000 bit/s on a source with several representations. Read the selected quality and compare playback; this cap cannot add a representation absent from the source."
+          "A positive value in bit/s; blank leaves the cap unset. It limits selection among supplied qualities and cannot add a missing quality."
         ],
         [
           "Media address",
           "SourceConfig.hls / dash / progressive",
-          "The basic form emits the selected format key. For progressive it uses the string URL form. Match source format, container and codecs to the target’s capabilities."
+          "The selected format key receives the HTTP/HTTPS URL; progressive uses a URL string. Check the format, container and codec combination on the target device."
         ],
         [
-          "Title, poster and position",
+          "Title, poster and start position",
           "SourceConfig.title / poster / options.startOffset / startOffsetTimelineReference",
-          "Try 5 seconds from Start on VOD. Title/poster are passed as metadata; this Kepler screen does not include a poster-artwork renderer. End uses the end/live edge as its reference."
+          "title and poster are metadata; this screen does not render a poster. The start offset is a signed finite decimal in seconds. Start refers to the media or live-window beginning; End refers to its end or the live edge. The SDK default is Start for VOD and End for live."
         ],
         [
-          "External WebVTT",
+          "External WebVTT subtitles",
           "SourceConfig.subtitleTracks",
-          "Supply URL, label and language, then enable the external subtitle on load or choose its ID with PlayerAPI.subtitles. The app draws plain cue text in a native overlay."
+          "Supply an HTTPS URL reachable from the device, a label and a language tag such as en-US. Activate with enabled on load or PlayerAPI.subtitles. The app renders plain cue text in a native overlay."
         ]
       ],
       "widths": [
@@ -199,7 +195,7 @@
     },
     {
       "type": "p",
-      "text": "media is an app-created object containing exactly the selected hls, dash or progressive URL. The source object also holds the external subtitle’s lang/id/enabled values and initial-position options. These Web SDK property names differ from the React Native wrapper’s language/identifier/isDefault names. Apply uses the validated source, then the existing session loads it only after native media and its surface are connected."
+      "text": "media is the app object containing the selected hls, dash or progressive URL. Subtitle lang, id and enabled are Web SDK fields, distinct from the React Native wrapper’s language, identifier and isDefault. The validated source loads after native media and the surface are connected."
     },
     {
       "type": "h3",
@@ -219,20 +215,20 @@
     },
     {
       "type": "p",
-      "text": "vegaPlayerConfig always merges requestApi: Fetch into the supplied network configuration. The form rejects XHR before Apply because this host has no XHR media transport. Other network callbacks remain part of PlayerConfig.network. To try a callback, search its path in Show all SDK configuration, read the declared arguments and return type, enable Allow this callback and Apply. Editing alone does not run code. SDK callbacks run when invoked; approved JavaScript value factories run on Apply or Run and when the approved session is recreated. The code runs inside this app without a sandbox."
+      "text": "vegaPlayerConfig always merges requestApi: Fetch into network settings. This host has no XHR media transport, so the form rejects XHR before Apply. Other network callbacks belong in PlayerConfig.network."
     },
     {
       "type": "steps",
       "items": [
-        "Open Show configuration, retain the baseline source and change one field. Apply and recreate player validates the complete draft, releases the old session, then creates a new one and reloads the source. Reset draft leaves playback alone.",
-        "For more properties, open Show all SDK configuration and search an exact PlayerConfig or SourceConfig path. The input editor supports declared scalar, enumeration, object, dictionary and list values. Add array items in order and complete required fields.",
-        "Use a suitable representation for the SDK type. Binary certificate fields accept hexadecimal or Base64 bytes; object-instance inputs require a current SDK resource rather than an arbitrary object literal. Approved JavaScript executes inside the app without a sandbox.",
-        "Open Show applied code after Apply. The output includes applied values and function bodies, using license/header placeholders. Removing an additional override restores the basic form value or SDK default. Changing source, config or additional inputs starts a replacement session; it does not retain the old playback position."
+        "Apply validates the whole draft, releases the previous session, creates a new Player and loads the source. Source, configuration or extra-input changes replace the session without restoring its position. Reset draft does not affect playback.",
+        "Overrides follow exact PlayerConfig/SourceConfig paths and SDK types. Related required fields in objects, maps and arrays can be edited together before Apply.",
+        "Check function arguments and return requirements, then allow execution before Apply. SDK callbacks run when invoked by the SDK; allowed value factories can also run during Apply, API preparation or recreation of an allowed session. Factories for any values may run during preparation. JavaScript executes inside the app without a sandbox.",
+        "Binary inputs such as certificates decode hexadecimal or Base64 into buffers or typed arrays. Fields requiring SDK instances must use objects obtained through real SDK APIs in the current session, rather than plain-object substitutes."
       ]
     },
     {
       "type": "p",
-      "text": "Additional typed values override the basic form after Apply. Removing an override restores the form value or SDK default. An advanced SourceConfig.subtitleTracks array replaces the single-track form. Object and list editors let required related fields be completed together before Apply. A declared property or accepted input does not establish that its feature works on the native media surface."
+      "text": "Overrides replace basic-form values; removing one restores the form or SDK default. A SourceConfig.subtitleTracks array replaces the single-track form. Applied code shows values and allowed function bodies, using placeholders for licenses and sensitive headers. Accepting an input does not by itself establish working behavior on native video."
     },
     {
       "type": "figure",
@@ -247,7 +243,7 @@
     },
     {
       "type": "p",
-      "text": "The Vega app has no browser-based bitmovin-player-ui. App.tsx starts with ui: false, places BitmovinPlayer above a ScrollView, and renders ControlPanel, SDK API experiments and ConfigurationPanel below it. The UI change points are these React Native components and their StyleSheets. Setting PlayerConfig.ui to true or copying a browser theme does not produce HTML controls in Kepler."
+      "text": "App.tsx defaults to ui: false, placing BitmovinPlayer above a ScrollView with ControlPanel, SDK API operations and ConfigurationPanel. Change the UI through React Native components and StyleSheet. The host has no bitmovin-player-ui; PlayerConfig.ui or a browser theme does not create HTML controls."
     },
     {
       "type": "h3",
@@ -343,7 +339,7 @@
     },
     {
       "type": "p",
-      "text": "Use D-pad and Select on a device, or arrow keys and Enter on a Vega Virtual Device. In the current screen, native buttons provide actions and switches explicitly opt into focus. Keep code output and expandable editors reachable after layout changes, including items below the video. Amazon’s focus guide explains why the spatial relationship between controls affects navigation. A touch-oriented React Native layout is not automatically usable with a TV remote."
+      "text": "After a layout change, check D-pad access to switches, code below the video and collapsible editors. Amazon’s focus guide explains how control positions affect navigation. Verify native focus behavior when adapting a touch layout to TV."
     },
     {
       "type": "h2",
@@ -358,7 +354,7 @@
     },
     {
       "type": "p",
-      "text": "Show SDK API experiments exposes the installed PlayerAPI operations with typed arguments. Inspect current SDK API availability checks that a method exists without invoking it. Run Vega SDK API executes the selected call and reports its value or error. Start with getCurrentTime while media advances; a method existing or returning a constant is not playback verification. Manifest helpers also follow the loaded format: HLS track helpers require HLS, and DASH period helpers require DASH."
+      "text": "The API panel passes typed arguments to the installed PlayerAPI. Inspect current SDK API availability checks method presence without calling them. After execution, check state, events and the picture as well as values or errors. Manifest operations are format-specific: HLS track operations need HLS; DASH period operations need DASH."
     },
     {
       "type": "steps",
@@ -420,7 +416,7 @@
     {
       "type": "note",
       "title": "Content and device prerequisites",
-      "text": "The app registers DRM/crypto and additional format modules, but does not thereby supply compatible encrypted media, licenses or decoding capabilities. The official Vega sample excludes the HTML Player UI and client-side ads and documents constraints on server-side ad content. Use this host’s SGAI flow only with appropriate HLS. Keep general Web, Android Fire TV and Vega feature expectations separate."
+      "text": "The app registers DRM/crypto and additional format modules; compatible encrypted media, licenses and decoding capabilities are still required. The official Vega sample excludes the HTML Player UI and client-side ads and documents constraints on server-side ad content. This host also has no client-side ad integration; its SGAI flow needs appropriate HLS. Feature support differs between general Web, Android-based Fire TV and Vega."
     },
     {
       "type": "h2",
@@ -437,7 +433,7 @@
       "rows": [
         [
           "Why do browser UI settings have no visible effect?",
-          "Kepler has no browser HTML control layer. Keep ui: false and change native components/styles. A DOM container, canvas/WebGL VR renderer, browser UI factory, Cast receiver or device sensor is not supplied by an extra configuration key. This native integration does not provide client-side advertising. A callback that needs a real HTML container cannot use a plain object. DRM still needs compatible content, a license service and device support."
+          "Kepler has no HTML Player UI. Keep ui: false and change native components and styles. See integration for Web API support and the UI chapter for layout and controls."
         ],
         [
           "Why does XHR fail?",
@@ -532,9 +528,8 @@
     {
       "type": "steps",
       "items": [
-        "Use a collector license authorized for the Vega app, choose a non-sensitive videoId or experiment label, Apply and start playback. If the key changed, regenerate runtime configuration and rebuild before this experiment.",
-        "Open Bitmovin Dashboard with the matching Analytics license and period. Filter the relevant content/app labels and inspect sessions, startup, rebuffering, bitrate and errors alongside the local SDK events. The app sends collection events; aggregate viewing and visualization normally happen in Dashboard.",
-        "Follow the shared Analytics chapters for metric definitions, query access and analysis. Keep account API credentials in a trusted server-side environment; the collector license does not grant account query access."
+        "Use an Analytics license authorized for the Vega app and non-sensitive videoId and experiment labels. After changing a key, regenerate runtime configuration and rebuild before playback.",
+        "In Dashboard, select the matching Analytics license, period and content/app filters, then match the playback session to SDK events. Use the shared guides below for metrics, aggregation and visualization. Keep account API credentials in trusted server-side tools; a collector license alone does not grant aggregate API access."
       ]
     },
     {

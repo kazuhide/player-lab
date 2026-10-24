@@ -1,7 +1,7 @@
 {
   "id": "web-screen-controls",
   "title": "Web screen and controls",
-  "lead": "Use the Web app to compare player controls, change sources and settings, and inspect the configuration and SDK state. The steps below explain what to change, where to apply it and which result to check.",
+  "lead": "Choose a theme, change a source or setting, and inspect the result. This page follows the Web screen; the implementation guide explains the corresponding SDK code.",
   "blocks": [
     {
       "type": "links",
@@ -19,7 +19,7 @@
     },
     {
       "type": "p",
-      "text": "Language and theme selectors appear at the top. The video and construction code sit below, followed by controls for sources, seeking, playback, UI settings and casting; Player state, Event log and Playback quality readouts; and the Player Config editor. A link at the bottom opens the detailed UI customization guide."
+      "text": "Choose a language and theme at the top. The video and construction code are followed by source and playback controls, UI and casting controls, player state and event logs, and the configuration editors."
     },
     {
       "type": "note",
@@ -45,7 +45,7 @@
     },
     {
       "type": "p",
-      "text": "Use the Japanese and English buttons at the top to change language. Technical field names such as autoplay remain in English so they match SDK identifiers. The browser remembers the language across navigation between the app and detailed guide."
+      "text": "Switch between Japanese and English at the top. SDK identifiers such as autoplay stay in English so that you can look them up in the API reference. The browser remembers the language for the app and guide."
     },
     {
       "type": "note",
@@ -181,8 +181,8 @@
       "caption": "The Premiere composition. Compare its controls and layout with Default while keeping the same source; the code beside the player describes the selected composition."
     },
     {
-      "type": "note",
-      "text": "A theme change keeps the player and current source, but releases and rebuilds its UI. Construction code is an abbreviated implementation example, not an editable browser field. Applied UIConfig overrides shows the UI values explicitly changed in the GUI; it excludes theme defaults, the app's sample metadata, autohide, casting options and PlayerConfig/SourceConfig. Copying either panel does not save the complete app state."
+      "type": "p",
+      "text": "Switching a theme keeps the player and source and replaces the UI. Construction code is a read-only excerpt. The UIConfig override view lists only values explicitly changed in the GUI; it excludes theme defaults, sample metadata, autohide and casting options, PlayerConfig and SourceConfig. Neither view saves the complete app state."
     },
     {
       "type": "h3",
@@ -229,7 +229,16 @@
     },
     {
       "type": "p",
-      "text": "The GUI selects existing compositions and changes UI behavior. To add a control, move a component or edit a skin, follow the source paths below the construction code and the Implementation guide. This page's UI behavior and external-display sections explain the controls and their requirements."
+      "text": "To add or move controls or edit a skin, follow the source paths below the construction code and the implementation guide."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/ui-customization/",
+          "label": "Implement UI changes"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -238,7 +247,7 @@
     },
     {
       "type": "p",
-      "text": "The apps use several test streams. The public Pages build includes short Big Buck Bunny clips for its basic VOD controls; local development and native apps also use external HLS, DASH, and live reference streams. Available audio, subtitles, duration, and live rewind range depend on the selected source."
+      "text": "The apps use several test streams. Pages includes short Big Buck Bunny clips for basic VOD controls; local and native examples also use external HLS, DASH and live streams. Available tracks, duration and rewind range depend on the source."
     },
     {
       "type": "figure",
@@ -415,7 +424,7 @@
     },
     {
       "type": "p",
-      "text": "The source determines which tracks exist. In this Web GUI, the preferred initial languages are Playback fields in PlayerConfig, so changing them requires Player recreation. They are separate from the Source title/poster/start-position editor and from selecting a current track in the player menu. The text fields submit a language string; they do not parse a comma-separated preference list or a JSON array."
+      "text": "Set initial language preferences in Playback and recreate the player. These fields take a single string, not a comma-separated list or JSON array. To switch tracks during playback, use the player menu instead."
     },
     {
       "type": "steps",
@@ -455,7 +464,7 @@
     },
     {
       "type": "p",
-      "text": "The original Player Config form separates calls on the active player, source reloads and player recreation. Use this form for the common settings below; the SDK editor in the next section exposes additional typed properties and API calls."
+      "text": "The Player Config form groups settings by when they take effect. Use the SDK editor below it for additional properties, objects, callbacks and API calls."
     },
     {
       "type": "figure",
@@ -470,31 +479,26 @@
     {
       "type": "table",
       "headers": [
-        "Mode",
-        "Scope and application",
-        "Fields"
+        "Label",
+        "How the change applies"
       ],
       "rows": [
         [
-          "Instant",
-          "Player API, dynamic Adaptation and Low Latency. Calls an API when the input change is committed.",
-          "21"
+          "Immediate",
+          "Calls a runtime API when you commit the input. Includes Player API, dynamic adaptation and low-latency controls."
         ],
         [
           "Reload",
-          "SourceConfig title, description, poster and start settings. Reloads the source to apply changes.",
-          "6"
+          "Reloads the source with its title, description, poster and start-position settings."
         ],
         [
           "Recreate",
-          "Initial PlayerConfig settings. Creates a new player to apply changes.",
-          "117"
+          "Creates a new player with the edited PlayerConfig."
         ]
       ],
       "widths": [
-        0.18,
-        0.69,
-        0.13
+        0.22,
+        0.78
       ]
     },
     {
@@ -544,46 +548,15 @@
     },
     {
       "type": "p",
-      "text": "The original Source group compares title, start position and related values. Edit URLs and external tracks through SourceConfig in SDK settings, APIs and events. For an HLS URL, first select VOD HLS, then edit SourceConfig.hls and apply. For DASH, use VOD DASH and SourceConfig.dash. If both formats remain, the actual format depends on the SDK’s playback-technology selection. When needed, pass a complete SourceConfig to PlayerAPI.load with only the intended format."
+      "text": "In the SDK editor, choose SourceConfig.hls for an HLS preset or SourceConfig.dash for a DASH preset, edit the URL and apply it. To supply a complete source object, use PlayerAPI.load. If both URLs are present, the SDK selects the playback technology."
     },
     {
-      "type": "table",
-      "headers": [
-        "Property",
-        "Supply",
-        "Inspect"
-      ],
-      "rows": [
-        [
-          "hls / dash",
-          "A playlist or manifest URL. Apply reloads the source.",
-          "Read state → getSource() and the URL fetched in Network. Opening the URL in another tab is not a CORS check."
-        ],
-        [
-          "subtitleTracks",
-          "An array of external tracks with URL, id, lang and other supported fields. Edit the array as a whole.",
-          "Inspect the subtitle menu or subtitles.list, then enable the track. Subtitle timings must match the video timeline."
-        ],
-        [
-          "thumbnailTrack",
-          "A WebVTT thumbnail-index URL; the index identifies images or regions of a sprite.",
-          "Hover over the seek bar. Inspect Network to confirm both the index and referenced images load."
-        ],
-        [
-          "poster / options.persistentPoster",
-          "A preview image and whether it remains visible during playback.",
-          "Check image loading and its appearance when playback begins. persistentPoster can be useful for audio-only content."
-        ],
-        [
-          "drm",
-          "DRM settings matching the encryption system and license service.",
-          "Use matching encrypted media, a supported browser/device and the license service. The bundled unencrypted media cannot verify DRM authorization."
-        ]
-      ],
-      "widths": [
-        0.25,
-        0.35,
-        0.4
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/#stream-urls-and-sidecar-tracks",
+          "label": "Source URL, external subtitle, thumbnail, poster and DRM settings"
+        }
       ]
     },
     {
@@ -605,102 +578,17 @@
       ]
     },
     {
-      "type": "p",
-      "text": "Initial Adaptation settings are applied to both desktop and mobile. Initial buffer settings separate audio/video and forward/backward retention. After recreation, runtime fields such as volume are read again from the new instance."
-    },
-    {
       "type": "h3",
       "text": "Configuration groups",
       "id": "configuration-groups"
     },
     {
-      "type": "table",
-      "headers": [
-        "Group",
-        "Fields",
-        "Scope"
-      ],
-      "rows": [
-        [
-          "Player API",
-          "8",
-          "Volume, mute, speed, buffer, view mode, aspect ratio, poster and logs"
-        ],
-        [
-          "Adaptation (dynamic)",
-          "6",
-          "Display-size limits, quality stability and resolution limits"
-        ],
-        [
-          "Low Latency (dynamic)",
-          "7",
-          "Target latency, catchup and fallback"
-        ],
-        [
-          "Source",
-          "6",
-          "Title, description, poster, start position and reference"
-        ],
-        [
-          "Playback",
-          "8",
-          "Initial playback behavior and languages"
-        ],
-        [
-          "Adaptation (initial)",
-          "12",
-          "Starting bitrate, bitrate limits and adaptation logic"
-        ],
-        [
-          "Buffer (initial)",
-          "4",
-          "Forward and backward buffers for audio and video"
-        ],
-        [
-          "Network",
-          "9",
-          "Request API and timeout seconds by request type"
-        ],
-        [
-          "Tweaks",
-          "65",
-          "64 primitive fields plus log_level"
-        ],
-        [
-          "Logs",
-          "2",
-          "Verbosity and the console credit"
-        ],
-        [
-          "Style",
-          "4",
-          "Aspect ratio, dimensions and native subtitles"
-        ],
-        [
-          "Cast",
-          "4",
-          "CastConfig support and receiver settings"
-        ],
-        [
-          "Live",
-          "2",
-          "Incremental manifests and target latency"
-        ],
-        [
-          "Location",
-          "5",
-          "UI, CSS, Cast, IMA and Service Worker locations"
-        ],
-        [
-          "Misc",
-          "2",
-          "License-request delay and player storage"
-        ]
-      ],
-      "widths": [
-        0.32,
-        0.09,
-        0.59
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/#configuration-groups",
+          "label": "Configuration groups and their SDK targets"
+        }
       ]
     },
     {
@@ -708,8 +596,13 @@
       "text": "Initial display values in the settings catalog are form fallbacks when an applied value cannot be read. They are not SDK defaults, current effective values or recommendations. A Tweaks checkbox documented as false does not establish that the SDK default is false."
     },
     {
-      "type": "p",
-      "text": "Network timeouts are in seconds, including decimal values. They are not milliseconds. A per-request timeout overrides the default. Invalid or negative values keep Apply disabled and leave the active player unchanged. Empty removes only the chosen override. Use options.persistentPoster to retain a poster during playback, for example with an audio-only source."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/#set-request-timeouts-and-retries",
+          "label": "Timeout units, validation and retry settings"
+        }
+      ]
     },
     {
       "type": "h3",
@@ -718,60 +611,24 @@
     },
     {
       "type": "p",
-      "text": "Adaptive bitrate selection (ABR) chooses a video quality as playback conditions change. Select VOD DASH and Premiere, then leave the player quality menu on Auto. The bundled Pages sample offers 180p and 360p video. A cap above its highest quality cannot demonstrate a change, and a manual quality selection does not test automatic selection."
+      "text": "To compare automatic quality selection, select VOD DASH and Premiere, then choose Auto in the quality menu. The bundled Pages stream has 180p and 360p renditions."
     },
     {
       "type": "steps",
       "items": [
-        "In Adaptation (dynamic), set resolution.maxSelectableVideoHeight to 180 pixels and leave the field to apply it immediately. Playback continues on the same Player.",
-        "Open Show applied configuration code and refresh it. Find maxSelectableVideoHeight in player.adaptation.setConfig. The snapshot confirms the setting submitted to the SDK; inspect actual media requests or decoded resolution in the browser's media tools to check the selected quality.",
-        "Allow already buffered video to play before comparing the image. A configuration change does not replace every buffered segment immediately, and the manual quality menu may still list 360p.",
-        "For this bundled sample, set the height back to 360 pixels to allow its highest quality again. Clearing this dynamic field does not remove an applied cap. Reload the page for a fresh in-memory configuration when you need to remove the experiment entirely."
+        "Set dynamic Adaptation → resolution.maxSelectableVideoHeight to 180 and leave the field to apply it.",
+        "Refresh the applied code and check maxSelectableVideoHeight. Allow buffered video to play out, then inspect the video resolution and requests in the browser media tools.",
+        "Restore 360 to allow the highest bundled rendition. An empty field does not remove this runtime limit; reload the page to start without the applied edits."
       ]
     },
     {
-      "type": "table",
-      "headers": [
-        "Setting",
-        "Example change and application",
-        "What the comparison means"
-      ],
-      "rows": [
-        [
-          "limitToPlayerSize",
-          "Turn on in Adaptation (dynamic); immediate.",
-          "Restrict automatic selection to the video display size. Compare at a smaller browser width; a source already below that size may look unchanged. Turn off to restore the previous false value."
-        ],
-        [
-          "bitrates.maxSelectableVideoBitrate",
-          "Enter 500kbps (500000 bit/s) in Adaptation (initial), then Recreate the player to apply.",
-          "A bitrate ceiling for automatic selection. It chooses from the source's available qualities, rather than producing a new 500000 bit/s stream. Clear and recreate to remove this override."
-        ],
-        [
-          "startupBitrate",
-          "Enter 250kbps (250000 bit/s) in Adaptation (initial), then recreate.",
-          "Compare the initial quality after loading, rather than a later steady-state quality. The player can subsequently adapt. Clear and recreate to restore automatic startup selection."
-        ],
-        [
-          "maxStartupBitrate",
-          "Clear startupBitrate, enter 500kbps (500000 bit/s) here, then recreate.",
-          "Limit automatic startup selection. This setting has no effect while startupBitrate is explicitly specified."
-        ],
-        [
-          "qualityStabilityBalance",
-          "Use only with a compatible low-latency adaptation setup.",
-          "This balance does not affect the default adaptation logic. A changed number alone is not a comparison of playback stability."
-        ]
-      ],
-      "widths": [
-        0.25,
-        0.32,
-        0.43
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/#compare-automatic-video-quality",
+          "label": "Bitrate, resolution and startup-quality examples and limitations"
+        }
       ]
-    },
-    {
-      "type": "note",
-      "text": "Initial Adaptation changes are written to both desktop and mobile configuration. Network speed, available renditions, buffered segments and the playback technology affect the result. Native HLS does not necessarily follow the same adaptation path as SDK-managed DASH. Use the same source and browser when comparing settings."
     },
     {
       "type": "h3",
@@ -780,46 +637,24 @@
     },
     {
       "type": "p",
-      "text": "A forward buffer holds media ahead of playback; a backward buffer retains media already played. These values are durations in seconds, not file sizes. The target can differ from the amount currently buffered because downloads, segment boundaries, available memory and live availability constrain the actual buffer."
+      "text": "Buffer targets are durations in seconds. Player API changes the video forward target immediately; Buffer initial settings apply separate audio/video and forward/backward targets when the player is recreated."
     },
     {
-      "type": "table",
-      "headers": [
-        "Control",
-        "Example and application",
-        "Check and restore"
-      ],
-      "rows": [
-        [
-          "Player API: buffer target forward (s)",
-          "Enter 10 seconds; applies immediately to video only.",
-          "Refresh applied code and inspect player.buffer.setTargetLevel. This does not change the audio target. Return to the recorded previous value, such as 40 seconds; clearing the field does not undo the setter."
-        ],
-        [
-          "Playback panel: Buffer target (s)",
-          "Enter 10 seconds and press Set buffer target.",
-          "The event log reports the requested target. This is another route to the same video-forward-buffer API; its input is not a live buffer-level meter."
-        ],
-        [
-          "Buffer (initial)",
-          "Set video/audio forwardduration to 10 seconds and backwardduration to 5 seconds, then recreate.",
-          "Refresh applied code to check the separate video and audio settings. Inspect media buffering in the browser, then seek backward to compare retention. Clear the initial overrides and recreate to remove them."
-        ],
-        [
-          "Tweaks: startup_threshold / restart_threshold",
-          "Try 2 seconds for the threshold being compared, then recreate.",
-          "The startup threshold affects the initial start; the restart threshold affects recovery after a buffering interruption. They are separate from the forward-buffer target. Clear the override and recreate to restore the underlying setting."
-        ]
-      ],
-      "widths": [
-        0.27,
-        0.31,
-        0.42
+      "type": "steps",
+      "items": [
+        "Set Player API → buffer target forward (s) to 10 and refresh the applied code.",
+        "Use Read state → PlayerAPI.buffer.getLevel with the media and buffer type to read the current level. The input is a target, not a live buffer gauge.",
+        "Restore the previous numeric target. Leaving this runtime field empty does not undo the API call."
       ]
     },
     {
-      "type": "note",
-      "text": "A larger buffer may use more memory and absorb a temporary download interruption, but it does not extend a live origin's rewind window or guarantee lower latency. Read state in the SDK editor provides PlayerAPI.buffer.getLevel for the selected media and buffer type. Browser media tools can inspect actual buffered ranges. The example inputs are comparison values rather than recommended settings."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/#compare-retained-media-buffers",
+          "label": "Audio/video buffers, startup thresholds and memory tradeoffs"
+        }
+      ]
     },
     {
       "type": "h3",
@@ -828,70 +663,24 @@
     },
     {
       "type": "p",
-      "text": "A timeout limits how long an individual request may wait. A retry starts another attempt after a failure. Network contains timeout settings; Tweaks contains the retry controls exposed by this app. Both groups require Recreate the player to apply. A request-type timeout takes precedence over defaultRequestTimeout."
+      "text": "Edit timeouts in Network and retries in Tweaks, then recreate the player. These settings control individual requests; they do not set the total time before a playback error."
     },
     {
-      "type": "table",
-      "headers": [
-        "Setting",
-        "Example input",
-        "Scope"
-      ],
-      "rows": [
-        [
-          "network.defaultRequestTimeout",
-          "5 seconds",
-          "Fallback timeout for requests without a type-specific override."
-        ],
-        [
-          "network.requestTimeout[media/video]",
-          "2 seconds",
-          "Video requests; audio keeps its own override or the default. This is not a limit on total playback duration."
-        ],
-        [
-          "network.requestTimeout[manifest/dash]",
-          "3 seconds",
-          "The DASH manifest. HLS uses the separate master and variant request types."
-        ],
-        [
-          "tweaks.max_retries",
-          "1 retry",
-          "Failed manifest requests, including HLS master and variant playlists."
-        ],
-        [
-          "tweaks.max_mpd_retries / mpd_retry_delay",
-          "1 retry / 1 second",
-          "Failed DASH manifest downloads and the wait before another MPD attempt. MPD is the DASH manifest."
-        ],
-        [
-          "tweaks.max_cdn_retries",
-          "1 retry",
-          "Retries per content delivery network for on-demand download failures."
-        ],
-        [
-          "tweaks.infinite_retries_for_live",
-          "On or off",
-          "Whether unreachable live media keeps retrying after the available qualities have failed. It is not an on-demand retry setting."
-        ]
-      ],
-      "widths": [
-        0.38,
-        0.18,
-        0.44
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/#set-request-timeouts-and-retries",
+          "label": "Request types, units and retry behavior"
+        }
       ]
     },
     {
       "type": "steps",
       "items": [
-        "Select VOD DASH. Open the browser's Network tools and record the behavior before changing a setting.",
-        "Set a timeout or retry value, recreate the Player, then refresh applied configuration code. Confirm the value under network or tweaks; draft text alone is not applied configuration.",
-        "To exercise a timeout, use the browser's network tools to delay a request beyond the configured timeout. To compare retries, temporarily block a manifest request and reload the source. Inspect actual attempts and their timing in Network; the app event log shows event names such as Error, not an HTTP request trace.",
-        "Remove browser throttling or request blocking. Clear the optional numeric overrides and recreate the Player. For a checkbox, restore the previously recorded on/off value. Reload the source to check normal playback again."
+        "Select VOD DASH, open the browser Network tools and record the original settings.",
+        "Apply the changes. Add controlled latency to test a timeout, or temporarily block the manifest to compare retries. Inspect actual request counts and intervals in Network; the app event log is not an HTTP trace.",
+        "Remove browser throttling or blocking. Clear numeric overrides and recreate the player; restore checkboxes to their original state. Reload the source and check normal playback."
       ]
-    },
-    {
-      "type": "note",
-      "text": "Browser caching, native HLS and the request type affect which requests exercise these settings. Total time before a playback error can include multiple requests, retries and delays. The SDK editor below also provides retryHttpRequest and preprocessing callbacks for custom request logic."
     },
     {
       "type": "h2",
@@ -900,25 +689,30 @@
     },
     {
       "type": "p",
-      "text": "Open SDK settings, APIs and events below Player Config. Configuration edits, commands, state reads and events serve different purposes: a submitted configuration is not proof that the feature has become active."
-    },
-    {
-      "type": "p",
-      "text": "Search by the public API name and choose Configuration, Commands, Read state or Events. Each entry links to the official reference."
+      "text": "Open the SDK editor below Player Config. Search by the public API name and choose configuration, command, state or event. Each entry links to the official reference."
     },
     {
       "type": "steps",
       "items": [
-        "For a setting such as SourceConfig.title, select its input type when alternatives are offered, enter a value, and choose Apply setting. PlayerConfig recreates the Player, SourceConfig reloads the source, and UI configuration rebuilds the UI.",
-        "Enable optional object fields individually. Use Add item for arrays and Add property for dictionaries. For a new object with required siblings, choose its containing path, such as PlayerConfig.playback.preferredTech or SourceConfig.subtitleTracks, and complete the fields together before Apply. An indexed leaf edits an existing array item; keep the preceding items in place.",
-        "Remove this override restores the corresponding base setting. A later edit in the original form replaces overlapping SDK-editor overrides while retaining unrelated values. Object edits retain untouched base fields; an array edit replaces that whole array.",
-        "For a method, choose its signature, enable optional arguments where needed, enter values and choose Run API or Read state. The result appears below the generated code. Destroy and Recreate Player use the same ownership lifecycle as the rest of the app.",
-        "Events lists the subscriptions on the current Player and UIManager. The log shows counts and bounded payload previews when events occur. Recreating the Player retires the previous subscriptions and history."
+        "Choose a configuration entry such as SourceConfig.title, select a type if requested, enter a value and apply it. The editor shows whether this reloads the source, recreates the player or rebuilds the UI.",
+        "Add array items or dictionary properties as needed. Complete required fields on the parent object before applying an entry. An edited array replaces the whole array.",
+        "Use “Remove this override” to return to the app base value. Unrelated overrides are retained.",
+        "For a method, enter arguments and run the API or read state. The result appears below its generated code.",
+        "For events, operate the player and check the count and recent content. Recreating the player clears the old subscriptions and history."
       ]
     },
     {
-      "type": "note",
-      "text": "Choosing undefined for an optional configuration property omits that property from the SDK input. Web SDK 8.281.0, for example, rejects an explicitly undefined playback object but accepts an omitted one. Remove this override restores the application's base value instead. This handling applies to configuration properties; callback arguments retain the values and argument count supplied by the SDK."
+      "type": "p",
+      "text": "Selecting undefined for an optional configuration property omits it from the SDK input. A successful submission only means the editor sent the setting; use state, events and playback to check the result."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/#sdk-settings-apis-and-events",
+          "label": "Object editing, override precedence and omitted properties"
+        }
+      ]
     },
     {
       "type": "figure",
@@ -940,11 +734,16 @@
     },
     {
       "type": "p",
-      "text": "The body runs as JavaScript in this page. lab.ui provides the imported UI classes and lab.getPlayer() returns the current Player. The callback log records invocation and return-contract errors. Removing an unfinished request callback can recreate the Player without waiting for that request to finish."
+      "text": "The function runs as JavaScript in this page. The log reports calls and return-type mismatches. To recover from a callback that leaves a request unfinished, remove its override and recreate the player."
     },
     {
-      "type": "note",
-      "text": "Native HLS lets the browser load media requests, so an SDK network callback may not run for those requests. To test the scripted HLS transport, edit PlayerConfig.playback.preferredTech as an array, add an item with player set to PlayerType.Html5 and streaming set to StreamType.Hls, then Apply. The Read state result and callback log show which configuration and calls were used."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/#edit-a-callback",
+          "label": "Callback context, native-HLS limitations and playback-technology selection"
+        }
+      ]
     },
     {
       "type": "figure",
@@ -958,19 +757,20 @@
     },
     {
       "type": "p",
-      "text": "Inputs that require a UI component or EventDispatcher use a public constructor or an owned SDK instance selected in the editor. Constructor arguments and overloads are editable. Certificate buffers accept hexadecimal or Base64 bytes. Arbitrary JSON is used only where the SDK type allows data; it does not create native or SDK class instances."
-    },
-    {
-      "type": "note",
-      "text": "UI components subscribe to language changes when they are constructed. The app installs the selected localization configuration before creating GUI-defined components, so they use the same event dispatcher as the UIManager. The generated code preserves this order. Components created by the editor and their internal children are released when their owner is replaced; previously selected SDK-owned components remain borrowed."
+      "text": "Where an SDK object is required, choose a public constructor or a current SDK instance. Certificate buffers accept hexadecimal or Base64 bytes. Use JSON only where the SDK accepts data objects."
     },
     {
       "type": "p",
-      "text": "Choose PlayerAPI.getConfig or PlayerAPI.getSource in Read state to inspect submitted values. Commands such as setVolume accept edited arguments. Returned SDK objects and callbacks can be selected in later calls; obtain them again after their owner is replaced. Generated code omits license values. References to selected instances must use the same objects obtained by earlier calls. The Events and callbacks panel shows cumulative counts for the current Player and a limited history of recent payloads. An earlier payload can disappear while its count remains. Use Read state to verify an applied value. Recreate Player or Clear event history resets these records."
+      "text": "Read PlayerAPI.getConfig or PlayerAPI.getSource to inspect the supplied settings. A returned instance or function can be selected in later calls; retrieve it again after its owning player is replaced. Event counts remain when older log entries expire. “Clear event history” or recreating the player clears the record."
     },
     {
-      "type": "p",
-      "text": "Apply an empty object {} to PlayerConfig.ui to enable SDK-managed UI. The app supplies pinned UI script and style locations; these are editable through PlayerConfig.location. The SDK calls the configured style.uiManagerFactory. Selecting an original theme returns to the app-managed UI and avoids overlapping managers. In Player UI 4.23.0, a nonempty SourceConfig.title or description takes precedence over UIConfig.metadata.title or description when the UI configuration is merged. To test metadata from UIConfig against a preset title or description, first apply an empty string to the corresponding SourceConfig field. To change source-specific text, edit SourceConfig."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-player-config/#use-sdk-objects-and-inspect-runtime-state",
+          "label": "SDK-object lifetimes, UI ownership and source metadata precedence"
+        }
+      ]
     },
     {
       "type": "note",
@@ -996,18 +796,14 @@
     },
     {
       "type": "p",
-      "text": "Open Show applied configuration code below the configuration bands. The snapshot reads the current Player configuration and source, plus GUI-controlled runtime values and UI overrides. Unapplied draft edits are excluded. Refresh code captures later changes; Copy code refreshes and copies the snapshot. If browser clipboard access is unavailable, select the text and use the device copy command."
-    },
-    {
-      "type": "note",
-      "text": "License values are replaced or omitted. The export covers this screen’s settings, rather than all SDK options. Use the existing construction example beside the player for the selected UI. Fullscreen and external-display actions still need a user gesture and a supported device."
+      "text": "This view shows applied Player and source settings, runtime values handled by the GUI and UI overrides. It excludes draft edits. License values are removed or replaced with placeholders."
     },
     {
       "type": "steps",
       "items": [
-        "Wait for the source to load and apply the setting you want to inspect.",
-        "Open Show applied configuration code below the configuration form, then choose Refresh code. Repeat Refresh code after later changes.",
-        "Compare the output with the selected theme's construction code. The configuration export describes applied player, source and UI overrides; the construction panel explains the theme's component composition."
+        "Wait for the source to load and apply the settings to inspect.",
+        "Open the applied-code view below the form and refresh it after any later changes. Copy retrieves the latest settings; if clipboard access fails, select and copy the text manually.",
+        "Compare it with the theme construction code beside the video: one shows applied settings, the other shows the UI component layout. Neither exports the entire app."
       ]
     },
     {

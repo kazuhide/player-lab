@@ -1,7 +1,7 @@
 {
   "id": "web-ui-customization",
   "title": "Customize the player UI",
-  "lead": "Start by comparing an existing theme and its applied UI settings in the Web app. Use the matching factory and stylesheet when carrying that change into your own player. This chapter separates GUI experiments from changes that require editing code.",
+  "lead": "Reference for UI ownership, custom components and cleanup. Start with the implementation guide for standard UI, CSS and layout examples; use this page when extending them.",
   "blocks": [
     {
       "type": "h2",
@@ -10,7 +10,7 @@
     },
     {
       "type": "p",
-      "text": "Theme selection replaces the app-owned UIManager while preserving the current Player. CSS themes use the Default component tree with different skin rules; custom themes change components or their placement. Open Changes from Default UI beside the video for the component list, then use the construction code and its source path to inspect the implementation. Component construction examples use English comments in both interface languages."
+      "text": "The construction code shows the selected theme’s component layout and links to its source. Its comments stay in English. Theme switching retains the player and source while replacing the app-managed UI."
     },
     {
       "type": "p",
@@ -71,12 +71,12 @@
       "text": "Follow a GUI change into code"
     },
     {
-      "type": "steps",
+      "type": "links",
       "items": [
-        "Select Premiere and keep the same VOD source playing. Open its settings gear and locate the playback-speed selector.",
-        "Turn Speed item in settings gear off in UI settings. Reopen the gear and confirm that the item is absent; turn it on and check that it returns.",
-        "Expand Applied UIConfig overrides beside the video. The playbackSpeedSelectionEnabled value reflects the change. The theme construction example above it still describes the component tree.",
-        "Use the factory path below Construction code to inspect buildPremiereUiContainer and buildSettingsPanel in liveUi.ts. PlaybackSpeedSelectBox is the component that the flag controls; changing its position requires editing that component tree."
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#compare-the-video-and-code",
+          "label": "Compare a GUI change with construction code and UIConfig"
+        }
       ]
     },
     {
@@ -125,16 +125,20 @@
     },
     {
       "type": "p",
-      "text": "With app-managed UI, set PlayerConfig.ui to false and let the app create and release UIManager. The adapted attachment function below uses the standard UI’s responsive compositions in an independent project; it is not a verbatim source excerpt. It assumes an existing Player created with ui: false and the required packages installed. Retain the returned UIManager and call release before replacing it or leaving the screen."
+      "text": "For an app-managed UI, set PlayerConfig.ui to false and own the UIManager lifetime. The implementation guide shows a complete standard-UI setup with UIConfig and its stylesheet."
     },
     {
-      "type": "code",
-      "title": "Pass UIConfig to the standard UI",
-      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport {\n  UIFactory, UIComponentLayoutOverride, type UIConfig,\n} from \"bitmovin-player-ui\";\nimport \"bitmovin-player-ui/dist/css/bitmovinplayer-ui.css\";\n\nexport const uiConfig: UIConfig = {\n  localization: { language: \"en\" },\n  componentLayoutOverrides: {\n    PlaybackSpeedSelectBox: UIComponentLayoutOverride.Exclude,\n  },\n  componentConfigOverrides: {\n    UIContainer: { hideDelay: -1 },\n  },\n};\n\nexport function attachStandardUi(player: PlayerAPI) {\n  return UIFactory.buildUI(player, uiConfig);\n}"
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/ui-customization/#ui-configuration-and-owner",
+          "label": "Standard UI setup and supported component overrides"
+        }
+      ]
     },
     {
       "type": "p",
-      "text": "This example hides the speed setting, prevents UIContainer autohide and selects English UI text. In the installed UI version, playbackSpeedSelectionEnabled is a deprecated convenience option; new integrations can use componentLayoutOverrides. The existing GUI toggle remains useful for comparison. Layout overrides accept component types supported by the SDK map; they do not add an arbitrary custom class by name."
+      "text": "Use componentLayoutOverrides for new layout overrides rather than the older playbackSpeedSelectionEnabled option. Overrides accept the component types supported by the SDK, not arbitrary custom class names."
     },
     {
       "type": "p",
@@ -163,19 +167,16 @@
     },
     {
       "type": "p",
-      "text": "Neon adds a class while retaining the Default component tree. The factory call below is the same approach used by the app. The imported shared stylesheet already contains the skin; use its rules as the starting point when editing your own colors."
+      "text": "Neon adds a skin class to the Default component layout. Load override CSS after the base stylesheet and scope it to the skin so that other themes are unaffected."
     },
     {
-      "type": "code",
-      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport { DefaultUIFactory } from \"@showcase/ui-shared\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createNeonUi(player: PlayerAPI) {\n  return DefaultUIFactory.buildDefaultUI(player, undefined, {\n    extraCssClasses: [\"ui-skin-neon\"],\n    hideDelay: -1,\n  });\n}"
-    },
-    {
-      "type": "p",
-      "text": "The corresponding seek-bar rule is in ui-shared.scss. The UI library adds the bmpui- prefix to component classes, which explains the class names used by CSS. Load overrides after the base stylesheet and scope them to the skin class so that other themes are unaffected."
-    },
-    {
-      "type": "code",
-      "text": ".bmpui-ui-skin-neon .bmpui-seekbar-playbackposition {\n  background: linear-gradient(90deg, #00e5ff, #ff2bd6);\n  box-shadow: 0 0 8px rgba(0, 229, 255, 0.85);\n}"
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/ui-customization/#ui-skin-css",
+          "label": "Neon factory and scoped CSS examples"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -183,15 +184,20 @@
     },
     {
       "type": "p",
-      "text": "This executable excerpt follows the Compact tree, omitting its optional casting buttons. The order inside components determines the controls in the row. Move PlaybackTimeLabel before SeekBar to compare the arrangement. There is no component-order editor in the GUI; edit and rebuild the code, then compare the result with Compact in the app."
+      "text": "The components array determines control order. The Compact example in the implementation guide shows how to move PlaybackTimeLabel relative to SeekBar. Rebuild the code to change placement; the GUI selects existing layouts."
     },
     {
-      "type": "code",
-      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport {\n  BufferingOverlay, Container, ControlBar, PlaybackTimeLabel,\n  PlaybackTimeLabelMode, PlaybackToggleButton, SeekBar, SeekBarLabel,\n  UIContainer, UIManager, UIVariantIdentifier,\n} from \"bitmovin-player-ui\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createCompactUi(player: PlayerAPI) {\n  const container = new UIContainer({\n    components: [\n      new BufferingOverlay(),\n      new ControlBar({ components: [\n        new Container({\n          components: [\n            new PlaybackToggleButton(),\n            new SeekBar({ label: new SeekBarLabel() }),\n            new PlaybackTimeLabel({\n              timeLabelMode: PlaybackTimeLabelMode.CurrentTime,\n            }),\n          ],\n          cssClasses: [\"controlbar-bottom\"],\n        }),\n      ] }),\n    ],\n    cssClasses: [\"ui-skin-modern\", \"ui-skin-compact\"],\n    hideDelay: -1,\n  });\n  return new UIManager(player, [{\n    ui: container,\n    identifier: UIVariantIdentifier.main,\n  }]);\n}"
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/ui-customization/#ui-component-composition",
+          "label": "Compact layout example"
+        }
+      ]
     },
     {
       "type": "p",
-      "text": "Create fresh components for each UIManager. Release the previous manager before attaching this UI to a player created with ui: false. This compact example deliberately has no central play overlay, volume controls, settings menu or subtitle overlay; choose the corresponding components from another factory if your application needs them."
+      "text": "Create fresh components for each UIManager and release the previous manager before attaching them. The Compact example omits the central play overlay, volume, settings and subtitle overlay; add those components when needed."
     },
     {
       "type": "h2",
@@ -217,73 +223,8 @@
       "id": "fourteen-guide-sections"
     },
     {
-      "type": "table",
-      "headers": [
-        "Section",
-        "What it covers"
-      ],
-      "rows": [
-        [
-          "Overview",
-          "Separating UI structure and skin, and comparing themes"
-        ],
-        [
-          "Architecture and vocabulary",
-          "UIManager, UIContainer, Component and UIVariant"
-        ],
-        [
-          "UI customization approaches",
-          "Default UI, component composition and CSS changes"
-        ],
-        [
-          "Composing the tree",
-          "Multi-row control bars and component order"
-        ],
-        [
-          "Component catalogue",
-          "Representative buttons, bars, labels, subtitles and settings"
-        ],
-        [
-          "Custom components",
-          "Inheritance, configure, events and cleanup"
-        ],
-        [
-          "Settings panels",
-          "The gear menu and quality, speed and audio selectors"
-        ],
-        [
-          "Events",
-          "UI input notifications and SDK playback events"
-        ],
-        [
-          "Styling",
-          "bmpui classes, skins and CSS specificity"
-        ],
-        [
-          "Configuration",
-          "UIConfig versus individual component configuration"
-        ],
-        [
-          "UI variants and TV",
-          "Conditional UI selection and remote-control techniques"
-        ],
-        [
-          "Gestures",
-          "Video-surface clicks and double-clicks"
-        ],
-        [
-          "Cookbook",
-          "Common UI modifications"
-        ],
-        [
-          "References",
-          "Official APIs and source code"
-        ]
-      ],
-      "widths": [
-        0.39,
-        0.61
-      ]
+      "type": "p",
+      "text": "The in-app customization guide provides a component catalog, UI variants and TV navigation, gestures, styling and event handling. Use it when extending a component beyond the examples here."
     },
     {
       "type": "h2",
@@ -400,7 +341,7 @@
           "label": "PlayerConfig / SourceConfig"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/web-ui-settings/",
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#ui-settings",
           "label": "UI settings and external displays"
         }
       ]

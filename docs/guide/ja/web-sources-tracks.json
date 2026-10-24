@@ -1,24 +1,16 @@
 {
   "id": "web-sources-tracks",
   "title": "ソース、音声、字幕、サムネイル",
-  "lead": "ソースのボタンで、再生する素材と確認したい機能を選びます。Pages版は短いVOD素材を同梱し、ライブは外部の公開配信を使います。",
+  "lead": "操作の説明は「Web版の画面と操作」にまとめています。以下から該当する項目を開いてください。",
   "blocks": [
     {
       "type": "links",
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#sources-tracks",
-          "label": "画面と操作：Web版の操作をまとめて確認する"
-        },
-        {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/",
-          "label": "実装ガイド：設定・UI変更・FAQ"
+          "label": "Web版の画面と操作"
         }
       ]
-    },
-    {
-      "type": "p",
-      "text": "各アプリでは複数のテストストリームを使います。公開Pages版の基本的なVOD操作には短いBig Buck Bunnyを同梱していますが、ローカル開発版とネイティブ版では外部のHLS・DASH・ライブ配信も使います。音声、字幕、長さ、巻き戻せる範囲はソースによって異なります。"
     },
     {
       "type": "h2",
@@ -26,110 +18,69 @@
       "id": "seven-sources"
     },
     {
-      "type": "table",
-      "headers": [
-        "ボタン",
-        "確認する内容"
-      ],
-      "rows": [
-        [
-          "VOD HLS",
-          "60秒のBig Buck BunnyをHLSで再生します。"
-        ],
-        [
-          "VOD DASH",
-          "同じ60秒素材をDASHで再生し、方式による違いを比較します。"
-        ],
-        [
-          "Live DASH + DVR",
-          "外部の公開ライブ素材で、巻き戻し、複数音声、字幕を確認します。"
-        ],
-        [
-          "Live HLS",
-          "外部の公開HLSライブ素材を再生します。"
-        ],
-        [
-          "VOD + Sprites",
-          "シークバーに表示する画像サムネイルを確認します。"
-        ],
-        [
-          "VOD + Multi-audio",
-          "2つの音声トラックを選びます。"
-        ],
-        [
-          "VOD + Subtitles",
-          "別ファイルのWebVTT字幕を有効にして表示します。"
-        ]
-      ],
-      "widths": [
-        0.31,
-        0.69
-      ]
-    },
-    {
-      "type": "note",
-      "text": "外部ライブは、提供元の都合で終了したり、内容や巻き戻せる時間が変わったりする場合があります。ローカル開発版では、未設定の追加素材のボタンが無効となり、必要な環境変数名が表示されます。"
-    },
-    {
-      "type": "h2",
-      "text": "基本の再生と移動"
-    },
-    {
-      "type": "p",
-      "text": "再生・一時停止、音量、全画面などは映像内のコントロールを使います。シークバーはVODでは動画全体、ライブでは利用可能な巻き戻し範囲を表します。カスタムテーマの映像面は、シングルクリックで再生と一時停止を切り替えます。"
-    },
-    {
-      "type": "p",
-      "text": "ダブルクリックの設定で全画面を選ぶと、映像面のダブルクリックで全画面を切り替えます。±10秒シークを選ぶと、左半分で10秒戻り、右半分で10秒進みます。VODでは先頭から終端、ライブではDVRウィンドウの範囲内に補正されます。Default (Bitmovin)は標準UI自身の操作を使います。"
-    },
-    {
-      "type": "h2",
-      "text": "音声トラックを切り替える"
-    },
-    {
-      "type": "steps",
+      "type": "links",
       "items": [
-        "VOD + Multi-audioを選びます。",
-        "Default、Premiereなど、音声を選べる設定メニューを持つテーマを選びます。",
-        "映像内の設定メニューでAudioのトラックを切り替えます。",
-        "必要ならミュートを外し、音量も調整します。"
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#seven-sources",
+          "label": "テスト用ソースを選ぶ"
+        }
       ]
-    },
-    {
-      "type": "note",
-      "text": "同梱素材の2つの音声トラックは、言葉を含まない同じ音源を異なる音量にしたものです。en/deは選択処理を確認するためのラベルで、英語・ドイツ語の翻訳音声ではありません。"
     },
     {
       "type": "h2",
-      "text": "字幕を表示する"
+      "text": "基本の再生と移動",
+      "id": "basic-playback-and-seeking"
     },
     {
-      "type": "steps",
+      "type": "links",
       "items": [
-        "VOD + Subtitlesを選びます。",
-        "映像内の字幕メニューでEnglishを選びます。",
-        "字幕が設定されている時刻へ移動して表示を確認し、無効を選んで非表示になることも確認します。"
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#basic-playback-and-seeking",
+          "label": "基本の再生と移動"
+        }
       ]
-    },
-    {
-      "type": "note",
-      "text": "字幕はSintelのテキストを短い検証用に調整したものです。Big Buck Bunnyの内容を説明する字幕ではありません。再生素材を変えたときは、利用可能な字幕や音声の一覧も変わります。"
     },
     {
       "type": "h2",
-      "text": "シーク位置の画像を確認する"
+      "text": "音声トラックを切り替える",
+      "id": "switch-audio-tracks"
     },
     {
-      "type": "steps",
+      "type": "links",
       "items": [
-        "VOD + Spritesを選びます。",
-        "映像内のシークバーにポインターを置き、位置を移動します。",
-        "時刻と画像が位置に応じて変わることを確認します。"
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#switch-audio-tracks",
+          "label": "音声トラックを切り替える"
+        }
       ]
     },
     {
-      "type": "p",
-      "text": "スプライトは複数の小さな画像を1枚にまとめた画像です。WebVTTファイルが時刻と切り出し位置を指定し、プレイヤーは必要な部分を表示します。UI設定のシーク中のプレビューは、ドラッグ中に再生映像を動かす設定であり、画像のサムネイルとは別の機能です。"
+      "type": "h2",
+      "text": "字幕を表示する",
+      "id": "display-subtitles"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#display-subtitles",
+          "label": "字幕を表示する"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "シーク位置の画像を確認する",
+      "id": "check-seek-thumbnails"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#check-seek-thumbnails",
+          "label": "シーク位置の画像を確認する"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -137,47 +88,13 @@
       "id": "set-the-initial-playback-position"
     },
     {
-      "type": "table",
-      "headers": [
-        "素材と目的",
-        "Sourceの設定",
-        "確認する結果"
-      ],
-      "rows": [
-        [
-          "オンデマンド映像を途中から始める",
-          "options.startOffset = 5秒、基準 = start",
-          "ソースの再読み込み後に5秒付近から始まり、その後は再生が進みます。再生中の位置を移すシークではなく、読み込み時の設定です。"
-        ],
-        [
-          "オンデマンド映像の終盤から始める",
-          "options.startOffset = -10秒、基準 = end",
-          "60秒のPages素材では、要求する開始位置は50秒付近です。"
-        ],
-        [
-          "ライブ端より前から始める",
-          "options.startOffset = -20秒、基準 = end",
-          "現在のライブ端より前から始めます。配信側に巻き戻し範囲が必要です。範囲外の指定は利用できる範囲に制限されます。"
-        ]
-      ],
-      "widths": [
-        0.28,
-        0.33,
-        0.39
-      ]
-    },
-    {
-      "type": "steps",
+      "type": "links",
       "items": [
-        "先にソースを選びます。開始位置の比較を分かりやすくするため、この確認では「VODの再生位置を保存して再開」をオフにし、URLにも再生位置を指定しない状態にします。",
-        "Player ConfigのSourceを開き、オフセットと基準を指定して「ソースを再読み込みして適用」を押します。ログのSourceLoadedを確認し、映像内の時刻や「プレイヤー状態」の値で開始位置を比較します。自動再生中は、表示を読んでいる間にも時刻が進みます。",
-        "適用済みコードを更新し、sourceConfig.optionsを確認します。この再読み込みでは、ほかの適用済みソース設定を保持します。",
-        "options.startOffsetを空欄、基準を既定の選択肢に戻して再読み込みすると、これらの上書きを解除します。ソースのボタンを選び直した場合も、そのソースの上書きを解除します。"
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#set-the-initial-playback-position",
+          "label": "読み込み時の再生開始位置を指定する"
+        }
       ]
-    },
-    {
-      "type": "note",
-      "text": "再生パネルの「オフセットで再読み込み」は、常にendを基準にします。startとendを明示的に選ぶ場合はSourceの設定欄を使います。ライブの開始位置は、同梱するオンデマンド映像の長さではなく、実際のマニフェストと配信中の公開範囲に制約されます。"
     },
     {
       "type": "h2",
@@ -185,36 +102,25 @@
       "id": "choose-initial-audio-and-subtitle-languages"
     },
     {
-      "type": "p",
-      "text": "利用できるトラックはソースによって異なります。このWeb GUIでは初期の優先言語をPlayerConfigのPlaybackで設定するため、変更にはPlayerの再生成が必要です。Sourceのタイトル・画像・開始位置の編集や、プレイヤーのメニューで現在のトラックを切り替える操作とは異なります。言語欄は文字列をそのまま渡します。カンマ区切りの優先順やJSON配列を解釈する欄ではありません。"
-    },
-    {
-      "type": "steps",
+      "type": "links",
       "items": [
-        "VOD + Multi-audioと、Premiereなど音声メニューのあるテーマを選びます。PlaybackのaudioLanguageにdeを入力し、「プレイヤーを再生成して適用」を押します。メニューで選択された音声を確認し、音を比べる場合はミュートを解除します。同梱素材の言語名は、前述のとおり選択確認用のメタデータです。",
-        "字幕メニューのあるDefaultテーマに切り替えてから、VOD + Subtitlesを選びます。PlaybackのsubtitleLanguageにenを入力して再生成します。字幕のある時刻で文字の表示とメニューの選択を確認します。ローカル開発では、先にこのソースの字幕URLを設定する必要があります。",
-        "適用済みコードを更新し、playerConfig.playback.audioLanguageまたはsubtitleLanguageを確認します。対象言語のトラックがソースに必要です。優先言語を指定しても、存在しない言語のトラックは追加されません。",
-        "言語欄を空欄にして再生成すると、初期の優先言語の上書きを解除します。現在の字幕をすぐ消す場合は、プレイヤー内の字幕メニューで無効を選びます。初期の優先言語の指定を解除する操作とは区別してください。"
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#choose-initial-audio-and-subtitle-languages",
+          "label": "初期の音声・字幕言語を選ぶ"
+        }
       ]
     },
     {
       "type": "h2",
-      "text": "ソースを選び直すときの扱い"
-    },
-    {
-      "type": "p",
-      "text": "Sourceの設定で変更したタイトルや開始位置は、同じソースを再読み込みするときにはほかの適用済み項目とともに維持されます。一方、ソースのボタンや終了時の推薦からプリセットを選ぶと、以前のソース上書きはクリアされます。同じプリセットを選び直した場合も同様です。"
-    },
-    {
-      "type": "note",
-      "text": "基本のソース選択欄では、一覧にあるプリセットを選びます。別のHLSやDASHのURLを使う場合は「SDKの詳細設定・API・イベント」でSourceConfig.hlsまたはSourceConfig.dashを編集するか、「操作」のPlayerAPI.loadへソースオブジェクトを渡します。これらの操作と、コードにソース設定を組み込む方法はWeb版の実装ガイドで説明します。"
+      "text": "ソースを選び直すときの扱い",
+      "id": "selecting-a-source-again"
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/#player-source-config",
-          "label": "Web版の実装ガイド：任意のストリームを使う"
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#selecting-a-source-again",
+          "label": "ソースを選び直すときの扱い"
         }
       ]
     },

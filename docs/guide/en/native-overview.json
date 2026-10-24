@@ -1,7 +1,7 @@
 {
   "id": "native-overview",
   "title": "Native app requirements and supported features",
-  "lead": "The native apps let you edit sources and playback settings, try platform controls, inspect applied code and use SDK operations, state reads and event logs. Each platform has Screen and controls for the workflow and an Implementation guide for the code behind it.",
+  "lead": "Compare projects, source formats, UI and license requirements for your target device. Use the platform guides for app operations and implementation details.",
   "blocks": [
     {
       "type": "h2",
@@ -49,16 +49,14 @@
     },
     {
       "type": "p",
-      "text": "The source catalogs include external public reference streams. The configuration forms also accept your own reachable test URLs. Available formats, audio, subtitles, and live rewind windows depend on the source and platform. Native apps do not automatically load the media bundled with Pages."
+      "text": "Catalogs reference external public streams and accept your own reachable URLs. Formats, audio, subtitles and rewind windows depend on the source and platform. Native apps do not automatically load the media bundled with Pages."
     },
     {
       "type": "steps",
       "items": [
-        "Start with a VOD preset to compare settings without a moving live window. Confirm that video plays before editing. Use a source with the audio tracks, subtitles or bitrate variants required for the feature you want to try.",
-        "Open the configuration and code views described in the platform chapter. Keep the current values as a baseline, then edit the setting you want to compare. Draft text does not change the running player or its exported code.",
-        "Read the action before Apply. Source-only changes reload the existing player on Apple and Android. Player changes recreate it. React Native and Vega recreate it for any changed configuration. The platform chapters give example values and units.",
-        "Apply, wait for the new source load, and check the actual picture, playback controls and event log. Open the code view again to confirm the submitted values. A value in code confirms the configuration; it does not by itself prove that a stream contains a matching track or bitrate.",
-        "To discard unapplied edits, use the platform's Reset control. To undo an applied experiment, re-enter the baseline values and Apply again. Reset does not undo a completed Apply. The Android player Reset prepares SDK defaults instead of restoring the applied player values."
+        "Confirm playback with a VOD preset. To compare audio, subtitles or quality, use a source containing the required tracks or renditions.",
+        "Open Screen and controls for your platform and retain the original values. Edits are drafts. Before applying, check whether the action reloads the source or recreates the Player.",
+        "Check the picture, controls, events and applied code after Apply. To undo an applied change, enter the original values and apply again. Reset discards draft edits; it does not undo a completed Apply."
       ]
     },
     {
@@ -107,25 +105,24 @@
     },
     {
       "type": "p",
-      "text": "The configuration forms cover common source, playback and UI choices. The SDK configuration and API inspector provide additional inputs based on each platform's SDK types. Names, application timing and available features differ by SDK; follow that platform's guides rather than transferring Web properties unchanged. Common examples include:"
+      "text": "Basic forms cover source, playback and UI settings; SDK inspectors use each SDK’s types. Names, application timing and numeric limits differ by SDK. Check these platform-specific areas:"
     },
     {
       "type": "bullets",
       "items": [
-        "Source: HTTP/HTTPS URL and type, optional title and poster URL, start offset in seconds, and offset reference.",
-        "Player: autoplay, startup mute, forward buffer in seconds, and bitrate cap in bits per second. Supported formats, blank/default meanings, and numeric limits differ by platform.",
-        "Apple: native video scaling through StyleConfig.scalingMode, plus initial audio/subtitle language preferences implemented by the app with public track-selection APIs. See the Apple chapter for initial selection and native HLS subtitle requirements.",
-        "Android: player-wide and source-specific audio language priorities, external WebVTT track metadata, and HTTP retry delays. See the Android chapter for inheritance, subtitle-menu selection and retry units.",
-        "React Native and Vega: an external WebVTT URL, label and language. React Native exposes default-track metadata; Vega can enable the track on load. Their separate screen-and-controls chapters explain the display and selection paths."
+        "Common fields: HTTP/HTTPS URL and format, title, poster, start position and reference. Buffer settings use seconds; bitrate caps use bit/s. Follow each platform’s meaning of blank and default values.",
+        "Apple: StyleConfig.scalingMode for video scaling, and initial audio/subtitle preferences using public track-selection APIs.",
+        "Android: player-wide and source-specific audio priorities, external WebVTT subtitles and HTTP retry delays.",
+        "React Native and Vega: external WebVTT URL, label and language. React Native default-track metadata differs from Vega’s enable-on-load setting."
       ]
     },
     {
       "type": "p",
-      "text": "Invalid input leaves the applied configuration unchanged. Reset changes only the draft: Apple, React Native, and Vega restore applied values; Android restores the applied source or SDK player defaults, depending on the Reset button. Android accepts a valid Apply again even with the same values, repeating the source reload or player restart. Applying unchanged settings does nothing on Apple, React Native, and Vega."
+      "text": "Invalid input leaves applied settings unchanged. Android reloads or recreates on a valid Apply even when values are unchanged; Apple, React Native and Vega do so only after a change. Follow each platform’s Screen and controls for draft reset and override removal."
     },
     {
       "type": "p",
-      "text": "Apple shows current native track selections and provides initial track preferences. Android audio priorities influence startup selection. Default-track metadata on Android and React Native does not itself enable subtitles; use their player subtitle menus. Vega displays enabled external WebVTT cues as plain text. Other track and quality controls depend on the SDK UI, source and platform."
+      "text": "Initial track preferences differ from selection during playback. Android and React Native default-track metadata does not enable subtitles; select them in the subtitle menu. Vega displays enabled external WebVTT as plain text. Follow the Apple guide for initial selection and native HLS subtitle conditions."
     },
     {
       "type": "table",
@@ -137,33 +134,33 @@
       "rows": [
         [
           "Source editor",
-          "Custom source, metadata, start position and source-specific track options",
-          "Apple and Android reload the source on the existing player. React Native and Vega recreate the player whenever Apply changes the configuration, including source-only edits."
+          "Source, metadata, start position and source-specific track options",
+          "Apple and Android reload on the existing Player. React Native and Vega recreate it for changed settings, including source-only edits."
         ],
         [
           "Player editor",
-          "Creation-time playback, buffer, bitrate and platform-specific settings",
-          "Recreates the player and reloads the complete applied source, retaining Allow DVR, logs, and any UI selection. Position resets to the configured start offset or SDK default; Autoplay determines whether playback starts."
+          "Creation-time playback, buffer, bitrate and platform settings",
+          "Recreates the Player and loads the complete applied source. Retains Allow DVR, logs and UI selection. Position returns to the start offset or SDK default; Autoplay controls playback."
         ],
         [
           "Offline",
-          "Offline inspectors on iOS and Android",
-          "Select tracks, download and load a downloaded source through the inspectors. Media, DRM and platform support determine which paths work; follow the platform chapter and check playback with networking disabled."
+          "iOS and Android inspectors",
+          "Select tracks, download and load saved sources. Check media, DRM and device conditions in the platform guide, then test with networking disabled."
         ],
         [
           "Casting / PiP / VR",
-          "Platform-specific API and host integration controls; iOS also has a Google Cast inspector",
-          "Use the platform chapter for supported controls and required media, permissions and devices. An exposed control does not establish receiver playback or physical-device qualification."
+          "Platform APIs and host settings; iOS also has a Google Cast inspector",
+          "Check required media, permissions and devices in the platform guide. An exposed control does not establish receiver playback or physical-device verification."
         ],
         [
           "TV remote",
-          "tvOS handles the remote Play/Pause command; tvOS and Vega provide focusable configuration controls",
-          "The normal tvOS remote configuration path and Vega D-pad controls were exercised on a simulator or virtual device. Physical TV hardware and untested key mappings still need checking."
+          "tvOS Play/Pause and focusable settings on tvOS and Vega",
+          "Normal tvOS configuration and Vega D-pad controls were checked on a simulator or virtual device. Physical TVs and untested key mappings need separate checks."
         ],
         [
           "Analytics",
-          "The collector is enabled when an optional license is configured",
-          "Check sending, receipt, and aggregation separately. There is no account-query GUI."
+          "Collector enabled by an optional license",
+          "Check sending, receipt and aggregation separately. Native apps have no account-query GUI."
         ]
       ],
       "widths": [
@@ -178,7 +175,7 @@
     },
     {
       "type": "p",
-      "text": "Native playback requires your own Player license and permission for the application identifier. The Web SDK’s localhost exception does not apply. If you use Analytics, allow the application identifier on that license as well. Update the permissions if you change an identifier. Normal native playback does not require an account API key."
+      "text": "Allow your application identifier on the Player license. The Web SDK’s localhost exception does not apply to native apps. Analytics also requires permission for that identifier on its license. Update permissions when changing an identifier. Normal native playback does not need an account API key."
     },
     {
       "type": "table",
@@ -222,7 +219,7 @@
     },
     {
       "type": "p",
-      "text": "Run the common preparation from the repository root using Node.js 24.19.0 and pnpm 10.33.0. Create the root .env file from .env.example and enter your own licenses. The Analytics license is optional; leaving it empty disables the collector. The following example contains a placeholder."
+      "text": "Use the pinned Node.js and pnpm versions and create the root .env from .env.example. Follow Local setup and licenses for shared configuration. The placeholder below leaves optional Analytics collection disabled; run the preparation commands from the repository root."
     },
     {
       "type": "code",
@@ -236,18 +233,30 @@
     },
     {
       "type": "note",
-      "text": "sync-env.sh writes ignored Apple, Android and React Native license files. Follow the platform README and implementation guide to generate and build the app, then use Screen and controls for operation. Vega also requires its separately installed SDK and runtime:config; sync-env.sh does not generate Vega configuration. Never commit license values."
+      "text": "sync-env.sh creates ignored license files for Apple, Android and React Native. Vega needs its separate SDK and runtime:config and is not handled by sync-env.sh. Follow each platform’s README and implementation guide to generate and build, then use Screen and controls. Never commit license values."
     },
     {
       "type": "links",
       "items": [
         {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Shared local setup and licenses"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/native-apple/",
+          "label": "iOS / iPadOS / tvOS: Screen and controls"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/native-android/",
+          "label": "Android / Android TV / Fire TV: Screen and controls"
+        },
+        {
           "url": "https://kazuhide.github.io/player-lab/guide/native-react-native/",
-          "label": "React Native screen and controls"
+          "label": "React Native: Screen and controls"
         },
         {
           "url": "https://kazuhide.github.io/player-lab/guide/native-vega/",
-          "label": "Vega OS screen and controls"
+          "label": "Vega OS: Screen and controls"
         }
       ]
     },
@@ -257,7 +266,7 @@
     },
     {
       "type": "p",
-      "text": "DVR is the available rewind window in a live stream. These samples use 0 for the live edge and negative values for the past. −30s seeks to 30 seconds behind the live edge; it does not rewind 30 seconds from the current position. The requested position is clamped to the range reported by the SDK."
+      "text": "DVR is the available live rewind window. These apps use 0 for the live edge and negative values for the past. −30s seeks to 30 seconds behind the live edge, rather than 30 seconds before the current position. The SDK-reported range limits the requested position."
     },
     {
       "type": "table",
@@ -298,12 +307,12 @@
     },
     {
       "type": "p",
-      "text": "HLS may report a rewind window of 0 seconds just after startup. Start playback and wait for the range to become available. Increasing the forward buffer does not extend the historical media retained by the stream. The live edge keeps moving while a seek completes. Acceptance of a seek request, completion inside the SDK, and the UI update do not happen at the same instant."
+      "text": "HLS may report a zero rewind window just after startup; play and wait for the range. Increasing the forward buffer does not extend the stream’s historical media. The live edge moves during a seek, and request acceptance, SDK completion and display updates occur at different times."
     },
     {
       "type": "note",
       "title": "What Allow DVR controls",
-      "text": "This switch controls the sample’s state calculation and helper rewind buttons. It does not change a global SDK DVR setting or guarantee that all seeking, including the shared UI’s seek bar, is disabled. Toggling it also does not move playback to the live edge. Use Live edge or Go to live edge to return to live. Apple and Android expose a separate SDK live time-shifting setting in the player editor; Allow DVR does not edit that setting."
+      "text": "Allow DVR controls the app’s state calculation and helper rewind buttons. It does not change all seek controls, including the shared UI seek bar, or the SDK’s global DVR setting. Toggling it does not move playback; use Live edge or Go to live edge to return to live. Apple and Android expose a separate SDK time-shifting setting in their player editors."
     }
   ],
   "sources": [

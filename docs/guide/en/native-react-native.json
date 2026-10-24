@@ -1,7 +1,7 @@
 {
   "id": "native-react-native",
   "title": "React Native: Screen and controls",
-  "lead": "Use the iOS or Android development build to change a source, compare Player UI, inspect applied settings and try SDK operations. The steps below follow the screen from playback and configuration to command results and events.",
+  "lead": "Change sources and Player settings in an iOS or Android development build, then check playback, subtitles, API results and events.",
   "blocks": [
     {
       "type": "h2",
@@ -10,17 +10,17 @@
     },
     {
       "type": "p",
-      "text": "Open Player Lab React Native on iOS or Android. Source and Theme appear above the Settings, APIs, Code and More tabs. In Settings, choose a category and property to open its editor directly. Unapplied changes identifies a draft; Up to date means it matches the applied configuration. Apply configuration and Reset draft remain outside the scrolling editor. Selecting a group, field, API view or operation opens its content at the top. Typing and switching language or workspace tabs retain the editor position."
+      "text": "The Settings, APIs, Code and More tabs sit below Source and Theme. In Settings, select a group and field to open its editor. Unapplied changes marks a pending draft; Up to date means it matches the current configuration. Apply configuration and Reset draft remain outside the scrolling editor."
     },
     {
       "type": "note",
       "title": "Display language",
-      "text": "Switch between English and Japanese using the language controls above the selectors. In compact layouts or with larger text, use More. A language change retains applied settings and drafts. This guide uses the English app; SDK identifiers, code and returned data retain their original spelling."
+      "text": "Use the language controls above the selectors to switch between English and Japanese. In compact layouts or with larger text, use More. Switching retains applied settings and drafts. Screenshots on this page use English; SDK names, code and returned data keep their original spelling."
     },
     {
       "type": "note",
       "title": "Before opening the screen",
-      "text": "Use the generated Expo development build; Expo Go does not include these native Player modules. The iOS bundle identifier and Android package are both com.playerlab.reactnative. The Player license must allow that identifier on the platform being used. Follow the linked setup and repository instructions to generate the host or refresh its copied local configuration."
+      "text": "Use the generated Expo development build. Expo Go lacks the required native Player modules. Both the iOS bundle identifier and Android package name are com.playerlab.reactnative; authorize this ID on the Player license for the target platform. Follow the links below to generate the host or refresh its configuration."
     },
     {
       "type": "links",
@@ -35,8 +35,8 @@
           "label": "Generate and run the Expo development host"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/",
-          "label": "Implementation guide: integration, configuration and UI changes"
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/integration/",
+          "label": "Integrate the Expo host and Player"
         }
       ]
     },
@@ -58,11 +58,11 @@
     {
       "type": "steps",
       "items": [
-        "Choose an on-demand sample in Source and start playback in the Player UI. iOS offers HLS and progressive MP4; Android also offers DASH. HLS and DASH are streaming formats that can provide several qualities.",
-        "Open Settings, choose Source in Configuration, then choose the property in Setting. Source URLs use HTTP or HTTPS; match Source type to the media. Title, poster URL and start position are optional. Retain the original values for comparison.",
-        "Keep the URL, enter 5 in Start offset (seconds), then choose Start in Start offset reference. Select Apply configuration. If Autoplay is off, start playback in the Player UI. Check SourceLoaded in More and the actual starting position.",
-        "Open Code to inspect the values sent to the SDK. Apply validates the complete draft and recreates the Player even for a source-only change. Invalid or unchanged settings leave the current Player in place.",
-        "Reset draft discards unapplied edits. To undo an applied change, restore the original values and apply them. Selecting a source sample replaces source fields immediately while retaining Player settings."
+        "Select a VOD sample under Source and play it with the Player UI. iOS offers HLS and progressive MP4; Android also offers DASH.",
+        "In Settings, select Source and the field to edit. Use an HTTP or HTTPS URL and match Source type to the media. Title, poster and start position are optional. Record values you will need to restore.",
+        "Keep the URL unchanged, enter 5 in Start offset (seconds), and select Start in Start offset reference. Apply configuration, then play with the Player UI if autoplay is off. Check SourceLoaded in More and the actual starting position.",
+        "Open Code to inspect the applied values. Even a source-only form change recreates the Player. Invalid inputs or an unchanged configuration leave the current Player in place.",
+        "Reset draft discards pending edits. To undo an applied change, enter the previous value and Apply. Selecting a source sample replaces source fields and retains Player settings."
       ]
     },
     {
@@ -75,23 +75,23 @@
       "rows": [
         [
           "Autoplay / Mute on startup",
-          "Off, then On",
-          "Apply recreates the Player. Compare whether the new session starts automatically and starts muted. These switches describe startup behavior, not an immediate play or mute command."
+          "Off, then on",
+          "Compare autoplay and initial mute after Apply. These switches do not call play or mute on the current session."
         ],
         [
-          "Start offset / reference",
-          "5 seconds, Start",
-          "Compare the initial position after Apply. Start refers to the beginning of the media or live rewind window; End refers to the end or live edge. SDK default is Start for VOD and End for live."
+          "Start offset / Start offset reference",
+          "5 seconds / Start",
+          "Check the position after Apply. Start refers to the beginning of the media or live window; End refers to its end or the live edge."
         ],
         [
           "Forward buffer",
           "10 seconds",
-          "Compare bufferConfig.audioAndVideo.forwardDuration in applied code. This is a media buffer target, not a guaranteed startup delay. Blank restores the platform default."
+          "Compare buffering and playback after Apply. Clear the field to use the platform default. This value does not specify startup time."
         ],
         [
           "Maximum bitrate",
-          "1500000 bits per second",
-          "Compare adaptationConfig.maxSelectableBitrate and the selected quality on a source with several qualities. Enter bits per second without units or commas; blank removes the cap."
+          "1500000 bit/s",
+          "Enter a whole number without units or commas and compare selected quality on a multi-quality source. Clear the field to remove the cap."
         ]
       ],
       "widths": [
@@ -102,7 +102,16 @@
     },
     {
       "type": "p",
-      "text": "Offsets and buffer durations accept finite decimal seconds. The buffer field permits zero for automatic selection on iOS; Android requires a positive value or blank. Maximum bitrate accepts whole numbers up to the native/JavaScript integer limit, explained in the implementation guide. Initial Player values are Autoplay off, Mute on startup off, and blank buffer/bitrate. Allow DVR controls the app’s rewind helper rather than an SDK creation property."
+      "text": "Enter times as finite decimal seconds. A buffer value of 0 means automatic selection on iOS; use a positive value or blank on Android. Initially autoplay and startup mute are off, and buffer and bitrate fields are blank. The implementation guide lists numeric limits, SDK defaults and configuration paths."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/player-source-config/#basic-configuration-fields",
+          "label": "Configuration meanings, units and defaults"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -122,24 +131,28 @@
     {
       "type": "steps",
       "items": [
-        "Try play, pause and seek in the Player UI. If the source has alternate audio, compare its tracks in the Player menu. Live rewind helpers and the app state line are available in More.",
-        "Choose Default, Sports, Live (DVR) or Cinema in Theme. A theme change recreates the Player and reloads the applied source. Compare the controls and UI settings in Code using the same source.",
-        "In Settings, choose Source and edit External WebVTT URL, Subtitle label and Subtitle language in turn. WebVTT is timed subtitle text. Match its timing to the media and use a language tag such as en-US.",
-        "Select Apply configuration, then choose the label in the Player subtitle menu. Mark as default supplies metadata; it does not enable subtitle display by itself. Play through a timed cue to check the result.",
-        "Clear External WebVTT URL and apply to remove the track and its label/language metadata. To finish a theme comparison, restore the previous theme and restore changed Player values separately."
+        "Try play, pause and seek in the Player UI. Switch audio tracks on a source with alternate audio. More contains the live rewind controls and status. Allow DVR toggles the app’s rewind helper.",
+        "Select Default, Sports, Live (DVR) or Cinema under Theme. A theme change recreates the Player and loads the applied source. Compare the controls and UI settings in Code using the same source.",
+        "In Settings → Source, enter an external WebVTT subtitle URL, label and language. Match cue times to the media and use a language tag such as en-US.",
+        "After Apply, select the label in the Player’s subtitle menu and play through a cue. Mark as default sets metadata; it does not enable display by itself.",
+        "To remove the subtitle, clear its URL and Apply. Its label and language are also cleared. Finish by restoring the previous theme and any changed Player settings."
       ]
     },
     {
       "type": "note",
       "title": "Scrolling inside the Android Player menu",
-      "text": "The video is outside the settings ScrollView. Start a swipe inside the video to move a Player menu, or within the editor to scroll its fields. Selecting a setting or API does not require scrolling the whole screen and video."
+      "text": "Swipe inside the video to scroll a Player menu, or inside Settings to scroll an editor. You do not need to scroll the whole screen, including the video, to select settings or APIs."
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/",
-          "label": "UI customization, platform differences and FAQ"
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/ui-customization/",
+          "label": "Player UI implementation and bundled themes"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/useful-features/#tracks-and-quality",
+          "label": "Track APIs and iOS/Android differences"
         }
       ]
     },
@@ -156,18 +169,18 @@
     {
       "type": "steps",
       "items": [
-        "Open Code after applying a change. Inspect Player, source and UI values together. Retain the output before changing another property to compare the difference.",
-        "Edit without applying and switch to Code: the output remains unchanged. Reset draft discards pending edits. Applying a valid change updates both the Player and the exported configuration.",
-        "Copy code uses Expo Clipboard. The output uses license placeholders; retain them when sharing the code.",
-        "See the implementation guide for the connection to usePlayer, PlayerView and shared UI assets. This output does not enumerate every internal SDK default."
+        "After Apply, open Code to inspect Player, source and UI settings. Save the output before changing another field to compare the difference.",
+        "Editing a value and switching to Code without applying leaves the output unchanged. Reset draft discards only pending edits.",
+        "Use Copy code to copy the output. Licenses appear as placeholders; keep those placeholders when sharing.",
+        "The output contains applied settings supplied by the app, not every internal SDK default. See the implementation guide for the usePlayer and PlayerView connections."
       ]
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/",
-          "label": "How the current code applies settings"
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/integration/#native-player-ownership",
+          "label": "Connect the Player and view"
         }
       ]
     },
@@ -178,20 +191,25 @@
     },
     {
       "type": "p",
-      "text": "An SDK is the library used to integrate the Player. Its API exposes configuration, commands and events. The basic form provides common options; SDK overrides and the list editors expose further properties from the installed React Native wrapper. A native SDK feature absent from the wrapper cannot be enabled by inventing an extra key."
+      "text": "SDK overrides edits settings outside the basic form; Subtitles and ads edits arrays. These editors use fields exposed by the installed React Native wrapper."
     },
     {
       "type": "steps",
       "items": [
-        "In Settings, select SDK overrides in Configuration. Use Configuration API to search an exact path such as SourceConfig.description, then select Set this API value. Retain the original value and whether an override was present.",
-        "Use the displayed type. Lists accept one item per line, maps accept unique name=value pairs, and enumerations use SDK choices. The UI settings category limits the selector to presentation properties.",
-        "For arrays, choose Subtitles and ads, select the target list, then use Edit this list and Add list item. Complete its URL, label, language and format. Source and offline subtitle lists are independent.",
-        "Select Apply configuration, then inspect Code and the matching playback, menu or event result. SDK overrides take priority over basic fields. Remove an override and apply to restore the basic value or SDK default; applying an enabled empty list clears that array."
+        "Select SDK overrides in Settings. Search for a path such as SourceConfig.description and choose Set this API value. Record its current value and whether an override was already enabled.",
+        "Follow the displayed type. Lists use one item per line; maps use unique name=value pairs; enums use SDK choices. UI settings also provides the UI-related fields.",
+        "In Subtitles and ads, select the array, then Edit this list and Add list item. Subtitles need URL, label, language and format; ads need position and advertising sources. Source and offline subtitle lists are separate.",
+        "After Apply, compare Code with playback, menus or events. Overrides take precedence over basic fields. Removing one restores the basic field or SDK default; applying an enabled empty list clears the array."
       ]
     },
     {
-      "type": "p",
-      "text": "Advertising list items need a position and one or more ad sources. A schedule is input to the SDK, not confirmation that an ad tag, service or media is available. Offline operations likewise need downloadable content, storage and any required DRM rights; use a stable content identifier. The implementation guide explains the corresponding configuration objects."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/player-source-config/",
+          "label": "Array, advertising and override mappings and prerequisites"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -206,10 +224,23 @@
     {
       "type": "steps",
       "items": [
-        "In Settings → JavaScript callbacks, search PlayerConfig.networkConfig.preprocessHttpRequest and select Edit this callback. Read the arguments and required return type before editing.",
-        "Enter a function body, enable Allow edited JavaScript execution and Apply. The supplied default returns the request; the callback runs when a matching SDK request occurs. Inspect the event log and any deliberate visible effect.",
-        "Network callbacks may return a Promise; synchronous callbacks must return synchronously. Fullscreen and custom-message entries create handler objects rather than plain values. Use the signature and factory requirements shown in the editor.",
-        "To stop the experiment, remove the callback and Apply again. If the body changed Player state, restore that state or recreate from the applied configuration. Edited JavaScript runs inside the app without a sandbox; only enable code you trust."
+        "In Settings → JavaScript callbacks, search for PlayerConfig.networkConfig.preprocessHttpRequest and select Edit this callback. Check its arguments and required return type.",
+        "Enter the function body, enable Allow edited JavaScript execution and Apply. The default body returns the request. When the matching request occurs, inspect the event log and the state you changed.",
+        "For fullscreen or custom messages, follow the type and factory contract shown by the editor. The implementation guide explains execution timing and return requirements.",
+        "Remove the callback and Apply when finished. Restore any Player state changed by its body, or recreate the Player from applied settings. JavaScript runs inside the app without a sandbox; allow only trusted code."
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/player-source-config/#source-loading-and-ownership",
+          "label": "Callback application and return contracts"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/ui-customization/#native-view-and-fullscreen",
+          "label": "Fullscreen and UI message handlers"
+        }
       ]
     },
     {
@@ -238,15 +269,24 @@
     },
     {
       "type": "p",
-      "text": "You can also search by a method name such as play. An exact match on the final part of an API name appears first, so play puts Player.play at the top. Other matches on Player remain below it."
+      "text": "You can search by a method name such as play. An exact match at the end of an API name comes first, so Player.play leads those results; other matches remain below it."
     },
     {
       "type": "p",
-      "text": "Some operations are platform-specific even when they appear in the search. In wrapper 1.29, Player.setVideoQuality and its auto option act only on Android; iOS reports a warning and does not select a quality. For iOS, compare the configured bitrate boundary and observed quality instead. In the Lab subtitle input, blank passes undefined to Player.setSubtitleTrack to disable subtitles."
+      "text": "Some listed operations are platform-specific. In wrapper 1.29, Player.setVideoQuality and auto work on Android; iOS warns and makes no selection. On iOS, compare Maximum bitrate with the selected quality. Leave the Player.setSubtitleTrack input blank to disable subtitles."
     },
     {
       "type": "p",
-      "text": "For an offline experiment, initialize the manager for the chosen content identifier, request options and inspect onOptionsAvailable before downloading. onCompleted reports completion; Player.loadOfflineContent loads that stored asset. Cancellation, deletion and license operations affect the selected identifier. Restore or delete experimental downloads deliberately; Player recreation is not an offline-storage reset."
+      "text": "Offline operations affect the selected content identifier. Check onCompleted before loading the stored media with Player.loadOfflineContent. Recreating the Player does not clear storage, so confirm the target before cancellation, deletion or license operations. See the implementation guide for initialization and download prerequisites."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/useful-features/",
+          "label": "Track, native integration and offline prerequisites"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -261,10 +301,19 @@
     {
       "type": "steps",
       "items": [
-        "In Settings → SDK overrides, set BitmovinCastManagerOptions.applicationId and messageNamespace as needed. Blank values use the default receiver and namespace. Keep the previous values for restoration.",
-        "Select Save Cast options for next launch in Cast startup configuration. This saves the current draft independently of Apply. Fully close and reopen the app; a JavaScript reload or Player recreation does not restart native Cast.",
-        "Select Read native Cast startup state. Compare savedOptions, startupOptions, nativeInitialized and pendingRestart. Android reads the native manager’s public getters; iOS reports the options submitted at process launch.",
-        "For discovery, connection and receiver playback, use a compatible receiver on the same network. To restore previous options, save those values and fully restart again. Wrapper 1.29’s deprecated BitmovinCastManager.initialize does not apply edited options."
+        "In Settings → SDK overrides, set BitmovinCastManagerOptions.applicationId and messageNamespace. Blank uses the default receiver and namespace. Record the values to restore.",
+        "Under Cast startup settings, select Save Cast options for next launch, then fully close and reopen the app. Saving is independent of Apply. A JavaScript reload or Player recreation does not apply these options.",
+        "Read native Cast startup state and compare savedOptions, startupOptions, nativeInitialized and pendingRestart. Check startup application separately from receiver discovery, connection and playback.",
+        "Try discovery, connection and playback with a compatible receiver on the same network. To restore options, save the original values and fully restart again. The implementation guide explains platform-specific state reporting and initialization."
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/useful-features/#native-features-and-cast",
+          "label": "Cast startup and OS integration"
+        }
       ]
     }
   ],

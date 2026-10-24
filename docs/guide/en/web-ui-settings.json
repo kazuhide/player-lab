@@ -1,18 +1,14 @@
 {
   "id": "web-ui-settings",
   "title": "UI settings and external displays",
-  "lead": "UI settings change the behavior of screen components. Keep them separate from Player Config playback settings, and choose a theme and source on which the change can be observed.",
+  "lead": "These instructions are now part of Web Screen and controls. Follow the topic links below.",
   "blocks": [
     {
       "type": "links",
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#ui-settings",
-          "label": "Screen and controls: the combined Web workflow"
-        },
-        {
-          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
-          "label": "Implementation guide: configuration, UI changes and FAQ"
+          "label": "Web Screen and controls"
         }
       ]
     },
@@ -22,93 +18,13 @@
       "id": "sixteen-ui-settings"
     },
     {
-      "type": "table",
-      "headers": [
-        "Setting",
-        "What to check"
-      ],
-      "rows": [
-        [
-          "Autohide controls",
-          "Hide the bar after inactivity. Initially off; applies to every theme, including Default."
-        ],
-        [
-          "Seek scrub-preview",
-          "Make the video follow the scrubber while dragging. When off, seek after release."
-        ],
-        [
-          "Keep bar on hover",
-          "With autohide enabled, keep the bar visible while the pointer is over the player."
-        ],
-        [
-          "Speed item in settings gear",
-          "Toggle the playback-speed selector. Check it in a theme with a settings menu."
-        ],
-        [
-          "Snap seeks to markers",
-          "Snap a seek near a marker to its position."
-        ],
-        [
-          "Fullscreen on first play",
-          "Enter fullscreen when the first playback begins through the play button. This is difficult to observe with the default autoplay behavior."
-        ],
-        [
-          "Keep subtitles in view",
-          "Keep overflowing subtitles inside the display area. Use a source with subtitles."
-        ],
-        [
-          "Disable UI storage",
-          "Disable Player UI localStorage access, including preferences and resume positions."
-        ],
-        [
-          "Snap range (%)",
-          "Set the snapping distance as a percentage of seek-bar width."
-        ],
-        [
-          "CEA-608 small-player px",
-          "Set the player-height threshold for small-player placement of compatible captions."
-        ],
-        [
-          "Remember playback preferences",
-          "Store volume, mute and playback speed in the browser. Initially off. Requires UI storage; a choice already made with the preferences switch takes precedence."
-        ],
-        [
-          "Resume VOD position",
-          "Store VOD positions and resume on a later source load. Initially off. Requires UI storage; live streams are excluded."
-        ],
-        [
-          "Read timestamp from URL",
-          "Read a VOD start position such as t=30 from the query or fragment. Initially on. Reload the source after changing this setting because it applies on the first source load after UI creation."
-        ],
-        [
-          "Preference switch in default settings",
-          "Show the playback-preferences switch in Default and CSS themes. Initially off. Hidden when UI storage is disabled. Custom component layouts do not add this switch."
-        ],
-        [
-          "Player UI language",
-          "Use auto for the browser language, or en, de, es, fr, nl or pt. Other languages fall back to English. Separate from the app Japanese/English selector."
-        ],
-        [
-          "Follow subtitle language",
-          "Use the selected subtitle language for Player UI. Initially off. If its translation is unavailable, use the configured UI language."
-        ]
-      ],
-      "widths": [
-        0.38,
-        0.62
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#sixteen-ui-settings",
+          "label": "Available UI settings"
+        }
       ]
-    },
-    {
-      "type": "note",
-      "text": "The sample chapter markers are at 120, 360 and 600 seconds. The 60-second Pages sample cannot reach them, so it cannot demonstrate marker snapping. The CEA-608 setting also cannot be checked using only the separate WebVTT subtitle file."
-    },
-    {
-      "type": "p",
-      "text": "Changing a checkbox or number rebuilds the active theme UI. Settings that do not recreate the player retain the current playback session. Changing a value on media that cannot exercise the feature is not evidence that the feature worked."
-    },
-    {
-      "type": "p",
-      "text": "The construction panel also shows applied UIConfig overrides as code. Its Player UI language is separate from the app language. Changes rebuild the UI without recreating the Player; source-load settings such as timestamp links require a subsequent source load."
     },
     {
       "type": "h2",
@@ -116,18 +32,13 @@
       "id": "compare-controls-during-playback"
     },
     {
-      "type": "steps",
+      "type": "links",
       "items": [
-        "Select VOD HLS and Premiere. Note the current time and the UI setting values you want to restore. A UI setting change rebuilds the controls while keeping the Player instance; it does not require the Source or Player Config Apply buttons.",
-        "Turn on Autohide controls. Move the pointer outside the video and wait for the controls to hide. Then turn on Keep bar on hover and compare while the pointer remains over the video. Return the switches to their recorded values.",
-        "Turn off Speed item in settings gear, then open the gear menu. The playback-speed selector disappears. Turn it on again to restore the selector. This removes a UI control; it does not disable the Player API playbackSpeed field.",
-        "Turn Seek scrub-preview off and drag the seek bar: the seek applies after release. Turn it on and compare the video while dragging. Thumbnail images are a separate feature of VOD + Sprites.",
-        "Enter de in Player UI language and leave the field. Check the player control labels, then return to en or auto. The app's English/Japanese selector remains separate. Turn Follow subtitle language off when comparing a fixed UI language."
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#compare-controls-during-playback",
+          "label": "Compare controls during playback"
+        }
       ]
-    },
-    {
-      "type": "p",
-      "text": "The construction-code panel displays the applied UIConfig overrides, such as playbackSpeedSelectionEnabled and localization.language. The applied configuration export below Player Config includes the same UI overrides. Changing themes retains these overrides. Numeric UI fields need an explicit previous value to restore them; empty input is treated as zero, rather than removing an override."
     },
     {
       "type": "h2",
@@ -135,92 +46,41 @@
       "id": "check-startup-and-saved-position-behavior"
     },
     {
-      "type": "table",
-      "headers": [
-        "Goal",
-        "How to try it",
-        "What to check and restore"
-      ],
-      "rows": [
-        [
-          "Enter fullscreen at first play",
-          "Turn autoplay off in Playback and recreate. Enable Fullscreen on first play in UI settings, then press the player play button.",
-          "The browser must allow fullscreen from that user action. Restore the UI switch and the earlier autoplay value; changing autoplay requires recreation."
-        ],
-        [
-          "Start a VOD from a URL timestamp",
-          "Open the Web app URL with ?t=30 and use VOD HLS. To compare with the option off, disable Read timestamp from URL and select the VOD HLS source again.",
-          "Check the initial time, not a later time after autoplay has advanced. Remove t from the URL and restore the switch afterwards. Saved resume positions and Source start offsets should be excluded from this comparison."
-        ],
-        [
-          "Inspect preference storage",
-          "Use Default or a CSS theme. Keep Disable UI storage off, enable Remember playback preferences and optionally Preference switch in default settings, then change volume, mute or speed.",
-          "Check the switch in the gear menu and the stored state in the browser's storage tools. A prior choice made in that switch can override the initial preference setting."
-        ],
-        [
-          "Compare VOD resume",
-          "Keep UI storage enabled, enable Resume VOD position, play into a VOD and load the same source again.",
-          "Compare the starting position with the option off, using a URL without t and no Source start offset. This applies to on-demand media, not live streams."
-        ]
-      ],
-      "widths": [
-        0.24,
-        0.38,
-        0.38
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#check-startup-and-saved-position-behavior",
+          "label": "Check startup and saved-position behavior"
+        }
       ]
     },
     {
-      "type": "note",
-      "text": "Disable UI storage prevents the UI from using browser localStorage; it is separate from Player Config storage.disableStorageApi and does not mean that already saved browser data has been deleted. Restore the switches you changed. For an experiment independent of saved UI state, enable Disable UI storage. The GUI has no button that clears stored preferences."
-    },
-    {
       "type": "h2",
-      "text": "PiP, AirPlay and Chromecast"
+      "text": "PiP, AirPlay and Chromecast",
+      "id": "pip-airplay-and-chromecast"
     },
     {
-      "type": "table",
-      "headers": [
-        "Control",
-        "Scope and prerequisites"
-      ],
-      "rows": [
-        [
-          "Playback panel PiP toggle",
-          "Change the player view mode. Browser and OS support are required."
-        ],
-        [
-          "Casting & PiP: PiP button",
-          "Add a small-window button to custom UIs. It is hidden in unsupported environments."
-        ],
-        [
-          "AirPlay button",
-          "Add AirPlay to custom UIs. A compatible Safari environment is required."
-        ],
-        [
-          "Chromecast button",
-          "Add Cast to custom UIs. The player is recreated to enable remotecontrol. A compatible receiver is required."
-        ]
-      ],
-      "widths": [
-        0.39,
-        0.61
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#external-displays",
+          "label": "PiP, AirPlay and Chromecast"
+        }
       ]
     },
     {
-      "type": "p",
-      "text": "Default and the CSS themes use the standard UI structure, which already includes these buttons. The add/remove checkboxes change the custom UI component trees. Enabling a checkbox does not make a button or receiver available unless the browser, connection and device requirements are met."
-    },
-    {
-      "type": "note",
-      "text": "The Cast control is wired to remotecontrol using the default receiver. The existence of its settings is separate from verification on a physical receiver. TV remote navigation and VR playback controls are not provided as features of the current Web screen."
-    },
-    {
       "type": "h2",
-      "text": "Continuous play"
+      "text": "Continuous play",
+      "id": "continuous-play"
     },
     {
-      "type": "p",
-      "text": "The Binge playlist advances through configured presets in this order: VOD HLS, VOD DASH, VOD + Multi-audio and VOD + Subtitles. Automatic advancement is initially enabled. When disabled, use the Next button near the end. Skip Intro appears from 5 to 18 seconds. Those are sample times, not automatically detected intro boundaries."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#continuous-play",
+          "label": "Continuous play"
+        }
+      ]
     }
   ],
   "sources": [

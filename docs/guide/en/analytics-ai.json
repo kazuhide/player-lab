@@ -1,7 +1,7 @@
 {
   "id": "analytics-ai",
   "title": "Analyze Analytics data with an LLM or MCP",
-  "lead": "Start with a reproducible aggregate question. Use a reviewed export, the external Bitmovin Observability Assistant, or an authorized MCP connection; these are separate from Player Lab's playback GUI.",
+  "lead": "Use an aggregate file, Observability Assistant or MCP for analysis. Define the query conditions and authorized sharing or access scope first.",
   "blocks": [
     {
       "type": "h2",
@@ -16,21 +16,21 @@
       "rows": [
         [
           "Aggregate file",
-          "Prepare a small JSON or CSV table from your own API/export workflow and supply it to an approved LLM. The assistant analyzes that file without an Analytics connection."
+          "Prepare the required JSON or CSV through your API/export workflow and supply it to an approved LLM. It analyzes the file without connecting to Analytics."
         ],
         [
           "Bitmovin Observability Assistant",
-          "Use the external Dashboard chat to ask about playback metrics. It retrieves data within your account permissions. Save the conversation with Download Chat before leaving if you need a record."
+          "Ask in the external Dashboard chat, which retrieves data within your account permissions. Use Download Chat before leaving if you need a record."
         ],
         [
           "Observability MCP",
-          "Connect a compatible AI client to the official server, then let it use authorized Analytics tools. Review the selected dataset and query scope before requesting data."
+          "Connect a compatible AI client to the official server. Review the dataset and query scope before requesting data."
         ]
       ]
     },
     {
       "type": "p",
-      "text": "Player Lab does not contain an LLM chat, MCP connection form or account-data export button. Its local Analytics panel returns aggregate rows through a server-side proxy; the browser-local QoE panel describes the current playback session. Neither result alone proves what happened across an audience."
+      "text": "These tools run outside Player Lab. The app has no LLM chat, MCP connection form or account-data export button."
     },
     {
       "type": "h2",
@@ -39,11 +39,11 @@
     {
       "type": "steps",
       "items": [
-        "Define the question and period first: for example, compare video startup time by browser over two completed days in UTC.",
-        "Retain the query conditions with the result: start/end, time zone, metric, aggregation, units, filters, group-by fields, interval, ordering and limit. Use an innocuous dataset label rather than a license key.",
-        "Include the relevant population for each group, obtained with the same scope. Keep missing or suppressed values distinct from zero; do not calculate a whole-range median from hourly medians.",
-        "Remove credentials, viewer/session identifiers, IP addresses, source URLs and unreviewed custom fields. Aggregate or suppress small groups according to your data-sharing rules. A raw CSV export is not automatically safe to upload.",
-        "Review the resulting file locally and send only the fields needed for the question to an approved AI service. Keep the original query and export in your own controlled workspace."
+        "Define the question and period; for example, compare startup by browser over two completed days in UTC.",
+        "Retain start/end, time zone, metric, aggregation, units, filters, groupings, interval, ordering and limit with the result. Use a non-confidential dataset label rather than a license key.",
+        "Include each group’s population under the same conditions. Distinguish missing or suppressed data from zero; do not derive a period median from hourly medians.",
+        "Remove credentials, viewer/session IDs, IP addresses, source URLs and unreviewed custom fields. Aggregate or suppress small groups under your sharing rules. A raw CSV is not automatically safe to upload.",
+        "Review the file locally and send only necessary fields to an approved AI service. Keep the original query and output under your control."
       ]
     },
     {
@@ -52,7 +52,7 @@
     },
     {
       "type": "p",
-      "text": "Replace the example scope below with the metadata of the aggregate file you actually prepared. The prompt is a template, not an executed query or a finding about Player Lab traffic. The same English template is included in both guide editions so the requested analysis remains identical."
+      "text": "Replace the scope below with your aggregate file’s conditions. This is an unexecuted prompt template, not a finding about Player Lab usage. Both editions include the same English template."
     },
     {
       "type": "code",
@@ -65,7 +65,7 @@
     },
     {
       "type": "p",
-      "text": "Model Context Protocol (MCP) lets an AI client call tools exposed by a server. The official Observability endpoint is https://analytics.mcp.bitmovin.com/ and authenticates with x-api-key. The optional x-tenant-org-id header selects tenant access when needed. Follow the current official setup page for your client; its Claude Desktop example uses Node.js 20 or later."
+      "text": "MCP (Model Context Protocol) lets AI clients call server tools. The official endpoint, https://analytics.mcp.bitmovin.com/, uses x-api-key authentication and optional x-tenant-org-id tenant selection. Follow the current official steps for your client; the Claude Desktop example uses Node.js 20 or later."
     },
     {
       "type": "code",
@@ -74,7 +74,7 @@
     },
     {
       "type": "note",
-      "text": "This is a placeholder template. Configure the real secret only in your protected local MCP client settings, using the client's supported secret mechanism. Do not paste it into an analysis prompt, Player Lab field, committed file, screenshot or shared transcript. Connecting MCP authorizes a different data path from uploading an aggregate file."
+      "text": "The configuration uses placeholders. Store real credentials only in protected local MCP settings through the client’s secret mechanism. Keep them out of prompts, Player Lab fields, committed files, screenshots and shared conversations. MCP grants a data-access path separate from sharing an aggregate file."
     },
     {
       "type": "h2",
@@ -88,44 +88,57 @@
       ],
       "rows": [
         [
-          "Resolve metric and attribute names",
-          "Inspect the available metric/filter catalog. Current connections may offer searchMetrics and searchFilters for a focused lookup; getAvailableMetrics and getAvailableFilters provide full catalogs."
+          "Resolve metric and grouping names",
+          "Use the connected catalog. searchMetrics and searchFilters provide focused lookup when available; getAvailableMetrics and getAvailableFilters return full lists."
         ],
         [
-          "One value over the whole range",
-          "queryTotal returns an aggregate such as a total, average, median or percentile."
+          "Whole-period value",
+          "queryTotal: aggregates such as totals, averages, medians and percentiles."
         ],
         [
           "Change over time",
-          "query returns a time series and chart, with automatically chosen time buckets."
+          "query: time series and chart with automatically selected buckets."
         ],
         [
           "Browser or device comparison",
-          "queryGroupBy returns category breakdowns. Keep the same period and filters when comparing groups."
+          "queryGroupBy: category breakdowns. Keep the period and filters consistent."
         ],
         [
           "One authorized playback session",
-          "getImpressionOverview summarizes one impressionId; analyzeImpression adds a timeline and interpretation. They do not replace license-wide totals or time-range queries."
+          "getImpressionOverview summarizes one impressionId; analyzeImpression adds a timeline and interpretation. Neither replaces license-wide totals or period queries."
         ]
       ]
     },
     {
       "type": "p",
-      "text": "Tool keywords need not match Dashboard labels or raw API fields. Ask the connected catalog to resolve them, then retain the returned definition, aggregation and unit. In particular, Error Percentage and Error Ratio are different metrics; do not rename one as the other or add filters that change a ready-made rate's denominator."
+      "text": "Tool keywords may differ from Dashboard labels or REST fields. Resolve them in the catalog and retain definitions, aggregation and units. Keep Error Percentage distinct from Error Ratio, and avoid conditions that change a calculated rate’s denominator."
     },
     {
       "type": "steps",
       "items": [
-        "Specify the authorized dataset, explicit start/end and time zone. Ask the client to show the resolved metric, aggregation and filters before querying.",
-        "Request a whole-range baseline with queryTotal, then a trend with query. Record the actual time buckets; the MCP time-series tool chooses them automatically.",
-        "Use queryGroupBy to narrow a difference to browser or device groups, and request the corresponding population counts separately when needed.",
-        "Only if the aggregate evidence calls for it, explicitly authorize a narrowly scoped single-session investigation. Session IDs are identifiers, not audience counts.",
-        "Retain tool inputs and aggregate outputs with the explanation. Verify calculations and proposed follow-ups against those results before changing playback configuration."
+        "Specify the authorized dataset, start/end and time zone. Ask to see the resolved metric, aggregation and filters before querying.",
+        "Use queryTotal for the whole period and query for a trend. Record the time-series buckets, which are chosen automatically.",
+        "Use queryGroupBy for browser or device differences. Request corresponding population counts separately when needed.",
+        "Only when aggregate evidence calls for it, explicitly authorize a narrowly scoped single-session investigation. Session IDs identify sessions rather than count viewers.",
+        "Retain tool inputs, results and explanation. Check calculations and proposed follow-ups against the results before changing playback settings."
       ]
     },
     {
       "type": "note",
-      "text": "The MCP documentation distinguishes thresholds on individual time measurements from conditions on a session's cumulative time; the latter are not supported by those filters. Session-inspection tools accept one impressionId rather than a time range. Do not infer an unsupported query from a fluent natural-language answer."
+      "text": "The MCP documentation distinguishes thresholds on individual timings from cumulative session-time conditions, which those filters do not support. Session tools accept one impressionId rather than a period. A fluent answer does not establish that an unsupported query ran."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-metrics/",
+          "label": "Check metric names, units and populations"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-visualization/#keep-data-and-query-settings-together",
+          "label": "Aggregate responses and raw exports"
+        }
+      ]
     }
   ],
   "sources": [

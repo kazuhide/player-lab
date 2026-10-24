@@ -1,7 +1,7 @@
 {
   "id": "react-native-implementation",
   "title": "React Native implementation guide",
-  "lead": "Use the existing iOS/Android screen to learn how the React Native wrapper creates a Player, loads a source and connects configurable UI, native operations and Analytics. Follow each experiment from the form to the current source code.",
+  "lead": "Use the current code to integrate the Expo host, configure the Player and sources, and connect UI, native features and Analytics.",
   "blocks": [
     {
       "type": "links",
@@ -20,12 +20,7 @@
     },
     {
       "type": "p",
-      "text": "The bitmovin-player-react-native package is a JavaScript interface to the native iOS and Android Player SDKs. The same React component therefore does not imply identical media support: this screen accepts HLS or progressive MP4 on iOS, and also DASH on Android. SourceConfig and PlayerConfig are wrapper types; browser Web SDK configuration cannot be copied into them unchanged. The PlayerConfig and SourceConfig section explains their fields and application."
-    },
-    {
-      "type": "note",
-      "title": "Display language",
-      "text": "Switch between English and Japanese using the language controls above the selectors. In compact layouts or with larger text, use More. A language change retains applied settings and drafts. This guide uses the English app; SDK identifiers, code and returned data retain their original spelling."
+      "text": "bitmovin-player-react-native exposes the native iOS and Android Player SDKs to JavaScript. This screen accepts HLS and progressive MP4 on iOS, plus DASH on Android. Its PlayerConfig and SourceConfig are wrapper types with fields that differ from the browser Web SDK."
     },
     {
       "type": "links",
@@ -37,10 +32,6 @@
       ]
     },
     {
-      "type": "p",
-      "text": "An SDK is the library and interfaces used to integrate the Player; an API is a public configuration, operation or event exposed by that library. HLS and DASH are streaming formats that can offer several qualities; VOD means on-demand media with a fixed timeline. WebVTT is a text subtitle format with timed cues. DRM controls access to protected media and needs a compatible license service."
-    },
-    {
       "type": "h3",
       "id": "expo-development-host",
       "text": "Build the Expo development host"
@@ -48,8 +39,8 @@
     {
       "type": "steps",
       "items": [
-        "Build the shared UI and generate the external Expo host following Build in an Expo project in the React Native README linked below. Use an Expo development build; Expo Go does not contain these native Player modules. The generator copies this repository’s App.tsx and src directory rather than generating a separate sample screen.",
-        "Allowlist com.playerlab.reactnative for the iOS and Android entries of the Player license. The generated host reads the copied local configuration at build/development time. Changing the repository’s key file alone does not update an already generated external host."
+        "Follow Build in an Expo project in the React Native README to build the shared UI and generate an external Expo host. The generator copies this repository’s App.tsx and src. Use a development build because Expo Go lacks the native Player modules. Serving JavaScript through Metro and building the native app are separate operations.",
+        "Allowlist com.playerlab.reactnative for both iOS and Android on the Player license. The host uses copied local configuration; editing the repository’s key file alone does not update it. Refresh the external host configuration and restart Metro as described in the README."
       ]
     },
     {
@@ -73,8 +64,7 @@
     {
       "type": "steps",
       "items": [
-        "Open App.tsx. App owns the applied settings and editable draft. PlayerPane is keyed by UI choice and revision; ActivePlayerPane obtains a Player through usePlayer and passes that instance into PlayerView.",
-        "Load a VOD preset, start playback and open Code. Keep this baseline while changing one option. Compare the submitted configuration, the native SDK event log and the visible result together."
+        "App.tsx keeps applied settings separate from drafts. It keys PlayerPane by UI selection and revision; ActivePlayerPane passes the Player returned by usePlayer into PlayerView."
       ]
     },
     {
@@ -90,7 +80,7 @@
     },
     {
       "type": "p",
-      "text": "usePlayer and PlayerView are SDK exports. applied, revision, PlayerPane and onPlayerTouchChange belong to Player Lab. onPlayerViewReady gates source loading so the native presentation exists first. loadOwnedSource is the Lab helper around the wrapper’s Player.load: it retains the native Source and prevents an older initialization from attaching to a replacement Player. Wrapper 1.29 Player.load itself returns void; use SourceLoaded, Player error and Source error events to observe media loading."
+      "text": "usePlayer and PlayerView are public SDK features. applied, revision, PlayerPane and onPlayerTouchChange belong to Player Lab. Source loading waits for onPlayerViewReady so the native view exists first. The source-loading section below explains ownership and result events."
     },
     {
       "type": "h2",
@@ -121,40 +111,40 @@
     {
       "type": "table",
       "headers": [
-        "What to change",
-        "Current SDK path",
-        "How to try it and interpret the result"
+        "Setting",
+        "SDK path",
+        "Meaning and application"
       ],
       "rows": [
         [
           "Startup behavior",
           "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted",
-          "Change Autoplay or Mute on startup, then Apply configuration. These are startup choices; use Player.play, pause, mute or unmute for a command on the current session."
+          "Autoplay and mute apply when the Player is created. Both app defaults are off. Use Player.play, pause, mute or unmute for commands during playback."
         ],
         [
           "Buffer target",
           "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration",
-          "Try 10 seconds on the same source. Blank uses the SDK default: 0 for automatic selection on iOS and 50 seconds on Android. Android requires a positive value in this form. The target is buffered media ahead, not a guaranteed startup time or actual memory measurement."
+          "Finite decimal seconds. Blank uses the SDK default: 0 for automatic selection on iOS and 50 seconds on Android. The form accepts nonnegative values on iOS and positive values on Android. This is a forward-media target, not a guarantee of startup time or memory use."
         ],
         [
           "Adaptive bitrate cap",
           "PlayerConfig.adaptationConfig.maxSelectableBitrate",
-          "Try 1500000 bit/s with a multi-bitrate source. This is a selection cap, not an encoder setting. Compare available/selected quality and playback, then clear the field to remove the cap."
+          "A positive whole number in bit/s; blank leaves the cap unset. It limits selection among supplied qualities rather than configuring an encoder or fixing one representation."
         ],
         [
           "Media address and identity",
           "SourceConfig.url / type / title / poster",
-          "Keep URL and type consistent. Title and poster are source metadata; their display depends on the chosen Player UI. Preset selection replaces source fields but retains Player settings."
+          "Match the HTTP/HTTPS URL and type. Display of title and poster depends on the Player UI. Presets replace source fields and retain Player settings."
         ],
         [
           "Initial position",
           "SourceConfig.options.startOffset / startOffsetTimelineReference",
-          "Try 5 seconds with Start on VOD. End uses the end of the VOD or live window as its reference. A signed offset changes the reference calculation; it is not the Player.seek command."
+          "A signed finite decimal offset in seconds. Start refers to the media or live-window beginning; End refers to its end or the live edge. The SDK default is Start for VOD and End for live. This is separate from Player.seek on the current session."
         ],
         [
           "Subtitles",
           "SourceConfig.subtitleTracks",
-          "The basic form adds a WebVTT track from URL, label and language. The additional list editor can configure multiple tracks. Mark as default sets metadata; select the actual track after load."
+          "The basic form creates one WebVTT track from URL, label and language; the array editor supports several. Use an IETF language tag such as en-US. isDefault is metadata; select the track after loading."
         ]
       ],
       "widths": [
@@ -176,24 +166,24 @@
     },
     {
       "type": "p",
-      "text": "The source above uses the wrapper’s url/type shape, unlike Vega’s hls/dash/progressive keys. Start offsets are in seconds. Maximum bitrate must be a positive whole number: up to 2,147,483,647 on Android and 9,007,199,254,740,991 on iOS, JavaScript’s exact-integer limit. Validation avoids integer conversion or precision loss before values cross the native bridge."
+      "text": "The wrapper uses url/type rather than Vega’s hls/dash/progressive keys. Maximum bitrate is limited to 2,147,483,647 on Android and 9,007,199,254,740,991 on iOS, JavaScript’s exact-integer limit. Validation before the native bridge prevents integer conversion and precision loss."
     },
     {
       "type": "steps",
       "items": [
-        "Open Settings, change the basic inputs and select Apply configuration. The whole draft is validated before replacing the Player. A source-only form edit also recreates it and resets the position to the configured offset.",
-        "For another setting, search its exact wrapper path in SDK overrides. For arrays use Subtitles and ads; for functions use JavaScript callbacks. A text field cannot stand in for a required native SDK object.",
-        "Open Code after Apply. Advanced settings override the basic form; removing the advanced value restores the form value or SDK default. Reset draft only discards pending edits.",
-        "When editing the implementation itself, keep the validated player/source objects separate. App increments revision on Apply; its React key remounts the Player owner because changing an argument to the existing usePlayer call is not a reconfiguration API."
+        "Apply validates the whole draft and replaces the Player only for a valid change. A source-only form change also recreates it and reloads from the configured offset.",
+        "App stores validated Player and source settings separately. Incrementing revision changes the React key and remounts the Player owner. Changing usePlayer arguments alone does not reconfigure an existing Player.",
+        "A preset normally reloads only the source; configured callbacks or fullscreen settings can also require recreation. Theme changes recreate the Player and load the applied source.",
+        "Reset draft discards pending edits only. A string or plain object cannot substitute for a required native SDK instance."
       ]
     },
     {
       "type": "p",
-      "text": "Additional overrides are passed to their typed SDK fields after the basic form. Remove an override and Apply to restore the form value or SDK default. List inputs use one item per line; map inputs use unique name=value pairs. Source and offline subtitle lists are independent, and an enabled empty list clears that array. A subtitle language uses an IETF tag such as en-US. Fallback advertising sources must use the same ad type; a supported native ad integration and a valid tag remain prerequisites. Player.scheduleAd can schedule an item from the applied advertising list."
+      "text": "Overrides are applied after basic fields and take precedence on the same path. Removing one and applying restores the basic field or SDK default. Lists use one item per line; maps use unique name=value pairs. Source and offline subtitle lists are independent; an enabled empty list clears its array. Fallback ad sources must share the same type and need a supported native ad integration and valid tag. Player.scheduleAd can use an item from the applied ad list."
     },
     {
       "type": "p",
-      "text": "License fields start empty and do not display environment values. Analytics metadata still needs an Analytics license. A nativeId reuses the native instance with that ID; leave it unset unless reuse is intended. The native SDK validates value, platform and source support, and an option for one OS may have no effect on the other. Offline configuration is consumed by its corresponding API operations. Cast receiver options have a separate process-startup path."
+      "text": "License fields start empty and never display environment values. Set nativeId only when reuse of the native instance with that ID is intended. The native SDK determines value, OS and source support; an OS-specific field may have no effect on the other platform. Offline operations consume their own configuration, while Cast receiver settings apply at process startup. Allow DVR controls the app’s rewind helper rather than an SDK creation property."
     },
     {
       "type": "h3",
@@ -213,7 +203,7 @@
     },
     {
       "type": "p",
-      "text": "The source-loading effect handles a new source on the retained Player after the current native view is ready. loadOwnedSource is the app’s ownership helper around the wrapper’s void Player.load, not an SDK Promise-returning load method. In your own screen, connect loading to the current view/player owner and use source/error events to observe media readiness. The form’s Apply path additionally remounts the Player when its configuration changes."
+      "text": "loadOwnedSource is the app helper that owns the native source and its target Player. It prevents an older initialization from attaching to a replacement Player. In wrapper 1.29, Player.load returns void rather than a loading-completion Promise. Load after the current view is ready and use SourceLoaded, Player error and source error events to check the result."
     },
     {
       "type": "figure",
@@ -265,7 +255,7 @@
         [
           "Add an app-level control",
           "Use the React buttons beside PlayerView as the pattern. Connect the handler to the current player and observe SDK state/events after the call.",
-          "JavaScript changes can reload through Metro; new native modules or bundled UI assets require a native rebuild."
+          "JavaScript changes can reload through Metro; new native modules or bundled UI assets require a native rebuild. The Code tab uses Expo Clipboard for copying."
         ]
       ],
       "widths": [
@@ -312,7 +302,7 @@
     },
     {
       "type": "p",
-      "text": "For SDK UI experiments, try WebUiConfig.playbackSpeedSelectionEnabled or a scaling-mode change before changing factory code. PlayerConfig.styleConfig.userInterfaceType is platform-specific: System UI is an Apple option, not an Android system-controls switch. Setting isUiEnabled to false removes SDK controls; any replacement React controls must provide the interactions your app needs. The existing API panel already exposes play, pause, seek and track selection against the active Player."
+      "text": "WebUiConfig.playbackSpeedSelectionEnabled configures the embedded UI; scalingMode controls video fit. PlayerConfig.styleConfig.userInterfaceType is platform-specific, with System UI available on Apple platforms. isUiEnabled: false hides SDK controls. A React replacement must supply the playback controls and state display the app needs."
     },
     {
       "type": "note",
@@ -323,6 +313,40 @@
       "type": "figure",
       "file": "rn-ios-api-callback",
       "caption": "The callbacks editor in the iOS app shows a function signature and an explicitly enabled body. Only execute code you trust; the JavaScript runtime is not sandboxed."
+    },
+    {
+      "type": "h3",
+      "id": "keyboard-and-editor-layout",
+      "text": "Keep keyboard and editor layout aligned"
+    },
+    {
+      "type": "p",
+      "text": "App owns the safe area, so the generated Expo index.tsx registers App directly. An extra SafeAreaView can shift the editor origin and hide fixed actions behind the keyboard. KeyboardAvoidingView uses useSafeAreaFrame’s y coordinate to account for its position in the host. Check button positions against the complete keyboard, including predictive text, in an integrated screen."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Area",
+        "Current behavior"
+      ],
+      "rows": [
+        [
+          "While the keyboard is visible",
+          "Omit bottom safe-area padding to avoid reducing the editor twice. API panel parents use flexBasis: 0 and flexShrink: 1. Android disables fullscreen text extraction. In short windows or with enlarged text, compact editing hides the preview while retaining the Player."
+        ],
+        [
+          "Compact Source and Player editors",
+          "Hide help while typing and restore it afterward. On Android, layout or content-size changes scroll to the end so the entire field is visible, even if native focus scrolling reveals only the caret. No keyboard-dismissing drag is needed. Omitting excess help prevents delayed iOS scrolling from moving the field above the editor. Structured settings, arrays and callbacks remain scrollable."
+        ],
+        [
+          "Selection and scroll position",
+          "Keep the ScrollView and Player mounted. useLayoutEffect scrolls to y=0 when the group, field, API view or operation changes; onSelect handles reselecting the current option. Typing and language/tab changes retain inputs and position. Selecting a different API initializes its arguments to that operation’s defaults."
+        ]
+      ],
+      "widths": [
+        0.26,
+        0.74
+      ]
     },
     {
       "type": "h2",
@@ -356,7 +380,7 @@
     },
     {
       "type": "p",
-      "text": "one is the Lab helper that creates an argument input and operation handler. The callbacks call the real Player.setVideoQuality, setAudioTrack and setSubtitleTrack APIs. Reuse the SDK call in your own event handler after obtaining a current track identifier; the Lab’s form-registration helper is not required. Keep the iOS quality-selection limitation above when adapting the first operation."
+      "text": "one is the app helper that registers an argument input and operation handler. Its callbacks call the SDK’s Player.setVideoQuality, setAudioTrack and setSubtitleTrack. In another screen, obtain the current identifier and call the SDK from your event handler; the registration helper is optional."
     },
     {
       "type": "p",
@@ -375,9 +399,9 @@
     {
       "type": "steps",
       "items": [
-        "For native system features, inspect the available PlayerView and Player configuration first. Picture in picture and background playback need the generated host’s native capabilities; AirPlay is an Apple feature. Enabling a flag does not create missing OS permissions, receiver hardware or content support.",
-        "For Cast, save the startup options in Cast startup configuration and fully close/reopen the app. Read native Cast startup state before attempting discovery and receiver playback. Wrapper 1.29’s deprecated BitmovinCastManager.initialize is a no-op; Player recreation or a JavaScript reload does not replace native process startup.",
-        "Save Cast options for next launch persists the current draft independently from Apply. Blank receiver and namespace values use the Bitmovin defaults. The generated native host initializes Cast before the wrapper’s lifecycle listener. Startup options and native initialization state are reported separately; an initialized sender does not establish receiver discovery, connection or playback. Fully close and reopen the app after saving."
+        "Picture in picture and background playback require the generated host’s native capabilities. AirPlay is an Apple feature. Check OS permissions, receiver hardware and content support as well as PlayerView and Player settings.",
+        "BitmovinCastManagerOptions.applicationId and messageNamespace apply at process startup. Save Cast options for next launch persists the draft independently from Apply; blank uses Bitmovin defaults. Fully close and reopen the app to apply them. Wrapper 1.29’s deprecated BitmovinCastManager.initialize is a no-op, so Player recreation or a JavaScript reload cannot replace startup.",
+        "The generated host initializes Cast before the wrapper’s lifecycle listener. Android reads startup state through the native manager’s public API; iOS reports the values supplied at process startup. Saved options, startup options and initialization state are shown separately. Receiver discovery, connection and playback require separate checks."
       ]
     },
     {
@@ -432,15 +456,15 @@
         ],
         [
           "How are Apply and Reset kept above the keyboard?",
-          "App owns the screen safe area, so the generated Expo index.tsx registers App directly. Another SafeAreaView around it changes the editor origin and can hide fixed actions behind the keyboard. KeyboardAvoidingView uses the y coordinate from useSafeAreaFrame to account for its position within a host. Android disables fullscreen text extraction; compact editing hides the preview while retaining the Player when typing in a short window or with enlarged text. Check the complete keyboard, including predictive text, against actual button positions in an integrated screen. While the keyboard is visible, the original bottom safe-area padding is omitted so the editor is not reduced twice. The API panel's parent views also set flexBasis: 0 and flexShrink: 1 so their fixed actions follow the reduced viewport."
+          "Check direct App registration, KeyboardAvoidingView coordinates, bottom padding and parent-view shrinking. The UI chapter’s keyboard and editor layout section describes the implementation."
         ],
         [
           "Why is some help hidden while I type?",
-          "The compact Source and Player editors hide explanations until editing ends to reserve room for the focused field and fixed actions. On Android, native focus scrolling can reveal the caret while leaving the bottom of the field outside a shortened editor. These compact editors also scroll to the end after layout or content-size changes, revealing the whole field without a drag that would dismiss the keyboard. On iOS, the operating system may finish scrolling to the field after the layout changes. Removing excess scrollable help in this state prevents that delayed scroll from moving the field above the editor. Structured settings, arrays, and callback editors retain their scrollable content."
+          "Compact Source and Player editors reserve space for the field and fixed actions, then restore help when typing ends. See the UI chapter for platform-specific scrolling behavior."
         ],
         [
           "How does selecting a setting reveal the start of its editor?",
-          "A ScrollView retains its offset when its content changes. The settings and API panels keep the existing ScrollView and Player, using useLayoutEffect to scroll to y=0 when the chosen group, field, API view or operation changes. Selecting the current option again scrolls to the top through onSelect. Typing and switching language or workspace tabs retain the current inputs and editor position. Choosing a different API initializes its arguments to that operation's defaults."
+          "Selection changes scroll the existing ScrollView to the top; typing and language/tab changes retain its position. The UI chapter explains useLayoutEffect and onSelect."
         ],
         [
           "Why do settings reset after changing Android's system text size?",
@@ -478,6 +502,10 @@
         {
           "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/useful-features/",
           "label": "Check track selection and native integration prerequisites"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/react-native-implementation/ui-customization/#keyboard-and-editor-layout",
+          "label": "Keyboard and editor layout"
         }
       ]
     },
@@ -519,9 +547,8 @@
     {
       "type": "steps",
       "items": [
-        "Use an Analytics license authorized for the generated app and apply a recognizable non-sensitive experiment label and videoId. Start playback and perform a deliberate pause, seek or track change.",
-        "In Bitmovin Dashboard, select the matching Analytics license, time range and app/content filters. Inspect the session and compare startup, buffering, bitrate and errors with the SDK event log. Collection and Dashboard aggregation are separate steps.",
-        "Use the shared metric, visualization and analysis chapters below for definitions and query examples. Account API credentials belong in trusted server-side tools; they are not Player or Analytics collector license keys and must not be embedded in the app."
+        "Use an Analytics license authorized for the generated app and non-sensitive videoId and experiment labels. Play, pause or seek while recording SDK events.",
+        "In Dashboard, select the matching Analytics license, period and app/content filters, then match the playback session to the SDK events. Use the shared guides below for metric definitions, aggregation and visualization. Account API credentials differ from Player and collector licenses; keep them in trusted server-side tools rather than the app."
       ]
     },
     {

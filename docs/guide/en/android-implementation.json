@@ -14,11 +14,6 @@
       "text": "This chapter follows the existing Kotlin app in apps/android. Android phones and tablets, Android TV, and Android-based Fire TV use that Android app and SDK. Fire TV running Vega OS uses the separate Vega implementation guide. Start with a working on-demand (VOD) source, then change one setting at a time and compare the applied Kotlin code with the observed playback."
     },
     {
-      "type": "note",
-      "title": "Display language",
-      "text": "The app supports English and Japanese through the system or per-app language preference. This guide uses captures from the English app. SDK identifiers, code and returned data are not translated. The standard Player controls also depend on SDK and system language settings."
-    },
-    {
       "type": "links",
       "items": [
         {
@@ -33,7 +28,7 @@
     },
     {
       "type": "p",
-      "text": "The app uses Bitmovin Player Android 3.171.0+jason. The +jason artifact relocates its Media3 dependency so it can coexist with the advertising dependency used here. Keep Player, UI, Analytics and media-session artifacts on the compatible variant defined in app/build.gradle.kts. SDK means software development kit: here it is the native player library, separate from the app’s Compose settings form. An API is the interface your code calls to configure the SDK, control playback or read state."
+      "text": "The app uses Bitmovin Player Android 3.171.0+jason. This artifact relocates its Media3 dependency to coexist with the bundled advertising dependency. Use the Player, UI, Analytics and MediaSession combination in app/build.gradle.kts."
     },
     {
       "type": "table",
@@ -83,7 +78,7 @@
     },
     {
       "type": "p",
-      "text": "PlayerController, PlayerSettings, ApiOverrides and ApiNativeFactories are Player Lab helpers, not SDK types. The final Player(context, prepared.config, analytics.playerConfig(...)) call is the SDK constructor. The helpers first build a new PlayerConfig, apply the staged SDK overrides and construct any required native resources. In your own integration, supply those SDK objects before constructing the Player; copying this helper call alone is insufficient without its app-owned definitions."
+      "text": "PlayerController, PlayerSettings, ApiOverrides and ApiNativeFactories are Player Lab helpers. They prepare fresh PlayerConfig, overrides and Android resources before calling the SDK constructor Player(context, prepared.config, analytics.playerConfig(...)). Include the helpers when reusing this code, or build those SDK objects in your own integration."
     },
     {
       "type": "p",
@@ -97,7 +92,7 @@
     },
     {
       "type": "p",
-      "text": "Settings separates draft text from applied configuration. Choose Settings → Configuration → Source or Player and a Setting to edit one input at a time; Apply source or Apply player stays beside the draft status. Compare the result in Code, then trace the SDK construction below. PlayerDraft and SourceDraft validate and normalize app inputs; the SDK receives PlayerConfig and SourceConfig, not those draft classes."
+      "text": "PlayerDraft and SourceDraft validate and normalize app inputs. The SDK receives fresh PlayerConfig and SourceConfig objects. Drafts remain separate from applied settings, with independent Source and Player apply actions."
     },
     {
       "type": "h3",
@@ -122,9 +117,9 @@
     {
       "type": "table",
       "headers": [
-        "Setting to try",
-        "SDK mapping",
-        "How to apply and verify"
+        "Setting",
+        "SDK mapping and defaults",
+        "Meaning and example"
       ],
       "widths": [
         0.22,
@@ -133,35 +128,58 @@
       ],
       "rows": [
         [
-          "Autoplay off; Start muted on",
-          "PlaybackConfig.isAutoplayEnabled / isMuted",
-          "Apply player. Playback waits for Play and starts muted."
+          "Autoplay / Start muted",
+          "PlaybackConfig.isAutoplayEnabled / isMuted; both default off",
+          "Enable only mute and apply: playback waits for Play and starts muted. These are separate from runtime controls."
         ],
         [
-          "Startup 1 s; Restart 2 s; Forward 10 s",
-          "BufferConfig.startupThreshold / restartThreshold; BufferMediaTypeConfig.forwardDuration",
-          "Apply player. Compare the applied config and loading/stall behavior using the same source."
+          "SDK live time shifting",
+          "PlaybackConfig.isTimeShiftEnabled; default on",
+          "Player creation-time setting. More → Playback options → Enable live rewind controls is a separate app preference and does not change VOD behavior."
         ],
         [
-          "Maximum automatic video bitrate 1500000 bits per second",
-          "AdaptationConfig.maxSelectableVideoBitrate",
-          "Recreate, use automatic quality on a source with several bitrates, then inspect selected quality."
+          "Buffer",
+          "BufferConfig.startupThreshold / restartThreshold; BufferMediaTypeConfig.forwardDuration; defaults 2.5/5/50 seconds",
+          "Try 1/2/10 seconds and compare code and loading/rebuffer behavior on the same source."
         ],
         [
-          "Player audio priority: de, en",
+          "Maximum automatic video bitrate",
+          "AdaptationConfig.maxSelectableVideoBitrate; whole bit/s, blank = Int.MAX_VALUE (2147483647), no cap",
+          "Try 1500000. This caps automatic selection; manual selection can choose higher qualities."
+        ],
+        [
+          "Preload / Allow rebuffering",
+          "AdaptationConfig.preload / isRebufferingAllowed; both default on",
+          "Control preloading and rebuffering separately."
+        ],
+        [
+          "Live quality / stability balance",
+          "AdaptationConfig.qualityStabilityBalance; 0–1, default 0.5",
+          "Applies near the live edge. Values toward 1 favor stability; toward 0 favor quality. Try 0.8 on live, separately from VOD."
+        ],
+        [
+          "Player audio priority",
           "PlaybackConfig.preferredAudioLanguages",
-          "Recreate. Inspect the chosen track on a source containing those languages; source priority can override it."
+          "Try de, en. A nonempty source priority list takes precedence."
         ],
         [
-          "HTTP retry delays: 0, 0.25, 2 s",
-          "RetryHttpRequestConfig.Retry",
-          "Recreate. This allows a retry for each delay; a successful request does not exercise the retry path."
+          "HTTP retry delays",
+          "RetryHttpRequestConfig.Retry; finite nonnegative seconds",
+          "0, 0.25, 2 allows one retry per value. Blank uses LinearIncreasingBackoffRetry; none disables retries."
         ]
       ]
     },
     {
       "type": "p",
-      "text": "Startup and restart thresholds are seconds of buffered media, not a promise to start after that many wall-clock seconds. The standard editor requires each threshold to be at most the forward buffer minus 0.5 seconds. A smaller forward buffer can reduce retained media, but also leaves less room for network variation; memory use additionally depends on bitrate and the decoder. The automatic bitrate cap does not remove higher qualities from manual selection. qualityStabilityBalance affects playback near the live edge: values toward 1 favor stability and values toward 0 favor quality. Bitrate values use bits per second (bps)."
+      "text": "Startup and Restart are buffered media duration needed to start or resume, not wall-clock delays. The standard editor requires nonnegative thresholds no greater than forward buffer minus 0.5 seconds, and a forward buffer of at least 0.5 seconds. Numeric fields reject non-finite values."
+    },
+    {
+      "type": "p",
+      "text": "A smaller forward buffer retains less media but leaves less room for network variation. Memory also depends on bitrate and the decoder."
+    },
+    {
+      "type": "p",
+      "text": "The standard retry field does not alter callbacks, request credentials or DRM-license renewal retries; use their separate SDK settings. Compare retries on a source you control where request failures can be reproduced."
     },
     {
       "type": "figure",
@@ -193,7 +211,7 @@
       "headers": [
         "Source setting",
         "SDK mapping",
-        "What to check after reload"
+        "Meaning and checks"
       ],
       "widths": [
         0.22,
@@ -202,31 +220,44 @@
       ],
       "rows": [
         [
-          "URL and format",
+          "URL and type",
           "SourceConfig(url, SourceType)",
-          "Choose the actual manifest/container type. A title or file extension alone does not convert the media format."
+          "Use an HTTP(S) URL and DASH/HLS/Smooth/Progressive. HTTP depends on device cleartext policy. Selecting a type does not convert media."
         ],
         [
-          "Start offset: 5 s; reference: Start",
+          "Title and poster",
+          "SourceConfig.title / posterSource / isPosterPersistent",
+          "Title and poster URL are optional; blank uses SDK defaults. Persistent poster is also configurable."
+        ],
+        [
+          "Start position",
           "SourceOptions(startOffset, startOffsetTimelineReference)",
-          "On VOD, compare the first playback position. SDK-default uses the start for VOD and end for live; out-of-range offsets are corrected."
+          "Seconds, blank = SDK default. The default reference is Start for VOD and End for live. Try 5 seconds/Start; the SDK corrects out-of-range offsets."
         ],
         [
-          "Source audio priority: en, de",
+          "Source audio priority",
           "SourceConfig.preferredAudioLanguages",
-          "A nonempty source list takes precedence over the player list. No matching track leaves SDK selection."
+          "A nonempty list overrides Player priority; blank inherits it. No match keeps the SDK default track."
         ],
         [
-          "External subtitle URL, label and language",
+          "External WebVTT subtitles",
           "SourceConfig.subtitleTracks with SubtitleTrack",
-          "Reload, then enable the track in the player subtitle menu. isDefault metadata alone does not enable subtitles."
+          "The standard form adds one track. isDefault is metadata; enable the track in the subtitle menu after reloading."
         ],
         [
           "Live target latency",
           "SourceLiveConfig.targetLatency",
-          "Use a live source. It changes the SDK live-edge target; VOD ignores it and the value is not a guaranteed end-to-end latency."
+          "Finite seconds; blank keeps liveConfig = null and SDK defaults. VOD ignores it."
         ]
       ]
+    },
+    {
+      "type": "p",
+      "text": "Audio lists trim whitespace and remove duplicates without regard to case while preserving priority. External subtitles use an HTTP(S) WebVTT URL with optional label/language. Clear metadata when removing the URL; in-stream subtitles remain available."
+    },
+    {
+      "type": "p",
+      "text": "Live target latency changes the SDK’s definition of the live edge and asks it to approach the target while avoiding stalls. It applies on source reload and survives Player recreation. It guarantees neither end-to-end latency nor a seek-completion or convergence deadline. See test results for the checked environments."
     },
     {
       "type": "p",
@@ -257,10 +288,10 @@
     {
       "type": "steps",
       "items": [
-        "Apply source constructs a fresh Source and loads it on the existing Player. Unapplied Player edits are not included.",
-        "Apply player creates a new Player and reloads the applied source, including metadata and start options. It retains the UI mode and app rewind preference; it does not preserve the former playback position.",
-        "Reset draft restores the selected Source or Player group’s applied values without applying them. A source preset replaces custom source fields and options. Switching fields or workspace tabs retains the draft.",
-        "Choose Code for the standard PlayerConfig, SourceConfig and PlayerViewConfig. Read the separate Code → SDK overrides when using additional SDK settings; the standard code display alone is not the complete set of advanced overrides."
+        "Apply source loads a new Source on the same Player, excluding unapplied Player edits. Apply player creates a new Player with the applied source, excluding unapplied Source edits.",
+        "Recreation retains source metadata/options, UI mode, app rewind preference and the event log. It follows the start offset and Autoplay without restoring the old playback position.",
+        "Reset draft changes only the draft. A preset replaces source fields/options while retaining Player settings. Switching fields or tabs retains drafts.",
+        "Inspect standard PlayerConfig/SourceConfig/PlayerViewConfig alongside Code → SDK overrides. Standard code does not include every additional override."
       ]
     },
     {
@@ -279,11 +310,23 @@
     },
     {
       "type": "p",
-      "text": "For other fields, choose Settings → Configuration → SDK overrides, then Feature and SDK setting. Search or browse the public SDK name, edit its typed value and choose Stage override. Apply SDK constructs fresh objects with those overrides; staging alone does nothing. Overrides take precedence over the basic settings. Remove and Apply returns to the standard value or SDK default. List fields such as SourceConfig.subtitleTracks and PlaylistConfig.sources are edited as collections with child fields, rather than pasted Kotlin."
+      "text": "Overrides take precedence over basic settings. Lists such as SourceConfig.subtitleTracks and PlaylistConfig.sources construct typed objects from elements and child fields. Subtitle default metadata does not enable captions; playlist preloading can increase network and memory use."
     },
     {
       "type": "p",
-      "text": "SDK callbacks are functions, not text configuration values. The Lab lets you enter a JavaScript body for supported callbacks and adapts its plain input/output values to the SDK callback. For example, LabelingConfig.videoQualityLabeler can return a label using the provided height and bitrate. Apply it, open the quality menu, then More → Diagnostics to inspect calls and fallbacks. The interpreter has execution budgets and no direct Android or Player object access; it is an app helper, not the SDK’s own JavaScript callback API."
+      "text": "Companion ad containers, SimpleCache and Cronet create real Android objects. Prepare the Google Play services Cronet provider before applying it. Cache settings read existing data; ordinary playback does not populate that cache."
+    },
+    {
+      "type": "p",
+      "text": "Save startup-only settings such as DebugConfig.isLoggingEnabled, then fully restart the app. Current process values and saved next-launch values are separate. Keep debug logs local because they may contain confidential information."
+    },
+    {
+      "type": "p",
+      "text": "Supported SDK callbacks accept a JavaScript function body. The app evaluates plain input/output values and adapts the result to the SDK callback. For LabelingConfig.videoQualityLabeler, return a label using height/bitrate, open the quality menu, then inspect calls in More → Diagnostics."
+    },
+    {
+      "type": "p",
+      "text": "Execution is bounded, with no Java, Android or Player object access. Invalid results or exhausted budgets use the documented fallback. Zero calls means the SDK has not invoked that path. The interpreter is an app helper."
     },
     {
       "type": "h2",
@@ -308,7 +351,7 @@
     },
     {
       "type": "p",
-      "text": "The Theme picker passes Default, Sports, Live or Cinema to this helper. On phones and tablets, Default keeps PlayerViewConfig(), whose SDK default is WebUi with SmallScreenUi. On a television, Player Lab explicitly selects TvUi and focusUiOnInitialization = true. The SDK default itself does not select TvUi. Custom modes keep their registered factory and bundled JavaScript/CSS on either device; they do not become TV controls merely because the display is wide. To add a reusable layout, change packages/ui-shared/src/liveUi.ts, register the factory in global.ts and add its UiMode or use the custom-factory SDK override."
+      "text": "Theme passes Default, Sports, Live or Cinema to the helper above. To add a custom UI, build it in packages/ui-shared/src/liveUi.ts, register its factory in global.ts and select it through UiMode or the Custom factory override. The mobile/TV table below lists the default variants."
     },
     {
       "type": "table",
@@ -357,7 +400,11 @@
     },
     {
       "type": "p",
-      "text": "Use Settings → Configuration → SDK overrides for PlayerViewConfig.uiConfig and UiConfig.WebUi fields. Stage only one variant choice: the standard TvUi/SmallScreenUi field and the custom factory field are mutually exclusive. To disable the Web UI with UiConfig.Disabled, first remove staged WebUi field overrides; then apply. This changes the view configuration, while the app’s general Apply SDK action also recreates the Player. If you implement Compose-only transport controls, wire them to Player.play/pause/seek and subscribe to playback state; disabling the Web UI does not create those controls automatically."
+      "text": "Edit PlayerViewConfig.uiConfig and UiConfig.WebUi in SDK overrides. TvUi/SmallScreenUi and a Custom factory are mutually exclusive. Remove WebUi field overrides before using UiConfig.Disabled."
+    },
+    {
+      "type": "p",
+      "text": "Apply SDK recreates the Player even for view settings. Compose-only controls must call Player.play/pause/seek and subscribe to playback state. Disabling Web UI does not create those controls."
     },
     {
       "type": "code",
@@ -422,7 +469,7 @@
         ],
         [
           "SDK controls inside PlayerView",
-          "Default uses the SDK SmallScreenUi for touch-oriented controls.",
+          "Default uses the SDK SmallScreenUi for touch-oriented controls. This is the PlayerViewConfig() default; the SDK does not automatically select TvUi.",
           "Default explicitly creates WebUi(variant = TvUi, focusUiOnInitialization = true), which selects UIFactory.buildTvUI and starts WebView spatial navigation."
         ],
         [
@@ -439,7 +486,11 @@
     },
     {
       "type": "p",
-      "text": "The current sample adapts its existing androidx.compose.material3 controls. For a dedicated TV destination in your own app, Compose for TV supplies components such as androidx.tv.material3.Button through androidx.tv:tv-material. Keep its MaterialTheme consistent within that surface: TV and mobile Material libraries have separate themes. Reuse the Player owner and settings state when choosing a TV-specific composable. Every control needs a reachable D-pad target, visible focus and a distinct selected state. Restore focus after selectors or content changes and test movement between Compose and the SDK WebView. focusUiOnInitialization only requests focus when the WebView initializes; the host app owns its wider restoration policy."
+      "text": "This sample adapts existing androidx.compose.material3 controls. A dedicated TV destination can use androidx.tv.material3.Button and other components from androidx.tv:tv-material. TV and mobile have separate MaterialTheme types; keep each surface consistent while reusing Player ownership and settings state."
+    },
+    {
+      "type": "p",
+      "text": "Every control needs a reachable D-pad target, visible focus and a distinct selected state. Restore focus after selectors/content changes and test movement between Compose and the SDK WebView. focusUiOnInitialization requests focus at WebView initialization; the host manages broader restoration."
     },
     {
       "type": "p",
@@ -447,7 +498,11 @@
     },
     {
       "type": "p",
-      "text": "TV Back is an app host policy built on the public Android ViewGroup.dispatchKeyEvent route to the focused SDK view. When the current preview owns focus outside fullscreen and picture-in-picture, the host sends KEYCODE_ESCAPE with ACTION_DOWN and ACTION_UP before returning focus to Source. The release event closes and resets the SDK settings menu, including a nested quality page. A native dialog or on-screen keyboard handles Back in its own window first. Other D-pad and Select events continue through the normal focused view."
+      "text": "TV Back uses public Android ViewGroup.dispatchKeyEvent to reach the focused SDK view. When the current preview has focus outside fullscreen/PiP, the host sends KEYCODE_ESCAPE ACTION_DOWN and ACTION_UP, then returns focus to Source. Key-up closes and resets the SDK menu, including nested quality pages."
+    },
+    {
+      "type": "p",
+      "text": "Native dialogs and the on-screen keyboard handle Back in their own windows first. Other D-pad and Select events follow normal focus dispatch."
     },
     {
       "type": "code",
@@ -462,7 +517,15 @@
     },
     {
       "type": "p",
-      "text": "Native editors and selection dialogs restore focus after an on-screen keyboard was shown. On TV, ConfigField keyboard Done and the workspace toolbar Done share one completion path: close the keyboard, wait for selectors to return, then focus Source. Back returns to the selector. Phones keep normal keyboard completion, and record-editor dialogs keep focus in their own window so Done stays inside the editor. A searchable dialog uses WindowInsets.isImeVisible, because a floating TV keyboard can be visible with zero inset height, then returns to the first matching option or Close. Dialog dismissal or a changed query, selection or matching list cancels its pending return. Workspace restoration also checks that the editing scope and Player/view owners are still current. Hardware-keyboard editing without an on-screen keyboard keeps its normal caret and arrow behavior."
+      "text": "On TV, ConfigField keyboard Done and workspace Done share a path: close the on-screen keyboard, wait for selectors to return, then focus Source. Back returns to the selector."
+    },
+    {
+      "type": "p",
+      "text": "Search dialogs read WindowInsets.isImeVisible and return to the first match or Close. A floating TV keyboard can be visible with zero inset height. Dismissal or changes to query, selection or matches cancel the return. Workspace restoration also checks that the editing scope and Player/view owners are still current."
+    },
+    {
+      "type": "p",
+      "text": "Phones retain normal keyboard completion; record-editor dialogs keep focus within their own window. Hardware-keyboard editing without an on-screen keyboard retains normal caret and arrow behavior."
     },
     {
       "type": "p",
@@ -480,7 +543,11 @@
     {
       "type": "note",
       "title": "Recorded TV environment and platform services",
-      "text": "The normal app was checked on an Android TV API 36 emulator at 1920 × 1080: SDK TvUi rendering, native selection and text input, SDK settings-menu Back, dedicated media keys with MediaSession on and off, and retained drafts and playback owners. The TV figures in the Android screen guide come from that environment. This does not qualify a physical Android TV or Fire TV device, viewing distance, overscan or every hardware decoder. Google Play services-dependent options, such as the selected Cronet provider, require separate checks on Fire TV. Vega OS uses the separate Vega app."
+      "text": "The normal app was checked on a 1920 × 1080 Android TV API 36 emulator: SDK TvUi, native selection/text input, SDK-menu Back, media keys with MediaSession on/off, and retained drafts/playback owners. TV captures use that environment."
+    },
+    {
+      "type": "p",
+      "text": "Check viewing distance, safe margins and hardware decoders separately on physical Android TV/Fire TV. Google Play services-dependent options, including the selected Cronet provider, also need Fire TV checks. Vega OS uses the separate Vega app."
     },
     {
       "type": "h2",
@@ -495,7 +562,7 @@
     },
     {
       "type": "p",
-      "text": "In APIs, choose Commands, State or Events, then use the category and API selectors to inspect one target. Commands calls the selected SDK method on the current Player, Source or attached PlayerView. The selected operation remains explicit when search filters the candidate list. Related state and recent events support the initial comparison; State reads actual SDK values when Refresh SDK state is pressed, and Events records counts and SDK timestamps. A command-submission result is not a playback completion event."
+      "text": "Runtime APIs operate on the current Player, Source or attached PlayerView. Refresh reads current SDK values; Events records counts and timestamps. Check completion events and state alongside the call result for asynchronous work."
     },
     {
       "type": "table",
@@ -534,20 +601,19 @@
     },
     {
       "type": "p",
-      "text": "PlayerView on/next/off subscriptions receive view UI events such as FullscreenEnter/Exit. Playback and source events are recorded on Player and Source in Events, rather than forwarded by the view subscription. For PlaylistApi.seek, time is SeekTarget.offset in seconds: Start uses nonnegative offsets, End uses nonpositive offsets and the SDK corrects invalid targets to stream boundaries. null uses the source default; useSeekTarget=false passes a null target."
+      "text": "PlayerView on/next/off receives UI events such as FullscreenEnter/Exit. Playback/source events are recorded on Player and Source, without forwarding them through view subscriptions."
     },
     {
       "type": "p",
-      "text": "The host VR renderer replaces PlayerView with a decoder-backed OpenGL surface; disabling it restores PlayerView. Update scripts receive {delta, viewingDirection} and return {text?, move?: {phi,x,y}} or null. delta is seconds. everyFrames limits script execution frequency while the SDK frame clock follows the display rate. Renderer callbacks retire with their renderer. Read app:vr-renderer for decoded-frame and callback observations."
+      "text": "PlaylistApi.seek time is SeekTarget.offset in seconds. Start uses nonnegative offsets, End nonpositive offsets; the SDK corrects out-of-range targets to boundaries. null uses the source default; useSeekTarget=false passes a null target."
     },
     {
-      "type": "steps",
-      "items": [
-        "Select a VOD HLS or DASH source, apply it and start playback before comparing seek positions.",
-        "For an immediate seek, choose Player.seek in Commands, enter a time such as 5 seconds and Run API.",
-        "Open State, search Player.currentTime and Refresh SDK state. Check the actual time after the seek, then inspect the relevant seeking/playing events.",
-        "For track or quality changes, inspect the available SDK track IDs first, pass one of those IDs to the matching command and read the selected track/quality again. Input alone cannot add a rendition the media does not contain."
-      ]
+      "type": "p",
+      "text": "The VR renderer replaces PlayerView with a decoder-backed OpenGL surface and restores it when disabled. It needs a compatible source VR content type. Callbacks retire with the renderer; app:vr-renderer exposes decoded-frame and execution observations."
+    },
+    {
+      "type": "p",
+      "text": "Update scripts receive {delta, viewingDirection} and return {text?, move?: {phi,x,y}} or null. delta is seconds. everyFrames limits script frequency while the SDK frame clock follows display updates."
     },
     {
       "type": "figure",
@@ -621,7 +687,15 @@
     },
     {
       "type": "p",
-      "text": "PiP means picture-in-picture: the OS displays the video in a small window above other apps. The Manifest enables it and MainActivity forwards onPictureInPictureModeChanged to the active views. The handler does not make PiP available on every OS or TV. MediaSession connects the player to Android’s system media-control service; it is separate from remote casting. For protected offline content, the source’s license permissions and the SDK download/license state still determine whether playback is possible."
+      "text": "PiP displays a small video window above other apps. The Manifest enables it and MainActivity forwards onPictureInPictureModeChanged to active views, subject to OS/TV support. MediaSession connects the Player to Android system controls; Cast transfers playback to a receiver."
+    },
+    {
+      "type": "p",
+      "text": "Offline managers use a stable content ID. Downloads may wait for all chosen device/network requirements, and each track action is selected explicitly. Releasing the manager keeps files; deleting content removes that ID’s cache."
+    },
+    {
+      "type": "p",
+      "text": "Protected assets need rights, a license service and storage. Check license download/renew/release separately from media completion. The advanced offline source constructor neither imports SDK-managed downloads nor issues licenses. Use Play downloaded source for ordinary managed downloads so the SDK supplies matching cache and track metadata."
     },
     {
       "type": "figure",
@@ -696,7 +770,7 @@
     {
       "type": "note",
       "title": "Why did foregrounding or a TV change the behavior?",
-      "text": "The host forwards lifecycle callbacks, but this does not promise automatic resumption. The recorded phone-emulator check retained a paused state on foreground; use Play if needed. On TV, check focus, remote keys and the selected SDK UI variant separately from phone touch operation. A TV launcher declaration, emulator result or available SDK command does not establish physical-TV or Cast receiver playback."
+      "text": "Lifecycle forwarding does not guarantee automatic resumption. The recorded SDK 3.171.0 phone-emulator check remained paused after foregrounding. On TV, check focus, remote input and UI variant separately. Emulator results or a TV launcher declaration do not establish physical-device or Cast receiver playback."
     },
     {
       "type": "links",
@@ -727,7 +801,11 @@
     },
     {
       "type": "p",
-      "text": "ApiAnalyticsSettings.playerConfig creates AnalyticsConfig and returns AnalyticsPlayerConfig.Enabled with DefaultMetadata, or Disabled. Pass that result to the SDK Player constructor, as shown in the Integration section. The Analytics settings panel exposes Build key, Deferred license and Disabled modes; Apply Analytics recreates the player. With no override, Deferred license passes the SDK’s DEFERRED marker: the SDK fetches the Analytics license associated with the Player license, if one is enabled. It does not mean that the app has already confirmed data collection. Inspect the collector state and the matching Dashboard session."
+      "text": "ApiAnalyticsSettings.playerConfig builds AnalyticsConfig and returns AnalyticsPlayerConfig.Enabled with DefaultMetadata, or Disabled. Pass it to the SDK Player constructor."
+    },
+    {
+      "type": "p",
+      "text": "The panel offers Build key, Deferred license and Disabled. Apply Analytics recreates the Player. Without an override, Deferred license passes DEFERRED so the SDK fetches an enabled Analytics license associated with the Player license. Check collector state and the matching Dashboard session."
     },
     {
       "type": "links",
@@ -751,7 +829,11 @@
     },
     {
       "type": "p",
-      "text": "The app passes this SourceMetadata through AnalyticsSourceConfig.Enabled when creating each SDK Source. Set a stable videoId and a useful title before playback to find the content in Dashboard. Default metadata supports cdnProvider and customUserId; source metadata adds title, videoId, cdnProvider, path and isLive. Both support customData fields and experimentName. These are collector metadata, distinct from SourceConfig.title used by the player UI. Use test identifiers without personal or confidential data."
+      "text": "Pass SourceMetadata through AnalyticsSourceConfig.Enabled when creating a Source. Set a stable videoId and useful title before playback to find content in Dashboard. These are separate from SourceConfig.title used by the player UI."
+    },
+    {
+      "type": "p",
+      "text": "Default metadata supports cdnProvider/customUserId; source metadata supports title/videoId/cdnProvider/path/isLive. Both support customData and experimentName. Use test identifiers without personal or confidential data."
     },
     {
       "type": "steps",

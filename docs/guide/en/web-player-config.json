@@ -1,7 +1,7 @@
 {
   "id": "web-player-config",
   "title": "PlayerConfig / SourceConfig",
-  "lead": "Use PlayerConfig when creating the player, SourceConfig when loading content, and runtime APIs for the active playback. This chapter connects the GUI application modes to their SDK calls and shows how to reuse the settings.",
+  "lead": "Reference for Web configuration boundaries, field groups and detailed quality, buffer and network comparisons. For button-by-button instructions, use Screen and controls; for reusable code, use the implementation guide.",
   "blocks": [
     {
       "type": "h2",
@@ -10,7 +10,16 @@
     },
     {
       "type": "p",
-      "text": "Playback and source settings contains immediately applied APIs and source edits. Player creation settings contains values read by the constructor. Each group shows instant, reload or recreate. Reload and recreation edits remain pending until the corresponding Apply action; opening a group does not apply it. The question-mark controls show field guidance on demand."
+      "text": "The form labels each group as immediate, reload or recreate. Open a field’s “?” for help; opening a group does not apply changes."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#player-source-settings",
+          "label": "How to operate the configuration form"
+        }
+      ]
     },
     {
       "type": "p",
@@ -18,7 +27,7 @@
     },
     {
       "type": "p",
-      "text": "Code shown under Show applied configuration code is an explicit snapshot. Draft edits and license keys are excluded; Refresh code reads later changes, and Copy code obtains a fresh snapshot before copying. Theme construction is a separate example beside the video. Neither output is an export of every application state."
+      "text": "The applied-code view captures applied settings and excludes drafts and license values. The construction code beside the video describes the UI layout. See the screen guide for refresh and copy controls."
     },
     {
       "type": "h2",
@@ -50,48 +59,43 @@
     {
       "type": "table",
       "headers": [
-        "Mode",
-        "Scope and application",
-        "Fields"
+        "Label",
+        "How the change applies"
       ],
       "rows": [
         [
-          "Instant",
-          "Player API, dynamic Adaptation and Low Latency. Calls an API when the input change is committed.",
-          "21"
+          "Immediate",
+          "Calls a runtime API when you commit the input. Includes Player API, dynamic adaptation and low-latency controls."
         ],
         [
           "Reload",
-          "SourceConfig title, description, poster and start settings. Reloads the source to apply changes.",
-          "6"
+          "Reloads the source with its title, description, poster and start-position settings."
         ],
         [
           "Recreate",
-          "Initial PlayerConfig settings. Creates a new player to apply changes.",
-          "117"
+          "Creates a new player with the edited PlayerConfig."
         ]
       ],
       "widths": [
-        0.18,
-        0.69,
-        0.13
+        0.22,
+        0.78
       ]
-    },
-    {
-      "type": "p",
-      "text": "The separate control panel also contains live rewind, UI and casting controls. Open or close a configuration group using its heading. Playback and source groups start open; creation groups start closed."
     },
     {
       "type": "h2",
       "text": "Try an immediate setting"
     },
     {
-      "type": "steps",
+      "type": "p",
+      "text": "Runtime controls call a setter when the input emits a change event, rather than on every keystroke. Changing volume can unmute playback. Fullscreen and PiP also require browser support and a user gesture."
+    },
+    {
+      "type": "links",
       "items": [
-        "Open Player API and inspect current values such as volume and mute.",
-        "Change one field, then commit it by leaving the input or using its selector. Inputs apply on a change event, not on every keystroke.",
-        "Check the actual change in volume, playback speed or view mode. Changing volume may unmute the player and make audio audible.",
-        "Compare another value while retaining the same playback."
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#try-an-immediate-setting",
+          "label": "Try an immediate setting"
+        }
       ]
     },
     {
@@ -103,17 +107,17 @@
       "text": "Apply source settings"
     },
     {
-      "type": "steps",
-      "items": [
-        "Change title in Source. Use a theme such as Premiere that displays the title.",
-        "Change description, poster, startOffset and its reference if needed.",
-        "Press Reload the source to apply.",
-        "Check the on-video display and start position after reloading."
-      ]
+      "type": "p",
+      "text": "Pass title, description, poster and options in SourceConfig to player.load. This reloads the source; it does not recreate the player. A reload retains other applied source overrides."
     },
     {
-      "type": "p",
-      "text": "Reload and recreation edits remain staged until their respective Apply button is pressed. The button is disabled when there are no changes. A source reload retains the other applied source settings."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#apply-source-settings",
+          "label": "Apply source settings in the GUI"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -173,12 +177,16 @@
       "text": "Apply initial settings"
     },
     {
-      "type": "steps",
+      "type": "p",
+      "text": "Pass Playback, Buffer, Network and other initial settings in PlayerConfig when constructing a player. Editing the original JavaScript object does not update an existing instance."
+    },
+    {
+      "type": "links",
       "items": [
-        "Open the groups you need, such as Playback, Adaptation or Buffer.",
-        "Change a small number of values to compare.",
-        "Press Recreate the player to apply.",
-        "Check applied values and playback behavior after loading again."
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#apply-initial-settings",
+          "label": "Recreate the player from the GUI"
+        }
       ]
     },
     {
@@ -193,90 +201,73 @@
       "type": "table",
       "headers": [
         "Group",
-        "Fields",
         "Scope"
       ],
       "rows": [
         [
           "Player API",
-          "8",
           "Volume, mute, speed, buffer, view mode, aspect ratio, poster and logs"
         ],
         [
           "Adaptation (dynamic)",
-          "6",
           "Display-size limits, quality stability and resolution limits"
         ],
         [
           "Low Latency (dynamic)",
-          "7",
           "Target latency, catchup and fallback"
         ],
         [
           "Source",
-          "6",
           "Title, description, poster, start position and reference"
         ],
         [
           "Playback",
-          "8",
           "Initial playback behavior and languages"
         ],
         [
           "Adaptation (initial)",
-          "12",
           "Starting bitrate, bitrate limits and adaptation logic"
         ],
         [
           "Buffer (initial)",
-          "4",
           "Forward and backward buffers for audio and video"
         ],
         [
           "Network",
-          "9",
           "Request API and timeout seconds by request type"
         ],
         [
           "Tweaks",
-          "65",
           "64 primitive fields plus log_level"
         ],
         [
           "Logs",
-          "2",
           "Verbosity and the console credit"
         ],
         [
           "Style",
-          "4",
           "Aspect ratio, dimensions and native subtitles"
         ],
         [
           "Cast",
-          "4",
           "CastConfig support and receiver settings"
         ],
         [
           "Live",
-          "2",
           "Incremental manifests and target latency"
         ],
         [
           "Location",
-          "5",
           "UI, CSS, Cast, IMA and Service Worker locations"
         ],
         [
           "Misc",
-          "2",
           "License-request delay and player storage"
         ]
       ],
       "widths": [
         0.32,
-        0.09,
-        0.59
+        0.68
       ]
     },
     {
@@ -285,7 +276,7 @@
     },
     {
       "type": "p",
-      "text": "Network timeouts are in seconds, including decimal values. They are not milliseconds. A per-request timeout overrides the default. Invalid or negative values keep Apply disabled and leave the active player unchanged. Empty removes only the chosen override. Use options.persistentPoster to retain a poster during playback, for example with an audio-only source."
+      "text": "Network timeouts accept fractional seconds, not milliseconds. A request-specific value overrides the default. Invalid or negative values disable Apply without changing playback; clearing the field removes that override."
     },
     {
       "type": "h2",
@@ -476,50 +467,15 @@
     },
     {
       "type": "p",
-      "text": "This adapted example organizes applied values as reusable TypeScript configuration data. It is not a verbatim source excerpt and is checked against the installed SDK types. Replace the URL and Player license. The numbers are comparison inputs, not recommended defaults. Because ui is false, attach a UIManager and load its stylesheet as described in the UI customization chapter."
+      "text": "The implementation guide contains a typed PlayerConfig / SourceConfig example, including audio preference, adaptation, buffers, timeout and a start offset. Replace its license and media URL and attach a UI when using ui: false. The values are comparison inputs, not recommendations."
     },
     {
-      "type": "code",
-      "title": "Configuration data example: replace with your media and license",
-      "text": "import type { PlayerConfig, SourceConfig } from \"bitmovin-player\";\n\nexport const playerConfig: PlayerConfig = {\n  key: \"YOUR_PLAYER_KEY\",\n  ui: false,\n  playback: { autoplay: false, muted: true, audioLanguage: \"en\" },\n  adaptation: {\n    desktop: { bitrates: { maxSelectableVideoBitrate: \"500kbps\" } },\n    mobile: { bitrates: { maxSelectableVideoBitrate: \"500kbps\" } },\n  },\n  buffer: {\n    video: { forwardduration: 10 },\n    audio: { forwardduration: 10 },\n  },\n  network: { defaultRequestTimeout: 5 },\n};\n\nexport const sourceConfig: SourceConfig = {\n  hls: \"https://example.com/master.m3u8\",\n  title: \"Configuration comparison\",\n  options: { startOffset: 5 },\n};"
-    },
-    {
-      "type": "p",
-      "text": "Pass playerConfig to your existing new Player(container, playerConfig) call and sourceConfig to player.load(sourceConfig). The initial language, quality, buffer and network conditions belong to creation settings; title and start position belong to the source. For on-demand media, startOffset: 5 uses the default start reference and starts at 5 seconds. When testing a live end reference, also select startOffsetTimelineReference in Source."
-    },
-    {
-      "type": "table",
-      "headers": [
-        "GUI example",
-        "Integration call",
-        "Read back"
-      ],
-      "rows": [
-        [
-          "Player API volume / mute",
-          "player.setVolume(value), mute() / unmute()",
-          "getVolume() / isMuted(). Browser volume and autoplay restrictions can apply."
-        ],
-        [
-          "Adaptation (dynamic)",
-          "player.adaptation.setConfig(config)",
-          "adaptation.getConfig() and the actual rendition. This is separate from initial adaptation.desktop / mobile."
-        ],
-        [
-          "Source title / poster / options",
-          "Pass the changed SourceConfig to player.load",
-          "getSource(), visible title/poster and start position. The source is reloaded."
-        ],
-        [
-          "Playback / Buffer / Network / Tweaks",
-          "Recreate the Player with the changed PlayerConfig",
-          "getConfig() and playback/network behavior. Mutating your configuration object alone does not update an existing Player."
-        ]
-      ],
-      "widths": [
-        0.27,
-        0.34,
-        0.39
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/player-source-config/#configuration-data",
+          "label": "Reusable TypeScript configuration example"
+        }
       ]
     },
     {
@@ -615,11 +571,19 @@
     },
     {
       "type": "p",
-      "text": "Choose PlayerAPI.getConfig or PlayerAPI.getSource in Read state to inspect submitted values. Commands such as setVolume accept edited arguments. Returned SDK objects and callbacks can be selected in later calls; obtain them again after their owner is replaced. Generated code omits license values. References to selected instances must use the same objects obtained by earlier calls. The Events and callbacks panel shows cumulative counts for the current Player and a limited history of recent payloads. An earlier payload can disappear while its count remains. Use Read state to verify an applied value. Recreate Player or Clear event history resets these records."
+      "text": "Choose PlayerAPI.getConfig or PlayerAPI.getSource in Read state to inspect submitted values. Commands such as setVolume accept edited arguments. Returned SDK objects and callbacks can be selected in later calls; obtain them again after their owner is replaced. Generated code omits license values. References to selected instances must use the same objects obtained by earlier calls."
     },
     {
       "type": "p",
-      "text": "Apply an empty object {} to PlayerConfig.ui to enable SDK-managed UI. The app supplies pinned UI script and style locations; these are editable through PlayerConfig.location. The SDK calls the configured style.uiManagerFactory. Selecting an original theme returns to the app-managed UI and avoids overlapping managers. In Player UI 4.23.0, a nonempty SourceConfig.title or description takes precedence over UIConfig.metadata.title or description when the UI configuration is merged. To test metadata from UIConfig against a preset title or description, first apply an empty string to the corresponding SourceConfig field. To change source-specific text, edit SourceConfig."
+      "text": "The Events and callbacks panel shows cumulative counts for the current Player and a limited history of recent payloads. An earlier payload can disappear while its count remains. Use Read state to verify an applied value. Recreate Player or Clear event history resets these records."
+    },
+    {
+      "type": "p",
+      "text": "Apply an empty object {} to PlayerConfig.ui to enable SDK-managed UI. The app supplies pinned UI script and style locations; these are editable through PlayerConfig.location. The SDK calls the configured style.uiManagerFactory. Selecting an original theme returns to the app-managed UI and avoids overlapping managers."
+    },
+    {
+      "type": "p",
+      "text": "In Player UI 4.23.0, a nonempty SourceConfig.title or description takes precedence over UIConfig.metadata.title or description when the UI configuration is merged. To test metadata from UIConfig against a preset title or description, first apply an empty string to the corresponding SourceConfig field. To change source-specific text, edit SourceConfig."
     },
     {
       "type": "note",
@@ -635,12 +599,13 @@
       "text": "Copy applied configuration"
     },
     {
-      "type": "p",
-      "text": "Open Show applied configuration code below the configuration bands. The snapshot reads the current Player configuration and source, plus GUI-controlled runtime values and UI overrides. Unapplied draft edits are excluded. Refresh code captures later changes; Copy code refreshes and copies the snapshot. If browser clipboard access is unavailable, select the text and use the device copy command."
-    },
-    {
-      "type": "note",
-      "text": "License values are replaced or omitted. The export covers this screen’s settings, rather than all SDK options. Use the existing construction example beside the player for the selected UI. Fullscreen and external-display actions still need a user gesture and a supported device."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#applied-code",
+          "label": "Refresh and copy applied settings"
+        }
+      ]
     },
     {
       "type": "links",
