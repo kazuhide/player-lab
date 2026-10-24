@@ -448,7 +448,9 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#f4f7fb" },
   container: { flex: 1, minHeight: 0 },
-  playerOwner: { minHeight: 0 }, fill: { flex: 1 },
+  playerOwner: { minHeight: 0 },
+  // Nested API owners must shrink with the keyboard's bounded viewport.
+  fill: { flex: 1, flexBasis: 0, flexShrink: 1 },
   side: { width: "40%" }, horizontal: { flexDirection: "row" }, hidden: { display: "none" },
   selectors: { paddingHorizontal: 10, paddingVertical: 4, gap: 4 },
   sourceRow: { flexDirection: "row", gap: 8 },
