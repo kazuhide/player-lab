@@ -104,7 +104,7 @@ describe("application language", () => {
   });
 
   it("provides Japanese copy for literal application labels and help in the actual UI components", () => {
-    const files = [...sourceFiles("src"), ...["App.tsx"]];
+    const files = [...sourceFiles("src"), "App.tsx", "src/apiOperations.ts", "src/auxiliaryOperations.ts"];
     const omitted = new Set(["English", "日本語", "HLS", "DASH", "Progressive MP4", "SourceLoaded", "TimeShifted"]);
     const missing: string[] = [];
     const inspect = (file: string, value: string) => {
@@ -113,11 +113,14 @@ describe("application language", () => {
       if (translateCopy(text, "ja") === text) missing.push(file + ": " + text);
     };
     for (const file of files) {
-      const source = ts.createSourceFile(file, fs.readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+      const source = ts.createSourceFile(file, fs.readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true,
+        file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
       const visit = (node: ts.Node): void => {
         if (ts.isJsxText(node)) inspect(file, node.text);
-        if (ts.isJsxAttribute(node) && ["title", "placeholder", "accessibilityLabel"].includes(node.name.getText(source))
+        if (ts.isJsxAttribute(node) && ["title", "placeholder", "accessibilityLabel", "accessibilityHint"].includes(node.name.getText(source))
           && node.initializer && ts.isStringLiteral(node.initializer)) inspect(file, node.initializer.text);
+        if (ts.isPropertyAssignment(node) && node.name.getText(source) === "label"
+          && ts.isStringLiteral(node.initializer)) inspect(file, node.initializer.text);
         ts.forEachChild(node, visit);
       };
       visit(source);

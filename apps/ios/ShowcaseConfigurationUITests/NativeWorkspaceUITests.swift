@@ -21,6 +21,31 @@ final class NativeWorkspaceUITests: XCTestCase {
         try WorkspaceUITestNavigation.activate(field, in: app)
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
 
+        func editorViewportAboveKeyboard() -> CGRect? {
+            let keyboard = app.keyboards.firstMatch
+            guard keyboard.exists else { return nil }
+            let keyboardFrame = keyboard.frame
+            guard keyboardFrame.minY.isFinite, keyboardFrame.width.isFinite, keyboardFrame.height.isFinite,
+                  keyboardFrame.width > 0, keyboardFrame.height > 0,
+                  keyboardFrame.minY > app.frame.minY, keyboardFrame.minY < app.frame.maxY,
+                  keyboardFrame.intersection(app.frame).height > 0 else { return nil }
+            var top = keyboardFrame.minY
+            let assistants = app.otherElements.matching(identifier: "SystemInputAssistantView").allElementsBoundByIndex
+            let toolbars = app.toolbars.allElementsBoundByIndex.filter {
+                $0.descendants(matching: .button).matching(identifier: "workspace.keyboard.done").firstMatch.exists
+            }
+            for obstruction in assistants + toolbars {
+                let frame = obstruction.frame
+                if frame.minY.isFinite, frame.height.isFinite, frame.width.isFinite,
+                   frame.height > 0, frame.width > 0, frame.intersection(app.frame).height > 0 {
+                    top = min(top, frame.minY)
+                }
+            }
+            guard top > app.frame.minY else { return nil }
+            return CGRect(x: app.frame.minX, y: app.frame.minY, width: app.frame.width,
+                          height: top - app.frame.minY)
+        }
+
         func assertVisibleEditorAndActions(landscape: Bool = false) {
             let keyboard = app.keyboards.firstMatch
             let controls = [field, app.buttons["configuration.apply"], app.buttons["configuration.reset"]]
@@ -28,22 +53,39 @@ final class NativeWorkspaceUITests: XCTestCase {
                 guard keyboard.exists, field.exists,
                       (app.frame.width > app.frame.height) == landscape,
                       abs(field.frame.height - portraitFrame.height) < 0.5 else { return false }
-                let visible = CGRect(x: app.frame.minX, y: app.frame.minY, width: app.frame.width,
-                                     height: keyboard.frame.minY - app.frame.minY)
-                guard controls.allSatisfy({
-                    $0.exists && $0.isHittable && abs($0.frame.intersection(visible).height - $0.frame.height) < 0.5
-                }) else { return false }
                 let screenSize = XCUIScreen.main.screenshot().image.size
-                return (screenSize.width > screenSize.height) == landscape
+                guard (screenSize.width > screenSize.height) == landscape else { return false }
+                guard let visible = editorViewportAboveKeyboard() else { return false }
+                guard controls.allSatisfy({
+                    guard $0.exists else { return false }
+                    let frame = $0.frame
+                    return frame.minX.isFinite && frame.minY.isFinite && frame.width.isFinite && frame.height.isFinite &&
+                        frame.width > 0 && frame.height > 0 &&
+                        abs(frame.intersection(visible).height - frame.height) < 0.5 &&
+                        abs(frame.intersection(visible).width - frame.width) < 0.5
+                }) else { return false }
+                // A rotation can briefly expose invalid activation points. Read
+                // hittability only after actual screen and control geometry settle.
+                return controls.allSatisfy { $0.isHittable }
             }, object: app)
-            XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 5), .completed,
+            let result = XCTWaiter.wait(for: [settled], timeout: 5)
+            if result != .completed {
+                let hierarchy = XCTAttachment(string: app.debugDescription)
+                hierarchy.name = "native-workspace-unsettled-keyboard-accessibility"
+                hierarchy.lifetime = .keepAlways
+                add(hierarchy)
+                WorkspaceUITestNavigation.capture(app, named: "native-workspace-unsettled-keyboard-screen", test: self)
+            }
+            XCTAssertEqual(result, .completed,
                            "Wait for the real rotation to finish before reading editor and keyboard geometry")
-            let visible = CGRect(x: app.frame.minX, y: app.frame.minY, width: app.frame.width,
-                                 height: keyboard.frame.minY - app.frame.minY)
+            guard let visible = editorViewportAboveKeyboard() else {
+                XCTFail("The actual software keyboard and input assistant must be visible on screen")
+                return
+            }
             for element in controls {
                 XCTAssertTrue(WorkspaceUITestNavigation.waitUntilHittable(element))
                 XCTAssertEqual(element.frame.intersection(visible).height, element.frame.height, accuracy: 0.5,
-                               "The editor and fixed actions must remain above the software keyboard")
+                               "The editor and fixed actions must remain above the software keyboard, input assistant and Done toolbar")
             }
         }
 

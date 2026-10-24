@@ -96,6 +96,7 @@ export const japaneseCopy: Record<string, string> = {
   "License fields start empty and do not reveal environment values. Analytics metadata needs an Analytics license. A nativeId reuses a native instance with that ID; leave it unset unless reuse is intended. Platform-specific settings may have no effect on the other platform.": "ライセンスの入力欄は空欄で始まり、環境変数の値は表示しません。AnalyticsのメタデータにはAnalyticsライセンスが必要です。nativeIdを指定すると同じIDのネイティブインスタンスを再利用します。意図的に再利用する場合以外は未設定にします。OS固有の設定は別のOSでは反映されない場合があります。",
   "These overrides are passed to their typed SDK fields after the basic form. The SDK validates platform, value and source support. WebUiConfig.variant accepts the name of any factory provided by the configured Web UI JavaScript file and creates a real CustomUi variant.": "上書き値は通常フォームの値の後にSDKの対応する項目へ渡します。OS・値・ソースへの対応はSDKが判定します。WebUiConfig.variantには、指定したWeb UIのJavaScriptファイルが公開するファクトリ名を入力し、実際のCustomUiを作成できます。",
   "Cast startup configuration": "Castの起動時設定",
+  "Cast startup settings": "Castの起動時設定",
   "Save Cast options for next launch": "次回起動用にCast設定を保存",
   "Read native Cast startup state": "ネイティブCastの起動状態を取得",
   "Native Cast startup state": "ネイティブCastの起動状態",

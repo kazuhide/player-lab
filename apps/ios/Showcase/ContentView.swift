@@ -385,6 +385,9 @@ struct ControlPanel: View {
     @ObservedObject var model: PlayerModel
     @State private var tab = NativeWorkspaceTab.settings
     @StateObject private var draft: NativeWorkspaceDraft
+    #if os(tvOS)
+    @FocusState private var navigationFocus: NativeWorkspaceTab?
+    #endif
 
     init(model: PlayerModel) {
         self.model = model
@@ -405,6 +408,9 @@ struct ControlPanel: View {
                     .workspaceVisibility(tab == .more)
             }
             .clipped()
+            #if os(tvOS)
+            .onExitCommand { navigationFocus = tab }
+            #endif
             Divider()
             HStack(spacing: 4) {
                 ForEach(NativeWorkspaceTab.allCases) { item in
@@ -425,6 +431,7 @@ struct ControlPanel: View {
                     }
                     #if os(tvOS)
                     .buttonStyle(.bordered)
+                    .focused($navigationFocus, equals: item)
                     #else
                     .buttonStyle(.plain)
                     #endif
@@ -434,6 +441,9 @@ struct ControlPanel: View {
                     .accessibilityValue(tab == item ? "Selected".nativeLocalized : "")
                 }
             }
+            #if os(tvOS)
+            .focusSection()
+            #endif
             .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             .padding(.top, 6)
             .frame(height: keyboardVisible && verticalSizeClass == .compact ? 0 : nil)

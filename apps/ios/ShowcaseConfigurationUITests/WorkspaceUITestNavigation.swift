@@ -73,6 +73,7 @@ enum WorkspaceUITestNavigation {
         let identifier = element.identifier
         var attempts: [String: Int] = [:]
         let editorLeft = app.buttons["configuration.open"].frame.minX
+        let workspaceNavigation = ["configuration.open", "api.open", "configuration.code.toggle", "workspace.more"]
         for _ in 0..<24 {
             guard element.exists else {
                 recordFocusFailure(app, message: "Remote target disappeared: \(identifier)")
@@ -96,7 +97,12 @@ enum WorkspaceUITestNavigation {
             let current = focused.frame
             let target = element.frame
             var direction: XCUIRemote.Button
-            if current.midX < editorLeft && target.midX >= editorLeft {
+            if workspaceNavigation.contains(identifier), focused.identifier.hasPrefix("configuration.code.line.") {
+                // Back returns from the editor to the current fixed tab without
+                // traversing the document or entering the SDK playback controls.
+                XCUIRemote.shared.press(.menu)
+                continue
+            } else if current.midX < editorLeft && target.midX >= editorLeft {
                 // Enter the editor before moving down past AVKit transport controls.
                 direction = .right
             } else if target.maxX < editorLeft && current.midX >= editorLeft && current.minY > target.maxY {
@@ -177,17 +183,42 @@ enum WorkspaceUITestNavigation {
         try activate(field, in: app)
         let current = field.value as? String ?? ""
         #if !os(tvOS)
-        if field.elementType == .textField {
-            // Move the real caret to the end without platform-specific End or
-            // Command shortcuts. Send keys to the explicitly focused app.
-            for _ in 0..<current.utf16.count {
-                app.typeKey(XCUIKeyboardKey.rightArrow.rawValue, modifierFlags: [])
-            }
-            app.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.utf16.count + 5) + text)
-        } else {
-            field.typeKey("a", modifierFlags: .command)
-            field.typeText(text)
+        print("Native input route OS_EDIT_MENU_V17: \(field.identifier); elementType=\(field.elementType.rawValue)")
+        // Use the normal OS edit menu instead of keyboard-navigation shortcuts.
+        // XCTest can report an empty editor's placeholder as its value.
+        field.press(forDuration: 1)
+        let labels = NSPredicate(format: "label IN %@", ["Select All", "すべてを選択"])
+        let buttons = app.buttons.matching(labels)
+        let menuItems = app.menuItems.matching(labels)
+        func selectAll() -> XCUIElement? {
+            (buttons.allElementsBoundByIndex + menuItems.allElementsBoundByIndex).first { $0.isHittable }
         }
+        let menu = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in selectAll() != nil }, object: app)
+        var result = XCTWaiter.wait(for: [menu], timeout: 5)
+        if result != .completed && !current.isEmpty && current != field.placeholderValue {
+            // A double tap selects a word and exposes the normal OS selection menu.
+            // Keep this route bounded; the complete resulting value is still required.
+            field.doubleTap()
+            let retry = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in selectAll() != nil }, object: app)
+            result = XCTWaiter.wait(for: [retry], timeout: 5)
+        }
+        if result == .completed, let option = selectAll() {
+            option.tap()
+        } else if !current.isEmpty && current != field.placeholderValue {
+            XCTContext.runActivity(named: "Native Select All menu missing for \(field.identifier)") { activity in
+                let hierarchy = XCTAttachment(string: app.debugDescription)
+                hierarchy.name = "native-workspace-input-menu-accessibility"
+                hierarchy.lifetime = .keepAlways
+                activity.add(hierarchy)
+                let screenshot = XCTAttachment(screenshot: app.screenshot())
+                screenshot.name = "native-workspace-input-menu-screen"
+                screenshot.lifetime = .keepAlways
+                activity.add(screenshot)
+            }
+            XCTFail("The nonempty native editor must expose Select All: \(field.identifier)")
+            throw NavigationFailure.unreachable
+        }
+        app.typeText(text)
         #else
         field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count + 5) + text)
         #endif
@@ -211,7 +242,11 @@ enum WorkspaceUITestNavigation {
         #else
         for id in ["workspace.keyboard.done", "offline.keyboard.done", "cast.keyboard.done"] {
             let done = app.buttons[id]
-            if done.exists && done.isHittable { done.tap(); return }
+            if done.exists && done.isHittable {
+                done.tap()
+                XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+                return
+            }
         }
         if app.keyboards.firstMatch.exists {
             let done = app.keyboards.buttons["Done"]

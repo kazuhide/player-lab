@@ -20,6 +20,13 @@ final class LocalizedGuideCaptureUITests: XCTestCase {
     }
 
     #if !os(tvOS)
+    func testStateFilterRetainsExactReplacementText() throws {
+        let app = launch()
+        try openState("Player.availableSubtitles", in: app)
+        try openState("Callback.Source.LabelingConfig.audioLabel", in: app)
+        XCTAssertEqual(app.textFields["api.state.filter"].value as? String, "Callback.Source.LabelingConfig.audioLabel")
+    }
+
     func testPhoneSourceCodeAndApiScreens() throws {
         let app = launch()
         try prepareSource(in: app)
@@ -40,7 +47,7 @@ final class LocalizedGuideCaptureUITests: XCTestCase {
     }
 
     func testSourceObjectsCallbackAndOfflineScreens() throws {
-        let app = launch()
+        var app = launch()
         try prepareSource(in: app)
         try editAdvanced("SourceConfig.tracks", value: "[{\"identifier\":\"manual-example\",\"label\":\"Manual English\",\"language\":\"en\",\"url\":null}]", in: app)
         capture("ios-subtitle-array-editor", app)
@@ -48,7 +55,10 @@ final class LocalizedGuideCaptureUITests: XCTestCase {
         try openState("Player.availableSubtitles", in: app)
         try waitForState("Player.availableSubtitles", containing: "manual-example", in: app)
         capture("ios-subtitle-array-sdk-state", app)
-        try WorkspaceUITestNavigation.activate(app.buttons["configuration.open"], in: app)
+        // Each example starts from a fresh app and configures its source through the GUI.
+        app.terminate()
+        app = launch()
+        try prepareSource(in: app)
         try editAdvanced("LabelingConfig.audioLabel", value: "return 'GUI ' + input.label;", in: app)
         capture("ios-callback-editor", app)
         try WorkspaceUITestNavigation.activate(app.buttons["configuration.apply"], in: app)
@@ -95,9 +105,65 @@ final class LocalizedGuideCaptureUITests: XCTestCase {
         try WorkspaceUITestNavigation.setting("configuration.videoScaling", in: app)
         try WorkspaceUITestNavigation.choose("Fill (crop)", picker: "configuration.videoScaling", in: app)
         try WorkspaceUITestNavigation.activate(app.buttons["configuration.apply"], in: app)
+        try waitForAppliedScaling(in: app)
         capture("ios-video-scaling", app)
     }
     #else
+    func testTelevisionCodeReturnsToSettingsWithoutTraversingDocument() throws {
+        let app = launch()
+        try prepareSource(in: app)
+        try WorkspaceUITestNavigation.setting("configuration.title", in: app)
+        try WorkspaceUITestNavigation.replace(app.textFields["configuration.title"], with: "Unapplied TV title", in: app)
+        func readOwnerToken() throws -> String {
+            try WorkspaceUITestNavigation.activate(app.buttons["api.open"], in: app)
+            try pane("Operations", in: app)
+            try WorkspaceUITestNavigation.activate(app.buttons["api.related.refresh"], in: app)
+            let owner = app.staticTexts["api.observation.owner"]
+            XCTAssertTrue(owner.waitForExistence(timeout: 5))
+            let label = owner.label
+            XCTAssertNotNil(label.range(of: "[0-9A-F]{8}$", options: .regularExpression),
+                            "The current SDK observation must display its nonempty owner token")
+            return String(label.suffix(8))
+        }
+        let ownerBefore = try readOwnerToken()
+        try WorkspaceUITestNavigation.activate(app.buttons["configuration.code.toggle"], in: app)
+        let line = app.staticTexts["configuration.code.line.13"]
+        XCTAssertTrue(line.waitForExistence(timeout: 5))
+        try WorkspaceUITestNavigation.activate(line, in: app)
+        let settings = app.buttons["configuration.open"]
+        func assertFocus(_ button: XCUIElement, phase: String) {
+            let focused = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hasFocus == true"), object: button)
+            let result = XCTWaiter.wait(for: [focused], timeout: 5)
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = "television-fixed-navigation-\(phase)-accessibility"
+            hierarchy.lifetime = .keepAlways
+            add(hierarchy)
+            WorkspaceUITestNavigation.capture(app, named: "television-fixed-navigation-\(phase)-screen", test: self)
+            XCTAssertEqual(result, .completed, "The single remote input must finish moving focus to \(button.identifier)")
+        }
+        XCUIRemote.shared.press(.menu)
+        let codeTab = app.buttons["configuration.code.toggle"]
+        assertFocus(codeTab, phase: "back-to-code-tab")
+        let visible = app.frame.intersection(codeTab.frame)
+        XCTAssertEqual(visible.height, codeTab.frame.height, accuracy: 0.5)
+        XCUIRemote.shared.press(.left)
+        assertFocus(app.buttons["api.open"], phase: "left-to-api-tab")
+        XCUIRemote.shared.press(.left)
+        assertFocus(settings, phase: "left-to-settings-tab")
+        let route = XCTAttachment(string: app.debugDescription)
+        route.name = "television-code-back-fixed-navigation-route"
+        route.lifetime = .keepAlways
+        add(route)
+        WorkspaceUITestNavigation.capture(app, named: "television-code-back-fixed-navigation-screen", test: self)
+        XCUIRemote.shared.press(.select)
+        XCTAssertTrue(app.buttons["configuration.category"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.textFields["configuration.title"].value as? String, "Unapplied TV title")
+        XCTAssertTrue(app.buttons["configuration.apply"].isEnabled)
+        XCTAssertEqual(app.staticTexts["source.current"].label, "Player Lab VOD")
+        let ownerAfter = try readOwnerToken()
+        XCTAssertEqual(ownerAfter, ownerBefore, "Focus and tab navigation must retain the playing SDK source owner")
+    }
+
     func testTelevisionSettingsCodeAndApiScreens() throws {
         let app = launch()
         try prepareSource(in: app, initialTracks: true)
@@ -108,6 +174,7 @@ final class LocalizedGuideCaptureUITests: XCTestCase {
         try WorkspaceUITestNavigation.setting("configuration.videoScaling", in: app)
         try WorkspaceUITestNavigation.choose("Fill (crop)", picker: "configuration.videoScaling", in: app)
         try WorkspaceUITestNavigation.activate(app.buttons["configuration.apply"], in: app)
+        try waitForAppliedScaling(in: app)
         capture("tvos-video-scaling", app)
         try WorkspaceUITestNavigation.activate(app.buttons["configuration.code.toggle"], in: app)
         XCTAssertTrue(app.buttons["configuration.open"].exists)
@@ -137,8 +204,15 @@ final class LocalizedGuideCaptureUITests: XCTestCase {
             try WorkspaceUITestNavigation.replace(app.textFields["configuration.subtitleLanguage"], with: "de", in: app)
         }
         try WorkspaceUITestNavigation.activate(app.buttons["configuration.apply"], in: app)
-        try openState("Player.isPlaying", in: app)
-        try waitForState("Player.isPlaying", containing: "true", in: app)
+        try WorkspaceUITestNavigation.activate(app.buttons["api.open"], in: app)
+        try pane("Operations", in: app)
+        var playing = false
+        for _ in 0..<30 {
+            try WorkspaceUITestNavigation.activate(app.buttons["api.related.refresh"], in: app)
+            let state = app.staticTexts["api.related.Player.isPlaying"]
+            if state.exists && state.label == "true" { playing = true; break }
+        }
+        XCTAssertTrue(playing, "The current SDK player must be playing before capture")
         try WorkspaceUITestNavigation.activate(app.buttons["configuration.open"], in: app)
     }
 
@@ -154,7 +228,13 @@ final class LocalizedGuideCaptureUITests: XCTestCase {
     }
 
     private func pane(_ value: String, in app: XCUIApplication) throws {
-        try WorkspaceUITestNavigation.activate(app.segmentedControls["api.pane"].buttons["api.pane.\(value)"], in: app)
+        let button = app.segmentedControls["api.pane"].buttons["api.pane.\(value)"]
+        for _ in 0..<2 {
+            try WorkspaceUITestNavigation.activate(button, in: app)
+            let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isSelected == true"), object: button)
+            if XCTWaiter.wait(for: [selected], timeout: 5) == .completed { return }
+        }
+        XCTFail("The requested API pane must be selected: \(value)")
     }
 
     private func openState(_ filter: String, in app: XCUIApplication) throws {
@@ -170,6 +250,39 @@ final class LocalizedGuideCaptureUITests: XCTestCase {
             if value.exists && value.label.contains(text) { return }
         }
         XCTFail("SDK state \(id) must contain \(text)")
+    }
+
+    private func waitForAppliedScaling(in app: XCUIApplication) throws {
+        try openState("Player.currentTime", in: app)
+        var initialTime: Double?
+        var advances = false
+        for _ in 0..<30 {
+            try WorkspaceUITestNavigation.activate(app.buttons["api.refresh"], in: app)
+            let row = app.staticTexts["api.state.Player.currentTime"]
+            guard row.exists,
+                  let time = Double(row.label.split(separator: " ").first.map(String.init) ?? ""),
+                  time.isFinite, time >= 0 else { continue }
+            if let initialTime, time > initialTime + 0.25 { advances = true; break }
+            if initialTime == nil { initialTime = time }
+        }
+        XCTAssertTrue(advances, "The replacement SDK player must advance before capturing its video")
+        try WorkspaceUITestNavigation.activate(app.buttons["configuration.code.toggle"], in: app)
+        let appliedScaling = "playerConfig.styleConfig.scalingMode = .zoom"
+        #if os(tvOS)
+        let code = app.staticTexts.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND label == %@", "configuration.code.line.", appliedScaling)).firstMatch
+        XCTAssertTrue(code.waitForExistence(timeout: 5))
+        try WorkspaceUITestNavigation.activate(code, in: app)
+        XCTAssertTrue(code.isHittable)
+        #else
+        let code = app.staticTexts["configuration.code.text"]
+        XCTAssertTrue(code.waitForExistence(timeout: 5))
+        #endif
+        XCTAssertTrue(code.label.contains(appliedScaling))
+        let readback = XCTAttachment(string: "Applied configuration: \(appliedScaling)\nThe current SDK clock advanced by more than 0.25 seconds.\nThe default SDK SwiftUI host does not expose a scaling-mode getter through this app.")
+        readback.name = "applied-video-scaling-configuration-and-clock"
+        readback.lifetime = .keepAlways
+        add(readback)
+        try WorkspaceUITestNavigation.setting("configuration.videoScaling", in: app)
     }
 
     #if !os(tvOS)
