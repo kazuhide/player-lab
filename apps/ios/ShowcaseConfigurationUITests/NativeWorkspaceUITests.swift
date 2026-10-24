@@ -9,9 +9,136 @@ final class NativeWorkspaceUITests: XCTestCase {
         XCUIApplication().terminate()
     }
 
+    func testKeyboardKeepsWorkspaceAxisAndDraftThroughRotation() throws {
+        XCUIDevice.shared.orientation = .portrait
+        let app = XCUIApplication()
+        WorkspaceUITestNavigation.launch(app)
+        XCTAssertTrue(app.buttons["configuration.open"].waitForExistence(timeout: 20))
+        try WorkspaceUITestNavigation.setting("configuration.title", in: app)
+        let field = app.textFields["configuration.title"]
+        let portraitFrame = field.frame
+        let initialTitle = field.value as? String ?? ""
+        try WorkspaceUITestNavigation.activate(field, in: app)
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        // A simulator hardware keyboard can leave an offscreen keyboard AX node.
+        // Measure avoidance only after the real software keyboard is on screen.
+        print("Native workspace waiting for the on-screen software keyboard")
+        let softwareKeyboard = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let keyboard = app.keyboards.firstMatch
+            return keyboard.exists && keyboard.frame.minY.isFinite &&
+                keyboard.frame.height > 0 && keyboard.frame.minY > app.frame.minY &&
+                keyboard.frame.minY < app.frame.maxY && keyboard.frame.intersection(app.frame).height > 0
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [softwareKeyboard], timeout: 30), .completed,
+                       "Show the simulator software keyboard before measuring keyboard avoidance")
+
+        func editorViewportAboveKeyboard() -> CGRect? {
+            let keyboard = app.keyboards.firstMatch
+            guard keyboard.exists else { return nil }
+            let keyboardFrame = keyboard.frame
+            guard keyboardFrame.minY.isFinite, keyboardFrame.width.isFinite, keyboardFrame.height.isFinite,
+                  keyboardFrame.width > 0, keyboardFrame.height > 0,
+                  keyboardFrame.minY > app.frame.minY, keyboardFrame.minY < app.frame.maxY,
+                  keyboardFrame.intersection(app.frame).height > 0 else { return nil }
+            var top = keyboardFrame.minY
+            let assistants = app.otherElements.matching(identifier: "SystemInputAssistantView").allElementsBoundByIndex
+            let toolbars = app.toolbars.allElementsBoundByIndex.filter {
+                $0.descendants(matching: .button).matching(identifier: "workspace.keyboard.done").firstMatch.exists
+            }
+            for obstruction in assistants + toolbars {
+                let frame = obstruction.frame
+                if frame.minY.isFinite, frame.height.isFinite, frame.width.isFinite,
+                   frame.height > 0, frame.width > 0, frame.intersection(app.frame).height > 0 {
+                    top = min(top, frame.minY)
+                }
+            }
+            guard top > app.frame.minY else { return nil }
+            return CGRect(x: app.frame.minX, y: app.frame.minY, width: app.frame.width,
+                          height: top - app.frame.minY)
+        }
+
+        func assertVisibleEditorAndActions(landscape: Bool = false) {
+            let keyboard = app.keyboards.firstMatch
+            let controls = [field, app.buttons["configuration.apply"], app.buttons["configuration.reset"]]
+            let settled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                guard keyboard.exists, field.exists,
+                      (app.frame.width > app.frame.height) == landscape,
+                      abs(field.frame.height - portraitFrame.height) < 0.5 else { return false }
+                let screenSize = XCUIScreen.main.screenshot().image.size
+                guard (screenSize.width > screenSize.height) == landscape else { return false }
+                guard let visible = editorViewportAboveKeyboard() else { return false }
+                guard controls.allSatisfy({
+                    guard $0.exists else { return false }
+                    let frame = $0.frame
+                    return frame.minX.isFinite && frame.minY.isFinite && frame.width.isFinite && frame.height.isFinite &&
+                        frame.width > 0 && frame.height > 0 &&
+                        abs(frame.intersection(visible).height - frame.height) < 0.5 &&
+                        abs(frame.intersection(visible).width - frame.width) < 0.5
+                }) else { return false }
+                // A rotation can briefly expose invalid activation points. Read
+                // hittability only after actual screen and control geometry settle.
+                return controls.allSatisfy { $0.isHittable }
+            }, object: app)
+            let result = XCTWaiter.wait(for: [settled], timeout: 5)
+            if result != .completed {
+                let hierarchy = XCTAttachment(string: app.debugDescription)
+                hierarchy.name = "native-workspace-unsettled-keyboard-accessibility"
+                hierarchy.lifetime = .keepAlways
+                add(hierarchy)
+                WorkspaceUITestNavigation.capture(app, named: "native-workspace-unsettled-keyboard-screen", test: self)
+            }
+            XCTAssertEqual(result, .completed,
+                           "Wait for the real rotation to finish before reading editor and keyboard geometry")
+            guard let visible = editorViewportAboveKeyboard() else {
+                XCTFail("The actual software keyboard and input assistant must be visible on screen")
+                return
+            }
+            for element in controls {
+                XCTAssertTrue(WorkspaceUITestNavigation.waitUntilHittable(element))
+                XCTAssertEqual(element.frame.intersection(visible).height, element.frame.height, accuracy: 0.5,
+                               "The editor and fixed actions must remain above the software keyboard, input assistant and Done toolbar")
+            }
+        }
+
+        let portraitLayout = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            field.exists && abs(field.frame.minX - portraitFrame.minX) < 1 &&
+                abs(field.frame.width - portraitFrame.width) < 1 && app.buttons["workspace.keyboard.done"].isHittable
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [portraitLayout], timeout: 5), .completed,
+                       "The keyboard must not turn a portrait workspace into columns")
+        assertVisibleEditorAndActions()
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "native-workspace-portrait-keyboard-accessibility"
+        hierarchy.lifetime = .keepAlways
+        add(hierarchy)
+        func captureScreen(_ name: String) {
+            let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            screenshot.name = name
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
+        }
+        captureScreen("native-workspace-portrait-keyboard-axis")
+        app.typeText(" draft")
+        XCTAssertEqual(field.value as? String, initialTitle + " draft")
+
+        XCUIDevice.shared.orientation = .landscapeLeft
+        assertVisibleEditorAndActions(landscape: true)
+        XCTAssertEqual(field.value as? String, initialTitle + " draft")
+        captureScreen("native-workspace-landscape-keyboard-axis")
+        XCUIDevice.shared.orientation = .portrait
+        assertVisibleEditorAndActions()
+        XCTAssertEqual(field.frame.minX, portraitFrame.minX, accuracy: 1)
+        XCTAssertEqual(field.frame.width, portraitFrame.width, accuracy: 1)
+        XCTAssertEqual(field.value as? String, initialTitle + " draft")
+        WorkspaceUITestNavigation.dismissKeyboard(in: app)
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+        XCTAssertEqual(field.value as? String, initialTitle + " draft")
+        XCTAssertTrue(app.buttons["configuration.apply"].isEnabled)
+    }
+
     func testInitialLiveHlsSourceLoadsAndAdvances() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         let source = app.buttons["source.preset"]
         XCTAssertTrue(source.waitForExistence(timeout: 20))
         XCTAssertEqual(source.value as? String, "Live HLS")
@@ -43,7 +170,7 @@ final class NativeWorkspaceUITests: XCTestCase {
 
     func testSettingsAndDraftSurviveTabsRotationAndPresetSelection() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         XCTAssertTrue(app.buttons["configuration.open"].waitForExistence(timeout: 20))
         try WorkspaceUITestNavigation.setting("configuration.autoplay", in: app)
         let autoplay = app.switches["configuration.autoplay"]
@@ -132,7 +259,7 @@ final class NativeWorkspaceUITests: XCTestCase {
 
     func testOperationFilterRequiresExplicitSelectionAndShowsSdkOutcome() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         XCTAssertTrue(app.buttons["api.open"].waitForExistence(timeout: 20))
         app.buttons["api.open"].tap()
         app.buttons["api.operation"].tap()
@@ -166,7 +293,7 @@ final class NativeWorkspaceUITests: XCTestCase {
     func testLargeTextKeepsSelectedSettingAndApplyAccessible() throws {
         let app = XCUIApplication()
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         XCTAssertTrue(app.buttons["configuration.open"].waitForExistence(timeout: 20))
         try WorkspaceUITestNavigation.setting("configuration.startOffset", in: app)
         let offset = app.textFields["configuration.startOffset"]
@@ -206,7 +333,7 @@ final class NativeWorkspaceUITests: XCTestCase {
 
     func testSharePlayActivityDraftSurvivesWorkspaceChanges() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         try WorkspaceUITestNavigation.activate(app.buttons["workspace.more"], in: app)
         try WorkspaceUITestNavigation.choose("SharePlay", picker: "workspace.more.section", in: app)
         try WorkspaceUITestNavigation.choose("Activity", picker: "shareplay.section", in: app)
@@ -223,7 +350,7 @@ final class NativeWorkspaceUITests: XCTestCase {
 
     func testInvalidSdkFieldRevealSurvivesCategoryChanges() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         try WorkspaceUITestNavigation.activate(app.buttons["configuration.open"], in: app)
         try WorkspaceUITestNavigation.choose("Advanced SDK", picker: "configuration.category", in: app)
         try WorkspaceUITestNavigation.replace(app.textFields["advanced.filter"], with: "SourceConfig.tracks", in: app)
@@ -252,7 +379,7 @@ final class NativeWorkspaceUITests: XCTestCase {
     @available(iOS 17.0, *)
     func testMainSettingsAccessibilityAudit() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         XCTAssertTrue(app.buttons["configuration.open"].waitForExistence(timeout: 20))
         try WorkspaceUITestNavigation.setting("configuration.startMuted", in: app)
         XCTAssertFalse(app.buttons["configuration.apply"].isEnabled)
@@ -286,7 +413,7 @@ final class NativeWorkspaceUITests: XCTestCase {
     func testLongApiAndScriptSettingKeepInputAndActionsVisible() throws {
         let app = XCUIApplication()
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         XCTAssertTrue(app.buttons["api.open"].waitForExistence(timeout: 20))
         app.buttons["api.open"].tap()
         app.buttons["api.operation"].tap()

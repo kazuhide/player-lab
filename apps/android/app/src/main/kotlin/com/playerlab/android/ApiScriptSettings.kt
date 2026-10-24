@@ -18,11 +18,12 @@ import java.util.concurrent.FutureTask
 
 internal object ApiScriptSettings {
     private const val SDK = "android:com.bitmovin.player.api."
-    private const val GUIDE = "Enter a JavaScript function body using input, or null to disable. Runs only after Apply. No Java, network, storage or Player/Source access is provided. Invalid results retain native behavior. "
+    internal const val GUIDE = "Enter a JavaScript function body using input, or null to disable. Runs only after Apply. No Java, network, storage or Player/Source access is provided. Invalid results retain native behavior. "
+    internal const val EXAMPLE_SEPARATOR = " Example: "
     internal fun script(id: String, help: String, example: String,
                        player: ((PlayerConfig, String, ApiCallbackContext) -> PlayerConfig)? = null,
                        source: ((com.bitmovin.player.api.source.SourceConfig, String, ApiCallbackContext) -> Unit)? = null) =
-        ApiSetting(SDK + id, id.substringBeforeLast('.'), ApiValueKind.Script, GUIDE + help + " Example: " + example,
+        ApiSetting(SDK + id, id.substringBeforeLast('.'), ApiValueKind.Script, GUIDE + help + EXAMPLE_SEPARATOR + example,
             nullable = true, order = 100, playerCallback = player, sourceCallback = source,
             code = { value ->
                 val body = kotlinString(if (value == "null") "null" else "<YOUR_CALLBACK_BODY>")

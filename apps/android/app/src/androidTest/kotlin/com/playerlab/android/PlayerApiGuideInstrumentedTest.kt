@@ -32,7 +32,7 @@ class PlayerApiGuideInstrumentedTest {
         ui.runOnUiThread { assertTrue("Applied callback override", "android:com.bitmovin.player.api.media.LabelingConfig.videoQualityLabeler" in c.apiOverrides.values) }
         await { c.player.isPlaying && c.player.currentTime > 0.5 }
         ui.onNodeWithTag("api-setting-value").performScrollTo()
-        ApiGuideScreenshot.capture("android-api-callback")
+        ApiGuideScreenshot.capture("android-api-callback", ui.activity)
         click("api-settings-toggle")
         click("api-runtime-toggle")
         field("api-runtime-search", "Player.seek")
@@ -41,17 +41,17 @@ class PlayerApiGuideInstrumentedTest {
         click("api-command-run")
         await { c.player.currentTime >= 5 }
         ui.onNodeWithTag("api-command-run").assertIsDisplayed()
-        ApiGuideScreenshot.capture("android-api-operation")
+        ApiGuideScreenshot.capture("android-api-operation", ui.activity)
         click("api-section-State")
         field("api-runtime-search", "Player.currentTime")
         click("api-state-refresh")
         workspaceState(ui, "android:com.bitmovin.player.api.Player.currentTime").assertExists().performScrollTo()
-        ApiGuideScreenshot.capture("android-api-state")
+        ApiGuideScreenshot.capture("android-api-state", ui.activity)
         click("api-section-Events")
-        field("api-runtime-search", "Playing")
-        ui.runOnUiThread { assertTrue(c.apiEvents.entries.any { it.key.contains("Playing") && it.value > 0 }) }
+        workspaceEvent(ui, "PlayerEvent.Playing").assertIsDisplayed()
+        ui.runOnUiThread { assertTrue("The selected playback event was received", (c.apiEvents["PlayerEvent.Playing"] ?: 0) > 0) }
         ui.onNodeWithTag("api-events-clear").assertIsDisplayed()
-        ApiGuideScreenshot.capture("android-api-events")
+        ApiGuideScreenshot.capture("android-api-events", ui.activity)
     }
     private fun click(tag: String) = workspaceClick(ui, tag)
     private fun field(tag: String, value: String) { workspaceField(ui, tag, value); closeSoftKeyboard() }

@@ -174,7 +174,7 @@ struct NativeSharePlayControls: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Picker("SharePlay", selection: $workbench.controlsPane) {
-                ForEach(["Sessions", "Activity", "Coordinate", "Code"], id: \.self) { Text($0).tag($0) }
+                ForEach(["Sessions", "Activity", "Coordinate", "Code"], id: \.self) { Text(LocalizedStringKey($0)).tag($0) }
             }
             .accessibilityIdentifier("shareplay.section")
             .font(.caption).dynamicTypeSize(...DynamicTypeSize.xxxLarge)
@@ -211,7 +211,7 @@ struct NativeSharePlayControls: View {
                 Text(NativeSharePlayWorkbench.code).font(.system(.caption, design: .monospaced))
             }
             Button("Refresh group state") { workbench.refresh(); model.refreshApiState() }
-            Text(workbench.status).font(.caption)
+            Text(LocalizedStringKey(workbench.status)).font(.caption)
             if let error = workbench.controlsError { Text(error).font(.caption).foregroundStyle(.red) }
         }
     }

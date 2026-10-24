@@ -14,6 +14,11 @@
       "text": "This guide follows the SwiftUI app in apps/ios/Showcase, shared by the iOS and tvOS targets. Player is the SDK playback instance; a view, layer or controller presents its video. PlayerConfig describes the instance, SourceConfig describes one media source, and PlayerViewConfig describes a PlayerView. SwiftUI is Apple’s native UI framework; it is separate from the HTML-based Bitmovin Player Web UI used inside the iOS player."
     },
     {
+      "type": "note",
+      "title": "Display language",
+      "text": "The app supports English and Japanese through the system or per-app language preference. This guide uses captures from the English app. SDK identifiers, code and returned data retain their original spelling. The standard Player controls also depend on SDK and system language settings."
+    },
+    {
       "type": "p",
       "text": "Here SDK means the playback library integrated into your app. API means the public classes, properties and methods you use to configure or operate it. The form is a way to try those APIs; PlayerSettings, SourceSettings and other Lab helpers organize the app’s state and are not additional SDK configuration types."
     },
@@ -41,10 +46,10 @@
       "text": "    @StateObject private var model = PlayerModel(\n        licenseKey: bitmovinLicenseKey(),\n        analyticsLicenseKey: bitmovinAnalyticsLicenseKey()\n    )",
       "source": {
         "path": "apps/ios/Showcase/ContentView.swift",
-        "line": 11,
-        "label": "ContentView.swift:11–14"
+        "line": 14,
+        "label": "ContentView.swift:14–17"
       },
-      "endLine": 14
+      "endLine": 17
     },
     {
       "type": "code",
@@ -52,10 +57,10 @@
       "text": "        .onAppear { model.loadInitialSource() }",
       "source": {
         "path": "apps/ios/Showcase/ContentView.swift",
-        "line": 61,
-        "label": "ContentView.swift:61"
+        "line": 71,
+        "label": "ContentView.swift:71"
       },
-      "endLine": 61
+      "endLine": 71
     },
     {
       "type": "p",
@@ -99,7 +104,7 @@
         [
           "Playback → Autoplay / Start muted",
           "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted",
-          "From the startup defaults, turn Autoplay on while keeping Start muted on, then Apply. A changed player setting recreates the player; check that playback starts automatically and remains muted. If all values match the applied configuration, the form shows No configuration changes and disables Apply."
+          "From the startup defaults, turn Autoplay on while keeping Start muted on, then Apply. A changed player setting recreates the player; check that playback starts automatically and remains muted. If all values match the applied configuration, Apply is disabled."
         ],
         [
           "Quality and buffer → Maximum bitrate",
@@ -124,7 +129,7 @@
         [
           "Settings → Advanced SDK → Player, Source or view property",
           "The corresponding typed SDK property, applied before creating/loading its owner",
-          "Search the exact API name, enable Override SDK default, enter a valid value and Apply. Disable the override and Apply to restore the basic form value or SDK default."
+          "Search the exact API name, enable Override, enter a valid value and Apply. Disable the override and Apply to restore the basic form value or SDK default."
         ]
       ]
     },
@@ -181,7 +186,7 @@
     {
       "type": "figure",
       "file": "ios-initial-tracks",
-      "caption": "Recorded with the earlier app layout. Initial track preferences on iPad. These fields are app preferences applied through SDK track-selection APIs, rather than language properties on PlayerConfig."
+      "caption": "The initial audio-language field on iPad. The app applies this preference through SDK track-selection APIs, rather than a language property on PlayerConfig."
     },
     {
       "type": "p",
@@ -264,7 +269,7 @@
     {
       "type": "steps",
       "items": [
-        "For a Web UI option such as the playback-speed menu, open Settings → Advanced SDK, search BitmovinUserInterfaceConfig.playbackSpeedSelectionEnabled, enable Override SDK default and choose its value. Keep StyleConfig.userInterfaceType set to bitmovin. Apply, open the player’s settings menu and compare the result with the applied Swift code.",
+        "For a Web UI option such as the playback-speed menu, open Settings → Advanced SDK, search BitmovinUserInterfaceConfig.playbackSpeedSelectionEnabled, enable Override and choose its value. Keep StyleConfig.userInterfaceType set to bitmovin. Apply, open the player’s settings menu and compare the result with the applied Swift code.",
         "For additional CSS, use StyleConfig.supplementalPlayerUiCss with a resource URL reachable by the Web UI. It adds rules to the selected base CSS. StyleConfig.playerUiCss replaces the base CSS, so use it only when supplying the required complete stylesheet.",
         "To change the shared component layout or its own styles, edit packages/ui-shared/src/liveUi.ts or src/styles/ui-shared.scss. Build @showcase/ui-shared, run pnpm sync:webui, regenerate the Xcode project so its WebUI resources are included, then rebuild the iOS target. Changing generated files alone is not the source change.",
         "After rebuilding, check the theme, subtitle visibility, track menus and relevant UI events with the same media. A CSS change cannot add a native SDK capability or make a missing media track available."
@@ -293,7 +298,7 @@
     {
       "type": "figure",
       "file": "tvos-video-scaling",
-      "caption": "Recorded with the earlier app layout. The tvOS native configuration form offers Fit, Fill (crop) and Stretch. These affect the video inside its presentation area, rather than the SwiftUI form’s size."
+      "caption": "The tvOS native configuration form offers Fit, Fill (crop) and Stretch. These affect the video inside its presentation area, rather than the SwiftUI form’s size."
     },
     {
       "type": "p",
@@ -322,6 +327,19 @@
     {
       "type": "p",
       "text": "For tvOS customization, use SystemUserInterfaceConfig fields such as showSeekBar or showInfoViews in additional settings. For runtime SystemUiApi menu/actions, first select Native PlayerView and keep the System UI engine. The app builds native menu/action objects from structured inputs; contextual and info actions accept actions, while transport-bar menus may be nested. Open the native controls to inspect the result. SwiftUI test buttons outside the player are still edited in ContentView rather than through these SDK settings."
+    },
+    {
+      "type": "h3",
+      "id": "tvos-workspace-focus",
+      "text": "Return remote focus to the workspace tabs"
+    },
+    {
+      "type": "p",
+      "text": "The tvOS code viewer gives each wrapped line remote focus so the whole example can be read. Navigating with arrow buttons can require moving through the long document or entering Apple's AVKit playback preview. In ControlPanel, onExitCommand on the editor content sets a SwiftUI FocusState to the selected tab. The focused modifier binds each tab button to this state, so Back/Menu gives that tab focus. The tab-row HStack also uses focusSection to group its buttons for directional focus. Left/Right and Select then switch workspaces without traversing the document."
+    },
+    {
+      "type": "p",
+      "text": "Keep this handler on the editor content rather than the whole screen. Back/Menu on the tab bar keeps its system behavior. Changing focus or switching tabs retains the draft and the current Player; it does not apply configuration or recreate playback."
     },
     {
       "type": "links",
@@ -415,7 +433,7 @@
     {
       "type": "figure",
       "file": "ios-offline-track-selection",
-      "caption": "Recorded with the earlier app layout. The offline inspector obtains actual audio/subtitle tracks from the SDK. Track discovery is a preparation step; the download state and cached playback need separate confirmation."
+      "caption": "The offline inspector obtains actual audio/subtitle tracks from the SDK. Track discovery is a preparation step; the download state and cached playback need separate confirmation."
     },
     {
       "type": "note",
@@ -425,7 +443,7 @@
     {
       "type": "figure",
       "file": "ios-cast-options",
-      "caption": "Recorded with the earlier app layout. Receiver and discovery settings in the iOS Cast inspector. They configure startup, rather than proving that a receiver has been found or is playing."
+      "caption": "Receiver and discovery settings in the iOS Cast inspector. They configure startup, rather than proving that a receiver has been found or is playing."
     },
     {
       "type": "p",
@@ -467,6 +485,11 @@
       "text": "Integration FAQ",
       "id": "faq",
       "summary": "Diagnose configuration resets, licensing, UI resources, track selection, and asynchronous operations using the applied code and SDK state."
+    },
+    {
+      "type": "note",
+      "title": "How does the editor keep its layout while the keyboard is open?",
+      "text": "SwiftUI GeometryReader reports less available height when the keyboard appears. Using that aspect ratio alone can switch a portrait editor to a side layout and move the focused field. This screen chooses the layout axis from its own window shape and available width, and uses the reduced content height to make room for editing. While typing, it hides help text and reduces vertical spacing to keep the input and Apply and Reset buttons visible. Rotation and window resizing can change the layout while retaining drafts."
     },
     {
       "type": "note",
@@ -529,7 +552,7 @@
     },
     {
       "type": "p",
-      "text": "After the player integration works, add the Analytics collector. It observes supported player events and sends playback data to the Analytics license configured for the app. The primary place to inspect collected sessions, audience and playback quality is Observability in Bitmovin Dashboard. The Apple APIs’s local event list is useful for integration debugging, but it is not the Dashboard and does not prove backend receipt."
+      "text": "After the player integration works, add the Analytics collector. It observes supported player events and sends playback data to the Analytics license configured for the app. The primary place to inspect collected sessions, audience and playback quality is Observability in Bitmovin Dashboard. The Apple app’s local event list is useful for integration debugging, but it is not the Dashboard and does not prove backend receipt."
     },
     {
       "type": "p",

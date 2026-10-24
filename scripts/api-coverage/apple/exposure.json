@@ -126,7 +126,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -136,7 +136,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -161,7 +161,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -171,7 +171,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -196,7 +196,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -206,7 +206,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -231,7 +231,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -241,7 +241,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -386,7 +386,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -396,7 +396,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -421,7 +421,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -431,7 +431,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -456,7 +456,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -466,7 +466,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -491,7 +491,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -501,7 +501,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -549,12 +549,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 304,
+            "line": 310,
             "symbol": "text: draft.maximumBitrate"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -704,7 +704,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -714,7 +714,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -744,7 +744,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -779,7 +779,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -809,7 +809,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -819,7 +819,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -844,7 +844,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -854,7 +854,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -879,7 +879,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -889,7 +889,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -914,7 +914,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -924,7 +924,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -949,7 +949,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -959,7 +959,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -1129,7 +1129,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -1159,7 +1159,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -1169,7 +1169,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -1200,7 +1200,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1220,7 +1220,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1240,7 +1240,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1260,7 +1260,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1280,7 +1280,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1300,7 +1300,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1320,7 +1320,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1340,7 +1340,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1360,7 +1360,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1380,7 +1380,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1400,7 +1400,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1420,7 +1420,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1440,7 +1440,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1460,7 +1460,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1480,7 +1480,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1500,7 +1500,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1520,7 +1520,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1540,7 +1540,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1560,7 +1560,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1580,7 +1580,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1600,7 +1600,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1620,7 +1620,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1640,7 +1640,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1660,7 +1660,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1680,7 +1680,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1700,7 +1700,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1720,7 +1720,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1740,7 +1740,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -1760,7 +1760,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1780,7 +1780,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -1800,7 +1800,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -1830,7 +1830,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -1860,7 +1860,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -1890,7 +1890,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -1920,7 +1920,7 @@
           {
             "file": "apps/ios/Showcase/NativeCastInspector.swift",
             "line": 88,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -1944,7 +1944,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -1954,7 +1954,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -1979,7 +1979,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -1989,7 +1989,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2014,7 +2014,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -2024,7 +2024,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2049,7 +2049,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -2059,7 +2059,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2084,7 +2084,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -2094,7 +2094,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2119,7 +2119,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -2129,7 +2129,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2159,7 +2159,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2189,7 +2189,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -2199,7 +2199,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2224,7 +2224,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -2234,7 +2234,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2259,7 +2259,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -2269,7 +2269,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2294,7 +2294,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -2304,7 +2304,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2374,7 +2374,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2399,12 +2399,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 305,
+            "line": 311,
             "symbol": "text: draft.forwardBuffer"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2614,7 +2614,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -2624,7 +2624,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2669,7 +2669,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -2679,7 +2679,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -2704,7 +2704,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -2714,7 +2714,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3059,7 +3059,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3069,7 +3069,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3094,7 +3094,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3104,7 +3104,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3129,7 +3129,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3139,7 +3139,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3190,7 +3190,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -3220,7 +3220,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -3250,7 +3250,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -3300,7 +3300,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -3324,7 +3324,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3334,7 +3334,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3359,7 +3359,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3369,7 +3369,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3454,7 +3454,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3464,7 +3464,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3489,7 +3489,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3499,7 +3499,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3524,7 +3524,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3534,7 +3534,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3559,7 +3559,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3569,7 +3569,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3594,7 +3594,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3604,7 +3604,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3629,7 +3629,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3639,7 +3639,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3664,7 +3664,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3674,7 +3674,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3699,7 +3699,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3709,7 +3709,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3734,7 +3734,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3744,7 +3744,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3769,7 +3769,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3779,7 +3779,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3804,7 +3804,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3814,7 +3814,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -3839,7 +3839,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -3849,7 +3849,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4094,7 +4094,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4104,7 +4104,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4129,7 +4129,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4139,7 +4139,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4164,7 +4164,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4174,7 +4174,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4199,7 +4199,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4209,7 +4209,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4234,7 +4234,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4244,7 +4244,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4269,7 +4269,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4279,7 +4279,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4304,7 +4304,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4314,7 +4314,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4339,7 +4339,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4349,7 +4349,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4374,7 +4374,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4384,7 +4384,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4409,7 +4409,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4419,7 +4419,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4444,7 +4444,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4454,7 +4454,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4479,7 +4479,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4489,7 +4489,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4514,7 +4514,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4524,7 +4524,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4549,7 +4549,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4559,7 +4559,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4584,7 +4584,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4594,7 +4594,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4619,7 +4619,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4629,7 +4629,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4654,7 +4654,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4664,7 +4664,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4749,7 +4749,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4759,7 +4759,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4784,7 +4784,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4794,7 +4794,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4819,7 +4819,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4829,7 +4829,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4854,7 +4854,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4864,7 +4864,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -4969,7 +4969,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -4979,7 +4979,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5004,7 +5004,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -5014,7 +5014,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5039,7 +5039,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -5049,7 +5049,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5074,7 +5074,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -5084,7 +5084,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5109,7 +5109,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -5119,7 +5119,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5144,7 +5144,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -5154,7 +5154,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5199,7 +5199,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -5209,7 +5209,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5294,7 +5294,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -5304,7 +5304,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5329,7 +5329,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -5339,7 +5339,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5364,7 +5364,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -5374,7 +5374,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5399,7 +5399,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -5409,7 +5409,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5454,7 +5454,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -5464,7 +5464,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -5495,7 +5495,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -5565,7 +5565,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5585,7 +5585,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5605,7 +5605,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5625,7 +5625,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5645,7 +5645,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5665,7 +5665,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5685,7 +5685,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5705,7 +5705,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -5725,7 +5725,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -5745,7 +5745,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5765,7 +5765,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5785,7 +5785,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -5805,7 +5805,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5825,7 +5825,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5845,7 +5845,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -5865,7 +5865,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -5885,7 +5885,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5905,7 +5905,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5925,7 +5925,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -5975,7 +5975,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -5995,7 +5995,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -6015,7 +6015,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -6035,7 +6035,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -6055,7 +6055,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -6075,7 +6075,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -6095,7 +6095,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -6115,7 +6115,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -6135,7 +6135,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
@@ -6160,7 +6160,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -6180,7 +6180,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -6210,7 +6210,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -6240,7 +6240,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -6260,7 +6260,7 @@
           {
             "file": "apps/ios/Showcase/OfflineInspector.swift",
             "line": 176,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -6394,7 +6394,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -6404,7 +6404,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6429,7 +6429,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -6439,7 +6439,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6464,7 +6464,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -6474,7 +6474,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6499,7 +6499,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -6509,7 +6509,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6634,7 +6634,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -6644,7 +6644,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6669,7 +6669,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -6679,7 +6679,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6704,7 +6704,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -6714,7 +6714,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6739,7 +6739,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -6749,7 +6749,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6789,12 +6789,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 296,
+            "line": 302,
             "symbol": "draft.autoplay"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6824,7 +6824,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -6834,7 +6834,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6859,7 +6859,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -6869,7 +6869,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6889,12 +6889,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 297,
+            "line": 303,
             "symbol": "draft.startMuted"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6924,7 +6924,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -6934,7 +6934,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -6954,12 +6954,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 298,
+            "line": 304,
             "symbol": "draft.sdkTimeShiftEnabled"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8294,7 +8294,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8329,7 +8329,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8364,7 +8364,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8399,7 +8399,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8429,7 +8429,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -8439,7 +8439,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8469,7 +8469,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8504,7 +8504,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8539,7 +8539,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8574,7 +8574,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8609,7 +8609,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8644,7 +8644,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8679,7 +8679,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -8714,7 +8714,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9216,7 +9216,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -9226,7 +9226,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9256,7 +9256,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9291,7 +9291,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9361,7 +9361,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -9371,7 +9371,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9442,7 +9442,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -9462,7 +9462,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -9482,7 +9482,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -9502,7 +9502,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -9522,7 +9522,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -9542,7 +9542,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -9572,7 +9572,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -9602,7 +9602,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -9632,7 +9632,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -9796,7 +9796,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -9806,7 +9806,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9831,7 +9831,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -9841,7 +9841,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9866,7 +9866,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -9876,7 +9876,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9901,7 +9901,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -9911,7 +9911,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9936,7 +9936,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -9946,7 +9946,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -9971,7 +9971,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -9981,7 +9981,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10006,7 +10006,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -10016,7 +10016,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10041,7 +10041,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -10051,7 +10051,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10076,7 +10076,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -10086,7 +10086,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10111,7 +10111,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -10121,7 +10121,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10671,7 +10671,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10701,7 +10701,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -10711,7 +10711,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10746,7 +10746,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -10756,7 +10756,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10786,7 +10786,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10821,7 +10821,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10851,7 +10851,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -10861,7 +10861,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10891,7 +10891,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10916,12 +10916,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 291,
+            "line": 297,
             "symbol": "text: draft.posterURL"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10951,7 +10951,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -10961,7 +10961,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -10986,7 +10986,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -10996,7 +10996,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11016,12 +11016,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 290,
+            "line": 296,
             "symbol": "text: draft.title"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11051,7 +11051,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -11061,7 +11061,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11081,12 +11081,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 288,
+            "line": 294,
             "symbol": "draft.sourceType"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11111,12 +11111,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 286,
+            "line": 292,
             "symbol": "text: draft.sourceURL"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11272,7 +11272,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -11292,7 +11292,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -11346,7 +11346,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -11356,7 +11356,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11381,7 +11381,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -11391,7 +11391,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11416,7 +11416,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -11426,7 +11426,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11511,7 +11511,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -11521,7 +11521,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11541,12 +11541,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 292,
+            "line": 298,
             "symbol": "text: draft.startOffset"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11571,12 +11571,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 294,
+            "line": 300,
             "symbol": "draft.timelineReference"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11726,7 +11726,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -11736,7 +11736,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11761,7 +11761,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -11771,7 +11771,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11796,7 +11796,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -11806,7 +11806,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11826,12 +11826,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 307,
+            "line": 313,
             "symbol": "draft.videoScaling"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11861,7 +11861,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -11871,7 +11871,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11901,7 +11901,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -11931,7 +11931,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -11941,7 +11941,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12026,7 +12026,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12036,7 +12036,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12061,7 +12061,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12071,7 +12071,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12116,7 +12116,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12126,7 +12126,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12151,7 +12151,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12161,7 +12161,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12186,7 +12186,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12196,7 +12196,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12261,7 +12261,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12271,7 +12271,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12296,7 +12296,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12306,7 +12306,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12331,7 +12331,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12341,7 +12341,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12366,7 +12366,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12376,7 +12376,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12621,7 +12621,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12631,7 +12631,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12656,7 +12656,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12666,7 +12666,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12691,7 +12691,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12701,7 +12701,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12746,7 +12746,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12756,7 +12756,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12781,7 +12781,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12791,7 +12791,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12816,7 +12816,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12826,7 +12826,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12851,7 +12851,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12861,7 +12861,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12886,7 +12886,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12896,7 +12896,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12921,7 +12921,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12931,7 +12931,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12956,7 +12956,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -12966,7 +12966,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -12991,7 +12991,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13001,7 +13001,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13026,7 +13026,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13036,7 +13036,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13061,7 +13061,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13071,7 +13071,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13096,7 +13096,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13106,7 +13106,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13131,7 +13131,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13141,7 +13141,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13166,7 +13166,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13176,7 +13176,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13201,7 +13201,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13211,7 +13211,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13236,7 +13236,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13246,7 +13246,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13571,7 +13571,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13581,7 +13581,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13606,7 +13606,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13616,7 +13616,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13641,7 +13641,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13651,7 +13651,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13876,7 +13876,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13886,7 +13886,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13911,7 +13911,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13921,7 +13921,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13946,7 +13946,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13956,7 +13956,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -13981,7 +13981,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -13991,7 +13991,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14154,7 +14154,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14164,7 +14164,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14189,7 +14189,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14199,7 +14199,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14224,7 +14224,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14234,7 +14234,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14259,7 +14259,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14269,7 +14269,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14414,7 +14414,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14424,7 +14424,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14449,7 +14449,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14459,7 +14459,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14484,7 +14484,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14494,7 +14494,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14519,7 +14519,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14529,7 +14529,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14577,12 +14577,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 304,
+            "line": 310,
             "symbol": "text: draft.maximumBitrate"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14732,7 +14732,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14742,7 +14742,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14772,7 +14772,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14806,7 +14806,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14816,7 +14816,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14841,7 +14841,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14851,7 +14851,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14876,7 +14876,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14886,7 +14886,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14911,7 +14911,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14921,7 +14921,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -14946,7 +14946,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -14956,7 +14956,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15106,7 +15106,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15136,7 +15136,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -15146,7 +15146,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15224,7 +15224,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15249,12 +15249,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 305,
+            "line": 311,
             "symbol": "text: draft.forwardBuffer"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15444,7 +15444,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -15454,7 +15454,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15499,7 +15499,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -15509,7 +15509,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15534,7 +15534,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -15544,7 +15544,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15709,7 +15709,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -15719,7 +15719,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15744,7 +15744,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -15754,7 +15754,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15779,7 +15779,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -15789,7 +15789,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15854,7 +15854,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -15864,7 +15864,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15889,7 +15889,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -15899,7 +15899,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -15984,7 +15984,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -15994,7 +15994,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16019,7 +16019,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16029,7 +16029,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16054,7 +16054,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16064,7 +16064,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16089,7 +16089,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16099,7 +16099,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16124,7 +16124,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16134,7 +16134,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16159,7 +16159,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16169,7 +16169,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16194,7 +16194,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16204,7 +16204,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16229,7 +16229,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16239,7 +16239,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16264,7 +16264,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16274,7 +16274,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16299,7 +16299,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16309,7 +16309,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16554,7 +16554,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16564,7 +16564,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16589,7 +16589,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16599,7 +16599,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16624,7 +16624,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16634,7 +16634,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16659,7 +16659,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16669,7 +16669,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16694,7 +16694,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16704,7 +16704,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16729,7 +16729,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16739,7 +16739,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16764,7 +16764,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16774,7 +16774,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16799,7 +16799,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16809,7 +16809,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16834,7 +16834,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16844,7 +16844,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16869,7 +16869,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16879,7 +16879,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16904,7 +16904,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16914,7 +16914,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16939,7 +16939,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16949,7 +16949,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -16974,7 +16974,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -16984,7 +16984,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17069,7 +17069,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17079,7 +17079,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17104,7 +17104,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17114,7 +17114,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17139,7 +17139,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17149,7 +17149,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17174,7 +17174,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17184,7 +17184,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17289,7 +17289,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17299,7 +17299,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17324,7 +17324,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17334,7 +17334,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17359,7 +17359,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17369,7 +17369,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17394,7 +17394,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17404,7 +17404,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17429,7 +17429,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17439,7 +17439,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17464,7 +17464,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17474,7 +17474,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17519,7 +17519,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17529,7 +17529,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17614,7 +17614,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17624,7 +17624,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17649,7 +17649,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17659,7 +17659,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17684,7 +17684,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17694,7 +17694,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17719,7 +17719,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17729,7 +17729,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17774,7 +17774,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17784,7 +17784,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17909,7 +17909,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17919,7 +17919,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -17944,7 +17944,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -17954,7 +17954,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18079,7 +18079,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -18089,7 +18089,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18114,7 +18114,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -18124,7 +18124,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18149,7 +18149,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -18159,7 +18159,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18184,7 +18184,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -18194,7 +18194,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18234,12 +18234,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 296,
+            "line": 302,
             "symbol": "draft.autoplay"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18269,7 +18269,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -18279,7 +18279,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18304,7 +18304,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -18314,7 +18314,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18334,12 +18334,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 297,
+            "line": 303,
             "symbol": "draft.startMuted"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18369,7 +18369,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -18379,7 +18379,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -18399,12 +18399,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 298,
+            "line": 304,
             "symbol": "draft.sdkTimeShiftEnabled"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19739,7 +19739,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19774,7 +19774,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19809,7 +19809,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19844,7 +19844,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19874,7 +19874,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -19884,7 +19884,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19914,7 +19914,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19949,7 +19949,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -19984,7 +19984,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20019,7 +20019,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20054,7 +20054,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20089,7 +20089,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20124,7 +20124,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20606,7 +20606,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -20616,7 +20616,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20646,7 +20646,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -20752,7 +20752,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -20772,7 +20772,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -20792,7 +20792,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -20812,7 +20812,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -20832,7 +20832,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "observed"
@@ -20852,7 +20852,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -20882,7 +20882,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -20912,7 +20912,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -20942,7 +20942,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           },
           {
             "file": "apps/ios/Showcase/PlayerModel.swift",
@@ -21106,7 +21106,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -21116,7 +21116,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21141,7 +21141,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -21151,7 +21151,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21176,7 +21176,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -21186,7 +21186,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21211,7 +21211,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -21221,7 +21221,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21246,7 +21246,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -21256,7 +21256,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21281,7 +21281,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -21291,7 +21291,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21316,7 +21316,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -21326,7 +21326,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21351,7 +21351,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -21361,7 +21361,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21386,7 +21386,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -21396,7 +21396,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -21421,7 +21421,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -21431,7 +21431,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22001,7 +22001,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22031,7 +22031,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -22041,7 +22041,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22076,7 +22076,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -22086,7 +22086,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22116,7 +22116,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22151,7 +22151,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22181,7 +22181,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -22191,7 +22191,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22216,7 +22216,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -22226,7 +22226,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22256,7 +22256,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22281,12 +22281,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 291,
+            "line": 297,
             "symbol": "text: draft.posterURL"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22316,7 +22316,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -22326,7 +22326,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22351,7 +22351,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -22361,7 +22361,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22381,12 +22381,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 290,
+            "line": 296,
             "symbol": "text: draft.title"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22416,7 +22416,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -22426,7 +22426,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22446,12 +22446,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 288,
+            "line": 294,
             "symbol": "draft.sourceType"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22476,12 +22476,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 286,
+            "line": 292,
             "symbol": "text: draft.sourceURL"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22637,7 +22637,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -22657,7 +22657,7 @@
           {
             "file": "apps/ios/Showcase/NativePlaylistInspector.swift",
             "line": 114,
-            "symbol": "Text(workbench.result)"
+            "symbol": "Text(NativeLocalization.operationResult(workbench.result))"
           }
         ],
         "status": "direct"
@@ -22711,7 +22711,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -22721,7 +22721,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22746,7 +22746,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -22756,7 +22756,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22781,7 +22781,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -22791,7 +22791,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22876,7 +22876,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -22886,7 +22886,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22906,12 +22906,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 292,
+            "line": 298,
             "symbol": "text: draft.startOffset"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -22936,12 +22936,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 294,
+            "line": 300,
             "symbol": "draft.timelineReference"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23091,7 +23091,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23101,7 +23101,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23121,12 +23121,12 @@
         "evidence": [
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 307,
+            "line": 313,
             "symbol": "draft.videoScaling"
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23161,7 +23161,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23191,7 +23191,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23201,7 +23201,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23286,7 +23286,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23296,7 +23296,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23321,7 +23321,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23331,7 +23331,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23376,7 +23376,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23386,7 +23386,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23411,7 +23411,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23421,7 +23421,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23446,7 +23446,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23456,7 +23456,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23521,7 +23521,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23531,7 +23531,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23636,7 +23636,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23646,7 +23646,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23671,7 +23671,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23681,7 +23681,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23706,7 +23706,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23716,7 +23716,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23741,7 +23741,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23751,7 +23751,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23776,7 +23776,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23786,7 +23786,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23811,7 +23811,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23821,7 +23821,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23846,7 +23846,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23856,7 +23856,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23881,7 +23881,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23891,7 +23891,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -23916,7 +23916,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -23926,7 +23926,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24171,7 +24171,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24181,7 +24181,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24206,7 +24206,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24216,7 +24216,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24241,7 +24241,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24251,7 +24251,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24296,7 +24296,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24306,7 +24306,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24331,7 +24331,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24341,7 +24341,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24366,7 +24366,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24376,7 +24376,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24401,7 +24401,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24411,7 +24411,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24436,7 +24436,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24446,7 +24446,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24471,7 +24471,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24481,7 +24481,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24506,7 +24506,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24516,7 +24516,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24541,7 +24541,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24551,7 +24551,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24576,7 +24576,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24586,7 +24586,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24611,7 +24611,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24621,7 +24621,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24646,7 +24646,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24656,7 +24656,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24681,7 +24681,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24691,7 +24691,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -24716,7 +24716,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -24726,7 +24726,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25051,7 +25051,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -25061,7 +25061,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25086,7 +25086,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -25096,7 +25096,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25121,7 +25121,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -25131,7 +25131,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25316,7 +25316,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -25326,7 +25326,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25351,7 +25351,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -25361,7 +25361,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25386,7 +25386,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -25396,7 +25396,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {
@@ -25421,7 +25421,7 @@
           },
           {
             "file": "apps/ios/Showcase/AdvancedConfigurationFields.swift",
-            "line": 148,
+            "line": 161,
             "symbol": "input.accessibilityIdentifier("
           },
           {
@@ -25431,7 +25431,7 @@
           },
           {
             "file": "apps/ios/Showcase/ConfigurationEditor.swift",
-            "line": 223,
+            "line": 229,
             "symbol": "try model.apply(session.value)"
           },
           {

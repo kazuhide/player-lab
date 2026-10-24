@@ -46,7 +46,7 @@ class PlayerMediaSessionInstrumentedTest {
                 native?.metadata?.description?.title?.toString() == "Lab metadata sample"
             }
             assertEquals("API integration", requireNotNull(native!!.metadata).description.subtitle.toString())
-            ApiGuideScreenshot.capture("android-media-session")
+            ApiGuideScreenshot.capture("android-media-session", ui.activity)
             native!!.transportControls.pause()
             await("Android transport pause reaches Player") { c.player.isPaused }
             native!!.transportControls.play()

@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_settings_74a883" formatted="false">Settings</string>
+    <string name="ui_apis_8d266d" formatted="false">APIs</string>
+    <string name="ui_code_340f46" formatted="false">Code</string>
+    <string name="ui_more_d47d7c" formatted="false">More</string>
+    <string name="ui_source_0e570c" formatted="false">Source</string>
+    <string name="ui_player_64aee8" formatted="false">Player</string>
+    <string name="ui_configuration_b332c3" formatted="false">Configuration</string>
+    <string name="ui_setting_818cd8" formatted="false">Setting</string>
+    <string name="ui_sdk_overrides_f1eab8" formatted="false">SDK overrides</string>
+    <string name="ui_stream_url_e176b7" formatted="false">Stream URL</string>
+    <string name="ui_stream_type_74e61e" formatted="false">Stream type</string>
+    <string name="ui_title_7e8cd2" formatted="false">Title</string>
+    <string name="ui_poster_image_d76552" formatted="false">Poster image</string>
+    <string name="ui_keep_poster_visible_311e44" formatted="false">Keep poster visible</string>
+    <string name="ui_start_position_ab71b8" formatted="false">Start position</string>
+    <string name="ui_start_position_reference_bc403e" formatted="false">Start position reference</string>
+    <string name="ui_live_target_latency_ef5436" formatted="false">Live target latency</string>
+    <string name="ui_audio_language_priority_7c646d" formatted="false">Audio language priority</string>
+    <string name="ui_external_subtitle_url_8dde67" formatted="false">External subtitle URL</string>
+    <string name="ui_external_subtitle_label_497b29" formatted="false">External subtitle label</string>
+    <string name="ui_external_subtitle_language_490cc3" formatted="false">External subtitle language</string>
+    <string name="ui_default_external_subtitle_4d9f13" formatted="false">Default external subtitle</string>
+    <string name="ui_legacy_source_constructor_19152b" formatted="false">Legacy source constructor</string>
+    <string name="ui_autoplay_892aea" formatted="false">Autoplay</string>
+    <string name="ui_start_muted_aea518" formatted="false">Start muted</string>
+    <string name="ui_live_time_shifting_5db170" formatted="false">Live time shifting</string>
+    <string name="ui_startup_buffer_d5d8d3" formatted="false">Startup buffer</string>
+    <string name="ui_restart_buffer_5f43fa" formatted="false">Restart buffer</string>
+    <string name="ui_forward_buffer_dd1d07" formatted="false">Forward buffer</string>
+    <string name="ui_maximum_automatic_video_bitrate_48885e" formatted="false">Maximum automatic video bitrate</string>
+    <string name="ui_preload_content_a32f5a" formatted="false">Preload content</string>
+    <string name="ui_allow_rebuffering_3e26f3" formatted="false">Allow rebuffering</string>
+    <string name="ui_live_quality_and_stability_2b6593" formatted="false">Live quality and stability</string>
+    <string name="ui_http_retry_delays_2bcc58" formatted="false">HTTP retry delays</string>
+    <string name="ui_reset_draft_82f016" formatted="false">Reset draft</string>
+    <string name="ui_apply_source_c489d0" formatted="false">Apply source</string>
+    <string name="ui_apply_player_3eb78a" formatted="false">Apply player</string>
+    <string name="ui_apply_sdk_2c7ff2" formatted="false">Apply SDK</string>
+    <string name="ui_apply_analytics_8d0e3c" formatted="false">Apply Analytics</string>
+    <string name="ui_apply_offline_settings_5b8d04" formatted="false">Apply offline settings</string>
+    <string name="ui_apply_reloads_this_source_ce8088" formatted="false">Apply reloads this source.</string>
+    <string name="ui_apply_recreates_the_player_and_reloads_its_source_ee5edc" formatted="false">Apply recreates the player and reloads its source.</string>
+    <string name="ui_source_url_1adf66" formatted="false">Source URL</string>
+    <string name="ui_source_type_24e59f" formatted="false">Source type</string>
+    <string name="ui_poster_url_af9f21" formatted="false">Poster URL</string>
+    <string name="ui_optional_http_or_https_image_url_8b14c1" formatted="false">Optional HTTP or HTTPS image URL.</string>
+    <string name="ui_http_or_https_stream_url_cleartext_http_also_require_a12108" formatted="false">HTTP or HTTPS stream URL. Cleartext HTTP also requires the device\'s network policy to allow it.</string>
+    <string name="ui_start_offset_s_ec68b5" formatted="false">Start offset (s)</string>
+    <string name="ui_offset_reference_8e6858" formatted="false">Offset reference</string>
+    <string name="ui_start_e4bb9f" formatted="false">Start</string>
+    <string name="ui_end_f4db1e" formatted="false">End</string>
+    <string name="ui_sdk_default_304362" formatted="false">SDK default</string>
+    <string name="ui_live_target_latency_s_35e226" formatted="false">Live target latency (s)</string>
+    <string name="ui_source_audio_language_priority_395921" formatted="false">Source audio language priority</string>
+    <string name="ui_player_audio_language_priority_ef0847" formatted="false">Player audio language priority</string>
+    <string name="ui_webvtt_url_af9593" formatted="false">WebVTT URL</string>
+    <string name="ui_subtitle_label_bc9f1c" formatted="false">Subtitle label</string>
+    <string name="ui_subtitle_language_d67647" formatted="false">Subtitle language</string>
+    <string name="ui_blank_adds_no_external_track_20e2fb" formatted="false">Blank adds no external track.</string>
+    <string name="ui_for_example_en_or_en_us_49b16b" formatted="false">For example en or en-US.</string>
+    <string name="ui_default_is_track_metadata_select_the_track_in_the_su_2e7e74" formatted="false">Default is track metadata. Select the track in the subtitle menu to show it.</string>
+    <string name="ui_use_deprecated_mediasource_constructor_bb4374" formatted="false">Use deprecated MediaSource constructor</string>
+    <string name="ui_off_uses_sourceconfig_url_type_on_creates_the_matchi_fc25ae" formatted="false">Off uses SourceConfig(url, type). On creates the matching legacy MediaSource and passes it to the deprecated SourceConfig constructor.</string>
+    <string name="ui_enable_sdk_live_time_shifting_c283a7" formatted="false">Enable SDK live time shifting</string>
+    <string name="ui_comma_separated_codes_such_as_de_en_a_nonempty_list__68b00c" formatted="false">Comma-separated codes, such as de, en. A nonempty list takes precedence over the player preference.</string>
+    <string name="ui_comma_separated_codes_highest_priority_first_a_sourc_e64c96" formatted="false">Comma-separated codes, highest priority first. A source preference takes precedence.</string>
+    <string name="ui_blank_uses_the_sdk_default_start_uses_positive_secon_b44624" formatted="false">Blank uses the SDK default. Start uses positive seconds; End uses negative seconds. The SDK corrects offsets outside the available window.</string>
+    <string name="ui_blank_uses_sdk_defaults_the_sdk_approaches_this_live_0c75a4" formatted="false">Blank uses SDK defaults. The SDK approaches this live-edge target while avoiding stalls, without a deadline guarantee. Ignored for VOD.</string>
+    <string name="ui_startup_threshold_s_22ad97" formatted="false">Startup threshold (s)</string>
+    <string name="ui_restart_threshold_s_34464e" formatted="false">Restart threshold (s)</string>
+    <string name="ui_forward_buffer_s_5eb7a7" formatted="false">Forward buffer (s)</string>
+    <string name="ui_maximum_automatic_video_bitrate_bps_7c6c08" formatted="false">Maximum automatic video bitrate (bps)</string>
+    <string name="ui_default_2_5_nonnegative_and_at_most_forward_buffer_m_1816fd" formatted="false">Default 2.5. Nonnegative and at most forward buffer minus 0.5.</string>
+    <string name="ui_default_5_buffer_needed_after_a_stall_e6624c" formatted="false">Default 5. Buffer needed after a stall.</string>
+    <string name="ui_default_50_at_least_0_5_for_threshold_headroom_5ff4df" formatted="false">Default 50. At least 0.5 for threshold headroom.</string>
+    <string name="ui_blank_sets_no_automatic_bitrate_cap_higher_qualities_dbcf0f" formatted="false">Blank sets no automatic bitrate cap. Higher qualities remain available for manual selection.</string>
+    <string name="ui_live_quality_stability_balance_2519a0" formatted="false">Live quality / stability balance</string>
+    <string name="ui_0_favors_quality_1_favors_stability_live_playback_ne_031faa" formatted="false">0 favors quality; 1 favors stability. Live playback near the live edge only.</string>
+    <string name="ui_http_retry_delays_s_27ba05" formatted="false">HTTP retry delays (s)</string>
+    <string name="ui_blank_uses_linear_backoff_none_disables_retries_othe_d736b6" formatted="false">Blank uses linear backoff. none disables retries. Otherwise enter nonnegative seconds, such as 0, 1, 2. DRM renewal uses its own policy.</string>
+    <string name="ui_editing_fab453" formatted="false">Editing</string>
+    <string name="ui_done_11a676" formatted="false">Done</string>
+    <string name="ui_custom_stream_c02391" formatted="false">Custom stream</string>
+    <string name="ui_theme_efb52e" formatted="false">Theme</string>
+    <string name="ui_default_21b111" formatted="false">Default</string>
+    <string name="ui_sports_9b1f5d" formatted="false">Sports</string>
+    <string name="ui_live_b64ac0" formatted="false">Live</string>
+    <string name="ui_cinema_89ec0b" formatted="false">Cinema</string>
+    <string name="ui_close_7d9eb7" formatted="false">Close</string>
+    <string name="ui_no_matching_items_change_the_search_text_408753" formatted="false">No matching items. Change the search text.</string>
+    <string name="ui_feature_3d377a" formatted="false">Feature</string>
+    <string name="ui_all_features_808ce0" formatted="false">All features</string>
+    <string name="ui_sdk_setting_e50270" formatted="false">SDK setting</string>
+    <string name="ui_playback_2db1db" formatted="false">Playback</string>
+    <string name="ui_advertising_7c50f8" formatted="false">Advertising</string>
+    <string name="ui_content_protection_3396ac" formatted="false">Content protection</string>
+    <string name="ui_network_1744b9" formatted="false">Network</string>
+    <string name="ui_audio_and_subtitles_c706f2" formatted="false">Audio and subtitles</string>
+    <string name="ui_casting_0c9e7b" formatted="false">Casting</string>
+    <string name="ui_ui_and_display_6c953a" formatted="false">UI and display</string>
+    <string name="ui_live_playback_cd2998" formatted="false">Live playback</string>
+    <string name="ui_buffer_and_quality_73c233" formatted="false">Buffer and quality</string>
+    <string name="ui_sources_and_playlist_1a20ca" formatted="false">Sources and playlist</string>
+    <string name="ui_offline_a17947" formatted="false">Offline</string>
+    <string name="ui_applied_code_0ca495" formatted="false">Applied code</string>
+    <string name="ui_player_source_and_ui_1ba569" formatted="false">Player, source and UI</string>
+    <string name="ui_only_applied_settings_are_exported_draft_edits_are_e_de40f5" formatted="false">Only applied settings are exported. Draft edits are excluded and license keys use placeholders.</string>
+    <string name="ui_assign_these_values_to_fresh_configuration_objects_b_61c81c" formatted="false">Assign these values to fresh configuration objects before creating Player, Source and PlayerView. Copy assignments use mutable playerConfig and playerViewConfig variables.</string>
+    <string name="ui_wrap_lines_672713" formatted="false">Wrap lines</string>
+    <string name="ui_copy_code_49a005" formatted="false">Copy code</string>
+    <string name="ui_copied_8d525e" formatted="false">Copied</string>
+    <string name="ui_edit_list_4ea320" formatted="false">Edit list</string>
+    <string name="ui_use_null_13ab58" formatted="false">Use null</string>
+    <string name="ui_preset_values_c85f2e" formatted="false">Preset values</string>
+    <string name="ui_edited_value_is_not_staged_stage_override_before_app_98e96c" formatted="false">Edited value is not staged. Stage override before Apply.</string>
+    <string name="ui_staged_override_not_applied_73f4b9" formatted="false">Staged override; not applied.</string>
+    <string name="ui_applied_override_d81710" formatted="false">Applied override</string>
+    <string name="ui_removal_staged_apply_to_restore_the_standard_form_or_d90623" formatted="false">Removal staged. Apply to restore the standard form or SDK default.</string>
+    <string name="ui_using_the_standard_form_or_sdk_default_a2b95c" formatted="false">Using the standard form or SDK default</string>
+    <string name="ui_setting_details_and_requirements_a7f73c" formatted="false">Setting details and requirements</string>
+    <string name="ui_prepare_google_play_services_cronet_b0131a" formatted="false">Prepare Google Play services Cronet</string>
+    <string name="ui_override_staged_choose_apply_sdk_to_send_it_to_the_p_b6760d" formatted="false">Override staged. Choose Apply SDK to send it to the player.</string>
+    <string name="ui_override_removal_staged_8dd27d" formatted="false">Override removal staged.</string>
+    <string name="ui_stage_override_ce345a" formatted="false">Stage override</string>
+    <string name="ui_remove_c3812f" formatted="false">Remove</string>
+    <string name="ui_invalid_sdk_field_value_ec6960" formatted="false">Invalid SDK field value.</string>
+    <string name="ui_invalid_sdk_configuration_draft_values_are_retained_75a950" formatted="false">Invalid SDK configuration. Draft values are retained.</string>
+    <string name="ui_pure_javascript_using_a_bounded_value_snapshot_no_ja_4d720b" formatted="false">Pure JavaScript using a bounded value snapshot. No Java or Android access. Limits: 50000 interpreter instructions, 25 ms thread CPU time, 250 ms wall time, stack depth 64. Without CPU timing the wall limit is 75 ms. Native built-ins are not preempted; this is not a separate-process memory sandbox.</string>
+    <string name="ui_refresh_callback_outcomes_7846f3" formatted="false">Refresh callback outcomes</string>
+    <string name="ui_no_callback_outcomes_have_been_read_0c9963" formatted="false">No callback outcomes have been read.</string>
+    <string name="ui_commands_b269dc" formatted="false">Commands</string>
+    <string name="ui_state_a3b50c" formatted="false">State</string>
+    <string name="ui_events_8d14f6" formatted="false">Events</string>
+    <string name="ui_operation_0f044f" formatted="false">Operation</string>
+    <string name="ui_sdk_state_a93378" formatted="false">SDK state</string>
+    <string name="ui_sdk_event_eadaa4" formatted="false">SDK event</string>
+    <string name="ui_argument_481da3" formatted="false">Argument</string>
+    <string name="ui_no_arguments_7ead60" formatted="false">No arguments.</string>
+    <string name="ui_call_result_e320a9" formatted="false">Call result</string>
+    <string name="ui_a_submitted_command_does_not_confirm_the_media_effec_761325" formatted="false">A submitted command does not confirm the media effect. SDK events and state provide separate observations.</string>
+    <string name="ui_observed_playback_state_2a1fe0" formatted="false">Observed playback state</string>
+    <string name="ui_not_read_yet_run_an_operation_or_refresh_the_observa_660c62" formatted="false">Not read yet. Run an operation or refresh the observation.</string>
+    <string name="ui_refresh_playback_state_50fea8" formatted="false">Refresh playback state</string>
+    <string name="ui_recent_sdk_events_e720c1" formatted="false">Recent SDK events</string>
+    <string name="ui_app_session_history_these_events_are_not_proof_that__88feef" formatted="false">App-session history; these events are not proof that the selected operation completed.</string>
+    <string name="ui_app_session_history_including_events_before_the_late_cc3f63" formatted="false">App-session history, including events before the latest API call.</string>
+    <string name="ui_all_sdk_state_27ea7d" formatted="false">All SDK state</string>
+    <string name="ui_all_sdk_events_4bab11" formatted="false">All SDK events</string>
+    <string name="ui_not_read_yet_fbe841" formatted="false">Not read yet</string>
+    <string name="ui_refresh_reads_this_sdk_value_once_keys_and_opaque_re_4de12e" formatted="false">Refresh reads this SDK value once. Keys and opaque request/configuration objects are excluded. Lists and text are bounded for display.</string>
+    <string name="ui_ad_values_require_an_active_ad_or_a_selected_ssai_te_6081bb" formatted="false">Ad values require an active ad or a selected SSAI test object. Vector3 values inspect the last moveViewingDirection input; activeAdBreak and activeLinearAd read actual SDK state.</string>
+    <string name="ui_record_sdk_events_3d695e" formatted="false">Record SDK events</string>
+    <string name="ui_counts_cover_this_app_session_zero_means_no_recorded_65efcf" formatted="false">Counts cover this app session. Zero means no recorded occurrence. SDK timestamps are milliseconds since the Unix epoch. Event payloads, headers and keys are excluded.</string>
+    <string name="ui_run_api_6dff6c" formatted="false">Run API</string>
+    <string name="ui_refresh_sdk_state_307f6b" formatted="false">Refresh SDK state</string>
+    <string name="ui_clear_event_counts_7c2185" formatted="false">Clear event counts</string>
+    <string name="ui_recording_is_off_enable_it_in_events_to_observe_new__bdc81c" formatted="false">Recording is off. Enable it in Events to observe new events.</string>
+    <string name="ui_no_events_recorded_in_this_app_session_42d7a8" formatted="false">No events recorded in this app session.</string>
+    <string name="ui_playerview_subscriptions_receive_view_ui_events_such_ebedd3" formatted="false">PlayerView subscriptions receive view UI events, such as FullscreenEnter/Exit. Playback and source events are recorded on Player and Source in the Events tab; they are not forwarded by this view subscription.</string>
+    <string name="ui_time_is_seektarget_offset_in_seconds_start_uses_a_no_8b5c01" formatted="false">time is SeekTarget.offset in seconds. Start uses a nonnegative offset and End uses a nonpositive offset; the SDK corrects invalid values to stream boundaries. null uses the default reference for the source. useSeekTarget=false passes a null target to the SDK.</string>
+    <string name="ui_the_host_endpoint_is_playerlabmessage_data_string_a__7cc2f9" formatted="false">The host endpoint is playerLabMessage(data: String). A custom Web UI must register its incoming message handler. Only this session\'s latest messages are shown.</string>
+    <string name="ui_playback_options_564b3c" formatted="false">Playback options</string>
+    <string name="ui_live_controls_35d04f" formatted="false">Live controls</string>
+    <string name="ui_startup_and_integrations_8d3ba6" formatted="false">Startup and integrations</string>
+    <string name="ui_diagnostics_268f14" formatted="false">Diagnostics</string>
+    <string name="ui_enable_live_rewind_controls_3b274e" formatted="false">Enable live rewind controls</string>
+    <string name="ui_app_preference_for_live_sources_rewind_also_requires_b260e1" formatted="false">App preference for live sources. Rewind also requires SDK live time shifting and an available live window. This does not change video-on-demand playback.</string>
+    <string name="ui_current_playback_bce294" formatted="false">Current playback</string>
+    <string name="ui_use_settings_to_change_the_source_or_player_apis_pro_d80d7b" formatted="false">Use Settings to change the source or player. APIs provides track selection, playback controls, state and events.</string>
+    <string name="ui_these_controls_are_available_only_for_a_live_source_011815" formatted="false">These controls are available only for a live source.</string>
+    <string name="ui_live_edge_878539" formatted="false">Live edge</string>
+    <string name="ui_rewind_is_unavailable_for_this_source_or_its_current_5468cf" formatted="false">Rewind is unavailable for this source or its current configuration.</string>
+    <string name="ui_the_current_source_is_video_on_demand_live_edge_and__b269c9" formatted="false">The current source is video on demand. Live edge and rewind controls are hidden.</string>
+    <string name="ui_live_controls_are_unavailable_until_the_current_sour_47755e" formatted="false">Live controls are unavailable until the current source is loaded as live.</string>
+    <string name="ui_manager_8b2085" formatted="false">Manager</string>
+    <string name="ui_download_settings_772a86" formatted="false">Download settings</string>
+    <string name="ui_track_selection_5cb0cc" formatted="false">Track selection</string>
+    <string name="ui_offline_source_cb4adc" formatted="false">Offline source</string>
+    <string name="ui_actions_ff8059" formatted="false">Actions</string>
+    <string name="ui_downloads_d5fdc1" formatted="false">Downloads</string>
+    <string name="ui_segments_48c64f" formatted="false">Segments</string>
+    <string name="ui_device_requirements_0d5ed7" formatted="false">Device requirements</string>
+    <string name="ui_drm_license_handling_f5c8a8" formatted="false">DRM license handling</string>
+    <string name="ui_drm_id_6bb205" formatted="false">DRM ID</string>
+    <string name="ui_offline_restriction_f0dea9" formatted="false">Offline restriction</string>
+    <string name="ui_cache_directory_1143f8" formatted="false">Cache directory</string>
+    <string name="ui_track_state_file_4f0af4" formatted="false">Track-state file</string>
+    <string name="ui_track_051f01" formatted="false">Track</string>
+    <string name="ui_stable_content_id_7be87e" formatted="false">Stable content ID</string>
+    <string name="ui_offline_downloads_7149dc" formatted="false">Offline downloads</string>
+    <string name="ui_use_downloadable_video_on_demand_files_remain_when_a_fdd53e" formatted="false">Use downloadable video on demand. Files remain when a manager is released; Delete all removes them.</string>
+    <string name="ui_allow_download_notifications_f8d1ac" formatted="false">Allow download notifications</string>
+    <string name="ui_use_sample_dash_source_73b367" formatted="false">Use sample DASH source</string>
+    <string name="ui_maximum_simultaneous_downloads_ceb64a" formatted="false">Maximum simultaneous downloads</string>
+    <string name="ui_maximum_simultaneous_segment_downloads_efdad1" formatted="false">Maximum simultaneous segment downloads</string>
+    <string name="ui_device_requirement_543d26" formatted="false">Device requirement</string>
+    <string name="ui_downloads_wait_until_every_selected_device_requireme_82ab30" formatted="false">Downloads wait until every selected device requirement is met.</string>
+    <string name="ui_automatically_handle_offline_drm_licenses_b3d3c7" formatted="false">Automatically handle offline DRM licenses</string>
+    <string name="ui_drmid_hexadecimal_bytes_or_null_8313e7" formatted="false">drmId: hexadecimal bytes or null</string>
+    <string name="ui_offline_session_key_set_id_not_a_player_key_2d6642" formatted="false">Offline session key-set ID, not a Player key.</string>
+    <string name="ui_restrict_playback_to_cached_content_de7fa7" formatted="false">Restrict playback to cached content</string>
+    <string name="ui_cache_directory_name_e4e4b9" formatted="false">Cache directory name</string>
+    <string name="ui_track_state_file_name_8f3a51" formatted="false">Track-state file name</string>
+    <string name="ui_advanced_constructor_for_the_current_url_and_type_it_3c5838" formatted="false">Advanced constructor for the current URL and type. It uses named directories in this app\'s private api-offline-source storage and does not copy SDK-managed downloads. Restriction requires matching cached resources and track state. Usually use Play downloaded source.</string>
+    <string name="ui_no_options_received_use_actions_fetch_sdk_track_opti_037313" formatted="false">No options received. Use Actions &gt; Fetch SDK track options after creating a manager.</string>
+    <string name="ui_none_dc937b" formatted="false">None</string>
+    <string name="ui_download_d6eafe" formatted="false">Download</string>
+    <string name="ui_delete_e2d0a5" formatted="false">Delete</string>
+    <string name="ui_stage_download_delete_or_none_for_this_track_process_457674" formatted="false">Stage Download, Delete or None for this track. Process applies all selected track actions. The SDK may reject actions incompatible with track state.</string>
+    <string name="ui_permanently_removes_downloaded_files_for_the_current_badbd7" formatted="false">Permanently removes downloaded files for the current content ID.</string>
+    <string name="ui_requires_an_offline_capable_drm_source_and_license_270af2" formatted="false">Requires an offline-capable DRM source and license.</string>
+    <string name="ui_releases_this_manager_and_keeps_downloaded_files_9d3090" formatted="false">Releases this manager and keeps downloaded files.</string>
+    <string name="ui_targets_the_current_offline_manager_and_source_83c896" formatted="false">Targets the current offline manager and source.</string>
+    <string name="ui_download_settings_match_the_applied_draft_4eb7dc" formatted="false">Download settings match the applied draft.</string>
+    <string name="ui_unapplied_download_settings_e5c05a" formatted="false">Unapplied download settings.</string>
+    <string name="ui_create_manager_3c57ab" formatted="false">Create manager</string>
+    <string name="ui_construct_and_load_source_238d55" formatted="false">Construct and load source</string>
+    <string name="ui_process_selected_actions_0d7c89" formatted="false">Process selected actions</string>
+    <string name="ui_fetch_sdk_track_options_0248e6" formatted="false">Fetch SDK track options</string>
+    <string name="ui_suspend_downloads_476065" formatted="false">Suspend downloads</string>
+    <string name="ui_resume_downloads_23c8f9" formatted="false">Resume downloads</string>
+    <string name="ui_play_downloaded_source_0efb42" formatted="false">Play downloaded source</string>
+    <string name="ui_delete_all_content_for_this_id_370083" formatted="false">Delete all content for this ID</string>
+    <string name="ui_download_offline_drm_license_1d2e8e" formatted="false">Download offline DRM license</string>
+    <string name="ui_renew_offline_drm_license_d83009" formatted="false">Renew offline DRM license</string>
+    <string name="ui_release_offline_drm_license_bc956a" formatted="false">Release offline DRM license</string>
+    <string name="ui_release_manager_4c91cd" formatted="false">Release manager</string>
+    <string name="ui_read_offline_sdk_state_d9c2a2" formatted="false">Read offline SDK state</string>
+    <string name="ui_read_applied_offline_configuration_5b937a" formatted="false">Read applied offline configuration</string>
+    <string name="ui_download_notifications_enabled_2bc28d" formatted="false">Download notifications enabled.</string>
+    <string name="ui_download_notifications_are_disabled_in_system_settin_a354f2" formatted="false">Download notifications are disabled in system settings.</string>
+    <string name="ui_select_an_offline_operation_bb068d" formatted="false">Select an offline operation.</string>
+    <string name="ui_enable_android_media_session_d5c368" formatted="false">Enable Android media session</string>
+    <string name="ui_enable_the_host_vr_renderer_d8d162" formatted="false">Enable the host VR renderer</string>
+    <string name="ui_close_editor_bd0b7b" formatted="false">Close editor</string>
+    <string name="ui_add_item_d1a0b3" formatted="false">Add item</string>
+    <string name="ui_remove_item_5a89ed" formatted="false">Remove item</string>
+    <string name="ui_item_652bcc" formatted="false">Item</string>
+    <string name="ui_property_40040c" formatted="false">Property</string>
+    <string name="ui_add_an_item_to_edit_its_properties_50d3ba" formatted="false">Add an item to edit its properties.</string>
+    <string name="ui_enter_null_to_use_the_sdk_null_value_54080c" formatted="false">Enter null to use the SDK null value.</string>
+    <string name="ui_edits_remain_in_the_sdk_field_draft_close_this_edito_8f85e4" formatted="false">Edits remain in the SDK field draft. Close this editor, then Stage override and Apply SDK.</string>
+    <string name="ui_save_startup_setting_76bc4a" formatted="false">Save startup setting</string>
+    <string name="ui_enable_global_sdk_debug_logging_on_the_next_app_laun_00f956" formatted="false">Enable global SDK debug logging on the next app launch</string>
+    <string name="ui_saved_for_the_next_full_app_launch_5882cc" formatted="false">Saved for the next full app launch.</string>
+    <string name="ui_the_startup_option_could_not_be_saved_14569e" formatted="false">The startup option could not be saved.</string>
+    <string name="ui_this_sdk_option_must_be_set_before_any_bitmovin_comp_25950e" formatted="false">This SDK option must be set before any Bitmovin component is created. Save it, then fully stop and reopen this app. The current player is not restarted by this button. SDK debug logs can include confidential data; keep them local and turn logging off after debugging.</string>
+    <string name="ui_collection_7b7907" formatted="false">Collection</string>
+    <string name="ui_identity_999f23" formatted="false">Identity</string>
+    <string name="ui_delivery_52bfe5" formatted="false">Delivery</string>
+    <string name="ui_errors_cb7023" formatted="false">Errors</string>
+    <string name="ui_default_metadata_2c6ab2" formatted="false">Default metadata</string>
+    <string name="ui_source_metadata_67cbca" formatted="false">Source metadata</string>
+    <string name="ui_runtime_custom_data_00b8a3" formatted="false">Runtime custom data</string>
+    <string name="ui_runtime_actions_b39489" formatted="false">Runtime actions</string>
+    <string name="ui_collection_mode_86c4d7" formatted="false">Collection mode</string>
+    <string name="ui_license_override_ddb607" formatted="false">License override</string>
+    <string name="ui_ad_tracking_545ec7" formatted="false">Ad tracking</string>
+    <string name="ui_legacy_ssai_flag_6d9367" formatted="false">Legacy SSAI flag</string>
+    <string name="ui_retry_policy_2ee363" formatted="false">Retry policy</string>
+    <string name="ui_backend_url_d48a02" formatted="false">Backend URL</string>
+    <string name="ui_log_level_886e60" formatted="false">Log level</string>
+    <string name="ui_read_analytics_sdk_state_ed0361" formatted="false">Read Analytics SDK state</string>
+    <string name="ui_send_custom_data_event_b0e649" formatted="false">Send custom data event</string>
+    <string name="ui_set_current_source_custom_data_2edbce" formatted="false">Set current source custom data</string>
+    <string name="ui_signal_program_change_with_source_draft_b6d312" formatted="false">Signal program change with source draft</string>
+    <string name="ui_build_key_3bbc62" formatted="false">Build key</string>
+    <string name="ui_deferred_license_ac23be" formatted="false">Deferred license</string>
+    <string name="ui_disabled_75081b" formatted="false">Disabled</string>
+    <string name="ui_build_key_uses_the_local_build_configuration_a_blank_540d1c" formatted="false">Build key uses the local build configuration; a blank key disables collection. Deferred license asks the SDK for the associated Analytics license. Inspect received sessions in Bitmovin Dashboard.</string>
+    <string name="ui_optional_analytics_license_override_ad8a2a" formatted="false">Optional Analytics license override</string>
+    <string name="ui_kept_only_in_this_app_session_excluded_from_exported_01b4b2" formatted="false">Kept only in this app session; excluded from exported code.</string>
+    <string name="ui_disable_client_side_ad_tracking_0dd44b" formatted="false">Disable client-side ad tracking</string>
+    <string name="ui_legacy_ssai_engagement_flag_7f66e6" formatted="false">Legacy SSAI engagement flag</string>
+    <string name="ui_the_sdk_ignores_this_legacy_setting_ssai_engagement__6a563d" formatted="false">The SDK ignores this legacy setting. SSAI engagement tracking is always enabled.</string>
+    <string name="ui_randomize_user_id_2ed9fd" formatted="false">Randomize user ID</string>
+    <string name="ui_analytics_backend_url_e0a20c" formatted="false">Analytics backend URL</string>
+    <string name="ui_blank_uses_the_sdk_default_1315c2" formatted="false">Blank uses the SDK default.</string>
+    <string name="ui_debug_includes_diagnostic_details_keep_sensitive_log_87e245" formatted="false">DEBUG includes diagnostic details. Keep sensitive logs local.</string>
+    <string name="ui_redact_message_126083" formatted="false">Redact message</string>
+    <string name="ui_custom_494ca7" formatted="false">Custom</string>
+    <string name="ui_analytics_error_callback_body_53300b" formatted="false">Analytics error callback body</string>
+    <string name="ui_pure_javascript_using_input_code_message_severity_or_1ed574" formatted="false">Pure JavaScript using input {code, message, severity, originalErrorType}. Return a partial error object or null to retain the original error. severity is CRITICAL or INFO. SDK objects are not exposed; callback bounds and retirement rules apply.</string>
+    <string name="ui_source_program_metadata_1ba772" formatted="false">Source / program metadata</string>
+    <string name="ui_a_local_result_confirms_the_sdk_call_inspect_the_mat_cb3d84" formatted="false">A local result confirms the SDK call. Inspect the matching Bitmovin Dashboard session to confirm ingestion. Custom data uses staged runtime fields; program change uses staged source metadata.</string>
+    <string name="ui_analytics_settings_match_the_applied_configuration_5e1cbc" formatted="false">Analytics settings match the applied configuration.</string>
+    <string name="ui_unapplied_analytics_changes_apply_recreates_the_play_c7d291" formatted="false">Unapplied Analytics changes. Apply recreates the player and reloads its source.</string>
+    <string name="ui_metadata_value_7ab5fa" formatted="false">Metadata value</string>
+    <string name="ui_stage_field_dc7cac" formatted="false">Stage field</string>
+    <string name="ui_this_field_has_a_staged_value_2f51c8" formatted="false">This field has a staged value.</string>
+    <string name="ui_this_field_uses_its_null_or_default_value_44dcac" formatted="false">This field uses its null or default value.</string>
+    <string name="ui_stage_a_value_then_apply_configuration_or_choose_the_84f09f" formatted="false">Stage a value, then Apply configuration or choose the corresponding runtime action. Source metadata takes precedence over default metadata.</string>
+    <string name="ui_invalid_metadata_type_or_value_your_draft_is_retaine_6c83ac" formatted="false">Invalid metadata type or value. Your draft is retained.</string>
+    <string name="ui_ssai_signal_975745" formatted="false">SSAI signal</string>
+    <string name="ui_ssai_metadata_fe4d03" formatted="false">SSAI metadata</string>
+    <string name="ui_signal_ad_break_start_d74cb9" formatted="false">Signal ad break start</string>
+    <string name="ui_signal_ad_break_end_50317f" formatted="false">Signal ad break end</string>
+    <string name="ui_signal_ad_start_e917eb" formatted="false">Signal ad start</string>
+    <string name="ui_analytics_ssai_signal_submitted_check_the_matching_d_d35e90" formatted="false">Analytics SSAI signal submitted. Check the matching Dashboard session.</string>
+    <string name="ui_report_stitched_ad_transitions_at_actual_ad_boundari_404c8b" formatted="false">Report stitched-ad transitions at actual ad boundaries. Inspect the matching Bitmovin Dashboard session to confirm ingestion. Ad position is PREROLL, MIDROLL or POSTROLL; counts and durationInMs are nonnegative whole numbers; isSlate is true or false.</string>
+    <string name="ui_enter_one_language_code_such_as_en_or_en_us_or_leave_ded6c2" formatted="false">Enter one language code, such as en or en-US, or leave blank.</string>
+    <string name="ui_enter_comma_separated_language_codes_such_as_de_en_71e0b2" formatted="false">Enter comma-separated language codes, such as de, en.</string>
+    <string name="ui_source_applied_current_player_reloaded_a80b72" formatted="false">Source applied; current player reloaded.</string>
+    <string name="ui_player_applied_player_recreated_and_source_reloaded_bf1a41" formatted="false">Player applied; player recreated and source reloaded.</string>
+    <string name="ui_script_value_ca246e" formatted="false">Script value</string>
+    <string name="ui_text_value_93dd74" formatted="false">Text value</string>
+    <string name="ui_number_value_863331" formatted="false">Number value</string>
+    <string name="ui_integer_value_a348c4" formatted="false">Integer value</string>
+    <string name="ui_stringmap_value_2cd343" formatted="false">StringMap value</string>
+    <string name="ui_stringlist_value_c9eb53" formatted="false">StringList value</string>
+    <string name="ui_numberlist_value_4cdfcc" formatted="false">NumberList value</string>
+    <string name="ui_playing_0db79e" formatted="false">playing</string>
+    <string name="ui_paused_a7a9dc" formatted="false">paused</string>
+    <string name="ui_not_playing_d1c458" formatted="false">not playing</string>
+    <string name="ui_not_set_4895f7" formatted="false">Not set</string>
+    <string name="ui_boolean_value_c989da" formatted="false">Boolean value</string>
+    <string name="ui_longinteger_value_751b7c" formatted="false">LongInteger value</string>
+    <string name="ui_decimal_value_d9d509" formatted="false">Decimal value</string>
+    <string name="ui_floatdecimal_value_0073c4" formatted="false">FloatDecimal value</string>
+    <string name="ui_textlist_value_fdcdee" formatted="false">TextList value</string>
+    <string name="ui_integerlist_value_22d7ec" formatted="false">IntegerList value</string>
+    <string name="ui_choice_value_8499c4" formatted="false">Choice value</string>
+    <string name="ui_sdk_offline_source_loaded_inspect_playback_and_track_ffc3f6" formatted="false">SDK offline source loaded. Inspect playback and track states.</string>
+    <string name="ui_player_settings_applied_current_source_reloaded_2c6cfa" formatted="false">Player settings applied; current source reloaded.</string>
+    <string name="ui_prepare_the_google_play_services_cronet_provider_in__062bd8" formatted="false">Prepare the Google Play services Cronet provider in SDK API settings before applying.</string>
+    <string name="ui_unable_to_build_source_configuration_current_setting_07caa3" formatted="false">Unable to build source configuration; current settings kept.</string>
+    <string name="ui_unable_to_create_a_player_current_settings_kept_35e730" formatted="false">Unable to create a player; current settings kept.</string>
+    <string name="ui_sdk_options_available_select_actions_before_processi_137d7b" formatted="false">SDK options available. Select actions before processing.</string>
+    <string name="ui_processing_selected_offline_actions_bbd64c" formatted="false">Processing selected offline actions.</string>
+    <string name="ui_sdk_processing_completed_inspect_track_states_before_41cf35" formatted="false">SDK processing completed. Inspect track states before playback.</string>
+    <string name="ui_offline_actions_suspended_c83678" formatted="false">Offline actions suspended.</string>
+    <string name="ui_offline_actions_resumed_1c6655" formatted="false">Offline actions resumed.</string>
+    <string name="ui_offline_drm_license_updated_216786" formatted="false">Offline DRM license updated.</string>
+    <string name="ui_download_manager_created_fetch_options_to_inspect_av_9366ba" formatted="false">Download manager created. Fetch options to inspect available tracks.</string>
+    <string name="ui_offline_configuration_applied_to_the_sdk_download_se_8c1d13" formatted="false">Offline configuration applied to the SDK download service.</string>
+    <string name="ui_manager_released_stored_files_remain_until_explicitl_415c9d" formatted="false">Manager released. Stored files remain until explicitly deleted.</string>
+    <string name="ui_choose_true_or_false_db38ad" formatted="false">Choose true or false.</string>
+    <string name="ui_enter_a_whole_32_bit_integer_4174a9" formatted="false">Enter a whole 32-bit integer.</string>
+    <string name="ui_enter_a_whole_64_bit_integer_bf2e96" formatted="false">Enter a whole 64-bit integer.</string>
+    <string name="ui_enter_a_finite_number_8c21f2" formatted="false">Enter a finite number.</string>
+    <string name="ui_enter_a_finite_decimal_e84784" formatted="false">Enter a finite decimal.</string>
+    <string name="ui_choose_a_documented_sdk_value_190e33" formatted="false">Choose a documented SDK value.</string>
+    <string name="ui_enter_comma_separated_nonempty_values_or_leave_blank_6e509d" formatted="false">Enter comma-separated nonempty values, or leave blank for an empty list.</string>
+    <string name="ui_use_the_documented_comma_separated_choices_21827b" formatted="false">Use the documented comma-separated choices.</string>
+    <string name="ui_enter_comma_separated_32_bit_integers_or_leave_blank_e77974" formatted="false">Enter comma-separated 32-bit integers, or leave blank for an empty list.</string>
+    <string name="ui_text_is_limited_to_8192_characters_498162" formatted="false">Text is limited to 8192 characters.</string>
+    <string name="ui_remove_override_to_restore_the_base_configuration_sd_5767ff" formatted="false">Remove override to restore the base configuration. SDK content and device requirements apply.</string>
+    <string name="ui_remove_override_to_restore_the_base_configuration_co_fb40db" formatted="false">Remove override to restore the base configuration. Content and device support still apply.</string>
+    <string name="ui_null_keeps_the_nullable_sdk_value_remove_override_to_5a6101" formatted="false">null keeps the nullable SDK value; remove override to restore the base configuration.</string>
+    <string name="ui_signed_buffer_depth_in_seconds_the_sdk_default_is_40_6ef106" formatted="false">Signed buffer depth in seconds; the SDK default is -40. SourceLiveConfig takes precedence when present. Remove the override to restore the base configuration.</string>
+    <string name="ui_external_thumbnail_webvtt_url_requires_a_reachable_t_12a3ae" formatted="false">External thumbnail WebVTT URL. Requires a reachable track and thumbnail images.</string>
+    <string name="ui_one_receiver_name_value_entry_per_line_empty_input_s_beb7b6" formatted="false">One receiver name=value entry per line. Empty input sends an empty map. Receiver support is required.</string>
+    <string name="ui_one_metadata_name_value_entry_per_line_empty_input_s_a5af90" formatted="false">One metadata name=value entry per line. Empty input sends an empty map.</string>
+    <string name="ui_content_identifier_at_most_64_characters_setting_a_c_d7383d" formatted="false">Content identifier, at most 64 characters. Setting a CMCD leaf enables CMCD.</string>
+    <string name="ui_comma_separated_cmcd_enum_names_blank_creates_an_emp_8c248d" formatted="false">Comma-separated CMCD enum names; blank creates an empty exclusion set.</string>
+    <string name="ui_generate_or_omit_the_session_id_the_custom_value_fie_53c0f5" formatted="false">Generate or omit the session ID; the custom value field sets the Custom variant.</string>
+    <string name="ui_nonempty_custom_session_identifier_at_most_64_charac_59ebb7" formatted="false">Nonempty custom session identifier, at most 64 characters.</string>
+    <string name="ui_comma_separated_request_types_preprocessing_retains__e58acb" formatted="false">Comma-separated request types. Preprocessing retains full responses in memory; select only required types. Blank creates an empty list.</string>
+    <string name="ui_built_in_variants_use_uimanagerfactoryfunction_for_a_373621" formatted="false">Built-in variants. Use uiManagerFactoryFunction for a Custom variant.</string>
+    <string name="ui_deprecated_sdk_field_explicit_playerviewconfig_can_t_19b9cb" formatted="false">Deprecated SDK field. Explicit PlayerViewConfig can take precedence; prefer the corresponding view field for current UI behavior.</string>
+    <string name="ui_license_endpoint_preserves_the_current_public_drm_va_30e567" formatted="false">License endpoint. Preserves the current public DRM variant and common fields; defaults to Widevine when no DRM is configured. The URL is omitted from code export.</string>
+    <string name="ui_drm_settings_require_compatible_encrypted_content_a__1fd0a4" formatted="false">DRM settings require compatible encrypted content, a licensed endpoint and device support. Values remain local to this running app.</string>
+    <string name="ui_choose_webui_or_disabled_remove_web_ui_field_overrid_537bf6" formatted="false">Choose WebUi or Disabled. Remove Web UI field overrides before choosing Disabled.</string>
+    <string name="ui_choose_enabled_or_disabled_remove_enabled_field_over_30c6ae" formatted="false">Choose Enabled or Disabled. Remove enabled-field overrides when disabling CMCD.</string>
+    <string name="ui_choose_the_experimental_estimation_algorithm_its_num_c1021b" formatted="false">Choose the experimental estimation algorithm. Its numeric fields remain separate overrides.</string>
+    <string name="ui_choose_the_preferred_ima_ui_rendering_behavior_takes_46f904" formatted="false">Choose the preferred IMA UI rendering behavior. Takes effect when the IMA advertising module initializes.</string>
+    <string name="ui_comma_separated_http_status_codes_that_permit_a_fall_bdc25d" formatted="false">Comma-separated HTTP status codes that permit a fallback resource. Blank uses an empty list. Availability of an alternate resource still depends on the stream.</string>
+    <string name="ui_comma_separated_ima_ui_elements_blank_requests_no_pr_0f43f1" formatted="false">Comma-separated IMA UI elements. Blank requests no preferred elements; null leaves the preference unset. Do not combine with the deprecated imaUiElements alias.</string>
+    <string name="ui_comma_separated_device_names_replaces_device_entries_2dd0c0" formatted="false">Comma-separated device names. Replaces device entries while retaining model-name entries. Use the full device-list editor for names containing commas.</string>
+    <string name="ui_comma_separated_model_names_replaces_model_entries_w_02ee5a" formatted="false">Comma-separated model names. Replaces model entries while retaining device-name entries. Use the full device-list editor for names containing commas.</string>
+    <string name="ui_deprecated_alias_for_ima_ui_element_preferences_use__824722" formatted="false">Deprecated alias for IMA UI element preferences. Use one alias at a time. Blank is an empty list and null clears the preference.</string>
+    <string name="ui_deprecated_alias_for_the_initial_bandwidth_estimate__1e895d" formatted="false">Deprecated alias for the initial bandwidth estimate, in bits per second. -1 restores no estimate override. Do not combine with the newer initialBandwidthEstimateOverride field.</string>
+    <string name="ui_end_of_playlist_replay_behavior_used_with_the_playli_67ae90" formatted="false">End-of-playlist replay behavior. Used with the playlist source override.</string>
+    <string name="ui_experimental_gapless_playback_for_supported_client_s_d721a9" formatted="false">Experimental gapless playback for supported client-side ad workflows. Requires compatible ad media and the advertising integration.</string>
+    <string name="ui_legacy_low_latency_config_enabled_forces_legacy_live_b140e5" formatted="false">Legacy low-latency config. Enabled forces legacy live streams into low-latency handling; source live settings take precedence.</string>
+    <string name="ui_minimum_available_live_buffer_depth_for_time_shiftin_585147" formatted="false">Minimum available live buffer depth for time shifting, in seconds. SDK default is -40. This is ignored for on-demand sources.</string>
+    <string name="ui_one_ntp_index_server_entry_per_line_for_example_ntp__de2354" formatted="false">One Ntp.index=server entry per line, for example Ntp.1=time.example.invalid. Blank clears the endpoint list.</string>
+    <string name="ui_one_field_value_per_line_playbackrate_positive_float_ce2aa1" formatted="false">One field=value per line: playbackRate (positive float), seekThreshold (seconds or Infinity), playbackRateThreshold (legacy threshold, ignored by this SDK). Omitted fields keep the current config.</string>
+    <string name="ui_one_field_value_per_line_playbackrate_positive_float_60e854" formatted="false">One field=value per line: playbackRate (positive float), seekThreshold (seconds or Infinity). Omitted fields keep the current config.</string>
+    <string name="ui_one_model_index_name_or_device_index_name_per_line_f_a5240d" formatted="false">One model.index=name or device.index=name per line, for example model.1=ModelName. Blank clears the list. Keys distinguish entries of the same type.</string>
+    <string name="ui_select_a_drm_variant_or_none_configure_its_license_a_5a7133" formatted="false">Select a DRM variant, or None. Configure its license and variant fields separately. Remove incompatible variant fields first.</string>
+    <string name="ui_select_the_bandwidth_estimator_variant_variant_speci_6910b3" formatted="false">Select the bandwidth estimator variant. Variant-specific values remain editable separately.</string>
+    <string name="ui_session_only_player_key_override_the_value_is_hidden_0f8780" formatted="false">Session-only Player key override. The value is hidden and exported as a placeholder. Removing it restores the build key.</string>
+    <string name="ui_used_when_the_playlist_source_override_is_enabled_pr_2b8775" formatted="false">Used when the playlist source override is enabled. Preloading more sources can increase memory and network use.</string>
+    <string name="ui_enables_playlist_loading_with_these_ordered_sources__b8235a" formatted="false">Enables playlist loading with these ordered sources. Global Source overrides also apply to every item. Remove this override to return to the standard Source form. Offline playback uses its downloaded source instead.</string>
+    <string name="ui_external_subtitle_tracks_with_editable_ids_mime_type_675174" formatted="false">External subtitle tracks, with editable IDs, MIME type, forced/default flags, language and nested roles. An empty list removes external tracks. Null is distinct from an empty string.</string>
+    <string name="ui_initial_ad_schedule_add_one_or_more_sources_to_each__2f5a39" formatted="false">Initial ad schedule. Add one or more sources to each ad, then stage and apply. Position accepts pre, post, a time in seconds or a percentage such as 50%. Timeouts, replacement duration and preload offset use seconds. The SDK advertising module, valid ad tags and compatible content are needed for playback.</string>
+    <string name="ui_select_httpurlconnection_or_a_real_google_play_servi_bfa526" formatted="false">Select HttpURLConnection or a real Google Play services Cronet engine. The Cronet factory entry edits its constructor options. Prepare the provider with the button above before applying Cronet. Engines are shared within this process. Network protocol negotiation still depends on the server.</string>
+    <string name="ui_creates_the_actual_google_play_services_native_crone_ff5ced" formatted="false">Creates the actual Google Play services native Cronet engine with these options. This enables the Cronet source engine. Instances are shared by their option values; at most four configurations may be used before restarting the process.</string>
+    <string name="ui_creates_a_real_media3_simplecache_with_least_recentl_82ea17" formatted="false">Creates a real Media3 SimpleCache with least-recently-used eviction. The SDK uses this tweak in read-only mode: ordinary playback does not populate the cache. Assets must be populated separately to test cache hits. This cache is ignored for OfflineSourceConfig. Null disables it for the next player. Each size has a separate app cache directory. Instances are shared and retained for this process; at most four sizes may be used before restarting.</string>
+    <string name="ui_creates_actual_android_framelayout_containers_below__0b207c" formatted="false">Creates actual Android FrameLayout containers below the video. Positive sizes use density-independent pixels for the host layout and are passed unchanged as the requested ad dimensions. Use -1 for both dimensions to request a fluid companion. The SDK receives their native ViewGroup references and requested ad dimensions. Valid companion ads and the advertising integration are needed to fill them. Null unsets the list; an empty list supplies no containers.</string>
+    <string name="ui_returns_this_typed_media_info_from_the_cast_configur_a656a0" formatted="false">Returns this typed media info from the Cast configuration callback. Do not combine it with the editable onConfigureMediaInfo script. A configured Cast sender and compatible receiver are needed to invoke the hook.</string>
+    <string name="ui_enter_a_function_body_using_input_bytes_unsigned_byt_4efd41" formatted="false">Enter a function body using input.bytes (unsigned bytes) and input.length. Return bytes, or null to retain the original. Example: return input.bytes; Identity/Base64 presets remain available. Binary license values and callback bodies are omitted from logs and exports. Inputs larger than 65536 bytes omit input.bytes.</string>
+    <string name="ui_enter_a_javascript_function_body_using_input_or_null_54bda6" formatted="false">Enter a JavaScript function body using input, or null to disable. Runs only after Apply. No Java, network, storage or Player/Source access is provided. Invalid results retain native behavior. </string>
+    <string name="ui_input_is_quality_metadata_including_width_height_and_049ed3" formatted="false">input is quality metadata, including width, height and frameRate. Return a label string or null.</string>
+    <string name="ui_input_is_quality_metadata_including_channelcount_ret_294aaf" formatted="false">input is quality metadata, including channelCount. Return a label string or null.</string>
+    <string name="ui_input_is_audio_track_metadata_including_language_ret_8eb849" formatted="false">input is audio track metadata, including language. Return the label string, or null to leave it unchanged.</string>
+    <string name="ui_input_is_subtitle_track_metadata_including_language__5c266d" formatted="false">input is subtitle track metadata, including language and isForced. Return a label string or null.</string>
+    <string name="ui_input_is_subtitle_track_metadata_return_a_boolean_47bad8" formatted="false">input is subtitle track metadata. Return a boolean.</string>
+    <string name="ui_input_currentretrycount_httprequesttype_httprequest__efc09f" formatted="false">input: {currentRetryCount, httpRequestType, httpRequest, exception: {name, message}}. Return seconds or null to stop retries.</string>
+    <string name="ui_input_name_message_of_the_ioexception_return_whether_be642b" formatted="false">input: {name, message} of the IOException. Return whether to load the next source.</string>
+    <string name="ui_input_context_mediatype_isad_decoders_index_name_iss_bd5207" formatted="false">input: {context: {mediaType, isAd}, decoders: [{index, name, isSoftware}]}. Return unique decoder indexes in the order to try; omitted indexes are filtered out.</string>
+    <string name="ui_input_includes_error_code_playbackquality_attempteda_34046e" formatted="false">input includes error code, playbackQuality, attemptedActions and suggestedAction. SDK objects are not passed to this worker-thread hook. Return None, Retry, DisableMainContentDecodingDuringAds, SkipToNextSource, or {type: \'LimitBitrate\', maxBitrate: bitsPerSecond}.</string>
+    <string name="ui_input_type_request_url_method_headers_body_bodylengt_afda97" formatted="false">input: {type, request: {url, method, headers, body, bodyLength}}. Return a modified request object or null to keep it. Body is a byte array (up to 65536 bytes); larger bodies are omitted and retained unless replaced.</string>
+    <string name="ui_input_type_response_url_status_headers_body_bodyleng_45570f" formatted="false">input: {type, response: {url, status, headers, body, bodyLength}}. Return {body: [bytes]} or null to retain the response. Large bodies are omitted. The SDK buffers whole responses for this hook; narrow TweaksConfig.httpResponseTypesToPreprocess to avoid buffering media segments.</string>
+    <string name="ui_input_suggested_return_a_video_quality_id_string_or__f5706b" formatted="false">input: {suggested}. Return a video quality ID string or null to retain the SDK suggestion. Available IDs are shown in SDK state.</string>
+    <string name="ui_input_url_type_title_description_metadata_from_the_s_93dc81" formatted="false">input: {url, type, title, description, metadata} from the SourceConfig. Return a GoogleCastMediaType name. Cast services and a receiver are required to execute this hook.</string>
+    <string name="ui_input_is_aditem_metadata_including_position_sources__95dbcf" formatted="false">input is AdItem metadata, including position, sources, replacement duration and preload offset. Return a boolean.</string>
+    <string name="ui_input_id_scheduletime_replacecontentduration_ads_id__72f918" formatted="false">input: {id, scheduleTime, replaceContentDuration, ads: [{id, isLinear, width, height}]}. Return a boolean.</string>
+    <string name="ui_input_items_aditem_metadata_plus_index_seekfrom_seek_bc13c4" formatted="false">input: {items: [AdItem metadata plus index], seekFrom, seekTo}. Return unique item indexes to retain, in their original order. Omitted items are discarded.</string>
+    <string name="ui_input_name_values_scope_return_replacement_strings_o_2cafe0" formatted="false">input: {name, values, scope}. Return replacement strings, or an empty array to leave the macro unset. The SDK handles URL encoding.</string>
+    <string name="ui_input_name_values_return_replacement_strings_or_an_e_7c4292" formatted="false">input: {name, values}. Return replacement strings, or an empty array to leave the macro unset. The SDK handles URL encoding.</string>
+    <string name="ui_input_available_media_metadata_plus_index_suggestedi_4fcfbb" formatted="false">input: {available: [media metadata plus index], suggestedIndex, bitrateEstimate}. Return an available media index or null to keep the SDK suggestion. Selection retains the original native MediaFile.</string>
+    <string name="ui_input_is_current_ima_settings_return_a_partial_setti_ca18b3" formatted="false">input is current IMA settings. Return a partial settings object (language, ppid, maxRedirects, restrictToCustomPlayer, playerType, playerVersion, autoPlayAdBreaks, debugMode, sessionId, featureFlags), or null to retain them.</string>
+    <string name="ui_deprecated_ima_settings_hook_same_editable_partial_s_b52e50" formatted="false">Deprecated IMA settings hook. Same editable partial settings contract as ImaConfig.beforeInitialization. Use one alias at a time.</string>
+    <string name="ui_input_cuepoints_progress_ad_return_an_array_of_nativ_ceb842" formatted="false">input: {cuePoints, progress, ad}. Return an array of native actions: start, pause, resume, skip, discardAdBreak, clicked, focus, init, destroy. Actions run when the manager becomes available. init/destroy affect the SDK-owned manager; use them only for the intended IMA lifecycle.</string>
+    <string name="ui_deprecated_ima_manager_hook_same_editable_action_con_30422b" formatted="false">Deprecated IMA manager hook. Same editable action contract as ImaConfig.onAdsManagerAvailable. Use one alias at a time.</string>
+    <string name="ui_input_kind_id_url_duration_customattributes_return_c_e08c29" formatted="false">input: {kind, id?, url?, duration?, customAttributes}. Return {clickThroughUrl?, tracking: [{trigger, urls: [strings], offset?}]} or null. Trigger names are the public InterstitialTrackingEventTrigger values. The SDK owns when registered URLs are requested.</string>
+    <string name="ui_create_ssai_test_ad_86df4d" formatted="false">Create SSAI test ad</string>
+    <string name="ui_send_message_to_custom_web_ui_8ad236" formatted="false">Send message to custom Web UI</string>
+    <string name="ui_use_one_field_value_per_line_text_artist_albumtitle__ae8760" formatted="false">Use one field=value per line. Text: artist, albumTitle, albumArtist, displayTitle, subtitle, writer, author, composer, conductor, genre, compilation, station. Integers: duration (milliseconds), trackNumber, totalTrackCount, recordingYear/Month/Day, releaseYear/Month/Day, discNumber, totalDiscCount. Booleans: isBrowsable, isPlayable. mediaType uses MediaMetadata.MediaType (for example Movie or Video). userRating/overallRating use Heart:true, Thumb:false, Percentage:75 or Star:5:4.5. null clears a value. Apply reloads Source with MediaSessionSourceConfig.Enabled; enable the host media session in SDK API controls to publish it to Android.</string>
+</resources>

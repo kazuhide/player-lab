@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_command_submitted">Command submitted. Inspect state and events for its outcome.</string>
+    <string name="ui_api_failed">API failed (%1$s). Check argument types, source state and SDK events.</string>
+    <string name="ui_unavailable">Unavailable (%1$s)</string>
+    <string name="ui_offline_api_failed">Offline API failed (%1$s). Check source, selection, storage and SDK events. Draft values are retained.</string>
+    <string name="ui_analytics_api_failed">Analytics API failed (%1$s). Check metadata, collection mode and source state. Draft values are retained.</string>
+    <string name="ui_picker_search">Search %1$s</string>
+    <string name="ui_draft_changed">Unapplied %1$s changes. %2$s</string>
+    <string name="ui_draft_matches">%1$s matches the applied configuration. %2$s</string>
+    <string name="ui_source_applied_summary">Applied: %1$s; start offset %2$s; external subtitle %3$s</string>
+    <string name="ui_player_applied_summary">Applied: autoplay %1$s; muted %2$s; forward buffer %3$s s</string>
+    <string name="ui_override_summary">Applied overrides: %1$d. Pending changes: %2$d; removals: %3$d. Apply recreates the player and reloads its source.</string>
+    <string name="ui_run_target">Run target: %1$s</string>
+    <string name="ui_choose_operation">Choose an operation in %1$s to enable Run.</string>
+    <string name="ui_event_readout">%1$s: %2$d; latest timestamp=%3$s</string>
+    <string name="ui_event_history">%1$s: %2$d; timestamp=%3$d</string>
+    <string name="ui_playback_readout">Read at %1$s; player generation %2$d; source revision %3$d; view revision %4$d.</string>
+    <string name="ui_source_type">Source type: %1$s</string>
+    <string name="ui_current_source_type">Current source type: %1$s</string>
+    <string name="ui_title">Title: %1$s</string>
+    <string name="ui_current_settings">Autoplay: %1$s; start muted: %2$s</string>
+    <string name="ui_current_playback">Player: %1$s; source: %2$s%3$s</string>
+    <string name="ui_sdk_error">; SDK error %1$d</string>
+    <string name="ui_companion">Companion: %1$s</string>
+    <string name="ui_progress">Progress: %1$s%%</string>
+    <string name="ui_startup_state">Current process: %1$s; saved for next launch: %2$s</string>
+    <string name="ui_edit_records">Edit %1$s (%2$d items)</string>
+    <string name="ui_record_item">Item %1$d</string>
+    <string name="ui_nullable_property">%1$s (null allowed)</string>
+    <string name="ui_callback_readout">%1$s: calls=%2$d; fallback=%3$d; last fallback reason=%4$s</string>
+</resources>

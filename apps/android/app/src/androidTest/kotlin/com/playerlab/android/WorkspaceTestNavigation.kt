@@ -48,7 +48,7 @@ internal fun workspaceWaitForPickerDismissal(ui: WorkspaceRule, tag: String) {
 internal fun workspaceTheme(ui: WorkspaceRule, label: String) {
     val mode = UiMode.entries.first { it.label == label || it == UiMode.LIVE && label == "Live (DVR)" }
     workspaceChoose(ui, "theme-selector", mode.name)
-    ui.onNodeWithTag("theme-selector").assertTextContains(mode.label, substring = true)
+    ui.onNodeWithTag("theme-selector").assertTextContains(workspaceLocalizedLabel(ui, mode.label), substring = true)
     ui.onNodeWithTag("theme-selector").assertIsEnabled()
 }
 
@@ -96,7 +96,7 @@ internal fun workspaceCommand(ui: WorkspaceRule, id: String) {
     ui.onNodeWithTag("api-section-Commands").performClick()
     workspaceChoose(ui, "api-command-category", apiPurpose(id))
     workspaceChoose(ui, "api-command-selector", id, id)
-    ui.onNodeWithTag("api-run-target").assertTextContains(ApiRuntime.commands.first { it.id == id }.label, substring = true)
+    ui.onNodeWithTag("api-run-target").assertTextContains(workspaceLocalizedLabel(ui, ApiRuntime.commands.first { it.id == id }.label), substring = true)
 }
 
 internal fun workspaceState(ui: WorkspaceRule, id: String): SemanticsNodeInteraction {
@@ -232,8 +232,9 @@ internal fun workspaceField(ui: WorkspaceRule, tag: String, value: String) {
 }
 
 private fun workspaceCloseRecordEditors(ui: WorkspaceRule) {
-    while (ui.onAllNodesWithText("Close editor").fetchSemanticsNodes().isNotEmpty()) {
-        ui.onAllNodesWithText("Close editor").onLast().performClick()
+    val close = workspaceLocalizedLabel(ui, "Close editor")
+    while (ui.onAllNodesWithText(close).fetchSemanticsNodes().isNotEmpty()) {
+        ui.onAllNodesWithText(close).onLast().performClick()
     }
 }
 
@@ -268,8 +269,12 @@ private fun workspaceRecordTarget(ui: WorkspaceRule, tag: String): String? {
 }
 
 private fun workspaceCloseDialog(ui: WorkspaceRule) {
-    if (ui.onAllNodesWithText("Close").fetchSemanticsNodes().isNotEmpty()) ui.onNodeWithText("Close").performClick()
+    val close = workspaceLocalizedLabel(ui, "Close")
+    if (ui.onAllNodesWithText(close).fetchSemanticsNodes().isNotEmpty()) ui.onNodeWithText(close).performClick()
 }
+
+internal fun workspaceLocalizedLabel(ui: WorkspaceRule, text: String): String =
+    UiTextCatalog.resources[text]?.let(ui.activity::getString) ?: text
 
 private fun navigateOffline(ui: WorkspaceRule, tag: String) {
     workspaceMore(ui, "Offline")

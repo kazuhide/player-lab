@@ -8,7 +8,7 @@ final class NativeWorkbenchUITests: XCTestCase {
 
     func testSubtitleArrayEditorAppliesTypedSdkTracks() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         try WorkspaceUITestNavigation.setting("configuration.sourceURL", in: app)
         try WorkspaceUITestNavigation.replace(app.textFields["configuration.sourceURL"],
             with: "https://kazuhide.github.io/player-lab/web/media/vod-multiaudio/master.m3u8", in: app)
@@ -29,7 +29,7 @@ final class NativeWorkbenchUITests: XCTestCase {
 
     func testCallbackEditorAndOfflineTrackDiscoveryUseRealSdkObjects() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         try WorkspaceUITestNavigation.setting("configuration.sourceURL", in: app)
         try WorkspaceUITestNavigation.replace(app.textFields["configuration.sourceURL"],
             with: "https://kazuhide.github.io/player-lab/web/media/vod-multiaudio/master.m3u8", in: app)

@@ -10,7 +10,12 @@
     },
     {
       "type": "p",
-      "text": "Open Player Lab React Native on iOS or Android. The top of the screen contains the UI choices, native video and source buttons. Playback helpers, the state line, Show API experiments and Show configuration follow below. VOD means on-demand media with a fixed timeline; a live source may also provide a rewind window, labeled DVR in this app."
+      "text": "Open Player Lab React Native on iOS or Android. The workspace contains source and theme selectors, a video preview, and Settings, APIs, Code and More tabs. In Settings, choose a category and a property to open its editor directly. Apply configuration and Reset draft remain outside the editor. Long function bodies and nested settings scroll within the selected editor. Selecting a group, field, API view or operation opens its content at the top. Typing and switching language or workspace tabs retain the editor position."
+    },
+    {
+      "type": "note",
+      "title": "Display language",
+      "text": "Switch between English and Japanese using the language controls above the selectors. In compact layouts or with larger text, use More. A language change retains applied settings and drafts. This guide uses the English app; SDK identifiers, code and returned data retain their original spelling."
     },
     {
       "type": "note",
@@ -43,21 +48,21 @@
     {
       "type": "figure",
       "file": "rn-ios-subtitles",
-      "caption": "The iOS configuration form shows source type, title, poster, external subtitle fields and the initial-position reference. The local URL in this capture is an example from that test environment."
+      "caption": "The iOS settings workspace. Select a source property directly; Apply configuration and Reset draft remain outside the editor."
     },
     {
       "type": "figure",
       "file": "rn-android-subtitles",
-      "caption": "The Android form includes the same external WebVTT inputs. Enter a URL reachable from the device; the address shown in a capture is not a preset to copy unchanged."
+      "caption": "The Android settings workspace uses the same categories and direct property selector, including external WebVTT subtitle inputs."
     },
     {
       "type": "steps",
       "items": [
-        "Choose a VOD source button and start playback in the Player UI. iOS offers HLS and progressive MP4 in the form and hides DASH presets; Android also offers DASH. HLS and DASH are streaming formats that can provide several qualities.",
-        "Open Show configuration. Record the current source and Player values before editing. The source URL must use HTTP or HTTPS; match Source type to the actual media. Title, poster URL and start offset are optional.",
-        "For a visible first change, keep the source URL, enter 5 in Start offset (seconds), choose Start and select Apply and recreate player. If Autoplay is off, start playback in the Player UI. Check the new SourceLoaded log entry and the starting position.",
-        "After a successful Apply, inspect Show applied code and the actual picture. Apply validates the complete draft and recreates the Player even for a source-only form change. Invalid or unchanged settings leave the current Player in place.",
-        "Use Reset draft to discard edits that have not been applied. To undo an applied change, restore the recorded values and Apply again. A source preset restores source fields immediately while retaining Player settings; it is not a reset of every option."
+        "Choose an on-demand sample in Source and start playback in the Player UI. iOS offers HLS and progressive MP4; Android also offers DASH. HLS and DASH are streaming formats that can provide several qualities.",
+        "Open Settings, choose Source in Configuration, then choose the property in Setting. Source URLs use HTTP or HTTPS; match Source type to the media. Title, poster URL and start position are optional. Retain the original values for comparison.",
+        "Keep the URL, enter 5 in Start offset (seconds), then choose Start in Start offset reference. Select Apply configuration. If Autoplay is off, start playback in the Player UI. Check SourceLoaded in More and the actual starting position.",
+        "Open Code to inspect the values sent to the SDK. Apply validates the complete draft and recreates the Player even for a source-only change. Invalid or unchanged settings leave the current Player in place.",
+        "Reset draft discards unapplied edits. To undo an applied change, restore the original values and apply them. Selecting a source sample replaces source fields immediately while retaining Player settings."
       ]
     },
     {
@@ -107,7 +112,7 @@
     {
       "type": "figure",
       "file": "rn-ios-caption",
-      "caption": "The iOS build after selecting an external subtitle in the Player menu. A timed cue is visible over the native video."
+      "caption": "The iOS build after enabling an external subtitle with Player.setSubtitleTrack in APIs. A timed cue is visible over the native video."
     },
     {
       "type": "figure",
@@ -117,17 +122,17 @@
     {
       "type": "steps",
       "items": [
-        "Use the Player’s play/pause and seek controls to check the selected source. On a live source with a rewind window, compare Live edge and the rewind buttons; the state line reports availability and distance behind live. A VOD source cannot demonstrate a live rewind window.",
-        "Choose Default, Sports, Live (DVR) or Cinema in the UI row. The change recreates the Player and reloads the applied source. Compare the rendered controls and then the UI values in Show applied code. Keep the same source to compare presentation.",
-        "To add a subtitle, open Show configuration and enter External WebVTT URL, Subtitle label and Subtitle language together. WebVTT is a text file containing timed subtitle cues; use one aligned with the selected media. A language tag such as en-US identifies the language.",
-        "Apply, then choose the label in the Player subtitle menu and play through a cue. Mark as default supplies track metadata and does not enable the track by itself. If the source has alternate audio, compare its available audio tracks in the Player menu.",
-        "To remove the external track, clear External WebVTT URL and Apply; the associated label/language values are cleared as well. Selecting a source preset restores its source fields. To undo a UI comparison, select the previous UI; restore other applied Player values separately."
+        "Try play, pause and seek in the Player UI. If the source has alternate audio, compare its tracks in the Player menu. Live rewind helpers and the app state line are available in More.",
+        "Choose Default, Sports, Live (DVR) or Cinema in Theme. A theme change recreates the Player and reloads the applied source. Compare the controls and UI settings in Code using the same source.",
+        "In Settings, choose Source and edit External WebVTT URL, Subtitle label and Subtitle language in turn. WebVTT is timed subtitle text. Match its timing to the media and use a language tag such as en-US.",
+        "Select Apply configuration, then choose the label in the Player subtitle menu. Mark as default supplies metadata; it does not enable subtitle display by itself. Play through a timed cue to check the result.",
+        "Clear External WebVTT URL and apply to remove the track and its label/language metadata. To finish a theme comparison, restore the previous theme and restore changed Player values separately."
       ]
     },
     {
       "type": "note",
       "title": "Scrolling inside the Android Player menu",
-      "text": "The video menu and the surrounding form scroll separately. Start the swipe inside the video menu to reach its lower items, or outside the video to scroll the form. The app keeps an active player gesture with the video so the parent ScrollView does not take that drag."
+      "text": "The video is outside the settings ScrollView. Start a swipe inside the video to move a Player menu, or within the editor to scroll its fields. Selecting a setting or API does not require scrolling the whole screen and video."
     },
     {
       "type": "links",
@@ -146,15 +151,15 @@
     {
       "type": "figure",
       "file": "rn-ios-code",
-      "caption": "Show applied code in the iOS build, with Apply/Reset controls, Copy code and the license placeholder. The output excludes pending draft edits."
+      "caption": "Code in the iOS build displays wrapped applied configuration and Copy code. Pending draft edits are excluded."
     },
     {
       "type": "steps",
       "items": [
-        "Open Show applied code after Apply. Read the Player, source and selected UI settings together. Record the output before changing another value so the difference is clear.",
-        "Edit a draft value without applying it: the displayed applied configuration stays unchanged. Reset draft cancels that edit. Apply commits a valid changed draft and updates the output after recreating the Player.",
-        "Use Copy code when you need the applied settings outside the screen. This uses Expo Clipboard in the native development build. The output uses license placeholders; retain those placeholders when sharing an example.",
-        "For how the settings connect to usePlayer, PlayerView and the shared UI files, follow the implementation guide. The displayed configuration is not an export of every internal SDK default."
+        "Open Code after applying a change. Inspect Player, source and UI values together. Retain the output before changing another property to compare the difference.",
+        "Edit without applying and switch to Code: the output remains unchanged. Reset draft discards pending edits. Applying a valid change updates both the Player and the exported configuration.",
+        "Copy code uses Expo Clipboard. The output uses license placeholders; retain them when sharing the code.",
+        "See the implementation guide for the connection to usePlayer, PlayerView and shared UI assets. This output does not enumerate every internal SDK default."
       ]
     },
     {
@@ -173,15 +178,15 @@
     },
     {
       "type": "p",
-      "text": "An SDK is the library used to integrate the Player. Its API exposes configuration, commands and events. The basic form provides common options; Additional SDK configuration and the list editors expose further properties from the installed React Native wrapper. A native SDK feature absent from the wrapper cannot be enabled by inventing an extra key."
+      "text": "An SDK is the library used to integrate the Player. Its API exposes configuration, commands and events. The basic form provides common options; SDK overrides and the list editors expose further properties from the installed React Native wrapper. A native SDK feature absent from the wrapper cannot be enabled by inventing an extra key."
     },
     {
       "type": "steps",
       "items": [
-        "In Show configuration, find Additional SDK configuration. Search an exact path such as SourceConfig.description and select Set this API value. Keep the original value or whether the override was absent.",
-        "Enter a value using the displayed type. A list accepts one item per line; a map accepts unique name=value entries; SDK enumerations provide their declared choices. This changes the draft until Apply.",
-        "For arrays, open Subtitle lists and advertising, select the source or offline subtitle list and use Edit this list and Add list item. Complete each track’s URL, label, language and format. SourceConfig.subtitleTracks and OfflineContentConfig.sourceConfig.subtitleTracks are separate lists.",
-        "Apply and recreate player, inspect Show applied code and compare the relevant playback/menu/event result. Advanced overrides take priority over the basic form. Remove an override and Apply to restore its form value or SDK default; an enabled empty list explicitly clears that array."
+        "In Settings, select SDK overrides in Configuration. Use Configuration API to search an exact path such as SourceConfig.description, then select Set this API value. Retain the original value and whether an override was present.",
+        "Use the displayed type. Lists accept one item per line, maps accept unique name=value pairs, and enumerations use SDK choices. The UI settings category limits the selector to presentation properties.",
+        "For arrays, choose Subtitle lists and advertising, select the target list, then use Edit this list and Add list item. Complete its URL, label, language and format. Source and offline subtitle lists are independent.",
+        "Select Apply configuration, then inspect Code and the matching playback, menu or event result. SDK overrides take priority over basic fields. Remove an override and apply to restore the basic value or SDK default; applying an enabled empty list clears that array."
       ]
     },
     {
@@ -196,12 +201,12 @@
     {
       "type": "figure",
       "file": "rn-ios-api-callback",
-      "caption": "The iOS callbacks editor shows the selected network callback, its signature and an explicitly enabled body. This captured example changes volume and returns the request."
+      "caption": "An explicitly enabled network callback body on iOS. The function changes volume and returns the request."
     },
     {
       "type": "steps",
       "items": [
-        "Under JavaScript callbacks and native UI handlers, search PlayerConfig.networkConfig.preprocessHttpRequest and select Edit this callback. Read the arguments and required return type before editing.",
+        "In Settings → JavaScript callbacks and native UI handlers, search PlayerConfig.networkConfig.preprocessHttpRequest and select Edit this callback. Read the arguments and required return type before editing.",
         "Enter a function body, enable Allow edited JavaScript execution and Apply. The supplied default returns the request; the callback runs when a matching SDK request occurs. Inspect the event log and any deliberate visible effect.",
         "Network callbacks may return a Promise; synchronous callbacks must return synchronously. Fullscreen and custom-message entries create handler objects rather than plain values. Use the signature and factory requirements shown in the editor.",
         "To stop the experiment, remove the callback and Apply again. If the body changed Player state, restore that state or recreate from the applied configuration. Edited JavaScript runs inside the app without a sandbox; only enable code you trust."
@@ -215,21 +220,25 @@
     {
       "type": "figure",
       "file": "rn-android-api-operation",
-      "caption": "The Android API panel after running Player.getCurrentTime. It shows the submitted call, returned position, recreation action and Player events."
+      "caption": "The Android APIs workspace after running Player.getCurrentTime, showing the submitted call and returned value."
     },
     {
       "type": "steps",
       "items": [
-        "Open Show API experiments, search Player.getCurrentTime, choose a time mode and select Run selected API. Read it again while playback advances. Compare the returned position with the picture; the unit is seconds.",
-        "Try a state-changing command such as Player.pause, then inspect Player.isPaused and the matching events. Restore playback with Player.play. A call returning no value means it was dispatched; check the resulting state rather than treating that alone as success.",
-        "Use Player events to inspect recent SDK payload summaries. Pause event log freezes recording for comparison; resume it to collect new events, and Clear API event log clears the displayed experiment history.",
-        "Use Recreate player after API experiments after destroying the Player or to restore its applied configuration. Resources and track identifiers from a previous source/Player must be queried again after replacement."
+        "Open APIs, choose Operations in API view, then find Player.getCurrentTime in API operation. Choose a time mode and select Run selected API. Read again during playback and compare the returned position, in seconds, with the picture.",
+        "Try Player.pause, then choose Player.isPaused in State and select Read state. Restore playback with Player.play in Operations. For a call without a return value, use the resulting state and matching events to check its effect.",
+        "Events displays recent SDK payload summaries. Pause event log stops recording; resume it to collect new events. Clear API event log removes the displayed comparison history.",
+        "After destroying the Player or to restore applied settings, open API help and select Recreate player after API experiments. Query resource and track identifiers again from the replacement Player or source."
       ]
     },
     {
       "type": "figure",
       "file": "rn-ios-api-events",
-      "caption": "The iOS event log shows onTimeChanged payloads during playback. Event recording and API state queries are separate ways to inspect the same session."
+      "caption": "The iOS event log shows recent SDK events and their payloads. Event recording and API state queries are separate ways to inspect the same session."
+    },
+    {
+      "type": "p",
+      "text": "You can also search by a method name such as play. An exact match on the final part of an API name appears first, so play puts Player.play at the top. Other matches on Player remain below it."
     },
     {
       "type": "p",
@@ -252,7 +261,7 @@
     {
       "type": "steps",
       "items": [
-        "In Additional SDK configuration, set BitmovinCastManagerOptions.applicationId and messageNamespace as needed. Blank values use the default receiver and namespace. Keep the previous values for restoration.",
+        "In Settings → SDK overrides, set BitmovinCastManagerOptions.applicationId and messageNamespace as needed. Blank values use the default receiver and namespace. Keep the previous values for restoration.",
         "Select Save Cast options for next launch in Cast startup configuration. This saves the current draft independently of Apply. Fully close and reopen the app; a JavaScript reload or Player recreation does not restart native Cast.",
         "Select Read native Cast startup state. Compare savedOptions, startupOptions, nativeInitialized and pendingRestart. Android reads the native manager’s public getters; iOS reports the options submitted at process launch.",
         "For discovery, connection and receiver playback, use a compatible receiver on the same network. To restore previous options, save those values and fully restart again. Wrapper 1.29’s deprecated BitmovinCastManager.initialize does not apply edited options."

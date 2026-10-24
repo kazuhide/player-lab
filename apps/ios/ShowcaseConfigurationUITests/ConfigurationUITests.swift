@@ -7,7 +7,7 @@ final class ConfigurationUITests: XCTestCase {
 
     func testDraftValidationResetAndSourceApply() throws {
         let app = XCUIApplication()
-        app.launch()
+        WorkspaceUITestNavigation.launch(app)
         XCTAssertTrue(app.buttons["configuration.open"].waitForExistence(timeout: 20))
         try WorkspaceUITestNavigation.setting("configuration.sourceURL", in: app)
         let sourceURL = app.textFields["configuration.sourceURL"]

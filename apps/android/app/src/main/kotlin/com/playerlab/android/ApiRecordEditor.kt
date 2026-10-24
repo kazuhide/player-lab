@@ -21,7 +21,7 @@ internal fun ApiRecordEditor(schema: ApiRecordSchema, value: String, changed: (S
     var property by remember(schema, path) { mutableStateOf(schema.fields.first().name) }
     val records = remember(value) { ApiRecordValues.decode(value) }
     OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth().testTag(buttonTag)) {
-        Text("Edit ${schema.label} (${records.size} items)")
+        UiText(uiFormat(R.string.ui_edit_records, uiText(schema.label), records.size))
     }
     if (!open) return
     Dialog(onDismissRequest = { open = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
@@ -30,13 +30,13 @@ internal fun ApiRecordEditor(schema: ApiRecordSchema, value: String, changed: (S
                 WorkspaceHeader(!workspaceKeyboardEditing()) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     WorkspaceHeading(schema.label)
                     if (records.isNotEmpty()) {
-                        WorkspacePicker("Item", index.coerceAtMost(records.lastIndex), records.indices.map { it to "Item ${it + 1}" }, "$path-item", compact = true) { index = it }
+                        WorkspacePicker("Item", index.coerceAtMost(records.lastIndex), records.indices.map { it to uiFormat(R.string.ui_record_item, it + 1) }, "$path-item", compact = true) { index = it }
                         WorkspacePicker("Property", property, schema.fields.map { it.name to it.name }, "$path-property", searchable = true, compact = true) { property = it }
                     }
                 } }
                 Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (records.isEmpty()) Text("Add an item to edit its properties.")
+                    if (records.isEmpty()) UiText("Add an item to edit its properties.")
                     else {
                         val selected = index.coerceAtMost(records.lastIndex)
                         val record = records[selected]
@@ -46,23 +46,23 @@ internal fun ApiRecordEditor(schema: ApiRecordSchema, value: String, changed: (S
                         if (field.nested != null) ApiRecordEditor(field.nested, record.getValue(field.name), ::update, tag, "$tag-toggle")
                         else if (field.choices.isNotEmpty()) WorkspacePicker(field.name, record.getValue(field.name),
                             (field.choices + if (field.nullable) listOf("null") else emptyList()).map { it to it }, "$tag-choice") { update(it) }
-                        else ConfigField(field.name + if (field.nullable) " (null allowed)" else "", record.getValue(field.name), ::update, tag,
+                        else ConfigField(if (field.nullable) uiFormat(R.string.ui_nullable_property, field.name) else field.name, record.getValue(field.name), ::update, tag,
                             helper = if (field.nullable) "Enter null to use the SDK null value." else "")
                     }
-                    Text("Edits remain in the SDK field draft. Close this editor, then Stage override and Apply SDK.", style = MaterialTheme.typography.bodySmall)
+                    UiText("Edits remain in the SDK field draft. Close this editor, then Stage override and Apply SDK.", style = MaterialTheme.typography.bodySmall)
                 }
                 Surface(tonalElevation = 2.dp) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             OutlinedButton(onClick = {
                                 changed(ApiRecordValues.encode(records + schema.defaults(records.size))); index = records.size
-                            }, enabled = records.size < schema.maximumItems, modifier = Modifier.testTag("$path-add")) { Text("Add item") }
+                            }, enabled = records.size < schema.maximumItems, modifier = Modifier.testTag("$path-add")) { UiText("Add item") }
                             OutlinedButton(onClick = {
                                 val selected = index.coerceAtMost(records.lastIndex)
                                 changed(ApiRecordValues.encode(records.filterIndexed { i, _ -> i != selected })); index = (selected - 1).coerceAtLeast(0)
-                            }, enabled = records.isNotEmpty(), modifier = Modifier.testTag("$path-${index.coerceAtMost(records.lastIndex)}-remove")) { Text("Remove item") }
+                            }, enabled = records.isNotEmpty(), modifier = Modifier.testTag("$path-${index.coerceAtMost(records.lastIndex)}-remove")) { UiText("Remove item") }
                         }
-                        Button(onClick = { open = false }, modifier = Modifier.fillMaxWidth().testTag("$path-close")) { Text("Close editor") }
+                        Button(onClick = { open = false }, modifier = Modifier.fillMaxWidth().testTag("$path-close")) { UiText("Close editor") }
                     }
                 }
             }

@@ -91,12 +91,12 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
             when (state.section) {
                 "Commands" -> {
-                    if (command.arguments.isEmpty()) Text("No arguments.", style = MaterialTheme.typography.bodyMedium)
+                    if (command.arguments.isEmpty()) UiText("No arguments.", style = MaterialTheme.typography.bodyMedium)
                     else {
                         val selectedArgument = command.arguments.firstOrNull { it.name == state.argument } ?: command.arguments.first()
                         WorkspacePicker("Argument", selectedArgument.name, command.arguments.map { it.name to it.name }, "api-argument-selector", compact = true) { state.argument = it; focus.clearFocus() }
                         OutlinedTextField(state.arguments(command)[selectedArgument.name].orEmpty(), { state.setArgument(command, selectedArgument.name, it) },
-                            label = { Text(selectedArgument.name) },
+                            label = { UiText(selectedArgument.name) },
                             textStyle = if (selectedArgument.multiline) MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodyLarge,
                             singleLine = !selectedArgument.multiline, maxLines = if (selectedArgument.multiline) 4 else 1,
                             modifier = Modifier.fillMaxWidth().testTag("api-argument-${selectedArgument.name}"))
@@ -111,30 +111,36 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
                     }
                     if (controller.apiAsyncResult.isNotEmpty()) Text(controller.apiAsyncResult, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-async-result"))
                     WorkspaceHeading("Observed playback state")
-                    Text(state.observed.ifEmpty { "Not read yet. Run an operation or refresh the observation." }, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-related-state"))
-                    OutlinedButton(onClick = { state.observed = observedPlayback(controller) }, modifier = Modifier.testTag("api-related-state-refresh")) { Text("Refresh playback state") }
+                    if (state.observed.isEmpty()) UiText("Not read yet. Run an operation or refresh the observation.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-related-state"))
+                    else Text(state.observed, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-related-state"))
+                    OutlinedButton(onClick = { state.observed = observedPlayback(controller) }, modifier = Modifier.testTag("api-related-state-refresh")) { UiText("Refresh playback state") }
                     WorkspaceHeading("Recent SDK events", "App-session history; these events are not proof that the selected operation completed.")
                     RecentApiEvents(controller)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { state.section = "State" }, modifier = Modifier.testTag("api-related-state-open")) { Text("All SDK state") }
-                        TextButton(onClick = { state.section = "Events" }, modifier = Modifier.testTag("api-related-events-open")) { Text("All SDK events") }
+                        TextButton(onClick = { state.section = "State" }, modifier = Modifier.testTag("api-related-state-open")) { UiText("All SDK state") }
+                        TextButton(onClick = { state.section = "Events" }, modifier = Modifier.testTag("api-related-events-open")) { UiText("All SDK events") }
                     }
                     if (command.id.contains("CustomMessage") || command.id == "app:custom-message-send") {
-                        Text("The host endpoint is playerLabMessage(data: String). A custom Web UI must register its incoming message handler. Only this session's latest messages are shown.", style = MaterialTheme.typography.bodySmall)
+                        UiText("The host endpoint is playerLabMessage(data: String). A custom Web UI must register its incoming message handler. Only this session's latest messages are shown.", style = MaterialTheme.typography.bodySmall)
                         controller.apiHostMessages.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
                     }
                 }
                 "State" -> {
                     WorkspaceHeading(apiDisplayName(state.stateSelected), "Refresh reads this SDK value once. Keys and opaque request/configuration objects are excluded. Lists and text are bounded for display.")
-                    SelectionContainer { Text(state.observations[state.stateSelected] ?: "Not read yet", style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.testTag("api-state-${state.stateSelected}")) }
-                    Text("Ad values require an active ad or a selected SSAI test object. Vector3 values inspect the last moveViewingDirection input; activeAdBreak and activeLinearAd read actual SDK state.", style = MaterialTheme.typography.bodySmall)
+                    SelectionContainer {
+                        val observation = state.observations[state.stateSelected]
+                        if (observation == null) UiText("Not read yet", style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.testTag("api-state-${state.stateSelected}"))
+                        else Text(observation, style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.testTag("api-state-${state.stateSelected}"))
+                    }
+                    UiText("Ad values require an active ad or a selected SSAI test object. Vector3 values inspect the last moveViewingDirection input; activeAdBreak and activeLinearAd read actual SDK state.", style = MaterialTheme.typography.bodySmall)
                 }
                 "Events" -> {
                     ConfigToggle("Record SDK events", controller.apiEventRecording, "api-event-recording") { controller.apiEventRecording = it }
-                    Text("Counts cover this app session. Zero means no recorded occurrence. SDK timestamps are milliseconds since the Unix epoch. Event payloads, headers and keys are excluded.", style = MaterialTheme.typography.bodySmall)
+                    UiText("Counts cover this app session. Zero means no recorded occurrence. SDK timestamps are milliseconds since the Unix epoch. Event payloads, headers and keys are excluded.", style = MaterialTheme.typography.bodySmall)
                     val id = state.eventSelected
-                    Text("$id: ${controller.apiEvents[id] ?: 0}; latest timestamp=${controller.apiEventTimes[id] ?: "not recorded"}",
+                    UiText(uiFormat(R.string.ui_event_readout, id, controller.apiEvents[id] ?: 0, controller.apiEventTimes[id]?.toString() ?: uiText("Not read yet")),
                         modifier = Modifier.testTag("api-event-$id"), style = MaterialTheme.typography.bodyMedium)
                     WorkspaceHeading("Recent SDK events", "App-session history, including events before the latest API call.")
                     RecentApiEvents(controller)
@@ -145,28 +151,28 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
             Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 when (state.section) {
                     "Commands" -> {
-                        Text("Run target: ${command.label}", style = MaterialTheme.typography.labelMedium, maxLines = 2,
+                        UiText(uiFormat(R.string.ui_run_target, uiText(command.label)), style = MaterialTheme.typography.labelMedium, maxLines = 2,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.testTag("api-run-target"))
-                        if (!state.selectedMatchesFeature) Text("Choose an operation in ${state.purpose} to enable Run.",
+                        if (!state.selectedMatchesFeature) UiText(uiFormat(R.string.ui_choose_operation, uiText(state.purpose)),
                             style = MaterialTheme.typography.labelSmall, maxLines = 2, modifier = Modifier.testTag("api-command-filter-status"))
                         Button(onClick = {
                             if (!state.selectedMatchesFeature) return@Button
                             focus.clearFocus()
                             state.result = runCatching {
                                 val inputs = ApiInputs(state.arguments(command)); command.validate(inputs)
-                                apiValue(command.execute(controller, inputs))
-                            }.getOrElse { "API failed (${it.javaClass.simpleName}). Check argument types, source state and SDK events." }
+                                apiResultText(controller.hostContext, command.execute(controller, inputs))
+                            }.getOrElse { controller.hostContext.getString(R.string.ui_api_failed, it.javaClass.simpleName) }
                             state.resultContext = runtimeContext(controller, uiMode)
                             state.observed = observedPlayback(controller)
-                        }, enabled = state.selectedMatchesFeature, modifier = Modifier.fillMaxWidth().testTag("api-command-run")) { Text("Run API") }
+                        }, enabled = state.selectedMatchesFeature, modifier = Modifier.fillMaxWidth().testTag("api-command-run")) { UiText("Run API") }
                     }
                     "State" -> Button(onClick = {
                         val field = ApiRuntime.reads.first { it.id == state.stateSelected }
-                        val value = runCatching { apiValue(field.read(controller)) }.getOrElse { "Unavailable (${it.javaClass.simpleName})" }
+                        val value = runCatching { apiValue(field.read(controller)) }.getOrElse { controller.hostContext.getString(R.string.ui_unavailable, it.javaClass.simpleName) }
                         state.observations = state.observations + (field.id to value)
-                    }, modifier = Modifier.fillMaxWidth().testTag("api-state-refresh")) { Text("Refresh SDK state") }
+                    }, modifier = Modifier.fillMaxWidth().testTag("api-state-refresh")) { UiText("Refresh SDK state") }
                     "Events" -> OutlinedButton(onClick = { controller.apiEvents.clear(); controller.apiEventTimes.clear() },
-                        modifier = Modifier.fillMaxWidth().testTag("api-events-clear")) { Text("Clear event counts") }
+                        modifier = Modifier.fillMaxWidth().testTag("api-events-clear")) { UiText("Clear event counts") }
                 }
             }
         }
@@ -178,21 +184,22 @@ private val allEventIds get() = ApiEvents.player.map { it.id } + ApiEvents.sourc
 
 private fun observedPlayback(controller: PlayerController): String = runCatching {
     val player = controller.player
-    "Read at ${java.text.DateFormat.getTimeInstance().format(java.util.Date())}; player generation ${controller.apiPlayerGeneration}; source revision ${controller.sourceRevision}; view revision ${controller.apiViewRevision}.\n" +
+    controller.hostContext.getString(R.string.ui_playback_readout, java.text.DateFormat.getTimeInstance().format(java.util.Date()),
+        controller.apiPlayerGeneration, controller.sourceRevision, controller.apiViewRevision) + "\n" +
         "isPlaying=${player.isPlaying}; isPaused=${player.isPaused}; position=${"%.2f".format(player.currentTime)} s; live=${player.isLive}"
 }.getOrElse { "Playback state unavailable (${it.javaClass.simpleName})." }
 
 @Composable
 private fun RecentApiEvents(controller: PlayerController) {
     val recent = controller.apiEventTimes.entries.sortedByDescending { it.value }.take(5)
-    if (!controller.apiEventRecording) Text("Recording is off. Enable it in Events to observe new events.", style = MaterialTheme.typography.bodySmall)
-    else if (recent.isEmpty()) Text("No events recorded in this app session.", style = MaterialTheme.typography.bodySmall)
-    recent.forEach { (id, timestamp) -> Text("$id: ${controller.apiEvents[id] ?: 0}; timestamp=$timestamp", style = MaterialTheme.typography.bodySmall) }
+    if (!controller.apiEventRecording) UiText("Recording is off. Enable it in Events to observe new events.", style = MaterialTheme.typography.bodySmall)
+    else if (recent.isEmpty()) UiText("No events recorded in this app session.", style = MaterialTheme.typography.bodySmall)
+    recent.forEach { (id, timestamp) -> UiText(uiFormat(R.string.ui_event_history, id, controller.apiEvents[id] ?: 0, timestamp), style = MaterialTheme.typography.bodySmall) }
 }
 
 @Composable
 private fun ApiCommandNotes(command: ApiCommand) {
-    if (command.id in listOf("android:com.bitmovin.player.PlayerView.on()", "android:com.bitmovin.player.PlayerView.next()", "android:com.bitmovin.player.PlayerView.off()")) Text("PlayerView subscriptions receive view UI events, such as FullscreenEnter/Exit. Playback and source events are recorded on Player and Source in the Events tab; they are not forwarded by this view subscription.", style = MaterialTheme.typography.bodySmall)
-    if (command.id.endsWith("PlaylistApi.seek()")) Text("time is SeekTarget.offset in seconds. Start uses a nonnegative offset and End uses a nonpositive offset; the SDK corrects invalid values to stream boundaries. null uses the default reference for the source. useSeekTarget=false passes a null target to the SDK.", style = MaterialTheme.typography.bodySmall)
-    if (command.id.contains("VrRenderer") || command.id.endsWith("VrApi.setVrRenderer()")) Text("The host renderer replaces PlayerView with a real decoder-backed OpenGL surface. Disabling it restores PlayerView. Update scripts receive {delta, viewingDirection}; return {text?, move?: {phi,x,y}} or null. delta is seconds. everyFrames limits script execution frequency; the SDK frame clock still updates at the display rate. User callbacks are removed with their renderer. Check app:vr-renderer state for decoded frames and callback results.", style = MaterialTheme.typography.bodySmall)
+    if (command.id in listOf("android:com.bitmovin.player.PlayerView.on()", "android:com.bitmovin.player.PlayerView.next()", "android:com.bitmovin.player.PlayerView.off()")) UiText("PlayerView subscriptions receive view UI events, such as FullscreenEnter/Exit. Playback and source events are recorded on Player and Source in the Events tab; they are not forwarded by this view subscription.", style = MaterialTheme.typography.bodySmall)
+    if (command.id.endsWith("PlaylistApi.seek()")) UiText("time is SeekTarget.offset in seconds. Start uses a nonnegative offset and End uses a nonpositive offset; the SDK corrects invalid values to stream boundaries. null uses the default reference for the source. useSeekTarget=false passes a null target to the SDK.", style = MaterialTheme.typography.bodySmall)
+    if (command.id.contains("VrRenderer") || command.id.endsWith("VrApi.setVrRenderer()")) UiText("The host renderer replaces PlayerView with a real decoder-backed OpenGL surface. Disabling it restores PlayerView. Update scripts receive {delta, viewingDirection}; return {text?, move?: {phi,x,y}} or null. delta is seconds. everyFrames limits script execution frequency; the SDK frame clock still updates at the display rate. User callbacks are removed with their renderer. Check app:vr-renderer state for decoded frames and callback results.", style = MaterialTheme.typography.bodySmall)
 }

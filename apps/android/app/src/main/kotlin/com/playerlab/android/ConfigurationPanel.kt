@@ -96,17 +96,17 @@ internal fun ConfigurationPanel(controller: PlayerController, state: Configurati
         Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
             ConfigurationItemEditor(state)
-            if (controller.configurationStatus.isNotEmpty()) Text(controller.configurationStatus,
+            if (controller.configurationStatus.isNotEmpty()) UiText(controller.configurationStatus,
                 style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("configuration-status"))
         }
-        val detail = buildString {
-            append(if (dirty) "Unapplied ${state.group.lowercase()} changes. " else "${state.group} matches the applied configuration. ")
-            append(if (isSource) "Apply reloads this source." else "Apply recreates the player and reloads its source.")
-        }
-        if (!keyboardVisible && state.message.isNotEmpty()) Text(state.message, color = MaterialTheme.colorScheme.error,
+        val detail = uiFormat(if (dirty) R.string.ui_draft_changed else R.string.ui_draft_matches,
+            uiText(state.group).let { if (dirty) it.lowercase(java.util.Locale.ROOT) else it },
+            uiText(if (isSource) "Apply reloads this source." else "Apply recreates the player and reloads its source."))
+        if (!keyboardVisible && state.message.isNotEmpty()) UiText(state.message, color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 12.dp).testTag("configuration-validation"))
-        if (!keyboardVisible) Text(if (isSource) "Applied: ${controller.sourceSettings.type}; start offset ${controller.sourceSettings.startOffset ?: "SDK default"}; external subtitle ${controller.sourceSettings.externalSubtitle != null}"
-            else "Applied: autoplay ${controller.playerSettings.autoplay}; muted ${controller.playerSettings.muted}; forward buffer ${controller.playerSettings.forwardDuration} s",
+        if (!keyboardVisible) UiText(if (isSource) uiFormat(R.string.ui_source_applied_summary, controller.sourceSettings.type.toString(),
+            controller.sourceSettings.startOffset?.toString() ?: uiText("SDK default"), (controller.sourceSettings.externalSubtitle != null).toString())
+            else uiFormat(R.string.ui_player_applied_summary, controller.playerSettings.autoplay.toString(), controller.playerSettings.muted.toString(), controller.playerSettings.forwardDuration.toString()),
             style = MaterialTheme.typography.labelSmall, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = 12.dp).testTag("configuration-applied-summary"))
         WorkspaceActions(detail, if (isSource) "reset-source" else "reset-player", if (isSource) "apply-source" else "apply-player",
@@ -175,10 +175,10 @@ private fun ConfigurationItemEditor(state: ConfigurationWorkspaceState) {
         "source-subtitle-url" -> ConfigField("WebVTT URL", source.subtitleUrl, { state.source = source.copy(subtitleUrl = it) }, "source-subtitle-url", se["subtitleUrl"], "Blank adds no external track.", KeyboardType.Uri)
         "source-subtitle-label" -> ConfigField("Subtitle label", source.subtitleLabel, { state.source = source.copy(subtitleLabel = it) }, "source-subtitle-label")
         "source-subtitle-language" -> ConfigField("Subtitle language", source.subtitleLanguage, { state.source = source.copy(subtitleLanguage = it) }, "source-subtitle-language", se["subtitleLanguage"], "For example en or en-US.")
-        "source-subtitle-default" -> { ConfigToggle("Default external subtitle", source.subtitleDefault, "source-subtitle-default") { state.source = source.copy(subtitleDefault = it) }; Text("Default is track metadata. Select the track in the subtitle menu to show it.", style = MaterialTheme.typography.bodySmall) }
+        "source-subtitle-default" -> { ConfigToggle("Default external subtitle", source.subtitleDefault, "source-subtitle-default") { state.source = source.copy(subtitleDefault = it) }; UiText("Default is track metadata. Select the track in the subtitle menu to show it.", style = MaterialTheme.typography.bodySmall) }
         "source-legacy-constructor" -> {
             ConfigToggle("Use deprecated MediaSource constructor", source.useLegacyMediaSource, "source-legacy-constructor") { state.source = source.copy(useLegacyMediaSource = it) }
-            Text("Off uses SourceConfig(url, type). On creates the matching legacy MediaSource and passes it to the deprecated SourceConfig constructor.", style = MaterialTheme.typography.bodySmall)
+            UiText("Off uses SourceConfig(url, type). On creates the matching legacy MediaSource and passes it to the deprecated SourceConfig constructor.", style = MaterialTheme.typography.bodySmall)
         }
         "config-autoplay" -> ConfigToggle("Autoplay", player.autoplay, "config-autoplay") { state.player = player.copy(autoplay = it) }
         "config-muted" -> ConfigToggle("Start muted", player.muted, "config-muted") { state.player = player.copy(muted = it) }
@@ -201,8 +201,8 @@ internal fun ConfigField(label: String, value: String, change: (String) -> Unit,
     val focus = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val editing = workspaceKeyboardEditing()
-    OutlinedTextField(value, change, label = { Text(label) }, singleLine = true,
-        isError = error != null, supportingText = if (error != null || !editing && helper.isNotEmpty()) ({ Text(error ?: helper) }) else null,
+    OutlinedTextField(value, change, label = { UiText(label) }, singleLine = true,
+        isError = error != null, supportingText = if (error != null || !editing && helper.isNotEmpty()) ({ UiText(error ?: helper) }) else null,
         keyboardOptions = KeyboardOptions(keyboardType = keyboard, imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { focus.clearFocus(); keyboardController?.hide() }),
         modifier = Modifier.fillMaxWidth().testTag(tag))
@@ -215,7 +215,7 @@ internal fun ConfigToggle(label: String, checked: Boolean, tag: String, change: 
         .toggleable(checked, role = Role.Switch, onValueChange = change)
         .then(if (focused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier)
         .padding(8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(label, modifier = Modifier.weight(1f))
+        UiText(label, modifier = Modifier.weight(1f))
         Switch(checked, onCheckedChange = null)
     }
 }
@@ -225,8 +225,8 @@ internal fun ConfigToggle(label: String, checked: Boolean, tag: String, change: 
 internal fun <T> Choices(choices: List<Pair<T, String>>, selected: T, tag: String, change: (T) -> Unit) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         choices.forEach { (value, label) ->
-            FilterChip(selected == value, onClick = { change(value) }, label = { Text(label) },
-                leadingIcon = if (selected == value) ({ Text("✓") }) else null,
+            FilterChip(selected == value, onClick = { change(value) }, label = { UiText(label) },
+                leadingIcon = if (selected == value) ({ UiText("✓") }) else null,
                 modifier = Modifier.heightIn(min = 48.dp).testTag("$tag-$label"))
         }
     }

@@ -16,7 +16,9 @@
  * types. Native playback requires an external Expo development build; see README.
  */
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Button, Modal, Platform, ScrollView, StyleSheet, Switch, Text, View, type GestureResponderEvent } from "react-native";
+import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StatusBar, StyleSheet, View, useWindowDimensions, type GestureResponderEvent } from "react-native";
+import { SafeAreaProvider, SafeAreaView, useSafeAreaFrame } from "react-native-safe-area-context";
+import { Button, LanguageSelector, LocaleProvider, Switch, Text } from "./src/localization";
 import {
   CustomUi,
   PlayerView,
@@ -35,6 +37,8 @@ import { configurationCode } from "./src/configurationCode";
 import { initialDraft, parseConfiguration, presetDraft, sameConfiguration, supportsSource, type Configuration } from "./src/configuration";
 import type { RuntimeAppState, RuntimeMonitor, RuntimeOwner } from "./src/runtimeObservation";
 import { ApiPanel } from "./src/ApiPanel";
+import { ConfigurationCodeView } from "./src/ConfigurationCodeView";
+import { WorkspaceChoice, WorkspaceNavigation, WorkspacePage, WorkspaceProvider, useChoicePresented, type WorkspaceTab } from "./src/Workspace";
 import { nativeEventProps } from "./src/apiEvents";
 import { disposeOwnedSources, loadOwnedSource } from "./src/sourceOwnership";
 import { apiValue } from "./src/apiValues";
@@ -76,9 +80,16 @@ const UI_MODES: UiMode[] = [
 
 /** The optional observer is supplied only by the generated runtime-check entry. */
 export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor } = {}): React.JSX.Element {
+  return <SafeAreaProvider><LocaleProvider><WorkspaceProvider><LocalizedApp runtimeChecks={runtimeChecks} /></WorkspaceProvider></LocaleProvider></SafeAreaProvider>;
+}
+
+function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | undefined }): React.JSX.Element {
+  const hostFrame = useSafeAreaFrame();
   const platform = Platform.OS === "ios" ? "ios" : "android";
   const sources = SOURCES.filter((source) => supportsSource(source, platform));
   const [uiMode, setUiMode] = useState<UiMode>(DEFAULT_MODE);
+  const [selectedPreset, setSelectedPreset] = useState(sources[0]!.id);
+  const [sourceEditRequest, setSourceEditRequest] = useState(0);
   // Keep the complete applied source and control state outside the keyed player owner.
   const [applied, setApplied] = useState(() => parseConfiguration(initialDraft(sources[0]!), platform));
   const [draft, setDraft] = useState(applied.draft);
@@ -88,6 +99,17 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
   const [timeShiftEnabled, setTimeShiftEnabled] = useState(true);
   const [log, setLog] = useState<string[]>([]);
   const [playerTouchOwner, setPlayerTouchOwner] = useState<symbol | null>(null);
+  const [tab, setTab] = useState<WorkspaceTab>("settings");
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const choicePresented = useChoicePresented();
+  const editing = keyboardVisible && !choicePresented;
+  const dimensions = useWindowDimensions();
+  const compactEditing = editing && (dimensions.height < 500 || dimensions.fontScale >= 1.3);
+  useEffect(() => {
+    const shown = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
+    const hidden = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
+    return () => { shown.remove(); hidden.remove(); };
+  }, []);
   const onPlayerTouchChange = useCallback((owner: symbol, touching: boolean) => {
     setPlayerTouchOwner((current) => touching ? owner : current === owner ? null : current);
   }, []);
@@ -105,6 +127,7 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
   const selectSource = (source: ShowcaseSource) => {
     const fields = presetDraft(source);
     const next = parseConfiguration({ ...applied.draft, ...fields }, platform);
+    setSelectedPreset(source.id);
     setApplied(next);
     setDraft((current) => ({ ...current, ...fields }));
     setError(null);
@@ -123,33 +146,52 @@ export default function App({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor 
       setError(cause instanceof Error ? cause.message : "Invalid configuration.");
     }
   };
-  return (
-    <ScrollView testID="player-lab-screen" contentContainerStyle={styles.container} automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
-      keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled"
-      scrollEnabled={Platform.OS !== "android" || playerTouchOwner === null}>
-      {/* Player UI: the SDK default vs. our shared @showcase/ui-shared custom factories (§12). */}
-      <View style={styles.row}>
-        <Text style={styles.label}>UI:</Text>
-        {UI_MODES.map((mode) => (
-          <Button
-            key={mode.label}
-            title={mode.label}
-            onPress={() => setUiMode(mode)}
-            disabled={uiMode.label === mode.label}
-          />
-        ))}
+  const matchesSource = (item: ShowcaseSource) => item.url === applied.draft.url && presetDraft(item).type === applied.draft.type;
+  const selectedSource = sources.find(item => item.id === selectedPreset && matchesSource(item)) ?? sources.find(matchesSource);
+  const workspace = {
+    tab,
+    wide: !compactEditing && dimensions.width >= 600 && dimensions.width > dimensions.height,
+    compact: dimensions.height < 500 || dimensions.fontScale >= 1.3,
+    compactEditing,
+    previewHeight: compactEditing ? 0 : editing || dimensions.fontScale >= 1.3 ? 64
+      : dimensions.width >= 600 && dimensions.width > dimensions.height ? Math.min(200, dimensions.width * 0.4 * 9 / 16) : 220,
+    navigation: <WorkspaceNavigation selected={tab} onSelect={setTab} />,
+    selectors: !editing && <View style={styles.selectors}>
+      {dimensions.height >= 500 && dimensions.fontScale < 1.3 && <LanguageSelector />}
+      <View style={styles.sourceRow}>
+        <WorkspaceChoice label="Source" selected={selectedSource?.id ?? "custom"}
+          options={[...sources.map(item => ({ id: item.id, label: item.label })), { id: "custom", label: "Custom stream" }]}
+          onSelect={id => { const item = sources.find(source => source.id === id); if (item) selectSource(item); else { setTab("settings"); setSourceEditRequest(value => value + 1); } }} testID="source-selector" />
+        <WorkspaceChoice label="Theme" selected={uiMode.label} options={UI_MODES.map(mode => ({ id: mode.label, label: mode.label }))}
+          onSelect={id => { const mode = UI_MODES.find(mode => mode.label === id); if (mode) setUiMode(mode); }} testID="theme-selector" />
       </View>
+    </View>,
+  };
+  return (
+    <KeyboardAvoidingView testID="player-lab-screen" style={styles.safeArea} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={hostFrame.y}>
+    <StatusBar barStyle="dark-content" />
+    <SafeAreaView edges={keyboardVisible ? ["top", "left", "right"] : ["top", "right", "bottom", "left"]}
+      style={[styles.container, workspace.wide && (tab === "settings" || tab === "code") && styles.horizontal]}>
       <PlayerPane key={`${uiMode.label}:${revision}`} uiMode={uiMode} source={applied.source} playerConfig={applied.player} settings={applied}
         sources={sources} onSelectSource={selectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={setTimeShiftEnabled}
-        log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} onRecreate={recreate} />
+        log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} onRecreate={recreate} workspace={workspace} />
+      <WorkspacePage active={tab === "settings"} testID="workspace-settings">
       <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
         onReset={() => { setDraft(applied.draft); setError(null); }}
-        changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} appliedCode={appliedCode} />
-    </ScrollView>
+        changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} appliedCode={appliedCode} sourceEditRequest={sourceEditRequest} keyboardVisible={editing} compactEditing={compactEditing} />
+      </WorkspacePage>
+      <WorkspacePage active={tab === "code"} testID="workspace-code">
+        <ScrollView contentContainerStyle={styles.editorContent} keyboardShouldPersistTaps="handled">
+          <ConfigurationCodeView code={appliedCode} initiallyExpanded />
+        </ScrollView>
+      </WorkspacePage>
+    </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
 interface PlayerPaneProps {
+  workspace: { tab: WorkspaceTab; wide: boolean; compact: boolean; compactEditing: boolean; previewHeight: number; navigation: React.ReactNode; selectors: React.ReactNode };
   uiMode: UiMode;
   source: SourceConfig;
   playerConfig: Configuration["player"];
@@ -165,7 +207,7 @@ interface PlayerPaneProps {
   onRecreate: () => void;
 }
 
-function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange, onRecreate }: PlayerPaneProps): React.JSX.Element {
+function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange, onRecreate, workspace }: PlayerPaneProps): React.JSX.Element {
   const [fullscreen, setFullscreen] = useState(() => Boolean(settings.props.isFullscreenRequested));
   const recorder = useRef<(name: string, value: unknown) => void>(() => {});
   const [runtime] = useState(() => {
@@ -179,19 +221,19 @@ function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectS
     } catch { owner.retire(); return { owner, settings, configured: false, error: "The approved handler factory could not be applied. Edit the callback and Apply again." }; }
   });
   useEffect(() => () => runtime.owner.retire(), [runtime]);
-  if (runtime.error) return <View><Text accessibilityRole="alert">{runtime.error}</Text><Button title="Recreate player after API experiments" onPress={onRecreate} /></View>;
+  if (runtime.error) return <View>{workspace.navigation}<Text accessibilityRole="alert">{runtime.error}</Text><Button title="Recreate player after API experiments" onPress={onRecreate} /></View>;
   const applied = runtime.configured ? runtime.settings : settings;
   return <ActivePlayerPane uiMode={uiMode} source={runtime.configured ? applied.source : source} playerConfig={runtime.configured ? applied.player : playerConfig}
     settings={applied} sources={sources} onSelectSource={onSelectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={onTimeShiftEnabled}
     log={log} append={append} runtimeChecks={runtimeChecks} onPlayerTouchChange={onPlayerTouchChange} onRecreate={onRecreate}
-    scriptOwner={runtime.owner} scriptRecorder={recorder} fullscreen={fullscreen} onExitFullscreen={() => {
+    workspace={workspace} scriptOwner={runtime.owner} scriptRecorder={recorder} fullscreen={fullscreen} onExitFullscreen={() => {
       try { applied.props.fullscreenHandler?.exitFullscreen(); }
       catch { recorder.current("PlayerViewProps.fullscreenHandler", { error: "Fullscreen exit callback failed." }); }
       setFullscreen(false);
     }} />;
 }
 
-function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange, onRecreate,
+function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectSource, timeShiftEnabled, onTimeShiftEnabled, log, append, runtimeChecks, onPlayerTouchChange, onRecreate, workspace,
   scriptOwner, scriptRecorder, fullscreen, onExitFullscreen }: PlayerPaneProps & { scriptOwner: NativeScriptOwner; scriptRecorder: React.MutableRefObject<(name: string, value: unknown) => void>; fullscreen: boolean; onExitFullscreen: () => void }): React.JSX.Element {
   const analyticsConfig = playerConfig.analyticsConfig ? {
     ...playerConfig.analyticsConfig,
@@ -303,7 +345,9 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
     ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }
     : undefined;
 
-  const playerView = <View testID="player-lab-player" style={fullscreen ? styles.fullscreen : undefined} {...(Platform.OS === "android" ? {
+  const playerView = <View testID="player-lab-player" style={fullscreen ? styles.fullscreen : { height: workspace.previewHeight, overflow: "hidden" }}
+    pointerEvents={workspace.previewHeight === 0 ? "none" : "auto"}
+    accessibilityElementsHidden={workspace.previewHeight === 0} importantForAccessibility={workspace.previewHeight === 0 ? "no-hide-descendants" : "auto"} {...(Platform.OS === "android" ? {
         // Let the embedded SDK menu consume video gestures before the outer form.
         onTouchStartCapture: startPlayerTouch,
         onTouchEndCapture: finishPlayerTouch,
@@ -314,7 +358,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
         {...settings.props}
         {...("isFullscreenRequested" in settings.props ? { isFullscreenRequested: fullscreen } : {})}
         player={player}
-        style={fullscreen ? styles.fullscreen : styles.player}
+        style={fullscreen ? styles.fullscreen : { ...styles.player, height: workspace.previewHeight }}
         {...(viewConfig ? { config: viewConfig } : {})}
         onPlayerViewReady={() => { if (active.current) { recordApiEvent("onPlayerViewReady", undefined); observed.current?.viewReady(); setViewReady(true); } }}
         onTimeChanged={(event) => { apiEventProps.onTimeChanged?.(event); if (active.current) { observed.current?.event("timeChanged"); void refresh(); } }}
@@ -337,21 +381,21 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
       />
       </View>;
   return (
-    <>
+    <View style={[styles.playerOwner, (workspace.tab === "apis" || workspace.tab === "more") ? styles.fill : workspace.wide && styles.side,
+      workspace.wide && (workspace.tab === "apis" || workspace.tab === "more") && styles.horizontal]}>
+      <View style={workspace.wide && (workspace.tab === "apis" || workspace.tab === "more") ? styles.side : undefined}>
       {fullscreen ? <Modal visible onRequestClose={onExitFullscreen} presentationStyle="fullScreen" supportedOrientations={["portrait", "landscape"]}>
         {playerView}<Button title="Exit fullscreen experiment" onPress={onExitFullscreen} />
       </Modal> : playerView}
 
-      <View style={styles.row}>
-        {sources.map((s) => (
-          <Button
-            key={s.id}
-            title={s.label}
-            onPress={() => onSelectSource(s)}
-          />
-        ))}
+      {workspace.selectors}
+      {!workspace.compactEditing && workspace.navigation}
       </View>
-
+      <View style={(workspace.tab === "apis" || workspace.tab === "more") ? styles.fill : styles.hidden}>
+      <WorkspacePage active={workspace.tab === "more"} testID="workspace-more">
+      <ScrollView testID="playback-controls-scroll" contentContainerStyle={styles.editorContent} keyboardShouldPersistTaps="handled"
+        scrollEnabled={Platform.OS !== "android" || playerPointers.current.size === 0}>
+      {workspace.compact && <LanguageSelector />}
       <View style={styles.row}>
         <Button title="Live edge" onPress={() => player.timeShift(0)} />
         {[-10, -30, -60].map((o) => (
@@ -388,15 +432,29 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
           </Text>
         ))}
       </ScrollView>
+      </ScrollView>
+      </WorkspacePage>
+      <WorkspacePage active={workspace.tab === "apis"} testID="workspace-apis">
       <ApiPanel player={player} source={source} ready={viewReady} events={apiEvents} recording={recordingEvents}
+        compactEditing={workspace.compactEditing}
         onRecording={setRecordingEvents} onClearEvents={() => { eventBuffer.current = []; setApiEvents([]); }} onRecreate={onRecreate}
         settings={settings} onEvent={recordApiEvent} onSourceMutation={sourceMutated} />
-    </>
+      </WorkspacePage>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 12, gap: 10 },
+  safeArea: { flex: 1, backgroundColor: "#f4f7fb" },
+  container: { flex: 1, minHeight: 0 },
+  playerOwner: { minHeight: 0 },
+  // Nested API owners must shrink with the keyboard's bounded viewport.
+  fill: { flex: 1, flexBasis: 0, flexShrink: 1 },
+  side: { width: "40%" }, horizontal: { flexDirection: "row" }, hidden: { display: "none" },
+  selectors: { paddingHorizontal: 10, paddingVertical: 4, gap: 4 },
+  sourceRow: { flexDirection: "row", gap: 8 },
+  editorContent: { padding: 12, gap: 10 },
   player: { width: "100%", height: 220, backgroundColor: "#000" },
   fullscreen: { flex: 1, width: "100%", backgroundColor: "#000" },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },

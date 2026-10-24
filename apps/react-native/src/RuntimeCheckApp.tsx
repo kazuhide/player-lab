@@ -1,5 +1,6 @@
 import React, { useEffect, useReducer, useState } from "react";
 import { AppState, Button, StyleSheet, Text, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import App from "../App";
 import { createRuntimeMonitor } from "./runtimeObservation";
@@ -16,7 +17,8 @@ export function RuntimeCheckApp(): React.JSX.Element {
     return () => subscription.remove();
   }, [monitor]);
   const report = monitor.report();
-  return <View style={styles.root}>
+  return <SafeAreaProvider><View style={styles.root}>
+    <SafeAreaView edges={["top", "left", "right"]}>
     <Text testID="runtime-report" accessibilityLabel={JSON.stringify(report)} style={styles.report}>
       Runtime checks: owner {report.owner?.generation ?? "none"}, time {report.owner?.sample?.time?.toFixed(1) ?? "—"}
     </Text>
@@ -26,8 +28,9 @@ export function RuntimeCheckApp(): React.JSX.Element {
       <Button title="Check copied code" onPress={() => { void monitor.checkClipboard(Clipboard.getStringAsync).then(update); }} />
       <Button title="Finish runtime checks" disabled={!mounted} onPress={() => setMounted(false)} />
     </View>
+    </SafeAreaView>
     <View style={styles.app}>{mounted && <App runtimeChecks={monitor} />}</View>
-  </View>;
+  </View></SafeAreaProvider>;
 }
 
 const styles = StyleSheet.create({

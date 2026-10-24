@@ -10,7 +10,12 @@
     },
     {
       "type": "p",
-      "text": "iOSまたはAndroidでPlayer Lab React Nativeを開きます。画面の上部にUI選択、ネイティブ映像、ソースのボタンがあり、その下に再生の補助操作、状態表示、Show API experiments、Show configurationが続きます。VODは決まった時間範囲を持つオンデマンド動画です。ライブ配信で過去へ戻れる範囲は、このアプリではDVRと表記します。"
+      "text": "iOSまたはAndroidでPlayer Lab React Nativeを開きます。ソースとテーマの選択、映像プレビュー、設定・API・コード・その他のタブを表示します。設定では区分と項目を選ぶと、その入力欄へ直接移れます。適用と編集の取り消しは画面下部にあります。関数の本文や入れ子になった設定は、選択したエディター内でスクロールして編集します。区分・設定項目・APIの表示・操作を選ぶと、その内容の先頭を表示します。文字の入力や表示言語・タブの切り替えでは編集位置を保ちます。"
+    },
+    {
+      "type": "note",
+      "title": "表示言語",
+      "text": "画面上部の表示言語で日本語と英語を切り替えます。横向きなどで表示領域が狭い場合や文字を拡大した場合は「その他」にあります。言語を変えても適用済み設定と編集途中の値を保持します。Player Labの画面は日本語表示で撮影しています。外部のBitmovin Dashboardの参考画像は公式の英語画面です。SDKのAPI名、コード、取得データは元の表記を保ちます。"
     },
     {
       "type": "note",
@@ -43,21 +48,21 @@
     {
       "type": "figure",
       "file": "rn-ios-subtitles",
-      "caption": "iOSの設定フォームです。形式、タイトル、ポスター、外部字幕、開始位置の基準を編集します。キャプチャ内のローカルURLは、その検証環境で使った入力例です。"
+      "caption": "iOSの設定画面です。ソースの設定項目を直接選択でき、適用と編集の取り消しは入力領域の外にあります。"
     },
     {
       "type": "figure",
       "file": "rn-android-subtitles",
-      "caption": "Androidにも外部WebVTTの入力欄があります。実際の端末からアクセスできるURLを指定します。キャプチャのアドレスを、そのまま利用できるプリセットとしてコピーしないでください。"
+      "caption": "Androidの設定画面です。iOSと同じ設定区分と項目選択を使い、外部WebVTT字幕の情報を編集できます。"
     },
     {
       "type": "steps",
       "items": [
-        "VODソースのボタンを選び、Player UIから再生します。iOSのフォームはHLSとプログレッシブMP4を扱い、DASHのプリセットを表示しません。AndroidではDASHも選べます。HLSとDASHは複数の画質を配信できるストリーミング形式です。",
-        "Show configurationを開き、変更前のソースとPlayer設定を控えます。ソースURLはHTTPまたはHTTPSを使い、Source typeを実際のメディア形式に合わせます。タイトル、ポスターURL、開始オフセットは任意です。",
-        "最初の比較ではURLを変えず、Start offset (seconds)へ5を入力し、Startを選んでApply and recreate playerを押します。Autoplayが無効ならPlayer UIから再生し、新しいSourceLoadedのログと開始位置を確認します。",
-        "Applyが成功したら、Show applied codeと実際の映像を確認します。フォームは編集値全体を検証し、ソース項目だけの変更でもPlayerを再作成します。無効な入力や変更のない設定では、現在のPlayerを置き換えません。",
-        "未適用の編集はReset draftで破棄します。適用済みの変更を戻す場合は、控えた値を入力して再度Applyします。プリセットを選ぶとソース項目はすぐに置き換わりますが、Player設定は保持するため、全項目のリセットではありません。"
+        "上部の「ソース」でオンデマンドのサンプルを選び、Player UIから再生します。iOSはHLSとプログレッシブMP4、AndroidはDASHも選べます。HLSとDASHは、複数の画質を配信できるストリーミング形式です。",
+        "「設定」を開き、「設定区分」で「ソース」、「設定項目」で編集する値を選びます。URLはHTTPまたはHTTPSを使い、「ソース形式」をメディアに合わせます。タイトル、ポスター画像、開始位置は任意です。変更前の値を控えておきます。",
+        "URLを変えずに「再生開始位置（秒）」へ5を入力し、続いて「開始位置の基準」で「先頭」を選びます。「設定を適用」を押し、自動再生が無効ならPlayer UIから再生します。「その他」のSourceLoadedと、実際の開始位置を確認します。",
+        "「コード」でSDKへ渡した値を確認します。適用時は編集値全体を検証し、ソース項目だけの変更でもPlayerを再作成します。無効な入力や変更のない設定では現在のPlayerを置き換えません。",
+        "未適用の変更は「編集内容を戻す」で取り消します。適用済みの変更を戻す場合は以前の値を入力して適用します。ソースのサンプルを選ぶとソース項目をすぐに置き換えますが、Player設定は保持します。"
       ]
     },
     {
@@ -69,23 +74,23 @@
       ],
       "rows": [
         [
-          "Autoplay / Mute on startup",
+          "自動再生 / 起動時にミュート",
           "無効にしてから有効にする",
-          "ApplyでPlayerを再作成し、新しいセッションの自動再生と開始時ミュートを比較します。再生中のplayやmuteを直接呼ぶスイッチではありません。"
+          "適用でPlayerを再作成し、新しいセッションの自動再生と開始時ミュートを比較します。再生中のplayやmuteを直接呼ぶスイッチではありません。"
         ],
         [
-          "Start offset / reference",
-          "5秒・Start",
-          "Apply後の開始位置を確認します。Startはメディアまたはライブの巻き戻し範囲の先頭、Endは末尾またはライブエッジが基準です。SDK defaultはVODでStart、ライブでEndです。"
+          "再生開始位置 / 開始位置の基準",
+          "5秒・先頭",
+          "適用後の開始位置を確認します。先頭はメディアまたはライブの巻き戻し範囲の先頭、末尾は末尾またはライブエッジが基準です。SDKの既定値はVODで先頭、ライブで末尾です。"
         ],
         [
-          "Forward buffer",
+          "先読みバッファ",
           "10秒",
           "適用済みコードのbufferConfig.audioAndVideo.forwardDurationを確認します。メディアを先読みする目標値で、起動時間の保証ではありません。空欄に戻すとプラットフォーム既定値を使います。"
         ],
         [
-          "Maximum bitrate",
-          "1500000 bits per second",
+          "最大ビットレート",
+          "1500000 bit/s",
           "複数の画質を持つソースで、adaptationConfig.maxSelectableBitrateと選択された画質を比較します。単位やカンマを付けずbit/sで入力し、空欄で上限を解除します。"
         ]
       ],
@@ -97,7 +102,7 @@
     },
     {
       "type": "p",
-      "text": "オフセットとバッファー時間は有限の十進数を秒単位で入力します。バッファーの0はiOSで自動選択を意味し、Androidでは正の値か空欄を使います。最大ビットレートは整数です。ネイティブSDKとJavaScriptで扱える整数の上限は、実装ガイドで説明しています。初期値はAutoplayとMute on startupが無効、バッファーとビットレートが空欄です。Allow DVRはアプリの巻き戻し補助処理を操作し、SDK生成時のプロパティを変更するものではありません。"
+      "text": "オフセットとバッファー時間は有限の十進数を秒単位で入力します。バッファーの0はiOSで自動選択を意味し、Androidでは正の値か空欄を使います。最大ビットレートは整数です。ネイティブSDKとJavaScriptで扱える整数の上限は、実装ガイドで説明しています。初期状態では自動再生と開始時のミュートが無効で、バッファーとビットレートは空欄です。「ライブの巻き戻しを許可」はアプリの巻き戻し補助処理を操作し、SDK生成時のプロパティを変更するものではありません。"
     },
     {
       "type": "h2",
@@ -107,27 +112,27 @@
     {
       "type": "figure",
       "file": "rn-ios-caption",
-      "caption": "iOSでPlayerの字幕メニューから外部トラックを選択した後の画面です。再生時刻に対応するキューがネイティブ映像の上に表示されています。"
+      "caption": "「API」のPlayer.setSubtitleTrackで外部字幕を有効にしたiOS画面です。再生時刻に対応するキューがネイティブ映像の上に表示されています。"
     },
     {
       "type": "figure",
       "file": "rn-android-caption",
-      "caption": "Androidで選択した外部字幕を表示した画面です。Mark as defaultだけでなく、Playerのトラック選択で字幕を有効にしています。"
+      "caption": "Androidで選択した外部字幕を表示した画面です。「既定の字幕に指定」だけでなく、Playerのトラック選択で字幕を有効にしています。"
     },
     {
       "type": "steps",
       "items": [
-        "Playerの再生・一時停止・シークで選んだソースを確認します。過去へ戻れるライブ配信ではLive edgeと巻き戻しボタンを比較し、状態行で利用可否とライブからの距離を確認します。VODではライブの巻き戻し範囲を比較できません。",
-        "UIの行からDefault、Sports、Live (DVR)、Cinemaを選びます。変更するとPlayerを再作成し、適用済みソースを読み込みます。同じソースを使い、操作部の見た目とShow applied codeのUI設定を比較します。",
-        "字幕を追加するにはShow configurationでExternal WebVTT URL、Subtitle label、Subtitle languageを一緒に入力します。WebVTTは時刻付きの字幕キューを記したテキストファイルです。対象のメディアに時刻を合わせ、言語にはen-USなどのタグを指定します。",
-        "Apply後、Playerの字幕メニューでラベルを選び、キューのある時刻を再生します。Mark as defaultはトラックのメタデータを設定するもので、それだけで有効にはなりません。別音声を持つソースでは、Playerのメニューに表示される音声も比較します。",
-        "外部字幕を削除する場合はExternal WebVTT URLを空欄にしてApplyします。対応するラベル・言語も消去します。ソースのプリセット選択でもソース項目を戻せます。UIを元に戻すには以前のUIを選び、Player設定を変えた場合は別途元の値を適用します。"
+        "Playerの再生・一時停止・シークを試します。別音声を持つソースでは、Playerメニューの音声トラックも比較できます。ライブの巻き戻し補助操作と状態表示は「その他」にあります。",
+        "上部の「テーマ」で「標準」「スポーツ」「ライブ」「シネマ」を選びます。テーマを変えるとPlayerを再作成して適用済みソースを読み込みます。同じソースで操作部の見た目と「コード」のUI設定を比較します。",
+        "字幕は「設定」→「ソース」で「外部WebVTT字幕のURL」「字幕の表示名」「字幕の言語」を順に選んで入力します。WebVTTは時刻付きの字幕テキストです。メディアに時刻を合わせ、言語にはen-USなどのタグを使います。",
+        "「設定を適用」の後、Playerの字幕メニューで入力した表示名を選びます。「既定の字幕に指定」はメタデータの設定で、それだけで字幕表示は有効になりません。字幕キューのある時刻まで再生して確認します。",
+        "削除する場合は外部字幕のURLを空欄にして適用します。対応する表示名と言語も消去します。テーマの比較を終えるときは以前のテーマを選び、変更したPlayer設定は別に元の値へ戻します。"
       ]
     },
     {
       "type": "note",
       "title": "AndroidのPlayerメニューをスクロールする",
-      "text": "映像内のメニューと周囲のフォームは、別々にスクロールします。メニューの下の項目を見るときは映像内、フォームを動かすときは映像の外からスワイプします。アプリはPlayerへのジェスチャーを保持し、親のScrollViewがドラッグを奪わないようにしています。"
+      "text": "映像は設定フォームのScrollViewの外にあります。Player内のメニューを動かすときは映像内から、入力欄を動かすときは設定の領域からスワイプします。設定やAPIを選ぶために、映像を含む画面全体をスクロールする必要はありません。"
     },
     {
       "type": "links",
@@ -146,15 +151,15 @@
     {
       "type": "figure",
       "file": "rn-ios-code",
-      "caption": "iOSのShow applied codeです。Apply・Reset、Copy code、ライセンスのプレースホルダーが見えます。未適用の編集値は出力に含めません。"
+      "caption": "iOSの「コード」タブです。適用済み設定を折り返して表示し、コピーできます。未適用の編集値は含みません。"
     },
     {
       "type": "steps",
       "items": [
-        "Apply後にShow applied codeを開き、Player、ソース、選択中のUIの設定を確認します。次の値を変更する前に出力を控えると、差分を比較しやすくなります。",
-        "値を編集してApplyせずに確認すると、適用済み設定の表示は変わりません。Reset draftはその編集を取り消します。有効な変更をApplyするとPlayerを再作成し、出力も更新します。",
-        "設定をほかの場所で使う場合はCopy codeを選びます。ネイティブ開発ビルドに含まれるExpo Clipboardを利用します。出力のライセンスはプレースホルダーなので、例を共有するときもその状態を保ちます。",
-        "usePlayer、PlayerView、共通UIファイルとの接続方法は実装ガイドを参照します。この表示は、SDK内部の既定値をすべて取得して出力したものではありません。"
+        "適用後に「コード」タブを開き、Player・ソース・UIの設定を確認します。次の項目を変える前に出力を控えておくと差分を比較できます。",
+        "値を編集して適用せずに「コード」へ移ると、出力は変わりません。「編集内容を戻す」は未適用の変更だけを破棄します。有効な変更を適用するとPlayerと出力を更新します。",
+        "「コードをコピー」はExpo Clipboardを使います。出力のライセンスは仮の値です。共有するコードでもその状態を保ちます。",
+        "usePlayer、PlayerView、共通UIファイルとの接続方法は実装ガイドを参照します。この出力にはSDK内部の既定値すべてが含まれるわけではありません。"
       ]
     },
     {
@@ -173,15 +178,15 @@
     },
     {
       "type": "p",
-      "text": "SDKはPlayerを組み込むためのライブラリーで、APIは公開された設定・操作・イベントを指します。基本フォームはよく使う項目をまとめ、Additional SDK configurationと配列エディターは導入済みReact Nativeラッパーの追加項目を扱います。ラッパーに公開されていないネイティブSDK機能を、任意のキーの追加で有効にすることはできません。"
+      "text": "SDKはPlayerを組み込むためのライブラリーで、APIは公開された設定・操作・イベントを指します。基本フォームはよく使う項目をまとめ、「SDKの詳細設定」と配列エディターは導入済みReact Nativeラッパーの追加項目を扱います。ラッパーに公開されていないネイティブSDK機能を、任意のキーの追加で有効にすることはできません。"
     },
     {
       "type": "steps",
       "items": [
-        "Show configurationのAdditional SDK configurationで、SourceConfig.descriptionなどの正確なパスを検索し、Set this API valueを選びます。変更前の値を控えます。もともと上書きしていなかった項目は、そのことも記録します。",
-        "表示された型に応じて入力します。リストは1行に1項目、辞書は重複しないname=value、列挙値はSDKの選択肢を使います。この段階ではApply前の編集値です。",
-        "配列はSubtitle lists and advertisingでソースまたはオフライン字幕一覧を選び、Edit this listとAdd list itemを使います。URL、ラベル、言語、形式を埋めます。SourceConfig.subtitleTracksとOfflineContentConfig.sourceConfig.subtitleTracksは別の一覧です。",
-        "Apply and recreate playerを押し、Show applied codeと、対応する再生・メニュー・イベントを比較します。追加設定は基本フォームより優先します。上書きを削除してApplyするとフォームまたはSDK既定値へ戻ります。空のリストを有効な設定として適用すると、配列の項目をすべて消去します。"
+        "「設定」の「設定区分」で「SDKの詳細設定」を選びます。「設定API」でSourceConfig.descriptionなどの正確なパスを検索し、「このAPIの値を設定」を選びます。変更前の値と、上書きの有無を控えます。",
+        "表示された型に合わせて入力します。リストは1行に1項目、辞書は重複しないname=value、列挙値はSDKの候補を使います。UI関連だけを探す場合は、設定区分の「UI設定」を使えます。",
+        "「字幕リストと広告」では対象の配列を選び、「このリストを編集」と「項目を追加」を使います。URL・表示名・言語・形式を入力します。ソース用とオフライン用の字幕一覧は別々です。",
+        "「設定を適用」の後、「コード」と対応する再生・メニュー・イベントを確認します。詳細設定の上書きは基本項目より優先します。上書きを解除して適用すると基本項目またはSDKの既定値に戻り、有効な空のリストを適用すると配列を消去します。"
       ]
     },
     {
@@ -196,15 +201,15 @@
     {
       "type": "figure",
       "file": "rn-ios-api-callback",
-      "caption": "iOSのコールバックエディターです。対象のネットワークコールバック、型、実行を許可した関数の本文を表示します。この例では音量を変えてリクエストを返しています。"
+      "caption": "iOSでネットワークコールバックの本文を編集する画面です。この例では、音量を変えてリクエストを返す関数の実行を許可しています。"
     },
     {
       "type": "steps",
       "items": [
-        "JavaScript callbacks and native UI handlersでPlayerConfig.networkConfig.preprocessHttpRequestを検索し、Edit this callbackを選びます。編集前に引数と必要な返り値の型を確認します。",
-        "関数の本体を入力し、Allow edited JavaScript executionを有効にしてApplyします。既定の本体はリクエストを返します。対応するSDKのリクエストが発生したら、イベントログと、意図して変更した状態を確認します。",
+        "「設定」の「JavaScriptコールバックとネイティブUIハンドラー」でPlayerConfig.networkConfig.preprocessHttpRequestを検索し、「このコールバックを編集」を選びます。編集前に引数と必要な返り値の型を確認します。",
+        "関数の本体を入力し、「編集したJavaScriptの実行を許可」を有効にして適用します。既定の本体はリクエストを返します。対応するSDKのリクエストが発生したら、イベントログと、意図して変更した状態を確認します。",
         "ネットワークのコールバックはPromiseを返せますが、同期型のコールバックではその場で結果を返す必要があります。全画面表示とカスタムメッセージの項目は、ハンドラーのオブジェクトを生成します。エディターが示す型と生成関数の条件に従います。",
-        "比較を終えるにはコールバックを削除し、再度Applyします。本体でPlayerの状態を変更した場合はその状態も戻すか、適用済み設定からPlayerを再作成します。編集したJavaScriptはアプリ内で動き、ほかのアプリ処理から隔離されていないため、信頼できるコードだけを許可します。"
+        "比較を終えるにはコールバックを削除し、再度適用します。本体でPlayerの状態を変更した場合はその状態も戻すか、適用済み設定からPlayerを再作成します。編集したJavaScriptはアプリ内で動き、ほかのアプリ処理から隔離されていないため、信頼できるコードだけを許可します。"
       ]
     },
     {
@@ -215,21 +220,25 @@
     {
       "type": "figure",
       "file": "rn-android-api-operation",
-      "caption": "AndroidでPlayer.getCurrentTimeを実行した画面です。呼び出し、返された位置、再作成ボタン、Player eventsが表示されています。"
+      "caption": "Androidの「API」でPlayer.getCurrentTimeを実行した画面です。呼び出しと返り値を表示します。"
     },
     {
       "type": "steps",
       "items": [
-        "Show API experimentsでPlayer.getCurrentTimeを検索し、時刻の基準を選んでRun selected APIを押します。再生中に取得し直し、秒単位の位置と映像の進行を比較します。",
-        "Player.pauseなどの状態を変える操作を試し、Player.isPausedと対応するイベントを確認します。再生へ戻すにはPlayer.playを使います。返り値のないAPIでも、操作後の状態とイベントで結果を確認します。",
-        "Player eventsで最近のSDKイベントの要約を確認します。Pause event logは記録を止め、再開すると新しいイベントを収集します。Clear API event logで比較用の履歴を消去できます。",
-        "destroyでPlayerを破棄した後や、適用済み設定へ戻す場合はRecreate player after API experimentsを使います。以前のソース・Playerに属する資源やトラックの識別子は、置き換え後に取得し直します。"
+        "「API」で「APIの表示」を「操作」にし、「API操作」からPlayer.getCurrentTimeを検索して選びます。時刻の基準を指定して「選択したAPIを実行」を押します。再生中に取得し直し、秒単位の位置と映像を比較します。",
+        "Player.pauseなどの操作を試した後、「状態」でPlayer.isPausedを選び、「状態を取得」でSDKの値を確認します。再生へ戻すには「操作」のPlayer.playを使います。戻り値のないAPIは、状態やイベントも合わせて確認します。",
+        "「イベント」で直近のSDK通知を確認します。「イベント記録を停止」は記録を止め、再開すると新しいイベントを収集します。「APIイベントの記録を消去」で比較用の履歴を消せます。",
+        "Playerの破棄後や適用済み設定へ戻すときは、「APIの説明」の「API操作後にプレイヤーを再作成」を使います。以前のPlayerやソースのトラック・資源の識別子は、置き換えたインスタンスから取得し直します。"
       ]
     },
     {
       "type": "figure",
       "file": "rn-ios-api-events",
-      "caption": "iOSで再生中のonTimeChangedを記録したログです。イベント記録とAPIによる状態取得を合わせて、同じセッションを確認します。"
+      "caption": "iOSで直近のSDKイベントとそのデータを記録したログです。イベント記録とAPIによる状態取得を合わせて、同じセッションを確認します。"
+    },
+    {
+      "type": "p",
+      "text": "playのようなメソッド名でも検索できます。API名の末尾と完全に一致する候補を先頭に表示するため、playではPlayer.playが先頭になります。Playerを含む他の候補もその下に残ります。"
     },
     {
       "type": "p",
@@ -252,9 +261,9 @@
     {
       "type": "steps",
       "items": [
-        "Additional SDK configurationで必要なBitmovinCastManagerOptions.applicationIdとmessageNamespaceを設定します。空欄は既定の受信機・名前空間を使います。元へ戻すため、変更前の値を控えます。",
-        "Cast startup configurationのSave Cast options for next launchを選びます。Applyとは独立して現在の編集値を保存します。JavaScriptのリロードやPlayerの再作成ではネイティブCastは起動し直さないため、アプリを完全に閉じて再起動します。",
-        "Read native Cast startup stateでsavedOptions、startupOptions、nativeInitialized、pendingRestartを比較します。Androidではネイティブマネージャーの公開APIで起動状態を取得し、iOSではプロセス起動時に渡した値を表示します。",
+        "「設定」の「SDKの詳細設定」で必要なBitmovinCastManagerOptions.applicationIdとmessageNamespaceを設定します。空欄は既定の受信機・名前空間を使います。元へ戻すため、変更前の値を控えます。",
+        "「Castの起動時設定」の「次回起動用にCast設定を保存」を選びます。適用とは独立して現在の編集値を保存します。JavaScriptのリロードやPlayerの再作成ではネイティブCastは起動し直さないため、アプリを完全に閉じて再起動します。",
+        "「ネイティブCastの起動状態を取得」でsavedOptions、startupOptions、nativeInitialized、pendingRestartを比較します。Androidではネイティブマネージャーの公開APIで起動状態を取得し、iOSではプロセス起動時に渡した値を表示します。",
         "探索・接続・受信機での再生は、同じネットワーク上の対応受信機で試します。設定を戻す場合も元の値を保存して完全に再起動します。ラッパー1.29の非推奨APIであるBitmovinCastManager.initializeでは編集した値は適用されません。"
       ]
     }
@@ -283,7 +292,7 @@
     {
       "path": "apps/react-native/src/ConfigurationPanel.tsx",
       "line": 23,
-      "label": "React Native の編集項目・単位・Apply／Reset"
+      "label": "React Nativeの編集項目・単位・適用と編集の取り消し"
     },
     {
       "path": "apps/react-native/src/configuration.ts",

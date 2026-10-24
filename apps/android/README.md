@@ -66,9 +66,22 @@ uses `com.playerlab.android.test`. Allow
 when provided, the bundled collector reports playback-quality measurements to
 your account. Do not commit keys or local SDK configuration.
 
+## App language
+
+The sample's settings, navigation, API help and status labels support English
+and Japanese. They follow the device language. On Android 13 or later, choose
+English or Japanese for Player Lab in the system's per-app language settings.
+Changing the app language retains the current player, source and in-memory
+editor drafts.
+
+SDK identifiers, configuration values, user input, exported code and raw SDK
+state remain unchanged. The bundled Bitmovin player controls use the languages
+provided by that UI package; the sample's Japanese settings do not add Japanese
+translations to vendor-owned controls.
+
 ## Shared player UI
 
-The "UI" picker selects the default Web UI or the Sports, Live, and Cinema
+The **Theme** picker selects the default Web UI or the Sports, Live, and Cinema
 factories from `@showcase/ui-shared`. A custom mode creates a configuration such as:
 
 ```kotlin

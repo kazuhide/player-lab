@@ -40,12 +40,22 @@ the Web UI, a video surface, or a stream.
 
 ## Configuration controls
 
-Open **Show configuration** to edit the source URL, HLS/DASH/progressive type,
+The application follows the device language for English and Japanese. Use **English** or **日本語** above the source selector, or in **More** in compact layouts, to change labels and help without reloading the player or discarding edits. SDK identifiers, code, event payloads and user-entered values retain their original text. The SDK's player menus use the languages supported by the selected UI bundle.
+
+Open **Settings**, choose a configuration category, then select the property
+to edit directly. Apply and Reset stay outside the editor's scrolling content.
+The source category includes the URL, HLS/DASH/progressive type,
 title, poster URL, signed start offset and its timeline reference. iOS starts
 with HLS and hides DASH sources/types because its native player does not support
 DASH. Android retains the existing HLS and DASH presets.
 
-The same panel exposes autoplay, startup mute, forward buffer duration and the
+`App` owns the screen's safe-area handling. The generated `index.tsx` registers
+it directly; do not add another `SafeAreaView` around it. An extra wrapper moves
+the editor's origin while keyboard events still use screen coordinates, which
+can hide fixed actions. When updating an existing generated host, copy the
+current `expo/index.tsx` as its `index.tsx`, together with `App.tsx` and `src`.
+
+The player category exposes autoplay, startup mute, forward buffer duration and the
 adaptation bitrate cap. URL fields accept HTTP/HTTPS; optional fields can be
 cleared. Start offsets and buffer durations accept finite decimal seconds.
 The bitrate cap uses whole bits per second: 1–2,147,483,647 on Android, and
@@ -74,11 +84,11 @@ URL validation uses the locally imported `URL` from `react-native-url-polyfill`
 The local import leaves global URL and the SDK's media shims unchanged; it does
 not install the package's global polyfill.
 
-**Apply and recreate player** validates the whole draft, recreates the player
+**Apply configuration** validates the whole draft, recreates the player
 and reloads the selected source from its configured start offset. Playback
 position is reset. Invalid input and an unchanged configuration do not replace
 the player. **Reset draft** only restores the currently applied values. Source
-preset buttons still load immediately and replace the draft's source fields;
+preset selections load immediately and replace the draft's source fields;
 unapplied playback/buffer/adaptation edits remain in the draft.
 
 The complete applied source, chosen UI, log and **Allow DVR** setting survive
@@ -203,6 +213,13 @@ The supplied CocoaPods lock was generated with CocoaPods **1.17.0**. Keep
 generated project. A subsequent prebuild can refresh native files; restore the
 locks again if generating a fresh project. Expo Go cannot load the native Player.
 
+Expo's precompiled iOS modules can include generated-host paths in their podspec
+source and preparation command. In a fresh host, normal `pod install` can therefore
+update the `ExpoModulesCore` specification checksum while keeping every dependency
+version unchanged. Review that lockfile diff: a host-specific checksum change is
+different from a dependency update. Do not remove the lockfile or change pinned
+versions to work around a checksum mismatch.
+
 The wrapper-supported native resolutions are:
 
 | Dependency | React Native host |
@@ -220,7 +237,7 @@ bridge and Expo still use CocoaPods. Existing projects should follow the
 
 ## Shared player UI
 
-The "UI" picker selects the default Web UI or Sports, Live, and Cinema factories
+The **Theme** picker selects the default Web UI or Sports, Live, and Cinema factories
 from `@showcase/ui-shared`. Custom modes set
 `usePlayer({ styleConfig: { userInterfaceType: UserInterfaceType.Bitmovin, playerUiJs, playerUiCss } })`
 and use `PlayerView` with `uiConfig.variant = new CustomUi("…buildSportsUI")`.
@@ -314,7 +331,7 @@ Verify these behaviors in the external Expo build with a valid player license.
 
 ## Applied configuration code
 
-Open **Show configuration → Show applied code** to inspect the Player, Source and
+Open **Code** to inspect the Player, Source and
 selected UI settings sent to the SDK. The output excludes draft edits and license
 values. **Copy code** uses Expo Clipboard 57.0.2, matched to Expo 57. Regenerate and
 build the external native host after changing native dependencies; refreshing
@@ -330,11 +347,10 @@ Applied examples import this helper. Include it when moving the example into ano
 
 ## Scrolling Android player menus
 
-Swipe inside the video menu to reach lower settings, and outside the video
-to scroll the configuration form. While a gesture started in the Android player
-is active, the app pauses the surrounding form's scrolling. The last player
-pointer ending or being cancelled releases it; replacing the player also
-releases the retired pane's touch state. iOS keeps its existing scroll handling.
+The video is outside the settings ScrollView. Swipe inside the video to move a
+Player menu and within the editor to scroll its fields. A player gesture retains
+its owner until the last pointer ends or is cancelled; replacing the player also
+releases the retired pane's touch state.
 
 ## Cast startup settings
 

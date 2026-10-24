@@ -1,5 +1,6 @@
 import React from "react";
-import { Button, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Button, Switch, Text } from "./localization";
 import type { PlaybackController } from "./playbackController";
 import type { TimelineState } from "./playback/state";
 import type { VegaSource } from "./Sources";

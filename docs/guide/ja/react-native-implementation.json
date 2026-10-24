@@ -23,6 +23,11 @@
       "text": "bitmovin-player-react-nativeは、iOSとAndroidのネイティブPlayer SDKをJavaScriptから操作するためのラッパーです。再生できる形式はiOSとAndroidで異なります。この画面はiOSでHLS・プログレッシブMP4を受け付け、AndroidではDASHも選べます。SourceConfigとPlayerConfigはラッパーの型であり、ブラウザー向けWeb SDKの設定をそのまま転用することはできません。項目と反映方法は「PlayerConfigとSourceConfig」の節で説明します。"
     },
     {
+      "type": "note",
+      "title": "表示言語",
+      "text": "画面上部の表示言語で日本語と英語を切り替えます。横向きなどで表示領域が狭い場合や文字を拡大した場合は「その他」にあります。言語を変えても適用済み設定と編集途中の値を保持します。Player Labの画面は日本語表示で撮影しています。外部のBitmovin Dashboardの参考画像は公式の英語画面です。SDKのAPI名、コード、取得データは元の表記を保ちます。"
+    },
+    {
       "type": "links",
       "items": [
         {
@@ -69,23 +74,23 @@
       "type": "steps",
       "items": [
         "App.tsxを開きます。Appが適用済み設定と編集途中の値を保持し、UI選択とrevisionをキーにしてPlayerPaneを配置します。ActivePlayerPaneがusePlayerで取得したPlayerをPlayerViewへ渡します。",
-        "VODプリセットを読み込んで再生し、Show applied codeを開きます。この状態を基準に項目を一つずつ変更します。SDKへ渡した設定、ネイティブSDKのイベント、実際の表示を合わせて確認します。"
+        "VODプリセットを読み込んで再生し、コードを開きます。この状態を基準に項目を一つずつ変更します。SDKへ渡した設定、ネイティブSDKのイベント、実際の表示を合わせて確認します。"
       ]
     },
     {
       "type": "code",
       "title": "既存のネイティブPlayerViewを接続する",
-      "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : styles.player}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}",
+      "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : { ...styles.player, height: workspace.previewHeight }}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 312,
-        "label": "既存のネイティブPlayerViewを接続する"
+        "line": 356,
+        "label": "App.tsx:356–363"
       },
-      "endLine": 319
+      "endLine": 363
     },
     {
       "type": "p",
-      "text": "usePlayerとPlayerViewはSDKの公開機能です。applied・revision・PlayerPane・onPlayerTouchChangeはPlayer Lab側の変数やコンポーネントです。ソースはonPlayerViewReadyを受けてから読み込み、ネイティブの表示先を先に用意します。loadOwnedSourceはラッパーのPlayer.loadを包むLabの補助処理で、ネイティブSourceを保持し、古い初期化が置き換え後のPlayerへ接続するのを防ぎます。ラッパー1.29のPlayer.load自体はvoidを返すため、メディアの読み込み結果はSourceLoaded・Player error・Source errorのイベントで確認します。"
+      "text": "usePlayerとPlayerViewはSDKの公開機能です。applied・revision・PlayerPane・onPlayerTouchChangeはPlayer Lab側の変数やコンポーネントです。ソースはonPlayerViewReadyを受けてから読み込み、ネイティブの表示先を先に用意します。loadOwnedSourceはラッパーのPlayer.loadを包むLabの補助処理で、ネイティブソースを保持し、古い初期化が置き換え後のPlayerへ接続するのを防ぎます。ラッパー1.29のPlayer.load自体はvoidを返すため、メディアの読み込み結果はSourceLoaded・Player error・ソース errorのイベントで確認します。"
     },
     {
       "type": "h2",
@@ -109,7 +114,7 @@
       "source": {
         "path": "apps/react-native/src/configuration.ts",
         "line": 111,
-        "label": "基本フォームをラッパーのPlayer設定へ変換する"
+        "label": "configuration.ts:111–115"
       },
       "endLine": 115
     },
@@ -124,7 +129,7 @@
         [
           "開始時の動作",
           "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted",
-          "AutoplayまたはMute on startupを変更し、Apply and recreate playerを押します。再生中の操作にはPlayer.play・pause・mute・unmuteを使います。起動時の設定と、再生中に行う操作を区別します。"
+          "自動再生または起動時にミュートを変更し、「設定を適用」を押します。再生中の操作にはPlayer.play・pause・mute・unmuteを使います。起動時の設定と、再生中に行う操作を区別します。"
         ],
         [
           "バッファー目標",
@@ -144,12 +149,12 @@
         [
           "開始位置",
           "SourceConfig.options.startOffset / startOffsetTimelineReference",
-          "VODで5秒・Startを試します。EndはVODまたはライブ範囲の終端を基準にします。符号付きオフセットは開始位置の計算に使う値であり、Player.seekによる現在位置の変更とは別です。"
+          "VODで5秒・先頭を試します。末尾はVODまたはライブ範囲の終端を基準にします。符号付きオフセットは開始位置の計算に使う値であり、Player.seekによる現在位置の変更とは別です。"
         ],
         [
           "字幕",
           "SourceConfig.subtitleTracks",
-          "基本フォームではURL・ラベル・言語からWebVTTトラックを追加します。追加の配列エディターでは複数トラックを設定できます。Mark as defaultはメタデータを設定するもので、読み込み後に実際のトラックを選びます。"
+          "基本フォームではURL・ラベル・言語からWebVTTトラックを追加します。追加の配列エディターでは複数トラックを設定できます。既定の字幕に指定はメタデータを設定するもので、読み込み後に実際のトラックを選びます。"
         ]
       ],
       "widths": [
@@ -165,7 +170,7 @@
       "source": {
         "path": "apps/react-native/src/configuration.ts",
         "line": 102,
-        "label": "ソースと開始位置の設定を組み立てる"
+        "label": "configuration.ts:102–110"
       },
       "endLine": 110
     },
@@ -176,10 +181,10 @@
     {
       "type": "steps",
       "items": [
-        "Show configurationの基本項目を変更し、Apply and recreate playerを押します。編集値全体を検証してからPlayerを置き換えます。フォームからのソース設定変更だけでも再作成し、設定したオフセットから読み直します。",
-        "ほかの項目はAdditional SDK configurationでラッパーの正確なパスを検索します。配列はSubtitle lists and advertising、関数はJavaScript callbacks and native UI handlersを使います。ネイティブSDKのインスタンスが必要な項目を単なる文字列で代用することはできません。",
-        "Apply後にShow applied codeを開きます。追加設定は基本フォームの値より優先し、追加値を削除するとフォームの値またはSDK既定値へ戻ります。Reset draftは未適用の編集値だけを破棄します。",
-        "実装を変更するときも、検証済みのPlayer設定とソース設定を分けて保持します。AppはApply時にrevisionを増やし、ReactのkeyによってPlayerを管理するコンポーネントを作り直します。usePlayerの引数を書き換えても、既存のPlayerを再設定する操作にはなりません。"
+        "設定の基本項目を変更し、「設定を適用」を押します。編集値全体を検証してからPlayerを置き換えます。フォームからのソース設定変更だけでも再作成し、設定したオフセットから読み直します。",
+        "ほかの項目はSDKの詳細設定でラッパーの正確なパスを検索します。配列は字幕リストと広告、関数はJavaScriptコールバックとネイティブUIハンドラーを使います。ネイティブSDKのインスタンスが必要な項目を単なる文字列で代用することはできません。",
+        "適用後にコードを開きます。追加設定は基本フォームの値より優先し、追加値を削除するとフォームの値またはSDK既定値へ戻ります。「編集内容を戻す」は未適用の編集値だけを破棄します。",
+        "実装を変更するときも、検証済みのPlayer設定とソース設定を分けて保持します。Appは適用時にrevisionを増やし、ReactのkeyによってPlayerを管理するコンポーネントを作り直します。usePlayerの引数を書き換えても、既存のPlayerを再設定する操作にはなりません。"
       ]
     },
     {
@@ -193,19 +198,19 @@
       "text": "  useEffect(() => {\n    if (!viewReady || !active.current) return;\n    snapshots.current?.sourceChanged();\n    setDvr(null);\n    append(`load ${source.title || \"source\"}`);\n    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.\n    void loadOwnedSource(player, source).catch(() => { if (active.current) append(\"Source initialization failed; inspect source events or retry after the pending initializer settles.\"); });\n    observed.current?.sourceLoad();\n  }, [source, player, viewReady, append]);",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 282,
-        "label": "App.tsx:282–290"
+        "line": 324,
+        "label": "App.tsx:324–332"
       },
-      "endLine": 290
+      "endLine": 332
     },
     {
       "type": "p",
-      "text": "ソースは、ネイティブビューの準備を待ってから、現在のPlayerへ読み込みます。loadOwnedSourceは、ネイティブSourceと読み込み先のPlayerを管理するアプリの補助処理です。ラッパーのPlayer.load自体はPromiseを返しません。自分の画面でも、準備ができたビューのPlayerへソースを読み込み、ソースやエラーのイベントで読み込み結果を確認します。フォームから設定を適用する場合は、Playerも作り直します。"
+      "text": "ソースは、ネイティブビューの準備を待ってから、現在のPlayerへ読み込みます。loadOwnedSourceは、ネイティブソースと読み込み先のPlayerを管理するアプリの補助処理です。ラッパーのPlayer.load自体はPromiseを返しません。自分の画面でも、準備ができたビューのPlayerへソースを読み込み、ソースやエラーのイベントで読み込み結果を確認します。フォームから設定を適用する場合は、Playerも作り直します。"
     },
     {
       "type": "figure",
       "file": "rn-ios-code",
-      "caption": "React Native iOSの適用済み設定です。Apply後の出力を比較します。ネイティブSDK内部の既定値をすべて取得した一覧ではありません。"
+      "caption": "React Native iOSの適用済み設定です。適用後の出力を比較します。ネイティブSDK内部の既定値をすべて取得した一覧ではありません。"
     },
     {
       "type": "h2",
@@ -227,13 +232,13 @@
       "rows": [
         [
           "既存の共通テーマを使う",
-          "UI選択はApp.tsxのUI_MODESでファクトリー名を選びます。Sports・Live・Cinemaはpackages/ui-shared/src/global.tsの公開名へ対応します。",
-          "テーマを選ぶとPlayerPaneを作り直し、適用済みソースを読み込みます。Defaultはファクトリーを指定しません。"
+          "UI選択はApp.tsxのUI_MODESでファクトリー名を選びます。スポーツ・Live・シネマはpackages/ui-shared/src/global.tsの公開名へ対応します。",
+          "テーマを選ぶとPlayerPaneを作り直し、適用済みソースを読み込みます。標準はファクトリーを指定しません。"
         ],
         [
           "埋め込みUIの外観を変える",
           "PlayerConfig.styleConfig.playerUiCssはスタイルシートを置き換え、supplementalPlayerUiCssはスタイルを追加します。playerUiJsはJavaScriptバンドルを置き換えます。",
-          "Additional SDK configurationで該当パスを変更してApplyします。同梱アセットを使う場合は、以下の手順で共通UIとネイティブアセットを再ビルドします。"
+          "SDKの詳細設定で該当パスを変更して適用します。同梱アセットを使う場合は、以下の手順で共通UIとネイティブアセットを再ビルドします。"
         ],
         [
           "UIの構成を変える",
@@ -243,7 +248,7 @@
         [
           "映像の収め方や表示先を変える",
           "PlayerViewProps.scalingModeでFit・Zoom・Stretchを設定します。PlayerViewConfigは表示先の設定、WebUiConfigは埋め込みWeb UIの設定です。",
-          "Additional SDK configurationで該当パスを検索してApplyします。Fitは映像全体を表示し、Zoomは一部を切り取る場合があり、Stretchは縦横比を変える場合があります。"
+          "SDKの詳細設定で該当パスを検索して適用します。Fitは映像全体を表示し、Zoomは一部を切り取る場合があり、Stretchは縦横比を変える場合があります。"
         ],
         [
           "アプリ側に操作ボタンを追加する",
@@ -268,10 +273,10 @@
       "text": "          styleConfig: {\n            userInterfaceType: UserInterfaceType.Bitmovin,\n            playerUiJs: WEBUI_JS,\n            playerUiCss: WEBUI_CSS,\n            ...playerConfig.styleConfig,\n          },\n        }",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 208,
-        "label": "カスタムテーマに共通JavaScriptとCSSを渡す"
+        "line": 250,
+        "label": "App.tsx:250–256"
       },
-      "endLine": 214
+      "endLine": 256
     },
     {
       "type": "code",
@@ -279,10 +284,10 @@
       "text": "  const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction || Object.keys(settings.view).length || Object.keys(settings.webUi).length\n    ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }\n    : undefined;",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 302,
-        "label": "PlayerViewConfigから公開ファクトリーを選ぶ"
+        "line": 344,
+        "label": "App.tsx:344–346"
       },
-      "endLine": 304
+      "endLine": 346
     },
     {
       "type": "p",
@@ -321,9 +326,9 @@
     {
       "type": "steps",
       "items": [
-        "字幕はWebVTTのURL・ラベル・言語を設定してApplyします。SourceLoaded後に字幕メニュー、またはPlayer.getAvailableSubtitlesで確認し、返された識別子をPlayer.setSubtitleTrackへ渡します。Labの入力欄で識別子を空欄にすると、SDKへundefinedを渡して字幕を無効にします。SDKを直接呼ぶコードではPlayer.setSubtitleTrack(undefined)を使います。一覧に載るだけでなく、キューの時刻まで再生して表示を確認します。",
+        "字幕はWebVTTのURL・ラベル・言語を設定して適用します。SourceLoaded後に字幕メニュー、またはPlayer.getAvailableSubtitlesで確認し、返された識別子をPlayer.setSubtitleTrackへ渡します。Labの入力欄で識別子を空欄にすると、SDKへundefinedを渡して字幕を無効にします。SDKを直接呼ぶコードではPlayer.setSubtitleTrack(undefined)を使います。一覧に載るだけでなく、キューの時刻まで再生して表示を確認します。",
         "音声切り替えには複数の音声トラックを持つソースを使います。Player.getAvailableAudioTracksの識別子をPlayer.setAudioTrackへ渡し、Player.getAudioTrackと実際の音声を確認します。識別子は現在のソースに属するため、別ソースで使い回しません。",
-        "Androidで画質を選ぶ場合は、Player.getAvailableVideoQualitiesとPlayer.getVideoQualityを確認し、返された画質IDをPlayer.setVideoQualityへ渡します。Androidではautoで自動画質選択へ戻します。iOSでは、Labの一覧にこの操作があっても、ラッパー1.29は警告を出して画質を選択せずに戻ります。iOSの自動画質選択を比較する場合は、Maximum bitrate（PlayerConfig.adaptationConfig.maxSelectableBitrate）を変更してApplyし、選択された画質と再生を確認します。このビットレートの上限設定は、特定の画質を固定して選ぶ操作ではありません。"
+        "Androidで画質を選ぶ場合は、Player.getAvailableVideoQualitiesとPlayer.getVideoQualityを確認し、返された画質IDをPlayer.setVideoQualityへ渡します。Androidではautoで自動画質選択へ戻します。iOSでは、Labの一覧にこの操作があっても、ラッパー1.29は警告を出して画質を選択せずに戻ります。iOSの自動画質選択を比較する場合は、「最大ビットレート」（PlayerConfig.adaptationConfig.maxSelectableBitrate）を変更して適用し、選択された画質と再生を確認します。このビットレートの上限設定は、特定の画質を固定して選ぶ操作ではありません。"
       ]
     },
     {
@@ -343,12 +348,12 @@
     },
     {
       "type": "p",
-      "text": "Show API experimentsは実際のラッパーAPIを呼び、返り値を表示します。状態取得の多くはネイティブとの通信を伴うPromiseを返すため、結果を待ってからUIへ反映します。Player eventsには別途イベントの要約を表示します。値を変更するAPIは、対応する状態取得や完了イベントで確認します。呼び出しが終了しても、意図した状態に変わったとは限りません。このラッパーにはonDurationChangedがないため、アプリのライブ範囲もonTimeChangedで更新しています。"
+      "text": "APIは実際のラッパーAPIを呼び、返り値を表示します。状態取得の多くはネイティブとの通信を伴うPromiseを返すため、結果を待ってからUIへ反映します。プレイヤーイベントには別途イベントの要約を表示します。値を変更するAPIは、対応する状態取得や完了イベントで確認します。呼び出しが終了しても、意図した状態に変わったとは限りません。このラッパーにはonDurationChangedがないため、アプリのライブ範囲もonTimeChangedで更新しています。"
     },
     {
       "type": "figure",
       "file": "rn-android-api-operation",
-      "caption": "AndroidビルドのPlayer.getCurrentTimeです。時刻の基準を選び、再生しながら値を取り直して位置の変化を確認します。"
+      "caption": "AndroidのAPI操作でPlayer.getCurrentTimeを実行した画面です。呼び出しとSDKの返り値を比較できます。"
     },
     {
       "type": "h3",
@@ -359,7 +364,7 @@
       "type": "steps",
       "items": [
         "OSの機能を試すときは、先にPlayerViewとPlayerの設定を確認します。ピクチャーインピクチャーやバックグラウンド再生には、生成したホストアプリ側のネイティブ機能が必要で、AirPlayはApple向けです。フラグだけではOSの権限・受信機・コンテンツの対応条件は補えません。",
-        "CastはCast startup configurationで起動時の設定を保存し、アプリを完全に閉じて起動し直します。Read native Cast startup stateで設定を確認してから、探索・接続・受信機での再生を試します。ラッパー1.29の非推奨APIであるBitmovinCastManager.initializeは何もしないため、Playerの再作成やJavaScriptのリロードはネイティブ起動処理の代わりになりません。"
+        "Castは「Castの起動時設定」で起動時の設定を保存し、アプリを完全に閉じて起動し直します。「ネイティブCastの起動状態を取得」で設定を確認してから、探索・接続・受信機での再生を試します。ラッパー1.29の非推奨APIであるBitmovinCastManager.initializeは何もしないため、Playerの再作成やJavaScriptのリロードはネイティブ起動処理の代わりになりません。"
       ]
     },
     {
@@ -381,7 +386,7 @@
       ],
       "rows": [
         [
-          "Applyで再生が最初に戻るのはなぜですか？",
+          "適用で再生が最初に戻るのはなぜですか？",
           "フォームは設定変更時にPlayerを再作成する設計です。適用済みの設定は保持しますが、位置はソースの開始オフセットへ戻ります。プリセットは通常ソースだけを読み直しますが、コールバックや全画面表示の設定がある場合は再作成も必要になります。"
         ],
         [
@@ -390,7 +395,7 @@
         ],
         [
           "字幕は一覧にあるのに表示されません。",
-          "Mark as defaultだけでは有効になりません。返されたトラックを選び、字幕キューとメディアの時間範囲を合わせて、ソースとエラーのイベントを確認します。言語タグの不備やURL・ラベルの不足はApply前に検証します。"
+          "「既定の字幕に指定」だけでは有効になりません。返されたトラックを選び、字幕キューとメディアの時間範囲を合わせて、ソースとエラーのイベントを確認します。言語タグの不備やURL・ラベルの不足は適用前に検証します。"
         ],
         [
           "iOSでDASHを選べないのはなぜですか？",
@@ -398,7 +403,7 @@
         ],
         [
           "AndroidのPlayerメニューをスクロールできません。",
-          "フォームの外側ではなく映像内のメニューをスワイプします。アプリは映像へのタッチを保持し、親ScrollViewがドラッグを奪わないようにしています。"
+          "フォームの外側ではなく映像内のメニューをスワイプします。映像は設定フォームのScrollViewの外にあり、Player内のタッチ操作を保持します。"
         ],
         [
           "元の設定を更新してもライセンスエラーになります。",
@@ -406,7 +411,27 @@
         ],
         [
           "再作成後にAPIやコールバックが失敗します。",
-          "以前のPlayerやソースに属する資源を参照している場合があります。新しいインスタンスから状態を取得し直し、現在のトラック・ネイティブ識別子と関数の型を確認します。destroyを試した後はRecreate player after API experimentsで適用済み設定から復元します。"
+          "以前のPlayerやソースに属する資源を参照している場合があります。新しいインスタンスから状態を取得し直し、現在のトラック・ネイティブ識別子と関数の型を確認します。destroyを試した後はAPI操作後にプレイヤーを再作成で適用済み設定から復元します。"
+        ],
+        [
+          "新しいiOSホストでExpoModulesCoreのチェックサムだけが変わりました。",
+          "Expoの事前ビルド済みモジュールは、生成先のパスをpodspecの参照先や準備処理に含む場合があります。通常のpod install後に依存バージョンを含めて差分を確認します。仕様のチェックサムだけの変更と、依存関係の更新を区別してください。ロックファイルの削除や固定バージョンの変更で回避する必要はありません。"
+        ],
+        [
+          "入力中の適用ボタンをキーボードの上に保つには？",
+          "Appが画面のセーフエリアを管理するため、Expoのindex.tsxではAppを直接登録します。ホスト側でさらにSafeAreaViewへ包むと、入力領域の原点がずれて適用操作がキーボードの背後に隠れることがあります。KeyboardAvoidingViewではuseSafeAreaFrameのyを使い、ホスト内の配置とキーボードの座標を合わせます。Androidは全画面入力を無効にし、高さが足りない画面や文字を大きくした画面での入力中は、Playerを保持したままプレビューを隠します。組み込む画面でも、変換候補を含むキーボードとボタンの実際の位置を確認してください。キーボード表示中は画面下端の余白も重ねて適用しないようにし、入力欄の高さを確保します。APIパネルの親ビューにもflexBasis: 0とflexShrink: 1を指定し、表示領域が縮む際に元の高さを残さないようにしています。"
+        ],
+        [
+          "入力中に補足説明が見えなくなるのはなぜですか？",
+          "文字を大きくした場合や画面の高さが足りない場合、ソースとプレイヤーの編集では入力中だけ補足説明を隠し、入力欄と操作ボタンの領域を確保します。iOSでは、キーボード表示に伴う配置の変更後もOSによるスクロールが続く場合があります。説明文の分までスクロールすると入力欄が上へずれるため、入力中は説明文の領域を省いています。入力を終えると説明を再び表示します。詳細設定・配列・コールバックの編集ではスクロールできる内容を保ちます。"
+        ],
+        [
+          "別の項目を選んだときに入力欄の先頭を表示するには？",
+          "ScrollViewは中身を差し替えてもスクロール位置を保持します。このアプリはScrollViewと現在のPlayerを保持し、区分や項目、APIの選択が変わったときにuseLayoutEffectで先頭へ戻します。同じ候補を選び直したときはonSelectで先頭へ戻します。文字の入力や言語・タブの切り替えでは、その編集値と表示位置を保ちます。別のAPIを選ぶと引数はそのAPIの初期値になります。"
+        ],
+        [
+          "Androidの文字サイズを変えると設定が初期値に戻ります。",
+          "システムの文字サイズ変更によってActivity（Androidの画面を管理する単位）が作り直されると、アプリの画面セッションも始め直します。このサンプルは設定を現在のセッション内で保持するため、必要なソースと設定を選び直してください。後で復元したい場合は、変更前に適用済みコードを控えます。アプリ内の表示言語やタブの切り替えでは、セッションと編集値を保持します。"
         ]
       ],
       "widths": [
@@ -456,10 +481,10 @@
       "text": "  const analyticsConfig = playerConfig.analyticsConfig ? {\n    ...playerConfig.analyticsConfig,\n    licenseKey: Object.prototype.hasOwnProperty.call(settings.draft.apiSettings ?? {}, \"PlayerConfig.analyticsConfig.licenseKey\")\n      ? playerConfig.analyticsConfig.licenseKey : ANALYTICS_LICENSE_KEY,\n  } : ANALYTICS_LICENSE_KEY ? { licenseKey: ANALYTICS_LICENSE_KEY } : undefined;",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 196,
-        "label": "usePlayerへ渡す前に収集設定を統合する"
+        "line": 238,
+        "label": "App.tsx:238–242"
       },
-      "endLine": 200
+      "endLine": 242
     },
     {
       "type": "p",

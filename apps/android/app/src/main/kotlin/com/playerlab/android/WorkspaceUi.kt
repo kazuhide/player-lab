@@ -70,7 +70,7 @@ internal fun WorkspaceNavigation(selected: WorkspaceTab, change: (WorkspaceTab) 
                     contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
                     colors = ButtonDefaults.textButtonColors(
                         containerColor = if (selected == tab) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)) {
-                    Text(tab.label, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    UiText(tab.label, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         fontWeight = if (selected == tab) FontWeight.SemiBold else FontWeight.Normal)
                 }
             }
@@ -88,7 +88,7 @@ internal fun WorkspaceSections(values: List<String>, selected: String, tag: Stri
                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
                 colors = ButtonDefaults.textButtonColors(containerColor = if (selected == value)
                     MaterialTheme.colorScheme.primaryContainer else Color.Transparent)) {
-                Text(value, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                UiText(value, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     fontWeight = if (selected == value) FontWeight.SemiBold else FontWeight.Normal)
             }
         }
@@ -109,8 +109,8 @@ internal fun RetainedWorkspacePage(active: Boolean, composeInitially: Boolean = 
 
 @Composable
 internal fun WorkspaceHeading(title: String, detail: String? = null) {
-    Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-    detail?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    UiText(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+    detail?.let { UiText(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
 }
 
 /** A selection dialog keeps the editor and its actions in place, even for the full SDK catalogue. */
@@ -131,38 +131,39 @@ internal fun <T> WorkspacePicker(
     val current = selectedLabel ?: choices.firstOrNull { it.first == selected }?.second ?: selected.toString()
     OutlinedButton(onClick = { query = ""; open = true }, modifier = modifier.fillMaxWidth().testTag(tag),
         shape = MaterialTheme.shapes.small, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
-        if (compact) Text("$label: $current", style = MaterialTheme.typography.bodyMedium,
+        if (compact) UiText("${uiText(label)}: ${uiText(current)}", style = MaterialTheme.typography.bodyMedium,
             maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
         else Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(current, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium,
+            UiText(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            UiText(current, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium,
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
-        Text("⌄", modifier = Modifier.padding(start = 8.dp))
+        UiText("⌄", modifier = Modifier.padding(start = 8.dp))
     }
     if (open) AlertDialog(
         onDismissRequest = { open = false },
-        title = { Text(label) },
+        title = { UiText(label) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (searchable) OutlinedTextField(query, { query = it }, label = { Text("Search $label") },
+                if (searchable) OutlinedTextField(query, { query = it }, label = { UiText(uiFormat(R.string.ui_picker_search, uiText(label))) },
                     singleLine = true, modifier = Modifier.fillMaxWidth().testTag("$tag-search"))
-                val matches = choices.filter { it.second.contains(query, ignoreCase = true) || it.first.toString().contains(query, ignoreCase = true) }
-                if (matches.isEmpty()) Text("No matching items. Change the search text.")
+                val localizedChoices = choices.map { (value, title) -> Triple(value, title, uiText(title)) }
+                val matches = localizedChoices.filter { (value, title, localized) -> localized.contains(query, ignoreCase = true) || title.contains(query, ignoreCase = true) || value.toString().contains(query, ignoreCase = true) }
+                if (matches.isEmpty()) UiText("No matching items. Change the search text.")
                 LazyColumn(Modifier.heightIn(max = 360.dp).testTag("$tag-options")) {
-                    items(matches) { (value, title) ->
+                    items(matches) { (value, _, title) ->
                         Row(Modifier.fillMaxWidth().heightIn(min = 48.dp)
                             .testTag("$tag-option-${value}")
                             .selectable(selected == value, role = Role.RadioButton, onClick = { change(value); open = false })
                             .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                             RadioButton(selected == value, onClick = null)
-                            Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                            UiText(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { open = false }) { Text("Close") } },
+        confirmButton = { TextButton(onClick = { open = false }) { UiText("Close") } },
     )
 }
 
@@ -174,11 +175,11 @@ internal fun WorkspaceActions(detail: String, resetTag: String, applyTag: String
     val keyboard = LocalSoftwareKeyboardController.current
     Surface(tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth().testTag("workspace-actions")) {
         Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(detail, style = MaterialTheme.typography.bodySmall, maxLines = if (keyboardVisible) 1 else 2,
+            UiText(detail, style = MaterialTheme.typography.bodySmall, maxLines = if (keyboardVisible) 1 else 2,
                 overflow = TextOverflow.Ellipsis, modifier = Modifier.testTag("workspace-draft-status"))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(onClick = { focus.clearFocus(); keyboard?.hide(); reset() }, modifier = Modifier.testTag(resetTag)) { Text("Reset draft") }
-                Button(onClick = { focus.clearFocus(); keyboard?.hide(); apply() }, enabled = enabled, modifier = Modifier.weight(1f).testTag(applyTag)) { Text(applyLabel) }
+                OutlinedButton(onClick = { focus.clearFocus(); keyboard?.hide(); reset() }, modifier = Modifier.testTag(resetTag)) { UiText("Reset draft") }
+                Button(onClick = { focus.clearFocus(); keyboard?.hide(); apply() }, enabled = enabled, modifier = Modifier.weight(1f).testTag(applyTag)) { UiText(applyLabel) }
             }
         }
     }

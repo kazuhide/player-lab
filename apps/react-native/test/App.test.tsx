@@ -8,7 +8,9 @@ import { HttpRequestType, type PlayerConfig } from "bitmovin-player-react-native
 const runtime = vi.hoisted(() => {
   process.env.EXPO_PUBLIC_BITMOVIN_PLAYER_LICENSE_KEY = "test-license";
   process.env.EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY = "";
-  return { castHost: undefined as undefined | { readOptions: ReturnType<typeof vi.fn>; saveOptions: ReturnType<typeof vi.fn> }, os: "android", keyboardDismiss: vi.fn(), clipboard: vi.fn(async (_code: string) => {}), players: [] as Array<{
+  return { castHost: undefined as undefined | { readOptions: ReturnType<typeof vi.fn>; saveOptions: ReturnType<typeof vi.fn> }, os: "android", keyboardDismiss: vi.fn(),
+    keyboardListeners: new Map<string, Set<() => void>>(), window: { width: 393, height: 852, fontScale: 1, scale: 1 }, hostTop: 0,
+    clipboard: vi.fn(async (_code: string) => {}), editorScrollY: 0, scrollEditor: vi.fn(), apiScrollY: 0, scrollApi: vi.fn(), players: [] as Array<{
     config: PlayerConfig;
     load: ReturnType<typeof vi.fn>;
     destroy: ReturnType<typeof vi.fn>;
@@ -17,18 +19,27 @@ const runtime = vi.hoisted(() => {
     getDuration: ReturnType<typeof vi.fn>;
     setVolume: ReturnType<typeof vi.fn>;
     getVolume: ReturnType<typeof vi.fn>;
+    play: ReturnType<typeof vi.fn>;
   }> };
 });
 
 vi.mock("react-native", () => ({
-  Button: "Button", Modal: "Modal", ScrollView: "ScrollView", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View",
+  Button: "Button", Modal: "Modal", Pressable: "Pressable", ScrollView: "ScrollView", StatusBar: "StatusBar", Switch: "Switch", Text: "Text", TextInput: "TextInput", View: "View", SafeAreaView: "SafeAreaView", KeyboardAvoidingView: "KeyboardAvoidingView",
+  useWindowDimensions: () => runtime.window,
   Platform: { get OS() { return runtime.os; }, get Version() { return runtime.os === "ios" ? "15.1" : 36; }, select: (options: Record<string, string>) => options[runtime.os] ?? options.default },
   StyleSheet: { create: <T,>(styles: T) => styles },
-  Keyboard: { dismiss: runtime.keyboardDismiss },
+  Keyboard: { dismiss: runtime.keyboardDismiss, addListener: (name: string, callback: () => void) => {
+    const listeners = runtime.keyboardListeners.get(name) ?? new Set<() => void>();
+    listeners.add(callback); runtime.keyboardListeners.set(name, listeners);
+    return { remove() { listeners.delete(callback); } };
+  } },
   NativeModules: { get PlayerLabCastHost() { return runtime.castHost; } },
 }));
 
 vi.mock("expo-clipboard", () => ({ setStringAsync: runtime.clipboard }));
+vi.mock("react-native-safe-area-context", () => ({ SafeAreaProvider: "SafeAreaProvider", SafeAreaView: "SafeAreaView",
+  useSafeAreaFrame: () => ({ x: 0, y: runtime.hostTop, width: runtime.window.width, height: runtime.window.height }),
+}));
 
 vi.mock("bitmovin-player-react-native", async () => {
   const { useState } = await import("react");
@@ -91,11 +102,86 @@ const actEnvironment = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONM
 function element(type: string, props: Record<string, unknown> = {}): ReactTestInstance {
   return screen.root.findAll((node) => String(node.type) === type && Object.entries(props).every(([key, value]) => node.props[key] === value))[0]!;
 }
-const button = (title: string) => element("Button", { title });
+function visible(node: ReactTestInstance): boolean {
+  for (let parent: ReactTestInstance | null = node; parent; parent = parent.parent) {
+    if (parent.props.accessibilityElementsHidden === true || parent.props.importantForAccessibility === "no-hide-descendants") return false;
+  }
+  return true;
+}
+const button = (title: string) => {
+  const label = title === "Apply and recreate player" ? "Apply configuration" : title === "適用してプレイヤーを再作成" ? "設定を適用" : title;
+  return screen.root.findAll(node => visible(node) && ((String(node.type) === "Button" && node.props.title === label)
+    || (String(node.type) === "Pressable" && node.props.accessibilityLabel === label)))[0]!;
+};
 const input = (label: string) => element("TextInput", { accessibilityLabel: label });
 const current = () => runtime.players[runtime.players.length - 1]!;
-async function press(title: string) { await act(async () => button(title).props.onPress()); }
-async function text(label: string, value: string) { await act(async () => input(label).props.onChangeText(value)); }
+async function tap(testID: string) { await act(async () => element("Pressable", { testID }).props.onPress()); }
+async function settingsGroup(group: string) {
+  await tap("workspace-nav-settings");
+  await tap("configuration-group-selector");
+  await tap(`configuration-group-selector-option-${group}`);
+}
+async function basicField(group: string, field: string) {
+  await settingsGroup(group); await tap("workspace-setting-selector"); await tap(`workspace-setting-selector-option-${field}`);
+}
+async function toggle(label: string, value: boolean) {
+  if (label === "Autoplay") await basicField("player", "autoplay");
+  if (label === "Mute on startup") await basicField("player", "muted");
+  if (label === "Mark as default") await basicField("source", "subtitleDefault");
+  if (label === "Allow DVR") await tap("workspace-nav-more");
+  await act(async () => element("Switch", { accessibilityLabel: label }).props.onValueChange(value));
+}
+async function press(title: string) {
+  if (title === "Show configuration") { await tap("workspace-nav-settings"); return; }
+  if (title === "Show API experiments") { await tap("workspace-nav-apis"); return; }
+  if (title === "Show applied code") {
+    await tap("workspace-nav-code");
+    if (!button(title)) return;
+  }
+  if (["Copy code", "Hide applied code"].includes(title)) await tap("workspace-nav-code");
+  if (["HLS", "DASH", "Progressive MP4"].includes(title)) await basicField("source", "type");
+  if (["Start", "End", "SDK default"].includes(title)) await basicField("source", "timeline");
+  if (["Apply and recreate player", "Reset draft"].includes(title)) await tap("workspace-nav-settings");
+  if (title === "Run selected API") await tap("workspace-nav-apis");
+  if (title === "Recreate player after API experiments") { await tap("workspace-nav-apis"); await tap("api-view-selector"); await tap("api-view-selector-option-help"); }
+  if (["-10s", "-30s", "-60s", "Live edge"].includes(title)) await tap("workspace-nav-more");
+  if (["Set this API value", "Remove this API override"].includes(title)) await settingsGroup("sdk");
+  if (["Edit this callback", "Remove this callback"].includes(title)) await settingsGroup("callbacks");
+  if (["Edit this list", "Add list item", "Add track role", "Unset track roles", "SourceConfig.subtitleTracks", "OfflineContentConfig.sourceConfig.subtitleTracks", "PlayerConfig.advertisingConfig.schedule"].includes(title)) await settingsGroup("arrays");
+  if (["Save Cast options for next launch", "Read native Cast startup state"].includes(title)) await settingsGroup("cast");
+  if (["Pause event log", "Resume event log", "Clear API event log"].includes(title)) {
+    await tap("workspace-nav-apis"); await tap("api-view-selector"); await tap("api-view-selector-option-events");
+  }
+  if (!button(title) && ["Default", "Sports", "Live (DVR)", "Cinema"].includes(title)) await tap("theme-selector");
+  if (!button(title) && ["VOD HLS", "VOD DASH", "Live HLS", "Live DASH + DVR", "Live DASH + Multi-audio", "Live DASH + Subtitles"].includes(title)) await tap("source-selector");
+  await act(async () => button(title).props.onPress());
+}
+async function text(label: string, value: string) {
+  if (label === "Filter API operations") {
+    await tap("workspace-nav-apis"); await tap("api-view-selector"); await tap("api-view-selector-option-operations");
+    await tap("api-operation-selector");
+    await act(async () => input("Find API operation").props.onChangeText(value));
+    return;
+  }
+  if (label === "Filter configuration APIs" || label === "Filter callback APIs") {
+    const callback = label === "Filter callback APIs";
+    await settingsGroup(callback ? "callbacks" : "sdk");
+    await tap(callback ? "callback-selector" : "sdk-setting-selector");
+    await act(async () => input(callback ? "Find Callback API" : "Find Configuration API").props.onChangeText(value));
+    return;
+  }
+  const basic: Record<string, [string, string]> = {
+    "Source URL": ["source", "url"], "Source title": ["source", "title"], "Poster URL": ["source", "poster"],
+    "Start offset (seconds)": ["source", "startOffset"], "External WebVTT URL": ["source", "subtitleUrl"],
+    "Subtitle label": ["source", "subtitleLabel"], "Subtitle language": ["source", "subtitleLanguage"],
+    "Forward buffer (seconds)": ["player", "forwardDuration"], "Maximum bitrate (bits per second)": ["player", "maxBitrate"],
+  };
+  if (basic[label]) {
+    const [group, field] = basic[label];
+    await basicField(group, field);
+  }
+  await act(async () => input(label).props.onChangeText(value));
+}
 async function ready() { await act(async () => element("PlayerView").props.onPlayerViewReady()); }
 
 beforeEach(async () => {
@@ -104,12 +190,22 @@ beforeEach(async () => {
   runtime.castHost = undefined;
   runtime.clipboard.mockClear();
   runtime.keyboardDismiss.mockClear();
+  runtime.keyboardListeners.clear();
+  runtime.window = { width: 393, height: 852, fontScale: 1, scale: 1 };
+  runtime.hostTop = 0;
+  runtime.editorScrollY = 0;
+  runtime.scrollEditor.mockClear();
+  runtime.scrollEditor.mockImplementation(({ y }: { y: number }) => { runtime.editorScrollY = y; });
+  runtime.apiScrollY = 0;
+  runtime.scrollApi.mockClear();
+  runtime.scrollApi.mockImplementation(({ y }: { y: number }) => { runtime.apiScrollY = y; });
   actEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
   errors = vi.spyOn(console, "error");
 });
 
 afterEach(async () => {
   if (screen) await act(async () => screen.unmount());
+  vi.unstubAllGlobals();
   // React 19 deprecates this renderer. Native hosts are mocked; act/runtime errors still fail.
   const unexpected = errors.mock.calls.filter(([message]) => !String(message).startsWith("react-test-renderer is deprecated."));
   errors.mockRestore();
@@ -128,10 +224,383 @@ function expectValidCode(code: string): void {
 }
 
 async function mount() {
-  await act(async () => { screen = create(<App />); });
+  await act(async () => { screen = create(<App />, { createNodeMock: element =>
+    String(element.type) === "ScrollView" && element.props.testID === "configuration-fields-scroll"
+      ? { scrollTo: runtime.scrollEditor } : String(element.type) === "ScrollView" && element.props.testID === "api-fields-scroll"
+        ? { scrollTo: runtime.scrollApi } : null }); });
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it.each(["android", "ios"])("keeps the %s compact basic editor focused on its input until Done", async os => {
+    runtime.os = os;
+    runtime.window = { width: 393, height: 852, fontScale: 2, scale: 1 };
+    await mount(); await ready();
+    const owner = current();
+    const applyHelp = () => screen.root.findAll(node => String(node.type) === "Text"
+      && typeof node.props.children === "string" && node.props.children.startsWith("Apply recreates the player"));
+    await text("Source title", "Large-text draft");
+    expect(applyHelp()).toHaveLength(1);
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(applyHelp()).toHaveLength(0);
+    expect(input("Source title").props.value).toBe("Large-text draft");
+    expect(element("Pressable", { testID: "configuration-apply" }).props.disabled).toBe(false);
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
+    expect(applyHelp()).toHaveLength(1);
+    await text("Maximum bitrate (bits per second)", "3500000");
+    const bitrateHelp = () => screen.root.findAll(node => String(node.type) === "Text" && Array.isArray(node.props.children)
+      && String(node.props.children).includes("Blank leaves it unlimited"));
+    expect(bitrateHelp()).toHaveLength(1);
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(bitrateHelp()).toHaveLength(0);
+    expect(applyHelp()).toHaveLength(0);
+    expect(input("Maximum bitrate (bits per second)").props.value).toBe("3500000");
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
+    expect(bitrateHelp()).toHaveLength(1);
+    expect(applyHelp()).toHaveLength(1);
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"])("retains %s structured editor help and scrolling during compact input", async os => {
+    runtime.os = os;
+    runtime.window = { width: 393, height: 852, fontScale: 2, scale: 1 };
+    await mount(); await ready();
+    await settingsGroup("callbacks");
+    runtime.editorScrollY = 160;
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(screen.root.findAll(node => String(node.type) === "Text" && typeof node.props.children === "string"
+      && node.props.children.startsWith("Apply recreates the player"))).toHaveLength(1);
+    expect(runtime.editorScrollY).toBe(160);
+    expect(current().destroy).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"])("reserves the %s portrait editor for large text while the keyboard is open", async os => {
+    runtime.os = os;
+    runtime.window = { width: 393, height: 852, fontScale: 2, scale: 1 };
+    await mount(); await ready(); await text("Source title", "Large-text draft");
+    const owner = current();
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(element("Pressable", { testID: "configuration-done" })).toBeDefined();
+    expect(element("Pressable", { testID: "workspace-nav-settings" })).toBeUndefined();
+    expect(element("Text", { children: "Draft changes have not been applied." })).toBeUndefined();
+    expect(input("Source title").props.value).toBe("Large-text draft");
+    expect(element("Pressable", { testID: "configuration-apply" }).props.disabled).toBe(false);
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"])("reveals selected %s API inputs while retaining their values across workspace navigation", async os => {
+    runtime.os = os;
+    await mount(); await ready();
+    const owner = current();
+    await tap("workspace-nav-apis"); await tap("api-view-selector"); await tap("api-view-selector-option-help");
+    runtime.apiScrollY = 500;
+    await tap("api-view-selector"); await tap("api-view-selector-option-operations");
+    expect(runtime.apiScrollY).toBe(0);
+    await text("Filter API operations", "Player.setVolume"); await press("Player.setVolume");
+    await text("Volume (0–100)", "45");
+    runtime.apiScrollY = 160;
+    await press("日本語"); await press("English");
+    await tap("workspace-nav-settings"); await tap("workspace-nav-apis");
+    expect(runtime.apiScrollY).toBe(160);
+    expect(input("Volume (0–100)").props.value).toBe("45");
+    await tap("api-operation-selector"); await tap("api-operation-selector-option-Player.setVolume");
+    expect(runtime.apiScrollY).toBe(0);
+    expect(input("Volume (0–100)").props.value).toBe("45");
+    runtime.apiScrollY = 200;
+    await tap("api-operation-selector"); await tap("api-operation-selector-option-Player.getCurrentTime");
+    expect(runtime.apiScrollY).toBe(0);
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"])("starts the selected %s editor at its inputs without resetting drafts or playback", async os => {
+    runtime.os = os;
+    await mount(); await ready();
+    const owner = current();
+    await text("Source title", "Retained draft");
+    await settingsGroup("cast");
+    runtime.editorScrollY = 500;
+    await settingsGroup("callbacks");
+    expect(runtime.editorScrollY).toBe(0);
+    await press("Edit this callback");
+    runtime.editorScrollY = 160;
+    await text("JavaScript body for PlayerConfig.networkConfig.preprocessHttpRequest", "return request;");
+    await press("日本語"); await press("English");
+    await tap("workspace-nav-code"); await tap("workspace-nav-settings");
+    expect(runtime.editorScrollY).toBe(160);
+    expect(input("JavaScript body for PlayerConfig.networkConfig.preprocessHttpRequest").props.value).toBe("return request;");
+    await settingsGroup("callbacks");
+    expect(runtime.editorScrollY).toBe(0);
+    await basicField("source", "title");
+    expect(input("Source title").props.value).toBe("Retained draft");
+    runtime.editorScrollY = 200;
+    await tap("workspace-setting-selector"); await tap("workspace-setting-selector-option-title");
+    expect(runtime.editorScrollY).toBe(0);
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"].flatMap(os => ["apis", "code", "more"].map(tab => ({ os, tab }))))(
+    "recovers the $os configuration from $tab when an approved handler fails on recreation", async ({ os, tab }) => {
+      runtime.os = os;
+      vi.stubGlobal("__playerLabRecoveryRuns", 0);
+      await mount(); await ready();
+      const id = "PlayerViewProps.fullscreenHandler";
+      await text("Filter callback APIs", id); await press(id); await press("Edit this callback");
+      await text(`JavaScript body for ${id}`, `
+globalThis.__playerLabRecoveryRuns += 1;
+if (globalThis.__playerLabRecoveryRuns > 1) throw new Error("Factory unavailable");
+return { isFullscreenActive: false, enterFullscreen() {}, exitFullscreen() {} };`);
+      await act(async () => element("Switch", { accessibilityLabel: "Allow edited JavaScript execution" }).props.onValueChange(true));
+      await press("Apply and recreate player"); await ready();
+      const previous = current();
+      await tap(`workspace-nav-${tab}`);
+      if (tab === "apis") {
+        await tap("api-view-selector"); await tap("api-view-selector-option-help");
+        await act(async () => button("Recreate player after API experiments").props.onPress());
+      } else if (tab === "code") {
+        await tap("theme-selector"); await tap("theme-selector-option-Sports");
+      } else {
+        await tap("source-selector"); await tap("source-selector-option-vod-hls");
+      }
+      expect(element("Text", { accessibilityRole: "alert" }).props.children).toContain("handler factory");
+      expect(element("PlayerView")).toBeUndefined();
+      expect(previous.destroy).toHaveBeenCalledOnce();
+      const settings = element("Pressable", { testID: "workspace-nav-settings" });
+      expect(settings).toBeDefined();
+      expect(visible(settings)).toBe(true);
+      await act(async () => settings.props.onPress());
+      await press("Remove this callback"); await press("Apply and recreate player"); await ready();
+      expect(element("Text", { accessibilityRole: "alert" })).toBeUndefined();
+      expect(element("PlayerView")).toBeDefined();
+      expect(current()).not.toBe(previous);
+      expect(current().destroy).not.toHaveBeenCalled();
+    });
+
+  it.each(["android", "ios"])("localizes %s application validation errors without replacing the player", async os => {
+    runtime.os = os;
+    await mount(); await ready();
+    const owner = current();
+    await text("Maximum bitrate (bits per second)", "0"); await press("日本語");
+    await tap("configuration-apply");
+    const maximum = os === "android" ? "2147483647" : "9007199254740991";
+    expect(element("Text", { accessibilityRole: "alert" }).props.children)
+      .toBe(`最大ビットレートには1から${maximum} bit/sまでの整数を入力してください。空欄では上限を設けません。`);
+    await press("English");
+    await text("Maximum bitrate (bits per second)", "Infinity"); await press("日本語");
+    await tap("configuration-apply");
+    expect(element("Text", { accessibilityRole: "alert" }).props.children).toBe("最大ビットレートには有限の数値を入力してください。");
+    await tap("configuration-reset"); await press("English");
+    await press("Edit this callback");
+    await text("JavaScript body for PlayerConfig.networkConfig.preprocessHttpRequest", "return request;");
+    await press("日本語"); await tap("configuration-apply");
+    expect(element("Text", { accessibilityRole: "alert" }).props.children)
+      .toBe("編集したJavaScriptの実行を許可してから適用するか、コールバックを削除してください。");
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"])("localizes the %s field name in helper-generated SDK override validation", async os => {
+    runtime.os = os;
+    await mount(); await ready();
+    const owner = current();
+    const id = "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration";
+    await text("Filter configuration APIs", id); await press(id); await press("Set this API value");
+    await text(`Value for ${id}`, ""); await press("日本語"); await tap("configuration-apply");
+    expect(element("Text", { accessibilityRole: "alert" }).props.children).toBe("先読み時間には数値を入力してください。");
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"])("puts the exact %s method first when a query also matches its Player namespace", async (os) => {
+    runtime.os = os;
+    await mount(); await ready();
+    const owner = current();
+    await text("Filter API operations", "play");
+    const choices = screen.root.findAll(node => visible(node) && String(node.type) === "Pressable"
+      && String(node.props.testID).startsWith("api-operation-selector-option-"));
+    expect(choices[0]!.props.testID).toBe("api-operation-selector-option-Player.play");
+    expect(choices.some(choice => choice.props.testID === "api-operation-selector-option-Player.getVolume")).toBe(true);
+    await act(async () => choices[0]!.props.onPress());
+    await tap("api-run");
+    expect(owner.play).toHaveBeenCalledOnce();
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"])("retains the %s player, draft and API inputs in a compact keyboard workspace", async (os) => {
+    runtime.os = os;
+    await mount(); await ready(); await basicField("source", "title");
+    const owner = current();
+    expect(element("SafeAreaView").props.edges).toContain("bottom");
+    await act(async () => input("Source title").props.onChangeText("Landscape draft"));
+    await act(async () => { runtime.window = { width: 852, height: 393, fontScale: 1.5, scale: 1 }; screen.update(<App />); });
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(element("SafeAreaView").props.edges).toEqual(["top", "left", "right"]);
+    expect(input("Source title").props.disableFullscreenUI).toBe(true);
+    expect(element("Pressable", { testID: "workspace-nav-settings" })).toBeUndefined();
+    expect(element("View", { testID: "player-lab-player" }).props.accessibilityElementsHidden).toBe(true);
+    const done = element("Pressable", { testID: "configuration-done" });
+    for (let parent = done.parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
+    await tap("configuration-done");
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
+    expect(element("SafeAreaView").props.edges).toContain("bottom");
+    expect(input("Source title").props.value).toBe("Landscape draft");
+    await text("Filter API operations", "Player.setVolume"); await press("Player.setVolume");
+    await act(async () => input("Volume (0–100)").props.onChangeText("42"));
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(element("Pressable", { testID: "api-operation-selector" })).toBeUndefined();
+    expect(input("Volume (0–100)").props.value).toBe("42");
+    expect(element("Pressable", { testID: "api-done" })).toBeDefined();
+    await tap("api-run");
+    expect(owner.setVolume).toHaveBeenCalledWith(42);
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it("renders exported code as selectable text with one scrolling owner", async () => {
+    await mount(); await ready(); await tap("workspace-nav-code");
+    const code = element("Text", { accessibilityLabel: "Applied configuration code" });
+    expect(code).toBeDefined();
+    expect(code.props.selectable).toBe(true);
+    expect(code.props.children).toMatch(/^import /);
+    expect(input("Applied configuration code")).toBeUndefined();
+    const scrolls: ReactTestInstance[] = [];
+    for (let parent = code.parent; parent; parent = parent.parent) if (String(parent.type) === "ScrollView") scrolls.push(parent);
+    expect(scrolls).toHaveLength(1);
+    await press("Copy code");
+    expect(runtime.clipboard).toHaveBeenLastCalledWith(code.props.children);
+    const feedback = element("Text", { accessibilityLiveRegion: "polite" });
+    const texts = screen.root.findAll(node => String(node.type) === "Text");
+    expect(texts.indexOf(feedback)).toBeGreaterThanOrEqual(0);
+    expect(texts.indexOf(feedback)).toBeLessThan(texts.indexOf(code));
+  });
+
+  it.each(["android", "ios"])("keeps the %s picker keyboard-aware in portrait and landscape", async (os) => {
+    runtime.os = os;
+    runtime.hostTop = os === "ios" ? 62 : 24;
+    await mount(); await ready();
+    expect(element("StatusBar")?.props.barStyle).toBe("dark-content");
+    expect(element("KeyboardAvoidingView", { testID: "player-lab-screen" }).props.behavior).toBe(os === "ios" ? "padding" : "height");
+    const screenAvoidance = element("KeyboardAvoidingView", { testID: "player-lab-screen" });
+    expect(screenAvoidance.props.keyboardVerticalOffset).toBe(runtime.hostTop);
+    for (let parent = screenAvoidance.parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("SafeAreaView");
+    expect(screenAvoidance.findAll(node => String(node.type) === "SafeAreaView")).toHaveLength(1);
+    await tap("workspace-setting-selector");
+    const modal = element("Modal");
+    expect(modal.props.supportedOrientations).toEqual(["portrait", "landscape"]);
+    const avoidance = modal.find(node => String(node.type) === "KeyboardAvoidingView");
+    expect(avoidance.props.behavior).toBe(os === "ios" ? "padding" : "height");
+    const close = modal.find(node => String(node.type) === "Pressable" && node.props.accessibilityLabel === "Close");
+    for (let parent = close.parent; parent && parent !== modal; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(modal.props.visible).toBe(true);
+    expect(input("Find Setting").props.value).toBe("");
+    await act(async () => close.props.onPress());
+    expect(element("Modal")).toBeUndefined();
+    await act(async () => { runtime.hostTop = 0; runtime.window = { width: 852, height: 393, fontScale: 1, scale: 1 }; screen.update(<App />); });
+    expect(element("KeyboardAvoidingView", { testID: "player-lab-screen" }).props.keyboardVerticalOffset).toBe(0);
+  });
+
+  it("applies a UI setting through its own direct editor and exports the effective SDK value", async () => {
+    await mount(); await ready(); await settingsGroup("ui");
+    await tap("ui-setting-selector");
+    await act(async () => input("Find Configuration API").props.onChangeText("PlayerViewConfig.surfaceType"));
+    await press("PlayerViewConfig.surfaceType");
+    await act(async () => button("Set this API value").props.onPress());
+    await press("TextureView"); await press("Apply and recreate player"); await ready();
+    expect(element("PlayerView").props.config.surfaceType).toBe("TextureView");
+    await tap("workspace-nav-code");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain("SDK.SurfaceType.TextureView");
+  });
+
+  it("requires a query target in State and keeps its read action outside scrolling content", async () => {
+    await mount(); await ready(); await tap("workspace-nav-apis");
+    await tap("api-view-selector"); await tap("api-view-selector-option-state");
+    const action = () => element("Pressable", { testID: "api-run" });
+    expect(action().props.disabled).toBe(true);
+    await act(async () => action().props.onPress());
+    expect(Reflect.get(current(), "play")).not.toHaveBeenCalled();
+    await tap("api-operation-selector");
+    await act(async () => input("Find API operation").props.onChangeText("Player.getVolume"));
+    await tap("api-operation-selector-option-Player.getVolume");
+    expect(action().props.disabled).toBe(false);
+    for (let parent = action().parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
+    await tap("api-run");
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).toContain("100");
+  });
+
+  it("keeps a searchable setting picker open while its keyboard appears and retains the editor across rotation", async () => {
+    await mount(); await ready();
+    const owner = current();
+    await tap("workspace-setting-selector");
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(input("Find Setting")).toBeDefined();
+    expect(element("Modal").props.visible).toBe(true);
+    await act(async () => input("Find Setting").props.onChangeText("title"));
+    await tap("workspace-setting-selector-option-title");
+    await act(async () => input("Source title").props.onChangeText("Retained through the keyboard"));
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
+    await act(async () => { runtime.window = { width: 852, height: 393, fontScale: 2, scale: 1 }; screen.update(<App />); });
+    expect(input("Source title").props.value).toBe("Retained through the keyboard");
+    expect(element("Pressable", { testID: "configuration-apply" }).props.disabled).toBe(false);
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it("keeps the player and drafts while direct settings, fixed actions, APIs and code are selected", async () => {
+    await mount(); await ready();
+    expect(element("ScrollView", { testID: "player-lab-screen" })).toBeUndefined();
+    const owner = current();
+    const tap = async (testID: string) => act(async () => element("Pressable", { testID }).props.onPress());
+    await tap("workspace-setting-selector");
+    await tap("workspace-setting-selector-option-title");
+    await text("Source title", "A retained draft");
+    const apply = element("Pressable", { testID: "configuration-apply" });
+    expect(apply.props.disabled).toBe(false);
+    for (let parent = apply.parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
+    await tap("workspace-nav-apis");
+    await tap("api-operation-selector");
+    await text("Find API operation", "Player.getVolume");
+    await tap("api-operation-selector-option-Player.getVolume");
+    await tap("api-run");
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).toContain("100");
+    await tap("workspace-nav-code");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).not.toContain("A retained draft");
+    await tap("workspace-nav-settings");
+    expect(input("Source title").props.value).toBe("A retained draft");
+    await press("日本語");
+    expect(input("ソースのタイトル").props.value).toBe("A retained draft");
+    expect(current()).toBe(owner);
+    expect(runtime.players).toHaveLength(1);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it("switches application language without replacing the player, draft or executed SDK code", async () => {
+    await mount(); await ready(); await press("Show configuration");
+    await text("Source title", "Unapplied title in the user's language");
+    await press("Show applied code");
+    const applied = element("Text", { accessibilityLabel: "Applied configuration code" }).props.children;
+    await press("Show API experiments"); await text("Filter API operations", "Player.getVolume");
+    await press("Player.getVolume"); await press("Run selected API");
+    const owner = current(); const count = runtime.players.length;
+    const code = element("Text", { accessibilityLabel: "Executed API code" }).props.children;
+    const result = element("Text", { accessibilityLabel: "API result" }).props.children;
+    await press("日本語");
+    await tap("workspace-nav-settings");
+    expect(input("ソースのタイトル").props.value).toBe("Unapplied title in the user's language");
+    expect(element("Text", { accessibilityLabel: "適用済み設定のコード" }).props.children).toBe(applied);
+    expect(button("適用してプレイヤーを再作成").props.disabled).toBe(false);
+    expect(element("Text", { accessibilityLabel: "実行したAPIのコード" }).props.children).toBe(code);
+    expect(element("Text", { accessibilityLabel: "APIの実行結果" }).props.children).toBe(result);
+    expect(current()).toBe(owner); expect(runtime.players).toHaveLength(count);
+    expect(owner.destroy).not.toHaveBeenCalled();
+    await press("English");
+    expect(input("Source title").props.value).toBe("Unapplied title in the user's language");
+    expect(current()).toBe(owner);
+  });
+
   it("invalidates a pending legacy seek synchronously before each runtime source mutation", async () => {
     await mount(); await ready(); await press("Show API experiments");
     const player = current();
@@ -139,6 +608,7 @@ describe("React Native configuration in the mounted App", () => {
       let complete!: (value: number) => void;
       player.getMaxTimeShift.mockImplementationOnce(() => new Promise<number>((resolve) => { complete = resolve; }));
       let seeking: Promise<unknown> | undefined;
+      await tap("workspace-nav-more");
       await act(async () => { seeking = button("-30s").props.onPress(); });
       await text("Filter API operations", id); await press(id); await press("Run selected API");
       await act(async () => { complete(-900); await seeking; });
@@ -205,7 +675,7 @@ describe("React Native configuration in the mounted App", () => {
     expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ description: "Applied description" }));
     expect(element("PlayerView").props.config).toMatchObject({ surfaceType: "TextureView" });
     await press("Show applied code");
-    const code = input("Applied configuration code").props.value;
+    const code = element("Text", { accessibilityLabel: "Applied configuration code" }).props.children;
     expect(code).toContain('"timeChangedInterval": 0.25');
     expect(code).toContain("SDK.SurfaceType.TextureView");
     expect(code).toContain("Applied description");
@@ -234,7 +704,8 @@ describe("React Native configuration in the mounted App", () => {
     await press("Edit this callback");
     const id = "PlayerConfig.networkConfig.preprocessHttpRequest";
     await text(`JavaScript body for ${id}`, 'return { ...request, url: request.url + "?lab=1" };');
-    await press("Finish editing JavaScript"); expect(runtime.keyboardDismiss).toHaveBeenCalledTimes(1);
+    const dismissals = runtime.keyboardDismiss.mock.calls.length;
+    await press("Finish editing JavaScript"); expect(runtime.keyboardDismiss).toHaveBeenCalledTimes(dismissals + 1);
     expect(runtime.players).toHaveLength(1);
     await press("Apply and recreate player");
     expect(runtime.players).toHaveLength(1);
@@ -246,7 +717,7 @@ describe("React Native configuration in the mounted App", () => {
     const result = await callback!(HttpRequestType.Unknown, { method: "GET", url: "https://example.com/manifest.mpd", headers: {} });
     expect(result.url).toBe("https://example.com/manifest.mpd?lab=1");
     await press("Show applied code");
-    const code = input("Applied configuration code").props.value;
+    const code = element("Text", { accessibilityLabel: "Applied configuration code" }).props.children;
     expect(code).toContain('return { ...request, url: request.url + "?lab=1" };');
     expect(code).toContain("async (type, request)");
     expectValidCode(code);
@@ -267,7 +738,7 @@ describe("React Native configuration in the mounted App", () => {
     expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ drmConfig: { widevine: {
       licenseUrl: "https://example.com/license", httpHeaders: { Authorization: "PRIVATE_HEADER" },
     } } }));
-    expect(input("Applied configuration code").props.value).not.toContain("PRIVATE_HEADER");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).not.toContain("PRIVATE_HEADER");
   });
 
   it("removes an applied SDK override and rejects invalid typed input before creating a player", async () => {
@@ -341,11 +812,11 @@ describe("React Native configuration in the mounted App", () => {
     await press("BitmovinCastManagerOptions.applicationId"); await press("Set this API value");
     await text("Value for BitmovinCastManagerOptions.applicationId", "ABCDEF12");
     await press("Apply and recreate player"); await press("Show applied code");
-    expect(input("Applied configuration code").props.value).toContain('"appId": "ABCDEF12"');
-    expect(input("Applied configuration code").props.value).toContain("SDK 1.29 initialize does not read castOptions");
-    expect(input("Applied configuration code").props.value).toContain("PlayerLabCastHost.saveOptions");
-    expect(input("Applied configuration code").props.value).toContain('"android": "21.3.0"');
-    expect(input("Applied configuration code").props.value).toContain('"ios": "4.8.4"');
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain('"appId": "ABCDEF12"');
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain("SDK 1.29 initialize does not read castOptions");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain("PlayerLabCastHost.saveOptions");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain('"android": "21.3.0"');
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain('"ios": "4.8.4"');
   });
 
   it("shows named event payloads, redacts credentials and ignores retired event proxies", async () => {
@@ -365,7 +836,8 @@ describe("React Native configuration in the mounted App", () => {
   it("keeps Android SDK touches inside the player until every player pointer ends or cancels", async () => {
     await mount(); await ready();
     const playerArea = () => element("View", { testID: "player-lab-player" });
-    const scroll = () => element("ScrollView", { testID: "player-lab-screen" });
+    const scroll = () => element("ScrollView", { testID: "playback-controls-scroll" });
+    for (let parent = playerArea().parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
     const touch = (identifier: string, remaining: string[]) => ({ nativeEvent: {
       identifier, touches: remaining.map((identifier) => ({ identifier })),
     } });
@@ -392,7 +864,7 @@ describe("React Native configuration in the mounted App", () => {
   it("releases an Android touch on player replacement and ignores the retired pane's notifications", async () => {
     await mount(); await ready();
     const playerArea = () => element("View", { testID: "player-lab-player" });
-    const scroll = () => element("ScrollView", { testID: "player-lab-screen" });
+    const scroll = () => element("ScrollView", { testID: "playback-controls-scroll" });
     const touch = (identifier: string, remaining: string[]) => ({ nativeEvent: {
       identifier, touches: remaining.map((identifier) => ({ identifier })),
     } });
@@ -410,14 +882,15 @@ describe("React Native configuration in the mounted App", () => {
     expect(scroll().props.scrollEnabled).toBe(true);
   });
 
-  it("keeps the iOS player and form scroll handling unchanged", async () => {
+  it("keeps the iOS player outside form scrolling without Android gesture interception", async () => {
     runtime.os = "ios";
     await mount(); await ready();
     const playerArea = element("View", { testID: "player-lab-player" });
     expect(playerArea.props.onTouchStartCapture).toBeUndefined();
     expect(playerArea.props.onTouchEndCapture).toBeUndefined();
     expect(playerArea.props.onTouchCancelCapture).toBeUndefined();
-    expect(element("ScrollView", { testID: "player-lab-screen" }).props.scrollEnabled).not.toBe(false);
+    expect(element("ScrollView", { testID: "playback-controls-scroll" }).props.scrollEnabled).not.toBe(false);
+    for (let parent = playerArea.parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
   });
 
   it("applies one validated WebVTT track and exports only its applied metadata", async () => {
@@ -427,7 +900,7 @@ describe("React Native configuration in the mounted App", () => {
     await text("External WebVTT URL", " https://example.com/captions.vtt ");
     await text("Subtitle label", " English captions ");
     await text("Subtitle language", "en-us");
-    await act(async () => element("Switch", { accessibilityLabel: "Mark as default" }).props.onValueChange(true));
+    await toggle("Mark as default", true);
     await press("Apply and recreate player");
     await ready();
     expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ subtitleTracks: [{
@@ -435,7 +908,7 @@ describe("React Native configuration in the mounted App", () => {
       identifier: "player-lab-external", format: "vtt", isDefault: true,
     }] }));
     await press("Show applied code");
-    expect(input("Applied configuration code").props.value).toContain('"isDefault": true');
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain('"isDefault": true');
     await text("Subtitle label", "Only a draft");
     await press("Reset draft");
     expect(input("Subtitle label").props.value).toBe("English captions");
@@ -446,6 +919,7 @@ describe("React Native configuration in the mounted App", () => {
     await press("Apply and recreate player");
     await ready();
     expect(current().load.mock.calls[current().load.mock.calls.length - 1]?.[0]).not.toHaveProperty("subtitleTracks");
+    await basicField("source", "subtitleLabel");
     expect(input("Subtitle label").props.value).toBe("");
   });
 
@@ -480,26 +954,30 @@ describe("React Native configuration in the mounted App", () => {
     await act(async () => oldView.onSourceLoaded());
     expect(monitor.report().owner?.sourceLoaded).toBe(0);
   });
-  it("places the iOS configuration inputs inside the ScrollView that adjusts for the keyboard", async () => {
+  it("keeps selected iOS inputs scrollable and fixed actions inside one keyboard-avoiding workspace", async () => {
     runtime.os = "ios";
     await mount();
     await ready();
     await press("Show configuration");
-    const controls = [
-      ...["Source URL", "Source title", "Start offset (seconds)", "Forward buffer (seconds)", "Maximum bitrate (bits per second)"].map(input),
-      element("Switch", { accessibilityLabel: "Autoplay" }),
-      element("Switch", { accessibilityLabel: "Mute on startup" }),
-    ];
-    const scrolls = controls.map((control) => {
+    const scrolls = [];
+    for (const [group, field, label, kind] of [
+      ["source", "url", "Source URL", "TextInput"], ["source", "title", "Source title", "TextInput"],
+      ["source", "startOffset", "Start offset (seconds)", "TextInput"], ["player", "forwardDuration", "Forward buffer (seconds)", "TextInput"],
+      ["player", "maxBitrate", "Maximum bitrate (bits per second)", "TextInput"], ["player", "autoplay", "Autoplay", "Switch"], ["player", "muted", "Mute on startup", "Switch"],
+    ]) {
+      await basicField(group!, field!);
+      const control = element(kind!, { accessibilityLabel: label });
       let parent = control.parent;
       while (parent && String(parent.type) !== "ScrollView") parent = parent.parent;
-      return parent;
-    });
+      scrolls.push(parent);
+    }
     expect(scrolls[0]?.props.keyboardDismissMode).toBe("on-drag");
     expect(scrolls[0]?.props.keyboardShouldPersistTaps).toBe("handled");
     expect(scrolls[0]).not.toBeNull();
     expect(new Set(scrolls).size).toBe(1);
-    expect(scrolls[0]!.props.automaticallyAdjustKeyboardInsets).toBe(true);
+    expect(scrolls[0]!.props.automaticallyAdjustKeyboardInsets).not.toBe(true);
+    expect(element("KeyboardAvoidingView", { testID: "player-lab-screen" }).props.behavior).toBe("padding");
+    for (let parent = element("View", { testID: "configuration-actions" }).parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
   });
 
   it("does not acknowledge an older clipboard request beside newly applied code", async () => {
@@ -527,15 +1005,15 @@ describe("React Native configuration in the mounted App", () => {
     await ready();
     await press("Show configuration");
     await press("Show applied code");
-    const original = input("Applied configuration code").props.value as string;
+    const original = element("Text", { accessibilityLabel: "Applied configuration code" }).props.children as string;
     expect(original).toContain("YOUR_PLAYER_KEY");
     expect(original).not.toContain("test-license");
     await text("Source title", "ONLY_AFTER_APPLY");
     await press("Copy code");
     expect(runtime.clipboard).toHaveBeenLastCalledWith(original);
-    expect(input("Applied configuration code").props.value).not.toContain("ONLY_AFTER_APPLY");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).not.toContain("ONLY_AFTER_APPLY");
     await press("Apply and recreate player");
-    expect(input("Applied configuration code").props.value).toContain("ONLY_AFTER_APPLY");
+    expect(element("Text", { accessibilityLabel: "Applied configuration code" }).props.children).toContain("ONLY_AFTER_APPLY");
     await press("Sports");
     await press("Copy code");
     const copied = runtime.clipboard.mock.calls[runtime.clipboard.mock.calls.length - 1]?.[0];
@@ -576,8 +1054,8 @@ describe("React Native configuration in the mounted App", () => {
     await press("End");
     await text("Forward buffer (seconds)", "30");
     await text("Maximum bitrate (bits per second)", "2500000");
-    await act(async () => element("Switch", { accessibilityLabel: "Autoplay" }).props.onValueChange(true));
-    await act(async () => element("Switch", { accessibilityLabel: "Mute on startup" }).props.onValueChange(true));
+    await toggle("Autoplay", true);
+    await toggle("Mute on startup", true);
     expect(runtime.players).toHaveLength(1);
     expect(current().load).toHaveBeenCalledTimes(1);
     const old = current();
@@ -610,6 +1088,7 @@ describe("React Native configuration in the mounted App", () => {
     expect(current().load).toHaveBeenCalledTimes(1);
     expect(element("Text", { accessibilityRole: "alert" }).props.children).toContain("HTTP");
     await press("Reset draft");
+    await basicField("player", "forwardDuration");
     expect(input("Forward buffer (seconds)").props.value).toBe("");
     expect(button("Apply and recreate player").props.disabled).toBe(true);
     expect(runtime.players).toHaveLength(1);
@@ -618,7 +1097,7 @@ describe("React Native configuration in the mounted App", () => {
   it("keeps the full custom source, UI, log and DVR flag across Apply and ignores old view callbacks", async () => {
     await mount();
     await ready();
-    await act(async () => element("Switch", { accessibilityLabel: "Allow DVR" }).props.onValueChange(false));
+    await toggle("Allow DVR", false);
     await act(async () => element("PlayerView").props.onSourceLoaded());
     await act(async () => { element("PlayerView").props.onPlayerError(); element("PlayerView").props.onSourceError(); });
     const oldView = element("PlayerView").props;
@@ -632,13 +1111,13 @@ describe("React Native configuration in the mounted App", () => {
     await ready();
     await press("Sports");
     await ready();
-    await act(async () => element("Switch", { accessibilityLabel: "Mute on startup" }).props.onValueChange(true));
+    await toggle("Mute on startup", true);
     await press("Apply and recreate player");
     await ready();
     expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ url: "https://example.com/retained.m3u8", title: "Retained title", poster: "https://example.com/retained.jpg" }));
     expect(element("Switch", { accessibilityLabel: "Allow DVR" }).props.value).toBe(false);
     expect(screen.root.findAll((node) => String(node.type) === "Text" && node.props.children === "SourceLoaded")).toHaveLength(1);
-    expect(button("Sports").props.disabled).toBe(true);
+    expect(element("Pressable", { testID: "theme-selector" }).props.accessibilityValue.text).toBe("Sports");
     expect(current().config).toHaveProperty("styleConfig.playerUiJs");
     const loads = old.load.mock.calls.length;
     await act(async () => { oldView.onPlayerViewReady(); oldView.onSourceLoaded(); oldView.onPlayerError(); oldView.onSourceError(); });

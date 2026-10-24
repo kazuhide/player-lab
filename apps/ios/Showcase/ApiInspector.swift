@@ -38,7 +38,7 @@ struct ApiInspector: View {
 
     private var matchingOperations: [ApiOperation] {
         ApiOperation.allCases.filter {
-            group.contains($0) && (operationFilter.isEmpty || $0.rawValue.localizedCaseInsensitiveContains(operationFilter))
+            group.contains($0) && (operationFilter.isEmpty || $0.rawValue.localizedCaseInsensitiveContains(operationFilter) || $0.displayName.nativeLocalized.localizedCaseInsensitiveContains(operationFilter))
         }
     }
     private var selectionMatches: Bool { matchingOperations.contains(operation) }
@@ -96,7 +96,7 @@ struct ApiInspector: View {
         }
         .alert("API invocation", isPresented: $showsResultDetails) {
             Button("Close", role: .cancel) {}
-        } message: { Text("Target: \(operation.rawValue)\n\n\(error ?? invocationResult ?? "No invocation for the selected operation and current player/source.")") }
+        } message: { Text(NativeLocalization.format("Target: %@", operation.rawValue) + "\n\n" + NativeLocalization.operationResult(error ?? invocationResult ?? "No invocation for the selected operation and current player/source.")) }
 
     }
 
@@ -107,7 +107,7 @@ struct ApiInspector: View {
             .font(.caption)
         } else {
             Picker("Inspect", selection: $pane) {
-                ForEach(ApiInspectorPane.allCases) { Text($0.rawValue).tag($0) }
+                ForEach(ApiInspectorPane.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0).accessibilityIdentifier("api.pane.\($0.rawValue)") }
             }
             .pickerStyle(.segmented)
             .accessibilityIdentifier("api.pane")
@@ -140,7 +140,7 @@ struct ApiInspector: View {
                     else { operation = candidate }
                 } label: {
                     HStack(alignment: .top) {
-                        Text(candidate.displayName).font(.subheadline)
+                        Text(LocalizedStringKey(candidate.displayName)).font(.subheadline)
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer()
                         if candidate == operation { Image(systemName: "checkmark").accessibilityLabel("Selected") }
@@ -161,7 +161,7 @@ struct ApiInspector: View {
               Button { showsOperations = true } label: {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(operation.displayName).font(.subheadline.weight(.semibold))
+                        Text(LocalizedStringKey(operation.displayName)).font(.subheadline.weight(.semibold))
                             .lineLimit(1)
                     }
                     Spacer()
@@ -172,10 +172,10 @@ struct ApiInspector: View {
             .accessibilityLabel("Choose operation. Current: \(operation.rawValue)")
             .frame(minHeight: 44)
               if !keyboardVisible {
-                Button(showsCode ? "Arguments" : "Code") { showsCode.toggle() }
+                Button((showsCode ? "Arguments" : "Code").nativeLocalized) { showsCode.toggle() }
                     .font(.caption).frame(minHeight: 44)
                     .accessibilityIdentifier("api.code.enabled")
-                    .accessibilityValue(showsCode ? "Code shown" : "Arguments shown")
+                    .accessibilityValue((showsCode ? "Code shown" : "Arguments shown").nativeLocalized)
               }
             }
             .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
@@ -185,7 +185,7 @@ struct ApiInspector: View {
             .accessibilityHidden(keyboardVisible && !choicePresented)
             if !operationFilter.isEmpty && !selectionMatches {
                 HStack(alignment: .top) {
-                    Text(selectionMatches ? "Filter: \(operationFilter)" : "Selected API does not match “\(operationFilter)”. Choose a result or clear the filter.")
+                    Text(selectionMatches ? NativeLocalization.format("Filter: %@", operationFilter) : NativeLocalization.format("Selected API does not match “%@”. Choose a result or clear the filter.", operationFilter))
                         .font(.caption).foregroundStyle(Color.workspaceSecondary)
                     Spacer()
                     Button("Clear") { operationFilter = ""; group = .all }.font(.caption)
@@ -220,7 +220,7 @@ struct ApiInspector: View {
             }
             if workspaceActive { VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                  Text("Run target: \(operation.displayName)")
+                  Text(NativeLocalization.format("Run target: %@", operation.displayName.nativeLocalized))
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
                     .accessibilityIdentifier("api.target")
@@ -277,11 +277,11 @@ struct ApiInspector: View {
                         .accessibilityLabel(error)
                 }
                 if !keyboardVisible && verticalSizeClass != .compact { HStack(alignment: .center) {
-                    Text(invocationResult == nil ? "No invocation" : "Invocation recorded")
+                    Text(LocalizedStringKey(invocationResult == nil ? "No invocation" : "Invocation recorded"))
                         .font(.caption)
                         .lineLimit(1)
                         .accessibilityIdentifier("api.result")
-                        .accessibilityLabel(invocationResult ?? "No invocation for this selection and current player/source.")
+                        .accessibilityLabel(NativeLocalization.operationResult(invocationResult ?? "No invocation for this selection and current player/source."))
                     Spacer(minLength: 0)
                     Button("Details") { showsResultDetails = true }.font(.caption)
                         .frame(minHeight: 44)
@@ -313,17 +313,17 @@ struct ApiInspector: View {
                 }
             }
             if let observationTime {
-                Text("Player/source: \(observationOwner.map { String($0.uuidString.prefix(8)) } ?? "unknown")")
+                Text(NativeLocalization.format("Player/source: %@", observationOwner.map { String($0.uuidString.prefix(8)) } ?? "unknown"))
                     .font(.caption2).foregroundStyle(Color.workspaceSecondary)
                     .accessibilityIdentifier("api.observation.owner")
-                Text("Read at \(observationTime.formatted(date: .omitted, time: .standard)). A snapshot does not prove asynchronous completion.")
+                Text(NativeLocalization.format("Read at %@. A snapshot does not prove asynchronous completion.", observationTime.formatted(date: .omitted, time: .standard)))
                     .font(.caption2).foregroundStyle(Color.workspaceSecondary)
             }
             if let event = model.apiEvents.first {
-                Text("Latest retained event (history): \(event.api) · SDK \(event.timestamp)")
+                Text(NativeLocalization.format("Latest retained event (history): %@ · SDK %@", event.api, String(describing: event.timestamp)))
                     .font(.caption).foregroundStyle(Color.workspaceSecondary)
             } else {
-                Text(model.apiEventsEnabled ? "No SDK events recorded yet." : "SDK event recording is off.")
+                Text(LocalizedStringKey(model.apiEventsEnabled ? "No SDK events recorded yet." : "SDK event recording is off."))
                     .font(.caption).foregroundStyle(Color.workspaceSecondary)
             }
         }
@@ -361,7 +361,7 @@ struct ApiInspector: View {
                 Button("Clear") { model.clearApiEvents() }.accessibilityIdentifier("api.events.clear")
             }
             Picker("Subscription transport", selection: Binding(get: { model.apiEventTransport }, set: { model.setApiEventTransport($0) })) {
-                ForEach(NativeEventTransport.allCases) { Text($0.rawValue).tag($0) }
+                ForEach(NativeEventTransport.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
             }
             .accessibilityIdentifier("api.events.transport")
             TextField("Filter event name or owner", text: $eventFilter)
@@ -370,7 +370,7 @@ struct ApiInspector: View {
             Text("Newest 120 records: API identity, owner and SDK timestamp. Registered callbacks do not prove occurrence; owners may report the same event.")
                 .font(.caption).foregroundStyle(Color.workspaceSecondary)
             if model.apiEvents.isEmpty {
-                Text(model.apiEventsEnabled ? "No SDK events recorded yet." : "Event recording is off.")
+                Text(LocalizedStringKey(model.apiEventsEnabled ? "No SDK events recorded yet." : "Event recording is off."))
                     .font(.subheadline)
             }
             List {
@@ -392,17 +392,17 @@ struct ApiInspector: View {
         let binding = Binding(get: { arguments[argument.id] ?? argument.initial }, set: { arguments[argument.id] = $0 })
         switch argument.input {
         case .boolean:
-            Toggle(argument.label, isOn: Binding(get: { binding.wrappedValue == "true" }, set: { binding.wrappedValue = String($0) }))
+            Toggle(argument.label.nativeLocalized, isOn: Binding(get: { binding.wrappedValue == "true" }, set: { binding.wrappedValue = String($0) }))
                 .accessibilityIdentifier("api.argument.\(argument.id)")
         case .choice(let values):
-            Picker(argument.label, selection: binding) { ForEach(values, id: \.self) { Text($0).tag($0) } }
+            Picker(argument.label.nativeLocalized, selection: binding) { ForEach(values, id: \.self) { Text($0).tag($0) } }
                 #if os(tvOS)
                 .pickerStyle(.inline)
                 #endif
                 .accessibilityIdentifier("api.argument.\(argument.id)")
         case .json, .script:
             VStack(alignment: .leading, spacing: 4) {
-                Text(argument.label).font(.caption).foregroundStyle(Color.workspaceSecondary)
+                Text(LocalizedStringKey(argument.label)).font(.caption).foregroundStyle(Color.workspaceSecondary)
                 #if os(tvOS)
                 TextField("JSON or function body", text: binding).disableAutocorrection(true)
                     .accessibilityIdentifier("api.argument.\(argument.id)")
@@ -415,11 +415,11 @@ struct ApiInspector: View {
                     Text("This function uses a JavaScript subset with CPU, elapsed-time and value-size limits. Use let or const; no network or native object access is exposed.").font(.caption).foregroundStyle(Color.workspaceSecondary)
                     Link("Supported syntax and limits", destination: URL(string: "https://github.com/kazuhide/player-lab/blob/main/apps/ios/Showcase/NativeScripts/README.md")!).font(.caption)
                 }
-                if !argument.note.isEmpty { Text(argument.note).font(.caption).foregroundStyle(Color.workspaceSecondary) }
+                if !argument.note.isEmpty { Text(LocalizedStringKey(argument.note)).font(.caption).foregroundStyle(Color.workspaceSecondary) }
             }
         default:
             VStack(alignment: .leading, spacing: 4) {
-                Text(argument.label).font(.caption).foregroundStyle(Color.workspaceSecondary)
+                Text(LocalizedStringKey(argument.label)).font(.caption).foregroundStyle(Color.workspaceSecondary)
                 TextField("Value", text: binding).disableAutocorrection(true)
                     #if !os(tvOS)
                     .textInputAutocapitalization(.never)

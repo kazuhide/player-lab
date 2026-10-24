@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Button, Text } from "./localization";
 import * as Clipboard from "expo-clipboard";
 import { panelStyles } from "./panelStyles";
 
-export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Element {
-  const [expanded, setExpanded] = useState(false);
+export function ConfigurationCodeView({ code, initiallyExpanded = false }: { code: string; initiallyExpanded?: boolean }): React.JSX.Element {
+  const [expanded, setExpanded] = useState(initiallyExpanded);
   const [status, setStatus] = useState<{ code: string; text: string }>();
   const request = useRef(0);
   const mounted = useRef(true);
@@ -24,15 +25,13 @@ export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Ele
         };
         void Clipboard.setStringAsync(code).then(() => update("Copied.")).catch(() => update("Copy is unavailable. Select the code to copy it."));
       }} />
-      <TextInput accessibilityLabel="Applied configuration code" value={code} editable={false}
-        multiline selectTextOnFocus autoCorrect={false} style={styles.code} />
       {status?.code === code && <Text accessibilityRole="text" accessibilityLiveRegion="polite" style={panelStyles.help}>{status.text}</Text>}
+      <Text accessibilityLabel="Applied configuration code" selectable verbatim style={styles.code}>{code}</Text>
     </>}
   </View>;
 }
 
 const styles = StyleSheet.create({
   container: { gap: 8, marginTop: 8 },
-  code: { ...panelStyles.input, ...panelStyles.mono, minHeight: 180, maxHeight: 360,
-    textAlignVertical: "top", color: "#111111" },
+  code: { ...panelStyles.input, ...panelStyles.mono, minHeight: 180, color: "#111111" },
 });

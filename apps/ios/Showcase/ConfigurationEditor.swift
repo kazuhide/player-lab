@@ -112,7 +112,7 @@ struct ConfigurationEditor: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: keyboardVisible ? 0 : 8) {
             if workspaceActive {
             HStack {
                 WorkspaceChoice(title: "Category", selection: $category, options: NativeSettingsCategory.allCases, label: { $0.rawValue })
@@ -134,16 +134,22 @@ struct ConfigurationEditor: View {
                     .frame(maxHeight: .infinity, alignment: .top)
             } else if workspaceActive {
                 ScrollView {
-                    WorkspaceCard {
+                    VStack(alignment: .leading, spacing: keyboardVisible ? 0 : 12) {
                         selectedInput
-                        Text(setting.help).font(.caption).foregroundStyle(Color.workspaceSecondary)
+                        if !keyboardVisible {
+                            Text(LocalizedStringKey(setting.help)).font(.caption).foregroundStyle(Color.workspaceSecondary)
+                        }
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, keyboardVisible ? 0 : 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.background, in: RoundedRectangle(cornerRadius: 12))
                 }
                 .accessibilityIdentifier("configuration.form")
             }
             if workspaceActive { actionBar }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, keyboardVisible ? 0 : 8)
         .preference(key: WorkspaceCompactPreviewPreference.self, value: workspaceActive && category == .advanced)
         .onChange(of: category) { next in
             if setting.category != next, let first = NativeSetting.allCases.first(where: { $0.category == next }) { setting = first }
@@ -154,7 +160,7 @@ struct ConfigurationEditor: View {
         .onChange(of: model.sourcePresetRevision) { _ in
             let hadDraft = session.value != session.applied
             session.replaceSourcePreset(model.configurationDraft)
-            appliedSummary = hadDraft ? "Source draft replaced; player draft retained" : ""
+            appliedSummary = hadDraft ? "Source draft replaced; player draft retained".nativeLocalized : ""
         }
         .alert("Configuration details", isPresented: $showsDetails) {
             Button("Close", role: .cancel) {}
@@ -168,7 +174,7 @@ struct ConfigurationEditor: View {
         VStack(alignment: .leading, spacing: 8) {
             if let validationMessage, !keyboardVisible {
                 HStack {
-                    Text(typeSize.isAccessibilitySize || keyboardVisible ? "Invalid draft" : validationMessage)
+                    Text(LocalizedStringKey(typeSize.isAccessibilitySize || keyboardVisible ? "Invalid draft" : validationMessage))
                         .font(.caption).foregroundStyle(.red)
                         .accessibilityIdentifier("configuration.error")
                         .accessibilityLabel(validationMessage)
@@ -182,20 +188,20 @@ struct ConfigurationEditor: View {
                 HStack(alignment: .center) {
                     Text("✓").foregroundStyle(.primary)
                         .accessibilityIdentifier("configuration.status")
-                        .accessibilityLabel(model.configurationStatus)
+                        .accessibilityLabel(model.configurationStatus.nativeLocalized)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(changedSettings.isEmpty
-                            ? (appliedSummary.isEmpty ? "Applied settings" : typeSize.isAccessibilitySize ? "Applied" : appliedSummary)
-                            : typeSize.isAccessibilitySize ? "Unapplied settings: \(changedSettings.count)" : "Draft: " + changedSettings.joined(separator: ", "))
+                            ? (appliedSummary.isEmpty ? "Applied settings".nativeLocalized : typeSize.isAccessibilitySize ? "Applied".nativeLocalized : appliedSummary)
+                            : typeSize.isAccessibilitySize ? NativeLocalization.format("Unapplied settings: %ld", changedSettings.count) : "Draft: ".nativeLocalized + changedSettings.map(\.nativeLocalized).joined(separator: ", "))
                             .font(.caption.weight(.medium))
                             .lineLimit(1)
                             .accessibilityIdentifier("configuration.summary")
-                            .accessibilityLabel(changedSettings.isEmpty ? (appliedSummary.isEmpty ? "Applied settings" : appliedSummary) : "Draft: " + changedSettings.joined(separator: ", "))
+                            .accessibilityLabel(changedSettings.isEmpty ? (appliedSummary.isEmpty ? "Applied settings".nativeLocalized : appliedSummary) : "Draft: ".nativeLocalized + changedSettings.map(\.nativeLocalized).joined(separator: ", "))
                         if pendingEffect != nil && pendingEffect != ConfigurationEffect.none {
-                            Text(typeSize.isAccessibilitySize ? compactEffect : pendingEffect?.description ?? "Correct the draft")
+                            Text(LocalizedStringKey(typeSize.isAccessibilitySize ? compactEffect : pendingEffect?.description ?? "Correct the draft"))
                                 .font(.caption).foregroundStyle(Color.workspaceSecondary)
                                 .accessibilityIdentifier("configuration.effect")
-                                .accessibilityLabel(pendingEffect?.description ?? "Correct the draft")
+                                .accessibilityLabel((pendingEffect?.description ?? "Correct the draft").nativeLocalized)
                         }
                     }
                     Spacer(minLength: 0)
@@ -203,7 +209,7 @@ struct ConfigurationEditor: View {
                 }
             }
             HStack {
-                Button(typeSize.isAccessibilitySize ? "Reset" : "Reset to applied") {
+                Button((typeSize.isAccessibilitySize ? "Reset" : "Reset to applied").nativeLocalized) {
                     session.value = model.configurationDraft
                     session.applied = model.configurationDraft
                     applyError = nil
@@ -223,7 +229,7 @@ struct ConfigurationEditor: View {
                         try model.apply(session.value)
                         session.value = model.configurationDraft
                         session.applied = model.configurationDraft
-                        appliedSummary = "Applied: " + changes.joined(separator: ", ")
+                        appliedSummary = NativeLocalization.format("Applied: %@", changes.map(\.nativeLocalized).joined(separator: ", "))
                         applyError = nil
                     } catch {
                         applyError = error.localizedDescription
@@ -310,27 +316,27 @@ struct ConfigurationEditor: View {
     }
 
     private func field(_ label: String, placeholder: String, text: Binding<String>, id: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(label).font(typeSize.isAccessibilitySize ? .caption : .subheadline.weight(.semibold))
+        VStack(alignment: .leading, spacing: keyboardVisible ? 0 : 6) {
+            Text(LocalizedStringKey(label)).font(typeSize.isAccessibilitySize ? .caption : .subheadline.weight(.semibold))
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(height: keyboardVisible ? 0 : nil).clipped().accessibilityHidden(keyboardVisible)
             #if os(tvOS)
-            TextField(placeholder, text: text)
+            TextField(LocalizedStringKey(placeholder), text: text)
                 .disableAutocorrection(true)
                 .accessibilityIdentifier("configuration.\(id)")
-                .accessibilityLabel(label)
+                .accessibilityLabel(label.nativeLocalized)
             #else
             // Keep the native editor and give its surrounding row a full tap
             // target. A layout frame alone does not enlarge the native field.
             ZStack {
-                TextField(placeholder, text: text)
+                TextField(LocalizedStringKey(placeholder), text: text)
                     .disableAutocorrection(true)
                     .textInputAutocapitalization(.never)
                     .textFieldStyle(.roundedBorder)
                     .submitLabel(.done)
                     .focused($focusedInput, equals: id)
                     .accessibilityIdentifier("configuration.\(id)")
-                    .accessibilityLabel(label)
+                    .accessibilityLabel(label.nativeLocalized)
             }
             .frame(minHeight: 44)
             .contentShape(Rectangle())

@@ -56,8 +56,8 @@ internal fun AnalyticsSsaiControls(controller: PlayerController) {
         }
         Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             AnalyticsMetadataEditor("SSAI metadata", "analytics-ssai", ssaiMetadataKeys, values, state = metadata) { values = it }
-            Text("Report stitched-ad transitions at actual ad boundaries. Inspect the matching Bitmovin Dashboard session to confirm ingestion. Ad position is PREROLL, MIDROLL or POSTROLL; counts and durationInMs are nonnegative whole numbers; isSlate is true or false.", style = MaterialTheme.typography.bodySmall)
-            if (result.isNotEmpty()) Text(result, style = MaterialTheme.typography.bodySmall)
+            UiText("Report stitched-ad transitions at actual ad boundaries. Inspect the matching Bitmovin Dashboard session to confirm ingestion. Ad position is PREROLL, MIDROLL or POSTROLL; counts and durationInMs are nonnegative whole numbers; isSlate is true or false.", style = MaterialTheme.typography.bodySmall)
+            if (result.isNotEmpty()) UiText(result, style = MaterialTheme.typography.bodySmall)
         }
         Surface(tonalElevation = 2.dp) {
             Button(onClick = {
@@ -75,7 +75,7 @@ internal fun AnalyticsSsaiControls(controller: PlayerController) {
                     }
                     "Analytics SSAI signal submitted. Check the matching Dashboard session."
                 }.getOrElse { "Analytics SSAI API failed (${it.javaClass.simpleName}). Check metadata types and collector state." }
-            }, modifier = Modifier.fillMaxWidth().padding(12.dp).testTag(signal)) { Text(signals.first { it.first == signal }.second) }
+            }, modifier = Modifier.fillMaxWidth().padding(12.dp).testTag(signal)) { UiText(signals.first { it.first == signal }.second) }
         }
     }
 }

@@ -4,6 +4,12 @@ SwiftUI sample using the Bitmovin Player library. iPhone and iPad can use the
 shared Web UI from `@showcase/ui-shared`; tvOS uses the native System UI because
 the Web UI is unavailable there.
 
+App-owned labels and help are available in English and Japanese, following the
+app's preferred language on iOS/iPadOS and the system language on tvOS. API names,
+generated code, source labels, and raw SDK state keep their original values.
+The SDK-provided playback controls may use a different supported language from
+the app-owned panels.
+
 The Apple sample offers HLS presets and a configuration editor for custom HLS
 and progressive MP4 sources. The pinned native library accepts these formats;
 loading a DASH source violates its precondition and terminates
@@ -99,6 +105,10 @@ keyboard. **Collapse player** returns room to the editor; opening the keyboard
 also collapses an expanded preview. These layout changes keep the same player,
 source, and unapplied settings.
 
+The window shape determines whether the player sits above or beside the editor.
+Opening the software keyboard keeps that arrangement. Rotating or resizing the
+window updates the arrangement while preserving the draft.
+
 | Field | Accepted value and behavior |
 | --- | --- |
 | Source URL | Absolute HTTP or HTTPS URL; HLS or progressive MP4 only. |
@@ -125,12 +135,13 @@ offset or the SDK default, according to Autoplay.
 
 The initial language controls are application preferences, not language
 properties in `PlayerConfig`. Player 3.128.0 exposes track selection through
-`setAudio(trackIdentifier:)` and `setSubtitle(trackIdentifier:)`. After the
-intended Source loads and reaches its first `Ready` event, the app selects a full
-language-tag match, then a primary
-language match if needed (`de-AT` can select `de`). An unavailable language leaves
-the SDK/OS choice in place. Selection runs once at initial Ready for each source load, so a later
-choice in the SDK's track menu is retained until the next load. These preferences
+`setAudio(trackIdentifier:)` and `setSubtitle(trackIdentifier:)`. For a newly
+loaded source, the app waits for both `SourceLoaded` and the first `Ready` event,
+in either notification order. It selects a full language-tag match, then a
+primary language match if needed (`de-AT` can select `de`). An unavailable
+language leaves the SDK/OS choice in place. Selection runs once for the intended
+source, so a later choice in the SDK's track menu is retained until the next load.
+These preferences
 reload the source; changing scaling recreates the player because it is applied
 through `StyleConfig.scalingMode` at player creation. Fit, Fill, and Stretch may
 look identical when the video and view have the same aspect ratio.
@@ -138,13 +149,16 @@ look identical when the video and view have the same aspect ratio.
 In the tested Player 3.128.0 HLS startup, selecting German audio during
 `SourceLoaded` briefly selected German, then a later native audio-change event
 restored English before `Ready`; changing the order of the audio/subtitle calls
-did not prevent this. The app therefore waits for the first
+did not prevent this. The app therefore records the first
 [`Ready`](https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerlistener/onready(_:player:)/index.html),
-when initial audio/video is downloaded, and applies the preferences once. It
-captures the source when Ready is emitted and verifies the intended loaded
-source again before selecting, so a retired callback cannot select tracks on a
-replacement source. This describes the checked SDK/fixture combination, not a
-universal promise about every stream.
+when initial audio/video is downloaded, and waits until `SourceLoaded` has also
+been observed. `Ready` can arrive first, so handling only its callback can miss
+the selection before the source is bound. Whichever notification arrives last
+can complete the source-owned gate. The app captures the source when Ready is
+emitted and checks the current player and source before selecting. A retired
+callback cannot select tracks on a replacement source. Preloaded playlist
+handoffs also use an advancing playback clock when startup notifications are
+omitted. These observations describe the checked SDK/fixture combination.
 
 Use native HLS subtitle renditions for this workflow on both platforms. External
 subtitle tracks added to `SourceConfig` are supported by the Bitmovin UI or
@@ -160,7 +174,7 @@ current source configuration while recreating the player.
 
 ## Shared player UI
 
-On iOS, the "Player UI" picker selects the default Web UI or Sports, Live, and
+On iOS, the **Theme** picker selects the default Web UI or Sports, Live, and
 Cinema factories. tvOS keeps its native System UI.
 
 The tvOS player is inline beside the app controls. Use the remote's **Play/Pause**

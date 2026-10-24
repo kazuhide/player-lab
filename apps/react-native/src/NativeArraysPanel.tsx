@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { panelStyles as styles } from "./panelStyles";
-import { Button, Switch, Text, TextInput, View } from "react-native";
+import { View } from "react-native";
+import { Button, Switch, Text, TextInput } from "./localization";
 import { AdSourceType, SubtitleFormat, type SideLoadedSubtitleTrack } from "bitmovin-player-react-native";
 import type { NativeArrayDraft } from "./nativeArrays";
 

@@ -56,6 +56,15 @@ test("the explicit runtime-check entry retains the exact production App and pinn
   assert.deepEqual(readFileSync(join(target, "package.json")), readFileSync(join(appRoot, "expo/package.json")));
 }));
 
+for (const runtimeChecks of [false, true]) {
+  test(`the generated ${runtimeChecks ? "runtime-check" : "normal"} entry delegates safe-area ownership to its screen`, () => fixture(({ assets, target }) => {
+    createExpoProject({ target, assets, runtimeChecks });
+    const entry = readFileSync(join(target, "index.tsx"), "utf8");
+    assert.doesNotMatch(entry, /SafeAreaProvider|SafeAreaView/);
+    assert.match(entry, new RegExp(`registerRootComponent\\(${runtimeChecks ? "RuntimeCheckApp" : "App"}\\)`));
+  }));
+}
+
 test("copies both built assets byte-for-byte", () => fixture(({ assets, target }) => {
   createExpoProject({ target, assets });
   for (const name of ["bitmovinplayer-ui.js", "bitmovinplayer-ui.css"]) {

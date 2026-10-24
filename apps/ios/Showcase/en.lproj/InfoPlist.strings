@@ -1,0 +1,2 @@
+/* Local network permission shown by the operating system. */
+"NSLocalNetworkUsageDescription" = "Player Lab discovers Google Cast receivers on your local network when you initialize casting or open its device picker.";

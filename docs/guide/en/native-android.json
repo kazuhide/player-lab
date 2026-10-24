@@ -25,6 +25,11 @@
       "text": "Build and launch apps/android using Android Studio or the documented command-line setup. Java 17 and required Android SDK packages are listed in Local setup and licenses and the implementation guide. The app uses Player 3.171.0. Allow com.playerlab.android on the Player license used by the build."
     },
     {
+      "type": "note",
+      "title": "Display language",
+      "text": "The app supports English and Japanese through the system or per-app language preference. This guide uses captures from the English app. SDK identifiers, code and returned data are not translated. The standard Player controls also depend on SDK and system language settings."
+    },
+    {
       "type": "p",
       "text": "The same app declares a TV launcher for Android TV and Android-based Fire TV. Vega OS uses a separate app. The screenshots below were captured in a phone emulator; they do not establish remote-control reachability or playback on every TV or physical device."
     },
@@ -281,7 +286,7 @@
     {
       "type": "figure",
       "file": "android-api-callback",
-      "caption": "Recorded with the earlier app layout. An applied video-quality label callback. The staged body and active override are visible; the disabled Apply button indicates no pending change."
+      "caption": "An applied video-quality label callback. The staged body and active override are visible; the disabled Apply button indicates no pending change."
     },
     {
       "type": "note",
@@ -337,7 +342,7 @@
     {
       "type": "figure",
       "file": "android-api-events",
-      "caption": "Events with PlayerEvent.Paused selected. The selected event count and recent SDK event history are shown separately."
+      "caption": "Events with PlayerEvent.Playing selected. The selected event count and the SDK event history since launch are displayed separately."
     },
     {
       "type": "p",
@@ -350,7 +355,7 @@
     {
       "type": "figure",
       "file": "android-media-session",
-      "caption": "Recorded with the earlier app layout. The native MediaSession command. Enabling it connects the current player to Android media controls; external-device behavior depends on the host system."
+      "caption": "The native MediaSession command. Enabling it connects the current player to Android media controls; external-device behavior depends on the host system."
     },
     {
       "type": "p",
@@ -384,7 +389,7 @@
     {
       "type": "figure",
       "file": "android-offline-tracks",
-      "caption": "Recorded with the earlier app layout. Selecting an audio track for download. This figure shows the selection step, before completion is established."
+      "caption": "Selecting an audio track for download. This figure shows the selection step, before completion is established."
     },
     {
       "type": "steps",

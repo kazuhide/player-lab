@@ -14,6 +14,11 @@
     },
     {
       "type": "note",
+      "title": "Display language",
+      "text": "Use the app language selector to switch between English and Japanese. This guide uses captures from the English app. SDK identifiers, code and returned data retain their original spelling. Subtitle language belongs to the content and is selected separately from the application language."
+    },
+    {
+      "type": "note",
       "title": "Before opening the screen",
       "text": "Use the Kepler build for Vega OS, not the Android Fire TV package. The Player app identifier is com.playerlab.vega and the component is com.playerlab.vega.main. Generate the local runtime configuration and rebuild when licenses change. Follow the linked setup and Vega README for the supported SDK profile, build and device-selection commands."
     },
@@ -43,7 +48,7 @@
     {
       "type": "figure",
       "file": "vega-subtitles",
-      "caption": "The configuration form below the native video. This view shows external subtitle fields, a start offset and the Autoplay/Mute switches; the form continues below the capture."
+      "caption": "The configuration form below the native video shows the source URL, type, title, poster and external subtitle fields. More settings continue below this capture."
     },
     {
       "type": "steps",
@@ -161,7 +166,7 @@
       "items": [
         "Open Show configuration and Show all SDK configuration. Search an exact PlayerConfig or SourceConfig path and select Set Vega API value. The SDK is the Player library; its API defines the available configuration, commands and events.",
         "Use the displayed type to enter scalar values, enumeration choices, object fields, dictionaries, lists or bytes. Add array items in order and fill required related fields. Keep the previous value or whether an override was absent.",
-        "For a function, enter its JavaScript body, read its argument/return contract and enable Allow this SDK callback. Apply installs the function; it runs when the SDK invokes it. A JavaScript value factory for an any-typed value can run during Apply or Run.",
+        "For a function, enter its JavaScript body, read its argument/return contract and enable Allow this callback. Apply installs the function; it runs when the SDK invokes it. A JavaScript value factory for an any-typed value can run during Apply or Run.",
         "After Apply, compare Show applied code and the relevant result or event. Remove the override and Apply to restore the basic form value or SDK default. Removing a callback stops future calls after replacement; restore any Player state that the callback deliberately changed."
       ]
     },

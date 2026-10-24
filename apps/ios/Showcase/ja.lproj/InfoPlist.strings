@@ -1,0 +1,2 @@
+/* Local network permission shown by the operating system. */
+"NSLocalNetworkUsageDescription" = "Castの初期化時や端末選択画面を開いたときに、ローカルネットワーク上のGoogle Cast受信機を探します。";

@@ -2,6 +2,7 @@ name: Showcase
 options:
   bundleIdPrefix: com.playerlab
   createIntermediateGroups: true
+  developmentLanguage: en
   # Local.xcconfig is generated (untracked) by scripts/sync-env.sh from the
   # repo-root .env; allow generating the project without it (CI builds licenseless).
   disabledValidations: [missingConfigFiles]
@@ -108,6 +109,11 @@ targets:
     # itself without a native license is a fatal SDK precondition.
     sources:
       - ShowcaseConfigurationTests
+      - Showcase/NativeLocalization.swift
+      - path: Showcase/en.lproj
+        buildPhase: resources
+      - path: Showcase/ja.lproj
+        buildPhase: resources
       - Showcase/Configuration.swift
       - Showcase/NativeWorkspaceDraft.swift
       - Showcase/AdvancedConfiguration.swift
@@ -232,6 +238,11 @@ targets:
     deploymentTarget: "15.0"
     sources:
       - ShowcaseConfigurationTests
+      - Showcase/NativeLocalization.swift
+      - path: Showcase/en.lproj
+        buildPhase: resources
+      - path: Showcase/ja.lproj
+        buildPhase: resources
       - Showcase/Configuration.swift
       - Showcase/NativeWorkspaceDraft.swift
       - Showcase/AdvancedConfiguration.swift

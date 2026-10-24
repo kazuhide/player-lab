@@ -5,7 +5,7 @@ separately in the [API coverage guide](https://kazuhide.github.io/player-lab/gui
 
 ## Unreleased
 
-- Give Android and Apple apps direct setting selection, fixed Apply and Reset
+- Give Android, Apple and React Native apps direct setting selection, fixed Apply and Reset
   actions, and separate workspaces for APIs, applied code, and additional tools.
   Preserve drafts and the native player across navigation and layout changes.
 - Improve inputs with large text and the software keyboard, separate API calls
@@ -13,6 +13,16 @@ separately in the [API coverage guide](https://kazuhide.github.io/player-lab/gui
 - Replace the unavailable public Live HLS sample used by the apps.
 - Keep initial audio and subtitle preferences when changing Apple player themes
   or reloading a source.
+- Add Japanese interface text to the native apps, preserving SDK identifiers,
+  source values and generated code.
+- Replace app screenshots with separate captures of the English and Japanese
+  interfaces, and show the matching language throughout the guide.
+- Keep React Native configuration navigation available after a handler factory
+  fails, and translate application input errors in Japanese mode.
+- Return focus from tvOS editors to the workspace tabs with Back/Menu, keeping
+  drafts and playback active while switching workspaces.
+- Open selected React Native settings and API inputs at the start of their
+  editor while retaining values and scroll positions during editing and tab changes.
 
 ## 0.1.3
 

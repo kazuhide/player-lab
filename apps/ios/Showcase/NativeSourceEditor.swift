@@ -28,7 +28,7 @@ struct NativeSourceEditor: View {
                 Button("Cancel") { dismiss() }.accessibilityIdentifier("playlist.source.cancel")
             }
             Picker("Setting", selection: $setting) {
-                ForEach(["Source URL", "Source type", "Title", "Poster URL", "Start offset", "Offset reference", "Audio language", "Subtitles", "Subtitle language", "Advanced SDK"], id: \.self) { Text($0).tag($0) }
+                ForEach(["Source URL", "Source type", "Title", "Poster URL", "Start offset", "Offset reference", "Audio language", "Subtitles", "Subtitle language", "Advanced SDK"], id: \.self) { Text(LocalizedStringKey($0)).tag($0) }
             }
             .accessibilityIdentifier("playlist.source.setting")
             if setting == "Advanced SDK" {
@@ -38,17 +38,17 @@ struct NativeSourceEditor: View {
                 Form {
                     if setting == "Source URL" { field("Source URL", text: $draft.sourceURL, id: "url") }
                     if setting == "Source type" {
-                        Picker("Source type", selection: $draft.sourceType) { ForEach(SourceFormat.allCases) { Text($0.rawValue).tag($0) } }
+                        Picker("Source type", selection: $draft.sourceType) { ForEach(SourceFormat.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) } }
                     }
                     if setting == "Title" { field("Title", text: $draft.title, id: "title") }
                     if setting == "Poster URL" { field("Poster URL", text: $draft.posterURL, id: "poster") }
                     if setting == "Start offset" { field("Start offset (seconds; blank uses SDK default)", text: $draft.startOffset, id: "offset") }
                     if setting == "Offset reference" {
-                        Picker("Offset reference", selection: $draft.timelineReference) { ForEach(OffsetReference.allCases) { Text($0.rawValue).tag($0) } }
+                        Picker("Offset reference", selection: $draft.timelineReference) { ForEach(OffsetReference.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) } }
                     }
                     if setting == "Audio language" { field("Audio language", text: $draft.audioLanguage, id: "audio") }
                     if setting == "Subtitles" {
-                        Picker("Subtitles", selection: $draft.subtitleMode) { ForEach(InitialSubtitleMode.allCases) { Text($0.rawValue).tag($0) } }
+                        Picker("Subtitles", selection: $draft.subtitleMode) { ForEach(InitialSubtitleMode.allCases) { Text(LocalizedStringKey($0.rawValue)).tag($0) } }
                     }
                     if setting == "Subtitle language" { field("Subtitle language", text: $draft.subtitleLanguage, id: "subtitle") }
                     if ["Audio language", "Subtitles", "Subtitle language"].contains(setting) {
@@ -82,7 +82,7 @@ struct NativeSourceEditor: View {
 
     private func field(_ label: String, text: Binding<String>, id: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.caption)
+            Text(LocalizedStringKey(label)).font(.caption)
             TextField("Value", text: text).disableAutocorrection(true)
                 #if !os(tvOS)
                 .textInputAutocapitalization(.never)

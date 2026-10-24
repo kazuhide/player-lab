@@ -2,6 +2,11 @@ import XCTest
 
 /// Uses explicit workspace choices; no scrolling is used to reach editable settings or Apply.
 enum WorkspaceUITestNavigation {
+    static func launch(_ app: XCUIApplication, language: String = "en") {
+        app.launchArguments += ["-AppleLanguages", "(\(language))", "-AppleLocale", language == "ja" ? "ja_JP" : "en_US"]
+        app.launch()
+    }
+
     static let fields: [String: (String, String)] = [
         "sourceURL": ("Source", "Source URL"), "sourceType": ("Source", "Source type"),
         "title": ("Source", "Title"), "posterURL": ("Source", "Poster URL"),
@@ -37,10 +42,16 @@ enum WorkspaceUITestNavigation {
         try activate(button, in: app)
         #if os(tvOS)
         let option = app.buttons["workspace.choice.option.\(value)"].firstMatch
+        let expectedLabel = option.label
         try activate(option, in: app)
         XCTAssertTrue(app.textFields["workspace.choice.filter"].waitForNonExistence(timeout: 5))
-        XCTAssertEqual(button.value as? String, value)
+        XCTAssertEqual(button.value as? String, expectedLabel)
         #else
+        let identified = app.buttons["workspace.choice.option.\(value)"].firstMatch
+        if identified.exists {
+            try activate(identified, in: app)
+            return
+        }
         let candidates = app.buttons.matching(NSPredicate(format: "label == %@", value))
         let visible = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             candidates.allElementsBoundByIndex.contains { $0.isHittable && $0.identifier != picker }
@@ -62,6 +73,7 @@ enum WorkspaceUITestNavigation {
         let identifier = element.identifier
         var attempts: [String: Int] = [:]
         let editorLeft = app.buttons["configuration.open"].frame.minX
+        let workspaceNavigation = ["configuration.open", "api.open", "configuration.code.toggle", "workspace.more"]
         for _ in 0..<24 {
             guard element.exists else {
                 recordFocusFailure(app, message: "Remote target disappeared: \(identifier)")
@@ -84,8 +96,13 @@ enum WorkspaceUITestNavigation {
             }
             let current = focused.frame
             let target = element.frame
-            let direction: XCUIRemote.Button
-            if current.midX < editorLeft && target.midX >= editorLeft {
+            var direction: XCUIRemote.Button
+            if workspaceNavigation.contains(identifier), focused.identifier.hasPrefix("configuration.code.line.") {
+                // Back returns from the editor to the current fixed tab without
+                // traversing the document or entering the SDK playback controls.
+                XCUIRemote.shared.press(.menu)
+                continue
+            } else if current.midX < editorLeft && target.midX >= editorLeft {
                 // Enter the editor before moving down past AVKit transport controls.
                 direction = .right
             } else if target.maxX < editorLeft && current.midX >= editorLeft && current.minY > target.maxY {
@@ -94,6 +111,13 @@ enum WorkspaceUITestNavigation {
                 // Focus enlargement may overlap an adjacent row's rectangle.
                 direction = target.midY < current.midY ? .up : .down
             } else {
+                direction = target.midX < current.midX ? .left : .right
+            }
+            let verticalStep = "\(focused.identifier)|\(current)|\(direction)"
+            if (direction == .up || direction == .down), attempts[verticalStep, default: 0] > 0,
+               current.maxX < target.minX || target.maxX < current.minX {
+                // A narrow field can be in another column from its header choice.
+                // Align horizontally before repeating a vertical route that did not reach it.
                 direction = target.midX < current.midX ? .left : .right
             }
             let step = "\(focused.identifier)|\(current)|\(direction)"
@@ -159,8 +183,42 @@ enum WorkspaceUITestNavigation {
         try activate(field, in: app)
         let current = field.value as? String ?? ""
         #if !os(tvOS)
-        field.typeKey("a", modifierFlags: .command)
-        field.typeText(text)
+        print("Native input route OS_EDIT_MENU_V17: \(field.identifier); elementType=\(field.elementType.rawValue)")
+        // Use the normal OS edit menu instead of keyboard-navigation shortcuts.
+        // XCTest can report an empty editor's placeholder as its value.
+        field.press(forDuration: 1)
+        let labels = NSPredicate(format: "label IN %@", ["Select All", "すべてを選択"])
+        let buttons = app.buttons.matching(labels)
+        let menuItems = app.menuItems.matching(labels)
+        func selectAll() -> XCUIElement? {
+            (buttons.allElementsBoundByIndex + menuItems.allElementsBoundByIndex).first { $0.isHittable }
+        }
+        let menu = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in selectAll() != nil }, object: app)
+        var result = XCTWaiter.wait(for: [menu], timeout: 5)
+        if result != .completed && !current.isEmpty && current != field.placeholderValue {
+            // A double tap selects a word and exposes the normal OS selection menu.
+            // Keep this route bounded; the complete resulting value is still required.
+            field.doubleTap()
+            let retry = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in selectAll() != nil }, object: app)
+            result = XCTWaiter.wait(for: [retry], timeout: 5)
+        }
+        if result == .completed, let option = selectAll() {
+            option.tap()
+        } else if !current.isEmpty && current != field.placeholderValue {
+            XCTContext.runActivity(named: "Native Select All menu missing for \(field.identifier)") { activity in
+                let hierarchy = XCTAttachment(string: app.debugDescription)
+                hierarchy.name = "native-workspace-input-menu-accessibility"
+                hierarchy.lifetime = .keepAlways
+                activity.add(hierarchy)
+                let screenshot = XCTAttachment(screenshot: app.screenshot())
+                screenshot.name = "native-workspace-input-menu-screen"
+                screenshot.lifetime = .keepAlways
+                activity.add(screenshot)
+            }
+            XCTFail("The nonempty native editor must expose Select All: \(field.identifier)")
+            throw NavigationFailure.unreachable
+        }
+        app.typeText(text)
         #else
         field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count + 5) + text)
         #endif
@@ -184,7 +242,11 @@ enum WorkspaceUITestNavigation {
         #else
         for id in ["workspace.keyboard.done", "offline.keyboard.done", "cast.keyboard.done"] {
             let done = app.buttons[id]
-            if done.exists && done.isHittable { done.tap(); return }
+            if done.exists && done.isHittable {
+                done.tap()
+                XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+                return
+            }
         }
         if app.keyboards.firstMatch.exists {
             let done = app.keyboards.buttons["Done"]

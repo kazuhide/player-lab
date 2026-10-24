@@ -62,8 +62,8 @@ internal fun PlayerWorkspace(controller: PlayerController) {
                 WorkspaceNavigation(tab) { tab = it; focus.clearFocus() }
                 if (keyboardVisible) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text("Editing", style = MaterialTheme.typography.labelMedium)
-                    TextButton(onClick = { focus.clearFocus(); keyboard?.hide() }, modifier = Modifier.testTag("workspace-done")) { Text("Done") }
+                    UiText("Editing", style = MaterialTheme.typography.labelMedium)
+                    TextButton(onClick = { focus.clearFocus(); keyboard?.hide() }, modifier = Modifier.testTag("workspace-done")) { UiText("Done") }
                 }
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     RetainedWorkspacePage(tab == WorkspaceTab.Settings) {
@@ -151,8 +151,10 @@ private fun SourceAndTheme(controller: PlayerController, selectedPreset: String,
 
 @Composable
 private fun PlaybackSummary(controller: PlayerController) {
-    Text("Player: ${if (controller.player.isPlaying) "playing" else if (controller.player.isPaused) "paused" else "not playing"}; source: ${controller.configuredSource?.loadingState ?: "none"}" +
-        (controller.lastErrorCode?.let { "; SDK error $it" } ?: ""),
+    UiText(uiFormat(R.string.ui_current_playback,
+        uiText(if (controller.player.isPlaying) "playing" else if (controller.player.isPaused) "paused" else "not playing"),
+        controller.configuredSource?.loadingState?.toString() ?: uiText("None"),
+        controller.lastErrorCode?.let { uiFormat(R.string.ui_sdk_error, it) } ?: ""),
         style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(12.dp).testTag("playback-summary"))
 }
 
@@ -169,13 +171,13 @@ private fun MoreWorkspace(controller: PlayerController) {
             RetainedWorkspacePage(page == "Playback options") {
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ConfigToggle("Enable live rewind controls", controller.timeShiftEnabled, "allow-dvr", controller::toggleDvr)
-                    Text("App preference for live sources. Rewind also requires SDK live time shifting and an available live window. This does not change video-on-demand playback.", style = MaterialTheme.typography.bodySmall)
+                    UiText("App preference for live sources. Rewind also requires SDK live time shifting and an available live window. This does not change video-on-demand playback.", style = MaterialTheme.typography.bodySmall)
                     WorkspaceHeading("Current playback")
                     PlaybackSummary(controller)
-                    Text("Source type: ${controller.sourceSettings.type}")
-                    Text("Title: ${controller.sourceSettings.title.ifBlank { "Not set" }}")
-                    Text("Autoplay: ${controller.playerSettings.autoplay}; start muted: ${controller.playerSettings.muted}")
-                    Text("Use Settings to change the source or player. APIs provides track selection, playback controls, state and events.", style = MaterialTheme.typography.bodySmall)
+                    UiText(uiFormat(R.string.ui_source_type, controller.sourceSettings.type.toString()))
+                    UiText(uiFormat(R.string.ui_title, controller.sourceSettings.title.ifBlank { uiText("Not set") }))
+                    UiText(uiFormat(R.string.ui_current_settings, controller.playerSettings.autoplay.toString(), controller.playerSettings.muted.toString()))
+                    UiText("Use Settings to change the source or player. APIs provides track selection, playback controls, state and events.", style = MaterialTheme.typography.bodySmall)
                 }
             }
             RetainedWorkspacePage(page == "Live controls") {
@@ -185,15 +187,15 @@ private fun MoreWorkspace(controller: PlayerController) {
                     val currentSourceReady = controller.player.source === controller.configuredSource &&
                         controller.configuredSource?.loadingState == com.bitmovin.player.api.source.LoadingState.Loaded
                     if (controller.dvr.isLive && preset?.isLive != false && currentSourceReady) {
-                        Button(onClick = controller::goToLiveEdge, modifier = Modifier.testTag("live-edge")) { Text("Live edge") }
+                        Button(onClick = controller::goToLiveEdge, modifier = Modifier.testTag("live-edge")) { UiText("Live edge") }
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             listOf(-10.0, -30.0, -60.0).forEach { offset ->
                                 OutlinedButton(onClick = { controller.seek(offset) }, enabled = controller.dvr.dvrAvailable,
-                                    modifier = Modifier.weight(1f).testTag("live-rewind-${offset.toInt()}")) { Text("${offset.toInt()}s") }
+                                    modifier = Modifier.weight(1f).testTag("live-rewind-${offset.toInt()}")) { UiText("${offset.toInt()}s") }
                             }
                         }
-                        if (!controller.dvr.dvrAvailable) Text("Rewind is unavailable for this source or its current configuration.", style = MaterialTheme.typography.bodySmall)
-                    } else Text(if (preset?.isLive == false || currentSourceReady && !controller.dvr.isLive)
+                        if (!controller.dvr.dvrAvailable) UiText("Rewind is unavailable for this source or its current configuration.", style = MaterialTheme.typography.bodySmall)
+                    } else UiText(if (preset?.isLive == false || currentSourceReady && !controller.dvr.isLive)
                         "The current source is video on demand. Live edge and rewind controls are hidden."
                         else "Live controls are unavailable until the current source is loaded as live.", style = MaterialTheme.typography.bodyMedium)
                 }
@@ -205,7 +207,7 @@ private fun MoreWorkspace(controller: PlayerController) {
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ApiStartupPanel(controller)
                     controller.apiCompanionHosts.forEach { host -> key(host.view) {
-                        WorkspaceHeading("Companion: ${host.name}")
+                        WorkspaceHeading(uiFormat(R.string.ui_companion, host.name))
                         AndroidView(factory = { host.view }, onRelease = { (it.parent as? android.view.ViewGroup)?.removeView(it) },
                             modifier = if (host.width == -1) Modifier.fillMaxWidth().heightIn(min = 50.dp, max = 500.dp)
                             else Modifier.width(host.width.dp).height(host.height.dp))
@@ -215,8 +217,8 @@ private fun MoreWorkspace(controller: PlayerController) {
             RetainedWorkspacePage(page == "Diagnostics") {
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     PlaybackSummary(controller)
-                    Text("mode=${controller.dvr.mode.raw}; rewind available=${controller.dvr.dvrAvailable}; behind live=${"%.1f".format(controller.dvr.behindLive)} s; window=${"%.0f".format(controller.dvr.windowDuration)} s", style = MaterialTheme.typography.bodySmall)
-                    controller.log.take(12).forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
+                    UiText("mode=${controller.dvr.mode.raw}; rewind available=${controller.dvr.dvrAvailable}; behind live=${"%.1f".format(controller.dvr.behindLive)} s; window=${"%.0f".format(controller.dvr.windowDuration)} s", style = MaterialTheme.typography.bodySmall)
+                    controller.log.take(12).forEach { UiText(it, style = MaterialTheme.typography.bodySmall) }
                     ApiCallbackOutcomes(controller)
                 }
             }

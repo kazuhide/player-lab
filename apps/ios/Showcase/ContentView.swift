@@ -8,6 +8,9 @@ struct ContentView: View {
     @State private var keyboardVisible = false
     @State private var choicePresented = false
     @State private var editorNeedsRoom = false
+    #if !os(tvOS)
+    @State private var windowSize = CGSize.zero
+    #endif
     @StateObject private var model = PlayerModel(
         licenseKey: bitmovinLicenseKey(),
         analyticsLicenseKey: bitmovinAnalyticsLicenseKey()
@@ -15,7 +18,13 @@ struct ContentView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            #if os(tvOS)
             let sideBySide = geometry.size.width > 650 && geometry.size.width > geometry.size.height
+            #else
+            // The keyboard reduces the available height without rotating the window.
+            let layoutSize = windowSize == .zero ? geometry.size : windowSize
+            let sideBySide = geometry.size.width > 650 && layoutSize.width > layoutSize.height
+            #endif
             let constrainedEditor = editorNeedsRoom && !sideBySide && geometry.size.height < 900
             let compactPreview = typeSize.isAccessibilitySize || keyboardVisible || geometry.size.height < 560 || constrainedEditor
             let contentWidth = max(1, geometry.size.width - 24)
@@ -47,6 +56,7 @@ struct ContentView: View {
             #endif
         }
         #if !os(tvOS)
+        .background(WorkspaceWindowSizeReader(size: $windowSize).accessibilityHidden(true))
         .tint(.workspaceTint)
         #endif
         #if !os(tvOS)
@@ -83,6 +93,52 @@ struct ContentView: View {
     }
 }
 
+#if !os(tvOS)
+/// Reads this view's window so keyboard avoidance does not change the workspace axis.
+private struct WorkspaceWindowSizeReader: UIViewRepresentable {
+    @Binding var size: CGSize
+
+    func makeUIView(context: Context) -> WindowSizeView {
+        let view = WindowSizeView()
+        view.isUserInteractionEnabled = false
+        view.onSizeChange = { size = $0 }
+        return view
+    }
+
+    func updateUIView(_ view: WindowSizeView, context: Context) {
+        view.onSizeChange = { size = $0 }
+        view.publishWindowSize()
+    }
+
+    final class WindowSizeView: UIView {
+        var onSizeChange: (CGSize) -> Void = { _ in }
+        private var previousSize = CGSize.zero
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            previousSize = .zero
+            publishWindowSize()
+        }
+
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            publishWindowSize()
+        }
+
+        func publishWindowSize() {
+            guard let window else { return }
+            let size = window.bounds.size
+            guard size.width > 0, size.height > 0, size != previousSize else { return }
+            previousSize = size
+            DispatchQueue.main.async { [weak self, weak window] in
+                guard let self, let window, self.window === window, window.bounds.size == size else { return }
+                self.onSizeChange(size)
+            }
+        }
+    }
+}
+#endif
+
 private struct PlayerPreview: View {
     @Environment(\.workspaceKeyboardVisible) private var keyboardVisible
     @ObservedObject var model: PlayerModel
@@ -111,16 +167,16 @@ private struct PlayerPreview: View {
                         .font(.caption.weight(.semibold)).lineLimit(1)
                         .accessibilityIdentifier("source.current")
                     Spacer(minLength: 0)
-                    Text(String(format: "Position: %.1fs", model.trackStatus.position))
+                    Text(NativeLocalization.format("Position: %.1fs", model.trackStatus.position))
                         .font(.caption).monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("playback.position")
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 HStack(alignment: .top, spacing: 8) {
-                    Text("Audio: \(model.trackStatus.audio)").accessibilityIdentifier("playback.audio")
+                    Text(NativeLocalization.format("Audio: %@", model.trackStatus.audio)).accessibilityIdentifier("playback.audio")
                     Spacer(minLength: 0)
-                    Text("Subtitles: \(model.trackStatus.subtitles)").accessibilityIdentifier("playback.subtitles")
+                    Text(NativeLocalization.format("Subtitles: %@", model.trackStatus.subtitles)).accessibilityIdentifier("playback.subtitles")
                 }
                 .font(.caption2).foregroundStyle(Color.workspaceSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -151,7 +207,7 @@ private struct PlayerPreview: View {
             .frame(minHeight: 44)
             .accessibilityHint("Changes the player UI and recreates the player")
             #else
-            Button(model.player.isPlaying ? "Pause" : "Play") { model.togglePlayback() }
+            Button((model.player.isPlaying ? "Pause" : "Play").nativeLocalized) { model.togglePlayback() }
                 .accessibilityIdentifier("playback.toggle")
             #endif
             if expanded && maximumHeight < canvasHeight {
@@ -221,7 +277,7 @@ private struct PlayerPreview: View {
         .buttonStyle(.plain)
         .background(Color.workspaceTint.opacity(0.10), in: RoundedRectangle(cornerRadius: 10))
         #endif
-        .accessibilityLabel(title)
+        .accessibilityLabel(title.nativeLocalized)
         .accessibilityIdentifier(id)
     }
 }
@@ -329,6 +385,9 @@ struct ControlPanel: View {
     @ObservedObject var model: PlayerModel
     @State private var tab = NativeWorkspaceTab.settings
     @StateObject private var draft: NativeWorkspaceDraft
+    #if os(tvOS)
+    @FocusState private var navigationFocus: NativeWorkspaceTab?
+    #endif
 
     init(model: PlayerModel) {
         self.model = model
@@ -349,13 +408,16 @@ struct ControlPanel: View {
                     .workspaceVisibility(tab == .more)
             }
             .clipped()
+            #if os(tvOS)
+            .onExitCommand { navigationFocus = tab }
+            #endif
             Divider()
             HStack(spacing: 4) {
                 ForEach(NativeWorkspaceTab.allCases) { item in
                     Button { tab = item } label: {
                         VStack(spacing: 3) {
                             Image(systemName: item.symbol).font(.system(size: 18, weight: .semibold))
-                            Text(item.rawValue).font(.caption.weight(.semibold))
+                            Text(LocalizedStringKey(item.rawValue)).font(.caption.weight(.semibold))
                                 .frame(height: keyboardVisible || typeSize.isAccessibilitySize ? 0 : nil)
                                 .clipped().opacity(keyboardVisible || typeSize.isAccessibilitySize ? 0 : 1)
                         }
@@ -369,15 +431,19 @@ struct ControlPanel: View {
                     }
                     #if os(tvOS)
                     .buttonStyle(.bordered)
+                    .focused($navigationFocus, equals: item)
                     #else
                     .buttonStyle(.plain)
                     #endif
                     .accessibilityIdentifier(item.identifier)
-                    .accessibilityLabel(item.rawValue)
+                    .accessibilityLabel(item.rawValue.nativeLocalized)
                     .accessibilityAddTraits(tab == item ? .isSelected : [])
-                    .accessibilityValue(tab == item ? "Selected" : "")
+                    .accessibilityValue(tab == item ? "Selected".nativeLocalized : "")
                 }
             }
+            #if os(tvOS)
+            .focusSection()
+            #endif
             .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             .padding(.top, 6)
             .frame(height: keyboardVisible && verticalSizeClass == .compact ? 0 : nil)
