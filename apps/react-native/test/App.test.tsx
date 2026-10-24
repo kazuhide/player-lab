@@ -19,6 +19,7 @@ const runtime = vi.hoisted(() => {
     getDuration: ReturnType<typeof vi.fn>;
     setVolume: ReturnType<typeof vi.fn>;
     getVolume: ReturnType<typeof vi.fn>;
+    play: ReturnType<typeof vi.fn>;
   }> };
 });
 
@@ -220,6 +221,22 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it.each(["android", "ios"])("puts the exact %s method first when a query also matches its Player namespace", async (os) => {
+    runtime.os = os;
+    await mount(); await ready();
+    const owner = current();
+    await text("Filter API operations", "play");
+    const choices = screen.root.findAll(node => visible(node) && String(node.type) === "Pressable"
+      && String(node.props.testID).startsWith("api-operation-selector-option-"));
+    expect(choices[0]!.props.testID).toBe("api-operation-selector-option-Player.play");
+    expect(choices.some(choice => choice.props.testID === "api-operation-selector-option-Player.getVolume")).toBe(true);
+    await act(async () => choices[0]!.props.onPress());
+    await tap("api-run");
+    expect(owner.play).toHaveBeenCalledOnce();
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
   it.each(["android", "ios"])("retains the %s player, draft and API inputs in a compact keyboard workspace", async (os) => {
     runtime.os = os;
     await mount(); await ready(); await basicField("source", "title");

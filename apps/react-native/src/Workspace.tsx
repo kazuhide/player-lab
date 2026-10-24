@@ -63,6 +63,13 @@ export function WorkspaceChoice({ label, selected, options, onSelect, testID }: 
   const current = options.find(option => option.id === selected);
   const query = filter.toLocaleLowerCase();
   const matches = options.filter(option => `${option.id} ${option.label} ${translateCopy(option.label, language)}`.toLocaleLowerCase().includes(query));
+  const exactMatch = (option: { id: string; label: string }) =>
+    [option.id, option.label, translateCopy(option.label, language)].some(value => {
+      const normalized = value.toLocaleLowerCase();
+      return normalized === query || normalized.slice(normalized.lastIndexOf(".") + 1) === query;
+    });
+  // A method such as play should precede unrelated matches on the Player namespace.
+  if (query) matches.sort((left, right) => Number(exactMatch(right)) - Number(exactMatch(left)));
   const close = () => { Keyboard.dismiss(); setOpen(false); change(owner, false); };
   return <View style={styles.choice}>
     <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={label}
