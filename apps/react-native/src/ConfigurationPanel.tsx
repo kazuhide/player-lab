@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Keyboard, ScrollView, View } from "react-native";
+import { Keyboard, Platform, ScrollView, View } from "react-native";
 import { Button, Switch, Text, TextInput } from "./localization";
 import type { ConfigurationDraft, NativePlatform } from "./configuration";
 import { WorkspaceAction, WorkspaceChoice, WorkspacePage } from "./Workspace";
@@ -35,6 +35,9 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
   const compactBasicEditing = compactEditing && (group === "source" || group === "player");
   // A newly selected editor starts at its inputs; editing and tab changes keep its position.
   useLayoutEffect(() => { editor.current?.scrollTo({ y: 0, animated: false }); }, [group, selected, sourceEditRequest]);
+  const revealCompactInput = () => editor.current?.scrollToEnd({ animated: false });
+  const compactInputEvents = Platform.OS === "android" && compactBasicEditing
+    ? { onLayout: revealCompactInput, onContentSizeChange: revealCompactInput } : {};
   const groups = [{ id: "source", label: "Source" }, { id: "player", label: "Player" },
     { id: "ui", label: "UI settings" }, { id: "sdk", label: "SDK overrides" }, { id: "arrays", label: "Subtitles and ads" },
     { id: "callbacks", label: "JavaScript callbacks" }, { id: "cast", label: "Cast startup settings" }];
@@ -73,7 +76,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
       {keyboardVisible && !compactEditing && <View style={{ paddingHorizontal: 12, paddingVertical: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Text>Editing</Text><WorkspaceAction title="Done" onPress={() => Keyboard.dismiss()} />
       </View>}
-      <ScrollView ref={editor} testID="configuration-fields-scroll" style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 8 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
+      <ScrollView ref={editor} {...compactInputEvents} testID="configuration-fields-scroll" style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 8 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
       {group === "source" && <>
         {selected === "url" && field("Source URL", "url")}
         {selected === "type" && <>
