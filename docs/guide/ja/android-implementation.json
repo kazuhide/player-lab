@@ -14,11 +14,6 @@
       "text": "この章ではapps/androidのKotlinアプリを使い、プレイヤーの組み込みと変更方法を説明します。Androidのスマートフォン・タブレット、Android TV、AndroidベースのFire TVは同じAndroidアプリとSDKを使います。Vega OSのFire TVは別のVega実装ガイドを参照してください。まずオンデマンド動画を再生し、設定を一つずつ変更して適用済みのKotlinコードと再生結果を比較します。"
     },
     {
-      "type": "note",
-      "title": "表示言語",
-      "text": "アプリは日本語と英語に対応し、OSまたはアプリごとの言語設定に従います。Player Labの画面は日本語表示で撮影しています。外部のBitmovin Dashboardの参考画像は公式の英語画面です。SDKのAPI名、コード、取得したデータは翻訳しません。Player内の標準操作部にはSDK・OS側の言語設定も関係します。"
-    },
-    {
       "type": "links",
       "items": [
         {
@@ -33,7 +28,7 @@
     },
     {
       "type": "p",
-      "text": "このアプリはBitmovin Player Android 3.171.0+jasonを使います。+jasonは、このアプリの広告ライブラリと併用できるようにMedia3の依存先を変更した配布物です。Player、UI、Analytics、MediaSessionの依存関係はapp/build.gradle.ktsの組み合わせを使います。SDKはソフトウェア開発キットの略で、この章ではネイティブのプレイヤーライブラリを指します。アプリのCompose製設定画面とは別のものです。APIは、コードからSDKの設定・再生操作・状態取得を行うためのインターフェースです。"
+      "text": "このアプリはBitmovin Player Android 3.171.0+jasonを使います。+jasonは、同梱の広告ライブラリと併用するためMedia3の依存先を変更した配布物です。Player、UI、Analytics、MediaSessionにはapp/build.gradle.ktsの組み合わせを使います。"
     },
     {
       "type": "table",
@@ -83,7 +78,7 @@
     },
     {
       "type": "p",
-      "text": "PlayerController、PlayerSettings、ApiOverrides、ApiNativeFactoriesはPlayer Labの補助実装であり、SDKの型ではありません。最後のPlayer(context, prepared.config, analytics.playerConfig(...))がSDKのコンストラクターです。補助実装は、新しいPlayerConfigの生成、SDK設定の上書き、必要なAndroidオブジェクトの準備を行います。自分のアプリへ組み込む場合も、Playerを生成する前にSDKの設定を作ります。この呼び出しだけをコピーしても、アプリ側の補助実装がなければ動作しません。"
+      "text": "PlayerController、PlayerSettings、ApiOverrides、ApiNativeFactoriesはPlayer Labの補助実装です。新しいPlayerConfig、上書き、必要なAndroidオブジェクトを準備し、SDKのPlayer(context, prepared.config, analytics.playerConfig(...))を呼びます。再利用時は補助実装も含めるか、同じSDKオブジェクトを自分のコードで生成します。"
     },
     {
       "type": "p",
@@ -97,7 +92,7 @@
     },
     {
       "type": "p",
-      "text": "設定は、編集中の値と適用済みの設定を分けて管理します。設定の種類でソースまたはPlayerを選び、設定項目から一つの入力を開きます。ソースに適用またはプレイヤーに適用は下書きの状態と一緒に表示します。コードで適用済みの値を確認したうえで、以下のSDK設定の生成箇所を参照してください。PlayerDraftとSourceDraftは、アプリの入力を検証して整えるための型です。SDKへ渡すのはそれらのDraftではなくPlayerConfigとSourceConfigです。"
+      "text": "PlayerDraftとSourceDraftは入力を検証・整形するアプリ側の型です。SDKには新しいPlayerConfigとSourceConfigを渡します。編集中の値と適用済み設定を分け、ソースとPlayerを別々に適用します。"
     },
     {
       "type": "h3",
@@ -122,9 +117,9 @@
     {
       "type": "table",
       "headers": [
-        "試す設定",
-        "SDKへの対応",
-        "適用と確認"
+        "設定",
+        "SDKへの対応・既定値",
+        "意味と確認例"
       ],
       "widths": [
         0.22,
@@ -133,35 +128,58 @@
       ],
       "rows": [
         [
-          "自動再生をオフ、ミュートで開始をオン",
-          "PlaybackConfig.isAutoplayEnabled / isMuted",
-          "プレイヤーに適用。Playを押すまで再生されず、ミュートで始まることを確認します。"
+          "自動再生・ミュートで開始",
+          "PlaybackConfig.isAutoplayEnabled / isMuted。既定はいずれもオフ",
+          "ミュートだけをオンにして適用すると、Playを押すまで待機しミュートで始まります。現在の再生操作とは別です。"
         ],
         [
-          "Startup 1秒、Restart 2秒、Forward 10秒",
-          "BufferConfig.startupThreshold / restartThreshold、BufferMediaTypeConfig.forwardDuration",
-          "Playerを再生成します。同じソースで適用済みの値と読み込み・再バッファ時の動作を比較します。"
+          "SDKのライブタイムシフト",
+          "PlaybackConfig.isTimeShiftEnabled。既定はオン",
+          "Player生成時の設定です。その他 → 再生オプションの「ライブの巻き戻し操作を有効にする」は別のアプリ設定で、VODの動作は変えません。"
         ],
         [
-          "自動画質の上限を1500000ビット/秒",
-          "AdaptationConfig.maxSelectableVideoBitrate",
-          "Playerを再生成し、複数のビットレートを含むソースを自動選択で再生して選択結果を確認します。"
+          "バッファー",
+          "BufferConfig.startupThreshold / restartThreshold、BufferMediaTypeConfig.forwardDuration。既定は2.5／5／50秒",
+          "1／2／10秒を試し、同じソースの読み込み・再バッファ時の動作とコードを比べます。"
         ],
         [
-          "Playerの音声優先順位をde, en",
+          "自動画質の最大ビットレート",
+          "AdaptationConfig.maxSelectableVideoBitrate。整数のbit/s、空欄はInt.MAX_VALUE（2147483647）で上限なし",
+          "1500000を試します。自動選択の上限で、手動ではより高い画質を選べます。"
+        ],
+        [
+          "事前読み込み・再バッファリング",
+          "AdaptationConfig.preload / isRebufferingAllowed。既定はいずれもオン",
+          "事前読み込みと再バッファリングを個別に切り替えます。"
+        ],
+        [
+          "ライブの画質と安定性のバランス",
+          "AdaptationConfig.qualityStabilityBalance。0～1、既定は0.5",
+          "ライブ端付近で有効です。1側は安定性、0側は画質を優先します。0.8などを試し、VODとは分けて比較します。"
+        ],
+        [
+          "Playerの音声優先順位",
           "PlaybackConfig.preferredAudioLanguages",
-          "Playerを再生成します。その言語を含むソースで選択トラックを確認します。ソース側の優先順位があれば、そちらが優先されます。"
+          "de, enを試します。空でないソース側リストがあればそちらが優先されます。"
         ],
         [
-          "HTTPの再試行間隔を0, 0.25, 2秒",
-          "RetryHttpRequestConfig.Retry",
-          "Playerを再生成します。各待ち時間に対応する再試行を許可します。通信が成功するだけでは再試行経路は確認できません。"
+          "HTTPの再試行間隔",
+          "RetryHttpRequestConfig.Retry。有限の0以上の秒数を並べます",
+          "0, 0.25, 2は各値につき1回再試行します。空欄はLinearIncreasingBackoffRetry、noneは再試行なしです。"
         ]
       ]
     },
     {
       "type": "p",
-      "text": "StartupとRestartの値は、再生の開始・再開に必要なバッファー内のメディア時間です。その秒数だけ待てば必ず再生が始まるという意味ではありません。標準エディターでは、各値を先読みバッファーより0.5秒以上小さくする必要があります。先読みバッファーを小さくすると保持するメディア量を減らせますが、通信の変動に対する余裕も減ります。メモリ使用量はビットレートやデコーダーにも左右されます。自動画質の上限を設定しても、手動選択できる高画質は消えません。qualityStabilityBalanceはライブ端付近に適用され、1に近いほど安定性、0に近いほど画質を優先します。ビットレートの単位bpsは、1秒あたりのビット数です。"
+      "text": "StartupとRestartは開始・再開に必要なバッファー内のメディア時間で、実時間の待ち時間ではありません。標準エディターでは0以上、先読み量から0.5秒を引いた値以下にし、先読み量は0.5秒以上にします。数値欄は非有限値を受け付けません。"
+    },
+    {
+      "type": "p",
+      "text": "先読み量を小さくすると保持するメディアは減りますが、通信の変動への余裕も減ります。メモリ使用量はビットレートやデコーダーにも依存します。"
+    },
+    {
+      "type": "p",
+      "text": "標準の再試行フィールドはコールバック、要求の認証情報、DRMライセンス更新の再試行を変更しません。それぞれのSDK設定を使います。再試行の比較には、失敗を再現できる管理下のソースが必要です。"
     },
     {
       "type": "figure",
@@ -193,7 +211,7 @@
       "headers": [
         "ソースの設定",
         "SDKへの対応",
-        "再読み込み後の確認"
+        "意味と確認"
       ],
       "widths": [
         0.22,
@@ -204,29 +222,42 @@
         [
           "URLと形式",
           "SourceConfig(url, SourceType)",
-          "実際のマニフェストやファイル形式を選びます。タイトルや拡張子の指定だけで形式は変換されません。"
+          "HTTP(S) URLとDASH／HLS／Smooth／Progressiveを指定します。HTTPの可否は端末の平文通信ポリシーに従います。形式の選択は変換処理ではありません。"
         ],
         [
-          "開始位置を5秒、基準を先頭",
+          "タイトルとポスター",
+          "SourceConfig.title / posterSource / isPosterPersistent",
+          "タイトル・ポスターURLは任意で、空欄ではSDK既定値を使います。ポスターの継続表示も指定できます。"
+        ],
+        [
+          "開始位置",
           "SourceOptions(startOffset, startOffsetTimelineReference)",
-          "オンデマンド動画で再生開始位置を確認します。既定の基準はオンデマンドでは先頭、ライブでは末尾です。範囲外の位置はSDKが補正します。"
+          "秒単位で、空欄はSDK既定値です。既定の基準はVODが先頭、ライブが末尾です。5秒・先頭などを試し、範囲外はSDKが補正します。"
         ],
         [
-          "ソースの音声優先順位をen, de",
+          "ソースの音声優先順位",
           "SourceConfig.preferredAudioLanguages",
-          "空でないソース側リストがPlayer側より優先されます。一致するトラックがなければSDKの選択に従います。"
+          "空でないリストがPlayer側より優先され、空欄はPlayer側を引き継ぎます。一致しなければSDKの既定トラックを使います。"
         ],
         [
-          "外部字幕のURL、ラベル、言語",
+          "外部WebVTT字幕",
           "SourceConfig.subtitleTracksとSubtitleTrack",
-          "再読み込み後、プレイヤーの字幕メニューで有効にします。isDefaultというメタデータだけでは表示されません。"
+          "標準フォームは1本を追加します。isDefaultはメタデータで、再読み込み後に字幕メニューで有効にします。"
         ],
         [
           "ライブの目標遅延",
           "SourceLiveConfig.targetLatency",
-          "ライブソースで確認します。SDKがライブ端とみなす位置を変えます。オンデマンドには適用されず、実際の配信遅延を保証する値でもありません。"
+          "有限の秒数を指定します。空欄はliveConfig = nullでSDK既定値を保ち、VODでは無視されます。"
         ]
       ]
+    },
+    {
+      "type": "p",
+      "text": "音声言語のリストは前後の空白を除き、大文字・小文字を区別せず重複を除いて優先順を保ちます。外部字幕にはHTTP(S)のWebVTT URLと任意の表示名・言語を指定します。URLを外す場合はメタデータも消します。配信内の字幕は引き続き使えます。"
+    },
+    {
+      "type": "p",
+      "text": "ライブ目標遅延はSDKがライブ端とみなす位置を変え、停止を避けながら指定値へ近づけます。ソースの再読み込みで適用し、Player再生成後も保持します。実際の配信遅延やシーク完了・目標値到達までの時間を保証する設定ではありません。確認環境はテスト結果を参照してください。"
     },
     {
       "type": "p",
@@ -257,10 +288,10 @@
     {
       "type": "steps",
       "items": [
-        "ソースに適用はソースを作り直し、現在のPlayerで読み込みます。未適用のPlayer設定は反映しません。",
-        "プレイヤーに適用は新しいPlayerを作り、メタデータと開始位置を含む適用済みソースを読み直します。UIモードとアプリ側の巻き戻し設定は保持しますが、以前の再生位置は維持しません。",
-        "「編集を戻す」は、選択したソースまたはPlayerの編集値を適用済みへ戻します。適用はしません。プリセットを選ぶとカスタムのソース項目とオプションを置き換えます。項目やタブの切り替えでは下書きを保持します。",
-        "コードで標準のPlayerConfig、SourceConfig、PlayerViewConfigを確認します。追加のSDK設定を使った場合は、別のコード → SDKの詳細設定も確認してください。追加の上書き設定は、標準コードにすべて含まれるわけではありません。"
+        "ソースに適用は新しいSourceを同じPlayerで読み込み、未適用のPlayer設定は含めません。プレイヤーに適用は新しいPlayerへ適用済みソースを読み込み、未適用のソース編集は含めません。",
+        "Player再生成後もソースのメタデータ・オプション、UIモード、アプリの巻き戻し設定、イベントログを保ちます。以前の再生位置には戻さず、開始オフセットと自動再生に従います。",
+        "「編集を戻す」は下書きだけを適用済みへ戻します。プリセットはソース項目とオプションを置き換え、Player設定は保持します。項目やタブの切り替えでは下書きが残ります。",
+        "標準のPlayerConfig・SourceConfig・PlayerViewConfigと、別のコード → SDKの詳細設定を併せて確認します。標準コードには追加の上書きすべては含まれません。"
       ]
     },
     {
@@ -279,11 +310,23 @@
     },
     {
       "type": "p",
-      "text": "標準設定にない項目は設定 → 設定の種類 → SDKの詳細設定で機能とSDKの設定項目から選びます。SDK名で検索することもできます。型に合う値を入力して「変更を登録」で仮登録し、「SDK設定を適用」で新しい設定とPlayerを作ります。仮登録だけでは反映しません。上書きは基本設定より優先されます。削除の後に適用を押すと、標準設定またはSDK既定値に戻ります。SourceConfig.subtitleTracksやPlaylistConfig.sourcesのようなリストは、Kotlinを貼り付けるのではなく、要素と子項目を追加して編集します。"
+      "text": "上書きは基本設定より優先されます。SourceConfig.subtitleTracksやPlaylistConfig.sourcesのリストは、要素と子項目を編集して型付きオブジェクトを作ります。字幕のdefault指定だけでは表示を有効にせず、プレイリストの事前読み込みは通信量とメモリ使用量を増やす場合があります。"
     },
     {
       "type": "p",
-      "text": "SDKのコールバックは、SDKから呼び出される関数です。このアプリでは、対応する項目にJavaScript関数の本文を入力します。SDKのコールバックでこの関数を実行し、数値や文字列などの値を受け渡します。例えばLabelingConfig.videoQualityLabelerでは、渡された高さとビットレートから表示名を返せます。適用後に画質メニューを開き、その他 → 診断で呼び出しと代替処理の回数を確認します。インタープリターには実行量の制限があり、AndroidやPlayerのオブジェクトを直接操作できません。これはアプリの補助機能であり、SDK自身が提供するJavaScriptコールバックAPIではありません。"
+      "text": "広告の表示領域、SimpleCache、Cronetなどの項目は実際のAndroidオブジェクトを生成します。CronetはGoogle Play開発者サービスの準備を終えてから適用します。キャッシュ設定は既存データを読むためのもので、通常の再生でキャッシュを蓄積する設定ではありません。"
+    },
+    {
+      "type": "p",
+      "text": "DebugConfig.isLoggingEnabledなどの起動時設定は保存後にアプリ全体を再起動します。現在のプロセスの値と次回起動用の保存値は別に管理します。デバッグログには機密情報が含まれる場合があるためローカルで扱います。"
+    },
+    {
+      "type": "p",
+      "text": "対応するSDKコールバックにはJavaScript関数の本文を入力できます。アプリが数値や文字列などを受け渡して実行し、結果をSDKのコールバックへ返します。LabelingConfig.videoQualityLabelerでは高さとビットレートから表示名を返し、画質メニューを開いた後にその他 → 診断で呼び出し数を確認できます。"
+    },
+    {
+      "type": "p",
+      "text": "評価処理には実行量の制限があり、Java・Android・Playerのオブジェクトへはアクセスできません。不正な戻り値や実行上限には説明された代替動作を使います。呼び出し数が0ならSDKはまだその処理を呼んでいません。これはアプリの補助実装です。"
     },
     {
       "type": "h2",
@@ -308,7 +351,7 @@
     },
     {
       "type": "p",
-      "text": "ThemeはDefault、Sports、Live、Cinemaをこのヘルパーに渡します。スマートフォンとタブレットのDefaultはPlayerViewConfig()を使い、SDKの既定値WebUi / SmallScreenUiになります。テレビ端末ではPlayer LabがTvUiとfocusUiOnInitialization = trueを明示します。SDKの既定値自体がTvUiを自動選択するわけではありません。Customモードは端末にかかわらず登録したfactoryと同梱JavaScript/CSSを使い、画面が横長になってもTV用操作には変わりません。再利用するレイアウトはpackages/ui-shared/src/liveUi.tsで構成を変え、global.tsにfactoryを登録し、UiModeまたはSDKのCustom factory設定から選びます。"
+      "text": "ThemeはDefault、Sports、Live、Cinemaを上のヘルパーへ渡します。独自UIを追加する場合はpackages/ui-shared/src/liveUi.tsで構成し、global.tsへfactoryを登録して、UiModeまたはSDKのCustom factory設定から選びます。モバイルとTVの既定UIは後述の表に示します。"
     },
     {
       "type": "table",
@@ -357,7 +400,11 @@
     },
     {
       "type": "p",
-      "text": "PlayerViewConfig.uiConfigやUiConfig.WebUiは設定 → 設定の種類 → SDKの詳細設定から編集できます。TvUi・SmallScreenUiの選択とカスタムファクトリー名は同時指定できないため、どちらか一方を登録します。UiConfig.DisabledでWeb UIを無効にする場合は、先にWebUi配下の上書きを削除してから適用します。これはビュー設定の変更ですが、このアプリの「SDK設定を適用」という共通操作ではPlayerも再生成します。Composeだけで再生操作を作る場合はPlayer.play・pause・seekへ接続し、再生状態のイベントも購読します。Web UIを無効にしただけで、その操作部が作られるわけではありません。"
+      "text": "PlayerViewConfig.uiConfigとUiConfig.WebUiはSDKの詳細設定から編集できます。TvUi・SmallScreenUiとCustom factoryは同時に登録できません。UiConfig.Disabledを使う前にはWebUi配下の上書きを削除します。"
+    },
+    {
+      "type": "p",
+      "text": "ビュー設定の変更でも「SDK設定を適用」はPlayerを再生成します。Composeだけで操作部を作る場合はPlayer.play・pause・seekへ接続し、再生状態を購読します。Web UIの無効化だけでは操作部は作られません。"
     },
     {
       "type": "code",
@@ -422,7 +469,7 @@
         ],
         [
           "PlayerView内のSDK操作",
-          "Defaultはタッチ向けのSDK SmallScreenUiを使います。",
+          "Defaultはタッチ向けのSDK SmallScreenUiを使います。 PlayerViewConfig()の既定値であり、SDKがTVを自動選択するわけではありません。",
           "DefaultはWebUi(variant = TvUi, focusUiOnInitialization = true)を明示し、UIFactory.buildTvUIとWebViewの空間ナビゲーションを使います。"
         ],
         [
@@ -439,7 +486,11 @@
     },
     {
       "type": "p",
-      "text": "このサンプルは既存のandroidx.compose.material3の操作部を調整します。自分のアプリにTV専用の表示先を作る場合は、androidx.tv:tv-materialのandroidx.tv.material3.Buttonなどを使えます。TV用とモバイル用には別のMaterialThemeがあるため、その表示面のテーマを揃えます。TV用Composableへ切り替える場合もPlayerの所有者と設定の状態を再利用します。すべての操作へD-padで到達でき、フォーカス中と選択済みを区別できる必要があります。選択欄や内容の変更後にフォーカスを戻し、ComposeとSDK WebViewの間の移動を確認します。focusUiOnInitializationはWebView初期化時の要求であり、アプリ全体の復元方針はホスト側が管理します。"
+      "text": "このサンプルは既存のandroidx.compose.material3の操作部を調整しています。TV専用の表示先を作る場合は、androidx.tv:tv-materialのandroidx.tv.material3.Buttonなども使えます。TVとモバイルには別のMaterialThemeがあるため、表示面ごとに揃え、Playerの所有者と設定状態は再利用します。"
+    },
+    {
+      "type": "p",
+      "text": "すべての操作へD-padで到達でき、フォーカス中と選択済みを区別できるようにします。選択欄や内容の変更後にフォーカスを戻し、ComposeとSDK WebViewの間の移動を確認します。focusUiOnInitializationはWebView初期化時の要求で、アプリ全体の復元はホストが管理します。"
     },
     {
       "type": "p",
@@ -447,7 +498,11 @@
     },
     {
       "type": "p",
-      "text": "TVのBackは、公開Android APIであるViewGroup.dispatchKeyEventを使い、フォーカス中のSDKビューへ入力を届けるホスト側の処理です。現在のプレビューにフォーカスがあり、全画面・ピクチャーインピクチャーでない場合、KEYCODE_ESCAPEのACTION_DOWNとACTION_UPを先に送り、その後ソースへフォーカスを戻します。キーを離すイベントで、画質の子画面を含むSDK設定メニューを閉じて初期化します。ネイティブダイアログや画面キーボードのBackは、それぞれのウィンドウが先に処理します。他のD-pad・Select入力は通常のフォーカス経路へ渡します。"
+      "text": "TVのBackは、公開Android APIのViewGroup.dispatchKeyEventでフォーカス中のSDKビューへ届けます。現在のプレビューがフォーカスを持ち、全画面・PiPでない場合にKEYCODE_ESCAPEのACTION_DOWNとACTION_UPを送り、ソースへフォーカスを戻します。キーを離すイベントで画質の子画面を含むSDKメニューを閉じて初期化します。"
+    },
+    {
+      "type": "p",
+      "text": "ネイティブダイアログや画面キーボードは、それぞれのウィンドウでBackを先に処理します。他のD-pad・Select入力は通常のフォーカス経路へ渡します。"
     },
     {
       "type": "code",
@@ -462,7 +517,15 @@
     },
     {
       "type": "p",
-      "text": "ネイティブ入力欄と選択ダイアログは、画面キーボードを表示した後にフォーカスを戻します。TVではConfigFieldのキーボードの完了とワークスペースの完了が同じ処理を使い、キーボードを閉じ、選択欄の再表示を待ってからソースへ戻ります。Backは選択欄へ戻ります。スマートフォンは通常のキーボード完了処理を保ち、レコード編集ダイアログの完了はそのウィンドウ内にフォーカスを保つため、編集画面から飛び出しません。検索ダイアログはWindowInsets.isImeVisibleで表示状態を調べ、最初の候補または閉じるへ戻します。TVのフローティングキーボードは、表示中でもIME高さが0になる場合があるためです。ダイアログを閉じたり、検索語・選択値・候補が変わったりすれば、その復帰を中止します。ワークスペースでは、編集対象とPlayer・ビューの所有者が現在も同じであることも確認します。画面キーボードを表示しない物理キーボードでの編集は、通常のカーソル・矢印操作を維持します。"
+      "text": "TVではConfigFieldのキーボードの完了とワークスペースの完了が同じ処理を使います。画面キーボードを閉じ、選択欄の再表示を待ってからソースへ戻ります。Backは選択欄へ戻ります。"
+    },
+    {
+      "type": "p",
+      "text": "検索ダイアログはWindowInsets.isImeVisibleでキーボード表示を調べ、最初の候補か閉じるへ戻します。TVのフローティングキーボードは表示中でもIME高さが0の場合があるためです。ダイアログの終了や検索語・選択値・候補の変更で復帰を中止します。ワークスペースでは編集対象とPlayer・ビューの所有者が今も同じかを確認します。"
+    },
+    {
+      "type": "p",
+      "text": "スマートフォンは通常のキーボード完了処理を保ち、レコード編集ダイアログはそのウィンドウ内にフォーカスを保ちます。画面キーボードを使わない物理キーボードでは、通常のカーソル・矢印操作を維持します。"
     },
     {
       "type": "p",
@@ -480,7 +543,11 @@
     {
       "type": "note",
       "title": "確認したTV環境とプラットフォームのサービス",
-      "text": "1920 × 1080のAndroid TV API 36エミュレーター上の通常アプリで、SDK TvUiの表示、ネイティブの選択・文字入力、SDK設定メニュー内のBack、MediaSession有効・無効時の専用メディアキー、編集値と再生オブジェクトの保持を確認しました。TV画像はこの環境で取得しています。物理Android TV・Fire TVの視距離、安全余白、各ハードウェアデコーダーの動作を保証するものではありません。選択したCronet providerなどGoogle Play services依存の項目はFire TVで別途確認します。Vega OSは別のVegaアプリを使います。"
+      "text": "1920 × 1080のAndroid TV API 36エミュレーターの通常アプリで、SDK TvUi、ネイティブの選択・文字入力、SDKメニュー内のBack、MediaSession有効・無効時のメディアキー、下書きと再生オブジェクトの保持を確認しました。TV画像もこの環境で取得しています。"
+    },
+    {
+      "type": "p",
+      "text": "実機のAndroid TV・Fire TVでは視距離、安全余白、ハードウェアデコーダーを別途確認します。選んだCronet providerなどGoogle Play servicesに依存する項目もFire TVでの確認が必要です。Vega OSは別のVegaアプリを使います。"
     },
     {
       "type": "h2",
@@ -495,7 +562,7 @@
     },
     {
       "type": "p",
-      "text": "APIで操作・状態・イベントを切り替え、分類とAPIの選択欄から対象を開きます。操作は現在のPlayer、ソース、接続済みのPlayerViewのSDK APIを呼び出します。検索で候補を絞っても、現在選択中の実行対象を明示します。まず関連する状態と直近のイベントで比較し、状態の「SDKの状態を更新」で詳しい値を読み取ります。イベントは発生回数とSDKタイムスタンプを記録します。コマンドの送信結果だけでは、実際の再生で操作が完了したかは分かりません。"
+      "text": "実行時APIは現在のPlayer、Source、接続済みPlayerViewを操作します。状態の更新はその時点のSDK値を読み取り、イベントは発生回数とSDK時刻を記録します。非同期処理の完了は、呼び出し結果に加えて完了イベントと状態を確認します。"
     },
     {
       "type": "table",
@@ -534,20 +601,19 @@
     },
     {
       "type": "p",
-      "text": "PlayerViewのon/next/offはFullscreenEnter/ExitなどビューのUIイベントを購読します。再生・ソースのイベントはビュー購読へ転送せず、PlayerとSourceのEventsで記録します。PlaylistApi.seekのtimeは秒単位のSeekTarget.offsetです。Startは0以上、Endは0以下を使い、SDKが範囲外を境界へ補正します。nullはソースの既定参照、useSeekTarget=falseはSDKへnullのtargetを渡します。"
+      "text": "PlayerViewのon/next/offはFullscreenEnter/ExitなどのUIイベントを購読します。再生・ソースのイベントはビューへ転送せず、PlayerとSourceで記録します。"
     },
     {
       "type": "p",
-      "text": "ホストのVRレンダラーはPlayerViewをデコーダー付きOpenGL面へ置き換え、無効にすると戻します。更新スクリプトは{delta, viewingDirection}を受け、{text?, move?: {phi,x,y}}またはnullを返します。deltaは秒です。everyFramesはスクリプト実行頻度を制限し、SDKのフレーム時計は表示更新に従います。コールバックはレンダラーとともに解除します。app:vr-rendererの状態でデコード済みフレームとコールバックの観測値を確認します。"
+      "text": "PlaylistApi.seekのtimeは秒単位のSeekTarget.offsetです。Startは0以上、Endは0以下を使い、範囲外はSDKが境界へ補正します。nullはソースの既定参照、useSeekTarget=falseはSDKへnullのtargetを渡します。"
     },
     {
-      "type": "steps",
-      "items": [
-        "再生位置を比較する前に、VODのHLSまたはDASHソースを選択して適用し、再生を開始します。",
-        "その場でシークするには操作でPlayer.seekを選び、例えば5秒を指定してAPIを実行を押します。",
-        "状態でPlayer.currentTimeを検索し、「SDKの状態を更新」でシーク後の実際の時刻を確認します。続いてシークや再生に対応するイベントを調べます。",
-        "トラックや画質の変更では、先にSDKが返す候補のIDを確認し、そのIDを対応するコマンドへ渡して選択結果を読み直します。入力だけでメディアに含まれない画質が増えることはありません。"
-      ]
+      "type": "p",
+      "text": "VRレンダラーはPlayerViewをデコーダー付きOpenGL面へ置き換え、無効にすると戻します。対応ソースのVR content typeが必要です。コールバックはレンダラーとともに解除し、app:vr-rendererでデコード済みフレームと実行状況を確認します。"
+    },
+    {
+      "type": "p",
+      "text": "更新スクリプトは{delta, viewingDirection}を受け、{text?, move?: {phi,x,y}}またはnullを返します。deltaは秒です。everyFramesはスクリプト実行頻度を制限し、SDKのフレーム時計は表示更新に従います。"
     },
     {
       "type": "figure",
@@ -621,7 +687,15 @@
     },
     {
       "type": "p",
-      "text": "PiPはPicture-in-Pictureの略で、OSが他のアプリの上へ小さな映像ウィンドウを表示する機能です。このアプリではManifestで許可し、MainActivityがonPictureInPictureModeChangedを有効なビューへ転送します。ハンドラーを設定しても、すべてのOSやTVで使えるようになるわけではありません。MediaSessionはプレイヤーをAndroidのシステムメディア操作へ接続する仕組みで、別の機器へ再生を移すCastとは異なります。保護されたコンテンツのオフライン再生には、ライセンスの許可とSDKのダウンロード・ライセンス状態も必要です。"
+      "text": "PiPはOSが他のアプリの上へ小さな映像ウィンドウを表示する機能です。Manifestで許可し、MainActivityがonPictureInPictureModeChangedを有効なビューへ転送します。OSやTVによっては使えません。MediaSessionはPlayerをAndroidのシステムメディア操作へ接続し、別端末へ再生を移すCastとは別です。"
+    },
+    {
+      "type": "p",
+      "text": "オフラインのマネージャーは固定のコンテンツIDで管理します。ダウンロードは選択した端末・通信条件がそろうまで待つ場合があり、トラックごとの操作は明示的に選択します。管理オブジェクトの解放は保存ファイルを残し、コンテンツ削除はそのIDのキャッシュを取り除きます。"
+    },
+    {
+      "type": "p",
+      "text": "保護素材には権利、ライセンスサービス、空き容量が必要です。ライセンスのdownload・renew・releaseとメディア保存の完了を別々に確認します。高度なオフラインソース生成はSDK管理の保存内容を取り込んだりライセンスを発行したりしません。通常の保存済み再生は、対応するキャッシュ・トラック情報をSDKから受け取る「ダウンロード済みソースを再生」を使います。"
     },
     {
       "type": "figure",
@@ -696,7 +770,7 @@
     {
       "type": "note",
       "title": "アプリの再開時やTVで動作が違う場合は？",
-      "text": "ホストはライフサイクル通知を渡しますが、それだけで自動的に再生を再開するとは限りません。スマートフォン向けエミュレーターでの確認では、アプリに戻った後も一時停止が続いたため、必要に応じてPlayを使います。TVではフォーカス、リモコンのキー、SDKのUIバリアントをタッチ操作とは別に確認します。TVランチャーの宣言、エミュレーターでの結果、SDKコマンドの存在だけでは、TV実機やCast受信機で再生できたかは確認できません。"
+      "text": "ホストがライフサイクル通知を渡しても、自動的に再生を再開するとは限りません。SDK 3.171.0のスマートフォン向けエミュレーターでは、復帰後も一時停止状態が続きました。TVではフォーカス、リモコン入力、UIバリアントを個別に確認します。エミュレーターの結果やTVランチャーの宣言だけでは、実機やCast受信機の再生を確認できません。"
     },
     {
       "type": "links",
@@ -727,7 +801,11 @@
     },
     {
       "type": "p",
-      "text": "ApiAnalyticsSettings.playerConfigはAnalyticsConfigを作り、DefaultMetadataを含むAnalyticsPlayerConfig.Enabled、または無効を返します。この値をSDKのPlayerコンストラクターへ渡します。呼び出し例は「Androidプレイヤーの組み込み」を参照してください。Analytics設定パネルにはビルド時のキー、関連ライセンスを取得、無効があり、Analyticsに適用はPlayerを再生成します。上書きがない場合、関連ライセンスを取得はSDKのDEFERRED指定を渡し、SDKがPlayerライセンスに関連づけられた有効なAnalyticsライセンスを取得します。この選択だけで収集を確認したことにはならないため、収集機能の状態とDashboardの対応セッションを確認してください。"
+      "text": "ApiAnalyticsSettings.playerConfigはAnalyticsConfigから、DefaultMetadataを含むAnalyticsPlayerConfig.Enabledまたは無効を返します。これをSDKのPlayerコンストラクターへ渡します。"
+    },
+    {
+      "type": "p",
+      "text": "設定パネルのモードはビルド時のキー、関連ライセンスを取得、無効です。「Analyticsに適用」でPlayerを再生成します。上書きがなければ関連ライセンスを取得はDEFERREDを渡し、SDKがPlayerライセンスに関連づいた有効なAnalyticsライセンスを取得します。収集の成否は状態とDashboardの対応セッションで確認します。"
     },
     {
       "type": "links",
@@ -751,7 +829,11 @@
     },
     {
       "type": "p",
-      "text": "SDKの各ソースを生成するときに、このSourceMetadataをAnalyticsSourceConfig.Enabledへ渡します。再生前に固定のvideoIdと分かりやすいtitleを設定すると、Dashboardでコンテンツを探しやすくなります。既定のメタデータはcdnProviderとcustomUserId、ソースのメタデータはtitle、videoId、cdnProvider、path、isLiveを扱います。どちらにもcustomDataとexperimentNameがあります。これらは収集用メタデータであり、プレイヤーUI用のSourceConfig.titleとは別です。個人情報や機密情報を含まないテスト識別子を使ってください。"
+      "text": "Sourceの生成時にSourceMetadataをAnalyticsSourceConfig.Enabledへ渡します。再生前に固定のvideoIdと分かりやすいtitleを指定すると、Dashboardで探しやすくなります。プレイヤーUI用のSourceConfig.titleとは別のメタデータです。"
+    },
+    {
+      "type": "p",
+      "text": "既定のメタデータはcdnProvider・customUserId、ソースのメタデータはtitle・videoId・cdnProvider・path・isLiveを扱います。どちらにもcustomDataとexperimentNameがあります。個人情報や機密情報を含まないテスト識別子を使います。"
     },
     {
       "type": "steps",
@@ -765,7 +847,7 @@
     {
       "type": "figure",
       "file": "analytics-dashboard-overview",
-      "caption": "公式BitmovinデモDashboardのダミーデータです。収集したセッションはライセンス、期間、フィルターで探します。現行Dashboardとは表記が異なる場合があります。この画像はPlayer Labの収集結果ではありません。© Bitmovin。"
+      "caption": "Bitmovin Dashboardの英語UI。公式BitmovinデモDashboardのダミーデータです。収集したセッションはライセンス、期間、フィルターで探します。現行Dashboardとは表記が異なる場合があります。この画像はPlayer Labの収集結果ではありません。© Bitmovin。"
     },
     {
       "type": "links",

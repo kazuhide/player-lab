@@ -14,21 +14,12 @@
       "text": "このガイドは、iOSとtvOSで共有するapps/ios/ShowcaseのSwiftUIアプリを参照します。Playerは再生を管理するSDKのインスタンスで、映像はビュー・レイヤー・コントローラーで表示します。PlayerConfigはPlayer、SourceConfigは再生するコンテンツ、PlayerViewConfigはPlayerViewの設定です。SwiftUIはAppleの画面作成用フレームワークで、iOSのPlayer内で動くHTMLベースのBitmovin Player Web UIとは別のものです。"
     },
     {
-      "type": "note",
-      "title": "表示言語",
-      "text": "アプリは日本語と英語に対応し、OSまたはアプリごとの言語設定に従います。Player Labの画面は日本語表示で撮影しています。外部のBitmovin Dashboardの参考画像は公式の英語画面です。SDKのAPI名、コード、取得したデータは元の表記を保ちます。Player内の標準操作部にはSDK・OS側の言語設定も関係します。"
-    },
-    {
-      "type": "p",
-      "text": "ここでのSDKは、アプリへ組み込む再生ライブラリーを指します。APIは、そのライブラリーを設定・操作するための公開されたクラス・プロパティ・メソッドです。フォームはAPIを試すための画面です。PlayerSettingsやSourceSettingsなどの補助実装はアプリの状態を管理する型で、SDK自体の設定型ではありません。"
-    },
-    {
       "type": "steps",
       "items": [
-        "「ローカル実行とライセンス設定」を済ませ、XcodeでShowcase-iOSまたはShowcase-tvOSをビルドします。このアプリはPlayer 3.128.0を固定し、iOS・iPadOS 16.0以降とtvOS 15.0以降を対象にしています。同じ結果を比較するときは、このリポジトリの依存バージョンを使います。",
-        "実行するターゲットに合わせ、Playerライセンスでcom.playerlab.iosまたはcom.playerlab.tvosを許可します。実機では署名も設定します。Analyticsは別のライセンスを使います。設定方法は実装ガイドの「Analytics / Observability」を参照してください。",
-        "起動したら「ソース」からVOD HLSを選び、「再生」を押します。初期状態では自動再生が無効、ミュートが有効です。iOS・iPadOSでは「Playerを拡大」でプレビューを大きくできます。映像と、プレビューの近くに表示される再生位置が進むことを確認してから設定を比較します。",
-        "設定を開きます。適用の後にコードを選ぶと、SDKへ渡した設定を確認できます。編集中の値は含めず、ライセンス値は置き換え用の文字列で表示します。"
+        "ローカル実行とライセンス設定を済ませ、Showcase-iOSまたはShowcase-tvOSをビルドします。Player 3.128.0を固定し、iOS・iPadOS 16.0以降、tvOS 15.0以降を対象にしています。初回のプロジェクト生成はsync-env.sh、共有UIの同期、xcodegen generateの順に進めます。",
+        "Playerライセンスに、対象のcom.playerlab.iosまたはcom.playerlab.tvosを許可します。実機は署名も設定します。Analyticsには別のライセンスが必要です。",
+        "PlayerConfigを作り、PlayerModelでPlayerを保持します。表示先を接続し、SourceConfigから作ったソースを読み込みます。以下のコードと参照先が、この順序を実装しています。",
+        "起動後にVOD HLSを再生し、映像と再生位置が進むことを確認します。コード画面には適用済み設定とライセンスのプレースホルダーを表示します。"
       ]
     },
     {
@@ -38,7 +29,11 @@
     },
     {
       "type": "p",
-      "text": "ContentViewはPlayerModelを@StateObjectで保持するため、SwiftUIの画面更新ごとにPlayerを作り直しません。PlayerPreviewはNativePresentationSurface、ソースの選択欄、再生位置を表示します。ControlPanelは下書きを保持しながら設定・API・コード・その他を切り替えます。幅のある横向き画面ではプレビューと操作領域を左右に並べます。onAppearでは、まだソースが選ばれていない場合だけプリセットを読み込みます。SwiftUIのbodyを評価するたびにSDKのPlayerを生成しないようにします。"
+      "text": "ContentViewはPlayerModelを@StateObjectで保持し、SwiftUIの再描画でPlayerを作り直しません。onAppearは、ソースが未選択の場合だけプリセットを読み込みます。"
+    },
+    {
+      "type": "p",
+      "text": "PlayerPreviewはNativePresentationSurface、ソース選択欄、再生位置を表示します。ControlPanelは下書きを保持しながら設定・API・コード・その他を切り替えます。幅のある横向き画面ではプレビューと操作領域を左右に並べます。"
     },
     {
       "type": "code",
@@ -96,40 +91,45 @@
     {
       "type": "table",
       "headers": [
-        "編集する項目",
-        "SDKでの反映先",
-        "試す内容と確認箇所"
+        "設定",
+        "SDKへの対応・入力条件",
+        "意味と確認例"
       ],
       "rows": [
         [
-          "再生 → 自動再生 / ミュートで開始",
-          "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted",
-          "初期状態の自動再生を無効から有効へ変え、ミュートで開始は有効のまま適用を押します。適用済みと異なるPlayer設定がある場合に再生成し、自動でミュート再生が始まることを確認します。すべての値が適用済みと同じ場合は「適用」が無効になります。"
+          "自動再生・ミュートで開始",
+          "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted。既定は無効／有効",
+          "自動再生を有効にして適用するとPlayerを再生成します。現在のミュート変更には実行時APIを使います。"
         ],
         [
-          "画質・バッファ → 最大ビットレート",
-          "PlayerConfig.adaptationConfig.maxSelectableBitrate。整数のbit/sで、0は上限なし",
-          "複数画質のあるHLSで1500000を試します。適用済みコードとAPIの画質状態を比較します。特定の映像トラックを強制する設定ではありません。"
+          "ライブの巻き戻し",
+          "PlayerConfig.playbackConfig.isTimeShiftEnabled。既定は有効",
+          "SDKの生成時設定です。その他 → ライブの操作にあるアプリのクイックシーク許可とは別です。"
         ],
         [
-          "画質・バッファ → 先読みバッファ",
-          "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration。秒で、0はSDKに任せる",
-          "10を入力して適用を押し、適用済みコードと再生中のバッファー状態を確認します。設定値は目標であり、実際の蓄積量が常に同じになるわけではありません。"
+          "最大ビットレート",
+          "PlayerConfig.adaptationConfig.maxSelectableBitrate。整数のbit/s、0は上限なし",
+          "複数画質のHLSで1500000を試します。特定の画質を強制する設定ではありません。"
         ],
         [
-          "ソース → URL・type・タイトル・ポスター画像",
-          "SourceConfig(url:type:)・title・posterSource",
-          "メディアURLは変えずにタイトルを変更します。適用はソースを再読み込みします。タイトルはメタデータで、音声や字幕のトラックを追加しません。"
+          "先読みバッファ",
+          "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration。有限の0以上の秒数、0はSDKに任せる",
+          "10秒で適用済みコードと再生中の状態を比較します。実際の蓄積量を固定する値ではありません。"
         ],
         [
-          "開始位置 → offset・reference",
-          "SourceConfig.options.startOffset / startOffsetTimelineReference",
-          "VODでは5秒・先頭を試します。ライブでは負の値・終端を使います。SDKは指定位置をメディアの境界に合わせて調整することがあります。"
+          "ソースURL・形式・タイトル・ポスター",
+          "SourceConfig(url:type:)・title・posterSource。URLはHTTP(S)の絶対URL",
+          "タイトルとポスターの空欄は値を外します。メタデータの変更ではトラックは増えません。"
         ],
         [
-          "設定 → SDKの詳細設定 → Player・ソース・viewのプロパティ",
-          "Player・ソース・ビューを生成・読み込みする前に、対応するSDKのプロパティへ反映",
-          "API名で検索して「上書き」を有効にし、値を入力して適用を押します。「上書き」を無効にして適用を押すと、基本フォームの値またはSDK既定値へ戻ります。"
+          "開始位置",
+          "SourceConfig.options.startOffset / startOffsetTimelineReference。正負の有限の秒数、空欄はSDK既定値",
+          "自動はVODで先頭、ライブでライブ端を基準にし、再生開始時に適用します。5秒・先頭や負の値・終端を試せます。SDKがメディア境界へ補正する場合があります。"
+        ],
+        [
+          "SDKの詳細設定",
+          "Player・ソース・viewの対応プロパティへ、生成・読み込み前に反映",
+          "有効な上書きは基本フォームより優先します。無効にして適用すると基本値またはSDK既定値へ戻ります。"
         ]
       ]
     },
@@ -149,6 +149,14 @@
       "text": "PlayerSettingsはアプリ側で値を保持する型で、configはSDKのPlayerConfigです。末尾のadvanced.applyは基本項目の後に追加設定を反映するため、有効な上書きが優先することがあります。基本項目を比較するときは、同じSDKプロパティの上書きが残っていないか確認してください。入力中の値は、検証に成功して適用を実行するまでSDKへ反映しません。"
     },
     {
+      "type": "p",
+      "text": "SourceConfig.tracksは字幕オブジェクトの配列で、identifierは重複させません。空の配列は追加トラックを削除し、上書きの無効化は明示的な設定自体を外します。ファイルを使う場合はHTTP(S) URLとwebVttなどの形式を指定します。"
+    },
+    {
+      "type": "p",
+      "text": "ファイルやキューを持たない手動トラックは、追加後に字幕のキューAPIで表示時刻と内容を設定します。外部字幕の描画はUIに依存し、tvOSのSystem UIではHLS内の字幕と同じ表示経路になりません。"
+    },
+    {
       "type": "code",
       "title": "ソースフォームからSourceConfigを作る",
       "text": "    func makeSourceConfig(callbackJournal: NativeCallbackJournal? = nil) -> SourceConfig {\n        let config = SourceConfig(url: url, type: type.sdkType)\n        config.title = title.isEmpty ? nil : title\n        config.posterSource = posterURL\n        if let startOffset { config.options.startOffset = startOffset }\n        config.options.startOffsetTimelineReference = timelineReference.sdkValue\n        advanced.apply(to: config, callbackJournal: callbackJournal)\n        return config\n    }",
@@ -161,7 +169,7 @@
     },
     {
       "type": "p",
-      "text": "Apple端末内の再生ではHLSまたはプログレッシブMP4を使います。プリセットはHLSです。URLの解釈はソース形式で指定するため、末尾が.mp4であってもProgressive MP4の選択は必要です。プログレッシブ形式でシークする場合は、配信サーバーのHTTPバイト範囲要求への対応も確認します。このアプリはApple端末内のDASH再生を受け付けません。"
+      "text": "Apple端末内の再生はHLSとプログレッシブMP4に対応し、プリセットはHLSです。MP4はURLの拡張子にかかわらずProgressive MP4を選び、シークに必要なHTTPバイト範囲要求への配信サーバーの対応も確認します。固定したSDKにDASHを読み込ませるとprecondition failureでアプリが終了するため、SourceKindにDASHの列挙値があってもカタログには追加しません。"
     },
     {
       "type": "code",
@@ -176,7 +184,11 @@
     },
     {
       "type": "p",
-      "text": "effect(for:)はアプリ側の判断であり、SDKのメソッドではありません。ビューの上書きを含むPlayerSettingsの変更ではPlayerと表示先を再生成し、保持しているソース設定を読み込みます。ソースだけの変更では、現在のPlayerへ新しいソースを読み込みます。どちらも指定した開始位置またはSDK既定位置から自動再生に従って始めるため、変更前の再生位置や再生中・停止中の状態は保持しません。「適用済みの値に戻す」（文字を拡大すると「戻す」）は編集中の値だけを戻します。ソースプリセットを選ぶと独自のソース設定と初期トラック設定を初期化し、Player設定は保持します。"
+      "text": "effect(for:)はアプリ側の判断です。ビューの上書きを含むPlayerSettingsの変更ではPlayerと表示先を再生成し、タイトル・ポスター・開始位置を含むソース設定を読み込みます。ソースだけの変更では同じPlayerへ新しいソースを読み込みます。"
+    },
+    {
+      "type": "p",
+      "text": "どちらも開始位置と自動再生に従って再開し、以前の位置や再生状態は保持しません。UIモード、アプリのライブ巻き戻し設定、イベントログは保持します。プリセットはソース項目と初期トラックを初期化し、Player設定は保持します。"
     },
     {
       "type": "h3",
@@ -190,11 +202,15 @@
     },
     {
       "type": "p",
-      "text": "音声と字幕の確認には、必要なHLSのトラックを含むコンテンツを使います。設定 → 音声・字幕でde-ATなどの音声言語を入力し、字幕は自動・オフ・指定言語を選びます。アプリは言語タグ全体を優先し、なければ主言語を照合するため、de-ATでdeを選ぶことがあります。一致するトラックがなければSDK・OSの選択を維持します。実際の結果はその他 → 音声・字幕で確認します。テストストリームの言語名はトラックを識別するラベルであり、翻訳音声を示すものではありません。"
+      "text": "初期トラックはPlayerConfigの追加プロパティではなく、availableAudio・availableSubtitlesとsetAudio・setSubtitleで選択します。音声の空欄と字幕の自動はSDK・OSの選択を保ち、字幕オフはnilを渡します。言語タグ全体、主言語の順に照合するためde-ATがdeに一致する場合があり、一致しなければ既定の選択を維持します。"
     },
     {
       "type": "p",
-      "text": "通常のソース読み込みでは、アプリは同じソースについてSourceLoaded（ソースの読み込み完了）とReady（再生の準備完了）の両方を確認してから初期トラックを選びます。検証したPlayer 3.128.0ではReadyが先に届く場合があるため、通知の順序を固定せずに扱っています。初期選択はソースごとに一度だけ行い、その後の利用者やAPIによるトラック変更を上書きしません。"
+      "text": "vod-multiaudioにはEnglish・Germanの音声メタデータとHLSのWebVTT字幕があります。音声名は検証用のラベルで、翻訳音声ではありません。iOSとtvOSで共通に試す場合はHLS内の字幕を使います。"
+    },
+    {
+      "type": "p",
+      "text": "通常の読み込みでは、対象ソースのSourceLoadedとReadyを両方記録してから一度だけ初期選択を行います。確認したPlayer 3.128.0のHLSでは、SourceLoadedで選んだGermanがReadyの前にEnglishへ戻る場合があり、Readyが先に届く場合もありました。通知の順序に依存せず両方を待つことで、その後の利用者やAPIによる選択を上書きせずに適用します。このSDKとテスト素材で確認した挙動です。"
     },
     {
       "type": "p",
@@ -208,7 +224,11 @@
     {
       "type": "note",
       "title": "保護コンテンツと外部サービス",
-      "text": "FairPlayで保護したHLSでは、追加設定のSourceConfig.drmConfigでfairplayを選び、証明書URLとサービスが要求するライセンスURLを指定します。必要に応じて認証ヘッダーや送受信データを変換するコールバックも設定します。フォームはFairplayConfigを作りますが、証明書・視聴権限・ライセンスサーバーを用意するものではありません。Apple版にあるWidevine・PlayReadyの項目は受信側向けの設定で、Apple端末内での対応形式を増やしません。DRMはDigital Rights Managementの略で、暗号化したメディアへのアクセスを許可する仕組みです。"
+      "text": "FairPlayで保護したHLSでは、SourceConfig.drmConfigでfairplayを選び、証明書URLとライセンスURLを指定します。サービスに応じて認証ヘッダーや送受信データの変換コールバックも設定します。フォームはFairplayConfigを作り、証明書・視聴権限・ライセンスサーバーは別に用意します。"
+    },
+    {
+      "type": "p",
+      "text": "DRM（Digital Rights Management）は暗号化メディアへのアクセスを許可する仕組みです。Apple版のWidevine・PlayReady項目は受信側向けで、Apple端末内の対応方式は増えません。"
     },
     {
       "type": "h2",
@@ -257,7 +277,11 @@
     },
     {
       "type": "p",
-      "text": "NativePresentationSurfaceは両ターゲットでSDKのVideoPlayerView、そのバインディング付きビュー、PlayerView、AVPlayerLayer、AVPlayerViewControllerを切り替えます。VideoPlayerViewはBitmovin SDKが提供するSwiftUIの映像表示ビューです。UIKit／AVKitの表示先はUIViewRepresentable／UIViewControllerRepresentableを介して、同じBitmovin Playerへ登録します。SwiftUIの再描画や配置変更だけでPlayerを作り直さず、レイヤーやコントローラーを外すときも登録時と同じPlayerを対象にします。"
+      "text": "NativePresentationSurfaceは両ターゲットでSDKのVideoPlayerView、バインディング付きビュー、PlayerView、AVPlayerLayer、AVPlayerViewControllerを切り替えます。VideoPlayerViewはSDKのSwiftUI映像ビューです。"
+    },
+    {
+      "type": "p",
+      "text": "UIKit／AVKitの表示先はUIViewRepresentable／UIViewControllerRepresentableを介して同じBitmovin Playerへ登録します。SwiftUIの再描画や配置変更ではPlayerを作り直さず、表示先を外すときも登録時と同じPlayerを対象にします。"
     },
     {
       "type": "h3",
@@ -266,41 +290,11 @@
     },
     {
       "type": "p",
-      "text": "アプリの背景とPlayerのThemeは独立しています。Color.workspaceBackgroundはiOS／iPadOSのsystemGroupedBackground、tvOSのライト／ダークに対応した不透明な中立色を使います。背景だけをsafe areaの外まで延ばし、操作領域のOS余白は維持します。固定のpreferredColorSchemeは設定しません。ガイド画像は端末のライト外観で撮影条件を揃えています。tvOSの選択sheetはisFocusedを読んで文字色を調整し、ネイティブButtonのフォーカス強調と方向キー移動は保ちます。Light／Darkの両方で、フォーカス中と非フォーカスの選択肢を確認してください。"
+      "text": "アプリの背景とPlayerのThemeは独立しています。Color.workspaceBackgroundはiOS・iPadOSでsystemGroupedBackground、tvOSでライト／ダークに対応する不透明な中立色を使います。背景だけをsafe areaの外へ延ばし、操作領域のOS余白は維持します。preferredColorSchemeは固定しません。"
     },
     {
       "type": "p",
-      "text": "ワークスペースの短いヒントは単位、入力例、直ちに起こる再読み込みを示します。設定の詳細、非同期完了の確認、オフライン／Cast／SharePlayの前提条件は画面操作ガイドへ移しています。APIの生の識別子、引数、返り値、所有者、エラーはそのまま表示します。"
-    },
-    {
-      "type": "table",
-      "headers": [
-        "変更したいもの",
-        "現在の実装",
-        "画面での試し方"
-      ],
-      "rows": [
-        [
-          "iOS・iPadOSの映像に重なる操作部",
-          "SDKのWeb UI、または同梱したJavaScript・CSSの共有UIファクトリー",
-          "テーマで標準・Sports・Live (DVR)・Cinemaを選びます。追加設定のStyleConfig・BitmovinUserInterfaceConfigも確認します。"
-        ],
-        [
-          "tvOSの操作部とリモコン用メニュー",
-          "共有Web UIではなく、ネイティブのSystem UI",
-          "追加設定のSystemUserInterfaceConfigを使います。実行時のSystemUiApi操作ではNative PlayerViewを選びます。"
-        ],
-        [
-          "映像の周囲にあるアプリのボタン・フォーム・文字",
-          "SwiftUIのContentView・ControlPanel・ConfigurationEditor・ApiInspector",
-          "SDKのテーマ設定ではなくアプリ側のコードです。配置やフォントを変える場合はSwiftUIのビューを編集して再ビルドします。"
-        ],
-        [
-          "映像の表示先とネイティブの振る舞い",
-          "SDKのVideoPlayerView・バインディング付きSwiftUIビュー・PlayerView・AVPlayerLayer・AVPlayerViewController",
-          "「API」の「表示方法」で使う表示先を選びます。「表示方法のコード」では対応するSDKの組み込み例を確認できます。"
-        ]
-      ]
+      "text": "tvOSの選択sheetはisFocusedで文字色を調整し、ネイティブButtonのフォーカス強調と方向キー移動を保ちます。ライト／ダーク両方で、フォーカス中と非フォーカスの選択肢を確認します。"
     },
     {
       "type": "h3",
@@ -309,7 +303,7 @@
     },
     {
       "type": "p",
-      "text": "iOS・iPadOSでは同じソース設定のままSportsを選び、標準と比較します。モードを変えるとPlayerを再生成してソースを読み込むため、変更前の再生位置は保持しません。Sportsの表示内容は架空のサンプルです。JavaScriptの関数名でファクトリーを選び、StyleConfigでJavaScriptとCSSのリソースURLを指定します。tvOSはuserInterfaceTypeに.systemを設定し、共有Web UIのモード選択は表示しません。"
+      "text": "iOS・iPadOSのテーマはJavaScriptの関数名でファクトリーを選び、StyleConfigでJavaScriptとCSSのリソースURLを指定します。Sportsのスコアや選手情報は架空のサンプルです。tvOSはuserInterfaceTypeを.systemにし、共有Web UIのテーマ選択欄を表示しません。"
     },
     {
       "type": "code",
@@ -358,11 +352,15 @@
     },
     {
       "type": "p",
-      "text": "映像の拡大方法は操作部のテーマとは別です。全体表示は映像全体を表示し、余白が出ることがあります。画面に合わせてトリミングはSDKの.zoomに対応し、縦横比を保って端を切り取ります。「縦横に引き伸ばす」は縦横比を変えて枠を埋めます。映像と表示枠の縦横比を変えて比較してください。基本フォームは再生成時にStyleConfig.scalingModeへ渡します。バインディング付きSwiftUI・レイヤー・コントローラーの表示先では、APIから現在の拡大方法も操作できます。"
+      "text": "映像の拡大方法はThemeとは別です。既定の全体表示は映像全体を収め、トリミングはSDKの.zoomで縦横比を保って端を切り取り、引き伸ばしは縦横比を変えて枠を埋めます。基本フォームは生成時のStyleConfig.scalingModeへ渡します。バインディング付きSwiftUI・レイヤー・コントローラーでは、APIから現在の拡大方法も変更できます。"
     },
     {
       "type": "p",
-      "text": "UIKitへ直接組み込む場合は、「API」→「表示方法」で「表示方法の設定」を選び、Native PlayerViewに切り替えます。「表示方法のコード」で組み込み例を確認できます。NativePlayerSurfaceは保持しているPlayerを使ってPlayerViewを作り、FullscreenHandlerを保持して設定し、制約でビューを配置します。終了時には全画面を解除し、イベントの登録を外してplayerView.playerをnilにします。AVPlayerLayerとAVPlayerViewControllerはplayer.register(...)で登録し、終了時は登録した同じPlayerと表示先の組み合わせを解除します。AVPlayerLayer自体は映像を描くもので、再生操作部は持ちません。"
+      "text": "NativePlayerSurfaceは保持中のPlayerからPlayerViewを作り、FullscreenHandlerを保持して設定し、制約でビューを配置します。API → 表示方法でNative PlayerViewを選び、「表示方法のコード」で組み込み例を確認できます。"
+    },
+    {
+      "type": "p",
+      "text": "終了時は全画面を解除し、イベント登録を外してplayerView.playerをnilにします。AVPlayerLayerとAVPlayerViewControllerはplayer.register(...)で登録し、終了時に同じPlayerと表示先の組み合わせを解除します。AVPlayerLayerには再生操作部はありません。"
     },
     {
       "type": "code",
@@ -382,7 +380,11 @@
     },
     {
       "type": "p",
-      "text": "tvOSのUI変更では、追加設定のSystemUserInterfaceConfigにあるshowSeekBarやshowInfoViewsなどを使います。SystemUiApiのメニュー・アクションを実行時に操作する場合は、Native PlayerViewとSystem UIを選びます。アプリは構造化した入力からネイティブのメニューやアクションを作ります。contextualActionsとinfoViewActionsはアクションを受け付け、transport barのメニューは階層化できます。ネイティブの操作部を開いて結果を確認してください。Player外のSwiftUIの検証ボタンを変更する場合は、SDK設定ではなくContentViewを編集します。"
+      "text": "tvOSの操作部にはSystemUserInterfaceConfigのshowSeekBar・showInfoViewsなどを使います。実行時のSystemUiApiにはNative PlayerViewとSystem UIが必要です。"
+    },
+    {
+      "type": "p",
+      "text": "構造化した入力からネイティブのメニューとアクションを作ります。contextualActions・infoViewActionsはアクションを受け付け、transport barのメニューは階層化できます。Player外のSwiftUIの検証ボタンはContentViewで変更します。"
     },
     {
       "type": "h3",
@@ -391,7 +393,11 @@
     },
     {
       "type": "p",
-      "text": "tvOSのコード表示は、折り返した各行へフォーカスを移して全文を読めるようにしています。方向キーだけでタブへ戻ろうとすると、長いコード欄を移動したり、Apple標準のAVKitの再生画面へ入ったりする場合があります。ControlPanelは編集領域にonExitCommandを指定し、SwiftUIのFocusStateに現在のタブを設定します。FocusStateはフォーカスの位置を管理する状態です。各タブのボタンはfocusedでこの状態へ結び付けています。タブを並べるHStackにもfocusSectionを設定し、左右の操作で隣のタブへフォーカスを移せるようにしています。戻る／メニューボタンでそのタブへ戻り、左右と決定で画面を切り替えられます。"
+      "text": "tvOSのコード表示は折り返した各行へフォーカスを移せます。方向キーだけでタブへ戻ると、長いコード欄やAVKitの再生画面を通る場合があります。ControlPanelは編集領域のonExitCommandで、フォーカス位置を管理するFocusStateを現在のタブに設定します。"
+    },
+    {
+      "type": "p",
+      "text": "各タブのfocusedをその状態へ結び付け、HStackのfocusSectionでタブをまとめます。Back/Menuで現在のタブへ戻り、左右とSelectで切り替えます。"
     },
     {
       "type": "p",
@@ -418,7 +424,7 @@
     },
     {
       "type": "p",
-      "text": "生成済みのPlayerを操作する機能はAPIで試します。操作は引数と実行対象をAPIを実行の近くに表示し、検索は候補だけを絞ります。関連するSDKの状態と直近のイベントで反映を確認できます。状態の更新は現在値を読み取り、イベントは通知を記録します。Playerの生成方法と映像の表示先は表示方法で別に設定します。呼び出しが成功しても、非同期の処理が完了したとは限りません。確認中のPlayerとソースについて、操作後の状態と完了・エラーイベントを確認します。"
+      "text": "実行時APIは生成済みのPlayer・ソース・表示先を操作します。非同期処理は、対象の所有者に対応する状態と完了・エラーイベントで確認します。生成方法や表示先を変える場合はAPI → 表示方法で別に設定します。"
     },
     {
       "type": "figure",
@@ -436,7 +442,7 @@
         [
           "プレイリスト：到達できる対応形式のソース",
           "その他 → ツール → プレイリストでソースの編集値を作り、プレイリストを読み込みます。次・前・追加・削除・シークを比較します。",
-          "各編集値からSDKのソースを作り、player.load(playlistConfig:)とplayer.playlistでキューを操作します。ソース一覧とPlaylistTransitionEventを確認します。編集値の保存だけでは読み込みません。"
+          "各編集値からSDKのソースを作り、player.load(playlistConfig:)とplayer.playlistでキューを操作します。ソース一覧とPlaylistTransitionEventを確認します。編集値の保存だけでは読み込みません。 先読みは通信量とメモリ使用量を増やす場合があります。"
         ],
         [
           "Picture-in-Picture（PiP）：対応OS・端末とアプリ設定",
@@ -484,7 +490,15 @@
     {
       "type": "note",
       "title": "オフラインHLS：iOS・iPadOS",
-      "text": "設定でオンデマンドのHLSとDRM設定を適用してからその他 → ツール → オフラインHLSを開きます。OfflineManagerは保存した設定でアプリ起動時に初期化するため、プロセス全体の起動設定を変えた後はアプリを完全に終了して開き直します。適用済みソースをオフライン保存の対象として選び、トラックを取得・選択してダウンロードを開始し、進捗・offlineState・イベントを確認します。完了後にOfflineSourceConfigを作ってキャッシュから読み込みます。tvOSにはこのパネルを用意していません。ダウンロードとオフライン再生の検証には実機のiPhone・iPadを使います。記録済みのシミュレーター実行では初期化とトラック取得まで成功しましたが、メディアのダウンロードは完了していません。オフラインのFairPlayには対応する永続ライセンスのサービスも必要です。"
+      "text": "OfflineManagerは、保存したプロセス共通の設定でアプリ起動時に初期化します。初回設定後や起動設定の変更後はアプリ全体を再起動します。オンデマンドHLSのトラックを取得・選択して保存し、完了後にOfflineSourceConfigを作って読み込みます。tvOSにはこのパネルを用意していません。"
+    },
+    {
+      "type": "p",
+      "text": "検証には実機のiPhone・iPadを使います。SDK 3.128.0とiOS 27のシミュレーターでは初期化とトラック取得まで成功しましたが、メディアのダウンロードは完了しませんでした。オフラインFairPlayには永続ライセンスに対応したサービスが必要で、更新・同期には対応するDRM設定も必要です。"
+    },
+    {
+      "type": "p",
+      "text": "移行用コールバックのinput.identifierとinput.urlは文字列です。置換する識別子の文字列を返し、失敗時は元の識別子を保ちます。アプリの制限付き評価処理で実行し、SDKの状態によっては操作が何も行わない場合があります。別アセットへの切り替えは画面のlistenerだけを外し、ダウンロードは取り消しません。"
     },
     {
       "type": "figure",
@@ -494,7 +508,11 @@
     {
       "type": "note",
       "title": "Google Cast：iOS・iPadOS",
-      "text": "その他 → ツール → Google Castで受信アプリと探索の設定を行い、Castを初期化してからRemoteControlConfig.isCastEnabledを有効にします。初期化はプロセス全体に対する処理なので、設定変更後はPlayerの再生成ではなくアプリ全体の再起動が必要です。受信側の再生には対応するCast受信機・ローカルネットワークの許可・受信機が読み込めるメディアとDRMも必要です。独自の受信アプリではBonjourのサービス登録とネイティブの再ビルドが必要になる場合があります。initialized・available・connectedを分けて確認し、その後に受信側の再生イベントを確認します。tvOS版にはこのCastパネルを組み込んでいません。"
+      "text": "Castの初期化後にRemoteControlConfig.isCastEnabledを有効にします。初期化はプロセス共通なので、変更はPlayerの再生成では反映せず、アプリ全体の再起動時に反映します。initialized・available・connectedと受信側の再生イベントをそれぞれ確認します。"
+    },
+    {
+      "type": "p",
+      "text": "Google Cast 4.8.6を固定し、iOS 16以降で使います。受信側の再生には対応する端末、ローカルネットワークの許可、受信側が読めるメディア・DRMが必要です。独自の受信アプリはInfo.plistへ_APPID._googlecast._tcpを登録して再ビルドします。既定の受信アプリ用の登録は含めています。tvOS版にはCastを組み込んでいません。"
     },
     {
       "type": "figure",
@@ -503,7 +521,11 @@
     },
     {
       "type": "p",
-      "text": "SharePlayはその他 → SharePlayで試します。セッションの受信を開始し、必要に応じて現在のソースのアクティビティを開始します。OSが生成した実際のセッションを選び、現在のPlayerを同期対象にするまたは同期対象にして参加を実行します。参加側のソースには同じSourceConfig.options.sharePlayIdentifierを設定します。次のコードのselectedSessionは、OSが生成したセッションを取得します。アプリ独自の代替オブジェクトは使いません。アクティビティを開始すると、現在のソースURLとタイトルを共有します。OSの利用条件・Group Activitiesの署名設定・適切なシステムセッションが必要です。参加状態と同期再生は参加端末でも確認します。"
+      "text": "SharePlayではOSが作った実際のセッションを取得し、player.sharePlay.coordinate(with:)へ渡します。次のselectedSessionはその取得処理です。参加するソースはSourceConfig.options.sharePlayIdentifierを一致させます。"
+    },
+    {
+      "type": "p",
+      "text": "アクティビティの開始は現在のソースURLとタイトルを共有します。OSの利用条件、Group Activitiesの署名設定、対応するシステムセッションが必要です。参加状態と同期再生は参加端末でも確認します。"
     },
     {
       "type": "code",
@@ -523,7 +545,11 @@
     },
     {
       "type": "p",
-      "text": "イベント処理を組み込むときは、SDKの対象インスタンスが有効な間だけ購読を保持し、その対象を置き換える前に解除します。APIはlistenerとpublisherの購読方式を切り替えられます。次のlistener方式ではplayer.add/removeがSDKのAPIで、playerApiListenerとrecordApiEventはアプリの補助実装です。通知元が現在のPlayerと同じかを確認し、破棄したPlayerから遅れて届いた通知が新しいPlayerの画面を更新しないようにします。ソースとビューのlistenerでも同じ確認を行います。再生状態を処理する購読と、表示件数を制限したイベント履歴は分けて扱います。"
+      "text": "イベントの購読はSDKの対象が有効な間保持し、対象を置き換える前に解除します。次のlistener方式ではplayer.add/removeがSDKのAPI、playerApiListenerとrecordApiEventがアプリの補助実装です。API画面はlistenerとpublisherの方式を切り替えられます。"
+    },
+    {
+      "type": "p",
+      "text": "通知元が現在のPlayerと同じかを確認し、破棄したPlayerの遅延通知で新しい画面を更新しないようにします。ソースとビューでも同様に確認します。再生状態を処理する購読と、件数を制限した表示用履歴は分けて扱います。"
     },
     {
       "type": "code",
@@ -555,7 +581,7 @@
     {
       "type": "note",
       "title": "ビルドできてもライセンスエラーで再生できません。",
-      "text": "コンパイルではPlayerの認証を行いません。実行したターゲットの実際のbundle identifierが、そのビルドで使うPlayerライセンスに許可されているかを確認します。ローカル設定の同期と認証先への通信も確認します。追加設定でPlayerConfig.keyを上書きしている場合は、その値が優先します。独自メディアを調べる前に参照用HLSでも比較し、エラー報告や共有コードへキーを含めないようにします。"
+      "text": "コンパイルではPlayerの認証を行いません。実行したターゲットの実際のbundle identifierが、そのビルドで使うPlayerライセンスに許可されているかを確認します。ローカル設定の同期と認証先への通信も確認します。追加設定でPlayerConfig.keyを上書きしている場合は、その値が優先します。独自メディアを調べる前に参照用HLSでも比較し、エラー報告や共有コードへキーを含めないようにします。 コンパイル専用の空のLocal.xcconfigには再生ライセンスがありません。"
     },
     {
       "type": "note",
@@ -580,7 +606,7 @@
     {
       "type": "note",
       "title": "ライブの巻き戻しが無効、または位置が補正されるのはなぜですか？",
-      "text": "再生を開始し、ソースがライブで、有効な巻き戻し範囲を持つか確認します。ライブの巻き戻しと「ライブの巻き戻し操作を許可」は別のスイッチです。負のオフセットはライブ端からの距離で、VODの先頭からの時刻ではありません。利用できるメディアの境界へSDKが位置を補正することがあります。停止中の位置が保持範囲から外れるとアプリはライブ端へ戻し、ライブがVOD化した後はその復帰処理を行いません。配信元で削除したメディアを操作部から復元することはできません。"
+      "text": "再生を開始し、ライブソースに巻き戻せる範囲があるか確認します。SDKのライブの巻き戻しと、アプリの「ライブの巻き戻し操作を許可」は別のスイッチです。負のオフセットはライブ端からの距離で、SDKがメディア境界へ補正します。停止位置が保持範囲から外れるとDvrWindowExceededでライブ端へ戻します。DurationChangedだけで検出できないライブ終了もTimeChangedの状態で確認し、VOD化後はこの復帰処理を止めます。配信元で削除されたメディアは復元できません。"
     },
     {
       "type": "note",
@@ -612,7 +638,7 @@
     },
     {
       "type": "p",
-      "text": "現在のアプリは、ローカル設定から任意のAnalyticsライセンスを受け取ります。PlayerModel.makePlayerでStandardを選んだ場合は、値があればAnalyticsConfig(licenseKey:)を使い、空の場合はAnalytics設定を明示しないファクトリーを呼びます。CoreとLegacyでは先に処理を終えるため、この有効化処理を通りません。このアプリと同じ方法でAnalyticsを有効にする場合はStandardを使います。他の組み込み方で収集機能を接続できないという意味ではありません。"
+      "text": "PlayerModel.makePlayerのStandardは、ローカル設定のAnalyticsライセンスがあればAnalyticsConfig(licenseKey:)を渡し、空ならAnalytics設定を明示しないファクトリーを呼びます。CoreのPlayerCoreFactoryとLegacyの非推奨PlayerFactory.createは、このラッパーを追加せずに処理を終えます。このアプリの収集設定を使う場合はStandardを選びます。"
     },
     {
       "type": "code",
@@ -637,7 +663,7 @@
     {
       "type": "figure",
       "file": "analytics-dashboard-overview",
-      "caption": "ライセンス・期間・コンテンツの絞り込みを示すBitmovin公式デモDashboard。ダミーデータと以前のレイアウトで、Player Labのセッション結果ではありません。© Bitmovin。"
+      "caption": "Bitmovin Dashboardの英語UI。ライセンス・期間・コンテンツの絞り込みを示すBitmovin公式デモDashboard。ダミーデータと以前のレイアウトで、Player Labのセッション結果ではありません。© Bitmovin。"
     },
     {
       "type": "links",

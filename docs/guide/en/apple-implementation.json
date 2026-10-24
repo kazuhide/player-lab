@@ -14,21 +14,12 @@
       "text": "This guide follows the SwiftUI app in apps/ios/Showcase, shared by the iOS and tvOS targets. Player is the SDK playback instance; a view, layer or controller presents its video. PlayerConfig describes the instance, SourceConfig describes one media source, and PlayerViewConfig describes a PlayerView. SwiftUI is Apple’s native UI framework; it is separate from the HTML-based Bitmovin Player Web UI used inside the iOS player."
     },
     {
-      "type": "note",
-      "title": "Display language",
-      "text": "The app supports English and Japanese through the system or per-app language preference. This guide uses captures from the English app. SDK identifiers, code and returned data retain their original spelling. The standard Player controls also depend on SDK and system language settings."
-    },
-    {
-      "type": "p",
-      "text": "Here SDK means the playback library integrated into your app. API means the public classes, properties and methods you use to configure or operate it. The form is a way to try those APIs; PlayerSettings, SourceSettings and other Lab helpers organize the app’s state and are not additional SDK configuration types."
-    },
-    {
       "type": "steps",
       "items": [
-        "Complete Local setup and licenses, then build Showcase-iOS or Showcase-tvOS in Xcode. The app pins Player 3.128.0 and targets iOS/iPadOS 16.0 or later and tvOS 15.0 or later. Use the dependency versions in this repository when reproducing a result.",
-        "Allow com.playerlab.ios or com.playerlab.tvos on the Player license for the selected target. Configure signing for a physical device. Analytics uses a separate license; see Analytics / Observability in this implementation guide.",
-        "Run the app, choose VOD HLS under Source and press Play. Autoplay is initially off and mute is on. On iOS or iPadOS, use Expand player if the preview is compact. Check that Position beside the preview advances before comparing another setting.",
-        "Open Settings. After Apply, choose Code to inspect the configuration actually sent to the SDK. The code excludes unapplied drafts and replaces license values with placeholders."
+        "Complete Local setup and licenses, then build Showcase-iOS or Showcase-tvOS. The app pins Player 3.128.0 and targets iOS/iPadOS 16.0+ and tvOS 15.0+. For initial project generation, run sync-env.sh, synchronize the shared UI, then run xcodegen generate.",
+        "Allow com.playerlab.ios or com.playerlab.tvos on the Player license for the target. Configure signing on a physical device. Analytics needs a separate license.",
+        "Create PlayerConfig and retain the Player in PlayerModel. Attach the presentation, then load a source created from SourceConfig. The code and source links below show this order.",
+        "Run VOD HLS and check that the picture and position advance. Code displays applied settings with license placeholders."
       ]
     },
     {
@@ -38,7 +29,11 @@
     },
     {
       "type": "p",
-      "text": "ContentView retains PlayerModel with @StateObject so a SwiftUI redraw does not create another player. PlayerPreview presents NativePresentationSurface, the source selector and current position. ControlPanel switches between Settings, APIs, Code and More while keeping their draft state. In a wide landscape layout, preview and workspace are side by side. The onAppear call loads a preset only if a source has not already been selected. Do not create a new SDK Player each time a SwiftUI body is evaluated."
+      "text": "ContentView retains PlayerModel with @StateObject across SwiftUI redraws. onAppear loads a preset only when no source has been selected."
+    },
+    {
+      "type": "p",
+      "text": "PlayerPreview displays NativePresentationSurface, Source and Position. ControlPanel switches between Settings, APIs, Code and More while retaining drafts. Wide landscape layouts place preview and workspace side by side."
     },
     {
       "type": "code",
@@ -96,40 +91,45 @@
     {
       "type": "table",
       "headers": [
-        "Where to edit",
-        "SDK mapping",
-        "Try and inspect"
+        "Setting",
+        "SDK mapping and input",
+        "Meaning and example"
       ],
       "rows": [
         [
-          "Playback → Autoplay / Start muted",
-          "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted",
-          "From the startup defaults, turn Autoplay on while keeping Start muted on, then Apply. A changed player setting recreates the player; check that playback starts automatically and remains muted. If all values match the applied configuration, Apply is disabled."
+          "Autoplay / Start muted",
+          "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted; defaults off/on",
+          "Enabling Autoplay and applying recreates the Player. Change current mute with runtime APIs."
         ],
         [
-          "Quality and buffer → Maximum bitrate",
-          "PlayerConfig.adaptationConfig.maxSelectableBitrate; whole bit/s, 0 means unlimited",
-          "Try 1500000 on an adaptive HLS source. Compare applied code and available/current quality through the APIs; this does not force a specific rendition."
+          "Live time shift",
+          "PlayerConfig.playbackConfig.isTimeShiftEnabled; default on",
+          "SDK creation-time setting, separate from the app quick-seek preference in More → Live controls."
         ],
         [
-          "Quality and buffer → Forward buffer",
-          "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration; seconds, 0 uses SDK choice",
-          "Try 10, Apply, then inspect applied code and buffer state during playback. A target does not promise a fixed actual buffer size."
+          "Maximum bitrate",
+          "PlayerConfig.adaptationConfig.maxSelectableBitrate; whole bit/s, 0 = unlimited",
+          "Try 1500000 on adaptive HLS. It does not force one rendition."
         ],
         [
-          "Source → URL, type, title, poster",
-          "SourceConfig(url:type:), title, posterSource",
-          "Change title without changing the media URL. Apply reloads the source. A title is metadata and does not create audio or subtitle tracks."
+          "Forward buffer",
+          "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration; finite nonnegative seconds, 0 = SDK choice",
+          "Try 10 seconds and compare applied code with playback state. It does not fix the actual buffered amount."
         ],
         [
-          "Start position → offset and reference",
-          "SourceConfig.options.startOffset / startOffsetTimelineReference",
-          "On VOD, use 5 seconds with Start. On live, use a negative value with End. The SDK can adjust the requested position to media boundaries."
+          "Source URL, type, title and poster",
+          "SourceConfig(url:type:), title, posterSource; absolute HTTP(S) URL",
+          "Blank title/poster removes those values. Metadata does not add tracks."
         ],
         [
-          "Settings → Advanced SDK → Player, Source or view property",
-          "The corresponding typed SDK property, applied before creating/loading its owner",
-          "Search the exact API name, enable Override, enter a valid value and Apply. Disable the override and Apply to restore the basic form value or SDK default."
+          "Start position",
+          "SourceConfig.options.startOffset / startOffsetTimelineReference; signed finite seconds, blank = SDK default",
+          "Automatic references the start for VOD and live edge for live, at playback startup. Try 5 seconds/Start or a negative value/End. The SDK may correct to media boundaries."
+        ],
+        [
+          "Advanced SDK",
+          "Typed Player, Source or view properties, applied before creation/loading",
+          "Enabled overrides take precedence over basic fields. Disable and Apply to restore basic values or SDK defaults."
         ]
       ]
     },
@@ -149,6 +149,14 @@
       "text": "PlayerSettings is the app’s value model; config is an SDK PlayerConfig. The final advanced.apply call applies enabled additional settings after the basic fields, so an enabled override can take precedence. When comparing a basic field, check that an override for the same SDK property is not still enabled. Values typed into the editor remain drafts until validation succeeds and Apply runs."
     },
     {
+      "type": "p",
+      "text": "SourceConfig.tracks takes subtitle objects with unique identifiers. An empty array clears additional tracks; disabling the override removes the explicit setting. File tracks need an HTTP(S) URL and a format such as webVtt."
+    },
+    {
+      "type": "p",
+      "text": "A manual track without a file or cues needs timing and content supplied through the subtitle cue APIs. External-subtitle rendering depends on the UI and does not provide the native HLS rendering route in tvOS System UI."
+    },
+    {
       "type": "code",
       "title": "Create a SourceConfig from the source form",
       "text": "    func makeSourceConfig(callbackJournal: NativeCallbackJournal? = nil) -> SourceConfig {\n        let config = SourceConfig(url: url, type: type.sdkType)\n        config.title = title.isEmpty ? nil : title\n        config.posterSource = posterURL\n        if let startOffset { config.options.startOffset = startOffset }\n        config.options.startOffsetTimelineReference = timelineReference.sdkValue\n        advanced.apply(to: config, callbackJournal: callbackJournal)\n        return config\n    }",
@@ -161,7 +169,7 @@
     },
     {
       "type": "p",
-      "text": "Use HLS or progressive MP4 for local Apple playback. The preset catalog uses HLS. The Source type field determines how the URL is interpreted; an .mp4 suffix alone is not a substitute for choosing Progressive MP4. For seeking in progressive media, the server also needs suitable HTTP byte-range behavior. This app does not accept DASH for local Apple playback."
+      "text": "Local Apple playback accepts HLS and progressive MP4; presets use HLS. Choose Progressive MP4 regardless of the URL suffix and check server support for HTTP byte-range seeking. Loading DASH with the pinned SDK causes a precondition failure and terminates the app, so do not add DASH to the catalog even though SourceKind has that enum case."
     },
     {
       "type": "code",
@@ -176,7 +184,11 @@
     },
     {
       "type": "p",
-      "text": "effect(for:) is an app policy, not an SDK method. A changed PlayerSettings, including view overrides, recreates the Player and surface, then loads the retained source configuration. Source-only changes load a new Source on the existing Player. Both paths restart at the configured offset or SDK default and follow Autoplay; the app does not preserve the current position or playing state. Reset to applied (Reset at enlarged text sizes) only resets the draft. Selecting a source preset clears its custom source fields and initial track preferences while keeping player settings."
+      "text": "effect(for:) is app policy. PlayerSettings changes, including view overrides, recreate the Player and presentation, then reload the source with its title, poster and start options. Source-only changes load a new Source on the same Player."
+    },
+    {
+      "type": "p",
+      "text": "Both paths follow the configured start position and Autoplay without retaining previous playback state. UI mode, app rewind preference and the event log remain. A preset resets source fields and initial tracks while retaining Player settings."
     },
     {
       "type": "h3",
@@ -190,11 +202,15 @@
     },
     {
       "type": "p",
-      "text": "For audio and subtitles, begin with content that contains the required HLS renditions. In Settings → Tracks, enter an audio language such as de-AT and choose Automatic, Off or Preferred language for subtitles. The app matches the full language tag before its primary language, so de-AT may select de. Missing matches keep the SDK/OS selection. More → Tracks shows what the SDK actually selected. The test stream’s language labels identify test renditions; they do not imply a translated soundtrack."
+      "text": "Initial tracks use availableAudio/availableSubtitles and setAudio/setSubtitle, rather than extra PlayerConfig properties. Blank audio and Automatic subtitles keep the SDK/OS choice; Off passes nil. Full language tags match before primary languages, so de-AT can match de. No match keeps the default."
     },
     {
       "type": "p",
-      "text": "For ordinary source loads, the app waits for both SourceLoaded (source loading finished) and Ready (playback can start) for the same source. In the tested Player 3.128.0, these notifications can arrive in either order. Remembering both avoids skipping language preferences when Ready arrives first. Selection happens once, so later track changes made by the user or through an API are preserved."
+      "text": "vod-multiaudio contains English/German audio metadata and HLS WebVTT renditions. The audio names are test labels, not translated soundtracks. Use native HLS subtitles for a shared iOS/tvOS workflow."
+    },
+    {
+      "type": "p",
+      "text": "For ordinary loads, initial selection runs once after SourceLoaded and Ready have both been recorded for the target Source. In the checked Player 3.128.0 HLS startup, German selected at SourceLoaded could change back to English before Ready; Ready could also arrive first. Waiting for both handles either order and preserves later user/API selections. These observations apply to the checked SDK and fixture."
     },
     {
       "type": "p",
@@ -208,7 +224,11 @@
     {
       "type": "note",
       "title": "Protected media and external services",
-      "text": "For FairPlay-protected HLS, enable SourceConfig.drmConfig = fairplay in additional settings, provide the certificate URL and the license service URL required by that service, then configure any request headers or preparation callbacks it requires. The form creates FairplayConfig; it does not provide a certificate, rights or a license server. Widevine/PlayReady fields in this Apple app describe receiver configuration and do not add local Apple support for those DRM systems. DRM means Digital Rights Management, the mechanism used to authorize access to encrypted media."
+      "text": "For FairPlay-protected HLS, select fairplay in SourceConfig.drmConfig and supply certificate and license URLs. Add authentication headers or preparation callbacks required by the service. The form creates FairplayConfig; provide certificates, rights and a license service separately."
+    },
+    {
+      "type": "p",
+      "text": "DRM (Digital Rights Management) authorizes access to encrypted media. Widevine/PlayReady fields in the Apple app configure receivers; they do not add local Apple support for those systems."
     },
     {
       "type": "h2",
@@ -257,7 +277,11 @@
     },
     {
       "type": "p",
-      "text": "NativePresentationSurface selects the SDK VideoPlayerView, its bound variant, PlayerView, AVPlayerLayer or AVPlayerViewController on both targets. VideoPlayerView is the Bitmovin SDK view. UIKit/AVKit hosts use UIViewRepresentable or UIViewControllerRepresentable and register with that same Bitmovin Player. A SwiftUI redraw or layout change does not call for another player; detachment checks the registered layer/controller and player identity."
+      "text": "NativePresentationSurface selects the SDK VideoPlayerView, its bound variant, PlayerView, AVPlayerLayer or AVPlayerViewController on both targets. VideoPlayerView is the SDK’s SwiftUI video view."
+    },
+    {
+      "type": "p",
+      "text": "UIKit/AVKit hosts use UIViewRepresentable or UIViewControllerRepresentable to register with the same Bitmovin Player. Redraws and layout changes retain the Player; detachment uses the Player that registered the surface."
     },
     {
       "type": "h3",
@@ -266,41 +290,11 @@
     },
     {
       "type": "p",
-      "text": "The app workspace appearance and Player theme are independent. Color.workspaceBackground uses systemGroupedBackground on iOS/iPadOS and an opaque, appearance-aware neutral color on tvOS. Only the background extends outside the safe area; controls retain the OS margins. The app does not set a fixed preferredColorScheme. Guide captures use the device’s Light appearance. The tvOS choice sheet reads isFocused for label contrast while native buttons retain focus highlighting and directional navigation. Check focused and unfocused choices in both Light and Dark."
+      "text": "Workspace appearance is independent of Player Theme. Color.workspaceBackground uses systemGroupedBackground on iOS/iPadOS and an opaque appearance-aware neutral color on tvOS. Only the background extends beyond the safe area; controls keep OS margins. preferredColorScheme is not fixed."
     },
     {
       "type": "p",
-      "text": "Short workspace hints identify units, examples and immediate reload effects. The screen guide holds the detailed settings, asynchronous verification and offline/Cast/SharePlay prerequisites. Raw API identifiers, arguments, returned values, owners and errors remain visible."
-    },
-    {
-      "type": "table",
-      "headers": [
-        "What to change",
-        "Current implementation",
-        "Where to try it"
-      ],
-      "rows": [
-        [
-          "Controls drawn over the iOS/iPadOS video",
-          "SDK Web UI or the bundled shared JavaScript/CSS factories",
-          "Theme → Default, Sports, Live (DVR) or Cinema. Then inspect additional StyleConfig / BitmovinUserInterfaceConfig settings."
-        ],
-        [
-          "tvOS controls and remote menus",
-          "Native System UI, not the shared Web UI",
-          "Additional SystemUserInterfaceConfig settings; for runtime SystemUiApi operations select the Native PlayerView host."
-        ],
-        [
-          "The app’s surrounding buttons, forms and text",
-          "SwiftUI ContentView, ControlPanel, ConfigurationEditor and ApiInspector",
-          "These are app code, not SDK theme settings. Edit the SwiftUI views and rebuild to change their layout or font."
-        ],
-        [
-          "The video host and its native behavior",
-          "SDK VideoPlayerView, bound SwiftUI view, PlayerView, AVPlayerLayer or AVPlayerViewController",
-          "In APIs → Host, choose Presentation in Host setting. Choose Presentation code in the same selector to inspect the corresponding SDK integration."
-        ]
-      ]
+      "text": "The tvOS choice sheet reads isFocused to adjust label contrast while retaining native button highlighting and directional navigation. Check focused and unfocused options in Light and Dark."
     },
     {
       "type": "h3",
@@ -309,7 +303,7 @@
     },
     {
       "type": "p",
-      "text": "For an iOS/iPadOS theme comparison, keep the same source configuration, choose Sports, and compare it with Default. Changing the mode recreates the Player and reloads the source; it does not preserve the playback position. Sports uses fictional sample information. The factory is selected by a JavaScript function name, while StyleConfig supplies the JavaScript and CSS resource URLs. tvOS sets userInterfaceType to .system and has no shared Web UI mode selector."
+      "text": "iOS/iPadOS themes select a factory by JavaScript function name and set resource URLs through StyleConfig. Sports scores and player details are fictional samples. tvOS sets userInterfaceType to .system and omits the shared Web UI theme selector."
     },
     {
       "type": "code",
@@ -358,11 +352,15 @@
     },
     {
       "type": "p",
-      "text": "Scaling is a separate choice from the controls’ theme. Fit keeps the whole picture with possible unused space; Fill (crop), mapped to SDK .zoom, preserves the aspect ratio while cropping; Stretch changes the aspect ratio to fill the bounds. Compare them with a video and display area of different aspect ratios. The main form applies StyleConfig.scalingMode during recreation. The bound SwiftUI, layer and controller hosts also expose a current scaling choice in APIs."
+      "text": "Scaling is independent of Theme. Default Fit shows the whole picture; Fill maps to SDK .zoom and crops while preserving aspect ratio; Stretch changes the aspect ratio to fill the bounds. The form sets StyleConfig.scalingMode at creation. Bound SwiftUI, layer and controller hosts also expose current scaling through APIs."
     },
     {
       "type": "p",
-      "text": "To integrate UIKit directly, open APIs → Host, choose Presentation in Host setting and select Native PlayerView. Choose Presentation code in Host setting to inspect the integration. NativePlayerSurface creates PlayerView with the retained player, installs a retained FullscreenHandler and embeds the view with constraints. On disposal it exits fullscreen, removes its listener registration and clears playerView.player. AVPlayerLayer and AVPlayerViewController use player.register(...) and unregister the same player/surface pair when retired. An AVPlayerLayer draws video but does not itself provide transport controls."
+      "text": "NativePlayerSurface creates PlayerView with the retained Player, retains and installs FullscreenHandler, and embeds the view with constraints. Select Native PlayerView in APIs → Host and choose Presentation code for the example."
+    },
+    {
+      "type": "p",
+      "text": "Disposal exits fullscreen, removes listeners and clears playerView.player. AVPlayerLayer and AVPlayerViewController use player.register(...) and unregister the same Player/surface pair. AVPlayerLayer provides no transport controls."
     },
     {
       "type": "code",
@@ -382,7 +380,11 @@
     },
     {
       "type": "p",
-      "text": "For tvOS customization, use SystemUserInterfaceConfig fields such as showSeekBar or showInfoViews in additional settings. For runtime SystemUiApi menu/actions, first select Native PlayerView and keep the System UI engine. The app builds native menu/action objects from structured inputs; contextual and info actions accept actions, while transport-bar menus may be nested. Open the native controls to inspect the result. SwiftUI test buttons outside the player are still edited in ContentView rather than through these SDK settings."
+      "text": "Use SystemUserInterfaceConfig fields such as showSeekBar/showInfoViews for tvOS controls. Runtime SystemUiApi requires Native PlayerView and System UI."
+    },
+    {
+      "type": "p",
+      "text": "Structured inputs create native menus/actions. contextualActions and infoViewActions accept actions; transport-bar menus can be nested. Edit SwiftUI test buttons outside the Player in ContentView."
     },
     {
       "type": "h3",
@@ -391,7 +393,11 @@
     },
     {
       "type": "p",
-      "text": "The tvOS code viewer gives each wrapped line remote focus so the whole example can be read. Navigating with arrow buttons can require moving through the long document or entering Apple's AVKit playback preview. In ControlPanel, onExitCommand on the editor content sets a SwiftUI FocusState to the selected tab. The focused modifier binds each tab button to this state, so Back/Menu gives that tab focus. The tab-row HStack also uses focusSection to group its buttons for directional focus. Left/Right and Select then switch workspaces without traversing the document."
+      "text": "tvOS code lines are wrapped and focusable. Directional navigation back to the tabs can pass through a long document or AVKit preview. ControlPanel handles onExitCommand in the editor by setting its FocusState to the selected tab."
+    },
+    {
+      "type": "p",
+      "text": "Each tab binds to that state with focused; the HStack uses focusSection to group tabs. Back/Menu returns to the current tab, then Left/Right and Select switch workspaces."
     },
     {
       "type": "p",
@@ -418,7 +424,7 @@
     },
     {
       "type": "p",
-      "text": "Use APIs for operations on an already created player. Operations accepts arguments and displays the selected target explicitly beside Run API; searching only filters the candidate list. Related SDK state and recent events support checking the effect. State → Refresh reads actual current values, and Events records SDK notifications. Host contains factory and presentation choices separately. A successful invocation means the call ran, not that an asynchronous action completed. Match state and completion/error events to the source and player under test."
+      "text": "Runtime APIs operate on the current Player, Source or presentation. For asynchronous work, correlate state and completion/error events with the intended owner. Configure factory and presentation choices separately in APIs → Host."
     },
     {
       "type": "figure",
@@ -436,7 +442,7 @@
         [
           "Playlist: reachable, compatible sources",
           "More → Tools → Playlist; edit source drafts, load the playlist, then compare next/previous, add, remove or seek operations.",
-          "Each draft creates a typed Source. player.load(playlistConfig:) and player.playlist operations manage the queue. Read current sources and PlaylistTransitionEvent; submitting a draft alone does not load it."
+          "Each draft creates a typed Source. player.load(playlistConfig:) and player.playlist operations manage the queue. Read current sources and PlaylistTransitionEvent; submitting a draft alone does not load it. Preloading can increase network and memory use."
         ],
         [
           "Picture-in-Picture (PiP): supported OS/device and app configuration",
@@ -484,7 +490,15 @@
     {
       "type": "note",
       "title": "Offline HLS: iOS and iPadOS",
-      "text": "Apply an on-demand HLS source and its DRM settings in Settings, then open More → Tools → Offline HLS. Initialize OfflineManager at app launch using the saved settings; after changing process-wide startup options, close and reopen the app. Select the applied source as an offline asset, discover/select tracks, start the download and inspect progress, offlineState and events. Only after completion, create OfflineSourceConfig and load the cached source. The current panel is not provided on tvOS. Use a physical iPhone/iPad for download and offline-playback validation; the recorded simulator run initialized and discovered tracks but did not complete a media download. Offline FairPlay also requires the appropriate persistent-license service."
+      "text": "OfflineManager initializes at app launch with saved process-wide settings. Fully restart after first setup or changing startup options. Discover and select on-demand HLS tracks, download them, then create and load OfflineSourceConfig after completion. tvOS has no such panel."
+    },
+    {
+      "type": "p",
+      "text": "Use a physical iPhone/iPad for validation. SDK 3.128.0 with iOS 27 Simulator initialized and discovered tracks but did not complete a media download. Offline FairPlay needs a persistent-license service; renewal and synchronization also need matching DRM configuration."
+    },
+    {
+      "type": "p",
+      "text": "Migration callbacks receive string input.identifier and input.url and return a replacement identifier string. Failures preserve the original identifier. They run in the app’s bounded interpreter; invalid SDK state transitions can be no-ops. Selecting another asset detaches its UI listener without cancelling the download."
     },
     {
       "type": "figure",
@@ -494,7 +508,11 @@
     {
       "type": "note",
       "title": "Google Cast: iOS and iPadOS",
-      "text": "More → Tools → Google Cast, configure the receiver/discovery options, and initialize casting before enabling RemoteControlConfig.isCastEnabled. Initialization is process-wide; changed options take effect on a full app restart, not a Player recreation. Receiver playback also needs a compatible Cast receiver, local-network permission and receiver-readable media/DRM. A custom receiver may require its Bonjour service entry and a native rebuild. Inspect initialized, available and connected state separately, then receiver playback events. The tvOS app does not include this Cast panel."
+      "text": "Initialize Cast before enabling RemoteControlConfig.isCastEnabled. Initialization is process-wide, so changed options take effect on a full app restart, not Player recreation. Inspect initialized, available, connected and receiver playback events separately."
+    },
+    {
+      "type": "p",
+      "text": "The sample pins Google Cast 4.8.6 for iOS 16+. Receiver playback needs a compatible device, local-network permission and receiver-readable media/DRM. Register _APPID._googlecast._tcp in Info.plist and rebuild for a custom receiver; the default service entry is included. tvOS does not include Cast."
     },
     {
       "type": "figure",
@@ -503,7 +521,11 @@
     },
     {
       "type": "p",
-      "text": "For SharePlay, choose More → SharePlay. Listen for sessions, then explicitly activate the current source’s activity if appropriate. Select an actual OS-created session and choose Coordinate current player or Coordinate and join. Configure matching SourceConfig.options.sharePlayIdentifier values for participating sources. The app’s coordination call is below; the selectedSession helper retrieves an OS session, not a fabricated object. Activation shares the current source URL/title. OS eligibility, Group Activities signing capability and an appropriate system session are required; participant state and synchronized playback must be checked on the participating devices."
+      "text": "SharePlay obtains an actual OS-created session and passes it to player.sharePlay.coordinate(with:). selectedSession below retrieves that session. Participating sources need matching SourceConfig.options.sharePlayIdentifier values."
+    },
+    {
+      "type": "p",
+      "text": "Activity activation shares the current source URL and title. OS eligibility, Group Activities signing capability and an appropriate system session are required. Check participant state and synchronized playback on the participating devices."
     },
     {
       "type": "code",
@@ -523,7 +545,11 @@
     },
     {
       "type": "p",
-      "text": "When adopting an event handler, retain it for the lifetime of its SDK owner and remove it before replacing that owner. The Events pane can use listener or publisher transport. In the listener path below, player.add/remove are SDK APIs; playerApiListener and recordApiEvent are app helpers. The identity check prevents a notification queued by a retired player from updating the replacement player’s screen. The same principle applies to source and view listeners. Keep normal playback state handling separate from the bounded visible event history."
+      "text": "Retain event subscriptions while their SDK owner is active and remove them before replacing it. In the listener path below, player.add/remove are SDK APIs; playerApiListener and recordApiEvent are app helpers. The API pane can select listener or publisher transport."
+    },
+    {
+      "type": "p",
+      "text": "Check that notifications belong to the current Player so queued events from a retired Player cannot update its replacement. Apply the same check to sources and views. Keep playback-state subscriptions separate from bounded display history."
     },
     {
       "type": "code",
@@ -555,7 +581,7 @@
     {
       "type": "note",
       "title": "The app builds, but playback fails with a license error.",
-      "text": "Compilation does not authenticate a player. Confirm that the selected target’s actual bundle identifier is permitted by the Player license used by that build, that the synchronized local configuration reached the target, and that the device can reach the licensing service. A locally overridden PlayerConfig.key takes precedence. Compare a reference HLS source before investigating custom media. Do not publish key values in a bug report or copied code."
+      "text": "Compilation does not authenticate a player. Confirm that the selected target’s actual bundle identifier is permitted by the Player license used by that build, that the synchronized local configuration reached the target, and that the device can reach the licensing service. A locally overridden PlayerConfig.key takes precedence. Compare a reference HLS source before investigating custom media. Do not publish key values in a bug report or copied code. An empty Local.xcconfig used only for compilation provides no playback license."
     },
     {
       "type": "note",
@@ -580,7 +606,7 @@
     {
       "type": "note",
       "title": "Why are live rewind buttons disabled or the position corrected?",
-      "text": "Start playback and check that the source is live and exposes a usable retained window. Live time shift and Allow live rewind controls are separate switches. Negative offsets are distances behind the live edge, not VOD timestamps. The SDK may correct to available media boundaries. If paused media falls outside the window, the app returns toward the live edge; if the stream finalizes as VOD, it stops applying live-window recovery. These controls cannot restore media already removed by the origin."
+      "text": "Start playback and check that the live source has a retained window. SDK Live time shift and the app Allow live rewind controls are separate switches. Negative offsets measure distance behind the live edge; the SDK can correct to media boundaries. DvrWindowExceeded requests a return when a paused position leaves the window. TimeChanged snapshots also detect live-to-VOD finalization that DurationChanged can miss, then stop live-window recovery. Removed origin media cannot be restored."
     },
     {
       "type": "note",
@@ -612,7 +638,7 @@
     },
     {
       "type": "p",
-      "text": "The current app accepts an optional Analytics license through local setup. In PlayerModel.makePlayer, the Standard PlayerFactory path uses AnalyticsConfig(licenseKey:) when that value is nonempty; otherwise it calls the factory without an explicit Analytics configuration. The Core and Legacy factory alternatives return before this enabled branch. Use the standard factory when reproducing this app’s configured collection path. This is the actual app branch, not a claim that other integrations cannot attach collectors differently."
+      "text": "In PlayerModel.makePlayer, Standard passes AnalyticsConfig(licenseKey:) when the local Analytics license is nonempty; otherwise it calls the factory without explicit Analytics configuration. Core uses PlayerCoreFactory and Legacy uses deprecated PlayerFactory.create, returning without this wrapper. Select Standard to use this app’s configured collector."
     },
     {
       "type": "code",

@@ -1,7 +1,7 @@
 {
   "id": "analytics-queries",
   "title": "Analytics API queries",
-  "lead": "Use the Dashboard for routine inspection. The local aggregate panel and server-side Query API support custom analysis or external integrations. The public Pages app does not host an aggregate-query server.",
+  "lead": "Run fixed local aggregates or Query API requests with explicit periods and breakdowns. Configure credentials on the server; public Pages has no aggregate-query server.",
   "blocks": [
     {
       "type": "h2",
@@ -11,10 +11,23 @@
     {
       "type": "steps",
       "items": [
-        "Start the local Web development server and configure the server-side Analytics license and API key. Use the same Analytics license whose collected data you want to inspect.",
-        "Open Bitmovin Analytics (server-proxied query). Choose Impressions, Avg startup time, Avg video startup or Avg buffered (rebuffer).",
-        "Wait for Querying… to finish. The status shows the selected preset and row count; the result below shows row values. Time values are raw milliseconds.",
-        "Each click requests the last 7 days at that moment, as one aggregate. The GUI has no date picker, category selector, chart or free-form query editor."
+        "Configure the local Web development server with the Analytics license to inspect and an API key, then start it.",
+        "Open Bitmovin Analytics (server-proxied query) and select one of four fixed aggregates. See Choose an Analytics metric for definitions.",
+        "After Querying… finishes, read the selected preset, result-row count and values. Durations remain in milliseconds.",
+        "Each click aggregates the preceding 7 days. The panel has no date or category selector, charts or free-form query input."
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Start the local Web app"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-metrics/#start-with-the-four-web-buttons",
+          "label": "Definitions of the four query presets"
+        }
       ]
     },
     {
@@ -59,7 +72,7 @@
     },
     {
       "type": "note",
-      "text": "Replace placeholders only in your local/server configuration and restart the development server. Never place an account API key in a VITE_* variable, Player Config, source URL or copied client code. Static Pages has no server that can hold this secret."
+      "text": "Replace placeholders only in local/server settings and restart the development server. Keep account API keys out of VITE_*, Player Config, source URLs and client code. Static Pages has no server to hold secrets."
     },
     {
       "type": "h2",
@@ -68,7 +81,7 @@
     },
     {
       "type": "p",
-      "text": "The GUI displays rows, not a JSON editor. The existing /api/analytics/query endpoint returns the row array and row count plus the requested aggregation and dimension. This invented example means one result row containing the count 42; rowCount is not the impression count."
+      "text": "The panel displays result rows. /api/analytics/query returns those rows, their count, and the requested aggregation and dimension. This invented example returns a count of 42; rowCount: 1 is the result-row count, not the impression count."
     },
     {
       "type": "code",
@@ -77,7 +90,7 @@
     },
     {
       "type": "p",
-      "text": "With no interval or groupBy, a count normally occupies one value in a row. Empty rows produce (no rows) in the GUI. A successful request alone does not prove that the intended source, license, period or filters matched data."
+      "text": "Without interval or groupBy, a count normally occupies one value in one row. Empty results display (no rows). A successful response does not establish that the intended source, license, period or filters matched data."
     },
     {
       "type": "h2",
@@ -86,7 +99,7 @@
     },
     {
       "type": "p",
-      "text": "From a trusted terminal, you can call the existing local proxy with an explicit UTC range. Use the port printed by your development server; 5173 is the example below. The proxy supplies the server-selected license and API secret, so neither appears in this request."
+      "text": "Call the local proxy from your terminal to specify a UTC range. Use your development server’s port; the example uses 5173. The server supplies the license and API key, so the request omits them."
     },
     {
       "type": "code",
@@ -100,7 +113,7 @@
     },
     {
       "type": "p",
-      "text": "The following direct API example averages positive video startup times by browser and hour. Save the body as query.json, replace the Analytics license placeholder, and choose dates inside your data retention window. This is a server/terminal example, not a new GUI feature."
+      "text": "This example averages VIDEO_STARTUPTIME > 0 by browser and hour. Save the JSON as query.json, replace the Analytics license and choose dates within data retention. Run it from a server or terminal rather than the local GUI."
     },
     {
       "type": "code",
@@ -114,7 +127,7 @@
     },
     {
       "type": "p",
-      "text": "Use an authorized server environment for BITMOVIN_API_KEY. Add X-Tenant-Org-Id only when the API key requires an organization scope. Direct API responses wrap results in data.result and can include columnLabels/contextDescription; read those labels before assigning meanings to columns. The app proxy keeps rows and rowCount but does not forward every response field or every Query API option."
+      "text": "Use a BITMOVIN_API_KEY authorized to read the data, adding X-Tenant-Org-Id only when required. API results appear in data.result and may include columnLabels or contextDescription; use those labels to identify columns. The app proxy returns rows and rowCount and does not support every response field or option."
     },
     {
       "type": "h2",
@@ -124,10 +137,10 @@
     {
       "type": "bullets",
       "items": [
-        "start and end choose an explicit time window. Use UTC timestamps and data within your retention period; the local GUI presets choose the last 7 days automatically.",
-        "interval groups time into MINUTE, HOUR, DAY or MONTH buckets. It is different from the overall start/end range.",
-        "groupBy chooses categories, for example BROWSER, COUNTRY, DEVICE_TYPE or OPERATINGSYSTEM. filters selects the subset, for example BROWSER EQ Chrome or VIDEO_STARTUPTIME GT 0.",
-        "Keep the Analytics license, range, timezone, filters, aggregation, unit and collector coverage with any exported result. Do not assume that every collector reports every dimension."
+        "start and end define the whole period. Use UTC timestamps within data retention.",
+        "interval defines MINUTE, HOUR, DAY or MONTH buckets, rather than the overall period.",
+        "groupBy selects categories such as BROWSER, COUNTRY, DEVICE_TYPE or OPERATINGSYSTEM. filters restricts the data, for example BROWSER EQ Chrome or VIDEO_STARTUPTIME GT 0.",
+        "Keep the license, range, time zone, conditions, aggregation, units and collector coverage with results. Not every collector reports every field."
       ]
     },
     {
@@ -162,6 +175,19 @@
           "200 with no rows",
           "Check the selected Analytics license, collected data, range and filters before interpreting it as a zero result."
         ]
+      ]
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-metrics/",
+          "label": "Metric definitions, units and aggregation"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-visualization/#keep-data-and-query-settings-together",
+          "label": "Retain results and query settings"
+        }
       ]
     }
   ],

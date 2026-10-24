@@ -200,7 +200,7 @@
     },
     {
       "type": "p",
-      "text": "To read the final manifest as finite VOD, keep the URL and player settings, change only Title under Configure source and playback, and Apply when the action says Reload source. This loads a new Source on the same Player and URL and resets playback position. Reloading is a separate action from finishing or replaying the original Source."
+      "text": "To read the final manifest as finite VOD, open Settings, select the Source category and change only Title while retaining the URL and player settings. Select Apply when the action says Reload source. This loads a new Source on the same Player and URL and resets playback position. Reloading is separate from Replay on the original Source."
     },
     {
       "type": "h2",

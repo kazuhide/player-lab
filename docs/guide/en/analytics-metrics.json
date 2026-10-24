@@ -1,7 +1,7 @@
 {
   "id": "analytics-metrics",
   "title": "Choose an Analytics metric",
-  "lead": "Choose a Dashboard metric that answers your question, then check its unit, aggregation and playback population. When building a custom query, retain the corresponding API field names and conditions.",
+  "lead": "Choose Analytics metrics by definition, unit and aggregation. Check how Dashboard labels, local presets and API fields differ.",
   "blocks": [
     {
       "type": "h2",
@@ -9,7 +9,16 @@
     },
     {
       "type": "p",
-      "text": "Use Audience for viewing activity, Quality of Experience for startup and buffering, and Top Errors for playback failures. Keep the Analytics license, period and filters consistent. Read quality values together with their corresponding playback counts or viewing duration."
+      "text": "Use Audience for viewing activity, Quality of Experience for startup and buffering, and Top Errors for failures. Compare quality values alongside their playback counts or viewing duration."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-visualization/",
+          "label": "Compare metrics in the Dashboard"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -18,7 +27,7 @@
     },
     {
       "type": "p",
-      "text": "These metrics describe audience and playback quality. The table also gives API aggregation examples. Available Dashboard fields depend on the view; use the API for custom groupings or aggregates, and check collector support."
+      "text": "The table lists common metrics and API aggregation examples. Available Dashboard fields depend on the view, and collected fields depend on the collector."
     },
     {
       "type": "table",
@@ -31,37 +40,42 @@
         [
           "Successful Plays / IMPRESSION_ID",
           "count, with VIDEO_STARTUPTIME > 0",
-          "Sessions that displayed a first frame. The positive-startup filter distinguishes this from the app's unfiltered impression button."
+          "Sessions that displayed a first frame; differs from an unfiltered impression count."
         ],
         [
-          "Typical video startup / VIDEO_STARTUPTIME",
+          "Video startup duration / VIDEO_STARTUPTIME",
           "median, with VIDEO_STARTUPTIME > 0",
-          "Milliseconds. The Observability catalog also supports average and percentile; its default is median."
+          "Milliseconds. The Observability catalog also supports average and percentile; median is the default."
         ],
         [
           "Total watch time / PLAYED",
           "sum, with PLAYED > 0",
-          "Milliseconds in the played state. Divide by 3,600,000 for hours."
+          "Total played milliseconds. Divide by 3,600,000 for hours."
         ],
         [
           "Rebuffering / REBUFFER_PERCENTAGE",
           "avg",
-          "Percent of time spent waiting for media during viewing. This is distinct from average BUFFERED duration."
+          "Percentage of viewing time spent waiting for media. Distinct from average BUFFERED duration and the app’s local QoE calculation. Retain the corresponding Played duration."
+        ],
+        [
+          "Buffering duration / BUFFERED",
+          "avg",
+          "Milliseconds, not a percentage. The Dashboard describes Buffering Time as an average per Play."
         ],
         [
           "Played video bitrate / VIDEO_BITRATE",
           "avg, with VIDEO_BITRATE > 0",
-          "Bits/second (bps). Divide by 1,000,000 for Mbps. This is rendition bitrate, not network throughput."
+          "Bits/second (bps); divide by 1,000,000 for Mbps. Rendition bitrate rather than network throughput."
         ],
         [
           "Download bandwidth / DOWNLOAD_SPEED",
           "avg",
-          "Measured segment-download speed in bits/second. Field availability depends on the collector."
+          "Segment-download speed in bits/second. Availability depends on the collector."
         ],
         [
           "Error percentage / ERROR_PERCENTAGE",
           "avg",
-          "Percentage against sessions considered, including cases that can fail before video starts. Keep its denominator when comparing results."
+          "Percentage against sessions considered, including failures before video starts. Using successful Plays as its denominator would change the meaning."
         ],
         [
           "Seek duration / SEEKED",
@@ -72,7 +86,7 @@
     },
     {
       "type": "p",
-      "text": "The official dashboard reference lists download bandwidth and downloaded-data limitations on AVFoundation and Bitmovin iOS. An absent field or empty result on one SDK is not a zero measurement, and does not establish support on every platform."
+      "text": "The official reference lists download bandwidth and downloaded-data limitations for AVFoundation and Bitmovin iOS. Treat an absent field or empty result as a support or data question, rather than zero."
     },
     {
       "type": "h2",
@@ -82,10 +96,9 @@
     {
       "type": "bullets",
       "items": [
-        "count answers how many; sum answers the total; avg answers the arithmetic mean. The metric defines what is counted or averaged.",
-        "median is the 50th percentile. A high percentile, such as p95, describes the slow tail rather than the typical viewer. A percentile query needs its percentile parameter and a supported metric.",
-        "The local Web panel uses fixed queries. It does not offer median, percentile, arbitrary periods or free-form filters. Its proxy supports only a subset of the Query API.",
-        "Do not average percentages from unequal populations or add unique-user counts across buckets and assume a period total. Keep the metric definition and population visible."
+        "count gives a count, sum a total, and avg an arithmetic mean. The metric defines what is counted or averaged.",
+        "median is the 50th percentile; p95 describes the slower tail. A percentile query needs the percentile parameter and a supported metric.",
+        "Do not average percentages from unequal populations or add bucketed unique-user counts to obtain a period total. Retain the definition and population."
       ]
     },
     {
@@ -95,7 +108,7 @@
     },
     {
       "type": "p",
-      "text": "In local development, open Bitmovin Analytics (server-proxied query). Every button queries the server-selected Analytics license over the last 7 days, without time buckets or category filters. The displayed numbers keep their API units."
+      "text": "The local Bitmovin Analytics (server-proxied query) panel offers these four fixed aggregates. Follow Analytics API queries for setup, credentials and execution."
     },
     {
       "type": "table",
@@ -129,7 +142,20 @@
     },
     {
       "type": "note",
-      "text": "The browser-local startup readout measures SourceLoaded to Playing. Analytics VIDEO_STARTUPTIME measures playback initiation to the first frame, while STARTUPTIME also includes player setup. Equal units do not make these measurements interchangeable."
+      "text": "Local startup measures SourceLoaded to Playing. VIDEO_STARTUPTIME measures playback initiation to the first frame; STARTUPTIME also includes Player setup. Equal units do not make the measurements interchangeable."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-queries/",
+          "label": "Use the local panel and Query API"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-qoe-analytics/#read-the-six-qoe-values",
+          "label": "Local QoE definitions"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -138,11 +164,20 @@
     },
     {
       "type": "p",
-      "text": "Use uppercase REST attributes such as VIDEO_STARTUPTIME exactly as documented. Observability MCP uses its own catalog keywords, such as video_startuptime and plays, and can add metric-specific filters. Resolve those keywords with searchMetrics when available, or getAvailableMetrics, rather than assuming that a dashboard label is an API field."
+      "text": "Keep REST attributes such as VIDEO_STARTUPTIME in their documented uppercase form. Observability MCP uses keywords such as video_startuptime and plays and may add metric-specific conditions. Resolve them with searchMetrics when available, or getAvailableMetrics."
     },
     {
       "type": "note",
-      "text": "The MCP catalog distinguishes error_percentage from error_ratio, which is normalized by viewing hours. Neither is the browser's Error event count. Before deriving a new rate, verify the selected metric's definition, unit and denominator in the dashboard/API catalog."
+      "text": "MCP error_percentage differs from error_ratio, which is normalized by viewing hours. Neither is the browser’s Error event count. Check definitions, units and denominators before deriving a rate."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-ai/",
+          "label": "MCP metric names and query scope"
+        }
+      ]
     }
   ],
   "sources": [

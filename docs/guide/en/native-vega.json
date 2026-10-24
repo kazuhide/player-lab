@@ -1,7 +1,7 @@
 {
   "id": "native-vega",
   "title": "Vega OS: Screen and controls",
-  "lead": "Use the Vega app with a remote to load a source, edit playback settings, inspect applied code and compare SDK results and events. Its native screen differs from the browser UI and the Android-based Fire TV app.",
+  "lead": "Use the Vega OS TV screen with a remote to check sources, playback settings, subtitles, API results and events.",
   "blocks": [
     {
       "type": "h2",
@@ -10,17 +10,17 @@
     },
     {
       "type": "p",
-      "text": "The video occupies the upper part of the screen; the controls and editors scroll below it. Source and Playback group the main controls. Use D-pad and Select on a device, or arrow keys and Enter on a Vega Virtual Device. The focus outline marks the control that Select will activate. Greyed controls are unavailable or already selected. There is no browser Player control bar or shared HTML theme picker on this screen."
+      "text": "Scroll the controls and editors below the video. Source and Playback contain the main controls. Use D-pad and Select on a device, or arrow keys and Enter on a Vega Virtual Device. The outline marks current focus; greyed controls are unavailable or already selected. There is no browser Player control bar or HTML theme picker."
     },
     {
       "type": "note",
       "title": "Display language",
-      "text": "Use the app language selector to switch between English and Japanese. This guide uses captures from the English app. SDK identifiers, code and returned data retain their original spelling. Subtitle language belongs to the content and is selected separately from the application language."
+      "text": "Use the language selector to switch between English and Japanese. Screenshots on this page use English; SDK names, code and returned data keep their original spelling. Select the content’s subtitle language separately."
     },
     {
       "type": "note",
       "title": "Before opening the screen",
-      "text": "Use the Kepler build for Vega OS, not the Android Fire TV package. The Player app identifier is com.playerlab.vega and the component is com.playerlab.vega.main. Generate the local runtime configuration and rebuild when licenses change. Follow the linked setup and Vega README for the supported SDK profile, build and device-selection commands."
+      "text": "Use the Kepler build for Vega OS; an Android-based Fire TV package cannot run here. The app ID is com.playerlab.vega and the component is com.playerlab.vega.main. After a license change, regenerate local runtime configuration and rebuild. Follow the startup instructions below for the SDK setup and target-device selection."
     },
     {
       "type": "links",
@@ -35,8 +35,8 @@
           "label": "Build and launch the Kepler app"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/",
-          "label": "Implementation guide: native media, settings and UI changes"
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/integration/",
+          "label": "Integrate the Kepler host and Player"
         }
       ]
     },
@@ -53,11 +53,11 @@
     {
       "type": "steps",
       "items": [
-        "Select a VOD preset and confirm that video frames and the position advance. VOD means on-demand media with a fixed timeline. Autoplay and Mute on startup are initially enabled; if Autoplay is off, use PlayerAPI.play in SDK API experiments.",
-        "Open Show configuration and record the current values. Enter an HTTP/HTTPS source URL and choose its actual HLS, DASH or progressive MP4 type. HLS and DASH can provide multiple qualities. Optional title and poster values are stored with the source; this native screen does not draw poster artwork.",
-        "For an initial-position comparison, keep the source URL, enter 5 in Start offset (seconds), choose Start and select Apply and recreate player. After the source loads, compare the position and picture with the original playback.",
-        "Apply validates the whole draft, waits for the old native session to close and recreates the Player. A source-only form edit also restarts playback from its configured offset. Invalid or unchanged values do not replace the session.",
-        "Reset draft discards unapplied edits. To undo an applied experiment, restore the recorded values and Apply. To restore the initial Player inputs, enable Autoplay and Mute on startup and clear both buffer fields and Maximum video bitrate. A VOD preset restores its source fields, not all Player settings."
+        "Select a VOD preset and check that the picture and position advance. Autoplay and startup mute are initially on. If autoplay is off, run PlayerAPI.play in SDK API experiments.",
+        "Open Show configuration and record the values to restore. Enter an HTTP/HTTPS URL and match HLS, DASH or progressive MP4 to the media. Title and poster are stored, but this screen does not render a poster image.",
+        "Keep the URL unchanged, enter a 5-second start offset, select Start, then Apply and recreate player. Compare position and the picture after loading.",
+        "Even a source-only change recreates the Player and reloads from the configured offset. Invalid values or an unchanged configuration leave the current session in place.",
+        "Reset draft discards pending edits only. To undo an applied change, enter the original values and Apply. To restore Player defaults, turn autoplay and startup mute on, and clear both buffer fields and maximum video bitrate. A VOD preset restores source fields only."
       ]
     },
     {
@@ -69,24 +69,24 @@
       ],
       "rows": [
         [
-          "Start offset / reference",
-          "5 seconds, Start",
-          "Compare the starting position after Apply. Start uses the beginning of the media/live window; End uses the end/live edge. SDK default is Start for VOD and End for live. Signed offsets are accepted."
+          "Start offset / Timeline reference",
+          "5 seconds / Start",
+          "Compare the position after Apply. Start refers to the media or live-window beginning; End refers to its end or the live edge. Signed offsets are supported."
         ],
         [
           "Autoplay / Mute on startup",
-          "On, then Off",
-          "Compare the new session after Apply. If automatic playback is disabled, use the SDK API play command. A startup flag is not an immediate pause or unmute command."
+          "On, then off",
+          "Compare the new session after Apply. Use PlayerAPI.play when autoplay is off. These switches do not directly pause or unmute the current session."
         ],
         [
-          "Video / audio forward buffer",
+          "Video / Audio forward buffer",
           "10 seconds each",
-          "Compare buffer.video.forwardduration and buffer.audio.forwardduration in applied code. Positive values set media buffer targets; blank restores SDK defaults. This does not extend the live rewind window."
+          "Use positive values for the forward-buffer targets; clear them for SDK defaults. They do not extend the live rewind window."
         ],
         [
           "Maximum video bitrate",
-          "1500000 bits per second",
-          "Compare adaptation.bitrates.maxSelectableVideoBitrate, the selected quality and playback on a source with several qualities. Blank removes the cap; enter the value without units or commas."
+          "1500000 bit/s",
+          "Enter the number without units or commas, then compare selected quality and playback on a multi-quality source. Clear it to remove the cap."
         ]
       ],
       "widths": [
@@ -97,7 +97,16 @@
     },
     {
       "type": "p",
-      "text": "The form accepts finite decimal offsets and positive buffer/bitrate targets. The native media integration requires Fetch; choosing XHR in advanced configuration is rejected before Apply. Additional type-level choices do not create missing browser capabilities. See the implementation guide for the configuration paths and platform conditions."
+      "text": "Enter a finite decimal start offset in seconds and positive buffer and bitrate values. The implementation guide lists SDK defaults, configuration paths and the supported Vega transport."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/player-source-config/",
+          "label": "Configuration meanings, units, defaults and Fetch transport"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -112,10 +121,10 @@
     {
       "type": "steps",
       "items": [
-        "Keep Autoplay enabled for a basic playback comparison, or use PlayerAPI.play and PlayerAPI.pause in SDK API experiments. On live media with a rewind window, compare Live edge and the available rewind buttons with the position/state line. Allow DVR controls the app’s rewind helper.",
-        "For an external subtitle, enter a reachable HTTPS WebVTT URL, Subtitle label and Subtitle language together. WebVTT contains timed subtitle cues; use a file aligned with the selected media. A language tag such as en-US identifies the language.",
-        "Enable external subtitle on load and Apply. Play through the cue times and check the text over the picture. This switch enables the track on load; unlike React Native’s Mark as default metadata field, it does not require selecting a browser subtitle menu.",
-        "To remove the external subtitle, clear its URL and Apply. The label/language are cleared with it. Reset draft only cancels pending edits; it does not remove an already applied track. The native text display renders plain cue text rather than HTML subtitle styling."
+        "Enable autoplay or use PlayerAPI.play and PlayerAPI.pause in SDK API experiments. On live content with a rewind window, compare Live edge, rewind buttons, position and status. Allow DVR toggles the app’s helper.",
+        "Enter an HTTPS WebVTT URL reachable from the device, a label and a language tag such as en-US. Match subtitle cue times to the media.",
+        "Turn on Enable external subtitle on load, Apply, then play through a cue. This switch enables the track; no browser subtitle-menu selection is needed.",
+        "To remove the track, clear its URL and Apply. Its label and language are also cleared. Reset draft does not remove an applied subtitle. Rendering uses plain text, without HTML styling."
       ]
     },
     {
@@ -136,18 +145,18 @@
     {
       "type": "steps",
       "items": [
-        "After Apply, open Show applied code. Applied values identifies the configuration sent to the SDK. Compare the source and Player settings with the recorded baseline. The output contains applied values and approved callback bodies, not pending draft edits. License keys and sensitive headers use placeholders.",
-        "Use D-pad Down/Up to read the output. Each line participates in focus and scrolling. This TV app has no clipboard integration; it does not provide React Native’s Copy code action.",
-        "Edit a value without applying and confirm that the output still represents the active configuration. Reset draft cancels that edit. To undo an applied value, restore the previous value and Apply.",
-        "For integration details, follow the implementation guide. Reusing the displayed configuration still requires the existing native media initialization, surface connection and release sequence; the output is not a standalone browser player."
+        "After Apply, open Show applied code. Compare source and Player settings with your previous record. The output contains applied values and allowed function bodies, excluding pending edits. Licenses and sensitive headers use placeholders.",
+        "Move focus up or down through the lines to scroll the output. This TV app has no clipboard-copy integration.",
+        "Opening the output after an unapplied edit leaves it unchanged. Reset draft discards that edit; restoring applied values requires entering the original values and applying.",
+        "See the implementation guide for the native-media connection. Copying these settings into a browser does not reproduce this host’s playback environment."
       ]
     },
     {
       "type": "links",
       "items": [
         {
-          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/",
-          "label": "How configuration connects to native media and UI"
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/integration/",
+          "label": "Connect configuration and native media"
         }
       ]
     },
@@ -164,15 +173,24 @@
     {
       "type": "steps",
       "items": [
-        "Open Show configuration and Show all SDK configuration. Search an exact PlayerConfig or SourceConfig path and select Set Vega API value. The SDK is the Player library; its API defines the available configuration, commands and events.",
-        "Use the displayed type to enter scalar values, enumeration choices, object fields, dictionaries, lists or bytes. Add array items in order and fill required related fields. Keep the previous value or whether an override was absent.",
-        "For a function, enter its JavaScript body, read its argument/return contract and enable Allow this callback. Apply installs the function; it runs when the SDK invokes it. A JavaScript value factory for an any-typed value can run during Apply or Run.",
-        "After Apply, compare Show applied code and the relevant result or event. Remove the override and Apply to restore the basic form value or SDK default. Removing a callback stops future calls after replacement; restore any Player state that the callback deliberately changed."
+        "Open Show configuration → Show all SDK configuration. Search for a PlayerConfig or SourceConfig path and choose Set Vega API value.",
+        "Follow the displayed type for numbers, strings, enums, objects, maps, arrays or bytes. Add array items in order and complete required fields. Record current values and whether an override was already enabled.",
+        "For a function, enter its JavaScript body, check the argument and return contract, then enable Allow this callback. Try the matching operation after Apply. Value factories and SDK callbacks run at different times; check the implementation guide’s conditions.",
+        "Compare applied code with results and events. Removing an override and applying restores the basic form or SDK default. A removed callback is no longer called after replacement. Also restore Player state changed by its body."
       ]
     },
     {
       "type": "p",
-      "text": "Edited JavaScript runs inside the app without a sandbox, so enable only code you trust. Binary inputs accept hexadecimal or Base64 and become buffers or typed arrays; entering a DRM certificate does not supply compatible content, a license service or device support. The implementation guide explains configuration types and native limitations."
+      "text": "JavaScript runs inside the app without a sandbox; allow only trusted code. Binary inputs accept hexadecimal or Base64. See the implementation guide for type conversion and native-feature constraints."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/player-source-config/#native-transport-and-apply",
+          "label": "Typed inputs, callbacks and configuration application"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -201,7 +219,16 @@
     },
     {
       "type": "p",
-      "text": "Manifest methods depend on the loaded format: HLS track helpers need HLS, while DASH period helpers need DASH. Low-latency controls need an appropriate live source; on VOD a target may be accepted while latency remains zero. Match the content and native capabilities to the feature instead of treating every callable Web API as active on Vega."
+      "text": "Try HLS, DASH and live-specific APIs with matching formats and content. Method availability and working behavior on a Vega device are separate checks. See the implementation guide for format, low-latency and native-feature prerequisites."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/useful-features/#current-sdk-operations",
+          "label": "SDK operations and content prerequisites"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -219,7 +246,16 @@
     },
     {
       "type": "p",
-      "text": "SGAI means server-guided ad insertion: playback follows HLS insertion markers rather than a client-side ad integration. If the scheduled position is outside the media window, compare the stream’s program date time with the insertion start. The browser HTML UI and client-side advertising are not supplied by this native host. See the implementation guide and official Vega limitations for feature prerequisites."
+      "text": "If a scheduled position falls outside the media range, check the stream and interstitial timestamps. The implementation guide describes SGAI configuration, events and platform prerequisites."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/vega-implementation/useful-features/#hls-interstitials",
+          "label": "SGAI and HLS interstitial markers"
+        }
+      ]
     }
   ],
   "sources": [

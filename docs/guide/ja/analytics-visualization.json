@@ -1,7 +1,7 @@
 {
   "id": "analytics-visualization",
   "title": "Dashboardで再生データを確認する",
-  "lead": "Bitmovin Dashboardでグラフや内訳を確認します。問題のある再生を絞り込み、セッション詳細を調べます。独自の表示が必要な場合は、Query APIやGrafanaを使います。",
+  "lead": "Dashboardでブラウザーや端末ごとの再生品質を比較し、問題のあるセッションを調べます。独自のグラフにはGrafanaを使い、クエリ条件も保存します。",
   "blocks": [
     {
       "type": "h2",
@@ -11,16 +11,15 @@
     {
       "type": "steps",
       "items": [
-        "Bitmovin DashboardのObservabilityを開き、再生データの送信先と同じAnalyticsライセンスを選びます。",
-        "再生を含む期間を指定します。比較するときは固定の期間を使い、画面のタイムゾーンと有効なフィルターを記録します。",
-        "Video Startup Time を選び、ブラウザー別の内訳を確認します。併記される Video Starts で対象の再生数も確認します。少数の再生が遅い場合と、多くの再生に影響している場合では、次に調べる対象が異なります。",
-        "画面で選べる端末・プラットフォーム・ブラウザーのフィルターで対象を絞ります。指標と期間を保ち、条件を一つずつ変えます。",
-        "同じ対象の Rebuffering Percentage や Error Percentage も比較します。必要な分類項目や集計方法が Dashboard にない場合は、API クエリの手順を使います。"
+        "Bitmovin DashboardのObservabilityで、コレクターと同じAnalyticsライセンスを選びます。",
+        "再生を含む固定の期間を選び、タイムゾーンとフィルターを控えます。Video Startup Timeのブラウザー別内訳を開き、Video Startsの再生数も確認します。少数の遅い再生か、広い範囲への影響かを区別します。",
+        "同じ指標・期間のまま、端末・プラットフォーム・ブラウザーの条件を一つずつ変えます。",
+        "同じ対象のRebuffering PercentageとError Percentageも比較します。必要な分類・集計が画面にない場合はQuery APIへ進みます。"
       ]
     },
     {
       "type": "p",
-      "text": "Browser はブラウザーの種類、Device Class は desktop・phone・tablet などの区分、Device Type は端末のモデルや種類です。それぞれ異なる分類です。Dashboard で選べる分類は Analytics の全フィールドの一部です。API の項目が画面にあるとは限らないため、実際の選択肢を確認してください。"
+      "text": "Browserはブラウザーの種類、Device Classはdesktop・phone・tabletなどの区分、Device Typeは端末のモデルや種類です。Dashboardにある分類はAPIの全フィールドの一部です。実際の選択肢を確認してください。"
     },
     {
       "type": "h2",
@@ -29,25 +28,25 @@
     {
       "type": "steps",
       "items": [
-        "Top Errorsでエラーの種類と発生状況を確認します。ライセンス、期間、コンテンツなどの条件は、調べている再生と揃えます。",
-        "エラーを選び、該当するセッションへ進みます。エラーコードだけでなく、プレイヤーやOS、発生時刻も確認します。",
-        "セッション詳細のErrorsで、説明文や追加情報を読みます。取得できる詳細はコレクターやプラットフォームによって異なります。",
-        "アプリ側のログでも同じ再生セッションと時刻を探し、設定変更、通信、コンテンツなどの原因を切り分けます。エラーの説明だけで原因を断定せず、関連する動作も確認します。"
+        "Top Errorsでエラーの種類と頻度を確認します。ライセンス・期間・コンテンツの条件は、調査中の再生と揃えます。",
+        "エラーから該当セッションを開き、コード、Player、OS、発生時刻を確認します。",
+        "セッション詳細のErrorsで説明と追加情報を読みます。取得できる内容はコレクターとプラットフォームに依存します。",
+        "アプリの同じ再生・時刻のログと照合し、設定変更、通信、コンテンツを調べます。エラーの説明だけで原因を断定しないでください。"
       ]
     },
     {
       "type": "figure",
       "file": "analytics-dashboard-errors",
-      "caption": "Bitmovin公式記事のTop Error Codes画面例。選択したエラーの説明と、フィルター適用状態を確認できます。画像内のSDKバージョンと数値も公式記事の例で、Player Labの検証結果ではありません。© Bitmovin。"
+      "caption": "Bitmovin Dashboardの英語UI。Bitmovin公式記事のTop Error Codes画面例。選択したエラーの説明と、フィルター適用状態を確認できます。画像内のSDKバージョンと数値も公式記事の例で、Player Labの検証結果ではありません。© Bitmovin。"
     },
     {
       "type": "figure",
       "file": "analytics-session-errors",
-      "caption": "同じ公式記事のセッション別Errors画面例。コードと発生時刻に加え、HTTP 401の説明が表示されています。本文末尾に出典を記載しています。© Bitmovin。"
+      "caption": "Bitmovin Dashboardの英語UI。同じ公式記事のセッション別Errors画面例。コードと発生時刻に加え、HTTP 401の説明が表示されています。本文末尾に出典を記載しています。© Bitmovin。"
     },
     {
       "type": "p",
-      "text": "画面はBitmovinの公開資料から掲載した例で、アプリ内にDashboardを埋め込んだものではありません。メニューや利用できる詳細は、現在のDashboardと利用中のコレクターで確認します。"
+      "text": "画像はBitmovinの公開資料から掲載した例です。現在のメニューや取得できる詳細は、利用中のDashboardとコレクターで確認してください。"
     },
     {
       "type": "h2",
@@ -81,7 +80,7 @@
     },
     {
       "type": "note",
-      "text": "時間ごとの中央値を平均しても、一日全体の中央値にはなりません。分類ごとの割合も、集計対象の大きさが異なると単純平均できません。期間全体の指標を改めて問い合わせ、対応する対象数も残してください。データがないことは、ゼロを計測したこととは異なります。"
+      "text": "時間別の中央値や、対象数の異なる分類の割合を平均しても、期間全体の値にはなりません。期間全体を改めて集計し、対象数も残します。欠損はゼロの計測と区別してください。"
     },
     {
       "type": "h2",
@@ -89,37 +88,21 @@
       "id": "read-the-metric-and-its-population"
     },
     {
-      "type": "table",
-      "headers": [
-        "指標",
-        "単位と読み方"
-      ],
-      "rows": [
-        [
-          "Plays",
-          "動画再生が開始したセッションの数。Dashboard の指標を再現する公式クエリでは、VIDEO_STARTUPTIME > 0 で絞り込み、IMPRESSION_ID を数えます。条件なしのインプレッション数とは異なります。"
-        ],
-        [
-          "Video Startup Time",
-          "単位はミリ秒（ms）。Dashboard の指標を再現する公式クエリでは、VIDEO_STARTUPTIME > 0 の中央値を求めます。平均やパーセンタイルを選ぶ場合は、その集計方法を明記します。"
-        ],
-        [
-          "Buffering Time",
-          "バッファリングに費やしたミリ秒。Dashboard では Play あたりの平均時間と説明されています。割合ではなく時間です。"
-        ],
-        [
-          "Rebuffering Percentage",
-          "視聴時間に対する再バッファリングの割合です。比較には公式の集計方法を使い、併記される Played の時間も記録します。Player Lab がブラウザー内のイベントから計算する値とは別です。"
-        ],
-        [
-          "Error Percentage",
-          "再生開始前のエラーも含め、対象セッションに対する割合です。比較でもこの集計対象を揃えてください。正常に再生開始した Plays を分母にすると意味が変わります。"
-        ]
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-metrics/#common-questions-beyond-the-four-buttons",
+          "label": "Plays・開始時間・バッファ・エラーの定義と単位"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-qoe-analytics/#read-the-six-qoe-values",
+          "label": "アプリ内QoEとの違い"
+        }
       ]
     },
     {
       "type": "p",
-      "text": "API が返す時間の値はミリ秒ですが、Dashboard では秒などに整形される場合があります。換算した場合はグラフのタイトルや軸に明記します。2% から 3% への変化は 1 パーセントポイントで、相対的には 50% の増加です。この二つの表現を区別してください。"
+      "text": "APIの時間はミリ秒でも、Dashboardは秒などに整形する場合があります。換算した単位をグラフのタイトルや軸に明記します。2%から3%への変化は1パーセントポイント、相対増加は50%です。"
     },
     {
       "type": "h2",
@@ -128,7 +111,7 @@
     },
     {
       "type": "p",
-      "text": "繰り返し使う独自のダッシュボードは、公式の Bitmovin Grafana Plugin の手順で作れます。公式手順の対象は自分で運用する Grafana です。Grafana のデータソースに API キーを設定し、Analytics ライセンスを選びます。Player Lab のブラウザー側の設定に API キーを入れないでください。"
+      "text": "公式Bitmovin Grafana Pluginの手順は、自分で運用するGrafanaを対象とします。データソースにAPIキーとAnalyticsライセンスを設定します。APIキーをPlayer Labのブラウザー側の設定へ入れないでください。"
     },
     {
       "type": "steps",
@@ -151,22 +134,35 @@
       ],
       "rows": [
         [
-          "Player Lab のローカル集計画面",
-          "ボタンを押すと、集計結果を行形式で表示します。グラフ作成や CSV/JSON ダウンロードのボタンはありません。サーバーが必要なため、静的な Pages ではこの画面を表示しません。"
+          "Player Labのローカル集計画面",
+          "結果を行形式で表示します。グラフ作成やCSV/JSONダウンロードのボタンはありません。実行と応答の見方はAPIクエリの章を参照します。"
         ],
         [
-          "自分のサーバー側 Analytics API クライアント",
-          "集計 JSON の応答と、ライセンスの識別名、開始・終了、集計方法、対象フィールド、interval、filters、groupBy、並び順、上限を一緒に保存します。分析用ファイルに認証ヘッダーを残さないでください。"
+          "自分のサーバー側Analytics APIクライアント",
+          "集計JSONと、ライセンスの識別名、開始・終了、集計方法、フィールド、interval、filters、groupBy、並び順、上限を保存します。認証ヘッダーは分析ファイルに残しません。"
         ],
         [
           "Analytics Export Task",
-          "生データを CSV または Parquet で、設定済みの S3・GCS・Azure ストレージへ出力する別の API 手順です。期間、出力先、必要な列を指定し、タスクの状態を確認します。集計クエリの応答や Player Lab のダウンロードとは異なります。"
+          "生データをCSVまたはParquetでS3・GCS・Azureへ出力する別のAPI手順です。期間・出力先・列を指定し、タスク状態を確認します。集計クエリの応答やPlayer Labのダウンロードとは異なります。"
         ]
       ]
     },
     {
       "type": "p",
-      "text": "ローカルプロキシの rows と rowCount だけでは、列の意味やグラフの描き方は分かりません。表計算ソフトやグラフツールに取り込む前に、元のクエリで列の意味と単位を確認し、結果と一緒に記録してください。生データの出力にはセッション単位の情報が含まれる場合があります。LLM に渡す前に、必要な項目に絞った集計データを作ります。"
+      "text": "rowsとrowCountだけでは列の意味や単位は分かりません。表計算やグラフへ取り込む前に、元のクエリと一緒に記録します。生データにはセッション情報が含まれる場合があるため、LLMへ渡す前に必要な項目へ絞った集計を作ります。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-queries/",
+          "label": "クエリの実行とJSON応答"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/analytics-ai/",
+          "label": "AIへ渡す集計とアクセス範囲"
+        }
+      ]
     }
   ],
   "sources": [

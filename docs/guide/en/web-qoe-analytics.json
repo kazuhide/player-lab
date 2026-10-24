@@ -1,7 +1,7 @@
 {
   "id": "web-qoe-analytics",
-  "title": "Send Analytics and inspect it in the Dashboard",
-  "lead": "An Analytics collector listens to player events and sends playback data to Bitmovin. Inspect collected data in Bitmovin Dashboard under Observability. The app’s local state and QoE readouts help explain the playback currently on screen.",
+  "title": "Send Analytics and find a playback session",
+  "lead": "Play with Analytics enabled, then find the collected session in Bitmovin Dashboard. Use the Web app’s local QoE values and logs to inspect the current playback.",
   "blocks": [
     {
       "type": "h2",
@@ -18,18 +18,18 @@
       "rows": [
         [
           "Operate the player",
-          "Player Lab Web and native apps",
-          "Change settings or playback actions, then inspect player state and applied code."
+          "Player Lab Web or native app",
+          "Apply settings and inspect playback state and applied code."
         ],
         [
           "Send playback data",
-          "A configured Analytics collector",
-          "Collect supported player events and playback context for the selected Analytics license."
+          "Configured Analytics collector",
+          "Send supported events and playback context to the selected Analytics license."
         ],
         [
-          "Inspect collected results",
+          "Check collected data",
           "Observability in Bitmovin Dashboard",
-          "Select the license, period and filters to inspect audience and playback quality."
+          "Find the session using the same license, period and filters."
         ]
       ]
     },
@@ -40,11 +40,10 @@
     {
       "type": "steps",
       "items": [
-        "Play a video in an app configured for Analytics. Note the setting, source, device and playback time. On the public Pages demo, also check the Analytics collection notice.",
-        "Sign in to Bitmovin Dashboard and open Observability. Select the same Analytics license used by the collector.",
-        "Choose a period containing your playback. Check the displayed time zone, then narrow the view with content or browser filters.",
-        "Find the playback through Plays or Latest Sessions under Audience. Use Quality of Experience to inspect Video Startup Time or Rebuffering Percentage.",
-        "Investigate failures through Top Errors or the session details. Match the playback and time when comparing the Dashboard with the app’s event log."
+        "Play a video in an app configured for Analytics. Note the settings, source, device and playback time. On the public Pages app, also read the collection notice.",
+        "Sign in to Bitmovin Dashboard, open Observability and select the collector’s Analytics license.",
+        "Choose a period containing the playback and check the time zone. Filter by content or browser, then find the playback through Plays or Latest Sessions under Audience.",
+        "Match the session time with the app’s event log. Continue to the Dashboard chapter for browser quality comparisons or error investigation."
       ]
     },
     {
@@ -54,7 +53,20 @@
     },
     {
       "type": "note",
-      "text": "You need access to the selected Analytics license in the Dashboard. Playing the public demo does not grant access to its destination account. To inspect your own data, configure your Analytics license in a local app. A collection notice or browser-local value alone does not establish that data reached the collector backend."
+      "text": "You need access to the selected Analytics license. Playing the public demo does not grant access to its destination account. Configure your own license in a local app to inspect your data. A collection notice or browser-local value alone does not confirm backend receipt."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
+          "label": "Configure a local Analytics license"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-visualization/",
+          "label": "Compare quality and investigate errors in the Dashboard"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -64,10 +76,10 @@
     {
       "type": "steps",
       "items": [
-        "Open the Web app, choose VOD HLS or your own finite source, and start playback with Play. Read Player state and Playback quality below the player.",
-        "Seek with the player control. Compare Seek/Seeked in the event log with the seek time readout; live sources use TimeShift/TimeShifted instead.",
-        "Pause and resume. A deliberate pause does not count as rebuffering in this readout. A real StallStarted/StallEnded after playback begins increases its interruption count.",
-        "When comparing a changed configuration, open Show applied configuration code and copy the applied settings. Draft edits are not included. Load the same source again for a new measurement."
+        "Play VOD HLS or another finite source in the Web app. Read Player state and Playback quality below the player.",
+        "Seek and compare Seek/Seeked in the log with seek time. Live playback uses TimeShift/TimeShifted.",
+        "Pause and resume. Manual pauses do not count as rebuffering; StallStarted/StallEnded after playback begins increases the interruption count.",
+        "For configuration comparisons, copy Show applied configuration code. Draft edits are excluded. Reload the source to start a new measurement."
       ]
     },
     {
@@ -77,7 +89,7 @@
     },
     {
       "type": "p",
-      "text": "QoE means Quality of Experience. This panel computes values from the current player’s events. Its population and definitions differ from collected Analytics in the Dashboard."
+      "text": "QoE means Quality of Experience. These values come from the current Player’s events; their population and definitions differ from Dashboard Analytics."
     },
     {
       "type": "table",
@@ -130,15 +142,28 @@
     },
     {
       "type": "p",
-      "text": "The event log includes SourceLoaded, Play, Playing, Paused, Seek, TimeShift, StallStarted and Error with local timestamps. New events appear first, with up to 80 lines. Frequent TimeChanged events update the readouts but are not listed in the log."
+      "text": "The log shows events such as SourceLoaded, Play, Playing, Paused, Seek, TimeShift, StallStarted and Error with local timestamps. It retains up to 80 lines, newest first. TimeChanged updates readouts but is omitted from the log."
     },
     {
       "type": "p",
-      "text": "A new source load, source unload or player destruction resets the session measurements. Switching only the theme or UI keeps the same player measurements. At playback end, final totals stop increasing. Start a fresh load before comparing another trial."
+      "text": "Loading or unloading a source, or destroying the Player, resets measurements. Theme or UI changes retain them; playback end stops the totals. Reload before comparing another trial."
     },
     {
       "type": "p",
-      "text": "The public Pages app also sends Analytics when configured. Its aggregate-query panel is hidden because Pages does not run a server that can hold an account API key. Use the Dashboard for routine inspection, and use local queries or the Query API when you need a custom aggregate."
+      "text": "The public Pages app sends Analytics when configured. It hides aggregate queries because Pages has no server to hold an account API key. Use the chapters below for aggregate definitions and API queries."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-metrics/",
+          "label": "Analytics metric definitions and units"
+        },
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/analytics-queries/",
+          "label": "Analytics API queries"
+        }
+      ]
     }
   ],
   "sources": [

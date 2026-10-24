@@ -1,7 +1,7 @@
 {
   "id": "web-ui-customization",
   "title": "UIを変更するためのガイド",
-  "lead": "まずWeb版でテーマと適用中のUI設定を比較します。自分のプレイヤーへ取り込む際は、対応するファクトリーとスタイルシートを参照します。この章ではGUIで試す操作と、コードを編集する変更を分けて説明します。",
+  "lead": "UIの管理方法、自作部品、解放処理を説明します。標準UIの接続、CSS、部品配置は実装ガイドを起点にし、独自の部品を追加する際にこのページを参照してください。",
   "blocks": [
     {
       "type": "h2",
@@ -10,7 +10,7 @@
     },
     {
       "type": "p",
-      "text": "テーマを選ぶと、現在のPlayerを保持したままアプリが管理するUIManagerを入れ替えます。CSSのテーマは標準の部品構成に別のスキンを適用し、カスタムUIは部品や配置を変更しています。映像横の「標準UIからの変更」で部品の違いを確認し、構築コードとその下のソースパスから実装を調べます。構築コードのコメントは、画面の言語にかかわらず英語です。"
+      "text": "構築コードは選択したテーマの部品構成を示し、ソースへの参照を含みます。コード内のコメントは英語です。テーマ切り替えではPlayerとソースを維持し、アプリが管理するUIを入れ替えます。"
     },
     {
       "type": "p",
@@ -71,12 +71,12 @@
       "text": "GUIの変更からコードを確認する"
     },
     {
-      "type": "steps",
+      "type": "links",
       "items": [
-        "Premiereを選び、同じVODソースを再生したまま、歯車メニューの再生速度の項目を確認します。",
-        "UI設定の「設定歯車に再生速度を表示」をオフにします。歯車を開き直して項目が消えたことを確認し、オンへ戻して再表示を確かめます。",
-        "映像の横の「適用中のUIConfigの上書き値」を開きます。playbackSpeedSelectionEnabledが操作に合わせて変わります。その上の構築コードは、テーマの部品構成を説明する例です。",
-        "構築コード下部のソースパスから、liveUi.tsのbuildPremiereUiContainerとbuildSettingsPanelを確認します。この設定が制御する部品はPlaybackSpeedSelectBoxです。配置を変える場合は部品構成のコードを編集します。"
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#compare-the-video-and-code",
+          "label": "GUIの変更を構築コード・UIConfigと比較する"
+        }
       ]
     },
     {
@@ -125,16 +125,20 @@
     },
     {
       "type": "p",
-      "text": "アプリ管理の方式ではPlayerConfig.uiをfalseにし、アプリがUIManagerを生成・解放します。以下の例は、独立したプロジェクトで標準UIのレスポンシブな構成を使うためのUI接続関数です。現行ソースの抜粋ではありません。Playerはui: falseで生成済みとし、必要な依存パッケージをインストールします。戻り値のUIManagerを保持し、入れ替えや画面終了時にreleaseを呼びます。"
+      "text": "アプリ管理ではPlayerConfig.uiをfalseにし、UIManagerの生成と解放を担当します。UIConfigとスタイルシートを含む標準UIの接続例は実装ガイドにまとめています。"
     },
     {
-      "type": "code",
-      "title": "標準UIへ設定を渡す例",
-      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport {\n  UIFactory, UIComponentLayoutOverride, type UIConfig,\n} from \"bitmovin-player-ui\";\nimport \"bitmovin-player-ui/dist/css/bitmovinplayer-ui.css\";\n\nexport const uiConfig: UIConfig = {\n  localization: { language: \"en\" },\n  componentLayoutOverrides: {\n    PlaybackSpeedSelectBox: UIComponentLayoutOverride.Exclude,\n  },\n  componentConfigOverrides: {\n    UIContainer: { hideDelay: -1 },\n  },\n};\n\nexport function attachStandardUi(player: PlayerAPI) {\n  return UIFactory.buildUI(player, uiConfig);\n}"
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/ui-customization/#ui-configuration-and-owner",
+          "label": "標準UIの接続と部品の上書き設定"
+        }
+      ]
     },
     {
       "type": "p",
-      "text": "この例は速度の設定項目を隠し、UIContainerの自動非表示を止めます。表示言語はenです。使用中のUI版ではplaybackSpeedSelectionEnabledは旧形式の設定なので、新しい実装ではcomponentLayoutOverridesを使えます。GUIの既存トグルも比較用として利用できます。レイアウト上書きで指定できる部品はSDKの対応表にある型に限られ、任意の独自クラスを名前だけで追加する機能ではありません。"
+      "text": "新しい実装では、旧形式のplaybackSpeedSelectionEnabledの代わりにcomponentLayoutOverridesを使えます。指定できるのはSDKが対応する部品の型で、任意の独自クラスを名前だけで追加するものではありません。"
     },
     {
       "type": "p",
@@ -163,19 +167,16 @@
     },
     {
       "type": "p",
-      "text": "NeonではDefaultの部品構成を保ち、クラスを追加します。次のファクトリー呼び出しはアプリと同じ方法です。共有のスタイルシートにはスキンが含まれているため、自分の色へ変える際はそのルールを基に編集します。"
+      "text": "NeonはDefaultの部品構成へスキンのクラスを追加します。上書き用CSSは基本のスタイルシートより後に読み込み、対象のスキンに範囲を限定します。"
     },
     {
-      "type": "code",
-      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport { DefaultUIFactory } from \"@showcase/ui-shared\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createNeonUi(player: PlayerAPI) {\n  return DefaultUIFactory.buildDefaultUI(player, undefined, {\n    extraCssClasses: [\"ui-skin-neon\"],\n    hideDelay: -1,\n  });\n}"
-    },
-    {
-      "type": "p",
-      "text": "対応するシークバーのルールはui-shared.scssにあります。UIライブラリが部品のクラス名へbmpui-を付けるため、CSSでは次の名前を使います。上書きするCSSは基本のスタイルシートより後に読み込み、スキンのクラスに範囲を限定すると、他のテーマへ影響を広げずに変更できます。"
-    },
-    {
-      "type": "code",
-      "text": ".bmpui-ui-skin-neon .bmpui-seekbar-playbackposition {\n  background: linear-gradient(90deg, #00e5ff, #ff2bd6);\n  box-shadow: 0 0 8px rgba(0, 229, 255, 0.85);\n}"
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/ui-customization/#ui-skin-css",
+          "label": "NeonのファクトリーとCSSの例"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -183,15 +184,20 @@
     },
     {
       "type": "p",
-      "text": "次のコード例は、Compactの構成からオプションのキャストボタンを省いたものです。componentsの順番で操作列の並びが決まります。PlaybackTimeLabelをSeekBarの前へ移し、配置を比較できます。GUIに部品の順番を編集する欄はないため、コードを変更してビルドし、アプリのCompactと結果を比べます。"
+      "text": "操作部品はcomponents配列の順に並びます。実装ガイドのCompactの例で、PlaybackTimeLabelとSeekBarの位置を変更できます。配置を変える場合はコードを編集して再ビルドします。GUIは既存の構成を選ぶためのものです。"
     },
     {
-      "type": "code",
-      "text": "import type { PlayerAPI } from \"bitmovin-player\";\nimport {\n  BufferingOverlay, Container, ControlBar, PlaybackTimeLabel,\n  PlaybackTimeLabelMode, PlaybackToggleButton, SeekBar, SeekBarLabel,\n  UIContainer, UIManager, UIVariantIdentifier,\n} from \"bitmovin-player-ui\";\nimport \"@showcase/ui-shared/css\";\n\nexport function createCompactUi(player: PlayerAPI) {\n  const container = new UIContainer({\n    components: [\n      new BufferingOverlay(),\n      new ControlBar({ components: [\n        new Container({\n          components: [\n            new PlaybackToggleButton(),\n            new SeekBar({ label: new SeekBarLabel() }),\n            new PlaybackTimeLabel({\n              timeLabelMode: PlaybackTimeLabelMode.CurrentTime,\n            }),\n          ],\n          cssClasses: [\"controlbar-bottom\"],\n        }),\n      ] }),\n    ],\n    cssClasses: [\"ui-skin-modern\", \"ui-skin-compact\"],\n    hideDelay: -1,\n  });\n  return new UIManager(player, [{\n    ui: container,\n    identifier: UIVariantIdentifier.main,\n  }]);\n}"
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/ui-customization/#ui-component-composition",
+          "label": "Compactの部品配置の例"
+        }
+      ]
     },
     {
       "type": "p",
-      "text": "UIManagerごとに新しい部品を作成します。ui: falseで生成したプレイヤーへ接続する前に、以前のUIManagerを解放してください。このコンパクトな構成例には、中央の再生オーバーレイ、音量操作、設定メニュー、字幕オーバーレイを含めていません。必要な場合は、他のファクトリーの対応する部品を参照して追加します。"
+      "text": "UIManagerごとに新しい部品を生成し、接続前に古いUIManagerを解放します。Compactの例には中央の再生オーバーレイ、音量、設定、字幕オーバーレイを含めていないため、必要に応じて追加します。"
     },
     {
       "type": "h2",
@@ -217,73 +223,8 @@
       "id": "fourteen-guide-sections"
     },
     {
-      "type": "table",
-      "headers": [
-        "節",
-        "読む内容"
-      ],
-      "rows": [
-        [
-          "概要",
-          "UIの構造とスキンの分離、テーマの比較方法"
-        ],
-        [
-          "アーキテクチャと用語",
-          "UIManager、UIContainer、Component、UIVariant"
-        ],
-        [
-          "UIの変更方法",
-          "標準UI、部品の組み替え、CSSによる変更"
-        ],
-        [
-          "ツリーを組む",
-          "複数行の操作バーと部品の順序"
-        ],
-        [
-          "コンポーネント・カタログ",
-          "ボタン、バー、ラベル、字幕、設定などの代表部品"
-        ],
-        [
-          "部品を自作する",
-          "継承、configure、イベント、後片付け"
-        ],
-        [
-          "設定パネルを作る",
-          "歯車と画質・速度・音声などの選択欄"
-        ],
-        [
-          "イベント",
-          "UIの操作通知とSDKの再生状態通知"
-        ],
-        [
-          "スタイリング",
-          "bmpuiのクラス、スキンとCSSの優先順位"
-        ],
-        [
-          "設定",
-          "UIConfigと個別部品の設定の使い分け"
-        ],
-        [
-          "UIバリアントとTV",
-          "条件による構成選択とリモコン向け手法"
-        ],
-        [
-          "ジェスチャ",
-          "映像面のクリックとダブルクリックの扱い"
-        ],
-        [
-          "クックブック",
-          "よく使うUIの変更例"
-        ],
-        [
-          "参考リンク",
-          "公式APIとソース"
-        ]
-      ],
-      "widths": [
-        0.39,
-        0.61
-      ]
+      "type": "p",
+      "text": "アプリから開く詳細ガイドには、部品一覧、UIバリアントとTV操作、ジェスチャ、スタイル、イベント処理を記載しています。このページの例から部品を拡張する際に参照してください。"
     },
     {
       "type": "h2",
@@ -400,7 +341,7 @@
           "label": "PlayerConfig / SourceConfig"
         },
         {
-          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-ui-settings/",
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#ui-settings",
           "label": "UI設定と外部表示"
         }
       ]

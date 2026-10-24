@@ -200,7 +200,7 @@
     },
     {
       "type": "p",
-      "text": "最終マニフェストを有限のVODとして読み直すには、URLとPlayer設定を保ち、「Configure source and playback」のTitleだけを変え、操作が「Reload source」と表示されることを確認してApplyを押します。同じPlayerとURLで新しいSourceを読み込み、再生位置はリセットされます。これは元のSourceの再生完了やReplayとは別の操作です。"
+      "text": "最終マニフェストを有限のVODとして読み直すには、「設定」でカテゴリを「ソース」にし、URLとPlayer設定を保ったまま「タイトル」だけを変えます。操作が「ソースを再読み込み」と表示されることを確認して「適用」を押します。同じPlayerとURLで新しいSourceを読み込み、再生位置はリセットされます。元のSourceで再生をやり直すReplayとは別の操作です。"
     },
     {
       "type": "h2",

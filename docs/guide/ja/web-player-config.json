@@ -1,7 +1,7 @@
 {
   "id": "web-player-config",
   "title": "PlayerConfig / SourceConfig",
-  "lead": "PlayerConfigはプレイヤー生成時、SourceConfigはコンテンツ読み込み時、実行時APIは再生中の操作に使います。GUIの反映方法と対応するSDKの呼び出しを確認し、設定を自分の実装へ取り込む方法を説明します。",
+  "lead": "Webの設定対象と反映方法、設定グループ、画質・バッファ・通信の詳しい比較例をまとめます。画面での操作手順は「画面と操作」、再利用するコードは実装ガイドを参照してください。",
   "blocks": [
     {
       "type": "h2",
@@ -10,7 +10,16 @@
     },
     {
       "type": "p",
-      "text": "「再生中の設定とソース」には即時反映するAPIとソースの編集欄、「Playerの初期設定」には生成時に読み込む値があります。各グループの表示で即時・再読み込み・再生成を区別できます。再読み込みと再生成の編集は、対応する適用ボタンを押すまで反映されません。グループを開くだけでは適用されません。各項目の「?」から説明を確認できます。"
+      "text": "フォームは各グループを即時・リロード・再生成に分けています。項目の「?」から説明を開けます。グループを開くだけでは変更は適用されません。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#player-source-settings",
+          "label": "設定フォームの操作手順"
+        }
+      ]
     },
     {
       "type": "p",
@@ -18,7 +27,7 @@
     },
     {
       "type": "p",
-      "text": "「適用済み設定をコードで表示」は、その時点の設定を取得したものです。未適用の編集値とライセンスキーは含みません。「コードを更新」で変更後の値を取得し、「コードをコピー」では最新の設定を取得してからコピーします。映像横の構築コードはUIを組み立てるための別の例です。どちらもアプリのすべての状態を保存する機能ではありません。"
+      "text": "適用済みコードには反映済みの設定を含め、下書きとライセンス値は含めません。映像横の構築コードはUIの配置を示す別の例です。更新・コピーの操作は「画面と操作」を参照してください。"
     },
     {
       "type": "h2",
@@ -51,47 +60,42 @@
       "type": "table",
       "headers": [
         "表示",
-        "対象と反映",
-        "項目数"
+        "反映方法"
       ],
       "rows": [
         [
           "即時",
-          "Player API、Adaptationの動的設定、Low Latency。入力の変更時にAPIを呼びます。",
-          "21"
+          "入力の確定時に実行時APIを呼びます。Player API、動的な画質適応、低遅延の設定が対象です。"
         ],
         [
           "リロード",
-          "SourceConfigのタイトル、説明、画像、開始位置。ソースを再読み込みして適用します。",
-          "6"
+          "タイトル、説明、画像、開始位置を含むソース設定を読み込み直します。"
         ],
         [
           "再生成",
-          "PlayerConfigの初期設定。プレイヤーを作り直して適用します。",
-          "117"
+          "変更したPlayerConfigで新しいPlayerを生成します。"
         ]
       ],
       "widths": [
-        0.18,
-        0.69,
-        0.13
+        0.22,
+        0.78
       ]
-    },
-    {
-      "type": "p",
-      "text": "操作パネルでは、ライブ配信の巻き戻し、UI設定、キャストなども変更できます。設定グループは見出しで開閉します。動的グループは初期状態で開き、再生成のグループは閉じています。"
     },
     {
       "type": "h2",
       "text": "即時設定を試す"
     },
     {
-      "type": "steps",
+      "type": "p",
+      "text": "実行時の項目は、文字の入力ごとではなくchangeイベントでsetterを呼びます。音量を変えるとミュートが解除される場合があります。全画面とPiPにはブラウザーの対応と利用者の操作も必要です。"
+    },
+    {
+      "type": "links",
       "items": [
-        "Player APIを開き、volumeやmuteなどの現在値を確認します。",
-        "1つの項目を変更し、入力欄の外へ移動するなどして変更を確定します。変更は文字を入力するたびではなく、changeイベントが発生したときに適用されます。",
-        "音量、再生速度、表示モードなどの実際の変化を確認します。volumeを変更するとミュートが解除され、音声が出る場合があります。",
-        "再生を続けながらほかの値と比較します。"
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#try-an-immediate-setting",
+          "label": "即時設定の操作"
+        }
       ]
     },
     {
@@ -103,17 +107,17 @@
       "text": "ソース設定を適用する"
     },
     {
-      "type": "steps",
-      "items": [
-        "Sourceでtitleを変更します。タイトルを表示できるPremiereなどを選ぶと結果を確認しやすくなります。",
-        "必要ならdescription、poster、startOffsetと基準も変更します。",
-        "ソースを再読み込みして適用を押します。",
-        "再読み込み後に映像内の表示と開始位置を確認します。"
-      ]
+      "type": "p",
+      "text": "title、description、poster、optionsはSourceConfigとしてplayer.loadへ渡します。Playerを再生成せずソースを読み込み直します。Player Labの適用操作は、プリセットと適用済みの上書きを統合したSourceConfig全体を渡します。自分のアプリでも、維持したい設定を含むソースを組み立ててからloadを呼んでください。"
     },
     {
-      "type": "p",
-      "text": "リロードや再生成の項目は、変更した時点では待機状態です。対応する適用ボタンを押すまで反映しません。変更がないと適用ボタンは無効です。ソース再読み込みでは、ほかの適用済みソース設定を保持します。"
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#apply-source-settings",
+          "label": "ソース設定をGUIで適用する"
+        }
+      ]
     },
     {
       "type": "h2",
@@ -173,12 +177,16 @@
       "text": "初期設定を適用する"
     },
     {
-      "type": "steps",
+      "type": "p",
+      "text": "Playback、Buffer、Networkなどの初期設定は、Playerの生成時にPlayerConfigとして渡します。元のJavaScriptオブジェクトを書き換えるだけでは既存のPlayerは更新されません。"
+    },
+    {
+      "type": "links",
       "items": [
-        "Playback、Adaptation、Bufferなど必要なグループを開きます。",
-        "比較したい設定をいくつか変更します。",
-        "プレイヤーを再生成して適用を押します。",
-        "ソースの再読み込み後に、設定値と動作を確認します。"
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#apply-initial-settings",
+          "label": "GUIからPlayerを再生成する"
+        }
       ]
     },
     {
@@ -193,90 +201,73 @@
       "type": "table",
       "headers": [
         "グループ",
-        "数",
         "対象"
       ],
       "rows": [
         [
           "Player API",
-          "8",
           "音量、ミュート、速度、バッファ、表示モード、比率、画像、ログ"
         ],
         [
           "Adaptation 動的",
-          "6",
           "表示サイズの制約、画質安定性、解像度の上下限"
         ],
         [
           "Low Latency 動的",
-          "7",
           "目標遅延とcatchup、fallback"
         ],
         [
           "Source",
-          "6",
           "タイトル、説明、画像、開始位置と基準"
         ],
         [
           "Playback",
-          "8",
           "再生開始時の挙動と言語"
         ],
         [
           "Adaptation 初期",
-          "12",
           "開始ビットレート、各ビットレート制約、適応ロジック"
         ],
         [
           "Buffer 初期",
-          "4",
           "音声・映像それぞれの前方と後方のバッファ"
         ],
         [
           "Network",
-          "9",
           "通信方式とリクエスト種別ごとのタイムアウト秒数"
         ],
         [
           "Tweaks",
-          "65",
           "64個の単純な値とlog_level"
         ],
         [
           "Logs",
-          "2",
           "出力レベルとコンソールのクレジット"
         ],
         [
           "Style",
-          "4",
           "比率、幅、高さ、ネイティブ字幕"
         ],
         [
           "Cast",
-          "4",
           "CastConfigの有効化とレシーバー向け設定"
         ],
         [
           "Live",
-          "2",
           "増分マニフェストと目標遅延"
         ],
         [
           "Location",
-          "5",
           "UI、CSS、Cast、IMA、Service Workerの読み込み先"
         ],
         [
           "その他",
-          "2",
           "ライセンス取得の遅延とプレイヤー側の保存設定"
         ]
       ],
       "widths": [
         0.32,
-        0.09,
-        0.59
+        0.68
       ]
     },
     {
@@ -285,7 +276,7 @@
     },
     {
       "type": "p",
-      "text": "Networkのタイムアウトは小数を含む秒数で指定します。ミリ秒ではありません。リクエスト種別ごとの値は全体の既定値より優先されます。不正な値や負値を入力すると適用ボタンが無効になり、再生中のプレイヤーは変わりません。空欄で該当する上書きだけを削除します。音声のみのソースなどで再生中も画像を残す場合は、options.persistentPosterを使います。"
+      "text": "Networkのタイムアウトは小数を含む秒数で指定します。リクエスト種別ごとの値が全体の既定値より優先されます。不正な値や負値では適用ボタンが無効になり、再生中のPlayerは変わりません。空欄にすると該当する上書きを削除します。"
     },
     {
       "type": "h2",
@@ -476,50 +467,15 @@
     },
     {
       "type": "p",
-      "text": "以下は、適用済み設定の内容を独立したTypeScriptの設定データへ整理する例です。現行ソースの抜粋ではありません。使用中のSDKの型で確認しています。URLとPlayerライセンスは置き換えてください。数値は比較用で、推奨値ではありません。この例はui: falseなので、対応するUIManagerとスタイルシートをUI変更ガイドに従って用意します。"
+      "text": "型付きのPlayerConfig / SourceConfigの例は実装ガイドにまとめています。音声の優先言語、画質適応、バッファ、タイムアウト、開始位置を指定する例です。ライセンスとURLを置き換え、ui: falseではUIも接続してください。数値は比較用で、推奨値ではありません。"
     },
     {
-      "type": "code",
-      "title": "設定データの例（自分の配信先へ置換）",
-      "text": "import type { PlayerConfig, SourceConfig } from \"bitmovin-player\";\n\nexport const playerConfig: PlayerConfig = {\n  key: \"YOUR_PLAYER_KEY\",\n  ui: false,\n  playback: { autoplay: false, muted: true, audioLanguage: \"en\" },\n  adaptation: {\n    desktop: { bitrates: { maxSelectableVideoBitrate: \"500kbps\" } },\n    mobile: { bitrates: { maxSelectableVideoBitrate: \"500kbps\" } },\n  },\n  buffer: {\n    video: { forwardduration: 10 },\n    audio: { forwardduration: 10 },\n  },\n  network: { defaultRequestTimeout: 5 },\n};\n\nexport const sourceConfig: SourceConfig = {\n  hls: \"https://example.com/master.m3u8\",\n  title: \"Configuration comparison\",\n  options: { startOffset: 5 },\n};"
-    },
-    {
-      "type": "p",
-      "text": "playerConfigは既存のnew Player(container, playerConfig)へ、sourceConfigはplayer.load(sourceConfig)へ渡します。音声の優先言語と初期の画質・バッファ・通信条件を生成時に指定し、ソース側では表示名と開始位置を指定しています。startOffset: 5は、オンデマンド素材では既定で先頭から5秒の位置を指定します。ライブで末尾基準を使う場合は、SourceのstartOffsetTimelineReferenceも選びます。"
-    },
-    {
-      "type": "table",
-      "headers": [
-        "GUIの例",
-        "実装での呼び出し",
-        "確認する値"
-      ],
-      "rows": [
-        [
-          "Player APIのvolume / mute",
-          "player.setVolume(value)、mute() / unmute()",
-          "getVolume() / isMuted()。ブラウザーによって音量や自動再生の制約があります。"
-        ],
-        [
-          "Adaptation（動的）",
-          "player.adaptation.setConfig(config)",
-          "adaptation.getConfig()と実際の配信画質。初期設定のadaptation.desktop / mobileとは別です。"
-        ],
-        [
-          "Sourceのtitle / poster / options",
-          "変更したSourceConfigをplayer.loadへ渡す",
-          "getSource()、表示中のタイトル・ポスター、再生開始位置。ソースは再読み込みされます。"
-        ],
-        [
-          "Playback / Buffer / Network / Tweaks",
-          "変更したPlayerConfigでPlayerを再生成する",
-          "getConfig()と再生・通信の挙動。既存のPlayerが設定オブジェクトの変更だけで更新されるわけではありません。"
-        ]
-      ],
-      "widths": [
-        0.27,
-        0.34,
-        0.39
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-implementation/player-source-config/#configuration-data",
+          "label": "再利用できるTypeScriptの設定例"
+        }
       ]
     },
     {
@@ -555,14 +511,14 @@
     },
     {
       "type": "p",
-      "text": "従来のPlayer Configフォームの下にある「SDKの詳細設定・API・イベント」を開きます。公開APIの名前で検索し、設定・操作・状態の取得・イベントから種類を選びます。各項目から公式リファレンスを参照できます。"
+      "text": "Player Configフォームの下にある「SDKの詳細設定・API・イベント」を開きます。公開APIの名前で検索し、設定・操作・状態の取得・イベントから種類を選びます。各項目から公式リファレンスを参照できます。"
     },
     {
       "type": "steps",
       "items": [
         "SourceConfig.titleなどの項目を選びます。型の選択肢があれば入力する型を選び、値を入れて「設定を適用」を押します。PlayerConfigはPlayerの再生成、SourceConfigはソースの再読み込み、UI設定はUIの再生成で反映します。",
         "オブジェクトの任意項目は個別に有効にします。配列は「項目を追加」、辞書は「プロパティを追加」で編集します。必須項目を持つ要素を追加するときはPlayerConfig.playback.preferredTechやSourceConfig.subtitleTracksのような親のパスを選び、必要な項目を揃えて一度に適用してください。要素番号付きの末端パスは既存の要素の編集に使い、それより前の要素を保持してください。オブジェクトの編集では変更していない元の項目を保持し、配列の編集ではその配列全体を置き換えます。",
-        "「この上書きを解除」で対応する基本設定へ戻します。従来のフォームで同じ項目を変更した場合は重複する詳細設定を取り除き、無関係な設定は保持します。",
+        "「この上書きを解除」で対応する基本設定へ戻します。Player Configフォームで同じ項目を変更した場合は重複する詳細設定を取り除き、無関係な設定は保持します。",
         "メソッドは引数の形式を選び、必要な任意引数を有効にして値を入力し、「APIを実行」または「状態を取得」を押します。生成したコードの下に結果を表示します。破棄と再生成はアプリ内のほかの操作と共通の管理手順で行います。",
         "イベント欄には現在のPlayerとUIManagerの購読対象を表示します。イベントが発生すると、回数と内容の抜粋を上限のあるログに表示します。Playerの再生成時に、古い購読と履歴を取り除きます。"
       ]
@@ -615,11 +571,19 @@
     },
     {
       "type": "p",
-      "text": "「状態の取得」でPlayerAPI.getConfigやPlayerAPI.getSourceを選ぶと、送信した設定値を確認できます。setVolumeなどの操作では、引数を入力して実行します。取得したSDKインスタンスや関数を後の呼び出しで選ぶこともできます。取得元のPlayerなどが入れ替わった場合は取得し直します。コード例からライセンス値を除きます。選択したインスタンスを参照する部分には、先の呼び出しで取得した同じオブジェクトを使ってください。「イベントとコールバック」には現在のPlayerでの累積回数と直近のイベント内容を表示します。古い内容が履歴から消えても回数は残ります。設定値の反映は「状態の取得」で確認してください。「Playerを再生成」、または「イベント履歴を消去」で記録を消去できます。"
+      "text": "「状態の取得」でPlayerAPI.getConfigやPlayerAPI.getSourceを選ぶと、送信した設定値を確認できます。setVolumeなどの操作では、引数を入力して実行します。取得したSDKインスタンスや関数を後の呼び出しで選ぶこともできます。取得元のPlayerなどが入れ替わった場合は取得し直します。コード例からライセンス値を除きます。選択したインスタンスを参照する部分には、先の呼び出しで取得した同じオブジェクトを使ってください。"
     },
     {
       "type": "p",
-      "text": "PlayerConfig.uiに空のオブジェクト{}を適用するとSDKがUIを生成します。アプリは使用中のUIバージョンに対応するスクリプトとスタイルの読み込み先を指定し、PlayerConfig.locationから変更できます。SDKは設定したstyle.uiManagerFactoryを呼び出します。従来のテーマを選ぶとアプリが生成するUIへ戻り、UIManagerが重複しないようにします。Player UI 4.23.0では、UI設定を合成するときに、空でないSourceConfig.title・descriptionをUIConfig.metadata.title・descriptionより優先します。プリセットのタイトルや説明よりUIConfig側のメタデータを優先させるには、対応するSourceConfigの値を空文字列にして適用します。ソースごとの表示を変える場合はSourceConfigを編集します。"
+      "text": "「イベントとコールバック」には現在のPlayerでの累積回数と直近のイベント内容を表示します。古い内容が履歴から消えても回数は残ります。設定値の反映は「状態の取得」で確認してください。「Playerを再生成」、または「イベント履歴を消去」で記録を消去できます。"
+    },
+    {
+      "type": "p",
+      "text": "PlayerConfig.uiに空のオブジェクト{}を適用するとSDKがUIを生成します。アプリは使用中のUIバージョンに対応するスクリプトとスタイルの読み込み先を指定し、PlayerConfig.locationから変更できます。SDKは設定したstyle.uiManagerFactoryを呼び出します。テーマを選ぶとアプリが生成するUIへ戻り、UIManagerが重複しないようにします。"
+    },
+    {
+      "type": "p",
+      "text": "Player UI 4.23.0では、UI設定を合成するときに、空でないSourceConfig.title・descriptionをUIConfig.metadata.title・descriptionより優先します。プリセットのタイトルや説明よりUIConfig側のメタデータを優先させるには、対応するSourceConfigの値を空文字列にして適用します。ソースごとの表示を変える場合はSourceConfigを編集します。"
     },
     {
       "type": "note",
@@ -635,12 +599,13 @@
       "text": "適用済み設定のコードをコピーする"
     },
     {
-      "type": "p",
-      "text": "設定欄の下にある「適用済み設定をコードで表示」を開きます。現在のPlayer設定とソースに加え、GUIで扱う実行時の値とUI設定の上書き値を取得します。未適用の編集値は含めません。「コードを更新」で表示後の変更を取得し、「コードをコピー」で最新の内容をコピーします。ブラウザーからコピーできない場合は、テキストを選択して端末のコピー操作を行ってください。"
-    },
-    {
-      "type": "note",
-      "text": "ライセンス値は置き換えるか出力から除外します。出力対象はこの画面で扱う設定です。選択したUIの組み立て方はプレイヤー横のコードを参照してください。フルスクリーンや外部画面に関する操作には、ユーザー操作と対応端末が必要です。"
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/web-screen-controls/#applied-code",
+          "label": "適用済みコードの更新とコピー"
+        }
+      ]
     },
     {
       "type": "links",

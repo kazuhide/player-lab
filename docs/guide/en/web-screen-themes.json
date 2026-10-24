@@ -1,28 +1,16 @@
 {
   "id": "web-screen-themes",
   "title": "The Web screen and themes",
-  "lead": "Use the Web app to compare player controls, change their behavior and inspect the code behind the selected UI. Keep the source unchanged while comparing themes so that a media change does not obscure the difference.",
+  "lead": "These instructions are now part of Web Screen and controls. Follow the topic links below.",
   "blocks": [
     {
       "type": "links",
       "items": [
         {
           "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#themes",
-          "label": "Screen and controls: the combined Web workflow"
-        },
-        {
-          "url": "https://kazuhide.github.io/player-lab/guide/web-implementation/",
-          "label": "Implementation guide: configuration, UI changes and FAQ"
+          "label": "Web Screen and controls"
         }
       ]
-    },
-    {
-      "type": "p",
-      "text": "Language and theme selectors appear at the top. The video and construction code sit below, followed by controls for sources, seeking, playback, UI settings and casting; Player state, Event log and Playback quality readouts; and the Player Config editor. A link at the bottom opens the detailed UI customization guide."
-    },
-    {
-      "type": "note",
-      "text": "The initial source is VOD HLS with the Live (DVR) theme. Autoplay and mute are enabled; control autohide is off. A theme named Live can also play on-demand media. Theme buttons do not select the streaming format."
     },
     {
       "type": "h2",
@@ -30,181 +18,83 @@
       "id": "three-customization-methods"
     },
     {
-      "type": "table",
-      "headers": [
-        "Category",
-        "What changes"
-      ],
-      "rows": [
-        [
-          "Default UI",
-          "Default (Bitmovin) uses the standard desktop component tree through the app's DefaultUIFactory wrapper. Start here when comparing a custom layout."
-        ],
-        [
-          "Default UI + CSS",
-          "Neon, Glass, Sunset, Bold and Mono retain the standard structure and change colors, sizes and other styling through CSS."
-        ],
-        [
-          "Custom UI",
-          "Live (DVR), Sports, Binge, Cinema, Compact, Premiere, Creator and Studio change the choice and arrangement of components."
-        ]
-      ],
-      "widths": [
-        0.24,
-        0.76
-      ]
-    },
-    {
-      "type": "h2",
-      "text": "Available themes"
-    },
-    {
-      "type": "table",
-      "headers": [
-        "Theme",
-        "Main display and controls"
-      ],
-      "rows": [
-        [
-          "Default (Bitmovin)",
-          "Compare behavior against the standard UI."
-        ],
-        [
-          "Neon",
-          "Apply bright colors and gradients to the standard UI."
-        ],
-        [
-          "Glass",
-          "Show a translucent control bar."
-        ],
-        [
-          "Sunset",
-          "Apply a warm gradient palette."
-        ],
-        [
-          "Bold",
-          "Show larger controls with high contrast."
-        ],
-        [
-          "Mono",
-          "Use a monochrome palette with the standard UI."
-        ],
-        [
-          "Live (DVR)",
-          "Show the live edge, wall-clock time, distance behind live and 10-second skip controls."
-        ],
-        [
-          "Sports",
-          "Overlay sample scores and player information. The INFO button shows them again."
-        ],
-        [
-          "Binge",
-          "Try skipping the sample intro from 5 to 18 seconds and moving to the next episode near the end."
-        ],
-        [
-          "Cinema",
-          "Use a central play control and a slim control bar."
-        ],
-        [
-          "Compact",
-          "Use a compact single row without a central playback overlay."
-        ],
-        [
-          "Premiere",
-          "Show a title, full-width seek bar, settings menu and recommendations at the end."
-        ],
-        [
-          "Creator",
-          "Show a title and full-width seek bar with a row for playback, volume, time and settings."
-        ],
-        [
-          "Studio",
-          "Show a title and a single-row seek bar between the time labels."
-        ]
-      ],
-      "widths": [
-        0.27,
-        0.73
-      ]
-    },
-    {
-      "type": "h2",
-      "text": "Compare the video and code"
-    },
-    {
-      "type": "steps",
+      "type": "links",
       "items": [
-        "Start VOD HLS and select Default (Bitmovin). Check the current time, pause/resume, volume and seek bar before changing the UI.",
-        "Select Neon, then return to Default. Compare the seek-bar color, button appearance and control-bar background while checking that playback continues. These themes share the same component tree.",
-        "Select Premiere, Creator and Studio on the same source. Compare the title, current/remaining time, settings gear and seek-bar position. These themes build different component trees.",
-        "Open the construction code beside the video. Its difference summary explains the changed components; the source path below the code identifies the factory or stylesheet to inspect.",
-        "In UI settings, change Speed item in settings gear while using Premiere. Reopen the gear menu and check the applied UIConfig overrides beside the video. Change the setting back and confirm the item returns."
-      ]
-    },
-    {
-      "type": "note",
-      "text": "A theme change keeps the player and current source, but releases and rebuilds its UI. Construction code is an abbreviated implementation example, not an editable browser field. Applied UIConfig overrides shows the UI values explicitly changed in the GUI; it excludes theme defaults, the app's sample metadata, autohide, casting options and PlayerConfig/SourceConfig. Copying either panel does not save the complete app state."
-    },
-    {
-      "type": "h2",
-      "text": "Try theme-specific controls"
-    },
-    {
-      "type": "table",
-      "headers": [
-        "Theme and source",
-        "Action and expected result"
-      ],
-      "rows": [
-        [
-          "Sports with a playing source",
-          "Wait for the sample score and player-information overlays to hide, then press INFO to show them again. Their content is supplied by sportsData.ts; it is not a live sports feed."
-        ],
-        [
-          "Binge with VOD HLS",
-          "During the sample intro from 5 to 18 seconds, use Skip Intro and check the playback position. Near the end, inspect Next episode and the Next-up card. Continuous play controls automatic advancement through the configured playlist."
-        ],
-        [
-          "Premiere, Creator or Studio with VOD",
-          "Open the gear menu and compare speed, quality and audio choices. Available choices depend on the source and UI settings. Finish playback to inspect the recommendation overlay, then select a recommendation and check the loaded source."
-        ],
-        [
-          "Live (DVR) with VOD, then an available live preset",
-          "Compare elapsed/total time on VOD with the LIVE and time labels on a live stream. The theme name does not make a source live or provide a rewind window; those depend on the loaded media."
-        ]
-      ],
-      "widths": [
-        0.3,
-        0.7
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#three-customization-methods",
+          "label": "Ways to customize the UI"
+        }
       ]
     },
     {
       "type": "h2",
-      "text": "Return to a comparison baseline"
+      "text": "Available themes",
+      "id": "available-themes"
     },
     {
-      "type": "p",
-      "text": "Selecting Default changes the UI composition; it does not reset the source, playback settings or UIConfig overrides. Restore the toggles changed during an experiment, keep Autohide controls off while inspecting the layout, and select the same source before comparing again. Reloading the page restores the app's initial in-memory settings. The selected app language and any enabled Player UI storage preferences or resume positions can survive a reload."
-    },
-    {
-      "type": "p",
-      "text": "The GUI selects existing compositions and exposes UI behavior settings. To add a control, move a component or edit a skin, use the source path shown beneath Construction code and follow Customize the player UI. The UI settings and external displays chapter describes each toggle and its prerequisites."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#available-themes",
+          "label": "Available themes"
+        }
+      ]
     },
     {
       "type": "h2",
-      "text": "Display language"
+      "text": "Compare the video and code",
+      "id": "compare-the-video-and-code"
     },
     {
-      "type": "p",
-      "text": "Use the Japanese and English buttons at the top to change language. Technical field names such as autoplay remain in English so they match SDK identifiers. The browser remembers the language across navigation between the app and detailed guide."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#compare-the-video-and-code",
+          "label": "Compare the video and code"
+        }
+      ]
     },
     {
-      "type": "note",
-      "text": "Changing language rebuilds the Player Config form and discards edits that have not been applied. Apply the changes you need first. Changing language alone does not reset the state readout, event log or applied settings."
+      "type": "h2",
+      "text": "Try theme-specific controls",
+      "id": "try-theme-specific-controls"
     },
     {
-      "type": "p",
-      "text": "Construction code remains visible beside the video. Changes from Default UI opens the component comparison when needed; Applied UIConfig overrides opens the values submitted through the UI settings. The settings and API guide links lead to the detailed explanation of application timing and input types."
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#try-theme-specific-controls",
+          "label": "Try theme-specific controls"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Return to a comparison baseline",
+      "id": "return-to-a-comparison-baseline"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#return-to-a-comparison-baseline",
+          "label": "Return to a comparison baseline"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "Display language",
+      "id": "display-language"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/web-screen-controls/#display-language",
+          "label": "Display language"
+        }
+      ]
     }
   ],
   "sources": [
