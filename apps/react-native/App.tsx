@@ -154,7 +154,7 @@ function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | unde
     compact: dimensions.height < 500 || dimensions.fontScale >= 1.3,
     compactEditing,
     previewHeight: compactEditing ? 0 : editing || dimensions.fontScale >= 1.3 ? 64
-      : dimensions.width >= 600 && dimensions.width > dimensions.height ? Math.min(200, dimensions.width * 0.4 * 9 / 16) : 180,
+      : dimensions.width >= 600 && dimensions.width > dimensions.height ? Math.min(200, dimensions.width * 0.4 * 9 / 16) : 220,
     navigation: !compactEditing && <WorkspaceNavigation selected={tab} onSelect={setTab} />,
     selectors: !editing && <View style={styles.selectors}>
       {dimensions.height >= 500 && dimensions.fontScale < 1.3 && <LanguageSelector />}
