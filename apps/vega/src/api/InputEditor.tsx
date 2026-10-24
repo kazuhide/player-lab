@@ -7,7 +7,10 @@ import { parameterNames, ResourcePool } from "./materialize";
 
 export function Action({ title, onPress, disabled = false, verbatim = false }: { title: string; onPress: () => void; disabled?: boolean; verbatim?: boolean }): React.JSX.Element {
   const [focused, setFocused] = useState(false);
-  return <Pressable verbatim={verbatim} accessibilityRole="button" accessibilityLabel={title} disabled={disabled} focusable={!disabled} accessibilityState={{ disabled }} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onPress={onPress} style={[styles.button, focused ? styles.focused : null, disabled ? styles.disabled : null]}>
+  return <Pressable verbatim={verbatim} accessibilityRole="button" accessibilityLabel={title} disabled={disabled} focusable={!disabled} accessibilityState={{ disabled }}
+    onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onPress={() => { if (!disabled) onPress(); }}
+    style={[styles.button, focused && !disabled ? styles.focused : null, disabled ? styles.disabled : null,
+      focused ? { borderColor: "#ffffff" } : null]}>
     <Text verbatim={verbatim} style={styles.buttonText}>{title}</Text>
   </Pressable>;
 }

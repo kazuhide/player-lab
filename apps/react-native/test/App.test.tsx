@@ -582,6 +582,29 @@ return { isFullscreenActive: false, enterFullscreen() {}, exitFullscreen() {} };
     expect(owner.destroy).not.toHaveBeenCalled();
   });
 
+  it.each(["success", "failure"])("keeps a deferred API %s attributed to its executed identifier after selecting another API", async outcome => {
+    await mount(); await ready(); await press("Show API experiments");
+    const owner = current();
+    let resolve!: (value: number) => void;
+    let reject!: (error: Error) => void;
+    owner.getVolume.mockImplementationOnce(() => new Promise<number>((done, fail) => { resolve = done; reject = fail; }));
+    await text("Filter API operations", "Player.getVolume"); await press("Player.getVolume");
+    await tap("api-run");
+    await text("Filter API operations", "Player.getDuration"); await press("Player.getDuration");
+    await act(async () => {
+      if (outcome === "failure") reject(new Error("Deferred volume read failed."));
+      else resolve(73);
+    });
+    expect(element("Pressable", { testID: "api-operation-selector" }).props.accessibilityValue.text).toBe("Player.getDuration");
+    expect(element("Text", { testID: "api-result-origin" }).props.children).toBe("Player.getVolume");
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).toBe(outcome === "failure" ? "Deferred volume read failed." : "73");
+    expect(element("Text", { accessibilityLabel: "API result" }).props.accessibilityRole).toBe(outcome === "failure" ? "alert" : "text");
+    expect(element("Text", { accessibilityLabel: "Executed API code" }).props.children).toBe(outcome === "failure" ? "" : "player.getVolume()");
+    expect(current()).toBe(owner);
+    expect(runtime.players).toHaveLength(1);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
   it("switches application language without replacing the player, draft or executed SDK code", async () => {
     await mount(); await ready(); await press("Show configuration");
     await text("Source title", "Unapplied title in the user's language");
