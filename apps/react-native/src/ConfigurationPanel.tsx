@@ -31,6 +31,8 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
   const editor = useRef<ScrollView>(null);
   useEffect(() => { if (sourceEditRequest) { setGroup("source"); setSourceField("url"); } }, [sourceEditRequest]);
   const selected = group === "player" ? playerField : sourceField;
+  // Keep the single input in view while typing; its explanatory text returns after Done.
+  const compactBasicEditing = compactEditing && (group === "source" || group === "player");
   // A newly selected editor starts at its inputs; editing and tab changes keep its position.
   useLayoutEffect(() => { editor.current?.scrollTo({ y: 0, animated: false }); }, [group, selected, sourceEditRequest]);
   const groups = [{ id: "source", label: "Source" }, { id: "player", label: "Player" },
@@ -78,7 +80,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
           {platform === "android" && <Button title="DASH" onPress={() => update("type", "dash")} disabled={draft.type === "dash"} />}
           <Button title="Progressive MP4" onPress={() => update("type", "progressive")} disabled={draft.type === "progressive"} />
         </View>
-        {platform === "ios" && <Text style={styles.help}>The native iOS player supports HLS and progressive MP4; DASH presets are hidden.</Text>}
+        {!compactBasicEditing && platform === "ios" && <Text style={styles.help}>The native iOS player supports HLS and progressive MP4; DASH presets are hidden.</Text>}
         </>}
         {selected === "title" && field("Source title", "title")}
         {selected === "poster" && field("Poster URL", "poster")}
@@ -90,7 +92,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
           <Text>Mark as default</Text><Switch accessibilityLabel="Mark as default" value={draft.subtitleDefault} onValueChange={(value) => update("subtitleDefault", value)} />
         </View>
         </>}
-        {selected.startsWith("subtitle") && <Text style={styles.help}>Optional: add one external WebVTT track. Enter a label and IETF language tag (for example, en or en-US). A blank URL removes the track and clears its metadata. Mark as default sets track metadata; choose subtitles in the player menu to enable them.</Text>}
+        {!compactBasicEditing && selected.startsWith("subtitle") && <Text style={styles.help}>Optional: add one external WebVTT track. Enter a label and IETF language tag (for example, en or en-US). A blank URL removes the track and clears its metadata. Mark as default sets track metadata; choose subtitles in the player menu to enable them.</Text>}
         {selected === "startOffset" && field("Start offset (seconds)", "startOffset", true)}
         {selected === "timeline" && <>
         <Text>Start offset reference</Text>
@@ -99,7 +101,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
           <Button title="Start" onPress={() => update("timeline", "start")} disabled={draft.timeline === "start"} />
           <Button title="End" onPress={() => update("timeline", "end")} disabled={draft.timeline === "end"} />
         </View>
-        <Text style={styles.help}>Start means beginning of the media or DVR window; End means end or live edge. SDK defaults: Start for VOD, End for live. Offsets may be signed.</Text>
+        {!compactBasicEditing && <Text style={styles.help}>Start means beginning of the media or DVR window; End means end or live edge. SDK defaults: Start for VOD, End for live. Offsets may be signed.</Text>}
         </>}
       </>}
       {group === "player" && <>
@@ -107,11 +109,11 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         {selected === "muted" && <View style={styles.row}><Text>Mute on startup</Text><Switch accessibilityLabel="Mute on startup" value={draft.muted} onValueChange={(value) => update("muted", value)} /></View>}
         {selected === "forwardDuration" && <>
         {field("Forward buffer (seconds)", "forwardDuration", true)}
-        <Text style={styles.help}>{platform === "ios" ? "Blank uses the SDK default (0); zero lets the SDK choose a duration." : "Enter a positive duration. Blank uses the Android SDK default (50 seconds); zero is not an automatic setting on Android."}</Text>
+        {!compactBasicEditing && <Text style={styles.help}>{platform === "ios" ? "Blank uses the SDK default (0); zero lets the SDK choose a duration." : "Enter a positive duration. Blank uses the Android SDK default (50 seconds); zero is not an automatic setting on Android."}</Text>}
         </>}
         {selected === "maxBitrate" && <>
         {field("Maximum bitrate (bits per second)", "maxBitrate", true)}
-        <Text style={styles.help}>{platform === "android" ? "Enter a whole number from 1 to 2147483647 bit/s (Android integer limit)." : "Enter a whole number from 1 to 9007199254740991 bit/s (JavaScript exact-integer limit)."} Blank leaves it unlimited. Buffering and adaptation depend on the stream and device.</Text>
+        {!compactBasicEditing && <Text style={styles.help}>{platform === "android" ? "Enter a whole number from 1 to 2147483647 bit/s (Android integer limit)." : "Enter a whole number from 1 to 9007199254740991 bit/s (JavaScript exact-integer limit)."} Blank leaves it unlimited. Buffering and adaptation depend on the stream and device.</Text>}
         </>}
       </>}
       <WorkspacePage active={group === "sdk"}><NativeSettingsPanel values={draft.apiSettings ?? {}} onChange={(apiSettings) => onChange({ ...draft, apiSettings })} /></WorkspacePage>
@@ -119,7 +121,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
       <WorkspacePage active={group === "cast"}><CastHostPanel values={draft.apiSettings ?? {}} /></WorkspacePage>
       <WorkspacePage active={group === "arrays"}><NativeArraysPanel values={draft.arraySettings ?? {}} onChange={(arraySettings) => onChange({ ...draft, arraySettings })} /></WorkspacePage>
       <WorkspacePage active={group === "callbacks"}><NativeScriptsPanel value={draft.scripts ?? { allowed: false, bodies: {} }} onChange={(scripts) => onChange({ ...draft, scripts })} /></WorkspacePage>
-      <Text style={styles.help}>Apply recreates the player and reloads the selected source from its start offset. Playback position is not retained. Reset only discards draft edits.</Text>
+      {!compactBasicEditing && <Text style={styles.help}>Apply recreates the player and reloads the selected source from its start offset. Playback position is not retained. Reset only discards draft edits.</Text>}
       </ScrollView>
       <View testID="configuration-actions" style={{ gap: 8, padding: compactEditing ? 8 : 12, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
         {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}

@@ -231,6 +231,49 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it.each(["android", "ios"])("keeps the %s compact basic editor focused on its input until Done", async os => {
+    runtime.os = os;
+    runtime.window = { width: 393, height: 852, fontScale: 2, scale: 1 };
+    await mount(); await ready();
+    const owner = current();
+    const applyHelp = () => screen.root.findAll(node => String(node.type) === "Text"
+      && typeof node.props.children === "string" && node.props.children.startsWith("Apply recreates the player"));
+    await text("Source title", "Large-text draft");
+    expect(applyHelp()).toHaveLength(1);
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(applyHelp()).toHaveLength(0);
+    expect(input("Source title").props.value).toBe("Large-text draft");
+    expect(element("Pressable", { testID: "configuration-apply" }).props.disabled).toBe(false);
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
+    expect(applyHelp()).toHaveLength(1);
+    await text("Maximum bitrate (bits per second)", "3500000");
+    const bitrateHelp = () => screen.root.findAll(node => String(node.type) === "Text" && Array.isArray(node.props.children)
+      && String(node.props.children).includes("Blank leaves it unlimited"));
+    expect(bitrateHelp()).toHaveLength(1);
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(bitrateHelp()).toHaveLength(0);
+    expect(applyHelp()).toHaveLength(0);
+    expect(input("Maximum bitrate (bits per second)").props.value).toBe("3500000");
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
+    expect(bitrateHelp()).toHaveLength(1);
+    expect(applyHelp()).toHaveLength(1);
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"])("retains %s structured editor help and scrolling during compact input", async os => {
+    runtime.os = os;
+    runtime.window = { width: 393, height: 852, fontScale: 2, scale: 1 };
+    await mount(); await ready();
+    await settingsGroup("callbacks");
+    runtime.editorScrollY = 160;
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(screen.root.findAll(node => String(node.type) === "Text" && typeof node.props.children === "string"
+      && node.props.children.startsWith("Apply recreates the player"))).toHaveLength(1);
+    expect(runtime.editorScrollY).toBe(160);
+    expect(current().destroy).not.toHaveBeenCalled();
+  });
+
   it.each(["android", "ios"])("reserves the %s portrait editor for large text while the keyboard is open", async os => {
     runtime.os = os;
     runtime.window = { width: 393, height: 852, fontScale: 2, scale: 1 };
