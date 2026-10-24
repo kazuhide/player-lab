@@ -106,6 +106,19 @@ private struct AdvancedConfigurationFieldView: View {
         Binding(get: { values[field.id] ?? field.input.initial }, set: { values[field.id] = $0 })
     }
 
+    #if os(tvOS)
+    private var televisionDetailsMessage: String {
+        let lines: [String] = [
+            field.id,
+            NativeLocalization.format("Owner: %@", field.owner.rawValue),
+            field.note.nativeLocalized,
+            "",
+            "Turning Override off restores SDK inheritance when applied. Edits remain in the draft until Apply. Script syntax and limits are documented in the app's NativeScripts guide.".nativeLocalized
+        ]
+        return lines.joined(separator: "\n")
+    }
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
@@ -122,7 +135,7 @@ private struct AdvancedConfigurationFieldView: View {
                 .alert("SDK setting details", isPresented: $showsDetails) {
                     Button("Close", role: .cancel) {}
                 } message: {
-                    Text(field.id + "\n" + NativeLocalization.format("Owner: %@", field.owner.rawValue) + "\n" + field.note.nativeLocalized + "\n\n" + "Turning Override off restores SDK inheritance when applied. Edits remain in the draft until Apply. Script syntax and limits are documented in the app's NativeScripts guide.".nativeLocalized)
+                    Text(televisionDetailsMessage)
                 }
                 #else
                 .sheet(isPresented: $showsDetails) {
