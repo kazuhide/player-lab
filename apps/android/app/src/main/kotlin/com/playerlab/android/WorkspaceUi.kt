@@ -68,6 +68,8 @@ internal fun workspaceTelevision(): Boolean =
 
 internal enum class WorkspaceTab(val label: String) { Settings("Settings"), APIs("APIs"), Code("Code"), More("More") }
 
+internal val LocalWorkspaceSelectionChanged = staticCompositionLocalOf<() -> Unit> { {} }
+
 @Composable
 internal fun workspaceKeyboardEditing(): Boolean = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
@@ -158,6 +160,7 @@ internal fun <T> WorkspacePicker(
     selectedLabel: String? = null,
     change: (T) -> Unit,
 ) {
+    val selectionChanged = LocalWorkspaceSelectionChanged.current
     var open by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var focused by remember { mutableStateOf(false) }
@@ -192,7 +195,7 @@ internal fun <T> WorkspacePicker(
                             .testTag("$tag-option-${value}")
                             .onFocusChanged { optionFocused = it.isFocused }
                             .then(if (optionFocused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier)
-                            .selectable(selected == value, role = Role.RadioButton, onClick = { change(value); open = false })
+                            .selectable(selected == value, role = Role.RadioButton, onClick = { selectionChanged(); change(value); open = false })
                             .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                             RadioButton(selected == value, onClick = null)
                             UiText(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
