@@ -564,7 +564,10 @@ class GuideTests(unittest.TestCase):
         for language, chapters in self.content.items():
             for chapter, document in chapters.items():
                 with self.subTest(language=language, chapter=chapter):
-                    urls = (source.get('url', '') for source in document.get('sources', []))
+                    references = list(document.get('sources', []))
+                    references.extend(item for block in document.get('blocks', []) if block['type'] == 'links'
+                                      for item in block['items'])
+                    urls = (source.get('url', '') for source in references)
                     stale = [url for url in urls if url.startswith(repository)
                              and not url.startswith(repository + SOURCE_REVISION + '/')]
                     self.assertEqual(stale, [], 'Current guide source URLs must use SOURCE_REVISION.')
