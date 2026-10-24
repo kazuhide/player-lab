@@ -422,6 +422,10 @@
           "App owns the screen safe area, so the generated Expo index.tsx registers App directly. Another SafeAreaView around it changes the editor origin and can hide fixed actions behind the keyboard. KeyboardAvoidingView uses the y coordinate from useSafeAreaFrame to account for its position within a host. Android disables fullscreen text extraction; compact editing hides the preview while retaining the Player when typing in a short window or with enlarged text. Check the complete keyboard, including predictive text, against actual button positions in an integrated screen. While the keyboard is visible, the original bottom safe-area padding is omitted so the editor is not reduced twice. The API panel's parent views also set flexBasis: 0 and flexShrink: 1 so their fixed actions follow the reduced viewport."
         ],
         [
+          "Why is some help hidden while I type?",
+          "The compact Source and Player editors hide explanations until editing ends to reserve room for the focused field and fixed actions. On iOS, the operating system may finish scrolling to the field after the layout changes. Removing excess scrollable help in this state prevents that delayed scroll from moving the field above the editor. Structured settings, arrays, and callback editors retain their scrollable content."
+        ],
+        [
           "How does selecting a setting reveal the start of its editor?",
           "A ScrollView retains its offset when its content changes. The settings and API panels keep the existing ScrollView and Player, using useLayoutEffect to scroll to y=0 when the chosen group, field, API view or operation changes. Selecting the current option again scrolls to the top through onSelect. Typing and switching language or workspace tabs retain the current inputs and editor position. Choosing a different API initializes its arguments to that operation's defaults."
         ],
