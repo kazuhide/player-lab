@@ -22,7 +22,7 @@
     },
     {
       "type": "p",
-      "text": "「ローカル実行とライセンス設定」に従い、Android Studioまたはコマンドラインでapps/androidをビルドして起動します。Java 17、Android SDK、ライセンスの設定も同じ章を参照してください。"
+      "text": "Java 17と必要なAndroid SDKを用意し、apps/androidをビルドして起動します。要件とAndroid Studio・コマンドラインでのビルド手順はAndroid版README、共通のライセンス設定は「ローカル実行とライセンス設定」を参照してください。"
     },
     {
       "type": "note",
@@ -36,6 +36,10 @@
     {
       "type": "links",
       "items": [
+        {
+          "url": "https://github.com/kazuhide/player-lab/blob/ca84e8fcbd8da9f1c2e8b5452f779fb119c84d5b/apps/android/README.md#build-the-app",
+          "label": "Androidのビルド要件とコマンド"
+        },
         {
           "url": "https://kazuhide.github.io/player-lab/ja/guide/local-setup/",
           "label": "ローカル実行とライセンス設定"

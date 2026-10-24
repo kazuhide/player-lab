@@ -108,7 +108,7 @@
     },
     {
       "type": "p",
-      "text": "Pass title, description, poster and options in SourceConfig to player.load. This reloads the source; it does not recreate the player. A reload retains other applied source overrides."
+      "text": "Pass title, description, poster and options in SourceConfig to player.load. This reloads the source without recreating the player. Player Lab’s reload action assembles a complete SourceConfig from the preset and all applied overrides. In your own app, include every source setting you want to retain before calling load."
     },
     {
       "type": "links",

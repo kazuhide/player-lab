@@ -22,7 +22,7 @@
     },
     {
       "type": "p",
-      "text": "Build and launch apps/android with Android Studio or the command-line steps in Local setup and licenses. That chapter also covers Java 17, Android SDK packages and licensing."
+      "text": "Use Java 17 and the required Android SDK packages, then build and launch apps/android. The Android app README covers the requirements and Android Studio or command-line builds. Use Local setup and licenses for shared license configuration."
     },
     {
       "type": "note",
@@ -36,6 +36,10 @@
     {
       "type": "links",
       "items": [
+        {
+          "url": "https://github.com/kazuhide/player-lab/blob/ca84e8fcbd8da9f1c2e8b5452f779fb119c84d5b/apps/android/README.md#build-the-app",
+          "label": "Android build requirements and commands"
+        },
         {
           "url": "https://kazuhide.github.io/player-lab/guide/local-setup/",
           "label": "Local setup and licenses"

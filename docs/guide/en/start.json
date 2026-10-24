@@ -32,7 +32,7 @@
       "type": "steps",
       "items": [
         "Open the public Web app. Select the language switch at the top if you want Japanese. The initial VOD HLS source is a 60-second Big Buck Bunny clip with muted audio. Press Play if playback does not start automatically.",
-        "Keep the same video and switch from Default (Bitmovin) to Neon. Compare the controls and layout, then inspect the construction code beside or below the player.",
+        "Keep the same video, select Default (Bitmovin), then switch to Neon. Compare the colors and control-bar appearance and inspect the construction code beside or below the video.",
         "To try other settings or sources, continue to Web: Screen and controls below. Apply one change at a time and check the video, event log and applied code."
       ]
     },

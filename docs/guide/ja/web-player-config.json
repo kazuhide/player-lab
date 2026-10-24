@@ -108,7 +108,7 @@
     },
     {
       "type": "p",
-      "text": "title、description、poster、optionsはSourceConfigとしてplayer.loadへ渡します。ソースを読み込み直す操作で、Playerは再生成しません。ほかの適用済みソース設定は保持します。"
+      "text": "title、description、poster、optionsはSourceConfigとしてplayer.loadへ渡します。Playerを再生成せずソースを読み込み直します。Player Labの適用操作は、プリセットと適用済みの上書きを統合したSourceConfig全体を渡します。自分のアプリでも、維持したい設定を含むソースを組み立ててからloadを呼んでください。"
     },
     {
       "type": "links",
