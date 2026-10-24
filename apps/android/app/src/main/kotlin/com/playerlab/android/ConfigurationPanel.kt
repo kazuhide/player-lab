@@ -15,6 +15,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
@@ -200,11 +201,15 @@ internal fun ConfigField(label: String, value: String, change: (String) -> Unit,
     error: String? = null, helper: String = "", keyboard: KeyboardType = KeyboardType.Text) {
     val focus = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val workspaceDone = LocalWorkspaceImeDone.current
+    val fieldView = LocalView.current
     val editing = workspaceKeyboardEditing()
     OutlinedTextField(value, change, label = { UiText(label) }, singleLine = true,
         isError = error != null, supportingText = if (error != null || !editing && helper.isNotEmpty()) ({ UiText(error ?: helper) }) else null,
         keyboardOptions = KeyboardOptions(keyboardType = keyboard, imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { focus.clearFocus(); keyboardController?.hide() }),
+        keyboardActions = KeyboardActions(onDone = {
+            if (!workspaceDone(fieldView)) { focus.clearFocus(); keyboardController?.hide() }
+        }),
         modifier = Modifier.fillMaxWidth().testTag(tag))
 }
 

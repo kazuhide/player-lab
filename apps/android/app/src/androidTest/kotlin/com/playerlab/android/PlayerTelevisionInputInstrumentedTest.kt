@@ -77,9 +77,73 @@ class PlayerTelevisionInputInstrumentedTest {
 
     @Test fun keyboardDoneReturnsToSourceAndKeepsTheDraft() = nativeEditorReturnsFocus(true)
 
+    @Test fun nativeKeyboardDoneReturnsToSourceAndKeepsTheDraftAndPlaybackOwners() {
+        requireTelevision()
+        val controller = ui.activity.controller
+        val player = controller.player
+        val source = controller.configuredSource
+        val appliedTitle = controller.sourceSettings.title
+        workspaceSetting(ui, "source-title")
+        settleKeyboard()
+        val view = controller.currentView()
+        assertNotNull(view)
+        ui.onNodeWithTag("source-title").performClick()
+        ui.waitUntil(10_000) { keyboardVisible() }
+        ui.onNodeWithTag("source-title").performTextReplacement("Unapplied native IME title")
+        ui.onNodeWithTag("source-title").performImeAction()
+        ui.waitUntil(10_000) { !keyboardVisible() }
+        ui.waitUntil(5_000) { runCatching { ui.onNodeWithTag("source-selector").assertIsFocused() }.isSuccess }
+        ui.onNodeWithTag("source-title").assertTextContains("Unapplied native IME title")
+        ui.runOnUiThread {
+            assertSame(player, controller.player)
+            assertSame(source, controller.configuredSource)
+            assertSame(view, controller.currentView())
+            assertEquals(appliedTitle, controller.sourceSettings.title)
+        }
+    }
+
     @Test fun searchKeyboardBackAllowsRemoteCandidateSelection() = searchReturnsToCandidates(false)
 
     @Test fun searchKeyboardDoneAllowsRemoteCandidateSelection() = searchReturnsToCandidates(true)
+
+    @Test fun nestedRecordKeyboardDoneKeepsTheDialogDraftAndItsOwnWindow() {
+        requireTelevision()
+        val controller = ui.activity.controller
+        val player = controller.player
+        val source = controller.configuredSource
+        val view = controller.currentView()
+        val applied = controller.apiOverrides
+        workspaceSdkSetting(ui, "android:com.bitmovin.player.api.source.SourceConfig.subtitleTracks")
+        ui.onNodeWithTag("record-open").performClick()
+        ui.onNodeWithTag("record-add").performClick()
+        workspaceChoose(ui, "record-property", "roles", "roles")
+        ui.onNodeWithTag("record-0-roles-toggle").performClick()
+        ui.onNodeWithTag("record-0-roles-add").performClick()
+        val field = "record-0-roles-0-schemeIdUri"
+        ui.onNodeWithTag(field).performClick()
+        ui.waitUntil(10_000) { keyboardVisible() }
+        ui.onNodeWithTag(field).performTextReplacement("urn:player-lab:unapplied-role")
+        ui.onNodeWithTag(field).assertIsFocused()
+        var dialogWindow: View? = null
+        ui.runOnUiThread {
+            assertFalse(ui.activity.window.decorView.hasWindowFocus())
+            dialogWindow = WindowInspector.getGlobalWindowViews().first { it.hasWindowFocus() }
+            assertNotSame(ui.activity.window.decorView, dialogWindow)
+        }
+        ui.onNodeWithTag(field).performImeAction()
+        ui.waitUntil(10_000) { !keyboardVisible() }
+        // Keep the dialog's existing field focus and window ownership after Done.
+        ui.onNodeWithTag(field).assertIsFocused().assertTextContains("urn:player-lab:unapplied-role")
+        ui.onNodeWithTag("record-0-roles-close").assertIsDisplayed()
+        ui.runOnUiThread {
+            assertFalse(ui.activity.window.decorView.hasWindowFocus())
+            assertSame(dialogWindow, WindowInspector.getGlobalWindowViews().first { it.hasWindowFocus() })
+            assertSame(player, controller.player)
+            assertSame(source, controller.configuredSource)
+            assertSame(view, controller.currentView())
+            assertSame(applied, controller.apiOverrides)
+        }
+    }
 
     @Test fun changingWorkspaceWhileClosingTheKeyboardKeepsTheNewFocusAndOldDraft() {
         requireTelevision()
@@ -179,8 +243,10 @@ class PlayerTelevisionInputInstrumentedTest {
             workspaceClick(ui, "api-command-run")
             ui.runOnUiThread { assertSame(player, controller.apiMediaSession?.player) }
         } else ui.runOnUiThread { assertNull(controller.apiMediaSession) }
+        ui.runOnUiThread { println("TV_MEDIA_BEFORE session=$session window=${ui.activity.window.decorView.hasWindowFocus()} ime=${keyboardVisible()} sdkFocus=${controller.currentView()?.hasFocus()} playing=${player.isPlaying} paused=${player.isPaused} error=${controller.lastErrorCode} loaded=${player.source?.loadingState}") }
         press(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
-        await { player.isPlaying && player.currentTime > 0.5 }
+        try { await { player.isPlaying && player.currentTime > 0.5 } }
+        finally { ui.runOnUiThread { println("TV_MEDIA_AFTER session=$session window=${ui.activity.window.decorView.hasWindowFocus()} ime=${keyboardVisible()} sdkFocus=${controller.currentView()?.hasFocus()} playing=${player.isPlaying} paused=${player.isPaused} error=${controller.lastErrorCode} loaded=${player.source?.loadingState}") } }
         val now = SystemClock.uptimeMillis()
         InstrumentationRegistry.getInstrumentation().sendKeySync(
             KeyEvent(now, now, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 1))

@@ -38,6 +38,10 @@ class PlayerTelevisionGuideInstrumentedTest {
         await { player.isPlaying && player.currentTime > 0.5 }
         ui.waitUntil(20_000) { actualWebUiUsesTelevisionLayout() }
         val source = controller.configuredSource
+        workspaceCommand(ui, "android:com.bitmovin.player.api.Player.seek()")
+        workspaceField(ui, "api-argument-time", "30")
+        workspaceClick(ui, "api-command-run")
+        await { player.isPlaying && player.currentTime >= 31 }
 
         workspaceSetting(ui, "config-autoplay")
         ui.onNodeWithTag("config-autoplay").assertIsDisplayed().assertIsOff()

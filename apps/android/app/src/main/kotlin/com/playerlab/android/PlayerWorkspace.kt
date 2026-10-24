@@ -23,6 +23,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.platform.LocalView
 import com.bitmovin.player.PlayerView
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun PlayerWorkspace(controller: PlayerController) {
     val television = workspaceTelevision()
@@ -42,7 +43,8 @@ internal fun PlayerWorkspace(controller: PlayerController) {
         onDispose { controller.apiClearFocus = {}; controller.requestWorkspaceFocus = {} }
     }
     val videoOnly = controller.apiFullscreen || controller.apiPictureInPicture
-    val keyboardVisible = workspaceKeyboardEditing()
+    val keyboardInset = workspaceKeyboardEditing()
+    val keyboardVisible = keyboardInset || (television && WindowInsets.isImeVisible)
     val workspaceView = LocalView.current
     var selectionEpoch by remember { mutableIntStateOf(0) }
     var keyboardWasVisible by remember { mutableStateOf(false) }
@@ -51,6 +53,7 @@ internal fun PlayerWorkspace(controller: PlayerController) {
     val editorScope = listOf(tab, settingsPage, configuration.selected, overrides.selected,
         runtime.section, runtime.selected, runtime.argument, runtime.stateSelected, runtime.eventSelected,
         uiMode, selectionEpoch, controller.apiPlayerGeneration, controller.sourceRevision, controller.apiViewRevision)
+    val completeKeyboardEditing: () -> Unit = { keyboardDoneScope = editorScope; keyboard?.hide() }
     LaunchedEffect(keyboardVisible, editorScope, television, videoOnly) {
         if (keyboardVisible) {
             if (!keyboardWasVisible) keyboardScope = editorScope.takeIf {
@@ -109,7 +112,9 @@ internal fun PlayerWorkspace(controller: PlayerController) {
                 if (keyboardVisible) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     UiText("Editing", style = MaterialTheme.typography.labelMedium)
-                    TextButton(onClick = { if (television) keyboardDoneScope = editorScope else focus.clearFocus(); keyboard?.hide() }, modifier = Modifier.testTag("workspace-done")) { UiText("Done") }
+                    TextButton(onClick = {
+                        if (television) completeKeyboardEditing() else { focus.clearFocus(); keyboard?.hide() }
+                    }, modifier = Modifier.testTag("workspace-done")) { UiText("Done") }
                 }
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     RetainedWorkspacePage(tab == WorkspaceTab.Settings) {
@@ -136,7 +141,14 @@ internal fun PlayerWorkspace(controller: PlayerController) {
         // Presentation changes only move/resize these stable children. Replacing the AndroidView
         // would retire its SDK fullscreen/PiP handlers while their transition is still in progress.
         Layout(content = {
-            CompositionLocalProvider(LocalWorkspaceSelectionChanged provides { if (television) selectionEpoch++ }) {
+            CompositionLocalProvider(LocalWorkspaceSelectionChanged provides { if (television) selectionEpoch++ },
+                LocalWorkspaceImeDone provides { fieldView ->
+                    if (television && keyboardVisible && !videoOnly && fieldView.rootView === workspaceView.rootView &&
+                        workspaceView.hasWindowFocus() && controller.currentView()?.hasFocus() != true) {
+                        completeKeyboardEditing()
+                        true
+                    } else false
+                }) {
                 playerContent(Modifier.fillMaxSize())
                 editorContent(Modifier.fillMaxSize())
                 selectors()

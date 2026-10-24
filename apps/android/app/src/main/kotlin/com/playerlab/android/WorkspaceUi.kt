@@ -1,6 +1,7 @@
 package com.playerlab.android
 
 import android.content.res.Configuration
+import android.view.View
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -76,6 +77,9 @@ internal fun workspaceTelevision(): Boolean =
 internal enum class WorkspaceTab(val label: String) { Settings("Settings"), APIs("APIs"), Code("Code"), More("More") }
 
 internal val LocalWorkspaceSelectionChanged = staticCompositionLocalOf<() -> Unit> { {} }
+
+/** A field delegates completion only when its workspace accepts the field's window. */
+internal val LocalWorkspaceImeDone = staticCompositionLocalOf<(View) -> Boolean> { { false } }
 
 @Composable
 internal fun workspaceKeyboardEditing(): Boolean = WindowInsets.ime.getBottom(LocalDensity.current) > 0
