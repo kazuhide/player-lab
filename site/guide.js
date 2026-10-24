@@ -116,6 +116,63 @@
     input.addEventListener("input", () => { void search(); });
   }
 
+  function setupCurrentSections() {
+    const sections = new Map();
+    const documentPath = (pathname) => pathname.replace(/\/index\.html$/, "/");
+    const isCurrentDocument = (link) => {
+      const url = new URL(link.href, document.baseURI);
+      return url.origin === location.origin && documentPath(url.pathname) === documentPath(location.pathname);
+    };
+    for (const link of document.querySelectorAll(".guide-nav a[data-guide-fragment]")) {
+      if (!isCurrentDocument(link)) continue;
+      const id = link.dataset.guideFragment;
+      const target = document.getElementById(id);
+      if (!target) continue;
+      if (!sections.has(id)) sections.set(id, { target, links: [] });
+      sections.get(id).links.push(link);
+    }
+    if (!sections.size) return () => {};
+
+    const ordered = Array.from(sections.entries()).sort(([, a], [, b]) =>
+      a.target.compareDocumentPosition(b.target) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
+    const pageLinks = Array.from(document.querySelectorAll(".guide-nav a[data-guide-page-current]"))
+      .filter(isCurrentDocument);
+    const guidePage = document.querySelector(".guide-page") || document.documentElement;
+    let selected;
+    let pending = false;
+    function update() {
+      pending = false;
+      const offset = parseFloat(getComputedStyle(guidePage).getPropertyValue("--guide-header-offset")) || 0;
+      let current = null;
+      for (const [id, section] of ordered) {
+        if (section.target.getBoundingClientRect().top <= offset + 24) current = id;
+      }
+      if (current === selected) return;
+      if (selected) {
+        for (const link of sections.get(selected).links) link.removeAttribute("aria-current");
+      }
+      for (const link of pageLinks) {
+        if (current) link.removeAttribute("aria-current");
+        else link.setAttribute("aria-current", "page");
+      }
+      if (current) {
+        for (const link of sections.get(current).links) link.setAttribute("aria-current", "location");
+      }
+      selected = current;
+    }
+    function schedule() {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(update);
+    }
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    window.addEventListener("hashchange", schedule);
+    window.addEventListener("load", schedule, { once: true });
+    schedule();
+    return schedule;
+  }
+
   function initialize() {
     for (const container of document.querySelectorAll("[data-guide-search-container]")) setupSearch(container);
     const languageLinks = document.querySelectorAll("a[data-guide-language]");
@@ -131,9 +188,14 @@
     preserveHash();
     window.addEventListener("hashchange", preserveHash);
     for (const link of languageLinks) link.addEventListener("click", preserveHash);
+    const scheduleCurrentSections = setupCurrentSections();
     const header = document.querySelector(".guide-header");
     if (header) {
-      const measure = () => document.documentElement.style.setProperty("--guide-header-offset", `${Math.ceil(header.getBoundingClientRect().height) + 16}px`);
+      const guidePage = document.querySelector(".guide-page") || document.documentElement;
+      const measure = () => {
+        guidePage.style.setProperty("--guide-header-offset", `${Math.ceil(header.getBoundingClientRect().height) + 16}px`);
+        scheduleCurrentSections();
+      };
       measure();
       if ("ResizeObserver" in window) new ResizeObserver(measure).observe(header);
       else window.addEventListener("resize", measure, { passive: true });

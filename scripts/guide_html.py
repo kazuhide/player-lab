@@ -25,6 +25,7 @@ TEXT = {
         'useful_features': 'Useful features',
         'faq': 'FAQ',
         'section_contents': 'On this page',
+        'section_toggle': '{platform}: {chapter} sections',
         'guide': 'User guide', 'home': 'Project home', 'web': 'Web app', 'contents': 'Contents',
         'skip': 'Skip to content', 'search': 'Search the guide', 'search_hint': 'Search topics, settings, or API names',
         'search_loading': 'Searching…', 'search_empty': 'No matching topics.',
@@ -68,6 +69,7 @@ TEXT = {
         'useful_features': '有用な情報',
         'faq': 'FAQ',
         'section_contents': 'このページの内容',
+        'section_toggle': '{platform}：{chapter}の見出しを開閉',
         'guide': 'ユーザーガイド', 'home': 'プロジェクトのホーム', 'web': 'Web版', 'contents': '目次',
         'skip': '本文へ移動', 'search': 'ガイド内を検索', 'search_hint': '機能、設定名、API名を検索',
         'search_loading': '検索中…', 'search_empty': '一致する項目はありません。',
@@ -178,10 +180,33 @@ def field_anchor(field):
     return 'setting-' + anchor(field['scope'] + '-' + field['path'])
 
 
+def chapter_sections(content, language, chapter):
+    """Use authored headings and reference groups as the navigation catalogue."""
+    from guide_routes import IMPLEMENTATION_GUIDES, IMPLEMENTATION_SECTIONS
+    labels, document = TEXT[language], content[chapter]
+    if chapter in IMPLEMENTATION_GUIDES:
+        return [(labels[label], f'{chapter}/{section}', '')
+                for section, label in IMPLEMENTATION_SECTIONS.items()]
+    if chapter == 'settings':
+        return [(group['title'], 'settings/' + group['id'], '') for group in document['groups']]
+    if chapter == 'controls':
+        groups = dict.fromkeys(control['group'] for control in document['controls'])
+        return [(labels['control_' + group], chapter, 'controls-' + group) for group in groups]
+    if chapter == 'themes':
+        return [(theme['label'], chapter, theme['id']) for theme in document['themes']]
+    if chapter == 'api-coverage':
+        return document['navigation']
+    return [(block['text'], chapter, block['id']) for block in document['blocks'] if block['type'] == 'h2']
+
+
+def current_page_attributes(selected):
+    return ' aria-current="page" data-guide-page-current=""' if selected else ''
+
+
 def chapter_links(content, language, page, category, current='', *, descriptions=False):
     """Render the same platform hierarchy in the sidebar and guide overview."""
     from guide_routes import (CHAPTERS, CHAPTER_PARENTS, CHILD_CHAPTERS, IMPLEMENTATION_GUIDES,
-                              IMPLEMENTATION_PAGES, IMPLEMENTATION_SECTIONS, OPERATION_GUIDES)
+                              OPERATION_GUIDES)
     labels = TEXT[language]
     entries = [key for key, group in CHAPTERS.items() if group == category and key not in CHILD_CHAPTERS]
     if category == 'reference':
@@ -192,21 +217,32 @@ def chapter_links(content, language, page, category, current='', *, descriptions
                  labels['operation_guide'] if key in OPERATION_GUIDES else content[key]['title'])
         href = relative(page, route_file(language, key))
         active_page = CHAPTER_PARENTS.get(current, current)
-        active = (' aria-current="page"' if current == key else
-                  ' data-section-current="true"' if active_page == key or active_page.startswith(key + '/') else '')
-        item = f'<a href="{esc(href)}"{active}>{esc(title)}</a>'
-        if (not descriptions and key in IMPLEMENTATION_GUIDES
-                and (current == key or IMPLEMENTATION_PAGES.get(current) == key)):
+        in_branch = active_page == key or active_page.startswith(key + '/')
+        active = current_page_attributes(current == key)
+        if in_branch:
+            active += ' data-section-current="true"'
+        sections = chapter_sections(content, language, key) if not descriptions else []
+        link_class = ' class="guide-chapter-link"' if sections else ''
+        item = f'<a{link_class} href="{esc(href)}"{active}>{esc(title)}</a>'
+        if sections:
             children = []
-            for section, label in IMPLEMENTATION_SECTIONS.items():
-                target = f'{key}/{section}'
-                selected = ' aria-current="page"' if current == target else ''
-                children.append(f'<li><a href="{esc(relative(page, route_file(language, target)))}"{selected}>'
-                                f'{esc(labels[label])}</a></li>')
-            item += '<ul class="guide-section-links">' + ''.join(children) + '</ul>'
+            for label, target, fragment in sections:
+                selected = current_page_attributes(current == target and not fragment)
+                destination = relative(page, route_file(language, target))
+                if fragment:
+                    destination += '#' + fragment
+                    selected += f' data-guide-fragment="{esc(fragment)}"'
+                children.append(f'<li><a href="{esc(destination)}"{selected}>{esc(label)}</a></li>')
+            platform = labels['web_group'] if category == 'web' else labels[category]
+            toggle = labels['section_toggle'].format(platform=platform, chapter=title)
+            opened = ' open=""' if in_branch else ''
+            item += (f'<details class="guide-chapter-sections" data-guide-chapter="{esc(key)}"{opened}>'
+                     f'<summary aria-label="{esc(toggle)}"><span class="guide-disclosure-icon" aria-hidden="true"></span></summary>'
+                     '<ul class="guide-section-links">' + ''.join(children) + '</ul></details>')
         if descriptions:
             item += f'<p>{esc(content[key]["lead"])}</p>'
-        output.append('<li>' + item + '</li>')
+        item_class = ' class="guide-chapter"' if sections else ''
+        output.append(f'<li{item_class}>' + item + '</li>')
     return ''.join(output)
 
 
