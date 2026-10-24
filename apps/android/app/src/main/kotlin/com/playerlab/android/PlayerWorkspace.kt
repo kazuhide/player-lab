@@ -11,6 +11,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
@@ -28,10 +30,12 @@ internal fun PlayerWorkspace(controller: PlayerController) {
     val overrides = remember { ApiConfigurationWorkspaceState(controller.apiOverrides) }
     val runtime = remember { ApiRuntimeWorkspaceState() }
     val focus = LocalFocusManager.current
+    val sourceFocus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
-    DisposableEffect(controller, focus) {
+    DisposableEffect(controller, focus, sourceFocus) {
         controller.apiClearFocus = { focus.clearFocus(force = true) }
-        onDispose { controller.apiClearFocus = {} }
+        controller.requestWorkspaceFocus = { focus.clearFocus(force = true); sourceFocus.requestFocus() }
+        onDispose { controller.apiClearFocus = {}; controller.requestWorkspaceFocus = {} }
     }
     val videoOnly = controller.apiFullscreen || controller.apiPictureInPicture
     androidx.activity.compose.BackHandler(enabled = controller.apiFullscreen) { controller.currentView()?.exitFullscreen() }
@@ -48,7 +52,7 @@ internal fun PlayerWorkspace(controller: PlayerController) {
             PlayerPreview(controller, uiMode, television, modifier.testTag("player-preview"))
         }
         val selectors: @Composable () -> Unit = {
-            SourceAndTheme(controller, selectedPreset, uiMode, { uiMode = it }, {
+            SourceAndTheme(controller, selectedPreset, uiMode, sourceFocus, { uiMode = it }, {
                     configuration.select("source-url"); settingsPage = "Source"; tab = WorkspaceTab.Settings; focus.clearFocus()
                 }, { preset ->
                     selectedPreset = preset.id
@@ -139,12 +143,12 @@ private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, televisi
 }
 
 @Composable
-private fun SourceAndTheme(controller: PlayerController, selectedPreset: String, mode: UiMode, changeMode: (UiMode) -> Unit, customSource: () -> Unit, loadPreset: (PlayerSource) -> Unit) {
+private fun SourceAndTheme(controller: PlayerController, selectedPreset: String, mode: UiMode, sourceFocus: FocusRequester, changeMode: (UiMode) -> Unit, customSource: () -> Unit, loadPreset: (PlayerSource) -> Unit) {
     val sourceId = Sources.all.firstOrNull { it.id == selectedPreset && it.url == controller.sourceSettings.url && it.type == controller.sourceSettings.type }?.id
         ?: Sources.all.firstOrNull { it.url == controller.sourceSettings.url && it.type == controller.sourceSettings.type }?.id ?: "custom"
     Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         WorkspacePicker("Source", sourceId, Sources.all.map { it.id to it.label } + listOf("custom" to "Custom stream"),
-            "source-selector", compact = true, modifier = Modifier.weight(1f)) { id ->
+            "source-selector", compact = true, modifier = Modifier.weight(1f).focusRequester(sourceFocus)) { id ->
                 if (id == "custom") customSource() else Sources.all.firstOrNull { it.id == id }?.let(loadPreset)
             }
         WorkspacePicker("Theme", mode, UiMode.entries.map { it to it.label }, "theme-selector", compact = true, modifier = Modifier.weight(1f), change = changeMode)

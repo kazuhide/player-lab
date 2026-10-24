@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -136,6 +137,7 @@ internal class PlayerController(
         private set
     internal val apiHostMessages = mutableStateListOf<String>()
     internal var apiClearFocus: () -> Unit = {}
+    internal var requestWorkspaceFocus: () -> Unit = {}
     internal var apiVrRenderer: ApiVrRenderer? by mutableStateOf(null)
         private set
     private var apiVrRequested = false
@@ -704,8 +706,12 @@ class MainActivity : ComponentActivity() {
         )
         controller = PlayerController(this, licenseKey(), analyticsLicenseKey(), lifecycle = lifecycle)
         setContent { PlayerLabTheme { Surface(modifier = Modifier.fillMaxSize()) { PlayerLabScreen(controller) } } }
+        installTelevisionBackNavigation()
         Sources.all.firstOrNull()?.let { controller.load(it) }
     }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
+        if (::controller.isInitialized && handleTelevisionMediaKey(controller, event)) true else super.dispatchKeyEvent(event)
 
     override fun onDestroy() {
         controller.release()
