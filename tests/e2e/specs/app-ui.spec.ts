@@ -590,7 +590,7 @@ test.describe("Web app UI", () => {
       const el = Array.from(document.querySelectorAll(".theme-btn")).find((b) => b.classList.contains("active"));
       return el ? getComputedStyle(el).backgroundColor : null;
     });
-    expect(activeBg).toBe("rgb(43, 108, 255)");
+    expect(activeBg).toBe("rgb(32, 84, 216)");
 
     // → Glass (Default UI + CSS): another CSS-only re-skin of the Default tree → glass class, still no LIVE button.
     await page.getByRole("button", { name: "Glass", exact: true }).click();
