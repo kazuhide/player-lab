@@ -202,6 +202,21 @@ enum WorkspaceUITestNavigation {
             let retry = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in selectAll() != nil }, object: app)
             result = XCTWaiter.wait(for: [retry], timeout: 5)
         }
+        if result != .completed && !current.isEmpty && current != field.placeholderValue {
+            // The native edit menu can paginate Select All behind its Forward control.
+            // Traverse only the visible OS menu and keep the resulting value assertion.
+            for page in 1...4 {
+                guard app.menuItems.count > 0 else { break }
+                let forward = app.buttons["Forward"].firstMatch
+                guard forward.exists && forward.isHittable else { break }
+                print("Native edit menu Forward page \(page): \(field.identifier)")
+                forward.tap()
+                if selectAll() != nil {
+                    result = .completed
+                    break
+                }
+            }
+        }
         if result == .completed, let option = selectAll() {
             option.tap()
         } else if !current.isEmpty && current != field.placeholderValue {
