@@ -3,9 +3,12 @@ package com.playerlab.android
 import android.content.res.Configuration
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -13,6 +16,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
@@ -21,12 +26,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -148,6 +155,7 @@ internal fun WorkspaceHeading(title: String, detail: String? = null) {
 }
 
 /** A selection dialog keeps the editor and its actions in place, even for the full SDK catalogue. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun <T> WorkspacePicker(
     label: String,
@@ -178,21 +186,49 @@ internal fun <T> WorkspacePicker(
         }
         UiText("⌄", modifier = Modifier.padding(start = 8.dp))
     }
-    if (open) AlertDialog(
+    if (open) {
+        val firstOptionFocus = remember { FocusRequester() }
+        val closeFocus = remember { FocusRequester() }
+        val optionsState = rememberLazyListState()
+        AlertDialog(
         onDismissRequest = { open = false },
         title = { UiText(label) },
         text = {
+            val television = workspaceTelevision()
+            // A floating TV keyboard can be visible without adding an inset to this dialog.
+            val keyboardVisible = WindowInsets.isImeVisible
+            val keyboard = LocalSoftwareKeyboardController.current
+            val dialogView = LocalView.current
+            var searchFocused by remember { mutableStateOf(false) }
+            var keyboardWasVisible by remember { mutableStateOf(false) }
+            val localizedChoices = choices.map { (value, title) -> Triple(value, title, uiText(title)) }
+            val matches = localizedChoices.filter { (value, title, localized) -> localized.contains(query, ignoreCase = true) || title.contains(query, ignoreCase = true) || value.toString().contains(query, ignoreCase = true) }
+            LaunchedEffect(television, keyboardVisible, searchFocused, query, selected, matches.map { it.first }) {
+                if (keyboardVisible) {
+                    if (television && searchFocused) keyboardWasVisible = true
+                } else if (keyboardWasVisible) {
+                    keyboardWasVisible = false
+                    // This dialog owns its focus. Query changes or dismissal cancel the pending return.
+                    if (matches.isNotEmpty()) optionsState.scrollToItem(0)
+                    withFrameNanos { }
+                    if (television && searchFocused && dialogView.hasWindowFocus()) {
+                        if (matches.isEmpty()) closeFocus.requestFocus() else firstOptionFocus.requestFocus()
+                    }
+                }
+            }
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (searchable) OutlinedTextField(query, { query = it }, label = { UiText(uiFormat(R.string.ui_picker_search, uiText(label))) },
-                    singleLine = true, modifier = Modifier.fillMaxWidth().testTag("$tag-search"))
-                val localizedChoices = choices.map { (value, title) -> Triple(value, title, uiText(title)) }
-                val matches = localizedChoices.filter { (value, title, localized) -> localized.contains(query, ignoreCase = true) || title.contains(query, ignoreCase = true) || value.toString().contains(query, ignoreCase = true) }
+                    singleLine = true,
+                    keyboardOptions = if (television) KeyboardOptions(imeAction = ImeAction.Done) else KeyboardOptions.Default,
+                    keyboardActions = if (television) KeyboardActions(onDone = { keyboard?.hide() }) else KeyboardActions(),
+                    modifier = Modifier.fillMaxWidth().testTag("$tag-search").onFocusChanged { searchFocused = it.isFocused })
                 if (matches.isEmpty()) UiText("No matching items. Change the search text.")
-                LazyColumn(Modifier.heightIn(max = 360.dp).testTag("$tag-options")) {
-                    items(matches) { (value, _, title) ->
+                LazyColumn(Modifier.heightIn(max = 360.dp).testTag("$tag-options"), state = optionsState) {
+                    itemsIndexed(matches) { index, (value, _, title) ->
                         var optionFocused by remember(value) { mutableStateOf(false) }
                         Row(Modifier.fillMaxWidth().heightIn(min = 48.dp)
                             .testTag("$tag-option-${value}")
+                            .then(if (index == 0) Modifier.focusRequester(firstOptionFocus) else Modifier)
                             .onFocusChanged { optionFocused = it.isFocused }
                             .then(if (optionFocused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier)
                             .selectable(selected == value, role = Role.RadioButton, onClick = { selectionChanged(); change(value); open = false })
@@ -204,8 +240,9 @@ internal fun <T> WorkspacePicker(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { open = false }) { UiText("Close") } },
-    )
+        confirmButton = { TextButton(onClick = { open = false }, modifier = Modifier.focusRequester(closeFocus)) { UiText("Close") } },
+        )
+    }
 }
 
 /** Keep raw SDK values selectable and visually separate from app labels. */

@@ -5,6 +5,7 @@ import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inspector.WindowInspector
 import android.webkit.WebView
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
@@ -76,6 +77,10 @@ class PlayerTelevisionInputInstrumentedTest {
 
     @Test fun keyboardDoneReturnsToSourceAndKeepsTheDraft() = nativeEditorReturnsFocus(true)
 
+    @Test fun searchKeyboardBackAllowsRemoteCandidateSelection() = searchReturnsToCandidates(false)
+
+    @Test fun searchKeyboardDoneAllowsRemoteCandidateSelection() = searchReturnsToCandidates(true)
+
     @Test fun changingWorkspaceWhileClosingTheKeyboardKeepsTheNewFocusAndOldDraft() {
         requireTelevision()
         val controller = ui.activity.controller
@@ -133,6 +138,35 @@ class PlayerTelevisionInputInstrumentedTest {
         }
     }
 
+    private fun searchReturnsToCandidates(done: Boolean) {
+        requireTelevision()
+        val controller = ui.activity.controller
+        val player = controller.player
+        val source = controller.configuredSource
+        workspaceSetting(ui, "source-title")
+        ui.onNodeWithTag("source-title").performTextReplacement("Unapplied TV title")
+        settleKeyboard()
+        workspaceCommand(ui, "android:com.bitmovin.player.api.Player.play()")
+        ui.onNodeWithTag("api-command-selector").performClick()
+        ui.onNodeWithTag("api-command-selector-search").performClick()
+        ui.waitUntil(10_000) { keyboardVisible() }
+        ui.onNodeWithTag("api-command-selector-search").performTextReplacement("pause")
+        if (done) ui.onNodeWithTag("api-command-selector-search").performImeAction()
+        else press(KeyEvent.KEYCODE_BACK)
+        ui.waitUntil(10_000) { !keyboardVisible() }
+        val first = "api-command-selector-option-android:com.bitmovin.player.api.Player.pause()"
+        val next = "api-command-selector-option-android:com.bitmovin.player.api.Player.onPause()"
+        ui.waitUntil(5_000) { runCatching { ui.onNodeWithTag(first).assertIsFocused() }.isSuccess }
+        press(KeyEvent.KEYCODE_DPAD_DOWN)
+        ui.onNodeWithTag(next).assertIsFocused()
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        workspaceWaitForPickerDismissal(ui, "api-command-selector")
+        ui.onNodeWithTag("api-run-target").assertTextContains("api.Player.onPause()", substring = true)
+        workspaceSetting(ui, "source-title")
+        ui.onNodeWithTag("source-title").assertTextContains("Unapplied TV title")
+        ui.runOnUiThread { assertSame(player, controller.player); assertSame(source, controller.configuredSource) }
+    }
+
     private fun mediaKeyTogglesOnce(session: Boolean) {
         requireTelevision()
         workspaceSource(ui, "VOD HLS")
@@ -169,8 +203,9 @@ class PlayerTelevisionInputInstrumentedTest {
         assertTrue(ui.activity.packageManager.hasSystemFeature("android.software.leanback"))
     }
 
-    private fun keyboardVisible() = ViewCompat.getRootWindowInsets(ui.activity.window.decorView)
-        ?.isVisible(WindowInsetsCompat.Type.ime()) == true
+    private fun keyboardVisible() = WindowInspector.getGlobalWindowViews().any {
+        ViewCompat.getRootWindowInsets(it)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+    }
 
     private fun settleKeyboard() {
         closeSoftKeyboard()

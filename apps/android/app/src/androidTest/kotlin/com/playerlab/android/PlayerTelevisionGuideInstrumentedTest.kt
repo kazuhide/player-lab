@@ -5,9 +5,13 @@ import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inspector.WindowInspector
 import android.webkit.WebView
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.*
@@ -45,6 +49,10 @@ class PlayerTelevisionGuideInstrumentedTest {
 
         ui.onNodeWithTag("configuration-setting").performClick()
         ui.onNodeWithTag("configuration-setting-options").assertIsDisplayed()
+        closeSoftKeyboard()
+        ui.waitUntil(10_000) { WindowInspector.getGlobalWindowViews().none {
+            ViewCompat.getRootWindowInsets(it)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+        } }
         InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
         ui.waitUntil(5_000) { ui.onAllNodesWithTag("configuration-setting-options").fetchSemanticsNodes().isEmpty() }
         ui.onNodeWithTag("config-autoplay").assertIsDisplayed().assertIsOff()
@@ -54,6 +62,7 @@ class PlayerTelevisionGuideInstrumentedTest {
         await { player.isPaused }
         ui.onNodeWithTag("api-command-result").assertIsDisplayed()
         ui.onNodeWithTag("api-related-state").assertTextContains("isPaused=true", substring = true)
+            .performScrollTo().assertIsDisplayed()
         assertInsideSafeArea("api-command-run")
         stableCapture("android-tv-api")
 
