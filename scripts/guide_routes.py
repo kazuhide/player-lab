@@ -92,6 +92,8 @@ NATIVE_FIGURES = {
     'android-api-events': (1080, 2400),
     'android-offline-tracks': (1080, 2400),
     'android-media-session': (1080, 2400),
+    'android-tv-workspace': (1920, 1080),
+    'android-tv-api': (1920, 1080),
     'ios-playback-tracks': (1206, 2622),
     'ios-initial-tracks': (1640, 2360),
     'ios-video-scaling': (1640, 2360),
@@ -119,12 +121,12 @@ LOCALIZED_FIGURES = {
     **{name: {language: size for language in LANGUAGES} for name, size in NATIVE_FIGURES.items()},
     **{name: {language: (761, 429) for language in LANGUAGES} for name in THEMES},
     'overview': {'en': (1650, 1425), 'ja': (1650, 1425)},
-    'source-controls': {'en': (301, 176), 'ja': (301, 180)},
-    'config': {'en': (293, 316), 'ja': (293, 306)},
-    'sdk-configuration': {'en': (1240, 1447), 'ja': (1240, 1453)},
-    'sdk-callback': {'en': (1240, 1520), 'ja': (1240, 1530)},
-    'ui-controls': {'en': (301, 663), 'ja': (301, 790)},
-    'applied-settings': {'en': (1240, 506), 'ja': (1240, 511)},
+    'source-controls': {'en': (301, 193), 'ja': (301, 197)},
+    'config': {'en': (1210, 147), 'ja': (1210, 155)},
+    'sdk-configuration': {'en': (1240, 1402), 'ja': (1240, 1402)},
+    'sdk-callback': {'en': (1240, 1527), 'ja': (1240, 1529)},
+    'ui-controls': {'en': (301, 546), 'ja': (301, 656)},
+    'applied-settings': {'en': (1240, 511), 'ja': (1240, 512)},
 }
 FIGURE_EXTENSIONS = {name: 'png' for name in (*NATIVE_FIGURES, *SHARED_FIGURES)}
 
@@ -144,7 +146,7 @@ COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'veg
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *IMPLEMENTATION_PAGES, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = '4e5a3ba5cfed697991b95b1595a102578c17c12b'
+SOURCE_REVISION = 'e83cb5f5a61e16c20ca36794c13cc2aa226a98d9'
 CONTENT_REVIEW = '2026-10-24'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 

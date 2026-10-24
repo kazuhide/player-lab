@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "checkedAt": "2026-10-22",
-  "reportInputSha256": "45157f7f3239cf7e7fec97e118e0609d4a3ec3f123b98596fe909002f133971e",
+  "reportInputSha256": "4544ccb96682252f75e95a693c6d4d5cd0cab0663bb2e78ad0e3804b27505dfd",
   "reasons": {
     "web-sdk-ui-toggle-declaration-runtime-mismatch-32b623905b": {
       "kind": "input-contract",

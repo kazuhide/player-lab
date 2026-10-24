@@ -217,6 +217,62 @@
       "summary": "Change Web UI resources on iOS and iPadOS, select native presentation and scaling, and customize tvOS System UI."
     },
     {
+      "type": "h3",
+      "id": "platform-ui",
+      "text": "Platform-specific UI implementation"
+    },
+    {
+      "type": "p",
+      "text": "iOS/iPadOS and tvOS share ContentView, ControlPanel and the settings/API workspaces in SwiftUI. The controls over the video are another layer. Choosing the iOS SDK Web UI does not turn the surrounding app into HTML. Distinguish the UIKit view/controller bridge from the retained Bitmovin Player that owns playback."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Implementation layer",
+        "iOS / iPadOS",
+        "tvOS"
+      ],
+      "rows": [
+        [
+          "Controls over video",
+          "Default Bitmovin Web UI, with shared JavaScript/CSS and named UIFactory themes. Additional StyleConfig choices include System and Subtitle.",
+          "System UI; shared Web UI resources are excluded from the target. SystemUserInterfaceConfig and SystemUiApi configure native controls and menus."
+        ],
+        [
+          "Selection and text input",
+          "Touch menus/popovers and the software keyboard. WorkspaceChoice retains the selected value and accessibility name.",
+          "Focusable buttons, searchable choice sheets and the system keyboard, operated with directional input and Select."
+        ],
+        [
+          "Layout",
+          "AnyLayout switches vertical/horizontal placement and reduces the preview for the keyboard or large text. Window shape and available width choose the axis.",
+          "Preview and workspace are side by side. Fixed tabs and focusSection group directional destinations."
+        ],
+        [
+          "Back/Menu and playback input",
+          "Touch switches workspaces; the keyboard Done control ends text entry.",
+          "onExitCommand within the editor sets FocusState to the current tab. Back/Menu on the tab retains system behavior; onPlayPauseCommand toggles playback."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "NativePresentationSurface selects the SDK VideoPlayerView, its bound variant, PlayerView, AVPlayerLayer or AVPlayerViewController on both targets. VideoPlayerView is the Bitmovin SDK view. UIKit/AVKit hosts use UIViewRepresentable or UIViewControllerRepresentable and register with that same Bitmovin Player. A SwiftUI redraw or layout change does not call for another player; detachment checks the registered layer/controller and player identity."
+    },
+    {
+      "type": "h3",
+      "id": "workspace-appearance",
+      "text": "Workspace appearance and focus"
+    },
+    {
+      "type": "p",
+      "text": "The app workspace appearance and Player theme are independent. Color.workspaceBackground uses systemGroupedBackground on iOS/iPadOS and an opaque, appearance-aware neutral color on tvOS. Only the background extends outside the safe area; controls retain the OS margins. The app does not set a fixed preferredColorScheme. Guide captures use the device’s Light appearance. The tvOS choice sheet reads isFocused for label contrast while native buttons retain focus highlighting and directional navigation. Check focused and unfocused choices in both Light and Dark."
+    },
+    {
+      "type": "p",
+      "text": "Short workspace hints identify units, examples and immediate reload effects. The screen guide holds the detailed settings, asynchronous verification and offline/Cast/SharePlay prerequisites. Raw API identifiers, arguments, returned values, owners and errors remain visible."
+    },
+    {
       "type": "table",
       "headers": [
         "What to change",
@@ -728,6 +784,26 @@
     {
       "path": "apps/ios/Showcase/NativeWorkspace.swift",
       "label": "Applied code and additional tool workspaces"
+    },
+    {
+      "url": "https://developer.apple.com/design/human-interface-guidelines/dark-mode",
+      "label": "Apple: Light and Dark appearance"
+    },
+    {
+      "url": "https://developer.apple.com/documentation/swiftui/environmentvalues/isfocused",
+      "label": "Apple: focused ancestor in SwiftUI"
+    },
+    {
+      "url": "https://developer.apple.com/videos/play/wwdc2020/10042/",
+      "label": "Apple: SwiftUI, focus and buttons on tvOS"
+    },
+    {
+      "url": "https://support.apple.com/guide/tv/atvb46af4f11/tvos",
+      "label": "Apple TV: system appearance settings"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerview/index.html",
+      "label": "Bitmovin: PlayerView, System UI and native registration"
     }
   ]
 }

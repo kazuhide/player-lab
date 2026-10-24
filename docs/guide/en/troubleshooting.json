@@ -253,7 +253,7 @@
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 929,
+      "line": 883,
       "label": "Applying configuration"
     },
     {
@@ -330,21 +330,21 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 660,
+      "line": 651,
       "label": "Explicit relative and absolute SDK clocks"
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 683,
+      "line": 674,
       "label": "Player-state time precision"
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 717,
+      "line": 708,
       "label": "Readout refresh follows time/source/duration events"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/4e5a3ba5cfed697991b95b1595a102578c17c12b/patches/bitmovin-player-ui%404.23.0.patch#L606",
+      "url": "https://github.com/kazuhide/player-lab/blob/e83cb5f5a61e16c20ca36794c13cc2aa226a98d9/patches/bitmovin-player-ui%404.23.0.patch#L669",
       "label": "VOD keyboard seeks use the seekable-range origin"
     },
     {

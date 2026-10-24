@@ -10,7 +10,7 @@
     },
     {
       "type": "p",
-      "text": "Open Player Lab React Native on iOS or Android. The workspace contains source and theme selectors, a video preview, and Settings, APIs, Code and More tabs. In Settings, choose a category and a property to open its editor directly. Apply configuration and Reset draft remain outside the editor. Long function bodies and nested settings scroll within the selected editor. Selecting a group, field, API view or operation opens its content at the top. Typing and switching language or workspace tabs retain the editor position."
+      "text": "Open Player Lab React Native on iOS or Android. Source and Theme appear above the Settings, APIs, Code and More tabs. In Settings, choose a category and property to open its editor directly. Unapplied changes identifies a draft; Up to date means it matches the applied configuration. Apply configuration and Reset draft remain outside the scrolling editor. Selecting a group, field, API view or operation opens its content at the top. Typing and switching language or workspace tabs retain the editor position."
     },
     {
       "type": "note",
@@ -185,7 +185,7 @@
       "items": [
         "In Settings, select SDK overrides in Configuration. Use Configuration API to search an exact path such as SourceConfig.description, then select Set this API value. Retain the original value and whether an override was present.",
         "Use the displayed type. Lists accept one item per line, maps accept unique name=value pairs, and enumerations use SDK choices. The UI settings category limits the selector to presentation properties.",
-        "For arrays, choose Subtitle lists and advertising, select the target list, then use Edit this list and Add list item. Complete its URL, label, language and format. Source and offline subtitle lists are independent.",
+        "For arrays, choose Subtitles and ads, select the target list, then use Edit this list and Add list item. Complete its URL, label, language and format. Source and offline subtitle lists are independent.",
         "Select Apply configuration, then inspect Code and the matching playback, menu or event result. SDK overrides take priority over basic fields. Remove an override and apply to restore the basic value or SDK default; applying an enabled empty list clears that array."
       ]
     },
@@ -206,7 +206,7 @@
     {
       "type": "steps",
       "items": [
-        "In Settings → JavaScript callbacks and native UI handlers, search PlayerConfig.networkConfig.preprocessHttpRequest and select Edit this callback. Read the arguments and required return type before editing.",
+        "In Settings → JavaScript callbacks, search PlayerConfig.networkConfig.preprocessHttpRequest and select Edit this callback. Read the arguments and required return type before editing.",
         "Enter a function body, enable Allow edited JavaScript execution and Apply. The supplied default returns the request; the callback runs when a matching SDK request occurs. Inspect the event log and any deliberate visible effect.",
         "Network callbacks may return a Promise; synchronous callbacks must return synchronously. Fullscreen and custom-message entries create handler objects rather than plain values. Use the signature and factory requirements shown in the editor.",
         "To stop the experiment, remove the callback and Apply again. If the body changed Player state, restore that state or recreate from the applied configuration. Edited JavaScript runs inside the app without a sandbox; only enable code you trust."
@@ -225,7 +225,7 @@
     {
       "type": "steps",
       "items": [
-        "Open APIs, choose Operations in API view, then find Player.getCurrentTime in API operation. Choose a time mode and select Run selected API. Read again during playback and compare the returned position, in seconds, with the picture.",
+        "Open APIs, choose Operations in API view, then find Player.getCurrentTime in API operation. Choose a time mode and select Run selected API. Executed call displays the submitted SDK code; Result displays its returned value. API error marks a failed call or invalid input. Read again during playback and compare the position, in seconds, with the picture.",
         "Try Player.pause, then choose Player.isPaused in State and select Read state. Restore playback with Player.play in Operations. For a call without a return value, use the resulting state and matching events to check its effect.",
         "Events displays recent SDK payload summaries. Pause event log stops recording; resume it to collect new events. Clear API event log removes the displayed comparison history.",
         "After destroying the Player or to restore applied settings, open API help and select Recreate player after API experiments. Query resource and track identifiers again from the replacement Player or source."

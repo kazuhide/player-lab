@@ -1270,7 +1270,7 @@
     },
     {
       "path": "apps/web/src/uiGuide.ts",
-      "line": 535
+      "line": 458
     },
     {
       "path": "apps/web/src/i18n.ts",
@@ -1492,7 +1492,7 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 270,
+      "line": 271,
       "label": "イベント履歴の消去操作"
     },
     {
@@ -1523,7 +1523,7 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 263
+      "line": 264
     }
   ]
 }

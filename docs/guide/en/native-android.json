@@ -1,7 +1,7 @@
 {
   "id": "native-android",
   "title": "Android, Android TV, and Fire TV: Screen and controls",
-  "lead": "Choose a source, edit separate source/player drafts and compare applied code, SDK state and events. This app also declares a TV launcher for Android TV and Android-based Fire TV; Vega OS is covered separately.",
+  "lead": "Choose sources, edit separate source/player drafts and compare code, SDK state and events. Mobile and TV share the workspace; Default uses touch-oriented controls on mobile and explicit SDK TV controls on televisions.",
   "blocks": [
     {
       "type": "links",
@@ -31,7 +31,7 @@
     },
     {
       "type": "p",
-      "text": "The same app declares a TV launcher for Android TV and Android-based Fire TV. Vega OS uses a separate app. The screenshots below were captured in a phone emulator; they do not establish remote-control reachability or playback on every TV or physical device."
+      "text": "The same app declares a TV launcher for Android TV and Android-based Fire TV. This chapter includes separate phone and Android TV emulator captures. Vega OS uses a separate app. The TV checks below cover the recorded emulator, with physical-device playback and services checked separately on the intended hardware."
     },
     {
       "type": "links",
@@ -73,8 +73,45 @@
     },
     {
       "type": "note",
-      "title": "Checking TV devices",
-      "text": "The Manifest declares LEANBACK_LAUNCHER for Android TV and Fire TV. Focus navigation, button reachability, remote controls, and actual playback still need testing on each device. A successful phone-emulator test does not establish behavior on physical devices or TVs."
+      "title": "Mobile and TV controls",
+      "text": "The shared Compose workspace adapts text, safe margins and focus presentation when the device reports television mode. Default explicitly selects SDK TvUi with focusUiOnInitialization = true; custom Sports, Live and Cinema retain their own factories. The implementation guide explains these two UI layers and the host’s remote-input policy."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/#android-tv-fire-tv",
+          "label": "Mobile and TV UI: implementation and remote-input checks"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "android-tv-workspace",
+      "text": "Android TV workspace and remote input"
+    },
+    {
+      "type": "p",
+      "text": "These 1920 × 1080 captures come from the normal app on an Android TV API 36 emulator. Default renders the SDK TV controls beside the shared Compose workspace. D-pad and Select operate the focused control. Back from the SDK preview closes its menu and returns focus to Source; fullscreen and native dialogs keep their own Back handling."
+    },
+    {
+      "type": "figure",
+      "file": "android-tv-workspace",
+      "caption": "Android TV emulator: VOD playback beside Settings → Player → Autoplay. The draft switch and fixed Reset draft / Apply player actions remain in the safe area. Autoplay is off; playback was started separately."
+    },
+    {
+      "type": "figure",
+      "file": "android-tv-api",
+      "caption": "Android TV emulator: APIs → Commands after api.Player.pause(). The editor is scrolled to the observed state, including isPaused=true. The selected operation and fixed Run target / Run API remain visible."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Move between Source, Theme and the workspace tabs with the D-pad. Select opens the focused picker; the radio mark shows the selected value.",
+        "In a searchable picker, enter a query and close the on-screen keyboard with Back or Done. Focus moves to the first matching option, or Close when no option matches. Use the D-pad and Select to choose a value; a selection alone does not run an API or apply a draft.",
+        "When editing a workspace field, Back closes the keyboard and returns to its selector. Done returns to Source. Unapplied values remain available when returning to the editor.",
+        "In the SDK preview, test Play/Pause, the timeline and settings. Back returns to Source after closing the SDK menu. Dedicated media keys use the current MediaSession when active."
+      ]
     },
     {
       "type": "h2",
@@ -308,7 +345,7 @@
     },
     {
       "type": "p",
-      "text": "APIs separates Commands, State and Events. Select a category or search for an API, then choose the exact operation before running it. Search filters candidates; it does not execute a command. A command can submit asynchronous work, so its submission message is separate from the resulting SDK state and events. Keep a VOD source loaded for this seek comparison."
+      "text": "APIs separates Commands, State and Events. Choose the exact operation before running it; search filters candidates and never executes them. Call result and observed playback state have separate readouts. State shows the value at the last refresh, and Events shows this app session’s counts and history. The implementation guide explains asynchronous completion, timestamp units and special state prerequisites."
     },
     {
       "type": "steps",
@@ -319,7 +356,7 @@
     {
       "type": "figure",
       "file": "android-api-operation",
-      "caption": "Commands with api.Player.pause() selected. Run API stays at the bottom. The call result and the observed SDK playback state are displayed separately."
+      "caption": "Commands with Player.seek() and its time argument selected. Run API stays at the bottom. Call result and observed SDK playback state are displayed separately."
     },
     {
       "type": "steps",
@@ -330,7 +367,7 @@
     {
       "type": "figure",
       "file": "android-api-state",
-      "caption": "State with Player.isPaused selected. Refresh SDK state reads the selected value once."
+      "caption": "The selected Player.currentTime value at the last refresh. The value is separate from command submission and remains unchanged until Refresh SDK state is pressed."
     },
     {
       "type": "steps",
@@ -389,7 +426,7 @@
     {
       "type": "figure",
       "file": "android-offline-tracks",
-      "caption": "Selecting an audio track for download. This figure shows the selection step, before completion is established."
+      "caption": "After SDK processing, the audio track shows state=Downloaded, action=null, None selected and progress=100.0%. Choose track actions and use Process selected actions to submit them. Offline playback is checked separately."
     },
     {
       "type": "steps",

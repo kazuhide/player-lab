@@ -58,7 +58,7 @@
       "source": {
         "path": "apps/web/src/main.ts",
         "line": 803,
-        "label": "apps/web/src/main.ts"
+        "label": "main.ts:803–807"
       },
       "endLine": 807
     },
@@ -73,7 +73,7 @@
       "source": {
         "path": "apps/web/src/main.ts",
         "line": 478,
-        "label": "apps/web/src/main.ts"
+        "label": "main.ts:478–495"
       },
       "endLine": 495
     },
@@ -159,10 +159,10 @@
       "text": "  function dynAdapt(mutate: (cur: DynamicAdaptationConfig) => DynamicAdaptationConfig): void {\n    const p = options.getPlayer();\n    if (!p) return;\n    p.adaptation.setConfig(mutate(p.adaptation.getConfig()));\n  }",
       "source": {
         "path": "apps/web/src/configPanel.ts",
-        "line": 255,
-        "label": "apps/web/src/configPanel.ts"
+        "line": 252,
+        "label": "configPanel.ts:252–256"
       },
-      "endLine": 259
+      "endLine": 256
     },
     {
       "type": "p",
@@ -287,7 +287,7 @@
       "source": {
         "path": "apps/web/src/main.ts",
         "line": 395,
-        "label": "apps/web/src/main.ts"
+        "label": "main.ts:395–410"
       },
       "endLine": 410
     },
@@ -495,7 +495,7 @@
       "source": {
         "path": "apps/web/src/main.ts",
         "line": 771,
-        "label": "apps/web/src/main.ts"
+        "label": "main.ts:771"
       },
       "endLine": 771
     },
@@ -582,7 +582,7 @@
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 255,
+      "line": 252,
       "label": "Runtime and initial configuration controls"
     },
     {
@@ -826,7 +826,7 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 270,
+      "line": 271,
       "label": "Explicit event-history reset"
     },
     {

@@ -10,7 +10,7 @@
     },
     {
       "type": "p",
-      "text": "The video occupies the upper part of the screen; the controls and editors scroll below it. Use D-pad and Select on a device, or arrow keys and Enter on a Vega Virtual Device. Buttons and focusable switches operate the app. There is no browser Player control bar or shared HTML theme picker on this screen."
+      "text": "The video occupies the upper part of the screen; the controls and editors scroll below it. Source and Playback group the main controls. Use D-pad and Select on a device, or arrow keys and Enter on a Vega Virtual Device. The focus outline marks the control that Select will activate. Greyed controls are unavailable or already selected. There is no browser Player control bar or shared HTML theme picker on this screen."
     },
     {
       "type": "note",
@@ -136,7 +136,7 @@
     {
       "type": "steps",
       "items": [
-        "After Apply, open Show applied code. Compare the source and Player settings with the recorded baseline. The output contains applied values and approved callback bodies, not pending draft edits.",
+        "After Apply, open Show applied code. Applied values identifies the configuration sent to the SDK. Compare the source and Player settings with the recorded baseline. The output contains applied values and approved callback bodies, not pending draft edits. License keys and sensitive headers use placeholders.",
         "Use D-pad Down/Up to read the output. Each line participates in focus and scrolling. This TV app has no clipboard integration; it does not provide React Native’s Copy code action.",
         "Edit a value without applying and confirm that the output still represents the active configuration. Reset draft cancels that edit. To undo an applied value, restore the previous value and Apply.",
         "For integration details, follow the implementation guide. Reusing the displayed configuration still requires the existing native media initialization, surface connection and release sequence; the output is not a standalone browser player."
@@ -187,7 +187,7 @@
     {
       "type": "steps",
       "items": [
-        "Open Show SDK API experiments, search PlayerAPI.getCurrentTime and choose a call signature if needed. Optional arguments can be supplied or omitted. Select Run Vega SDK API and read the call and its value or error.",
+        "Open Show SDK API experiments, search PlayerAPI.getCurrentTime and choose a call signature if needed. Optional arguments can be supplied or omitted. Select Run Vega SDK API. Executed call displays the submitted code; Result displays the returned value, while API error identifies a failed call or input validation.",
         "Run the time query again while media advances, and compare seconds with the picture. Inspect current SDK API availability only checks whether methods exist; it does not call them or demonstrate their feature behavior.",
         "To compare a command, read PlayerAPI.getVolume, record its value, run PlayerAPI.setVolume and read it again. Restore the recorded volume afterward. A returned value, a setter or an empty result should be checked against the relevant state/events.",
         "Use SDK events, Pause Vega event log and Clear Vega event log to isolate the relevant notifications. For on/off experiments, remove the same callback instance that was registered. Query any required SDK objects from the current session after recreation.",
