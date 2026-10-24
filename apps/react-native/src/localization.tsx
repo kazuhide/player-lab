@@ -46,6 +46,13 @@ export function translateCopy(value: string, language: Language): string {
     [/^(Player|Source) error \((\d+)\)$/, (match) => `${match[1]}エラー (${match[2]})`],
     [/^(.+) must be a valid HTTP or HTTPS URL\.$/, (match) => `${translateCopy(match[1]!, language)}には有効なHTTPまたはHTTPSのURLを入力してください。`],
     [/^(.+) must be a finite decimal number\.$/, (match) => `${translateCopy(match[1]!, language)}には有限の数値を入力してください。`],
+    [/^(.+) requires a number\.$/, (match) => `${translateCopy(match[1]!, language)}には数値を入力してください。`],
+    [/^(.+) must be a finite number between ([+-]?(?:Infinity|\d+(?:\.\d+)?(?:e[+-]?\d+)?)) and ([+-]?(?:Infinity|\d+(?:\.\d+)?(?:e[+-]?\d+)?))\.$/i,
+      (match) => `${translateCopy(match[1]!, language)}には${match[2]}から${match[3]}までの有限の数値を入力してください。`],
+    [/^((?:SourceConfig|OfflineContentConfig\.sourceConfig)\.drmConfig\.(?:fairplay|widevine)\.licenseUrl) is required before applying DRM callbacks\.$/,
+      (match) => `DRMコールバックを適用する前に${match[1]}を設定してください。`],
+    [/^Unknown configuration API: (.+)$/, (match) => `不明な設定APIです: ${match[1]}`],
+    [/^(.+) returned a value outside its SDK contract\.$/, (match) => `${match[1]}の戻り値がSDKの仕様に適合していません。`],
   ];
   for (const [pattern, render] of patterns) { const match = value.match(pattern); if (match) return render(match); }
   return value;

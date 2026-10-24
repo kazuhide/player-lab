@@ -38,6 +38,42 @@ describe("application language", () => {
     }
   });
 
+  it("translates application validation templates while preserving SDK identifiers and bounds", () => {
+    const samples = [
+      ["Maximum bitrate must be a finite decimal number.", "最大ビットレートには有限の数値を入力してください。"],
+      ["Start offset must be a finite decimal number.", "開始位置には有限の数値を入力してください。"],
+      ["PlayerConfig.tweaksConfig.timeChangedInterval requires a number.", "PlayerConfig.tweaksConfig.timeChangedIntervalには数値を入力してください。"],
+      ["PlayerConfig.tweaksConfig.timeChangedInterval must be a finite number between -Infinity and Infinity.", "PlayerConfig.tweaksConfig.timeChangedIntervalには-InfinityからInfinityまでの有限の数値を入力してください。"],
+      ["SourceConfig.drmConfig.fairplay.licenseUrl is required before applying DRM callbacks.", "DRMコールバックを適用する前にSourceConfig.drmConfig.fairplay.licenseUrlを設定してください。"],
+      ["Unknown configuration API: SourceConfig.unknown", "不明な設定APIです: SourceConfig.unknown"],
+      ["PlayerViewProps.fullscreenHandler returned a value outside its SDK contract.", "PlayerViewProps.fullscreenHandlerの戻り値がSDKの仕様に適合していません。"],
+    ];
+    for (const [message, japanese] of samples) {
+      expect(translateCopy(message!, "ja")).toBe(japanese);
+      expect(translateCopy(message!, "en")).toBe(message);
+    }
+  });
+
+  it("provides Japanese copy for literal errors produced by the configuration validators", () => {
+    const missing: string[] = [];
+    const files = ["configuration.ts", "nativeScripts.ts", "nativeSettings.ts", "nativeArrays.ts", "metadataInput.tsx", "apiValues.ts"];
+    for (const name of files) {
+      const file = path.join("src", name);
+      const source = ts.createSourceFile(file, fs.readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true);
+      const inspect = (node: ts.Node): void => {
+        if (ts.isStringLiteral(node) && translateCopy(node.text, "ja") === node.text) missing.push(name + ": " + node.text);
+        else if (ts.isConditionalExpression(node)) { inspect(node.whenTrue); inspect(node.whenFalse); }
+      };
+      const visit = (node: ts.Node): void => {
+        if (ts.isThrowStatement(node) && node.expression && ts.isNewExpression(node.expression)
+          && node.expression.expression.getText(source) === "Error" && node.expression.arguments?.[0]) inspect(node.expression.arguments[0]);
+        ts.forEachChild(node, visit);
+      };
+      visit(source);
+    }
+    expect(missing).toEqual([]);
+  });
+
   it("provides Japanese copy for literal application labels and help in the actual UI components", () => {
     const files = [...sourceFiles("src"), ...["App.tsx"]];
     const omitted = new Set(["English", "日本語", "HLS", "DASH", "Progressive MP4", "SourceLoaded", "TimeShifted"]);

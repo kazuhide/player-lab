@@ -199,6 +199,7 @@ beforeEach(async () => {
 
 afterEach(async () => {
   if (screen) await act(async () => screen.unmount());
+  vi.unstubAllGlobals();
   // React 19 deprecates this renderer. Native hosts are mocked; act/runtime errors still fail.
   const unexpected = errors.mock.calls.filter(([message]) => !String(message).startsWith("react-test-renderer is deprecated."));
   errors.mockRestore();
@@ -221,6 +222,66 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it.each(["android", "ios"].flatMap(os => ["apis", "code", "more"].map(tab => ({ os, tab }))))(
+    "recovers the $os configuration from $tab when an approved handler fails on recreation", async ({ os, tab }) => {
+      runtime.os = os;
+      vi.stubGlobal("__playerLabRecoveryRuns", 0);
+      await mount(); await ready();
+      const id = "PlayerViewProps.fullscreenHandler";
+      await text("Filter callback APIs", id); await press(id); await press("Edit this callback");
+      await text(`JavaScript body for ${id}`, `
+globalThis.__playerLabRecoveryRuns += 1;
+if (globalThis.__playerLabRecoveryRuns > 1) throw new Error("Factory unavailable");
+return { isFullscreenActive: false, enterFullscreen() {}, exitFullscreen() {} };`);
+      await act(async () => element("Switch", { accessibilityLabel: "Allow edited JavaScript execution" }).props.onValueChange(true));
+      await press("Apply and recreate player"); await ready();
+      const previous = current();
+      await tap(`workspace-nav-${tab}`);
+      if (tab === "apis") {
+        await tap("api-view-selector"); await tap("api-view-selector-option-help");
+        await act(async () => button("Recreate player after API experiments").props.onPress());
+      } else if (tab === "code") {
+        await tap("theme-selector"); await tap("theme-selector-option-Sports");
+      } else {
+        await tap("source-selector"); await tap("source-selector-option-vod-hls");
+      }
+      expect(element("Text", { accessibilityRole: "alert" }).props.children).toContain("handler factory");
+      expect(element("PlayerView")).toBeUndefined();
+      expect(previous.destroy).toHaveBeenCalledOnce();
+      const settings = element("Pressable", { testID: "workspace-nav-settings" });
+      expect(settings).toBeDefined();
+      expect(visible(settings)).toBe(true);
+      await act(async () => settings.props.onPress());
+      await press("Remove this callback"); await press("Apply and recreate player"); await ready();
+      expect(element("Text", { accessibilityRole: "alert" })).toBeUndefined();
+      expect(element("PlayerView")).toBeDefined();
+      expect(current()).not.toBe(previous);
+      expect(current().destroy).not.toHaveBeenCalled();
+    });
+
+  it.each(["android", "ios"])("localizes %s application validation errors without replacing the player", async os => {
+    runtime.os = os;
+    await mount(); await ready();
+    const owner = current();
+    await text("Maximum bitrate (bits per second)", "0"); await press("日本語");
+    await tap("configuration-apply");
+    const maximum = os === "android" ? "2147483647" : "9007199254740991";
+    expect(element("Text", { accessibilityRole: "alert" }).props.children)
+      .toBe(`最大ビットレートには1から${maximum} bit/sまでの整数を入力してください。空欄では上限を設けません。`);
+    await press("English");
+    await text("Maximum bitrate (bits per second)", "Infinity"); await press("日本語");
+    await tap("configuration-apply");
+    expect(element("Text", { accessibilityRole: "alert" }).props.children).toBe("最大ビットレートには有限の数値を入力してください。");
+    await tap("configuration-reset"); await press("English");
+    await press("Edit this callback");
+    await text("JavaScript body for PlayerConfig.networkConfig.preprocessHttpRequest", "return request;");
+    await press("日本語"); await tap("configuration-apply");
+    expect(element("Text", { accessibilityRole: "alert" }).props.children)
+      .toBe("編集したJavaScriptの実行を許可してから適用するか、コールバックを削除してください。");
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
   it.each(["android", "ios"])("puts the exact %s method first when a query also matches its Player namespace", async (os) => {
     runtime.os = os;
     await mount(); await ready();

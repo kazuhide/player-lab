@@ -155,7 +155,7 @@ function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | unde
     compactEditing,
     previewHeight: compactEditing ? 0 : editing || dimensions.fontScale >= 1.3 ? 64
       : dimensions.width >= 600 && dimensions.width > dimensions.height ? Math.min(200, dimensions.width * 0.4 * 9 / 16) : 220,
-    navigation: !compactEditing && <WorkspaceNavigation selected={tab} onSelect={setTab} />,
+    navigation: <WorkspaceNavigation selected={tab} onSelect={setTab} />,
     selectors: !editing && <View style={styles.selectors}>
       {dimensions.height >= 500 && dimensions.fontScale < 1.3 && <LanguageSelector />}
       <View style={styles.sourceRow}>
@@ -221,7 +221,7 @@ function PlayerPane({ uiMode, source, playerConfig, settings, sources, onSelectS
     } catch { owner.retire(); return { owner, settings, configured: false, error: "The approved handler factory could not be applied. Edit the callback and Apply again." }; }
   });
   useEffect(() => () => runtime.owner.retire(), [runtime]);
-  if (runtime.error) return <View><Text accessibilityRole="alert">{runtime.error}</Text><Button title="Recreate player after API experiments" onPress={onRecreate} /></View>;
+  if (runtime.error) return <View>{workspace.navigation}<Text accessibilityRole="alert">{runtime.error}</Text><Button title="Recreate player after API experiments" onPress={onRecreate} /></View>;
   const applied = runtime.configured ? runtime.settings : settings;
   return <ActivePlayerPane uiMode={uiMode} source={runtime.configured ? applied.source : source} playerConfig={runtime.configured ? applied.player : playerConfig}
     settings={applied} sources={sources} onSelectSource={onSelectSource} timeShiftEnabled={timeShiftEnabled} onTimeShiftEnabled={onTimeShiftEnabled}
@@ -389,7 +389,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
       </Modal> : playerView}
 
       {workspace.selectors}
-      {workspace.navigation}
+      {!workspace.compactEditing && workspace.navigation}
       </View>
       <View style={(workspace.tab === "apis" || workspace.tab === "more") ? styles.fill : styles.hidden}>
       <WorkspacePage active={workspace.tab === "more"} testID="workspace-more">
