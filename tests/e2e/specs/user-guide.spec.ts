@@ -120,12 +120,28 @@ async function expectCurrentGuideLink(page: Page, language: Language, slug: stri
   }
 }
 
-async function wheelToGuideHeading(page: Page, heading: Locator): Promise<void> {
-  const distance = await heading.evaluate((element) => element.getBoundingClientRect().top
-    - document.querySelector(".guide-header")!.getBoundingClientRect().bottom - 4);
+async function wheelToDocumentY(page: Page, destination: number): Promise<void> {
+  const destinationY = await page.evaluate((target) => Math.max(0, Math.min(Math.round(target),
+    document.documentElement.scrollHeight - innerHeight)), destination);
   const viewport = page.viewportSize()!;
   await page.mouse.move(viewport.width - 100, viewport.height / 2);
-  await page.mouse.wheel(0, distance);
+  const initialY = await page.evaluate(() => scrollY);
+  const distance = destinationY - initialY;
+  // Firefox caps one wheel event at one page; use separate, bounded gestures.
+  const maximumStep = Math.floor(viewport.height / 2);
+  const steps = Math.ceil(Math.abs(distance) / maximumStep);
+  for (let index = 0; index < steps; index++) {
+    const nextY = Math.round(initialY + Math.sign(distance) * Math.min((index + 1) * maximumStep, Math.abs(distance)));
+    const currentY = await page.evaluate(() => scrollY);
+    await page.mouse.wheel(0, nextY - currentY);
+    await expect.poll(async () => Math.abs((await page.evaluate(() => scrollY)) - nextY)).toBeLessThanOrEqual(2);
+  }
+}
+
+async function wheelToGuideHeading(page: Page, heading: Locator): Promise<void> {
+  const destination = await heading.evaluate((element) => scrollY + element.getBoundingClientRect().top
+    - document.querySelector(".guide-header")!.getBoundingClientRect().bottom - 4);
+  await wheelToDocumentY(page, destination);
   await expect(heading).toBeInViewport();
 }
 
@@ -339,7 +355,7 @@ for (const language of languages) {
       await expect(menu).not.toHaveAttribute("open", "");
       await expect(page).toHaveURL(bookmarkedURL);
       expect(await page.evaluate(() => history.length)).toBe(historyLength);
-      await page.mouse.wheel(0, -(await page.evaluate(() => scrollY)));
+      await wheelToDocumentY(page, 0);
       await expectCurrentGuideLink(page, language, slug);
       await expect(menu).not.toHaveAttribute("open", "");
       await expect(page).toHaveURL(bookmarkedURL);
