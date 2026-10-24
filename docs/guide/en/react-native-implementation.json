@@ -436,7 +436,7 @@
         ],
         [
           "Why is some help hidden while I type?",
-          "The compact Source and Player editors hide explanations until editing ends to reserve room for the focused field and fixed actions. On iOS, the operating system may finish scrolling to the field after the layout changes. Removing excess scrollable help in this state prevents that delayed scroll from moving the field above the editor. Structured settings, arrays, and callback editors retain their scrollable content."
+          "The compact Source and Player editors hide explanations until editing ends to reserve room for the focused field and fixed actions. On Android, native focus scrolling can reveal the caret while leaving the bottom of the field outside a shortened editor. These compact editors also scroll to the end after layout or content-size changes, revealing the whole field without a drag that would dismiss the keyboard. On iOS, the operating system may finish scrolling to the field after the layout changes. Removing excess scrollable help in this state prevents that delayed scroll from moving the field above the editor. Structured settings, arrays, and callback editors retain their scrollable content."
         ],
         [
           "How does selecting a setting reveal the start of its editor?",
