@@ -1,7 +1,7 @@
 {
   "id": "native-android",
   "title": "Android, Android TV, and Fire TV: Screen and controls",
-  "lead": "Choose sources, edit separate source/player drafts and compare code, SDK state and events. Mobile and TV share the workspace; Default uses touch-oriented controls on mobile and explicit SDK TV controls on televisions.",
+  "lead": "Start with the Android mobile screen, then try source and player settings, code and SDK operations. The final section explains Android TV and Fire TV remote input.",
   "blocks": [
     {
       "type": "links",
@@ -30,10 +30,6 @@
       "text": "The app follows the system or per-app language preference. This guide shows the English app. SDK identifiers, code and returned data retain their original spelling. Standard Player controls also depend on SDK and system language settings."
     },
     {
-      "type": "p",
-      "text": "Android TV and Android-based Fire TV use the same app. Vega OS uses a separate app. Phone and Android TV emulator captures are identified below."
-    },
-    {
       "type": "links",
       "items": [
         {
@@ -52,11 +48,17 @@
     },
     {
       "type": "h2",
-      "text": "Suggested screen workflow"
+      "text": "Android mobile screen and basic controls",
+      "id": "suggested-screen-workflow"
     },
     {
       "type": "p",
-      "text": "Source and Theme selectors sit beside the playback preview. Settings, APIs, Code and More stay visible as workspace tabs, so opening an editor does not require scrolling through other panels. Settings groups configuration fields by purpose; APIs contains SDK operations, state and events; Code displays applied configuration; More contains additional tools and diagnostics."
+      "text": "The mobile screen below shows the video preview, source and theme selectors, and Settings, APIs, Code and More tabs. Tap a tab to open its workspace without scrolling through other panels. Settings edits configuration, APIs provides commands, state and events, Code shows applied values, and More contains playback helpers and diagnostics. The workspace is shared with the TV app."
+    },
+    {
+      "type": "figure",
+      "file": "android-source-settings",
+      "caption": "Android mobile, with Source selected in Settings. Choose a field from Setting to open its editor. Reset draft and Apply source stay fixed at the bottom. Android 16 emulator."
     },
     {
       "type": "steps",
@@ -74,48 +76,6 @@
       "text": "Return to Default after comparing themes. If a custom theme is missing, follow the implementation guide’s shared-UI build and sync steps. Press Play if playback remains paused after returning from the background."
     },
     {
-      "type": "note",
-      "title": "Mobile and TV controls",
-      "text": "Default uses touch controls on mobile and remote controls on TV. Sports, Live and Cinema keep their custom themes on TV. See below for TV presentation and remote-input implementation."
-    },
-    {
-      "type": "links",
-      "items": [
-        {
-          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/#android-tv-fire-tv",
-          "label": "Mobile and TV UI: implementation and remote-input checks"
-        }
-      ]
-    },
-    {
-      "type": "h2",
-      "id": "android-tv-workspace",
-      "text": "Android TV workspace and remote input"
-    },
-    {
-      "type": "p",
-      "text": "These 1920 × 1080 captures show the normal app on an Android TV API 36 emulator. Default places SDK controls beside the app workspace. D-pad and Select operate the focused item; Back within the SDK preview closes its menu and returns to Source. Fullscreen and native dialogs use their own Back handling."
-    },
-    {
-      "type": "figure",
-      "file": "android-tv-workspace",
-      "caption": "Android TV emulator: VOD playback beside Settings → Player → Autoplay. The draft switch and fixed Reset draft / Apply player actions remain in the safe area. Autoplay is off; playback was started separately."
-    },
-    {
-      "type": "figure",
-      "file": "android-tv-api",
-      "caption": "Android TV emulator: APIs → Commands after api.Player.pause(). The editor is scrolled to the observed state, including isPaused=true. The selected operation and fixed Run target / Run API remain visible."
-    },
-    {
-      "type": "steps",
-      "items": [
-        "Move between Source, Theme and the workspace tabs with the D-pad. Select opens the focused picker; the radio mark shows the selected value.",
-        "In a searchable picker, enter a query and close the on-screen keyboard with Back or Done. Focus moves to the first matching option, or Close when no option matches. Use the D-pad and Select to choose a value; a selection alone does not run an API or apply a draft.",
-        "When editing a workspace field, Back closes the keyboard and returns to its selector. Done returns to Source. Unapplied values remain available when returning to the editor.",
-        "In the SDK preview, test Play/Pause, the timeline and settings. Back returns to Source after closing the SDK menu. Dedicated media keys use the current MediaSession when active."
-      ]
-    },
-    {
       "type": "h2",
       "text": "Configuration drafts and applying changes"
     },
@@ -126,11 +86,6 @@
     {
       "type": "p",
       "text": "In Source, enter an HTTP(S) URL and choose DASH, HLS, Smooth or Progressive. Title, poster and start position are optional. To compare a VOD starting position, set Start offset to 5 seconds, choose Start and Apply source."
-    },
-    {
-      "type": "figure",
-      "file": "android-source-settings",
-      "caption": "Settings with Source selected. Choose a field from Setting; its editor appears above the fixed Reset draft and Apply source actions. Android 16 emulator."
     },
     {
       "type": "p",
@@ -361,6 +316,52 @@
           "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/#useful-features",
           "label": "Offline implementation and limitations"
         }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "android-tv-workspace",
+      "text": "Android TV and Fire TV screen and remote input"
+    },
+    {
+      "type": "p",
+      "text": "Android TV and Android-based Fire TV use the same app. Use the workspace described above to edit and apply settings and try SDK APIs. Vega OS uses a separate app."
+    },
+    {
+      "type": "note",
+      "title": "Mobile and TV controls",
+      "text": "Default uses touch controls on mobile and remote controls on TV. Sports, Live and Cinema keep their custom themes on TV. See below for TV presentation and remote-input implementation."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/android-implementation/#android-tv-fire-tv",
+          "label": "Mobile and TV UI: implementation and remote-input checks"
+        }
+      ]
+    },
+    {
+      "type": "p",
+      "text": "These 1920 × 1080 captures show the normal app on an Android TV API 36 emulator. Default places SDK controls beside the app workspace. D-pad and Select operate the focused item; Back within the SDK preview closes its menu and returns to Source. Fullscreen and native dialogs use their own Back handling."
+    },
+    {
+      "type": "figure",
+      "file": "android-tv-workspace",
+      "caption": "Android TV emulator: VOD playback beside Settings → Player → Autoplay. The draft switch and fixed Reset draft / Apply player actions remain in the safe area. Autoplay is off; playback was started separately."
+    },
+    {
+      "type": "figure",
+      "file": "android-tv-api",
+      "caption": "Android TV emulator: APIs → Commands after api.Player.pause(). The editor is scrolled to the observed state, including isPaused=true. The selected operation and fixed Run target / Run API remain visible."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Move between Source, Theme and the workspace tabs with the D-pad. Select opens the focused picker; the radio mark shows the selected value.",
+        "In a searchable picker, enter a query and close the on-screen keyboard with Back or Done. Focus moves to the first matching option, or Close when no option matches. Use the D-pad and Select to choose a value; a selection alone does not run an API or apply a draft.",
+        "When editing a workspace field, Back closes the keyboard and returns to its selector. Done returns to Source. Unapplied values remain available when returning to the editor.",
+        "In the SDK preview, test Play/Pause, the timeline and settings. Back returns to Source after closing the SDK menu. Dedicated media keys use the current MediaSession when active."
       ]
     }
   ],
