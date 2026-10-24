@@ -335,6 +335,19 @@
     },
     {
       "type": "h2",
+      "id": "release-during-player-events",
+      "text": "Replace UI during SDK events"
+    },
+    {
+      "type": "p",
+      "text": "The player can already be delivering an event when its listener is removed. For example, replacing the UI from a SourceLoaded, SourceUnloaded or Playing handler can leave another handler from the previous UI in the current delivery. Removing subscriptions prevents future events but cannot undo work already in progress."
+    },
+    {
+      "type": "p",
+      "text": "The bundled Player UI patch marks a UIManager as released before cleanup and ignores later variant resolution and deferred configuration callbacks. This prevents the retired controls from being attached over the replacement UI. Release your own components once, remove their subscriptions and timers, and check that their owner is still active before deferred work changes the screen."
+    },
+    {
+      "type": "h2",
       "id": "ui-implementation-faq",
       "text": "UI customization FAQ"
     },

@@ -36,6 +36,27 @@ function configField(page: Page, label: RegExp) {
   });
 }
 
+test("@public released UI managers ignore SDK events already being delivered", async ({ page }, testInfo) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await captureAppPlayer(page);
+  await expectDecodedPlayback(page);
+  const module = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-ui-lifecycle.ts")}`;
+  const results = await page.evaluate(async url => {
+    const { inspectQueuedUiEvents } = await import(/* @vite-ignore */ url);
+    return inspectQueuedUiEvents(window.player!);
+  }, module);
+  expect(results).toHaveLength(3);
+  for (const result of results) {
+    expect(result.replaced, result.event).toBe(true);
+    expect(result.detachedDuringEvent, result.event).toBe(true);
+    expect(result.oldRootReconnected, result.event).toBe(false);
+    expect(result.remainingRoots, result.event).toBe(1);
+  }
+  await expectDecodedPlayback(page);
+  expect(errors).toEqual([]);
+});
+
 test("@public live wall-clock text becomes hidden when the source becomes VOD", async ({ page }, testInfo) => {
   await captureAppPlayer(page);
   await page.getByRole("button", { name: "English", exact: true }).click();
