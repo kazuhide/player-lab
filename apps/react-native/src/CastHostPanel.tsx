@@ -58,13 +58,13 @@ export function CastHostPanel({ values }: { values: SettingValues }): React.JSX.
     finally { pending.current = false; if (current.current) setBusy(false); }
   };
   return <View style={styles.content}>
-    <Text style={styles.heading}>Cast startup configuration</Text>
-    <Text style={styles.help}>Edit BitmovinCastManagerOptions.applicationId and messageNamespace under SDK overrides in Settings, then save them for the next launch. Blank values use the default Bitmovin receiver and namespace. Fully close and reopen the app to apply them; reloading JavaScript or recreating a player does not restart the native Cast singleton.</Text>
-    <Text style={styles.help}>Save uses the current draft values independently from Apply. SDK 1.29 initialize(options) remains a no-op. The native host calls the public native initialization API before the SDK lifecycle listener. Startup options and native initialization state are shown separately; an initialized sender does not prove receiver discovery, connection or playback.</Text>
+    <Text style={styles.badge}>Next launch</Text>
+    <Text style={styles.help}>Edit receiver options in SDK overrides. Save Cast options for next launch, then fully close and reopen the app.</Text>
     {!native && <Text style={styles.help}>This host does not include the Cast startup adapter. Regenerate the Expo project and build the native app.</Text>}
     <Button title="Save Cast options for next launch" disabled={!native || busy} onPress={() => { void run(true); }} />
     <Button title="Read native Cast startup state" disabled={!native || busy} onPress={() => { void run(false); }} />
     {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
-    <Text selectable accessibilityLabel="Native Cast startup state" accessibilityValue={{ text: result }} style={styles.mono}>{result}</Text>
+    <Text style={styles.label}>Native startup state</Text>
+    <Text verbatim selectable accessibilityLabel="Native Cast startup state" accessibilityValue={{ text: result }} style={styles.mono}>{result}</Text>
   </View>;
 }

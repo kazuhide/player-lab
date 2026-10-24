@@ -19,6 +19,7 @@ import com.bitmovin.player.PlayerView
 
 @Composable
 internal fun PlayerWorkspace(controller: PlayerController) {
+    val television = workspaceTelevision()
     var uiMode by remember { mutableStateOf(UiMode.DEFAULT) }
     var selectedPreset by remember { mutableStateOf(Sources.all.firstOrNull()?.id.orEmpty()) }
     var tab by remember { mutableStateOf(WorkspaceTab.Settings) }
@@ -35,6 +36,7 @@ internal fun PlayerWorkspace(controller: PlayerController) {
     val videoOnly = controller.apiFullscreen || controller.apiPictureInPicture
     androidx.activity.compose.BackHandler(enabled = controller.apiFullscreen) { controller.currentView()?.exitFullscreen() }
     BoxWithConstraints(Modifier.fillMaxSize().then(if (videoOnly) Modifier else Modifier.safeDrawingPadding().imePadding())
+        .then(if (television && !videoOnly) Modifier.padding(horizontal = 48.dp, vertical = 27.dp) else Modifier)
         .clipToBounds().testTag("player-workspace")) {
         val wide = !videoOnly && maxWidth >= 600.dp && maxWidth > maxHeight
         val compact = maxHeight < 600.dp
@@ -43,7 +45,7 @@ internal fun PlayerWorkspace(controller: PlayerController) {
             else if (compact) 88.dp else minOf(200.dp, maxWidth * 9 / 16)
         val previewPixels = with(LocalDensity.current) { previewHeight.roundToPx() }
         val playerContent: @Composable (Modifier) -> Unit = { modifier ->
-            PlayerPreview(controller, uiMode, modifier.testTag("player-preview"))
+            PlayerPreview(controller, uiMode, television, modifier.testTag("player-preview"))
         }
         val selectors: @Composable () -> Unit = {
             SourceAndTheme(controller, selectedPreset, uiMode, { uiMode = it }, {
@@ -120,15 +122,15 @@ internal fun PlayerWorkspace(controller: PlayerController) {
 }
 
 @Composable
-private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, modifier: Modifier) {
+private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, television: Boolean, modifier: Modifier) {
     val displayedPlayer = controller.player
     val vrRenderer = controller.apiVrRenderer
     if (vrRenderer != null) key(vrRenderer) {
         AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)
-    } else key(displayedPlayer, uiMode, controller.apiViewRevision) {
+    } else key(displayedPlayer, uiMode, television, controller.apiViewRevision) {
         AndroidView(factory = { context ->
             PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,
-                controller.apiOverrides.view(playerViewConfig(uiMode)))))
+                controller.apiOverrides.view(playerViewConfig(uiMode, television)))))
         }, onRelease = { host ->
             host.releaseTouchOwnership()
             controller.releaseView(host.content as PlayerView)
@@ -171,13 +173,12 @@ private fun MoreWorkspace(controller: PlayerController) {
             RetainedWorkspacePage(page == "Playback options") {
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ConfigToggle("Enable live rewind controls", controller.timeShiftEnabled, "allow-dvr", controller::toggleDvr)
-                    UiText("App preference for live sources. Rewind also requires SDK live time shifting and an available live window. This does not change video-on-demand playback.", style = MaterialTheme.typography.bodySmall)
+                    UiText("Requires a live window and SDK time shifting.", style = MaterialTheme.typography.bodySmall)
                     WorkspaceHeading("Current playback")
                     PlaybackSummary(controller)
                     UiText(uiFormat(R.string.ui_source_type, controller.sourceSettings.type.toString()))
                     UiText(uiFormat(R.string.ui_title, controller.sourceSettings.title.ifBlank { uiText("Not set") }))
                     UiText(uiFormat(R.string.ui_current_settings, controller.playerSettings.autoplay.toString(), controller.playerSettings.muted.toString()))
-                    UiText("Use Settings to change the source or player. APIs provides track selection, playback controls, state and events.", style = MaterialTheme.typography.bodySmall)
                 }
             }
             RetainedWorkspacePage(page == "Live controls") {
@@ -196,8 +197,8 @@ private fun MoreWorkspace(controller: PlayerController) {
                         }
                         if (!controller.dvr.dvrAvailable) UiText("Rewind is unavailable for this source or its current configuration.", style = MaterialTheme.typography.bodySmall)
                     } else UiText(if (preset?.isLive == false || currentSourceReady && !controller.dvr.isLive)
-                        "The current source is video on demand. Live edge and rewind controls are hidden."
-                        else "Live controls are unavailable until the current source is loaded as live.", style = MaterialTheme.typography.bodyMedium)
+                        "VOD source. Live controls unavailable."
+                        else "Load a live source to use these controls.", style = MaterialTheme.typography.bodyMedium)
                 }
             }
             RetainedWorkspacePage(page == "Offline") { ApiOfflinePanel(controller) }

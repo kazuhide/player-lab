@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="ui_command_submitted">APIを呼び出しました。結果はSDKの状態とイベントでも確認してください。</string>
+    <string name="ui_command_submitted">APIを送信しました。状態とイベントを確認してください。</string>
     <string name="ui_api_failed">APIの実行に失敗しました（%1$s）。引数の型、ソースの状態、SDKのイベントを確認してください。</string>
     <string name="ui_unavailable">取得できません（%1$s）</string>
     <string name="ui_offline_api_failed">オフラインAPIの実行に失敗しました（%1$s）。ソース、選択、保存領域、SDKのイベントを確認してください。編集中の値は保持しています。</string>
     <string name="ui_analytics_api_failed">Analytics APIの実行に失敗しました（%1$s）。メタデータ、収集方法、ソースの状態を確認してください。編集中の値は保持しています。</string>
     <string name="ui_picker_search">%1$sを検索</string>
     <string name="ui_draft_changed">%1$sに未適用の変更があります。%2$s</string>
-    <string name="ui_draft_matches">%1$sは適用済みの設定と一致しています。%2$s</string>
+    <string name="ui_draft_matches">%1$sに未適用の変更はありません。%2$s</string>
     <string name="ui_source_applied_summary">適用済み：%1$s、開始位置 %2$s、外部字幕 %3$s</string>
     <string name="ui_player_applied_summary">適用済み：自動再生 %1$s、ミュート %2$s、先読み %3$s秒</string>
-    <string name="ui_override_summary">適用済み %1$d件。変更 %2$d件、削除 %3$d件。適用するとプレイヤーを再生成し、ソースを読み込み直します。</string>
+    <string name="ui_override_summary">適用済み %1$d件、登録 %2$d件、削除 %3$d件。適用するとプレイヤーとソースを再起動します。</string>
     <string name="ui_run_target">実行対象：%1$s</string>
     <string name="ui_choose_operation">%1$sの操作を選択すると実行できます。</string>
     <string name="ui_event_readout">%1$s：%2$d件、直近の時刻=%3$s</string>

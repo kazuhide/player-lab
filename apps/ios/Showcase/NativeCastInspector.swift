@@ -44,8 +44,8 @@ struct NativeCastInspector: View {
                     Toggle("Stop receiver when ending session", isOn: $workbench.settings.stopReceiver).accessibilityIdentifier("cast.stopReceiver")
                     }
                     DisclosureGroup("Receiver requirements") {
-                        Text("Google Cast 4.8.6 requires iOS 16 or later. Initialization is once per app process. Changing initialized options saves them for the next launch. A compatible receiver and local-network permission are required for receiver playback.").font(.caption)
-                        Text("Custom receivers also need their _APPID._googlecast._tcp service in Info.plist and a rebuild. The default receiver service is included. Initialize casting before enabling the player's Cast setting.").font(.caption)
+                        Text("Restart the app to change initialized options.").font(.caption)
+                        Text("Receiver playback needs a compatible device and local-network permission.").font(.caption)
                     }
                 }
                 }
@@ -70,7 +70,7 @@ struct NativeCastInspector: View {
                 }
                 if pane == .events {
                 Section(header: Text("Listener notifications")) {
-                    Text("Use add(listener:) to record callbacks; remove(listener:) stops them. The newest 80 event names are retained. Device names and message payloads are omitted.").font(.caption)
+                    Text("Latest 80 listener events.").font(.caption)
                     ForEach(Array(workbench.events.enumerated()), id: \.offset) { _, event in Text(event).font(.caption) }
                 }
                 }

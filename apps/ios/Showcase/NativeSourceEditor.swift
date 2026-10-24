@@ -52,7 +52,7 @@ struct NativeSourceEditor: View {
                     }
                     if setting == "Subtitle language" { field("Subtitle language", text: $draft.subtitleLanguage, id: "subtitle") }
                     if ["Audio language", "Subtitles", "Subtitle language"].contains(setting) {
-                        Text("Applied once at readiness. Preloaded transitions wait for this source's clock to advance. Later track-menu choices remain active.").font(.caption)
+                        Text("Initial preferences apply on source readiness.").font(.caption)
                     }
                 }
                 .accessibilityIdentifier("playlist.source.form")

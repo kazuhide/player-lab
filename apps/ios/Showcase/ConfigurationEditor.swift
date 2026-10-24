@@ -47,21 +47,21 @@ enum NativeSetting: String, CaseIterable, Identifiable {
     }
     var help: String {
         switch self {
-        case .sourceURL: return "Absolute HTTP or HTTPS URL. Apple platforms support HLS and progressive MP4."
-        case .sourceType: return "Choose the format of the source URL. DASH is not supported by the Apple SDK."
-        case .title: return "Optional title shown by the player. Empty clears the title."
-        case .posterURL: return "Optional HTTP or HTTPS image URL displayed before playback. Empty clears the poster."
-        case .startOffset: return "Seconds from the chosen reference. Empty uses the SDK default. A negative End offset starts behind the live edge; the SDK clamps to the stream window."
-        case .timelineReference: return "Automatic uses the beginning for VOD and the live edge for live. Live offsets take effect when playback starts."
-        case .autoplay: return "Starts playback after the source loads. Applying creation settings recreates the player and reloads the source."
-        case .startMuted: return "Sets the initial mute state when creating the player. This does not toggle the currently playing instance."
-        case .sdkTimeShift: return "Enables the SDK's live rewind support. More → Live controls separately enables the app's quick seek buttons."
-        case .audioLanguage: return "Optional language tag, such as de-AT. Applied once after the source is loaded and ready; an unavailable language keeps the default."
-        case .subtitleMode: return "Automatic keeps the SDK/OS choice. Preferred language uses Initial subtitle language. Off disables subtitles."
-        case .subtitleLanguage: return "Language tag, such as en or de. Required only when Initial subtitles is Preferred language."
-        case .maximumBitrate: return "Maximum selectable bitrate in whole bit/s. Zero means unlimited. This is a player creation setting."
-        case .forwardBuffer: return "Forward buffer duration in seconds. Zero lets the SDK choose. This is a player creation setting."
-        case .videoScaling: return "Fit preserves the complete video. Fill preserves aspect ratio and crops the edges. Stretch fills without preserving aspect ratio."
+        case .sourceURL: return "HTTP(S) URL for HLS or progressive MP4."
+        case .sourceType: return "HLS or progressive MP4; DASH is unsupported."
+        case .title: return "Empty clears the title."
+        case .posterURL: return "HTTP(S) image URL; empty clears the poster."
+        case .startOffset: return "Seconds; empty uses the SDK default."
+        case .timelineReference: return "Automatic: VOD start or live edge."
+        case .autoplay: return "Starts after the source loads."
+        case .startMuted: return "Initial mute state for the next player."
+        case .sdkTimeShift: return "SDK support for live rewind."
+        case .audioLanguage: return "Language tag, for example de-AT."
+        case .subtitleMode: return "Preferred language requires a subtitle language."
+        case .subtitleLanguage: return "Required for Preferred language, for example de."
+        case .maximumBitrate: return "Whole bit/s; 0 = unlimited."
+        case .forwardBuffer: return "Seconds; 0 = SDK choice."
+        case .videoScaling: return "Fill crops; Stretch changes the aspect ratio."
         }
     }
 }

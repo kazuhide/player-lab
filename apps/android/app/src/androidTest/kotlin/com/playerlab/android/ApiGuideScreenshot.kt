@@ -47,6 +47,10 @@ internal object ApiGuideScreenshot {
                 put("width", bitmap.width); put("height", bitmap.height); put("sha256", digest)
                 put("package", activity.packageName)
                 put("sourceRevision", arguments.getString("guideSourceRevision", "working-tree"))
+                val mode = activity.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_MASK
+                put("deviceSurface", if (mode == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION) "android-tv" else "phone")
+                put("configurationUiModeType", mode)
+                put("workingTreeSourceSha256", arguments.getString("guideWorkingTreeSourceSha256", "unspecified"))
             }.toString(2) + "\n")
         } finally { bitmap.recycle() }
     }

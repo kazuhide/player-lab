@@ -69,7 +69,7 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
             when (page) {
                 "Manager" -> {
                     ConfigField("Stable content ID", id, { id = it }, "offline-content-id")
-                    WorkspaceHeading("Offline downloads", "Use downloadable video on demand. Files remain when a manager is released; Delete all removes them.")
+                    WorkspaceHeading("Offline downloads", "VOD only. Release keeps files; Delete all removes them.")
                     if (Build.VERSION.SDK_INT >= 33) OutlinedButton(onClick = { permission.launch(Manifest.permission.POST_NOTIFICATIONS) }) { UiText("Allow download notifications") }
                     OutlinedButton(onClick = { controller.applySource(SourceSettings("https://kazuhide.github.io/player-lab/web/media/vod-baseline/manifest.mpd", SourceType.Dash)) }, modifier = Modifier.testTag("offline-use-sample")) { UiText("Use sample DASH source") }
                     UiText(uiFormat(R.string.ui_current_source_type, controller.sourceSettings.type.toString()), style = MaterialTheme.typography.bodySmall)
@@ -93,7 +93,7 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
                         "Cache directory" -> ConfigField("Cache directory name", sourceDraft.cacheFolder, { sourceDraft = sourceDraft.copy(cacheFolder = it) }, "offline-factory-cache")
                         "Track-state file" -> ConfigField("Track-state file name", sourceDraft.trackStateFile, { sourceDraft = sourceDraft.copy(trackStateFile = it) }, "offline-factory-tracks")
                     }
-                    UiText("Advanced constructor for the current URL and type. It uses named directories in this app's private api-offline-source storage and does not copy SDK-managed downloads. Restriction requires matching cached resources and track state. Usually use Play downloaded source.", style = MaterialTheme.typography.bodySmall)
+                    UiText("Requires existing cache and track metadata. For managed downloads, use Play downloaded source.", style = MaterialTheme.typography.bodySmall)
                 }
                 "Track selection" -> {
                     val revision = offline.revision
@@ -104,7 +104,7 @@ internal fun ApiOfflinePanel(controller: PlayerController) {
                         val (key, entry) = selected
                         Choices(listOf(null to "None", OfflineOptionEntryAction.Download to "Download", OfflineOptionEntryAction.Delete to "Delete"), entry.action, "offline-action-$key") { action -> run { offline.setAction(key, action) } }
                         SelectionContainer { Text(apiValue(offlineEntrySummary(entry)), style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("offline-option-$key")) }
-                        UiText("Stage Download, Delete or None for this track. Process applies all selected track actions. The SDK may reject actions incompatible with track state.", style = MaterialTheme.typography.bodySmall)
+                        UiText("Process submits all selected track actions.", style = MaterialTheme.typography.bodySmall)
                     }
                 }
                 "Actions" -> {

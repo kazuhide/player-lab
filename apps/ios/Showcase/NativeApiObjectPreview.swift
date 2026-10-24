@@ -10,8 +10,6 @@ struct NativeApiObjectPreview: View {
                 NativeThumbnailContainer(view: objects.thumbnailContainer)
                     .frame(height: 180).background(Color.black)
                     .accessibilityIdentifier("api.thumbnail.preview")
-                Text("The SDK renders asynchronously into this UIView after a renderThumbnail operation. A blank container does not establish a rendered thumbnail.")
-                    .font(.caption).foregroundStyle(.secondary)
             }
         }
     }

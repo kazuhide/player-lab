@@ -40,7 +40,7 @@ import com.playerlab.android.playback.PlayerSnapshot
 import kotlin.reflect.KClass
 
 /**
- * Which UI renders over the player. `DEFAULT` uses the SDK's default Web UI configuration; the rest load
+ * Which UI renders over the player. `DEFAULT` uses SmallScreenUi on mobile and explicit TvUi on TV; the rest load
  * our shared `@showcase/ui-shared` bundle (synced into assets/ — see
  * scripts/sync-webui-bundle.sh) and pick one of its custom factories by name, demonstrating
  * the §12 "build the UI once, reuse it across web-capable targets" story. Android renders the
@@ -54,11 +54,16 @@ enum class UiMode(val label: String, val factoryFunction: String?) {
 }
 
 /**
- * Build a [PlayerViewConfig] for a [UiMode]. `DEFAULT` keeps the SDK's UI configuration defaults; the
+ * Build a [PlayerViewConfig] for a [UiMode]. `DEFAULT` follows the device input model; the
  * custom modes point the Web UI at our synced bundle and select the factory by name.
  */
-internal fun playerViewConfig(mode: UiMode): PlayerViewConfig =
-    if (mode.factoryFunction == null) {
+internal fun playerViewConfig(mode: UiMode, television: Boolean = false): PlayerViewConfig =
+    if (mode.factoryFunction == null && television) {
+        PlayerViewConfig(uiConfig = UiConfig.WebUi(
+            variant = UiConfig.WebUi.Variant.TvUi,
+            focusUiOnInitialization = true,
+        ))
+    } else if (mode.factoryFunction == null) {
         PlayerViewConfig()
     } else {
         PlayerViewConfig(

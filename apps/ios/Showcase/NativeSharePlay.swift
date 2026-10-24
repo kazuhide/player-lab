@@ -183,7 +183,7 @@ struct NativeSharePlayControls: View {
                     Button("Listen for sessions") { workbench.start() }.disabled(workbench.observing)
                     Button("Stop listening") { workbench.stop() }.disabled(!workbench.observing)
                 }
-                Text("OS eligibility: \(workbench.eligible). Sessions come from GroupActivities. SharePlay setup and the Group Activities signing capability are required.")
+                Text(NativeLocalization.format("OS eligibility: %@", String(workbench.eligible)))
                     .font(.caption).foregroundStyle(.secondary)
             }
             if workbench.controlsPane == "Activity" {
@@ -195,7 +195,7 @@ struct NativeSharePlayControls: View {
                     workbench.controlsError = nil; workbench.activate(source: source, title: workbench.activityTitle)
                 }
                 .disabled(workbench.activating)
-                Text("Activation shares the current source URL and title with the native SharePlay activity. No activation or join happens automatically.")
+                Text("Shares the current source URL and title. Activation and joining are explicit actions.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             if workbench.controlsPane == "Coordinate" {

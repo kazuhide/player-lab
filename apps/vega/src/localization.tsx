@@ -1,5 +1,5 @@
 import React, { createContext, forwardRef, useContext, useMemo, useState } from "react";
-import { Button as NativeButton, NativeModules, Pressable as NativePressable, Switch as NativeSwitch,
+import { NativeModules, Pressable as NativePressable, StyleSheet, Switch as NativeSwitch,
   Text as NativeText, TextInput as NativeTextInput, View,
   type ButtonProps, type PressableProps, type SwitchProps, type TextProps, type TextInputProps } from "react-native";
 import { japaneseCopy } from "./translations";
@@ -70,12 +70,28 @@ export function Text({ children, verbatim = false, ...props }: TextProps & { ver
 
 export function Button(props: ButtonProps): React.JSX.Element {
   const { language } = useLocale();
-  return <NativeButton {...localizedProps(props, language)} title={translateCopy(props.title, language)} />;
+  const [focused, setFocused] = useState(false);
+  const { title, color, onPress, touchSoundDisabled, ...rest } = localizedProps(props, language);
+  const disabled = props.disabled ?? props.accessibilityState?.disabled ?? false;
+  const label = translateCopy(title, language);
+  return <NativePressable {...rest} accessibilityRole="button" accessibilityLabel={rest.accessibilityLabel ?? label}
+    accessibilityState={{ ...rest.accessibilityState, disabled: Boolean(disabled) }} disabled={disabled}
+    focusable={!disabled} android_disableSound={touchSoundDisabled} onPress={disabled ? undefined : onPress}
+    onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+    style={[buttonStyles.button, color ? { backgroundColor: color, borderColor: color } : null,
+      focused && !disabled && buttonStyles.focused, disabled && buttonStyles.disabled,
+      focused && { borderColor: "#ffffff" }]}>
+    <NativeText style={[buttonStyles.text, disabled && buttonStyles.disabledText]}>{label}</NativeText>
+  </NativePressable>;
 }
 
 export const TextInput = forwardRef<NativeTextInput, TextInputProps>(function LocalizedTextInput(props, ref) {
   const { language } = useLocale();
+  const [focused, setFocused] = useState(false);
   return <NativeTextInput {...localizedProps(props, language)} ref={ref}
+    onFocus={event => { setFocused(true); props.onFocus?.(event); }}
+    onBlur={event => { setFocused(false); props.onBlur?.(event); }}
+    style={[props.style, focused && { borderColor: "#ffffff", borderWidth: 2 }]}
     {...(props.placeholder ? { placeholder: translateCopy(props.placeholder, language) } : {})} />;
 });
 
@@ -91,9 +107,17 @@ export function Pressable({ verbatim = false, ...props }: PressableProps & { ver
 
 export function LanguageSelector({ dark = false }: { dark?: boolean }): React.JSX.Element {
   const { language, setLanguage } = useLocale();
-  return <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8, paddingVertical: 4 }}>
-    <Text style={{ color: dark ? "#ffffff" : "#111111" }}>Language</Text>
-    <NativeButton title="English" accessibilityLabel="English" disabled={language === "en"} onPress={() => setLanguage("en")} />
-    <NativeButton title="日本語" accessibilityLabel="日本語" disabled={language === "ja"} onPress={() => setLanguage("ja")} />
+  return <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8, paddingHorizontal: 24, paddingVertical: 12 }}>
+    <Text style={{ color: dark ? "#f4f7fb" : "#182c45", fontSize: 18 }}>Language</Text>
+    <Button title="English" accessibilityLabel="English" disabled={language === "en"} onPress={() => setLanguage("en")} />
+    <Button title="日本語" accessibilityLabel="日本語" disabled={language === "ja"} onPress={() => setLanguage("ja")} />
   </View>;
 }
+
+const buttonStyles = StyleSheet.create({
+  button: { minHeight: 48, paddingHorizontal: 14, paddingVertical: 10, justifyContent: "center", alignItems: "center", borderRadius: 8, borderWidth: 2, borderColor: "#005caf", backgroundColor: "#005caf" },
+  focused: { borderColor: "#ffffff", backgroundColor: "#1a6bb5" },
+  text: { color: "#ffffff", fontSize: 18, fontWeight: "600", textAlign: "center" },
+  disabled: { backgroundColor: "#29374a", borderColor: "#4a5a70" },
+  disabledText: { color: "#b8c6d9" },
+});

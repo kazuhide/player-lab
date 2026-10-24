@@ -19,7 +19,7 @@ internal fun kotlinString(value: String) = buildString {
 }
 
 /** Applied values only; no environment or credential-bearing SDK config is read. */
-internal fun configurationCode(source: SourceSettings, player: PlayerSettings, uiMode: UiMode): String {
+internal fun configurationCode(source: SourceSettings, player: PlayerSettings, uiMode: UiMode, television: Boolean = false): String {
     val title = source.title.takeIf { it.isNotBlank() }?.let(::kotlinString) ?: "null"
     val poster = source.posterUrl.takeIf { it.isNotBlank() }?.let(::kotlinString) ?: "null"
     val reference = source.offsetReference?.let { "TimelineReferencePoint.${it.name}" } ?: "null"
@@ -42,7 +42,10 @@ internal fun configurationCode(source: SourceSettings, player: PlayerSettings, u
     cssLocation = "file:///android_asset/bitmovinplayer-ui.css",
     variant = UiConfig.WebUi.Variant.Custom(${kotlinString(factory)}),
 ))"""
-    } ?: "PlayerViewConfig()"
+    } ?: if (television) """PlayerViewConfig(uiConfig = UiConfig.WebUi(
+    variant = UiConfig.WebUi.Variant.TvUi,
+    focusUiOnInitialization = true,
+))""" else "PlayerViewConfig()"
     val legacyClass = when (source.type.name) { "Hls" -> "HLSSource"; "Dash" -> "DASHSource"; "Smooth" -> "SmoothSource"; else -> "ProgressiveSource" }
     val sourceCode = if (source.useLegacyMediaSource) """SourceConfig($legacyClass(${kotlinString(source.url)})).apply {
     title = $title; posterSource = $poster; isPosterPersistent = ${source.posterPersistent}

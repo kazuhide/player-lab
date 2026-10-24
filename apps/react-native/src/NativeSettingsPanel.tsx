@@ -14,11 +14,12 @@ export function NativeSettingsPanel({ values, onChange, scope }: { values: Setti
   const update = (raw: string) => onChange({ ...values, [selected.id]: raw });
   const remove = () => { const next = { ...values }; delete next[selected.id]; onChange(next); };
   return <View style={styles.panel}>
-    <Text style={styles.heading}>SDK overrides</Text>
     <WorkspaceChoice label="Configuration API" selected={selected.id} options={fields.map(field => ({ id: field.id, label: field.id }))}
       onSelect={setSelectedId} testID={scope === "ui" ? "ui-setting-selector" : "sdk-setting-selector"} />
-    <Text style={[styles.heading, styles.mono]}>{selected.id}</Text>
-    <Text style={styles.help}>Input: {selected.kind}. {enabled ? "Override is staged." : "No override."}</Text>
+    <View style={styles.row}>
+      <Text style={styles.label}>Input type</Text><Text verbatim style={styles.mono}>{selected.kind}</Text>
+      <Text style={styles.badge}>{enabled ? "Override set" : "No override"}</Text>
+    </View>
     {!enabled && <Button title="Set this API value" onPress={() => update(selected.choices?.[0] ?? (selected.kind === "number" ? "0" : ""))} />}
     {enabled && <>
       {selected.choices ? <View style={styles.row}>{selected.choices.map((choice) => <Button key={choice} title={choice} disabled={values[selected.id] === choice} onPress={() => update(choice)} />)}</View>
@@ -29,8 +30,6 @@ export function NativeSettingsPanel({ values, onChange, scope }: { values: Setti
       {selected.kind === "map" && <Text style={styles.help}>Enter one name=value pair per line. Names must be unique.</Text>}
       <Button title="Remove this API override" onPress={remove} />
     </>}
-    <Text style={styles.help}>Choose an API and edit its value. Changes are staged until Apply. Removing an override restores the form value or SDK default. Offline settings are used by their API experiments. Save Cast receiver and namespace inputs under Cast startup configuration in Settings, then fully close and reopen the app to apply them.</Text>
-    <Text style={styles.help}>License fields start empty and do not reveal environment values. Analytics metadata needs an Analytics license. A nativeId reuses a native instance with that ID; leave it unset unless reuse is intended. Platform-specific settings may have no effect on the other platform.</Text>
-    <Text style={styles.help}>These overrides are passed to their typed SDK fields after the basic form. The SDK validates platform, value and source support. WebUiConfig.variant accepts the name of any factory provided by the configured Web UI JavaScript file and creates a real CustomUi variant.</Text>
+    {selected.id.endsWith(".nativeId") && <Text style={styles.warning}>Reuses the native instance with this ID.</Text>}
   </View>;
 }

@@ -93,7 +93,7 @@ describe("application language", () => {
     let tree!: TestRenderer.ReactTestRenderer;
     act(() => { tree = TestRenderer.create(React.createElement(LocaleProvider, { initialLanguage: "ja",
       children: React.createElement(ConfigurationCodeView, { code }) })); });
-    act(() => { tree.root.findByProps({ title: "適用済み設定のコードを表示" }).props.onPress(); });
+    act(() => { tree.root.findAll(node => String(node.type) === "Pressable" && node.props.accessibilityLabel === "適用済み設定のコードを表示")[0]!.props.onPress(); });
     expect(tree.root.findAllByProps({ accessibilityLabel: "適用済み設定のコード" })).toHaveLength(1);
     expect(tree.root.findAllByProps({ accessibilityLabel: "コードの空行" })).toHaveLength(1);
     expect(tree.root.findAllByProps({ accessibilityLabel: 'const title = "Language";' })).toHaveLength(1);

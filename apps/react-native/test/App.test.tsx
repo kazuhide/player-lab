@@ -247,8 +247,8 @@ describe("React Native configuration in the mounted App", () => {
     await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
     expect(applyHelp()).toHaveLength(1);
     await text("Maximum bitrate (bits per second)", "3500000");
-    const bitrateHelp = () => screen.root.findAll(node => String(node.type) === "Text" && Array.isArray(node.props.children)
-      && String(node.props.children).includes("Blank leaves it unlimited"));
+    const bitrateHelp = () => screen.root.findAll(node => String(node.type) === "Text"
+      && node.props.children === "Positive whole bits per second; blank leaves it unlimited.");
     expect(bitrateHelp()).toHaveLength(1);
     await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
     expect(bitrateHelp()).toHaveLength(0);
@@ -261,15 +261,20 @@ describe("React Native configuration in the mounted App", () => {
     expect(owner.destroy).not.toHaveBeenCalled();
   });
 
-  it.each(["android", "ios"])("retains %s structured editor help and scrolling during compact input", async os => {
+  it.each(["android", "ios"])("retains %s callback permission, draft and scrolling during compact input", async os => {
     runtime.os = os;
     runtime.window = { width: 393, height: 852, fontScale: 2, scale: 1 };
     await mount(); await ready();
     await settingsGroup("callbacks");
+    await press("Edit this callback");
+    const bodyLabel = "JavaScript body for PlayerConfig.networkConfig.preprocessHttpRequest";
+    const body = input(bodyLabel).props.value;
     runtime.editorScrollY = 160;
     await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
     expect(screen.root.findAll(node => String(node.type) === "Text" && typeof node.props.children === "string"
-      && node.props.children.startsWith("Apply recreates the player"))).toHaveLength(1);
+      && node.props.children.startsWith("Allow execution, then Apply."))).toHaveLength(1);
+    expect(input(bodyLabel).props.value).toBe(body);
+    expect(element("Switch", { accessibilityLabel: "Allow edited JavaScript execution" }).props.value).toBe(false);
     expect(runtime.editorScrollY).toBe(160);
     expect(current().destroy).not.toHaveBeenCalled();
   });

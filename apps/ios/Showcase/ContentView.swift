@@ -38,7 +38,7 @@ struct ContentView: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.workspaceBackground)
+            .background(Color.workspaceBackground.ignoresSafeArea())
             #else
             let layout = sideBySide
                 ? AnyLayout(HStackLayout(alignment: .top, spacing: 16))
@@ -52,7 +52,7 @@ struct ContentView: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.workspaceBackground)
+            .background(Color.workspaceBackground.ignoresSafeArea())
             #endif
         }
         #if !os(tvOS)

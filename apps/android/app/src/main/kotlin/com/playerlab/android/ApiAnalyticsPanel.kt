@@ -51,7 +51,7 @@ internal fun ApiAnalyticsPanel(controller: PlayerController) {
                     "Collection" -> when (setting.takeIf { it in settings } ?: settings.first()) {
                         "Collection mode" -> {
                             Choices(listOf("Build key", "Deferred license", "Disabled").map { it to it }, draft.mode, "analytics-mode") { draft = draft.copy(mode = it) }
-                            UiText("Build key uses the local build configuration; a blank key disables collection. Deferred license asks the SDK for the associated Analytics license. Inspect received sessions in Bitmovin Dashboard.", style = MaterialTheme.typography.bodySmall)
+                            UiText("Blank build key disables collection. Check received sessions in Bitmovin Dashboard.", style = MaterialTheme.typography.bodySmall)
                         }
                         "License override" -> OutlinedTextField(draft.licenseOverride, { draft = draft.copy(licenseOverride = it) }, label = { UiText("Optional Analytics license override") }, visualTransformation = PasswordVisualTransformation(), supportingText = { UiText("Kept only in this app session; excluded from exported code.") }, modifier = Modifier.fillMaxWidth().testTag("analytics-license"))
                         "Ad tracking" -> ConfigToggle("Disable client-side ad tracking", draft.adTrackingDisabled, "analytics-ad-tracking") { draft = draft.copy(adTrackingDisabled = it) }
@@ -71,7 +71,7 @@ internal fun ApiAnalyticsPanel(controller: PlayerController) {
                             OutlinedTextField(draft.errorCallbackBody, { draft = draft.copy(errorCallbackBody = it) }, label = { UiText("Analytics error callback body") },
                                 textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace), minLines = if (keyboardVisible) 2 else 3, maxLines = 4,
                                 modifier = Modifier.fillMaxWidth().heightIn(min = if (keyboardVisible) 80.dp else 104.dp, max = 160.dp).testTag("analytics-error-body"))
-                            UiText("Pure JavaScript using input {code, message, severity, originalErrorType}. Return a partial error object or null to retain the original error. severity is CRITICAL or INFO. SDK objects are not exposed; callback bounds and retirement rules apply.", style = MaterialTheme.typography.bodySmall)
+                            UiText("input: {code, message, severity, originalErrorType}. Return a partial error or null.", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                     "Default metadata" -> AnalyticsMetadataEditor("Default metadata", "analytics-default", analyticsDefaultKeys, draft.defaults,
@@ -82,7 +82,7 @@ internal fun ApiAnalyticsPanel(controller: PlayerController) {
                         state = editors.getOrPut("custom") { AnalyticsMetadataState(analyticsCustomKeys.first()) }) { custom = it }
                     "Runtime actions" -> {
                         WorkspaceHeading(actions.first { it.first == operation }.second)
-                        UiText("A local result confirms the SDK call. Inspect the matching Bitmovin Dashboard session to confirm ingestion. Custom data uses staged runtime fields; program change uses staged source metadata.", style = MaterialTheme.typography.bodySmall)
+                        UiText("Uses staged runtime/source metadata. Verify delivery in Bitmovin Dashboard.", style = MaterialTheme.typography.bodySmall)
                     }
                     "Code" -> SelectionContainer { Text(controller.apiAnalyticsSettings.code(), style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, modifier = Modifier.testTag("analytics-code")) }
                 }
@@ -131,6 +131,6 @@ internal fun AnalyticsMetadataEditor(label: String, tag: String, keys: List<Stri
         OutlinedButton(onClick = { onChange(values - selected); state.inputs = state.inputs - selected; state.error = "" }, enabled = selected in values, modifier = Modifier.testTag("$tag-remove")) { UiText("Remove") }
     }
     UiText(if (selected in values) "This field has a staged value." else "This field uses its null or default value.", style = MaterialTheme.typography.bodySmall)
-    UiText("Stage a value, then Apply configuration or choose the corresponding runtime action. Source metadata takes precedence over default metadata.", style = MaterialTheme.typography.bodySmall)
+    UiText("Stage, then Apply or run the matching action.", style = MaterialTheme.typography.bodySmall)
     if (state.error.isNotEmpty()) UiText(state.error, color = MaterialTheme.colorScheme.error)
 }

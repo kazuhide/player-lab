@@ -1,7 +1,5 @@
 import SwiftUI
-#if !os(tvOS)
 import UIKit
-#endif
 
 private struct WorkspaceKeyboardKey: EnvironmentKey {
     static let defaultValue = false
@@ -61,7 +59,10 @@ extension Color {
     }
     static var workspaceBackground: Color {
         #if os(tvOS)
-        return Color.black.opacity(0.04)
+        // tvOS has no systemGroupedBackground. Keep the workspace opaque and appearance-aware.
+        return Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark ? .black : UIColor(red: 242.0 / 255, green: 242.0 / 255, blue: 247.0 / 255, alpha: 1)
+        })
         #else
         return Color(uiColor: .systemGroupedBackground)
         #endif
@@ -88,7 +89,9 @@ struct WorkspaceChoice<Value: Hashable>: View {
                     HStack {
                         Text(LocalizedStringKey(title)).font(.title2)
                         Spacer()
-                        Button("Close") { choosing = false }
+                        Button { choosing = false } label: {
+                            Text("Close").modifier(WorkspaceTVChoiceForeground())
+                        }
                     }
                     choiceList
                 }
@@ -139,6 +142,9 @@ struct WorkspaceChoice<Value: Hashable>: View {
                         Spacer(minLength: 0)
                         if option == selection { Image(systemName: "checkmark") }
                     }
+                    #if os(tvOS)
+                    .modifier(WorkspaceTVChoiceForeground())
+                    #endif
                     .frame(minHeight: choiceRowHeight)
                     .contentShape(Rectangle())
                 }
@@ -150,10 +156,17 @@ struct WorkspaceChoice<Value: Hashable>: View {
                 #else
                 .buttonStyle(.plain)
                 #endif
+                #if os(tvOS)
+                .padding(.horizontal, 32)
+                #else
                 .padding(.horizontal, 12)
+                #endif
                 Divider()
               }
               }
+              #if os(tvOS)
+              .padding(.vertical, 12)
+              #endif
             }
         }
         #if os(tvOS)
@@ -174,6 +187,17 @@ struct WorkspaceChoice<Value: Hashable>: View {
         #endif
     }
 }
+
+#if os(tvOS)
+/// Native focus remains responsible for highlighting; labels also stay readable when unfocused.
+private struct WorkspaceTVChoiceForeground: ViewModifier {
+    @Environment(\.isFocused) private var isFocused
+
+    func body(content: Content) -> some View {
+        content.foregroundStyle(isFocused ? Color.black : Color.primary)
+    }
+}
+#endif
 
 struct WorkspacePrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var enabled
@@ -302,7 +326,7 @@ struct AppliedConfigurationWorkspace: View {
         VStack(alignment: .leading, spacing: 8) {
             if workspaceActive {
             Text("Applied configuration").font(.headline)
-            Text("Player, source and UI values sent to the SDK. Draft edits are excluded; keys use placeholders.")
+            Text("Applied values. Drafts excluded; keys use placeholders.")
                 .font(.caption).foregroundStyle(Color.workspaceSecondary)
             }
             WorkspaceCode(code: configurationCode(
@@ -342,10 +366,8 @@ struct NativeMoreWorkspace: View {
                     case .tools:
                       Group {
                         Button("Playlist") { showsPlaylist = true }.accessibilityIdentifier("playlist.open")
-                        Text("Build and inspect a playlist of SDK sources.").font(.caption).foregroundStyle(Color.workspaceSecondary)
                         #if !os(tvOS)
                         Button("Offline HLS") { showsOffline = true }.accessibilityIdentifier("offline.open")
-                        Text("Discover tracks and manage local downloads.").font(.caption).foregroundStyle(Color.workspaceSecondary)
                         Button("Google Cast") { showsCast = true }.accessibilityIdentifier("cast.open")
                         #endif
                         Button("SharePlay") { pane = .sharePlay }
@@ -356,12 +378,8 @@ struct NativeMoreWorkspace: View {
                     case .tracks:
                         Text(NativeLocalization.format("Audio: %@", model.trackStatus.audio))
                         Text(NativeLocalization.format("Subtitles: %@", model.trackStatus.subtitles))
-                        Text("Use the player track menu to change the current selection. Settings → Tracks sets preferences for the next source load.")
-                            .font(.caption).foregroundStyle(Color.workspaceSecondary)
                     case .live:
                         WorkspaceToggle(title: "Allow live rewind controls", isOn: $model.timeShiftEnabled, identifier: "dvr.allowControls")
-                        Text("App preference for live sources. It is retained when switching sources.")
-                            .font(.caption).foregroundStyle(Color.workspaceSecondary)
                         if model.hasCurrentLiveSource {
                         Button("Live edge") { model.goToLiveEdge() }
                             .accessibilityIdentifier("playback.liveEdge")
@@ -371,7 +389,7 @@ struct NativeMoreWorkspace: View {
                         }
                         }
                         if !model.dvr.dvrAvailable {
-                            Text("Rewind requires a live source with a seekable window and enabled time shift settings.")
+                            Text("Live rewind needs a seekable live window and enabled time shift.")
                                 .font(.caption).foregroundStyle(Color.workspaceSecondary)
                         }
                     case .diagnostics:
@@ -385,8 +403,6 @@ struct NativeMoreWorkspace: View {
                         }
                     case .analytics:
                         Text("Analytics and Observability").font(.headline)
-                        Text("When an Analytics license is configured, the standard PlayerFactory attaches the collector. Inspect playback sessions, quality metrics and errors in the Bitmovin Dashboard. APIs → Host shows which factory is active.")
-                            .font(.subheadline)
                         Link("Open Bitmovin Dashboard", destination: URL(string: "https://dashboard.bitmovin.com/analytics")!)
                     }
                 }

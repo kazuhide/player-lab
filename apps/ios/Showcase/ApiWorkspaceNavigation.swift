@@ -39,7 +39,7 @@ struct NativeApiHostSettings: View {
                             }
                             .accessibilityIdentifier("api.factory")
                             Text(LocalizedStringKey(model.nativePlayerFactory.rawValue)).font(.subheadline)
-                            Text("Changing the factory immediately recreates the player. The standard factory attaches configured Analytics; Core and deprecated factories do not attach that wrapper.")
+                            Text("Recreates the player and reloads the source immediately.")
                                 .font(.caption).foregroundStyle(Color.workspaceSecondary)
                         case .presentation:
                             Picker("Presentation", selection: Binding(get: { model.presentation }, set: { model.setPresentation($0) })) {
@@ -47,12 +47,12 @@ struct NativeApiHostSettings: View {
                             }
                             .accessibilityIdentifier("api.presentation")
                             Text(LocalizedStringKey(model.presentation.rawValue)).font(.subheadline)
-                            Text("Changing the host immediately recreates the player and reloads the applied source.")
+                            Text("Recreates the player and reloads the source immediately.")
                                 .font(.caption).foregroundStyle(Color.workspaceSecondary)
                         case .nativeHost:
                             Toggle("Use native PlayerView host", isOn: Binding(get: { model.usesNativeApiHost }, set: { model.setNativeApiHost($0) }))
                                 .accessibilityIdentifier("api.nativeHost")
-                            Text("Applies immediately and reloads the source. Native PlayerView exposes fullscreen, Picture-in-Picture and view events.")
+                            Text("Reloads the source immediately.")
                                 .font(.caption).foregroundStyle(Color.workspaceSecondary)
                         case .pictureInPicture:
                             Toggle("Picture-in-Picture enabled", isOn: $model.boundPiPEnabled)

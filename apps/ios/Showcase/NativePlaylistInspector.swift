@@ -33,7 +33,7 @@ struct NativePlaylistInspector: View {
             Form {
                 if pane == .drafts {
                 Section(header: Text("Source drafts")) {
-                    Text("Each source has its own URL, offsets, metadata, subtitles and DRM settings. Editing a draft does not change the active SDK playlist until Load, Add or Insert. Applying the main player configuration recreates its normal single-source setup.").font(.caption)
+                    Text("Draft edits take effect with Load, Add or Insert.").font(.caption)
                     Button("Add a copy of the applied source") {
                         if let source = model.sourceSettings { workbench.add(source) }
                     }
@@ -65,7 +65,7 @@ struct NativePlaylistInspector: View {
                         Text("Whole playlist").tag("playlist")
                     }
                     .accessibilityIdentifier("playlist.replayMode")
-                    Text("Preloading more sources can increase memory and network use. Only enable it when testing that SDK behavior.").font(.caption)
+                    Text("Preloading uses extra memory and network.").font(.caption)
                 }
                 }
                 if pane == .operations {

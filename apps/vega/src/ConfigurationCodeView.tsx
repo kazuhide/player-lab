@@ -9,8 +9,7 @@ export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Ele
   return <View style={styles.container}>
     <Button title={expanded ? "Hide applied code" : "Show applied code"} onPress={() => setExpanded(!expanded)} />
     {expanded && <>
-      <Text style={styles.help}>Player and source settings sent to the SDK. Draft edits are excluded and license keys use placeholders.</Text>
-      <Text style={styles.help}>This TV host has no clipboard integration.</Text>
+      <Text style={styles.badge}>Applied values</Text>
       <View accessibilityLabel={translateCopy("Applied configuration code", language)} style={styles.code}>
         {lines.map((line, index) => <View key={index} focusable accessible
           testID={`applied-code-line-${index}${index === lines.length - 1 ? "-last" : ""}`}
@@ -23,8 +22,8 @@ export function ConfigurationCodeView({ code }: { code: string }): React.JSX.Ele
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 8, marginTop: 8 },
-  help: { color: "#dddddd" },
-  code: { backgroundColor: "#181818", padding: 8 },
-  line: { fontFamily: "monospace", fontSize: 12, color: "#dddddd" },
+  container: { gap: 12, marginTop: 8 },
+  badge: { alignSelf: "flex-start", color: "#d5e2f2", backgroundColor: "#29374a", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, fontSize: 16 },
+  code: { backgroundColor: "#161f2c", padding: 12, borderRadius: 8 },
+  line: { fontFamily: "monospace", fontSize: 14, lineHeight: 20, color: "#d5e2f2" },
 });

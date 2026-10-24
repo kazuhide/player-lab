@@ -41,6 +41,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
   const [result, setResult] = useState("");
   const [code, setCode] = useState("");
   const [executedId, setExecutedId] = useState("");
+  const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const generation = useRef(0);
   const pending = useRef(false);
@@ -51,6 +52,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
     setResult("");
     setCode("");
     setExecutedId("");
+    setFailed(false);
     return () => { generation.current += 1; };
   }, [player, source, auxiliary]);
   useEffect(() => {
@@ -70,9 +72,9 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
         Promise.resolve(selected.run(values)),
         new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error("No response within 10 seconds. The native call may still complete; it has not been retried.")), 10000); }),
       ]);
-      if (generation.current === current) { setCode(appliedCode); setResult(apiValue(value)); setExecutedId(selected.id); }
+      if (generation.current === current) { setCode(appliedCode); setResult(apiValue(value)); setExecutedId(selected.id); setFailed(false); }
     } catch (error) {
-      if (generation.current === current) { setResult(error instanceof Error ? error.message : "API call failed."); setExecutedId(selected.id); }
+      if (generation.current === current) { setResult(error instanceof Error ? error.message : "API call failed."); setExecutedId(selected.id); setFailed(true); }
     } finally {
       if (timeout) clearTimeout(timeout);
       if (generation.current === current) { pending.current = false; setBusy(false); }
@@ -93,19 +95,26 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
         options={targets.map(operation => ({ id: operation.id, label: operation.id }))} testID="api-operation-selector"
         onSelect={id => {
           if (id === selectedId) editor.current?.scrollTo({ y: 0, animated: false });
-          setSelectedId(id); setResult(""); setCode(""); setExecutedId("");
+          setSelectedId(id); setResult(""); setCode(""); setExecutedId(""); setFailed(false);
         }} />}
     </View>}
     <ScrollView ref={editor} testID="api-fields-scroll" style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 10 }} keyboardShouldPersistTaps="handled">
       <WorkspacePage active={page === "help"}>
-      <Text style={styles.help}>Choose an operation, enter its arguments, then run it. A void result means the wrapper dispatched the call; use events and queries to check its effect. Platform and source requirements still apply.</Text>
-      <Text style={styles.help}>Offline inputs are edited under SDK overrides in Settings. Initialize the offline manager, get options, then download; completion is an event. Delete and cancel affect only the chosen content identifier. The generated host includes the Google Cast SDK. SDK 1.29's deprecated initialize method does not apply edited options. Edit the receiver and namespace under Cast startup settings, select Save Cast options for next launch, then fully close and reopen the app. Use Read native Cast startup state to check the applied startup values and native initialization.</Text>
-      <Text style={styles.help}>Offline addListener replaces the app's current offline listener. Select its named callbacks and optionally edit a JavaScript body using event, name and lab.getPlayer()/getSource(). A nonempty body requires explicit execution permission; it runs inside this app on future matching SDK events.</Text>
+      <Text style={styles.help}>Use State or Events to check a command's effect.</Text>
+      <Text style={styles.warning}>Recreate reloads applied settings and clears the current position.</Text>
       <Button title="Recreate player after API experiments" disabled={busy} onPress={onRecreate} />
       </WorkspacePage>
       <WorkspacePage active={page === "operations" || page === "state"}>
       {!validTarget && <Text style={styles.help}>Choose a state query before reading the SDK.</Text>}
-      <Text verbatim style={[styles.heading, styles.mono]}>{selected.id}</Text>
+      {compactEditing && <Text verbatim style={[styles.heading, styles.mono]}>{selected.id}</Text>}
+      {selected.id === "OfflineContentManager.addListener" && <Text style={styles.warning}>Replaces the current offline listener. Edited JavaScript runs on future SDK events inside this app without a sandbox. Allow execution before Run.</Text>}
+      {["OfflineContentManager.deleteAll", "OfflineContentManager.cancelDownload", "OfflineContentManager.releaseLicense"].includes(selected.id) && <View style={{ gap: 4 }}>
+        <Text style={styles.warning}>{selected.id === "OfflineContentManager.deleteAll" ? "Deletes offline data for this content identifier."
+          : selected.id === "OfflineContentManager.cancelDownload" ? "Cancels the download for this content identifier." : "Releases the offline license for this content identifier."}</Text>
+        <Text verbatim style={styles.mono}>{settings.offline.identifier}</Text>
+      </View>}
+      {selected.id === "Player.destroy" && <Text style={styles.warning}>Destroys this player. Recreate to use it again.</Text>}
+      {selected.id === "Source.destroy" && <Text style={styles.warning}>Releases the current source. Recreate to reload applied settings.</Text>}
       {selected.arguments.map((argument) => <View key={argument.name} style={styles.field}>
         <Text>{argument.label}</Text>
         {argument.editor === "metadata" ? <MetadataInput key={selected.id + argument.name} value={values[argument.name] ?? argument.initial} onChange={(value) => setValues((current) => ({ ...current, [argument.name]: value }))} /> : argument.choices ? <View style={styles.row}>{argument.choices.map((choice) => <Button key={choice} title={choice} disabled={values[argument.name] === choice}
@@ -113,18 +122,19 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
           : <TextInput accessibilityLabel={argument.label} value={values[argument.name] ?? ""} onChangeText={(value) => setValues((current) => ({ ...current, [argument.name]: value }))}
             autoCorrect={false} autoCapitalize="none" multiline style={styles.input} />}
       </View>)}
-      <Text style={styles.help}>A call record does not confirm playback. Read the SDK state or inspect matching events to check the result.</Text>
-      {executedId && <Text verbatim selectable style={styles.mono}>{executedId}</Text>}
-      <Text verbatim selectable accessibilityLabel="Executed API code" accessibilityValue={{ text: code }} style={styles.mono}>{code}</Text>
-      <Text verbatim selectable accessibilityLabel="API result" accessibilityValue={{ text: result }} style={styles.mono}>{result}</Text>
+      {!!code && !failed && <Text style={styles.label}>Executed call</Text>}
+      <Text verbatim selectable accessibilityLabel="Executed API code" accessibilityValue={{ text: failed ? "" : code }} style={[styles.mono, !!code && !failed && styles.result]}>{failed ? "" : code}</Text>
+      {!!executedId && <Text style={styles.label}>{failed ? "API error" : "Result"}</Text>}
+      <Text verbatim selectable accessibilityLabel="API result" accessibilityValue={{ text: result }} accessibilityRole={failed ? "alert" : "text"} style={[styles.mono, !!executedId && styles.result, failed && styles.error]}>{result}</Text>
       </WorkspacePage>
       <WorkspacePage active={page === "events"}>
       <Text style={styles.heading}>Player events</Text>
-      <Text style={styles.help}>Named public events are connected. The log retains recent payload summaries and redacts credential fields. Receiving an event requires its matching feature or source.</Text>
+      <Text style={styles.badge}>{recording ? "Recording" : "Paused"}</Text>
       <View style={styles.row}>
         <Button title={recording ? "Pause event log" : "Resume event log"} onPress={() => onRecording(!recording)} />
         <Button title="Clear API event log" onPress={onClearEvents} />
       </View>
+      {!events.length && <Text style={styles.help}>No events yet.</Text>}
       <Text verbatim selectable accessibilityLabel="API event log" accessibilityValue={{ text: events.slice(0, 12).join("\n") }} style={styles.mono}>{events.slice(0, 12).join("\n")}</Text>
       </WorkspacePage>
     </ScrollView>
