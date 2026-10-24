@@ -1,6 +1,6 @@
 import { PlayerUI, EventDispatcher, PlayerUIDOM, type UIManager } from "@showcase/ui-shared";
 import { PlayerEvent, type PlayerAPI } from "bitmovin-player";
-import { pick } from "../i18n";
+import { pick, userGuideHref } from "../i18n";
 import { valueEditor, type ValueEditor } from "./editor";
 import { ApiMaterializer, ResourcePool, inputCode } from "./materialize";
 import { ApiOverrides, apiPath, validateData } from "./values";
@@ -256,20 +256,21 @@ export class ApiExplorer {
 
   private render(): void {
     const catalog = this.catalog!;
-    const note = node("p", pick({ ja: "公開SDKの項目を検索して個別に編集・実行できます。作成時の設定はPlayerを再生成し、ソース設定は再読み込み、UI設定は現在のテーマを再生成して適用します。イベントは現在のPlayerとUIだけを記録します。", en: "Search public SDK entries to edit settings and run APIs. Creation settings recreate the Player, source settings reload the source, and UI settings rebuild the current theme. Events belong to the current Player and UI." }));
+    const guide = node("a", pick({ ja: "設定とAPIの使い方", en: "Configuration and API guide" }));
+    guide.href = userGuideHref("web-player-config");
     const controls = node("div"); controls.className = "api-explorer-controls";
-    const search = node("input"); search.type = "search"; search.setAttribute("aria-label", pick({ ja: "APIを検索", en: "Search APIs" }));
+    const search = node("input"); search.type = "search"; search.setAttribute("aria-label", pick({ ja: "APIを検索", en: "Search APIs" })); search.placeholder = pick({ ja: "APIを検索", en: "Search APIs" });
     const category = node("select"); category.setAttribute("aria-label", pick({ ja: "APIの種類", en: "API category" }));
     category.append(option("configuration", pick({ ja: "設定", en: "Configuration" })), option("command", pick({ ja: "操作", en: "Commands" })), option("observation", pick({ ja: "状態の取得", en: "Read state" })), option("event", pick({ ja: "イベント", en: "Events" })));
     const selection = node("select"); selection.size = 9; selection.setAttribute("aria-label", pick({ ja: "SDKの項目", en: "SDK entry" }));
     const form = node("div"); form.className = "api-explorer-form";
     const layout = node("div"); layout.className = "api-explorer-layout";
     const list = node("div"); list.className = "api-explorer-list"; list.append(search, category, selection);
-    controls.append(button(pick({ ja: "Playerを再生成", en: "Recreate Player" }), () => {
+    controls.append(guide, button(pick({ ja: "Playerを再生成", en: "Recreate Player" }), () => {
       void this.options.recreate().catch(error => { this.status.textContent = String(error); });
     }), button(pick({ ja: "イベント履歴を消去", en: "Clear event history" }), () => { this.counts.clear(); this.events.length = 0; this.log.textContent = ""; }));
     layout.append(list, form);
-    this.content.replaceChildren(note, controls, layout, node("h3", pick({ ja: "適用・実行したコード", en: "Applied or executed code" })), this.code,
+    this.content.replaceChildren(controls, layout, node("h3", pick({ ja: "適用・実行したコード", en: "Applied or executed code" })), this.code,
       node("h3", pick({ ja: "結果", en: "Result" })), this.result, node("h3", pick({ ja: "イベントとコールバック", en: "Events and callbacks" })), this.log);
 
     const renderSelected = () => {
@@ -277,10 +278,10 @@ export class ApiExplorer {
       const entry = catalog.rows.find(entry => entry.id === selection.value);
       if (!entry) return;
       form.append(node("h3", entry.id));
-      if (entry.container) form.append(node("p", pick({ ja: "このオブジェクト・配列をまとめて編集します。必須フィールドを揃えてから適用してください。", en: "Edit this object or array as a whole. Complete its required fields before applying it." })));
+      if (entry.container) form.append(node("p", pick({ ja: "必須フィールドをまとめて適用", en: "Apply required fields together" })));
       if (entry.reference) { const link = node("a", pick({ ja: "公式APIリファレンス", en: "Official API reference" })); link.href = entry.reference; link.target = "_blank"; link.rel = "noopener noreferrer"; form.append(link); }
       if (entry.blocked) { form.append(node("p", pick({ ja: "このパスはSDK型定義のコンポーネント本体から列挙されたもので、コンストラクターの設定ではありません。設定として渡してもメソッドは実行されません。UIConstructorConfig.ToggleSettingsPanelItemで実際のコンストラクター入力を編集してください。", en: "This path was enumerated from the SDK component class, rather than its constructor configuration. Passing it as configuration does not invoke its method. Use UIConstructorConfig.ToggleSettingsPanelItem to edit the actual constructor input." }))); return; }
-      if (entry.category === "event") { form.append(node("p", pick({ ja: "現在のインスタンスへの購読結果は下のイベント欄で確認できます。必要な素材・機能・端末の操作を行うと発生回数と内容が更新されます。", en: "Subscriptions for the current instance are shown in the event log below. Counts and payloads update when the required source, feature or device interaction produces the event." }))); return; }
+      if (entry.category === "event") { form.append(node("p", pick({ ja: "記録対象: 現在のPlayerとUI", en: "Recording: current Player and UI" }))); return; }
       const schema = catalog.nodes[entry.schema!]!;
       const indexInputs: HTMLInputElement[] = [];
       let editor: ValueEditor;
@@ -288,6 +289,10 @@ export class ApiExplorer {
       let args: ValueEditor[] = [];
       const resources = { list: (schema: Parameters<ResourcePool["list"]>[0]) => this.resources.list(schema) };
       if (entry.category === "configuration") {
+        const mode = entry.root === "PlayerConfig" ? { ja: "Playerを再生成", en: "Recreates Player" }
+          : entry.root === "SourceConfig" ? { ja: "ソースを再読み込み", en: "Reloads source" }
+          : { ja: "UIを再生成", en: "Rebuilds UI" };
+        const effect = node("p", pick(mode)); effect.className = "api-apply-effect"; form.append(effect);
         for (let i = 0; i < (entry.id.match(/\[\]/g)?.length ?? 0); i++) {
           const input = node("input"); input.type = "number"; input.min = "0"; input.max = "255"; input.value = "0";
           input.setAttribute("aria-label", `Array index ${i + 1}`); indexInputs.push(input); form.append(input);
@@ -316,7 +321,7 @@ export class ApiExplorer {
               await pending;
               if (output === this.outputGeneration) {
                 this.showConfigCode(route.root);
-                this.status.textContent = pick({ ja: "設定を送信しました。機能の状態は結果・イベントとプレイヤー画面で確認してください。", en: "Configuration submitted. Check feature state in the results, events and player." });
+                this.status.textContent = pick({ ja: "設定を送信しました。", en: "Configuration submitted." });
               }
             } catch (error) {
               const currentOwner = route.root === "PlayerConfig" || this.options.getPlayer() === submittedPlayer;

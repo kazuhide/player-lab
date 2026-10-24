@@ -355,7 +355,7 @@ function renderThemeBar(): void {
   const active = THEMES.find((t) => t.id === currentThemeId);
   const note = document.createElement("span");
   note.className = "ui-theme-bar-note";
-  note.textContent = sdkUiEnabled ? pick({ ja: "PlayerConfig.uiでSDKのUIを使用しています。テーマを選ぶとアプリのUIへ切り替わります。", en: "PlayerConfig.ui enables SDK-managed UI. Selecting a theme switches to the app's UI." }) : active ? pick(active.note) : "";
+  note.textContent = sdkUiEnabled ? pick({ ja: "SDK管理のUI", en: "SDK-managed UI" }) : "";
   themeBarEl!.appendChild(note);
   const code = document.createElement("code");
   code.className = "ui-theme-bar-code";

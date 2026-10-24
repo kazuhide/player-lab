@@ -64,7 +64,7 @@
     {
       "type": "steps",
       "items": [
-        "Open the Web app, choose VOD HLS or your own finite source, and start playback with Play. Read Player state and the QoE metrics below the player.",
+        "Open the Web app, choose VOD HLS or your own finite source, and start playback with Play. Read Player state and Playback quality below the player.",
         "Seek with the player control. Compare Seek/Seeked in the event log with the seek time readout; live sources use TimeShift/TimeShifted instead.",
         "Pause and resume. A deliberate pause does not count as rebuffering in this readout. A real StallStarted/StallEnded after playback begins increases its interruption count.",
         "When comparing a changed configuration, open Show applied configuration code and copy the applied settings. Draft edits are not included. Load the same source again for a new measurement."

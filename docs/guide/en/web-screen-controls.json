@@ -19,7 +19,7 @@
     },
     {
       "type": "p",
-      "text": "Language and theme selectors appear at the top. The video and construction code sit below, followed by controls for sources, seeking, playback, UI settings and casting; state, event and QoE readouts; and the Player Config editor. A link at the bottom opens the detailed UI customization guide."
+      "text": "Language and theme selectors appear at the top. The video and construction code sit below, followed by controls for sources, seeking, playback, UI settings and casting; Player state, Event log and Playback quality readouts; and the Player Config editor. A link at the bottom opens the detailed UI customization guide."
     },
     {
       "type": "note",
@@ -499,7 +499,7 @@
     },
     {
       "type": "p",
-      "text": "The separate control panel also contains live rewind, UI and casting controls. Open or close a configuration group using its heading. Dynamic groups start open; recreation groups start closed."
+      "text": "The separate control panel also contains live rewind, UI and casting controls. Open or close a configuration group using its heading. Playback and source groups start open; creation groups start closed."
     },
     {
       "type": "h3",

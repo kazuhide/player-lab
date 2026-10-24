@@ -5,6 +5,23 @@
   "blocks": [
     {
       "type": "h2",
+      "id": "read-the-settings-screen",
+      "text": "Read the settings screen"
+    },
+    {
+      "type": "p",
+      "text": "Playback and source settings contains immediately applied APIs and source edits. Player creation settings contains values read by the constructor. Each group shows instant, reload or recreate. Reload and recreation edits remain pending until the corresponding Apply action; opening a group does not apply it. The question-mark controls show field guidance on demand."
+    },
+    {
+      "type": "p",
+      "text": "SDK settings, APIs and events provides the typed editor for objects, callbacks and the rest of the public API. The label above its input identifies the effect of Apply: recreate the Player, reload the source or rebuild the UI. Configuration submitted reports completion of the application call, not successful playback or authorization. Inspect Read state, the event payloads and the video for the behavior being tested."
+    },
+    {
+      "type": "p",
+      "text": "Code shown under Show applied configuration code is an explicit snapshot. Draft edits and license keys are excluded; Refresh code reads later changes, and Copy code obtains a fresh snapshot before copying. Theme construction is a separate example beside the video. Neither output is an export of every application state."
+    },
+    {
+      "type": "h2",
       "id": "configuration-boundaries",
       "text": "Separate creation settings, source settings and runtime calls"
     },
@@ -62,7 +79,7 @@
     },
     {
       "type": "p",
-      "text": "The separate control panel also contains live rewind, UI and casting controls. Open or close a configuration group using its heading. Dynamic groups start open; recreation groups start closed."
+      "text": "The separate control panel also contains live rewind, UI and casting controls. Open or close a configuration group using its heading. Playback and source groups start open; creation groups start closed."
     },
     {
       "type": "h2",

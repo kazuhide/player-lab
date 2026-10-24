@@ -1,5 +1,5 @@
 /**
- * Comprehensive Player Config editor (collapsible), ordered DYNAMIC-FIRST.
+ * Common configuration controls grouped by application timing.
  *
  * The Bitmovin Web API splits configuration by how a change is applied:
  *  - ⚡ runtime  — applied immediately through the player API (volume, speed, view mode…).
@@ -12,14 +12,12 @@
  * `<details>` accordion tagged with its apply-mode chip. Runtime edits apply on change;
  * reload/recreate edits stage into pending overrides and commit on a per-band Apply button.
  *
- * Field coverage mirrors the v8 config interfaces (PlaybackConfig, AdaptationConfig,
- * BufferConfig, TweaksConfig, StyleConfig, LogsConfig, CastConfig, LiveConfig + the
- * SourceConfig surface). `timeShift` is left as the headline DVR control in the control
- * panel (noted in Playback). The schema is data-driven, so the remaining niche tweaks /
- * platform flags are one array entry each to add.
+ * Objects, callbacks and the rest of the public SDK surface are edited through
+ * the separate schema-driven API explorer. The control panel handles UI behavior
+ * and live rewind through PlaybackConfig.timeShift.
  */
 import type { PlayerAPI, PlayerConfig, SourceConfig, DynamicAdaptationConfig } from "bitmovin-player";
-import { pick, type L } from "./i18n";
+import { pick, userGuideHref, type L } from "./i18n";
 import { FIELD_DOC } from "./configDocs";
 import { infoChip } from "./infoChip";
 import { configValue } from "./configState";
@@ -65,14 +63,13 @@ interface FieldDef {
 interface Group {
   title: string;
   mode: Mode;
-  blurb: string;
   fields: FieldDef[];
 }
 
-const MODE_BADGE: Record<Mode, { icon: string; text: L; cls: string }> = {
-  runtime: { icon: "⚡", text: { ja: "即時", en: "instant" }, cls: "mode-runtime" },
-  reload: { icon: "📥", text: { ja: "リロード", en: "reload" }, cls: "mode-reload" },
-  recreate: { icon: "🔁", text: { ja: "再生成", en: "recreate" }, cls: "mode-recreate" },
+const MODE_BADGE: Record<Mode, { text: L; cls: string }> = {
+  runtime: { text: { ja: "即時", en: "instant" }, cls: "mode-runtime" },
+  reload: { text: { ja: "再読み込み", en: "reload" }, cls: "mode-reload" },
+  recreate: { text: { ja: "再生成", en: "recreate" }, cls: "mode-recreate" },
 };
 
 const LOG_LEVELS = ["debug", "log", "warn", "error", "off"].map((v) => ({ value: v, label: v }));
@@ -295,7 +292,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: "Player API",
       mode: "runtime",
-      blurb: pick({ ja: "再生中に即時反映。プレイヤーの作り直しもソース再読み込みも不要です。", en: "Applied immediately while playing — no player recreate, no source reload." }),
       fields: [
         {
           label: "volume (0–100)",
@@ -327,14 +323,14 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
           apply: (v) => options.getPlayer()?.setPlaybackSpeed(num(v) ?? 1),
         },
         {
-          label: "buffer target forward (s) §8",
+          label: "buffer target forward (s)",
           read: () => {
             const p = options.getPlayer();
             return p?.buffer.getLevel(p.exports.BufferType.ForwardDuration, p.exports.MediaType.Video).targetLevel;
           },
           kind: "number",
           initial: 40,
-          doc: { ja: "先読みする秒数(§8)。大きいほど安定する一方、遅延とメモリ消費が増えます。DVRウィンドウは広がりません。", en: "Seconds to buffer ahead (§8). Larger = steadier but more latency/memory. Does NOT widen the DVR window." },
+          doc: { ja: "先読みする秒数。大きいほど安定する一方、遅延とメモリ消費が増えます。DVRウィンドウは広がりません。", en: "Seconds to buffer ahead. Larger = steadier but more latency/memory. Does NOT widen the DVR window." },
           apply: (v) => {
             const p = options.getPlayer();
             const n = num(v);
@@ -410,10 +406,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: pick({ ja: "Adaptation(動的)", en: "Adaptation (dynamic)" }),
       mode: "runtime",
-      blurb: pick({
-        ja: "実行中に player.adaptation.setConfig() で更新できる適応制御(DynamicAdaptationConfig)。limitToPlayerSize など。",
-        en: "Adaptation updatable at runtime via player.adaptation.setConfig() (DynamicAdaptationConfig) — limitToPlayerSize, etc.",
-      }),
       fields: [
         {
           label: "limitToPlayerSize",
@@ -468,10 +460,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: pick({ ja: "Low Latency(動的)", en: "Low Latency (dynamic)" }),
       mode: "runtime",
-      blurb: pick({
-        ja: "ライブ配信中の latency 制御。通常の HLS/DASH ライブでも動作します(超低遅延=サブ秒級には LL-HLS / chunked CMAF が必要)。targetLatency は setTargetLatency()、catchup/fallback は set{Catchup,Fallback}Config(LowLatencySyncConfig) で適用。catchup=遅れすぎた時に追いつく / fallback=ライブ端へ寄りすぎた時に戻す。閾値は空欄=既定 Infinity(無効)。",
-        en: "Runtime latency control for live playback. Works on a NORMAL HLS/DASH live stream too (only sub-second latency needs LL-HLS / chunked CMAF). targetLatency via setTargetLatency(); catchup/fallback via set{Catchup,Fallback}Config(LowLatencySyncConfig). catchup = recover when too far BEHIND target; fallback = back off when too CLOSE to the edge. Empty threshold = default Infinity (off).",
-      }),
       fields: [
         {
           label: "targetLatency (s)",
@@ -543,7 +531,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: "Source",
       mode: "reload",
-      blurb: pick({ ja: "ソース単位の設定(SourceConfig)。現在のソースに重ねて load() で適用します。", en: "Per-source settings (SourceConfig). Layered onto the current source and applied with load()." }),
       fields: [
         {
           label: "title",
@@ -583,7 +570,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
           kind: "number",
           initial: "",
           hint: pick({ ja: "ライブは負値で端から", en: "Negative = behind the live edge" }),
-          doc: { ja: "再生開始位置。VODは先頭からの秒数。ライブは負値で端からの距離(§11)。下の reference と併用します。", en: "Start position. For VOD, seconds from the start; for live, a negative value = distance behind the edge (§11). Pairs with the reference below." },
+          doc: { ja: "再生開始位置。VODは先頭からの秒数。ライブは負値で端からの距離。下の reference と併用します。", en: "Start position. For VOD, seconds from the start; for live, a negative value = distance behind the edge. Pairs with the reference below." },
           read: () => configValue(options.getSource(), "options.startOffset"),
           apply: (v) => stageSource("options.startOffset", num(v)),
         },
@@ -591,7 +578,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
           label: "options.startOffsetTimelineReference",
           kind: "enum",
           initial: "",
-          doc: { ja: "startOffset の基準点。ライブ端からのオフセットには end を指定します(§11)。", en: "Reference point for startOffset. Use end to offset from the live edge (§11)." },
+          doc: { ja: "startOffset の基準点。ライブ端からのオフセットには end を指定します。", en: "Reference point for startOffset. Use end to offset from the live edge." },
           options: [
             { value: "", label: pick({ ja: "（既定）", en: "(default)" }) },
             { value: "start", label: "start" },
@@ -607,7 +594,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: "Playback",
       mode: "recreate",
-      blurb: pick({ ja: "再生の初期挙動(PlaybackConfig)。timeShift(DVR 許可)は操作パネルの「DVR を許可」にあります。", en: "Initial playback behavior (PlaybackConfig). timeShift (Allow DVR) lives in the control panel’s “Allow DVR”." }),
       fields: [
         pBool("autoplay", "playback.autoplay", true),
         pBool(pick({ ja: "muted（初期）", en: "muted (initial)" }), "playback.muted", true),
@@ -622,10 +608,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: pick({ ja: "Adaptation（初期）", en: "Adaptation (initial)" }),
       mode: "recreate",
-      blurb: pick({
-        ja: "構築時の適応制御(AdaptationConfig、desktop/mobile 両方)。実行中に変えられる分は ⚡「Adaptation(動的)」へ。",
-        en: "Construction-time adaptation (AdaptationConfig, desktop+mobile). The runtime-updatable subset is in ⚡ “Adaptation (dynamic)”.",
-      }),
       fields: [
         pText("startupBitrate", "adaptation.startupBitrate", pick({ ja: '"auto" または bps', en: '"auto" or bps' })),
         pText("maxStartupBitrate", "adaptation.maxStartupBitrate", pick({ ja: '"auto" / bps / 空', en: '"auto" / bps / empty' })),
@@ -655,7 +637,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: pick({ ja: "Buffer（初期）", en: "Buffer (initial)" }),
       mode: "recreate",
-      blurb: pick({ ja: "初期バッファ設定(BufferConfig)。再生中の目標は ⚡ Runtime の buffer target で変えられます(§8)。", en: "Initial buffer config (BufferConfig). The live target is changed via ⚡ Runtime’s buffer target (§8)." }),
       fields: [
         pNum("video.forwardduration (s)", "buffer.video.forwardduration", 40),
         pNum("video.backwardduration (s)", "buffer.video.backwardduration"),
@@ -666,7 +647,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: "Network",
       mode: "recreate",
-      blurb: pick({ ja: "通信方式とタイムアウト(NetworkConfig)。タイムアウトの単位は秒です。空欄で上書きを削除します。", en: "Request API and timeouts (NetworkConfig). Timeouts are in seconds. Empty fields remove their overrides." }),
       fields: [
         pEnum("requestApi", "network.requestApi", [
           { value: "", label: pick({ ja: "（既定: xhr）", en: "(default: xhr)" }) },
@@ -682,10 +662,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: "Tweaks",
       mode: "recreate",
-      blurb: pick({
-        ja: `低レベル調整(TweaksConfig)。プリミティブな全項目(${TWEAK_FIELDS.length})＋ log_level を網羅。オブジェクト/コールバック系は除外。`,
-        en: `Low-level tweaks (TweaksConfig). All primitive fields (${TWEAK_FIELDS.length}) + log_level; object/callback tweaks excluded.`,
-      }),
       fields: [
         {
           ...pEnum("log_level", "tweaks.log_level", [{ value: "", label: pick({ ja: "（既定）", en: "(default)" }) }, ...LOG_LEVELS]),
@@ -697,13 +673,11 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: "Logs",
       mode: "recreate",
-      blurb: pick({ ja: "ログ出力(LogsConfig)。", en: "Log output (LogsConfig)." }),
       fields: [pEnum("level", "logs.level", LOG_LEVELS, "warn"), pBool(pick({ ja: "bitmovin (ロゴログ)", en: "bitmovin (logo log)" }), "logs.bitmovin", true)],
     },
     {
       title: "Style",
       mode: "recreate",
-      blurb: pick({ ja: "表示スタイル(StyleConfig)。width/height はこのデモのCSSが上書きする場合があります。", en: "Display style (StyleConfig). width/height may be overridden by this demo’s CSS." }),
       fields: [
         pText("aspectratio", "style.aspectratio", pick({ ja: "例: 16:9 / 4:3 / 空", en: "e.g. 16:9 / 4:3 / empty" })),
         pText("width", "style.width", pick({ ja: "例: 100% / 640px", en: "e.g. 100% / 640px" })),
@@ -714,7 +688,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: "Cast",
       mode: "recreate",
-      blurb: pick({ ja: "Chromecast 設定(CastConfig)。", en: "Chromecast settings (CastConfig)." }),
       fields: [
         pBool("enable", "cast.enable", false),
         pText("application_id", "cast.application_id"),
@@ -725,7 +698,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: "Live",
       mode: "recreate",
-      blurb: pick({ ja: "ライブ設定(LiveConfig)。低遅延の目標レイテンシなど。", en: "Live settings (LiveConfig) — e.g. the low-latency target latency." }),
       fields: [
         pBool("incrementalManifestUpdates", "live.incrementalManifestUpdates", false),
         pNum("lowLatency.targetLatency (s)", "live.lowLatency.targetLatency"),
@@ -734,7 +706,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: "Location",
       mode: "recreate",
-      blurb: pick({ ja: "アセットの読み込み先(LocationConfig)。UI/CSS/Cast/IMA/ServiceWorker の URL。", en: "Where assets load from (LocationConfig): UI / CSS / Cast / IMA / ServiceWorker URLs." }),
       fields: [
         pText("ui", "location.ui"),
         pText("ui_css", "location.ui_css"),
@@ -746,7 +717,6 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     {
       title: pick({ ja: "その他", en: "Misc" }),
       mode: "recreate",
-      blurb: pick({ ja: "ライセンス遅延(LicensingConfig)とストレージ(StorageConfig)。", en: "Licensing delay (LicensingConfig) and storage (StorageConfig)." }),
       fields: [
         pNum("licensing.delay (ms)", "licensing.delay"),
         pBool("storage.disableStorageApi", "storage.disableStorageApi", false),
@@ -759,25 +729,11 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   const head = document.createElement("div");
   head.className = "config-head";
   const h2 = document.createElement("h2");
-  h2.textContent = pick({ ja: "Player Config — 全設定", en: "Player Config — all settings" });
-  const intro = document.createElement("p");
-  intro.className = "config-intro";
-  intro.textContent =
-    pick({
-      ja: "反映方法で並べています。⚡ は即時、📥/🔁 は変更を貯めて各バンドの「適用」で反映します。各項目の ⓘ に、どんな時にどの値を設定すべきかの説明があります(公式 SDK ドキュメント由来・英語)。",
-      en: "Ordered by how each change applies. ⚡ applies on change; 📥/🔁 stage and commit on each band’s Apply button. The ⓘ on each field explains when/what to set (from the official SDK docs).",
-    });
-  const note = document.createElement("p");
-  note.className = "config-note";
-  note.textContent = pick({
-    ja:
-      "未掲載(値が動的なリスト、またはオブジェクト/コールバック設定のため): quality/track 選択(setVideoQuality / setAudioQuality / setAudio、字幕は player.subtitles ＝ プレイヤーの設定歯車)、" +
-      "setQueryParameters / setAuthentication / setVideoElement、network のリクエストコールバック(preprocessHttpRequest 等)、player.drm / advertising / vr 各API。",
-    en:
-      "Not surfaced here (values are dynamic lists, or object/callback config): quality/track selection (setVideoQuality / setAudioQuality / setAudio; subtitles via player.subtitles — i.e. the player’s settings gear), " +
-      "setQueryParameters / setAuthentication / setVideoElement, the network request callbacks (preprocessHttpRequest etc.), and the player.drm / advertising / vr APIs.",
-  });
-  head.append(h2, intro, note);
+  h2.textContent = "PlayerConfig / SourceConfig";
+  const guide = document.createElement("a");
+  guide.href = userGuideHref("web-player-config");
+  guide.textContent = pick({ ja: "設定の使い方", en: "Configuration guide" });
+  head.append(h2, guide);
   container.appendChild(head);
 
   let fieldId = 0;
@@ -786,7 +742,10 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     row.className = "config-field";
     const name = document.createElement("span");
     name.className = "config-field-label";
-    name.textContent = def.label;
+    for (const [index, part] of def.label.split(".").entries()) {
+      if (index > 0) name.append(".", document.createElement("wbr"));
+      name.append(part);
+    }
     row.appendChild(name);
 
     // Hover guidance: a "?" chip carrying the SDK's own "what / when / default" note,
@@ -885,14 +844,9 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     title.textContent = group.title;
     const tag = document.createElement("span");
     tag.className = `config-mode ${badge.cls}`;
-    tag.textContent = `${badge.icon} ${pick(badge.text)}`;
+    tag.textContent = pick(badge.text);
     summary.append(title, tag);
     details.appendChild(summary);
-
-    const blurb = document.createElement("p");
-    blurb.className = "config-group-blurb";
-    blurb.textContent = group.blurb;
-    details.appendChild(blurb);
 
     const fields = document.createElement("div");
     fields.className = "config-fields";
@@ -917,8 +871,8 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   const dynHead = document.createElement("h3");
   dynHead.className = "config-band-head";
   dynHead.textContent = pick({
-    ja: "Dynamic(動的)— プレイヤー作り直し不要:即時の Player API(⚡)と load() のソース更新(📥)",
-    en: "Dynamic — no player recreate: the instant Player API (⚡) and load() source updates (📥)",
+    ja: "再生中の設定とソース",
+    en: "Playback and source settings",
   });
   dynBand.appendChild(dynHead);
   const dynGrid = document.createElement("div");
@@ -927,7 +881,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     dynGrid.appendChild(groupEl(g, true));
   }
   dynBand.appendChild(dynGrid);
-  applyReloadBtn = applyButton(pick({ ja: "📥 ソースを再読み込みして適用", en: "📥 Reload the source to apply" }), () => {
+  applyReloadBtn = applyButton(pick({ ja: "ソースを再読み込みして適用", en: "Reload the source to apply" }), () => {
     if ([...invalid.values()].includes("reload")) return;
     options.onReload(sourceOverrides);
     sourceOverrides = {};
@@ -947,8 +901,8 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   const statHead = document.createElement("h3");
   statHead.className = "config-band-head";
   statHead.textContent = pick({
-    ja: "Static(静的)— PlayerConfig(🔁):変更には新しい Player インスタンスが必要",
-    en: "Static — PlayerConfig (🔁): changing it requires a new Player instance",
+    ja: "Playerの初期設定",
+    en: "Player creation settings",
   });
   statBand.appendChild(statHead);
   const statGrid = document.createElement("div");
@@ -957,7 +911,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     statGrid.appendChild(groupEl(g, false));
   }
   statBand.appendChild(statGrid);
-  applyRecreateBtn = applyButton(pick({ ja: "🔁 プレイヤーを再生成して適用", en: "🔁 Recreate the player to apply" }), () => {
+  applyRecreateBtn = applyButton(pick({ ja: "プレイヤーを再生成して適用", en: "Recreate the player to apply" }), () => {
     if ([...invalid.values()].includes("recreate")) return;
     options.onRecreate(playerOverrides);
     playerOverrides = {};
