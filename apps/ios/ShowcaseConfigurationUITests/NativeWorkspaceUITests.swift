@@ -20,6 +20,17 @@ final class NativeWorkspaceUITests: XCTestCase {
         let initialTitle = field.value as? String ?? ""
         try WorkspaceUITestNavigation.activate(field, in: app)
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        // A simulator hardware keyboard can leave an offscreen keyboard AX node.
+        // Measure avoidance only after the real software keyboard is on screen.
+        print("Native workspace waiting for the on-screen software keyboard")
+        let softwareKeyboard = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let keyboard = app.keyboards.firstMatch
+            return keyboard.exists && keyboard.frame.minY.isFinite &&
+                keyboard.frame.height > 0 && keyboard.frame.minY > app.frame.minY &&
+                keyboard.frame.minY < app.frame.maxY && keyboard.frame.intersection(app.frame).height > 0
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [softwareKeyboard], timeout: 30), .completed,
+                       "Show the simulator software keyboard before measuring keyboard avoidance")
 
         func editorViewportAboveKeyboard() -> CGRect? {
             let keyboard = app.keyboards.firstMatch

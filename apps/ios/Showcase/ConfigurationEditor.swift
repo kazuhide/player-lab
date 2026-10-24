@@ -112,7 +112,7 @@ struct ConfigurationEditor: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: keyboardVisible ? 0 : 8) {
             if workspaceActive {
             HStack {
                 WorkspaceChoice(title: "Category", selection: $category, options: NativeSettingsCategory.allCases, label: { $0.rawValue })
@@ -134,16 +134,22 @@ struct ConfigurationEditor: View {
                     .frame(maxHeight: .infinity, alignment: .top)
             } else if workspaceActive {
                 ScrollView {
-                    WorkspaceCard {
+                    VStack(alignment: .leading, spacing: keyboardVisible ? 0 : 12) {
                         selectedInput
-                        Text(LocalizedStringKey(setting.help)).font(.caption).foregroundStyle(Color.workspaceSecondary)
+                        if !keyboardVisible {
+                            Text(LocalizedStringKey(setting.help)).font(.caption).foregroundStyle(Color.workspaceSecondary)
+                        }
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, keyboardVisible ? 0 : 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.background, in: RoundedRectangle(cornerRadius: 12))
                 }
                 .accessibilityIdentifier("configuration.form")
             }
             if workspaceActive { actionBar }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, keyboardVisible ? 0 : 8)
         .preference(key: WorkspaceCompactPreviewPreference.self, value: workspaceActive && category == .advanced)
         .onChange(of: category) { next in
             if setting.category != next, let first = NativeSetting.allCases.first(where: { $0.category == next }) { setting = first }
@@ -310,7 +316,7 @@ struct ConfigurationEditor: View {
     }
 
     private func field(_ label: String, placeholder: String, text: Binding<String>, id: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: keyboardVisible ? 0 : 6) {
             Text(LocalizedStringKey(label)).font(typeSize.isAccessibilitySize ? .caption : .subheadline.weight(.semibold))
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(height: keyboardVisible ? 0 : nil).clipped().accessibilityHidden(keyboardVisible)
