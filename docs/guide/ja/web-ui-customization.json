@@ -417,7 +417,7 @@
     },
     {
       "path": "apps/web/src/uiGuide.ts",
-      "line": 536
+      "line": 459
     },
     {
       "path": "apps/web/src/guide.ts",
@@ -481,7 +481,7 @@
     },
     {
       "path": "apps/web/src/uiGuide.ts",
-      "line": 535
+      "line": 458
     },
     {
       "path": "apps/web/src/controlPanel.ts",

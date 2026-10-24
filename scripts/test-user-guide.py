@@ -513,6 +513,26 @@ class GuideTests(unittest.TestCase):
                     ]).decode().splitlines()
                     self.assertEqual(block['text'], '\n'.join(published[source['line'] - 1:block['endLine']]))
 
+    def test_footer_source_line_anchors_exist_in_current_and_published_files(self):
+        current, published = {}, {}
+        for language, chapters in self.content.items():
+            for chapter, document in chapters.items():
+                for source in document.get('sources', []):
+                    if 'path' not in source or 'line' not in source:
+                        continue
+                    path = source['path']
+                    if path not in current:
+                        current[path] = (ROOT / path).read_text().splitlines()
+                        published[path] = subprocess.check_output([
+                            'git', '-C', str(ROOT), 'show', SOURCE_REVISION + ':' + path,
+                        ]).decode().splitlines()
+                    for revision, lines in [('working tree', current[path]), (SOURCE_REVISION, published[path])]:
+                        with self.subTest(language=language, chapter=chapter, source=source, revision=revision):
+                            self.assertIs(type(source['line']), int)
+                            self.assertGreaterEqual(source['line'], 1)
+                            self.assertLessEqual(source['line'], len(lines),
+                                                 f"{path}:{source['line']} exceeds {len(lines)} lines at {revision}")
+
     def test_code_excerpt_rejects_incomplete_or_ambiguous_line_ranges(self):
         for mutation in ('missing-end', 'reversed', 'boolean-end', 'wrong-length', 'external-url'):
             changed = copy.deepcopy(self.content)
