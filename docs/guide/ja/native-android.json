@@ -1,7 +1,7 @@
 {
   "id": "native-android",
   "title": "Android・Android TV・Fire TVの画面と操作",
-  "lead": "ソースとPlayerの設定をそれぞれ編集・適用し、コード・SDKの状態・イベントで結果を確認します。同じアプリにAndroid TV・Android系Fire TVのランチャー用の設定があります。Vega OSは別の章で説明します。",
+  "lead": "ソースとPlayerの下書きを編集・適用し、コード・SDKの状態・イベントで結果を確認します。共通ワークスペースで、モバイルのDefaultはタッチ向け、TVのDefaultはSDKのTV操作部を使います。",
   "blocks": [
     {
       "type": "links",
@@ -31,7 +31,7 @@
     },
     {
       "type": "p",
-      "text": "同じアプリにAndroid TV・Android系Fire TVのランチャー用の設定があります。Vega OSは別アプリです。以下の画像はスマートフォン向けエミュレーターで取得したもので、すべてのTV・実機でのリモコン操作や再生を示すものではありません。"
+      "text": "同じアプリにAndroid TV・Android系Fire TVのランチャー用の設定があります。この章ではスマートフォンとAndroid TVエミュレーターの画像を分けて掲載します。Vega OSは別アプリです。以下のTV確認は記載のエミュレーターが対象で、物理端末での再生やサービスは対象のハードウェアで別途確認します。"
     },
     {
       "type": "links",
@@ -73,8 +73,45 @@
     },
     {
       "type": "note",
-      "title": "TV 端末の確認",
-      "text": "ManifestにAndroid TV／Fire TV向けのLEANBACK_LAUNCHER宣言があります。TV上でのフォーカス移動、各ボタンの選択、リモコン操作、実際の再生は各端末で確認してください。スマートフォン向けエミュレーターでの成功を、実機やTVの確認結果として扱わないでください。"
+      "title": "モバイルとTVの操作部",
+      "text": "共有Composeワークスペースは、端末がテレビモードを報告した場合に文字・安全余白・フォーカス表示を調整します。DefaultはSDK TvUiとfocusUiOnInitialization = trueを明示し、Sports・Live・Cinemaは独自のfactoryを保ちます。実装ガイドで二つのUI層とホスト側のリモコン入力処理を説明します。"
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/ja/guide/android-implementation/#android-tv-fire-tv",
+          "label": "モバイルとTVのUI：実装方法とリモコンの確認"
+        }
+      ]
+    },
+    {
+      "type": "h2",
+      "id": "android-tv-workspace",
+      "text": "Android TVの画面とリモコン操作"
+    },
+    {
+      "type": "p",
+      "text": "この1920 × 1080の画像は、Android TV API 36エミュレーター上の通常アプリで取得しました。標準テーマではSDKのTV操作部と共有Composeワークスペースを並べます。D-padとSelectはフォーカス中の操作部に届きます。SDKプレビュー内のBackはメニューを閉じてソースへ戻り、全画面とネイティブダイアログはそれぞれのBack処理を使います。"
+    },
+    {
+      "type": "figure",
+      "file": "android-tv-workspace",
+      "caption": "Android TVエミュレーター：VOD再生と、設定 → プレイヤー → 自動再生。編集用スイッチと固定の「編集を戻す」・「プレイヤーに適用」が安全余白の内側に収まります。自動再生は無効で、再生は別に開始しています。"
+    },
+    {
+      "type": "figure",
+      "file": "android-tv-api",
+      "caption": "Android TVエミュレーター：API → 操作でapi.Player.pause()を選び、実行した状態です。実行対象、呼び出し結果、確認した再生状態が選択した操作に対応し、「APIを実行」は編集欄の下に固定されます。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "D-padでソース、テーマ、ワークスペースのタブ間を移動します。Selectでフォーカス中の選択欄を開き、ラジオ表示で選択中の値を確認します。",
+        "検索付きの選択欄では検索語を入力し、Backまたは完了で画面キーボードを閉じます。最初の候補へフォーカスが移り、候補がなければ閉じるへ移ります。D-padとSelectで値を選びます。選択だけではAPIの実行や編集値の適用は行いません。",
+        "ワークスペースの入力欄では、Backでキーボードを閉じて選択欄へ戻り、完了でソースへ戻ります。編集画面へ戻っても未適用の値は保持されます。",
+        "SDKプレビューで再生・一時停止、シークバー、設定を確認します。BackはSDKメニューを閉じてソースへ戻ります。専用メディアキーは有効なMediaSessionがあればその経路を使います。"
+      ]
     },
     {
       "type": "h2",
@@ -308,7 +345,7 @@
     },
     {
       "type": "p",
-      "text": "APIは操作・状態・イベントに分かれています。分類または検索で候補を絞り、実行する操作を明示的に選びます。検索だけではAPIを実行しません。非同期処理を要求する場合、送信結果のメッセージとSDKの状態・イベントは別です。次のシーク例ではVODを読み込んで比較します。"
+      "text": "APIは操作・状態・イベントを分けます。実行前に対象の操作を選択し、検索は候補の絞り込みだけに使います。呼び出し結果と取得した再生状態は別の領域に表示します。状態は直近の取得値、イベントは今回の起動後の件数と履歴です。非同期の完了、時刻の単位、一部の状態の前提は実装ガイドで説明します。"
     },
     {
       "type": "steps",
@@ -319,7 +356,7 @@
     {
       "type": "figure",
       "file": "android-api-operation",
-      "caption": "操作でapi.Player.pause()を選択した画面です。APIを実行は画面下部に固定されています。呼び出しの結果と、SDKから取得した再生状態を分けて表示します。"
+      "caption": "Player.seek()とtime引数を選択した画面です。APIを実行は下部に固定し、呼び出し結果と取得したSDKの再生状態を分けて表示します。"
     },
     {
       "type": "steps",
@@ -330,7 +367,7 @@
     {
       "type": "figure",
       "file": "android-api-state",
-      "caption": "状態でPlayer.isPausedを選択した画面です。「SDKの状態を更新」で選択した値を取得します。"
+      "caption": "直近の取得時点のPlayer.currentTimeです。操作の送信とは分けて表示し、SDKの状態を更新するまで取得値を保持します。"
     },
     {
       "type": "steps",
@@ -389,7 +426,7 @@
     {
       "type": "figure",
       "file": "android-offline-tracks",
-      "caption": "保存する音声トラックの選択例です。この画面は選択段階で、保存完了を示すものではありません。"
+      "caption": "SDKの処理後、音声トラックはstate=Downloaded、action=null、操作は「なし」、進捗100.0%と表示されます。トラックごとの操作を選び、「選択した操作を実行」で送信します。通信なしでの再生は別に確認します。"
     },
     {
       "type": "steps",

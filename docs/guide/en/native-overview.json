@@ -344,7 +344,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 127,
+      "line": 142,
       "label": "Android language, subtitle and retry settings"
     },
     {
@@ -364,7 +364,7 @@
     },
     {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-      "line": 51,
+      "line": 52,
       "label": "Android source/player forms and distinct reset actions"
     },
     {

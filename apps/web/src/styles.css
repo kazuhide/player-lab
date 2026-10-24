@@ -4,9 +4,9 @@
   --bg: #f4f6f9;
   --card: #ffffff;
   --ink: #1f2430;
-  --muted: #6b7280;
+  --muted: #566174;
   --line: #e3e6ec;
-  --accent: #2b6cff;
+  --accent: #2054d8;
   --radius: 10px;
   --gap: 1rem;
   /* Telemetry (dark readout) family — one background, per-box accent. */
@@ -126,6 +126,7 @@ body {
 }
 
 .ui-theme-bar-label {
+  flex-basis: 100%;
   margin-right: 0.2rem;
   font-size: 0.7rem;
   font-weight: 700;
@@ -150,7 +151,7 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--accent);
+  color: var(--muted);
 }
 
 /* ID-scoped so it outranks `#ui-theme-bar button` (1,0,1) — a plain `.theme-btn.active`
@@ -167,6 +168,10 @@ body {
   margin-top: 0.15rem;
   font-size: 0.78rem;
   color: var(--muted);
+}
+
+.ui-theme-bar-note:empty {
+  display: none;
 }
 
 /* Active theme's build call, shown under the theme buttons. */
@@ -248,6 +253,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  align-items: flex-start;
 }
 
 .panel-grid .panel-section {
@@ -298,6 +304,7 @@ body {
 #control-panel button,
 .config-code button,
 .api-explorer button {
+  min-height: 2rem;
   padding: 0.3rem 0.6rem;
   border: 1px solid #c4c9d4;
   border-radius: 6px;
@@ -327,7 +334,27 @@ body {
 
 #control-panel input,
 #control-panel select {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 0.25rem 0.35rem;
+  border: 1px solid #c4c9d4;
+  border-radius: 5px;
+  background: var(--card);
+  color: var(--ink);
   font-family: inherit;
+  font-size: 0.82rem;
+}
+
+#control-panel input[type="checkbox"] {
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+#ui-theme-bar button:focus-visible,
+#control-panel :is(button, input, select):focus-visible,
+.ui-construction summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .seek-input {
@@ -394,10 +421,9 @@ body {
    right panel. */
 .theme-diff {
   padding: 0.85rem 1rem;
-  border: 1px solid #d6e0f5;
-  border-left: 3px solid var(--accent);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: #f6f9ff;
+  background: var(--card);
 }
 
 .theme-diff-title {
@@ -442,11 +468,14 @@ body {
   color: var(--accent);
 }
 
-.theme-diff-effort {
-  margin: 0.4rem 0 0;
+.theme-comparison {
+  margin: 0.5rem 0;
+  font-size: 0.82rem;
+}
+
+.theme-comparison > summary {
+  cursor: pointer;
   color: var(--muted);
-  font-size: 0.8rem;
-  font-style: italic;
 }
 
 /* Per-theme "how it's built" construction code — readable: larger, and it WRAPS
@@ -489,14 +518,6 @@ body {
   font-size: 1.05rem;
 }
 
-.ui-guide-intro {
-  margin: 0 0 1rem;
-  max-width: 62rem;
-  color: #555;
-  font-size: 0.9rem;
-  line-height: 1.55;
-}
-
 /* ---------------------------------------------------------------------------
    Player Config editor — collapsible accordion grouped by apply-mode
    (🔁 recreate · 📥 reload · ⚡ runtime).
@@ -512,29 +533,36 @@ body {
   font-size: 1.05rem;
 }
 
-.config-intro {
-  margin: 0 0 0.5rem;
-  max-width: 64rem;
-  color: #555;
-  font-size: 0.88rem;
-  line-height: 1.55;
+.config-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
-.config-note {
-  margin: 0 0 1rem;
-  max-width: 64rem;
-  padding: 0.5rem 0.7rem;
-  border-radius: 6px;
-  background: #f4f6f9;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.55;
+.config-head > a,
+.api-explorer-controls > a {
+  color: var(--accent);
+  font-size: 0.82rem;
+  text-underline-offset: 0.2em;
 }
 
 .config-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
   gap: 0.75rem;
+  align-items: start;
+}
+
+.config-band-dynamic .config-group:last-child {
+  grid-column: 1 / -1;
+}
+
+.config-band-dynamic .config-group:last-child .config-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr));
+  gap: 0.5rem 1rem;
   align-items: start;
 }
 
@@ -599,8 +627,8 @@ body {
 }
 
 .config-mode.mode-recreate {
-  background: #fdecec;
-  color: #c0392b;
+  background: #eef1f6;
+  color: #45536a;
 }
 
 .config-mode.mode-reload {
@@ -609,16 +637,8 @@ body {
 }
 
 .config-mode.mode-runtime {
-  background: #e7f7ec;
-  color: #1a8f3c;
-}
-
-.config-group-blurb {
-  margin: 0 0.8rem 0.5rem;
-  color: var(--muted);
-  font-size: 0.76rem;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
+  background: #edf4f0;
+  color: #27643f;
 }
 
 .config-fields {
@@ -640,8 +660,7 @@ body {
   flex: 1 1 9rem;
   min-width: 0;
   max-width: 100%;
-  overflow-x: auto;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
   color: #444;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.78rem;
@@ -660,6 +679,7 @@ body {
 .api-explorer input:not([type="checkbox"]),
 .api-explorer select,
 .api-explorer textarea {
+  box-sizing: border-box;
   padding: 0.15rem 0.3rem;
   border: 1px solid #c4c9d4;
   border-radius: 5px;
@@ -724,29 +744,17 @@ body {
 }
 
 .config-band-dynamic {
-  border-color: #bfe3c8;
-  border-left: 4px solid #1a8f3c;
-  background: #f5fbf7;
+  background: #eef2f7;
 }
 
 .config-band-static {
-  border-color: #f0dcd9;
-  border-left: 4px solid #c0392b;
-  background: #fdf8f7;
+  background: #eef2f7;
 }
 
 .config-band-head {
   margin: 0 0 0.7rem;
   font-size: 0.9rem;
   color: #333;
-}
-
-.config-band-dynamic .config-band-head {
-  color: #157a33;
-}
-
-.config-band-static .config-band-head {
-  color: #a5342a;
 }
 
 /* --- Main page: link to the standalone customization guide --- */
@@ -1152,7 +1160,22 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  align-items: center;
   margin-bottom: 0.8rem;
+}
+
+.api-explorer-controls > a {
+  margin-right: auto;
+}
+
+.api-apply-effect {
+  display: inline-block;
+  margin: 0.5rem 0;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 0.78rem;
 }
 
 .api-explorer-layout {
@@ -1185,6 +1208,10 @@ body {
 
 .api-explorer-form {
   min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
 }
 
 .api-explorer h3 {
@@ -1290,5 +1317,15 @@ body {
 @media (max-width: 720px) {
   .api-explorer-layout {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (pointer: coarse) {
+  #ui-theme-bar button,
+  #control-panel button,
+  #config-panel button,
+  .api-explorer button,
+  .lang-btn {
+    min-height: 2.75rem;
   }
 }

@@ -20,8 +20,9 @@ import androidx.compose.ui.unit.dp
 internal fun ConfigurationCodeView(controller: PlayerController, uiMode: UiMode) {
     var section by remember { mutableStateOf("Player, source and UI") }
     var wrap by remember { mutableStateOf(true) }
-    val standard = remember(controller.sourceRevision, controller.playerSettings, uiMode) {
-        configurationCode(controller.sourceSettings, controller.playerSettings, uiMode)
+    val television = workspaceTelevision()
+    val standard = remember(controller.sourceRevision, controller.playerSettings, uiMode, television) {
+        configurationCode(controller.sourceSettings, controller.playerSettings, uiMode, television)
     }
     val code = if (section == "SDK overrides") controller.apiOverrides.code().ifEmpty { "// No additional SDK overrides." } else standard
     var copied by remember(code) { mutableStateOf(false) }
@@ -30,8 +31,9 @@ internal fun ConfigurationCodeView(controller: PlayerController, uiMode: UiMode)
         Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             WorkspacePicker("Applied code", section,
                 listOf("Player, source and UI" to "Player, source and UI", "SDK overrides" to "SDK overrides"), "configuration-code-section") { section = it }
-            UiText("Only applied settings are exported. Draft edits are excluded and license keys use placeholders.", style = MaterialTheme.typography.bodySmall)
-            if (section == "SDK overrides") UiText("Assign these values to fresh configuration objects before creating Player, Source and PlayerView. Copy assignments use mutable playerConfig and playerViewConfig variables.", style = MaterialTheme.typography.bodySmall)
+            UiText("Applied values only. Keys use placeholders.", style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (section == "SDK overrides") UiText("Apply to fresh SDK configuration objects.", style = MaterialTheme.typography.bodySmall)
             Row {
                 FilterChip(wrap, onClick = { wrap = !wrap }, label = { UiText("Wrap lines") },
                     leadingIcon = if (wrap) ({ UiText("✓") }) else null, modifier = Modifier.testTag("configuration-code-wrap"))
@@ -41,10 +43,12 @@ internal fun ConfigurationCodeView(controller: PlayerController, uiMode: UiMode)
             }
         }
         SelectionContainer(Modifier.weight(1f).fillMaxWidth()) {
+            Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                 .then(if (wrap) Modifier else Modifier.horizontalScroll(rememberScrollState())).padding(12.dp)) {
                 Text(code, fontFamily = FontFamily.Monospace, softWrap = wrap,
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag(if (section == "SDK overrides") "api-settings-code" else "configuration-code-text"))
+            }
             }
         }
     }

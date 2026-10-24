@@ -39,7 +39,7 @@ struct OfflineInspector: View {
                     Toggle("Restrict media downloads to Wi-Fi", isOn: $workbench.restrictToWifi)
                         .accessibilityIdentifier("offline.wifi")
                     input("Minimum available free space (MB)", value: $workbench.minimumFreeSpace, id: "offline.minimumFreeSpace")
-                    Text("Use on-demand HLS. Live sources do not provide a finite download. Initialization is shared by the process; the chosen initialization is restored on the next launch so background downloads can resume.")
+                    Text("On-demand HLS only. Startup settings apply to this app process.")
                         .font(.caption)
 
                 }
@@ -47,7 +47,7 @@ struct OfflineInspector: View {
                 if pane == .asset {
                 Section(header: Text("Selected asset")) {
                     Text(NativeLocalization.format("Applied source: %@", player.sourceSettings?.title ?? "None".nativeLocalized)).font(.caption)
-                    Text("Configure the source in the main player first, including its DRM settings. Selecting another offline asset removes its UI listener; SDK-managed downloads continue until you suspend or cancel them.")
+                    Text("Uses the applied source and DRM. Other downloads continue until suspended or cancelled.")
                         .font(.caption)
                     Toggle("Use an explicit offline asset identifier", isOn: $workbench.usesExplicitIdentifier)
                         .accessibilityIdentifier("offline.explicitIdentifier")
@@ -69,7 +69,7 @@ struct OfflineInspector: View {
                         Toggle("Insert PLAYLIST-TYPE when missing", isOn: $workbench.insertPlaylistType).accessibilityIdentifier("offline.playlistType")
                     }
                     if downloadSetting == "Tracks" {
-                        Text("Fetch available tracks in Asset first. These are actual SDK track objects.").font(.caption)
+                        Text("Fetch available tracks in Asset first.").font(.caption)
                         if let row = workbench.tracks.first(where: { $0.id == selectedTrack }) ?? workbench.tracks.first {
                             Picker("Track", selection: Binding(get: { row.id }, set: { selectedTrack = $0 })) {
                                 ForEach(workbench.tracks) { Text($0.label).tag($0.id) }
@@ -93,10 +93,10 @@ struct OfflineInspector: View {
                         Text("Resource identifier callback").font(.caption)
                         TextEditor(text: $workbench.migrationScript).font(.system(.caption, design: .monospaced)).frame(minHeight: 100)
                             .accessibilityIdentifier("offline.migration.callback")
-                        Text("input.identifier and input.url are strings. Return a replacement identifier; errors preserve the original. Callbacks use the bounded plain-value script interpreter.").font(.caption).foregroundStyle(Color.workspaceSecondary)
+                        Text("input.identifier and input.url are strings. Return an identifier string.").font(.caption).foregroundStyle(Color.workspaceSecondary)
                     }
 
-                    Text("Delete removes only the selected asset's SDK-managed cached media. Invalid state transitions can be SDK no-ops. Renewing or syncing a FairPlay license needs an appropriate license service and DRM configuration.")
+                    Text("Delete removes this asset's cached media. FairPlay needs matching DRM and a license service.")
                         .font(.caption)
                 }
                 }
@@ -105,7 +105,7 @@ struct OfflineInspector: View {
                     Toggle("Restrict playback to cached media", isOn: $workbench.restrictedToAssetCache)
                         .accessibilityIdentifier("offline.restrictToCache")
 
-                    Text("Loading cached content uses the current player. The main configuration keeps its remote source, so Apply or recreating the player reloads that remote configuration.").font(.caption)
+                    Text("Uses the current player. Apply returns to the remote source.").font(.caption)
                 }
                 }
                 if pane == .state {
@@ -129,7 +129,7 @@ struct OfflineInspector: View {
                 }
                 if pane == .events {
                 Section(header: Text("Offline SDK events")) {
-                    Text("Only event names, the selected asset owner and SDK timestamps are retained, up to 80 records. A registered callback is distinct from an event that has occurred.").font(.caption)
+                    Text("Latest 80 events for the selected asset.").font(.caption)
                     ForEach(workbench.events) { event in
                         Text("\(event.api)\nSDK timestamp: \(event.timestamp)")
                             .font(.caption).monospacedDigit()

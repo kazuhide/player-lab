@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Keyboard, ScrollView, View } from "react-native";
+import { Keyboard, Platform, ScrollView, View } from "react-native";
 import { Button, Switch, Text, TextInput } from "./localization";
 import type { ConfigurationDraft, NativePlatform } from "./configuration";
 import { WorkspaceAction, WorkspaceChoice, WorkspacePage } from "./Workspace";
@@ -35,9 +35,12 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
   const compactBasicEditing = compactEditing && (group === "source" || group === "player");
   // A newly selected editor starts at its inputs; editing and tab changes keep its position.
   useLayoutEffect(() => { editor.current?.scrollTo({ y: 0, animated: false }); }, [group, selected, sourceEditRequest]);
+  const revealCompactInput = () => editor.current?.scrollToEnd({ animated: false });
+  const compactInputEvents = Platform.OS === "android" && compactBasicEditing
+    ? { onLayout: revealCompactInput, onContentSizeChange: revealCompactInput } : {};
   const groups = [{ id: "source", label: "Source" }, { id: "player", label: "Player" },
-    { id: "ui", label: "UI settings" }, { id: "sdk", label: "SDK overrides" }, { id: "arrays", label: "Subtitle lists and advertising" },
-    { id: "callbacks", label: "JavaScript callbacks and native UI handlers" }, { id: "cast", label: "Cast startup settings" }];
+    { id: "ui", label: "UI settings" }, { id: "sdk", label: "SDK overrides" }, { id: "arrays", label: "Subtitles and ads" },
+    { id: "callbacks", label: "JavaScript callbacks" }, { id: "cast", label: "Cast startup settings" }];
   const sourceFields = [{ id: "url", label: "Source URL" }, { id: "type", label: "Source type" },
     { id: "title", label: "Source title" }, { id: "poster", label: "Poster URL" },
     { id: "subtitleUrl", label: "External WebVTT URL" }, { id: "subtitleLabel", label: "Subtitle label" },
@@ -49,8 +52,11 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
   const update = <K extends keyof ConfigurationDraft>(key: K, value: ConfigurationDraft[K]) => onChange({ ...draft, [key]: value });
   const field = (label: string, key: "url" | "title" | "poster" | "startOffset" | "forwardDuration" | "maxBitrate" | "subtitleUrl" | "subtitleLabel" | "subtitleLanguage", numeric = false) => (
     <View key={key} style={styles.field}>
-      <Text>{label}</Text>
+      {keyboardVisible && <Text>{label}</Text>}
       <TextInput accessibilityLabel={label} value={draft[key]} onChangeText={(value) => update(key, value)}
+        placeholder={key === "subtitleLanguage" ? "en-US" : key === "poster" || key === "subtitleUrl" ? "Optional URL"
+          : key === "url" ? "https://example.com/master.m3u8" : key === "maxBitrate" ? "No limit" : numeric ? "SDK default" : ""}
+        placeholderTextColor="#6c7d92"
         autoCapitalize="none" autoCorrect={false} keyboardType={numeric ? "numbers-and-punctuation" : "default"} style={styles.input} />
     </View>
   );
@@ -70,7 +76,7 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
       {keyboardVisible && !compactEditing && <View style={{ paddingHorizontal: 12, paddingVertical: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Text>Editing</Text><WorkspaceAction title="Done" onPress={() => Keyboard.dismiss()} />
       </View>}
-      <ScrollView ref={editor} testID="configuration-fields-scroll" style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 8 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
+      <ScrollView ref={editor} {...compactInputEvents} testID="configuration-fields-scroll" style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 8 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
       {group === "source" && <>
         {selected === "url" && field("Source URL", "url")}
         {selected === "type" && <>
@@ -80,7 +86,6 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
           {platform === "android" && <Button title="DASH" onPress={() => update("type", "dash")} disabled={draft.type === "dash"} />}
           <Button title="Progressive MP4" onPress={() => update("type", "progressive")} disabled={draft.type === "progressive"} />
         </View>
-        {!compactBasicEditing && platform === "ios" && <Text style={styles.help}>The native iOS player supports HLS and progressive MP4; DASH presets are hidden.</Text>}
         </>}
         {selected === "title" && field("Source title", "title")}
         {selected === "poster" && field("Poster URL", "poster")}
@@ -92,7 +97,8 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
           <Text>Mark as default</Text><Switch accessibilityLabel="Mark as default" value={draft.subtitleDefault} onValueChange={(value) => update("subtitleDefault", value)} />
         </View>
         </>}
-        {!compactBasicEditing && selected.startsWith("subtitle") && <Text style={styles.help}>Optional: add one external WebVTT track. Enter a label and IETF language tag (for example, en or en-US). A blank URL removes the track and clears its metadata. Mark as default sets track metadata; choose subtitles in the player menu to enable them.</Text>}
+        {!compactBasicEditing && selected === "subtitleUrl" && <Text style={styles.help}>Clear the URL to remove the external subtitle.</Text>}
+        {!compactBasicEditing && selected === "subtitleDefault" && <Text style={styles.help}>Enable subtitles in the player menu.</Text>}
         {selected === "startOffset" && field("Start offset (seconds)", "startOffset", true)}
         {selected === "timeline" && <>
         <Text>Start offset reference</Text>
@@ -101,7 +107,6 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
           <Button title="Start" onPress={() => update("timeline", "start")} disabled={draft.timeline === "start"} />
           <Button title="End" onPress={() => update("timeline", "end")} disabled={draft.timeline === "end"} />
         </View>
-        {!compactBasicEditing && <Text style={styles.help}>Start means beginning of the media or DVR window; End means end or live edge. SDK defaults: Start for VOD, End for live. Offsets may be signed.</Text>}
         </>}
       </>}
       {group === "player" && <>
@@ -109,11 +114,11 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
         {selected === "muted" && <View style={styles.row}><Text>Mute on startup</Text><Switch accessibilityLabel="Mute on startup" value={draft.muted} onValueChange={(value) => update("muted", value)} /></View>}
         {selected === "forwardDuration" && <>
         {field("Forward buffer (seconds)", "forwardDuration", true)}
-        {!compactBasicEditing && <Text style={styles.help}>{platform === "ios" ? "Blank uses the SDK default (0); zero lets the SDK choose a duration." : "Enter a positive duration. Blank uses the Android SDK default (50 seconds); zero is not an automatic setting on Android."}</Text>}
+        {!compactBasicEditing && <Text style={styles.help}>{platform === "ios" ? "Blank uses the SDK default. Zero selects automatically." : "Positive seconds; blank uses the SDK default."}</Text>}
         </>}
         {selected === "maxBitrate" && <>
         {field("Maximum bitrate (bits per second)", "maxBitrate", true)}
-        {!compactBasicEditing && <Text style={styles.help}>{platform === "android" ? "Enter a whole number from 1 to 2147483647 bit/s (Android integer limit)." : "Enter a whole number from 1 to 9007199254740991 bit/s (JavaScript exact-integer limit)."} Blank leaves it unlimited. Buffering and adaptation depend on the stream and device.</Text>}
+        {!compactBasicEditing && <Text style={styles.help}>Positive whole bits per second; blank leaves it unlimited.</Text>}
         </>}
       </>}
       <WorkspacePage active={group === "sdk"}><NativeSettingsPanel values={draft.apiSettings ?? {}} onChange={(apiSettings) => onChange({ ...draft, apiSettings })} /></WorkspacePage>
@@ -121,11 +126,13 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
       <WorkspacePage active={group === "cast"}><CastHostPanel values={draft.apiSettings ?? {}} /></WorkspacePage>
       <WorkspacePage active={group === "arrays"}><NativeArraysPanel values={draft.arraySettings ?? {}} onChange={(arraySettings) => onChange({ ...draft, arraySettings })} /></WorkspacePage>
       <WorkspacePage active={group === "callbacks"}><NativeScriptsPanel value={draft.scripts ?? { allowed: false, bodies: {} }} onChange={(scripts) => onChange({ ...draft, scripts })} /></WorkspacePage>
-      {!compactBasicEditing && <Text style={styles.help}>Apply recreates the player and reloads the selected source from its start offset. Playback position is not retained. Reset only discards draft edits.</Text>}
       </ScrollView>
       <View testID="configuration-actions" style={{ gap: 8, padding: compactEditing ? 8 : 12, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
         {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
-        {!compactEditing && <Text style={styles.help}>{changed ? "Draft changes have not been applied." : "The draft matches the applied configuration."}</Text>}
+        {!compactEditing && <View style={{ gap: 6 }}>
+          <Text style={styles.badge}>{changed ? "Unapplied changes" : "Up to date"}</Text>
+          {changed && <Text style={styles.help}>Apply recreates the player and clears the current position.</Text>}
+        </View>}
         <View style={{ flexDirection: "row", gap: 8 }}>
           {compactEditing && <WorkspaceAction title="Done" testID="configuration-done" onPress={() => Keyboard.dismiss()} />}
           <View style={{ flex: 1 }}><WorkspaceAction title="Reset draft" testID="configuration-reset" onPress={onReset} disabled={!changed && !error} /></View>

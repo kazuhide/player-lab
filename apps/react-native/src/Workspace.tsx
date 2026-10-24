@@ -76,7 +76,7 @@ export function WorkspaceChoice({ label, selected, options, onSelect, testID }: 
       accessibilityValue={{ text: translateCopy(current?.label ?? selected, language) }}
       onPress={() => { Keyboard.dismiss(); setFilter(""); setOpen(true); change(owner, true); }} style={styles.choiceButton}>
       <Text maxFontSizeMultiplier={1.3} style={styles.choiceLabel}>{label}</Text>
-      <Text maxFontSizeMultiplier={1.3} numberOfLines={2} style={styles.choiceValue}>{current?.label ?? selected}</Text>
+      <Text maxFontSizeMultiplier={1.3} style={styles.choiceValue}>{current?.label ?? selected}</Text>
     </Pressable>
     {open && <Modal transparent visible onRequestClose={close} animationType="fade" supportedOrientations={["portrait", "landscape"]}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -108,12 +108,12 @@ export function WorkspaceChoice({ label, selected, options, onSelect, testID }: 
 const styles = StyleSheet.create({
   page: { flex: 1, minHeight: 0 }, hidden: { display: "none" },
   navigation: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#d6deeb", backgroundColor: "#edf3fb" },
-  tab: { flex: 1, minHeight: 48, paddingHorizontal: 4, paddingVertical: 10, alignItems: "center", justifyContent: "center" },
-  selectedTab: { backgroundColor: "#d8e9fc" }, tabText: { color: "#32455c", fontWeight: "500" }, selectedText: { color: "#005caf", fontWeight: "700" },
-  action: { minHeight: 48, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: "#536c8c", borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  actionText: { color: "#005caf", textAlign: "center", fontWeight: "600" }, primary: { backgroundColor: "#005caf", borderColor: "#005caf" }, primaryText: { color: "#ffffff" }, disabled: { opacity: 0.5 },
+  tab: { flex: 1, minHeight: 48, paddingHorizontal: 4, paddingVertical: 10, alignItems: "center", justifyContent: "center", borderBottomWidth: 3, borderBottomColor: "transparent" },
+  selectedTab: { backgroundColor: "#d8e9fc", borderBottomColor: "#005caf" }, tabText: { color: "#32455c", fontWeight: "500", fontSize: 15 }, selectedText: { color: "#005caf", fontWeight: "700" },
+  action: { minHeight: 48, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: "#536c8c", borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  actionText: { color: "#005caf", textAlign: "center", fontWeight: "600", fontSize: 15 }, primary: { backgroundColor: "#005caf", borderColor: "#005caf" }, primaryText: { color: "#ffffff" }, disabled: { opacity: 0.5 },
   choice: { flexGrow: 1, flexShrink: 1, minWidth: 0 }, choiceButton: { minHeight: 48, padding: 8, borderWidth: 1, borderColor: "#7b899b", borderRadius: 8, backgroundColor: "#ffffff" },
-  choiceLabel: { fontSize: 12, color: "#445469" }, choiceValue: { color: "#005caf", fontWeight: "600" },
+  choiceLabel: { fontSize: 12, color: "#445469" }, choiceValue: { color: "#005caf", fontWeight: "600", fontSize: 15 },
   scrim: { flex: 1, backgroundColor: "#00000066", padding: 20, paddingTop: 48, paddingBottom: 32, justifyContent: "center" },
   compactScrim: { paddingTop: 12, paddingBottom: 12 },
   searchRow: { flexDirection: "row", gap: 8 }, searchFlex: { flex: 1 },

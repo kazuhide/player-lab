@@ -1,7 +1,7 @@
 {
   "id": "android-implementation",
   "title": "Android implementation guide",
-  "lead": "Adapt PlayerConfig, SourceConfig and the player UI in the existing Kotlin app. Follow each change through the screen, SDK code, observed result and common integration questions. Android TV and Android-based Fire TV use this implementation.",
+  "lead": "Adapt PlayerConfig, SourceConfig and the UI in the existing Kotlin app. Follow settings through the screen, SDK code and observed result, then compare touch-driven mobile controls with Android TV remote input.",
   "blocks": [
     {
       "type": "h2",
@@ -76,10 +76,10 @@
       "text": "    private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides(), analytics: ApiAnalyticsSettings = apiAnalyticsSettings, callbacks: ApiCallbackContext = apiCallbacks): Player {\n        val prepared = ApiNativeFactories.player(context, overrides.player(settings.toPlayerConfig(licenseKey), callbacks), overrides.values)\n        val result = playerFactory?.invoke(prepared.config) ?: Player(context, prepared.config, analytics.playerConfig(analyticsLicenseKey, callbacks))\n        preparedCompanions = prepared.hosts\n        return result\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 97,
-        "label": "MainActivity.kt:97–102"
+        "line": 103,
+        "label": "MainActivity.kt:103–108"
       },
-      "endLine": 102
+      "endLine": 108
     },
     {
       "type": "p",
@@ -238,10 +238,10 @@
       "text": "        val sourceConfigs = configs ?: sourceConfigurations(callbacks = callbacks)\n        val sources = sourceConfigs.map { sourceConfig -> sourceFactory?.invoke(sourceConfig)\n            ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), mediaSessionConfig = apiOverrides.mediaSession()) }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 517,
-        "label": "MainActivity.kt:517–519"
+        "line": 524,
+        "label": "MainActivity.kt:524–526"
       },
-      "endLine": 519
+      "endLine": 526
     },
     {
       "type": "code",
@@ -249,10 +249,10 @@
       "text": "        if (offlinePlayback == null && ApiCollectionSettings.PLAYLIST in apiOverrides.values)\n            owner.load(com.bitmovin.player.api.playlist.PlaylistConfig(sources, apiOverrides.playlistOptions()))\n        else owner.load(sources.single())",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 530,
-        "label": "MainActivity.kt:530–532"
+        "line": 537,
+        "label": "MainActivity.kt:537–539"
       },
-      "endLine": 532
+      "endLine": 539
     },
     {
       "type": "steps",
@@ -275,6 +275,10 @@
     },
     {
       "type": "p",
+      "text": "SDK overrides have three distinct states: edited input, staged changes and applied configuration. Stage validates and retains the selected input; Apply SDK sends the complete staged set by recreating the Player. Remove stages a removal, and Apply restores the standard form value or SDK default. Code excludes uncommitted drafts. Apply copied override assignments to fresh mutable playerConfig/playerViewConfig objects before constructing Player, Source and PlayerView."
+    },
+    {
+      "type": "p",
       "text": "For other fields, choose Settings → Configuration → SDK overrides, then Feature and SDK setting. Search or browse the public SDK name, edit its typed value and choose Stage override. Apply SDK constructs fresh objects with those overrides; staging alone does nothing. Overrides take precedence over the basic settings. Remove and Apply returns to the standard value or SDK default. List fields such as SourceConfig.subtitleTracks and PlaylistConfig.sources are edited as collections with child fields, rather than pasted Kotlin."
     },
     {
@@ -293,18 +297,18 @@
     },
     {
       "type": "code",
-      "title": "Choose the SDK default UI or a bundled custom factory",
-      "text": "internal fun playerViewConfig(mode: UiMode): PlayerViewConfig =\n    if (mode.factoryFunction == null) {\n        PlayerViewConfig()\n    } else {\n        PlayerViewConfig(\n            uiConfig = UiConfig.WebUi(\n                jsLocation = \"file:///android_asset/bitmovinplayer-ui.js\",\n                cssLocation = \"file:///android_asset/bitmovinplayer-ui.css\",\n                variant = UiConfig.WebUi.Variant.Custom(mode.factoryFunction),\n            ),\n        )\n    }",
+      "title": "Choose mobile or TV controls while retaining custom themes",
+      "text": "internal fun playerViewConfig(mode: UiMode, television: Boolean = false): PlayerViewConfig =\n    if (mode.factoryFunction == null && television) {\n        PlayerViewConfig(uiConfig = UiConfig.WebUi(\n            variant = UiConfig.WebUi.Variant.TvUi,\n            focusUiOnInitialization = true,\n        ))\n    } else if (mode.factoryFunction == null) {\n        PlayerViewConfig()\n    } else {\n        PlayerViewConfig(\n            uiConfig = UiConfig.WebUi(\n                jsLocation = \"file:///android_asset/bitmovinplayer-ui.js\",\n                cssLocation = \"file:///android_asset/bitmovinplayer-ui.css\",\n                variant = UiConfig.WebUi.Variant.Custom(mode.factoryFunction),\n            ),\n        )\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 60,
-        "label": "MainActivity.kt:60–71"
+        "line": 61,
+        "label": "MainActivity.kt:61–77"
       },
-      "endLine": 71
+      "endLine": 77
     },
     {
       "type": "p",
-      "text": "The UI picker passes Default, Sports, Live or Cinema to this helper. Default leaves PlayerViewConfig at its SDK defaults. Custom modes load the built JavaScript/CSS from the APK’s assets and call the registered factory name. The native app does not expose every Web theme in its picker. To add a reusable layout, change the component tree in packages/ui-shared/src/liveUi.ts, register its factory in global.ts and add the corresponding UiMode entry or select its registered name through Settings → Configuration → SDK overrides."
+      "text": "The Theme picker passes Default, Sports, Live or Cinema to this helper. On phones and tablets, Default keeps PlayerViewConfig(), whose SDK default is WebUi with SmallScreenUi. On a television, Player Lab explicitly selects TvUi and focusUiOnInitialization = true. The SDK default itself does not select TvUi. Custom modes keep their registered factory and bundled JavaScript/CSS on either device; they do not become TV controls merely because the display is wide. To add a reusable layout, change packages/ui-shared/src/liveUi.ts, register the factory in global.ts and add its UiMode or use the custom-factory SDK override."
     },
     {
       "type": "table",
@@ -346,8 +350,8 @@
         ],
         [
           "Change player bounds",
-          "Edit the AndroidView modifier in PlayerLabScreen; the regular view uses full width and 220.dp height.",
-          "Confirm bounds and input after resizing. Video scaling and surrounding form layout are separate choices."
+          "Edit PlayerWorkspace layout and PlayerPreview in PlayerWorkspace.kt. Phones use a bounded preview; wide landscapes place it beside the workspace.",
+          "Keep the same PlayerView during presentation changes. TV controls use overscan-safe outer margins; fullscreen video fills its surface."
         ]
       ]
     },
@@ -358,17 +362,17 @@
     {
       "type": "code",
       "title": "Embed PlayerView in the existing Compose screen",
-      "text": "private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, modifier: Modifier) {\n    val displayedPlayer = controller.player\n    val vrRenderer = controller.apiVrRenderer\n    if (vrRenderer != null) key(vrRenderer) {\n        AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)\n    } else key(displayedPlayer, uiMode, controller.apiViewRevision) {\n        AndroidView(factory = { context ->\n            PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,\n                controller.apiOverrides.view(playerViewConfig(uiMode)))))\n        }, onRelease = { host ->\n            host.releaseTouchOwnership()\n            controller.releaseView(host.content as PlayerView)\n        }, modifier = modifier)\n    }\n}",
+      "text": "private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, television: Boolean, modifier: Modifier) {\n    val displayedPlayer = controller.player\n    val vrRenderer = controller.apiVrRenderer\n    if (vrRenderer != null) key(vrRenderer) {\n        AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)\n    } else key(displayedPlayer, uiMode, television, controller.apiViewRevision) {\n        AndroidView(factory = { context ->\n            PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,\n                controller.apiOverrides.view(playerViewConfig(uiMode, television)))))\n        }, onRelease = { host ->\n            host.releaseTouchOwnership()\n            controller.releaseView(host.content as PlayerView)\n        }, modifier = modifier)\n    }\n}",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
-        "line": 123,
-        "label": "PlayerWorkspace.kt:123–137"
+        "line": 183,
+        "label": "PlayerWorkspace.kt:183–197"
       },
-      "endLine": 137
+      "endLine": 197
     },
     {
       "type": "p",
-      "text": "AndroidView is the bridge from Compose to a conventional Android View. The key contains the Player instance, selected UI and view revision: changing them creates a new PlayerView, while changing UI mode alone keeps the Player. PlayerTouchHost keeps gestures that start inside the player with that view until they finish or are cancelled. If your own app places the player in a scroll container, handle touch ownership deliberately so an outer container does not take over the player menu’s gesture."
+      "text": "AndroidView connects Compose to a conventional Android View. Its key contains the Player instance, selected UI, actual television mode and view revision. Replacing PlayerView detaches and releases the old view; changing only Theme retains the Player and source. PlayerTouchHost keeps a gesture that starts inside the player with that view until it ends or is cancelled. Touch interception does not define remote focus: the Compose controls and the SDK WebView have separate focus behavior."
     },
     {
       "type": "code",
@@ -384,9 +388,99 @@
       "text": "Android TV and Android-based Fire TV"
     },
     {
+      "type": "p",
+      "text": "Mobile and TV use the same Android SDK and playback owner in this sample, with different input and presentation rules. Player Lab reads Configuration.UI_MODE_TYPE_TELEVISION from the actual device configuration. It keeps the existing Compose workspace, adds 48 dp horizontal and 27 dp vertical safe margins, increases app text sizes and outlines focused selectors, tabs and switches. A wide phone or tablet remains a mobile device. Fullscreen video is not inset to the workspace margins."
+    },
+    {
+      "type": "code",
+      "title": "Read the device mode for input presentation",
+      "text": "@Composable\ninternal fun workspaceTelevision(): Boolean =\n    LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/WorkspaceUi.kt",
+        "line": 73,
+        "label": "WorkspaceUi.kt:73–75"
+      },
+      "endLine": 75
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Layer",
+        "Phones and tablets",
+        "Android TV / Android-based Fire TV"
+      ],
+      "widths": [
+        0.22,
+        0.39,
+        0.39
+      ],
+      "rows": [
+        [
+          "App workspace (Compose)",
+          "Touch and software-keyboard input; Source and Theme above the editor in portrait.",
+          "The shared settings workspace uses safe margins, larger text and visible directional focus while retaining the same drafts."
+        ],
+        [
+          "SDK controls inside PlayerView",
+          "Default uses the SDK SmallScreenUi for touch-oriented controls.",
+          "Default explicitly creates WebUi(variant = TvUi, focusUiOnInitialization = true), which selects UIFactory.buildTvUI and starts WebView spatial navigation."
+        ],
+        [
+          "Custom Sports, Live and Cinema",
+          "Uses the selected shared Custom factory.",
+          "Keeps the same Custom factory. Check or build its remote navigation separately; choosing a custom theme does not apply TvUi."
+        ],
+        [
+          "Values and player ownership",
+          "Drafts remain separate from applied configuration.",
+          "The same rule: changing a selection, focus or app language does not apply drafts or replace the Player. Theme replaces the view; Apply player recreates the Player."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "The current sample adapts its existing androidx.compose.material3 controls. For a dedicated TV destination in your own app, Compose for TV supplies components such as androidx.tv.material3.Button through androidx.tv:tv-material. Keep its MaterialTheme consistent within that surface: TV and mobile Material libraries have separate themes. Reuse the Player owner and settings state when choosing a TV-specific composable. Every control needs a reachable D-pad target, visible focus and a distinct selected state. Restore focus after selectors or content changes and test movement between Compose and the SDK WebView. focusUiOnInitialization only requests focus when the WebView initializes; the host app owns its wider restoration policy."
+    },
+    {
+      "type": "p",
+      "text": "When using SDK overrides to compare a UI variant, remove a custom-factory override, stage UiConfig.WebUi.variant = TvUi and also stage focusUiOnInitialization = true. A data-class copy from SmallScreenUi can retain its previous false focus value. Remove or reset the overrides afterward. The Theme picker and an explicit SDK override are separate inputs; applied code shows the standard view config and the override assignments separately."
+    },
+    {
+      "type": "p",
+      "text": "TV Back is an app host policy built on the public Android ViewGroup.dispatchKeyEvent route to the focused SDK view. When the current preview owns focus outside fullscreen and picture-in-picture, the host sends KEYCODE_ESCAPE with ACTION_DOWN and ACTION_UP before returning focus to Source. The release event closes and resets the SDK settings menu, including a nested quality page. A native dialog or on-screen keyboard handles Back in its own window first. Other D-pad and Select events continue through the normal focused view."
+    },
+    {
+      "type": "code",
+      "title": "Send Escape press and release before returning native focus",
+      "text": "                // The SDK TV UI closes and resets its menu on Escape key-up. Deliver both before leaving its view.\n                view.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ESCAPE))\n                view.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ESCAPE))\n                view.clearFocus()\n                controller.requestWorkspaceFocus()",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/TelevisionInput.kt",
+        "line": 18,
+        "label": "TelevisionInput.kt:18–22"
+      },
+      "endLine": 22
+    },
+    {
+      "type": "p",
+      "text": "Native editors and selection dialogs restore focus after an on-screen keyboard was shown. On TV, ConfigField keyboard Done and the workspace toolbar Done share one completion path: close the keyboard, wait for selectors to return, then focus Source. Back returns to the selector. Phones keep normal keyboard completion, and record-editor dialogs keep focus in their own window so Done stays inside the editor. A searchable dialog uses WindowInsets.isImeVisible, because a floating TV keyboard can be visible with zero inset height, then returns to the first matching option or Close. Dialog dismissal or a changed query, selection or matching list cancels its pending return. Workspace restoration also checks that the editing scope and Player/view owners are still current. Hardware-keyboard editing without an on-screen keyboard keeps its normal caret and arrow behavior."
+    },
+    {
+      "type": "p",
+      "text": "Dedicated MEDIA_PLAY_PAUSE, MEDIA_PLAY and MEDIA_PAUSE keys are separate from D-pad navigation. An active SDK MediaSession keeps the Android system route. Without one, the TV host calls the current Player on the first ACTION_DOWN and consumes the same press’s repeats and ACTION_UP, so a single press does not toggle twice. This policy does not create a MediaSession or change the current Player or Source."
+    },
+    {
+      "type": "steps",
+      "items": [
+        "Use only the TV remote: reach Source, Theme, workspace tabs, the selected Setting and fixed Apply or Run actions. Check that focus is visible and selected values stay distinguishable.",
+        "Open a selection dialog, move through its options, choose one and open it again. Back should dismiss the dialog before leaving the screen; its selected value and unapplied drafts must remain intact.",
+        "In Default, test the SDK TV playback controls, timeline and settings with the D-pad and Select. Test focus movement between native app controls and the SDK WebView, plus Back while a player menu or fullscreen view is open.",
+        "Check readability from the intended viewing distance and keep important app controls inside the safe area. Verify ads, track menus and lifecycle transitions on the intended hardware."
+      ]
+    },
+    {
       "type": "note",
-      "title": "TV input and service availability",
-      "text": "The Manifest includes LEANBACK_LAUNCHER and does not require a touchscreen, so the same app can appear in the TV launcher. It does not automatically choose a dedicated TV screen or establish remote-control usability. To compare the SDK’s TV controls, stage UiConfig.WebUi.variant = TvUi; review focusUiOnInitialization, remove a custom-factory override and apply. Check directional focus, Select, Back, scrolling and playback on the intended TV. The screenshots here show the Android app’s existing settings, not a certified TV layout. Google Play services-dependent options, such as the selected Cronet provider, must not be assumed available on Fire TV."
+      "title": "Recorded TV environment and platform services",
+      "text": "The normal app was checked on an Android TV API 36 emulator at 1920 × 1080: SDK TvUi rendering, native selection and text input, SDK settings-menu Back, dedicated media keys with MediaSession on and off, and retained drafts and playback owners. The TV figures in the Android screen guide come from that environment. This does not qualify a physical Android TV or Fire TV device, viewing distance, overscan or every hardware decoder. Google Play services-dependent options, such as the selected Cronet provider, require separate checks on Fire TV. Vega OS uses the separate Vega app."
     },
     {
       "type": "h2",
@@ -404,6 +498,49 @@
       "text": "In APIs, choose Commands, State or Events, then use the category and API selectors to inspect one target. Commands calls the selected SDK method on the current Player, Source or attached PlayerView. The selected operation remains explicit when search filters the candidate list. Related state and recent events support the initial comparison; State reads actual SDK values when Refresh SDK state is pressed, and Events records counts and SDK timestamps. A command-submission result is not a playback completion event."
     },
     {
+      "type": "table",
+      "headers": [
+        "Readout",
+        "What it means",
+        "How to interpret it"
+      ],
+      "widths": [
+        0.22,
+        0.39,
+        0.39
+      ],
+      "rows": [
+        [
+          "Call result",
+          "The SDK return value, or a short submission receipt for a command returning Unit.",
+          "A submitted command can still be asynchronous. Check the relevant completion event and SDK state before judging its media effect."
+        ],
+        [
+          "Value at last refresh",
+          "One actual SDK read at Refresh SDK state.",
+          "Keys and opaque request/configuration objects are excluded. Displayed text and lists are bounded; refresh again after the SDK changes."
+        ],
+        [
+          "This app session",
+          "Recorded event counts and latest SDK timestamps for the current app session.",
+          "Zero means no recorded occurrence. Timestamps are milliseconds since the Unix epoch. History can include events from before the latest API call; payloads, headers and keys are excluded."
+        ],
+        [
+          "Special state",
+          "Ad values need an active ad or selected SSAI test object. Vector3 reads the last moveViewingDirection input.",
+          "activeAdBreak and activeLinearAd read actual SDK state. Do not confuse a stored test input with current playback state."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "PlayerView on/next/off subscriptions receive view UI events such as FullscreenEnter/Exit. Playback and source events are recorded on Player and Source in Events, rather than forwarded by the view subscription. For PlaylistApi.seek, time is SeekTarget.offset in seconds: Start uses nonnegative offsets, End uses nonpositive offsets and the SDK corrects invalid targets to stream boundaries. null uses the source default; useSeekTarget=false passes a null target."
+    },
+    {
+      "type": "p",
+      "text": "The host VR renderer replaces PlayerView with a decoder-backed OpenGL surface; disabling it restores PlayerView. Update scripts receive {delta, viewingDirection} and return {text?, move?: {phi,x,y}} or null. delta is seconds. everyFrames limits script execution frequency while the SDK frame clock follows the display rate. Renderer callbacks retire with their renderer. Read app:vr-renderer for decoded-frame and callback observations."
+    },
+    {
       "type": "steps",
       "items": [
         "Select a VOD HLS or DASH source, apply it and start playback before comparing seek positions.",
@@ -415,7 +552,7 @@
     {
       "type": "figure",
       "file": "android-api-state",
-      "caption": "State reads the selected SDK value, Player.isPaused in this example. Refresh is a point-in-time read, separate from submitting a command."
+      "caption": "State reads the selected SDK value, Player.currentTime in this example. Refresh is a point-in-time read, separate from submitting a command."
     },
     {
       "type": "code",
@@ -423,10 +560,10 @@
       "text": "    private fun <E : Event> onPlayer(type: KClass<E>, action: (E) -> Unit) {\n        val owner = player\n        val generation = playerGeneration\n        val guarded: (E) -> Unit = { if (!released && player === owner && generation == playerGeneration) action(it) }\n        owner.on(type, guarded)\n        playerSubscriptions += { owner.off(type, guarded) }\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 593,
-        "label": "MainActivity.kt:593–599"
+        "line": 600,
+        "label": "MainActivity.kt:600–606"
       },
-      "endLine": 599
+      "endLine": 606
     },
     {
       "type": "p",
@@ -489,7 +626,7 @@
     {
       "type": "figure",
       "file": "android-offline-tracks",
-      "caption": "Offline controls with an audio track selected for download. This image shows track selection; completion and playback without networking are separate checks."
+      "caption": "After SDK processing, the audio track shows state=Downloaded, action=null, None selected and progress=100.0%. Choose track actions and use Process selected actions to submit them. Offline playback is checked separately."
     },
     {
       "type": "h3",
@@ -506,10 +643,10 @@
       "text": "    internal fun releaseView(view: PlayerView) {\n        if (!views.remove(view)) return\n        retireApiViewSubscriptions(view)\n        retireApiViewHandlers(view)\n        apiSurfaces.clear(view)\n        if (apiDetachedView === view) apiDetachedView = null\n        viewLifecycle.detach(view)\n        view.player = null\n        view.onDestroy()\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 607,
-        "label": "MainActivity.kt:607–616"
+        "line": 614,
+        "label": "MainActivity.kt:614–623"
       },
-      "endLine": 616
+      "endLine": 623
     },
     {
       "type": "p",
@@ -659,7 +796,7 @@
   "sources": [
     {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-      "line": 77,
+      "line": 83,
       "label": "Player creation, view host, source load and lifecycle"
     },
     {
@@ -793,6 +930,39 @@
     {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
       "label": "Persistent playback preview and workspaces"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-ui-web/com.bitmovin.player.api.ui/-ui-config/-web-ui/focus-ui-on-initialization.html",
+      "label": "WebView initial focus for TV spatial navigation"
+    },
+    {
+      "url": "https://developer.android.com/training/tv/playback/compose/layouts",
+      "label": "Android TV layouts, viewing distance and safe margins"
+    },
+    {
+      "url": "https://developer.android.com/training/tv/get-started/navigation",
+      "label": "Android TV D-pad, focus, selection and Back"
+    },
+    {
+      "url": "https://developer.android.com/training/tv/playback/compose",
+      "label": "Compose for TV components and MaterialTheme separation"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/TelevisionInput.kt",
+      "line": 9,
+      "label": "TV host Back and dedicated media-key routing"
+    },
+    {
+      "url": "https://android.googlesource.com/platform/frameworks/support/+/c62c2b9bba83ccfeeb96c0912cc86151b348e5ff/compose/foundation/foundation-layout/src/androidMain/kotlin/androidx/compose/foundation/layout/WindowInsets.android.kt",
+      "label": "AndroidX IME visibility independent of window overlap"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/components/settings/SettingsPanel.ts",
+      "label": "SDK TV settings menu Escape key-up"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-android-samples/blob/main/BasicPlaybackTVKotlin/src/main/java/com/bitmovin/samples/tv/playback/basic/MainActivity.kt",
+      "label": "Official Android TV dedicated media-key example"
     }
   ]
 }

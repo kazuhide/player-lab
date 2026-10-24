@@ -54,8 +54,16 @@
         {
           "url": "https://github.com/kazuhide/player-lab/blob/main/apps/vega/README.md#build-the-kepler-application",
           "label": "Vega README: build the Kepler host"
+        },
+        {
+          "url": "https://www.developer.amazon.com/docs/vega/0.24/enable-keyboard",
+          "label": "Amazon: enable the virtual keyboard"
         }
       ]
+    },
+    {
+      "type": "p",
+      "text": "The TextInput editors use Vega’s OS keyboard for remote text entry. manifest.toml requests com.amazon.inputmethod.service so that keyboard can open on Vega Virtual Device and hardware."
     },
     {
       "type": "h3",
@@ -144,7 +152,7 @@
         [
           "Audio/video buffer targets",
           "PlayerConfig.buffer.audio.forwardduration / video.forwardduration",
-          "Try a positive value such as 10 seconds for one media type. Blank leaves the SDK default. A shorter target may reduce media retained ahead, but actual memory and rebuffering must be checked with the chosen content/device."
+          "Try a positive value such as 10 seconds for one media type. Blank leaves the SDK default of 40 seconds per media type. The live playlist or rewind window can limit the effective forward buffer; compare actual playback and buffer state with the chosen content/device."
         ],
         [
           "Adaptive video bitrate cap",
@@ -211,7 +219,7 @@
     },
     {
       "type": "p",
-      "text": "vegaPlayerConfig always merges requestApi: Fetch into the supplied network configuration. The form rejects XHR before Apply because this host has no XHR media transport. Other network callbacks remain part of PlayerConfig.network. To try a callback, search its path in Show all SDK configuration, read the declared arguments and return type, enable Allow this callback and Apply. It runs when the SDK invokes it; a JavaScript value factory may instead run while preparing a configuration or operation."
+      "text": "vegaPlayerConfig always merges requestApi: Fetch into the supplied network configuration. The form rejects XHR before Apply because this host has no XHR media transport. Other network callbacks remain part of PlayerConfig.network. To try a callback, search its path in Show all SDK configuration, read the declared arguments and return type, enable Allow this callback and Apply. Editing alone does not run code. SDK callbacks run when invoked; approved JavaScript value factories run on Apply or Run and when the approved session is recreated. The code runs inside this app without a sandbox."
     },
     {
       "type": "steps",
@@ -221,6 +229,10 @@
         "Use a suitable representation for the SDK type. Binary certificate fields accept hexadecimal or Base64 bytes; object-instance inputs require a current SDK resource rather than an arbitrary object literal. Approved JavaScript executes inside the app without a sandbox.",
         "Open Show applied code after Apply. The output includes applied values and function bodies, using license/header placeholders. Removing an additional override restores the basic form value or SDK default. Changing source, config or additional inputs starts a replacement session; it does not retain the old playback position."
       ]
+    },
+    {
+      "type": "p",
+      "text": "Additional typed values override the basic form after Apply. Removing an override restores the form value or SDK default. An advanced SourceConfig.subtitleTracks array replaces the single-track form. Object and list editors let required related fields be completed together before Apply. A declared property or accepted input does not establish that its feature works on the native media surface."
     },
     {
       "type": "figure",
@@ -303,8 +315,8 @@
       "rows": [
         [
           "Change control layout",
-          "ControlPanel.tsx composes rows of native Button components and the Allow DVR Switch.",
-          "Edit those rows, titles or styles and keep controls reachable by D-pad. A visual change must retain an activation handler and visible focus feedback."
+          "ControlPanel.tsx composes rows using the localized Button wrapper and the Allow DVR Switch. The wrapper renders a focusable Pressable, with consistent text size, spacing and focus borders.",
+          "Edit these rows or the shared button styles in localization.tsx. Keep onPress, disabled state and the native D-pad focus path connected. On the tested Vega SDK, disabled controls received focus even with focusable=false. Keep their disabled appearance and focus indicator visible, and verify that Select performs no action. The input editors use the same visible focus treatment."
         ],
         [
           "Connect a control to playback",
@@ -324,10 +336,10 @@
       "text": "        <Switch\n          focusable\n          style={styles.toggle}\n          accessibilityLabel=\"Allow DVR\"\n          value={dvrAllowed}\n          onValueChange={(v) => {\n            onDvrAllowedChange(v);\n            controllerRef.current?.setTimeShiftEnabled(v);\n          }}\n        />",
       "source": {
         "path": "apps/vega/src/ControlPanel.tsx",
-        "line": 52,
-        "label": "ControlPanel.tsx:52–61"
+        "line": 54,
+        "label": "ControlPanel.tsx:54–63"
       },
-      "endLine": 61
+      "endLine": 63
     },
     {
       "type": "p",
@@ -354,6 +366,10 @@
         "For audio, call PlayerAPI.getAvailableAudio and pass a returned track ID to PlayerAPI.setAudio. Compare PlayerAPI.getAudio with the audible output. For quality and buffer experiments, compare current values and playback after the operation. A source with one quality or one audio track cannot demonstrate switching.",
         "For low-latency controls, use a suitable live stream and compare target/readback and actual behavior. On VOD, a setter may be accepted while latency remains zero. A registered module does not make every source or device support its feature."
       ]
+    },
+    {
+      "type": "p",
+      "text": "lab.getPlayer() and lab.getSource() resolve the current session. Return the published SDK type and obtain native objects from a real SDK API; an object literal cannot create an SDK instance or an HTML container. Callback outcomes are logged without request payloads. PlayerAPI.off needs the same callback instance passed to on, so select that actual resource from the current SDK session. Event summaries are bounded and credential fields are redacted; callbacks from retired sessions are ignored."
     },
     {
       "type": "figure",
@@ -421,7 +437,7 @@
       "rows": [
         [
           "Why do browser UI settings have no visible effect?",
-          "Kepler has no browser HTML control layer. Keep ui: false and change native components/styles. A DOM container, canvas or WebGL-dependent browser integration is not supplied by an extra configuration key."
+          "Kepler has no browser HTML control layer. Keep ui: false and change native components/styles. A DOM container, canvas/WebGL VR renderer, browser UI factory, Cast receiver or device sensor is not supplied by an extra configuration key. This native integration does not provide client-side advertising. A callback that needs a real HTML container cannot use a plain object. DRM still needs compatible content, a license service and device support."
         ],
         [
           "Why does XHR fail?",
@@ -437,7 +453,7 @@
         ],
         [
           "What if cleanup is unconfirmed?",
-          "Restart the app when it reports that the native player or initialization could not be released. The host intentionally prevents a replacement from using global media adapters while the previous owner may still exist; repeatedly pressing Apply cannot confirm release."
+          "Inactive status means that the owner no longer accepts SDK calls; it does not report completion of native cleanup. Recreate Vega player waits for the existing cleanup barrier before starting another owner. Restart the app if native player release or initialization cancellation is unconfirmed. Repeated Apply cannot confirm release."
         ],
         [
           "Why are subtitles configured but not drawn?",

@@ -121,6 +121,21 @@ directional focus; focused switches show an outline. Live-only controls are
 under **More → Live controls** and are hidden
 for video on demand.
 
+On an actual television (`Configuration.UI_MODE_TYPE_TELEVISION`), the same
+workspace uses larger app text, 48 dp horizontal / 27 dp vertical safe margins
+and visible focus outlines. Default explicitly creates `UiConfig.WebUi` with
+`Variant.TvUi` and `focusUiOnInitialization = true`. On phones/tablets, Default
+retains `PlayerViewConfig()` and the SDK's `SmallScreenUi` default. A wide phone
+does not become a TV. Sports, Live and Cinema retain their custom factories;
+their remote navigation needs separate verification.
+
+The SDK WebView controls and the outer Compose workspace are separate focus
+surfaces. Initial WebView focus does not establish focus restoration throughout
+the app. Check D-pad reachability, Select, selector dismissal with Back and
+movement between the player and workspace on the intended TV. See the
+[Android implementation guide](https://kazuhide.github.io/player-lab/guide/android-implementation/#android-tv-fire-tv)
+for the mobile/TV comparison and input checks.
+
 ## Configuration editor
 
 In **Settings**, choose **Source**, **Player**, or **SDK overrides**, then choose

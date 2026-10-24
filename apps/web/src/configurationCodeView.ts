@@ -9,8 +9,8 @@ export function mountConfigurationCodeView(container: HTMLElement, snapshot: () 
   summary.textContent = pick({ ja: "適用済み設定をコードで表示", en: "Show applied configuration code" });
   const help = document.createElement("p");
   help.textContent = pick({
-    ja: "現在のプレイヤーとソースのGUI設定を取得します。編集中の値とライセンスキーは含めません。表示後の変更は更新ボタンで取得できます。UIの組み立て方はプレイヤー横のコードを参照してください。",
-    en: "Read the current player and source GUI settings. Draft edits and license keys are excluded. Refresh to capture later changes. Use the code beside the player to construct the selected UI.",
+    ja: "適用済みの値 · ライセンスキーは非表示",
+    en: "Applied values · license keys excluded",
   });
   const area = document.createElement("textarea");
   area.readOnly = true;

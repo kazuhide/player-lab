@@ -130,5 +130,5 @@ const LocalizedApp: React.FC<{ runtimeChecks?: RuntimeMonitor | undefined }> = (
 };
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#000000" },
+  root: { flex: 1, backgroundColor: "#101820" },
 });

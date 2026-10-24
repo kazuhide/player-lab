@@ -29,12 +29,14 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 }) => {
   return (
     <View style={styles.panel}>
+      <Text style={styles.heading}>Source</Text>
       <View style={styles.row}>
         {sources.map((s, i) => (
           <Button key={s.id} title={s.id === activeId ? `${s.label} ●` : s.label} onPress={() => onSelectSource(i)} />
         ))}
       </View>
 
+      <Text style={styles.heading}>Playback</Text>
       <View style={styles.row}>
         <Button title="Live edge" onPress={() => controllerRef.current?.goToLiveEdge()} />
         {[-10, -30, -60].map((offset) => (
@@ -61,7 +63,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         />
       </View>
 
-      <Text style={styles.mono}>
+      <Text style={styles.label}>Playback state</Text>
+      <Text verbatim style={styles.mono}>
         {dvr
           ? `mode=${dvr.mode}  dvrAvailable=${dvr.dvrAvailable}  behindLive=${dvr.behindLive.toFixed(
               1,
@@ -69,22 +72,23 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           : "…"}
       </Text>
 
-      <ScrollView style={styles.log}>
+      {!!log.length && <ScrollView focusable style={styles.log}>
         {log.slice(0, 12).map((line, i) => (
           <Text key={i} style={styles.mono}>
             {line}
           </Text>
         ))}
-      </ScrollView>
+      </ScrollView>}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  panel: { padding: 12, gap: 8, backgroundColor: "#111111" },
-  row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
-  label: { color: "#ffffff", marginRight: 6 },
+  panel: { padding: 24, gap: 12, backgroundColor: "#101820" },
+  row: { flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "center" },
+  heading: { color: "#f4f7fb", fontSize: 20, fontWeight: "600" },
+  label: { color: "#f4f7fb", fontSize: 18, marginRight: 6 },
   toggle: { width: 72, height: 36 },
-  mono: { color: "#33ff66", fontFamily: "monospace", fontSize: 12 },
-  log: { height: 140 },
+  mono: { color: "#d5e2f2", fontFamily: "monospace", fontSize: 14, lineHeight: 20 },
+  log: { maxHeight: 96 },
 });

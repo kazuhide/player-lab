@@ -13,7 +13,7 @@ vi.mock("react-native", () => ({
 
 import { languageFromLocale, LocaleProvider, translateCopy, useLocale } from "../src/localization";
 import { ConfigurationCodeView } from "../src/ConfigurationCodeView";
-import { InputEditor } from "../src/api/InputEditor";
+import { Action, InputEditor } from "../src/api/InputEditor";
 import { catalog } from "../src/api/catalog";
 import { ApiMaterializer, ResourcePool } from "../src/api/materialize";
 import { configurationOverrides, overrideCode } from "../src/api/configInputs";
@@ -27,6 +27,25 @@ function sourceFiles(directory: string): string[] {
 }
 
 describe("application language", () => {
+  it("does not activate a disabled focused SDK action when native Select reaches its callback", () => {
+    const onPress = vi.fn();
+    const title = "PlayerConfig.network.preprocessHttpRequest";
+    const render = (disabled: boolean) => React.createElement(LocaleProvider, { initialLanguage: "ja",
+      children: React.createElement(Action, { title, verbatim: true, disabled, onPress }) });
+    let tree!: TestRenderer.ReactTestRenderer;
+    act(() => { tree = TestRenderer.create(render(true)); });
+    const action = () => tree.root.find(node => typeof node.type === "string" && String(node.type) === "Pressable");
+    act(() => action().props.onFocus());
+    act(() => action().props.onPress());
+    expect(onPress).not.toHaveBeenCalled();
+    expect(action().props.accessibilityLabel).toBe(title);
+    expect(action().props.accessibilityRole).toBe("button");
+    act(() => tree.update(render(false)));
+    act(() => action().props.onPress());
+    expect(onPress).toHaveBeenCalledTimes(1);
+    act(() => tree.unmount());
+  });
+
   it("recognizes Japanese regional locales and falls back to English for other or invalid locales", () => {
     for (const locale of ["ja", "ja-JP", "ja_JP", "JA-jp"]) expect(languageFromLocale(locale)).toBe("ja");
     for (const locale of ["en", "en-US", "fr-FR", "java", null, undefined, 7]) expect(languageFromLocale(locale)).toBe("en");
@@ -93,7 +112,7 @@ describe("application language", () => {
     let tree!: TestRenderer.ReactTestRenderer;
     act(() => { tree = TestRenderer.create(React.createElement(LocaleProvider, { initialLanguage: "ja",
       children: React.createElement(ConfigurationCodeView, { code }) })); });
-    act(() => { tree.root.findByProps({ title: "適用済み設定のコードを表示" }).props.onPress(); });
+    act(() => { tree.root.findAll(node => String(node.type) === "Pressable" && node.props.accessibilityLabel === "適用済み設定のコードを表示")[0]!.props.onPress(); });
     expect(tree.root.findAllByProps({ accessibilityLabel: "適用済み設定のコード" })).toHaveLength(1);
     expect(tree.root.findAllByProps({ accessibilityLabel: "コードの空行" })).toHaveLength(1);
     expect(tree.root.findAllByProps({ accessibilityLabel: 'const title = "Language";' })).toHaveLength(1);

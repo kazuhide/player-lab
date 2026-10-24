@@ -16,7 +16,7 @@ export function ConfigurationCodeView({ code, initiallyExpanded = false }: { cod
   return <View style={styles.container}>
     <Button title={expanded ? "Hide applied code" : "Show applied code"} onPress={() => { setExpanded(!expanded); setStatus(undefined); request.current++; }} />
     {expanded && <>
-      <Text style={panelStyles.help}>Player, source and UI settings sent to the SDK. Draft edits are excluded and license keys use placeholders.</Text>
+      <Text style={panelStyles.badge}>Applied values</Text>
       <Button title="Copy code" onPress={() => {
         const ownRequest = ++request.current;
         setStatus(undefined);

@@ -4,6 +4,19 @@
   "lead": "Start by comparing an existing theme and its applied UI settings in the Web app. Use the matching factory and stylesheet when carrying that change into your own player. This chapter separates GUI experiments from changes that require editing code.",
   "blocks": [
     {
+      "type": "h2",
+      "id": "read-ui-and-code",
+      "text": "Compare the screen and its code"
+    },
+    {
+      "type": "p",
+      "text": "Theme selection replaces the app-owned UIManager while preserving the current Player. CSS themes use the Default component tree with different skin rules; custom themes change components or their placement. Open Changes from Default UI beside the video for the component list, then use the construction code and its source path to inspect the implementation. Component construction examples use English comments in both interface languages."
+    },
+    {
+      "type": "p",
+      "text": "PlayerConfig.ui enables SDK-managed UI. The SDK loads the configured UI assets before calling style.uiManagerFactory; use the SDK editor to inspect that callback. Choosing an app theme switches back to the app-managed UI. Keep only one owner of the UIManager to avoid duplicate controls and event handlers."
+    },
+    {
       "type": "links",
       "items": [
         {
@@ -322,6 +335,19 @@
     },
     {
       "type": "h2",
+      "id": "release-during-player-events",
+      "text": "Replace UI during SDK events"
+    },
+    {
+      "type": "p",
+      "text": "The player can already be delivering an event when its listener is removed. For example, replacing the UI from a SourceLoaded, SourceUnloaded or Playing handler can leave another handler from the previous UI in the current delivery. Removing subscriptions prevents future events but cannot undo work already in progress."
+    },
+    {
+      "type": "p",
+      "text": "The bundled Player UI patch marks a UIManager as released before cleanup and ignores later variant resolution and deferred configuration callbacks. This prevents the retired controls from being attached over the replacement UI. Release your own components once, remove their subscriptions and timers, and check that their owner is still active before deferred work changes the screen."
+    },
+    {
+      "type": "h2",
       "id": "ui-implementation-faq",
       "text": "UI customization FAQ"
     },
@@ -391,7 +417,7 @@
     },
     {
       "path": "apps/web/src/uiGuide.ts",
-      "line": 536
+      "line": 459
     },
     {
       "path": "apps/web/src/guide.ts",
@@ -455,7 +481,7 @@
     },
     {
       "path": "apps/web/src/uiGuide.ts",
-      "line": 535
+      "line": 458
     },
     {
       "path": "apps/web/src/controlPanel.ts",

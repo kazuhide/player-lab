@@ -195,7 +195,7 @@
       "id": "start-reload",
       "label": "オフセットで再読み込み",
       "kind": "button",
-      "description": "指定した開始位置でソースを読み込み直します。単なるシークとは異なり、QoEパネルのセッション計測も最初から行います。",
+      "description": "指定した開始位置でソースを読み込み直します。単なるシークとは異なり、「再生品質」欄のセッション計測も最初から行います。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
         "line": 544

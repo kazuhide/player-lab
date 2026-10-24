@@ -106,15 +106,13 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
                     }
                     ApiCommandNotes(command)
                     if (state.result.isNotEmpty()) {
-                        WorkspaceHeading("Call result", "A submitted command does not confirm the media effect. SDK events and state provide separate observations.")
-                        SelectionContainer { Text(state.result, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-command-result")) }
+                        WorkspaceReadout("Call result", state.result, "api-command-result")
                     }
                     if (controller.apiAsyncResult.isNotEmpty()) Text(controller.apiAsyncResult, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-async-result"))
-                    WorkspaceHeading("Observed playback state")
-                    if (state.observed.isEmpty()) UiText("Not read yet. Run an operation or refresh the observation.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-related-state"))
-                    else Text(state.observed, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-related-state"))
+                    if (state.observed.isEmpty()) UiText("Refresh to read playback state.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("api-related-state"))
+                    else WorkspaceReadout("Observed playback state", state.observed, "api-related-state")
                     OutlinedButton(onClick = { state.observed = observedPlayback(controller) }, modifier = Modifier.testTag("api-related-state-refresh")) { UiText("Refresh playback state") }
-                    WorkspaceHeading("Recent SDK events", "App-session history; these events are not proof that the selected operation completed.")
+                    WorkspaceHeading("Recent SDK events", "This app session")
                     RecentApiEvents(controller)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         TextButton(onClick = { state.section = "State" }, modifier = Modifier.testTag("api-related-state-open")) { UiText("All SDK state") }
@@ -126,23 +124,21 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
                     }
                 }
                 "State" -> {
-                    WorkspaceHeading(apiDisplayName(state.stateSelected), "Refresh reads this SDK value once. Keys and opaque request/configuration objects are excluded. Lists and text are bounded for display.")
-                    SelectionContainer {
-                        val observation = state.observations[state.stateSelected]
-                        if (observation == null) UiText("Not read yet", style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.testTag("api-state-${state.stateSelected}"))
-                        else Text(observation, style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.testTag("api-state-${state.stateSelected}"))
-                    }
-                    UiText("Ad values require an active ad or a selected SSAI test object. Vector3 values inspect the last moveViewingDirection input; activeAdBreak and activeLinearAd read actual SDK state.", style = MaterialTheme.typography.bodySmall)
+                    val observation = state.observations[state.stateSelected]
+                    if (observation == null) UiText("Not read yet", style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.testTag("api-state-${state.stateSelected}"))
+                    else WorkspaceReadout("Value at last refresh", observation, "api-state-${state.stateSelected}")
+                    if (state.stateSelected.contains("Vector3")) UiText("Last moveViewingDirection input", style = MaterialTheme.typography.bodySmall)
+                    else if ((state.stateSelected.contains(".advertising.") && !state.stateSelected.contains(".AdvertisingApi.")) ||
+                        state.stateSelected.contains(".ssai.SsaiAd"))
+                        UiText("Requires an active ad or selected SSAI object.", style = MaterialTheme.typography.bodySmall)
                 }
                 "Events" -> {
                     ConfigToggle("Record SDK events", controller.apiEventRecording, "api-event-recording") { controller.apiEventRecording = it }
-                    UiText("Counts cover this app session. Zero means no recorded occurrence. SDK timestamps are milliseconds since the Unix epoch. Event payloads, headers and keys are excluded.", style = MaterialTheme.typography.bodySmall)
                     val id = state.eventSelected
-                    UiText(uiFormat(R.string.ui_event_readout, id, controller.apiEvents[id] ?: 0, controller.apiEventTimes[id]?.toString() ?: uiText("Not read yet")),
-                        modifier = Modifier.testTag("api-event-$id"), style = MaterialTheme.typography.bodyMedium)
-                    WorkspaceHeading("Recent SDK events", "App-session history, including events before the latest API call.")
+                    WorkspaceReadout("This app session", uiFormat(R.string.ui_event_readout, id, controller.apiEvents[id] ?: 0,
+                        controller.apiEventTimes[id]?.toString() ?: uiText("Not read yet")), "api-event-$id")
+                    WorkspaceHeading("Recent SDK events")
                     RecentApiEvents(controller)
                 }
             }
@@ -199,7 +195,7 @@ private fun RecentApiEvents(controller: PlayerController) {
 
 @Composable
 private fun ApiCommandNotes(command: ApiCommand) {
-    if (command.id in listOf("android:com.bitmovin.player.PlayerView.on()", "android:com.bitmovin.player.PlayerView.next()", "android:com.bitmovin.player.PlayerView.off()")) UiText("PlayerView subscriptions receive view UI events, such as FullscreenEnter/Exit. Playback and source events are recorded on Player and Source in the Events tab; they are not forwarded by this view subscription.", style = MaterialTheme.typography.bodySmall)
-    if (command.id.endsWith("PlaylistApi.seek()")) UiText("time is SeekTarget.offset in seconds. Start uses a nonnegative offset and End uses a nonpositive offset; the SDK corrects invalid values to stream boundaries. null uses the default reference for the source. useSeekTarget=false passes a null target to the SDK.", style = MaterialTheme.typography.bodySmall)
-    if (command.id.contains("VrRenderer") || command.id.endsWith("VrApi.setVrRenderer()")) UiText("The host renderer replaces PlayerView with a real decoder-backed OpenGL surface. Disabling it restores PlayerView. Update scripts receive {delta, viewingDirection}; return {text?, move?: {phi,x,y}} or null. delta is seconds. everyFrames limits script execution frequency; the SDK frame clock still updates at the display rate. User callbacks are removed with their renderer. Check app:vr-renderer state for decoded frames and callback results.", style = MaterialTheme.typography.bodySmall)
+    if (command.id in listOf("android:com.bitmovin.player.PlayerView.on()", "android:com.bitmovin.player.PlayerView.next()", "android:com.bitmovin.player.PlayerView.off()")) UiText("View UI events only. Use Events for playback and source events.", style = MaterialTheme.typography.bodySmall)
+    if (command.id.endsWith("PlaylistApi.seek()")) UiText("time: seconds; Start >= 0, End <= 0. null uses the source default.", style = MaterialTheme.typography.bodySmall)
+    if (command.id.contains("VrRenderer") || command.id.endsWith("VrApi.setVrRenderer()")) UiText("Replaces PlayerView. Disable the renderer to restore it.", style = MaterialTheme.typography.bodySmall)
 }

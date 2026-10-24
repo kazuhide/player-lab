@@ -1,5 +1,7 @@
 package com.playerlab.android
 
+import android.content.Context
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,14 +13,20 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.platform.LocalView
 import com.bitmovin.player.PlayerView
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun PlayerWorkspace(controller: PlayerController) {
+    val television = workspaceTelevision()
     var uiMode by remember { mutableStateOf(UiMode.DEFAULT) }
     var selectedPreset by remember { mutableStateOf(Sources.all.firstOrNull()?.id.orEmpty()) }
     var tab by remember { mutableStateOf(WorkspaceTab.Settings) }
@@ -27,26 +35,67 @@ internal fun PlayerWorkspace(controller: PlayerController) {
     val overrides = remember { ApiConfigurationWorkspaceState(controller.apiOverrides) }
     val runtime = remember { ApiRuntimeWorkspaceState() }
     val focus = LocalFocusManager.current
+    val sourceFocus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
-    DisposableEffect(controller, focus) {
+    DisposableEffect(controller, focus, sourceFocus) {
         controller.apiClearFocus = { focus.clearFocus(force = true) }
-        onDispose { controller.apiClearFocus = {} }
+        controller.requestWorkspaceFocus = { focus.clearFocus(force = true); sourceFocus.requestFocus() }
+        onDispose { controller.apiClearFocus = {}; controller.requestWorkspaceFocus = {} }
     }
     val videoOnly = controller.apiFullscreen || controller.apiPictureInPicture
+    val keyboardInset = workspaceKeyboardEditing()
+    val keyboardVisible = keyboardInset || (television && WindowInsets.isImeVisible)
+    val workspaceView = LocalView.current
+    var selectionEpoch by remember { mutableIntStateOf(0) }
+    var keyboardWasVisible by remember { mutableStateOf(false) }
+    var keyboardScope by remember { mutableStateOf<List<Any?>?>(null) }
+    var keyboardDoneScope by remember { mutableStateOf<List<Any?>?>(null) }
+    val editorScope = listOf(tab, settingsPage, configuration.selected, overrides.selected,
+        runtime.section, runtime.selected, runtime.argument, runtime.stateSelected, runtime.eventSelected,
+        uiMode, selectionEpoch, controller.apiPlayerGeneration, controller.sourceRevision, controller.apiViewRevision)
+    val completeKeyboardEditing: () -> Unit = { keyboardDoneScope = editorScope; keyboard?.hide() }
+    LaunchedEffect(keyboardVisible, editorScope, television, videoOnly) {
+        if (keyboardVisible) {
+            if (!keyboardWasVisible) keyboardScope = editorScope.takeIf {
+                television && !videoOnly && workspaceView.hasWindowFocus() && controller.currentView()?.hasFocus() != true
+            }
+            keyboardWasVisible = true
+        } else {
+            keyboardWasVisible = false
+            val done = keyboardDoneScope != null
+            val recorded = keyboardDoneScope ?: keyboardScope
+            keyboardScope = null
+            keyboardDoneScope = null
+            if (television && !videoOnly && recorded != null && recorded == editorScope) {
+                val owner = controller.player
+                val source = owner.source
+                val view = controller.currentView()
+                // Wait for selectors to be placed again; a scope change cancels this effect.
+                withFrameNanos { }
+                if (workspaceView.hasWindowFocus() && !controller.apiFullscreen && !controller.apiPictureInPicture &&
+                    controller.player === owner && !owner.isDestroyed && owner.source === source &&
+                    controller.currentView() === view && view?.hasFocus() != true) {
+                    val input = workspaceView.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    if (done) controller.requestWorkspaceFocus()
+                    else if (input.isAcceptingText && !focus.moveFocus(FocusDirection.Previous)) controller.requestWorkspaceFocus()
+                }
+            }
+        }
+    }
     androidx.activity.compose.BackHandler(enabled = controller.apiFullscreen) { controller.currentView()?.exitFullscreen() }
     BoxWithConstraints(Modifier.fillMaxSize().then(if (videoOnly) Modifier else Modifier.safeDrawingPadding().imePadding())
+        .then(if (television && !videoOnly) Modifier.padding(horizontal = 48.dp, vertical = 27.dp) else Modifier)
         .clipToBounds().testTag("player-workspace")) {
         val wide = !videoOnly && maxWidth >= 600.dp && maxWidth > maxHeight
         val compact = maxHeight < 600.dp
-        val keyboardVisible = workspaceKeyboardEditing()
         val previewHeight = if (keyboardVisible || LocalDensity.current.fontScale >= 1.3f) 64.dp
             else if (compact) 88.dp else minOf(200.dp, maxWidth * 9 / 16)
         val previewPixels = with(LocalDensity.current) { previewHeight.roundToPx() }
         val playerContent: @Composable (Modifier) -> Unit = { modifier ->
-            PlayerPreview(controller, uiMode, modifier.testTag("player-preview"))
+            PlayerPreview(controller, uiMode, television, modifier.testTag("player-preview"))
         }
         val selectors: @Composable () -> Unit = {
-            SourceAndTheme(controller, selectedPreset, uiMode, { uiMode = it }, {
+            SourceAndTheme(controller, selectedPreset, uiMode, sourceFocus, { uiMode = it }, {
                     configuration.select("source-url"); settingsPage = "Source"; tab = WorkspaceTab.Settings; focus.clearFocus()
                 }, { preset ->
                     selectedPreset = preset.id
@@ -63,7 +112,9 @@ internal fun PlayerWorkspace(controller: PlayerController) {
                 if (keyboardVisible) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     UiText("Editing", style = MaterialTheme.typography.labelMedium)
-                    TextButton(onClick = { focus.clearFocus(); keyboard?.hide() }, modifier = Modifier.testTag("workspace-done")) { UiText("Done") }
+                    TextButton(onClick = {
+                        if (television) completeKeyboardEditing() else { focus.clearFocus(); keyboard?.hide() }
+                    }, modifier = Modifier.testTag("workspace-done")) { UiText("Done") }
                 }
                 Box(Modifier.weight(1f).fillMaxWidth()) {
                     RetainedWorkspacePage(tab == WorkspaceTab.Settings) {
@@ -90,9 +141,18 @@ internal fun PlayerWorkspace(controller: PlayerController) {
         // Presentation changes only move/resize these stable children. Replacing the AndroidView
         // would retire its SDK fullscreen/PiP handlers while their transition is still in progress.
         Layout(content = {
-            playerContent(Modifier.fillMaxSize())
-            editorContent(Modifier.fillMaxSize())
-            selectors()
+            CompositionLocalProvider(LocalWorkspaceSelectionChanged provides { if (television) selectionEpoch++ },
+                LocalWorkspaceImeDone provides { fieldView ->
+                    if (television && keyboardVisible && !videoOnly && fieldView.rootView === workspaceView.rootView &&
+                        workspaceView.hasWindowFocus() && controller.currentView()?.hasFocus() != true) {
+                        completeKeyboardEditing()
+                        true
+                    } else false
+                }) {
+                playerContent(Modifier.fillMaxSize())
+                editorContent(Modifier.fillMaxSize())
+                selectors()
+            }
         }, modifier = Modifier.fillMaxSize()) { children, constraints ->
             val width = constraints.maxWidth
             val height = constraints.maxHeight
@@ -120,15 +180,15 @@ internal fun PlayerWorkspace(controller: PlayerController) {
 }
 
 @Composable
-private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, modifier: Modifier) {
+private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, television: Boolean, modifier: Modifier) {
     val displayedPlayer = controller.player
     val vrRenderer = controller.apiVrRenderer
     if (vrRenderer != null) key(vrRenderer) {
         AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)
-    } else key(displayedPlayer, uiMode, controller.apiViewRevision) {
+    } else key(displayedPlayer, uiMode, television, controller.apiViewRevision) {
         AndroidView(factory = { context ->
             PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,
-                controller.apiOverrides.view(playerViewConfig(uiMode)))))
+                controller.apiOverrides.view(playerViewConfig(uiMode, television)))))
         }, onRelease = { host ->
             host.releaseTouchOwnership()
             controller.releaseView(host.content as PlayerView)
@@ -137,12 +197,12 @@ private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, modifier
 }
 
 @Composable
-private fun SourceAndTheme(controller: PlayerController, selectedPreset: String, mode: UiMode, changeMode: (UiMode) -> Unit, customSource: () -> Unit, loadPreset: (PlayerSource) -> Unit) {
+private fun SourceAndTheme(controller: PlayerController, selectedPreset: String, mode: UiMode, sourceFocus: FocusRequester, changeMode: (UiMode) -> Unit, customSource: () -> Unit, loadPreset: (PlayerSource) -> Unit) {
     val sourceId = Sources.all.firstOrNull { it.id == selectedPreset && it.url == controller.sourceSettings.url && it.type == controller.sourceSettings.type }?.id
         ?: Sources.all.firstOrNull { it.url == controller.sourceSettings.url && it.type == controller.sourceSettings.type }?.id ?: "custom"
     Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         WorkspacePicker("Source", sourceId, Sources.all.map { it.id to it.label } + listOf("custom" to "Custom stream"),
-            "source-selector", compact = true, modifier = Modifier.weight(1f)) { id ->
+            "source-selector", compact = true, modifier = Modifier.weight(1f).focusRequester(sourceFocus)) { id ->
                 if (id == "custom") customSource() else Sources.all.firstOrNull { it.id == id }?.let(loadPreset)
             }
         WorkspacePicker("Theme", mode, UiMode.entries.map { it to it.label }, "theme-selector", compact = true, modifier = Modifier.weight(1f), change = changeMode)
@@ -171,13 +231,12 @@ private fun MoreWorkspace(controller: PlayerController) {
             RetainedWorkspacePage(page == "Playback options") {
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ConfigToggle("Enable live rewind controls", controller.timeShiftEnabled, "allow-dvr", controller::toggleDvr)
-                    UiText("App preference for live sources. Rewind also requires SDK live time shifting and an available live window. This does not change video-on-demand playback.", style = MaterialTheme.typography.bodySmall)
+                    UiText("Requires a live window and SDK time shifting.", style = MaterialTheme.typography.bodySmall)
                     WorkspaceHeading("Current playback")
                     PlaybackSummary(controller)
                     UiText(uiFormat(R.string.ui_source_type, controller.sourceSettings.type.toString()))
                     UiText(uiFormat(R.string.ui_title, controller.sourceSettings.title.ifBlank { uiText("Not set") }))
                     UiText(uiFormat(R.string.ui_current_settings, controller.playerSettings.autoplay.toString(), controller.playerSettings.muted.toString()))
-                    UiText("Use Settings to change the source or player. APIs provides track selection, playback controls, state and events.", style = MaterialTheme.typography.bodySmall)
                 }
             }
             RetainedWorkspacePage(page == "Live controls") {
@@ -196,8 +255,8 @@ private fun MoreWorkspace(controller: PlayerController) {
                         }
                         if (!controller.dvr.dvrAvailable) UiText("Rewind is unavailable for this source or its current configuration.", style = MaterialTheme.typography.bodySmall)
                     } else UiText(if (preset?.isLive == false || currentSourceReady && !controller.dvr.isLive)
-                        "The current source is video on demand. Live edge and rewind controls are hidden."
-                        else "Live controls are unavailable until the current source is loaded as live.", style = MaterialTheme.typography.bodyMedium)
+                        "VOD source. Live controls unavailable."
+                        else "Load a live source to use these controls.", style = MaterialTheme.typography.bodyMedium)
                 }
             }
             RetainedWorkspacePage(page == "Offline") { ApiOfflinePanel(controller) }

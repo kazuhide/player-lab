@@ -193,12 +193,18 @@ test("the app and guide keep language, relative navigation and document width at
 test("long configuration API names fit the mobile page with a wider fallback font", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 900 });
   await openApp(page);
-  await page.locator(".config-group-blurb").evaluateAll((elements) => {
+  const labels = page.locator(".config-field-label");
+  await labels.evaluateAll((elements) => {
     for (const element of elements) element.style.fontFamily = "monospace";
   });
-  await expect(page.locator(".config-group-blurb").filter({
-    hasText: "set{Catchup,Fallback}Config(LowLatencySyncConfig)",
-  })).toBeVisible();
+  const heightLabel = labels.filter({ hasText: "resolution.maxSelectableVideoHeight" });
+  await expect(heightLabel).toBeVisible();
+  const bounds = await heightLabel.evaluate(element => ({
+    content: element.scrollWidth, visible: element.clientWidth,
+    right: element.getBoundingClientRect().right, viewport: document.documentElement.clientWidth,
+  }));
+  expect(bounds.content).toBeLessThanOrEqual(bounds.visible + 1);
+  expect(bounds.right).toBeLessThanOrEqual(bounds.viewport);
   await expectNoDocumentOverflow(page);
 });
 

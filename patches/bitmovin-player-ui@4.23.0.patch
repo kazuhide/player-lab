@@ -1,5 +1,5 @@
 diff --git a/dist/js/framework/UIManager.js b/dist/js/framework/UIManager.js
-index cda70c4702c8a26e53f63988924e0be0846db26d..6d579c3fdf4eb27614e0b6cfc09daec02f8c5538 100644
+index cda70c4702c8a26e53f63988924e0be0846db26d..5873dcd1d91ca0b962ffc9369c95f7e2b8bc3ada 100644
 --- a/dist/js/framework/UIManager.js
 +++ b/dist/js/framework/UIManager.js
 @@ -59,6 +59,7 @@ var ComponentConfigManager_1 = require("./utils/ComponentConfigManager");
@@ -10,7 +10,15 @@ index cda70c4702c8a26e53f63988924e0be0846db26d..6d579c3fdf4eb27614e0b6cfc09daec0
  /**
   * Identifier for the different {@link UIVariant}s.
   */
-@@ -112,6 +113,9 @@ var UIManager = /** @class */ (function () {
+@@ -94,6 +95,7 @@ var UIManager = /** @class */ (function () {
+             // Default constructor (UIVariant[]) has been called
+             this.uiVariants = playerUiOrUiVariants;
+         }
++        this.released = false;
+         this.subtitleSettingsManager = new SubtitleSettingsManager_1.SubtitleSettingsManager();
+         this.uiPreferencesManager = new UIPreferencesManager_1.UIPreferencesManager();
+         this.shadowDomManager = new ShadowDomManager_1.ShadowDomManager();
+@@ -112,6 +114,9 @@ var UIManager = /** @class */ (function () {
              })), uiconfig.componentLayoutOverrides), events: {
                  onUpdated: new EventDispatcher_1.EventDispatcher(),
              }, volumeController: new VolumeController_1.VolumeController(this.managerPlayerWrapper.getPlayer()), adBreakTracker: new AdBreakTracker_1.AdBreakTracker(this.managerPlayerWrapper.getPlayer()) });
@@ -20,7 +28,15 @@ index cda70c4702c8a26e53f63988924e0be0846db26d..6d579c3fdf4eb27614e0b6cfc09daec0
          this.componentLayoutOverrideProcessor = new ComponentLayoutOverrideProcessor_1.ComponentLayoutOverrideProcessor(this.config);
          this.recommendationsApi = {
              add: function (recommendation) {
-@@ -292,10 +296,10 @@ var UIManager = /** @class */ (function () {
+@@ -217,6 +222,7 @@ var UIManager = /** @class */ (function () {
+         }
+         // Update the source configuration when a new source is loaded and dispatch onUpdated
+         var updateSource = function () {
++            if (_this.released) return;
+             updateConfig();
+             _this.config.events.onUpdated.dispatch(_this);
+         };
+@@ -292,14 +298,15 @@ var UIManager = /** @class */ (function () {
              _this.activeNonLinearAdStartedEvent = undefined;
          });
          var isSourceLoaded = player.getSource() != null;
@@ -33,7 +49,54 @@ index cda70c4702c8a26e53f63988924e0be0846db26d..6d579c3fdf4eb27614e0b6cfc09daec0
              isSourceLoaded = false;
          });
          // Dynamically select a UI variant that matches the current UI condition.
-@@ -1005,13 +1009,7 @@ var InternalUIInstanceManager = /** @class */ (function (_super) {
+         var resolveUiVariant = function (event) {
++            if (_this.released) return;
+             // Make sure that the AdStarted event data is persisted through ad playback in case other events happen
+             // in the meantime, e.g. player resize. We need to store this data because there is no other way to find out
+             // ad details while an ad is playing (in v8.0 at least; from v8.1 there will be ads.getActiveAd()).
+@@ -436,6 +443,7 @@ var UIManager = /** @class */ (function () {
+         this.switchToUiInstance(nextUi, onShow);
+     };
+     UIManager.prototype.switchToUiInstance = function (nextUi, onShow) {
++        if (this.released) return;
+         var previousUi = this.currentUi;
+         // Determine if the UI variant is changing
+         // Only if the UI variant is changing, we need to do some stuff. Else we just leave everything as-is.
+@@ -487,6 +495,7 @@ var UIManager = /** @class */ (function () {
+      *   is shown (if a switch is happening)
+      */
+     UIManager.prototype.resolveUiVariant = function (context, onShow) {
++        if (this.released) return;
+         if (context === void 0) { context = {}; }
+         // Determine the current context for which the UI variant will be resolved
+         var defaultContext = {
+@@ -560,13 +569,13 @@ var UIManager = /** @class */ (function () {
+         // https://swizec.com/blog/how-to-properly-wait-for-dom-elements-to-show-up-in-modern-browsers/swizec/6663
+         if (window.requestAnimationFrame) {
+             requestAnimationFrame(function () {
+-                ui.onConfigured.dispatch(ui.getUI());
++                if (!ui.isReleased()) ui.onConfigured.dispatch(ui.getUI());
+             });
+         }
+         else {
+             // IE9 fallback
+             setTimeout(function () {
+-                ui.onConfigured.dispatch(ui.getUI());
++                if (!ui.isReleased()) ui.onConfigured.dispatch(ui.getUI());
+             }, 0);
+         }
+     };
+@@ -583,6 +592,9 @@ var UIManager = /** @class */ (function () {
+     };
+     UIManager.prototype.release = function () {
+         var _a;
++        if (this.released) return;
++        // Removing a listener cannot cancel an SDK event already being delivered.
++        this.released = true;
+         (_a = this.resumePositionTracker) === null || _a === void 0 ? void 0 : _a.release();
+         this.config.adBreakTracker.release();
+         if (this.currentUi) {
+@@ -1005,13 +1017,7 @@ var InternalUIInstanceManager = /** @class */ (function (_super) {
          return this.released;
      };
      InternalUIInstanceManager.prototype.releaseControlsTree = function (component) {

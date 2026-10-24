@@ -421,4 +421,35 @@
     <string name="ui_create_ssai_test_ad_86df4d" formatted="false">SSAIのテスト広告を作成</string>
     <string name="ui_send_message_to_custom_web_ui_8ad236" formatted="false">カスタムWeb UIにメッセージを送信</string>
     <string name="ui_use_one_field_value_per_line_text_artist_albumtitle__ae8760" formatted="false">field=valueを1行に1件入力します。文字列：artist、albumTitle、albumArtist、displayTitle、subtitle、writer、author、composer、conductor、genre、compilation、station。整数：duration（ミリ秒）、trackNumber、totalTrackCount、recordingYear/Month/Day、releaseYear/Month/Day、discNumber、totalDiscCount。真偽値：isBrowsable、isPlayable。mediaTypeはMediaMetadata.MediaTypeの値（MovieやVideoなど）を指定します。userRatingとoverallRatingはHeart:true、Thumb:false、Percentage:75、Star:5:4.5などです。nullは値を消去します。適用するとMediaSessionSourceConfig.Enabledでソースを読み込み直します。Androidに公開するにはAPI操作でホストのメディアセッションを有効にしてください。</string>
+    <string name="ui_refresh_to_read_playback_state_70529a" formatted="false">更新して再生状態を取得します。</string>
+    <string name="ui_this_app_session_f2e572" formatted="false">今回の起動後の記録</string>
+    <string name="ui_value_at_last_refresh_2a507a" formatted="false">直近の取得値</string>
+    <string name="ui_last_moveviewingdirection_input_50cfbc" formatted="false">最後のmoveViewingDirectionへの入力</string>
+    <string name="ui_requires_an_active_ad_or_selected_ssai_object_9c7f63" formatted="false">再生中の広告または選択したSSAIオブジェクトが必要です。</string>
+    <string name="ui_view_ui_events_only_use_events_for_playback_and_so_2509aa" formatted="false">ビューのUIイベントが対象です。再生やソースのイベントはイベント画面で確認します。</string>
+    <string name="ui_time_seconds_start_0_end_0_null_uses_the_source_de_52718c" formatted="false">timeは秒です。Startは0以上、Endは0以下です。nullはソースの既定値を使います。</string>
+    <string name="ui_replaces_playerview_disable_the_renderer_to_restor_ea39a9" formatted="false">PlayerViewを置き換えます。レンダラーを無効にすると戻ります。</string>
+    <string name="ui_applied_values_only_keys_use_placeholders_a0b090" formatted="false">適用済みの値です。キーはプレースホルダーです。</string>
+    <string name="ui_apply_to_fresh_sdk_configuration_objects_fecd98" formatted="false">新しいSDK設定オブジェクトに反映します。</string>
+    <string name="ui_http_or_https_url_3730a0" formatted="false">HTTPまたはHTTPSのURLです。</string>
+    <string name="ui_blank_uses_the_sdk_default_start_positive_seconds__9ab778" formatted="false">空欄はSDKの既定値です。Startは正、Endは負の秒数です。</string>
+    <string name="ui_live_only_blank_uses_sdk_defaults_0fb449" formatted="false">ライブ専用です。空欄はSDKの既定値です。</string>
+    <string name="ui_blank_inherits_player_priority_example_de_en_33c3b8" formatted="false">空欄はプレイヤーの優先順を使います。例：de, en。</string>
+    <string name="ui_track_metadata_only_enable_subtitles_in_the_player_112647" formatted="false">字幕のメタデータです。表示はプレイヤーの字幕メニューで有効にします。</string>
+    <string name="ui_reloads_using_the_matching_legacy_mediasource_8bbbd5" formatted="false">対応する旧MediaSourceで読み込み直します。</string>
+    <string name="ui_language_codes_in_priority_order_example_de_en_622f4b" formatted="false">優先順に言語コードを入力します。例：de, en。</string>
+    <string name="ui_blank_removes_the_automatic_bitrate_cap_df7bdc" formatted="false">空欄は自動選択のビットレート制限を解除します。</string>
+    <string name="ui_seconds_e_g_0_0_25_2_none_disables_retries_9b4f19" formatted="false">秒数を入力します。例：0, 0.25, 2。noneは再試行を無効にします。</string>
+    <string name="ui_reloads_this_source_fb7833" formatted="false">ソースを読み込み直します。</string>
+    <string name="ui_restarts_player_and_source_b1a880" formatted="false">プレイヤーとソースを再起動します。</string>
+    <string name="ui_requires_a_live_window_and_sdk_time_shifting_81e0a9" formatted="false">ライブの再生可能範囲とSDKのタイムシフトが必要です。</string>
+    <string name="ui_vod_source_live_controls_unavailable_3c6669" formatted="false">VODソースのためライブ操作は使えません。</string>
+    <string name="ui_load_a_live_source_to_use_these_controls_cee19d" formatted="false">ライブソースを読み込むと操作できます。</string>
+    <string name="ui_vod_only_release_keeps_files_delete_all_removes_th_4bfe1e" formatted="false">VOD専用です。解放はファイルを保持し、すべて削除はファイルを消します。</string>
+    <string name="ui_requires_existing_cache_and_track_metadata_for_man_20fc96" formatted="false">既存のキャッシュとトラック情報が必要です。管理されたダウンロードにはダウンロード済みソースの再生を使います。</string>
+    <string name="ui_process_submits_all_selected_track_actions_aa6002" formatted="false">実行すると選択した全トラックの操作を送信します。</string>
+    <string name="ui_blank_build_key_disables_collection_check_received_45d354" formatted="false">ビルドのキーが空欄なら収集を無効にします。受信はBitmovin Dashboardで確認します。</string>
+    <string name="ui_input_code_message_severity_originalerrortype_retu_ae74d7" formatted="false">inputは{code, message, severity, originalErrorType}です。エラーの一部またはnullを返します。</string>
+    <string name="ui_uses_staged_runtime_source_metadata_verify_deliver_4d58d9" formatted="false">登録した実行時・ソースのメタデータを使います。受信はBitmovin Dashboardで確認します。</string>
+    <string name="ui_stage_then_apply_or_run_the_matching_action_bd1fa5" formatted="false">値を登録してから、適用または対応する操作を実行します。</string>
 </resources>

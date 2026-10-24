@@ -1,13 +1,13 @@
 /**
- * The runtime control panel (§13): switch sources, jump to the edge / seek to a
- * relative offset, toggle DVR + absolute/relative time, change the buffer target
- * (§8), and watch the live event log (§10) + a player-state readout. It uses the web
+ * The runtime control panel: switch sources, jump to the edge / seek to a
+ * relative offset, allow live rewind, change the buffer target, and inspect
+ * playback state and events. It uses the web
  * app's playback timing logic (src/playback) for clamping and state.
  *
  * The panel emits intents for things that need the player's lifecycle (source
  * selection, DVR on/off); `main.ts` owns the player and acts on them — e.g. the
  * DVR toggle rebuilds the player with `PlaybackConfig.timeShift`, so the change is
- * reflected in the real player UI (§5.4), not just here.
+ * reflected in the real player UI, not just here.
  */
 import type { PlayerAPI } from "bitmovin-player";
 import type { CastingButtons, UIConfig } from "@showcase/ui-shared";
@@ -29,7 +29,7 @@ export function relocalizeControlPanel(): void {
   binder.relocalize();
 }
 
-// TimeMode (§7) is a string enum the web SDK doesn't expose at runtime. Reference
+// TimeMode is a string enum the web SDK doesn't expose at runtime. Reference
 // its values typed via getCurrentTime's own parameter signature so this stays safe.
 type TimeMode = NonNullable<Parameters<PlayerAPI["getCurrentTime"]>[0]>;
 const RELATIVE_TIME = "relativetime" as unknown as TimeMode;
@@ -57,7 +57,7 @@ export interface ControlPanelOptions {
   /** Select and load a source through the owner of the player lifecycle. */
   onSourceSelected: (source: ShowcaseSource) => Promise<void>;
   /** Reload the current source starting `offsetFromEdge` seconds behind the live
-   *  edge (SourceConfig.options.startOffset, §11). 0 = default start. */
+   *  edge (SourceConfig.options.startOffset). 0 = default start. */
   onReloadWithStartOffset: (offsetFromEdge: number) => void;
   /** Current player double-click behavior (custom themes). */
   doubleClickMode: DoubleClickMode;
@@ -201,7 +201,7 @@ export function mountControlPanel(
   const sourceHint = createSourceLoadHint();
   sourceHint.begin(options.currentSourceIsLive);
 
-  // --- Sources (§13) ---
+  // --- Sources ---
   const sourceRow = document.createElement("div");
   sourceRow.className = "panel-row";
   const missingAssets = document.createElement("p");
@@ -225,7 +225,7 @@ export function mountControlPanel(
     en: `Unconfigured demos are disabled. Set these values in apps/web/.env: ${missingDescriptions.join("; ")}`,
   });
 
-  // --- Seek (§5.1–5.3) ---
+  // --- Seek ---
   const seekInput = document.createElement("input");
   seekInput.type = "number";
   seekInput.value = "-30";
@@ -238,7 +238,7 @@ export function mountControlPanel(
     quickRow.append(button(`${off}s`, () => seekToOffset(off)));
   }
 
-  // --- Config (§5.4, §7) ---
+  // --- Playback configuration ---
   const timeShiftToggle = checkbox(
     { ja: "DVR を許可 (timeShift)", en: "Allow DVR (timeShift)" },
     timeShiftEnabled,
@@ -452,7 +452,7 @@ export function mountControlPanel(
     },
   );
 
-  // Casting / remote-playback buttons (§6). These are component-tree additions, not UIConfig:
+  // Casting / remote-playback buttons. These are component-tree additions, not UIConfig:
   // each toggle adds/removes the library button on the CUSTOM trees (the Default UI ships all
   // three already). They live in their own section so it's clear they're a different lever.
   const CASTING_TOGGLES: { key: keyof CastingButtons; label: L; title: L }[] = [
@@ -509,15 +509,6 @@ export function mountControlPanel(
     en: "The Default UI already includes all three; these add/remove them on the Custom UI trees.",
   });
 
-  // Honest note: the UIConfig/UIContainerConfig options NOT surfaced here, and why — so the
-  // panel reads as "the full surface minus the inapplicable", not an arbitrary short list.
-  const uiNote = document.createElement("p");
-  uiNote.className = "panel-subnote";
-  binder.text(uiNote, {
-    ja: "未掲載(このデモのツリーでは効かない、またはコードで設定): ecoMode・includeWatermark(専用コンポーネントが必要)、shadowDom、autoUiVariantResolve、hidePlayerStateExceptions、UIContainer の hideImmediatelyOnMouseLeave・deferUiHideWhileSettingsOpen、metadata・独自の翻訳辞書。",
-    en: "Not shown (inert on this demo’s trees, or set in code): ecoMode + includeWatermark (need dedicated components), shadowDom, autoUiVariantResolve, hidePlayerStateExceptions, UIContainer hideImmediatelyOnMouseLeave + deferUiHideWhileSettingsOpen, metadata + custom vocabularies.",
-  });
-
   // Double-click behavior (custom themes): fullscreen (the stock default) or ±10s seek.
   const doubleClickRow = rowWithHint(
     { ja: "ダブルクリック", en: "Double-click" },
@@ -535,7 +526,7 @@ export function mountControlPanel(
     ),
   );
 
-  // --- Start offset (§11): start N seconds behind the live edge on (re)load ---
+  // --- Start offset: start N seconds behind the live edge on (re)load ---
   const startOffsetInput = document.createElement("input");
   startOffsetInput.type = "number";
   startOffsetInput.value = "-20";
@@ -545,7 +536,7 @@ export function mountControlPanel(
     options.onReloadWithStartOffset(Number(startOffsetInput.value));
   });
 
-  // --- Buffer target (§8) ---
+  // --- Buffer target ---
   const bufferInput = document.createElement("input");
   bufferInput.type = "number";
   bufferInput.value = "40";
@@ -566,7 +557,7 @@ export function mountControlPanel(
 
   // Interactive controls flow in a responsive grid (multi-column on wide screens) so the
   // panel reads as a tidy board. Five focused cards: Source (what plays), Seek (where in
-  // the window), Playback (DVR on/off, gestures, start offset, buffer §8, PiP), UI settings
+  // the window), Playback (DVR on/off, gestures, start offset, buffer, PiP), UI settings
   // (the UIManager-level UIConfig toggles — autohide + the others from the Player UI source),
   // and Casting & PiP (compose AirPlay/PiP/Chromecast buttons onto the custom trees). Each
   // UI-settings toggle rebuilds the active theme's UI.
@@ -595,17 +586,17 @@ export function mountControlPanel(
       rowWithHint(
         { ja: "端からの開始オフセット (秒)", en: "Start offset behind edge (s)" },
         {
-          ja: "ライブ端からこの距離だけ後ろの位置からソースを再読み込みします(SourceConfig.options.startOffset、End 基準、§11)。負値=端より過去。",
-          en: "Reload the source starting this far behind the live edge (SourceConfig.options.startOffset with End reference, §11). Negative = behind the edge.",
+          ja: "ライブ端からこの距離だけ後ろの位置からソースを再読み込みします(SourceConfig.options.startOffset、End基準)。負値はライブ端より前の位置です。",
+          en: "Reload the source starting this far behind the live edge (SourceConfig.options.startOffset with End reference). A negative value starts behind the edge.",
         },
         startOffsetInput,
         startOffsetBtn,
       ),
       rowWithHint(
-        { ja: "バッファ目標 (秒) (§8)", en: "Buffer target (s) (§8)" },
+        { ja: "バッファ目標 (秒)", en: "Buffer target (s)" },
         {
-          ja: "前方バッファの目標秒数(player.buffer.setTargetLevel)。大きいほどジッタに強い一方、遅延とメモリが増えます。DVR ウィンドウは広がりません(§8)。",
-          en: "Forward buffer target in seconds (player.buffer.setTargetLevel). Bigger = steadier under jitter, more latency/memory. It does NOT widen the DVR window (§8).",
+          ja: "前方バッファの目標秒数(player.buffer.setTargetLevel)。大きいほどジッタに強い一方、遅延とメモリが増えます。DVR ウィンドウは広がりません。",
+          en: "Forward buffer target in seconds (player.buffer.setTargetLevel). Bigger = steadier under jitter, more latency/memory. It does NOT widen the DVR window.",
         },
         bufferInput,
         bufferBtn,
@@ -620,7 +611,7 @@ export function mountControlPanel(
       ),
       autoplayNextToggle,
     ),
-    section({ ja: "UI 設定", en: "UI settings" }, autohideToggle, ...uiToggles, ...uiNumbers, uiLanguageRow, followSubtitleLanguage, uiNote),
+    section({ ja: "UI 設定", en: "UI settings" }, autohideToggle, ...uiToggles, ...uiNumbers, uiLanguageRow, followSubtitleLanguage),
     section({ ja: "キャスト・PiP", en: "Casting & PiP" }, ...castingToggles, castingNote),
   );
 
@@ -633,7 +624,7 @@ export function mountControlPanel(
     // "Player state" (not "DVR state"): the readout applies to VOD too — mode, current time,
     // and (for live) the DVR window fields, which simply read 0/false on VOD.
     section({ ja: "プレイヤー状態", en: "Player state" }, readout),
-    section({ ja: "イベントログ (§10)", en: "Event log (§10)" }, logEl),
+    section({ ja: "イベントログ", en: "Event log" }, logEl),
   );
   if (options.extraTelemetry) stateGrid.append(options.extraTelemetry);
 
@@ -653,7 +644,7 @@ export function mountControlPanel(
   function refresh(): void {
     const snap = sourceHint.snapshot(snapshot());
     const state = deriveTimelineState(snap, { timeShiftEnabled });
-    // §7 — both times, from the real TimeMode API:
+    // Both times come from the TimeMode API:
     //  - relative: scrubber position / "behind live" (window start = 0)
     //  - absolute: wall-clock (Unix ts from PDT on live HLS / availabilityStartTime
     //    on live DASH); falls back to "needs PDT" for VOD / streams without it.
@@ -661,7 +652,7 @@ export function mountControlPanel(
     const absTime = player.getCurrentTime(ABSOLUTE_TIME);
     const absStr =
       Number.isFinite(absTime) && absTime > 1e6 ? new Date(absTime * 1000).toLocaleTimeString() : "— (needs PDT)";
-    // §15 — true end-to-end live latency (behind real-time): wall-clock of the rendered frame vs
+    // End-to-end live latency: wall-clock of the rendered frame vs
     // now. Distinct from behindLive (the scrub offset): non-zero even at the edge. Live only.
     const latencySec = snap.isLive ? liveLatencySeconds(absTime, Date.now() / 1000) : null;
     const latencyStr = latencySec !== null ? `${latencySec.toFixed(1)}s` : "— (needs PDT)";
@@ -683,13 +674,13 @@ export function mountControlPanel(
       `time (rel):     ${relTime.toFixed(1)}s`,
       `time (abs/PDT): ${absStr}`,
     ].join("\n");
-    // Reflect DVR allow/forbid in the panel too (§5.4): disable the seek controls.
+    // Reflect DVR allow/forbid in the panel too: disable the seek controls.
     const disabled = !state.dvrAvailable;
     seekInput.toggleAttribute("disabled", disabled);
     seekBtn.toggleAttribute("disabled", disabled);
   }
 
-  // --- Event log (§10) ---
+  // --- Event log ---
   const loggedEvents = [
     PlayerEvent.SourceLoaded,
     PlayerEvent.SourceUnloaded,
@@ -709,7 +700,7 @@ export function mountControlPanel(
   for (const event of loggedEvents) {
     player.on(event, (e: { type: string }) => log(e.type));
   }
-  // §5.3: recover from DVRWindowExceeded by snapping back to the edge.
+  // Recover from DVRWindowExceeded by returning to the live edge.
   player.on(PlayerEvent.DVRWindowExceeded, () => {
     log("DVRWindowExceeded → recovering to live edge");
     player.timeShift(0, "recover");

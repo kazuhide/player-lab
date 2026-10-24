@@ -421,4 +421,35 @@
     <string name="ui_create_ssai_test_ad_86df4d" formatted="false">Create SSAI test ad</string>
     <string name="ui_send_message_to_custom_web_ui_8ad236" formatted="false">Send message to custom Web UI</string>
     <string name="ui_use_one_field_value_per_line_text_artist_albumtitle__ae8760" formatted="false">Use one field=value per line. Text: artist, albumTitle, albumArtist, displayTitle, subtitle, writer, author, composer, conductor, genre, compilation, station. Integers: duration (milliseconds), trackNumber, totalTrackCount, recordingYear/Month/Day, releaseYear/Month/Day, discNumber, totalDiscCount. Booleans: isBrowsable, isPlayable. mediaType uses MediaMetadata.MediaType (for example Movie or Video). userRating/overallRating use Heart:true, Thumb:false, Percentage:75 or Star:5:4.5. null clears a value. Apply reloads Source with MediaSessionSourceConfig.Enabled; enable the host media session in SDK API controls to publish it to Android.</string>
+    <string name="ui_refresh_to_read_playback_state_70529a" formatted="false">Refresh to read playback state.</string>
+    <string name="ui_this_app_session_f2e572" formatted="false">This app session</string>
+    <string name="ui_value_at_last_refresh_2a507a" formatted="false">Value at last refresh</string>
+    <string name="ui_last_moveviewingdirection_input_50cfbc" formatted="false">Last moveViewingDirection input</string>
+    <string name="ui_requires_an_active_ad_or_selected_ssai_object_9c7f63" formatted="false">Requires an active ad or selected SSAI object.</string>
+    <string name="ui_view_ui_events_only_use_events_for_playback_and_so_2509aa" formatted="false">View UI events only. Use Events for playback and source events.</string>
+    <string name="ui_time_seconds_start_0_end_0_null_uses_the_source_de_52718c" formatted="false">time: seconds; Start &gt;= 0, End &lt;= 0. null uses the source default.</string>
+    <string name="ui_replaces_playerview_disable_the_renderer_to_restor_ea39a9" formatted="false">Replaces PlayerView. Disable the renderer to restore it.</string>
+    <string name="ui_applied_values_only_keys_use_placeholders_a0b090" formatted="false">Applied values only. Keys use placeholders.</string>
+    <string name="ui_apply_to_fresh_sdk_configuration_objects_fecd98" formatted="false">Apply to fresh SDK configuration objects.</string>
+    <string name="ui_http_or_https_url_3730a0" formatted="false">HTTP or HTTPS URL.</string>
+    <string name="ui_blank_uses_the_sdk_default_start_positive_seconds__9ab778" formatted="false">Blank uses the SDK default. Start: positive seconds; End: negative seconds.</string>
+    <string name="ui_live_only_blank_uses_sdk_defaults_0fb449" formatted="false">Live only. Blank uses SDK defaults.</string>
+    <string name="ui_blank_inherits_player_priority_example_de_en_33c3b8" formatted="false">Blank inherits player priority. Example: de, en.</string>
+    <string name="ui_track_metadata_only_enable_subtitles_in_the_player_112647" formatted="false">Track metadata only. Enable subtitles in the player menu.</string>
+    <string name="ui_reloads_using_the_matching_legacy_mediasource_8bbbd5" formatted="false">Reloads using the matching legacy MediaSource.</string>
+    <string name="ui_language_codes_in_priority_order_example_de_en_622f4b" formatted="false">Language codes in priority order. Example: de, en.</string>
+    <string name="ui_blank_removes_the_automatic_bitrate_cap_df7bdc" formatted="false">Blank removes the automatic bitrate cap.</string>
+    <string name="ui_seconds_e_g_0_0_25_2_none_disables_retries_9b4f19" formatted="false">Seconds, e.g. 0, 0.25, 2; none disables retries.</string>
+    <string name="ui_reloads_this_source_fb7833" formatted="false">Reloads this source.</string>
+    <string name="ui_restarts_player_and_source_b1a880" formatted="false">Restarts player and source.</string>
+    <string name="ui_requires_a_live_window_and_sdk_time_shifting_81e0a9" formatted="false">Requires a live window and SDK time shifting.</string>
+    <string name="ui_vod_source_live_controls_unavailable_3c6669" formatted="false">VOD source. Live controls unavailable.</string>
+    <string name="ui_load_a_live_source_to_use_these_controls_cee19d" formatted="false">Load a live source to use these controls.</string>
+    <string name="ui_vod_only_release_keeps_files_delete_all_removes_th_4bfe1e" formatted="false">VOD only. Release keeps files; Delete all removes them.</string>
+    <string name="ui_requires_existing_cache_and_track_metadata_for_man_20fc96" formatted="false">Requires existing cache and track metadata. For managed downloads, use Play downloaded source.</string>
+    <string name="ui_process_submits_all_selected_track_actions_aa6002" formatted="false">Process submits all selected track actions.</string>
+    <string name="ui_blank_build_key_disables_collection_check_received_45d354" formatted="false">Blank build key disables collection. Check received sessions in Bitmovin Dashboard.</string>
+    <string name="ui_input_code_message_severity_originalerrortype_retu_ae74d7" formatted="false">input: {code, message, severity, originalErrorType}. Return a partial error or null.</string>
+    <string name="ui_uses_staged_runtime_source_metadata_verify_deliver_4d58d9" formatted="false">Uses staged runtime/source metadata. Verify delivery in Bitmovin Dashboard.</string>
+    <string name="ui_stage_then_apply_or_run_the_matching_action_bd1fa5" formatted="false">Stage, then Apply or run the matching action.</string>
 </resources>

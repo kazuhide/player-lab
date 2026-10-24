@@ -134,7 +134,7 @@
         [
           "Buffer target",
           "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration",
-          "Try 10 seconds on the same source. A buffer target is media held ahead, not a guaranteed startup time or actual memory measurement. Blank omits the override; zero is an automatic-duration choice only on iOS in this form."
+          "Try 10 seconds on the same source. Blank uses the SDK default: 0 for automatic selection on iOS and 50 seconds on Android. Android requires a positive value in this form. The target is buffered media ahead, not a guaranteed startup time or actual memory measurement."
         ],
         [
           "Adaptive bitrate cap",
@@ -176,16 +176,24 @@
     },
     {
       "type": "p",
-      "text": "The source above uses the wrapper’s url/type shape, unlike Vega’s hls/dash/progressive keys. Start offsets are in seconds. Maximum bitrate must be a whole number: Android accepts up to 2,147,483,647 and iOS up to JavaScript’s safe integer limit. This validation avoids integer conversion or precision loss before values cross the native bridge."
+      "text": "The source above uses the wrapper’s url/type shape, unlike Vega’s hls/dash/progressive keys. Start offsets are in seconds. Maximum bitrate must be a positive whole number: up to 2,147,483,647 on Android and 9,007,199,254,740,991 on iOS, JavaScript’s exact-integer limit. Validation avoids integer conversion or precision loss before values cross the native bridge."
     },
     {
       "type": "steps",
       "items": [
         "Open Settings, change the basic inputs and select Apply configuration. The whole draft is validated before replacing the Player. A source-only form edit also recreates it and resets the position to the configured offset.",
-        "For another setting, search its exact wrapper path in SDK overrides. For arrays use Subtitle lists and advertising; for functions use JavaScript callbacks and native UI handlers. A text field cannot stand in for a required native SDK object.",
+        "For another setting, search its exact wrapper path in SDK overrides. For arrays use Subtitles and ads; for functions use JavaScript callbacks. A text field cannot stand in for a required native SDK object.",
         "Open Code after Apply. Advanced settings override the basic form; removing the advanced value restores the form value or SDK default. Reset draft only discards pending edits.",
         "When editing the implementation itself, keep the validated player/source objects separate. App increments revision on Apply; its React key remounts the Player owner because changing an argument to the existing usePlayer call is not a reconfiguration API."
       ]
+    },
+    {
+      "type": "p",
+      "text": "Additional overrides are passed to their typed SDK fields after the basic form. Remove an override and Apply to restore the form value or SDK default. List inputs use one item per line; map inputs use unique name=value pairs. Source and offline subtitle lists are independent, and an enabled empty list clears that array. A subtitle language uses an IETF tag such as en-US. Fallback advertising sources must use the same ad type; a supported native ad integration and a valid tag remain prerequisites. Player.scheduleAd can schedule an item from the applied advertising list."
+    },
+    {
+      "type": "p",
+      "text": "License fields start empty and do not display environment values. Analytics metadata still needs an Analytics license. A nativeId reuses the native instance with that ID; leave it unset unless reuse is intended. The native SDK validates value, platform and source support, and an option for one OS may have no effect on the other. Offline configuration is consumed by its corresponding API operations. Cast receiver options have a separate process-startup path."
     },
     {
       "type": "h3",
@@ -211,6 +219,10 @@
       "type": "figure",
       "file": "rn-ios-code",
       "caption": "Applied configuration on React Native iOS. Compare this output after Apply; it is not a live dump of every internal native SDK default."
+    },
+    {
+      "type": "p",
+      "text": "The callbacks editor accepts JavaScript function bodies rather than JSON. Enable execution and Apply to install edited functions. Handler factories run on Apply and player recreation; SDK callbacks run when the SDK invokes them. Selecting a source preset with configured callbacks also recreates the Player. Code runs inside this app without a sandbox. Network callbacks may return a Promise, while synchronous callbacks must return synchronously. Return values are checked against the selected contract and DRM callbacks require their license URL."
     },
     {
       "type": "h2",
@@ -348,7 +360,7 @@
     },
     {
       "type": "p",
-      "text": "APIs runs actual wrapper calls and displays their returned values. Many reads cross the native bridge and return Promises, so await the value before using it in a UI. Player events provides payload summaries separately. For a setter, compare the corresponding getter or completion event; the call returning does not establish that an unrelated feature worked. onTimeChanged also refreshes the app’s live-window snapshot because this wrapper does not expose onDurationChanged."
+      "text": "APIs runs actual wrapper calls and displays their returned values without translating SDK data. Many reads cross the native bridge and return Promises, so await the value before using it in a UI. A void result records dispatch by the wrapper; it does not establish playback or completion of an unrelated feature. Compare the corresponding getter or matching event for a setter. Player events provides bounded payload summaries, redacts credential fields and ignores retired session callbacks. onTimeChanged also refreshes the app’s live-window snapshot because this wrapper does not expose onDurationChanged."
     },
     {
       "type": "figure",
@@ -364,13 +376,14 @@
       "type": "steps",
       "items": [
         "For native system features, inspect the available PlayerView and Player configuration first. Picture in picture and background playback need the generated host’s native capabilities; AirPlay is an Apple feature. Enabling a flag does not create missing OS permissions, receiver hardware or content support.",
-        "For Cast, save the startup options in Cast startup configuration and fully close/reopen the app. Read native Cast startup state before attempting discovery and receiver playback. Wrapper 1.29’s deprecated BitmovinCastManager.initialize is a no-op; Player recreation or a JavaScript reload does not replace native process startup."
+        "For Cast, save the startup options in Cast startup configuration and fully close/reopen the app. Read native Cast startup state before attempting discovery and receiver playback. Wrapper 1.29’s deprecated BitmovinCastManager.initialize is a no-op; Player recreation or a JavaScript reload does not replace native process startup.",
+        "Save Cast options for next launch persists the current draft independently from Apply. Blank receiver and namespace values use the Bitmovin defaults. The generated native host initializes Cast before the wrapper’s lifecycle listener. Startup options and native initialization state are reported separately; an initialized sender does not establish receiver discovery, connection or playback. Fully close and reopen the app after saving."
       ]
     },
     {
       "type": "note",
       "title": "Offline playback",
-      "text": "Use the separate OfflineContentConfig and subtitle list with a stable content identifier. Initialize the manager, obtain options and inspect onOptionsAvailable before starting the selected download. onCompleted reports completion; Player.loadOfflineContent loads the stored asset. Cancellation, deletion and license operations affect the selected identifier. Storage, downloadable media and DRM rights remain prerequisites."
+      "text": "Use the separate OfflineContentConfig and subtitle list with a stable content identifier. Initialize the manager, obtain options and inspect onOptionsAvailable before starting the selected download. onCompleted reports completion; Player.loadOfflineContent loads the stored asset. Cancellation, deletion and license operations affect the selected identifier. Storage, downloadable media and DRM rights remain prerequisites. OfflineContentManager.addListener replaces the current offline listener. A nonempty edited body requires explicit permission before Run and executes on future matching SDK events inside this app without a sandbox; its inputs include event, name and lab.getPlayer()/getSource()."
     },
     {
       "type": "h2",
@@ -423,7 +436,7 @@
         ],
         [
           "Why is some help hidden while I type?",
-          "The compact Source and Player editors hide explanations until editing ends to reserve room for the focused field and fixed actions. On iOS, the operating system may finish scrolling to the field after the layout changes. Removing excess scrollable help in this state prevents that delayed scroll from moving the field above the editor. Structured settings, arrays, and callback editors retain their scrollable content."
+          "The compact Source and Player editors hide explanations until editing ends to reserve room for the focused field and fixed actions. On Android, native focus scrolling can reveal the caret while leaving the bottom of the field outside a shortened editor. These compact editors also scroll to the end after layout or content-size changes, revealing the whole field without a drag that would dismiss the keyboard. On iOS, the operating system may finish scrolling to the field after the layout changes. Removing excess scrollable help in this state prevents that delayed scroll from moving the field above the editor. Structured settings, arrays, and callback editors retain their scrollable content."
         ],
         [
           "How does selecting a setting reveal the start of its editor?",
@@ -432,6 +445,14 @@
         [
           "Why do settings reset after changing Android's system text size?",
           "When a system font change recreates the Activity, the component that manages an Android screen, the application's screen session also restarts. This sample retains configuration for the current session, so select the source and settings again after the host restarts. Save the applied code beforehand if you need to restore it. Changing the language or tabs inside Player Lab retains the session and draft values."
+        ],
+        [
+          "Which objects can callback code use?",
+          "lab.getPlayer(), lab.getSource(), lab.setFullscreen(boolean), lab.Source, lab.CustomUi and lab.CustomMessageHandler expose current public SDK objects or app helpers. No environment or account API values are supplied. Fullscreen factories return isFullscreenActive, enterFullscreen and exitFullscreen; custom-message factories return a real lab.CustomMessageHandler instance. Use lab accessors so a retired Player cannot be called. The decoder’s context argument is the SDK DecoderContext, separate from lab."
+        ],
+        [
+          "What does WebUiConfig.variant expect?",
+          "Enter the name of a factory provided by the configured Web UI JavaScript file. The app creates a CustomUi instance from that name. It is not a URL, and accepting a name does not add a factory absent from the configured file."
         ]
       ],
       "widths": [

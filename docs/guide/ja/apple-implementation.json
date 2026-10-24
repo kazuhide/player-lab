@@ -217,6 +217,62 @@
       "summary": "iOS・iPadOSのWeb UIリソース、ネイティブの表示先と映像の拡大方法、tvOSのSystem UIを変更する方法を説明します。"
     },
     {
+      "type": "h3",
+      "id": "platform-ui",
+      "text": "プラットフォーム別のUI実装"
+    },
+    {
+      "type": "p",
+      "text": "iOS／iPadOSとtvOSはContentView、ControlPanel、設定・APIの画面をSwiftUIで共有しています。映像上のPlayer操作UIはSDKが描画します。iOSでSDKのWeb UIを選んでも、周囲の設定画面はSwiftUIのままです。UIKitのビューやビューコントローラーをSwiftUIに組み込む部分と、Bitmovin Playerを生成・保持する部分を分けて実装します。"
+    },
+    {
+      "type": "table",
+      "headers": [
+        "実装の層",
+        "iOS／iPadOS",
+        "tvOS"
+      ],
+      "rows": [
+        [
+          "映像上の操作UI",
+          "既定はBitmovin Web UI。共有JavaScript／CSSとUIFactoryの名前でThemeを組み立てます。StyleConfigの追加設定にはSystem／Subtitleもあります。",
+          "System UIを使い、共有Web UIリソースはターゲットに含めません。SystemUserInterfaceConfigとSystemUiApiでネイティブメニューや操作を設定します。"
+        ],
+        [
+          "選択とテキスト入力",
+          "タッチ用メニュー／popoverとソフトウェアキーボード。WorkspaceChoiceが選択値とアクセシビリティ名を保持します。",
+          "フォーカス可能なButton、検索欄付きの選択シート、システムキーボード。方向キーと決定（Select）で操作します。"
+        ],
+        [
+          "配置",
+          "AnyLayoutが縦並び／横並びを切り替え、キーボードや大きな文字に合わせてプレビューを縮めます。判定にはウィンドウの向きと利用可能な幅を使います。",
+          "プレビューとワークスペースを横に配置します。固定タブとfocusSectionで移動先をまとめます。"
+        ],
+        [
+          "Back/Menuと再生操作",
+          "タッチでタブを切り替えます。キーボードの完了ボタンで編集中の入力を閉じます。",
+          "編集領域のonExitCommandがFocusStateを現在のタブへ戻します。タブ上のBack/MenuはOSの挙動を保ち、onPlayPauseCommandが再生を切り替えます。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "NativePresentationSurfaceは両ターゲットでSDKのVideoPlayerView、そのバインディング付きビュー、PlayerView、AVPlayerLayer、AVPlayerViewControllerを切り替えます。VideoPlayerViewはBitmovin SDKが提供するSwiftUIの映像表示ビューです。UIKit／AVKitの表示先はUIViewRepresentable／UIViewControllerRepresentableを介して、同じBitmovin Playerへ登録します。SwiftUIの再描画や配置変更だけでPlayerを作り直さず、レイヤーやコントローラーを外すときも登録時と同じPlayerを対象にします。"
+    },
+    {
+      "type": "h3",
+      "id": "workspace-appearance",
+      "text": "ワークスペースの外観とフォーカス"
+    },
+    {
+      "type": "p",
+      "text": "アプリの背景とPlayerのThemeは独立しています。Color.workspaceBackgroundはiOS／iPadOSのsystemGroupedBackground、tvOSのライト／ダークに対応した不透明な中立色を使います。背景だけをsafe areaの外まで延ばし、操作領域のOS余白は維持します。固定のpreferredColorSchemeは設定しません。ガイド画像は端末のライト外観で撮影条件を揃えています。tvOSの選択sheetはisFocusedを読んで文字色を調整し、ネイティブButtonのフォーカス強調と方向キー移動は保ちます。Light／Darkの両方で、フォーカス中と非フォーカスの選択肢を確認してください。"
+    },
+    {
+      "type": "p",
+      "text": "ワークスペースの短いヒントは単位、入力例、直ちに起こる再読み込みを示します。設定の詳細、非同期完了の確認、オフライン／Cast／SharePlayの前提条件は画面操作ガイドへ移しています。APIの生の識別子、引数、返り値、所有者、エラーはそのまま表示します。"
+    },
+    {
       "type": "table",
       "headers": [
         "変更したいもの",
@@ -728,6 +784,26 @@
     {
       "path": "apps/ios/Showcase/NativeWorkspace.swift",
       "label": "適用済みコードと補助機能の画面"
+    },
+    {
+      "url": "https://developer.apple.com/design/human-interface-guidelines/dark-mode",
+      "label": "Apple: Light and Dark appearance"
+    },
+    {
+      "url": "https://developer.apple.com/documentation/swiftui/environmentvalues/isfocused",
+      "label": "Apple: focused ancestor in SwiftUI"
+    },
+    {
+      "url": "https://developer.apple.com/videos/play/wwdc2020/10042/",
+      "label": "Apple: SwiftUI, focus and buttons on tvOS"
+    },
+    {
+      "url": "https://support.apple.com/guide/tv/atvb46af4f11/tvos",
+      "label": "Apple TV: system appearance settings"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerview/index.html",
+      "label": "Bitmovin: PlayerView, System UI and native registration"
     }
   ]
 }

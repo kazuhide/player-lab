@@ -344,7 +344,7 @@
     },
     {
       "path": "apps/android/README.md",
-      "line": 127,
+      "line": 142,
       "label": "Androidの言語・字幕・再試行設定"
     },
     {
@@ -364,7 +364,7 @@
     },
     {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/ConfigurationPanel.kt",
-      "line": 51,
+      "line": 52,
       "label": "Androidのソース・プレイヤー設定とリセットの違い"
     },
     {

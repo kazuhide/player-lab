@@ -36,6 +36,27 @@ function configField(page: Page, label: RegExp) {
   });
 }
 
+test("@public released UI managers ignore SDK events already being delivered", async ({ page }, testInfo) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await captureAppPlayer(page);
+  await expectDecodedPlayback(page);
+  const module = `/@fs/${resolve(testInfo.project.testDir, "../../../packages/ui-shared/test/browser-ui-lifecycle.ts")}`;
+  const results = await page.evaluate(async url => {
+    const { inspectQueuedUiEvents } = await import(/* @vite-ignore */ url);
+    return inspectQueuedUiEvents(window.player!);
+  }, module);
+  expect(results).toHaveLength(3);
+  for (const result of results) {
+    expect(result.replaced, result.event).toBe(true);
+    expect(result.detachedDuringEvent, result.event).toBe(true);
+    expect(result.oldRootReconnected, result.event).toBe(false);
+    expect(result.remainingRoots, result.event).toBe(1);
+  }
+  await expectDecodedPlayback(page);
+  expect(errors).toEqual([]);
+});
+
 test("@public live wall-clock text becomes hidden when the source becomes VOD", async ({ page }, testInfo) => {
   await captureAppPlayer(page);
   await page.getByRole("button", { name: "English", exact: true }).click();
@@ -198,7 +219,19 @@ for (const language of ["en", "ja"] as const) {
       expect(applied).toStrictEqual({ metadata: {
         recommendations: [{ title: "VOD DASH (Big Buck Bunny)", resource: {
           dash: "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd", title: "VOD DASH (Big Buck Bunny)",
-        } }],
+        } }, ...(process.env.E2E_MEDIA_DIR ? [{
+          title: "VOD HLS + multi-audio (en/de)", resource: {
+            hls: `http://localhost:${process.env.E2E_MEDIA_PORT ?? "5180"}/vod-multiaudio/master.m3u8`,
+            title: "VOD HLS + multi-audio (en/de)",
+          },
+        }, {
+          title: "VOD HLS + sideloaded WebVTT subtitles (en)", resource: {
+            hls: "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+            title: "VOD HLS + sideloaded WebVTT subtitles (en)",
+            subtitleTracks: [{ id: "sub-en", kind: "subtitle", label: "English", lang: "en",
+              url: `http://localhost:${process.env.E2E_MEDIA_PORT ?? "5180"}/assets/sintel_en.vtt` }],
+          },
+        }] : [])],
         markers: [{ time: 120, title: "Chapter 1" }, { time: 360, title: "Chapter 2" }, { time: 600, title: "Chapter 3" }],
       } });
       const diffBottom = await construction.locator(".theme-diff").evaluate((el) => el.getBoundingClientRect().bottom);
@@ -557,7 +590,7 @@ test.describe("Web app UI", () => {
       const el = Array.from(document.querySelectorAll(".theme-btn")).find((b) => b.classList.contains("active"));
       return el ? getComputedStyle(el).backgroundColor : null;
     });
-    expect(activeBg).toBe("rgb(43, 108, 255)");
+    expect(activeBg).toBe("rgb(32, 84, 216)");
 
     // → Glass (Default UI + CSS): another CSS-only re-skin of the Default tree → glass class, still no LIVE button.
     await page.getByRole("button", { name: "Glass", exact: true }).click();
@@ -824,6 +857,11 @@ test.describe("Web app UI", () => {
     const diff = page.locator("#ui-construction .theme-diff");
     // Default theme is Live (DVR) → added components, built from the default (Japanese UI).
     await expect(diff).toContainText("ベース:");
+    const comparison = diff.locator(".theme-comparison");
+    await expect(comparison).not.toHaveAttribute("open", "");
+    await comparison.locator("summary").focus();
+    await comparison.locator("summary").press("Enter");
+    await expect(comparison).toHaveAttribute("open", "");
     await expect(diff).toContainText("QuickSeekButton");
     // The construction code shows HOW it's built — the real component tree + source file.
     await expect(diff).toContainText("構築コード");
@@ -839,7 +877,7 @@ test.describe("Web app UI", () => {
     // Neon → a CSS-only reskin, zero component changes; construction shows the class + CSS.
     await page.getByRole("button", { name: "Neon", exact: true }).click();
     await expect(diff).toContainText("ui-skin-neon");
-    await expect(diff).toContainText("コンポーネント変更ゼロ");
+    await expect(diff.locator(".theme-diff-base")).toContainText("Default (Bitmovin)");
     await expect(diff.locator(".theme-diff-code")).toContainText("extraCssClasses");
 
     // Premiere → a different composition; construction shows the new components + factory.
@@ -849,7 +887,8 @@ test.describe("Web app UI", () => {
 
     // The stock theme is the baseline.
     await page.getByRole("button", { name: "Default (Bitmovin)", exact: true }).click();
-    await expect(diff).toContainText("基準");
+    await expect(diff.locator(".theme-diff-title")).toHaveText("Default (Bitmovin)");
+    await expect(diff.locator(".theme-comparison")).toHaveCount(0);
   });
 
   test("the stage height stays constant across themes (panel pinned to player height)", async ({ page }) => {
@@ -938,7 +977,6 @@ test.describe("Web app UI", () => {
     await expect(uiSettings.locator('input[type="checkbox"]')).toHaveCount(13);
     await expect(uiSettings.locator('input[type="number"]')).toHaveCount(2);
     await expect(uiSettings.locator('input[type="text"]')).toHaveCount(1);
-    await expect(uiSettings.locator(".panel-subnote")).toHaveCount(1);
     // Every setting carries guidance: 13 toggles, 2 numbers and the language input.
     await expect(uiSettings.locator(".info-chip")).toHaveCount(16);
     // SDK defaults: scrub-preview + speed-item + snapping on, keep-on-hover off.
@@ -970,7 +1008,7 @@ test.describe("Web app UI", () => {
     await expect(telemetry.locator("h2", { hasText: "DVR" })).toHaveCount(0);
     // The QoE card carries a "?" chip clarifying it's measured client-side in real time
     // (not the Bitmovin Analytics query API, which is a server-side call).
-    const qoeChip = telemetry.locator(".panel-section", { hasText: "QoE" }).locator(".info-chip");
+    const qoeChip = telemetry.locator(".panel-section").filter({ has: page.locator(".metrics-qoe") }).locator(".info-chip");
     await expect(qoeChip).toHaveCount(1);
     await expect(qoeChip).toHaveAttribute("data-info-en", /client-side/i);
     await expect(qoeChip).toHaveAttribute("data-info-ja", /リアルタイム計測/);
@@ -1385,22 +1423,21 @@ test.describe("Web app UI", () => {
     // Default Japanese.
     await expect(page.locator("html")).toHaveAttribute("lang", "ja");
     await expect(page.locator(".ui-theme-bar-label")).toHaveText("UI テーマ");
-    await expect(page.locator(".ui-guide-head h2")).toHaveText("UI はどうカスタムするか");
+    await expect(page.locator(".ui-guide-head h2")).toHaveText("UIの実装ガイド");
     // The control panel's own labels are bilingual too (a section title + a setting label).
-    await expect(page.locator("#control-panel h2", { hasText: "再生" })).toBeVisible();
+    await expect(page.locator("#control-panel").getByRole("heading", { name: "再生", exact: true })).toBeVisible();
     await expect(page.getByRole("checkbox", { name: "シーク中のプレビュー" })).toBeVisible();
     // Switch to English → prose across chrome, guide, the config panel AND the control panel updates.
     await page.getByRole("button", { name: "English", exact: true }).click();
     await expect(page.getByRole("button", { name: "English", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     await expect(page.locator(".ui-theme-bar-label")).toHaveText("UI theme");
-    await expect(page.locator(".ui-guide-head h2")).toHaveText("How to customize the UI");
-    await expect(page.locator(".config-band-dynamic .config-band-head")).toContainText("Dynamic");
+    await expect(page.locator(".ui-guide-head h2")).toHaveText("UI implementation guide");
+    await expect(page.locator(".config-band-dynamic .config-band-head")).toHaveText("Playback and source settings");
     // The control panel re-localized in place (it doesn't re-mount — preserves its live log).
-    await expect(page.locator("#control-panel h2", { hasText: "Playback" })).toBeVisible();
+    await expect(page.locator("#control-panel").getByRole("heading", { name: "Playback", exact: true })).toBeVisible();
     await expect(page.getByRole("checkbox", { name: "Seek scrub-preview" })).toBeVisible();
-    // Sample-code comments are localized too: no Japanese (kana/kanji) remains in the
-    // English construction snippet (guards the localizeCode comment map going stale).
+    // Code comments stay in English in either interface language.
     const cjkInCode = await page.evaluate(() => {
       const t = document.querySelector("#ui-construction .theme-diff-code")?.textContent ?? "";
       return /[぀-ヿ一-龯]/.test(t);
@@ -1529,7 +1566,10 @@ test.describe("Web app UI", () => {
   });
 
   test("the config panel exposes low-latency catchup + fallback runtime config", async ({ page }) => {
-    await page.goto(`${APP}/`);
+    await captureAppPlayer(page);
+    await expectDecodedPlayback(page);
+    expect(await page.evaluate(() => window.player!.isLive())).toBe(false);
+    const instance = await page.evaluateHandle(() => window.player!);
     await page.evaluate(() =>
       document.querySelectorAll("#config-panel details").forEach((d) => ((d as HTMLDetailsElement).open = true)),
     );
@@ -1546,15 +1586,22 @@ test.describe("Web app UI", () => {
     ]) {
       await expect(llGroup).toContainText(label);
     }
-    // Editing a catchup field on a normal (non-low-latency) stream is a no-op — the read-merge-write
-    // via player.lowlatency.getCatchupConfig() throws and is caught — so it must not crash the app.
+    // Wait for initialization before exercising the setter. A value stored by the
+    // SDK on VOD does not establish a live-latency effect.
     const seek = llGroup
       .locator(".config-field", { hasText: "catchup: seekThreshold" })
       .locator('input[type="number"]');
-    await seek.fill("10");
-    await seek.blur();
-    await expect(seek).toHaveValue("10");
-    await expect(page.locator("video")).toHaveCount(1);
+    try {
+      const initialThreshold = await page.evaluate(() => window.player!.lowlatency.getCatchupConfig()?.seekThreshold);
+      const targetThreshold = initialThreshold === 10 ? 11 : 10;
+      await seek.fill(String(targetThreshold));
+      await seek.blur();
+      await expect(seek).toHaveValue(String(targetThreshold));
+      expect(await page.evaluate(() => window.player!.lowlatency.getCatchupConfig().seekThreshold)).toBe(targetThreshold);
+      expect(await instance.evaluate(instance => instance === window.player)).toBe(true);
+      await expect(page.locator("video")).toHaveCount(1);
+      await expectDecodedPlayback(page);
+    } finally { await instance.dispose(); }
   });
 
   test("app button styles don't leak onto the player (play overlay stays transparent)", async ({ page }) => {

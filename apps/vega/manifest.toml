@@ -47,5 +47,7 @@ id = "com.amazon.audio.control"
 id = "com.amazon.media.server"
 [[wants.service]]
 id = "com.amazon.media.playersession.service"
+[[wants.service]]
+id = "com.amazon.inputmethod.service"
 [[wants.privilege]]
 id = "com.amazon.devconf.privilege.accessibility"

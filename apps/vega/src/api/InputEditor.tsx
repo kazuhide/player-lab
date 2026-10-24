@@ -7,7 +7,10 @@ import { parameterNames, ResourcePool } from "./materialize";
 
 export function Action({ title, onPress, disabled = false, verbatim = false }: { title: string; onPress: () => void; disabled?: boolean; verbatim?: boolean }): React.JSX.Element {
   const [focused, setFocused] = useState(false);
-  return <Pressable verbatim={verbatim} accessibilityRole="button" accessibilityLabel={title} disabled={disabled} focusable={!disabled} accessibilityState={{ disabled }} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onPress={onPress} style={[styles.button, focused ? styles.focused : null, disabled ? styles.disabled : null]}>
+  return <Pressable verbatim={verbatim} accessibilityRole="button" accessibilityLabel={title} disabled={disabled} focusable={!disabled} accessibilityState={{ disabled }}
+    onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onPress={() => { if (!disabled) onPress(); }}
+    style={[styles.button, focused && !disabled ? styles.focused : null, disabled ? styles.disabled : null,
+      focused ? { borderColor: "#ffffff" } : null]}>
     <Text verbatim={verbatim} style={styles.buttonText}>{title}</Text>
   </Pressable>;
 }
@@ -134,12 +137,11 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
         <Text style={styles.help}>Using current callback instance {value.id}. This preserves the identity needed by off.</Text>
         <Action title="Edit a new SDK callback" onPress={() => onChange(new CallbackInput("return undefined;", signatures[0]!, false, promises(catalog, signatures[0]!.returns)))} />
       </> : <>
-      <Text style={styles.help}>JavaScript function body. It runs in this app when the SDK calls it. It is not sandboxed. Editing the text does not run it. Explicit permission and Apply or Run are required.</Text>
+      <Text style={styles.warning}>JavaScript runs in this app without a sandbox when the SDK calls it. Enable permission, then Apply or Run. Editing alone does not run code.</Text>
       {signatures.length > 1 && <View style={styles.row}>{signatures.map((signature, index) => <Action key={index} title={`Callback signature ${index + 1}`} disabled={callback.signature === signature} onPress={() => onChange(new CallbackInput(callback.body, signature, false, promises(catalog, signature.returns)))} />)}</View>}
       <Text verbatim style={styles.text}>{parameterNames(callback.signature).map((name, i) => name + ": " + catalog.nodes[callback.signature.parameters[i]!.schema]!.label).join(", ")} → {catalog.nodes[callback.signature.returns]!.label}</Text>
       {input("SDK callback JavaScript body", callback.body, (body) => onChange(new CallbackInput(body, callback.signature, callback.approved, callback.asynchronous)), true)}
       <View style={styles.row}><Text style={styles.text}>Allow this callback</Text><Switch focusable style={styles.toggle} accessibilityLabel="Allow this SDK callback" value={callback.approved} onValueChange={(approved) => onChange(new CallbackInput(callback.body, callback.signature, approved, callback.asynchronous))} /></View>
-      <Text style={styles.help}>lab.getPlayer() and lab.getSource() refer to the current session. Return the published SDK type. Native objects must come from a real SDK API; plain JSON does not create them. Callback outcomes are logged without request payloads.</Text>
       </>}
     </View>;
   }
@@ -151,7 +153,7 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
     </View>;
   }
   if (schema.kind === "instance") return <View style={styles.section}>
-    <Text style={styles.help}>Required instance: <Text verbatim>{schema.label}</Text>. Select an actual value returned by the current SDK. Browser DOM objects and browser-only integrations are unavailable on Vega.</Text>
+    <Text style={styles.help}>Required instance: <Text verbatim>{schema.label}</Text></Text>
     {resources.list(schema).map((resource) => <Action key={resource.id} verbatim title={resource.label} disabled={value instanceof ResourceInput && value.id === resource.id} onPress={() => onChange(new ResourceInput(resource.id))} />)}
     {!resources.list(schema).length && <Text style={styles.help}>No compatible current SDK instance is available. Run the corresponding query first. An object literal cannot satisfy this instance contract.</Text>}
   </View>;
@@ -166,13 +168,13 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
     const enriched: ApiSchema = { ...catalog, nodes: { ...catalog.nodes, [synthetic]: unknown, "editor-rest": { kind: "array", label: "unknown[]", item: id } } };
     const expression = value instanceof ExpressionInput ? value : new ExpressionInput("return undefined;", false);
     return <View style={styles.section}>
-      <Text style={styles.help}>The SDK declares this value as <Text verbatim>{schema.label}</Text>. Choose the actual value type. Its meaning depends on this SDK option; accepting a value does not prove a feature has an effect.</Text>
+      <Text verbatim style={styles.text}>{schema.label}</Text>
       <View style={styles.row}>{types.map((kind) => <Action key={kind} verbatim title={kind} disabled={unknownKind === kind} onPress={() => {
         setUnknownKind(kind);
         onChange(kind === "factory" ? new ExpressionInput("return undefined;", false) : kind === "resource" ? undefined : initialValue({ ...enriched, nodes: { ...enriched.nodes, [synthetic]: { ...unknown, kind } } }, synthetic));
       }} />)}</View>
       {unknownKind === "factory" ? <>
-        <Text style={styles.help}>JavaScript value factory. It executes on explicit Apply or Run and on recreation of the approved session. Return an actual value or SDK object. Code runs in this app without a sandbox.</Text>
+        <Text style={styles.warning}>Approved JavaScript runs in this app without a sandbox on Apply, Run and session recreation.</Text>
         {input("SDK value factory JavaScript body", expression.body, (body) => onChange(new ExpressionInput(body, expression.approved)), true)}
         <View style={styles.row}><Text style={styles.text}>Allow this value factory</Text><Switch focusable style={styles.toggle} accessibilityLabel="Allow this SDK value factory" value={expression.approved} onValueChange={(approved) => onChange(new ExpressionInput(expression.body, approved))} /></View>
       </> : unknownKind === "resource" ? <View style={styles.row}>{resources.list(schema).map((resource) => <Action key={resource.id} verbatim title={resource.label} onPress={() => onChange(new ResourceInput(resource.id))} />)}</View> : <InputEditor key={unknownKind} catalog={enriched} schema={synthetic} value={value} onChange={onChange} resources={resources} level={level + 1} />}
@@ -191,16 +193,20 @@ export function ArgumentsEditor({ catalog, signature, values, onChange, resource
 }
 
 export const styles = StyleSheet.create({
-  panel: { gap: 8, padding: 12, borderTopWidth: 1, borderTopColor: "#555555", backgroundColor: "#111111" },
-  section: { gap: 8, marginVertical: 8 }, row: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
-  text: { color: "#dddddd", fontSize: 14 }, help: { color: "#dddddd", fontSize: 12 },
-  heading: { color: "#ffffff", fontWeight: "600", fontSize: 14 },
-  button: { paddingHorizontal: 8, paddingVertical: 8, backgroundColor: "#2196f3", borderColor: "#2196f3", borderWidth: 1, borderRadius: 4 },
-  focused: { borderColor: "#ffffff", borderWidth: 3, backgroundColor: "#286d91" },
-  buttonText: { color: "#ffffff", fontSize: 14, fontWeight: "500" }, disabled: { opacity: 0.5 },
-  input: { color: "#ffffff", borderColor: "#888888", borderWidth: 1, padding: 8, borderRadius: 4, minHeight: 44, fontSize: 14 },
+  panel: { gap: 12, padding: 24, borderTopWidth: 1, borderTopColor: "#3a4b62", backgroundColor: "#101820" },
+  section: { gap: 12, marginVertical: 8 }, row: { flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "center" },
+  text: { color: "#d5e2f2", fontSize: 18 }, help: { color: "#b8c6d9", fontSize: 16, lineHeight: 22 },
+  label: { color: "#b8c6d9", fontSize: 16, fontWeight: "600" },
+  heading: { color: "#f4f7fb", fontWeight: "600", fontSize: 20 },
+  badge: { alignSelf: "flex-start", color: "#d5e2f2", backgroundColor: "#29374a", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, fontSize: 16 },
+  button: { minHeight: 48, justifyContent: "center", paddingHorizontal: 14, paddingVertical: 10, backgroundColor: "#005caf", borderColor: "#005caf", borderWidth: 2, borderRadius: 8 },
+  focused: { borderColor: "#ffffff", backgroundColor: "#1a6bb5" },
+  buttonText: { color: "#ffffff", fontSize: 18, fontWeight: "600" }, disabled: { backgroundColor: "#29374a", borderColor: "#4a5a70" },
+  input: { color: "#f4f7fb", backgroundColor: "#161f2c", borderColor: "#6f829a", borderWidth: 1, padding: 12, borderRadius: 8, minHeight: 52, fontSize: 18 },
   toggle: { width: 72, height: 36 },
-  code: { minHeight: 120, fontFamily: "monospace", fontSize: 12 },
-  codeText: { color: "#dddddd", fontFamily: "monospace", fontSize: 12 },
-  eventText: { color: "#33ff66", fontFamily: "monospace", fontSize: 12 },
+  code: { minHeight: 120, fontFamily: "monospace", fontSize: 16 },
+  codeText: { color: "#d5e2f2", backgroundColor: "#161f2c", borderRadius: 8, padding: 12, fontFamily: "monospace", fontSize: 14, lineHeight: 20 },
+  eventText: { color: "#d5e2f2", fontFamily: "monospace", fontSize: 14, lineHeight: 20 },
+  warning: { color: "#ffd7a3", fontSize: 16, lineHeight: 22 },
+  error: { color: "#ffb3b3" },
 });

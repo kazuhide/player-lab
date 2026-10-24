@@ -1,8 +1,15 @@
 package com.playerlab.android
 
+import android.content.res.Configuration
+import android.view.View
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -10,20 +17,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 private val workspaceColors = lightColorScheme(
     primary = Color(0xFF005CB9), onPrimary = Color.White,
@@ -41,12 +55,31 @@ private val workspaceColors = lightColorScheme(
 
 @Composable
 internal fun PlayerLabTheme(content: @Composable () -> Unit) {
+    val typography = if (workspaceTelevision()) Typography(
+        bodyLarge = MaterialTheme.typography.bodyLarge.copy(fontSize = 20.sp, lineHeight = 28.sp),
+        bodyMedium = MaterialTheme.typography.bodyMedium.copy(fontSize = 18.sp, lineHeight = 24.sp),
+        bodySmall = MaterialTheme.typography.bodySmall.copy(fontSize = 16.sp, lineHeight = 22.sp),
+        titleMedium = MaterialTheme.typography.titleMedium.copy(fontSize = 22.sp, lineHeight = 28.sp),
+        labelLarge = MaterialTheme.typography.labelLarge.copy(fontSize = 18.sp, lineHeight = 24.sp),
+        labelMedium = MaterialTheme.typography.labelMedium.copy(fontSize = 16.sp, lineHeight = 22.sp),
+        labelSmall = MaterialTheme.typography.labelSmall.copy(fontSize = 14.sp, lineHeight = 18.sp),
+    ) else Typography()
     MaterialTheme(colorScheme = workspaceColors,
+        typography = typography,
         shapes = Shapes(small = RoundedCornerShape(6.dp), medium = RoundedCornerShape(8.dp), large = RoundedCornerShape(12.dp)),
         content = content)
 }
 
+@Composable
+internal fun workspaceTelevision(): Boolean =
+    LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION
+
 internal enum class WorkspaceTab(val label: String) { Settings("Settings"), APIs("APIs"), Code("Code"), More("More") }
+
+internal val LocalWorkspaceSelectionChanged = staticCompositionLocalOf<() -> Unit> { {} }
+
+/** A field delegates completion only when its workspace accepts the field's window. */
+internal val LocalWorkspaceImeDone = staticCompositionLocalOf<(View) -> Boolean> { { false } }
 
 @Composable
 internal fun workspaceKeyboardEditing(): Boolean = WindowInsets.ime.getBottom(LocalDensity.current) > 0
@@ -63,15 +96,23 @@ internal fun WorkspaceNavigation(selected: WorkspaceTab, change: (WorkspaceTab) 
     Surface(tonalElevation = 2.dp) {
         Row(Modifier.fillMaxWidth().testTag("workspace-navigation")) {
             WorkspaceTab.entries.forEach { tab ->
+                var focused by remember { mutableStateOf(false) }
                 TextButton(onClick = { change(tab) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)
                     .testTag("workspace-${tab.name.lowercase()}")
+                    .onFocusChanged { focused = it.isFocused }
+                    .then(if (focused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary) else Modifier)
                     .semantics { this.selected = selected == tab },
                     shape = RoundedCornerShape(0.dp),
                     contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
                     colors = ButtonDefaults.textButtonColors(
+                        contentColor = if (selected == tab) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         containerColor = if (selected == tab) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)) {
-                    UiText(tab.label, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        fontWeight = if (selected == tab) FontWeight.SemiBold else FontWeight.Normal)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        UiText(tab.label, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            fontWeight = if (selected == tab) FontWeight.SemiBold else FontWeight.Normal)
+                        Box(Modifier.width(24.dp).height(2.dp).then(if (selected == tab)
+                            Modifier.border(1.dp, MaterialTheme.colorScheme.primary) else Modifier))
+                    }
                 }
             }
         }
@@ -82,12 +123,16 @@ internal fun WorkspaceNavigation(selected: WorkspaceTab, change: (WorkspaceTab) 
 internal fun WorkspaceSections(values: List<String>, selected: String, tag: String, change: (String) -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         values.forEach { value ->
+            var focused by remember { mutableStateOf(false) }
             TextButton(onClick = { change(value) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                .onFocusChanged { focused = it.isFocused }
+                .then(if (focused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier)
                 .testTag("$tag-$value").semantics { this.selected = selected == value },
                 shape = MaterialTheme.shapes.small,
                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
-                colors = ButtonDefaults.textButtonColors(containerColor = if (selected == value)
-                    MaterialTheme.colorScheme.primaryContainer else Color.Transparent)) {
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = if (selected == value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    containerColor = if (selected == value) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)) {
                 UiText(value, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     fontWeight = if (selected == value) FontWeight.SemiBold else FontWeight.Normal)
             }
@@ -114,6 +159,7 @@ internal fun WorkspaceHeading(title: String, detail: String? = null) {
 }
 
 /** A selection dialog keeps the editor and its actions in place, even for the full SDK catalogue. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun <T> WorkspacePicker(
     label: String,
@@ -126,35 +172,70 @@ internal fun <T> WorkspacePicker(
     selectedLabel: String? = null,
     change: (T) -> Unit,
 ) {
+    val selectionChanged = LocalWorkspaceSelectionChanged.current
     var open by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
+    var focused by remember { mutableStateOf(false) }
     val current = selectedLabel ?: choices.firstOrNull { it.first == selected }?.second ?: selected.toString()
-    OutlinedButton(onClick = { query = ""; open = true }, modifier = modifier.fillMaxWidth().testTag(tag),
-        shape = MaterialTheme.shapes.small, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
-        if (compact) UiText("${uiText(label)}: ${uiText(current)}", style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-        else Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    OutlinedButton(onClick = { query = ""; open = true }, modifier = modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(tag)
+        .onFocusChanged { focused = it.isFocused }
+        .then(if (focused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface,
+            containerColor = MaterialTheme.colorScheme.surface),
+        shape = MaterialTheme.shapes.small, contentPadding = PaddingValues(horizontal = 12.dp, vertical = if (compact) 6.dp else 8.dp)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(if (compact) 0.dp else 2.dp)) {
             UiText(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             UiText(current, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium,
-                maxLines = 2, overflow = TextOverflow.Ellipsis)
+                maxLines = if (compact) 1 else 2, overflow = TextOverflow.Ellipsis)
         }
         UiText("⌄", modifier = Modifier.padding(start = 8.dp))
     }
-    if (open) AlertDialog(
+    if (open) {
+        val firstOptionFocus = remember { FocusRequester() }
+        val closeFocus = remember { FocusRequester() }
+        val optionsState = rememberLazyListState()
+        AlertDialog(
         onDismissRequest = { open = false },
         title = { UiText(label) },
         text = {
+            val television = workspaceTelevision()
+            // A floating TV keyboard can be visible without adding an inset to this dialog.
+            val keyboardVisible = WindowInsets.isImeVisible
+            val keyboard = LocalSoftwareKeyboardController.current
+            val dialogView = LocalView.current
+            var searchFocused by remember { mutableStateOf(false) }
+            var keyboardWasVisible by remember { mutableStateOf(false) }
+            val localizedChoices = choices.map { (value, title) -> Triple(value, title, uiText(title)) }
+            val matches = localizedChoices.filter { (value, title, localized) -> localized.contains(query, ignoreCase = true) || title.contains(query, ignoreCase = true) || value.toString().contains(query, ignoreCase = true) }
+            LaunchedEffect(television, keyboardVisible, searchFocused, query, selected, matches.map { it.first }) {
+                if (keyboardVisible) {
+                    if (television && searchFocused) keyboardWasVisible = true
+                } else if (keyboardWasVisible) {
+                    keyboardWasVisible = false
+                    // This dialog owns its focus. Query changes or dismissal cancel the pending return.
+                    if (matches.isNotEmpty()) optionsState.scrollToItem(0)
+                    withFrameNanos { }
+                    if (television && searchFocused && dialogView.hasWindowFocus()) {
+                        if (matches.isEmpty()) closeFocus.requestFocus() else firstOptionFocus.requestFocus()
+                    }
+                }
+            }
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (searchable) OutlinedTextField(query, { query = it }, label = { UiText(uiFormat(R.string.ui_picker_search, uiText(label))) },
-                    singleLine = true, modifier = Modifier.fillMaxWidth().testTag("$tag-search"))
-                val localizedChoices = choices.map { (value, title) -> Triple(value, title, uiText(title)) }
-                val matches = localizedChoices.filter { (value, title, localized) -> localized.contains(query, ignoreCase = true) || title.contains(query, ignoreCase = true) || value.toString().contains(query, ignoreCase = true) }
+                    singleLine = true,
+                    keyboardOptions = if (television) KeyboardOptions(imeAction = ImeAction.Done) else KeyboardOptions.Default,
+                    keyboardActions = if (television) KeyboardActions(onDone = { keyboard?.hide() }) else KeyboardActions(),
+                    modifier = Modifier.fillMaxWidth().testTag("$tag-search").onFocusChanged { searchFocused = it.isFocused })
                 if (matches.isEmpty()) UiText("No matching items. Change the search text.")
-                LazyColumn(Modifier.heightIn(max = 360.dp).testTag("$tag-options")) {
-                    items(matches) { (value, _, title) ->
+                LazyColumn(Modifier.heightIn(max = 360.dp).testTag("$tag-options"), state = optionsState) {
+                    itemsIndexed(matches) { index, (value, _, title) ->
+                        var optionFocused by remember(value) { mutableStateOf(false) }
                         Row(Modifier.fillMaxWidth().heightIn(min = 48.dp)
                             .testTag("$tag-option-${value}")
-                            .selectable(selected == value, role = Role.RadioButton, onClick = { change(value); open = false })
+                            .then(if (index == 0) Modifier.focusRequester(firstOptionFocus) else Modifier)
+                            .onFocusChanged { optionFocused = it.isFocused }
+                            .then(if (optionFocused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier)
+                            .selectable(selected == value, role = Role.RadioButton, onClick = { selectionChanged(); change(value); open = false })
                             .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                             RadioButton(selected == value, onClick = null)
                             UiText(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
@@ -163,8 +244,22 @@ internal fun <T> WorkspacePicker(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { open = false }) { UiText("Close") } },
-    )
+        confirmButton = { TextButton(onClick = { open = false }, modifier = Modifier.focusRequester(closeFocus)) { UiText("Close") } },
+        )
+    }
+}
+
+/** Keep raw SDK values selectable and visually separate from app labels. */
+@Composable
+internal fun WorkspaceReadout(title: String, value: String, tag: String) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = MaterialTheme.shapes.small,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            UiText(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            SelectionContainer { Text(value, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.testTag(tag)) }
+        }
+    }
 }
 
 @Composable

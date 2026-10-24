@@ -1,7 +1,7 @@
 {
   "id": "android-implementation",
   "title": "Androidの実装ガイド",
-  "lead": "同梱のKotlinアプリを使い、PlayerConfig、SourceConfig、プレイヤーUIの変更方法を説明します。操作手順とSDKコードを示し、結果の確認方法やよくある疑問を説明します。Android TVとAndroidベースのFire TVもこの実装を使います。",
+  "lead": "既存のKotlinアプリでPlayerConfig、SourceConfig、UIを変更し、画面・SDKコード・取得した結果を対応付けます。タッチ操作のモバイルUIとAndroid TVのリモコン操作の作り方も比較します。",
   "blocks": [
     {
       "type": "h2",
@@ -76,10 +76,10 @@
       "text": "    private fun createPlayer(settings: PlayerSettings, overrides: ApiOverrides = ApiOverrides(), analytics: ApiAnalyticsSettings = apiAnalyticsSettings, callbacks: ApiCallbackContext = apiCallbacks): Player {\n        val prepared = ApiNativeFactories.player(context, overrides.player(settings.toPlayerConfig(licenseKey), callbacks), overrides.values)\n        val result = playerFactory?.invoke(prepared.config) ?: Player(context, prepared.config, analytics.playerConfig(analyticsLicenseKey, callbacks))\n        preparedCompanions = prepared.hosts\n        return result\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 97,
-        "label": "MainActivity.kt:97–102"
+        "line": 103,
+        "label": "MainActivity.kt:103–108"
       },
-      "endLine": 102
+      "endLine": 108
     },
     {
       "type": "p",
@@ -238,10 +238,10 @@
       "text": "        val sourceConfigs = configs ?: sourceConfigurations(callbacks = callbacks)\n        val sources = sourceConfigs.map { sourceConfig -> sourceFactory?.invoke(sourceConfig)\n            ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), mediaSessionConfig = apiOverrides.mediaSession()) }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 517,
-        "label": "MainActivity.kt:517–519"
+        "line": 524,
+        "label": "MainActivity.kt:524–526"
       },
-      "endLine": 519
+      "endLine": 526
     },
     {
       "type": "code",
@@ -249,10 +249,10 @@
       "text": "        if (offlinePlayback == null && ApiCollectionSettings.PLAYLIST in apiOverrides.values)\n            owner.load(com.bitmovin.player.api.playlist.PlaylistConfig(sources, apiOverrides.playlistOptions()))\n        else owner.load(sources.single())",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 530,
-        "label": "MainActivity.kt:530–532"
+        "line": 537,
+        "label": "MainActivity.kt:537–539"
       },
-      "endLine": 532
+      "endLine": 539
     },
     {
       "type": "steps",
@@ -275,6 +275,10 @@
     },
     {
       "type": "p",
+      "text": "SDKの上書きは入力中・登録済み・適用済みを分けます。変更を登録すると選択した入力を検証して保持し、SDKへ適用すると登録した設定全体でPlayerを再生成します。削除も登録後に適用し、基本設定またはSDKの既定値へ戻します。コード画面は未適用の下書きを含めません。コピーした上書き代入は、新しい変更可能なplayerConfig・playerViewConfigへ反映し、Player・Source・PlayerViewを作る前に使います。"
+    },
+    {
+      "type": "p",
       "text": "標準設定にない項目は設定 → 設定の種類 → SDKの詳細設定で機能とSDKの設定項目から選びます。SDK名で検索することもできます。型に合う値を入力して「変更を登録」で仮登録し、「SDK設定を適用」で新しい設定とPlayerを作ります。仮登録だけでは反映しません。上書きは基本設定より優先されます。削除の後に適用を押すと、標準設定またはSDK既定値に戻ります。SourceConfig.subtitleTracksやPlaylistConfig.sourcesのようなリストは、Kotlinを貼り付けるのではなく、要素と子項目を追加して編集します。"
     },
     {
@@ -293,18 +297,18 @@
     },
     {
       "type": "code",
-      "title": "SDKの既定UIと同梱したカスタムUIを選ぶ",
-      "text": "internal fun playerViewConfig(mode: UiMode): PlayerViewConfig =\n    if (mode.factoryFunction == null) {\n        PlayerViewConfig()\n    } else {\n        PlayerViewConfig(\n            uiConfig = UiConfig.WebUi(\n                jsLocation = \"file:///android_asset/bitmovinplayer-ui.js\",\n                cssLocation = \"file:///android_asset/bitmovinplayer-ui.css\",\n                variant = UiConfig.WebUi.Variant.Custom(mode.factoryFunction),\n            ),\n        )\n    }",
+      "title": "モバイル・TVの操作を選び、Customテーマを保持する",
+      "text": "internal fun playerViewConfig(mode: UiMode, television: Boolean = false): PlayerViewConfig =\n    if (mode.factoryFunction == null && television) {\n        PlayerViewConfig(uiConfig = UiConfig.WebUi(\n            variant = UiConfig.WebUi.Variant.TvUi,\n            focusUiOnInitialization = true,\n        ))\n    } else if (mode.factoryFunction == null) {\n        PlayerViewConfig()\n    } else {\n        PlayerViewConfig(\n            uiConfig = UiConfig.WebUi(\n                jsLocation = \"file:///android_asset/bitmovinplayer-ui.js\",\n                cssLocation = \"file:///android_asset/bitmovinplayer-ui.css\",\n                variant = UiConfig.WebUi.Variant.Custom(mode.factoryFunction),\n            ),\n        )\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 60,
-        "label": "MainActivity.kt:60–71"
+        "line": 61,
+        "label": "MainActivity.kt:61–77"
       },
-      "endLine": 71
+      "endLine": 77
     },
     {
       "type": "p",
-      "text": "選択したUIモード（標準、スポーツ、ライブ、シネマのいずれか）を、この関数へ渡します。標準はPlayerViewConfigのSDK既定値を使います。カスタムモードはAPK内のJavaScriptとCSSを読み込み、登録済みのファクトリー名でUIを作ります。Web版の全テーマがAndroidの選択肢に並ぶわけではありません。共有レイアウトを加える場合はpackages/ui-shared/src/liveUi.tsのコンポーネント構成を変更し、global.tsへファクトリーを登録してUiModeへ追加するか、設定 → 設定の種類 → SDKの詳細設定で登録済みの名前を指定します。"
+      "text": "ThemeはDefault、Sports、Live、Cinemaをこのヘルパーに渡します。スマートフォンとタブレットのDefaultはPlayerViewConfig()を使い、SDKの既定値WebUi / SmallScreenUiになります。テレビ端末ではPlayer LabがTvUiとfocusUiOnInitialization = trueを明示します。SDKの既定値自体がTvUiを自動選択するわけではありません。Customモードは端末にかかわらず登録したfactoryと同梱JavaScript/CSSを使い、画面が横長になってもTV用操作には変わりません。再利用するレイアウトはpackages/ui-shared/src/liveUi.tsで構成を変え、global.tsにfactoryを登録し、UiModeまたはSDKのCustom factory設定から選びます。"
     },
     {
       "type": "table",
@@ -346,8 +350,8 @@
         ],
         [
           "プレイヤーの表示領域",
-          "PlayerLabScreenのAndroidViewのModifierを変更します。通常表示は幅いっぱい、高さ220.dpです。",
-          "サイズと操作を確認します。映像の拡大縮小と外側のフォーム配置は別の設定です。"
+          "PlayerWorkspaceのレイアウトとPlayerWorkspace.ktのPlayerPreviewを変更します。スマートフォンは高さを制限したプレビュー、横長画面はワークスペースの横に配置します。",
+          "表示変更では同じPlayerViewを保持します。TVのアプリ操作には安全余白を設け、全画面の映像は表示面全体を使います。"
         ]
       ]
     },
@@ -358,17 +362,17 @@
     {
       "type": "code",
       "title": "既存のCompose画面へPlayerViewを埋め込む",
-      "text": "private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, modifier: Modifier) {\n    val displayedPlayer = controller.player\n    val vrRenderer = controller.apiVrRenderer\n    if (vrRenderer != null) key(vrRenderer) {\n        AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)\n    } else key(displayedPlayer, uiMode, controller.apiViewRevision) {\n        AndroidView(factory = { context ->\n            PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,\n                controller.apiOverrides.view(playerViewConfig(uiMode)))))\n        }, onRelease = { host ->\n            host.releaseTouchOwnership()\n            controller.releaseView(host.content as PlayerView)\n        }, modifier = modifier)\n    }\n}",
+      "text": "private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, television: Boolean, modifier: Modifier) {\n    val displayedPlayer = controller.player\n    val vrRenderer = controller.apiVrRenderer\n    if (vrRenderer != null) key(vrRenderer) {\n        AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)\n    } else key(displayedPlayer, uiMode, television, controller.apiViewRevision) {\n        AndroidView(factory = { context ->\n            PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,\n                controller.apiOverrides.view(playerViewConfig(uiMode, television)))))\n        }, onRelease = { host ->\n            host.releaseTouchOwnership()\n            controller.releaseView(host.content as PlayerView)\n        }, modifier = modifier)\n    }\n}",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
-        "line": 123,
-        "label": "PlayerWorkspace.kt:123–137"
+        "line": 183,
+        "label": "PlayerWorkspace.kt:183–197"
       },
-      "endLine": 137
+      "endLine": 197
     },
     {
       "type": "p",
-      "text": "AndroidViewはComposeから従来のAndroid Viewを使うための仕組みです。keyにはPlayerのインスタンス、UIモード、ビューの変更番号が含まれ、それらが変わるとPlayerViewを作り直します。UIモードだけの変更ではPlayerを維持します。PlayerTouchHostは、動画内で始まったジェスチャーを終了またはキャンセルまで動画側に保持します。自分のアプリでプレイヤーをスクロール領域に埋め込む場合も、外側の領域がプレイヤーメニューの操作を取り込まないようにします。"
+      "text": "AndroidViewはComposeと通常のAndroid Viewをつなぎます。keyにはPlayer、選択したUI、実際のテレビ端末モード、ビューの変更番号を含めます。PlayerViewの交換時には旧ビューを切り離して解放し、Themeだけの変更ではPlayerとソースを保持します。PlayerTouchHostはプレイヤー内で始まったタッチ操作を完了・取消まで保持します。タッチの所有とリモコンのフォーカスは別です。Composeの操作とSDKのWebViewにはそれぞれのフォーカス動作があります。"
     },
     {
       "type": "code",
@@ -384,9 +388,99 @@
       "text": "Android TVとAndroidベースのFire TV"
     },
     {
+      "type": "p",
+      "text": "このサンプルはモバイルとTVで同じAndroid SDKとPlayerを管理するコードを使い、入力と表示の規則を変えます。Configuration.UI_MODE_TYPE_TELEVISIONで端末のTVモードを判定します。TVでは既存のCompose画面に左右48 dp・上下27 dpの余白、大きめの文字、選択欄・タブ・スイッチのフォーカス枠を設けます。dpは画面密度に依存しない寸法の単位です。横長のスマートフォンやタブレットもモバイルとして扱い、全画面の映像には設定画面用の余白を加えません。"
+    },
+    {
+      "type": "code",
+      "title": "実端末のモードから操作方法の表示を選ぶ",
+      "text": "@Composable\ninternal fun workspaceTelevision(): Boolean =\n    LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/WorkspaceUi.kt",
+        "line": 73,
+        "label": "WorkspaceUi.kt:73–75"
+      },
+      "endLine": 75
+    },
+    {
+      "type": "table",
+      "headers": [
+        "UIの層",
+        "スマートフォン・タブレット",
+        "Android TV・AndroidベースのFire TV"
+      ],
+      "widths": [
+        0.22,
+        0.39,
+        0.39
+      ],
+      "rows": [
+        [
+          "アプリのCompose画面",
+          "タッチとソフトウェアキーボードで操作し、縦画面はプレビューの下に編集画面を置きます。",
+          "設定と下書きを共通の横長ワークスペースで扱い、安全余白・大きい文字・方向キーのフォーカス表示を加えます。"
+        ],
+        [
+          "PlayerView内のSDK操作",
+          "Defaultはタッチ向けのSDK SmallScreenUiを使います。",
+          "DefaultはWebUi(variant = TvUi, focusUiOnInitialization = true)を明示し、UIFactory.buildTvUIとWebViewの空間ナビゲーションを使います。"
+        ],
+        [
+          "Sports・Live・Cinema",
+          "選んだ共有Custom factoryを使います。",
+          "同じCustom factoryを保持します。リモコン操作は別途確認・実装が必要で、Customテーマの選択がTvUiになるわけではありません。"
+        ],
+        [
+          "値とPlayerの所有",
+          "編集中の値と適用済み設定を分けます。",
+          "選択・フォーカス・表示言語の変更では下書きを適用せず、Playerも交換しません。Themeはビューを交換し、Apply playerはPlayerを再生成します。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "このサンプルは既存のandroidx.compose.material3の操作部を調整します。自分のアプリにTV専用の表示先を作る場合は、androidx.tv:tv-materialのandroidx.tv.material3.Buttonなどを使えます。TV用とモバイル用には別のMaterialThemeがあるため、その表示面のテーマを揃えます。TV用Composableへ切り替える場合もPlayerの所有者と設定の状態を再利用します。すべての操作へD-padで到達でき、フォーカス中と選択済みを区別できる必要があります。選択欄や内容の変更後にフォーカスを戻し、ComposeとSDK WebViewの間の移動を確認します。focusUiOnInitializationはWebView初期化時の要求であり、アプリ全体の復元方針はホスト側が管理します。"
+    },
+    {
+      "type": "p",
+      "text": "SDKの詳細設定でTV UIを比較する場合はCustom factoryの上書きを削除し、UiConfig.WebUi.variant = TvUiとfocusUiOnInitialization = trueの両方を登録して適用します。SmallScreenUiからdata classのcopyでvariantだけを変えると、以前のfalseが保持されるためです。比較後は上書きを削除またはリセットします。Themeの選択とSDKの明示的な上書きは別の入力で、コード画面も基本設定と上書き代入を分けて表示します。"
+    },
+    {
+      "type": "p",
+      "text": "TVのBackは、公開Android APIであるViewGroup.dispatchKeyEventを使い、フォーカス中のSDKビューへ入力を届けるホスト側の処理です。現在のプレビューにフォーカスがあり、全画面・ピクチャーインピクチャーでない場合、KEYCODE_ESCAPEのACTION_DOWNとACTION_UPを先に送り、その後ソースへフォーカスを戻します。キーを離すイベントで、画質の子画面を含むSDK設定メニューを閉じて初期化します。ネイティブダイアログや画面キーボードのBackは、それぞれのウィンドウが先に処理します。他のD-pad・Select入力は通常のフォーカス経路へ渡します。"
+    },
+    {
+      "type": "code",
+      "title": "Escapeの押下・解放を送ってからネイティブ側へ戻す",
+      "text": "                // The SDK TV UI closes and resets its menu on Escape key-up. Deliver both before leaving its view.\n                view.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ESCAPE))\n                view.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ESCAPE))\n                view.clearFocus()\n                controller.requestWorkspaceFocus()",
+      "source": {
+        "path": "apps/android/app/src/main/kotlin/com/playerlab/android/TelevisionInput.kt",
+        "line": 18,
+        "label": "TelevisionInput.kt:18–22"
+      },
+      "endLine": 22
+    },
+    {
+      "type": "p",
+      "text": "ネイティブ入力欄と選択ダイアログは、画面キーボードを表示した後にフォーカスを戻します。TVではConfigFieldのキーボードの完了とワークスペースの完了が同じ処理を使い、キーボードを閉じ、選択欄の再表示を待ってからソースへ戻ります。Backは選択欄へ戻ります。スマートフォンは通常のキーボード完了処理を保ち、レコード編集ダイアログの完了はそのウィンドウ内にフォーカスを保つため、編集画面から飛び出しません。検索ダイアログはWindowInsets.isImeVisibleで表示状態を調べ、最初の候補または閉じるへ戻します。TVのフローティングキーボードは、表示中でもIME高さが0になる場合があるためです。ダイアログを閉じたり、検索語・選択値・候補が変わったりすれば、その復帰を中止します。ワークスペースでは、編集対象とPlayer・ビューの所有者が現在も同じであることも確認します。画面キーボードを表示しない物理キーボードでの編集は、通常のカーソル・矢印操作を維持します。"
+    },
+    {
+      "type": "p",
+      "text": "専用のMEDIA_PLAY_PAUSE・MEDIA_PLAY・MEDIA_PAUSEはD-padの移動とは別です。SDK MediaSessionが有効ならAndroidのシステム経路を保ちます。ない場合は、TVホストが最初のACTION_DOWNで現在のPlayerを操作し、同じ押下のリピートとACTION_UPを消費するため、一度の押下で二重に切り替わりません。この処理でMediaSessionを生成したり、現在のPlayerやソースを交換したりはしません。"
+    },
+    {
+      "type": "steps",
+      "items": [
+        "TVリモコンだけでSource、Theme、ワークスペースのタブ、設定項目、固定のApply・Runへ移動します。フォーカスが常に見え、選択済みの値と区別できることを確かめます。",
+        "選択ダイアログを開き、方向キーで候補を選び、もう一度開きます。Backで画面を離れる前にダイアログが閉じ、選択値と未適用の下書きが残ることを確かめます。",
+        "DefaultのSDK TV controls、タイムライン、設定をD-padとSelectで操作します。アプリの操作とSDK WebViewの間の移動、プレイヤーメニューや全画面表示中のBackも確認します。",
+        "想定する視距離から文字を読み、重要な操作が画面端から十分に離れていることを確かめます。広告・トラックメニュー・アプリの中断や再開は対象ハードウェアでも確認します。"
+      ]
+    },
+    {
       "type": "note",
-      "title": "リモコン操作とサービスの利用条件",
-      "text": "ManifestにはLEANBACK_LAUNCHERがあり、タッチスクリーンも必須ではないため、同じアプリをTVのランチャーへ表示できます。ただし、専用のTV画面を自動選択したり、リモコン操作を保証したりするものではありません。SDKのTV向け操作部を比較する場合は、UiConfig.WebUi.variant = TvUiを登録します。focusUiOnInitializationを確認し、カスタムファクトリーの上書きを外して適用してください。対象TVで方向キー、決定、戻る、スクロール、再生を確認します。この章の画像はAndroidアプリの設定画面であり、TV向けレイアウトの動作確認結果ではありません。Google Play開発者サービスに依存するCronetプロバイダーなどは、Fire TVにもあるとは限りません。"
+      "title": "確認したTV環境とプラットフォームのサービス",
+      "text": "1920 × 1080のAndroid TV API 36エミュレーター上の通常アプリで、SDK TvUiの表示、ネイティブの選択・文字入力、SDK設定メニュー内のBack、MediaSession有効・無効時の専用メディアキー、編集値と再生オブジェクトの保持を確認しました。TV画像はこの環境で取得しています。物理Android TV・Fire TVの視距離、安全余白、各ハードウェアデコーダーの動作を保証するものではありません。選択したCronet providerなどGoogle Play services依存の項目はFire TVで別途確認します。Vega OSは別のVegaアプリを使います。"
     },
     {
       "type": "h2",
@@ -404,6 +498,49 @@
       "text": "APIで操作・状態・イベントを切り替え、分類とAPIの選択欄から対象を開きます。操作は現在のPlayer、ソース、接続済みのPlayerViewのSDK APIを呼び出します。検索で候補を絞っても、現在選択中の実行対象を明示します。まず関連する状態と直近のイベントで比較し、状態の「SDKの状態を更新」で詳しい値を読み取ります。イベントは発生回数とSDKタイムスタンプを記録します。コマンドの送信結果だけでは、実際の再生で操作が完了したかは分かりません。"
     },
     {
+      "type": "table",
+      "headers": [
+        "表示",
+        "示している内容",
+        "読み取り方"
+      ],
+      "widths": [
+        0.22,
+        0.39,
+        0.39
+      ],
+      "rows": [
+        [
+          "呼び出し結果",
+          "SDKの戻り値、またはUnitを返す操作の短い送信記録です。",
+          "送信した操作が非同期の場合があります。再生への反映は完了イベントとSDKの状態でも確認します。"
+        ],
+        [
+          "直近の取得値",
+          "SDKの状態を更新した時点で一度読み取った実際の値です。",
+          "キーや内部の要求・設定オブジェクトは除外し、文字列とリストの表示量には上限があります。SDKの状態が変わったら更新します。"
+        ],
+        [
+          "今回の起動後の記録",
+          "今回のアプリ起動後に記録したイベント件数と直近のSDK時刻です。",
+          "0は未記録です。時刻はUnix epochからのミリ秒です。直前のAPI呼び出し以前の履歴も含み、イベント本体・ヘッダー・キーは除外します。"
+        ],
+        [
+          "一部の状態",
+          "広告の値には再生中の広告か選択済みSSAIテストオブジェクトが必要です。Vector3は最後のmoveViewingDirectionへの入力です。",
+          "activeAdBreakとactiveLinearAdは実際のSDKの状態です。保存した試験用の入力と現在の再生状態を区別します。"
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "PlayerViewのon/next/offはFullscreenEnter/ExitなどビューのUIイベントを購読します。再生・ソースのイベントはビュー購読へ転送せず、PlayerとSourceのEventsで記録します。PlaylistApi.seekのtimeは秒単位のSeekTarget.offsetです。Startは0以上、Endは0以下を使い、SDKが範囲外を境界へ補正します。nullはソースの既定参照、useSeekTarget=falseはSDKへnullのtargetを渡します。"
+    },
+    {
+      "type": "p",
+      "text": "ホストのVRレンダラーはPlayerViewをデコーダー付きOpenGL面へ置き換え、無効にすると戻します。更新スクリプトは{delta, viewingDirection}を受け、{text?, move?: {phi,x,y}}またはnullを返します。deltaは秒です。everyFramesはスクリプト実行頻度を制限し、SDKのフレーム時計は表示更新に従います。コールバックはレンダラーとともに解除します。app:vr-rendererの状態でデコード済みフレームとコールバックの観測値を確認します。"
+    },
+    {
       "type": "steps",
       "items": [
         "再生位置を比較する前に、VODのHLSまたはDASHソースを選択して適用し、再生を開始します。",
@@ -415,7 +552,7 @@
     {
       "type": "figure",
       "file": "android-api-state",
-      "caption": "状態でPlayer.isPausedの値を取得した画面です。「SDKの状態を更新」は押した時点の値を取得する操作で、コマンド送信とは別です。"
+      "caption": "状態でPlayer.currentTimeの値を取得した画面です。「SDKの状態を更新」は押した時点の値を取得する操作で、コマンド送信とは別です。"
     },
     {
       "type": "code",
@@ -423,10 +560,10 @@
       "text": "    private fun <E : Event> onPlayer(type: KClass<E>, action: (E) -> Unit) {\n        val owner = player\n        val generation = playerGeneration\n        val guarded: (E) -> Unit = { if (!released && player === owner && generation == playerGeneration) action(it) }\n        owner.on(type, guarded)\n        playerSubscriptions += { owner.off(type, guarded) }\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 593,
-        "label": "MainActivity.kt:593–599"
+        "line": 600,
+        "label": "MainActivity.kt:600–606"
       },
-      "endLine": 599
+      "endLine": 606
     },
     {
       "type": "p",
@@ -489,7 +626,7 @@
     {
       "type": "figure",
       "file": "android-offline-tracks",
-      "caption": "オフライン画面で音声トラックをダウンロード対象に選んだ画面。画像は選択の段階を示します。ダウンロード完了と通信なしでの再生は別に確認します。"
+      "caption": "SDKの処理後、音声トラックはstate=Downloaded、action=null、操作は「なし」、進捗100.0%と表示されます。トラックごとの操作を選び、「選択した操作を実行」で送信します。通信なしでの再生は別に確認します。"
     },
     {
       "type": "h3",
@@ -506,10 +643,10 @@
       "text": "    internal fun releaseView(view: PlayerView) {\n        if (!views.remove(view)) return\n        retireApiViewSubscriptions(view)\n        retireApiViewHandlers(view)\n        apiSurfaces.clear(view)\n        if (apiDetachedView === view) apiDetachedView = null\n        viewLifecycle.detach(view)\n        view.player = null\n        view.onDestroy()\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 607,
-        "label": "MainActivity.kt:607–616"
+        "line": 614,
+        "label": "MainActivity.kt:614–623"
       },
-      "endLine": 616
+      "endLine": 623
     },
     {
       "type": "p",
@@ -659,7 +796,7 @@
   "sources": [
     {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-      "line": 77,
+      "line": 83,
       "label": "Player生成・ビュー・ソース読み込み・ライフサイクル"
     },
     {
@@ -793,6 +930,39 @@
     {
       "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
       "label": "再生プレビューと設定画面の配置"
+    },
+    {
+      "url": "https://cdn.bitmovin.com/player/android/3.171.0/docs/player-ui-web/com.bitmovin.player.api.ui/-ui-config/-web-ui/focus-ui-on-initialization.html",
+      "label": "TV空間ナビゲーションのWebView初期フォーカス"
+    },
+    {
+      "url": "https://developer.android.com/training/tv/playback/compose/layouts",
+      "label": "Android TVのレイアウト・視距離・安全余白"
+    },
+    {
+      "url": "https://developer.android.com/training/tv/get-started/navigation",
+      "label": "Android TVのD-pad・フォーカス・選択・Back"
+    },
+    {
+      "url": "https://developer.android.com/training/tv/playback/compose",
+      "label": "Compose for TVのコンポーネントとMaterialThemeの違い"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/com/playerlab/android/TelevisionInput.kt",
+      "line": 9,
+      "label": "TVホストのBackと専用メディアキーの経路"
+    },
+    {
+      "url": "https://android.googlesource.com/platform/frameworks/support/+/c62c2b9bba83ccfeeb96c0912cc86151b348e5ff/compose/foundation/foundation-layout/src/androidMain/kotlin/androidx/compose/foundation/layout/WindowInsets.android.kt",
+      "label": "ウィンドウとの重なりに依存しないAndroidXのIME表示状態"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-ui/blob/v4.23.0/src/ts/components/settings/SettingsPanel.ts",
+      "label": "SDK TV設定メニューのEscapeキー解放"
+    },
+    {
+      "url": "https://github.com/bitmovin/bitmovin-player-android-samples/blob/main/BasicPlaybackTVKotlin/src/main/java/com/bitmovin/samples/tv/playback/basic/MainActivity.kt",
+      "label": "Android TV公式サンプルの専用メディアキー"
     }
   ]
 }

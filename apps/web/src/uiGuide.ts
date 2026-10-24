@@ -1,66 +1,7 @@
-// Renders the in-app "How to customize the UI" guide (in Japanese). The demo's
-// headline is that reshaping the Bitmovin player UI is easy and layered — so this
-// panel spells out the levers, each with a short, real snippet from this repo and a
-// pointer to the source file you'd edit. The theme selector above is these levers in
-// action; this panel is the "how". Prose is Japanese; code/paths stay as-is.
+// Theme construction examples and optional comparisons for the active UI.
 
-import { pick, getLang, type L } from "./i18n";
+import { pick, type L } from "./i18n";
 import type { UIConfig } from "@showcase/ui-shared";
-
-// The displayed code snippets carry Japanese *comments*; their identifiers/strings are all
-// ASCII, so the only Japanese in a snippet is in a comment. In English mode we translate
-// those comment phrases (longest first, so a full row description wins over a row label) — one
-// source snippet, localized at render time.
-const CODE_COMMENTS: [string, string][] = [
-  // Construction-code comments for the CSS/brand themes (added when those
-  // snippets were introduced; the all-theme E2E guard keeps this complete).
-  ["recommendations は UIConfig.metadata.recommendations で渡す:", "pass recommendations via UIConfig.metadata.recommendations:"],
-  ["公式 tv 由来: 終了時の「次の動画」。最後＝最前面に描画", "from the official tv sample: end-of-playback \"up next\". Last = paints on top"],
-  ["タイトル＋説明(既定で MetadataLabel 内蔵)", "title + description (default MetadataLabels built in)"],
-  ["公式 tv 由来: 終了時の「次の動画」。最後＝最前面", "from the official tv sample: end-of-playback \"up next\". Last = on top"],
-  ["1) 標準ツリーに class を1つ足すだけ", "1) Add one class to the Default tree"],
-  ["自作 Component をツリーに足すだけ（sportsData.ts のサンプルを描画）", "Just add custom Components to the tree (rendering the sportsData.ts sample)"],
-  ["上部オーバーレイ", "top overlay"],
-  ["隅のカード", "corner card"],
-  ["Live の操作列", "the Live control rows"],
-  ["表示トグル", "show/hide toggle"],
-  ["プレイリストと load はアプリ側。UI には title と「次へ」動作を渡す", "The playlist + load are app-side; pass the title + a \"next\" action to the UI"],
-  ["表示直前に取得", "fetched right before it shows"],
-  ["連続再生オプション", "the continuous-play option"],
-  ["アプリが player.load", "the app calls player.load"],
-  ["情報オーバーレイ", "informational overlay"],
-  ["操作列に配置（クリック可能）", "placed in the control row (clickable)"],
-  ["再生・シーク…", "play · seek …"],
-  ["2) あとは CSS だけ", "2) the rest is CSS only"],
-  ["グレーの再生バー", "gray played bar"],
-  ["タイトル＋説明", "title + description"],
-  ["色を抜く", "strip color"],
-  ["標準のモダンUIツリーをそのまま使い、autohide だけ差し替え", "Reuse the stock modern-UI tree, swap only autohide"],
-  ["← Autohide オフで -1（常時表示）", "← -1 when Autohide is off (always shown)"],
-  ["オフ時は -1（常時表示）に切替", "switches to -1 (always shown) when off"],
-  ["下段 = Creator風の1列", "bottom row = a Creator-style single row"],
-  ["上段 = 全幅シーク", "top row = full-width seek"],
-  ["歯車で開く設定", "settings opened by the gear"],
-  ["標準構成そのまま", "stock structure as-is"],
-  ["素早く自動非表示", "quick auto-hide"],
-  ["1列インライン", "single inline row"],
-  ["残り時間", "remaining time"],
-  ["すりガラス", "frosted glass"],
-  ["現在/全体", "current/total"],
-  ["大型化", "enlarge"],
-  ["上段", "top row"],
-  ["下段", "bottom row"],
-];
-// Apply longest phrase first so a short phrase that is a substring of a longer one
-// (such as a row label within a longer row description) cannot partial-match — independent of source order.
-CODE_COMMENTS.sort((a, b) => b[0].length - a[0].length);
-
-function localizeCode(code: string): string {
-  if (getLang() !== "en") return code;
-  let out = code;
-  for (const [ja, en] of CODE_COMMENTS) out = out.split(ja).join(en);
-  return out;
-}
 
 // Per-theme "what changed from the default UI" — the point the demo makes concrete:
 // each custom theme is a small, legible delta from the stock UI. Updated on switch.
@@ -70,8 +11,6 @@ interface ThemeDiff {
   label: string | L;
   /** What this theme is built on; null for the stock baseline. */
   base: string | null;
-  /** A one-line sense of how little it took. */
-  effort: L;
   changes: { op: "+" | "−" | "~"; text: L }[];
   /** How this exact UI is built — the real construction code + its source file. */
   construction: { lang: "ts" | "scss"; code: string; source: string };
@@ -81,7 +20,6 @@ const THEME_DIFFS: Record<string, ThemeDiff> = {
   default: {
     label: "Default (Bitmovin)",
     base: null,
-    effort: { ja: "標準のbitmovin-player-uiのモダンUIです。UIConfigを標準の構築処理へ渡し、バーの自動非表示も切り替えられます。", en: "The stock bitmovin-player-ui modern UI, with UIConfig passed to the standard layout builder and a configurable autohide delay." },
     changes: [],
     construction: {
       lang: "ts",
@@ -103,7 +41,6 @@ new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }],
   "custom-live": {
     label: "Live (DVR)",
     base: "Default (Bitmovin)",
-    effort: { ja: "デフォルトのコントロールバーに数点のコンポーネントを足しただけ。", en: "Just a few components added to the default control bar." },
     changes: [
       { op: "+", text: { ja: "LiveButton — ライブ端の表示とジャンプ", en: "LiveButton — show the live edge and jump to it" } },
       { op: "+", text: { ja: "実時刻 ＋「−Xs behind live」ラベル", en: "Wall-clock + “−Xs behind live” labels" } },
@@ -116,12 +53,12 @@ new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }],
   new BufferingOverlay(),
   new PlaybackToggleOverlay(),
   new ControlBar({ components: [
-    new Container({ components: [   // 上段
+    new Container({ components: [   // top row
       new WallClockLabel(),
       new SeekBar({ label: new SeekBarLabel() }),
       new BehindLiveLabel(),
     ] }),
-    new Container({ components: [   // 下段
+    new Container({ components: [   // bottom row
       new QuickSeekButton({ seekSeconds: -10 }),
       new PlaybackToggleButton(),
       new QuickSeekButton({ seekSeconds: 10 }),
@@ -138,7 +75,6 @@ new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }],
   "custom-sports": {
     label: "Sports",
     base: "Live (DVR)",
-    effort: { ja: "Live の操作列に、自作オーバーレイ2つ＋表示トグルを足すだけ。", en: "Just two custom overlays + a toggle added to the Live control set." },
     changes: [
       { op: "+", text: { ja: "ScoreboardStrip — 他試合スコアを上部に", en: "ScoreboardStrip — other games across the top" } },
       { op: "+", text: { ja: "PlayerInfoCard — 打者/投手＋打順のカード", en: "PlayerInfoCard — batter/pitcher + lineup card" } },
@@ -146,16 +82,16 @@ new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }],
     ],
     construction: {
       lang: "ts",
-      code: `// 自作 Component をツリーに足すだけ（sportsData.ts のサンプルを描画）
+      code: `// Just add custom Components to the tree (rendering the sportsData.ts sample)
 const scoreboard = new ScoreboardStrip();
 const playerCard = new PlayerInfoCard();
 new UIContainer({ components: [
   new SubtitleOverlay(), new BufferingOverlay(), new PlaybackToggleOverlay(),
-  scoreboard,   // 上部オーバーレイ
-  playerCard,   // 隅のカード
+  scoreboard,   // top overlay
+  playerCard,   // corner card
   new ControlBar({ components: [
-    /* Live の操作列 */
-    new SportsInfoToggleButton([scoreboard, playerCard]), // 表示トグル
+    /* the Live control rows */
+    new SportsInfoToggleButton([scoreboard, playerCard]), // show/hide toggle
   ] }),
 ] });`,
       source: "packages/ui-shared/src/liveUi.ts → buildSportsUiContainer",
@@ -164,7 +100,6 @@ new UIContainer({ components: [
   "custom-binge": {
     label: "Binge",
     base: "Default (Bitmovin)",
-    effort: { ja: "VOD の操作列に、エピソード連結用の自作コンポーネントを3つ追加。", en: "Three custom components for stringing episodes together, on a VOD control set." },
     changes: [
       { op: "+", text: { ja: "SkipIntroButton — イントロ区間だけ表示しスキップ", en: "SkipIntroButton — shows during the intro range and skips it" } },
       { op: "+", text: { ja: "NextEpisodeButton — 次のエピソードへ", en: "NextEpisodeButton — jump to the next episode" } },
@@ -172,18 +107,18 @@ new UIContainer({ components: [
     ],
     construction: {
       lang: "ts",
-      code: `// プレイリストと load はアプリ側。UI には title と「次へ」動作を渡す
+      code: `// The playlist + load are app-side; pass the title + a "next" action to the UI
 const skip = new SkipIntroButton({ introStart: 5, introEnd: 18 });
 const nextUp = new NextUpCard({
-  getNextTitle: () => nextEpisodeTitle(), // 表示直前に取得
-  autoplay: autoplayNext,                 // 連続再生オプション
-  onPlayNext: () => playNextEpisode(),    // アプリが player.load
+  getNextTitle: () => nextEpisodeTitle(), // fetched right before it shows
+  autoplay: autoplayNext,                 // the continuous-play option
+  onPlayNext: () => playNextEpisode(),    // the app calls player.load
 });
 new UIContainer({ components: [
-  nextUp, // 情報オーバーレイ
+  nextUp, // informational overlay
   new ControlBar({ components: [
-    /* 再生・シーク… */
-    skip, // 操作列に配置（クリック可能）
+    /* play · seek … */
+    skip, // placed in the control row (clickable)
     new NextEpisodeButton({ onPlayNext: () => playNextEpisode() }),
   ] }),
 ] });`,
@@ -193,16 +128,15 @@ new UIContainer({ components: [
   "custom-neon": {
     label: "Neon",
     base: "Default (Bitmovin)",
-    effort: { ja: "CSS クラス1つ＋ルール一式。コンポーネント変更ゼロ。", en: "One CSS class plus a set of rules. Zero component changes." },
     changes: [{ op: "~", text: { ja: "ui-skin-neon — グラデのシークバー・グロー・ネオン配色", en: "ui-skin-neon — gradient seek bar, glow, neon palette" } }],
     construction: {
       lang: "scss",
-      code: `// 1) 標準ツリーに class を1つ足すだけ
+      code: `// 1) Add one class to the Default tree
 DefaultUIFactory.buildDefaultUI(player, undefined, {
   extraCssClasses: ["ui-skin-neon"],
 });
 
-// 2) あとは CSS だけ
+// 2) the rest is CSS only
 .bmpui-ui-skin-neon .bmpui-seekbar-playbackposition {
   background: linear-gradient(90deg, #00e5ff, #ff2bd6);
 }`,
@@ -212,7 +146,6 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
   "custom-glass": {
     label: "Glass",
     base: "Default (Bitmovin)",
-    effort: { ja: "これも CSS だけ。コンポーネント変更ゼロ。", en: "CSS only, again. Zero component changes." },
     changes: [{ op: "~", text: { ja: "ui-skin-glass — すりガラス(backdrop-blur)の半透明バー", en: "ui-skin-glass — frosted (backdrop-blur) translucent bar" } }],
     construction: {
       lang: "scss",
@@ -222,7 +155,7 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
 
 .bmpui-ui-skin-glass .bmpui-ui-controlbar {
   background: rgba(255, 255, 255, 0.08);
-  // すりガラス
+  // frosted glass
   backdrop-filter: blur(14px) saturate(140%);
 }`,
       source: "packages/ui-shared/src/styles/ui-shared.scss → .bmpui-ui-skin-glass",
@@ -231,7 +164,6 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
   "custom-cinema": {
     label: "Cinema",
     base: "Default (Bitmovin)",
-    effort: { ja: "構成を変えた没入レイアウト。CinemaUIFactory で組み直し。", en: "A re-composed, immersive layout. Rebuilt with CinemaUIFactory." },
     changes: [
       { op: "~", text: { ja: "全幅シークバーを独立した上段に、操作は細い1列", en: "Full-width seek bar on its own top row, controls in a slim row" } },
       { op: "+", text: { ja: "大きな中央再生＋素早い自動非表示(没入)", en: "Big center play + quick auto-hide (immersive)" } },
@@ -245,10 +177,10 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
     new BufferingOverlay(),
     new PlaybackToggleOverlay(),
     new ControlBar({ components: [
-      new Container({ components: [   // 上段 = 全幅シーク
+      new Container({ components: [   // top row = full-width seek
         new SeekBar({ label: new SeekBarLabel() }),
       ] }),
-      new Container({ components: [   // 下段
+      new Container({ components: [   // bottom row
         new PlaybackToggleButton(),
         new PlaybackTimeLabel({ /* … */ }),
         new Spacer(),
@@ -256,7 +188,7 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
       ] }),
     ] }),
   ],
-  hideDelay: 1000, // 素早く自動非表示
+  hideDelay: 1000, // quick auto-hide
 });`,
       source: "packages/ui-shared/src/liveUi.ts → buildCinemaUiContainer",
     },
@@ -264,7 +196,6 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
   "custom-sunset": {
     label: "Sunset",
     base: "Default (Bitmovin)",
-    effort: { ja: "これも CSS だけ。コンポーネント変更ゼロ。", en: "CSS only, again. Zero component changes." },
     changes: [{ op: "~", text: { ja: "ui-skin-sunset — 暖色グラデのシークバー・配色", en: "ui-skin-sunset — warm-gradient seek bar and palette" } }],
     construction: {
       lang: "scss",
@@ -282,7 +213,6 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
   "custom-bold": {
     label: "Bold",
     base: "Default (Bitmovin)",
-    effort: { ja: "CSS だけ。操作系を大きく(TV / 10フィート向け)。", en: "CSS only. Bigger controls (TV / 10-foot)." },
     changes: [{ op: "~", text: { ja: "ui-skin-bold — 大きなボタン・太いシークバー", en: "ui-skin-bold — big buttons, thick seek bar" } }],
     construction: {
       lang: "scss",
@@ -291,7 +221,7 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
 });
 
 .bmpui-ui-skin-bold .bmpui-ui-button {
-  height: 2.4rem;     // 大型化
+  height: 2.4rem;     // enlarge
   min-width: 2.4rem;
 }`,
       source: "packages/ui-shared/src/styles/ui-shared.scss → .bmpui-ui-skin-bold",
@@ -300,7 +230,6 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
   "custom-mono": {
     label: "Mono",
     base: "Default (Bitmovin)",
-    effort: { ja: "CSS だけ。色を一切使わないモノクロ化。コンポーネント変更ゼロ。", en: "CSS only. A fully hue-free monochrome pass. Zero component changes." },
     changes: [{ op: "~", text: { ja: "ui-skin-mono — グレースケールのバー＋四角いスクラバー", en: "ui-skin-mono — grayscale bar + a square scrubber" } }],
     construction: {
       lang: "scss",
@@ -309,10 +238,10 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
 });
 
 .bmpui-ui-skin-mono .bmpui-ui-button {
-  filter: grayscale(1) contrast(1.1);  // 色を抜く
+  filter: grayscale(1) contrast(1.1);  // strip color
 }
 .bmpui-ui-skin-mono .bmpui-seekbar-playbackposition {
-  background: #e9e9e9;                  // グレーの再生バー
+  background: #e9e9e9;                  // gray played bar
 }`,
       source: "packages/ui-shared/src/styles/ui-shared.scss → .bmpui-ui-skin-mono",
     },
@@ -320,7 +249,6 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
   "custom-compact": {
     label: "Compact",
     base: "Default (Bitmovin)",
-    effort: { ja: "構成を変更:中央オーバーレイなしの細い1段。", en: "Re-composed: a slim single row with no center overlay." },
     changes: [
       { op: "+", text: { ja: "1段だけ:再生 · シーク · 時刻", en: "One row only: play · seek · time" } },
       { op: "−", text: { ja: "中央オーバーレイ・音量・全画面など", en: "Center overlay, volume, fullscreen, etc." } },
@@ -340,7 +268,7 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
       ] }),
     ] }),
   ],
-  // オフ時は -1（常時表示）に切替
+  // switches to -1 (always shown) when off
   hideDelay: 2000,
 });`,
       source: "packages/ui-shared/src/liveUi.ts → buildCompactUiContainer",
@@ -349,7 +277,6 @@ DefaultUIFactory.buildDefaultUI(player, undefined, {
   "custom-premiere": {
     label: "Premiere",
     base: "Default (Bitmovin)",
-    effort: { ja: "構成を変えた別ツリー＋ブランド配色の CSS。PremiereUIFactory で組み直し。", en: "A different tree + brand-colored CSS. Rebuilt with PremiereUIFactory." },
     changes: [
       { op: "+", text: { ja: "TitleBar — タイトル＋説明(MetadataLabel)", en: "TitleBar — title + description (MetadataLabel)" } },
       { op: "~", text: { ja: "全幅シークを独立行に、下に細い操作列", en: "Full-width seek on its own row, a slim control row below" } },
@@ -394,7 +321,6 @@ new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }],
   "custom-creator": {
     label: "Creator",
     base: "Default (Bitmovin)",
-    effort: { ja: "別ツリー＋赤いバーの CSS。CreatorUIFactory で組み直し。", en: "A different tree + red-bar CSS. Rebuilt with CreatorUIFactory." },
     changes: [
       { op: "+", text: { ja: "TitleBar — タイトル＋説明(他のブランドと揃えて追加)", en: "TitleBar — title + description (added to match the other brands)" } },
       { op: "~", text: { ja: "最下部に全幅シーク、その下に1列の操作", en: "Full-width seek at the bottom, one control row below" } },
@@ -408,17 +334,17 @@ new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }],
   new SubtitleOverlay(),
   new BufferingOverlay(),
   new PlaybackToggleOverlay(),
-  new TitleBar(),                  // タイトル＋説明
+  new TitleBar(),                  // title + description
   new ControlBar({ components: [
-    new Container({ components: [   // 上段 = 全幅シーク
+    new Container({ components: [   // top row = full-width seek
       new SeekBar({ label: new SeekBarLabel() }),
     ] }),
-    new Container({ components: [   // 下段 = Creator風の1列
+    new Container({ components: [   // bottom row = a Creator-style single row
       new PlaybackToggleButton(),
       new QuickSeekButton({ seekSeconds: 10 }),
       new VolumeToggleButton(),
       new VolumeSlider(),
-      new PlaybackTimeLabel({        // 現在/全体
+      new PlaybackTimeLabel({        // current/total
         timeLabelMode:
           PlaybackTimeLabelMode.CurrentAndTotalTime,
       }),
@@ -435,7 +361,6 @@ new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }],
   "custom-studio": {
     label: "Studio",
     base: "Default (Bitmovin)",
-    effort: { ja: "別ツリー＋濃紺×青の CSS。StudioUIFactory で組み直し。", en: "A different tree + navy×blue CSS. Rebuilt with StudioUIFactory." },
     changes: [
       { op: "+", text: { ja: "TitleBar — タイトル＋説明(MetadataLabel)", en: "TitleBar — title + description (MetadataLabel)" } },
       { op: "~", text: { ja: "1列インライン:時刻ラベルの間にシークバー", en: "Single inline row: the seek bar between the time labels" } },
@@ -448,9 +373,9 @@ new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }],
   new SubtitleOverlay(),
   new BufferingOverlay(),
   new PlaybackToggleOverlay(),
-  new TitleBar(),                  // タイトル＋説明
+  new TitleBar(),                  // title + description
   new ControlBar({ components: [
-    new Container({ components: [   // 1列インライン
+    new Container({ components: [   // single inline row
       new PlaybackToggleButton(),
       new QuickSeekButton({ seekSeconds: -10 }),
       new QuickSeekButton({ seekSeconds: 10 }),
@@ -462,7 +387,7 @@ new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }],
     ] }),
   ] }),
   settingsPanel,
-  new RecommendationOverlay(),     // 公式 tv 由来: 終了時の「次の動画」。最後＝最前面
+  new RecommendationOverlay(),     // from the official tv sample: end-of-playback "up next". Last = on top
 ] });`,
       source: "packages/ui-shared/src/liveUi.ts → buildStudioUiContainer",
     },
@@ -477,9 +402,7 @@ function renderThemeDiff(activeThemeId: string): HTMLElement {
   const lbl = typeof diff.label === "string" ? diff.label : pick(diff.label);
   const h3 = document.createElement("h3");
   h3.className = "theme-diff-title";
-  h3.textContent = diff.base
-    ? pick({ ja: `「${lbl}」とデフォルト UI の差分`, en: `“${lbl}” vs the default UI` })
-    : pick({ ja: `「${lbl}」— 基準`, en: `“${lbl}” — baseline` });
+  h3.textContent = lbl;
   box.appendChild(h3);
 
   if (diff.base) {
@@ -493,6 +416,10 @@ function renderThemeDiff(activeThemeId: string): HTMLElement {
   }
 
   if (diff.changes.length > 0) {
+    const comparison = document.createElement("details");
+    comparison.className = "theme-comparison";
+    const summary = document.createElement("summary");
+    summary.textContent = pick({ ja: "標準UIからの変更", en: "Changes from Default UI" });
     const list = document.createElement("ul");
     list.className = "theme-diff-list";
     for (const ch of diff.changes) {
@@ -504,13 +431,9 @@ function renderThemeDiff(activeThemeId: string): HTMLElement {
       li.append(op, document.createTextNode(` ${pick(ch.text)}`));
       list.appendChild(li);
     }
-    box.appendChild(list);
+    comparison.append(summary, list);
+    box.appendChild(comparison);
   }
-
-  const effort = document.createElement("p");
-  effort.className = "theme-diff-effort";
-  effort.textContent = pick(diff.effort);
-  box.appendChild(effort);
 
   // How this exact UI is built — the real construction code.
   const codeHead = document.createElement("p");
@@ -520,7 +443,7 @@ function renderThemeDiff(activeThemeId: string): HTMLElement {
   pre.className = "theme-diff-code";
   pre.dataset.lang = diff.construction.lang;
   const code = document.createElement("code");
-  code.textContent = localizeCode(diff.construction.code);
+  code.textContent = diff.construction.code;
   pre.appendChild(code);
   const src = document.createElement("p");
   src.className = "theme-diff-codesrc";
@@ -540,7 +463,7 @@ export function renderConstruction(container: HTMLElement, activeThemeId: string
     const heading = document.createElement("h3");
     heading.textContent = pick({ ja: "SDKが生成するUI", en: "SDK-managed UI" });
     const note = document.createElement("p");
-    note.textContent = pick({ ja: "PlayerConfig.uiの設定を使用しています。SDKはUIファイルを読み込んだ後にstyle.uiManagerFactoryを呼び出します。設定した関数のコードは下の詳細設定欄で確認できます。", en: "PlayerConfig.ui is enabled. The SDK loads the UI files and then calls style.uiManagerFactory. The configured callback code is shown in the SDK editor below." });
+    note.textContent = "PlayerConfig.ui · style.uiManagerFactory";
     content.append(heading, note);
   } else content.appendChild(renderThemeDiff(activeThemeId));
   const details = document.createElement("details");
@@ -564,23 +487,11 @@ export function renderUiGuide(container: HTMLElement): void {
   const head = document.createElement("div");
   head.className = "ui-guide-head";
   const h2 = document.createElement("h2");
-  h2.textContent = pick({ ja: "UI はどうカスタムするか", en: "How to customize the UI" });
-  const intro = document.createElement("p");
-  intro.className = "ui-guide-intro";
-  intro.textContent = pick({
-    ja:
-      "上のどのテーマも「同じプレイヤー × 違う UI」です。UIManager の差し替え、コンポーネントの組み替え、" +
-      "CSS 再スキン、自作コンポーネント、config、ジェスチャ — その手順とコンポーネント一覧、公式ドキュメントへの" +
-      "リンクを、別ページの詳細ガイドにまとめました。",
-    en:
-      "Every theme above is “the same player × a different UI”. Swapping the UIManager, re-composing components, " +
-      "CSS re-skinning, custom components, config, gestures — the steps, a component catalogue, and links to the " +
-      "official docs are collected in a dedicated guide page.",
-  });
+  h2.textContent = pick({ ja: "UIの実装ガイド", en: "UI implementation guide" });
   const link = document.createElement("a");
   link.className = "ui-guide-link";
   link.href = "./guide.html";
-  link.textContent = pick({ ja: "詳細なカスタマイズ・ガイドを開く →", en: "Open the full customization guide →" });
-  head.append(h2, intro, link);
+  link.textContent = pick({ ja: "コンポーネントとコード例", en: "Components and code examples" });
+  head.append(h2, link);
   container.appendChild(head);
 }

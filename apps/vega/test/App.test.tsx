@@ -74,7 +74,7 @@ function element(type: string, props: Record<string, unknown> = {}): ReactTestIn
   return screen.root.findAll((node) => String(node.type) === type && Object.entries(props).every(([key, value]) => node.props[key] === value))[0]!;
 }
 const current = () => runtime.players[runtime.players.length - 1]!;
-const button = (title: string) => element("Button", { title });
+const button = (title: string) => element("Pressable", { accessibilityRole: "button", accessibilityLabel: title });
 const input = (label: string) => element("TextInput", { accessibilityLabel: label });
 function appliedCode(): string {
   return screen.root.findAll((node) => String(node.type) === "View" &&

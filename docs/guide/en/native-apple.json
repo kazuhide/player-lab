@@ -26,6 +26,11 @@
       "text": "The app supports English and Japanese through the system or per-app language preference. This guide uses captures from the English app. SDK identifiers, code and returned data retain their original spelling. The standard Player controls also depend on SDK and system language settings."
     },
     {
+      "type": "note",
+      "title": "Appearance and guide images",
+      "text": "The app follows the device’s Light or Dark appearance. This guide uses Light appearance for iPhone, iPad and Apple TV. On iOS/iPadOS choose Settings → Display & Brightness → Light; on tvOS choose Settings → General → Appearance → Light. The wide Apple TV images are tvOS screens, rather than an iPhone in landscape. Device appearance changes the app’s workspace; Theme changes the controls over the video."
+    },
+    {
       "type": "p",
       "text": "The app uses Player 3.128.0, with iOS/iPadOS 16.0 or later and tvOS 15.0 or later. Allow com.playerlab.ios or com.playerlab.tvos on the Player license for the target you run. A successful build alone does not confirm authentication or playback."
     },
@@ -49,6 +54,44 @@
     {
       "type": "p",
       "text": "On iOS and iPadOS, Source and Theme are next to the playback preview. tvOS shows Source and Play/Pause instead, and uses the SDK’s System UI. Settings, APIs, Code and More remain available as workspace tabs. Settings selects a configuration group and field; APIs contains Operations, State, Events and Host; Code displays applied configuration; More contains tracks, additional tools and diagnostics. tvOS uses remote focus, Select and the system keyboard. Offline and Cast tools open their own inspectors where supported."
+    },
+    {
+      "type": "table",
+      "headers": [
+        "Surface",
+        "iOS / iPadOS",
+        "tvOS"
+      ],
+      "rows": [
+        [
+          "App workspace",
+          "Shared SwiftUI Settings, APIs, Code and More, operated by touch.",
+          "The same SwiftUI workspaces, operated with remote focus and Select."
+        ],
+        [
+          "Player controls over the video",
+          "Default SDK Web UI or shared JavaScript/CSS themes. Advanced settings also expose System and Subtitle.",
+          "Native System UI; shared Web UI themes and CSS are not used."
+        ],
+        [
+          "Input and navigation",
+          "Touch, menus and the software keyboard, with layout changes for rotation and text size.",
+          "Directional navigation, Select and the system keyboard. Back/Menu within the editor returns focus to the current tab."
+        ]
+      ]
+    },
+    {
+      "type": "p",
+      "text": "For the roles of SwiftUI, UIKit, AVKit and UIFactory, and where to change them, see Platform-specific UI implementation in the Apple implementation guide."
+    },
+    {
+      "type": "links",
+      "items": [
+        {
+          "url": "https://kazuhide.github.io/player-lab/guide/apple-implementation/#platform-ui",
+          "label": "Platform-specific UI implementation"
+        }
+      ]
     },
     {
       "type": "p",
@@ -95,7 +138,7 @@
         "Choose Settings, then Category and Setting to open the required field. The preview, workspace tabs, draft summary, Reset to applied (Reset at enlarged text sizes) and Apply remain outside the field editor. On tvOS, move focus with the remote and press Select; text fields use the system keyboard.",
         "In Source, enter an absolute HTTP(S) Source URL, choose HLS or Progressive MP4, and optionally enter Title and Poster URL. Empty title or poster fields clear them. More → Tools → Offline HLS handles cached sources on supported platforms; DASH is not supported.",
         "In Start position, set an optional Start offset in seconds and choose Automatic, Start or End under Offset reference. Blank uses the SDK default. Automatic means the beginning for VOD and the live edge for live. Signed finite offsets are accepted; the SDK corrects them to stream boundaries. Live offsets apply when playback starts.",
-        "In Playback, select Autoplay, Start muted or Live time shift. Defaults are off, on and on. More → Live controls → Allow live rewind controls governs the app’s quick-seek buttons separately. Quality and buffer contains Maximum bitrate in whole bit/s (0 = unlimited) and Forward buffer in finite nonnegative seconds (0 = SDK choice).",
+        "In Playback, select Autoplay, Start muted or Live time shift. Defaults are off, on and on. More → Live controls → Allow live rewind controls governs the app’s quick-seek buttons separately. Quality and buffer contains Maximum bitrate in whole bit/s (0 = unlimited) and Forward buffer in finite nonnegative seconds (0 = SDK choice). Start muted sets the next player’s initial mute state; use the Mute/Unmute runtime operations to change the current player.",
         "Read the draft summary and Reload source or Recreate player and reload source before Apply. Invalid fields show an explanation and disable Apply; Show field returns to the affected input. Reset discards draft edits without changing playback. Switching categories or workspace tabs preserves the draft. Applied settings last for the current app session."
       ]
     },
@@ -356,6 +399,16 @@
       "text": "APIs separates Operations, State, Events and Host. Operations invokes an SDK API; State reads current values; Events records notifications; Host configures the player factory and video presentation. Search filters candidate operations. Explicitly choose the operation and check Run target beside Run API; typing a search does not change the selected target automatically. Related state and recent events help check the effect, while State and Events provide detailed inspection."
     },
     {
+      "type": "note",
+      "title": "Read snapshots and event history",
+      "text": "Current SDK snapshot contains Player, Source and view values read with Refresh. An invocation record and asynchronous completion are separate observations. Related state retains its read time and Player/source owner. The retained event is history; correlate its owner and SDK timestamp with the operation. Events keeps the latest 120 API names, owners and SDK timestamps. Registering a listener does not prove an event occurred, and Player and Source listeners may report the same playback event."
+    },
+    {
+      "type": "note",
+      "title": "Thumbnail rendering",
+      "text": "A renderThumbnail operation asks the SDK to render asynchronously into a UIView. Inspect the image after the call. A returned descriptor or a blank rendering container does not establish that an image was rendered."
+    },
+    {
       "type": "steps",
       "items": [
         "Open APIs → Operations, filter Player.volume and choose it. Enter a whole number such as 50 within 0–100 and Run API. Read argument errors. Code displays the Swift call for the current valid arguments; Arguments returns to the inputs."
@@ -441,6 +494,20 @@
     },
     {
       "type": "h2",
+      "id": "playlist-drafts",
+      "text": "Playlist drafts",
+      "summary": "Edit source drafts separately from the active SDK playlist."
+    },
+    {
+      "type": "p",
+      "text": "Open More → Tools → Playlist, add a copy of the applied source, and edit each source’s URL, offsets, metadata, subtitles and DRM. Editing a draft does not change SDK playback. Use Load, Add or Insert in Operations, then inspect the SDK playlist in State and Code. Applying the main player configuration restores its normal single-source setup."
+    },
+    {
+      "type": "p",
+      "text": "Preloading in Options can increase memory and network use. Initial track preferences apply once for the intended source when it is ready. A preloaded transition waits for that source’s clock to advance, preserving later track-menu selections."
+    },
+    {
+      "type": "h2",
       "text": "SharePlay sessions"
     },
     {
@@ -489,6 +556,11 @@
       "text": "In Section → State, Refresh offline state reads progress and offlineState. Selecting a different asset removes its UI listener but does not cancel an existing download; use the asset’s suspend or cancel operation to stop it. Delete removes its cached media. Applying or reloading Settings returns from cached playback to the remote source."
     },
     {
+      "type": "note",
+      "title": "Offline operation details",
+      "text": "For migration callbacks, input.identifier and input.url are strings. Return a replacement identifier string; errors preserve the original. Callbacks use the app’s bounded script interpreter. Invalid SDK state transitions can be no-ops. FairPlay renewal/synchronization requires matching DRM configuration and a license service. Events retains up to 80 names, selected-asset owners and SDK timestamps. Callback registration is distinct from event occurrence."
+    },
+    {
       "type": "h2",
       "text": "Google Cast on iOS and iPadOS"
     },
@@ -521,6 +593,11 @@
       "text": "Run remove(listener:) to stop recording Cast notifications. Disable automatic initialization next launch affects the next process startup; it does not uninitialize the current sender. End a receiver session explicitly when needed, considering Stop receiver when ending session. The setup screenshots do not establish receiver discovery or playback."
     },
     {
+      "type": "note",
+      "title": "Cast event history",
+      "text": "This sample pins Google Cast 4.8.6 and requires iOS 16 or later. add(listener:) starts event recording and remove(listener:) stops it. The latest 80 event names are retained; device names and message payloads are omitted. Verify discovery, connection and playback separately through State and the actual receiver."
+    },
+    {
       "type": "h2",
       "text": "Applied configuration code"
     },
@@ -540,6 +617,16 @@
           "label": "Apple implementation guide"
         }
       ]
+    },
+    {
+      "type": "h2",
+      "id": "analytics-observability",
+      "text": "Analytics and Observability",
+      "summary": "Connect collector configuration with session inspection in Dashboard."
+    },
+    {
+      "type": "p",
+      "text": "When an Analytics license is configured, the standard PlayerFactory path attaches the collector. Check the active factory in APIs → Host; the Core and deprecated alternatives do not attach that wrapper. Inspect playback sessions, quality metrics and errors in Bitmovin Dashboard Observability. The app’s local event count does not establish backend receipt or collection. The implementation guide’s Analytics chapter covers setup and investigation."
     }
   ],
   "sources": [

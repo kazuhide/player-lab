@@ -253,7 +253,7 @@
     },
     {
       "path": "apps/web/src/configPanel.ts",
-      "line": 929,
+      "line": 883,
       "label": "設定の適用"
     },
     {
@@ -330,21 +330,21 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 660,
+      "line": 651,
       "label": "相対時刻と絶対時刻の明示取得"
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 683,
+      "line": 674,
       "label": "Player stateの時間表示の精度"
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 717,
+      "line": 708,
       "label": "時間・ソース・長さのイベントによる表示更新"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/4e5a3ba5cfed697991b95b1595a102578c17c12b/patches/bitmovin-player-ui%404.23.0.patch#L606",
+      "url": "https://github.com/kazuhide/player-lab/blob/1eaa1271bdaa0a4013b25b2e919a7cdce25096cd/patches/bitmovin-player-ui%404.23.0.patch#L669",
       "label": "シーク可能範囲の先頭を起点にしたVODキー操作"
     },
     {

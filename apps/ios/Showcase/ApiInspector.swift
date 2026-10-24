@@ -127,9 +127,6 @@ struct ApiInspector: View {
                 .accessibilityIdentifier("api.operation.filter")
             WorkspaceChoice(title: "Feature", selection: $group, options: NativeApiGroup.allCases, label: { $0.rawValue })
             .accessibilityIdentifier("api.operation.group")
-            Text("Search filters candidates. Select a row to change the execution target.")
-                .font(.caption).foregroundStyle(Color.workspaceSecondary)
-                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             if matchingOperations.isEmpty {
                 Text("No matching API. Clear the search or choose another feature.")
                     .font(.subheadline)
@@ -316,11 +313,11 @@ struct ApiInspector: View {
                 Text(NativeLocalization.format("Player/source: %@", observationOwner.map { String($0.uuidString.prefix(8)) } ?? "unknown"))
                     .font(.caption2).foregroundStyle(Color.workspaceSecondary)
                     .accessibilityIdentifier("api.observation.owner")
-                Text(NativeLocalization.format("Read at %@. A snapshot does not prove asynchronous completion.", observationTime.formatted(date: .omitted, time: .standard)))
+                Text(NativeLocalization.format("Read at %@", observationTime.formatted(date: .omitted, time: .standard)))
                     .font(.caption2).foregroundStyle(Color.workspaceSecondary)
             }
             if let event = model.apiEvents.first {
-                Text(NativeLocalization.format("Latest retained event (history): %@ · SDK %@", event.api, String(describing: event.timestamp)))
+                Text(NativeLocalization.format("Retained event: %@ · SDK %@", event.api, String(describing: event.timestamp)))
                     .font(.caption).foregroundStyle(Color.workspaceSecondary)
             } else {
                 Text(LocalizedStringKey(model.apiEventsEnabled ? "No SDK events recorded yet." : "SDK event recording is off."))
@@ -337,7 +334,7 @@ struct ApiInspector: View {
                     .accessibilityIdentifier("api.state.filter")
                 Button("Refresh") { model.refreshApiState() }.accessibilityIdentifier("api.refresh")
             }
-            Text("Snapshot from the current SDK player, source and view. Invocation and completion are separate observations.")
+            Text("Current SDK snapshot")
                 .font(.caption).foregroundStyle(Color.workspaceSecondary)
             List(model.apiState.filter { stateFilter.isEmpty || $0.id.localizedCaseInsensitiveContains(stateFilter) }) { state in
                 VStack(alignment: .leading, spacing: 4) {
@@ -367,7 +364,7 @@ struct ApiInspector: View {
             TextField("Filter event name or owner", text: $eventFilter)
                 .disableAutocorrection(true)
                 .accessibilityIdentifier("api.events.filter")
-            Text("Newest 120 records: API identity, owner and SDK timestamp. Registered callbacks do not prove occurrence; owners may report the same event.")
+            Text("Latest 120 SDK events")
                 .font(.caption).foregroundStyle(Color.workspaceSecondary)
             if model.apiEvents.isEmpty {
                 Text(LocalizedStringKey(model.apiEventsEnabled ? "No SDK events recorded yet." : "Event recording is off."))
@@ -412,7 +409,7 @@ struct ApiInspector: View {
                     .accessibilityIdentifier("api.argument.\(argument.id)")
                 #endif
                 if case .script = argument.input {
-                    Text("This function uses a JavaScript subset with CPU, elapsed-time and value-size limits. Use let or const; no network or native object access is exposed.").font(.caption).foregroundStyle(Color.workspaceSecondary)
+                    Text("Use let or const; return the documented value.").font(.caption).foregroundStyle(Color.workspaceSecondary)
                     Link("Supported syntax and limits", destination: URL(string: "https://github.com/kazuhide/player-lab/blob/main/apps/ios/Showcase/NativeScripts/README.md")!).font(.caption)
                 }
                 if !argument.note.isEmpty { Text(LocalizedStringKey(argument.note)).font(.caption).foregroundStyle(Color.workspaceSecondary) }

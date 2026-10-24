@@ -97,10 +97,10 @@ class PlayerWorkspaceUxInstrumentedTest {
             replaced
         }
         ui.onNodeWithTag("api-command-result").assertTextContains("Command submitted", substring = true)
-        ui.onNodeWithTag("api-related-state").assertTextContains("Not read yet", substring = true)
+        ui.onNodeWithTag("api-related-state").assertTextContains("Refresh to read playback state.", substring = true)
         workspaceTheme(ui, "Cinema")
         ui.onNodeWithTag("api-command-result").assertDoesNotExist()
-        ui.onNodeWithTag("api-related-state").assertTextContains("Not read yet", substring = true)
+        ui.onNodeWithTag("api-related-state").assertTextContains("Refresh to read playback state.", substring = true)
     }
 
     @Test

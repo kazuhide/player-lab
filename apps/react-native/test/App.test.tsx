@@ -10,7 +10,7 @@ const runtime = vi.hoisted(() => {
   process.env.EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY = "";
   return { castHost: undefined as undefined | { readOptions: ReturnType<typeof vi.fn>; saveOptions: ReturnType<typeof vi.fn> }, os: "android", keyboardDismiss: vi.fn(),
     keyboardListeners: new Map<string, Set<() => void>>(), window: { width: 393, height: 852, fontScale: 1, scale: 1 }, hostTop: 0,
-    clipboard: vi.fn(async (_code: string) => {}), editorScrollY: 0, scrollEditor: vi.fn(), apiScrollY: 0, scrollApi: vi.fn(), players: [] as Array<{
+    clipboard: vi.fn(async (_code: string) => {}), editorScrollY: 0, scrollEditor: vi.fn(), scrollEditorEnd: vi.fn(), apiScrollY: 0, scrollApi: vi.fn(), players: [] as Array<{
     config: PlayerConfig;
     load: ReturnType<typeof vi.fn>;
     destroy: ReturnType<typeof vi.fn>;
@@ -195,6 +195,7 @@ beforeEach(async () => {
   runtime.hostTop = 0;
   runtime.editorScrollY = 0;
   runtime.scrollEditor.mockClear();
+  runtime.scrollEditorEnd.mockClear();
   runtime.scrollEditor.mockImplementation(({ y }: { y: number }) => { runtime.editorScrollY = y; });
   runtime.apiScrollY = 0;
   runtime.scrollApi.mockClear();
@@ -226,11 +227,50 @@ function expectValidCode(code: string): void {
 async function mount() {
   await act(async () => { screen = create(<App />, { createNodeMock: element =>
     String(element.type) === "ScrollView" && element.props.testID === "configuration-fields-scroll"
-      ? { scrollTo: runtime.scrollEditor } : String(element.type) === "ScrollView" && element.props.testID === "api-fields-scroll"
+      ? { scrollTo: runtime.scrollEditor, scrollToEnd: runtime.scrollEditorEnd } : String(element.type) === "ScrollView" && element.props.testID === "api-fields-scroll"
         ? { scrollTo: runtime.scrollApi } : null }); });
 }
 
 describe("React Native configuration in the mounted App", () => {
+
+  it.each(["android", "ios"])("keeps the %s compact input revealed after keyboard viewport and content changes", async os => {
+    runtime.os = os;
+    runtime.window = { width: 852, height: 393, fontScale: 1, scale: 1 };
+    await mount(); await ready(); await text("Source title", "Retained landscape input");
+    const owner = current();
+    const originalInput = input("Source title");
+    const editor = () => element("ScrollView", { testID: "configuration-fields-scroll" });
+    expect(editor().props.onLayout).toBeUndefined();
+    expect(editor().props.onContentSizeChange).toBeUndefined();
+    runtime.keyboardDismiss.mockClear();
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    if (os === "android") {
+      await act(async () => editor().props.onLayout({ nativeEvent: { layout: { width: 900, height: 61 } } }));
+      expect(runtime.scrollEditorEnd).toHaveBeenLastCalledWith({ animated: false });
+      expect(runtime.scrollEditorEnd).toHaveBeenCalledTimes(1);
+      await act(async () => editor().props.onContentSizeChange(900, 90));
+      expect(runtime.scrollEditorEnd).toHaveBeenCalledTimes(2);
+    } else {
+      expect(editor().props.onLayout).toBeUndefined();
+      expect(editor().props.onContentSizeChange).toBeUndefined();
+      expect(runtime.scrollEditorEnd).not.toHaveBeenCalled();
+    }
+    expect(input("Source title")).toBe(originalInput);
+    expect(input("Source title").props.value).toBe("Retained landscape input");
+    expect(runtime.keyboardDismiss).not.toHaveBeenCalled();
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
+    expect(editor().props.onLayout).toBeUndefined();
+    expect(editor().props.onContentSizeChange).toBeUndefined();
+    await settingsGroup("callbacks"); await press("Edit this callback");
+    await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
+    expect(editor().props.onLayout).toBeUndefined();
+    expect(editor().props.onContentSizeChange).toBeUndefined();
+    expect(element("Switch", { accessibilityLabel: "Allow edited JavaScript execution" }).props.value).toBe(false);
+    expect(runtime.scrollEditorEnd).toHaveBeenCalledTimes(os === "android" ? 2 : 0);
+  });
+
   it.each(["android", "ios"])("keeps the %s compact basic editor focused on its input until Done", async os => {
     runtime.os = os;
     runtime.window = { width: 393, height: 852, fontScale: 2, scale: 1 };
@@ -247,8 +287,8 @@ describe("React Native configuration in the mounted App", () => {
     await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidHide") ?? []) listener(); });
     expect(applyHelp()).toHaveLength(1);
     await text("Maximum bitrate (bits per second)", "3500000");
-    const bitrateHelp = () => screen.root.findAll(node => String(node.type) === "Text" && Array.isArray(node.props.children)
-      && String(node.props.children).includes("Blank leaves it unlimited"));
+    const bitrateHelp = () => screen.root.findAll(node => String(node.type) === "Text"
+      && node.props.children === "Positive whole bits per second; blank leaves it unlimited.");
     expect(bitrateHelp()).toHaveLength(1);
     await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
     expect(bitrateHelp()).toHaveLength(0);
@@ -261,15 +301,20 @@ describe("React Native configuration in the mounted App", () => {
     expect(owner.destroy).not.toHaveBeenCalled();
   });
 
-  it.each(["android", "ios"])("retains %s structured editor help and scrolling during compact input", async os => {
+  it.each(["android", "ios"])("retains %s callback permission, draft and scrolling during compact input", async os => {
     runtime.os = os;
     runtime.window = { width: 393, height: 852, fontScale: 2, scale: 1 };
     await mount(); await ready();
     await settingsGroup("callbacks");
+    await press("Edit this callback");
+    const bodyLabel = "JavaScript body for PlayerConfig.networkConfig.preprocessHttpRequest";
+    const body = input(bodyLabel).props.value;
     runtime.editorScrollY = 160;
     await act(async () => { for (const listener of runtime.keyboardListeners.get("keyboardDidShow") ?? []) listener(); });
     expect(screen.root.findAll(node => String(node.type) === "Text" && typeof node.props.children === "string"
-      && node.props.children.startsWith("Apply recreates the player"))).toHaveLength(1);
+      && node.props.children.startsWith("Allow execution, then Apply."))).toHaveLength(1);
+    expect(input(bodyLabel).props.value).toBe(body);
+    expect(element("Switch", { accessibilityLabel: "Allow edited JavaScript execution" }).props.value).toBe(false);
     expect(runtime.editorScrollY).toBe(160);
     expect(current().destroy).not.toHaveBeenCalled();
   });
@@ -572,6 +617,29 @@ return { isFullscreenActive: false, enterFullscreen() {}, exitFullscreen() {} };
     expect(input("Source title").props.value).toBe("A retained draft");
     await press("日本語");
     expect(input("ソースのタイトル").props.value).toBe("A retained draft");
+    expect(current()).toBe(owner);
+    expect(runtime.players).toHaveLength(1);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it.each(["success", "failure"])("keeps a deferred API %s attributed to its executed identifier after selecting another API", async outcome => {
+    await mount(); await ready(); await press("Show API experiments");
+    const owner = current();
+    let resolve!: (value: number) => void;
+    let reject!: (error: Error) => void;
+    owner.getVolume.mockImplementationOnce(() => new Promise<number>((done, fail) => { resolve = done; reject = fail; }));
+    await text("Filter API operations", "Player.getVolume"); await press("Player.getVolume");
+    await tap("api-run");
+    await text("Filter API operations", "Player.getDuration"); await press("Player.getDuration");
+    await act(async () => {
+      if (outcome === "failure") reject(new Error("Deferred volume read failed."));
+      else resolve(73);
+    });
+    expect(element("Pressable", { testID: "api-operation-selector" }).props.accessibilityValue.text).toBe("Player.getDuration");
+    expect(element("Text", { testID: "api-result-origin" }).props.children).toBe("Player.getVolume");
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).toBe(outcome === "failure" ? "Deferred volume read failed." : "73");
+    expect(element("Text", { accessibilityLabel: "API result" }).props.accessibilityRole).toBe(outcome === "failure" ? "alert" : "text");
+    expect(element("Text", { accessibilityLabel: "Executed API code" }).props.children).toBe(outcome === "failure" ? "" : "player.getVolume()");
     expect(current()).toBe(owner);
     expect(runtime.players).toHaveLength(1);
     expect(owner.destroy).not.toHaveBeenCalled();

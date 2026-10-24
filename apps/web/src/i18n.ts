@@ -54,15 +54,21 @@ export function pick(s: L): string {
   return s[lang];
 }
 
+/** Keep Pages previews on their own build of the guide. */
+export function userGuideHref(page = ""): string {
+  const path = `${lang === "ja" ? "ja/" : ""}guide/${page ? `${page}/` : ""}`;
+  return import.meta.env.MODE === "pages" ? `../${path}` : `https://kazuhide.github.io/player-lab/${path}`;
+}
+
 /** Global chrome strings shared across modules. Per-module prose lives inline as `L`
  *  literals in each module (theme notes, guide levers, config blurbs…). */
 export const G = {
-  tagline: { ja: "ソースを切り替え、UI を差し替え、再生をその場で調整。", en: "Switch sources, swap the UI, and tune playback on the fly." },
+  tagline: { ja: "Bitmovin Player · Web", en: "Bitmovin Player · Web" },
   themeBarLabel: { ja: "UI テーマ", en: "UI theme" },
   langLabel: { ja: "言語", en: "Language" },
-  sideQoe: { ja: "QoE メトリクス (§15)", en: "QoE metrics (§15)" },
+  sideQoe: { ja: "再生品質", en: "Playback quality" },
   // Landmark aria-labels (kept consistent with the visible language).
-  ariaConstruction: { ja: "UI 構築の解説", en: "How this UI is built" },
+  ariaConstruction: { ja: "UIのコード", en: "UI code" },
   ariaControl: { ja: "操作パネル", en: "Control panel" },
   ariaConfig: { ja: "Player 設定", en: "Player Config" },
 } satisfies Record<string, L>;

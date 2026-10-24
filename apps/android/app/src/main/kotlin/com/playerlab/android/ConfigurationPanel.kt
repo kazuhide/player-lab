@@ -15,6 +15,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
@@ -101,7 +102,7 @@ internal fun ConfigurationPanel(controller: PlayerController, state: Configurati
         }
         val detail = uiFormat(if (dirty) R.string.ui_draft_changed else R.string.ui_draft_matches,
             uiText(state.group).let { if (dirty) it.lowercase(java.util.Locale.ROOT) else it },
-            uiText(if (isSource) "Apply reloads this source." else "Apply recreates the player and reloads its source."))
+            uiText(if (isSource) "Reloads this source." else "Restarts player and source."))
         if (!keyboardVisible && state.message.isNotEmpty()) UiText(state.message, color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = 12.dp).testTag("configuration-validation"))
         if (!keyboardVisible) UiText(if (isSource) uiFormat(R.string.ui_source_applied_summary, controller.sourceSettings.type.toString(),
@@ -163,35 +164,35 @@ private fun ConfigurationItemEditor(state: ConfigurationWorkspaceState) {
     val se = state.sourceErrors
     val pe = state.playerErrors
     when (state.selected) {
-        "source-url" -> ConfigField("Source URL", source.url, { state.source = source.copy(url = it) }, "source-url", se["url"], "HTTP or HTTPS stream URL. Cleartext HTTP also requires the device's network policy to allow it.", KeyboardType.Uri)
+        "source-url" -> ConfigField("Source URL", source.url, { state.source = source.copy(url = it) }, "source-url", se["url"], "HTTP or HTTPS URL.", KeyboardType.Uri)
         "source-type" -> WorkspacePicker("Source type", source.type, SourceType.entries.map { it to it.name }, "source-type") { state.source = source.copy(type = it) }
         "source-title" -> ConfigField("Title", source.title, { state.source = source.copy(title = it) }, "source-title", helper = "Blank uses the SDK default.")
         "source-poster" -> ConfigField("Poster URL", source.posterUrl, { state.source = source.copy(posterUrl = it) }, "source-poster", se["posterUrl"], "Optional HTTP or HTTPS image URL.", KeyboardType.Uri)
         "source-poster-persistent" -> ConfigToggle("Keep poster visible", source.posterPersistent, "source-poster-persistent") { state.source = source.copy(posterPersistent = it) }
-        "source-offset" -> ConfigField("Start offset (s)", source.startOffset, { state.source = source.copy(startOffset = it) }, "source-offset", se["startOffset"], "Blank uses the SDK default. Start uses positive seconds; End uses negative seconds. The SDK corrects offsets outside the available window.", KeyboardType.Ascii)
+        "source-offset" -> ConfigField("Start offset (s)", source.startOffset, { state.source = source.copy(startOffset = it) }, "source-offset", se["startOffset"], "Blank uses the SDK default. Start: positive seconds; End: negative seconds.", KeyboardType.Ascii)
         "source-reference" -> WorkspacePicker("Offset reference", source.offsetReference, listOf(null to "SDK default", TimelineReferencePoint.Start to "Start", TimelineReferencePoint.End to "End"), "source-reference") { state.source = source.copy(offsetReference = it) }
-        "source-live-target" -> ConfigField("Live target latency (s)", source.liveTargetLatency, { state.source = source.copy(liveTargetLatency = it) }, "source-live-target", se["liveTargetLatency"], "Blank uses SDK defaults. The SDK approaches this live-edge target while avoiding stalls, without a deadline guarantee. Ignored for VOD.", KeyboardType.Decimal)
-        "source-audio-languages" -> ConfigField("Source audio language priority", source.preferredAudioLanguages, { state.source = source.copy(preferredAudioLanguages = it) }, "source-audio-languages", se["preferredAudioLanguages"], "Comma-separated codes, such as de, en. A nonempty list takes precedence over the player preference.")
+        "source-live-target" -> ConfigField("Live target latency (s)", source.liveTargetLatency, { state.source = source.copy(liveTargetLatency = it) }, "source-live-target", se["liveTargetLatency"], "Live only. Blank uses SDK defaults.", KeyboardType.Decimal)
+        "source-audio-languages" -> ConfigField("Source audio language priority", source.preferredAudioLanguages, { state.source = source.copy(preferredAudioLanguages = it) }, "source-audio-languages", se["preferredAudioLanguages"], "Blank inherits player priority. Example: de, en.")
         "source-subtitle-url" -> ConfigField("WebVTT URL", source.subtitleUrl, { state.source = source.copy(subtitleUrl = it) }, "source-subtitle-url", se["subtitleUrl"], "Blank adds no external track.", KeyboardType.Uri)
         "source-subtitle-label" -> ConfigField("Subtitle label", source.subtitleLabel, { state.source = source.copy(subtitleLabel = it) }, "source-subtitle-label")
         "source-subtitle-language" -> ConfigField("Subtitle language", source.subtitleLanguage, { state.source = source.copy(subtitleLanguage = it) }, "source-subtitle-language", se["subtitleLanguage"], "For example en or en-US.")
-        "source-subtitle-default" -> { ConfigToggle("Default external subtitle", source.subtitleDefault, "source-subtitle-default") { state.source = source.copy(subtitleDefault = it) }; UiText("Default is track metadata. Select the track in the subtitle menu to show it.", style = MaterialTheme.typography.bodySmall) }
+        "source-subtitle-default" -> { ConfigToggle("Default external subtitle", source.subtitleDefault, "source-subtitle-default") { state.source = source.copy(subtitleDefault = it) }; UiText("Track metadata only. Enable subtitles in the player menu.", style = MaterialTheme.typography.bodySmall) }
         "source-legacy-constructor" -> {
             ConfigToggle("Use deprecated MediaSource constructor", source.useLegacyMediaSource, "source-legacy-constructor") { state.source = source.copy(useLegacyMediaSource = it) }
-            UiText("Off uses SourceConfig(url, type). On creates the matching legacy MediaSource and passes it to the deprecated SourceConfig constructor.", style = MaterialTheme.typography.bodySmall)
+            UiText("Reloads using the matching legacy MediaSource.", style = MaterialTheme.typography.bodySmall)
         }
         "config-autoplay" -> ConfigToggle("Autoplay", player.autoplay, "config-autoplay") { state.player = player.copy(autoplay = it) }
         "config-muted" -> ConfigToggle("Start muted", player.muted, "config-muted") { state.player = player.copy(muted = it) }
         "config-timeshift" -> ConfigToggle("Enable SDK live time shifting", player.timeShift, "config-timeshift") { state.player = player.copy(timeShift = it) }
-        "config-audio-languages" -> ConfigField("Player audio language priority", player.preferredAudioLanguages, { state.player = player.copy(preferredAudioLanguages = it) }, "config-audio-languages", pe["preferredAudioLanguages"], "Comma-separated codes, highest priority first. A source preference takes precedence.")
+        "config-audio-languages" -> ConfigField("Player audio language priority", player.preferredAudioLanguages, { state.player = player.copy(preferredAudioLanguages = it) }, "config-audio-languages", pe["preferredAudioLanguages"], "Language codes in priority order. Example: de, en.")
         "config-startup" -> ConfigField("Startup threshold (s)", player.startupThreshold, { state.player = player.copy(startupThreshold = it) }, "config-startup", pe["startupThreshold"], "Default 2.5. Nonnegative and at most forward buffer minus 0.5.", KeyboardType.Decimal)
         "config-restart" -> ConfigField("Restart threshold (s)", player.restartThreshold, { state.player = player.copy(restartThreshold = it) }, "config-restart", pe["restartThreshold"], "Default 5. Buffer needed after a stall.", KeyboardType.Decimal)
         "config-forward" -> ConfigField("Forward buffer (s)", player.forwardDuration, { state.player = player.copy(forwardDuration = it) }, "config-forward", pe["forwardDuration"], "Default 50. At least 0.5 for threshold headroom.", KeyboardType.Decimal)
-        "config-max-bitrate" -> ConfigField("Maximum automatic video bitrate (bps)", player.maxVideoBitrate, { state.player = player.copy(maxVideoBitrate = it) }, "config-max-bitrate", pe["maxVideoBitrate"], "Blank sets no automatic bitrate cap. Higher qualities remain available for manual selection.", KeyboardType.Number)
+        "config-max-bitrate" -> ConfigField("Maximum automatic video bitrate (bps)", player.maxVideoBitrate, { state.player = player.copy(maxVideoBitrate = it) }, "config-max-bitrate", pe["maxVideoBitrate"], "Blank removes the automatic bitrate cap.", KeyboardType.Number)
         "config-preload" -> ConfigToggle("Preload content", player.preload, "config-preload") { state.player = player.copy(preload = it) }
         "config-rebuffering" -> ConfigToggle("Allow rebuffering", player.rebuffering, "config-rebuffering") { state.player = player.copy(rebuffering = it) }
         "config-balance" -> ConfigField("Live quality / stability balance", player.qualityStabilityBalance, { state.player = player.copy(qualityStabilityBalance = it) }, "config-balance", pe["qualityStabilityBalance"], "0 favors quality; 1 favors stability. Live playback near the live edge only.", KeyboardType.Decimal)
-        "config-http-retries" -> ConfigField("HTTP retry delays (s)", player.httpRetryDelays, { state.player = player.copy(httpRetryDelays = it) }, "config-http-retries", pe["httpRetryDelays"], "Blank uses linear backoff. none disables retries. Otherwise enter nonnegative seconds, such as 0, 1, 2. DRM renewal uses its own policy.")
+        "config-http-retries" -> ConfigField("HTTP retry delays (s)", player.httpRetryDelays, { state.player = player.copy(httpRetryDelays = it) }, "config-http-retries", pe["httpRetryDelays"], "Seconds, e.g. 0, 0.25, 2; none disables retries.")
     }
 }
 
@@ -200,11 +201,15 @@ internal fun ConfigField(label: String, value: String, change: (String) -> Unit,
     error: String? = null, helper: String = "", keyboard: KeyboardType = KeyboardType.Text) {
     val focus = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val workspaceDone = LocalWorkspaceImeDone.current
+    val fieldView = LocalView.current
     val editing = workspaceKeyboardEditing()
     OutlinedTextField(value, change, label = { UiText(label) }, singleLine = true,
         isError = error != null, supportingText = if (error != null || !editing && helper.isNotEmpty()) ({ UiText(error ?: helper) }) else null,
         keyboardOptions = KeyboardOptions(keyboardType = keyboard, imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { focus.clearFocus(); keyboardController?.hide() }),
+        keyboardActions = KeyboardActions(onDone = {
+            if (!workspaceDone(fieldView)) { focus.clearFocus(); keyboardController?.hide() }
+        }),
         modifier = Modifier.fillMaxWidth().testTag(tag))
 }
 
@@ -213,7 +218,8 @@ internal fun ConfigToggle(label: String, checked: Boolean, tag: String, change: 
     var focused by remember { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(tag).onFocusChanged { focused = it.hasFocus }
         .toggleable(checked, role = Role.Switch, onValueChange = change)
-        .then(if (focused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier)
+        .border(if (focused) 2.dp else 1.dp, if (focused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+            MaterialTheme.shapes.small)
         .padding(8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         UiText(label, modifier = Modifier.weight(1f))
         Switch(checked, onCheckedChange = null)
@@ -225,9 +231,12 @@ internal fun ConfigToggle(label: String, checked: Boolean, tag: String, change: 
 internal fun <T> Choices(choices: List<Pair<T, String>>, selected: T, tag: String, change: (T) -> Unit) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         choices.forEach { (value, label) ->
+            var focused by remember(value) { mutableStateOf(false) }
             FilterChip(selected == value, onClick = { change(value) }, label = { UiText(label) },
                 leadingIcon = if (selected == value) ({ UiText("✓") }) else null,
-                modifier = Modifier.heightIn(min = 48.dp).testTag("$tag-$label"))
+                modifier = Modifier.heightIn(min = 48.dp).testTag("$tag-$label")
+                    .onFocusChanged { focused = it.isFocused }
+                    .then(if (focused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier))
         }
     }
 }
