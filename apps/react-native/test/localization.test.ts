@@ -9,6 +9,7 @@ vi.mock("react-native", () => ({
 }));
 
 import { languageFromLocale, translateCopy } from "../src/localization";
+import { finiteNumber } from "../src/apiValues";
 
 function sourceFiles(directory: string): string[] {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -72,6 +73,34 @@ describe("application language", () => {
       visit(source);
     }
     expect(missing).toEqual([]);
+  });
+
+  it("localizes the field names supplied to configuration number validators", () => {
+    const labels = new Set<string>();
+    for (const name of ["nativeSettings.ts", "nativeArrays.ts", "metadataInput.tsx"]) {
+      const file = path.join("src", name);
+      const source = ts.createSourceFile(file, fs.readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true);
+      const visit = (node: ts.Node): void => {
+        if (ts.isCallExpression(node) && node.expression.getText(source) === "finiteNumber"
+          && node.arguments[1] && ts.isStringLiteral(node.arguments[1])) labels.add(node.arguments[1].text);
+        ts.forEachChild(node, visit);
+      };
+      visit(source);
+    }
+    expect(labels.size).toBeGreaterThan(0);
+    for (const label of labels) {
+      const translatedLabel = translateCopy(label, "ja");
+      if (!label.includes(".")) expect(translatedLabel, label).not.toBe(label);
+      for (const value of ["", "Infinity"]) {
+        let message = "";
+        try { finiteNumber(value, label); } catch (cause) { if (cause instanceof Error) message = cause.message; }
+        expect(message).not.toBe("");
+        expect(translateCopy(message, "ja")).toBe(value === ""
+          ? `${translatedLabel}には数値を入力してください。`
+          : `${translatedLabel}には-InfinityからInfinityまでの有限の数値を入力してください。`);
+        expect(translateCopy(message, "en")).toBe(message);
+      }
+    }
   });
 
   it("provides Japanese copy for literal application labels and help in the actual UI components", () => {

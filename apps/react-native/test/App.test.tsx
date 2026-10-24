@@ -282,6 +282,18 @@ return { isFullscreenActive: false, enterFullscreen() {}, exitFullscreen() {} };
     expect(owner.destroy).not.toHaveBeenCalled();
   });
 
+  it.each(["android", "ios"])("localizes the %s field name in helper-generated SDK override validation", async os => {
+    runtime.os = os;
+    await mount(); await ready();
+    const owner = current();
+    const id = "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration";
+    await text("Filter configuration APIs", id); await press(id); await press("Set this API value");
+    await text(`Value for ${id}`, ""); await press("日本語"); await tap("configuration-apply");
+    expect(element("Text", { accessibilityRole: "alert" }).props.children).toBe("先読み時間には数値を入力してください。");
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
   it.each(["android", "ios"])("puts the exact %s method first when a query also matches its Player namespace", async (os) => {
     runtime.os = os;
     await mount(); await ready();
