@@ -14,6 +14,11 @@
       "text": "This chapter follows the existing Kotlin app in apps/android. Android phones and tablets, Android TV, and Android-based Fire TV use that Android app and SDK. Fire TV running Vega OS uses the separate Vega implementation guide. Start with a working on-demand (VOD) source, then change one setting at a time and compare the applied Kotlin code with the observed playback."
     },
     {
+      "type": "note",
+      "title": "Display language",
+      "text": "The app supports English and Japanese through the system or per-app language preference. This guide uses captures from the English app. SDK identifiers, code and returned data are not translated. The standard Player controls also depend on SDK and system language settings."
+    },
+    {
       "type": "links",
       "items": [
         {
@@ -484,7 +489,7 @@
     {
       "type": "figure",
       "file": "android-offline-tracks",
-      "caption": "Recorded with the earlier app layout. Offline controls with an audio track selected for download. This image shows track selection; completion and playback without networking are separate checks."
+      "caption": "Offline controls with an audio track selected for download. This image shows track selection; completion and playback without networking are separate checks."
     },
     {
       "type": "h3",

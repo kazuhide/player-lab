@@ -65,8 +65,7 @@ THEMES = (
     'custom-compact', 'custom-premiere', 'custom-creator', 'custom-studio',
 )
 LANGUAGES = ('en', 'ja')
-SHARED_FIGURES = {
-    'custom-premiere': (983, 554),
+NATIVE_FIGURES = {
     'vega-api-operation': (1920, 1080),
     'vega-api-volume': (1920, 1080),
     'vega-api-callback': (1920, 1080),
@@ -81,12 +80,9 @@ SHARED_FIGURES = {
     'ios-subtitle-array-editor': (1206, 2622),
     'ios-api-volume-state': (1206, 2622),
     'ios-api-operation': (1206, 2622),
-    'tvos-api-state': (3840, 2160),
+    'tvos-api-state': (1920, 1080),
     'ios-cast-options': (1206, 2622),
     'ios-cast-sdk-state': (1206, 2622),
-    'analytics-dashboard-overview': (2864, 1270),
-    'analytics-dashboard-errors': (1324, 501),
-    'analytics-session-errors': (804, 188),
     'android-source-settings': (1080, 2400),
     'android-player-settings': (1080, 2400),
     'android-applied-code': (1080, 2400),
@@ -97,13 +93,13 @@ SHARED_FIGURES = {
     'android-offline-tracks': (1080, 2400),
     'android-media-session': (1080, 2400),
     'ios-playback-tracks': (1206, 2622),
-    'ios-initial-tracks': (1668, 2420),
-    'ios-video-scaling': (1668, 2420),
+    'ios-initial-tracks': (1640, 2360),
+    'ios-video-scaling': (1640, 2360),
     'ios-applied-code': (1206, 2622),
-    'tvos-playback-tracks': (3840, 2160),
-    'tvos-initial-tracks': (3840, 2160),
-    'tvos-video-scaling': (3840, 2160),
-    'tvos-applied-code': (3840, 2160),
+    'tvos-playback-tracks': (1920, 1080),
+    'tvos-initial-tracks': (1920, 1080),
+    'tvos-video-scaling': (1920, 1080),
+    'tvos-applied-code': (1920, 1080),
     'rn-ios-subtitles': (1206, 2622),
     'rn-ios-caption': (1206, 2622),
     'rn-ios-code': (1206, 2622),
@@ -113,52 +109,43 @@ SHARED_FIGURES = {
     'vega-caption': (1920, 1080),
     'vega-code': (1920, 1080),
 }
-FIGURE_EXTENSIONS = {
-    name: 'png' for name in (
-        'vega-api-operation',
-        'vega-api-volume',
-        'vega-api-callback',
-        'rn-ios-code',
-        'rn-ios-api-callback',
-        'rn-android-api-operation',
-        'rn-ios-api-events',
-        'rn-android-cast-startup',
-        'ios-applied-code',
-        'ios-playback-tracks',
-        'tvos-applied-code',
-        'ios-offline-track-selection',
-        'ios-callback-sdk-status',
-        'ios-callback-editor',
-        'ios-subtitle-array-sdk-state',
-        'ios-subtitle-array-editor',
-        'ios-api-volume-state',
-        'ios-api-operation',
-        'tvos-api-state',
-        'ios-cast-options',
-        'ios-cast-sdk-state',
-        'analytics-dashboard-overview', 'analytics-dashboard-errors', 'analytics-session-errors',
-        'android-source-settings',
-        'android-player-settings',
-        'android-applied-code',
-        'android-api-callback',
-        'android-api-operation',
-        'android-api-state',
-        'android-api-events',
-        'android-offline-tracks',
-        'android-media-session',)
+SHARED_FIGURES = {
+    # The external Dashboard provides these screens in English.
+    'analytics-dashboard-overview': (2864, 1270),
+    'analytics-dashboard-errors': (1324, 501),
+    'analytics-session-errors': (804, 188),
 }
+LOCALIZED_FIGURES = {
+    **{name: {language: size for language in LANGUAGES} for name, size in NATIVE_FIGURES.items()},
+    **{name: {language: (761, 429) for language in LANGUAGES} for name in THEMES},
+    'overview': {'en': (1650, 1425), 'ja': (1650, 1425)},
+    'source-controls': {'en': (301, 176), 'ja': (301, 180)},
+    'config': {'en': (293, 316), 'ja': (293, 306)},
+    'sdk-configuration': {'en': (1240, 1447), 'ja': (1240, 1453)},
+    'sdk-callback': {'en': (1240, 1520), 'ja': (1240, 1530)},
+    'ui-controls': {'en': (301, 663), 'ja': (301, 790)},
+    'applied-settings': {'en': (1240, 506), 'ja': (1240, 511)},
+}
+FIGURE_EXTENSIONS = {name: 'png' for name in (*NATIVE_FIGURES, *SHARED_FIGURES)}
 
 
-def shared_figure_path(name):
-    return f'assets/guide/{name}.{FIGURE_EXTENSIONS.get(name, "jpg")}'
+def figure_path(name, language):
+    if language not in LANGUAGES:
+        raise ValueError('The guide image language is not supported.')
+    extension = FIGURE_EXTENSIONS.get(name, 'jpg')
+    if name in LOCALIZED_FIGURES:
+        return f'assets/guide/{name}-{language}.{extension}'
+    if name in SHARED_FIGURES:
+        return f'assets/guide/{name}.{extension}'
+    raise ValueError('The guide contains an unknown figure.')
 
 
 COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'vega')
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *IMPLEMENTATION_PAGES, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = '48f52875184983f6ddf57f42f20fa67dafd56634'
-CONTENT_REVIEW = '2026-10-23'
+SOURCE_REVISION = '7d15fdb618542518062d66390283aa3097ce5d60'
+CONTENT_REVIEW = '2026-10-24'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 
 
@@ -174,9 +161,6 @@ GUIDE_FILES = {
 }
 GUIDE_ASSETS = {
     'guide.css', 'guide.js',
-    *(shared_figure_path(name) for name in SHARED_FIGURES),
-    *(f'assets/guide/{name}.jpg' for name in THEMES),
-    *(f'assets/guide/{name}-{language}.jpg'
-      for name in ('overview', 'source-controls', 'config', 'sdk-configuration', 'sdk-callback',
-                   'ui-controls', 'applied-settings') for language in LANGUAGES),
+    *(figure_path(name, 'en') for name in SHARED_FIGURES),
+    *(figure_path(name, language) for name in LOCALIZED_FIGURES for language in LANGUAGES),
 }

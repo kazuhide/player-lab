@@ -109,6 +109,24 @@ final class LocalizedGuideCaptureUITests: XCTestCase {
         capture("ios-video-scaling", app)
     }
     #else
+    func testTelevisionApiPaneFocusRetainsRequestedSelection() throws {
+        let app = launch()
+        try WorkspaceUITestNavigation.activate(app.buttons["api.open"], in: app)
+        for value in ["State", "Operations", "State", "Operations"] {
+            try pane(value, in: app)
+            let button = app.segmentedControls["api.pane"].buttons["api.pane.\(value)"]
+            XCTAssertTrue(button.isSelected)
+            if value == "Operations" {
+                XCTAssertTrue(app.buttons["api.operation"].exists)
+                XCTAssertFalse(app.textFields["api.state.filter"].exists)
+            } else {
+                XCTAssertTrue(app.textFields["api.state.filter"].exists)
+                XCTAssertFalse(app.buttons["api.operation"].exists)
+            }
+        }
+        WorkspaceUITestNavigation.capture(app, named: "television-api-pane-exact-selection", test: self)
+    }
+
     func testTelevisionCodeReturnsToSettingsWithoutTraversingDocument() throws {
         let app = launch()
         try prepareSource(in: app)
@@ -229,12 +247,46 @@ final class LocalizedGuideCaptureUITests: XCTestCase {
 
     private func pane(_ value: String, in app: XCUIApplication) throws {
         let button = app.segmentedControls["api.pane"].buttons["api.pane.\(value)"]
+        #if os(tvOS)
+        if button.isSelected { return }
+        let values = ["Operations", "State", "Events", "Host"]
+        let selected = values.firstIndex { app.buttons["api.pane.\($0)"].isSelected }
+        guard var current = selected, let target = values.firstIndex(of: value) else {
+            XCTFail("The native API picker must expose its current selection")
+            return
+        }
+        try WorkspaceUITestNavigation.activate(app.buttons["api.pane.\(values[current])"], in: app)
+        while current != target {
+            let next = current + (target < current ? -1 : 1)
+            let expected = app.buttons["api.pane.\(values[next])"]
+            XCUIRemote.shared.press(target < current ? .left : .right)
+            // The TV picker can select while moving focus. Let this single
+            // directional input settle before deciding whether Select is needed.
+            let arrived = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                expected.hasFocus || expected.isSelected
+            }, object: expected)
+            let result = XCTWaiter.wait(for: [arrived], timeout: 5)
+            if result != .completed {
+                let hierarchy = XCTAttachment(string: app.debugDescription)
+                hierarchy.name = "television-api-single-direction-accessibility"
+                hierarchy.lifetime = .keepAlways
+                add(hierarchy)
+                WorkspaceUITestNavigation.capture(app, named: "television-api-single-direction-screen", test: self)
+            }
+            XCTAssertEqual(result, .completed, "One remote input must reach the adjacent API pane")
+            if !expected.isSelected { XCUIRemote.shared.press(.select) }
+            let applied = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isSelected == true"), object: expected)
+            XCTAssertEqual(XCTWaiter.wait(for: [applied], timeout: 5), .completed)
+            current = next
+        }
+        #else
         for _ in 0..<2 {
             try WorkspaceUITestNavigation.activate(button, in: app)
             let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isSelected == true"), object: button)
             if XCTWaiter.wait(for: [selected], timeout: 5) == .completed { return }
         }
         XCTFail("The requested API pane must be selected: \(value)")
+        #endif
     }
 
     private func openState(_ filter: String, in app: XCUIApplication) throws {

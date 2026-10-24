@@ -23,6 +23,11 @@
       "text": "The bitmovin-player-react-native package is a JavaScript interface to the native iOS and Android Player SDKs. The same React component therefore does not imply identical media support: this screen accepts HLS or progressive MP4 on iOS, and also DASH on Android. SourceConfig and PlayerConfig are wrapper types; browser Web SDK configuration cannot be copied into them unchanged. The PlayerConfig and SourceConfig section explains their fields and application."
     },
     {
+      "type": "note",
+      "title": "Display language",
+      "text": "Switch between English and Japanese using the language controls above the selectors. In compact layouts or with larger text, use More. A language change retains applied settings and drafts. This guide uses the English app; SDK identifiers, code and returned data retain their original spelling."
+    },
+    {
       "type": "links",
       "items": [
         {
@@ -69,19 +74,19 @@
       "type": "steps",
       "items": [
         "Open App.tsx. App owns the applied settings and editable draft. PlayerPane is keyed by UI choice and revision; ActivePlayerPane obtains a Player through usePlayer and passes that instance into PlayerView.",
-        "Load a VOD preset, start playback and open Show applied code. Keep this baseline while changing one option. Compare the submitted configuration, the native SDK event log and the visible result together."
+        "Load a VOD preset, start playback and open Code. Keep this baseline while changing one option. Compare the submitted configuration, the native SDK event log and the visible result together."
       ]
     },
     {
       "type": "code",
       "title": "Attach the existing native PlayerView",
-      "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : styles.player}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}",
+      "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : { ...styles.player, height: workspace.previewHeight }}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 312,
-        "label": "Attach the existing native PlayerView"
+        "line": 356,
+        "label": "App.tsx:356–363"
       },
-      "endLine": 319
+      "endLine": 363
     },
     {
       "type": "p",
@@ -109,7 +114,7 @@
       "source": {
         "path": "apps/react-native/src/configuration.ts",
         "line": 111,
-        "label": "Translate the basic Player fields into wrapper configuration"
+        "label": "configuration.ts:111–115"
       },
       "endLine": 115
     },
@@ -124,7 +129,7 @@
         [
           "Startup behavior",
           "PlayerConfig.playbackConfig.isAutoplayEnabled / isMuted",
-          "Change Autoplay or Mute on startup, then Apply and recreate player. These are startup choices; use Player.play, pause, mute or unmute for a command on the current session."
+          "Change Autoplay or Mute on startup, then Apply configuration. These are startup choices; use Player.play, pause, mute or unmute for a command on the current session."
         ],
         [
           "Buffer target",
@@ -165,7 +170,7 @@
       "source": {
         "path": "apps/react-native/src/configuration.ts",
         "line": 102,
-        "label": "Build the source and its initial-position options"
+        "label": "configuration.ts:102–110"
       },
       "endLine": 110
     },
@@ -176,9 +181,9 @@
     {
       "type": "steps",
       "items": [
-        "Open Show configuration, change the basic inputs and select Apply and recreate player. The whole draft is validated before replacing the Player. A source-only form edit also recreates it and resets the position to the configured offset.",
-        "For another setting, search its exact wrapper path in Additional SDK configuration. For arrays use Subtitle lists and advertising; for functions use JavaScript callbacks and native UI handlers. A text field cannot stand in for a required native SDK object.",
-        "Open Show applied code after Apply. Advanced settings override the basic form; removing the advanced value restores the form value or SDK default. Reset draft only discards pending edits.",
+        "Open Settings, change the basic inputs and select Apply configuration. The whole draft is validated before replacing the Player. A source-only form edit also recreates it and resets the position to the configured offset.",
+        "For another setting, search its exact wrapper path in SDK overrides. For arrays use Subtitle lists and advertising; for functions use JavaScript callbacks and native UI handlers. A text field cannot stand in for a required native SDK object.",
+        "Open Code after Apply. Advanced settings override the basic form; removing the advanced value restores the form value or SDK default. Reset draft only discards pending edits.",
         "When editing the implementation itself, keep the validated player/source objects separate. App increments revision on Apply; its React key remounts the Player owner because changing an argument to the existing usePlayer call is not a reconfiguration API."
       ]
     },
@@ -193,10 +198,10 @@
       "text": "  useEffect(() => {\n    if (!viewReady || !active.current) return;\n    snapshots.current?.sourceChanged();\n    setDvr(null);\n    append(`load ${source.title || \"source\"}`);\n    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.\n    void loadOwnedSource(player, source).catch(() => { if (active.current) append(\"Source initialization failed; inspect source events or retry after the pending initializer settles.\"); });\n    observed.current?.sourceLoad();\n  }, [source, player, viewReady, append]);",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 282,
-        "label": "App.tsx:282–290"
+        "line": 324,
+        "label": "App.tsx:324–332"
       },
-      "endLine": 290
+      "endLine": 332
     },
     {
       "type": "p",
@@ -233,7 +238,7 @@
         [
           "Change the embedded UI appearance",
           "PlayerConfig.styleConfig.playerUiCss replaces the UI stylesheet; supplementalPlayerUiCss adds styles. playerUiJs replaces its JavaScript bundle.",
-          "Try the path in Additional SDK configuration and Apply. For packaged assets, rebuild the shared UI and native resources as described below."
+          "Try the path in SDK overrides and Apply. For packaged assets, rebuild the shared UI and native resources as described below."
         ],
         [
           "Change the UI composition",
@@ -243,7 +248,7 @@
         [
           "Change the video fit or native view",
           "PlayerViewProps.scalingMode configures Fit, Zoom or Stretch. PlayerViewConfig holds view options; WebUiConfig configures the embedded Web UI.",
-          "Search the corresponding path in Additional SDK configuration and Apply. Fit preserves the whole picture; Zoom may crop; Stretch can alter the aspect ratio."
+          "Search the corresponding path in SDK overrides and Apply. Fit preserves the whole picture; Zoom may crop; Stretch can alter the aspect ratio."
         ],
         [
           "Add an app-level control",
@@ -268,10 +273,10 @@
       "text": "          styleConfig: {\n            userInterfaceType: UserInterfaceType.Bitmovin,\n            playerUiJs: WEBUI_JS,\n            playerUiCss: WEBUI_CSS,\n            ...playerConfig.styleConfig,\n          },\n        }",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 208,
-        "label": "Use the shared JavaScript and CSS in the custom-theme branch"
+        "line": 250,
+        "label": "App.tsx:250–256"
       },
-      "endLine": 214
+      "endLine": 256
     },
     {
       "type": "code",
@@ -279,10 +284,10 @@
       "text": "  const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction || Object.keys(settings.view).length || Object.keys(settings.webUi).length\n    ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }\n    : undefined;",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 302,
-        "label": "Choose the exported factory through PlayerViewConfig"
+        "line": 344,
+        "label": "App.tsx:344–346"
       },
-      "endLine": 304
+      "endLine": 346
     },
     {
       "type": "p",
@@ -343,12 +348,12 @@
     },
     {
       "type": "p",
-      "text": "Show API experiments runs actual wrapper calls and displays their returned values. Many reads cross the native bridge and return Promises, so await the value before using it in a UI. Player events provides payload summaries separately. For a setter, compare the corresponding getter or completion event; the call returning does not establish that an unrelated feature worked. onTimeChanged also refreshes the app’s live-window snapshot because this wrapper does not expose onDurationChanged."
+      "text": "APIs runs actual wrapper calls and displays their returned values. Many reads cross the native bridge and return Promises, so await the value before using it in a UI. Player events provides payload summaries separately. For a setter, compare the corresponding getter or completion event; the call returning does not establish that an unrelated feature worked. onTimeChanged also refreshes the app’s live-window snapshot because this wrapper does not expose onDurationChanged."
     },
     {
       "type": "figure",
       "file": "rn-android-api-operation",
-      "caption": "Player.getCurrentTime in the Android build. Choose the time mode and compare repeated reads while playback advances."
+      "caption": "Player.getCurrentTime in the Android APIs workspace, showing the submitted call and the SDK result."
     },
     {
       "type": "h3",
@@ -398,7 +403,7 @@
         ],
         [
           "Why can’t the Android player menu scroll?",
-          "Swipe within the video menu, not the surrounding form. The app keeps player touch gestures with the video to prevent the parent ScrollView from taking the drag."
+          "Swipe within the video menu, not the surrounding form. The video is outside the editor ScrollView; its touch gestures remain with the Player."
         ],
         [
           "Why is the license rejected after updating the root configuration?",
@@ -407,6 +412,22 @@
         [
           "Why do an API or callback fail after recreation?",
           "They may refer to a retired Player or a resource from the previous source. Query the new instance, use the current track/native identifiers, and inspect the function signature. Recreate player after API experiments restores the applied configuration after destroy."
+        ],
+        [
+          "Why did only the ExpoModulesCore checksum change in a fresh iOS host?",
+          "Expo precompiled modules can include generated-host paths in their podspec source and preparation command. After normal pod install, inspect the complete lockfile diff, including dependency versions. A host-specific specification checksum change is different from a dependency update; do not remove the lockfile or alter pinned versions to bypass it."
+        ],
+        [
+          "How are Apply and Reset kept above the keyboard?",
+          "App owns the screen safe area, so the generated Expo index.tsx registers App directly. Another SafeAreaView around it changes the editor origin and can hide fixed actions behind the keyboard. KeyboardAvoidingView uses the y coordinate from useSafeAreaFrame to account for its position within a host. Android disables fullscreen text extraction; compact editing hides the preview while retaining the Player when typing in a short window or with enlarged text. Check the complete keyboard, including predictive text, against actual button positions in an integrated screen. While the keyboard is visible, the original bottom safe-area padding is omitted so the editor is not reduced twice. The API panel's parent views also set flexBasis: 0 and flexShrink: 1 so their fixed actions follow the reduced viewport."
+        ],
+        [
+          "How does selecting a setting reveal the start of its editor?",
+          "A ScrollView retains its offset when its content changes. The settings and API panels keep the existing ScrollView and Player, using useLayoutEffect to scroll to y=0 when the chosen group, field, API view or operation changes. Selecting the current option again scrolls to the top through onSelect. Typing and switching language or workspace tabs retain the current inputs and editor position. Choosing a different API initializes its arguments to that operation's defaults."
+        ],
+        [
+          "Why do settings reset after changing Android's system text size?",
+          "When a system font change recreates the Activity, the component that manages an Android screen, the application's screen session also restarts. This sample retains configuration for the current session, so select the source and settings again after the host restarts. Save the applied code beforehand if you need to restore it. Changing the language or tabs inside Player Lab retains the session and draft values."
         ]
       ],
       "widths": [
@@ -456,10 +477,10 @@
       "text": "  const analyticsConfig = playerConfig.analyticsConfig ? {\n    ...playerConfig.analyticsConfig,\n    licenseKey: Object.prototype.hasOwnProperty.call(settings.draft.apiSettings ?? {}, \"PlayerConfig.analyticsConfig.licenseKey\")\n      ? playerConfig.analyticsConfig.licenseKey : ANALYTICS_LICENSE_KEY,\n  } : ANALYTICS_LICENSE_KEY ? { licenseKey: ANALYTICS_LICENSE_KEY } : undefined;",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 196,
-        "label": "Merge configured collector options before usePlayer"
+        "line": 238,
+        "label": "App.tsx:238–242"
       },
-      "endLine": 200
+      "endLine": 242
     },
     {
       "type": "p",

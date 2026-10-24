@@ -21,6 +21,11 @@
       "text": "Build and launch Showcase-iOS or Showcase-tvOS using Local setup and licenses. This chapter starts with the running app; Swift integration and UI source changes are in the implementation guide."
     },
     {
+      "type": "note",
+      "title": "Display language",
+      "text": "The app supports English and Japanese through the system or per-app language preference. This guide uses captures from the English app. SDK identifiers, code and returned data retain their original spelling. The standard Player controls also depend on SDK and system language settings."
+    },
+    {
       "type": "p",
       "text": "The app uses Player 3.128.0, with iOS/iPadOS 16.0 or later and tvOS 15.0 or later. Allow com.playerlab.ios or com.playerlab.tvos on the Player license for the target you run. A successful build alone does not confirm authentication or playback."
     },
@@ -78,7 +83,7 @@
     {
       "type": "figure",
       "file": "tvos-playback-tracks",
-      "caption": "Recorded with the earlier app layout. A tvOS screen from the recorded remote-input test. Use Play/Pause on the remote and move focus to configuration. This screenshot does not establish behavior on every physical device."
+      "caption": "The tvOS simulator during remote-control verification. Use Play/Pause on the remote and move focus to configuration."
     },
     {
       "type": "h2",
@@ -137,7 +142,7 @@
           "Recreates the player. Use a display area with a different aspect ratio from the video to see cropping versus the full picture."
         ],
         [
-          "Adaptation and buffer",
+          "Quality and buffer",
           "Maximum bitrate: 1500000 bit/s; Forward buffer: 10 seconds",
           "Recreates the player. Check adaptationConfig.maxSelectableBitrate and bufferConfig.audioAndVideo.forwardDuration in applied code. These are configuration limits/targets; the actual quality and buffered media depend on the source and playback."
         ]
@@ -156,7 +161,8 @@
       "type": "steps",
       "items": [
         "After Apply, choose Code to inspect the active Player, Source and UI values. On iPhone and iPad, Wrap lines is on by default; turn it off when comparing original line lengths. tvOS always wraps code lines.",
-        "Edit a draft without applying and confirm that Code stays unchanged. iPhone/iPad supports Copy code and text selection; tvOS provides focusable wrapped code lines without clipboard integration."
+        "Edit a draft without applying and confirm that Code stays unchanged. iPhone/iPad supports Copy code and text selection; tvOS provides focusable wrapped code lines without clipboard integration.",
+        "On tvOS, press Back/Menu while reading code or using an editor to return focus to the current workspace tab. Use Left/Right and Select to switch tabs. Back/Menu on the tab bar retains its system behavior."
       ]
     },
     {
@@ -167,7 +173,7 @@
     {
       "type": "figure",
       "file": "tvos-applied-code",
-      "caption": "Recorded with the earlier app layout. Applied Swift configuration on tvOS. Focusable wrapped lines support remote reading; this TV host has no clipboard integration."
+      "caption": "Applied Swift configuration on tvOS. Focusable wrapped lines support remote reading; this TV host has no clipboard integration."
     },
     {
       "type": "h2",
@@ -189,7 +195,7 @@
     {
       "type": "figure",
       "file": "ios-subtitle-array-editor",
-      "caption": "Recorded with the earlier app layout. SourceConfig.tracks in the iPhone editor. Each object describes a subtitle track, with accepted properties listed below the input."
+      "caption": "SourceConfig.tracks in the iPhone editor. Each object describes a subtitle track, with accepted properties listed below the input."
     },
     {
       "type": "p",
@@ -198,7 +204,7 @@
     {
       "type": "figure",
       "file": "ios-subtitle-array-sdk-state",
-      "caption": "Recorded with the earlier app layout. Player.availableSubtitles after Apply includes manual-example alongside the source's native tracks."
+      "caption": "Player.availableSubtitles after applying the subtitle list. The result contains the tracks and identifiers returned by the actual SDK."
     },
     {
       "type": "p",
@@ -220,12 +226,12 @@
     {
       "type": "figure",
       "file": "ios-callback-editor",
-      "caption": "Recorded with the earlier app layout. The audio-label callback accepts a JavaScript body that returns a replacement for the label in input."
+      "caption": "The audio-label callback accepts a JavaScript body that returns a replacement for the label in input."
     },
     {
       "type": "figure",
       "file": "ios-callback-sdk-status",
-      "caption": "Recorded with the earlier app layout. State after the SDK invoked the applied audio-label body. Counts are shown without callback payloads."
+      "caption": "State after the SDK invoked the applied audio-label body. Counts are shown without callback payloads."
     },
     {
       "type": "note",
@@ -256,12 +262,12 @@
     {
       "type": "figure",
       "file": "ios-initial-tracks",
-      "caption": "Recorded with the earlier app layout. Initial track preferences in the iPad form. These are source-local application preferences, applied once during startup, rather than PlayerConfig language properties."
+      "caption": "The initial audio-language field on iPad. This is a source-local app preference applied during startup, rather than a PlayerConfig language property."
     },
     {
       "type": "figure",
       "file": "ios-video-scaling",
-      "caption": "Recorded with the earlier app layout. Preferred subtitle language and Fill (crop). Scaling is the SDK StyleConfig.scalingMode setting and recreates the player."
+      "caption": "The video-scaling setting on iPad. The selected value is passed to SDK StyleConfig.scalingMode when the player is recreated."
     },
     {
       "type": "p",
@@ -279,12 +285,12 @@
     {
       "type": "figure",
       "file": "tvos-initial-tracks",
-      "caption": "Recorded with the earlier app layout. The tvOS configuration form uses remote focus, Select and the system keyboard for initial language preferences."
+      "caption": "The initial audio-language setting on tvOS. Select the field with the remote and enter a language code using the system keyboard."
     },
     {
       "type": "figure",
       "file": "tvos-video-scaling",
-      "caption": "Recorded with the earlier app layout. Fit, Fill (crop) and Stretch are native focusable choices in the tvOS form."
+      "caption": "Fit, Fill (crop) and Stretch are native focusable choices in the tvOS form."
     },
     {
       "type": "p",
@@ -335,7 +341,7 @@
     },
     {
       "type": "p",
-      "text": "Stock speed choices are presets, and its speaker control can toggle mute without a numeric volume slider. These limits describe the default controls only; they do not describe the APIs's coverage or accepted arguments."
+      "text": "Stock speed choices are presets, and its speaker control can toggle mute without a numeric volume slider. These limits describe the default controls only; they do not describe the API coverage or accepted arguments."
     },
     {
       "type": "p",
@@ -381,7 +387,7 @@
     {
       "type": "figure",
       "file": "tvos-api-state",
-      "caption": "Recorded with the earlier app layout. The tvOS API inspector uses the same Operations, State and Events workflow with remote focus and Select."
+      "caption": "The tvOS API inspector uses the same Operations, State and Events workflow with remote focus and Select."
     },
     {
       "type": "note",
@@ -448,7 +454,7 @@
     },
     {
       "type": "p",
-      "text": "SharePlay requires OS eligibility, an appropriate system session and the Group Activities signing capability. A simulator with no eligible session can still show the controls, but it cannot provide a fabricated GroupSession. Show SharePlay code explains the public coordination call."
+      "text": "SharePlay requires OS eligibility, an appropriate system session and the Group Activities signing capability. A simulator with no eligible session can still show the controls, but it cannot provide a fabricated GroupSession. Choose Code in the SharePlay selector to inspect the public coordination call."
     },
     {
       "type": "h2",
@@ -472,7 +478,7 @@
     {
       "type": "figure",
       "file": "ios-offline-track-selection",
-      "caption": "Recorded with the earlier app layout. The offline inspector lists actual SDK audio/subtitle tracks and their download actions."
+      "caption": "The offline inspector lists actual SDK audio/subtitle tracks and their download actions."
     },
     {
       "type": "p",
@@ -498,12 +504,12 @@
     {
       "type": "figure",
       "file": "ios-cast-options",
-      "caption": "Recorded with the earlier app layout. Receiver and discovery options in the Google Cast inspector. They configure the app process's startup."
+      "caption": "Receiver and discovery options in the Google Cast inspector. They configure the app process's startup."
     },
     {
       "type": "figure",
       "file": "ios-cast-sdk-state",
-      "caption": "Recorded with the earlier app layout. The sender is initialized; receiver availability and connection are separate state values."
+      "caption": "The sender is initialized; receiver availability and connection are separate state values."
     },
     {
       "type": "note",
@@ -520,7 +526,7 @@
     },
     {
       "type": "p",
-      "text": "Choose Code to retain the settings already sent to the SDK. Compare it before and after Apply. Unapplied edits are excluded and license values are placeholders. The figure captions identify recorded examples from an earlier layout."
+      "text": "Choose Code to retain the settings already sent to the SDK. Compare it before and after Apply. Unapplied edits are excluded and license values are placeholders."
     },
     {
       "type": "p",

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check complete bilingual content, safe rendering, and navigation contracts."""
 import copy
+import hashlib
 import json
 from html import escape
 from html.parser import HTMLParser
@@ -14,7 +15,7 @@ from urllib.parse import unquote, urlsplit
 from coverage_report import summarize
 from guide_coverage import api_anchor, category_metrics
 from guide_routes import (COVERAGE_APPS, GUIDE_ASSETS, GUIDE_FILES, IMPLEMENTATION_GUIDES, IMPLEMENTATION_SECTIONS,
-                          PUBLIC_BASE, SOURCE_REVISION, route_file)
+                          LOCALIZED_FIGURES, PUBLIC_BASE, SOURCE_REVISION, figure_path, route_file)
 from user_guide import build, load_content, render_block, search_text, source_url
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,12 +63,15 @@ class Links(HTMLParser):
     def __init__(self):
         super().__init__()
         self.links, self.ids = [], set()
+        self.images = []
         self.language = None
         self.refresh = None
         self.canonical = None
 
     def handle_starttag(self, tag, attrs):
         values = dict(attrs)
+        if tag == 'img':
+            self.images.append(values)
         if tag == 'html':
             self.language = values.get('lang')
         if tag == 'meta' and values.get('http-equiv', '').lower() == 'refresh':
@@ -106,6 +110,28 @@ class GuideTests(unittest.TestCase):
             self.assertEqual(len(fields), 144)
             self.assertEqual(len(self.content[language]['controls']['controls']), 41)
             self.assertEqual(len(self.content[language]['themes']['themes']), 14)
+
+    def test_app_screenshots_use_the_page_language_without_shared_fallback(self):
+        external_dashboard = {
+            'analytics-dashboard-overview.png',
+            'analytics-dashboard-errors.png',
+            'analytics-session-errors.png',
+        }
+        for path, data in self.pages.items():
+            if not path.endswith('.html') or b'<img ' not in data:
+                continue
+            parser = Links()
+            parser.feed(data.decode())
+            language = 'ja' if path.startswith('ja/') else 'en'
+            for image in parser.images:
+                name = posixpath.basename(image['src'])
+                if name in external_dashboard:
+                    continue
+                with self.subTest(page=path, image=name):
+                    self.assertRegex(name, rf'-{language}\.(?:jpg|png)$')
+                    self.assertTrue(image.get('alt', '').strip())
+                    self.assertGreater(int(image['width']), 0)
+                    self.assertGreater(int(image['height']), 0)
 
     def test_published_content_builds_with_the_actual_api_report(self):
         pages = build(load_content(ROOT / 'docs/guide'))
@@ -154,6 +180,16 @@ class GuideTests(unittest.TestCase):
         self.assertIn('assets/guide/analytics-dashboard-overview.png', html)
         self.assertIn('width="2864" height="1270"', html)
         self.assertIn('assets/guide/analytics-dashboard-overview.png', GUIDE_ASSETS)
+
+    def test_each_app_figure_has_distinct_english_and_japanese_captures(self):
+        for name in LOCALIZED_FIGURES:
+            with self.subTest(figure=name):
+                english = ROOT / 'site' / figure_path(name, 'en')
+                japanese = ROOT / 'site' / figure_path(name, 'ja')
+                self.assertTrue(english.is_file(), english)
+                self.assertTrue(japanese.is_file(), japanese)
+                self.assertNotEqual(hashlib.sha256(english.read_bytes()).digest(),
+                                    hashlib.sha256(japanese.read_bytes()).digest())
 
     def test_player_chapters_precede_dashboard_analytics_in_both_languages(self):
         for language in ('en', 'ja'):
@@ -733,8 +769,8 @@ class GuideRenderingTests(unittest.TestCase):
         html = render_block({'type': 'figure', 'file': 'custom-premiere',
                              'caption': 'The Premiere theme.'}, 'en',
                             route_file('en', 'web-ui-customization'), None)
-        self.assertIn('assets/guide/custom-premiere.jpg', html)
-        self.assertIn('width="983" height="554"', html)
+        self.assertIn('assets/guide/custom-premiere-en.jpg', html)
+        self.assertIn('width="761" height="429"', html)
         with self.assertRaises(ValueError):
             render_block({'type': 'figure', 'file': 'unregistered-image', 'caption': 'Unknown'},
                          'en', route_file('en', 'web-ui-customization'), None)

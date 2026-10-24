@@ -14,6 +14,11 @@
       "text": "この章ではapps/androidのKotlinアプリを使い、プレイヤーの組み込みと変更方法を説明します。Androidのスマートフォン・タブレット、Android TV、AndroidベースのFire TVは同じAndroidアプリとSDKを使います。Vega OSのFire TVは別のVega実装ガイドを参照してください。まずオンデマンド動画を再生し、設定を一つずつ変更して適用済みのKotlinコードと再生結果を比較します。"
     },
     {
+      "type": "note",
+      "title": "表示言語",
+      "text": "アプリは日本語と英語に対応し、OSまたはアプリごとの言語設定に従います。Player Labの画面は日本語表示で撮影しています。外部のBitmovin Dashboardの参考画像は公式の英語画面です。SDKのAPI名、コード、取得したデータは翻訳しません。Player内の標準操作部にはSDK・OS側の言語設定も関係します。"
+    },
+    {
       "type": "links",
       "items": [
         {
@@ -82,7 +87,7 @@
     },
     {
       "type": "p",
-      "text": "MainActivityはonCreateでコントローラーを作り、Compose画面を設定してカタログの先頭ソースを読み込みます。通常の再描画やUIモードの変更では、コントローラーが同じPlayerを保持します。Composableの描画のたびにPlayerを作ると、再生がリセットされ、解放すべきインスタンスも増えてしまいます。読み込みの進行はSourceとPlayerのイベントで確認します。loadの呼び出しだけでは再生開始を確認したことにはなりません。"
+      "text": "MainActivityはonCreateでコントローラーを作り、Compose画面を設定してカタログの先頭ソースを読み込みます。通常の再描画やUIモードの変更では、コントローラーが同じPlayerを保持します。Composableの描画のたびにPlayerを作ると、再生がリセットされ、解放すべきインスタンスも増えてしまいます。読み込みの進行はソースとPlayerのイベントで確認します。loadの呼び出しだけでは再生開始を確認したことにはなりません。"
     },
     {
       "type": "h2",
@@ -92,7 +97,7 @@
     },
     {
       "type": "p",
-      "text": "Settingsは、編集中の値と適用済みの設定を分けて管理します。ConfigurationでSourceまたはPlayerを選び、Settingから一つの入力を開きます。Apply sourceまたはApply playerは下書きの状態と一緒に表示します。Codeで適用済みの値を確認したうえで、以下のSDK設定の生成箇所を参照してください。PlayerDraftとSourceDraftは、アプリの入力を検証して整えるための型です。SDKへ渡すのはそれらのDraftではなくPlayerConfigとSourceConfigです。"
+      "text": "設定は、編集中の値と適用済みの設定を分けて管理します。設定の種類でソースまたはPlayerを選び、設定項目から一つの入力を開きます。ソースに適用またはプレイヤーに適用は下書きの状態と一緒に表示します。コードで適用済みの値を確認したうえで、以下のSDK設定の生成箇所を参照してください。PlayerDraftとSourceDraftは、アプリの入力を検証して整えるための型です。SDKへ渡すのはそれらのDraftではなくPlayerConfigとSourceConfigです。"
     },
     {
       "type": "h3",
@@ -128,9 +133,9 @@
       ],
       "rows": [
         [
-          "Autoplayをオフ、Start mutedをオン",
+          "自動再生をオフ、ミュートで開始をオン",
           "PlaybackConfig.isAutoplayEnabled / isMuted",
-          "Apply player。Playを押すまで再生されず、ミュートで始まることを確認します。"
+          "プレイヤーに適用。Playを押すまで再生されず、ミュートで始まることを確認します。"
         ],
         [
           "Startup 1秒、Restart 2秒、Forward 10秒",
@@ -148,7 +153,7 @@
           "Playerを再生成します。その言語を含むソースで選択トラックを確認します。ソース側の優先順位があれば、そちらが優先されます。"
         ],
         [
-          "HTTP retry delaysを0, 0.25, 2秒",
+          "HTTPの再試行間隔を0, 0.25, 2秒",
           "RetryHttpRequestConfig.Retry",
           "Playerを再生成します。各待ち時間に対応する再試行を許可します。通信が成功するだけでは再試行経路は確認できません。"
         ]
@@ -156,12 +161,12 @@
     },
     {
       "type": "p",
-      "text": "StartupとRestartの値は、再生の開始・再開に必要なバッファー内のメディア時間です。その秒数だけ待てば必ず再生が始まるという意味ではありません。標準エディターでは、各値をForward bufferより0.5秒以上小さくする必要があります。Forward bufferを小さくすると保持するメディア量を減らせますが、通信の変動に対する余裕も減ります。メモリ使用量はビットレートやデコーダーにも左右されます。自動画質の上限を設定しても、手動選択できる高画質は消えません。qualityStabilityBalanceはライブ端付近に適用され、1に近いほど安定性、0に近いほど画質を優先します。ビットレートの単位bpsは、1秒あたりのビット数です。"
+      "text": "StartupとRestartの値は、再生の開始・再開に必要なバッファー内のメディア時間です。その秒数だけ待てば必ず再生が始まるという意味ではありません。標準エディターでは、各値を先読みバッファーより0.5秒以上小さくする必要があります。先読みバッファーを小さくすると保持するメディア量を減らせますが、通信の変動に対する余裕も減ります。メモリ使用量はビットレートやデコーダーにも左右されます。自動画質の上限を設定しても、手動選択できる高画質は消えません。qualityStabilityBalanceはライブ端付近に適用され、1に近いほど安定性、0に近いほど画質を優先します。ビットレートの単位bpsは、1秒あたりのビット数です。"
     },
     {
       "type": "figure",
       "file": "android-player-settings",
-      "caption": "SettingsでPlayerのAutoplayを選択した画面です。Apply playerでPlayerConfigを組み立て、Playerを再生成します。選択した項目の入力欄と、画面下部の適用操作を同時に確認できます。"
+      "caption": "設定でPlayerの自動再生を選択した画面です。プレイヤーに適用でPlayerConfigを組み立て、Playerを再生成します。選択した項目の入力欄と、画面下部の適用操作を同時に確認できます。"
     },
     {
       "type": "h3",
@@ -202,7 +207,7 @@
           "実際のマニフェストやファイル形式を選びます。タイトルや拡張子の指定だけで形式は変換されません。"
         ],
         [
-          "開始位置を5秒、基準をStart",
+          "開始位置を5秒、基準を先頭",
           "SourceOptions(startOffset, startOffsetTimelineReference)",
           "オンデマンド動画で再生開始位置を確認します。既定の基準はオンデマンドでは先頭、ライブでは末尾です。範囲外の位置はSDKが補正します。"
         ],
@@ -217,7 +222,7 @@
           "再読み込み後、プレイヤーの字幕メニューで有効にします。isDefaultというメタデータだけでは表示されません。"
         ],
         [
-          "Live target latency",
+          "ライブの目標遅延",
           "SourceLiveConfig.targetLatency",
           "ライブソースで確認します。SDKがライブ端とみなす位置を変えます。オンデマンドには適用されず、実際の配信遅延を保証する値でもありません。"
         ]
@@ -225,7 +230,7 @@
     },
     {
       "type": "p",
-      "text": "SourceConfigはメディアの設定で、SourceはSDKが扱うメディア項目のオブジェクトです。loadCurrentSourceはソースの上書き設定を適用した後にSourceを作り、イベントを購読します。以下はSDKの生成と読み込みの箇所です。ownerは現在のPlayerを指し、明示的なプレイリスト上書きがある場合だけPlaylistConfigを使います。新しいSourceの読み込み自体に、Playerの再生成は必要ありません。"
+      "text": "SourceConfigはメディアの設定で、ソースはSDKが扱うメディア項目のオブジェクトです。loadCurrentSourceはソースの上書き設定を適用した後にソースを作り、イベントを購読します。以下はSDKの生成と読み込みの箇所です。ownerは現在のPlayerを指し、明示的なプレイリスト上書きがある場合だけPlaylistConfigを使います。新しいソースの読み込み自体に、Playerの再生成は必要ありません。"
     },
     {
       "type": "code",
@@ -252,16 +257,16 @@
     {
       "type": "steps",
       "items": [
-        "Apply sourceはソースを作り直し、現在のPlayerで読み込みます。未適用のPlayer設定は反映しません。",
-        "Apply playerは新しいPlayerを作り、メタデータと開始位置を含む適用済みソースを読み直します。UIモードとアプリ側の巻き戻し設定は保持しますが、以前の再生位置は維持しません。",
-        "Reset draftは、選択したSourceまたはPlayerの編集値を適用済みへ戻します。適用はしません。プリセットを選ぶとカスタムのソース項目とオプションを置き換えます。項目やタブの切り替えでは下書きを保持します。",
-        "Codeで標準のPlayerConfig、SourceConfig、PlayerViewConfigを確認します。追加のSDK設定を使った場合は、別のCode → SDK overridesも確認してください。追加の上書き設定は、標準コードにすべて含まれるわけではありません。"
+        "ソースに適用はソースを作り直し、現在のPlayerで読み込みます。未適用のPlayer設定は反映しません。",
+        "プレイヤーに適用は新しいPlayerを作り、メタデータと開始位置を含む適用済みソースを読み直します。UIモードとアプリ側の巻き戻し設定は保持しますが、以前の再生位置は維持しません。",
+        "「編集を戻す」は、選択したソースまたはPlayerの編集値を適用済みへ戻します。適用はしません。プリセットを選ぶとカスタムのソース項目とオプションを置き換えます。項目やタブの切り替えでは下書きを保持します。",
+        "コードで標準のPlayerConfig、SourceConfig、PlayerViewConfigを確認します。追加のSDK設定を使った場合は、別のコード → SDKの詳細設定も確認してください。追加の上書き設定は、標準コードにすべて含まれるわけではありません。"
       ]
     },
     {
       "type": "figure",
       "file": "android-applied-code",
-      "caption": "Codeに表示した適用済みのKotlinコードです。実際のライセンス値はプレースホルダーに置き換わります。追加のSDK上書きには別のコード表示があります。"
+      "caption": "コードに表示した適用済みのKotlinコードです。実際のライセンス値はプレースホルダーに置き換わります。追加のSDK上書きには別のコード表示があります。"
     },
     {
       "type": "h3",
@@ -270,11 +275,11 @@
     },
     {
       "type": "p",
-      "text": "標準設定にない項目はSettings → Configuration → SDK overridesでFeatureとSDK settingから選びます。SDK名で検索することもできます。型に合う値を入力してStage overrideで仮登録し、Apply SDKで新しい設定とPlayerを作ります。仮登録だけでは反映しません。上書きは基本設定より優先されます。Removeの後にApplyを押すと、標準設定またはSDK既定値に戻ります。SourceConfig.subtitleTracksやPlaylistConfig.sourcesのようなリストは、Kotlinを貼り付けるのではなく、要素と子項目を追加して編集します。"
+      "text": "標準設定にない項目は設定 → 設定の種類 → SDKの詳細設定で機能とSDKの設定項目から選びます。SDK名で検索することもできます。型に合う値を入力して「変更を登録」で仮登録し、「SDK設定を適用」で新しい設定とPlayerを作ります。仮登録だけでは反映しません。上書きは基本設定より優先されます。削除の後に適用を押すと、標準設定またはSDK既定値に戻ります。SourceConfig.subtitleTracksやPlaylistConfig.sourcesのようなリストは、Kotlinを貼り付けるのではなく、要素と子項目を追加して編集します。"
     },
     {
       "type": "p",
-      "text": "SDKのコールバックは、SDKから呼び出される関数です。このアプリでは、対応する項目にJavaScript関数の本文を入力します。SDKのコールバックでこの関数を実行し、数値や文字列などの値を受け渡します。例えばLabelingConfig.videoQualityLabelerでは、渡された高さとビットレートから表示名を返せます。適用後に画質メニューを開き、More → Diagnosticsで呼び出しと代替処理の回数を確認します。インタープリターには実行量の制限があり、AndroidやPlayerのオブジェクトを直接操作できません。これはアプリの補助機能であり、SDK自身が提供するJavaScriptコールバックAPIではありません。"
+      "text": "SDKのコールバックは、SDKから呼び出される関数です。このアプリでは、対応する項目にJavaScript関数の本文を入力します。SDKのコールバックでこの関数を実行し、数値や文字列などの値を受け渡します。例えばLabelingConfig.videoQualityLabelerでは、渡された高さとビットレートから表示名を返せます。適用後に画質メニューを開き、その他 → 診断で呼び出しと代替処理の回数を確認します。インタープリターには実行量の制限があり、AndroidやPlayerのオブジェクトを直接操作できません。これはアプリの補助機能であり、SDK自身が提供するJavaScriptコールバックAPIではありません。"
     },
     {
       "type": "h2",
@@ -299,7 +304,7 @@
     },
     {
       "type": "p",
-      "text": "選択したUIモード（Default、Sports、Live、Cinemaのいずれか）を、この関数へ渡します。DefaultはPlayerViewConfigのSDK既定値を使います。カスタムモードはAPK内のJavaScriptとCSSを読み込み、登録済みのファクトリー名でUIを作ります。Web版の全テーマがAndroidの選択肢に並ぶわけではありません。共有レイアウトを加える場合はpackages/ui-shared/src/liveUi.tsのコンポーネント構成を変更し、global.tsへファクトリーを登録してUiModeへ追加するか、Settings → Configuration → SDK overridesで登録済みの名前を指定します。"
+      "text": "選択したUIモード（標準、スポーツ、ライブ、シネマのいずれか）を、この関数へ渡します。標準はPlayerViewConfigのSDK既定値を使います。カスタムモードはAPK内のJavaScriptとCSSを読み込み、登録済みのファクトリー名でUIを作ります。Web版の全テーマがAndroidの選択肢に並ぶわけではありません。共有レイアウトを加える場合はpackages/ui-shared/src/liveUi.tsのコンポーネント構成を変更し、global.tsへファクトリーを登録してUiModeへ追加するか、設定 → 設定の種類 → SDKの詳細設定で登録済みの名前を指定します。"
     },
     {
       "type": "table",
@@ -331,7 +336,7 @@
         ],
         [
           "映像上の操作部を隠す",
-          "APIsでPlayerView.isUiVisibleを選び、visible=falseを実行します。",
+          "APIでPlayerView.isUiVisibleを選び、visible=falseを実行します。",
           "すぐに非表示になります。trueで戻します。外側のCompose操作部は残ります。"
         ],
         [
@@ -348,7 +353,7 @@
     },
     {
       "type": "p",
-      "text": "PlayerViewConfig.uiConfigやUiConfig.WebUiはSettings → Configuration → SDK overridesから編集できます。TvUi・SmallScreenUiの選択とカスタムファクトリー名は同時指定できないため、どちらか一方を登録します。UiConfig.DisabledでWeb UIを無効にする場合は、先にWebUi配下の上書きを削除してから適用します。これはビュー設定の変更ですが、このアプリのApply SDKという共通操作ではPlayerも再生成します。Composeだけで再生操作を作る場合はPlayer.play・pause・seekへ接続し、再生状態のイベントも購読します。Web UIを無効にしただけで、その操作部が作られるわけではありません。"
+      "text": "PlayerViewConfig.uiConfigやUiConfig.WebUiは設定 → 設定の種類 → SDKの詳細設定から編集できます。TvUi・SmallScreenUiの選択とカスタムファクトリー名は同時指定できないため、どちらか一方を登録します。UiConfig.DisabledでWeb UIを無効にする場合は、先にWebUi配下の上書きを削除してから適用します。これはビュー設定の変更ですが、このアプリの「SDK設定を適用」という共通操作ではPlayerも再生成します。Composeだけで再生操作を作る場合はPlayer.play・pause・seekへ接続し、再生状態のイベントも購読します。Web UIを無効にしただけで、その操作部が作られるわけではありません。"
     },
     {
       "type": "code",
@@ -396,21 +401,21 @@
     },
     {
       "type": "p",
-      "text": "APIsでCommands・State・Eventsを切り替え、分類とAPIの選択欄から対象を開きます。Commandsは現在のPlayer、Source、接続済みのPlayerViewのSDK APIを呼び出します。検索で候補を絞っても、現在選択中の実行対象を明示します。まず関連する状態と直近のイベントで比較し、StateのRefresh SDK stateで詳しい値を読み取ります。Eventsは発生回数とSDKタイムスタンプを記録します。コマンドの送信結果だけでは、実際の再生で操作が完了したかは分かりません。"
+      "text": "APIで操作・状態・イベントを切り替え、分類とAPIの選択欄から対象を開きます。操作は現在のPlayer、ソース、接続済みのPlayerViewのSDK APIを呼び出します。検索で候補を絞っても、現在選択中の実行対象を明示します。まず関連する状態と直近のイベントで比較し、状態の「SDKの状態を更新」で詳しい値を読み取ります。イベントは発生回数とSDKタイムスタンプを記録します。コマンドの送信結果だけでは、実際の再生で操作が完了したかは分かりません。"
     },
     {
       "type": "steps",
       "items": [
         "再生位置を比較する前に、VODのHLSまたはDASHソースを選択して適用し、再生を開始します。",
-        "その場でシークするにはCommandsでPlayer.seekを選び、例えば5秒を指定してRun APIを押します。",
-        "StateでPlayer.currentTimeを検索し、Refresh SDK stateでシーク後の実際の時刻を確認します。続いてシークや再生に対応するイベントを調べます。",
+        "その場でシークするには操作でPlayer.seekを選び、例えば5秒を指定してAPIを実行を押します。",
+        "状態でPlayer.currentTimeを検索し、「SDKの状態を更新」でシーク後の実際の時刻を確認します。続いてシークや再生に対応するイベントを調べます。",
         "トラックや画質の変更では、先にSDKが返す候補のIDを確認し、そのIDを対応するコマンドへ渡して選択結果を読み直します。入力だけでメディアに含まれない画質が増えることはありません。"
       ]
     },
     {
       "type": "figure",
       "file": "android-api-state",
-      "caption": "StateでPlayer.isPausedの値を取得した画面です。Refreshは押した時点の値を取得する操作で、コマンド送信とは別です。"
+      "caption": "状態でPlayer.isPausedの値を取得した画面です。「SDKの状態を更新」は押した時点の値を取得する操作で、コマンド送信とは別です。"
     },
     {
       "type": "code",
@@ -425,7 +430,7 @@
     },
     {
       "type": "p",
-      "text": "この補助関数はowner.on(type, guarded)で登録し、同じguarded関数を保持してowner.offで解除します。通知元が現在のPlayerか、Playerの生成世代も一致するかを確認し、置き換え前のPlayerからの通知が新しい画面を更新しないようにしています。SourceのイベントはSourceで確認し、PlayerViewの購読は全画面表示などのビューイベントに使います。自分のアプリでも、解除に使うリスナーを保持し、対象のPlayerやSourceを破棄するときに購読を解除します。"
+      "text": "この補助関数はowner.on(type, guarded)で登録し、同じguarded関数を保持してowner.offで解除します。通知元が現在のPlayerか、Playerの生成世代も一致するかを確認し、置き換え前のPlayerからの通知が新しい画面を更新しないようにしています。ソースのイベントはソースで確認し、PlayerViewの購読は全画面表示などのビューイベントに使います。自分のアプリでも、解除に使うリスナーを保持し、対象のPlayerやソースを破棄するときに購読を解除します。"
     },
     {
       "type": "h3",
@@ -447,7 +452,7 @@
       "rows": [
         [
           "音声と字幕",
-          "Settings → ConfigurationのSource・Playerにある言語と外部字幕の設定、APIsのトラック操作。",
+          "設定 → 設定の種類のソース・Playerにある言語と外部字幕の設定、APIのトラック操作。",
           "対応するトラックを含むソースを使います。優先順位を適用した後、プレイヤーのメニューで字幕やトラックを選択します。"
         ],
         [
@@ -458,12 +463,12 @@
         [
           "全画面とピクチャーインピクチャー",
           "ホストのハンドラー、映像だけのCompose配置、Activityのモード通知。",
-          "APIsで対応ハンドラーを設定してから開始・終了します。全画面は戻る操作で終了します。小窓表示はOSや機器の対応が必要です。"
+          "APIで対応ハンドラーを設定してから開始・終了します。全画面は戻る操作で終了します。小窓表示はOSや機器の対応が必要です。"
         ],
         [
           "Androidのメディア操作",
           "現在のPlayerと接続する実際のMediaSession。",
-          "Enable Android media sessionを実行し、app:media-sessionの状態とシステムの操作を確認します。終了時には解放します。"
+          "Androidのメディアセッションを有効にするを実行し、app:media-sessionの状態とシステムの操作を確認します。終了時には解放します。"
         ],
         [
           "オフライン再生",
@@ -484,7 +489,7 @@
     {
       "type": "figure",
       "file": "android-offline-tracks",
-      "caption": "以前のレイアウトで撮影した記録例です。Offline controlsで音声トラックをダウンロード対象に選んだ画面。画像は選択の段階を示します。ダウンロード完了と通信なしでの再生は別に確認します。"
+      "caption": "オフライン画面で音声トラックをダウンロード対象に選んだ画面。画像は選択の段階を示します。ダウンロード完了と通信なしでの再生は別に確認します。"
     },
     {
       "type": "h3",
@@ -518,8 +523,8 @@
     },
     {
       "type": "note",
-      "title": "Apply後も想定した値にならないのはなぜですか？",
-      "text": "まず適用ボタンの種類と検証エラーを確認します。PlayerとSourceの下書きは独立しています。SDK APIの上書きは標準フォームより優先され、Stage overrideで登録した後もApply SDKが必要です。標準の適用済みコードと、上書き用のコードを併せて確認してください。SDKのデバッグログなど起動時だけの設定は、保存した次回起動値と現在値が別です。アプリを完全に終了して開き直すと反映されます。"
+      "title": "適用後も想定した値にならないのはなぜですか？",
+      "text": "まず適用ボタンの種類と検証エラーを確認します。Playerとソースの下書きは独立しています。SDK APIの上書きは標準フォームより優先され、「変更を登録」で登録した後も「SDK設定を適用」が必要です。標準の適用済みコードと、上書き用のコードを併せて確認してください。SDKのデバッグログなど起動時だけの設定は、保存した次回起動値と現在値が別です。アプリを完全に終了して開き直すと反映されます。"
     },
     {
       "type": "note",
@@ -544,7 +549,7 @@
     {
       "type": "note",
       "title": "PlayerViewを購読しても再生イベントが来ないのはなぜですか？",
-      "text": "PlayerViewの購読はビューのUIイベント用です。PlayingやシークはPlayer、ソースの読み込みやエラーはSourceで観測します。EventsパネルはRecord SDK eventsが有効なときに発生回数を記録します。0は未記録という意味で、APIが使えないという意味ではありません。Stateの値は別途更新します。"
+      "text": "PlayerViewの購読はビューのUIイベント用です。PlayingやシークはPlayer、ソースの読み込みやエラーはソースで観測します。イベントパネルはSDKのイベントを記録が有効なときに発生回数を記録します。0は未記録という意味で、APIが使えないという意味ではありません。状態の値は別途更新します。"
     },
     {
       "type": "note",
@@ -585,7 +590,7 @@
     },
     {
       "type": "p",
-      "text": "ApiAnalyticsSettings.playerConfigはAnalyticsConfigを作り、DefaultMetadataを含むAnalyticsPlayerConfig.Enabled、またはDisabledを返します。この値をSDKのPlayerコンストラクターへ渡します。呼び出し例は「Androidプレイヤーの組み込み」を参照してください。Analytics設定パネルにはBuild key、Deferred license、Disabledがあり、Apply AnalyticsはPlayerを再生成します。上書きがない場合、Deferred licenseはSDKのDEFERRED指定を渡し、SDKがPlayerライセンスに関連づけられた有効なAnalyticsライセンスを取得します。この選択だけで収集を確認したことにはならないため、収集機能の状態とDashboardの対応セッションを確認してください。"
+      "text": "ApiAnalyticsSettings.playerConfigはAnalyticsConfigを作り、DefaultMetadataを含むAnalyticsPlayerConfig.Enabled、または無効を返します。この値をSDKのPlayerコンストラクターへ渡します。呼び出し例は「Androidプレイヤーの組み込み」を参照してください。Analytics設定パネルにはビルド時のキー、関連ライセンスを取得、無効があり、Analyticsに適用はPlayerを再生成します。上書きがない場合、関連ライセンスを取得はSDKのDEFERRED指定を渡し、SDKがPlayerライセンスに関連づけられた有効なAnalyticsライセンスを取得します。この選択だけで収集を確認したことにはならないため、収集機能の状態とDashboardの対応セッションを確認してください。"
     },
     {
       "type": "links",
@@ -609,7 +614,7 @@
     },
     {
       "type": "p",
-      "text": "SDKの各Sourceを生成するときに、このSourceMetadataをAnalyticsSourceConfig.Enabledへ渡します。再生前に固定のvideoIdと分かりやすいtitleを設定すると、Dashboardでコンテンツを探しやすくなります。既定のメタデータはcdnProviderとcustomUserId、ソースのメタデータはtitle、videoId、cdnProvider、path、isLiveを扱います。どちらにもcustomDataとexperimentNameがあります。これらは収集用メタデータであり、プレイヤーUI用のSourceConfig.titleとは別です。個人情報や機密情報を含まないテスト識別子を使ってください。"
+      "text": "SDKの各ソースを生成するときに、このSourceMetadataをAnalyticsSourceConfig.Enabledへ渡します。再生前に固定のvideoIdと分かりやすいtitleを設定すると、Dashboardでコンテンツを探しやすくなります。既定のメタデータはcdnProviderとcustomUserId、ソースのメタデータはtitle、videoId、cdnProvider、path、isLiveを扱います。どちらにもcustomDataとexperimentNameがあります。これらは収集用メタデータであり、プレイヤーUI用のSourceConfig.titleとは別です。個人情報や機密情報を含まないテスト識別子を使ってください。"
     },
     {
       "type": "steps",

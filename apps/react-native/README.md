@@ -84,11 +84,11 @@ URL validation uses the locally imported `URL` from `react-native-url-polyfill`
 The local import leaves global URL and the SDK's media shims unchanged; it does
 not install the package's global polyfill.
 
-**Apply and recreate player** validates the whole draft, recreates the player
+**Apply configuration** validates the whole draft, recreates the player
 and reloads the selected source from its configured start offset. Playback
 position is reset. Invalid input and an unchanged configuration do not replace
 the player. **Reset draft** only restores the currently applied values. Source
-preset buttons still load immediately and replace the draft's source fields;
+preset selections load immediately and replace the draft's source fields;
 unapplied playback/buffer/adaptation edits remain in the draft.
 
 The complete applied source, chosen UI, log and **Allow DVR** setting survive
@@ -237,7 +237,7 @@ bridge and Expo still use CocoaPods. Existing projects should follow the
 
 ## Shared player UI
 
-The "UI" picker selects the default Web UI or Sports, Live, and Cinema factories
+The **Theme** picker selects the default Web UI or Sports, Live, and Cinema factories
 from `@showcase/ui-shared`. Custom modes set
 `usePlayer({ styleConfig: { userInterfaceType: UserInterfaceType.Bitmovin, playerUiJs, playerUiCss } })`
 and use `PlayerView` with `uiConfig.variant = new CustomUi("…buildSportsUI")`.

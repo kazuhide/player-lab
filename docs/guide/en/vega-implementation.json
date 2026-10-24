@@ -23,6 +23,11 @@
       "text": "Vega uses the modular Bitmovin Web SDK inside Amazon’s Kepler runtime. It does not use bitmovin-player-react-native or the Android Player SDK. Kepler renders the app’s React Native components, while @amazon-devices/react-native-w3cmedia provides the native media object and video surface. Keep the Vega-specific Player release pinned by apps/vega/package.json; the official sample declares a separate supported release channel from the general browser Player."
     },
     {
+      "type": "note",
+      "title": "Display language",
+      "text": "Use the app language selector to switch between English and Japanese. This guide uses captures from the English app. SDK identifiers, code and returned data retain their original spelling. Subtitle language belongs to the content and is selected separately from the application language."
+    },
+    {
       "type": "p",
       "text": "An SDK is the library and interfaces used to integrate the Player; an API is a public configuration, operation or event exposed by that library. HLS and DASH are streaming formats that can offer several qualities; VOD means on-demand media with a fixed timeline. WebVTT is a text subtitle format with timed cues. DRM controls access to protected media and needs a compatible license service."
     },
@@ -70,7 +75,7 @@
       "source": {
         "path": "apps/vega/src/playerSession.ts",
         "line": 145,
-        "label": "Initialize native media before constructing and loading the SDK Player"
+        "label": "playerSession.ts:145–159"
       },
       "endLine": 159
     },
@@ -85,7 +90,7 @@
       "source": {
         "path": "apps/vega/src/vegaPlayer.ts",
         "line": 77,
-        "label": "Create the modular SDK Player without a browser container"
+        "label": "vegaPlayer.ts:77–80"
       },
       "endLine": 80
     },
@@ -119,7 +124,7 @@
       "source": {
         "path": "apps/vega/src/configuration.ts",
         "line": 99,
-        "label": "Map basic playback, buffer and bitrate inputs"
+        "label": "configuration.ts:99–106"
       },
       "endLine": 106
     },
@@ -200,13 +205,13 @@
       "source": {
         "path": "apps/vega/src/playerConfig.ts",
         "line": 4,
-        "label": "Keep Fetch as the native transport"
+        "label": "playerConfig.ts:4–7"
       },
       "endLine": 7
     },
     {
       "type": "p",
-      "text": "vegaPlayerConfig always merges requestApi: Fetch into the supplied network configuration. The form rejects XHR before Apply because this host has no XHR media transport. Other network callbacks remain part of PlayerConfig.network. To try a callback, search its path in Show all SDK configuration, read the declared arguments and return type, enable Allow this SDK callback and Apply. It runs when the SDK invokes it; a JavaScript value factory may instead run while preparing a configuration or operation."
+      "text": "vegaPlayerConfig always merges requestApi: Fetch into the supplied network configuration. The form rejects XHR before Apply because this host has no XHR media transport. Other network callbacks remain part of PlayerConfig.network. To try a callback, search its path in Show all SDK configuration, read the declared arguments and return type, enable Allow this callback and Apply. It runs when the SDK invokes it; a JavaScript value factory may instead run while preparing a configuration or operation."
     },
     {
       "type": "steps",
@@ -244,7 +249,7 @@
       "source": {
         "path": "apps/vega/src/BitmovinPlayer.tsx",
         "line": 121,
-        "label": "Keep the native surface and render subtitle text over it"
+        "label": "BitmovinPlayer.tsx:121–129"
       },
       "endLine": 129
     },
@@ -319,10 +324,10 @@
       "text": "        <Switch\n          focusable\n          style={styles.toggle}\n          accessibilityLabel=\"Allow DVR\"\n          value={dvrAllowed}\n          onValueChange={(v) => {\n            onDvrAllowedChange(v);\n            controllerRef.current?.setTimeShiftEnabled(v);\n          }}\n        />",
       "source": {
         "path": "apps/vega/src/ControlPanel.tsx",
-        "line": 51,
-        "label": "Make a native switch reachable by remote focus"
+        "line": 52,
+        "label": "ControlPanel.tsx:52–61"
       },
-      "endLine": 60
+      "endLine": 61
     },
     {
       "type": "p",
@@ -373,7 +378,7 @@
       "source": {
         "path": "apps/vega/src/subtitleDisplay.ts",
         "line": 19,
-        "label": "Observe subtitle cues in the native text adapter"
+        "label": "subtitleDisplay.ts:19–21"
       },
       "endLine": 21
     },
@@ -494,10 +499,10 @@
       "text": "  const config = useMemo<PlayerConfig>(\n    () => ({\n      key: LICENSE_KEY,\n      ui: false,\n      ...applied.player,\n      tweaks: { app_id: \"com.playerlab.vega\" },\n      // §15: the analytics module is registered in vegaPlayer.ts; the collector\n      // only activates when a key is configured here.\n      ...(ANALYTICS_LICENSE_KEY ? { analytics: { key: ANALYTICS_LICENSE_KEY } } : {}),\n    }),\n    [applied.player],\n  );",
       "source": {
         "path": "apps/vega/src/App.tsx",
-        "line": 55,
-        "label": "Add the optional collector to the existing Player configuration"
+        "line": 60,
+        "label": "App.tsx:60–71"
       },
-      "endLine": 66
+      "endLine": 71
     },
     {
       "type": "p",

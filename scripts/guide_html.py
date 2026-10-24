@@ -6,7 +6,8 @@ import posixpath
 import re
 from urllib.parse import urlsplit
 
-from guide_routes import CATEGORIES, CONTENT_REVIEW, LEGACY_ROUTES, PUBLIC_BASE, SOURCE_REVISION, route_file
+from guide_routes import (CATEGORIES, CONTENT_REVIEW, LEGACY_ROUTES, LOCALIZED_FIGURES, PUBLIC_BASE,
+                          SHARED_FIGURES, SOURCE_REVISION, figure_path, route_file)
 
 TEXT = {
     'en': {
@@ -97,17 +98,6 @@ TEXT = {
     },
 }
 
-FIGURE_DIMENSIONS = {
-    'overview': {'en': (1650, 1425), 'ja': (1650, 1425)},
-    'source-controls': {'en': (492, 260), 'ja': (492, 269)},
-    'config': {'en': (293, 368), 'ja': (293, 353)},
-    'sdk-configuration': {'en': (1240, 466), 'ja': (1240, 449)},
-    'sdk-callback': {'en': (1240, 538), 'ja': (1240, 523)},
-    'ui-controls': {'en': (301, 663), 'ja': (301, 718)},
-    'applied-settings': {'en': (1240, 506), 'ja': (1240, 509)},
-}
-
-
 def esc(value):
     return html.escape(str(value), quote=True)
 
@@ -167,15 +157,9 @@ def render_block(block, language, page, section_id):
         return f'<div class="guide-table" tabindex="0" role="region" aria-label="{labels["table"]}"><table><thead><tr>{head}</tr></thead><tbody>{rows}</tbody></table></div>'
     if kind == 'figure':
         name = block['file']
-        from guide_routes import SHARED_FIGURES, shared_figure_path
-        if name in FIGURE_DIMENSIONS:
-            src = relative(page, f'assets/guide/{name}-{language}.jpg')
-            width, height = FIGURE_DIMENSIONS[name][language]
-        elif name in SHARED_FIGURES:
-            src = relative(page, shared_figure_path(name))
-            width, height = SHARED_FIGURES[name]
-        else:
-            raise ValueError('The guide contains an unknown figure.')
+        src = relative(page, figure_path(name, language))
+        width, height = (LOCALIZED_FIGURES[name][language] if name in LOCALIZED_FIGURES
+                         else SHARED_FIGURES[name])
         picture = f'<img src="{esc(src)}" width="{width}" height="{height}" alt="{esc(block["caption"])}" loading="lazy" decoding="async">'
         label = 'Open full-size image' if language == 'en' else '元のサイズの画像を開く'
         picture = f'<a href="{esc(src)}" aria-label="{label}: {esc(block["caption"])}">{picture}</a>'
@@ -362,9 +346,10 @@ def controls_html(controls, language):
 def themes_html(themes, language, page):
     output = []
     for theme in themes:
-        image = relative(page, f'assets/guide/{theme["id"]}.jpg')
+        image = relative(page, figure_path(theme['id'], language))
+        width, height = LOCALIZED_FIGURES[theme['id']][language]
         output.append(f'<section class="guide-theme" id="{esc(theme["id"])}"><h2>{esc(theme["label"])}</h2>'
                       f'<p class="guide-metadata">{TEXT[language][theme["category"]]}</p><p>{esc(theme["description"])}</p>'
-                      f'<img src="{esc(image)}" width="983" height="554" loading="lazy" decoding="async" alt="{esc(theme["label"])}">'
+                      f'<img src="{esc(image)}" width="{width}" height="{height}" loading="lazy" decoding="async" alt="{esc(theme["label"])}">'
                       + render_block({'type':'code','text':theme['code']}, language, page, '') + '</section>')
     return ''.join(output)

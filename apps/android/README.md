@@ -81,7 +81,7 @@ translations to vendor-owned controls.
 
 ## Shared player UI
 
-The "UI" picker selects the default Web UI or the Sports, Live, and Cinema
+The **Theme** picker selects the default Web UI or the Sports, Live, and Cinema
 factories from `@showcase/ui-shared`. A custom mode creates a configuration such as:
 
 ```kotlin

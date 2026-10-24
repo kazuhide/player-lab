@@ -174,7 +174,7 @@ current source configuration while recreating the player.
 
 ## Shared player UI
 
-On iOS, the "Player UI" picker selects the default Web UI or Sports, Live, and
+On iOS, the **Theme** picker selects the default Web UI or Sports, Live, and
 Cinema factories. tvOS keeps its native System UI.
 
 The tvOS player is inline beside the app controls. Use the remote's **Play/Pause**

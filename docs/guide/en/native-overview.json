@@ -55,9 +55,9 @@
       "type": "steps",
       "items": [
         "Start with a VOD preset to compare settings without a moving live window. Confirm that video plays before editing. Use a source with the audio tracks, subtitles or bitrate variants required for the feature you want to try.",
-        "Open the configuration editor and Show applied code. Keep the current values as a baseline, then edit the setting you want to compare. Draft text does not change the running player or its exported code.",
+        "Open the configuration and code views described in the platform chapter. Keep the current values as a baseline, then edit the setting you want to compare. Draft text does not change the running player or its exported code.",
         "Read the action before Apply. Source-only changes reload the existing player on Apple and Android. Player changes recreate it. React Native and Vega recreate it for any changed configuration. The platform chapters give example values and units.",
-        "Apply, wait for the new source load, and check the actual picture, playback controls and event log. Reopen Show applied code to confirm the submitted values. A value in code confirms the configuration; it does not by itself prove that a stream contains a matching track or bitrate.",
+        "Apply, wait for the new source load, and check the actual picture, playback controls and event log. Open the code view again to confirm the submitted values. A value in code confirms the configuration; it does not by itself prove that a stream contains a matching track or bitrate.",
         "To discard unapplied edits, use the platform's Reset control. To undo an applied experiment, re-enter the baseline values and Apply again. Reset does not undo a completed Apply. The Android player Reset prepares SDK defaults instead of restoring the applied player values."
       ]
     },
