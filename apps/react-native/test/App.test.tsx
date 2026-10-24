@@ -10,7 +10,7 @@ const runtime = vi.hoisted(() => {
   process.env.EXPO_PUBLIC_BITMOVIN_ANALYTICS_LICENSE_KEY = "";
   return { castHost: undefined as undefined | { readOptions: ReturnType<typeof vi.fn>; saveOptions: ReturnType<typeof vi.fn> }, os: "android", keyboardDismiss: vi.fn(),
     keyboardListeners: new Map<string, Set<() => void>>(), window: { width: 393, height: 852, fontScale: 1, scale: 1 }, hostTop: 0,
-    clipboard: vi.fn(async (_code: string) => {}), players: [] as Array<{
+    clipboard: vi.fn(async (_code: string) => {}), editorScrollY: 0, scrollEditor: vi.fn(), apiScrollY: 0, scrollApi: vi.fn(), players: [] as Array<{
     config: PlayerConfig;
     load: ReturnType<typeof vi.fn>;
     destroy: ReturnType<typeof vi.fn>;
@@ -193,6 +193,12 @@ beforeEach(async () => {
   runtime.keyboardListeners.clear();
   runtime.window = { width: 393, height: 852, fontScale: 1, scale: 1 };
   runtime.hostTop = 0;
+  runtime.editorScrollY = 0;
+  runtime.scrollEditor.mockClear();
+  runtime.scrollEditor.mockImplementation(({ y }: { y: number }) => { runtime.editorScrollY = y; });
+  runtime.apiScrollY = 0;
+  runtime.scrollApi.mockClear();
+  runtime.scrollApi.mockImplementation(({ y }: { y: number }) => { runtime.apiScrollY = y; });
   actEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
   errors = vi.spyOn(console, "error");
 });
@@ -218,10 +224,65 @@ function expectValidCode(code: string): void {
 }
 
 async function mount() {
-  await act(async () => { screen = create(<App />); });
+  await act(async () => { screen = create(<App />, { createNodeMock: element =>
+    String(element.type) === "ScrollView" && element.props.testID === "configuration-fields-scroll"
+      ? { scrollTo: runtime.scrollEditor } : String(element.type) === "ScrollView" && element.props.testID === "api-fields-scroll"
+        ? { scrollTo: runtime.scrollApi } : null }); });
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it.each(["android", "ios"])("reveals selected %s API inputs while retaining their values across workspace navigation", async os => {
+    runtime.os = os;
+    await mount(); await ready();
+    const owner = current();
+    await tap("workspace-nav-apis"); await tap("api-view-selector"); await tap("api-view-selector-option-help");
+    runtime.apiScrollY = 500;
+    await tap("api-view-selector"); await tap("api-view-selector-option-operations");
+    expect(runtime.apiScrollY).toBe(0);
+    await text("Filter API operations", "Player.setVolume"); await press("Player.setVolume");
+    await text("Volume (0–100)", "45");
+    runtime.apiScrollY = 160;
+    await press("日本語"); await press("English");
+    await tap("workspace-nav-settings"); await tap("workspace-nav-apis");
+    expect(runtime.apiScrollY).toBe(160);
+    expect(input("Volume (0–100)").props.value).toBe("45");
+    await tap("api-operation-selector"); await tap("api-operation-selector-option-Player.setVolume");
+    expect(runtime.apiScrollY).toBe(0);
+    expect(input("Volume (0–100)").props.value).toBe("45");
+    runtime.apiScrollY = 200;
+    await tap("api-operation-selector"); await tap("api-operation-selector-option-Player.getCurrentTime");
+    expect(runtime.apiScrollY).toBe(0);
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
+  it.each(["android", "ios"])("starts the selected %s editor at its inputs without resetting drafts or playback", async os => {
+    runtime.os = os;
+    await mount(); await ready();
+    const owner = current();
+    await text("Source title", "Retained draft");
+    await settingsGroup("cast");
+    runtime.editorScrollY = 500;
+    await settingsGroup("callbacks");
+    expect(runtime.editorScrollY).toBe(0);
+    await press("Edit this callback");
+    runtime.editorScrollY = 160;
+    await text("JavaScript body for PlayerConfig.networkConfig.preprocessHttpRequest", "return request;");
+    await press("日本語"); await press("English");
+    await tap("workspace-nav-code"); await tap("workspace-nav-settings");
+    expect(runtime.editorScrollY).toBe(160);
+    expect(input("JavaScript body for PlayerConfig.networkConfig.preprocessHttpRequest").props.value).toBe("return request;");
+    await settingsGroup("callbacks");
+    expect(runtime.editorScrollY).toBe(0);
+    await basicField("source", "title");
+    expect(input("Source title").props.value).toBe("Retained draft");
+    runtime.editorScrollY = 200;
+    await tap("workspace-setting-selector"); await tap("workspace-setting-selector-option-title");
+    expect(runtime.editorScrollY).toBe(0);
+    expect(current()).toBe(owner);
+    expect(owner.destroy).not.toHaveBeenCalled();
+  });
+
   it.each(["android", "ios"].flatMap(os => ["apis", "code", "more"].map(tab => ({ os, tab }))))(
     "recovers the $os configuration from $tab when an approved handler fails on recreation", async ({ os, tab }) => {
       runtime.os = os;

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, ScrollView, View } from "react-native";
 import { Button, Text, TextInput } from "./localization";
 import type { Player, SourceConfig } from "bitmovin-player-react-native";
@@ -35,6 +35,8 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
   const operations = useMemo(() => [...nativeOperations(player, source), ...auxiliary.operations()].sort((left, right) => left.id.localeCompare(right.id)), [player, source, auxiliary]);
   const [selectedId, setSelectedId] = useState("Player.play");
   const selected = operations.find((operation) => operation.id === selectedId) ?? operations[0]!;
+  const editor = useRef<ScrollView>(null);
+  useLayoutEffect(() => { editor.current?.scrollTo({ y: 0, animated: false }); }, [page, selected]);
   const [values, setValues] = useState<Record<string, string>>({});
   const [result, setResult] = useState("");
   const [code, setCode] = useState("");
@@ -83,12 +85,18 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
       <WorkspaceChoice label="API view" selected={page} options={[
         { id: "operations", label: "Operations" }, { id: "state", label: "State" },
         { id: "events", label: "Events" }, { id: "help", label: "API help" },
-      ]} onSelect={setPage} testID="api-view-selector" />
+      ]} onSelect={value => {
+        if (value === page) editor.current?.scrollTo({ y: 0, animated: false });
+        setPage(value);
+      }} testID="api-view-selector" />
       {(page === "operations" || page === "state") && <WorkspaceChoice label="API operation" selected={selected.id}
         options={targets.map(operation => ({ id: operation.id, label: operation.id }))} testID="api-operation-selector"
-        onSelect={id => { setSelectedId(id); setResult(""); setCode(""); setExecutedId(""); }} />}
+        onSelect={id => {
+          if (id === selectedId) editor.current?.scrollTo({ y: 0, animated: false });
+          setSelectedId(id); setResult(""); setCode(""); setExecutedId("");
+        }} />}
     </View>}
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 10 }} keyboardShouldPersistTaps="handled">
+    <ScrollView ref={editor} testID="api-fields-scroll" style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 10 }} keyboardShouldPersistTaps="handled">
       <WorkspacePage active={page === "help"}>
       <Text style={styles.help}>Choose an operation, enter its arguments, then run it. A void result means the wrapper dispatched the call; use events and queries to check its effect. Platform and source requirements still apply.</Text>
       <Text style={styles.help}>Offline inputs are edited under SDK overrides in Settings. Initialize the offline manager, get options, then download; completion is an event. Delete and cancel affect only the chosen content identifier. The generated host includes the Google Cast SDK. SDK 1.29's deprecated initialize method does not apply edited options. Edit the receiver and namespace under Cast startup settings, select Save Cast options for next launch, then fully close and reopen the app. Use Read native Cast startup state to check the applied startup values and native initialization.</Text>

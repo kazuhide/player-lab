@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Keyboard, ScrollView, View } from "react-native";
 import { Button, Switch, Text, TextInput } from "./localization";
 import type { ConfigurationDraft, NativePlatform } from "./configuration";
@@ -28,8 +28,11 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
   const [group, setGroup] = useState("source");
   const [sourceField, setSourceField] = useState("url");
   const [playerField, setPlayerField] = useState("autoplay");
+  const editor = useRef<ScrollView>(null);
   useEffect(() => { if (sourceEditRequest) { setGroup("source"); setSourceField("url"); } }, [sourceEditRequest]);
   const selected = group === "player" ? playerField : sourceField;
+  // A newly selected editor starts at its inputs; editing and tab changes keep its position.
+  useLayoutEffect(() => { editor.current?.scrollTo({ y: 0, animated: false }); }, [group, selected, sourceEditRequest]);
   const groups = [{ id: "source", label: "Source" }, { id: "player", label: "Player" },
     { id: "ui", label: "UI settings" }, { id: "sdk", label: "SDK overrides" }, { id: "arrays", label: "Subtitle lists and advertising" },
     { id: "callbacks", label: "JavaScript callbacks and native UI handlers" }, { id: "cast", label: "Cast startup settings" }];
@@ -52,14 +55,20 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
   return (
     <View style={{ flex: 1, minHeight: 0 }} testID="configuration-workspace">
       {!keyboardVisible && <View style={{ padding: 10, gap: 8, flexDirection: "row" }}>
-        <WorkspaceChoice label="Configuration" selected={group} options={groups} onSelect={setGroup} testID="configuration-group-selector" />
+        <WorkspaceChoice label="Configuration" selected={group} options={groups} onSelect={value => {
+          if (value === group) editor.current?.scrollTo({ y: 0, animated: false });
+          setGroup(value);
+        }} testID="configuration-group-selector" />
         {(group === "source" || group === "player") && <WorkspaceChoice label="Setting" selected={selected}
-          options={group === "player" ? playerFields : sourceFields} onSelect={group === "player" ? setPlayerField : setSourceField} testID="workspace-setting-selector" />}
+          options={group === "player" ? playerFields : sourceFields} onSelect={value => {
+            if (value === selected) editor.current?.scrollTo({ y: 0, animated: false });
+            (group === "player" ? setPlayerField : setSourceField)(value);
+          }} testID="workspace-setting-selector" />}
       </View>}
       {keyboardVisible && !compactEditing && <View style={{ paddingHorizontal: 12, paddingVertical: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Text>Editing</Text><WorkspaceAction title="Done" onPress={() => Keyboard.dismiss()} />
       </View>}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 8 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
+      <ScrollView ref={editor} testID="configuration-fields-scroll" style={{ flex: 1 }} contentContainerStyle={{ padding: compactEditing ? 8 : 12, gap: compactEditing ? 4 : 8 }} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
       {group === "source" && <>
         {selected === "url" && field("Source URL", "url")}
         {selected === "type" && <>
