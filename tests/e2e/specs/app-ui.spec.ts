@@ -1592,10 +1592,12 @@ test.describe("Web app UI", () => {
       .locator(".config-field", { hasText: "catchup: seekThreshold" })
       .locator('input[type="number"]');
     try {
-      await seek.fill("10");
+      const initialThreshold = await page.evaluate(() => window.player!.lowlatency.getCatchupConfig()?.seekThreshold);
+      const targetThreshold = initialThreshold === 10 ? 11 : 10;
+      await seek.fill(String(targetThreshold));
       await seek.blur();
-      await expect(seek).toHaveValue("10");
-      expect(await page.evaluate(() => window.player!.lowlatency.getCatchupConfig().seekThreshold)).toBe(10);
+      await expect(seek).toHaveValue(String(targetThreshold));
+      expect(await page.evaluate(() => window.player!.lowlatency.getCatchupConfig().seekThreshold)).toBe(targetThreshold);
       expect(await instance.evaluate(instance => instance === window.player)).toBe(true);
       await expect(page.locator("video")).toHaveCount(1);
       await expectDecodedPlayback(page);
