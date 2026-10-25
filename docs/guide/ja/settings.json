@@ -1799,7 +1799,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 109
           },
-          "description": "この固定版でHLS Interstitialsを処理するための設定です。AdvertisingCoreモジュールと対応コンテンツが必要です。あらゆる広告挿入方式を有効にする汎用スイッチではありません。"
+          "description": "この固定バージョンでHLS Interstitialsを処理するための設定です。AdvertisingCoreモジュールと対応コンテンツが必要です。あらゆる広告挿入方式を有効にする汎用スイッチではありません。"
         },
         {
           "scope": "PlayerConfig",
@@ -2030,7 +2030,7 @@
             "path": "apps/web/src/configPanel.ts",
             "line": 730
           },
-          "description": "対応するHLSのPlaylist Delta Updatesで、完全なマニフェスト取得の代わりに増分更新を使います。この固定版の型コメントはHLSを対象としており、すべてのHLSやDASHに効果がある設定ではありません。"
+          "description": "対応するHLSのPlaylist Delta Updatesで、完全なマニフェスト取得の代わりに増分更新を使います。この固定バージョンの型コメントはHLSを対象としており、すべてのHLSやDASHに効果がある設定ではありません。"
         },
         {
           "scope": "PlayerConfig",
