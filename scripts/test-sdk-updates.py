@@ -180,7 +180,9 @@ class ReleaseTests(unittest.TestCase):
         for expression in ('"com.bitmovin.player:player:" + otherVersion',
                            '"com.bitmovin.player:player-media-session:" + otherVersion',
                            '"com.bitmovin.player:player" + ":" + otherVersion',
-                           '"com.bitmovin.player:" + artifact + ":" + otherVersion'):
+                           '"com.bitmovin.player:" + artifact + ":" + otherVersion',
+                           'group = "com.bitmovin.player", name = "player", version = otherVersion',
+                           r'"\u0063om.bitmovin.player:player:9.0.0"'):
             def no_fetch(_url):
                 self.fail('Ambiguous managed dependencies must fail before fetching publications.')
             with self.subTest(expression=expression), self.assertRaises(UpdateError):
@@ -207,11 +209,12 @@ class ReleaseTests(unittest.TestCase):
                 'implementation("com.bitmovin.player:player-media-session:1.2.3+jason")\n')
         for artifact in prepare.ANDROID_ARTIFACTS:
             for spacing in ('', '\n    ', '/* dependency */ '):
-                extra = f'implementation({spacing}"""com.bitmovin.player:{artifact}:9.0.0""")\n'
-                def no_fetch(_url):
-                    self.fail('Raw-string managed dependencies must fail before publication requests.')
-                with self.subTest(artifact=artifact, spacing=spacing), self.assertRaises(UpdateError):
-                    prepare.android_candidate(pair + extra, '1.2.3', '1.10.0', no_fetch)
+                for wrapper in ('implementation({})', 'implementation(({}))', 'val dependency = {}'):
+                    extra = wrapper.format(f'{spacing}"""com.bitmovin.player:{artifact}:9.0.0"""') + '\n'
+                    def no_fetch(_url):
+                        self.fail('Raw-string managed dependencies must fail before publication requests.')
+                    with self.subTest(artifact=artifact, spacing=spacing, wrapper=wrapper), self.assertRaises(UpdateError):
+                        prepare.android_candidate(pair + extra, '1.2.3', '1.10.0', no_fetch)
 
     def test_android_rejects_duplicate_direct_pom_identity_fields(self):
         pair = ('implementation("com.bitmovin.player:player:1.2.3+jason")\n'

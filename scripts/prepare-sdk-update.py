@@ -33,10 +33,20 @@ def android_candidate(text, old, new, fetch):
         literal = token.group()
         if literal.startswith('/*') and (not literal.endswith('*/') or '/*' in literal[2:]):
             raise UpdateError('Unterminated or nested Android Gradle comments require manual review.')
-        if (literal.startswith('"""')
-                and re.search(r'\bimplementation\s*\(\s*$', tokens.sub(' ', text[:token.start()]))
-                and 'com.bitmovin.player:' in literal):
-            raise UpdateError('Raw-string Android managed dependencies require manual review.')
+        if literal.startswith('"""') and 'com.bitmovin.player:' in literal:
+            prefix = tokens.sub(' ', text[:token.start()])
+            example = (re.search(r'\bval\s+\w+\s*=\s*$', prefix)
+                       and re.match(r'\s*implementation\s*\(', literal[3:-3]))
+            if not example:
+                raise UpdateError('Raw-string Android managed dependencies require manual review.')
+        if literal.startswith('"') and not literal.startswith('"""'):
+            try:
+                value = json.loads(literal)
+            except ValueError:
+                value = ''  # Other Kotlin strings can contain escapes outside JSON.
+            if (value == 'com.bitmovin.player'
+                    or (value.startswith('com.bitmovin.player:') and value != literal[1:-1])):
+                raise UpdateError('Nonliteral Android managed dependencies require manual review.')
         pin = re.fullmatch(r'"com\.bitmovin\.player:(player|player-media-session):([^"\r\n]+)"', literal)
         if not pin:
             if re.match(r'"com\.bitmovin\.player:(?:player(?:-media-session)?(?::|")|")', literal):
