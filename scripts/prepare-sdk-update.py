@@ -35,6 +35,8 @@ def android_candidate(text, old, new, fetch):
             raise UpdateError('Unterminated or nested Android Gradle comments require manual review.')
         pin = re.fullmatch(r'"com\.bitmovin\.player:(player|player-media-session):([^"\r\n]+)"', literal)
         if not pin:
+            if re.match(r'"com\.bitmovin\.player:(?:player(?:-media-session)?(?::|")|")', literal):
+                raise UpdateError('Ambiguous Android managed dependency requires manual review.')
             continue
         start = text.rfind('\n', 0, token.start()) + 1
         end = text.find('\n', token.end())

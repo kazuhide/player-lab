@@ -174,6 +174,19 @@ class ReleaseTests(unittest.TestCase):
             with self.subTest(text=text), self.assertRaises(UpdateError):
                 prepare.android_candidate(text, '1.2.3', '1.10.0', no_fetch)
 
+    def test_android_rejects_ambiguous_managed_dependency_prefixes_even_with_a_valid_pair(self):
+        pair = ('implementation("com.bitmovin.player:player:1.2.3+jason")\n'
+                'implementation("com.bitmovin.player:player-media-session:1.2.3+jason")\n')
+        for expression in ('"com.bitmovin.player:player:" + otherVersion',
+                           '"com.bitmovin.player:player-media-session:" + otherVersion',
+                           '"com.bitmovin.player:player" + ":" + otherVersion',
+                           '"com.bitmovin.player:" + artifact + ":" + otherVersion'):
+            def no_fetch(_url):
+                self.fail('Ambiguous managed dependencies must fail before fetching publications.')
+            with self.subTest(expression=expression), self.assertRaises(UpdateError):
+                prepare.android_candidate(pair + 'implementation(' + expression + ')\n',
+                                          '1.2.3', '1.10.0', no_fetch)
+
     def test_android_rejects_an_unpublished_or_different_target_for_either_module(self):
         before = ('implementation("com.bitmovin.player:player:1.2.3+jason")\n'
                   'implementation("com.bitmovin.player:player-media-session:1.2.3+jason")\n')
