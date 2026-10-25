@@ -202,6 +202,27 @@ class ReleaseTests(unittest.TestCase):
             with self.subTest(body=body), self.assertRaises(UpdateError):
                 prepare.android_candidate(before, '1.2.3', '1.10.0', lambda _url: body)
 
+    def test_android_rejects_raw_string_managed_dependencies_but_keeps_examples(self):
+        pair = ('implementation("com.bitmovin.player:player:1.2.3+jason")\n'
+                'implementation("com.bitmovin.player:player-media-session:1.2.3+jason")\n')
+        for artifact in prepare.ANDROID_ARTIFACTS:
+            for spacing in ('', '\n    ', '/* dependency */ '):
+                extra = f'implementation({spacing}"""com.bitmovin.player:{artifact}:9.0.0""")\n'
+                def no_fetch(_url):
+                    self.fail('Raw-string managed dependencies must fail before publication requests.')
+                with self.subTest(artifact=artifact, spacing=spacing), self.assertRaises(UpdateError):
+                    prepare.android_candidate(pair + extra, '1.2.3', '1.10.0', no_fetch)
+
+    def test_android_rejects_duplicate_direct_pom_identity_fields(self):
+        pair = ('implementation("com.bitmovin.player:player:1.2.3+jason")\n'
+                'implementation("com.bitmovin.player:player-media-session:1.2.3+jason")\n')
+        for key in ('groupId', 'artifactId', 'version', 'packaging'):
+            def fetch(url):
+                body = android_publication(url)
+                return body.replace(f'</{key}>'.encode(), f'</{key}><{key}>different</{key}>'.encode(), 1)
+            with self.subTest(key=key), self.assertRaises(UpdateError):
+                prepare.android_candidate(pair, '1.2.3', '1.10.0', fetch)
+
     def test_candidate_edits_leave_coverage_and_native_commit_ids_untouched(self):
         report = inspect_releases(coverage(), 'a' * 40, metadata)
         with tempfile.TemporaryDirectory() as directory:

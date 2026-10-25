@@ -33,6 +33,10 @@ def android_candidate(text, old, new, fetch):
         literal = token.group()
         if literal.startswith('/*') and (not literal.endswith('*/') or '/*' in literal[2:]):
             raise UpdateError('Unterminated or nested Android Gradle comments require manual review.')
+        if (literal.startswith('"""')
+                and re.search(r'\bimplementation\s*\(\s*$', tokens.sub(' ', text[:token.start()]))
+                and 'com.bitmovin.player:' in literal):
+            raise UpdateError('Raw-string Android managed dependencies require manual review.')
         pin = re.fullmatch(r'"com\.bitmovin\.player:(player|player-media-session):([^"\r\n]+)"', literal)
         if not pin:
             if re.match(r'"com\.bitmovin\.player:(?:player(?:-media-session)?(?::|")|")', literal):
@@ -60,7 +64,10 @@ def android_candidate(text, old, new, fetch):
         except ET.ParseError as error:
             raise UpdateError('Invalid Android artifact publication: ' + artifact) from error
         expected = {'groupId': 'com.bitmovin.player', 'artifactId': artifact, 'version': target, 'packaging': 'aar'}
-        if pom.tag != namespace + 'project' or any(pom.findtext(namespace + key) != value for key, value in expected.items()):
+        fields = {key: pom.findall(namespace + key) for key in expected}
+        if pom.tag != namespace + 'project' or any(
+                len(fields[key]) != 1 or len(fields[key][0]) != 0 or fields[key][0].text != value
+                for key, value in expected.items()):
             raise UpdateError('Android artifact publication differs from the proposed dependency: ' + artifact)
     for start, end, _ in sorted((pin for values in pins.values() for pin in values), reverse=True):
         text = text[:start] + target + text[end:]
