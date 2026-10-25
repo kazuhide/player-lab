@@ -181,6 +181,7 @@ class ReleaseTests(unittest.TestCase):
                            '"com.bitmovin.player:player-media-session:" + otherVersion',
                            '"com.bitmovin.player:player" + ":" + otherVersion',
                            '"com.bitmovin.player:" + artifact + ":" + otherVersion',
+                           '"""com.bitmovin.player""" + ":player:9.0.0"',
                            'group = "com.bitmovin.player", name = "player", version = otherVersion',
                            r'"\u0063om.bitmovin.player:player:9.0.0"'):
             def no_fetch(_url):

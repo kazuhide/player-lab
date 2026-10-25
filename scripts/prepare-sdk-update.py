@@ -33,7 +33,7 @@ def android_candidate(text, old, new, fetch):
         literal = token.group()
         if literal.startswith('/*') and (not literal.endswith('*/') or '/*' in literal[2:]):
             raise UpdateError('Unterminated or nested Android Gradle comments require manual review.')
-        if literal.startswith('"""') and 'com.bitmovin.player:' in literal:
+        if literal.startswith('"""') and 'com.bitmovin.player' in literal:
             prefix = tokens.sub(' ', text[:token.start()])
             example = (re.search(r'\bval\s+\w+\s*=\s*$', prefix)
                        and re.match(r'\s*implementation\s*\(', literal[3:-3]))
