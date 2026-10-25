@@ -79,6 +79,8 @@ jobs:
           node --test apps/ios/scripts/test-native-script-engine.cjs
       - name: Correctness worker budget tests
         run: pnpm --filter @showcase/e2e test:workers
+      - name: Test public preview ownership and recovery
+        run: python3 -B scripts/test-preview-pages.py
       - name: Test environment loading and bundle verification
         run: |
           bash scripts/test-env-lib.sh

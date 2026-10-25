@@ -14,6 +14,7 @@
     "lint": "pnpm -r --if-present run lint",
     "sync:webui": "bash scripts/sync-webui-bundle.sh",
     "verify": "bash scripts/verify.sh",
-    "check:publication": "python3 scripts/check-publication.py"
+    "check:publication": "python3 scripts/check-publication.py",
+    "preview": "python3 -B scripts/preview-pages.py"
   }
 }
