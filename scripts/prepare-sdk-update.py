@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Prepare exact dependency pins for a reviewed, draft SDK update pull request."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -22,6 +23,9 @@ JSON_PINS = {
 }
 ANDROID_ARTIFACTS = ('player', 'player-media-session')
 ANDROID_MAVEN = 'https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/'
+# Review this fingerprint with any Gradle changes beyond the two SDK versions.
+# General Kotlin code can add dependencies through APIs other than implementation.
+ANDROID_TEMPLATE_SHA256 = '95312db5401d7c17d8e85c3aee2eec5124e85357d3e268da4e86058925733f7d'
 
 
 def android_candidate(text, old, new, fetch):
@@ -32,6 +36,8 @@ def android_candidate(text, old, new, fetch):
     # This repository uses literal coordinates and two reviewed Gradle helpers.
     # Dynamic expressions require manual review; do not try to evaluate Kotlin.
     masked = tokens.sub(lambda match: re.sub(r'[^\n]', ' ', match.group()), text)
+    if '`' in masked:
+        raise UpdateError('Quoted Android Gradle identifiers require manual review.')
     for call in re.finditer(r'\bimplementation\s*\(', masked):
         depth, end = 1, call.end()
         while depth and end < len(masked):
@@ -49,7 +55,8 @@ def android_candidate(text, old, new, fetch):
         if re.fullmatch(r'project\(\s*":playback"\s*\)', expression):
             continue
         bom = [match for match in re.finditer(
-            r'\bval\s+composeBom\s*=\s*platform\("androidx\.compose:compose-bom:[0-9.]+"\)', text)
+            r'\bval\s+composeBom\s*=\s*platform\("androidx\.compose:compose-bom:[0-9.]+"\)'
+            r'[ \t]*\r?\n[ \t]*implementation\(composeBom\)[ \t]*(?:\r?$)', text, re.MULTILINE)
             if masked[match.start():match.start() + 3] == 'val']
         declarations = re.findall(r'\b(?:val|var)\s+composeBom\b', masked)
         if expression == 'composeBom' and len(bom) == len(declarations) == 1:
@@ -138,7 +145,12 @@ def candidate_files(repo, report, fetch=fetch_public):
             files[file] = json.dumps(data, indent=2, ensure_ascii=False) + '\n'
         if sdk_id == 'android':
             file = 'apps/android/app/build.gradle.kts'
-            files[file] = android_candidate((repo / file).read_text(), old, new, fetch)
+            text = (repo / file).read_text()
+            template = re.sub(r'("com\.bitmovin\.player:(?:player|player-media-session):)[^"\r\n]+(")',
+                              r'\g<1>SDK_VERSION\2', text)
+            if hashlib.sha256(template.encode()).hexdigest() != ANDROID_TEMPLATE_SHA256:
+                raise UpdateError('Android Gradle changed beyond the reviewed SDK pins; review its template fingerprint.')
+            files[file] = android_candidate(text, old, new, fetch)
         elif sdk_id == 'apple':
             file = 'apps/ios/project.yml'
             text, count = re.subn(r'(?<=exactVersion: ")' + re.escape(old) + r'(?=")', new, (repo / file).read_text())

@@ -42,6 +42,12 @@ def android_publication(url):
             f'<artifactId>{artifact}</artifactId><version>{unquote(encoded)}</version><packaging>aar</packaging></project>').encode()
 
 
+def android_gradle(version='1.2.3'):
+    return re.sub(r'("com\.bitmovin\.player:(?:player|player-media-session):)[^"\r\n]+(")',
+                  lambda match: match[1] + version + match[2],
+                  (ROOT / 'apps/android/app/build.gradle.kts').read_text())
+
+
 class ReleaseTests(unittest.TestCase):
     def test_only_same_repository_main_update_prs_suppress_a_new_draft(self):
         own = {'headRefName': 'automation/player-sdk-update-123', 'isCrossRepository': False, 'baseRefName': 'main'}
@@ -130,10 +136,7 @@ class ReleaseTests(unittest.TestCase):
             repo = Path(directory)
             path = repo / 'apps/android/app/build.gradle.kts'
             path.parent.mkdir(parents=True)
-            path.write_text('dependencies {\n'
-                            '    implementation("com.bitmovin.player:player:1.2.3+jason")\n'
-                            '    implementation("com.bitmovin.player:player-media-session:1.2.3+jason")\n'
-                            '}\n')
+            path.write_text(android_gradle('1.2.3+jason'))
             urls = []
             def fetch(url):
                 urls.append(url)
@@ -212,6 +215,35 @@ class ReleaseTests(unittest.TestCase):
         spoofed = 'val composeBom = unreviewedDependency()\n' + spoofed
         with self.assertRaises(UpdateError):
             prepare.android_candidate(spoofed, version, '9.0.0', no_fetch)
+        for suffix in ('.let { "com.bitmovin." + "player:player:9.0.0" }',
+                       '\n    .let { "com.bitmovin." + "player:player:9.0.0" }'):
+            computed = current.replace('platform("androidx.compose:compose-bom:2024.10.00")',
+                                       'platform("androidx.compose:compose-bom:2024.10.00")' + suffix)
+            with self.subTest(suffix=suffix), self.assertRaises(UpdateError):
+                prepare.android_candidate(computed, version, '9.0.0', no_fetch)
+        with self.assertRaises(UpdateError):
+            prepare.android_candidate(current + '`implementation`("com.bitmovin." + "player:player:9.0.0")\n',
+                                      version, '9.0.0', no_fetch)
+
+    def test_candidate_rejects_unreviewed_gradle_code_before_publications(self):
+        report = inspect_releases(coverage(), 'a' * 40, metadata)
+        for row in report['sdks']:
+            if row['id'] != 'android':
+                row['latestVersion'] = row['currentVersion']
+                row['updateAvailable'] = False
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            path = repo / 'apps/android/app/build.gradle.kts'
+            path.parent.mkdir(parents=True)
+            original = android_gradle('1.2.3+jason')
+            def no_fetch(_url):
+                self.fail('Unreviewed Gradle changes must stop before publication requests.')
+            for extra in ('dependencies.add("implementation", "com.bitmovin." + "player:player:9.0.0")\n',
+                          '// Unreviewed build change\n'):
+                path.write_text(original + extra)
+                with self.subTest(extra=extra), self.assertRaises(UpdateError):
+                    prepare.candidate_files(repo, report, no_fetch)
+                self.assertEqual(path.read_text(), original + extra)
 
     def test_android_rejects_an_unpublished_or_different_target_for_either_module(self):
         before = ('implementation("com.bitmovin.player:player:1.2.3+jason")\n'
@@ -263,8 +295,7 @@ class ReleaseTests(unittest.TestCase):
                     path.write_text(json.dumps(data))
             path = repo / 'apps/android/app/build.gradle.kts'
             path.parent.mkdir(parents=True)
-            path.write_text('implementation("com.bitmovin.player:player:1.2.3")\n'
-                            'implementation("com.bitmovin.player:player-media-session:1.2.3")\n')
+            path.write_text(android_gradle())
             path = repo / 'apps/ios/project.yml'
             path.parent.mkdir(parents=True)
             path.write_text('exactVersion: "1.2.3"')
