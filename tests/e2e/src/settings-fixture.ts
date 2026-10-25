@@ -3,7 +3,7 @@ import { ApiExplorer } from "../../../apps/web/src/api/explorer";
 import { setLang } from "../../../apps/web/src/i18n";
 import { deepMerge, settleApply } from "../../../apps/web/src/configState";
 import type { SourceConfig } from "bitmovin-player";
-import type { ConfigRoot } from "../../../apps/web/src/api/types";
+import type { ConfigRoot, PathPart } from "../../../apps/web/src/api/types";
 import "../../../apps/web/src/styles.css";
 
 const pending: { resolve: () => void; reject: (error: Error) => void }[] = [];
@@ -25,9 +25,12 @@ const panel = mountConfigPanel(document.getElementById("config")!, {
   },
   onReload: async value => {
     const generation = owner;
-    const outcome = await settleApply(submit("SourceConfig", value), () => generation === owner);
-    if (outcome === "applied") source = deepMerge(source, value);
-    return outcome;
+    const rollback = explorer.discardPatch("SourceConfig", value);
+    try {
+      const outcome = await settleApply(submit("SourceConfig", value), () => generation === owner);
+      if (outcome === "applied") source = deepMerge(source, value);
+      return outcome;
+    } catch (error) { rollback(); throw error; }
   },
 });
 const explorer: ApiExplorer = new ApiExplorer(document.getElementById("explorer")!, {
@@ -40,7 +43,7 @@ const explorer: ApiExplorer = new ApiExplorer(document.getElementById("explorer"
   load: async () => undefined,
   destroy: async () => undefined,
   releaseUi: () => undefined,
-  recreate: async () => undefined,
+  recreate: async () => "applied",
 });
 
 declare global {
@@ -52,6 +55,8 @@ declare global {
       refresh: () => void;
       retire: () => void;
       language: (language: "en" | "ja") => void;
+      external: (root: ConfigRoot, path: PathPart[], value: unknown) => void;
+      configuration: (root: ConfigRoot) => object;
     };
   }
 }
@@ -61,6 +66,8 @@ window.settingsFixture = {
   reject: () => pending.shift()?.reject(new Error("Fixture load failed")),
   refresh: () => panel.refresh(),
   retire: () => { owner++; explorer.beginPlayerChange()(); },
+  external: (root, path, value) => explorer.setExternal(root, path, value),
+  configuration: root => explorer.overrides.apply(root, {}),
   language: language => {
     setLang(language);
     panel.relocalize();

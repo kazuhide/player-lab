@@ -239,3 +239,43 @@ test("an empty array index stays a draft and cannot silently apply to index zero
   await expect(index).toHaveValue("");
   expect(await page.evaluate(() => window.settingsFixture.submissions)).toEqual([]);
 });
+
+test("an invalid Remove keeps the existing Apply pending and blocks another submission", async ({ page }) => {
+  await page.goto("/settings-fixture.html");
+  await explorer(page, "SourceConfig.title");
+  await page.locator(".api-explorer-form > .api-value > select").selectOption({ label: "string" });
+  await page.locator(".api-explorer-form input[type=text]").fill("Pending title");
+  await page.getByRole("button", { name: "Apply setting", exact: true }).click();
+  await page.getByRole("searchbox", { name: "Search APIs" }).fill("UIConfig.metadata.markers[].title");
+  await page.getByRole("spinbutton", { name: "Array index 1", exact: true }).fill("");
+  await page.getByRole("button", { name: "Remove this override", exact: true }).click();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("Choose an array index from 0 to 255.");
+  await page.getByRole("searchbox", { name: "Search APIs" }).fill("SourceConfig.title");
+  const apply = page.getByRole("button", { name: "Apply setting", exact: true });
+  await expect(apply).toBeDisabled();
+  await apply.dispatchEvent("click");
+  expect(await page.evaluate(() => window.settingsFixture.submissions)).toHaveLength(1);
+  await page.evaluate(() => window.settingsFixture.resolve());
+  await expect(apply).toBeEnabled();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("Configuration submitted.");
+});
+
+for (const scenario of [
+  { name: "sibling", path: ["options", "persistentPoster"], value: false, options: { persistentPoster: false, startOffset: 3 } },
+  { name: "same path", path: ["options", "startOffset"], value: 22, options: { persistentPoster: true, startOffset: 22 } },
+  { name: "parent", path: ["options"], value: { startOffset: 22 }, options: { startOffset: 22 } },
+]) test(`basic rollback preserves a newer ${scenario.name} write without replacing the root`, async ({ page }) => {
+  await page.goto("/settings-fixture.html");
+  await page.evaluate(() => window.settingsFixture.external("SourceConfig", ["options"], { persistentPoster: true, startOffset: 3 }));
+  await page.locator("#config details").evaluateAll(nodes => nodes.forEach(node => { if (node instanceof HTMLDetailsElement) node.open = true; }));
+  const input = page.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: /^options.startOffset \(s\)/ }) }).locator("input");
+  await input.fill("9"); await input.dispatchEvent("change");
+  await page.getByRole("button", { name: "Reload the source to apply", exact: true }).click();
+  await page.evaluate(({ path, value }) => {
+    window.settingsFixture.external("SourceConfig", path, value);
+    window.settingsFixture.external("SourceConfig", ["description"], "New description");
+  }, scenario);
+  await page.evaluate(() => window.settingsFixture.reject());
+  await expect(page.locator(".config-band-dynamic [role=status]")).toContainText("Fixture load failed");
+  expect(await page.evaluate(() => window.settingsFixture.configuration("SourceConfig"))).toEqual({ options: scenario.options, description: "New description" });
+});

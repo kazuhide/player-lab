@@ -17,8 +17,10 @@ export interface ApiExplorerOptions {
   load: (source: unknown, forceTechnology: unknown, disableSeeking: unknown) => Promise<void>;
   destroy: () => Promise<void>;
   releaseUi: () => void;
-  recreate: () => Promise<void>;
+  recreate: () => Promise<ApplyOutcome>;
 }
+
+const supersededMessage: L = { ja: "Playerまたはソースが変わりました。もう一度適用してください。", en: "The player or source changed. Apply again." };
 
 interface ExplorerDraft {
   nodes: ChildNode[];
@@ -172,14 +174,24 @@ export class ApiExplorer {
   }
 
   discardPatch(root: ConfigRoot, patch: object): () => void {
-    const previous = this.overrides.entries(root).map(entry => ({ ...entry }));
-    const output = ++this.outputGeneration; this.operation++;
-    for (const key of this.writes.keys()) if (key.startsWith(root)) this.writes.delete(key);
-    this.overrides.discardPatch(root, patch);
+    const discarded = this.overrides.discardPatch(root, patch);
+    this.outputGeneration++; this.operation++;
+    const contains = (parent: PathPart[], child: PathPart[]): boolean => parent.length <= child.length
+      && parent.every((part, index) => part === child[index]);
+    // An opaque ancestor (including an explicit unset) is one indivisible write.
+    const paths: PathPart[][] = [];
+    for (const path of [...discarded.paths, ...discarded.removed.map(entry => entry.path)]) {
+      if (paths.some(parent => contains(parent, path))) continue;
+      for (let index = paths.length - 1; index >= 0; index--) if (contains(path, paths[index]!)) paths.splice(index, 1);
+      paths.push(path);
+    }
+    const writes = paths.map(path => ({ path, ...this.markWrite(root, path) }));
     return () => {
-      if (output !== this.outputGeneration) return;
-      for (const entry of this.overrides.entries(root)) this.overrides.remove(root, entry.path);
-      for (const entry of previous) this.overrides.set(root, entry.path, entry.value);
+      for (const write of writes) {
+        if (this.writes.get(write.key)?.ticket !== write.ticket) continue;
+        for (const entry of discarded.removed) if (contains(write.path, entry.path)) this.overrides.set(root, entry.path, entry.value);
+        this.writes.delete(write.key);
+      }
     };
   }
   setExternal(root: ConfigRoot, path: PathPart[], value: unknown): void {
@@ -315,8 +327,9 @@ export class ApiExplorer {
       recreate.disabled = true;
       const output = ++this.outputGeneration;
       this.setStatus({ ja: "SDKを呼び出しています。", en: "Calling the SDK." });
-      void this.options.recreate().then(() => {
-        if (output === this.outputGeneration) this.setStatus({ ja: "SDKの呼び出しが完了しました。", en: "SDK call completed." });
+      void this.options.recreate().then(outcome => {
+        if (output === this.outputGeneration) this.setStatus(outcome === "superseded" ? supersededMessage
+          : { ja: "SDKの呼び出しが完了しました。", en: "SDK call completed." });
       }).catch(error => { if (output === this.outputGeneration) this.setStatus(applyErrorMessage(error)); })
         .finally(() => { recreate.disabled = false; });
     });
@@ -456,6 +469,13 @@ export class ApiExplorer {
   private async changeConfiguration(entry: ApiEntry, indices: number[], editor: ValueEditor, remove: boolean): Promise<void> {
     // Removing a blocking callback must be able to retire its unfinished load.
     if (this.configurationPending && (!remove || this.removalKey === entry.id)) return;
+    let route: ReturnType<typeof configRoute>;
+    let value: unknown;
+    try {
+      route = configRoute(entry, indices);
+      value = remove ? undefined : validateData(this.catalog!, entry.schema!, this.resources.forConfiguration(editor.read()));
+      if (!remove) this.context("preflight").preflight(value);
+    } catch (error) { this.setStatus(applyErrorMessage(error)); this.refresh(); return; }
     const ticket = ++this.configurationTicket;
     this.configurationPending = true;
     this.removalKey = remove ? entry.id : undefined;
@@ -463,13 +483,9 @@ export class ApiExplorer {
     const output = ++this.outputGeneration;
     this.setStatus(remove ? { ja: "上書きを解除しています。", en: "Removing override." }
       : { ja: "設定を適用しています。", en: "Applying setting." });
-    let route: ReturnType<typeof configRoute> | undefined;
     let write: { key: string; ticket: number } | undefined;
     let replaced: { path: PathPart[]; value: unknown }[] = [];
     try {
-      route = configRoute(entry, indices);
-      const value = remove ? undefined : validateData(this.catalog!, entry.schema!, this.resources.forConfiguration(editor.read()));
-      if (!remove) this.context("preflight").preflight(value);
       write = this.markWrite(route.root, route.path);
       if (remove) {
         replaced = this.overrides.entries(route.root).filter(prior => JSON.stringify(prior.path) === JSON.stringify(route!.path));
@@ -480,7 +496,7 @@ export class ApiExplorer {
       if (output === this.outputGeneration) {
         if (outcome === "applied") this.showConfigCode(route.root);
         this.setStatus(outcome === "superseded"
-          ? { ja: "Playerまたはソースが変わりました。もう一度適用してください。", en: "The player or source changed. Apply again." }
+          ? supersededMessage
           : remove ? { ja: "上書きを解除しました。", en: "Override removed." }
             : { ja: "設定を送信しました。", en: "Configuration submitted." });
       }

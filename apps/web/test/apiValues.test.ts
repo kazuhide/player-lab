@@ -132,4 +132,17 @@ describe("independent API overrides", () => {
     for (const prior of replaced) overrides.set("PlayerConfig", prior.path, prior.value);
     expect(overrides.apply("PlayerConfig", {})).toEqual({ playback: { autoplay: true, muted: false }, live: { targetLatency: 5 } });
   });
+
+  it("returns discarded value parts that restore parent leaves and explicit unsets without replacing unrelated edits", () => {
+    for (const value of [{ startOffset: 3, persistentPoster: true }, undefined]) {
+      const overrides = new ApiOverrides();
+      const base = { options: { startOffset: 1, persistentPoster: false } };
+      overrides.set("SourceConfig", ["options"], value);
+      const before = overrides.apply("SourceConfig", base);
+      const discarded = overrides.discardPatch("SourceConfig", { options: { startOffset: 9 } });
+      overrides.set("SourceConfig", ["description"], "New description");
+      for (const entry of discarded.removed) overrides.set("SourceConfig", entry.path, entry.value);
+      expect(overrides.apply("SourceConfig", base)).toStrictEqual({ ...before, description: "New description" });
+    }
+  });
 });

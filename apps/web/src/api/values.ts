@@ -149,15 +149,22 @@ function mergeValue(base: unknown, value: unknown): unknown {
   return result;
 }
 
-function pruneValue(value: unknown, path: PathPart[]): unknown {
+type OverrideEntry = { path: PathPart[]; value: unknown };
+
+function pruneValue(value: unknown, path: PathPart[], removed: OverrideEntry[], prefix: PathPart[]): unknown {
   const key = path[0];
-  if (!plain(value)) return undefined;
+  if (!plain(value)) { removed.push({ path: prefix, value }); return undefined; }
   if (typeof key !== "string" || !Object.prototype.hasOwnProperty.call(value, key)) return value;
   const result = { ...value };
-  if (path.length === 1) delete result[key];
+  const next = [...prefix, key];
+  if (path.length === 1) { removed.push({ path: next, value: value[key] }); delete result[key]; }
   else {
-    result[key] = pruneValue(value[key], path.slice(1));
-    if (result[key] === undefined || plain(result[key]) && Object.keys(result[key]).length === 0) delete result[key];
+    const checkpoint = removed.length;
+    result[key] = pruneValue(value[key], path.slice(1), removed, next);
+    if (result[key] === undefined || plain(result[key]) && Object.keys(result[key]).length === 0) {
+      if (removed.length === checkpoint) removed.push({ path: next, value: value[key] });
+      delete result[key];
+    }
   }
   return result;
 }
@@ -203,8 +210,9 @@ export class ApiOverrides {
     for (const entry of this.entries(root)) put(result, entry.path, materialize(entry.value));
     return result as T;
   }
-  discardPatch(root: ConfigRoot, patch: object): void {
+  discardPatch(root: ConfigRoot, patch: object): { paths: PathPart[][]; removed: OverrideEntry[] } {
     const paths: PathPart[][] = [];
+    const removed: OverrideEntry[] = [];
     const visit = (value: object, prefix: PathPart[]) => {
       for (const [key, item] of Object.entries(value)) {
         safeKey(key);
@@ -215,9 +223,15 @@ export class ApiOverrides {
     visit(patch, []);
     for (const [key, item] of this.values.get(root) ?? []) for (const path of paths) {
       if (!overlaps(path, item.path)) continue;
-      if (path.length <= item.path.length) { this.values.get(root)!.delete(key); break; }
-      item.value = pruneValue(item.value, path.slice(item.path.length));
-      if (item.value === undefined || plain(item.value) && Object.keys(item.value).length === 0) { this.values.get(root)!.delete(key); break; }
+      if (path.length <= item.path.length) { removed.push({ ...item }); this.values.get(root)!.delete(key); break; }
+      const previous = item.value;
+      const checkpoint = removed.length;
+      item.value = pruneValue(item.value, path.slice(item.path.length), removed, item.path);
+      if (item.value === undefined || plain(item.value) && Object.keys(item.value).length === 0) {
+        if (removed.length === checkpoint) removed.push({ path: item.path, value: previous });
+        this.values.get(root)!.delete(key); break;
+      }
     }
+    return { paths, removed };
   }
 }
