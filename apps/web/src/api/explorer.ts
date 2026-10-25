@@ -1,6 +1,8 @@
 import { PlayerUI, EventDispatcher, PlayerUIDOM, type UIManager } from "@showcase/ui-shared";
 import { PlayerEvent, type PlayerAPI } from "bitmovin-player";
-import { pick, userGuideHref } from "../i18n";
+import { pick, userGuideHref, type L } from "../i18n";
+import { DomLocalization } from "../domLocalization";
+import { applyErrorMessage, type ApplyOutcome } from "../configState";
 import { valueEditor, type ValueEditor } from "./editor";
 import { ApiMaterializer, ResourcePool, inputCode } from "./materialize";
 import { ApiOverrides, apiPath, validateData } from "./values";
@@ -10,11 +12,19 @@ import { ResourceInput, type ApiEntry, type ApiSchema, type ConfigRoot, type Pat
 export interface ApiExplorerOptions {
   getPlayer: () => PlayerAPI | undefined;
   getUi: () => UIManager | undefined;
-  apply: (root: ConfigRoot) => Promise<void>;
+  /** Retire obsolete owners as superseded; reject only the current SDK action. */
+  apply: (root: ConfigRoot) => Promise<ApplyOutcome>;
   load: (source: unknown, forceTechnology: unknown, disableSeeking: unknown) => Promise<void>;
   destroy: () => Promise<void>;
   releaseUi: () => void;
   recreate: () => Promise<void>;
+}
+
+interface ExplorerDraft {
+  nodes: ChildNode[];
+  labels: DomLocalization;
+  editors: Set<ValueEditor>;
+  buttons: Map<HTMLButtonElement, boolean>;
 }
 
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): HTMLElementTagNameMap[K] {
@@ -81,12 +91,17 @@ export class ApiExplorer {
   private readonly events: string[] = [];
   private logTimer: number | undefined;
   private operation = 0;
-  private sourceGeneration = 0;
   private outputGeneration = 0;
   private writeSequence = 0;
   private readonly writes = new Map<string, { ticket: number; path: PathPart[] }>();
   private loading: Promise<void> | undefined;
   private preparingPlayer = false;
+  private readonly labels = new DomLocalization();
+  private configurationPending = false;
+  private configurationTicket = 0;
+  private removalKey: string | undefined;
+  private readonly drafts = new Map<string, ExplorerDraft>();
+  private statusValue: L | string = "";
 
   constructor(container: HTMLElement, private readonly options: ApiExplorerOptions) {
     this.details.className = "api-explorer";
@@ -97,25 +112,32 @@ export class ApiExplorer {
     this.log.className = "api-event-log";
     this.details.append(this.summary, this.content, this.status);
     container.append(this.details);
+    this.labels.bind(() => this.drafts.forEach(draft => draft.labels.refresh()));
     this.relocalize();
     this.details.addEventListener("toggle", () => {
-      if (this.details.open) void this.loadCatalog().catch(error => { this.status.textContent = String(error); });
+      if (this.details.open) void this.loadCatalog().catch(error => { this.setStatus(applyErrorMessage(error)); });
     });
   }
 
   relocalize(): void {
     this.summary.textContent = pick({ ja: "SDKの詳細設定・API・イベント", en: "SDK settings, APIs and events" });
-    if (this.catalog) this.render();
+    this.labels.refresh();
+    this.setStatus(this.statusValue);
+  }
+
+  private setStatus(value: L | string): void {
+    this.statusValue = value;
+    this.status.textContent = typeof value === "string" ? value : pick(value);
   }
 
   private async loadCatalog(): Promise<void> {
     if (this.catalog) { this.refresh(); return; }
     if (this.loading) return this.loading;
-    this.status.textContent = pick({ ja: "SDKの項目を読み込んでいます。", en: "Loading SDK entries." });
+    this.setStatus({ ja: "SDKの項目を読み込んでいます。", en: "Loading SDK entries." });
     this.loading = import("./schema.json").then(module => {
       this.catalog = module.default as unknown as ApiSchema;
       if (this.catalog.schemaVersion !== 1) throw new Error("Unsupported SDK editor metadata.");
-      this.status.textContent = "";
+      this.setStatus("");
       this.render(); this.refresh();
     }).finally(() => { this.loading = undefined; });
     return this.loading;
@@ -134,7 +156,7 @@ export class ApiExplorer {
 
   prepare<T extends object>(root: ConfigRoot, base: T): T {
     if (!this.catalog) return base;
-    if (root === "SourceConfig") { this.operation++; this.sourceGeneration++; }
+    if (root === "SourceConfig") this.operation++;
     this.contexts.get(root)?.dispose(); this.contexts.delete(root);
     const context = this.context(root);
     if (root === "UIConfig") {
@@ -149,10 +171,16 @@ export class ApiExplorer {
     return this.overrides.apply(root, materializedBase, value => context.materialize(value));
   }
 
-  discardPatch(root: ConfigRoot, patch: object): void {
-    this.outputGeneration++; this.operation++;
+  discardPatch(root: ConfigRoot, patch: object): () => void {
+    const previous = this.overrides.entries(root).map(entry => ({ ...entry }));
+    const output = ++this.outputGeneration; this.operation++;
     for (const key of this.writes.keys()) if (key.startsWith(root)) this.writes.delete(key);
     this.overrides.discardPatch(root, patch);
+    return () => {
+      if (output !== this.outputGeneration) return;
+      for (const entry of this.overrides.entries(root)) this.overrides.remove(root, entry.path);
+      for (const entry of previous) this.overrides.set(root, entry.path, entry.value);
+    };
   }
   setExternal(root: ConfigRoot, path: PathPart[], value: unknown): void {
     this.outputGeneration++; this.operation++; this.markWrite(root, path);
@@ -178,7 +206,7 @@ export class ApiExplorer {
   }
 
   beginPlayerChange(): () => void {
-    this.operation++; this.sourceGeneration++;
+    this.operation++;
     this.unsubscribe.forEach(unsubscribe => { try { unsubscribe(); } catch { /* Already released. */ } });
     this.unsubscribe = [];
     const cleanups = [...this.contexts.values()].map(context => context.retire());
@@ -192,7 +220,7 @@ export class ApiExplorer {
     if (!this.catalog) return;
     const player = this.options.getPlayer();
     const ui = this.options.getUi();
-    if (player === this.player && ui === this.ui) return;
+    if (player === this.player && ui === this.ui) { this.refreshEditors(); return; }
     this.operation++;
     this.unsubscribe.forEach(unsubscribe => { try { unsubscribe(); } catch { /* The SDK may already have released it. */ } });
     this.unsubscribe = [];
@@ -233,6 +261,17 @@ export class ApiExplorer {
         this.unsubscribe.push(() => { dispatcher.unsubscribe(listener); });
       }
     }
+    this.refreshEditors();
+  }
+
+  private refreshEditors(): void {
+    this.drafts.forEach(draft => draft.editors.forEach(editor => editor.refresh?.()));
+  }
+
+  private refreshConfigurationButtons(): void {
+    this.drafts.forEach(draft => draft.buttons.forEach((remove, button) => {
+      button.disabled = this.configurationPending && (!remove || this.removalKey === button.dataset.overrideKey);
+    }));
   }
 
   private record(id: string, message: string): void {
@@ -256,34 +295,61 @@ export class ApiExplorer {
 
   private render(): void {
     const catalog = this.catalog!;
-    const guide = node("a", pick({ ja: "設定とAPIの使い方", en: "Configuration and API guide" }));
-    guide.href = userGuideHref("web-player-config");
+    const text = <K extends keyof HTMLElementTagNameMap>(tag: K, value: L) => this.labels.text(node(tag), value);
+    const action = (value: L, run: () => void) => this.labels.text(button("", run), value);
+    const choice = (value: string, label: L) => this.labels.text(option(value, ""), label);
+    const guide = text("a", { ja: "設定とAPIの使い方", en: "Configuration and API guide" });
+    this.labels.bind(() => { guide.href = userGuideHref("web-player-config"); });
     const controls = node("div"); controls.className = "api-explorer-controls";
-    const search = node("input"); search.type = "search"; search.setAttribute("aria-label", pick({ ja: "APIを検索", en: "Search APIs" })); search.placeholder = pick({ ja: "APIを検索", en: "Search APIs" });
-    const category = node("select"); category.setAttribute("aria-label", pick({ ja: "APIの種類", en: "API category" }));
-    category.append(option("configuration", pick({ ja: "設定", en: "Configuration" })), option("command", pick({ ja: "操作", en: "Commands" })), option("observation", pick({ ja: "状態の取得", en: "Read state" })), option("event", pick({ ja: "イベント", en: "Events" })));
-    const selection = node("select"); selection.size = 9; selection.setAttribute("aria-label", pick({ ja: "SDKの項目", en: "SDK entry" }));
+    const search = node("input"); search.type = "search";
+    this.labels.attribute(search, "aria-label", { ja: "APIを検索", en: "Search APIs" });
+    this.labels.attribute(search, "placeholder", { ja: "APIを検索", en: "Search APIs" });
+    const category = node("select"); this.labels.attribute(category, "aria-label", { ja: "APIの種類", en: "API category" });
+    category.append(choice("configuration", { ja: "設定", en: "Configuration" }), choice("command", { ja: "操作", en: "Commands" }), choice("observation", { ja: "状態の取得", en: "Read state" }), choice("event", { ja: "イベント", en: "Events" }));
+    const selection = node("select"); selection.size = 9; this.labels.attribute(selection, "aria-label", { ja: "SDKの項目", en: "SDK entry" });
     const form = node("div"); form.className = "api-explorer-form";
     const layout = node("div"); layout.className = "api-explorer-layout";
     const list = node("div"); list.className = "api-explorer-list"; list.append(search, category, selection);
-    controls.append(guide, button(pick({ ja: "Playerを再生成", en: "Recreate Player" }), () => {
-      void this.options.recreate().catch(error => { this.status.textContent = String(error); });
-    }), button(pick({ ja: "イベント履歴を消去", en: "Clear event history" }), () => { this.counts.clear(); this.events.length = 0; this.log.textContent = ""; }));
+    const recreate = action({ ja: "Playerを再生成", en: "Recreate Player" }, () => {
+      if (recreate.disabled) return;
+      recreate.disabled = true;
+      const output = ++this.outputGeneration;
+      this.setStatus({ ja: "SDKを呼び出しています。", en: "Calling the SDK." });
+      void this.options.recreate().then(() => {
+        if (output === this.outputGeneration) this.setStatus({ ja: "SDKの呼び出しが完了しました。", en: "SDK call completed." });
+      }).catch(error => { if (output === this.outputGeneration) this.setStatus(applyErrorMessage(error)); })
+        .finally(() => { recreate.disabled = false; });
+    });
+    controls.append(guide, recreate, action({ ja: "イベント履歴を消去", en: "Clear event history" }, () => { this.counts.clear(); this.events.length = 0; this.log.textContent = ""; }));
     layout.append(list, form);
-    this.content.replaceChildren(controls, layout, node("h3", pick({ ja: "適用・実行したコード", en: "Applied or executed code" })), this.code,
-      node("h3", pick({ ja: "結果", en: "Result" })), this.result, node("h3", pick({ ja: "イベントとコールバック", en: "Events and callbacks" })), this.log);
+    this.content.replaceChildren(controls, layout, text("h3", { ja: "適用・実行したコード", en: "Applied or executed code" }), this.code,
+      text("h3", { ja: "結果", en: "Result" }), this.result, text("h3", { ja: "イベントとコールバック", en: "Events and callbacks" }), this.log);
 
-    const renderSelected = () => {
+    let rendered = "";
+    const renderSelected = (reset = false) => {
+      this.refreshEditors();
+      if (!reset && rendered === selection.value) return;
+      const previous = this.drafts.get(rendered);
+      if (previous) previous.nodes = [...form.childNodes];
       form.replaceChildren();
+      rendered = selection.value;
+      const draft = reset ? undefined : this.drafts.get(rendered);
+      if (draft) { form.append(...draft.nodes); return; }
       const entry = catalog.rows.find(entry => entry.id === selection.value);
       if (!entry) return;
+      const state: ExplorerDraft = { nodes: [], labels: new DomLocalization(), editors: new Set(), buttons: new Map() };
+      this.drafts.set(rendered, state);
+      const labels = state.labels;
+      const text = <K extends keyof HTMLElementTagNameMap>(tag: K, value: L) => labels.text(node(tag), value);
+      const action = (value: L, run: () => void) => labels.text(button("", run), value);
       form.append(node("h3", entry.id));
-      if (entry.container) form.append(node("p", pick({ ja: "必須フィールドをまとめて適用", en: "Apply required fields together" })));
-      if (entry.reference) { const link = node("a", pick({ ja: "公式APIリファレンス", en: "Official API reference" })); link.href = entry.reference; link.target = "_blank"; link.rel = "noopener noreferrer"; form.append(link); }
-      if (entry.blocked) { form.append(node("p", pick({ ja: "このパスはSDK型定義のコンポーネント本体から列挙されたもので、コンストラクターの設定ではありません。設定として渡してもメソッドは実行されません。UIConstructorConfig.ToggleSettingsPanelItemで実際のコンストラクター入力を編集してください。", en: "This path was enumerated from the SDK component class, rather than its constructor configuration. Passing it as configuration does not invoke its method. Use UIConstructorConfig.ToggleSettingsPanelItem to edit the actual constructor input." }))); return; }
-      if (entry.category === "event") { form.append(node("p", pick({ ja: "記録対象: 現在のPlayerとUI", en: "Recording: current Player and UI" }))); return; }
+      if (entry.container) form.append(text("p", { ja: "必須フィールドをまとめて適用", en: "Apply required fields together" }));
+      if (entry.reference) { const link = text("a", { ja: "公式APIリファレンス", en: "Official API reference" }); link.href = entry.reference; link.target = "_blank"; link.rel = "noopener noreferrer"; form.append(link); }
+      if (entry.blocked) { form.append(text("p", { ja: "このパスはSDK型定義のコンポーネント本体から列挙されたもので、コンストラクターの設定ではありません。設定として渡してもメソッドは実行されません。UIConstructorConfig.ToggleSettingsPanelItemで実際のコンストラクター入力を編集してください。", en: "This path was enumerated from the SDK component class, rather than its constructor configuration. Passing it as configuration does not invoke its method. Use UIConstructorConfig.ToggleSettingsPanelItem to edit the actual constructor input." })); return; }
+      if (entry.category === "event") { form.append(text("p", { ja: "記録対象: 現在のPlayerとUI", en: "Recording: current Player and UI" })); return; }
       const schema = catalog.nodes[entry.schema!]!;
       const indexInputs: HTMLInputElement[] = [];
+      const readIndices = () => indexInputs.map(input => input.value.trim() === "" || input.validity.badInput ? NaN : Number(input.value));
       let editor: ValueEditor;
       let signature: Signature | undefined;
       let args: ValueEditor[] = [];
@@ -292,86 +358,66 @@ export class ApiExplorer {
         const mode = entry.root === "PlayerConfig" ? { ja: "Playerを再生成", en: "Recreates Player" }
           : entry.root === "SourceConfig" ? { ja: "ソースを再読み込み", en: "Reloads source" }
           : { ja: "UIを再生成", en: "Rebuilds UI" };
-        const effect = node("p", pick(mode)); effect.className = "api-apply-effect"; form.append(effect);
+        const effect = text("p", mode); effect.className = "api-apply-effect"; form.append(effect);
         for (let i = 0; i < (entry.id.match(/\[\]/g)?.length ?? 0); i++) {
           const input = node("input"); input.type = "number"; input.min = "0"; input.max = "255"; input.value = "0";
           input.setAttribute("aria-label", `Array index ${i + 1}`); indexInputs.push(input); form.append(input);
         }
         editor = valueEditor(catalog, entry.schema!, resources);
+        state.editors.add(editor);
+        labels.bind(() => editor.relocalize?.());
         form.append(editor.element);
-        const apply = button(pick({ ja: "設定を適用", en: "Apply setting" }), () => {
-          const output = ++this.outputGeneration;
-          this.status.textContent = pick({ ja: "設定を適用しています。", en: "Applying setting." });
-          void (async () => {
-            apply.disabled = true;
-            const route = configRoute(entry, indexInputs.map(input => Number(input.value)));
-            let write: { key: string; ticket: number } | undefined;
-            let replaced: { path: PathPart[]; value: unknown }[] = [];
-            let submitted = false;
-            const submittedPlayer = this.options.getPlayer();
-            let submittedSourceGeneration = this.sourceGeneration;
-            try {
-              const value = validateData(catalog, entry.schema!, this.resources.forConfiguration(editor.read()));
-              this.context("preflight").preflight(value);
-              write = this.markWrite(route.root, route.path);
-              replaced = this.overrides.set(route.root, route.path, value);
-              submitted = true;
-              const pending = this.options.apply(route.root);
-              submittedSourceGeneration = this.sourceGeneration;
-              await pending;
-              if (output === this.outputGeneration) {
-                this.showConfigCode(route.root);
-                this.status.textContent = pick({ ja: "設定を送信しました。", en: "Configuration submitted." });
-              }
-            } catch (error) {
-              const currentOwner = route.root === "PlayerConfig" || this.options.getPlayer() === submittedPlayer;
-              const currentSource = route.root !== "SourceConfig" || this.sourceGeneration === submittedSourceGeneration;
-              if (submitted && currentOwner && currentSource && write && this.writes.get(write.key)?.ticket === write.ticket) {
-                this.overrides.remove(route.root, route.path);
-                for (const prior of replaced) this.overrides.set(route.root, prior.path, prior.value);
-                try { await this.options.apply(route.root); } catch { /* Keep the original SDK error visible. */ }
-              }
-              if (output === this.outputGeneration) this.status.textContent = String(error);
-            } finally { apply.disabled = false; this.refresh(); }
-          })().catch(error => { this.status.textContent = String(error); apply.disabled = false; });
+        const apply = action({ ja: "設定を適用", en: "Apply setting" }, () => {
+          void this.changeConfiguration(entry, readIndices(), editor, false);
         });
-        form.append(apply, button(pick({ ja: "この上書きを解除", en: "Remove this override" }), () => {
-          const output = ++this.outputGeneration;
-          this.status.textContent = pick({ ja: "上書きを解除しています。", en: "Removing override." });
-          void (async () => {
-            const route = configRoute(entry, indexInputs.map(input => Number(input.value)));
-            this.markWrite(route.root, route.path);
-            this.overrides.remove(route.root, route.path);
-            await this.options.apply(route.root);
-            if (output === this.outputGeneration) {
-              this.showConfigCode(route.root);
-              this.status.textContent = pick({ ja: "上書きを解除しました。", en: "Override removed." });
-            }
-          })().catch(error => { if (output === this.outputGeneration) this.status.textContent = String(error); });
-        }));
+        const remove = action({ ja: "この上書きを解除", en: "Remove this override" }, () => {
+          void this.changeConfiguration(entry, readIndices(), editor, true);
+        });
+        remove.dataset.overrideKey = entry.id;
+        state.buttons.set(apply, false); state.buttons.set(remove, true);
+        this.refreshConfigurationButtons();
+        form.append(apply, remove);
       } else {
-        const overload = node("select"); overload.setAttribute("aria-label", pick({ ja: "APIのシグネチャー", en: "API signature" }));
+        const overload = node("select"); labels.attribute(overload, "aria-label", { ja: "APIのシグネチャー", en: "API signature" });
         schema.signatures!.forEach((signature, index) => overload.append(option(String(index), `(${signature.parameters.map(parameter => parameter.name + (parameter.optional ? "?" : "") + ": " + catalog.nodes[parameter.schema]!.label).join(", ")})`)));
         const body = node("div");
+        let previousOverload = "";
+        const argumentDrafts = new Map<string, { nodes: ChildNode[]; args: ValueEditor[] }>();
         const update = () => {
+          if (previousOverload) argumentDrafts.set(previousOverload, { nodes: [...body.childNodes], args });
+          previousOverload = overload.value;
           signature = schema.signatures![Number(overload.value)]!;
           args = []; body.replaceChildren();
+          const saved = argumentDrafts.get(overload.value);
+          if (saved) { args = saved.args; body.append(...saved.nodes); return; }
           for (const [index, parameter] of signature.parameters.entries()) {
             let value: ValueEditor;
             const identities = index === 0 ? this.identityItems(entry.id) : undefined;
             if (identities) {
-              const owner = this.options.getUi();
-              const select = node("select"); select.setAttribute("aria-label", pick({ ja: "SDKオブジェクト", en: "SDK object" }));
+              let owner = this.options.getUi();
+              let items = identities;
+              const select = node("select"); labels.attribute(select, "aria-label", { ja: "SDKオブジェクト", en: "SDK object" });
               identities.forEach((_, itemIndex) => select.append(option("resource:" + itemIndex, `Current item [${itemIndex}]`)));
-              value = { element: select, read: () => {
+              value = { element: select, refresh: () => {
+                const currentOwner = this.options.getUi();
+                const currentItems = this.identityItems(entry.id) ?? [];
+                if (currentOwner === owner && currentItems.length === items.length && currentItems.every((item, index) => item === items[index])) return;
+                const selected = select.value ? items[Number(select.value.slice(9))] : undefined;
+                const selectedIndex = currentOwner === owner ? currentItems.indexOf(selected) : -1;
+                owner = currentOwner; items = currentItems;
+                select.replaceChildren(...items.map((_, index) => option("resource:" + index, `Current item [${index}]`)));
+                select.selectedIndex = selectedIndex;
+              }, read: () => {
                 if (!select.value) throw new Error("The current UI has no object for this operation.");
                 if (owner !== this.options.getUi()) throw new Error("This UI has been replaced. Select the operation again.");
                 const itemIndex = Number(select.value.slice(9));
-                const id = this.resources.add(identities[itemIndex], `${entry.id} item ${itemIndex}`, catalog.nodes[parameter.schema]!.label, owner);
+                const id = this.resources.add(items[itemIndex], `${entry.id} item ${itemIndex}`, catalog.nodes[parameter.schema]!.label, owner);
                 if (!id) throw new Error("Select a current SDK object.");
                 return new ResourceInput(id);
               } };
             } else value = valueEditor(catalog, parameter.schema, resources);
+            state.editors.add(value);
+            labels.bind(() => value.relocalize?.());
             const enabled = node("input"); enabled.type = "checkbox"; enabled.checked = !parameter.optional; enabled.disabled = !parameter.optional;
             const label = node("label"); label.append(enabled, document.createTextNode(" " + parameter.name));
             value.element.hidden = !enabled.checked;
@@ -381,15 +427,16 @@ export class ApiExplorer {
           }
         };
         overload.addEventListener("change", update); update(); form.append(overload, body);
-        const run = button(pick(entry.category === "observation" ? { ja: "状態を取得", en: "Read state" } : { ja: "APIを実行", en: "Run API" }), () => {
+        const run = action(entry.category === "observation" ? { ja: "状態を取得", en: "Read state" } : { ja: "APIを実行", en: "Run API" }, () => {
           run.disabled = true;
           void (async () => this.invoke(entry, signature!, args.map(arg => arg.read())))()
             .then(() => { if (selection.value === entry.id) renderSelected(); })
-            .catch(error => { this.status.textContent = String(error); })
+            .catch(error => { this.setStatus(applyErrorMessage(error)); })
             .finally(() => { run.disabled = false; });
         });
         form.append(run);
       }
+      form.append(action({ ja: "編集をリセット", en: "Reset draft" }, () => renderSelected(true)));
     };
     const filter = () => {
       const current = selection.value;
@@ -399,17 +446,64 @@ export class ApiExplorer {
       if (!selection.value && selection.options.length) selection.selectedIndex = 0;
       renderSelected();
     };
-    search.addEventListener("input", filter); category.addEventListener("change", filter); selection.addEventListener("change", renderSelected); filter();
+    search.addEventListener("input", filter); category.addEventListener("change", filter); selection.addEventListener("change", () => renderSelected()); filter();
   }
 
   private showConfigCode(root: ConfigRoot): void {
     this.code.textContent = configurationCode(root, this.overrides.entries(root));
   }
 
+  private async changeConfiguration(entry: ApiEntry, indices: number[], editor: ValueEditor, remove: boolean): Promise<void> {
+    // Removing a blocking callback must be able to retire its unfinished load.
+    if (this.configurationPending && (!remove || this.removalKey === entry.id)) return;
+    const ticket = ++this.configurationTicket;
+    this.configurationPending = true;
+    this.removalKey = remove ? entry.id : undefined;
+    this.refreshConfigurationButtons();
+    const output = ++this.outputGeneration;
+    this.setStatus(remove ? { ja: "上書きを解除しています。", en: "Removing override." }
+      : { ja: "設定を適用しています。", en: "Applying setting." });
+    let route: ReturnType<typeof configRoute> | undefined;
+    let write: { key: string; ticket: number } | undefined;
+    let replaced: { path: PathPart[]; value: unknown }[] = [];
+    try {
+      route = configRoute(entry, indices);
+      const value = remove ? undefined : validateData(this.catalog!, entry.schema!, this.resources.forConfiguration(editor.read()));
+      if (!remove) this.context("preflight").preflight(value);
+      write = this.markWrite(route.root, route.path);
+      if (remove) {
+        replaced = this.overrides.entries(route.root).filter(prior => JSON.stringify(prior.path) === JSON.stringify(route!.path));
+        this.overrides.remove(route.root, route.path);
+      } else replaced = this.overrides.set(route.root, route.path, value);
+      const pending = this.options.apply(route.root);
+      const outcome = await pending;
+      if (output === this.outputGeneration) {
+        if (outcome === "applied") this.showConfigCode(route.root);
+        this.setStatus(outcome === "superseded"
+          ? { ja: "Playerまたはソースが変わりました。もう一度適用してください。", en: "The player or source changed. Apply again." }
+          : remove ? { ja: "上書きを解除しました。", en: "Override removed." }
+            : { ja: "設定を送信しました。", en: "Configuration submitted." });
+      }
+    } catch (error) {
+      if (route && write && this.writes.get(write.key)?.ticket === write.ticket) {
+        this.overrides.remove(route.root, route.path);
+        for (const prior of replaced) this.overrides.set(route.root, prior.path, prior.value);
+      }
+      if (output === this.outputGeneration) this.setStatus(applyErrorMessage(error));
+    } finally {
+      if (ticket === this.configurationTicket) {
+        this.configurationPending = false;
+        this.removalKey = undefined;
+        this.refreshConfigurationButtons();
+      }
+      this.refresh();
+    }
+  }
+
   private async invoke(entry: ApiEntry, signature: Signature, inputs: unknown[]): Promise<void> {
     const token = ++this.operation;
     const output = ++this.outputGeneration;
-    this.status.textContent = pick({ ja: "SDKを呼び出しています。", en: "Calling the SDK." });
+    this.setStatus({ ja: "SDKを呼び出しています。", en: "Calling the SDK." });
     this.result.textContent = "";
     const root = entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi();
     if (!root) throw new Error("Create a player and UI first.");
@@ -452,7 +546,7 @@ export class ApiExplorer {
     if (token !== this.operation || output !== this.outputGeneration || root !== (entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi())) return;
     this.resources.captureResult(this.catalog!, signature.returns, result, entry.id + " result", root);
     this.result.textContent = preview(result);
-    this.status.textContent = pick({ ja: "SDKの呼び出しが完了しました。", en: "SDK call completed." });
+    this.setStatus({ ja: "SDKの呼び出しが完了しました。", en: "SDK call completed." });
     this.refresh();
   }
 }

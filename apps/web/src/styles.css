@@ -695,6 +695,12 @@ body {
   font-size: 0.7rem;
 }
 
+.config-apply-bar [role="status"] {
+  flex-basis: 100%;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
 .config-error {
   flex-basis: 100%;
   color: #a11919;

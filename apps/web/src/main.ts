@@ -18,7 +18,7 @@ import {
 } from "@showcase/ui-shared";
 import "@showcase/ui-shared/css";
 import { SOURCES, missingSourceSettings, nextPlaylistSource, type ShowcaseSource } from "./sources";
-import { configValue, deepMerge } from "./configState";
+import { configValue, deepMerge, settleApply } from "./configState";
 import { liveLatencySeconds } from "./playback/window";
 import { mountControlPanel, relocalizeControlPanel, type ControlPanelHandle } from "./controlPanel";
 import { mountConfigPanel, type DeepPartial, type ConfigPanelOptions, type ConfigPanelHandle } from "./configPanel";
@@ -428,6 +428,8 @@ let currentSource: SourceConfig = sourcePreset;
 // A preset loaded directly by the SDK UI replaces the prior overrides, even
 // when it has the same ID. App-owned reloads retain their applied overrides.
 let appSourceLoad: { player: PlayerAPI; source: SourceConfig; settle: (() => void) | undefined } | undefined;
+let sourceLoadGeneration = 0;
+let buildRequest = 0;
 let player: PlayerAPI | undefined;
 let controlPanel: ControlPanelHandle | undefined;
 let configPanel: ConfigPanelHandle | undefined;
@@ -476,6 +478,7 @@ function playNextEpisode(): void {
 /** Every load path announces the active source kind, including playlist advances
  * and config reloads. The hint belongs to this load, never to all future playback. */
 async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, disableSeeking?: boolean): Promise<void> {
+  const generation = ++sourceLoadGeneration;
   const isLive = SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false;
   const settle = controlPanel?.beginSourceLoad(isLive);
   const base = deepMerge((apiSourceInput ?? sourcePreset) as SourceConfig, sourceOverrides);
@@ -487,10 +490,10 @@ async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, 
     await instance.load(request.source, forceTechnology, disableSeeking);
   } catch (error) {
     if (appSourceLoad === request) appSourceLoad = undefined;
-    if (player === instance) request.settle?.();
+    if (player === instance && generation === sourceLoadGeneration) request.settle?.();
     throw error;
   } finally {
-    if (player === instance) configPanel?.refresh();
+    if (player === instance && generation === sourceLoadGeneration) configPanel?.refresh();
   }
 }
 
@@ -505,8 +508,10 @@ async function selectSource(source: ShowcaseSource): Promise<void> {
   sourceOverrides = {};
   currentSource = sourcePreset;
   currentSourceId = source.id;
-  await loadCurrentSource(instance);
-  if (player === instance) await instance.play();
+  const pending = loadCurrentSource(instance);
+  const generation = sourceLoadGeneration;
+  await pending;
+  if (player === instance && generation === sourceLoadGeneration) await instance.play();
 }
 
 // §15 — the QoE metrics card. It's created once (not rebuilt with the control panel,
@@ -627,29 +632,52 @@ function wireMetrics(p: PlayerAPI): void {
   });
 }
 
-// Config panel options (stable) — kept so the panel can be re-mounted on language change.
+// Config panel options remain stable while its labels change language in place.
 // 🔁 recreate edits restart the player with merged overrides; 📥 reload edits re-load the
 // current source with merged overrides; ⚡ runtime edits hit the live player API.
 const configOptions: ConfigPanelOptions = {
   getPlayer: () => player,
   getSource: () => currentSource,
   getUiConfig: () => ({ ...uiConfig }),
-  onRecreate: (overrides) => {
-    apiExplorer?.discardPatch("PlayerConfig", overrides);
-    playerOverrides = deepMerge(playerOverrides, overrides);
-    void build();
+  onRecreate: async (overrides) => {
+    const previous = playerOverrides;
+    const rollback = apiExplorer?.discardPatch("PlayerConfig", overrides);
+    const applied = deepMerge(playerOverrides, overrides);
+    playerOverrides = applied;
+    const pending = build();
+    const request = buildRequest;
+    try { return await pending; }
+    catch (error) {
+      if (request === buildRequest && playerOverrides === applied) {
+        playerOverrides = previous;
+        rollback?.();
+      }
+      throw error;
+    }
   },
-  onReload: (srcOverrides) => {
-    apiExplorer?.discardPatch("SourceConfig", srcOverrides);
-    sourceOverrides = deepMerge(sourceOverrides, srcOverrides);
-    currentSource = deepMerge(sourcePreset, sourceOverrides);
-    if (player) void loadCurrentSource(player).catch((err: unknown) => console.error("config reload failed", err));
+  onReload: async (srcOverrides) => {
+    const instance = player;
+    if (!instance) throw new Error("Create a player first.");
+    const previous = sourceOverrides;
+    const previousSource = currentSource;
+    const rollback = apiExplorer?.discardPatch("SourceConfig", srcOverrides);
+    const applied = deepMerge(sourceOverrides, srcOverrides);
+    sourceOverrides = applied;
+    const pending = reloadConfiguration(instance);
+    const generation = sourceLoadGeneration;
+    try { return await pending; }
+    catch (error) {
+      if (player === instance && generation === sourceLoadGeneration && sourceOverrides === applied) {
+        sourceOverrides = previous;
+        currentSource = previousSource;
+        rollback?.();
+      }
+      throw error;
+    }
   },
 };
 
-/** (Re)render every prose surface for the current language. The control panel + gestures
- *  carry no translatable prose, so they're untouched (no rebuild). The config panel
- *  re-mounts — its staged-but-unapplied edits reset, which is fine on a language switch. */
+/** Update prose in place so language changes preserve unapplied settings. */
 function renderAll(): void {
   document.documentElement.lang = getLang();
   taglineEl!.textContent = pick(G.tagline);
@@ -662,7 +690,8 @@ function renderAll(): void {
   // telemetry), so re-localize its labels in place instead.
   relocalizeControlPanel();
   analyticsView.relocalize();
-  configPanel = mountConfigPanel(configEl!, configOptions);
+  if (configPanel) configPanel.relocalize();
+  else configPanel = mountConfigPanel(configEl!, configOptions);
   apiExplorer?.relocalize();
   // Keep the landmark aria-labels consistent with the visible language.
   themeBarEl!.setAttribute("aria-label", pick(G.themeBarLabel));
@@ -676,13 +705,14 @@ apiExplorer = new ApiExplorer(document.getElementById("api-explorer")!, {
   getPlayer: () => player,
   getUi: () => sdkUiOwner === player ? sdkUiManager : uiManager,
   apply: async (root) => {
-    if (root === "PlayerConfig") await build();
+    if (root === "PlayerConfig") return build();
     else if (root === "SourceConfig") {
       if (!player) throw new Error("Create a player first.");
-      await loadCurrentSource(player);
-    } else if (sdkUiEnabled) await build();
+      return reloadConfiguration(player);
+    } else if (sdkUiEnabled) return build();
     else if (player) applyTheme(player, currentThemeId);
     else throw new Error("Create a player before applying UI settings.");
+    return "applied";
   },
   load: async (source, forceTechnology, disableSeeking) => {
     if (!player || !source || typeof source !== "object") throw new Error("A source and current Player are required.");
@@ -692,6 +722,7 @@ apiExplorer = new ApiExplorer(document.getElementById("api-explorer")!, {
     await loadCurrentSource(player, forceTechnology, disableSeeking);
   },
   destroy: async () => {
+    buildRequest++;
     buildChain = buildChain.then(destroyCurrentPlayer, destroyCurrentPlayer);
     await buildChain;
   },
@@ -700,7 +731,7 @@ apiExplorer = new ApiExplorer(document.getElementById("api-explorer")!, {
     uiManager = undefined; sdkUiManager = undefined; sdkUiOwner = undefined;
     apiExplorer?.refresh(); previousUi?.release();
   },
-  recreate: () => build(),
+  recreate: async () => { await build(); },
 });
 
 renderMetrics();
@@ -722,16 +753,31 @@ installPlayerGesture(playerEl, {
 // triggers (startup, the DVR toggle, the config panel's 🔁 apply) can't interleave on
 // the shared `player` during the async destroy. A failed build doesn't block later ones.
 let buildChain: Promise<void> = Promise.resolve();
-function build(): Promise<void> {
+function build(): Promise<"applied" | "superseded"> {
+  const request = ++buildRequest;
   const creation = buildChain.then(doBuild, doBuild);
   // An unfinished source or user callback must not prevent a later rebuild
   // from retiring the player. Only destruction and creation are serialized.
   buildChain = creation.then(() => undefined, () => undefined);
-  return creation.then(result => result.loaded);
+  return creation.then(result => {
+    const isCurrent = () => request === buildRequest && player === result.instance && sourceLoadGeneration === result.sourceGeneration;
+    return settleApply(result.loaded, isCurrent);
+  }, error => {
+    if (request !== buildRequest) return "superseded";
+    throw error;
+  });
+}
+
+async function reloadConfiguration(instance: PlayerAPI): Promise<"applied" | "superseded"> {
+  const pending = loadCurrentSource(instance);
+  const generation = sourceLoadGeneration;
+  const isCurrent = () => player === instance && generation === sourceLoadGeneration;
+  return settleApply(pending, isCurrent);
 }
 
 async function destroyCurrentPlayer(): Promise<void> {
   playerGeneration++;
+  sourceLoadGeneration++;
   const cleanupInputs = apiExplorer?.beginPlayerChange();
   sdkUiManager = undefined; sdkUiOwner = undefined;
   try {
@@ -753,7 +799,7 @@ async function destroyCurrentPlayer(): Promise<void> {
   }
 }
 
-async function doBuild(): Promise<{ loaded: Promise<void> }> {
+async function doBuild(): Promise<{ loaded: Promise<void>; instance: PlayerAPI; sourceGeneration: number }> {
   await destroyCurrentPlayer();
   const baseConfig: PlayerConfig = {
     key: licenseKey,
@@ -811,7 +857,7 @@ async function doBuild(): Promise<{ loaded: Promise<void> }> {
       timeShiftEnabled = enabled;
       apiExplorer?.discardPatch("PlayerConfig", { playback: { timeShift: enabled } });
       playerOverrides = deepMerge(playerOverrides, { playback: { timeShift: enabled } });
-      void build();
+      void build().catch(error => console.error("Player recreation failed", error));
     },
     currentSourceIsLive: SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false,
     onSourceSelected: selectSource,
@@ -833,14 +879,14 @@ async function doBuild(): Promise<{ loaded: Promise<void> }> {
     onAutohideToggle: (enabled) => {
       autohideEnabled = enabled;
       apiExplorer?.discardPatch("UIConfig", { componentConfigOverrides: { UIContainer: { hideDelay: enabled ? 0 : -1 } } });
-      if (sdkUiEnabled) void build();
+      if (sdkUiEnabled) void build().catch(error => console.error("UI recreation failed", error));
       else if (player) applyTheme(player, currentThemeId); // Rebuild the active UI with the new hideDelay.
     },
     uiConfig,
     onUiConfigChange: (patch) => {
       apiExplorer?.discardPatch("UIConfig", patch);
       uiConfig = deepMerge(uiConfig, patch);
-      if (sdkUiEnabled) void build();
+      if (sdkUiEnabled) void build().catch(error => console.error("UI recreation failed", error));
       else if (player) applyTheme(player, currentThemeId); // Rebuild the active UI with the new UIConfig.
     },
     casting: castingButtons,
@@ -848,7 +894,7 @@ async function doBuild(): Promise<{ loaded: Promise<void> }> {
       const needsPlayerRebuild = patch.cast !== undefined && patch.cast !== castingButtons.cast;
       castingButtons = { ...castingButtons, ...patch };
       // Cast needs PlayerConfig.remotecontrol → rebuild the player; AirPlay/PiP are tree-only.
-      if (needsPlayerRebuild) void build();
+      if (needsPlayerRebuild) void build().catch(error => console.error("Player recreation failed", error));
       else if (player) applyTheme(player, currentThemeId);
     },
     autoplayNext,
@@ -882,6 +928,7 @@ async function doBuild(): Promise<{ loaded: Promise<void> }> {
       request.settle?.();
     }
     if (selected && !appManaged) {
+      sourceLoadGeneration++;
       currentSourceId = selected.id;
       sourcePreset = selected.config;
       apiSourceInput = undefined;
@@ -896,9 +943,8 @@ async function doBuild(): Promise<{ loaded: Promise<void> }> {
     instance.on(event, refreshConfig);
   }
   refreshConfig();
-  return { loaded: loadCurrentSource(instance).catch((err: unknown) => {
-    if (player === instance) console.error("load failed", err);
-  }) };
+  const loaded = loadCurrentSource(instance);
+  return { loaded, instance, sourceGeneration: sourceLoadGeneration };
 }
 
-void build();
+void build().catch(error => console.error("Player creation failed", error));
