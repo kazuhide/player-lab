@@ -48,6 +48,20 @@ cases, with retries disabled. It uses Chromium supplied by the locked Playwright
 package. The complete suite still needs the documented assets and optional
 licenses. Do not treat workspace unit-test success as browser playback success.
 
+The generated-code suite compiles the GUI's exported TypeScript against the
+pinned Player/UI declarations and executes the same statements in a fresh
+browser page. It checks source settings, external captions, UI construction,
+runtime settings and advancing decoded video:
+
+```sh
+E2E_GENERATED_CODE_MEDIA_DIR=/path/to/test-streams pnpm --filter @showcase/e2e e2e:generated-code
+```
+
+Install the Playwright Chromium browser first and set
+`PLAYWRIGHT_BROWSER_CHANNEL=chromium` to use it. This dedicated server ignores
+dotenv files and client environment overrides. The replay replaces only the
+exported license placeholder with an empty key for localhost.
+
 ## Static Pages app
 
 The [Pages build instructions](../apps/web/README.md#build-and-test) generate
