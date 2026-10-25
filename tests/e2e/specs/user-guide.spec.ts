@@ -45,6 +45,24 @@ const implementationGuides = ["web-implementation", "apple-implementation", "and
   "react-native-implementation", "vega-implementation"];
 const implementationSections = ["integration", "player-source-config", "ui-customization", "useful-features",
   "faq", "analytics-observability"];
+// Published fragments use authored IDs or their original English headings in both languages.
+const screenGuideSections: Record<string, string[]> = {
+  "web-screen-controls": ["screen", "themes", "sources-tracks", "player-source-settings", "sdk-settings",
+    "applied-code", "ui-settings", "external-displays"],
+  "native-apple": ["preparation-and-build", "suggested-screen-workflow", "edit-source-and-playback-configuration",
+    "additional-sdk-settings", "editable-callbacks", "initial-tracks-and-video-scaling", "when-something-does-not-work",
+    "use-the-sdk-default-player-controls", "run-apis-and-read-their-results", "choose-the-video-presentation",
+    "playlist-drafts", "shareplay-sessions", "offline-hls-on-ios-and-ipados", "google-cast-on-ios-and-ipados",
+    "applied-configuration-code", "analytics-observability"],
+  "native-android": ["preparation-and-build", "suggested-screen-workflow", "configuration-drafts-and-applying-changes",
+    "audio-language-external-subtitles-and-retries", "additional-sdk-settings", "sdk-operations-state-and-events",
+    "offline-downloads-and-playback", "android-tv-workspace"],
+  "native-react-native": ["react-native-and-expo", "source-and-apply", "playback-tracks-ui", "applied-code",
+    "react-native-additional-configuration-and-lists", "react-native-callbacks-and-native-ui-handlers",
+    "react-native-operations-state-and-events", "react-native-cast-startup-settings"],
+  "native-vega": ["vega-os-and-kepler", "source-and-apply", "playback-and-subtitles", "applied-code",
+    "vega-typed-configuration-and-callbacks", "vega-operations-state-and-events", "vega-hls-interstitials"],
+};
 const contentRoot = resolve(__dirname, "../../../docs/guide");
 const coverage = JSON.parse(readFileSync(resolve(contentRoot, "../api-coverage/coverage.json"), "utf8")) as CoverageReport;
 const gapReport = JSON.parse(readFileSync(resolve(contentRoot, "../api-coverage/gaps.json"), "utf8")) as GapReport;
@@ -89,6 +107,62 @@ async function expectNoDocumentOverflow(page: Page): Promise<void> {
     document: document.documentElement.scrollWidth,
   }));
   expect(dimensions.document - dimensions.viewport, JSON.stringify(dimensions)).toBeLessThanOrEqual(1);
+}
+
+async function expectCurrentGuideLink(page: Page, language: Language, slug: string, section?: string): Promise<void> {
+  const destination = new URL(guidePath(language, slug) + (section ? `#${section}` : ""), page.url());
+  for (const navigation of [page.locator(".guide-sidebar nav"), page.locator(".guide-mobile-contents nav")]) {
+    const current = navigation.locator("a[aria-current]");
+    await expect(current).toHaveCount(1);
+    await expect(current).toHaveAttribute("aria-current", section ? "location" : "page");
+    await expect.poll(async () => new URL((await current.getAttribute("href"))!, page.url()).href)
+      .toBe(destination.href);
+  }
+}
+
+async function wheelToDocumentY(page: Page, destination: number): Promise<void> {
+  const destinationY = await page.evaluate((target) => Math.max(0, Math.min(Math.round(target),
+    document.documentElement.scrollHeight - innerHeight)), destination);
+  const viewport = page.viewportSize()!;
+  await page.mouse.move(viewport.width - 100, viewport.height / 2);
+  const initialY = await page.evaluate(() => scrollY);
+  const distance = destinationY - initialY;
+  // Firefox caps one wheel event at one page; use separate, bounded gestures.
+  const maximumStep = Math.floor(viewport.height / 2);
+  const steps = Math.ceil(Math.abs(distance) / maximumStep);
+  for (let index = 0; index < steps; index++) {
+    const nextY = Math.round(initialY + Math.sign(distance) * Math.min((index + 1) * maximumStep, Math.abs(distance)));
+    const currentY = await page.evaluate(() => scrollY);
+    await page.mouse.wheel(0, nextY - currentY);
+    await expect.poll(async () => Math.abs((await page.evaluate(() => scrollY)) - nextY)).toBeLessThanOrEqual(2);
+  }
+}
+
+async function wheelToGuideHeading(page: Page, heading: Locator): Promise<void> {
+  const destination = await heading.evaluate((element) => scrollY + element.getBoundingClientRect().top
+    - document.querySelector(".guide-header")!.getBoundingClientRect().bottom - 4);
+  await wheelToDocumentY(page, destination);
+  await expect(heading).toBeInViewport();
+}
+
+async function expectSeparateChapterTargets(root: Locator, summary: Locator): Promise<void> {
+  await root.evaluate((element) => element.scrollIntoView({ block: "center" }));
+  const rootBounds = await root.boundingBox();
+  const summaryBounds = await summary.boundingBox();
+  expect(rootBounds).not.toBeNull();
+  expect(summaryBounds).not.toBeNull();
+  const overlapWidth = Math.min(rootBounds!.x + rootBounds!.width, summaryBounds!.x + summaryBounds!.width)
+    - Math.max(rootBounds!.x, summaryBounds!.x);
+  const overlapHeight = Math.min(rootBounds!.y + rootBounds!.height, summaryBounds!.y + summaryBounds!.height)
+    - Math.max(rootBounds!.y, summaryBounds!.y);
+  expect(overlapWidth <= 0 || overlapHeight <= 0, "chapter navigation and disclosure need separate tap targets").toBe(true);
+  for (const target of [root, summary]) {
+    expect(await target.evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+      return hit === element || (hit !== null && element.contains(hit));
+    }), "each navigation target must receive a tap at its center").toBe(true);
+  }
 }
 
 async function expectCompleteTweakCatalog(page: Page): Promise<void> {
@@ -158,6 +232,183 @@ for (const language of languages) {
       }
     });
 
+    test("all platform Screen menus can be inspected and collapsed before navigating", async ({ page }) => {
+      for (const [slug, sections] of Object.entries(screenGuideSections)) {
+        await test.step(slug, async () => {
+          await page.goto(guidePath(language));
+          const overviewURL = page.url();
+          const menu = page.locator(`.guide-sidebar details[data-guide-chapter="${slug}"]`);
+          const root = menu.locator("..").locator(":scope > a.guide-chapter-link");
+          const summary = menu.locator(":scope > summary");
+          const links = menu.locator(":scope > ul.guide-section-links > li > a");
+          const headings = content[language][slug]!.blocks!.filter((block) => block.type === "h2");
+          expect(headings).toHaveLength(sections.length);
+          await expect(menu).not.toHaveAttribute("open", "");
+          await expect(links).toHaveText(headings.map((heading) => heading.text!));
+          await expect(links.first()).toBeHidden();
+          await expect(summary).toHaveAccessibleName(language === "ja"
+            ? /画面と操作の見出しを開閉$/ : /Screen and controls sections$/);
+          expect(await links.evaluateAll((elements) => elements.map((element) => (element as HTMLAnchorElement).href)))
+            .toEqual(sections.map((section) => new URL(`${guidePath(language, slug)}#${section}`, overviewURL).href));
+
+          await root.focus();
+          await page.keyboard.press(navigationKey("Tab"));
+          await expect(summary).toBeFocused();
+          await page.keyboard.press("Enter");
+          await expect(menu).toHaveAttribute("open", "");
+          await expect(page).toHaveURL(overviewURL);
+          await expect(links.first()).toBeVisible();
+          await page.keyboard.press(navigationKey("Tab"));
+          await expect(links.first()).toBeFocused();
+          await summary.focus();
+          await page.keyboard.press("Space");
+          await expect(menu).not.toHaveAttribute("open", "");
+          await expect(links.first()).toBeHidden();
+          await expect(page).toHaveURL(overviewURL);
+
+          await root.click();
+          await expect(page).toHaveURL((url) => url.pathname === guidePath(language, slug) && url.hash === "");
+          await expect(page.locator("main > h1")).toHaveText(content[language][slug]!.title);
+          await expect(menu).toHaveAttribute("open", "");
+          await links.nth(1).click();
+          await expect(page).toHaveURL(guidePath(language, slug) + `#${sections[1]}`);
+          const heading = page.locator(`main h2[id="${sections[1]}"]`);
+          await expect(heading).toHaveText(headings[1]!.text!);
+          await expect(heading).toBeInViewport();
+          await expectCurrentGuideLink(page, language, slug, sections[1]);
+        });
+      }
+    });
+
+    test("noncurrent Implementation menus expose all child pages without opening the parent page", async ({ page }) => {
+      for (const guide of implementationGuides) {
+        await test.step(guide, async () => {
+          await page.goto(guidePath(language));
+          const overviewURL = page.url();
+          const menu = page.locator(`.guide-sidebar details[data-guide-chapter="${guide}"]`);
+          const root = menu.locator("..").locator(":scope > a.guide-chapter-link");
+          const links = menu.locator(":scope > ul.guide-section-links > li > a");
+          await expect(menu).not.toHaveAttribute("open", "");
+          await expect(links).toHaveCount(6);
+          await expect(links.first()).toBeHidden();
+          await menu.locator(":scope > summary").focus();
+          await page.keyboard.press("Enter");
+          await expect(menu).toHaveAttribute("open", "");
+          await expect(page).toHaveURL(overviewURL);
+          expect(await links.evaluateAll((elements) => elements.map((element) => (element as HTMLAnchorElement).href)))
+            .toEqual(implementationSections.map((section) => new URL(guidePath(language, `${guide}/${section}`), overviewURL).href));
+          await links.nth(4).focus();
+          await page.keyboard.press("Enter");
+          await expect(page).toHaveURL(guidePath(language, `${guide}/faq`));
+          await expect(page.locator("main > h1")).toHaveText(content[language][guide]!.blocks!
+            .find((block) => block.type === "h2" && block.id === "faq")!.text!);
+          await expect(menu).toHaveAttribute("open", "");
+          await expect(root).toHaveAttribute("data-section-current", "true");
+          await expect(root).not.toHaveAttribute("aria-current", "page");
+          for (const navigation of [page.locator(".guide-sidebar nav"), page.locator(".guide-mobile-contents nav")]) {
+            await expect(navigation.locator('a[aria-current]')).toHaveCount(1);
+            const current = navigation.locator('a[aria-current="page"]');
+            await expectProjectLink(page, current, guidePath(language, `${guide}/faq`));
+          }
+          await root.click();
+          await expect(page).toHaveURL(guidePath(language, guide));
+          await expect(page.locator("main > h1")).toHaveText(content[language][guide]!.title);
+        });
+      }
+    });
+
+    test("current sections follow reading position while fragments, history and closed menus are preserved", async ({ page }) => {
+      const slug = "web-screen-controls";
+      const sections = screenGuideSections[slug]!;
+      const path = guidePath(language, slug);
+      await page.goto(path);
+      await expectCurrentGuideLink(page, language, slug);
+      const menu = page.locator(`.guide-sidebar details[data-guide-chapter="${slug}"]`);
+      const links = menu.locator(":scope > ul.guide-section-links > li > a");
+      const expectSection = async (index: number): Promise<void> => {
+        await expect(page).toHaveURL(path + `#${sections[index]}`);
+        await expect(page.locator(`main h2[id="${sections[index]}"]`)).toBeInViewport();
+        await expectCurrentGuideLink(page, language, slug, sections[index]);
+      };
+      await links.nth(1).click();
+      await expectSection(1);
+      await links.nth(2).click();
+      await expectSection(2);
+      await page.goBack();
+      await expectSection(1);
+      await page.goForward();
+      await expectSection(2);
+      const bookmarkedURL = page.url();
+      const historyLength = await page.evaluate(() => history.length);
+      await wheelToGuideHeading(page, page.locator(`main h2[id="${sections[3]}"]`));
+      await expectCurrentGuideLink(page, language, slug, sections[3]);
+      await expect(page).toHaveURL(bookmarkedURL);
+      expect(await page.evaluate(() => history.length)).toBe(historyLength);
+
+      await menu.locator(":scope > summary").focus();
+      await page.keyboard.press("Enter");
+      await expect(menu).not.toHaveAttribute("open", "");
+      await wheelToGuideHeading(page, page.locator(`main h2[id="${sections[4]}"]`));
+      await expectCurrentGuideLink(page, language, slug, sections[4]);
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await expectCurrentGuideLink(page, language, slug, sections[4]);
+      await expect(menu).not.toHaveAttribute("open", "");
+      await expect(page).toHaveURL(bookmarkedURL);
+      expect(await page.evaluate(() => history.length)).toBe(historyLength);
+      await wheelToDocumentY(page, 0);
+      await expectCurrentGuideLink(page, language, slug);
+      await expect(menu).not.toHaveAttribute("open", "");
+      await expect(page).toHaveURL(bookmarkedURL);
+
+      await page.locator("a[data-guide-language]").click();
+      const other = language === "en" ? "ja" : "en";
+      await expect(page).toHaveURL(guidePath(other, slug) + `#${sections[2]}`);
+      await expect(page.locator("html")).toHaveAttribute("lang", other);
+      await expect(page.locator(`main h2[id="${sections[2]}"]`)).toBeInViewport();
+      await expectCurrentGuideLink(page, other, slug, sections[2]);
+      await page.goBack();
+      await expect(page).toHaveURL(bookmarkedURL);
+      await expect(page.locator("html")).toHaveAttribute("lang", language);
+    });
+
+    test("mobile contents and chapter disclosures have separate usable navigation targets", async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 900 });
+      await page.goto(guidePath(language));
+      const overviewURL = page.url();
+      const contents = page.locator(".guide-mobile-contents");
+      await contents.locator(":scope > summary").click();
+      await expect(contents).toHaveAttribute("open", "");
+      const slug = "native-android";
+      const menu = contents.locator(`details[data-guide-chapter="${slug}"]`);
+      const root = menu.locator("..").locator(":scope > a.guide-chapter-link");
+      const summary = menu.locator(":scope > summary");
+      const links = menu.locator(":scope > ul.guide-section-links > li > a");
+      await expectSeparateChapterTargets(root, summary);
+      await summary.click();
+      await expect(menu).toHaveAttribute("open", "");
+      await expect(links.first()).toBeVisible();
+      await expect(page).toHaveURL(overviewURL);
+      await expectNoDocumentOverflow(page);
+      await summary.click();
+      await expect(menu).not.toHaveAttribute("open", "");
+      await expect(links.first()).toBeHidden();
+      await expect(page).toHaveURL(overviewURL);
+      await root.click();
+      await expect(page).toHaveURL(guidePath(language, slug));
+      await expect(page.locator("main > h1")).toHaveText(content[language][slug]!.title);
+      await contents.locator(":scope > summary").click();
+      await expect(menu).toHaveAttribute("open", "");
+      await expectSeparateChapterTargets(root, summary);
+      await links.nth(1).click();
+      const section = screenGuideSections[slug]![1]!;
+      await expect(page).toHaveURL(guidePath(language, slug) + `#${section}`);
+      await expect(page.locator(`main h2[id="${section}"]`)).toHaveText(content[language][slug]!.blocks!
+        .filter((block) => block.type === "h2")[1]!.text!);
+      await expect(page.locator(`main h2[id="${section}"]`)).toBeInViewport();
+      await expectCurrentGuideLink(page, language, slug, section);
+      await expectNoDocumentOverflow(page);
+    });
+
     for (const guide of implementationGuides) {
       test(`${guide} opens independent sections and keeps Analytics last`, async ({ page }) => {
         await page.goto(guidePath(language));
@@ -182,7 +433,7 @@ for (const language of languages) {
           await expect(page.locator("main > h1")).toHaveText(authored[start]!.text!);
           await expect(page.locator("main > .guide-lead")).toHaveText(authored[start]!.summary!);
           await expect(page.locator(".guide-breadcrumb")).toContainText(content[language][guide]!.title);
-          await expect(page.locator(".guide-sidebar .guide-section-links > li")).toHaveCount(6);
+          await expect(page.locator(`.guide-sidebar details[data-guide-chapter="${guide}"] > ul > li`)).toHaveCount(6);
           await expect(page.locator('.guide-sidebar a[aria-current="page"]')).toHaveCount(1);
           await expect(page.locator('.guide-sidebar a[aria-current="page"]')).toHaveAttribute("href", "./");
           await expectHeadingStructure(page);
@@ -783,6 +1034,63 @@ test("localized guide figures and representative theme images decode", async ({ 
 test.describe("guide without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
   for (const language of languages) {
+    for (const width of [375, 1440]) {
+      test(`${language} native chapter disclosures navigate without JavaScript at ${width}px`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await page.goto(guidePath(language));
+        const overviewURL = page.url();
+        const contents = page.locator(".guide-mobile-contents");
+        if (width === 375) {
+          await contents.locator(":scope > summary").focus();
+          await page.keyboard.press("Enter");
+          await expect(contents).toHaveAttribute("open", "");
+        }
+        const navigation = page.locator(width === 375 ? ".guide-mobile-contents nav" : ".guide-sidebar nav");
+        const slug = "native-apple";
+        const menu = navigation.locator(`details[data-guide-chapter="${slug}"]`);
+        const links = menu.locator(":scope > ul.guide-section-links > li > a");
+        await expect(menu).not.toHaveAttribute("open", "");
+        await expect(links).toHaveCount(screenGuideSections[slug]!.length);
+        await expect(links.first()).toBeHidden();
+        await menu.locator(":scope > summary").focus();
+        await page.keyboard.press("Enter");
+        await expect(menu).toHaveAttribute("open", "");
+        await expect(page).toHaveURL(overviewURL);
+        await expect(links.first()).toBeVisible();
+        await expectNoDocumentOverflow(page);
+        const section = screenGuideSections[slug]![1]!;
+        await links.nth(1).click();
+        await expect(page).toHaveURL(guidePath(language, slug) + `#${section}`);
+        await expect(page.locator("main > h1")).toHaveText(content[language][slug]!.title);
+        await expect(page.locator(`main h2[id="${section}"]`)).toHaveText(content[language][slug]!.blocks!
+          .filter((block) => block.type === "h2")[1]!.text!);
+        await expect(page.locator(`main h2[id="${section}"]`)).toBeInViewport();
+        await expect(menu).toHaveAttribute("open", "");
+
+        if (width === 375) {
+          await contents.locator(":scope > summary").click();
+          await expect(contents).toHaveAttribute("open", "");
+        }
+        const guide = "vega-implementation";
+        const implementation = navigation.locator(`details[data-guide-chapter="${guide}"]`);
+        const children = implementation.locator(":scope > ul.guide-section-links > li > a");
+        const screenURL = page.url();
+        await expect(implementation).not.toHaveAttribute("open", "");
+        await expect(children).toHaveCount(6);
+        await implementation.locator(":scope > summary").click();
+        await expect(implementation).toHaveAttribute("open", "");
+        await expect(page).toHaveURL(screenURL);
+        await children.nth(4).click();
+        await expect(page).toHaveURL(guidePath(language, `${guide}/faq`));
+        await expect(page.locator("main > h1")).toHaveText(content[language][guide]!.blocks!
+          .find((block) => block.type === "h2" && block.id === "faq")!.text!);
+        await expect(implementation).toHaveAttribute("open", "");
+        await expect(navigation.locator('a[aria-current="page"]')).toHaveCount(1);
+        await expectProjectLink(page, navigation.locator('a[aria-current="page"]'), guidePath(language, `${guide}/faq`));
+        await expectNoDocumentOverflow(page);
+      });
+    }
+
     test(`${language} control groups and item bookmarks work without JavaScript`, async ({ page }) => {
       await page.goto(guidePath(language, "controls"));
       await expect(page.locator(".guide-controls > div")).toHaveCount(content[language].controls!.controls!.length);

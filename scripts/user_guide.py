@@ -6,10 +6,10 @@ import stat
 
 from guide_html import (TEXT, anchor, chapter_links, controls_html, esc, field_anchor, legacy_html, page_html, relative,
                         render_block, settings_group, source_url, sources_html, themes_html)
-from guide_routes import (CATEGORIES, CHAPTERS, CHAPTER_ORDER, CHILD_CHAPTERS, DOCUMENTS, GUIDE_FILES, IMPLEMENTATION_GUIDES,
-                          IMPLEMENTATION_SECTIONS, LANGUAGES, LEGACY_ROUTES, OPERATION_GUIDES, SETTING_GROUPS,
-                          THEMES, route_file)
-from guide_coverage import coverage_pages, validate_coverage
+from guide_routes import (CATEGORIES, CHAPTERS, CHAPTER_ORDER, CHILD_CHAPTERS, COVERAGE_APPS, DOCUMENTS, GUIDE_FILES,
+                          IMPLEMENTATION_GUIDES, IMPLEMENTATION_SECTIONS, LANGUAGES, LEGACY_ROUTES,
+                          OPERATION_GUIDES, SETTING_GROUPS, THEMES, route_file)
+from guide_coverage import app_label, coverage_pages, validate_coverage
 from coverage_gaps import validate_gaps
 
 
@@ -281,6 +281,20 @@ def build(content, *, coverage=None, gaps=None):
     assessments = validate_gaps(gaps, report) if gaps is not None else None
     pages = {}
     headings = {name:section_ids(content['en'][name]) for name in CHAPTERS}
+    # Give every rendered edition the same resolved bookmarks. Navigation and
+    # content share these IDs without modifying the authored input documents.
+    content = {language: dict(content[language]) for language in LANGUAGES}
+    applications = {app['id']: app for app in report['applications']}
+    for language, documents in content.items():
+        for name, identifiers in headings.items():
+            document = documents[name]
+            blocks = [dict(block, id=identifiers[index]) if index in identifiers else block
+                      for index, block in enumerate(document['blocks'])]
+            documents[name] = dict(document, blocks=blocks)
+        document = documents['api-coverage']
+        documents['api-coverage'] = dict(document, navigation=[
+            (app_label(applications[name], document, language), 'api-coverage/' + name, '')
+            for name in COVERAGE_APPS])
     for language in LANGUAGES:
         documents, labels = content[language], TEXT[language]
         search = []

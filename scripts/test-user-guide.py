@@ -7,18 +7,25 @@ from html import escape
 from html.parser import HTMLParser
 from pathlib import Path
 import posixpath
+import re
 import subprocess
 import tempfile
 import unittest
 from urllib.parse import unquote, urlsplit
+from xml.etree import ElementTree
 
 from coverage_report import summarize
 from guide_coverage import api_anchor, category_metrics
-from guide_routes import (COVERAGE_APPS, GUIDE_ASSETS, GUIDE_FILES, IMPLEMENTATION_GUIDES, IMPLEMENTATION_SECTIONS,
-                          LOCALIZED_FIGURES, PUBLIC_BASE, SOURCE_REVISION, figure_path, route_file)
-from user_guide import build, load_content, render_block, search_text, source_url
+from guide_routes import (CHAPTERS, CHILD_CHAPTERS, COVERAGE_APPS, GUIDE_ASSETS, GUIDE_FILES, IMPLEMENTATION_GUIDES,
+                          IMPLEMENTATION_SECTIONS, LOCALIZED_FIGURES, PUBLIC_BASE, SOURCE_REVISION, figure_path, route_file)
+from user_guide import build, load_content, render_block, search_text, section_ids, source_url
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def sidebar(page):
+    markup = re.search(r'<nav class="guide-nav"[^>]*>.*?</nav>', page.decode(), re.S).group()
+    return ElementTree.fromstring(markup)
 
 
 def coverage_fixture():
@@ -201,8 +208,6 @@ class GuideTests(unittest.TestCase):
             self.assertLess(html.index('analytics-visualization/'), html.index('analytics-queries/'))
 
     def test_every_platform_has_two_unnumbered_screen_and_implementation_chapters(self):
-        import re
-        from xml.etree import ElementTree
         from guide_html import TEXT
         platforms = {
             'web_group': ('web-screen-controls', 'web-implementation'),
@@ -212,9 +217,7 @@ class GuideTests(unittest.TestCase):
             'vega': ('native-vega', 'vega-implementation'),
         }
         for language in ('en', 'ja'):
-            html = self.pages[route_file(language)].decode()
-            markup = re.search(r'<nav class="guide-nav"[^>]*>.*?</nav>', html, re.S).group()
-            nav = ElementTree.fromstring(markup)
+            nav = sidebar(self.pages[route_file(language)])
             groups = {section.find('h3').text: section for section in nav.findall('section')}
             for category, chapters in platforms.items():
                 group = groups[TEXT[language][category]]
@@ -224,11 +227,94 @@ class GuideTests(unittest.TestCase):
                 self.assertEqual([a.text for a in links], [TEXT[language]['operation_guide'],
                                                          TEXT[language]['implementation']])
                 self.assertFalse(group.findall('./ul/li/ul'))
+                self.assertEqual([d.get('data-guide-chapter') for d in group.findall('./ul/li/details')],
+                                 list(chapters))
             top_paths = [a.get('href') for a in nav.findall('./section/ul/li/a')]
             for retired in ('implementation', 'native-integrations', 'web-screen-themes',
                             'web-sources-tracks', 'web-ui-settings'):
                 self.assertNotIn(retired + '/', top_paths)
                 self.assertIn(route_file(language, retired), self.pages)
+
+    def test_authored_chapter_sections_are_available_before_navigation(self):
+        for language in ('en', 'ja'):
+            nav = sidebar(self.pages[route_file(language)])
+            self.assertFalse(nav.findall('.//details[@open]'))
+            for chapter, category in CHAPTERS.items():
+                if category is None or chapter in CHILD_CHAPTERS or chapter in IMPLEMENTATION_GUIDES:
+                    continue
+                headings = [(index, block) for index, block in enumerate(self.content[language][chapter]['blocks'])
+                            if block['type'] == 'h2']
+                menus = nav.findall(f'.//details[@data-guide-chapter="{chapter}"]')
+                with self.subTest(language=language, chapter=chapter):
+                    if not headings:
+                        self.assertEqual(menus, [])
+                        continue
+                    self.assertEqual(len(menus), 1)
+                    menu = menus[0]
+                    summary = menu.find('summary')
+                    self.assertTrue(summary.get('aria-label'))
+                    self.assertFalse(summary.findall('.//a'))
+                    links = menu.findall('./ul/li/a')
+                    identifiers = section_ids(self.content['en'][chapter])
+                    self.assertEqual([a.text for a in links], [block['text'] for _, block in headings])
+                    self.assertEqual([a.get('href') for a in links],
+                                     [chapter + '/#' + identifiers[index] for index, _ in headings])
+                    target = self.pages[route_file(language, chapter)].decode()
+                    for index, block in headings:
+                        self.assertIn(f'<h2 id="{identifiers[index]}">{escape(block["text"])}</h2>', target)
+                    active_menu = sidebar(self.pages[route_file(language, chapter)]).findall('.//details[@open]')
+                    self.assertEqual([d.get('data-guide-chapter') for d in active_menu], [chapter])
+
+    def test_implementation_and_reference_menus_expose_child_routes_on_the_overview(self):
+        from guide_html import TEXT
+        for language in ('en', 'ja'):
+            nav = sidebar(self.pages[route_file(language)])
+            expected = {
+                **{guide: [(TEXT[language][label], f'{guide}/{section}/')
+                           for section, label in IMPLEMENTATION_SECTIONS.items()]
+                   for guide in IMPLEMENTATION_GUIDES},
+                'settings': [(group['title'], 'settings/' + group['id'] + '/')
+                             for group in self.content[language]['settings']['groups']],
+                'controls': [(TEXT[language]['control_' + group], 'controls/#controls-' + group)
+                             for group in dict.fromkeys(c['group'] for c in self.content[language]['controls']['controls'])],
+                'themes': [(theme['label'], 'themes/#' + theme['id'])
+                           for theme in self.content[language]['themes']['themes']],
+                'api-coverage': [(app, 'api-coverage/' + app + '/') for app in COVERAGE_APPS],
+            }
+            for chapter, entries in expected.items():
+                menu = nav.find(f'.//details[@data-guide-chapter="{chapter}"]')
+                self.assertIsNotNone(menu, (language, chapter))
+                self.assertNotIn('open', menu.attrib)
+                self.assertEqual([(a.text, a.get('href')) for a in menu.findall('./ul/li/a')], entries)
+                for _, href in entries:
+                    if not href.endswith('/'):
+                        continue
+                    active_menu = sidebar(self.pages[route_file(language, href.rstrip('/'))]).findall('.//details[@open]')
+                    self.assertEqual([d.get('data-guide-chapter') for d in active_menu], [chapter])
+
+    def test_navigation_preparation_keeps_authored_content_unchanged(self):
+        before = copy.deepcopy(dict(self.content))
+        report = copy.deepcopy(self.report)
+        self.assertEqual(build(self.content), self.pages)
+        self.assertEqual(dict(self.content), before)
+        self.assertEqual(self.report, report)
+
+    def test_sidebar_bookmarks_resolve_duplicate_subheadings_and_reserved_ids(self):
+        content = copy.deepcopy(self.content)
+        for language, text in [('en', 'Repeated'), ('ja', '同じ見出し')]:
+            content[language]['start']['blocks'] = [
+                {'type': 'h2', 'text': text}, {'type': 'h3', 'text': text}, {'type': 'h2', 'text': text},
+                {'type': 'h2', 'text': text, 'id': 'main'}, {'type': 'h2', 'text': text, 'id': 'sources'},
+            ]
+        pages = build(content)
+        for language in ('en', 'ja'):
+            nav = sidebar(pages[route_file(language)])
+            links = nav.findall('.//details[@data-guide-chapter="start"]/ul/li/a')
+            self.assertEqual([a.get('data-guide-fragment') for a in links],
+                             ['repeated', 'repeated-3', 'main-2', 'sources-2'])
+            parser = Links()
+            parser.feed(pages[route_file(language, 'start')].decode())
+            self.assertTrue({'repeated', 'repeated-2', 'repeated-3', 'main-2', 'sources-2'}.issubset(parser.ids))
 
     def test_operation_guides_have_local_contents_and_web_screens_explain_the_workflow(self):
         for language in ('en', 'ja'):
@@ -297,18 +383,16 @@ class GuideTests(unittest.TestCase):
                                           self.pages[route_file(language, guide)].decode())
 
     def test_implementation_child_navigation_marks_only_the_actual_page(self):
-        import re
-        from xml.etree import ElementTree
         for language in ('en', 'ja'):
             for guide in IMPLEMENTATION_GUIDES:
                 for section in IMPLEMENTATION_SECTIONS:
-                    html = self.pages[route_file(language, guide + '/' + section)].decode()
-                    markup = re.search(r'<nav class="guide-nav"[^>]*>.*?</nav>', html, re.S).group()
-                    nav = ElementTree.fromstring(markup)
+                    nav = sidebar(self.pages[route_file(language, guide + '/' + section)])
                     active = nav.findall('.//a[@aria-current="page"]')
                     self.assertEqual(len(active), 1)
                     self.assertEqual(active[0].get('href'), './')
-                    self.assertEqual(len(nav.findall('.//ul[@class="guide-section-links"]/li')), 6)
+                    menus = nav.findall('.//details[@open]')
+                    self.assertEqual([menu.get('data-guide-chapter') for menu in menus], [guide])
+                    self.assertEqual(len(menus[0].findall('./ul[@class="guide-section-links"]/li')), 6)
 
     def test_old_combined_chapter_bookmarks_link_to_independent_platform_guides(self):
         bookmarks = {
