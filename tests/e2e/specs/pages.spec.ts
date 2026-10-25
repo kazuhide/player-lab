@@ -1,10 +1,11 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "../src/browser-test";
 import { observePlayback, sourceStartObservation } from "../src/playback-observation";
 
 const analyticsEnabled = process.env.E2E_PAGES_ANALYTICS_ENABLED === "1";
-const audits = new WeakMap<Page, { api: string[]; collectors: { method: string; type: string }[]; errors: string[] }>();
+const audits = new WeakMap<Page, { api: string[]; collectors: { method: string; type: string }[] }>();
 test.beforeEach(async ({ page }) => {
-  const audit = { api: [] as string[], collectors: [] as { method: string; type: string }[], errors: [] as string[] };
+  const audit = { api: [] as string[], collectors: [] as { method: string; type: string }[] };
   audits.set(page, audit);
   await page.route(/analytics-ingress[^/]*\.bitmovin\.com/i, async (route) => {
     const request = route.request();
@@ -15,12 +16,10 @@ test.beforeEach(async ({ page }) => {
     const url = new URL(request.url());
     if (url.pathname.includes("/api/")) audit.api.push(url.pathname);
   });
-  page.on("pageerror", (error) => audit.errors.push(error.message));
 });
 test.afterEach(({ page }) => {
   expect(audits.get(page)?.api, "static pages must never query a backend API").toEqual([]);
   if (!analyticsEnabled) expect(audits.get(page)?.collectors, "an unconfigured collector must not send requests").toEqual([]);
-  expect(audits.get(page)?.errors, "the production application must not raise uncaught errors").toEqual([]);
 });
 
 async function openApp(page: Page): Promise<void> {

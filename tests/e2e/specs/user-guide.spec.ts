@@ -1,4 +1,5 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+import { expect, test } from "../src/browser-test";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { expectMovingVideo } from "../src/playback-observation";
@@ -288,16 +289,6 @@ function navigationKey(key: "Tab" | "ArrowRight"): string {
   // macOS WebKit follows the platform's Option-key navigation behavior.
   return process.platform === "darwin" && test.info().project.name === "webkit" ? `Alt+${key}` : key;
 }
-
-const errors = new WeakMap<Page, string[]>();
-test.beforeEach(({ page }) => {
-  const observed: string[] = [];
-  errors.set(page, observed);
-  page.on("pageerror", (error) => observed.push(error.message));
-});
-test.afterEach(({ page }) => {
-  expect(errors.get(page), "the static guide must not raise uncaught errors").toEqual([]);
-});
 
 for (const language of languages) {
   test.describe(`user guide (${language})`, () => {
