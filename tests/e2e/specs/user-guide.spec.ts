@@ -9,7 +9,8 @@ interface SettingGroup { id: string; title: string; fields: Setting[] }
 interface Control { id: string; group: string; label: string; description: string }
 interface GuideDocument {
   id: string; title: string; groups?: SettingGroup[]; controls?: Control[];
-  blocks?: { type: string; id?: string; text?: string; summary?: string; items?: string[]; source?: { path: string } }[];
+  blocks?: { type: string; id?: string; text?: string; summary?: string; items?: string[];
+    file?: string; caption?: string; source?: { path: string } }[];
 }
 interface SearchEntry { kind: string; title: string; url: string }
 interface CoverageRow {
@@ -63,6 +64,40 @@ const screenGuideSections: Record<string, string[]> = {
   "native-vega": ["vega-os-and-kepler", "source-and-apply", "playback-and-subtitles", "applied-code",
     "vega-typed-configuration-and-callbacks", "vega-operations-state-and-events", "vega-hls-interstitials"],
 };
+type CaptureProfile = "ios-phone" | "android-phone" | "ipad" | "tv" | "tv-dense";
+const captureProfiles: Record<CaptureProfile, { width: number; height: number; top: number; bottom: number; displayWidth?: number }> = {
+  "ios-phone": { width: 1206, height: 2622, top: 186, bottom: 0, displayWidth: 400 },
+  "android-phone": { width: 1080, height: 2400, top: 63, bottom: 63, displayWidth: 360 },
+  ipad: { width: 1640, height: 2360, top: 48, bottom: 40, displayWidth: 768 },
+  tv: { width: 1920, height: 1080, top: 0, bottom: 0, displayWidth: 640 },
+  "tv-dense": { width: 1920, height: 1080, top: 0, bottom: 0 },
+};
+const nativeCaptureSets: { slug: string; profile: CaptureProfile; files: string[] }[] = [
+  { slug: "native-apple", profile: "ios-phone", files: ["ios-playback-tracks", "ios-applied-code",
+    "ios-subtitle-array-editor", "ios-subtitle-array-sdk-state", "ios-callback-editor", "ios-callback-sdk-status",
+    "ios-api-operation", "ios-api-volume-state", "ios-offline-track-selection", "ios-cast-options", "ios-cast-sdk-state"] },
+  { slug: "native-apple", profile: "ipad", files: ["ios-initial-tracks", "ios-video-scaling"] },
+  { slug: "native-apple", profile: "tv-dense", files: ["tvos-playback-tracks", "tvos-applied-code", "tvos-initial-tracks",
+    "tvos-video-scaling", "tvos-api-state"] },
+  { slug: "native-android", profile: "android-phone", files: ["android-source-settings", "android-player-settings",
+    "android-applied-code", "android-api-callback", "android-api-operation", "android-api-state", "android-api-events",
+    "android-media-session", "android-offline-tracks"] },
+  { slug: "native-android", profile: "tv", files: ["android-tv-workspace", "android-tv-api"] },
+  { slug: "native-react-native", profile: "ios-phone", files: ["rn-ios-subtitles", "rn-ios-caption", "rn-ios-code",
+    "rn-ios-api-callback", "rn-ios-api-events"] },
+  { slug: "native-react-native", profile: "android-phone", files: ["rn-android-subtitles", "rn-android-caption",
+    "rn-android-api-operation", "rn-android-cast-startup"] },
+  { slug: "native-vega", profile: "tv-dense", files: ["vega-subtitles", "vega-caption", "vega-code",
+    "vega-api-callback", "vega-api-operation", "vega-api-volume"] },
+];
+const representativeCaptures: { slug: string; file: string; profile: CaptureProfile }[] = [
+  { slug: "native-apple", file: "ios-applied-code", profile: "ios-phone" },
+  { slug: "native-android", file: "android-applied-code", profile: "android-phone" },
+  { slug: "native-apple", file: "ios-initial-tracks", profile: "ipad" },
+  { slug: "native-android", file: "android-tv-workspace", profile: "tv" },
+  { slug: "native-apple", file: "tvos-applied-code", profile: "tv-dense" },
+  { slug: "native-vega", file: "vega-code", profile: "tv-dense" },
+];
 const contentRoot = resolve(__dirname, "../../../docs/guide");
 const coverage = JSON.parse(readFileSync(resolve(contentRoot, "../api-coverage/coverage.json"), "utf8")) as CoverageReport;
 const gapReport = JSON.parse(readFileSync(resolve(contentRoot, "../api-coverage/gaps.json"), "utf8")) as GapReport;
@@ -107,6 +142,63 @@ async function expectNoDocumentOverflow(page: Page): Promise<void> {
     document: document.documentElement.scrollWidth,
   }));
   expect(dimensions.document - dimensions.viewport, JSON.stringify(dimensions)).toBeLessThanOrEqual(1);
+}
+
+function nativeCapture(page: Page, language: Language, file: string): Locator {
+  return page.locator("figure.guide-figure-capture").filter({
+    has: page.locator(`img[src$="/${file}-${language}.png"]`),
+  });
+}
+
+async function expectDecodedCapture(image: Locator, profile: CaptureProfile): Promise<void> {
+  const { width, height } = captureProfiles[profile];
+  // Use a synchronous browser callback when Firefox has page scripts disabled.
+  await expect.poll(() => image.evaluate(element => {
+    if (!(element instanceof HTMLImageElement)) return null;
+    return { complete: element.complete, width: element.naturalWidth, height: element.naturalHeight };
+  })).toEqual({ complete: true, width, height });
+}
+
+async function expectCaptureBounds(figure: Locator, profile: CaptureProfile): Promise<void> {
+  const source = captureProfiles[profile];
+  const bounds = await figure.evaluate((element) => {
+    const link = element.querySelector<HTMLAnchorElement>(":scope > a.guide-capture-link")!;
+    const viewport = link.querySelector<HTMLElement>(":scope > .guide-capture-viewport")!;
+    const image = viewport.querySelector<HTMLImageElement>(":scope > img")!;
+    return { figure: element.getBoundingClientRect().toJSON(), link: link.getBoundingClientRect().toJSON(),
+      viewport: viewport.getBoundingClientRect().toJSON(), image: image.getBoundingClientRect().toJSON(),
+      available: element.parentElement!.getBoundingClientRect().width,
+      maxHeight: getComputedStyle(image).maxHeight, overflow: getComputedStyle(viewport).overflow,
+      scrollTop: viewport.scrollTop, scrollLeft: viewport.scrollLeft };
+  });
+  const expectedWidth = Math.min(source.displayWidth ?? bounds.available, bounds.available);
+  expect(Math.abs(bounds.figure.width - expectedWidth), `${profile} display width`).toBeLessThanOrEqual(1);
+  expect(Math.abs(bounds.link.width - bounds.figure.width), `${profile} full-size link width`).toBeLessThanOrEqual(1);
+  expect(bounds.maxHeight, `${profile} images must retain their width-based scale`).toBe("none");
+  expect(bounds.overflow).toBe("clip");
+  expect(bounds.scrollTop).toBe(0);
+  expect(bounds.scrollLeft).toBe(0);
+  const scale = bounds.image.width / source.width;
+  expect(scale).toBeGreaterThan(0);
+  expect(Math.abs(bounds.image.height / scale - source.height), `${profile} original aspect ratio`).toBeLessThanOrEqual(0.5);
+  const visible = {
+    left: (bounds.viewport.left - bounds.image.left) / scale,
+    right: (bounds.viewport.right - bounds.image.left) / scale,
+    top: (bounds.viewport.top - bounds.image.top) / scale,
+    bottom: (bounds.viewport.bottom - bounds.image.top) / scale,
+  };
+  for (const [edge, expected] of Object.entries({ left: 0, right: source.width,
+    top: source.top, bottom: source.height - source.bottom })) {
+    expect(Math.abs(visible[edge as keyof typeof visible] - expected), `${profile} source-pixel ${edge} crop`)
+      .toBeLessThanOrEqual(0.5);
+  }
+  if (profile === "android-phone") {
+    expect(visible.bottom, "the last applied-code source pixel at y=2336 remains visible").toBeGreaterThan(2336);
+    expect(visible.bottom).toBeLessThanOrEqual(2337.5);
+  }
+  if (["ios-phone", "android-phone", "ipad"].includes(profile) && expectedWidth >= source.displayWidth! - 1) {
+    expect(bounds.image.height, `${profile} capture should exceed the former 38rem height cap`).toBeGreaterThan(608);
+  }
 }
 
 async function expectCurrentGuideLink(page: Page, language: Language, slug: string, section?: string): Promise<void> {
@@ -408,6 +500,62 @@ for (const language of languages) {
       await expectCurrentGuideLink(page, language, slug, section);
       await expectNoDocumentOverflow(page);
     });
+
+    for (const slug of new Set(nativeCaptureSets.map((capture) => capture.slug))) {
+      test(`${slug} captures preserve source content and readable responsive framing`, async ({ page, request }) => {
+        await page.setViewportSize({ width: 1440, height: 900 });
+        await page.goto(guidePath(language, slug));
+        const sets = nativeCaptureSets.filter((capture) => capture.slug === slug);
+        const fixtures = sets.flatMap(({ profile, files }) => files.map((file) => ({ file, profile })));
+        const authored = content[language][slug]!.blocks!.filter((block) => block.type === "figure");
+        expect(fixtures.map(({ file }) => file).sort()).toEqual(authored.map((block) => block.file).sort());
+        await expect(page.locator("figure.guide-figure-capture")).toHaveCount(fixtures.length);
+        for (const { file, profile } of fixtures) {
+          await test.step(file, async () => {
+            const figure = nativeCapture(page, language, file);
+            const link = figure.locator(":scope > a.guide-capture-link");
+            const viewport = link.locator(":scope > span.guide-capture-viewport");
+            const image = viewport.locator(":scope > img");
+            const source = captureProfiles[profile];
+            const caption = authored.find((block) => block.file === file)!.caption!;
+            await expect(figure).toHaveAttribute("data-guide-capture", profile);
+            await expect(link).toHaveCount(1);
+            await expect(viewport).toHaveCount(1);
+            await expect(image).toHaveCount(1);
+            expect(await figure.getAttribute("style")).toBeNull();
+            await expect(figure.locator("[style]")).toHaveCount(0);
+            await expect(image).toHaveAttribute("width", String(source.width));
+            await expect(image).toHaveAttribute("height", String(source.height));
+            await expect(image).toHaveAttribute("alt", caption);
+            await expect(figure.locator(":scope > figcaption")).toHaveText(caption);
+            await expect(link).toHaveAccessibleName(`${language === "en" ? "Open full-size image" : "元のサイズの画像を開く"}: ${caption}`);
+            const src = (await image.getAttribute("src"))!;
+            await expect(link).toHaveAttribute("href", src);
+            const destination = new URL(src, page.url());
+            expect(destination.pathname).toBe(`/player-lab/assets/guide/${file}-${language}.png`);
+            const original = await request.get(destination.href);
+            expect(original.status()).toBe(200);
+            expect((await original.body()).equals(readFileSync(resolve(contentRoot,
+              "../../site/assets/guide", `${file}-${language}.png`))), `${file} served bytes must match the original asset`).toBe(true);
+            await figure.scrollIntoViewIfNeeded();
+            await expect(image).toHaveJSProperty("naturalWidth", source.width);
+            await expect(image).toHaveJSProperty("naturalHeight", source.height);
+            await expectCaptureBounds(figure, profile);
+            await image.evaluate((element) => element.scrollIntoView({ block: "center", inline: "center" }));
+            await expectCaptureBounds(figure, profile);
+            for (const offset of [100, -100]) {
+              await viewport.evaluate((element, value) => { element.scrollTop = value; element.scrollLeft = value; }, offset);
+              await expectCaptureBounds(figure, profile);
+            }
+          });
+        }
+        for (const width of [320, 375, 768, 1440]) {
+          await page.setViewportSize({ width, height: 900 });
+          for (const { profile, files } of sets) await expectCaptureBounds(nativeCapture(page, language, files[0]!), profile);
+          await expectNoDocumentOverflow(page);
+        }
+      });
+    }
 
     for (const guide of implementationGuides) {
       test(`${guide} opens independent sections and keeps Analytics last`, async ({ page }) => {
@@ -1014,13 +1162,13 @@ test("localized guide figures and representative theme images decode", async ({ 
         await expect(image).toHaveAttribute("width", String(decoded.width));
         await expect(image).toHaveAttribute("height", String(decoded.height));
         if (fullSizeImages) {
-          const fullSize = image.locator("..");
+          const fullSize = image.locator("xpath=ancestor::a[1]");
           await expect(fullSize).toHaveAttribute("href", await image.getAttribute("src") as string);
           await expect(fullSize).toHaveAccessibleName(/\S/);
         }
       }
       if (fullSizeImages) {
-        const fullSize = images.first().locator("..");
+        const fullSize = images.first().locator("xpath=ancestor::a[1]");
         const destination = new URL((await fullSize.getAttribute("href"))!, page.url()).href;
         const width = Number(await images.first().getAttribute("width"));
         await fullSize.click();
@@ -1088,6 +1236,33 @@ test.describe("guide without JavaScript", () => {
         await expect(navigation.locator('a[aria-current="page"]')).toHaveCount(1);
         await expectProjectLink(page, navigation.locator('a[aria-current="page"]'), guidePath(language, `${guide}/faq`));
         await expectNoDocumentOverflow(page);
+      });
+
+      test(`${language} native captures open original images with the keyboard without JavaScript at ${width}px`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        for (const { slug, file, profile } of representativeCaptures) {
+          await test.step(profile, async () => {
+            await page.goto(guidePath(language, slug));
+            const figure = nativeCapture(page, language, file);
+            const image = figure.locator(".guide-capture-viewport > img");
+            const link = figure.locator(":scope > a.guide-capture-link");
+            await figure.scrollIntoViewIfNeeded();
+            await expect(figure).toHaveAttribute("data-guide-capture", profile);
+            await expectDecodedCapture(image, profile);
+            await expectCaptureBounds(figure, profile);
+            await page.keyboard.press(navigationKey("Tab"));
+            await link.focus();
+            await expect(link).toBeFocused();
+            await expect(link).toHaveCSS("outline-style", "solid");
+            await expectCaptureBounds(figure, profile);
+            await expectNoDocumentOverflow(page);
+            const destination = new URL((await link.getAttribute("href"))!, page.url());
+            expect(destination.pathname).toBe(`/player-lab/assets/guide/${file}-${language}.png`);
+            await page.keyboard.press("Enter");
+            await expect(page).toHaveURL(destination.href);
+            await expectDecodedCapture(page.locator("img"), profile);
+          });
+        }
       });
     }
 

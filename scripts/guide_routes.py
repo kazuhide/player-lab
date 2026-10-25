@@ -111,6 +111,12 @@ NATIVE_FIGURES = {
     'vega-caption': (1920, 1080),
     'vega-code': (1920, 1080),
 }
+NATIVE_CAPTURE_PROFILES = {
+    (1206, 2622): 'ios-phone',
+    (1080, 2400): 'android-phone',
+    (1640, 2360): 'ipad',
+    (1920, 1080): 'tv',
+}
 SHARED_FIGURES = {
     # The external Dashboard provides these screens in English.
     'analytics-dashboard-overview': (2864, 1270),
@@ -129,6 +135,15 @@ LOCALIZED_FIGURES = {
     'applied-settings': {'en': (1240, 511), 'ja': (1240, 512)},
 }
 FIGURE_EXTENSIONS = {name: 'png' for name in (*NATIVE_FIGURES, *SHARED_FIGURES)}
+
+
+def figure_capture_profile(name):
+    """Match native captures to the measured crop and display rules in guide.css."""
+    if name not in NATIVE_FIGURES:
+        return None
+    profile = NATIVE_CAPTURE_PROFILES[NATIVE_FIGURES[name]]
+    # tvOS and Vega use smaller source text than the Android TV screenshots.
+    return 'tv-dense' if profile == 'tv' and name.startswith(('tvos-', 'vega-')) else profile
 
 
 def figure_path(name, language):

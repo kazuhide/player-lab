@@ -7,7 +7,7 @@ import re
 from urllib.parse import urlsplit
 
 from guide_routes import (CATEGORIES, CONTENT_REVIEW, LEGACY_ROUTES, LOCALIZED_FIGURES, PUBLIC_BASE,
-                          SHARED_FIGURES, SOURCE_REVISION, figure_path, route_file)
+                          SHARED_FIGURES, SOURCE_REVISION, figure_capture_profile, figure_path, route_file)
 
 TEXT = {
     'en': {
@@ -164,8 +164,14 @@ def render_block(block, language, page, section_id):
                          else SHARED_FIGURES[name])
         picture = f'<img src="{esc(src)}" width="{width}" height="{height}" alt="{esc(block["caption"])}" loading="lazy" decoding="async">'
         label = 'Open full-size image' if language == 'en' else '元のサイズの画像を開く'
-        picture = f'<a href="{esc(src)}" aria-label="{label}: {esc(block["caption"])}">{picture}</a>'
-        return f'<figure class="guide-figure">{picture}<figcaption>{esc(block["caption"])}</figcaption></figure>'
+        profile = figure_capture_profile(name)
+        if profile:
+            picture = '<span class="guide-capture-viewport">' + picture + '</span>'
+        link_class = ' class="guide-capture-link"' if profile else ''
+        picture = f'<a{link_class} href="{esc(src)}" aria-label="{label}: {esc(block["caption"])}">{picture}</a>'
+        attributes = (f' class="guide-figure guide-figure-capture" data-guide-capture="{esc(profile)}"'
+                      if profile else ' class="guide-figure"')
+        return f'<figure{attributes}>{picture}<figcaption>{esc(block["caption"])}</figcaption></figure>'
     raise ValueError('The guide contains an unknown block type.')
 
 
