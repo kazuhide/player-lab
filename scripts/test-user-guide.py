@@ -17,7 +17,8 @@ from xml.etree import ElementTree
 from coverage_report import summarize
 from guide_coverage import api_anchor, category_metrics
 from guide_routes import (CHAPTERS, CHILD_CHAPTERS, COVERAGE_APPS, GUIDE_ASSETS, GUIDE_FILES, IMPLEMENTATION_GUIDES,
-                          IMPLEMENTATION_SECTIONS, LOCALIZED_FIGURES, PUBLIC_BASE, SOURCE_REVISION, figure_path, route_file)
+                          IMPLEMENTATION_SECTIONS, LOCALIZED_FIGURES, NATIVE_FIGURES, PUBLIC_BASE,
+                          SOURCE_REVISION, figure_capture_profile, figure_path, route_file)
 from user_guide import build, load_content, render_block, search_text, section_ids, source_url
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -71,6 +72,7 @@ class Links(HTMLParser):
         super().__init__()
         self.links, self.ids = [], set()
         self.images = []
+        self.figures = []
         self.language = None
         self.refresh = None
         self.canonical = None
@@ -79,6 +81,8 @@ class Links(HTMLParser):
         values = dict(attrs)
         if tag == 'img':
             self.images.append(values)
+        if tag == 'figure':
+            self.figures.append(values)
         if tag == 'html':
             self.language = values.get('lang')
         if tag == 'meta' and values.get('http-equiv', '').lower() == 'refresh':
@@ -373,7 +377,8 @@ class GuideTests(unittest.TestCase):
                     self.assertIn(escape(document['title']), html)
                     blocks = document['blocks'][start + 1:end]
                     self.assertEqual(html.count('class="guide-code"'), sum(b['type'] == 'code' for b in blocks))
-                    self.assertEqual(html.count('class="guide-figure"'), sum(b['type'] == 'figure' for b in blocks))
+                    self.assertEqual(sum('guide-figure' in figure.get('class', '').split() for figure in parser.figures),
+                                     sum(b['type'] == 'figure' for b in blocks))
                     for block in blocks:
                         if block['type'] == 'code':
                             self.assertIn(escape(block['text']), html)
@@ -872,6 +877,44 @@ class GuideTests(unittest.TestCase):
 
 
 class GuideRenderingTests(unittest.TestCase):
+    def test_native_capture_viewports_preserve_localized_images_and_original_dimensions(self):
+        expected_profiles = {(1206, 2622): 'ios-phone', (1080, 2400): 'android-phone',
+                             (1640, 2360): 'ipad', (1920, 1080): 'tv'}
+        caption = 'Player settings <preview> & controls'
+        for name, (width, height) in NATIVE_FIGURES.items():
+            expected = expected_profiles[(width, height)]
+            if name.startswith(('tvos-', 'vega-')):
+                expected = 'tv-dense'
+            for language in ('en', 'ja'):
+                with self.subTest(capture=name, language=language):
+                    html = render_block({'type': 'figure', 'file': name, 'caption': caption}, language,
+                                        route_file(language, 'native-overview'), '')
+                    self.assertEqual(figure_capture_profile(name), expected)
+                    self.assertIn(f'data-guide-capture="{expected}"', html)
+                    self.assertEqual(html.count('class="guide-capture-link"'), 1)
+                    self.assertEqual(html.count('<span class="guide-capture-viewport"><img '), 1)
+                    self.assertNotIn('style=', html)
+                    self.assertIn('<figcaption>' + escape(caption) + '</figcaption>', html)
+                    parser = Links()
+                    parser.feed(html)
+                    self.assertEqual(len(parser.images), 1)
+                    image = parser.images[0]
+                    self.assertEqual((image['width'], image['height']), (str(width), str(height)))
+                    self.assertEqual(image['alt'], caption)
+                    self.assertEqual((image['loading'], image['decoding']), ('lazy', 'async'))
+                    self.assertEqual(parser.links, [image['src'], image['src']])
+                    self.assertTrue(image['src'].endswith('/' + name + '-' + language + '.png'))
+
+    def test_web_and_dashboard_captures_keep_their_existing_presentation(self):
+        for name in ('overview', 'sdk-configuration', 'analytics-dashboard-overview'):
+            for language in ('en', 'ja'):
+                html = render_block({'type': 'figure', 'file': name, 'caption': 'Screen'}, language,
+                                    route_file(language, 'start'), '')
+                self.assertIsNone(figure_capture_profile(name))
+                self.assertIn('<figure class="guide-figure">', html)
+                self.assertNotIn('guide-capture-', html)
+                self.assertNotIn('data-guide-capture', html)
+
     def test_existing_theme_capture_can_illustrate_the_ui_guide(self):
         html = render_block({'type': 'figure', 'file': 'custom-premiere',
                              'caption': 'The Premiere theme.'}, 'en',

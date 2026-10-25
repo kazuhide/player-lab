@@ -165,6 +165,17 @@
 .guide-main :not(pre) > code { overflow-wrap: anywhere; }
 .guide-figure { max-width: 100%; }
 .guide-figure img { width: auto; max-width: 100%; max-height: 38rem; height: auto; border: 1px solid var(--line); }
+.guide-figure-capture { --guide-capture-ratio: 16 / 9; --guide-capture-top: 0%; width: 100%; }
+/* Top percentages use the cropped viewport height, preserving the source pixels. */
+.guide-figure-capture[data-guide-capture="ios-phone"] { --guide-capture-ratio: 1206 / 2436; --guide-capture-top: calc(-100% * 186 / 2436); width: 25rem; }
+.guide-figure-capture[data-guide-capture="android-phone"] { --guide-capture-ratio: 1080 / 2274; --guide-capture-top: calc(-100% * 63 / 2274); width: 22.5rem; }
+.guide-figure-capture[data-guide-capture="ipad"] { --guide-capture-ratio: 1640 / 2272; --guide-capture-top: calc(-100% * 48 / 2272); width: 48rem; }
+.guide-figure-capture[data-guide-capture="tv"] { width: 40rem; }
+.guide-figure-capture[data-guide-capture="tv-dense"] { width: 100%; }
+.guide-capture-link { display: block; border: 1px solid var(--line); }
+.guide-capture-viewport { position: relative; display: block; aspect-ratio: var(--guide-capture-ratio); overflow: clip; }
+.guide-capture-viewport > img { position: absolute; top: var(--guide-capture-top); left: 0; width: 100%; max-width: none; max-height: none; height: auto; border: 0; }
+.guide-figure-capture figcaption { overflow-wrap: anywhere; }
 .guide-page figcaption { color: var(--muted); font-size: 0.8125rem; margin-top: 0.5rem; }
 .guide-sources { padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.8125rem; }
 .guide-sources li { margin-top: 0.5rem; }
