@@ -28,7 +28,7 @@
     },
     {
       "type": "p",
-      "text": "このアプリはBitmovin Player Android 3.171.0+jasonを使います。+jasonは、同梱の広告ライブラリと併用するためMedia3の依存先を変更した配布物です。Player、UI、Analytics、MediaSessionにはapp/build.gradle.ktsの組み合わせを使います。"
+      "text": "このアプリはBitmovin Player Android 3.171.0+jasonを使います。+jasonは同梱の広告ライブラリと併用するためMedia3の依存先を変更した配布物です。Player、UI、Analytics、MediaSessionにはapp/build.gradle.ktsの組み合わせを使います。"
     },
     {
       "type": "table",
@@ -204,7 +204,7 @@
     },
     {
       "type": "p",
-      "text": "通常はSourceConfig(url, type)を使います。抜粋中の別コンストラクターは、アプリで旧MediaSource方式を比較するためのもので、新規の組み込みには必要ありません。SourceSettingsには、タイトル、ポスター、開始位置、ライブ遅延、音声の優先順位、外部WebVTT字幕の設定を保持します。WebVTTは表示時刻を持つテキスト字幕形式です。任意項目が空欄の場合は、対応するSDK設定を未指定にします。"
+      "text": "通常はSourceConfig(url, type)を使います。抜粋中の別コンストラクターはアプリで旧MediaSource方式を比較するためのもので、新規の組み込みには必要ありません。SourceSettingsにはタイトル、ポスター、開始位置、ライブ遅延、音声の優先順位、外部WebVTT字幕の設定を保持します。WebVTTは表示時刻を持つテキスト字幕形式です。任意項目が空欄の場合は、対応するSDK設定を未指定にします。"
     },
     {
       "type": "table",
@@ -306,7 +306,7 @@
     },
     {
       "type": "p",
-      "text": "SDKの上書きは入力中・登録済み・適用済みを分けます。変更を登録すると選択した入力を検証して保持し、SDKへ適用すると登録した設定全体でPlayerを再生成します。削除も登録後に適用し、基本設定またはSDKの既定値へ戻します。コード画面は未適用の下書きを含めません。コピーした上書き代入は、新しい変更可能なplayerConfig・playerViewConfigへ反映し、Player・Source・PlayerViewを作る前に使います。"
+      "text": "SDKの上書きでは入力中・登録済み・適用済みの値を分けて扱います。変更を登録すると選択した入力を検証して保持し、SDKへ適用すると登録した設定全体でPlayerを再生成します。削除も登録後に適用し、基本設定またはSDKの既定値へ戻します。コード画面は未適用の下書きを含めません。コピーした上書き用の代入コードは新しい変更可能なplayerConfig・playerViewConfigへ反映し、Player・Source・PlayerViewを作る前に使います。"
     },
     {
       "type": "p",
@@ -351,7 +351,7 @@
     },
     {
       "type": "p",
-      "text": "ThemeはDefault、Sports、Live、Cinemaを上のヘルパーへ渡します。独自UIを追加する場合はpackages/ui-shared/src/liveUi.tsで構成し、global.tsへfactoryを登録して、UiModeまたはSDKのCustom factory設定から選びます。モバイルとTVの既定UIは後述の表に示します。"
+      "text": "ThemeのDefault、Sports、Live、Cinemaを上のヘルパーへ渡します。独自UIを追加する場合はpackages/ui-shared/src/liveUi.tsで構成し、global.tsへfactoryを登録して、UiModeまたはSDKのCustom factory設定から選びます。モバイルとTVの既定UIは後述の表に示します。"
     },
     {
       "type": "table",
@@ -378,7 +378,7 @@
         ],
         [
           "UIの追加オプション",
-          "UiConfig.WebUi.customOptionsにUIConfigのJSONを指定します。速度の選択肢は、別のプロパティであるUiConfig.WebUi.playbackSpeedSelectionEnabledで制御します。",
+          "UiConfig.WebUi.customOptionsにUIConfigのJSONを指定します。速度の選択肢は別のプロパティであるUiConfig.WebUi.playbackSpeedSelectionEnabledで制御します。",
           "選んだファクトリーが対応する項目か確認し、メニューの変化を調べます。"
         ],
         [
@@ -469,7 +469,7 @@
         ],
         [
           "PlayerView内のSDK操作",
-          "Defaultはタッチ向けのSDK SmallScreenUiを使います。 PlayerViewConfig()の既定値であり、SDKがTVを自動選択するわけではありません。",
+          "Defaultはタッチ向けのSDK SmallScreenUiを使います。PlayerViewConfig()の既定値であり、SDKがTVを自動選択するわけではありません。",
           "DefaultはWebUi(variant = TvUi, focusUiOnInitialization = true)を明示し、UIFactory.buildTvUIとWebViewの空間ナビゲーションを使います。"
         ],
         [
@@ -498,7 +498,7 @@
     },
     {
       "type": "p",
-      "text": "TVのBackは、公開Android APIのViewGroup.dispatchKeyEventでフォーカス中のSDKビューへ届けます。現在のプレビューがフォーカスを持ち、全画面・PiPでない場合にKEYCODE_ESCAPEのACTION_DOWNとACTION_UPを送り、ソースへフォーカスを戻します。キーを離すイベントで画質の子画面を含むSDKメニューを閉じて初期化します。"
+      "text": "TVのBackは公開Android APIのViewGroup.dispatchKeyEventでフォーカス中のSDKビューへ届けます。現在のプレビューがフォーカスを持ち、全画面・PiPでない場合にKEYCODE_ESCAPEのACTION_DOWNとACTION_UPを送り、ソースへフォーカスを戻します。キーを離すイベントで画質の子画面を含むSDKメニューを閉じて初期化します。"
     },
     {
       "type": "p",
@@ -562,7 +562,7 @@
     },
     {
       "type": "p",
-      "text": "実行時APIは現在のPlayer、Source、接続済みPlayerViewを操作します。状態の更新はその時点のSDK値を読み取り、イベントは発生回数とSDK時刻を記録します。非同期処理の完了は、呼び出し結果に加えて完了イベントと状態を確認します。"
+      "text": "実行時APIは現在のPlayer、Source、接続済みPlayerViewを操作します。状態の更新はその時点のSDK値を読み取り、イベントは発生回数とSDK時刻を記録します。非同期処理の完了は呼び出し結果に加えて完了イベントと状態を確認します。"
     },
     {
       "type": "table",
@@ -671,7 +671,7 @@
         [
           "Androidのメディア操作",
           "現在のPlayerと接続する実際のMediaSession。",
-          "Androidのメディアセッションを有効にするを実行し、app:media-sessionの状態とシステムの操作を確認します。終了時には解放します。"
+          "「Androidのメディアセッションを有効にする」を実行し、app:media-sessionの状態とシステムの操作を確認します。終了時には解放します。"
         ],
         [
           "オフライン再生",
@@ -695,7 +695,7 @@
     },
     {
       "type": "p",
-      "text": "保護素材には権利、ライセンスサービス、空き容量が必要です。ライセンスのdownload・renew・releaseとメディア保存の完了を別々に確認します。高度なオフラインソース生成はSDK管理の保存内容を取り込んだりライセンスを発行したりしません。通常の保存済み再生は、対応するキャッシュ・トラック情報をSDKから受け取る「ダウンロード済みソースを再生」を使います。"
+      "text": "保護素材には権利、ライセンスサービス、空き容量が必要です。ライセンスのdownload・renew・releaseとメディア保存の完了を別々に確認します。高度なオフラインソース生成はSDK管理の保存内容を取り込んだりライセンスを発行したりしません。通常の保存済み再生は対応するキャッシュ・トラック情報をSDKから受け取る「ダウンロード済みソースを再生」を使います。"
     },
     {
       "type": "figure",
@@ -760,7 +760,7 @@
     {
       "type": "note",
       "title": "PlayerViewを購読しても再生イベントが来ないのはなぜですか？",
-      "text": "PlayerViewの購読はビューのUIイベント用です。PlayingやシークはPlayer、ソースの読み込みやエラーはソースで観測します。イベントパネルはSDKのイベントを記録が有効なときに発生回数を記録します。0は未記録という意味で、APIが使えないという意味ではありません。状態の値は別途更新します。"
+      "text": "PlayerViewの購読はビューのUIイベント用です。PlayingやシークはPlayer、ソースの読み込みやエラーはソースで観測します。イベントパネルは「SDKのイベントを記録」が有効なときに発生回数を記録します。0は未記録という意味で、APIが使えないという意味ではありません。状態の値は別途更新します。"
     },
     {
       "type": "note",
@@ -797,7 +797,7 @@
     },
     {
       "type": "p",
-      "text": "Playerとソースの動作を確認した後、同梱のAnalytics収集機能を設定して再生イベントをBitmovinアカウントへ送ります。AnalyticsライセンスはPlayerライセンスとは別です。Android版は、ビルド時に設定したAnalyticsライセンスをManifest経由で読み込みます。既定のビルドキーが空なら収集機能を無効にします。アカウントAPIキーは収集用ライセンスとは別の認証情報です。アプリへ含めないでください。"
+      "text": "Playerとソースの動作を確認した後、同梱のAnalytics収集機能を設定して再生イベントをBitmovinアカウントへ送ります。AnalyticsライセンスはPlayerライセンスとは別です。Android版はビルド時に設定したAnalyticsライセンスをManifest経由で読み込みます。既定のビルドキーが空なら収集機能を無効にします。アカウントAPIキーは収集用ライセンスとは別の認証情報です。アプリへ含めないでください。"
     },
     {
       "type": "p",
@@ -805,7 +805,7 @@
     },
     {
       "type": "p",
-      "text": "設定パネルのモードはビルド時のキー、関連ライセンスを取得、無効です。「Analyticsに適用」でPlayerを再生成します。上書きがなければ関連ライセンスを取得はDEFERREDを渡し、SDKがPlayerライセンスに関連づいた有効なAnalyticsライセンスを取得します。収集の成否は状態とDashboardの対応セッションで確認します。"
+      "text": "設定パネルのモードは「ビルド時のキー」「関連ライセンスを取得」「無効」です。「Analyticsに適用」でPlayerを再生成します。上書きがなければ「関連ライセンスを取得」はDEFERREDを渡し、SDKがPlayerライセンスに関連づいた有効なAnalyticsライセンスを取得します。収集の成否は状態とDashboardの対応セッションで確認します。"
     },
     {
       "type": "links",
@@ -841,7 +841,7 @@
         "Analyticsのライセンス・モードとメタデータを適用して再生し、時刻、コンテンツID、アプリのバージョン、機器を控えます。",
         "Bitmovin DashboardのObservabilityを開き、同じAnalyticsライセンスと再生を含む期間を選び、コンテンツと機器で絞ります。Dashboardのタイムゾーンも確認します。",
         "対応するセッションを探し、起動時間、再バッファ、エラー、再生情報を確認します。セッションの時刻とアプリのSDKイベントを照合してください。ローカルのイベント数や収集機能の有効化だけでは、Dashboardでの受信確認にはなりません。",
-        "設定の前後比較では、コンテンツ、通信、機器、指標の定義、絞り込み条件を揃えます。集計結果の扱いは、以下の指標・クエリ・可視化の章を参照してください。"
+        "設定の前後比較ではコンテンツ、通信、機器、指標の定義、絞り込み条件を揃えます。集計結果の扱いは以下の指標・クエリ・可視化の章を参照してください。"
       ]
     },
     {

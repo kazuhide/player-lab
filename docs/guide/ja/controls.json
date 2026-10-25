@@ -184,7 +184,7 @@
       "id": "start-offset",
       "label": "端からの開始オフセット (秒)",
       "kind": "number",
-      "description": "再読み込み後の開始位置です。初期表示は-20、基準は明示的にendとなります。",
+      "description": "再読み込み後の開始位置です。初期表示は-20で、基準にはendを明示的に指定しています。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
         "line": 539
@@ -448,7 +448,7 @@
       "id": "cast",
       "label": "Chromecast ボタン",
       "kind": "checkbox",
-      "description": "カスタムUIへCastボタンを追加します。remotecontrolを有効にするためプレイヤーを再生成し、対応する受信機が必要です。",
+      "description": "カスタムUIへCastボタンを追加します。remotecontrolを有効にするためプレイヤーを再生成します。対応する受信機も必要です。",
       "source": {
         "path": "apps/web/src/controlPanel.ts",
         "line": 476
