@@ -22,7 +22,7 @@ export default defineConfig({
     video: "off",
   },
   webServer: {
-    command: "rtk proxy pnpm exec vite --config vite.settings.config.ts --mode pages --port 5231 --strictPort",
+    command: "pnpm exec vite --config vite.settings.config.ts --mode pages --port 5231 --strictPort",
     url: "http://127.0.0.1:5231/settings-fixture.html",
     reuseExistingServer: false,
     timeout: 30_000,

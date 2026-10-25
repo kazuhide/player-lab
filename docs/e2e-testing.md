@@ -48,6 +48,18 @@ cases, with retries disabled. It uses Chromium supplied by the locked Playwright
 package. The complete suite still needs the documented assets and optional
 licenses. Do not treat workspace unit-test success as browser playback success.
 
+The settings-state suite uses an isolated, keyless test server and the real SDK.
+It checks draft retention through search and language changes, explicit Reset,
+failed Apply/retry and completions from replaced players or sources. After
+generating the public media fixture, run:
+
+```sh
+E2E_SETTINGS_MEDIA_DIR=/path/to/test-streams pnpm --filter @showcase/e2e e2e:settings
+```
+
+This suite uses its own Playwright configuration and one Chromium worker with
+retries disabled. It does not load dotenv files or send Analytics events.
+
 ## Static Pages app
 
 The [Pages build instructions](../apps/web/README.md#build-and-test) generate

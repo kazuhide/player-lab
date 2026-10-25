@@ -136,6 +136,10 @@ jobs:
           sudo apt-get install -y ffmpeg
       - name: Generate the verified public test fixture
         run: python3 encoding/test-streams/local.py --output "$RUNNER_TEMP/test-streams" --source-archive "$RUNNER_TEMP/source-cache/BigBuckBunny_640x360.m4v.zip"
+      - name: Check Web drafts and asynchronous settings against the real SDK
+        env:
+          E2E_SETTINGS_MEDIA_DIR: ${{ runner.temp }}/test-streams
+        run: pnpm --filter @showcase/e2e e2e:settings
       - name: Check audio, subtitles, thumbnails and network controls
         env:
           PLAYWRIGHT_BROWSER_CHANNEL: chromium
