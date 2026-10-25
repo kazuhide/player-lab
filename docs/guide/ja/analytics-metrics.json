@@ -9,7 +9,7 @@
     },
     {
       "type": "p",
-      "text": "視聴状況はAudience、再生開始と読み込み待ちはQuality of Experience、エラーはTop Errorsから調べます。品質の値には、対象の再生数や視聴時間も添えて比較します。"
+      "text": "視聴状況はAudience、再生開始と読み込み待ちはQuality of Experience、エラーはTop Errorsから調べます。品質の値には対象の再生数や視聴時間も添えて比較します。"
     },
     {
       "type": "links",
