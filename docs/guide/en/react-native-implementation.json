@@ -51,10 +51,38 @@
           "label": "Local setup and licenses"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/ca84e8fcbd8da9f1c2e8b5452f779fb119c84d5b/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/0af6d686d1da563f73c9dcb9d9070d8853728a92/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README: generate and build the Expo host"
         }
       ]
+    },
+    {
+      "type": "h3",
+      "id": "minimal-integration-example",
+      "text": "A minimal player in the development host"
+    },
+    {
+      "type": "p",
+      "text": "Replace App.tsx in the Expo development host from the previous section with this code, then set the license key and HLS URL. Player and Source are public classes in bitmovin-player-react-native 1.29.0."
+    },
+    {
+      "type": "code",
+      "title": "Wait for PlayerView, load a source and release on unmount",
+      "text": "import React, { useEffect, useState } from \"react\";\nimport { StyleSheet, Text, View } from \"react-native\";\nimport { Player, PlayerView, Source, SourceType } from \"bitmovin-player-react-native\";\n\ninterface MountedPlayer {\n  player: Player;\n  load: () => void;\n  fail: () => void;\n  playing: () => void;\n}\n\nexport default function MinimalPlayer() {\n  const [mounted, setMounted] = useState<MountedPlayer | null>(null);\n  const [status, setStatus] = useState(\"Preparing player\");\n\n  useEffect(() => {\n    let active = true;\n    let sourceInitialization: Promise<void> | undefined;\n    const player = new Player({\n      licenseKey: \"YOUR_PLAYER_KEY\",\n      playbackConfig: { isAutoplayEnabled: true, isMuted: true },\n    });\n    const source = new Source({\n      url: \"https://example.com/video/master.m3u8\",\n      type: SourceType.HLS,\n    });\n    const fail = () => { if (active) setStatus(\"Playback failed\"); };\n    const initialization = player.initialize();\n    setMounted(null);\n    void initialization.then(() => {\n      if (!active) return;\n      setMounted({ player, fail, playing: () => { if (active) setStatus(\"Playing\"); }, load: () => {\n        if (!active || sourceInitialization) return;\n        sourceInitialization = source.initialize();\n        void sourceInitialization.then(() => {\n          if (active) player.loadSource(source);\n        }, fail);\n      } });\n    }, fail);\n\n    return () => {\n      active = false;\n      void (async () => {\n        await initialization.catch(() => {});\n        await sourceInitialization?.catch(() => {});\n        player.destroy();\n        source.destroy();\n      })().catch(() => console.error(\"Player cleanup failed.\"));\n    };\n  }, []);\n\n  return <View style={styles.screen}>\n    {mounted && <PlayerView player={mounted.player} style={styles.video}\n      onPlayerViewReady={mounted.load}\n      onPlayerError={mounted.fail} onSourceError={mounted.fail}\n      onPlaying={mounted.playing} />}\n    <Text>{status}</Text>\n  </View>;\n}\n\nconst styles = StyleSheet.create({\n  screen: { flex: 1 },\n  video: { width: \"100%\", height: 240 },\n});",
+      "source": {
+        "path": "apps/react-native/examples/MinimalPlayer.tsx",
+        "line": 1,
+        "label": "MinimalPlayer.tsx:1–64"
+      },
+      "endLine": 64
+    },
+    {
+      "type": "p",
+      "text": "Initialize the Player before rendering PlayerView. onPlayerViewReady starts Source initialization and loading. loadSource submits a load request; confirm playback through onPlaying and failures through Player and Source errors. After unmount, no new load starts; pending initialization finishes before destroying the Player. A final, idempotent Source.destroy call also releases a Source that was never loaded."
+    },
+    {
+      "type": "p",
+      "text": "This component combines the responsibilities of PlayerPane in the app. For editing and reapplying configuration, follow the app’s session management in the later sections."
     },
     {
       "type": "h3",

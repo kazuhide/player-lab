@@ -23,6 +23,39 @@
       ]
     },
     {
+      "type": "h3",
+      "id": "minimal-integration-example",
+      "text": "A minimal SwiftUI player"
+    },
+    {
+      "type": "p",
+      "text": "In a new SwiftUI app with the SDK above, replace the existing @main file with this code. Set the license key and HLS URL, and allow your app’s Bundle ID on the license."
+    },
+    {
+      "type": "code",
+      "title": "Create a SwiftUI app with loading, errors and cleanup",
+      "text": "import SwiftUI\nimport UIKit\nimport BitmovinPlayer\n\n@main\nstruct MinimalPlayerApp: App {\n    var body: some Scene {\n        WindowGroup {\n            if let url = URL(string: \"https://example.com/video/master.m3u8\") {\n                MinimalPlayerView(licenseKey: \"YOUR_PLAYER_KEY\", sourceURL: url)\n            } else {\n                Text(\"Invalid source URL\")\n            }\n        }\n    }\n}\n\nstruct MinimalPlayerView: UIViewRepresentable {\n    let licenseKey: String\n    let sourceURL: URL\n\n    func makeCoordinator() -> Coordinator { Coordinator() }\n\n    func makeUIView(context: Context) -> PlayerView {\n        let config = PlayerConfig()\n        config.key = licenseKey\n        config.playbackConfig.isAutoplayEnabled = true\n        config.playbackConfig.isMuted = true\n        #if os(tvOS)\n        config.styleConfig.userInterfaceType = .system\n        #endif\n        let player = PlayerFactory.createPlayer(playerConfig: config)\n        context.coordinator.player = player\n        player.add(listener: context.coordinator)\n        let view = PlayerView(player: player, frame: .zero)\n        let source = SourceFactory.createSource(from: SourceConfig(url: sourceURL, type: .hls))\n        player.load(source: source)\n        return view\n    }\n\n    func updateUIView(_ view: PlayerView, context: Context) {}\n\n    static func dismantleUIView(_ view: PlayerView, coordinator: Coordinator) {\n        guard let player = coordinator.player else { return }\n        coordinator.player = nil\n        player.remove(listener: coordinator)\n        view.player = nil\n        player.destroy()\n    }\n\n    final class Coordinator: NSObject, PlayerListener {\n        var player: Player?\n\n        func onPlayerError(_ event: PlayerErrorEvent, player: Player) {\n            guard player === self.player else { return }\n            print(\"Player error \\(event.code)\")\n        }\n\n        func onSourceError(_ event: SourceErrorEvent, player: Player) {\n            guard player === self.player else { return }\n            print(\"Source error \\(event.code)\")\n        }\n    }\n}",
+      "source": {
+        "path": "apps/ios/examples/MinimalPlayer.swift",
+        "line": 1,
+        "label": "MinimalPlayer.swift:1–64"
+      },
+      "endLine": 64
+    },
+    {
+      "type": "p",
+      "text": "The Coordinator retains the Player and its event subscriptions. Removing the view detaches the subscriptions and display target, then destroys the Player. tvOS selects System UI. Configuration is fixed at creation in this example; change the SwiftUI id to recreate the view when applying new values."
+    },
+    {
+      "type": "p",
+      "text": "In Player Lab, PlayerModel retains the Player and loads sources; NativePresentationSurface attaches the display target. This example uses the SDK’s PlayerView directly."
+    },
+    {
+      "type": "h3",
+      "id": "application-integration",
+      "text": "Player ownership and display targets in Player Lab"
+    },
+    {
       "type": "figure",
       "file": "ios-applied-code",
       "caption": "Applied Swift configuration in Code. Copy code uses applied values and license placeholders."

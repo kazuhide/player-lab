@@ -43,7 +43,7 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/ca84e8fcbd8da9f1c2e8b5452f779fb119c84d5b/apps/vega/README.md#build-the-kepler-application",
+          "url": "https://github.com/kazuhide/player-lab/blob/0af6d686d1da563f73c9dcb9d9070d8853728a92/apps/vega/README.md#build-the-kepler-application",
           "label": "Vega README：Keplerホストのビルド"
         },
         {
@@ -55,6 +55,39 @@
     {
       "type": "p",
       "text": "TextInputはVegaの画面キーボードを使います。実機とVega Virtual Deviceで開けるよう、manifest.tomlのwants.serviceにcom.amazon.inputmethod.serviceを宣言しています。"
+    },
+    {
+      "type": "h3",
+      "id": "minimal-integration-example",
+      "text": "既存ホストで再生する最小構成"
+    },
+    {
+      "type": "p",
+      "text": "Player Labの既存Keplerホストと補助実装を使う例です。キーとHLSのURLを置き換え、apps/vega/App.tsxを次の1行に置き換えて表示します。SDKの公開コンストラクター型はHTMLElementを要求するため、既存のcreateVegaPlayerでVega用の接続を呼び出します。"
+    },
+    {
+      "type": "code",
+      "title": "既存ホストのApp.tsx",
+      "text": "export { default } from \"./examples/MinimalPlayer\";"
+    },
+    {
+      "type": "code",
+      "title": "描画領域、セッションの生成、エラーと解放",
+      "text": "import type { ErrorEvent } from \"bitmovin-player\";\nimport { PlayerEvent } from \"bitmovin-player/modules/bitmovinplayer-core\";\nimport { KeplerVideoSurfaceView, VideoPlayer } from \"@amazon-devices/react-native-w3cmedia\";\nimport React, { useEffect, useRef, useState } from \"react\";\nimport { AppState, StyleSheet, Text, View, type AppStateStatus } from \"react-native\";\nimport { PlaybackController } from \"../src/playbackController\";\nimport { installVegaPolyfills, removeVegaPolyfills } from \"../src/polyfills\";\nimport { releaseVegaBackgroundMedia, startVegaSession } from \"../src/playerSession\";\nimport { createVegaPlayer } from \"../src/vegaPlayer\";\n\nexport default function MinimalPlayer() {\n  const teardown = useRef<Promise<void>>(Promise.resolve());\n  const ownedSession = useRef<{ dispose: (background?: boolean) => Promise<void> } | null>(null);\n  const controllerRef = useRef<PlaybackController | null>(null);\n  const lifecycleRef = useRef({ active: AppState.currentState !== \"background\", generation: 0 });\n  const [lifecycle, setLifecycle] = useState(lifecycleRef.current);\n  const [surfaceHandle, setSurfaceHandle] = useState<string | null>(null);\n  const [position, setPosition] = useState(0);\n  const [error, setError] = useState(\"\");\n\n  useEffect(() => {\n    const onAppStateChange = (state: AppStateStatus | null) => {\n      const previous = lifecycleRef.current;\n      if (state === \"background\" && previous.active) {\n        lifecycleRef.current = { active: false, generation: previous.generation + 1 };\n        const session = ownedSession.current;\n        ownedSession.current = null;\n        if (session) teardown.current = session.dispose(true);\n        releaseVegaBackgroundMedia(teardown.current);\n        setSurfaceHandle(null);\n        setLifecycle(lifecycleRef.current);\n      } else if (state === \"active\" && !previous.active) {\n        lifecycleRef.current = { ...previous, active: true };\n        setLifecycle(lifecycleRef.current);\n      }\n    };\n    const subscription = AppState.addEventListener(\"change\", onAppStateChange);\n    onAppStateChange(AppState.currentState);\n    return () => subscription.remove();\n  }, []);\n\n  useEffect(() => {\n    if (!lifecycle.active || !lifecycleRef.current.active ||\n        lifecycle.generation !== lifecycleRef.current.generation || !surfaceHandle) return;\n    let active = true;\n    const isCurrent = () => active && lifecycleRef.current.active &&\n      lifecycleRef.current.generation === lifecycle.generation;\n    setError(\"\");\n    const session = startVegaSession({\n      handle: surfaceHandle,\n      source: { hls: \"https://example.com/video/master.m3u8\" },\n      after: teardown.current,\n      createVideo: () => new VideoPlayer(),\n      installPolyfills: installVegaPolyfills,\n      removePolyfills: removeVegaPolyfills,\n      createPlayer: () => createVegaPlayer({\n        key: \"YOUR_PLAYER_KEY\", playback: { autoplay: true, muted: true },\n      }),\n      observePlayer: (player, isActive) => {\n        const onError = (event: ErrorEvent) => {\n          if (isCurrent() && isActive()) setError(`Player error ${event.code}`);\n        };\n        player.on(PlayerEvent.Error, onError);\n        return () => player.off(PlayerEvent.Error, onError);\n      },\n      createController: (player, isActive) => new PlaybackController(player, (state) => {\n        if (isCurrent() && isActive()) setPosition(state.currentTime);\n      }),\n      controllerRef,\n      getTimeShiftEnabled: () => false,\n      onError: (message) => { if (isCurrent()) setError(message); console.warn(message); },\n    });\n    ownedSession.current = session;\n    return () => {\n      active = false;\n      teardown.current = session.dispose();\n      if (ownedSession.current === session) ownedSession.current = null;\n    };\n  }, [lifecycle.active, lifecycle.generation, surfaceHandle]);\n\n  return <View style={styles.screen}>\n    {lifecycle.active && <KeplerVideoSurfaceView key={lifecycle.generation}\n      style={styles.video} scalingmode=\"fit\"\n      onSurfaceViewCreated={(handle: string) => {\n        const current = lifecycleRef.current;\n        if (current.active && current.generation === lifecycle.generation) setSurfaceHandle(handle);\n      }} />}\n    <Text>{error || `${position.toFixed(1)} s`}</Text>\n  </View>;\n}\n\nconst styles = StyleSheet.create({\n  screen: { flex: 1 },\n  video: { width: \"100%\", height: 360 },\n});",
+      "source": {
+        "path": "apps/vega/examples/MinimalPlayer.tsx",
+        "line": 1,
+        "label": "MinimalPlayer.tsx:1–95"
+      },
+      "endLine": 95
+    },
+    {
+      "type": "p",
+      "text": "startVegaSessionがVideoPlayerの初期化、ハンドルの接続、SDKの生成とload、Playerとネイティブメディアの解放を管理します。バックグラウンド移行時は同期解放を始め、前面に戻ると新しい描画領域とセッションを作ります。前のセッションの解放が完了するまで、次の初期化を待ちます。"
+    },
+    {
+      "type": "p",
+      "text": "PlaybackControllerで再生位置を表示し、初期化や再生中のエラーをTextへ表示します。本体のBitmovinPlayer.tsxも同じcreateVegaPlayer、互換処理、セッション管理を使います。各補助関数のSDK呼び出しは次の抜粋で確認できます。"
     },
     {
       "type": "h3",
