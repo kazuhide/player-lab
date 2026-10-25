@@ -150,6 +150,15 @@ function nativeCapture(page: Page, language: Language, file: string): Locator {
   });
 }
 
+async function expectDecodedCapture(image: Locator, profile: CaptureProfile): Promise<void> {
+  const { width, height } = captureProfiles[profile];
+  // Use a synchronous browser callback when Firefox has page scripts disabled.
+  await expect.poll(() => image.evaluate(element => {
+    if (!(element instanceof HTMLImageElement)) return null;
+    return { complete: element.complete, width: element.naturalWidth, height: element.naturalHeight };
+  })).toEqual({ complete: true, width, height });
+}
+
 async function expectCaptureBounds(figure: Locator, profile: CaptureProfile): Promise<void> {
   const source = captureProfiles[profile];
   const bounds = await figure.evaluate((element) => {
@@ -1237,11 +1246,9 @@ test.describe("guide without JavaScript", () => {
             const figure = nativeCapture(page, language, file);
             const image = figure.locator(".guide-capture-viewport > img");
             const link = figure.locator(":scope > a.guide-capture-link");
-            const source = captureProfiles[profile];
             await figure.scrollIntoViewIfNeeded();
             await expect(figure).toHaveAttribute("data-guide-capture", profile);
-            await expect(image).toHaveJSProperty("naturalWidth", source.width);
-            await expect(image).toHaveJSProperty("naturalHeight", source.height);
+            await expectDecodedCapture(image, profile);
             await expectCaptureBounds(figure, profile);
             await page.keyboard.press(navigationKey("Tab"));
             await link.focus();
@@ -1253,8 +1260,7 @@ test.describe("guide without JavaScript", () => {
             expect(destination.pathname).toBe(`/player-lab/assets/guide/${file}-${language}.png`);
             await page.keyboard.press("Enter");
             await expect(page).toHaveURL(destination.href);
-            await expect(page.locator("img")).toHaveJSProperty("naturalWidth", source.width);
-            await expect(page.locator("img")).toHaveJSProperty("naturalHeight", source.height);
+            await expectDecodedCapture(page.locator("img"), profile);
           });
         }
       });
