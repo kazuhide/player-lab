@@ -29,6 +29,32 @@ def android_candidate(text, old, new, fetch):
     pins = {artifact: [] for artifact in ANDROID_ARTIFACTS}
     # Examine string literals, skipping comments and multiline code examples.
     tokens = re.compile(r'//[^\n]*|/\*.*?(?:\*/|\Z)|""".*?"""|"(?:\\.|[^"\\])*"', re.DOTALL)
+    # This repository uses literal coordinates and two reviewed Gradle helpers.
+    # Dynamic expressions require manual review; do not try to evaluate Kotlin.
+    masked = tokens.sub(lambda match: re.sub(r'[^\n]', ' ', match.group()), text)
+    for call in re.finditer(r'\bimplementation\s*\(', masked):
+        depth, end = 1, call.end()
+        while depth and end < len(masked):
+            if masked[end] == '(':
+                depth += 1
+            elif masked[end] == ')':
+                depth -= 1
+            end += 1
+        if depth:
+            raise UpdateError('Unclosed Android implementation dependency.')
+        expression = text[call.end():end - 1].strip()
+        literal = re.fullmatch(r'"(?:\\.|[^"\\])*"', expression)
+        if literal and '$' not in expression and '\\' not in expression:
+            continue
+        if re.fullmatch(r'project\(\s*":playback"\s*\)', expression):
+            continue
+        bom = [match for match in re.finditer(
+            r'\bval\s+composeBom\s*=\s*platform\("androidx\.compose:compose-bom:[0-9.]+"\)', text)
+            if masked[match.start():match.start() + 3] == 'val']
+        declarations = re.findall(r'\b(?:val|var)\s+composeBom\b', masked)
+        if expression == 'composeBom' and len(bom) == len(declarations) == 1:
+            continue
+        raise UpdateError('Unreviewed Android dependency expression requires manual review.')
     for token in tokens.finditer(text):
         literal = token.group()
         if literal.startswith('/*') and (not literal.endswith('*/') or '/*' in literal[2:]):
@@ -49,7 +75,7 @@ def android_candidate(text, old, new, fetch):
                 raise UpdateError('Nonliteral Android managed dependencies require manual review.')
         pin = re.fullmatch(r'"com\.bitmovin\.player:(player|player-media-session):([^"\r\n]+)"', literal)
         if not pin:
-            if re.match(r'"com\.bitmovin\.player:(?:player(?:-media-session)?(?::|")|")', literal):
+            if literal.startswith('"com.bitmovin.player:'):
                 raise UpdateError('Ambiguous Android managed dependency requires manual review.')
             continue
         start = text.rfind('\n', 0, token.start()) + 1

@@ -3,6 +3,7 @@
 import copy
 import importlib.util
 import json
+import re
 from pathlib import Path
 import tempfile
 import unittest
@@ -182,6 +183,8 @@ class ReleaseTests(unittest.TestCase):
                            '"com.bitmovin.player:player" + ":" + otherVersion',
                            '"com.bitmovin.player:" + artifact + ":" + otherVersion',
                            '"""com.bitmovin.player""" + ":player:9.0.0"',
+                           '"com.bitmovin.player:$artifact:9.0.0"',
+                           '"com.bitmovin.player:player-core:9.0.0"',
                            'group = "com.bitmovin.player", name = "player", version = otherVersion',
                            r'"\u0063om.bitmovin.player:player:9.0.0"'):
             def no_fetch(_url):
@@ -189,6 +192,26 @@ class ReleaseTests(unittest.TestCase):
             with self.subTest(expression=expression), self.assertRaises(UpdateError):
                 prepare.android_candidate(pair + 'implementation(' + expression + ')\n',
                                           '1.2.3', '1.10.0', no_fetch)
+
+    def test_android_limits_dependency_expressions_to_the_reviewed_gradle_forms(self):
+        current = (Path(__file__).resolve().parents[1] / 'apps/android/app/build.gradle.kts').read_text()
+        version = re.search(r'implementation\("com\.bitmovin\.player:player:([^"+]+)', current)[1]
+        result = prepare.android_candidate(current, version, '9.0.0', android_publication)
+        self.assertIn('implementation(project(":playback"))', result)
+        self.assertIn('implementation(composeBom)', result)
+        self.assertIn('com.bitmovin.player:player:9.0.0+jason', result)
+        for expression in ('unreviewedDependency', '"com.bitmovin." + "player:player:9.0.0"',
+                           'project(":unreviewed")', 'platform("com.bitmovin.player:player:9.0.0")'):
+            def no_fetch(_url):
+                self.fail('Unreviewed dependency forms must stop before publication requests.')
+            with self.subTest(expression=expression), self.assertRaises(UpdateError):
+                prepare.android_candidate(current + 'implementation(' + expression + ')\n',
+                                          version, '9.0.0', no_fetch)
+        spoofed = current.replace('val composeBom = platform("androidx.compose:compose-bom:',
+                                  '// val composeBom = platform("androidx.compose:compose-bom:')
+        spoofed = 'val composeBom = unreviewedDependency()\n' + spoofed
+        with self.assertRaises(UpdateError):
+            prepare.android_candidate(spoofed, version, '9.0.0', no_fetch)
 
     def test_android_rejects_an_unpublished_or_different_target_for_either_module(self):
         before = ('implementation("com.bitmovin.player:player:1.2.3+jason")\n'
