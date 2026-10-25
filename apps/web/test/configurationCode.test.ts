@@ -1,7 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { configurationCode, javascriptValue } from "../src/configurationCode";
+import { generatedCodeDiagnostics } from "./generatedCodeCompiler";
 
 describe("configuration code", () => {
+  it("typechecks the exact emitted module and rejects invalid settings against the pinned SDK", () => {
+    const snapshot = { player: { playback: { autoplay: false, muted: true }, logs: { level: "warn" },
+      tweaks: { log_level: "error" }, network: { requestApi: "xhr" },
+      adaptation: { desktop: { logic: "v3", rttEstimationMethod: "weightedaverage" }, mobile: { logic: "wish", rttEstimationMethod: "median" } } }, source: {
+      progressive: "https://example.com/movie.mp4", options: { startOffset: 3, startOffsetTimelineReference: "start" },
+      subtitleTracks: [{ id: "en", lang: "en", label: "English", url: "https://example.com/captions.vtt", kind: "subtitle" }],
+    }, ui: { seekbarSnappingEnabled: true }, runtime: ["player.setVolume(37);", "player.setPlaybackSpeed(1.25);", "player.mute();"] };
+    const code = configurationCode(snapshot);
+    expect(generatedCodeDiagnostics(code)).toEqual([]);
+    expect(generatedCodeDiagnostics(configurationCode({ ...snapshot, player: { playback: { autoplay: "invalid" } } }))).not.toEqual([]);
+    expect(generatedCodeDiagnostics(configurationCode({ ...snapshot, source: { subtitleTracks: [{ url: 42 }] } }))).not.toEqual([]);
+    expect(generatedCodeDiagnostics(configurationCode({ ...snapshot, ui: { seekbarSnappingEnabled: "invalid" } }))).not.toEqual([]);
+    expect(generatedCodeDiagnostics(configurationCode({ ...snapshot, runtime: ['player.setPlaybackSpeed("invalid");'] }))).not.toEqual([]);
+    expect(code).not.toMatch(/\bas (?:PlayerConfig|SourceConfig|UIConfig)\b/);
+  });
+
   it("omits both license values even if a caller supplies an SDK config", () => {
     const code = configurationCode({
       player: { key: "DO_NOT_EXPORT_PLAYER_LICENSE", analytics: { key: "DO_NOT_EXPORT_ANALYTICS_LICENSE" }, playback: { autoplay: false } },
