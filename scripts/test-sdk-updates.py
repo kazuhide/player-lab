@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from urllib.parse import unquote
 
 from sdk_updates import SOURCES, UpdateError, api_delta, inspect_releases, latest_version, managed_update_prs
 
@@ -30,6 +31,14 @@ def metadata(url):
     if key == 'vega':
         return b'{"dependencies":{"bitmovin-player":"8.138.0-beta.29"}}'
     return b'{"version":"1.10.0"}'
+
+
+def android_publication(url):
+    artifact, encoded, filename = url.removeprefix(prepare.ANDROID_MAVEN).split('/')
+    if not url.startswith(prepare.ANDROID_MAVEN) or artifact not in prepare.ANDROID_ARTIFACTS or filename != f'{artifact}-{encoded}.pom':
+        raise AssertionError('Unexpected Android publication URL: ' + url)
+    return (f'<project xmlns="http://maven.apache.org/POM/4.0.0"><groupId>com.bitmovin.player</groupId>'
+            f'<artifactId>{artifact}</artifactId><version>{unquote(encoded)}</version><packaging>aar</packaging></project>').encode()
 
 
 class ReleaseTests(unittest.TestCase):
@@ -110,6 +119,76 @@ class ReleaseTests(unittest.TestCase):
         after[0]['rows'][1]['value'] = 'after'
         self.assertEqual(api_delta(before, after)[0]['changed'], ['Event.callback', 'Event.name'])
 
+    def test_candidate_updates_the_qualified_android_player_and_media_session_pair(self):
+        report = inspect_releases(coverage(), 'a' * 40, metadata)
+        for row in report['sdks']:
+            if row['id'] != 'android':
+                row['latestVersion'] = row['currentVersion']
+                row['updateAvailable'] = False
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            path = repo / 'apps/android/app/build.gradle.kts'
+            path.parent.mkdir(parents=True)
+            path.write_text('dependencies {\n'
+                            '    implementation("com.bitmovin.player:player:1.2.3+jason")\n'
+                            '    implementation("com.bitmovin.player:player-media-session:1.2.3+jason")\n'
+                            '}\n')
+            urls = []
+            def fetch(url):
+                urls.append(url)
+                return android_publication(url)
+            files = prepare.candidate_files(repo, report, fetch)
+            self.assertIn('com.bitmovin.player:player:1.10.0+jason', files[str(path.relative_to(repo))])
+            self.assertIn('com.bitmovin.player:player-media-session:1.10.0+jason', files[str(path.relative_to(repo))])
+            self.assertEqual(urls, [f'{prepare.ANDROID_MAVEN}{artifact}/1.10.0%2Bjason/{artifact}-1.10.0%2Bjason.pom'
+                                    for artifact in prepare.ANDROID_ARTIFACTS])
+            self.assertIn('1.2.3+jason', path.read_text())
+
+    def test_android_updates_only_dependency_versions_in_the_existing_variant(self):
+        prefix = ('// implementation("com.bitmovin.player:player:1.2.3")\n'
+                  '/*\nimplementation("com.bitmovin.player:player-media-session:1.2.3")\n*/\n'
+                  'val example = """\nimplementation("com.bitmovin.player:player:1.2.3")\n"""\n'
+                  'implementation("unrelated:player:1.2.3")\n')
+        def dependencies(version):
+            return (f'    implementation("com.bitmovin.player:player:{version}") // Player\n'
+                    f'    implementation("com.bitmovin.player:player-media-session:{version}")\n')
+        for qualifier in ('', '+jason'):
+            with self.subTest(qualifier=qualifier):
+                before = prefix + dependencies('1.2.3' + qualifier)
+                expected = prefix + dependencies('1.10.0' + qualifier)
+                self.assertEqual(prepare.android_candidate(before, '1.2.3', '1.10.0', android_publication), expected)
+
+    def test_android_rejects_missing_duplicate_mismatched_and_unknown_variant_pins(self):
+        player = 'implementation("com.bitmovin.player:player:1.2.3+jason")\n'
+        session = 'implementation("com.bitmovin.player:player-media-session:1.2.3+jason")\n'
+        invalid = ['', player, session, player * 2 + session, player + session * 2,
+                   player + session.replace('1.2.3', '1.2.4'), player + session.replace('+jason', ''),
+                   (player + session).replace('+jason', '+unknown'),
+                   (player + session).replace('1.2.3', '1.2.4'),
+                   (player + session).replace('implementation(', 'val pin = ('),
+                   '/* nested /* comment */\n' + player + session + '*/\n',
+                   '/* unterminated\n' + player + session]
+        def no_fetch(_url):
+            self.fail('Invalid Android pins must fail before fetching publications.')
+        for text in invalid:
+            with self.subTest(text=text), self.assertRaises(UpdateError):
+                prepare.android_candidate(text, '1.2.3', '1.10.0', no_fetch)
+
+    def test_android_rejects_an_unpublished_or_different_target_for_either_module(self):
+        before = ('implementation("com.bitmovin.player:player:1.2.3+jason")\n'
+                  'implementation("com.bitmovin.player:player-media-session:1.2.3+jason")\n')
+        for missing in prepare.ANDROID_ARTIFACTS:
+            def fetch(url):
+                if url.startswith(prepare.ANDROID_MAVEN + missing + '/'):
+                    raise OSError('Fixture artifact is unpublished')
+                return android_publication(url)
+            with self.subTest(missing=missing), self.assertRaises(OSError):
+                prepare.android_candidate(before, '1.2.3', '1.10.0', fetch)
+        for body in (b'not XML', b'<html>not a POM</html>',
+                     android_publication(f'{prepare.ANDROID_MAVEN}player/1.10.0/player-1.10.0.pom')):
+            with self.subTest(body=body), self.assertRaises(UpdateError):
+                prepare.android_candidate(before, '1.2.3', '1.10.0', lambda _url: body)
+
     def test_candidate_edits_leave_coverage_and_native_commit_ids_untouched(self):
         report = inspect_releases(coverage(), 'a' * 40, metadata)
         with tempfile.TemporaryDirectory() as directory:
@@ -123,11 +202,12 @@ class ReleaseTests(unittest.TestCase):
                     path.write_text(json.dumps(data))
             path = repo / 'apps/android/app/build.gradle.kts'
             path.parent.mkdir(parents=True)
-            path.write_text('implementation("com.bitmovin.player:player:1.2.3")')
+            path.write_text('implementation("com.bitmovin.player:player:1.2.3")\n'
+                            'implementation("com.bitmovin.player:player-media-session:1.2.3")\n')
             path = repo / 'apps/ios/project.yml'
             path.parent.mkdir(parents=True)
             path.write_text('exactVersion: "1.2.3"')
-            files = prepare.candidate_files(repo, report)
+            files = prepare.candidate_files(repo, report, android_publication)
             self.assertEqual(json.loads(files['apps/web/package.json'])['dependencies']['bitmovin-player'], '1.10.0')
             self.assertIn('8.138.0-beta.29', files['apps/vega/package.json'])
             self.assertFalse(any('coverage' in file or file.endswith('Package.resolved') for file in files))

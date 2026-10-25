@@ -5,8 +5,10 @@ import json
 from pathlib import Path
 import re
 import subprocess
+from urllib.parse import quote
+import xml.etree.ElementTree as ET
 
-from sdk_updates import SOURCES, UpdateError, release_markdown, version_key
+from sdk_updates import SOURCES, UpdateError, fetch_public, release_markdown, version_key
 
 
 JSON_PINS = {
@@ -18,9 +20,52 @@ JSON_PINS = {
                      ('apps/react-native/expo/package.json', 'dependencies', 'bitmovin-player-react-native')],
     'vega': [('apps/vega/package.json', 'dependencies', 'bitmovin-player')],
 }
+ANDROID_ARTIFACTS = ('player', 'player-media-session')
+ANDROID_MAVEN = 'https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/'
 
 
-def candidate_files(repo, report):
+def android_candidate(text, old, new, fetch):
+    """Keep the published standard or relocated-IMA variant paired across modules."""
+    pins = {artifact: [] for artifact in ANDROID_ARTIFACTS}
+    # Examine string literals, skipping comments and multiline code examples.
+    tokens = re.compile(r'//[^\n]*|/\*.*?(?:\*/|\Z)|""".*?"""|"(?:\\.|[^"\\])*"', re.DOTALL)
+    for token in tokens.finditer(text):
+        literal = token.group()
+        if literal.startswith('/*') and (not literal.endswith('*/') or '/*' in literal[2:]):
+            raise UpdateError('Unterminated or nested Android Gradle comments require manual review.')
+        pin = re.fullmatch(r'"com\.bitmovin\.player:(player|player-media-session):([^"\r\n]+)"', literal)
+        if not pin:
+            continue
+        start = text.rfind('\n', 0, token.start()) + 1
+        end = text.find('\n', token.end())
+        end = len(text) if end == -1 else end
+        if (not re.fullmatch(r'[ \t]*implementation[ \t]*\([ \t]*', text[start:token.start()])
+                or not re.fullmatch(r'[ \t]*\)[ \t]*(?://[^\r\n]*)?\r?', text[token.end():end])):
+            raise UpdateError('Expected a direct Android implementation dependency.')
+        pins[pin[1]].append((token.start() + pin.start(2), token.start() + pin.end(2), pin[2]))
+    if any(len(pins[artifact]) != 1 for artifact in ANDROID_ARTIFACTS):
+        raise UpdateError('Expected one Android Player and one MediaSession dependency.')
+    current = pins['player'][0][2]
+    if current != pins['player-media-session'][0][2] or current not in (old, old + '+jason'):
+        raise UpdateError('Android Player and MediaSession must match the reported version and supported qualifier.')
+    target = new + ('+jason' if current.endswith('+jason') else '')
+    encoded = quote(target, safe='')
+    namespace = '{http://maven.apache.org/POM/4.0.0}'
+    for artifact in ANDROID_ARTIFACTS:
+        url = f'{ANDROID_MAVEN}{artifact}/{encoded}/{artifact}-{encoded}.pom'
+        try:
+            pom = ET.fromstring(fetch(url))
+        except ET.ParseError as error:
+            raise UpdateError('Invalid Android artifact publication: ' + artifact) from error
+        expected = {'groupId': 'com.bitmovin.player', 'artifactId': artifact, 'version': target, 'packaging': 'aar'}
+        if pom.tag != namespace + 'project' or any(pom.findtext(namespace + key) != value for key, value in expected.items()):
+            raise UpdateError('Android artifact publication differs from the proposed dependency: ' + artifact)
+    for start, end, _ in sorted((pin for values in pins.values() for pin in values), reverse=True):
+        text = text[:start] + target + text[end:]
+    return text
+
+
+def candidate_files(repo, report, fetch=fetch_public):
     """Return proposed edits, without writing or changing coverage classifications."""
     if report.get('schemaVersion') != 1:
         raise UpdateError('Unsupported update report schema.')
@@ -48,12 +93,7 @@ def candidate_files(repo, report):
             files[file] = json.dumps(data, indent=2, ensure_ascii=False) + '\n'
         if sdk_id == 'android':
             file = 'apps/android/app/build.gradle.kts'
-            text = (repo / file).read_text()
-            pattern = r'(?<=com\.bitmovin\.player:player:)' + re.escape(old) + r'(?=")'
-            text, count = re.subn(pattern, new, text)
-            if count != 1:
-                raise UpdateError('Expected one exact Android Player dependency.')
-            files[file] = text
+            files[file] = android_candidate((repo / file).read_text(), old, new, fetch)
         elif sdk_id == 'apple':
             file = 'apps/ios/project.yml'
             text, count = re.subn(r'(?<=exactVersion: ")' + re.escape(old) + r'(?=")', new, (repo / file).read_text())
