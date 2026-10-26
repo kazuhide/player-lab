@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "../src/browser-test";
-import { observePlayback, sourceStartObservation } from "../src/playback-observation";
+import { expectMovingVideo, observePlayback, sourceStartObservation } from "../src/playback-observation";
 
 const analyticsEnabled = process.env.E2E_PAGES_ANALYTICS_ENABLED === "1";
 const audits = new WeakMap<Page, { api: string[]; collectors: { method: string; type: string }[] }>();
@@ -26,33 +26,23 @@ async function openApp(page: Page): Promise<void> {
   await page.goto("./");
   await page.getByRole("button", { name: "English", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await expect.poll(() => videoState(page)).toMatchObject({ ready: true });
+  await expectMovingVideo(page);
 }
 
 async function videoState(page: Page) {
   return page.evaluate(() => {
     const video = document.querySelector<HTMLVideoElement>("#player video");
-    if (!video) return { ready: false, time: 0, frames: 0, duration: 0 };
-    const frames = (video as HTMLVideoElement & { webkitDecodedFrameCount?: number }).webkitDecodedFrameCount
-      ?? video.getVideoPlaybackQuality().totalVideoFrames;
-    return {
-      ready: video.readyState >= 3 && video.videoWidth > 0 && frames > 0,
-      time: video.currentTime, frames, duration: video.duration,
-    };
+    return { time: video?.currentTime ?? 0, duration: video?.duration ?? 0 };
   });
 }
 
 async function expectPlayback(page: Page): Promise<void> {
   // Native HLS may suspend frame presentation while the player is offscreen.
   await page.locator("#player").scrollIntoViewIfNeeded();
-  await expect.poll(() => videoState(page)).toMatchObject({ ready: true });
-  const initial = await videoState(page);
-  expect(initial.duration).toBeGreaterThan(59);
-  expect(initial.duration).toBeLessThan(61);
-  await expect.poll(async () => {
-    const current = await videoState(page);
-    return current.time > initial.time + 0.3 && current.frames > initial.frames;
-  }).toBe(true);
+  await expectMovingVideo(page);
+  const current = await videoState(page);
+  expect(current.duration).toBeGreaterThan(59);
+  expect(current.duration).toBeLessThan(61);
 }
 
 async function openSettings(page: Page): Promise<void> {
@@ -184,7 +174,7 @@ test("the app and guide keep language, relative navigation and document width at
       await expect(page).toHaveURL(/\/player-lab\/web\/index\.html$/);
       await expect(page.locator("html")).toHaveAttribute("lang", language);
       // Finish the returned app's initial load before the next navigation.
-      await expect.poll(() => videoState(page)).toMatchObject({ ready: true });
+      await expectMovingVideo(page);
     }
   }
 });

@@ -94,13 +94,40 @@ export async function expectMovingVideo(page: Page): Promise<void> {
   const video = page.locator("#player video");
   await video.scrollIntoViewIfNeeded();
   await expectVisiblePixels(video);
-  const initial = await video.evaluate((element: HTMLVideoElement) => ({
-    time: element.currentTime, frames: element.getVideoPlaybackQuality().totalVideoFrames,
-  }));
-  await expect.poll(() => video.evaluate((element: HTMLVideoElement, start) =>
-    !element.paused && element.readyState >= 3 && element.videoWidth > 0
-      && element.currentTime > start.time + 0.3
-      && element.getVideoPlaybackQuality().totalVideoFrames > start.frames, initial)).toBe(true);
+  const observation = await video.evaluateHandle((element: HTMLVideoElement) => {
+    const state = { video: element, time: element.currentTime, frames: 0, callback: 0, active: true };
+    const presented = () => {
+      if (!state.active) return;
+      state.frames++;
+      state.callback = element.requestVideoFrameCallback(presented);
+    };
+    state.callback = element.requestVideoFrameCallback(presented);
+    return state;
+  });
+  try {
+    await expect.poll(() => observation.evaluate(state => {
+      const element = state.video;
+      if (!element.isConnected || element !== document.querySelector("#player video")) return false;
+      const box = element.getBoundingClientRect();
+      if (box.width <= 0 || box.height <= 0 || box.bottom <= 0 || box.right <= 0
+        || box.top >= innerHeight || box.left >= innerWidth) return false;
+      for (let ancestor: Element | null = element; ancestor; ancestor = ancestor.parentElement) {
+        const style = getComputedStyle(ancestor);
+        if (style.display === "none" || style.visibility !== "visible" || Number(style.opacity) === 0) return false;
+      }
+      return !element.paused && element.readyState >= 3 && element.videoWidth > 0 && element.videoHeight > 0
+        && element.currentTime > state.time + 0.3 && state.frames > 1;
+    })).toBe(true);
+  } finally {
+    try {
+      await observation.evaluate(state => {
+        state.active = false;
+        state.video.cancelVideoFrameCallback(state.callback);
+      });
+    } finally {
+      await observation.dispose();
+    }
+  }
 }
 
 export async function armSeek(page: Page) {
