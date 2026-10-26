@@ -418,7 +418,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 832
+      "line": 838
     },
     {
       "path": "apps/web/src/uiGuide.ts",
@@ -439,7 +439,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 783,
+      "line": 789,
       "label": "SDK-managed UI factory"
     },
     {

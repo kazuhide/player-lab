@@ -169,11 +169,11 @@
   "sources": [
     {
       "path": "apps/web/src/main.ts",
-      "line": 535
+      "line": 536
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 557
+      "line": 558
     },
     {
       "path": "apps/web/src/analytics/metrics.ts",

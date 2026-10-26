@@ -100,10 +100,10 @@
       "text": "  const instance = new Player(playerEl as HTMLElement, config);\n  player = instance;\n  if (sdkUiEnabled) { renderThemeBar(); renderActiveConstruction(); apiExplorer?.refresh(); }\n  else applyTheme(instance, currentThemeId);\n  wireMetrics(instance);",
       "source": {
         "path": "apps/web/src/main.ts",
-        "line": 849,
-        "label": "main.ts:849–853"
+        "line": 855,
+        "label": "main.ts:855–859"
       },
-      "endLine": 853
+      "endLine": 859
     },
     {
       "type": "p",
@@ -112,13 +112,13 @@
     {
       "type": "code",
       "title": "現行アプリから設定済みソースを読み込む",
-      "text": "async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, disableSeeking?: boolean): Promise<void> {\n  const generation = ++sourceLoadGeneration;\n  const isLive = SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false;\n  const settle = controlPanel?.beginSourceLoad(isLive);\n  const base = deepMerge((apiSourceInput ?? sourcePreset) as SourceConfig, sourceOverrides);\n  const source = apiExplorer?.prepare(\"SourceConfig\", base) ?? structuredClone(base);\n  currentSource = source;\n  const request = { player: instance, source, settle };\n  appSourceLoad = request;\n  try {\n    await instance.load(request.source, forceTechnology, disableSeeking);\n  } catch (error) {\n    if (appSourceLoad === request) appSourceLoad = undefined;\n    if (player === instance && generation === sourceLoadGeneration) request.settle?.();\n    throw error;\n  } finally {\n    if (player === instance && generation === sourceLoadGeneration) configPanel?.refresh();\n  }\n}",
+      "text": "async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, disableSeeking?: boolean): Promise<void> {\n  const generation = ++sourceLoadGeneration;\n  const isLive = SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false;\n  const settle = controlPanel?.beginSourceLoad(isLive);\n  const base = deepMerge((apiSourceInput ?? sourcePreset) as SourceConfig, sourceOverrides);\n  const source = apiExplorer?.prepare(\"SourceConfig\", base) ?? structuredClone(base);\n  const request = { player: instance, source, settle };\n  appSourceLoad = request;\n  try {\n    await instance.load(request.source, forceTechnology, disableSeeking);\n    if (player === instance && generation === sourceLoadGeneration) currentSource = instance.getSource() ?? request.source;\n  } catch (error) {\n    if (appSourceLoad === request) appSourceLoad = undefined;\n    if (player === instance && generation === sourceLoadGeneration) request.settle?.();\n    throw error;\n  } finally {\n    if (player === instance && generation === sourceLoadGeneration) configPanel?.refresh();\n  }\n}",
       "source": {
         "path": "apps/web/src/main.ts",
-        "line": 480,
-        "label": "main.ts:480–498"
+        "line": 482,
+        "label": "main.ts:482–500"
       },
-      "endLine": 498
+      "endLine": 500
     },
     {
       "type": "p",
@@ -206,10 +206,10 @@
       "text": "  function dynAdapt(mutate: (cur: DynamicAdaptationConfig) => DynamicAdaptationConfig): void {\n    const p = options.getPlayer();\n    if (!p) return;\n    p.adaptation.setConfig(mutate(p.adaptation.getConfig()));\n  }",
       "source": {
         "path": "apps/web/src/configPanel.ts",
-        "line": 276,
-        "label": "configPanel.ts:276–280"
+        "line": 278,
+        "label": "configPanel.ts:278–282"
       },
-      "endLine": 280
+      "endLine": 282
     },
     {
       "type": "p",
@@ -550,10 +550,10 @@
       "text": "    ...(analyticsKey ? { analytics: { key: analyticsKey } } : {}),",
       "source": {
         "path": "apps/web/src/main.ts",
-        "line": 817,
-        "label": "main.ts:817"
+        "line": 823,
+        "label": "main.ts:823"
       },
-      "endLine": 817
+      "endLine": 823
     },
     {
       "type": "table",
@@ -631,7 +631,7 @@
   "sources": [
     {
       "path": "apps/web/src/main.ts",
-      "line": 478,
+      "line": 480,
       "label": "ソースの読み込みとPlayerの生成"
     },
     {
@@ -765,7 +765,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 878
+      "line": 883
     },
     {
       "path": "apps/web/src/uiGuide.ts",
@@ -781,7 +781,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 783,
+      "line": 789,
       "label": "SDK-managed UI factory"
     },
     {
@@ -885,12 +885,12 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 637,
+      "line": 638,
       "label": "Player and source application callbacks"
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 758,
+      "line": 760,
       "label": "PlayerConfig construction"
     }
   ]

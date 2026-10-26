@@ -1070,7 +1070,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 640
+      "line": 642
     },
     {
       "path": "apps/web/src/uiGuide.ts",
@@ -1102,11 +1102,11 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 637
+      "line": 638
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 818
+      "line": 824
     },
     {
       "path": "apps/web/src/sources.ts",
@@ -1150,7 +1150,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 840
+      "line": 846
     },
     {
       "path": "tests/e2e/specs/app-ui.spec.ts",
@@ -1178,15 +1178,15 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 448
+      "line": 450
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 743
+      "line": 745
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 834
+      "line": 840
     },
     {
       "path": "tests/e2e/specs/app-ui.spec.ts",
@@ -1301,12 +1301,12 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 637,
+      "line": 638,
       "label": "Player and source application callbacks"
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 758,
+      "line": 760,
       "label": "PlayerConfig construction"
     },
     {
