@@ -114,6 +114,27 @@ test("edits during Apply remain drafts and cannot submit a second concurrent req
   expect(await page.evaluate(() => window.settingsFixture.submissions[1]?.value)).toEqual({ title: "New draft" });
 });
 
+for (const result of ["resolve", "reject"] as const) test(`a reverted field is reconciled after its pending Apply ${result}s`, async ({ page }) => {
+  await page.goto("/settings-fixture.html");
+  const row = page.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: /^title/ }) });
+  const input = row.locator("input");
+  const apply = page.getByRole("button", { name: "Reload the source to apply", exact: true });
+  const reset = page.locator(".config-band-dynamic").getByRole("button", { name: "Reset draft", exact: true });
+  await input.fill("Submitted title"); await input.dispatchEvent("change");
+  await apply.click();
+  await input.fill("Applied title"); await input.dispatchEvent("change");
+  await page.evaluate(result => window.settingsFixture[result](), result);
+  await expect(input).toHaveValue("Applied title");
+  if (result === "reject") {
+    await expect(row.locator(".config-draft-status")).toBeHidden();
+    await expect(apply).toBeDisabled(); await expect(reset).toBeDisabled();
+  } else {
+    await expect(row.locator(".config-draft-status")).toHaveText("Before: Submitted title → After: Applied title");
+    await expect(apply).toBeEnabled(); await expect(reset).toBeEnabled();
+  }
+  expect(await page.evaluate(() => window.settingsFixture.submissions)).toHaveLength(1);
+});
+
 test("old owner completions preserve current edits and report superseded Apply", async ({ page }) => {
   await page.goto("/settings-fixture.html");
   await explorer(page, "SourceConfig.title");

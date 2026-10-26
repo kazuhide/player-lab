@@ -158,6 +158,54 @@ test("a complete subtitle array applies required sibling fields in one SDK load"
   await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
 });
 
+test("indexed comparisons follow the selected item and retain its baseline after a failed SDK load", async ({ page }) => {
+  const urls = ["first", "second", "draft"].map(name => new URL(`./indexed-${name}.vtt`, page.url()).href);
+  await page.route(/indexed-.*\.vtt$/, route => route.fulfill({ status: 200, contentType: "text/vtt",
+    body: "WEBVTT\n\n00:00.000 --> 10:00.000\nIndexed comparison fixture\n" }));
+  await selectApi(page, "configuration", "SourceConfig.subtitleTracks");
+  await branch(page, "SourceConfig.subtitleTracks", "array");
+  for (const [index, url] of urls.slice(0, 2).entries()) {
+    await page.getByRole("button", { name: "Add item", exact: true }).click();
+    for (const [name, value] of Object.entries({ id: `indexed-${index}`, lang: "en", kind: "subtitle", label: `Track ${index}` })) {
+      await objectField(page, name).locator('input[type="text"]').fill(value);
+    }
+    const location = objectField(page, "url");
+    await location.getByRole("checkbox", { name: "url", exact: true }).check();
+    await location.getByRole("combobox", { name: "Input type", exact: true }).selectOption({ label: "string" });
+    await location.locator('input[type="text"]').fill(url);
+  }
+  await apply(page);
+  const source = JSON.parse(await readApi(page, "PlayerAPI.getSource")) as { hls: string };
+  const master = new URL(source.hls, page.url()).href;
+  const id = "SourceConfig.subtitleTracks[].url";
+  await selectApi(page, "configuration", id); await branch(page, id, "string");
+  const value = page.locator('.api-explorer-form input[type="text"]');
+  const index = page.getByRole("spinbutton", { name: "Array index 1", exact: true });
+  const difference = page.locator(".api-draft-status");
+  await value.fill(urls[1]!);
+  await expect(difference).toHaveText(`Before: ${urls[0]} → After: ${urls[1]}`);
+  await index.fill("1");
+  await expect(difference).toBeHidden();
+  await index.fill(""); await expect(difference).toContainText("After: Incomplete input.");
+  await index.fill("1"); await value.fill(urls[2]!);
+  await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[2]}`);
+  let pending: Route | undefined;
+  await page.route(master, route => { pending = route; });
+  await page.getByRole("button", { name: "Apply setting", exact: true }).click();
+  await expect.poll(() => Boolean(pending)).toBe(true);
+  await index.fill("0"); await expect(difference).toHaveText(`Before: ${urls[0]} → After: ${urls[2]}`);
+  await index.fill("1"); await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[2]}`);
+  await pending!.fulfill({ status: 200, contentType: "application/vnd.apple.mpegurl", body: "invalid HLS manifest" });
+  await expect(page.locator(".api-explorer > [role=status]")).toContainText("1202:");
+  await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[2]}`);
+  await index.fill("0");
+  await expect(difference).toHaveText(`Before: ${urls[0]} → After: ${urls[2]}`);
+  await value.fill(urls[0]!); await expect(difference).toBeHidden();
+  await index.fill("1");
+  await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[0]}`);
+  await page.unroute(master);
+});
+
 test("component constructor overrides apply through every original theme", async ({ page }) => {
   const id = "UIComponentConfigMap.ControlBar.cssClasses";
   await selectApi(page, "configuration", id); await branch(page, id, "array");

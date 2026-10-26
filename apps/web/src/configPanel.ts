@@ -841,6 +841,10 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       catch { /* Runtime APIs can be unavailable before a source loads. */ }
       const value = applied ?? def.initial;
       if (!pending) appliedValue = fieldValue(value);
+      if (!pending && mode !== "runtime" && staged.has(def) && !invalid.has(def)
+        && sameConfigurationValue(appliedValue, fieldValue(rawValues.get(def)))) {
+        staged.delete(def); rawValues.delete(def); rebuildDraft(mode);
+      }
       renderDifference();
       if (staged.has(def) || !force && document.activeElement === input) return;
       if (input instanceof HTMLInputElement && input.type === "checkbox") input.checked = Boolean(value);

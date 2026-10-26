@@ -31,7 +31,7 @@ interface ExplorerDraft {
   buttons: Map<HTMLButtonElement, boolean>;
   appliedValue?: unknown;
   edited: boolean;
-  failed: boolean;
+  comparisonValues: Map<string, { ticket: number; value: unknown }>;
   root?: ConfigRoot;
   refreshApplied?: () => void;
 }
@@ -181,7 +181,7 @@ export class ApiExplorer {
   }
 
   discardPatch(root: ConfigRoot, patch: object): () => void {
-    this.clearFailures(root);
+    this.clearComparisons(root);
     const discarded = this.overrides.discardPatch(root, patch);
     this.outputGeneration++; this.operation++;
     const contains = (parent: PathPart[], child: PathPart[]): boolean => parent.length <= child.length
@@ -203,12 +203,12 @@ export class ApiExplorer {
     };
   }
   setExternal(root: ConfigRoot, path: PathPart[], value: unknown): void {
-    this.clearFailures(root);
+    this.clearComparisons(root);
     this.outputGeneration++; this.operation++; this.markWrite(root, path);
     this.overrides.set(root, path, value);
   }
   clearSource(notify = true): void {
-    this.clearFailures("SourceConfig");
+    this.clearComparisons("SourceConfig");
     if (notify) { this.outputGeneration++; this.operation++; }
     for (const key of this.writes.keys()) if (key.startsWith("SourceConfig")) this.writes.delete(key);
     this.overrides.clear("SourceConfig");
@@ -228,7 +228,7 @@ export class ApiExplorer {
   }
 
   beginPlayerChange(): () => void {
-    this.clearFailures();
+    this.clearComparisons();
     this.operation++;
     this.unsubscribe.forEach(unsubscribe => { try { unsubscribe(); } catch { /* Already released. */ } });
     this.unsubscribe = [];
@@ -243,8 +243,8 @@ export class ApiExplorer {
     if (!this.catalog) return;
     const player = this.options.getPlayer();
     const ui = this.options.getUi();
-    if (player !== this.player) this.clearFailures();
-    else if (ui !== this.ui) this.clearFailures("UIConfig");
+    if (player !== this.player) this.clearComparisons();
+    else if (ui !== this.ui) this.clearComparisons("UIConfig");
     if (player === this.player && ui === this.ui) { this.refreshEditors(); return; }
     this.operation++;
     this.unsubscribe.forEach(unsubscribe => { try { unsubscribe(); } catch { /* The SDK may already have released it. */ } });
@@ -296,8 +296,8 @@ export class ApiExplorer {
     });
   }
 
-  private clearFailures(root?: ConfigRoot): void {
-    this.drafts.forEach(draft => { if (!root || draft.root === root) draft.failed = false; });
+  private clearComparisons(root?: ConfigRoot): void {
+    this.drafts.forEach(draft => { if (!root || draft.root === root) draft.comparisonValues.clear(); });
   }
 
   private refreshConfigurationButtons(): void {
@@ -371,7 +371,7 @@ export class ApiExplorer {
       if (draft) { form.append(...draft.nodes); return; }
       const entry = catalog.rows.find(entry => entry.id === selection.value);
       if (!entry) return;
-      const state: ExplorerDraft = { nodes: [], labels: new DomLocalization(), editors: new Set(), buttons: new Map(), edited: false, failed: false };
+      const state: ExplorerDraft = { nodes: [], labels: new DomLocalization(), editors: new Set(), buttons: new Map(), edited: false, comparisonValues: new Map() };
       this.drafts.set(rendered, state);
       const labels = state.labels;
       const text = <K extends keyof HTMLElementTagNameMap>(tag: K, value: L) => labels.text(node(tag), value);
@@ -406,7 +406,7 @@ export class ApiExplorer {
         const showDifference = () => {
           const before = editorComparisonValue(state.appliedValue);
           let after: unknown;
-          let invalid = false;
+          let invalid = !readIndices().every(index => Number.isInteger(index) && index >= 0 && index <= 255);
           try { after = editorComparisonValue(editor.read()); }
           catch { invalid = true; }
           const changed = state.edited && (invalid || !sameConfigurationValue(before, after));
@@ -415,18 +415,19 @@ export class ApiExplorer {
             + pick({ ja: " → 編集後: ", en: " → After: " }) + (invalid ? pick({ ja: "入力が未完了です。", en: "Incomplete input." }) : configurationValueText(after, entry.id));
         };
         state.refreshApplied = () => {
-          if (state.failed) { showDifference(); return; }
           const indices = readIndices();
           if (indices.every(index => Number.isInteger(index) && index >= 0 && index <= 255)) {
             const route = configRoute(entry, indices);
+            const key = route.root + JSON.stringify(route.path);
             const base = route.root === "PlayerConfig" ? this.options.getPlayer()?.getConfig(false)
               : route.root === "SourceConfig" ? this.options.getPlayer()?.getSource() : this.options.getUi()?.getConfig();
-            if (base) state.appliedValue = readPath(this.overrides.apply(route.root, base), route.path);
-          }
+            state.appliedValue = state.comparisonValues.has(key) ? state.comparisonValues.get(key)!.value
+              : readPath(this.overrides.apply(route.root, base ?? {}), route.path);
+          } else state.appliedValue = undefined;
           showDifference();
         };
         const changed = () => { state.edited = true; showDifference(); };
-        for (const input of indexInputs) input.addEventListener("input", changed);
+        for (const input of indexInputs) input.addEventListener("input", () => { state.edited = true; state.refreshApplied?.(); });
         editor.element.addEventListener("input", changed);
         editor.element.addEventListener("change", changed);
         editor.element.addEventListener("click", event => { if (event.target instanceof Element && event.target.closest("button")) changed(); });
@@ -541,16 +542,21 @@ export class ApiExplorer {
       value = remove ? undefined : validateData(this.catalog!, entry.schema!, this.resources.forConfiguration(editor.read()));
       if (!remove) this.context("preflight").preflight(value);
     } catch (error) { this.setStatus(applyErrorMessage(error)); this.refresh(); return; }
+    const draft = this.drafts.get(entry.id);
+    if (!this.configurationPending) draft?.refreshApplied?.();
+    const before = draft?.appliedValue;
+    const key = route.root + JSON.stringify(route.path);
     const ticket = ++this.configurationTicket;
+    draft?.comparisonValues.set(key, { ticket, value: before });
     this.configurationPending = true;
     this.removalKey = remove ? entry.id : undefined;
     this.refreshConfigurationButtons();
     const output = ++this.outputGeneration;
-    const draft = this.drafts.get(entry.id);
     this.setStatus(remove ? { ja: "上書きを解除しています。", en: "Removing override." }
       : { ja: "設定を適用しています。", en: "Applying setting." });
     let write: { key: string; ticket: number } | undefined;
     let replaced: { path: PathPart[]; value: unknown }[] = [];
+    let retainComparison = false;
     try {
       write = this.markWrite(route.root, route.path);
       if (remove) {
@@ -559,9 +565,8 @@ export class ApiExplorer {
       } else replaced = this.overrides.set(route.root, route.path, value);
       const pending = this.options.apply(route.root);
       const outcome = await pending;
-      if (outcome === "applied" && output === this.outputGeneration && draft && this.drafts.get(entry.id) === draft) {
-        this.clearFailures(route.root);
-        draft.appliedValue = value;
+      if (outcome === "applied" && ticket === this.configurationTicket && draft && this.drafts.get(entry.id) === draft) {
+        this.clearComparisons(route.root);
       }
       if (output === this.outputGeneration) {
         if (outcome === "applied") this.showConfigCode(route.root);
@@ -575,11 +580,15 @@ export class ApiExplorer {
         this.overrides.remove(route.root, route.path);
         for (const prior of replaced) this.overrides.set(route.root, prior.path, prior.value);
       }
-      if (output === this.outputGeneration) {
-        if (draft && write) draft.failed = true;
-        this.setStatus(applyErrorMessage(error));
+      // Reading another API must not discard this configuration's comparison.
+      if (ticket === this.configurationTicket && draft && write && this.writes.get(write.key)?.ticket === write.ticket
+        && this.drafts.get(entry.id) === draft) {
+        draft.comparisonValues.set(key, { ticket, value: before });
+        retainComparison = true;
       }
+      if (output === this.outputGeneration) this.setStatus(applyErrorMessage(error));
     } finally {
+      if (!retainComparison && draft?.comparisonValues.get(key)?.ticket === ticket) draft.comparisonValues.delete(key);
       if (ticket === this.configurationTicket) {
         this.configurationPending = false;
         this.removalKey = undefined;
