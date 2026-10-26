@@ -12,12 +12,14 @@ export async function settleApply(action: Promise<unknown>, isCurrent: () => boo
 
 /** SDK rejections can be structured objects rather than JavaScript Errors. */
 export function applyErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+  const reason = (message: unknown): string => typeof message === "string" && message.trim()
+    ? message : "The operation failed without an error message.";
+  if (error instanceof Error) return reason(error.message);
+  if (error && typeof error === "object" && "message" in error) {
     const code = "code" in error && (typeof error.code === "number" || typeof error.code === "string") ? `${error.code}: ` : "";
-    return code + error.message;
+    return code + reason(error.message);
   }
-  return String(error);
+  return reason(error == null ? undefined : String(error));
 }
 
 /** Layer a patch onto a config without mutating it. Explicit undefined removes an
