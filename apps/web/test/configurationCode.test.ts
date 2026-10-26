@@ -28,6 +28,38 @@ describe("configuration code", () => {
     expect(code).not.toMatch(/\bas (?:PlayerConfig|SourceConfig|UIConfig)\b/);
   });
 
+  it("typechecks preferred player and streaming technologies at every array index", () => {
+    const code = configurationCode({
+      player: { playback: { preferredTech: [
+        { player: "html5", streaming: "hls" },
+        { player: "native", streaming: "progressive" },
+      ] } },
+      source: { hls: "https://example.com/video.m3u8", title: "html5" },
+      ui: {}, runtime: [],
+    });
+    expect(generatedCodeDiagnostics(code)).toEqual([]);
+    expect(code).toContain("PlayerType.Html5");
+    expect(code).toContain("PlayerType.Native");
+    expect(code).toContain("StreamType.Hls");
+    expect(code).toContain("StreamType.Progressive");
+    expect(code).toContain('"title": "html5"');
+    for (const technology of [{ player: "invalid", streaming: "hls" }, { player: "html5", streaming: "invalid" }]) {
+      expect(generatedCodeDiagnostics(configurationCode({
+        player: { playback: { preferredTech: [technology] } },
+        source: { hls: "https://example.com/video.m3u8" }, ui: {}, runtime: [],
+      }))).not.toEqual([]);
+    }
+  });
+
+  it("typechecks each timeline reference declared by the pinned SDK", () => {
+    for (const reference of ["start", "end", "currenttime"]) {
+      expect(generatedCodeDiagnostics(configurationCode({
+        player: {}, source: { hls: "https://example.com/video.m3u8", options: { startOffsetTimelineReference: reference } },
+        ui: {}, runtime: [],
+      }))).toEqual([]);
+    }
+  });
+
   it("omits both license values even if a caller supplies an SDK config", () => {
     const code = configurationCode({
       player: { key: "DO_NOT_EXPORT_PLAYER_LICENSE", analytics: { key: "DO_NOT_EXPORT_ANALYTICS_LICENSE" }, playback: { autoplay: false } },

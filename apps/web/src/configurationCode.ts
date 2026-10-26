@@ -5,7 +5,9 @@ export function javascriptValue(value: unknown, depth = 0): string {
   return javascriptData(value, depth, []);
 }
 
-function javascriptData(value: unknown, depth: number, path: string[], expression?: (value: unknown, path: string[]) => string | undefined): string {
+type ConfigurationPath = (string | number)[];
+
+function javascriptData(value: unknown, depth: number, path: ConfigurationPath, expression?: (value: unknown, path: ConfigurationPath) => string | undefined): string {
   if (depth > 32) throw new Error("Configuration nesting is too deep.");
   const replacement = expression?.(value, path);
   if (replacement !== undefined) return replacement;
@@ -19,7 +21,7 @@ function javascriptData(value: unknown, depth: number, path: string[], expressio
   const indent = "  ".repeat(depth);
   const child = `${indent}  `;
   if (Array.isArray(value)) {
-    return value.length ? `[\n${value.map((item, index) => child + javascriptData(item, depth + 1, [...path, String(index)], expression)).join(",\n")}\n${indent}]` : "[]";
+    return value.length ? `[\n${value.map((item, index) => child + javascriptData(item, depth + 1, [...path, index], expression)).join(",\n")}\n${indent}]` : "[]";
   }
   if (typeof value === "object") {
     const entries = Object.entries(value).filter(([, item]) => item !== undefined && typeof item !== "function");
@@ -29,7 +31,9 @@ function javascriptData(value: unknown, depth: number, path: string[], expressio
 }
 
 const ENUMS: Record<string, Record<string, string>> = {
-  TimelineReferencePoint: { Start: "start", End: "end" },
+  TimelineReferencePoint: { Start: "start", End: "end", CurrentTime: "currenttime" },
+  PlayerType: { Html5: "html5", Native: "native", WebRtc: "webrtc", Unknown: "unknown" },
+  StreamType: { Progressive: "progressive", Dash: "dash", Hls: "hls", Smooth: "smooth", Whep: "whep", Unknown: "unknown" },
   LogLevel: { DEBUG: "debug", LOG: "log", WARN: "warn", ERROR: "error", OFF: "off" },
   NetworkRequestApi: { XHR: "xhr", Fetch: "fetch" },
   AdaptationLogicType: { BUFFER: "v1", BUFFER_FILL_RATE: "v2", DOWNLOAD_PREDICTION: "v3", LOW_LATENCY: "low-latency-v1", WISH: "wish" },
@@ -37,6 +41,8 @@ const ENUMS: Record<string, Record<string, string>> = {
 };
 const ENUM_PATHS: Record<string, string> = {
   "SourceConfig.options.startOffsetTimelineReference": "TimelineReferencePoint",
+  "PlayerConfig.playback.preferredTech.*.player": "PlayerType",
+  "PlayerConfig.playback.preferredTech.*.streaming": "StreamType",
   "PlayerConfig.logs.level": "LogLevel", "PlayerConfig.tweaks.log_level": "LogLevel",
   "PlayerConfig.network.requestApi": "NetworkRequestApi",
   ...Object.fromEntries(["desktop", "mobile"].flatMap(target => [
@@ -63,7 +69,8 @@ export function configurationCode(snapshot: ConfigurationCode): string {
   }
   const usedEnums = new Set<string>();
   const configCode = (root: string, value: unknown): string => javascriptData(value, 0, [root], (item, path) => {
-    const name = ENUM_PATHS[path.join(".")];
+    const key = path.map(part => typeof part === "number" ? "*" : part).join(".");
+    const name = ENUM_PATHS[key];
     const member = name && Object.entries(ENUMS[name] ?? {}).find(([, value]) => value === item)?.[0];
     if (!name || !member) return undefined;
     usedEnums.add(name);

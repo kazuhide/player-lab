@@ -19,6 +19,19 @@ test("GUI code typechecks and reproduces configuration, subtitles, UI and runtim
   await subtitles.click();
   await page.getByRole("button", { name: "Default (Bitmovin)", exact: true }).click();
   await expect.poll(() => page.locator("video").evaluate((video: HTMLVideoElement) => video.readyState)).toBeGreaterThanOrEqual(3);
+  await page.locator(".api-explorer > summary").click();
+  await page.getByRole("searchbox", { name: "Search APIs" }).fill("PlayerConfig.playback.preferredTech");
+  await page.getByRole("listbox", { name: "SDK entry", exact: true }).selectOption("PlayerConfig.playback.preferredTech");
+  await page.locator(".api-explorer-form > .api-value > select").selectOption({ label: "PreferredTechnology[]" });
+  await page.getByRole("button", { name: "Add item", exact: true }).click();
+  for (const [name, label] of Object.entries({ player: "PlayerType.Html5", streaming: "StreamType.Hls" })) {
+    const row = page.locator(".api-explorer-form fieldset").filter({
+      has: page.locator("legend > label", { hasText: new RegExp("^\\s*" + name + "$") }),
+    }).last();
+    await row.getByRole("combobox", { name: "Input type", exact: true }).selectOption({ label });
+  }
+  await page.getByRole("button", { name: "Apply setting", exact: true }).click();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("Configuration submitted.");
   await page.locator("#config-panel details").evaluateAll(nodes => nodes.forEach(node => { if (node instanceof HTMLDetailsElement) node.open = true; }));
   const reference = field(page, /^options.startOffsetTimelineReference/).locator("select");
   await reference.selectOption("start");
@@ -34,6 +47,8 @@ test("GUI code typechecks and reproduces configuration, subtitles, UI and runtim
   const emitted = await area.inputValue();
   expect(emitted).toContain('"subtitleTracks"');
   expect(emitted).toContain("TimelineReferencePoint.Start");
+  expect(emitted).toContain("PlayerType.Html5");
+  expect(emitted).toContain("StreamType.Hls");
   expect(emitted).toContain("player.setVolume(37)");
   expect(emitted).toContain("player.setPlaybackSpeed(1.25)");
   expect(emitted).toContain('player.setLogLevel(player.exports.LogLevel["WARN"])');
@@ -60,12 +75,13 @@ test("GUI code typechecks and reproduces configuration, subtitles, UI and runtim
   const actual = await replayPage.evaluate(() => {
     const p = window.__generated!.player;
     return { volume: p.getVolume(), speed: p.getPlaybackSpeed(), source: p.getSource(),
-      autoplay: p.getConfig(false).playback?.autoplay, tracks: p.subtitles.list(),
+      autoplay: p.getConfig(false).playback?.autoplay, preferredTech: p.getConfig(false).playback?.preferredTech, tracks: p.subtitles.list(),
       uiCount: document.querySelectorAll("#player .bmpui-ui-uicontainer").length };
   });
   expect(actual.volume).toBe(37);
   expect(actual.speed).toBe(1.25);
   expect(actual.autoplay).toBe(true);
+  expect(actual.preferredTech).toEqual([{ player: "html5", streaming: "hls" }]);
   expect(actual.source?.options?.startOffsetTimelineReference).toBe("start");
   expect(actual.tracks.some(track => track.id === "sub-en" && track.lang === "en")).toBe(true);
   expect(actual.uiCount).toBe(1);
