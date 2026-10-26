@@ -105,6 +105,20 @@ tests passed 93 cases, package verification passed 32, the static test server
 passed three, and the secret-scanner regression passed 15 cases.
 Hosted domain licensing and actual Analytics receipt are separate checks.
 
+When a production Pages or cross-browser case fails, CI retains a
+`browser-diagnostics-web` or `browser-diagnostics-webkit` artifact for three days.
+Each JSON report contains bounded, timestamped browser errors, sanitized stack
+locations, failed requests and HTTP errors. Known public endpoints retain their
+origin and safe path; other hosts and paths are redacted. Query strings,
+fragments, credentials, headers, bodies and free-form error messages are omitted.
+Raw screenshots and traces are not uploaded by this diagnostic step.
+
+Run `pnpm --filter @showcase/e2e test:diagnostics` to check redaction and event
+limits. After installing Playwright Chromium, run
+`pnpm --filter @showcase/e2e test:diagnostics-browser` to verify that an isolated,
+intentional failure writes a sanitized report. The self-test succeeds only when
+the child test fails as expected and its saved report passes the privacy checks.
+
 ## Native builds and device runs
 
 CI compiles iOS/tvOS apps and the Android app and instrumented tests. This checks

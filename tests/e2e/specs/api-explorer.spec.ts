@@ -1,20 +1,17 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
+import type { Page, Route } from "@playwright/test";
+import { expect, test } from "../src/browser-test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { ApiSchema } from "../../../apps/web/src/api/types";
 
 const catalog = JSON.parse(readFileSync(resolve(__dirname, "../../../apps/web/src/api/schema.json"), "utf8")) as ApiSchema;
-const errors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
-  const observed: string[] = []; errors.set(page, observed);
-  page.on("pageerror", error => observed.push(error.message));
   await page.route(/analytics-ingress[^/]*\.bitmovin\.com/i, route => route.fulfill({ status: 204, headers: { "Access-Control-Allow-Origin": "*" } }));
   await page.goto("./");
   await page.getByRole("button", { name: "English", exact: true }).click();
   await page.locator(".api-explorer > summary").click();
   await expect(page.getByRole("searchbox", { name: "Search APIs" })).toBeVisible();
 });
-test.afterEach(({ page }) => { expect(errors.get(page)).toEqual([]); });
 
 async function selectApi(page: Page, category: string, id: string): Promise<void> {
   await page.getByRole("combobox", { name: "API category", exact: true }).selectOption(category);
