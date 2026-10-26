@@ -331,7 +331,7 @@ class GuideTests(unittest.TestCase):
                 'applied-code', 'ui-settings', 'external-displays'])
             figures = {b['file'] for b in web['blocks'] if b['type'] == 'figure'}
             self.assertTrue({'overview', 'custom-premiere', 'source-controls', 'config',
-                             'sdk-configuration', 'sdk-callback'}.issubset(figures))
+                             'web-sdk-differences', 'sdk-callback'}.issubset(figures))
             self.assertTrue(any(b['type'] == 'h3' for b in web['blocks']))
 
     def test_subheadings_are_escaped_and_keep_their_section_bookmarks(self):

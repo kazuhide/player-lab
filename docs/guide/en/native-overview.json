@@ -378,7 +378,7 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 105,
+      "line": 107,
       "label": "React Native preset load, editor recreation and applied reset"
     },
     {

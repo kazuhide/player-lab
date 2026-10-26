@@ -51,7 +51,7 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/1ce7b5d215ab3f6a8cca373591ee04dde1c5cabf/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/ce652a1e33add1993ebc0279c6d6f60f2e0060ff/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README：Expoホストの生成とビルド"
         }
       ]
@@ -101,10 +101,10 @@
       "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : { ...styles.player, height: workspace.previewHeight }}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 356,
-        "label": "App.tsx:356–363"
+        "line": 359,
+        "label": "App.tsx:359–366"
       },
-      "endLine": 363
+      "endLine": 366
     },
     {
       "type": "p",
@@ -224,10 +224,10 @@
       "text": "  useEffect(() => {\n    if (!viewReady || !active.current) return;\n    snapshots.current?.sourceChanged();\n    setDvr(null);\n    append(`load ${source.title || \"source\"}`);\n    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.\n    void loadOwnedSource(player, source).catch(() => { if (active.current) append(\"Source initialization failed; inspect source events or retry after the pending initializer settles.\"); });\n    observed.current?.sourceLoad();\n  }, [source, player, viewReady, append]);",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 324,
-        "label": "App.tsx:324–332"
+        "line": 327,
+        "label": "App.tsx:327–335"
       },
-      "endLine": 332
+      "endLine": 335
     },
     {
       "type": "p",
@@ -303,10 +303,10 @@
       "text": "          styleConfig: {\n            userInterfaceType: UserInterfaceType.Bitmovin,\n            playerUiJs: WEBUI_JS,\n            playerUiCss: WEBUI_CSS,\n            ...playerConfig.styleConfig,\n          },\n        }",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 250,
-        "label": "App.tsx:250–256"
+        "line": 253,
+        "label": "App.tsx:253–259"
       },
-      "endLine": 256
+      "endLine": 259
     },
     {
       "type": "code",
@@ -314,10 +314,10 @@
       "text": "  const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction || Object.keys(settings.view).length || Object.keys(settings.webUi).length\n    ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }\n    : undefined;",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 344,
-        "label": "App.tsx:344–346"
+        "line": 347,
+        "label": "App.tsx:347–349"
       },
-      "endLine": 346
+      "endLine": 349
     },
     {
       "type": "p",
@@ -558,10 +558,10 @@
       "text": "  const analyticsConfig = playerConfig.analyticsConfig ? {\n    ...playerConfig.analyticsConfig,\n    licenseKey: Object.prototype.hasOwnProperty.call(settings.draft.apiSettings ?? {}, \"PlayerConfig.analyticsConfig.licenseKey\")\n      ? playerConfig.analyticsConfig.licenseKey : ANALYTICS_LICENSE_KEY,\n  } : ANALYTICS_LICENSE_KEY ? { licenseKey: ANALYTICS_LICENSE_KEY } : undefined;",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 238,
-        "label": "App.tsx:238–242"
+        "line": 241,
+        "label": "App.tsx:241–245"
       },
-      "endLine": 242
+      "endLine": 245
     },
     {
       "type": "p",
@@ -609,7 +609,7 @@
   "sources": [
     {
       "path": "apps/react-native/App.tsx",
-      "line": 78,
+      "line": 79,
       "label": "App・Playerの再作成・ネイティブ表示"
     },
     {
