@@ -3,26 +3,46 @@
 Product versions describe Player Lab releases. Bitmovin SDK versions are tracked
 separately in the [API coverage guide](https://kazuhide.github.io/player-lab/guide/api-coverage/).
 
-## Unreleased
+## 0.1.5
 
-- Give Android, Apple and React Native apps direct setting selection, fixed Apply and Reset
-  actions, and separate workspaces for APIs, applied code, and additional tools.
-  Preserve drafts and the native player across navigation and layout changes.
-- Improve inputs with large text and the software keyboard, separate API calls
-  from observed SDK state, and update the English and Japanese native guides.
-- Replace the unavailable public Live HLS sample used by the apps.
-- Keep initial audio and subtitle preferences when changing Apple player themes
-  or reloading a source.
-- Add Japanese interface text to the native apps, preserving SDK identifiers,
-  source values and generated code.
-- Replace app screenshots with separate captures of the English and Japanese
-  interfaces, and show the matching language throughout the guide.
-- Keep React Native configuration navigation available after a handler factory
-  fails, and translate application input errors in Japanese mode.
-- Return focus from tvOS editors to the workspace tabs with Back/Menu, keeping
-  drafts and playback active while switching workspaces.
-- Open selected React Native settings and API inputs at the start of their
-  editor while retaining values and scroll positions during editing and tab changes.
+- Give Android, Apple and React Native apps direct setting selection, fixed Apply
+  and Reset actions, and separate Settings, APIs, Code and More workspaces.
+  Preserve drafts and the player across navigation and layout changes.
+- Improve large-text layouts, software-keyboard editing and TV remote focus,
+  including returning from tvOS editors with Back/Menu. Keep React Native
+  editors reachable after input or handler-factory errors.
+- Add English and Japanese native interface labels while preserving SDK
+  identifiers, source values, returned data and generated code.
+- Preserve Web setting drafts across search, selection and language changes.
+  Wait for SDK Apply results, retain failed drafts for correction, and compare
+  edits with the last successful Apply.
+- Show Before and After configuration comparisons on Web and React Native.
+  Mask sensitive comparison fields and generated configuration values, and
+  correct enum serialization in copied Web code.
+- Improve API search on Web, React Native and Vega with exact API-path and method
+  matches first. Make every Vega match reachable through result pages.
+- Add standalone integration examples checked against the pinned SDKs, with
+  platform setup and host-entry instructions in the English and Japanese guides.
+- Add collapsible guide navigation, simplify repeated instructions, and refresh
+  English and Japanese guides with captures of the matching app language.
+- Replace the unavailable public Live HLS sample. Keep initial Apple audio and
+  subtitle preferences when changing themes or reloading a source.
+- Harden SDK update checks, retain sanitized browser failure diagnostics, and
+  add a managed local preview workflow.
+- Rename the Android shared module from `:dvr` to `:playback` and the Apple Swift
+  package/module from `DvrKit` to `PlaybackCore`. Refresh generated projects and
+  native hosts using the platform READMEs. Bitmovin SDK version pins are unchanged.
+
+See the [release notes](docs/releases/0.1.5.md) for source checkout updates.
+
+## 0.1.4
+
+- Clarify Japanese descriptions of settings, UI customization, playback and
+  Analytics / Observability in the guides and project home page.
+- Preserve guide structure, examples, captures, API identifiers and feature
+  prerequisites. Player behavior and SDK versions are unchanged.
+
+See the [release notes](docs/releases/0.1.4.md).
 
 ## 0.1.3
 

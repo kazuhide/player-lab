@@ -1,6 +1,6 @@
 {
   "name": "@showcase/vega",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "description": "Vega OS / Fire TV build of the Bitmovin Player Playground — modular web player + Kepler UI",
   "scripts": {
