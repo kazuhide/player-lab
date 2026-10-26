@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Route } from "@playwright/test";
 
 const errors = new WeakMap<Page, string[]>();
 test.beforeEach(({ page }) => {
@@ -11,6 +11,29 @@ async function explorer(page: Page, id: string): Promise<void> {
   await page.locator(".api-explorer > summary").click();
   await page.getByRole("searchbox", { name: "Search APIs" }).fill(id);
   await page.getByRole("listbox", { name: "SDK entry", exact: true }).selectOption(id);
+}
+
+async function currentManifest(page: Page): Promise<string> {
+  await explorer(page, "SourceConfig.title");
+  await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("observation");
+  await page.getByRole("searchbox", { name: "Search APIs" }).fill("PlayerAPI.getSource");
+  await page.getByRole("listbox", { name: "SDK entry", exact: true }).selectOption("PlayerAPI.getSource");
+  await page.getByRole("button", { name: "Read state", exact: true }).click();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("SDK call completed.");
+  const source: unknown = JSON.parse((await page.locator(".api-result").textContent()) ?? "null");
+  if (!source || typeof source !== "object" || !("hls" in source) || typeof source.hls !== "string") {
+    throw new Error("The public HLS source must be loaded before the regression.");
+  }
+  return new URL(source.hls, page.url()).href;
+}
+
+async function detailedString(page: Page, id: string, value: string): Promise<void> {
+  await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("configuration");
+  await page.getByRole("searchbox", { name: "Search APIs" }).fill(id);
+  await page.getByRole("listbox", { name: "SDK entry", exact: true }).selectOption(id);
+  await page.locator(".api-explorer-form > .api-value > select").selectOption({ label: "string" });
+  await page.locator(".api-explorer-form input[type=text]").fill(value);
+  await page.getByRole("button", { name: "Apply setting", exact: true }).click();
 }
 
 test("search preserves a typed draft without applying it", async ({ page }) => {
@@ -240,6 +263,69 @@ test("a detailed Apply reconciles the same basic draft without leaving enabled A
   await read.click();
   await expect(page.locator(".api-explorer > [role=status]")).toHaveText("SDK call completed.");
   expect(manifestRequests).toBe(acceptedRequests);
+});
+
+for (const field of [
+  { name: "source", id: "SourceConfig.title", label: /^title/, band: ".config-band-dynamic",
+    value: "Retry external title", apply: "Reload the source to apply" },
+  { name: "player", id: "PlayerConfig.style.width", label: /^width/, band: ".config-band-static",
+    value: "99%", apply: "Recreate the player to apply" },
+]) test(`a failed detailed ${field.name} Apply keeps a matching basic draft and its accepted Before value`, async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  const master = await currentManifest(page);
+  const group = page.locator(`${field.band} .config-group`).filter({ has: page.locator(".config-field-label", { hasText: field.label }) });
+  if (await group.getAttribute("open") === null) await group.locator("summary").click();
+  const row = group.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: field.label }) });
+  const input = row.locator("input"); const before = await input.inputValue();
+  const difference = row.locator(".config-draft-status");
+  const apply = page.getByRole("button", { name: field.apply, exact: true });
+  const reset = page.locator(field.band).getByRole("button", { name: "Reset draft", exact: true });
+  await input.fill(field.value); await input.dispatchEvent("change");
+  const expected = `Before: ${before || "[not set]"} → After: ${field.value}`;
+  await expect(difference).toHaveText(expected);
+  let held: Route | undefined;
+  await page.route(master, route => { held = route; });
+  await detailedString(page, field.id, field.value);
+  await expect.poll(() => Boolean(held)).toBe(true);
+  await expect(difference).toBeVisible(); await expect(difference).toHaveText(expected);
+  await held!.fulfill({ status: 200, contentType: "application/vnd.apple.mpegurl", body: "invalid HLS manifest" });
+  await expect(page.locator(".api-explorer > [role=status]")).toContainText("1202:");
+  await expect(input).toHaveValue(field.value);
+  await expect(difference).toBeVisible(); await expect(difference).toHaveText(expected);
+  await expect(apply).toBeEnabled(); await expect(reset).toBeEnabled();
+  await page.unroute(master);
+  await apply.click();
+  await expect(page.locator(`${field.band} [role=status]`)).toHaveText("Applied.");
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  await expect(input).toHaveValue(field.value);
+  await expect(difference).toBeHidden();
+  await expect(apply).toBeDisabled(); await expect(reset).toBeDisabled();
+});
+
+test("a pending detailed source Apply cannot advance the basic baseline through a runtime refresh", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  const master = await currentManifest(page);
+  const row = page.locator("#config-panel .config-field").filter({ has: page.locator(".config-field-label", { hasText: /^title/ }) });
+  const input = row.locator("input"); const before = await input.inputValue();
+  await input.fill("Pending external title"); await input.dispatchEvent("change");
+  let held: Route | undefined;
+  await page.route(master, route => { held = route; });
+  await detailedString(page, "SourceConfig.title", "Pending external title");
+  await expect.poll(() => Boolean(held)).toBe(true);
+  const volume = page.locator(".config-band-dynamic .config-field").filter({ has: page.locator(".config-field-label", { hasText: /^volume \(0/ }) }).locator("input");
+  const oldVolume = await volume.inputValue();
+  await volume.fill("37"); await volume.dispatchEvent("change");
+  await expect(row.locator(".config-draft-status")).toHaveText(`Before: ${before || "[not set]"} → After: Pending external title`);
+  await expect(page.getByRole("button", { name: "Reload the source to apply", exact: true })).toBeEnabled();
+  await held!.continue();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("Configuration submitted.");
+  await expect(row.locator(".config-draft-status")).toBeHidden();
+  await expect(page.getByRole("button", { name: "Reload the source to apply", exact: true })).toBeDisabled();
+  await volume.fill(oldVolume); await volume.dispatchEvent("change");
 });
 
 test("draft status remains readable at narrow and desktop widths", async ({ page }) => {

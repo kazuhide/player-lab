@@ -32,6 +32,8 @@ export type DeepPartial<T> = { [K in keyof T]?: (T[K] extends object ? DeepParti
 export interface ConfigPanelOptions {
   /** The live player, for ⚡ runtime calls. May be undefined mid-rebuild. */
   getPlayer: () => PlayerAPI | undefined;
+  /** Last accepted creation config. An installed getter may be empty before the first accepted build. */
+  getPlayerConfig?: () => PlayerConfig | undefined;
   /** The source with its applied overrides, also available while the player rebuilds. */
   getSource: () => SourceConfig;
   /** Only the app's applied UI overrides, never license or account configuration. */
@@ -206,7 +208,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   }
 
   const readPlayer = (path: string): unknown => configValue(
-    options.getPlayer()?.getConfig(false),
+    options.getPlayerConfig ? options.getPlayerConfig() : options.getPlayer()?.getConfig(false),
     path.startsWith("adaptation.") ? path.replace("adaptation.", "adaptation.desktop.") : path,
   );
   const readRuntime = (key: string): unknown => {

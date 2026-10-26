@@ -468,7 +468,7 @@
     },
     {
       "type": "p",
-      "text": "Settings marked Reload or Recreate stay in the draft until Apply. Changed fields show Before and After; returning to the applied value clears the difference. Reset draft discards pending edits in that group. Apply waits for the SDK call to complete. If the call fails, correct the retained draft and try again."
+      "text": "Settings marked Reload or Recreate stay in the draft until Apply. Before shows the last successful Apply result; After shows the draft. Returning to the applied value clears the difference. Reset draft discards pending edits in that group. Apply waits for the SDK call to complete. If the call fails, correct the retained draft and try again."
     },
     {
       "type": "figure",
