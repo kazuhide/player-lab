@@ -55,6 +55,7 @@ export default function MinimalPlayer() {
       removePolyfills: removeVegaPolyfills,
       createPlayer: () => createVegaPlayer({
         key: "YOUR_PLAYER_KEY", playback: { autoplay: true, muted: true },
+        tweaks: { app_id: "com.playerlab.vega" },
       }),
       observePlayer: (player, isActive) => {
         const onError = (event: ErrorEvent) => {
