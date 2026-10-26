@@ -117,6 +117,32 @@ afterEach(async () => {
 });
 
 describe("Vega configuration in the mounted App and media session", () => {
+  it("finds a short exact method before Player namespace substring matches", async () => {
+    await mount(); await action("Show SDK API experiments");
+    await text("Filter Vega API operations", "play");
+    const matches = screen.root.findAll(node => String(node.type) === "Pressable" && /^PlayerAPI\./.test(String(node.props.accessibilityLabel)));
+    expect(matches[0]?.props.accessibilityLabel).toBe("PlayerAPI.play");
+    await text("Filter Vega API operations", "音量");
+    expect(button("PlayerAPI.setVolume")).toBeDefined();
+  });
+
+  it("makes every operation reachable in bounded focusable result pages", async () => {
+    const { catalog } = await import("../src/api/catalog");
+    const expected = catalog.rows.filter(entry => entry.category === "command" || entry.category === "observation").map(entry => entry.id);
+    await mount(); await action("Show SDK API experiments");
+    const found = new Set<string>();
+    for (let page = 0; page < Math.ceil(expected.length / 12); page++) {
+      const matches = screen.root.findAll(node => String(node.type) === "Pressable" && /^PlayerAPI\./.test(String(node.props.accessibilityLabel)));
+      expect(matches.length).toBeLessThanOrEqual(12);
+      matches.forEach(node => found.add(node.props.accessibilityLabel));
+      const next = button("Next results");
+      expect(next?.props.focusable).toBe(true);
+      if (page < Math.ceil(expected.length / 12) - 1) await action("Next results");
+    }
+    expect([...found].sort()).toEqual(expected.sort());
+    await text("Filter Vega API operations", "no-such-operation");
+    expect(screen.root.findAll(node => String(node.type) === "Text" && node.props.children === "No matching items.")).toHaveLength(1);
+  });
   it("changes application language while retaining the native owner, draft, code and API result", async () => {
     await mount(); await press("Show configuration");
     await text("Source title", "Unapplied user title"); await press("Show applied code");

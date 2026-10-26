@@ -8,6 +8,7 @@ import { NativeArraysPanel } from "./NativeArraysPanel";
 import { NativeScriptsPanel } from "./NativeScriptsPanel";
 import { CastHostPanel } from "./CastHostPanel";
 import { panelStyles as styles } from "./panelStyles";
+import type { ConfigurationDifference } from "./differenceValues";
 
 interface Props {
   draft: ConfigurationDraft;
@@ -15,6 +16,7 @@ interface Props {
   onApply: () => void;
   onReset: () => void;
   changed: boolean;
+  differences: readonly ConfigurationDifference[];
   error: string | null;
   platform: NativePlatform;
   appliedCode: string;
@@ -24,7 +26,7 @@ interface Props {
 }
 
 /** Creation-time settings stay in the draft until Apply. Existing playback controls remain separate. */
-export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed, error, platform, sourceEditRequest = 0, keyboardVisible = false, compactEditing = false }: Props): React.JSX.Element {
+export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed, differences, error, platform, sourceEditRequest = 0, keyboardVisible = false, compactEditing = false }: Props): React.JSX.Element {
   const [group, setGroup] = useState("source");
   const [sourceField, setSourceField] = useState("url");
   const [playerField, setPlayerField] = useState("autoplay");
@@ -49,6 +51,12 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
     { id: "timeline", label: "Start offset reference" }];
   const playerFields = [{ id: "autoplay", label: "Autoplay" }, { id: "muted", label: "Mute on startup" },
     { id: "forwardDuration", label: "Forward buffer (seconds)" }, { id: "maxBitrate", label: "Maximum bitrate (bits per second)" }];
+  const differenceLabel = (path: string) => [...sourceFields, ...playerFields].find(field => field.id === path)?.label
+    ?? (path === "scripts.allowed" ? "Allow edited JavaScript execution" : path
+      .replace(/^apiSettings\.|^scripts\.bodies\./, "")
+      .replace(/^arraySettings\.subtitles/, "SourceConfig.subtitleTracks")
+      .replace(/^arraySettings\.offlineSubtitles/, "OfflineContentConfig.sourceConfig.subtitleTracks")
+      .replace(/^arraySettings\.ads/, "PlayerConfig.advertisingConfig.schedule").replace(/\.(\d+)(?=\.|$)/g, "[$1]"));
   const update = <K extends keyof ConfigurationDraft>(key: K, value: ConfigurationDraft[K]) => onChange({ ...draft, [key]: value });
   const field = (label: string, key: "url" | "title" | "poster" | "startOffset" | "forwardDuration" | "maxBitrate" | "subtitleUrl" | "subtitleLabel" | "subtitleLanguage", numeric = false) => (
     <View key={key} style={styles.field}>
@@ -126,6 +134,17 @@ export function ConfigurationPanel({ draft, onChange, onApply, onReset, changed,
       <WorkspacePage active={group === "cast"}><CastHostPanel values={draft.apiSettings ?? {}} /></WorkspacePage>
       <WorkspacePage active={group === "arrays"}><NativeArraysPanel values={draft.arraySettings ?? {}} onChange={(arraySettings) => onChange({ ...draft, arraySettings })} /></WorkspacePage>
       <WorkspacePage active={group === "callbacks"}><NativeScriptsPanel value={draft.scripts ?? { allowed: false, bodies: {} }} onChange={(scripts) => onChange({ ...draft, scripts })} /></WorkspacePage>
+      {!compactEditing && differences.length > 0 && <View testID="configuration-differences" style={styles.panel}>
+        <Text style={styles.label}>Changes</Text>
+        {differences.map(change => <View key={change.path} testID={`configuration-difference-${change.path}`} style={styles.field}>
+          <View style={styles.row}>
+            <Text style={styles.badge}>{change.kind === "added" ? "Added" : change.kind === "removed" ? "Removed" : "Changed"}</Text>
+            <Text style={[styles.label, { flexShrink: 1, maxWidth: "100%" }]}>{differenceLabel(change.path)}</Text>
+          </View>
+          <Text style={styles.help}>Before</Text><Text verbatim selectable style={styles.mono}>{change.before}</Text>
+          <Text style={styles.help}>After</Text><Text verbatim selectable style={styles.mono}>{change.after}</Text>
+        </View>)}
+      </View>}
       </ScrollView>
       <View testID="configuration-actions" style={{ gap: 8, padding: compactEditing ? 8 : 12, backgroundColor: "#edf3fb", borderTopWidth: 1, borderColor: "#d6deeb" }}>
         {error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}

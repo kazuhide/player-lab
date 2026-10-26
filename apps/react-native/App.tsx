@@ -32,6 +32,7 @@ import type { TimelineState } from "./src/playback/state";
 import { SnapshotController } from "./src/playback/snapshotController";
 import { SOURCES, type ShowcaseSource } from "./src/sources";
 import { ConfigurationPanel } from "./src/ConfigurationPanel";
+import { draftDifferences } from "./src/configurationDifferences";
 import { panelStyles } from "./src/panelStyles";
 import { configurationCode } from "./src/configurationCode";
 import { initialDraft, parseConfiguration, presetDraft, sameConfiguration, supportsSource, type Configuration } from "./src/configuration";
@@ -93,6 +94,7 @@ function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | unde
   // Keep the complete applied source and control state outside the keyed player owner.
   const [applied, setApplied] = useState(() => parseConfiguration(initialDraft(sources[0]!), platform));
   const [draft, setDraft] = useState(applied.draft);
+  const differences = useMemo(() => draftDifferences(applied.draft, draft), [applied.draft, draft]);
   const [revision, setRevision] = useState(0);
   const recreate = useCallback(() => setRevision((value) => value + 1), []);
   const [error, setError] = useState<string | null>(null);
@@ -168,7 +170,8 @@ function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | unde
     </View>,
   };
   return (
-    <KeyboardAvoidingView testID="player-lab-screen" style={styles.safeArea} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={hostFrame.y}>
+    // Padding follows the current frame; height avoidance retains its first frame across rotation.
+    <KeyboardAvoidingView testID="player-lab-screen" style={styles.safeArea} behavior="padding" keyboardVerticalOffset={hostFrame.y}>
     <StatusBar barStyle="dark-content" />
     <SafeAreaView edges={keyboardVisible ? ["top", "left", "right"] : ["top", "right", "bottom", "left"]}
       style={[styles.container, workspace.wide && (tab === "settings" || tab === "code") && styles.horizontal]}>
@@ -178,7 +181,7 @@ function LocalizedApp({ runtimeChecks }: { runtimeChecks?: RuntimeMonitor | unde
       <WorkspacePage active={tab === "settings"} testID="workspace-settings">
       <ConfigurationPanel draft={draft} onChange={setDraft} onApply={apply}
         onReset={() => { setDraft(applied.draft); setError(null); }}
-        changed={JSON.stringify(draft) !== JSON.stringify(applied.draft)} error={error} platform={platform} appliedCode={appliedCode} sourceEditRequest={sourceEditRequest} keyboardVisible={editing} compactEditing={compactEditing} />
+        changed={differences.length > 0} differences={differences} error={error} platform={platform} appliedCode={appliedCode} sourceEditRequest={sourceEditRequest} keyboardVisible={editing} compactEditing={compactEditing} />
       </WorkspacePage>
       <WorkspacePage active={tab === "code"} testID="workspace-code">
         <ScrollView contentContainerStyle={styles.editorContent} keyboardShouldPersistTaps="handled">

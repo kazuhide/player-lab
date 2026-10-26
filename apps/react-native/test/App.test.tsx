@@ -232,6 +232,60 @@ async function mount() {
 }
 
 describe("React Native configuration in the mounted App", () => {
+  it("shows field differences, clears reverted edits, and retains differences after validation failure", async () => {
+    await mount(); await ready();
+    await basicField("source", "title");
+    const original = input("Source title").props.value;
+    await text("Source title", "Edited title");
+    expect(element("View", { testID: "configuration-difference-title" })).toBeDefined();
+    await text("Source title", original);
+    expect(element("View", { testID: "configuration-difference-title" })).toBeUndefined();
+    await text("Source title", "Applied title");
+    await tap("configuration-apply"); await ready();
+    await settingsGroup("player");
+    await text("Forward buffer (seconds)", "invalid");
+    await tap("configuration-apply");
+    expect(element("View", { testID: "configuration-difference-forwardDuration" })).toBeDefined();
+    await tap("configuration-reset");
+    expect(element("View", { testID: "configuration-difference-forwardDuration" })).toBeUndefined();
+    for (let parent = element("View", { testID: "configuration-actions" }).parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("ScrollView");
+  });
+
+  it("indicates changed secret values with redacted before and after values and clears an exact revert", async () => {
+    const id = "PlayerConfig.analyticsConfig.licenseKey";
+    const testID = `configuration-difference-apiSettings.${id}`;
+    await mount(); await ready();
+    await text("Filter configuration APIs", id); await press(id); await press("Set this API value");
+    await text(`Value for ${id}`, "first-private-value");
+    await tap("configuration-apply"); await ready();
+    await text(`Value for ${id}`, "second-private-value");
+    const row = element("View", { testID });
+    expect(row).toBeDefined();
+    const values = row.findAll(node => String(node.type) === "Text").map(node => node.props.children);
+    expect(values.filter(value => value === "[redacted]")).toHaveLength(2);
+    expect(JSON.stringify(values)).not.toContain("first-private-value");
+    expect(JSON.stringify(values)).not.toContain("second-private-value");
+    await text(`Value for ${id}`, "first-private-value");
+    expect(element("View", { testID })).toBeUndefined();
+    expect(element("Pressable", { testID: "configuration-apply" }).props.disabled).toBe(true);
+  });
+
+  it("shows added and removed overrides and clears a removal that reverts an unapplied addition", async () => {
+    const id = "SourceConfig.description";
+    const testID = `configuration-difference-apiSettings.${id}`;
+    await mount(); await ready();
+    await text("Filter configuration APIs", id); await press(id); await press("Set this API value");
+    expect(element("View", { testID }).findAll(node => String(node.type) === "Text").map(node => node.props.children)).toContain("Added");
+    await press("Remove this API override");
+    expect(element("View", { testID })).toBeUndefined();
+    expect(element("Pressable", { testID: "configuration-apply" }).props.disabled).toBe(true);
+    await press("Set this API value"); await text(`Value for ${id}`, "Applied description");
+    await tap("configuration-apply"); await ready();
+    await press("Remove this API override");
+    expect(element("View", { testID }).findAll(node => String(node.type) === "Text").map(node => node.props.children)).toContain("Removed");
+    await tap("configuration-reset");
+    expect(element("View", { testID })).toBeUndefined();
+  });
 
   it.each(["android", "ios"])("keeps the %s compact input revealed after keyboard viewport and content changes", async os => {
     runtime.os = os;
@@ -527,7 +581,7 @@ return { isFullscreenActive: false, enterFullscreen() {}, exitFullscreen() {} };
     runtime.hostTop = os === "ios" ? 62 : 24;
     await mount(); await ready();
     expect(element("StatusBar")?.props.barStyle).toBe("dark-content");
-    expect(element("KeyboardAvoidingView", { testID: "player-lab-screen" }).props.behavior).toBe(os === "ios" ? "padding" : "height");
+    expect(element("KeyboardAvoidingView", { testID: "player-lab-screen" }).props.behavior).toBe("padding");
     const screenAvoidance = element("KeyboardAvoidingView", { testID: "player-lab-screen" });
     expect(screenAvoidance.props.keyboardVerticalOffset).toBe(runtime.hostTop);
     for (let parent = screenAvoidance.parent; parent; parent = parent.parent) expect(String(parent.type)).not.toBe("SafeAreaView");

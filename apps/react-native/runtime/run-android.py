@@ -84,6 +84,28 @@ class Ui:
                 return match
         return None
 
+    def assert_configuration_footer(self, tree):
+        """Fixed actions must fit above the IME without scrolling the editor."""
+        window = next(tree.iter("node"), None)
+        viewport = self.bounds(window) if window is not None else ()
+        if len(viewport) == 4:
+            viewport = (*viewport[:3], min(viewport[3], getattr(self, "bottom", viewport[3])))
+        ids = ("configuration-actions", "configuration-reset", "configuration-apply")
+        controls = {identifier: next((node for node in tree.iter("node")
+            if node.get("resource-id", "").endswith(identifier)), None) for identifier in ids}
+        for node in controls.values():
+            box = self.bounds(node) if node is not None else ()
+            if len(viewport) != 4 or len(box) != 4 or not (viewport[0] <= box[0] < box[2] <= viewport[2]
+                    and viewport[1] <= box[1] < box[3] <= viewport[3] and box[3] - box[1] >= 40):
+                raise RuntimeError("The fixed configuration actions are missing or clipped")
+        scroll = next((node for node in tree.iter("node")
+            if node.get("resource-id", "").endswith("configuration-fields-scroll")), None)
+        scroll_box = self.bounds(scroll) if scroll is not None else ()
+        moves_with_editor = scroll is not None and any(node in controls.values() for node in scroll.iter("node"))
+        if (len(scroll_box) != 4 or moves_with_editor
+                or scroll_box[3] > self.bounds(controls["configuration-actions"])[1] + 1):
+            raise RuntimeError("The fixed configuration actions overlap or scroll with the editor")
+
     def tap(self, node):
         left, top, right, bottom = self.bounds(node)
         self.adb("shell", "input", "tap", str((left + right) // 2), str((top + bottom) // 2))
@@ -293,6 +315,7 @@ def main():
         ui.edit("Source title", "Unapplied runtime draft"); ui.button("Reset draft")
         if ui.reveal("Source title").get("text") != original:
             raise RuntimeError("Reset did not restore the applied draft")
+        ui.assert_configuration_footer(ui.tree())
         phase("edit-configuration")
         ui.edit("Source URL", args.media_url)
         hls = ui.reveal("HLS")
@@ -315,6 +338,7 @@ def main():
         ui.button("Check copied code")
         ui.wait_report(lambda v: v["code"]["clipboardMatches"] is True)
         ui.edit("Source title", "Unapplied code draft"); ui.button("Reset draft")
+        ui.assert_configuration_footer(ui.tree())
         if ui.report()["owner"]["generation"] != old:
             raise RuntimeError("Draft or clipboard unexpectedly replaced the owner")
         ui.button("Hide configuration"); ui.switch("Allow DVR", False); ui.button("Sports")

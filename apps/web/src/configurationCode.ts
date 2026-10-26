@@ -1,20 +1,23 @@
+import { copiedConfigurationString } from "../../../shared/configurationDifferences";
+
 /** Format data as JavaScript without losing infinite SDK limits or executing strings. */
-export function javascriptValue(value: unknown, depth = 0): string {
+export function javascriptValue(value: unknown, depth = 0, path: string[] = []): string {
   if (depth > 32) throw new Error("Configuration nesting is too deep.");
   if (value === null) return "null";
   if (typeof value === "number") {
     if (Number.isNaN(value)) throw new Error("NaN is not a configuration value.");
     return String(value);
   }
-  if (typeof value === "boolean" || typeof value === "string") return JSON.stringify(value);
+  if (typeof value === "string") return JSON.stringify(copiedConfigurationString(value, path));
+  if (typeof value === "boolean") return JSON.stringify(value);
   const indent = "  ".repeat(depth);
   const child = `${indent}  `;
   if (Array.isArray(value)) {
-    return value.length ? `[\n${value.map((item) => child + javascriptValue(item, depth + 1)).join(",\n")}\n${indent}]` : "[]";
+    return value.length ? `[\n${value.map((item) => child + javascriptValue(item, depth + 1, path)).join(",\n")}\n${indent}]` : "[]";
   }
   if (typeof value === "object") {
     const entries = Object.entries(value).filter(([, item]) => item !== undefined && typeof item !== "function");
-    return entries.length ? `{\n${entries.map(([key, item]) => `${child}${JSON.stringify(key)}: ${javascriptValue(item, depth + 1)}`).join(",\n")}\n${indent}}` : "{}";
+    return entries.length ? `{\n${entries.map(([key, item]) => `${child}${JSON.stringify(key)}: ${javascriptValue(item, depth + 1, [...path, key])}`).join(",\n")}\n${indent}}` : "{}";
   }
   throw new Error("Only configuration data can be exported.");
 }

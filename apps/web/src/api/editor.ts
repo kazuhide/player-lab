@@ -6,6 +6,20 @@ import { safeKey } from "./values";
 export interface ValueEditor { element: HTMLElement; read: () => unknown; relocalize?: () => void; refresh?: () => void }
 export interface EditorResources { list: (schema: InputSchema) => { id: string; label: string }[] }
 
+/** Describe editor input data without constructing or invoking SDK values. */
+export function editorComparisonValue(value: unknown): unknown {
+  if (value instanceof CallbackInput) return { callback: value.body, approved: value.approved, signature: value.signature };
+  if (value instanceof FactoryInput) return { factory: value.name, args: value.args.map(editorComparisonValue), overload: value.overload, restIndex: value.restIndex };
+  if (value instanceof ResourceInput) return { resource: value.id };
+  if (value instanceof BinaryInput) return { binary: value.text, encoding: value.encoding, name: value.name };
+  if (value instanceof ElementInput) return { element: value.tag };
+  if (Array.isArray(value)) return value.map(editorComparisonValue);
+  if (value && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype) {
+    return Object.fromEntries(Object.entries(value).map(([name, item]) => [name, editorComparisonValue(item)]));
+  }
+  return value;
+}
+
 function option(value: string, text: string): HTMLOptionElement {
   const element = document.createElement("option");
   element.value = value;

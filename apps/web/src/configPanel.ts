@@ -19,6 +19,7 @@
 import type { PlayerAPI, PlayerConfig, SourceConfig, DynamicAdaptationConfig } from "bitmovin-player";
 import { pick, userGuideHref, type L } from "./i18n";
 import { DomLocalization } from "./domLocalization";
+import { configurationValueText, redactConfigurationText, sameConfigurationValue } from "../../../shared/configurationDifferences";
 import { FIELD_DOC } from "./configDocs";
 import { infoChip } from "./infoChip";
 import { applyErrorMessage, configValue, type ApplyOutcome } from "./configState";
@@ -156,6 +157,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   let applyReloadBtn: HTMLButtonElement | undefined;
   let pending = false;
   const outcomes = new Map<Mode, { state: "pending" | "success" | "error" | "superseded"; error?: string }>();
+  const failedOwners = new Map<Mode, { player: PlayerAPI | undefined; source: SourceConfig }>();
   const statuses = new Map<Mode, HTMLElement>();
   const resetButtons = new Map<Mode, HTMLButtonElement>();
   const resetters = new Map<FieldDef, () => void>();
@@ -783,6 +785,21 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     error.id = `config-error-${fieldId++}`;
     error.setAttribute("role", "alert");
     error.hidden = true;
+    const difference = document.createElement("span");
+    difference.className = "config-draft-status";
+    const fieldValue = (raw: unknown): unknown => def.kind === "bool" ? Boolean(raw)
+      : raw === "" || raw === undefined ? undefined : def.kind === "number" ? Number(raw) : String(raw);
+    let appliedValue: unknown = fieldValue(def.initial);
+    const renderDifference = () => {
+      const after = fieldValue(rawValues.get(def));
+      const draft = staged.has(def) && (invalid.has(def) || !sameConfigurationValue(appliedValue, after));
+      row.classList.toggle("is-dirty", draft);
+      difference.hidden = !draft;
+      difference.textContent = pick({ ja: "適用済み: ", en: "Before: " }) + configurationValueText(appliedValue, def.configPath ?? def.label)
+        + pick({ ja: " → 編集後: ", en: " → After: " }) + (invalid.has(def)
+          ? pick({ ja: "入力が未完了です。", en: "Incomplete input." }) : configurationValueText(after, def.configPath ?? def.label));
+    };
+    labels.bind(renderDifference);
 
     let input: HTMLInputElement | HTMLSelectElement;
     if (def.kind === "bool") {
@@ -816,10 +833,16 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       input = inp;
     }
     function sync(force = false): void {
-      if (staged.has(def) || !force && document.activeElement === input) return;
       let applied: unknown;
-      try { applied = def.read?.(); } catch { /* Runtime APIs can be unavailable before a source loads. */ }
+      const failed = failedOwners.get(mode);
+      const retain = failed && failed.player === options.getPlayer() && (mode !== "reload" || failed.source === options.getSource());
+      if (failed && !retain) failedOwners.delete(mode);
+      try { applied = retain || mode === "recreate" && !options.getPlayer() ? appliedValue : def.read?.(); }
+      catch { /* Runtime APIs can be unavailable before a source loads. */ }
       const value = applied ?? def.initial;
+      if (!pending) appliedValue = fieldValue(value);
+      renderDifference();
+      if (staged.has(def) || !force && document.activeElement === input) return;
       if (input instanceof HTMLInputElement && input.type === "checkbox") input.checked = Boolean(value);
       else input.value = typeof value === "number" && !Number.isFinite(value) ? "" : String(value);
     }
@@ -835,6 +858,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         ? pick({ ja: "有効な数値を入力してください。", en: "Enter a valid number." }) : undefined);
       if (message) {
         invalid.set(def, mode);
+        renderDifference();
         input.setAttribute("aria-invalid", "true");
         input.setAttribute("aria-describedby", error.id);
         error.textContent = message;
@@ -843,10 +867,17 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
         return;
       }
       invalid.delete(def);
+      renderDifference();
       input.removeAttribute("aria-invalid");
       input.removeAttribute("aria-describedby");
       error.textContent = "";
       error.hidden = true;
+      if (mode !== "runtime" && !pending && sameConfigurationValue(appliedValue, fieldValue(value))) {
+        staged.delete(def); rawValues.delete(def);
+        rebuildDraft(mode);
+        renderDifference(); refreshButtons();
+        return;
+      }
       def.apply(value);
       if (mode === "runtime") sync();
       refreshButtons();
@@ -860,6 +891,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     sync();
     row.appendChild(input);
     if (def.validate || def.kind === "number") row.appendChild(error);
+    if (mode !== "runtime") row.appendChild(difference);
     labels.bind(() => {
       if (invalid.has(def)) error.textContent = def.validate?.(rawValues.get(def)!) ?? pick({ ja: "有効な数値を入力してください。", en: "Enter a valid number." });
     });
@@ -926,6 +958,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       const outcome = mode === "reload" ? await options.onReload(structuredClone(sourceOverrides))
         : await options.onRecreate(structuredClone(playerOverrides));
       if (outcome === "applied") {
+        failedOwners.delete(mode);
         for (const [field, revision] of submitted) if (revisions.get(field) === revision) {
           staged.delete(field); rawValues.delete(field);
         }
@@ -933,7 +966,8 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       }
       outcomes.set(mode, { state: outcome === "applied" ? "success" : "superseded" });
     } catch (error) {
-      outcomes.set(mode, { state: "error", error: applyErrorMessage(error) });
+      failedOwners.set(mode, { player: options.getPlayer(), source: options.getSource() });
+      outcomes.set(mode, { state: "error", error: redactConfigurationText(applyErrorMessage(error)) });
     } finally {
       pending = false;
       readers.forEach(read => read());

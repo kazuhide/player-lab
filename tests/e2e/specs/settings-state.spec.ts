@@ -85,13 +85,15 @@ test("a rejected detailed Apply retains its draft and reports one failed attempt
   expect(await page.evaluate(() => window.settingsFixture.submissions.length)).toBe(1);
 });
 
-test("the original panel resets unapplied edits explicitly", async ({ page }) => {
+test("the original panel identifies unapplied fields and resets them explicitly", async ({ page }) => {
   await page.goto("/settings-fixture.html");
   const row = page.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: /^title/ }) });
   await row.locator("input").fill("Unapplied value");
   await row.locator("input").dispatchEvent("change");
+  await expect(row.locator(".config-draft-status")).toHaveText("Before: Applied title → After: Unapplied value");
   await page.locator(".config-band-dynamic").getByRole("button", { name: "Reset draft", exact: true }).click();
   await expect(row.locator("input")).toHaveValue("Applied title");
+  await expect(row.locator(".config-draft-status")).toBeHidden();
   expect(await page.evaluate(() => window.settingsFixture.submissions)).toEqual([]);
 });
 
@@ -107,6 +109,7 @@ test("edits during Apply remain drafts and cannot submit a second concurrent req
   await page.evaluate(() => window.settingsFixture.resolve());
   await expect(input).toHaveValue("New draft");
   await expect(apply).toBeEnabled();
+  await expect(page.locator(".config-draft-status:visible")).toHaveText("Before: Submitted title → After: New draft");
   await apply.click();
   expect(await page.evaluate(() => window.settingsFixture.submissions[1]?.value)).toEqual({ title: "New draft" });
 });
@@ -123,6 +126,7 @@ test("old owner completions preserve current edits and report superseded Apply",
   await page.evaluate(() => window.settingsFixture.reject());
   await expect(page.locator(".api-explorer > [role=status]")).toHaveText("The player or source changed. Apply again.");
   await expect(input).toHaveValue("Current draft");
+  await expect(page.locator(".api-draft-status")).toContainText("After: Current draft");
   await expect(page.getByRole("button", { name: "Apply setting", exact: true })).toBeEnabled();
   expect(await page.evaluate(() => window.settingsFixture.submissions)).toHaveLength(1);
 });
@@ -170,13 +174,16 @@ test("actual SDK load errors reach both original Apply bands", async ({ page }) 
   const style = page.locator(".config-band-static .config-group").filter({ has: page.locator(".config-field-label", { hasText: /^width/ }) });
   await style.locator("summary").click();
   const width = style.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: /^width/ }) }).locator("input");
+  const previousWidth = await width.inputValue();
   await width.fill("99%"); await width.dispatchEvent("change");
   await page.getByRole("button", { name: "Recreate the player to apply", exact: true }).click();
   await expect(page.locator(".config-band-static [role=status]")).toContainText("Could not apply settings.");
   await expect(width).toHaveValue("99%");
+  await expect(width.locator("..").locator(".config-draft-status")).toBeVisible();
+  await expect(width.locator("..").locator(".config-draft-status")).toHaveText(`Before: ${previousWidth || "[not set]"} → After: 99%`);
 });
 
-test("settings actions fit narrow and desktop widths", async ({ page }) => {
+test("draft status remains readable at narrow and desktop widths", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "English", exact: true }).click();
   const row = page.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: /^title/ }) });
@@ -185,7 +192,7 @@ test("settings actions fit narrow and desktop widths", async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await row.scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-    await expect(row.locator("input")).toBeVisible();
+    await expect(row.locator(".config-draft-status")).toBeVisible();
     await page.screenshot({ path: test.info().outputPath(`settings-draft-${width}.png`) });
   }
 });
@@ -198,6 +205,12 @@ test("invalid native number input survives localization until Reset", async ({ p
   await input.click(); await input.pressSequentially("-");
   await expect(input).toHaveAttribute("aria-invalid", "true");
   expect(await input.evaluate(element => element instanceof HTMLInputElement && element.validity.badInput)).toBe(true);
+  const difference = input.locator("..").locator(".config-draft-status");
+  await expect(difference).toContainText("After: Incomplete input.");
+  await input.fill("123");
+  await expect(input).not.toHaveAttribute("aria-invalid");
+  await expect(difference).toContainText("After: 123");
+  await input.fill(""); await input.pressSequentially("-");
   await page.evaluate(() => window.settingsFixture.language("ja"));
   await expect(input).toHaveAttribute("aria-invalid", "true");
   expect(await input.evaluate(element => element instanceof HTMLInputElement && element.validity.badInput)).toBe(true);
@@ -207,7 +220,7 @@ test("invalid native number input survives localization until Reset", async ({ p
   expect(await page.evaluate(() => window.settingsFixture.submissions)).toEqual([]);
 });
 
-test("detailed edits during Apply remain available for Reset and retry", async ({ page }) => {
+test("detailed edits during Apply retain their draft and applied field values", async ({ page }) => {
   await page.goto("/settings-fixture.html");
   await explorer(page, "SourceConfig.title");
   await page.locator(".api-explorer-form > .api-value > select").selectOption({ label: "string" });
@@ -219,6 +232,7 @@ test("detailed edits during Apply remain available for Reset and retry", async (
   await apply.dispatchEvent("click");
   expect(await page.evaluate(() => window.settingsFixture.submissions)).toHaveLength(1);
   await page.evaluate(() => window.settingsFixture.resolve());
+  await expect(page.locator(".api-draft-status")).toHaveText("Before: Submitted title → After: Still a draft");
   await expect(input).toHaveValue("Still a draft");
   await page.locator(".api-explorer-form").getByRole("button", { name: "Reset draft", exact: true }).click();
   await expect(page.locator(".api-explorer-form > .api-value > select option:checked")).toHaveText("undefined");

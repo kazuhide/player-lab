@@ -1,5 +1,8 @@
 /** Japanese application copy. SDK identifiers and values keep their published spelling. */
 export const japaneseCopy: Record<string, string> = {
+  "Previous results": "前の結果",
+  "Next results": "次の結果",
+  "No matching items.": "該当する項目がありません。",
   "Language": "表示言語",
   "Live DASH + DVR": "ライブDASH",
   "Live HLS": "ライブHLS",

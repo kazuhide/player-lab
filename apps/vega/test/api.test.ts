@@ -137,6 +137,18 @@ describe("Vega typed API dispatch and session ownership", () => {
 });
 
 describe("Vega applied configuration values and callbacks", () => {
+  it("redacts copied URL credentials and header strings without changing live input or callback text", () => {
+    const value = { url: "https://user:pass@example.test/master.m3u8?token=private-token&quality=hd", headers: { "X-Session": "private-header" } };
+    const copied = inputCode(value);
+    for (const secret of ["user:pass", "private-token", "private-header"]) expect(copied).not.toContain(secret);
+    expect(copied).toContain("quality=hd");
+    expect(value.headers["X-Session"]).toBe("private-header");
+    expect(value.url).toContain("private-token");
+    expect(inputCode("https://example.test/master.m3u8?quality=hd")).toBe('"https://example.test/master.m3u8?quality=hd"');
+    const body = 'return "https://example.test/a?token=program-data";';
+    expect(inputCode(new CallbackInput(body, callbackSignature("PlayerConfig.network.preprocessHttpRequest"), true, true))).toContain(body);
+    expect(JSON.parse(inputCode(body))).toBe(body);
+  });
   it("materializes numbers, lists, dictionaries, structured DRM settings and bytes as actual SDK input values", () => {
     const session = new VegaSessionApi(); sessions.push(session);
     const inputs: ConfigInput[] = [

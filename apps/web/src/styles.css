@@ -695,6 +695,18 @@ body {
   font-size: 0.7rem;
 }
 
+.config-draft-status,
+.api-draft-status {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.config-field.is-dirty .config-draft-status {
+  color: var(--ink);
+}
+
 .config-apply-bar [role="status"] {
   flex-basis: 100%;
   font-size: 0.8rem;

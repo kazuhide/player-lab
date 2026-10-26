@@ -2,6 +2,15 @@ import { describe, expect, it } from "vitest";
 import { configurationCode, javascriptValue } from "../src/configurationCode";
 
 describe("configuration code", () => {
+  it("redacts copied URL credentials and sensitive string values while preserving ordinary data", () => {
+    const source = { hls: "https://user:pass@example.test/master.m3u8?token=private-token&quality=hd", headers: { "X-Session": "private-header" }, title: "Ordinary source" };
+    const copied = javascriptValue(source);
+    for (const secret of ["user:pass", "private-token", "private-header"]) expect(copied).not.toContain(secret);
+    expect(copied).toContain("quality=hd"); expect(copied).toContain("Ordinary source");
+    expect(source.headers["X-Session"]).toBe("private-header");
+    expect(source.hls).toContain("private-token");
+    expect(javascriptValue("https://example.test/master.m3u8?quality=hd")).toBe('"https://example.test/master.m3u8?quality=hd"');
+  });
   it("omits both license values even if a caller supplies an SDK config", () => {
     const code = configurationCode({
       player: { key: "DO_NOT_EXPORT_PLAYER_LICENSE", analytics: { key: "DO_NOT_EXPORT_ANALYTICS_LICENSE" }, playback: { autoplay: false } },

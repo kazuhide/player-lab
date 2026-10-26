@@ -1,6 +1,7 @@
 import { BinaryInput, CallbackInput, ElementInput, FactoryInput, ResourceInput,
   type ApiSchema, type InputSchema, type Signature } from "./types";
 import { parseBinary, safeKey, validateData } from "./values";
+import { copiedConfigurationString } from "../../../../shared/configurationDifferences";
 
 type Constructors = Record<string, unknown>;
 type CreationRecipe = FactoryInput | CallbackInput | ElementInput;
@@ -448,6 +449,7 @@ export function inputCode(value: unknown, path: string[] = []): string {
   }
   if (value === undefined) return "undefined";
   if (typeof value === "number") return String(value);
+  if (typeof value === "string") return JSON.stringify(copiedConfigurationString(value, path));
   if (value === null || typeof value !== "object") return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(item => inputCode(item, path)).join(", ")}]`;
   if (!isRecord(value)) return "/* SDK instance from the current player */ undefined";
