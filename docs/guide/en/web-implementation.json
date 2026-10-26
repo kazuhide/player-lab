@@ -52,6 +52,49 @@
       ]
     },
     {
+      "type": "h3",
+      "id": "minimal-integration-example",
+      "text": "A minimal example with its own display target"
+    },
+    {
+      "type": "p",
+      "text": "Add these dependencies to a browser project that supports TypeScript and CSS imports. Use a Player license that allows your domain and an HLS URL."
+    },
+    {
+      "type": "code",
+      "title": "Install the Player and UI",
+      "text": "npm install bitmovin-player@8.281.0 bitmovin-player-ui@4.23.0"
+    },
+    {
+      "type": "code",
+      "title": "Create the display target, UI, loading and cleanup",
+      "text": "import { Player, PlayerEvent, type ErrorEvent, type PlayerAPI } from \"bitmovin-player\";\nimport { UIFactory, type UIManager } from \"bitmovin-player-ui\";\nimport \"bitmovin-player-ui/dist/css/bitmovinplayer-ui.css\";\n\nexport function mountMinimalPlayer(licenseKey: string, hlsUrl: string) {\n  const container = document.createElement(\"div\");\n  container.style.aspectRatio = \"16 / 9\";\n  document.body.append(container);\n  let player: PlayerAPI;\n  try {\n    player = new Player(container, {\n      key: licenseKey,\n      ui: false,\n      playback: { autoplay: false, muted: true },\n    });\n  } catch (error) {\n    container.remove();\n    throw error;\n  }\n  let ui: UIManager | undefined;\n  let released = false;\n  let cleanup: Promise<void> | undefined;\n  const onError = (event: ErrorEvent) => {\n    if (!released) console.error(`Player error ${event.code}`);\n  };\n  player.on(PlayerEvent.Error, onError);\n\n  function release(): Promise<void> {\n    if (cleanup) return cleanup;\n    released = true;\n    window.removeEventListener(\"pagehide\", onPageHide);\n    player.off(PlayerEvent.Error, onError);\n    cleanup = Promise.resolve().then(async () => {\n      try {\n        ui?.release();\n      } finally {\n        try {\n          await player.destroy();\n        } finally {\n          container.remove();\n        }\n      }\n    });\n    return cleanup;\n  }\n  function onPageHide() {\n    void release().catch(() => console.error(\"Player cleanup failed.\"));\n  }\n  window.addEventListener(\"pagehide\", onPageHide, { once: true });\n\n  const ready = Promise.resolve().then(async () => {\n    if (released) return;\n    ui = UIFactory.buildUI(player);\n    await player.load({ hls: hlsUrl });\n  }).catch(async (error: unknown) => {\n    await release();\n    throw error;\n  });\n  return { player, ready, release };\n}",
+      "source": {
+        "path": "apps/web/examples/minimal-player.ts",
+        "line": 1,
+        "label": "minimal-player.ts:1–60"
+      },
+      "endLine": 60
+    },
+    {
+      "type": "p",
+      "text": "Call it from an entry module in the same directory as follows. Start playback with the player controls. Closing the page starts cleanup; in an SPA, await release() when removing the view."
+    },
+    {
+      "type": "code",
+      "title": "Start with a license and source",
+      "text": "import { mountMinimalPlayer } from \"./minimal-player\";\n\ntry {\n  const session = mountMinimalPlayer(\"YOUR_PLAYER_KEY\", \"https://example.com/video/master.m3u8\");\n  void session.ready.catch(() => console.error(\"Player setup failed.\"));\n  // In an SPA, await session.release() when removing this view.\n} catch {\n  console.error(\"Player creation failed.\");\n}"
+    },
+    {
+      "type": "p",
+      "text": "Player, UIFactory, load and destroy are SDK features. In Player Lab, main.ts creates the Player and loads sources; applyTheme attaches the selected UI. A rejected ready promise also releases the UI, Player and display target."
+    },
+    {
+      "type": "h3",
+      "id": "application-integration",
+      "text": "Creation and loading in Player Lab"
+    },
+    {
       "type": "code",
       "title": "Create the SDK Player and attach the selected UI",
       "text": "  const instance = new Player(playerEl as HTMLElement, config);\n  player = instance;\n  if (sdkUiEnabled) { renderThemeBar(); renderActiveConstruction(); apiExplorer?.refresh(); }\n  else applyTheme(instance, currentThemeId);\n  wireMetrics(instance);",
@@ -827,17 +870,17 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 250,
+      "line": 289,
       "label": "Event counts and recent-payload history"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 197,
+      "line": 225,
       "label": "Record reset on Player replacement"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 283,
+      "line": 336,
       "label": "Explicit event-history reset"
     },
     {

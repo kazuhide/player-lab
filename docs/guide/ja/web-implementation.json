@@ -52,6 +52,49 @@
       ]
     },
     {
+      "type": "h3",
+      "id": "minimal-integration-example",
+      "text": "表示先から作る最小構成"
+    },
+    {
+      "type": "p",
+      "text": "TypeScriptとCSSのimportを扱えるブラウザー用プロジェクトで、次の依存先を追加します。自分のドメインを許可したPlayerライセンスとHLSのURLを用意してください。"
+    },
+    {
+      "type": "code",
+      "title": "PlayerとUIを追加する",
+      "text": "npm install bitmovin-player@8.281.0 bitmovin-player-ui@4.23.0"
+    },
+    {
+      "type": "code",
+      "title": "表示先、UI、読み込みと解放をまとめる",
+      "text": "import { Player, PlayerEvent, type ErrorEvent, type PlayerAPI } from \"bitmovin-player\";\nimport { UIFactory, type UIManager } from \"bitmovin-player-ui\";\nimport \"bitmovin-player-ui/dist/css/bitmovinplayer-ui.css\";\n\nexport function mountMinimalPlayer(licenseKey: string, hlsUrl: string) {\n  const container = document.createElement(\"div\");\n  container.style.aspectRatio = \"16 / 9\";\n  document.body.append(container);\n  let player: PlayerAPI;\n  try {\n    player = new Player(container, {\n      key: licenseKey,\n      ui: false,\n      playback: { autoplay: false, muted: true },\n    });\n  } catch (error) {\n    container.remove();\n    throw error;\n  }\n  let ui: UIManager | undefined;\n  let released = false;\n  let cleanup: Promise<void> | undefined;\n  const onError = (event: ErrorEvent) => {\n    if (!released) console.error(`Player error ${event.code}`);\n  };\n  player.on(PlayerEvent.Error, onError);\n\n  function release(): Promise<void> {\n    if (cleanup) return cleanup;\n    released = true;\n    window.removeEventListener(\"pagehide\", onPageHide);\n    player.off(PlayerEvent.Error, onError);\n    cleanup = Promise.resolve().then(async () => {\n      try {\n        ui?.release();\n      } finally {\n        try {\n          await player.destroy();\n        } finally {\n          container.remove();\n        }\n      }\n    });\n    return cleanup;\n  }\n  function onPageHide() {\n    void release().catch(() => console.error(\"Player cleanup failed.\"));\n  }\n  window.addEventListener(\"pagehide\", onPageHide, { once: true });\n\n  const ready = Promise.resolve().then(async () => {\n    if (released) return;\n    ui = UIFactory.buildUI(player);\n    await player.load({ hls: hlsUrl });\n  }).catch(async (error: unknown) => {\n    await release();\n    throw error;\n  });\n  return { player, ready, release };\n}",
+      "source": {
+        "path": "apps/web/examples/minimal-player.ts",
+        "line": 1,
+        "label": "minimal-player.ts:1–60"
+      },
+      "endLine": 60
+    },
+    {
+      "type": "p",
+      "text": "同じフォルダーのエントリーモジュールから次のように呼び出します。操作部から再生を開始します。ページを閉じると解放処理が始まります。SPAでは表示を外すときにrelease()の完了を待ちます。"
+    },
+    {
+      "type": "code",
+      "title": "ライセンスとソースを指定して開始する",
+      "text": "import { mountMinimalPlayer } from \"./minimal-player\";\n\ntry {\n  const session = mountMinimalPlayer(\"YOUR_PLAYER_KEY\", \"https://example.com/video/master.m3u8\");\n  void session.ready.catch(() => console.error(\"Player setup failed.\"));\n  // In an SPA, await session.release() when removing this view.\n} catch {\n  console.error(\"Player creation failed.\");\n}"
+    },
+    {
+      "type": "p",
+      "text": "この例のPlayer、UIFactory、load、destroyはSDKの機能です。Player Labではmain.tsがPlayerの生成と読み込みを、applyThemeが選んだUIの接続を担当します。readyの失敗時もUI、Player、表示先を解放します。"
+    },
+    {
+      "type": "h3",
+      "id": "application-integration",
+      "text": "Player Labの生成と読み込み"
+    },
+    {
       "type": "code",
       "title": "SDKのPlayerを生成して選択したUIを接続する",
       "text": "  const instance = new Player(playerEl as HTMLElement, config);\n  player = instance;\n  if (sdkUiEnabled) { renderThemeBar(); renderActiveConstruction(); apiExplorer?.refresh(); }\n  else applyTheme(instance, currentThemeId);\n  wireMetrics(instance);",
@@ -827,17 +870,17 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 250,
+      "line": 289,
       "label": "イベント回数と直近の内容"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 197,
+      "line": 225,
       "label": "Playerの入れ替え時の記録消去"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 283,
+      "line": 336,
       "label": "イベント履歴の消去操作"
     },
     {

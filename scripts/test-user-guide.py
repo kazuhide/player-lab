@@ -602,6 +602,40 @@ class GuideTests(unittest.TestCase):
                     ]).decode().splitlines()
                     self.assertEqual(block['text'], '\n'.join(published[source['line'] - 1:block['endLine']]))
 
+    def test_web_event_references_target_the_named_operations(self):
+        path = 'apps/web/src/api/explorer.ts'
+        anchors = {
+            'Event counts and recent-payload history': 'private record(',
+            'イベント回数と直近の内容': 'private record(',
+            'Record reset on Player replacement': 'this.contexts.clear(); this.resources.clear(); this.counts.clear();',
+            'Playerの入れ替え時の記録消去': 'this.contexts.clear(); this.resources.clear(); this.counts.clear();',
+            'Explicit event-history reset': 'en: "Clear event history"',
+            'イベント履歴の消去操作': 'en: "Clear event history"',
+        }
+        published = subprocess.check_output([
+            'git', '-C', str(ROOT), 'show', SOURCE_REVISION + ':' + path,
+        ]).decode().splitlines()
+        current = (ROOT / path).read_text().splitlines()
+        for language in ('en', 'ja'):
+            for chapter in ('web-implementation', 'web-player-config', 'web-screen-controls'):
+                matched = set()
+                for source in self.content[language][chapter]['sources']:
+                    if source.get('path') != path or 'line' not in source:
+                        continue
+                    expected = anchors.get(source.get('label'))
+                    if expected is None and chapter == 'web-screen-controls' and 'label' not in source:
+                        expected = 'category.append('
+                    if expected is None:
+                        continue
+                    matched.add(expected)
+                    for revision, lines in [('working tree', current), (SOURCE_REVISION, published)]:
+                        with self.subTest(language=language, chapter=chapter, source=source, revision=revision):
+                            self.assertIn(expected, lines[source['line'] - 1])
+                required = set(anchors.values())
+                if chapter == 'web-screen-controls':
+                    required.add('category.append(')
+                self.assertEqual(matched, required)
+
     def test_footer_source_line_anchors_exist_in_current_and_published_files(self):
         current, published = {}, {}
         for language, chapters in self.content.items():
