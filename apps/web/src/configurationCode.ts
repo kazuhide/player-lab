@@ -16,7 +16,7 @@ function javascriptData(value: unknown, depth: number, path: ConfigurationPath, 
     if (Number.isNaN(value)) throw new Error("NaN is not a configuration value.");
     return String(value);
   }
-  if (typeof value === "string") return JSON.stringify(copiedConfigurationString(value, path));
+  if (typeof value === "string") return JSON.stringify(copiedConfigurationString(value, path.map(String)));
   if (typeof value === "boolean") return JSON.stringify(value);
   const indent = "  ".repeat(depth);
   const child = `${indent}  `;
