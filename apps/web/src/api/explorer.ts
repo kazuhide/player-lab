@@ -187,9 +187,9 @@ export class ApiExplorer {
     }
     const writes = paths.map(path => ({ path, ...this.markWrite(root, path) }));
     return () => {
+      this.overrides.restoreDiscarded(root, discarded);
       for (const write of writes) {
         if (this.writes.get(write.key)?.ticket !== write.ticket) continue;
-        for (const entry of discarded.removed) if (contains(write.path, entry.path)) this.overrides.set(root, entry.path, entry.value);
         this.writes.delete(write.key);
       }
     };
@@ -201,7 +201,7 @@ export class ApiExplorer {
   clearSource(notify = true): void {
     if (notify) { this.outputGeneration++; this.operation++; }
     for (const key of this.writes.keys()) if (key.startsWith("SourceConfig")) this.writes.delete(key);
-    this.overrides.entries("SourceConfig").forEach(entry => this.overrides.remove("SourceConfig", entry.path));
+    this.overrides.clear("SourceConfig");
   }
   uiCode(base: object): string {
     const config = this.overrides.apply("UIConfig", base);

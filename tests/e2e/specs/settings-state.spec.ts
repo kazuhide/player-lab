@@ -279,3 +279,24 @@ for (const scenario of [
   await expect(page.locator(".config-band-dynamic [role=status]")).toContainText("Fixture load failed");
   expect(await page.evaluate(() => window.settingsFixture.configuration("SourceConfig"))).toEqual({ options: scenario.options, description: "New description" });
 });
+
+for (const newerChild of [false, true]) test(`failed basic Apply preserves parent and child override layers when the ${newerChild ? "newer " : ""}child is removed`, async ({ page }) => {
+  await page.goto("/settings-fixture.html");
+  await page.evaluate(() => {
+    window.settingsFixture.external("SourceConfig", ["options"], { persistentPoster: true, startOffset: 3 });
+    window.settingsFixture.external("SourceConfig", ["options", "startOffset"], 4);
+  });
+  await page.locator("#config details").evaluateAll(nodes => nodes.forEach(node => { if (node instanceof HTMLDetailsElement) node.open = true; }));
+  const input = page.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: /^options.startOffset \(s\)/ }) }).locator("input");
+  await input.fill("9"); await input.dispatchEvent("change");
+  await page.getByRole("button", { name: "Reload the source to apply", exact: true }).click();
+  if (newerChild) await page.evaluate(() => window.settingsFixture.external("SourceConfig", ["options", "startOffset"], 22));
+  await page.evaluate(() => window.settingsFixture.reject());
+  await expect(page.locator(".config-band-dynamic [role=status]")).toContainText("Fixture load failed");
+  expect(await page.evaluate(() => window.settingsFixture.configuration("SourceConfig"))).toEqual({ options: { persistentPoster: true, startOffset: newerChild ? 22 : 4 } });
+  await explorer(page, "SourceConfig.options.startOffset");
+  await page.getByRole("button", { name: "Remove this override", exact: true }).click();
+  await page.evaluate(() => window.settingsFixture.resolve());
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("Override removed.");
+  expect(await page.evaluate(() => window.settingsFixture.configuration("SourceConfig"))).toEqual({ options: { persistentPoster: true, startOffset: 3 } });
+});

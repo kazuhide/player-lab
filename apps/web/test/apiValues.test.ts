@@ -141,8 +141,49 @@ describe("independent API overrides", () => {
       const before = overrides.apply("SourceConfig", base);
       const discarded = overrides.discardPatch("SourceConfig", { options: { startOffset: 9 } });
       overrides.set("SourceConfig", ["description"], "New description");
-      for (const entry of discarded.removed) overrides.set("SourceConfig", entry.path, entry.value);
+      overrides.restoreDiscarded("SourceConfig", discarded);
       expect(overrides.apply("SourceConfig", base)).toStrictEqual({ ...before, description: "New description" });
+    }
+  });
+
+  it("restores independent parent and child layers, including an explicit unset inside a parent", () => {
+    for (const value of [3, undefined]) {
+      const overrides = new ApiOverrides();
+      overrides.set("SourceConfig", ["options"], { startOffset: value });
+      overrides.set("SourceConfig", ["options", "startOffset"], 4);
+      const discarded = overrides.discardPatch("SourceConfig", { options: { startOffset: 9 } });
+      overrides.restoreDiscarded("SourceConfig", discarded);
+      expect(overrides.apply("SourceConfig", { options: { startOffset: 1 } })).toEqual({ options: { startOffset: 4 } });
+      overrides.remove("SourceConfig", ["options", "startOffset"]);
+      expect(overrides.apply("SourceConfig", { options: { startOffset: 1 } })).toEqual({ options: value === undefined ? {} : { startOffset: value } });
+    }
+  });
+
+  it("restores a hidden parent without replacing a newer child, and retains newer parent writes", () => {
+    for (const replaceParent of [false, true]) {
+      const overrides = new ApiOverrides();
+      overrides.set("SourceConfig", ["options"], { startOffset: 3, persistentPoster: true });
+      overrides.set("SourceConfig", ["options", "startOffset"], 4);
+      const discarded = overrides.discardPatch("SourceConfig", { options: { startOffset: 9 } });
+      if (replaceParent) overrides.set("SourceConfig", ["options"], { startOffset: 22 });
+      overrides.set("SourceConfig", ["options", "startOffset"], 23);
+      overrides.restoreDiscarded("SourceConfig", discarded);
+      expect(overrides.apply("SourceConfig", {})).toEqual({ options: { startOffset: 23, ...replaceParent ? {} : { persistentPoster: true } } });
+      overrides.remove("SourceConfig", ["options", "startOffset"]);
+      expect(overrides.apply("SourceConfig", {})).toEqual({ options: { startOffset: replaceParent ? 22 : 3, ...replaceParent ? {} : { persistentPoster: true } } });
+    }
+  });
+
+  it("does not revive removed layers, a newer basic patch or a cleared source", () => {
+    for (const action of ["remove", "patch", "clear"] as const) {
+      const overrides = new ApiOverrides();
+      overrides.set("SourceConfig", ["options"], { startOffset: 3 });
+      const discarded = overrides.discardPatch("SourceConfig", { options: { startOffset: 9 } });
+      if (action === "remove") overrides.remove("SourceConfig", ["options"]);
+      if (action === "patch") overrides.discardPatch("SourceConfig", { options: { startOffset: 22 } });
+      if (action === "clear") overrides.clear("SourceConfig");
+      overrides.restoreDiscarded("SourceConfig", discarded);
+      expect(overrides.apply("SourceConfig", {})).toEqual({});
     }
   });
 });
