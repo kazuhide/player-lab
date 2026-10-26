@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { configurationDifferences, configurationValueText, redactConfigurationText, sameConfigurationValue } from "../../../shared/configurationDifferences";
+import { configurationDifferences, configurationValueText, copiedConfigurationString, redactConfigurationText, sameConfigurationValue } from "../../../shared/configurationDifferences";
 
 it("distinguishes additions, removals, changes and exact reverts without depending on object key order", () => {
   expect(configurationDifferences({ title: "A", keep: true, remove: "x" }, { keep: true, title: "B", add: [1] }))
@@ -41,4 +41,18 @@ it("does not invoke getters or callbacks to compare and format a preview", () =>
   expect(sameConfigurationValue(source, { token: "x" })).toBe(false);
   const array = Object.defineProperty([], "0", { enumerable: true, get() { throw new Error("Do not run array getters"); } });
   expect(configurationValueText(array, "SourceConfig.items")).toContain("[unavailable]");
+});
+
+it("limits user-info redaction to URL authorities while retaining ordinary at signs in queries and fragments", () => {
+  for (const url of [
+    "https://example.test?email=user@example.test",
+    "https://example.test#email=user@example.test",
+    "https://example.test/path?email=user@example.test#contact=other@example.test",
+  ]) {
+    expect(redactConfigurationText(url)).toBe(url);
+    expect(copiedConfigurationString(url)).toBe(url);
+    expect(configurationValueText(url, "SourceConfig.hls")).toBe(url);
+  }
+  expect(redactConfigurationText("https://user:pass@example.test?email=user@example.test"))
+    .toBe("https://[redacted]@example.test?email=user@example.test");
 });
