@@ -28,10 +28,7 @@ const stock = UIFactory.defaultLayouts.main(uiConfig);
 const stockConfig = stock.getConfig();
 stock.release();
 const container = new UIContainer({
-  components: stockConfig.components,  // Retain the standard components.
-  cssClasses: stockConfig.cssClasses,
-  hidePlayerStateExceptions:
-    stockConfig.hidePlayerStateExceptions,
+  ...stockConfig,  // Retain the standard components and optional settings.
   hideDelay,  // Use -1 to keep the UI visible.
 });
 new UIManager(player, [{ ui: container, identifier: UIVariantIdentifier.main }], uiConfig);`,

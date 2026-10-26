@@ -435,10 +435,14 @@ export class ApiMaterializer {
 }
 
 const sensitive = /^(?:key|licenseKey|apiKey|password|token|authorization|proxy-authorization)$/i;
-export function inputCode(value: unknown, path: string[] = []): string {
+export function inputCode(value: unknown, path: string[] = [], typed = false): string {
   if (sensitive.test(path[path.length - 1] ?? "")) return '"YOUR_VALUE"';
   if (value instanceof CallbackInput) return `function(${callbackParameters(value.signature)}) {\n${value.body}\n}`;
-  if (value instanceof FactoryInput) return `new ${value.name === "EventDispatcher" ? "EventDispatcher" : value.name === "DOM" ? "PlayerUIDOM" : "PlayerUI." + value.name}(${value.args.map((item, index) => (index === value.restIndex ? "..." : "") + inputCode(item)).join(", ")})`;
+  if (value instanceof FactoryInput) {
+    const factory = value.name === "EventDispatcher" ? "EventDispatcher" : value.name === "DOM" ? "PlayerUIDOM" : "PlayerUI." + value.name;
+    const generic = typed && value.name === "Label" ? "<PlayerUI.LabelConfig>" : "";
+    return `new ${factory}${generic}(${value.args.map((item, index) => (index === value.restIndex ? "..." : "") + inputCode(item, [], typed)).join(", ")})`;
+  }
   if (value instanceof ElementInput) return `document.createElement(${JSON.stringify(value.tag)})`;
   if (value instanceof ResourceInput) return `resources[${JSON.stringify(value.id)}]`;
   if (value instanceof BinaryInput) {
@@ -449,7 +453,7 @@ export function inputCode(value: unknown, path: string[] = []): string {
   if (value === undefined) return "undefined";
   if (typeof value === "number") return String(value);
   if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(item => inputCode(item, path)).join(", ")}]`;
+  if (Array.isArray(value)) return `[${value.map(item => inputCode(item, path, typed)).join(", ")}]`;
   if (!isRecord(value)) return "/* SDK instance from the current player */ undefined";
-  return `{${Object.entries(value).map(([name, item]) => `${JSON.stringify(name)}: ${inputCode(item, [...path, name])}`).join(", ")}}`;
+  return `{${Object.entries(value).map(([name, item]) => `${JSON.stringify(name)}: ${inputCode(item, [...path, name], typed)}`).join(", ")}}`;
 }
