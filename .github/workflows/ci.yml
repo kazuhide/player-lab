@@ -66,11 +66,15 @@ jobs:
           python3 scripts/api-coverage/apple/test_normalize_apple.py
           python3 scripts/check-api-coverage.py
       - name: Type-check
-        run: pnpm typecheck
+        run: |
+          pnpm typecheck
+          pnpm --filter @showcase/react-native exec tsc -p examples/tsconfig.json
+          pnpm --filter @showcase/vega exec tsc -p examples/tsconfig.json
       - name: Test
         run: pnpm test
       - name: Test native runtime runners
         run: |
+          python3 -B scripts/test-guide-native-examples.py
           python3 -m unittest discover -s apps/react-native/runtime -p 'test_*.py'
           python3 -m unittest discover -s apps/vega/runtime -p 'test_*.py'
           python3 apps/ios/test_track_qualification.py
@@ -335,6 +339,8 @@ jobs:
             -derivedDataPath "$RUNNER_TEMP/ios-build" \
             -onlyUsePackageVersionsFromResolvedFile \
             CODE_SIGNING_ALLOWED=NO build
+      - name: Build the iOS and tvOS integration guide example
+        run: python3 -B scripts/check-guide-native-examples.py apple --work-dir "$RUNNER_TEMP/guide-examples"
 
   android:
     needs: build
@@ -361,3 +367,5 @@ jobs:
         run: cd apps/android && ./gradlew :playback:test :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest -PbitmovinLicenseKey=dummy
       - name: Check packaged Android shared UI
         run: python3 scripts/check-native-ui.py apps/android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Compile the Android integration guide example
+        run: python3 -B scripts/check-guide-native-examples.py android --work-dir "$RUNNER_TEMP/guide-examples"

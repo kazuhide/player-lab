@@ -51,10 +51,38 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/ca84e8fcbd8da9f1c2e8b5452f779fb119c84d5b/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/a585d009295ad40de7538603273d52bf389aaec4/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README：Expoホストの生成とビルド"
         }
       ]
+    },
+    {
+      "type": "h3",
+      "id": "minimal-integration-example",
+      "text": "開発用ホストで再生する最小構成"
+    },
+    {
+      "type": "p",
+      "text": "前節で作ったExpo開発用ホストのApp.tsxを次の内容に置き換え、ライセンスキーとHLSのURLを指定します。PlayerとSourceはbitmovin-player-react-native 1.29.0の公開クラスです。"
+    },
+    {
+      "type": "code",
+      "title": "PlayerViewの準備を待って読み込み、終了時に解放する",
+      "text": "import React, { useEffect, useState } from \"react\";\nimport { StyleSheet, Text, View } from \"react-native\";\nimport { Player, PlayerView, Source, SourceType } from \"bitmovin-player-react-native\";\n\ninterface MountedPlayer {\n  player: Player;\n  load: () => void;\n  fail: () => void;\n  playing: () => void;\n}\n\nexport default function MinimalPlayer() {\n  const [mounted, setMounted] = useState<MountedPlayer | null>(null);\n  const [status, setStatus] = useState(\"Preparing player\");\n\n  useEffect(() => {\n    let active = true;\n    let sourceInitialization: Promise<void> | undefined;\n    const player = new Player({\n      licenseKey: \"YOUR_PLAYER_KEY\",\n      playbackConfig: { isAutoplayEnabled: true, isMuted: true },\n    });\n    const source = new Source({\n      url: \"https://example.com/video/master.m3u8\",\n      type: SourceType.HLS,\n    });\n    const fail = () => { if (active) setStatus(\"Playback failed\"); };\n    const initialization = player.initialize();\n    setMounted(null);\n    void initialization.then(() => {\n      if (!active) return;\n      setMounted({ player, fail, playing: () => { if (active) setStatus(\"Playing\"); }, load: () => {\n        if (!active || sourceInitialization) return;\n        sourceInitialization = source.initialize();\n        void sourceInitialization.then(() => {\n          if (active) player.loadSource(source);\n        }, fail);\n      } });\n    }, fail);\n\n    return () => {\n      active = false;\n      void (async () => {\n        await initialization.catch(() => {});\n        await sourceInitialization?.catch(() => {});\n        player.destroy();\n        source.destroy();\n      })().catch(() => console.error(\"Player cleanup failed.\"));\n    };\n  }, []);\n\n  return <View style={styles.screen}>\n    {mounted && <PlayerView player={mounted.player} style={styles.video}\n      onPlayerViewReady={mounted.load}\n      onPlayerError={mounted.fail} onSourceError={mounted.fail}\n      onPlaying={mounted.playing} />}\n    <Text>{status}</Text>\n  </View>;\n}\n\nconst styles = StyleSheet.create({\n  screen: { flex: 1 },\n  video: { width: \"100%\", height: 240 },\n});",
+      "source": {
+        "path": "apps/react-native/examples/MinimalPlayer.tsx",
+        "line": 1,
+        "label": "MinimalPlayer.tsx:1–64"
+      },
+      "endLine": 64
+    },
+    {
+      "type": "p",
+      "text": "Playerを初期化してからPlayerViewを表示し、onPlayerViewReadyでSourceの初期化と読み込みを始めます。loadSourceは読み込み要求を渡すメソッドで、再生開始はonPlaying、失敗はPlayerとSourceのエラーで確認します。アンマウント後は新しい読み込みを始めず、待機中の初期化を終えてからPlayerを破棄します。未読込のSourceも解放するため、最後にSource.destroyも呼びます。"
+    },
+    {
+      "type": "p",
+      "text": "本体のPlayerPaneに相当する処理を、このコンポーネント内にまとめています。設定の編集や再適用は、後の節にあるアプリのセッション管理と対応づけて読んでください。"
     },
     {
       "type": "h3",
