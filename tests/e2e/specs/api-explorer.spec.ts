@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Page, Route } from "@playwright/test";
 import { expect, test } from "../src/browser-test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -62,6 +62,48 @@ test("typed source values reload the current source and API reads show the submi
   await apply(page);
   expect(await readApi(page, "PlayerAPI.getSource")).toContain("Detailed API source");
   await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+});
+
+test("a failed basic Apply restores its detailed override after an unrelated Read state", async ({ page }) => {
+  const id = "SourceConfig.title";
+  await selectApi(page, "configuration", id); await branch(page, id, "string");
+  await page.locator(".api-explorer-form input[type=text]").fill("Detailed original title");
+  await apply(page);
+  const source = JSON.parse(await readApi(page, "PlayerAPI.getSource")) as { hls: string };
+  const master = new URL(source.hls, page.url()).href;
+  let held: Route | undefined;
+  await page.route(master, route => { held = route; });
+  const basicTitle = page.locator("#config-panel .config-field").filter({ has: page.locator(".config-field-label", { hasText: /^title/ }) }).locator("input");
+  await basicTitle.fill("Basic failing title"); await basicTitle.dispatchEvent("change");
+  await page.getByRole("button", { name: "Reload the source to apply", exact: true }).click();
+  await expect.poll(() => Boolean(held)).toBe(true);
+  await readApi(page, "PlayerAPI.getConfig");
+  await held!.fulfill({ status: 200, contentType: "application/vnd.apple.mpegurl", body: "invalid HLS manifest" });
+  await expect(page.locator(".config-band-dynamic [role=status]")).toContainText("Could not apply settings.");
+  await page.unroute(master);
+  await page.getByRole("button", { name: "Recreate Player", exact: true }).click();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("SDK call completed.");
+  expect(JSON.parse(await readApi(page, "PlayerAPI.getSource")).title).toBe("Detailed original title");
+});
+
+for (const successor of ["pending", "failed"]) test(`Recreate reports superseded while a newer Cast build is ${successor}`, async ({ page }) => {
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  const source = JSON.parse(await readApi(page, "PlayerAPI.getSource")) as { hls: string };
+  const held: Route[] = [];
+  await page.route(new URL(source.hls, page.url()).href, route => { held.push(route); });
+  let failed = false;
+  page.on("console", message => { if (message.type() === "error" && message.text().includes("Player recreation failed")) failed = true; });
+  await page.getByRole("button", { name: "Recreate Player", exact: true }).click();
+  await expect.poll(() => held.length).toBe(1);
+  await page.getByRole("checkbox", { name: /Chromecast button/ }).check();
+  await expect.poll(() => held.length).toBe(2);
+  await held[0]!.abort("failed");
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("The player or source changed. Apply again.");
+  if (successor === "failed") {
+    await held[1]!.fulfill({ status: 200, contentType: "application/vnd.apple.mpegurl", body: "invalid HLS manifest" });
+    await expect.poll(() => failed).toBe(true);
+    await expect(page.locator(".api-explorer > [role=status]")).toHaveText("The player or source changed. Apply again.");
+  }
 });
 
 test("a codec priority array and query dictionary reach the recreated Player", async ({ page }) => {

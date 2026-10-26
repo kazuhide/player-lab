@@ -36,7 +36,7 @@ process.env.E2E_LIVE_DASH_URL ??= E2E_LIVE_DASH_URL;
 // The Web player needs no key at localhost; other origins need an allowed license.
 export default defineConfig({
   testDir: "./specs",
-  testIgnore: ["pages.spec.ts", "user-guide.spec.ts", "browser-regression.spec.ts", "api-explorer.spec.ts"],
+  testIgnore: ["pages.spec.ts", "user-guide.spec.ts", "browser-regression.spec.ts", "api-explorer.spec.ts", "settings-state.spec.ts", "generated-code.spec.ts"],
   timeout: 90_000,
   expect: { timeout: 20_000 },
   fullyParallel: false,

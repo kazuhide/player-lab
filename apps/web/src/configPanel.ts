@@ -18,9 +18,10 @@
  */
 import type { PlayerAPI, PlayerConfig, SourceConfig, DynamicAdaptationConfig } from "bitmovin-player";
 import { pick, userGuideHref, type L } from "./i18n";
+import { DomLocalization } from "./domLocalization";
 import { FIELD_DOC } from "./configDocs";
 import { infoChip } from "./infoChip";
-import { configValue } from "./configState";
+import { applyErrorMessage, configValue, type ApplyOutcome } from "./configState";
 import { javascriptValue } from "./configurationCode";
 import { mountConfigurationCodeView } from "./configurationCodeView";
 
@@ -35,9 +36,9 @@ export interface ConfigPanelOptions {
   /** Only the app's applied UI overrides, never license or account configuration. */
   getUiConfig: () => Record<string, unknown>;
   /** Commit staged 🔁 PlayerConfig overrides — `main.ts` rebuilds the player with them. */
-  onRecreate: (overrides: DeepPartial<PlayerConfig>) => void;
+  onRecreate: (overrides: DeepPartial<PlayerConfig>) => Promise<ApplyOutcome>;
   /** Commit staged 📥 SourceConfig overrides — `main.ts` reloads the current source. */
-  onReload: (overrides: DeepPartial<SourceConfig>) => void;
+  onReload: (overrides: DeepPartial<SourceConfig>) => Promise<ApplyOutcome>;
 }
 
 type Mode = "recreate" | "reload" | "runtime";
@@ -132,6 +133,7 @@ function num(raw: string | boolean): number | undefined {
 export interface ConfigPanelHandle {
   /** Refresh applied fields, preserving edits that have not been applied yet. */
   refresh: () => void;
+  relocalize: () => void;
 }
 
 // The SDK has no getters for these runtime setters. Remember successful calls for
@@ -143,20 +145,40 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   let playerOverrides: DeepPartial<PlayerConfig> = {};
   let sourceOverrides: DeepPartial<SourceConfig> = {};
   const staged = new Set<FieldDef>();
+  const revisions = new Map<FieldDef, number>();
+  const rawValues = new Map<FieldDef, string | boolean>();
   const invalid = new Map<FieldDef, Mode>();
   const readers: (() => void)[] = [];
+  const labels = new DomLocalization();
   let recreateDirty = false;
   let reloadDirty = false;
   let applyRecreateBtn: HTMLButtonElement | undefined;
   let applyReloadBtn: HTMLButtonElement | undefined;
+  let pending = false;
+  const outcomes = new Map<Mode, { state: "pending" | "success" | "error" | "superseded"; error?: string }>();
+  const statuses = new Map<Mode, HTMLElement>();
+  const resetButtons = new Map<Mode, HTMLButtonElement>();
+  const resetters = new Map<FieldDef, () => void>();
+
+  function refreshStatus(): void {
+    for (const [mode, element] of statuses) {
+      const outcome = outcomes.get(mode);
+      element.textContent = !outcome ? "" : outcome.state === "pending" ? pick({ ja: "適用しています。", en: "Applying settings." })
+        : outcome.state === "success" ? pick({ ja: "適用しました。", en: "Applied." })
+        : outcome.state === "superseded" ? pick({ ja: "Playerまたはソースが変わりました。もう一度適用してください。", en: "The player or source changed. Apply again." })
+        : pick({ ja: "適用できませんでした。", en: "Could not apply settings." }) + " " + outcome.error;
+      element.classList.toggle("config-error", outcome?.state === "error");
+    }
+  }
 
   function refreshButtons(): void {
+    for (const [mode, button] of resetButtons) button.disabled = pending || !groups.some(group => group.mode === mode && group.fields.some(field => staged.has(field)));
     if (applyRecreateBtn) {
-      applyRecreateBtn.disabled = !recreateDirty || [...invalid.values()].includes("recreate");
+      applyRecreateBtn.disabled = pending || !recreateDirty || [...invalid.values()].includes("recreate");
       applyRecreateBtn.classList.toggle("is-dirty", recreateDirty);
     }
     if (applyReloadBtn) {
-      applyReloadBtn.disabled = !reloadDirty || [...invalid.values()].includes("reload");
+      applyReloadBtn.disabled = pending || !reloadDirty || [...invalid.values()].includes("reload");
       applyReloadBtn.classList.toggle("is-dirty", reloadDirty);
     }
   }
@@ -287,7 +309,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   const pField = (name: string, kind: "bool" | "number" | "text", path: string): FieldDef =>
     kind === "bool" ? pBool(name, path, false) : kind === "number" ? pNum(name, path) : pText(name, path);
 
-  const groups: Group[] = [
+  const makeGroups = (): Group[] => [
     // ===== DYNAMIC band (player instance survives) =====
     {
       title: "Player API",
@@ -723,6 +745,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       ],
     },
   ];
+  const groups = makeGroups();
 
   // --- Render ---
   container.innerHTML = "";
@@ -731,8 +754,8 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   const h2 = document.createElement("h2");
   h2.textContent = "PlayerConfig / SourceConfig";
   const guide = document.createElement("a");
-  guide.href = userGuideHref("web-player-config");
-  guide.textContent = pick({ ja: "設定の使い方", en: "Configuration guide" });
+  labels.bind(() => { guide.href = userGuideHref("web-player-config"); });
+  labels.text(guide, { ja: "設定の使い方", en: "Configuration guide" });
   head.append(h2, guide);
   container.appendChild(head);
 
@@ -742,15 +765,18 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     row.className = "config-field";
     const name = document.createElement("span");
     name.className = "config-field-label";
-    for (const [index, part] of def.label.split(".").entries()) {
-      if (index > 0) name.append(".", document.createElement("wbr"));
-      name.append(part);
-    }
+    labels.bind(() => {
+      name.replaceChildren();
+      for (const [index, part] of def.label.split(".").entries()) {
+        if (index > 0) name.append(".", document.createElement("wbr"));
+        name.append(part);
+      }
+      if (def.doc) name.appendChild(infoChip(def.doc));
+    });
     row.appendChild(name);
 
     // Hover guidance: a "?" chip carrying the SDK's own "what / when / default" note,
     // shown via the shared styled overlay (infoChip handles click-swallow + a11y).
-    if (def.doc) name.appendChild(infoChip(def.doc));
 
     const error = document.createElement("span");
     error.className = "config-error";
@@ -777,6 +803,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       }
       sel.addEventListener("change", () => apply(sel.value));
       input = sel;
+      labels.bind(() => [...sel.options].forEach((option, index) => { option.textContent = def.options?.[index]?.label ?? option.value; }));
     } else {
       const inp = document.createElement("input");
       inp.type = def.kind === "number" ? "number" : "text";
@@ -784,12 +811,12 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       inp.className = "config-input";
       if (def.kind === "number") inp.step = "any";
       if (def.min !== undefined) inp.min = String(def.min);
-      if (def.validate) inp.addEventListener("input", () => apply(inp.value));
+      if (def.validate || mode !== "runtime" && def.kind === "number") inp.addEventListener("input", () => apply(inp.value));
       inp.addEventListener("change", () => apply(inp.value));
       input = inp;
     }
-    function sync(): void {
-      if (staged.has(def) || document.activeElement === input) return;
+    function sync(force = false): void {
+      if (staged.has(def) || !force && document.activeElement === input) return;
       let applied: unknown;
       try { applied = def.read?.(); } catch { /* Runtime APIs can be unavailable before a source loads. */ }
       const value = applied ?? def.initial;
@@ -797,8 +824,14 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       else input.value = typeof value === "number" && !Number.isFinite(value) ? "" : String(value);
     }
     function apply(value: string | boolean): void {
-      if (mode !== "runtime") staged.add(def);
-      const message = def.validate?.(value) ?? (def.validate && input instanceof HTMLInputElement && input.validity.badInput
+      if (mode !== "runtime") {
+        staged.add(def);
+        rawValues.set(def, value);
+        revisions.set(def, (revisions.get(def) ?? 0) + 1);
+        if (!pending) outcomes.delete(mode);
+        refreshStatus();
+      }
+      const message = def.validate?.(value) ?? (input instanceof HTMLInputElement && input.type === "number" && input.validity.badInput
         ? pick({ ja: "有効な数値を入力してください。", en: "Enter a valid number." }) : undefined);
       if (message) {
         invalid.set(def, mode);
@@ -819,14 +852,22 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       refreshButtons();
     }
     readers.push(sync);
+    resetters.set(def, () => {
+      input.removeAttribute("aria-invalid"); input.removeAttribute("aria-describedby");
+      error.textContent = ""; error.hidden = true;
+      sync(true);
+    });
     sync();
     row.appendChild(input);
-    if (def.validate) row.appendChild(error);
+    if (def.validate || def.kind === "number") row.appendChild(error);
+    labels.bind(() => {
+      if (invalid.has(def)) error.textContent = def.validate?.(rawValues.get(def)!) ?? pick({ ja: "有効な数値を入力してください。", en: "Enter a valid number." });
+    });
 
     if (def.hint) {
       const hint = document.createElement("span");
       hint.className = "config-hint";
-      hint.textContent = def.hint;
+      labels.bind(() => { hint.textContent = def.hint ?? ""; });
       row.appendChild(hint);
     }
     return row;
@@ -841,10 +882,10 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     const summary = document.createElement("summary");
     const title = document.createElement("span");
     title.className = "config-group-title";
-    title.textContent = group.title;
+    labels.bind(() => { title.textContent = group.title; });
     const tag = document.createElement("span");
     tag.className = `config-mode ${badge.cls}`;
-    tag.textContent = pick(badge.text);
+    labels.text(tag, badge.text);
     summary.append(title, tag);
     details.appendChild(summary);
 
@@ -865,12 +906,71 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     return btn;
   }
 
+  function rebuildDraft(mode: Mode): void {
+    if (mode === "reload") sourceOverrides = {};
+    else playerOverrides = {};
+    const fields = groups.filter(group => group.mode === mode).flatMap(group => group.fields);
+    for (const field of fields) if (staged.has(field) && !invalid.has(field)) field.apply(rawValues.get(field)!);
+    if (mode === "reload") reloadDirty = fields.some(field => staged.has(field));
+    else recreateDirty = fields.some(field => staged.has(field));
+  }
+
+  async function applyDraft(mode: "reload" | "recreate"): Promise<void> {
+    if (pending || [...invalid.values()].includes(mode)) return;
+    pending = true;
+    const submitted = new Map(groups.filter(group => group.mode === mode).flatMap(group => group.fields)
+      .filter(field => staged.has(field)).map(field => [field, revisions.get(field)]));
+    outcomes.set(mode, { state: "pending" });
+    refreshButtons(); refreshStatus();
+    try {
+      const outcome = mode === "reload" ? await options.onReload(structuredClone(sourceOverrides))
+        : await options.onRecreate(structuredClone(playerOverrides));
+      if (outcome === "applied") {
+        for (const [field, revision] of submitted) if (revisions.get(field) === revision) {
+          staged.delete(field); rawValues.delete(field);
+        }
+        rebuildDraft(mode);
+      }
+      outcomes.set(mode, { state: outcome === "applied" ? "success" : "superseded" });
+    } catch (error) {
+      outcomes.set(mode, { state: "error", error: applyErrorMessage(error) });
+    } finally {
+      pending = false;
+      readers.forEach(read => read());
+      refreshButtons(); refreshStatus();
+    }
+  }
+
+  function status(mode: Mode): HTMLElement {
+    const element = document.createElement("span");
+    element.setAttribute("role", "status");
+    statuses.set(mode, element);
+    return element;
+  }
+
+  function resetButton(mode: "reload" | "recreate"): HTMLButtonElement {
+    const button = applyButton("", () => {
+      if (pending) return;
+      for (const group of groups.filter(group => group.mode === mode)) for (const field of group.fields) {
+        staged.delete(field); invalid.delete(field); rawValues.delete(field);
+        revisions.set(field, (revisions.get(field) ?? 0) + 1);
+        resetters.get(field)?.();
+      }
+      rebuildDraft(mode);
+      outcomes.delete(mode);
+      refreshButtons(); refreshStatus();
+    });
+    labels.text(button, { ja: "編集をリセット", en: "Reset draft" });
+    resetButtons.set(mode, button);
+    return button;
+  }
+
   // Dynamic band (runtime + reload) — emphasized, open by default.
   const dynBand = document.createElement("section");
   dynBand.className = "config-band config-band-dynamic";
   const dynHead = document.createElement("h3");
   dynHead.className = "config-band-head";
-  dynHead.textContent = pick({
+  labels.text(dynHead, {
     ja: "再生中の設定とソース",
     en: "Playback and source settings",
   });
@@ -882,16 +982,11 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   }
   dynBand.appendChild(dynGrid);
   applyReloadBtn = applyButton(pick({ ja: "ソースを再読み込みして適用", en: "Reload the source to apply" }), () => {
-    if ([...invalid.values()].includes("reload")) return;
-    options.onReload(sourceOverrides);
-    sourceOverrides = {};
-    for (const g of groups.filter((g) => g.mode === "reload")) for (const f of g.fields) staged.delete(f);
-    reloadDirty = false;
-    refreshButtons();
+    void applyDraft("reload");
   });
   const dynBar = document.createElement("div");
   dynBar.className = "config-apply-bar";
-  dynBar.appendChild(applyReloadBtn);
+  dynBar.append(applyReloadBtn, resetButton("reload"), status("reload"));
   dynBand.appendChild(dynBar);
   container.appendChild(dynBand);
 
@@ -900,7 +995,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   statBand.className = "config-band config-band-static";
   const statHead = document.createElement("h3");
   statHead.className = "config-band-head";
-  statHead.textContent = pick({
+  labels.text(statHead, {
     ja: "Playerの初期設定",
     en: "Player creation settings",
   });
@@ -912,20 +1007,15 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   }
   statBand.appendChild(statGrid);
   applyRecreateBtn = applyButton(pick({ ja: "プレイヤーを再生成して適用", en: "Recreate the player to apply" }), () => {
-    if ([...invalid.values()].includes("recreate")) return;
-    options.onRecreate(playerOverrides);
-    playerOverrides = {};
-    for (const g of groups.filter((g) => g.mode === "recreate")) for (const f of g.fields) staged.delete(f);
-    recreateDirty = false;
-    refreshButtons();
+    void applyDraft("recreate");
   });
   const statBar = document.createElement("div");
   statBar.className = "config-apply-bar";
-  statBar.appendChild(applyRecreateBtn);
+  statBar.append(applyRecreateBtn, resetButton("recreate"), status("recreate"));
   statBand.appendChild(statBar);
   container.appendChild(statBand);
 
-  mountConfigurationCodeView(container, () => {
+  const codeView = mountConfigurationCodeView(container, () => {
     const p = options.getPlayer();
     const source = p?.getSource();
     if (!p || !source) return undefined;
@@ -953,7 +1043,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     const poster = readRuntime("poster");
     if (poster !== undefined) runtime.push(`player.setPosterImage(${javascriptValue(poster)}, true);`);
     const logLevel = readRuntime("logLevel");
-    if (logLevel !== undefined) runtime.push(`player.setLogLevel(${javascriptValue(logLevel)} as Parameters<typeof player.setLogLevel>[0]);`);
+    if (logLevel !== undefined) runtime.push(`player.setLogLevel(player.exports.LogLevel[${javascriptValue(String(logLevel).toUpperCase())}]);`);
     if (p.isLive()) {
       runtime.push(`player.lowlatency.setTargetLatency(${javascriptValue(p.lowlatency.getTargetLatency())});`);
       const catchup = p.lowlatency.getCatchupConfig();
@@ -965,5 +1055,19 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
   });
 
   refreshButtons();
-  return { refresh: () => readers.forEach((read) => read()) };
+  labels.bind(() => { applyReloadBtn!.textContent = pick({ ja: "ソースを再読み込みして適用", en: "Reload the source to apply" }); });
+  labels.bind(() => { applyRecreateBtn!.textContent = pick({ ja: "プレイヤーを再生成して適用", en: "Recreate the player to apply" }); });
+  return {
+    refresh: () => readers.forEach(read => read()),
+    relocalize: () => {
+      const translated = makeGroups();
+      groups.forEach((group, index) => {
+        group.title = translated[index]!.title;
+        group.fields.forEach((field, fieldIndex) => Object.assign(field, translated[index]!.fields[fieldIndex]));
+      });
+      labels.refresh();
+      refreshStatus();
+      codeView.relocalize();
+    },
+  };
 }

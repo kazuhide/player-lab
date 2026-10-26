@@ -1,7 +1,56 @@
 import { describe, expect, it } from "vitest";
 import { configurationCode, javascriptValue } from "../src/configurationCode";
+import { generatedCodeDiagnostics } from "./generatedCodeCompiler";
 
 describe("configuration code", () => {
+  it("typechecks the exact emitted module and rejects invalid settings against the pinned SDK", () => {
+    const snapshot = { player: { playback: { autoplay: false, muted: true }, logs: { level: "warn" },
+      tweaks: { log_level: "error" }, network: { requestApi: "xhr" },
+      adaptation: { desktop: { logic: "v3", rttEstimationMethod: "weightedaverage" }, mobile: { logic: "wish", rttEstimationMethod: "median" } } }, source: {
+      progressive: "https://example.com/movie.mp4", options: { startOffset: 3, startOffsetTimelineReference: "start" },
+      subtitleTracks: [{ id: "en", lang: "en", label: "English", url: "https://example.com/captions.vtt", kind: "subtitle" }],
+    }, ui: { seekbarSnappingEnabled: true }, runtime: ["player.setVolume(37);", "player.setPlaybackSpeed(1.25);", "player.mute();"] };
+    const code = configurationCode(snapshot);
+    expect(generatedCodeDiagnostics(code)).toEqual([]);
+    expect(generatedCodeDiagnostics(configurationCode({ ...snapshot, player: { playback: { autoplay: "invalid" } } }))).not.toEqual([]);
+    expect(generatedCodeDiagnostics(configurationCode({ ...snapshot, source: { subtitleTracks: [{ url: 42 }] } }))).not.toEqual([]);
+    expect(generatedCodeDiagnostics(configurationCode({ ...snapshot, ui: { seekbarSnappingEnabled: "invalid" } }))).not.toEqual([]);
+    expect(generatedCodeDiagnostics(configurationCode({ ...snapshot, runtime: ['player.setPlaybackSpeed("invalid");'] }))).not.toEqual([]);
+    expect(code).not.toMatch(/\bas (?:PlayerConfig|SourceConfig|UIConfig)\b/);
+  });
+
+  it("typechecks preferred player and streaming technologies at every array index", () => {
+    const code = configurationCode({
+      player: { playback: { preferredTech: [
+        { player: "html5", streaming: "hls" },
+        { player: "native", streaming: "progressive" },
+      ] } },
+      source: { hls: "https://example.com/video.m3u8", title: "html5" },
+      ui: {}, runtime: [],
+    });
+    expect(generatedCodeDiagnostics(code)).toEqual([]);
+    expect(code).toContain("PlayerType.Html5");
+    expect(code).toContain("PlayerType.Native");
+    expect(code).toContain("StreamType.Hls");
+    expect(code).toContain("StreamType.Progressive");
+    expect(code).toContain('"title": "html5"');
+    for (const technology of [{ player: "invalid", streaming: "hls" }, { player: "html5", streaming: "invalid" }]) {
+      expect(generatedCodeDiagnostics(configurationCode({
+        player: { playback: { preferredTech: [technology] } },
+        source: { hls: "https://example.com/video.m3u8" }, ui: {}, runtime: [],
+      }))).not.toEqual([]);
+    }
+  });
+
+  it("typechecks each timeline reference declared by the pinned SDK", () => {
+    for (const reference of ["start", "end", "currenttime"]) {
+      expect(generatedCodeDiagnostics(configurationCode({
+        player: {}, source: { hls: "https://example.com/video.m3u8", options: { startOffsetTimelineReference: reference } },
+        ui: {}, runtime: [],
+      }))).toEqual([]);
+    }
+  });
+
   it("omits both license values even if a caller supplies an SDK config", () => {
     const code = configurationCode({
       player: { key: "DO_NOT_EXPORT_PLAYER_LICENSE", analytics: { key: "DO_NOT_EXPORT_ANALYTICS_LICENSE" }, playback: { autoplay: false } },

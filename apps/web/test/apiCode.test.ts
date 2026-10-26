@@ -1,6 +1,18 @@
 import { expect, it } from "vitest";
 import { configurationCode, uiConfigurationCode } from "../src/api/code";
 import { FactoryInput } from "../src/api/types";
+import { generatedCodeDiagnostics } from "./generatedCodeCompiler";
+import ts from "typescript";
+
+it("typechecks complete UI expressions against real component and localization declarations", () => {
+  const prelude = 'import * as PlayerUI from "bitmovin-player-ui";\n'
+    + 'import { EventDispatcher } from "bitmovin-player-ui/dist/js/framework/EventDispatcher";\n'
+    + 'const uiConfig: PlayerUI.UIConfig = ';
+  const input = { seekbarSnappingEnabled: true, localization: { language: "en" },
+    componentConfigOverrides: { CloseButton: { target: new FactoryInput("Label", [{ text: "Close" }]) } } };
+  expect(generatedCodeDiagnostics(prelude + uiConfigurationCode(input) + ";")).toEqual([]);
+  expect(generatedCodeDiagnostics(prelude + uiConfigurationCode({ seekbarSnappingEnabled: "invalid" }) + ";")).not.toEqual([]);
+});
 
 it("exports nested edits that preserve unedited array entries in the user's base configuration", () => {
   const entries = [{ path: ["metadata", "markers", 2, "title"], value: "Third marker" }];
@@ -49,7 +61,7 @@ it.each(["complete", "patch"])("configures localization before eager component c
     localization: { events: { onLanguageChanged: new FactoryInput("EventDispatcher", []) } },
   };
   let config: typeof input;
-  if (mode === "complete") config = new Function("PlayerUI", "EventDispatcher", "return " + uiConfigurationCode(input))(PlayerUI, Dispatcher);
+  if (mode === "complete") config = new Function("PlayerUI", "EventDispatcher", ts.transpile("return " + uiConfigurationCode(input)))(PlayerUI, Dispatcher);
   else {
     config = {} as typeof input;
     const code = configurationCode("UIConfig", Object.entries(input).map(([name, value]) => ({ path: [name], value })));

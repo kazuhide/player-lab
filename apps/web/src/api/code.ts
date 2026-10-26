@@ -4,7 +4,7 @@ import type { ConfigRoot, PathPart } from "./types";
 /** Construct eager GUI components after their localization dispatcher exists. */
 export function uiConfigurationCode(config: object): string {
   const { localization, ...rest } = config as { localization?: unknown };
-  return `(() => {\n  const localization = ${inputCode(localization)};\n  PlayerUI.i18n.setConfig(localization ?? {});\n  return Object.assign(${inputCode(rest)}, ${Object.prototype.hasOwnProperty.call(config, "localization") ? "{ localization }" : "{}"});\n})()`;
+  return `(() => {\n  const localization = ${inputCode(localization, [], true)};\n  PlayerUI.i18n.setConfig(localization ?? {});\n  return Object.assign(${inputCode(rest, [], true)}, ${Object.prototype.hasOwnProperty.call(config, "localization") ? "{ localization }" : "{}"});\n})()`;
 }
 
 export function configurationCode(root: ConfigRoot, entries: { path: PathPart[]; value: unknown }[]): string {

@@ -1,5 +1,25 @@
 import type { DeepPartial } from "./configPanel";
 
+/** A completed SDK action may belong to a player or source that has since changed. */
+export type ApplyOutcome = "applied" | "superseded";
+
+/** Retire both success and failure from an action whose player or source changed. */
+export async function settleApply(action: Promise<unknown>, isCurrent: () => boolean): Promise<ApplyOutcome> {
+  try { await action; }
+  catch (error) { if (isCurrent()) throw error; }
+  return isCurrent() ? "applied" : "superseded";
+}
+
+/** SDK rejections can be structured objects rather than JavaScript Errors. */
+export function applyErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    const code = "code" in error && (typeof error.code === "number" || typeof error.code === "string") ? `${error.code}: ` : "";
+    return code + error.message;
+  }
+  return String(error);
+}
+
 /** Layer a patch onto a config without mutating it. Explicit undefined removes an
  * override; omitting a key keeps it. Empty parent objects are removed as well, so
  * clearing an override lets the preset or SDK default take effect again. */
