@@ -143,6 +143,54 @@ describe("Vega configuration in the mounted App and media session", () => {
     await text("Filter Vega API operations", "no-such-operation");
     expect(screen.root.findAll(node => String(node.type) === "Text" && node.props.children === "No matching items.")).toHaveLength(1);
   });
+  it("renders the empty search boundary in both languages and recovers without replacing the session or drafts", async () => {
+    const { catalog } = await import("../src/api/catalog");
+    const count = catalog.rows.filter(entry => entry.category === "command" || entry.category === "observation").length;
+    expect(count).toBeGreaterThan(12);
+    await mount(); await press("Show configuration");
+    await text("Source title", "Unapplied search draft"); await press("Show applied code");
+    const owner = current(); const code = appliedCode();
+    const playerCount = runtime.players.length; const videoCount = runtime.videos.length;
+    await action("Show SDK API experiments");
+    await text("Filter Vega API operations", "PlayerAPI.seek"); await action("PlayerAPI.seek");
+    await text("SDK numeric value", "12.75");
+    const renderedText = (value: string) => screen.root.findAll(node => String(node.type) === "Text" && node.props.children === value);
+    const operations = () => screen.root.findAll(node => String(node.type) === "Pressable" && /^PlayerAPI\./.test(String(node.props.accessibilityLabel)));
+    const locales = [
+      { language: "en", filter: "Filter Vega API operations", previous: "Previous results", next: "Next results",
+        empty: "No matching items.", numeric: "SDK numeric value", title: "Source title" },
+      { language: "ja", filter: "Vegaの操作APIを検索", previous: "前の結果", next: "次の結果",
+        empty: "該当する項目がありません。", numeric: "SDKの数値", title: "ソースのタイトル" },
+    ];
+    for (const locale of locales) {
+      if (locale.language === "ja") await press("日本語");
+      await text(locale.filter, ""); await action(locale.next);
+      expect(renderedText(`13–24 / ${count}`)).toHaveLength(1);
+      await text(locale.filter, "no-matching-operation-boundary");
+      expect(renderedText("0 / 0")).toHaveLength(1);
+      expect(renderedText(locale.empty)).toHaveLength(1);
+      expect(operations()).toHaveLength(0);
+      expect(button(locale.previous).props.disabled).toBe(true);
+      expect(button(locale.next).props.disabled).toBe(true);
+      await text(locale.filter, "play");
+      expect(screen.root.findAll(node => String(node.type) === "Text" && /^1–\d+ \/ \d+$/.test(String(node.props.children)))).toHaveLength(1);
+      expect(operations()[0]?.props.accessibilityLabel).toBe("PlayerAPI.play");
+      expect(operations().length).toBeLessThanOrEqual(12);
+      expect(renderedText(locale.empty)).toHaveLength(0);
+      expect(button(locale.previous).props.disabled).toBe(false);
+      expect(button(locale.next).props.disabled).toBe(false);
+      expect(input(locale.numeric).props.value).toBe("12.75");
+      expect(input(locale.title).props.value).toBe("Unapplied search draft");
+      expect(appliedCode()).toBe(code);
+      expect(current()).toBe(owner); expect(runtime.players).toHaveLength(playerCount);
+      expect(runtime.videos).toHaveLength(videoCount);
+      expect(owner.load).toHaveBeenCalledTimes(1); expect(owner.destroy).not.toHaveBeenCalled();
+      expect(runtime.videos[0]!.deinitializeSync).not.toHaveBeenCalled();
+      expect(Reflect.get(owner, "seek")).not.toHaveBeenCalled();
+    }
+    await press("English");
+  });
+
   it("changes application language while retaining the native owner, draft, code and API result", async () => {
     await mount(); await press("Show configuration");
     await text("Source title", "Unapplied user title"); await press("Show applied code");
