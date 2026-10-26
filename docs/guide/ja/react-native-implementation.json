@@ -51,7 +51,7 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/c6341bc6a51cc86db738c63a05888da1bb94eb52/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/ad546b58a940cc24b52170844de98614cf4ec9ba/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README：Expoホストの生成とビルド"
         }
       ]

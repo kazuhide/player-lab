@@ -1278,17 +1278,17 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 238,
+      "line": 250,
       "label": "Event counts and recent-payload history"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 185,
+      "line": 197,
       "label": "Record reset on Player replacement"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 271,
+      "line": 283,
       "label": "Explicit event-history reset"
     },
     {
@@ -1319,7 +1319,7 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 264
+      "line": 276
     }
   ]
 }
