@@ -91,7 +91,7 @@ const nativeCaptureSets: { slug: string; profile: CaptureProfile; files: string[
   { slug: "native-react-native", profile: "android-phone", files: ["rn-android-configuration-differences", "rn-android-caption",
     "rn-android-api-operation", "rn-android-cast-startup"] },
   { slug: "native-vega", profile: "tv-dense", files: ["vega-subtitles", "vega-caption", "vega-code",
-    "vega-api-callback", "vega-api-operation", "vega-api-volume"] },
+    "vega-api-callback", "vega-api-search", "vega-api-volume"] },
 ];
 const representativeCaptures: { slug: string; file: string; profile: CaptureProfile }[] = [
   { slug: "native-apple", file: "ios-applied-code", profile: "ios-phone" },

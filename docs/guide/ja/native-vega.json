@@ -203,8 +203,8 @@
     },
     {
       "type": "figure",
-      "file": "vega-api-operation",
-      "caption": "再生中のPlayerAPI.getCurrentTimeです。「VegaのSDK APIを実行」の下に返り値が表示されています。映像とSDKイベントも合わせて確認します。"
+      "file": "vega-api-search",
+      "caption": "「volume」で検索したAPI候補です。PlayerAPI.getVolumeを選択しています。"
     },
     {
       "type": "steps",

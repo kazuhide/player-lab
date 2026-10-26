@@ -203,8 +203,8 @@
     },
     {
       "type": "figure",
-      "file": "vega-api-operation",
-      "caption": "PlayerAPI.getCurrentTime during playback. The result appears below Run Vega SDK API; the picture and SDK events provide additional context."
+      "file": "vega-api-search",
+      "caption": "API results for “volume” with PlayerAPI.getVolume selected."
     },
     {
       "type": "steps",

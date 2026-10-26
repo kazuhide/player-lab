@@ -67,6 +67,7 @@ THEMES = (
 LANGUAGES = ('en', 'ja')
 NATIVE_FIGURES = {
     'vega-api-operation': (1920, 1080),
+    'vega-api-search': (1920, 1080),
     'vega-api-volume': (1920, 1080),
     'vega-api-callback': (1920, 1080),
     'rn-ios-api-callback': (1206, 2622),
