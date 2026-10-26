@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "../src/browser-test";
 import { resolve } from "node:path";
 import { startFinalizationServer } from "../src/finalization-server";
 import { armSeek, expectCompletedSeek, expectMovingVideo, expectVisiblePixels, hasVisiblePixels, observePlayback, seekObservation } from "../src/playback-observation";
