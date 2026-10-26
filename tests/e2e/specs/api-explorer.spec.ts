@@ -236,6 +236,29 @@ test("editing a marker inside the base array preserves its neighbours and export
   expect(config).toContain("Chapter 1"); expect(config).toContain("Chapter 2"); expect(config).toContain("Edited third chapter");
 });
 
+test("indexed UI drafts retain their accepted baseline across theme replacement and player recreation", async ({ page }) => {
+  const id = "UIConfig.metadata.markers[].title";
+  await selectApi(page, "configuration", id); await branch(page, id, "string");
+  const index = page.getByRole("spinbutton", { name: "Array index 1", exact: true });
+  const value = page.locator(".api-explorer-form input[type=text]");
+  const difference = page.locator(".api-draft-status");
+  await index.fill("2"); await value.fill("Accepted third chapter");
+  await expect(difference).toHaveText("Before: Chapter 3 → After: Accepted third chapter");
+  await apply(page);
+  await value.fill("Unapplied third chapter");
+  for (const replacement of ["theme", "player"]) {
+    if (replacement === "theme") await page.locator("#ui-theme-bar .theme-btn").nth(1).click();
+    else await page.getByRole("button", { name: "Recreate Player", exact: true }).click();
+    await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+    const config = await readApi(page, "UIManager.getConfig");
+    expect(config).toContain("Chapter 1"); expect(config).toContain("Chapter 2");
+    expect(config).toContain("Accepted third chapter"); expect(config).not.toContain("Unapplied third chapter");
+    await selectApi(page, "configuration", id);
+    await expect(index).toHaveValue("2"); await expect(value).toHaveValue("Unapplied third chapter");
+    await expect(difference).toHaveText("Before: Accepted third chapter → After: Unapplied third chapter");
+  }
+});
+
 test("a real language-change dispatcher is created and connected to UI localization", async ({ page }) => {
   const id = "UIConfig.localization.events.onLanguageChanged";
   await selectApi(page, "configuration", id);

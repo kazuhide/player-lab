@@ -843,7 +843,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
       if (!pending) appliedValue = fieldValue(value);
       if (!pending && mode !== "runtime" && staged.has(def) && !invalid.has(def)
         && sameConfigurationValue(appliedValue, fieldValue(rawValues.get(def)))) {
-        staged.delete(def); rawValues.delete(def); rebuildDraft(mode);
+        staged.delete(def); rawValues.delete(def); rebuildDraft(mode); refreshButtons();
       }
       renderDifference();
       if (staged.has(def) || !force && document.activeElement === input) return;

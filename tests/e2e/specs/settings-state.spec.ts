@@ -204,6 +204,44 @@ test("actual SDK load errors reach both original Apply bands", async ({ page }) 
   await expect(width.locator("..").locator(".config-draft-status")).toHaveText(`Before: ${previousWidth || "[not set]"} → After: 99%`);
 });
 
+test("a detailed Apply reconciles the same basic draft without leaving enabled Apply and Reset buttons", async ({ page }) => {
+  let manifestRequests = 0;
+  page.on("request", request => { if (/\.m3u8(?:\?|$)/.test(request.url())) manifestRequests++; });
+  await page.goto("/");
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  const row = page.locator("#config-panel .config-field").filter({ has: page.locator(".config-field-label", { hasText: /^title/ }) });
+  const input = row.locator("input");
+  const apply = page.getByRole("button", { name: "Reload the source to apply", exact: true });
+  const reset = page.locator(".config-band-dynamic").getByRole("button", { name: "Reset draft", exact: true });
+  await input.fill("Shared accepted title"); await input.dispatchEvent("change");
+  await expect(apply).toBeEnabled(); await expect(reset).toBeEnabled();
+  await explorer(page, "SourceConfig.title");
+  await page.locator(".api-explorer-form > .api-value > select").selectOption({ label: "string" });
+  await page.locator(".api-explorer-form input[type=text]").fill("Shared accepted title");
+  await page.getByRole("button", { name: "Apply setting", exact: true }).click();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("Configuration submitted.");
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("observation");
+  await page.getByRole("searchbox", { name: "Search APIs" }).fill("PlayerAPI.getSource");
+  await page.getByRole("listbox", { name: "SDK entry", exact: true }).selectOption("PlayerAPI.getSource");
+  const read = page.getByRole("button", { name: "Read state", exact: true });
+  await read.click();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("SDK call completed.");
+  await expect(page.locator(".api-result")).toContainText("Shared accepted title");
+  await expect(input).toHaveValue("Shared accepted title");
+  await expect(row.locator(".config-draft-status")).toBeHidden();
+  await expect(apply).toBeDisabled(); await expect(reset).toBeDisabled();
+  const acceptedRequests = manifestRequests;
+  await apply.evaluate(button => {
+    if (!(button instanceof HTMLButtonElement)) throw new Error("Expected the basic Apply button.");
+    button.click();
+  });
+  await read.click();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("SDK call completed.");
+  expect(manifestRequests).toBe(acceptedRequests);
+});
+
 test("draft status remains readable at narrow and desktop widths", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "English", exact: true }).click();

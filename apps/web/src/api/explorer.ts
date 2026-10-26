@@ -30,6 +30,7 @@ interface ExplorerDraft {
   editors: Set<ValueEditor>;
   buttons: Map<HTMLButtonElement, boolean>;
   appliedValue?: unknown;
+  appliedRoute?: string;
   edited: boolean;
   comparisonValues: Map<string, { ticket: number; value: unknown }>;
   root?: ConfigRoot;
@@ -421,9 +422,16 @@ export class ApiExplorer {
             const key = route.root + JSON.stringify(route.path);
             const base = route.root === "PlayerConfig" ? this.options.getPlayer()?.getConfig(false)
               : route.root === "SourceConfig" ? this.options.getPlayer()?.getSource() : this.options.getUi()?.getConfig();
-            state.appliedValue = state.comparisonValues.has(key) ? state.comparisonValues.get(key)!.value
-              : readPath(this.overrides.apply(route.root, base ?? {}), route.path);
-          } else state.appliedValue = undefined;
+            const snapshot = state.comparisonValues.get(key);
+            const ancestor = !base ? this.overrides.entries(route.root).reverse().find(override =>
+              override.path.length <= route.path.length && override.path.every((part, index) => part === route.path[index])) : undefined;
+            if (snapshot) state.appliedValue = snapshot.value;
+            else if (base) state.appliedValue = readPath(this.overrides.apply(route.root, base), route.path);
+            else if (ancestor) state.appliedValue = readPath(ancestor.value, route.path.slice(ancestor.path.length));
+            else if (state.appliedRoute !== key) state.appliedValue = undefined;
+            // During owner replacement retain only the last real value for this route.
+            state.appliedRoute = key;
+          } else { state.appliedValue = undefined; delete state.appliedRoute; }
           showDifference();
         };
         const changed = () => { state.edited = true; showDifference(); };
