@@ -31,6 +31,44 @@
       "text": "The app uses Bitmovin Player Android 3.171.0+jason. This artifact relocates its Media3 dependency to coexist with the bundled advertising dependency. Use the Player, UI, Analytics and MediaSession combination in app/build.gradle.kts."
     },
     {
+      "type": "h3",
+      "id": "minimal-integration-example",
+      "text": "A minimal Activity player"
+    },
+    {
+      "type": "p",
+      "text": "Add this Activity to an Android app using the dependencies above, then replace the license key and HLS URL. Allow the app’s applicationId on the license. Add the permission and Activity below to AndroidManifest.xml. Move the existing launcher intent-filter to this Activity. In a TV host, retain LEANBACK_LAUNCHER and the declaration that a touchscreen is not required."
+    },
+    {
+      "type": "code",
+      "title": "Additions to the existing AndroidManifest.xml",
+      "text": "<!-- Inside the existing <manifest> element. -->\n<uses-permission android:name=\"android.permission.INTERNET\" />\n<!-- Inside the existing <application> element. -->\n<activity android:name=\"com.example.playerguide.MinimalPlayerActivity\"\n    android:exported=\"true\" />"
+    },
+    {
+      "type": "code",
+      "title": "Mobile and TV display targets, loading, errors and cleanup",
+      "text": "package com.example.playerguide\n\nimport android.app.Activity\nimport android.content.res.Configuration\nimport android.os.Bundle\nimport android.util.Log\nimport com.bitmovin.player.PlayerView\nimport com.bitmovin.player.api.Player\nimport com.bitmovin.player.api.PlayerConfig\nimport com.bitmovin.player.api.PlaybackConfig\nimport com.bitmovin.player.api.event.PlayerEvent\nimport com.bitmovin.player.api.event.SourceEvent\nimport com.bitmovin.player.api.source.Source\nimport com.bitmovin.player.api.source.SourceConfig\nimport com.bitmovin.player.api.source.SourceType\nimport com.bitmovin.player.api.ui.PlayerViewConfig\nimport com.bitmovin.player.api.ui.UiConfig\n\nclass MinimalPlayerActivity : Activity() {\n    private lateinit var player: Player\n    private lateinit var playerView: PlayerView\n    private lateinit var source: Source\n    private var released = false\n    private val playerError: (PlayerEvent.Error) -> Unit = {\n        if (!released) Log.e(\"MinimalPlayer\", \"Player error ${it.code.value}\")\n    }\n    private val sourceError: (SourceEvent.Error) -> Unit = {\n        if (!released) Log.e(\"MinimalPlayer\", \"Source error ${it.code.value}\")\n    }\n\n    override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n        val config = PlayerConfig(\n            key = \"YOUR_PLAYER_KEY\",\n            playbackConfig = PlaybackConfig(isAutoplayEnabled = true, isMuted = true),\n        )\n        player = Player(this, config)\n        player.on(PlayerEvent.Error::class, playerError)\n        val television = resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK ==\n            Configuration.UI_MODE_TYPE_TELEVISION\n        val viewConfig = if (television) PlayerViewConfig(uiConfig = UiConfig.WebUi(\n            variant = UiConfig.WebUi.Variant.TvUi,\n            focusUiOnInitialization = true,\n        )) else PlayerViewConfig()\n        playerView = PlayerView(this, player, viewConfig)\n        setContentView(playerView)\n        source = Source(SourceConfig(\"https://example.com/video/master.m3u8\", SourceType.Hls))\n        source.on(SourceEvent.Error::class, sourceError)\n        player.load(source)\n    }\n\n    override fun onStart() {\n        super.onStart()\n        playerView.onStart()\n    }\n\n    override fun onResume() {\n        super.onResume()\n        playerView.onResume()\n    }\n\n    override fun onPause() {\n        playerView.onPause()\n        super.onPause()\n    }\n\n    override fun onStop() {\n        playerView.onStop()\n        super.onStop()\n    }\n\n    override fun onDestroy() {\n        released = true\n        source.off(SourceEvent.Error::class, sourceError)\n        player.off(PlayerEvent.Error::class, playerError)\n        playerView.player = null\n        playerView.onDestroy()\n        player.destroy()\n        super.onDestroy()\n    }\n}",
+      "source": {
+        "path": "apps/android/examples/MinimalPlayerActivity.kt",
+        "line": 1,
+        "label": "MinimalPlayerActivity.kt:1–81"
+      },
+      "endLine": 81
+    },
+    {
+      "type": "p",
+      "text": "Mobile uses the default PlayerViewConfig; TV selects TvUi and initial focus. Forward the Activity lifecycle to PlayerView. onDestroy releases the Player and Source error subscriptions, display target and Player."
+    },
+    {
+      "type": "p",
+      "text": "In Player Lab, PlayerController retains the Player and Source; AndroidView in PlayerWorkspace attaches PlayerView. This example manages the same SDK objects directly in an Activity."
+    },
+    {
+      "type": "h3",
+      "id": "application-integration",
+      "text": "Objects and Compose screens in Player Lab"
+    },
+    {
       "type": "table",
       "headers": [
         "Object",

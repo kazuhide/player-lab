@@ -23,6 +23,39 @@
       ]
     },
     {
+      "type": "h3",
+      "id": "minimal-integration-example",
+      "text": "SwiftUIで再生する最小構成"
+    },
+    {
+      "type": "p",
+      "text": "上記のSDKを追加した新しいSwiftUIアプリで、既存の@mainファイルを次の内容に置き換えます。ライセンスキーとHLSのURLを指定し、作成するアプリのBundle IDをライセンスで許可してください。"
+    },
+    {
+      "type": "code",
+      "title": "SwiftUIアプリの生成、読み込み、エラーと解放",
+      "text": "import SwiftUI\nimport UIKit\nimport BitmovinPlayer\n\n@main\nstruct MinimalPlayerApp: App {\n    var body: some Scene {\n        WindowGroup {\n            if let url = URL(string: \"https://example.com/video/master.m3u8\") {\n                MinimalPlayerView(licenseKey: \"YOUR_PLAYER_KEY\", sourceURL: url)\n            } else {\n                Text(\"Invalid source URL\")\n            }\n        }\n    }\n}\n\nstruct MinimalPlayerView: UIViewRepresentable {\n    let licenseKey: String\n    let sourceURL: URL\n\n    func makeCoordinator() -> Coordinator { Coordinator() }\n\n    func makeUIView(context: Context) -> PlayerView {\n        let config = PlayerConfig()\n        config.key = licenseKey\n        config.playbackConfig.isAutoplayEnabled = true\n        config.playbackConfig.isMuted = true\n        #if os(tvOS)\n        config.styleConfig.userInterfaceType = .system\n        #endif\n        let player = PlayerFactory.createPlayer(playerConfig: config)\n        context.coordinator.player = player\n        player.add(listener: context.coordinator)\n        let view = PlayerView(player: player, frame: .zero)\n        let source = SourceFactory.createSource(from: SourceConfig(url: sourceURL, type: .hls))\n        player.load(source: source)\n        return view\n    }\n\n    func updateUIView(_ view: PlayerView, context: Context) {}\n\n    static func dismantleUIView(_ view: PlayerView, coordinator: Coordinator) {\n        guard let player = coordinator.player else { return }\n        coordinator.player = nil\n        player.remove(listener: coordinator)\n        view.player = nil\n        player.destroy()\n    }\n\n    final class Coordinator: NSObject, PlayerListener {\n        var player: Player?\n\n        func onPlayerError(_ event: PlayerErrorEvent, player: Player) {\n            guard player === self.player else { return }\n            print(\"Player error \\(event.code)\")\n        }\n\n        func onSourceError(_ event: SourceErrorEvent, player: Player) {\n            guard player === self.player else { return }\n            print(\"Source error \\(event.code)\")\n        }\n    }\n}",
+      "source": {
+        "path": "apps/ios/examples/MinimalPlayer.swift",
+        "line": 1,
+        "label": "MinimalPlayer.swift:1–64"
+      },
+      "endLine": 64
+    },
+    {
+      "type": "p",
+      "text": "CoordinatorがPlayerを保持し、エラーを受け取ります。ビューを外すときにイベントの購読を解除して表示先を切り離し、Playerを破棄します。tvOSではSystem UIを選びます。この例の設定は生成時に固定されるため、変更を反映するときはSwiftUIのidを更新してビューを作り直します。"
+    },
+    {
+      "type": "p",
+      "text": "Player LabではPlayerModelがPlayerの保持とソースの読み込みを、NativePresentationSurfaceが表示先の接続を担当します。この例はSDKのPlayerViewを直接使います。"
+    },
+    {
+      "type": "h3",
+      "id": "application-integration",
+      "text": "Player LabのPlayer保持と表示先"
+    },
+    {
       "type": "figure",
       "file": "ios-applied-code",
       "caption": "コードに表示した適用済みのSwiftコードです。「コードをコピー」では適用済みの値をコピーし、ライセンス値にはプレースホルダーを使います。"
