@@ -6,6 +6,7 @@ from pathlib import Path
 import shlex
 import shutil
 import subprocess
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,26 +61,29 @@ def apple(work):
 
 
 def android(work):
-    mirror = work / "android"
-    tracked = subprocess.check_output(
-        ["git", "ls-files", "-z", "--", "apps/android"], cwd=ROOT,
-    ).decode().split("\0")
-    for name in filter(None, tracked):
-        source = ROOT / name
-        relative = source.relative_to(ROOT / "apps/android")
-        if source.name.startswith(".env") or source.name == "local.properties":
-            continue
-        target = mirror / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
-    example = mirror / "app/src/main/kotlin/com/example/playerguide/MinimalPlayerActivity.kt"
-    example.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(ROOT / "apps/android/examples/MinimalPlayerActivity.kt", example)
-    run([
-        "./gradlew", "--no-daemon", "--max-workers=2",
-        "-Dorg.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8",
-        ":app:compileDebugKotlin", "-PbitmovinLicenseKey=dummy",
-    ], mirror)
+    # A fresh owned source tree excludes deleted inputs; caches live separately.
+    with tempfile.TemporaryDirectory(prefix="android-example-", dir=work) as directory:
+        mirror = Path(directory)
+        tracked = subprocess.check_output(
+            ["git", "ls-files", "-z", "--", "apps/android"], cwd=ROOT,
+        ).decode().split("\0")
+        for name in filter(None, tracked):
+            source = ROOT / name
+            relative = source.relative_to(ROOT / "apps/android")
+            if source.name.startswith(".env") or source.name == "local.properties":
+                continue
+            target = mirror / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+        example = mirror / "app/src/main/kotlin/com/example/playerguide/MinimalPlayerActivity.kt"
+        example.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / "apps/android/examples/MinimalPlayerActivity.kt", example)
+        run([
+            "./gradlew", "--no-daemon", "--max-workers=2",
+            "--project-cache-dir", str(work / "android-gradle-cache"),
+            "-Dorg.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8",
+            ":app:compileDebugKotlin", "-PbitmovinLicenseKey=dummy",
+        ], mirror)
 
 
 def main():
