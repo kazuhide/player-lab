@@ -81,6 +81,8 @@ jobs:
         run: pnpm --filter @showcase/e2e test:workers
       - name: Test browser diagnostic redaction and event limits
         run: pnpm --filter @showcase/e2e test:diagnostics
+      - name: Test public preview ownership and recovery
+        run: python3 -B scripts/test-preview-pages.py
       - name: Test environment loading and bundle verification
         run: |
           bash scripts/test-env-lib.sh
