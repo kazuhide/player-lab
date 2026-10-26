@@ -24,7 +24,7 @@ export function sameConfigurationValue(left: unknown, right: unknown): boolean {
 }
 
 export function redactConfigurationText(text: string): string {
-  return text.replace(/(https?:\/\/)[^/?#\s@]+@/gi, "$1[redacted]@")
+  return text.replace(/(https?:\/\/)[^/?#\s]+@/gi, "$1[redacted]@")
     .replace(/([?&])([^=&\s]+)=([^&#\s]*)/g, (match: string, separator: string, key: string) => {
       let name: string;
       try { name = decodeURIComponent(key.replace(/\+/g, " ")); }

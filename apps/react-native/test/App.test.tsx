@@ -270,6 +270,19 @@ describe("React Native configuration in the mounted App", () => {
     expect(element("Pressable", { testID: "configuration-apply" }).props.disabled).toBe(true);
   });
 
+  it("masks complete URL userinfo in the comparison while retaining the exact SDK input", async () => {
+    const url = "https://user:p@ss@example.test/a?email=user@example.test#contact=other@example.test";
+    const expected = "https://[redacted]@example.test/a?email=user@example.test#contact=other@example.test";
+    await mount(); await ready();
+    await text("Source URL", url);
+    const row = element("View", { testID: "configuration-difference-url" });
+    const values = row.findAll(node => String(node.type) === "Text").map(node => node.props.children);
+    expect(values).toContain(expected);
+    expect(input("Source URL").props.value).toBe(url);
+    await tap("configuration-apply"); await ready();
+    expect(current().load).toHaveBeenLastCalledWith(expect.objectContaining({ url }));
+  });
+
   it("shows added and removed overrides and clears a removal that reverts an unapplied addition", async () => {
     const id = "SourceConfig.description";
     const testID = `configuration-difference-apiSettings.${id}`;

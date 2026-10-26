@@ -15,6 +15,7 @@ import { configurationOverrides, validateConfigurationShape, type ConfigInput } 
 import { apiPath, parseBinary, validateData } from "../src/api/values";
 import { BinaryInput, CallbackInput, ExpressionInput, NumericInput, ResourceInput, type ApiEntry, type Signature } from "../src/api/types";
 import { configurationCode } from "../src/configurationCode";
+import { typedCode } from "../src/api/typedCode";
 
 const row = (id: string): ApiEntry => catalog.rows.find((entry) => entry.id === id)!;
 const signature = (id: string): Signature => catalog.nodes[row(id).schema!]!.signatures![0]!;
@@ -149,6 +150,18 @@ describe("Vega applied configuration values and callbacks", () => {
     expect(inputCode(new CallbackInput(body, callbackSignature("PlayerConfig.network.preprocessHttpRequest"), true, true))).toContain(body);
     expect(JSON.parse(inputCode(body))).toBe(body);
   });
+  it("masks complete URL userinfo in copied data while retaining SDK input and program text", () => {
+    const url = "https://user:p@ss@example.test/a?email=user@example.test#contact=other@example.test";
+    const expected = "https://[redacted]@example.test/a?email=user@example.test#contact=other@example.test";
+    const value = { hls: url };
+    expect(JSON.parse(inputCode(value))).toEqual({ hls: expected });
+    expect(JSON.parse(typedCode(catalog.roots.SourceConfig!, value, ["SourceConfig"]))).toEqual({ hls: expected });
+    expect(value.hls).toBe(url);
+    const body = `return ${JSON.stringify(url)};`;
+    expect(JSON.parse(inputCode(body))).toBe(body);
+    expect(inputCode(new CallbackInput(body, callbackSignature("PlayerConfig.network.preprocessHttpRequest"), true, true))).toContain(body);
+  });
+
   it("materializes numbers, lists, dictionaries, structured DRM settings and bytes as actual SDK input values", () => {
     const session = new VegaSessionApi(); sessions.push(session);
     const inputs: ConfigInput[] = [

@@ -12,6 +12,15 @@ describe("configuration code", () => {
     expect(source.hls).toContain("private-token");
     expect(javascriptValue("https://example.test/master.m3u8?quality=hd")).toBe('"https://example.test/master.m3u8?quality=hd"');
   });
+  it("masks the complete URL authority in copied code without changing SDK source data", () => {
+    const url = "https://user:p@ss@example.test/a?email=user@example.test#contact=other@example.test";
+    const expected = "https://[redacted]@example.test/a?email=user@example.test#contact=other@example.test";
+    const source = { hls: url };
+    expect(JSON.parse(javascriptValue(source))).toEqual({ hls: expected });
+    expect(configurationCode({ player: {}, source, ui: {}, runtime: [] })).toContain(JSON.stringify(expected));
+    expect(source.hls).toBe(url);
+  });
+
   it("typechecks the exact emitted module and rejects invalid settings against the pinned SDK", () => {
     const snapshot = { player: { playback: { autoplay: false, muted: true }, logs: { level: "warn" },
       tweaks: { log_level: "error" }, network: { requestApi: "xhr" },

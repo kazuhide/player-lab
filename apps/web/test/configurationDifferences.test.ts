@@ -56,3 +56,24 @@ it("limits user-info redaction to URL authorities while retaining ordinary at si
   expect(redactConfigurationText("https://user:pass@example.test?email=user@example.test"))
     .toBe("https://[redacted]@example.test?email=user@example.test");
 });
+
+
+it.each([
+  ["https://user:p@ss@example.test/a?email=user@example.test#contact=other@example.test", "https://[redacted]@example.test/a?email=user@example.test#contact=other@example.test"],
+  ["https://us@er:p@a@ss@example.test:8443/a", "https://[redacted]@example.test:8443/a"],
+  ["HTTPS://user:p%40ss@example.test/a", "HTTPS://[redacted]@example.test/a"],
+])("redacts complete URL userinfo in displayed and copied data: %s", (url, expected) => {
+  expect(redactConfigurationText(url)).toBe(expected);
+  expect(configurationValueText(url, "SourceConfig.hls")).toBe(expected);
+  expect(copiedConfigurationString(url)).toBe(expected);
+  expect(configurationDifferences({ hls: "https://example.test/old" }, { hls: url })).toEqual([
+    { path: "hls", kind: "changed", before: "https://example.test/old", after: expected },
+  ]);
+});
+
+it("keeps authority redaction from crossing path and whitespace boundaries", () => {
+  for (const text of ["https://example.test/path@name", "https://example.test user@example.test"]) {
+    expect(redactConfigurationText(text)).toBe(text);
+    expect(copiedConfigurationString(text)).toBe(text);
+  }
+});
