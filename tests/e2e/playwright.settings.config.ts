@@ -6,7 +6,7 @@ if (!process.env.E2E_SETTINGS_MEDIA_DIR) {
 
 export default defineConfig({
   testDir: "./specs",
-  testMatch: ["settings-state.spec.ts", "api-explorer.spec.ts"],
+  testMatch: ["settings-state.spec.ts", "api-explorer.spec.ts", "discovery.spec.ts"],
   timeout: 30_000,
   expect: { timeout: 5_000 },
   fullyParallel: false,
@@ -14,7 +14,7 @@ export default defineConfig({
   retries: 0,
   reporter: [["list"]],
   use: {
-    baseURL: "http://localhost:5231",
+    baseURL: "http://localhost:5236",
     browserName: "chromium",
     headless: true,
     viewport: { width: 1440, height: 900 },
@@ -22,8 +22,8 @@ export default defineConfig({
     video: "off",
   },
   webServer: {
-    command: "pnpm exec vite --config vite.settings.config.ts --mode pages --port 5231 --strictPort",
-    url: "http://127.0.0.1:5231/settings-fixture.html",
+    command: "pnpm exec vite --config vite.settings.config.ts --mode pages --port 5236 --strictPort",
+    url: "http://127.0.0.1:5236/settings-fixture.html",
     reuseExistingServer: false,
     timeout: 30_000,
   },

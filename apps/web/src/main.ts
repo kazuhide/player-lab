@@ -424,7 +424,9 @@ let timeShiftEnabled = true;
 let sourcePreset: SourceConfig = SOURCES[0]?.config ?? {};
 let apiSourceInput: object | undefined;
 let sourceOverrides: DeepPartial<SourceConfig> = {};
+// Creation-time fields read the last accepted load/build, never an unfinished SDK attempt.
 let currentSource: SourceConfig = sourcePreset;
+let currentPlayerConfig: PlayerConfig | undefined;
 // A preset loaded directly by the SDK UI replaces the prior overrides, even
 // when it has the same ID. App-owned reloads retain their applied overrides.
 let appSourceLoad: { player: PlayerAPI; source: SourceConfig; settle: (() => void) | undefined } | undefined;
@@ -483,11 +485,11 @@ async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, 
   const settle = controlPanel?.beginSourceLoad(isLive);
   const base = deepMerge((apiSourceInput ?? sourcePreset) as SourceConfig, sourceOverrides);
   const source = apiExplorer?.prepare("SourceConfig", base) ?? structuredClone(base);
-  currentSource = source;
   const request = { player: instance, source, settle };
   appSourceLoad = request;
   try {
     await instance.load(request.source, forceTechnology, disableSeeking);
+    if (player === instance && generation === sourceLoadGeneration) currentSource = instance.getSource() ?? request.source;
   } catch (error) {
     if (appSourceLoad === request) appSourceLoad = undefined;
     if (player === instance && generation === sourceLoadGeneration) request.settle?.();
@@ -506,7 +508,6 @@ async function selectSource(source: ShowcaseSource): Promise<void> {
   apiSourceInput = undefined;
   apiExplorer?.clearSource();
   sourceOverrides = {};
-  currentSource = sourcePreset;
   currentSourceId = source.id;
   const pending = loadCurrentSource(instance);
   const generation = sourceLoadGeneration;
@@ -637,6 +638,7 @@ function wireMetrics(p: PlayerAPI): void {
 // current source with merged overrides; ⚡ runtime edits hit the live player API.
 const configOptions: ConfigPanelOptions = {
   getPlayer: () => player,
+  getPlayerConfig: () => currentPlayerConfig,
   getSource: () => currentSource,
   getUiConfig: () => ({ ...uiConfig }),
   onRecreate: async (overrides) => {
@@ -759,9 +761,13 @@ function build(): Promise<"applied" | "superseded"> {
   // An unfinished source or user callback must not prevent a later rebuild
   // from retiring the player. Only destruction and creation are serialized.
   buildChain = creation.then(() => undefined, () => undefined);
-  return creation.then(result => {
+  return creation.then(async result => {
     const isCurrent = () => request === buildRequest && player === result.instance && sourceLoadGeneration === result.sourceGeneration;
-    return settleApply(result.loaded, isCurrent);
+    const outcome = await settleApply(result.loaded, isCurrent);
+    if (outcome === "superseded" || !isCurrent()) return "superseded";
+    currentPlayerConfig = result.instance.getConfig(false);
+    configPanel?.refresh();
+    return "applied";
   }, error => {
     if (request !== buildRequest) return "superseded";
     throw error;
@@ -868,7 +874,6 @@ async function doBuild(): Promise<{ loaded: Promise<void>; instance: PlayerAPI; 
       sourceOverrides = deepMerge(sourceOverrides, {
         options: { startOffset: offsetFromEdge, startOffsetTimelineReference: END_REFERENCE },
       });
-      currentSource = deepMerge(sourcePreset, sourceOverrides);
       void loadCurrentSource(instance).catch((err: unknown) => console.error("reload-with-offset failed", err));
     },
     doubleClickMode,
@@ -935,7 +940,8 @@ async function doBuild(): Promise<{ loaded: Promise<void>; instance: PlayerAPI; 
       apiExplorer?.clearSource();
       sourceOverrides = {};
     }
-    currentSource = loaded;
+    // App-owned loads publish after their promise fulfills; direct SDK loads arrive here.
+    if (!appManaged) currentSource = loaded;
   });
   const refreshConfig = (): void => { if (player === instance) configPanel?.refresh(); };
   for (const event of [PlayerEvent.VolumeChanged, PlayerEvent.Muted, PlayerEvent.Unmuted,

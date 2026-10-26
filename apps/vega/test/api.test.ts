@@ -15,6 +15,7 @@ import { configurationOverrides, validateConfigurationShape, type ConfigInput } 
 import { apiPath, parseBinary, validateData } from "../src/api/values";
 import { BinaryInput, CallbackInput, ExpressionInput, NumericInput, ResourceInput, type ApiEntry, type Signature } from "../src/api/types";
 import { configurationCode } from "../src/configurationCode";
+import { typedCode } from "../src/api/typedCode";
 
 const row = (id: string): ApiEntry => catalog.rows.find((entry) => entry.id === id)!;
 const signature = (id: string): Signature => catalog.nodes[row(id).schema!]!.signatures![0]!;
@@ -137,6 +138,30 @@ describe("Vega typed API dispatch and session ownership", () => {
 });
 
 describe("Vega applied configuration values and callbacks", () => {
+  it("redacts copied URL credentials and header strings without changing live input or callback text", () => {
+    const value = { url: "https://user:pass@example.test/master.m3u8?token=private-token&quality=hd", headers: { "X-Session": "private-header" } };
+    const copied = inputCode(value);
+    for (const secret of ["user:pass", "private-token", "private-header"]) expect(copied).not.toContain(secret);
+    expect(copied).toContain("quality=hd");
+    expect(value.headers["X-Session"]).toBe("private-header");
+    expect(value.url).toContain("private-token");
+    expect(inputCode("https://example.test/master.m3u8?quality=hd")).toBe('"https://example.test/master.m3u8?quality=hd"');
+    const body = 'return "https://example.test/a?token=program-data";';
+    expect(inputCode(new CallbackInput(body, callbackSignature("PlayerConfig.network.preprocessHttpRequest"), true, true))).toContain(body);
+    expect(JSON.parse(inputCode(body))).toBe(body);
+  });
+  it("masks complete URL userinfo in copied data while retaining SDK input and program text", () => {
+    const url = "https://user:p@ss@example.test/a?email=user@example.test#contact=other@example.test";
+    const expected = "https://[redacted]@example.test/a?email=user@example.test#contact=other@example.test";
+    const value = { hls: url };
+    expect(JSON.parse(inputCode(value))).toEqual({ hls: expected });
+    expect(JSON.parse(typedCode(catalog.roots.SourceConfig!, value, ["SourceConfig"]))).toEqual({ hls: expected });
+    expect(value.hls).toBe(url);
+    const body = `return ${JSON.stringify(url)};`;
+    expect(JSON.parse(inputCode(body))).toBe(body);
+    expect(inputCode(new CallbackInput(body, callbackSignature("PlayerConfig.network.preprocessHttpRequest"), true, true))).toContain(body);
+  });
+
   it("materializes numbers, lists, dictionaries, structured DRM settings and bytes as actual SDK input values", () => {
     const session = new VegaSessionApi(); sessions.push(session);
     const inputs: ConfigInput[] = [

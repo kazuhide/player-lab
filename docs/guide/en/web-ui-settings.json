@@ -94,7 +94,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 840
+      "line": 846
     },
     {
       "path": "tests/e2e/specs/app-ui.spec.ts",
@@ -122,15 +122,15 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 448
+      "line": 450
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 743
+      "line": 745
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 834
+      "line": 840
     },
     {
       "path": "tests/e2e/specs/app-ui.spec.ts",

@@ -3,6 +3,24 @@ import { configurationCode, javascriptValue } from "../src/configurationCode";
 import { generatedCodeDiagnostics } from "./generatedCodeCompiler";
 
 describe("configuration code", () => {
+  it("redacts copied URL credentials and sensitive string values while preserving ordinary data", () => {
+    const source = { hls: "https://user:pass@example.test/master.m3u8?token=private-token&quality=hd", headers: { "X-Session": "private-header" }, title: "Ordinary source" };
+    const copied = javascriptValue(source);
+    for (const secret of ["user:pass", "private-token", "private-header"]) expect(copied).not.toContain(secret);
+    expect(copied).toContain("quality=hd"); expect(copied).toContain("Ordinary source");
+    expect(source.headers["X-Session"]).toBe("private-header");
+    expect(source.hls).toContain("private-token");
+    expect(javascriptValue("https://example.test/master.m3u8?quality=hd")).toBe('"https://example.test/master.m3u8?quality=hd"');
+  });
+  it("masks the complete URL authority in copied code without changing SDK source data", () => {
+    const url = "https://user:p@ss@example.test/a?email=user@example.test#contact=other@example.test";
+    const expected = "https://[redacted]@example.test/a?email=user@example.test#contact=other@example.test";
+    const source = { hls: url };
+    expect(JSON.parse(javascriptValue(source))).toEqual({ hls: expected });
+    expect(configurationCode({ player: {}, source, ui: {}, runtime: [] })).toContain(JSON.stringify(expected));
+    expect(source.hls).toBe(url);
+  });
+
   it("typechecks the exact emitted module and rejects invalid settings against the pinned SDK", () => {
     const snapshot = { player: { playback: { autoplay: false, muted: true }, logs: { level: "warn" },
       tweaks: { log_level: "error" }, network: { requestApi: "xhr" },

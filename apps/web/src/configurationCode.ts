@@ -1,3 +1,5 @@
+import { copiedConfigurationString } from "../../../shared/configurationDifferences";
+
 /** Format data as JavaScript without losing infinite SDK limits or executing strings. */
 export function javascriptValue(value: unknown, depth = 0): string {
   return javascriptData(value, depth, []);
@@ -14,7 +16,8 @@ function javascriptData(value: unknown, depth: number, path: ConfigurationPath, 
     if (Number.isNaN(value)) throw new Error("NaN is not a configuration value.");
     return String(value);
   }
-  if (typeof value === "boolean" || typeof value === "string") return JSON.stringify(value);
+  if (typeof value === "string") return JSON.stringify(copiedConfigurationString(value, path.map(String)));
+  if (typeof value === "boolean") return JSON.stringify(value);
   const indent = "  ".repeat(depth);
   const child = `${indent}  `;
   if (Array.isArray(value)) {

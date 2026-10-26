@@ -488,10 +488,10 @@
       "text": "  onRecreate: async (overrides) => {\n    const previous = playerOverrides;\n    const rollback = apiExplorer?.discardPatch(\"PlayerConfig\", overrides);\n    const applied = deepMerge(playerOverrides, overrides);\n    playerOverrides = applied;\n    const pending = build();\n    const request = buildRequest;\n    try { return await pending; }\n    catch (error) {\n      if (request === buildRequest && playerOverrides === applied) {\n        playerOverrides = previous;\n        rollback?.();\n      }\n      throw error;\n    }\n  },\n  onReload: async (srcOverrides) => {\n    const instance = player;\n    if (!instance) throw new Error(\"Create a player first.\");\n    const previous = sourceOverrides;\n    const previousSource = currentSource;\n    const rollback = apiExplorer?.discardPatch(\"SourceConfig\", srcOverrides);\n    const applied = deepMerge(sourceOverrides, srcOverrides);\n    sourceOverrides = applied;\n    const pending = reloadConfiguration(instance);\n    const generation = sourceLoadGeneration;\n    try { return await pending; }\n    catch (error) {\n      if (player === instance && generation === sourceLoadGeneration && sourceOverrides === applied) {\n        sourceOverrides = previous;\n        currentSource = previousSource;\n        rollback?.();\n      }\n      throw error;\n    }\n  },",
       "source": {
         "path": "apps/web/src/main.ts",
-        "line": 642,
-        "label": "main.ts:642–677"
+        "line": 644,
+        "label": "main.ts:644–679"
       },
-      "endLine": 677
+      "endLine": 679
     },
     {
       "type": "p",
@@ -712,27 +712,27 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 289,
+      "line": 310,
       "label": "イベント回数と直近の内容"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 225,
+      "line": 237,
       "label": "Playerの入れ替え時の記録消去"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 336,
+      "line": 358,
       "label": "イベント履歴の消去操作"
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 637,
+      "line": 638,
       "label": "Player and source application callbacks"
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 758,
+      "line": 760,
       "label": "PlayerConfig construction"
     },
     {

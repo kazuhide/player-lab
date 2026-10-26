@@ -198,9 +198,13 @@
       "id": "vega-operations-state-and-events"
     },
     {
+      "type": "p",
+      "text": "APIのパスやメソッド名のほか、「音量」「字幕」などの機能名で検索できます。日本語と英語の検索語が使え、完全に一致するパスやメソッド名が先に表示されます。「前の結果」「次の結果」で検索に一致する項目を順に表示します。検索語を変えると最初のページへ戻ります。"
+    },
+    {
       "type": "figure",
-      "file": "vega-api-operation",
-      "caption": "再生中のPlayerAPI.getCurrentTimeです。「VegaのSDK APIを実行」の下に返り値が表示されています。映像とSDKイベントも合わせて確認します。"
+      "file": "vega-api-search",
+      "caption": "「volume」で検索したAPI候補です。PlayerAPI.getVolumeを選択しています。"
     },
     {
       "type": "steps",

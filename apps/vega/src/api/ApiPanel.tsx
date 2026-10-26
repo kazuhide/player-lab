@@ -5,12 +5,16 @@ import type { SourceConfig } from "bitmovin-player";
 import { catalog } from "./catalog";
 import { Action, ArgumentsEditor, initialValue, styles } from "./InputEditor";
 import type { VegaSessionApi } from "./sessionApi";
+import { findApiEntries } from "../../../../shared/apiDiscovery";
 
 const operations = catalog.rows.filter((entry) => entry.category === "command" || entry.category === "observation");
 let nextArgumentOwner = 0;
 export function ApiPanel({ session, source, onRecreate }: { session: VegaSessionApi | null; source: SourceConfig; onRecreate: () => void }): React.JSX.Element {
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState("");
+  const [page, setPage] = useState(0);
+  const matches = useMemo(() => findApiEntries(operations, filter), [filter]);
+  const pageCount = Math.max(1, Math.ceil(matches.length / 12));
   const [selectedId, setSelectedId] = useState("PlayerAPI.getDuration");
   const [overload, setOverload] = useState(0);
   const [argumentDraft, setArgumentDraft] = useState<{ key: string; values: unknown[] }>();
@@ -48,8 +52,14 @@ export function ApiPanel({ session, source, onRecreate }: { session: VegaSession
     <Action title={expanded ? "Hide SDK API experiments" : "Show SDK API experiments"} onPress={() => setExpanded(!expanded)} />
     {expanded && <>
       <Text style={styles.heading}>API operation</Text>
-      <TextInput accessibilityLabel="Filter Vega API operations" placeholder="Find an API" placeholderTextColor="#9aacc2" value={filter} onChangeText={setFilter} autoCorrect={false} autoCapitalize="none" style={styles.input} />
-      <View style={styles.row}>{operations.filter((entry) => entry.id.toLowerCase().includes(filter.toLowerCase())).slice(0, 12).map((entry) => <Action key={entry.id} verbatim title={entry.id} disabled={entry.id === selected.id || Boolean(session?.isBusy())} onPress={() => { setSelectedId(entry.id); setOverload(0); setResult(""); setCode(""); setFailed(false); }} />)}</View>
+      <TextInput accessibilityLabel="Filter Vega API operations" placeholder="Find an API" placeholderTextColor="#9aacc2" value={filter} onChangeText={value => { setFilter(value); setPage(0); }} autoCorrect={false} autoCapitalize="none" style={styles.input} />
+      <View style={styles.row}>
+        <Action title="Previous results" disabled={pageCount === 1} onPress={() => setPage((page + pageCount - 1) % pageCount)} />
+        <Text verbatim style={styles.badge}>{matches.length ? `${page * 12 + 1}–${Math.min((page + 1) * 12, matches.length)} / ${matches.length}` : "0 / 0"}</Text>
+        <Action title="Next results" disabled={pageCount === 1} onPress={() => setPage((page + 1) % pageCount)} />
+      </View>
+      {!matches.length && <Text style={styles.help}>No matching items.</Text>}
+      <View style={styles.row}>{matches.slice(page * 12, (page + 1) * 12).map((entry) => <Action key={entry.id} verbatim title={entry.id} disabled={entry.id === selected.id || Boolean(session?.isBusy())} onPress={() => { setSelectedId(entry.id); setOverload(0); setResult(""); setCode(""); setFailed(false); }} />)}</View>
       <Text verbatim style={styles.heading}>{selected.id}</Text>
       {signatures.length > 1 && <View style={styles.row}>{signatures.map((_, index) => <Action key={index} title={`Method signature ${index + 1}`} disabled={overload === index} onPress={() => setOverload(index)} />)}</View>}
       {session && <ArgumentsEditor key={argumentKey} catalog={catalog} signature={signature} values={values} onChange={values => setArgumentDraft({ key: argumentKey, values })} resources={session.resources} />}

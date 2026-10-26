@@ -7,6 +7,19 @@ const catalog: ApiSchema = { schemaVersion: 1, playerVersion: "8", uiVersion: "4
     empty: { kind: "void", label: "void" }, any: { kind: "unknown", label: "any" }, label: { kind: "instance", label: "Label", name: "Label", factories: ["Label"] } },
   constructors: { Label: { signatures: [{ parameters: [{ name: "text", schema: "text", optional: false, rest: false }], returns: "label" }] } } };
 
+it("redacts copied URL credentials and header strings without mutating SDK inputs or callback programs", () => {
+  const value = { url: "https://user:pass@example.test/master.m3u8?token=private-token&quality=hd", headers: { "X-Session": "private-header" }, data: "ordinary data" };
+  const copied = inputCode(value);
+  for (const secret of ["user:pass", "private-token", "private-header"]) expect(copied).not.toContain(secret);
+  expect(copied).toContain("quality=hd"); expect(copied).toContain("ordinary data");
+  expect(value.headers["X-Session"]).toBe("private-header");
+  expect(value.url).toContain("private-token");
+  expect(inputCode("https://example.test/master.m3u8?quality=hd")).toBe('"https://example.test/master.m3u8?quality=hd"');
+  const body = 'return "https://example.test/a?token=program-data";';
+  expect(inputCode(new CallbackInput(body, { parameters: [], returns: "text" }, true))).toContain(body);
+  expect(JSON.parse(inputCode(body))).toBe(body);
+});
+
 it("creates a real typed object and preserves its identity within an apply context", () => {
   class Label { constructor(readonly text: string) {} }
   const pool = new ResourcePool({ Label });

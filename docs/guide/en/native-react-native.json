@@ -46,14 +46,18 @@
       "id": "source-and-apply"
     },
     {
-      "type": "figure",
-      "file": "rn-ios-subtitles",
-      "caption": "The iOS settings workspace. Select a source property directly; Apply configuration and Reset draft remain outside the editor."
+      "type": "p",
+      "text": "Changes lists added, changed and removed values. Before shows the configuration supplied to the current Player; After shows the draft. Use playback and events to check the SDK result. Returning to a Before value clears that difference, and Reset draft discards all pending settings. Input validation errors leave both the supplied configuration and the draft unchanged."
     },
     {
       "type": "figure",
-      "file": "rn-android-subtitles",
-      "caption": "The Android settings workspace uses the same categories and direct property selector, including external WebVTT subtitle inputs."
+      "file": "rn-ios-configuration-differences",
+      "caption": "The Changes panel in the iOS settings screen compares the supplied source title with the draft."
+    },
+    {
+      "type": "figure",
+      "file": "rn-android-configuration-differences",
+      "caption": "The Android settings workspace compares the supplied source title with the draft. Reset draft and Apply configuration remain below the editor."
     },
     {
       "type": "steps",
@@ -335,12 +339,12 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 78,
+      "line": 79,
       "label": "Screen implementation and UI switching"
     },
     {
       "path": "apps/react-native/src/ConfigurationPanel.tsx",
-      "line": 23,
+      "line": 25,
       "label": "React Native editable fields, units and Apply/Reset"
     },
     {

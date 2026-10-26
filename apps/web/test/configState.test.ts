@@ -37,6 +37,21 @@ describe("settings apply ownership", () => {
     expect(applyErrorMessage({ code: 1201, message: "The source is invalid." })).toBe("1201: The source is invalid.");
     expect(applyErrorMessage(new Error("Load failed"))).toBe("Load failed");
   });
+  it.each([undefined, null, "", "  ", new Error(), new Error("\n\t")])("reports an explicit failure when the SDK supplies no usable reason: %s", error => {
+    expect(applyErrorMessage(error)).toBe("The operation failed without an error message.");
+  });
+
+  it.each([undefined, null, "", "  "])("retains an actual SDK code when its structured message is missing: %s", message => {
+    expect(applyErrorMessage({ code: 1201, message })).toBe("1201: The operation failed without an error message.");
+  });
+
+  it("preserves meaningful error messages and ordinary rejection strings verbatim", () => {
+    const message = "  Source loading failed. ";
+    expect(applyErrorMessage(message)).toBe(message);
+    expect(applyErrorMessage(new Error(message))).toBe(message);
+    expect(applyErrorMessage({ code: "SOURCE_LOAD_FAILED", message })).toBe("SOURCE_LOAD_FAILED: " + message);
+  });
+
   it("reports success only while the submitted player and source are still current", async () => {
     const owner = {};
     let current = owner;

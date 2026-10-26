@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Route } from "@playwright/test";
 
 const errors = new WeakMap<Page, string[]>();
 test.beforeEach(({ page }) => {
@@ -11,6 +11,29 @@ async function explorer(page: Page, id: string): Promise<void> {
   await page.locator(".api-explorer > summary").click();
   await page.getByRole("searchbox", { name: "Search APIs" }).fill(id);
   await page.getByRole("listbox", { name: "SDK entry", exact: true }).selectOption(id);
+}
+
+async function currentManifest(page: Page): Promise<string> {
+  await explorer(page, "SourceConfig.title");
+  await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("observation");
+  await page.getByRole("searchbox", { name: "Search APIs" }).fill("PlayerAPI.getSource");
+  await page.getByRole("listbox", { name: "SDK entry", exact: true }).selectOption("PlayerAPI.getSource");
+  await page.getByRole("button", { name: "Read state", exact: true }).click();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("SDK call completed.");
+  const source: unknown = JSON.parse((await page.locator(".api-result").textContent()) ?? "null");
+  if (!source || typeof source !== "object" || !("hls" in source) || typeof source.hls !== "string") {
+    throw new Error("The public HLS source must be loaded before the regression.");
+  }
+  return new URL(source.hls, page.url()).href;
+}
+
+async function detailedString(page: Page, id: string, value: string): Promise<void> {
+  await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("configuration");
+  await page.getByRole("searchbox", { name: "Search APIs" }).fill(id);
+  await page.getByRole("listbox", { name: "SDK entry", exact: true }).selectOption(id);
+  await page.locator(".api-explorer-form > .api-value > select").selectOption({ label: "string" });
+  await page.locator(".api-explorer-form input[type=text]").fill(value);
+  await page.getByRole("button", { name: "Apply setting", exact: true }).click();
 }
 
 test("search preserves a typed draft without applying it", async ({ page }) => {
@@ -85,13 +108,15 @@ test("a rejected detailed Apply retains its draft and reports one failed attempt
   expect(await page.evaluate(() => window.settingsFixture.submissions.length)).toBe(1);
 });
 
-test("the original panel resets unapplied edits explicitly", async ({ page }) => {
+test("the original panel identifies unapplied fields and resets them explicitly", async ({ page }) => {
   await page.goto("/settings-fixture.html");
   const row = page.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: /^title/ }) });
   await row.locator("input").fill("Unapplied value");
   await row.locator("input").dispatchEvent("change");
+  await expect(row.locator(".config-draft-status")).toHaveText("Before: Applied title → After: Unapplied value");
   await page.locator(".config-band-dynamic").getByRole("button", { name: "Reset draft", exact: true }).click();
   await expect(row.locator("input")).toHaveValue("Applied title");
+  await expect(row.locator(".config-draft-status")).toBeHidden();
   expect(await page.evaluate(() => window.settingsFixture.submissions)).toEqual([]);
 });
 
@@ -107,8 +132,30 @@ test("edits during Apply remain drafts and cannot submit a second concurrent req
   await page.evaluate(() => window.settingsFixture.resolve());
   await expect(input).toHaveValue("New draft");
   await expect(apply).toBeEnabled();
+  await expect(page.locator(".config-draft-status:visible")).toHaveText("Before: Submitted title → After: New draft");
   await apply.click();
   expect(await page.evaluate(() => window.settingsFixture.submissions[1]?.value)).toEqual({ title: "New draft" });
+});
+
+for (const result of ["resolve", "reject"] as const) test(`a reverted field is reconciled after its pending Apply ${result}s`, async ({ page }) => {
+  await page.goto("/settings-fixture.html");
+  const row = page.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: /^title/ }) });
+  const input = row.locator("input");
+  const apply = page.getByRole("button", { name: "Reload the source to apply", exact: true });
+  const reset = page.locator(".config-band-dynamic").getByRole("button", { name: "Reset draft", exact: true });
+  await input.fill("Submitted title"); await input.dispatchEvent("change");
+  await apply.click();
+  await input.fill("Applied title"); await input.dispatchEvent("change");
+  await page.evaluate(result => window.settingsFixture[result](), result);
+  await expect(input).toHaveValue("Applied title");
+  if (result === "reject") {
+    await expect(row.locator(".config-draft-status")).toBeHidden();
+    await expect(apply).toBeDisabled(); await expect(reset).toBeDisabled();
+  } else {
+    await expect(row.locator(".config-draft-status")).toHaveText("Before: Submitted title → After: Applied title");
+    await expect(apply).toBeEnabled(); await expect(reset).toBeEnabled();
+  }
+  expect(await page.evaluate(() => window.settingsFixture.submissions)).toHaveLength(1);
 });
 
 test("old owner completions preserve current edits and report superseded Apply", async ({ page }) => {
@@ -123,6 +170,7 @@ test("old owner completions preserve current edits and report superseded Apply",
   await page.evaluate(() => window.settingsFixture.reject());
   await expect(page.locator(".api-explorer > [role=status]")).toHaveText("The player or source changed. Apply again.");
   await expect(input).toHaveValue("Current draft");
+  await expect(page.locator(".api-draft-status")).toContainText("After: Current draft");
   await expect(page.getByRole("button", { name: "Apply setting", exact: true })).toBeEnabled();
   expect(await page.evaluate(() => window.settingsFixture.submissions)).toHaveLength(1);
 });
@@ -170,13 +218,117 @@ test("actual SDK load errors reach both original Apply bands", async ({ page }) 
   const style = page.locator(".config-band-static .config-group").filter({ has: page.locator(".config-field-label", { hasText: /^width/ }) });
   await style.locator("summary").click();
   const width = style.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: /^width/ }) }).locator("input");
+  const previousWidth = await width.inputValue();
   await width.fill("99%"); await width.dispatchEvent("change");
   await page.getByRole("button", { name: "Recreate the player to apply", exact: true }).click();
   await expect(page.locator(".config-band-static [role=status]")).toContainText("Could not apply settings.");
   await expect(width).toHaveValue("99%");
+  await expect(width.locator("..").locator(".config-draft-status")).toBeVisible();
+  await expect(width.locator("..").locator(".config-draft-status")).toHaveText(`Before: ${previousWidth || "[not set]"} → After: 99%`);
 });
 
-test("settings actions fit narrow and desktop widths", async ({ page }) => {
+test("a detailed Apply reconciles the same basic draft without leaving enabled Apply and Reset buttons", async ({ page }) => {
+  let manifestRequests = 0;
+  page.on("request", request => { if (/\.m3u8(?:\?|$)/.test(request.url())) manifestRequests++; });
+  await page.goto("/");
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  const row = page.locator("#config-panel .config-field").filter({ has: page.locator(".config-field-label", { hasText: /^title/ }) });
+  const input = row.locator("input");
+  const apply = page.getByRole("button", { name: "Reload the source to apply", exact: true });
+  const reset = page.locator(".config-band-dynamic").getByRole("button", { name: "Reset draft", exact: true });
+  await input.fill("Shared accepted title"); await input.dispatchEvent("change");
+  await expect(apply).toBeEnabled(); await expect(reset).toBeEnabled();
+  await explorer(page, "SourceConfig.title");
+  await page.locator(".api-explorer-form > .api-value > select").selectOption({ label: "string" });
+  await page.locator(".api-explorer-form input[type=text]").fill("Shared accepted title");
+  await page.getByRole("button", { name: "Apply setting", exact: true }).click();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("Configuration submitted.");
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("observation");
+  await page.getByRole("searchbox", { name: "Search APIs" }).fill("PlayerAPI.getSource");
+  await page.getByRole("listbox", { name: "SDK entry", exact: true }).selectOption("PlayerAPI.getSource");
+  const read = page.getByRole("button", { name: "Read state", exact: true });
+  await read.click();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("SDK call completed.");
+  await expect(page.locator(".api-result")).toContainText("Shared accepted title");
+  await expect(input).toHaveValue("Shared accepted title");
+  await expect(row.locator(".config-draft-status")).toBeHidden();
+  await expect(apply).toBeDisabled(); await expect(reset).toBeDisabled();
+  const acceptedRequests = manifestRequests;
+  await apply.evaluate(button => {
+    if (!(button instanceof HTMLButtonElement)) throw new Error("Expected the basic Apply button.");
+    button.click();
+  });
+  await read.click();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("SDK call completed.");
+  expect(manifestRequests).toBe(acceptedRequests);
+});
+
+for (const field of [
+  { name: "source", id: "SourceConfig.title", label: /^title/, band: ".config-band-dynamic",
+    value: "Retry external title", apply: "Reload the source to apply" },
+  { name: "player", id: "PlayerConfig.style.width", label: /^width/, band: ".config-band-static",
+    value: "99%", apply: "Recreate the player to apply" },
+]) test(`a failed detailed ${field.name} Apply keeps a matching basic draft and its accepted Before value`, async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  const master = await currentManifest(page);
+  const group = page.locator(`${field.band} .config-group`).filter({ has: page.locator(".config-field-label", { hasText: field.label }) });
+  if (await group.getAttribute("open") === null) await group.locator("summary").click();
+  const row = group.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: field.label }) });
+  const input = row.locator("input"); const before = await input.inputValue();
+  const difference = row.locator(".config-draft-status");
+  const apply = page.getByRole("button", { name: field.apply, exact: true });
+  const reset = page.locator(field.band).getByRole("button", { name: "Reset draft", exact: true });
+  await input.fill(field.value); await input.dispatchEvent("change");
+  const expected = `Before: ${before || "[not set]"} → After: ${field.value}`;
+  await expect(difference).toHaveText(expected);
+  let held: Route | undefined;
+  await page.route(master, route => { held = route; });
+  await detailedString(page, field.id, field.value);
+  await expect.poll(() => Boolean(held)).toBe(true);
+  await expect(difference).toBeVisible(); await expect(difference).toHaveText(expected);
+  await held!.fulfill({ status: 200, contentType: "application/vnd.apple.mpegurl", body: "invalid HLS manifest" });
+  await expect(page.locator(".api-explorer > [role=status]")).toContainText("1202:");
+  await expect(input).toHaveValue(field.value);
+  await expect(difference).toBeVisible(); await expect(difference).toHaveText(expected);
+  await expect(apply).toBeEnabled(); await expect(reset).toBeEnabled();
+  await page.unroute(master);
+  await apply.click();
+  await expect(page.locator(`${field.band} [role=status]`)).toHaveText("Applied.");
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  await expect(input).toHaveValue(field.value);
+  await expect(difference).toBeHidden();
+  await expect(apply).toBeDisabled(); await expect(reset).toBeDisabled();
+});
+
+test("a pending detailed source Apply cannot advance the basic baseline through a runtime refresh", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  const master = await currentManifest(page);
+  const row = page.locator("#config-panel .config-field").filter({ has: page.locator(".config-field-label", { hasText: /^title/ }) });
+  const input = row.locator("input"); const before = await input.inputValue();
+  await input.fill("Pending external title"); await input.dispatchEvent("change");
+  let held: Route | undefined;
+  await page.route(master, route => { held = route; });
+  await detailedString(page, "SourceConfig.title", "Pending external title");
+  await expect.poll(() => Boolean(held)).toBe(true);
+  const volume = page.locator(".config-band-dynamic .config-field").filter({ has: page.locator(".config-field-label", { hasText: /^volume \(0/ }) }).locator("input");
+  const oldVolume = await volume.inputValue();
+  await volume.fill("37"); await volume.dispatchEvent("change");
+  await expect(row.locator(".config-draft-status")).toHaveText(`Before: ${before || "[not set]"} → After: Pending external title`);
+  await expect(page.getByRole("button", { name: "Reload the source to apply", exact: true })).toBeEnabled();
+  await held!.continue();
+  await expect(page.locator(".api-explorer > [role=status]")).toHaveText("Configuration submitted.");
+  await expect(row.locator(".config-draft-status")).toBeHidden();
+  await expect(page.getByRole("button", { name: "Reload the source to apply", exact: true })).toBeDisabled();
+  await volume.fill(oldVolume); await volume.dispatchEvent("change");
+});
+
+test("draft status remains readable at narrow and desktop widths", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "English", exact: true }).click();
   const row = page.locator(".config-field").filter({ has: page.locator(".config-field-label", { hasText: /^title/ }) });
@@ -185,7 +337,7 @@ test("settings actions fit narrow and desktop widths", async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await row.scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-    await expect(row.locator("input")).toBeVisible();
+    await expect(row.locator(".config-draft-status")).toBeVisible();
     await page.screenshot({ path: test.info().outputPath(`settings-draft-${width}.png`) });
   }
 });
@@ -198,6 +350,12 @@ test("invalid native number input survives localization until Reset", async ({ p
   await input.click(); await input.pressSequentially("-");
   await expect(input).toHaveAttribute("aria-invalid", "true");
   expect(await input.evaluate(element => element instanceof HTMLInputElement && element.validity.badInput)).toBe(true);
+  const difference = input.locator("..").locator(".config-draft-status");
+  await expect(difference).toContainText("After: Incomplete input.");
+  await input.fill("123");
+  await expect(input).not.toHaveAttribute("aria-invalid");
+  await expect(difference).toContainText("After: 123");
+  await input.fill(""); await input.pressSequentially("-");
   await page.evaluate(() => window.settingsFixture.language("ja"));
   await expect(input).toHaveAttribute("aria-invalid", "true");
   expect(await input.evaluate(element => element instanceof HTMLInputElement && element.validity.badInput)).toBe(true);
@@ -207,7 +365,7 @@ test("invalid native number input survives localization until Reset", async ({ p
   expect(await page.evaluate(() => window.settingsFixture.submissions)).toEqual([]);
 });
 
-test("detailed edits during Apply remain available for Reset and retry", async ({ page }) => {
+test("detailed edits during Apply retain their draft and applied field values", async ({ page }) => {
   await page.goto("/settings-fixture.html");
   await explorer(page, "SourceConfig.title");
   await page.locator(".api-explorer-form > .api-value > select").selectOption({ label: "string" });
@@ -219,6 +377,7 @@ test("detailed edits during Apply remain available for Reset and retry", async (
   await apply.dispatchEvent("click");
   expect(await page.evaluate(() => window.settingsFixture.submissions)).toHaveLength(1);
   await page.evaluate(() => window.settingsFixture.resolve());
+  await expect(page.locator(".api-draft-status")).toHaveText("Before: Submitted title → After: Still a draft");
   await expect(input).toHaveValue("Still a draft");
   await page.locator(".api-explorer-form").getByRole("button", { name: "Reset draft", exact: true }).click();
   await expect(page.locator(".api-explorer-form > .api-value > select option:checked")).toHaveText("undefined");

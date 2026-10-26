@@ -2,8 +2,10 @@ import { PlayerUI, EventDispatcher, PlayerUIDOM, type UIManager } from "@showcas
 import { PlayerEvent, type PlayerAPI } from "bitmovin-player";
 import { pick, userGuideHref, type L } from "../i18n";
 import { DomLocalization } from "../domLocalization";
+import { apiFeature, findApiEntries } from "../../../../shared/apiDiscovery";
+import { configurationValueText, isSensitiveConfigurationPath, redactConfigurationText, sameConfigurationValue } from "../../../../shared/configurationDifferences";
 import { applyErrorMessage, type ApplyOutcome } from "../configState";
-import { valueEditor, type ValueEditor } from "./editor";
+import { editorComparisonValue, valueEditor, type ValueEditor } from "./editor";
 import { ApiMaterializer, ResourcePool, inputCode } from "./materialize";
 import { ApiOverrides, apiPath, validateData } from "./values";
 import { configurationCode, uiConfigurationCode } from "./code";
@@ -27,6 +29,12 @@ interface ExplorerDraft {
   labels: DomLocalization;
   editors: Set<ValueEditor>;
   buttons: Map<HTMLButtonElement, boolean>;
+  appliedValue?: unknown;
+  appliedRoute?: string;
+  edited: boolean;
+  comparisonValues: Map<string, { ticket: number; value: unknown }>;
+  root?: ConfigRoot;
+  refreshApplied?: () => void;
 }
 
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): HTMLElementTagNameMap[K] {
@@ -49,7 +57,7 @@ function preview(value: unknown): string {
   const visit = (input: unknown, depth: number): unknown => {
     if (input === undefined) return "undefined";
     if (typeof input === "function") return "[Function]";
-    if (typeof input === "string") return input.slice(0, 2000).replace(/([?&](?:token|key|signature|sig|password)=)[^&#\s]+/gi, "$1[redacted]");
+    if (typeof input === "string") return redactConfigurationText(input).slice(0, 2000);
     if (input === null || typeof input !== "object") return input;
     if (seen.has(input) || depth > 4) return "[…]";
     seen.add(input);
@@ -57,7 +65,7 @@ function preview(value: unknown): string {
     if (Array.isArray(input)) return input.slice(0, 32).map(item => visit(item, depth + 1));
     if (Object.getPrototypeOf(input) !== Object.prototype && Object.getPrototypeOf(input) !== null) return `[${input.constructor?.name || "SDK instance"}]`;
     return Object.fromEntries(Object.entries(input).slice(0, 64).map(([key, item]) => [key,
-      /^(?:key|licenseKey|apiKey|password|token|authorization|proxy-authorization|headers)$/i.test(key) ? "[redacted]" : visit(item, depth + 1)]));
+      isSensitiveConfigurationPath(key) ? "[redacted]" : visit(item, depth + 1)]));
   };
   return JSON.stringify(visit(value, 0), null, 2).slice(0, 12000);
 }
@@ -128,8 +136,8 @@ export class ApiExplorer {
   }
 
   private setStatus(value: L | string): void {
-    this.statusValue = value;
-    this.status.textContent = typeof value === "string" ? value : pick(value);
+    this.statusValue = typeof value === "string" ? redactConfigurationText(value) : value;
+    this.status.textContent = typeof this.statusValue === "string" ? this.statusValue : pick(this.statusValue);
   }
 
   private async loadCatalog(): Promise<void> {
@@ -174,6 +182,7 @@ export class ApiExplorer {
   }
 
   discardPatch(root: ConfigRoot, patch: object): () => void {
+    this.clearComparisons(root);
     const discarded = this.overrides.discardPatch(root, patch);
     this.outputGeneration++; this.operation++;
     const contains = (parent: PathPart[], child: PathPart[]): boolean => parent.length <= child.length
@@ -195,10 +204,12 @@ export class ApiExplorer {
     };
   }
   setExternal(root: ConfigRoot, path: PathPart[], value: unknown): void {
+    this.clearComparisons(root);
     this.outputGeneration++; this.operation++; this.markWrite(root, path);
     this.overrides.set(root, path, value);
   }
   clearSource(notify = true): void {
+    this.clearComparisons("SourceConfig");
     if (notify) { this.outputGeneration++; this.operation++; }
     for (const key of this.writes.keys()) if (key.startsWith("SourceConfig")) this.writes.delete(key);
     this.overrides.clear("SourceConfig");
@@ -218,6 +229,7 @@ export class ApiExplorer {
   }
 
   beginPlayerChange(): () => void {
+    this.clearComparisons();
     this.operation++;
     this.unsubscribe.forEach(unsubscribe => { try { unsubscribe(); } catch { /* Already released. */ } });
     this.unsubscribe = [];
@@ -232,6 +244,8 @@ export class ApiExplorer {
     if (!this.catalog) return;
     const player = this.options.getPlayer();
     const ui = this.options.getUi();
+    if (player !== this.player) this.clearComparisons();
+    else if (ui !== this.ui) this.clearComparisons("UIConfig");
     if (player === this.player && ui === this.ui) { this.refreshEditors(); return; }
     this.operation++;
     this.unsubscribe.forEach(unsubscribe => { try { unsubscribe(); } catch { /* The SDK may already have released it. */ } });
@@ -277,7 +291,14 @@ export class ApiExplorer {
   }
 
   private refreshEditors(): void {
-    this.drafts.forEach(draft => draft.editors.forEach(editor => editor.refresh?.()));
+    this.drafts.forEach(draft => {
+      draft.editors.forEach(editor => editor.refresh?.());
+      if (!this.configurationPending) draft.refreshApplied?.();
+    });
+  }
+
+  private clearComparisons(root?: ConfigRoot): void {
+    this.drafts.forEach(draft => { if (!root || draft.root === root) draft.comparisonValues.clear(); });
   }
 
   private refreshConfigurationButtons(): void {
@@ -319,9 +340,10 @@ export class ApiExplorer {
     const category = node("select"); this.labels.attribute(category, "aria-label", { ja: "APIの種類", en: "API category" });
     category.append(choice("configuration", { ja: "設定", en: "Configuration" }), choice("command", { ja: "操作", en: "Commands" }), choice("observation", { ja: "状態の取得", en: "Read state" }), choice("event", { ja: "イベント", en: "Events" }));
     const selection = node("select"); selection.size = 9; this.labels.attribute(selection, "aria-label", { ja: "SDKの項目", en: "SDK entry" });
+    const searchStatus = node("p"); searchStatus.className = "api-search-status"; searchStatus.setAttribute("role", "status");
     const form = node("div"); form.className = "api-explorer-form";
     const layout = node("div"); layout.className = "api-explorer-layout";
-    const list = node("div"); list.className = "api-explorer-list"; list.append(search, category, selection);
+    const list = node("div"); list.className = "api-explorer-list"; list.append(search, category, selection, searchStatus);
     const recreate = action({ ja: "Playerを再生成", en: "Recreate Player" }, () => {
       if (recreate.disabled) return;
       recreate.disabled = true;
@@ -350,7 +372,7 @@ export class ApiExplorer {
       if (draft) { form.append(...draft.nodes); return; }
       const entry = catalog.rows.find(entry => entry.id === selection.value);
       if (!entry) return;
-      const state: ExplorerDraft = { nodes: [], labels: new DomLocalization(), editors: new Set(), buttons: new Map() };
+      const state: ExplorerDraft = { nodes: [], labels: new DomLocalization(), editors: new Set(), buttons: new Map(), edited: false, comparisonValues: new Map() };
       this.drafts.set(rendered, state);
       const labels = state.labels;
       const text = <K extends keyof HTMLElementTagNameMap>(tag: K, value: L) => labels.text(node(tag), value);
@@ -376,10 +398,50 @@ export class ApiExplorer {
           const input = node("input"); input.type = "number"; input.min = "0"; input.max = "255"; input.value = "0";
           input.setAttribute("aria-label", `Array index ${i + 1}`); indexInputs.push(input); form.append(input);
         }
+        state.root = configRoute(entry, readIndices()).root;
         editor = valueEditor(catalog, entry.schema!, resources);
         state.editors.add(editor);
         labels.bind(() => editor.relocalize?.());
         form.append(editor.element);
+        const difference = node("p"); difference.className = "api-draft-status";
+        const showDifference = () => {
+          const before = editorComparisonValue(state.appliedValue);
+          let after: unknown;
+          let invalid = !readIndices().every(index => Number.isInteger(index) && index >= 0 && index <= 255);
+          try { after = editorComparisonValue(editor.read()); }
+          catch { invalid = true; }
+          const changed = state.edited && (invalid || !sameConfigurationValue(before, after));
+          difference.hidden = !changed;
+          difference.textContent = pick({ ja: "適用済み: ", en: "Before: " }) + configurationValueText(before, entry.id)
+            + pick({ ja: " → 編集後: ", en: " → After: " }) + (invalid ? pick({ ja: "入力が未完了です。", en: "Incomplete input." }) : configurationValueText(after, entry.id));
+        };
+        state.refreshApplied = () => {
+          const indices = readIndices();
+          if (indices.every(index => Number.isInteger(index) && index >= 0 && index <= 255)) {
+            const route = configRoute(entry, indices);
+            const key = route.root + JSON.stringify(route.path);
+            const base = route.root === "PlayerConfig" ? this.options.getPlayer()?.getConfig(false)
+              : route.root === "SourceConfig" ? this.options.getPlayer()?.getSource() : this.options.getUi()?.getConfig();
+            const snapshot = state.comparisonValues.get(key);
+            const ancestor = !base ? this.overrides.entries(route.root).reverse().find(override =>
+              override.path.length <= route.path.length && override.path.every((part, index) => part === route.path[index])) : undefined;
+            if (snapshot) state.appliedValue = snapshot.value;
+            else if (base) state.appliedValue = readPath(this.overrides.apply(route.root, base), route.path);
+            else if (ancestor) state.appliedValue = readPath(ancestor.value, route.path.slice(ancestor.path.length));
+            else if (state.appliedRoute !== key) state.appliedValue = undefined;
+            // During owner replacement retain only the last real value for this route.
+            state.appliedRoute = key;
+          } else { state.appliedValue = undefined; delete state.appliedRoute; }
+          showDifference();
+        };
+        const changed = () => { state.edited = true; showDifference(); };
+        for (const input of indexInputs) input.addEventListener("input", () => { state.edited = true; state.refreshApplied?.(); });
+        editor.element.addEventListener("input", changed);
+        editor.element.addEventListener("change", changed);
+        editor.element.addEventListener("click", event => { if (event.target instanceof Element && event.target.closest("button")) changed(); });
+        labels.bind(showDifference);
+        state.refreshApplied();
+        form.append(difference);
         const apply = action({ ja: "設定を適用", en: "Apply setting" }, () => {
           void this.changeConfiguration(entry, readIndices(), editor, false);
         });
@@ -431,10 +493,14 @@ export class ApiExplorer {
             } else value = valueEditor(catalog, parameter.schema, resources);
             state.editors.add(value);
             labels.bind(() => value.relocalize?.());
+            const edited = () => { state.edited = true; };
+            value.element.addEventListener("input", edited);
+            value.element.addEventListener("change", edited);
             const enabled = node("input"); enabled.type = "checkbox"; enabled.checked = !parameter.optional; enabled.disabled = !parameter.optional;
             const label = node("label"); label.append(enabled, document.createTextNode(" " + parameter.name));
             value.element.hidden = !enabled.checked;
             enabled.addEventListener("change", () => { value.element.hidden = !enabled.checked; });
+            enabled.addEventListener("change", edited);
             const field = node("fieldset"); field.append(label, value.element); body.append(field);
             args.push({ element: field, read: () => enabled.checked ? value.read() : undefined });
           }
@@ -453,12 +519,20 @@ export class ApiExplorer {
     };
     const filter = () => {
       const current = selection.value;
-      const query = search.value.toLocaleLowerCase();
-      selection.replaceChildren(...catalog.rows.filter(entry => entry.category === category.value && entry.id.toLocaleLowerCase().includes(query)).map(entry => option(entry.id, entry.id)));
-      if ([...selection.options].some(option => option.value === current)) selection.value = current;
+      const matches = findApiEntries(catalog.rows.filter(entry => entry.category === category.value), search.value);
+      selection.replaceChildren(...matches.map(entry => option(entry.id, `${pick(apiFeature(entry.id))} · ${entry.id}`)));
+      searchStatus.textContent = matches.length ? "" : pick({ ja: "該当する項目がありません。", en: "No matching items." });
+      const query = search.value.normalize("NFKC").trim().toLocaleLowerCase();
+      const first = matches[0]?.id;
+      if (!this.drafts.get(current)?.edited && first && [first, first.slice(first.lastIndexOf(".") + 1)].some(value => value.toLocaleLowerCase() === query)) selection.value = first;
+      else if ([...selection.options].some(option => option.value === current)) selection.value = current;
       if (!selection.value && selection.options.length) selection.selectedIndex = 0;
       renderSelected();
     };
+    this.labels.bind(() => {
+      for (const option of selection.options) option.textContent = `${pick(apiFeature(option.value))} · ${option.value}`;
+      if (!selection.options.length) searchStatus.textContent = pick({ ja: "該当する項目がありません。", en: "No matching items." });
+    });
     search.addEventListener("input", filter); category.addEventListener("change", filter); selection.addEventListener("change", () => renderSelected()); filter();
   }
 
@@ -476,7 +550,12 @@ export class ApiExplorer {
       value = remove ? undefined : validateData(this.catalog!, entry.schema!, this.resources.forConfiguration(editor.read()));
       if (!remove) this.context("preflight").preflight(value);
     } catch (error) { this.setStatus(applyErrorMessage(error)); this.refresh(); return; }
+    const draft = this.drafts.get(entry.id);
+    if (!this.configurationPending) draft?.refreshApplied?.();
+    const before = draft?.appliedValue;
+    const key = route.root + JSON.stringify(route.path);
     const ticket = ++this.configurationTicket;
+    draft?.comparisonValues.set(key, { ticket, value: before });
     this.configurationPending = true;
     this.removalKey = remove ? entry.id : undefined;
     this.refreshConfigurationButtons();
@@ -485,6 +564,7 @@ export class ApiExplorer {
       : { ja: "設定を適用しています。", en: "Applying setting." });
     let write: { key: string; ticket: number } | undefined;
     let replaced: { path: PathPart[]; value: unknown }[] = [];
+    let retainComparison = false;
     try {
       write = this.markWrite(route.root, route.path);
       if (remove) {
@@ -493,6 +573,9 @@ export class ApiExplorer {
       } else replaced = this.overrides.set(route.root, route.path, value);
       const pending = this.options.apply(route.root);
       const outcome = await pending;
+      if (outcome === "applied" && ticket === this.configurationTicket && draft && this.drafts.get(entry.id) === draft) {
+        this.clearComparisons(route.root);
+      }
       if (output === this.outputGeneration) {
         if (outcome === "applied") this.showConfigCode(route.root);
         this.setStatus(outcome === "superseded"
@@ -505,8 +588,15 @@ export class ApiExplorer {
         this.overrides.remove(route.root, route.path);
         for (const prior of replaced) this.overrides.set(route.root, prior.path, prior.value);
       }
+      // Reading another API must not discard this configuration's comparison.
+      if (ticket === this.configurationTicket && draft && write && this.writes.get(write.key)?.ticket === write.ticket
+        && this.drafts.get(entry.id) === draft) {
+        draft.comparisonValues.set(key, { ticket, value: before });
+        retainComparison = true;
+      }
       if (output === this.outputGeneration) this.setStatus(applyErrorMessage(error));
     } finally {
+      if (!retainComparison && draft?.comparisonValues.get(key)?.ticket === ticket) draft.comparisonValues.delete(key);
       if (ticket === this.configurationTicket) {
         this.configurationPending = false;
         this.removalKey = undefined;

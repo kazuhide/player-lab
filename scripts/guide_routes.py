@@ -67,6 +67,7 @@ THEMES = (
 LANGUAGES = ('en', 'ja')
 NATIVE_FIGURES = {
     'vega-api-operation': (1920, 1080),
+    'vega-api-search': (1920, 1080),
     'vega-api-volume': (1920, 1080),
     'vega-api-callback': (1920, 1080),
     'rn-ios-api-callback': (1206, 2622),
@@ -103,9 +104,11 @@ NATIVE_FIGURES = {
     'tvos-video-scaling': (1920, 1080),
     'tvos-applied-code': (1920, 1080),
     'rn-ios-subtitles': (1206, 2622),
+    'rn-ios-configuration-differences': (1134, 472),
     'rn-ios-caption': (1206, 2622),
     'rn-ios-code': (1206, 2622),
     'rn-android-subtitles': (1080, 2400),
+    'rn-android-configuration-differences': (1080, 2400),
     'rn-android-caption': (1080, 2400),
     'vega-subtitles': (1920, 1080),
     'vega-caption': (1920, 1080),
@@ -113,6 +116,7 @@ NATIVE_FIGURES = {
 }
 NATIVE_CAPTURE_PROFILES = {
     (1206, 2622): 'ios-phone',
+    (1134, 472): 'ios-detail',
     (1080, 2400): 'android-phone',
     (1640, 2360): 'ipad',
     (1920, 1080): 'tv',
@@ -130,11 +134,13 @@ LOCALIZED_FIGURES = {
     'source-controls': {'en': (301, 193), 'ja': (301, 197)},
     'config': {'en': (1210, 147), 'ja': (1210, 155)},
     'sdk-configuration': {'en': (1240, 1402), 'ja': (1240, 1402)},
+    'web-sdk-differences': {'en': (928, 636), 'ja': (928, 637)},
     'sdk-callback': {'en': (1240, 1527), 'ja': (1240, 1529)},
     'ui-controls': {'en': (301, 546), 'ja': (301, 656)},
     'applied-settings': {'en': (1240, 511), 'ja': (1240, 512)},
 }
 FIGURE_EXTENSIONS = {name: 'png' for name in (*NATIVE_FIGURES, *SHARED_FIGURES)}
+FIGURE_EXTENSIONS['web-sdk-differences'] = 'png'
 
 
 def figure_capture_profile(name):
@@ -161,8 +167,8 @@ COVERAGE_APPS = ('web', 'web-ui', 'ios', 'tvos', 'android', 'react-native', 'veg
 DOCUMENTS = (*CHAPTERS, 'settings', 'controls', 'themes', 'api-coverage')
 SLUGS = ('', *DOCUMENTS, *IMPLEMENTATION_PAGES, *(f'settings/{name}' for name in SETTING_GROUPS),
          *(f'api-coverage/{name}' for name in COVERAGE_APPS))
-SOURCE_REVISION = '1ce7b5d215ab3f6a8cca373591ee04dde1c5cabf'
-CONTENT_REVIEW = '2026-10-24'
+SOURCE_REVISION = '69e127da079bee419bfff4b29746126298485f45'
+CONTENT_REVIEW = '2026-10-26'
 PUBLIC_BASE = 'https://kazuhide.github.io/player-lab/'
 
 

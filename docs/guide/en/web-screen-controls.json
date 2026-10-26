@@ -467,6 +467,10 @@
       "text": "The Player Config form groups settings by when they take effect. Use the SDK editor below it for additional properties, objects, callbacks and API calls."
     },
     {
+      "type": "p",
+      "text": "Settings marked Reload or Recreate stay in the draft until Apply. Before shows the last successful Apply result; After shows the draft. Returning to the applied value clears the difference. Reset draft discards pending edits in that group. Apply waits for the SDK call to complete. If the call fails, correct the retained draft and try again."
+    },
+    {
       "type": "figure",
       "file": "config",
       "caption": "SourceConfig fields. The Apply button is below the complete configuration panel."
@@ -689,7 +693,11 @@
     },
     {
       "type": "p",
-      "text": "Open the SDK editor below Player Config. Search by the public API name and choose configuration, command, state or event. Each entry links to the official reference."
+      "text": "Open the SDK editor below Player Config. Search by an API path or a feature such as subtitles, volume or network; Japanese search terms also work. Exact paths and method names appear first. Choose configuration, command, state or event. Each entry links to the official reference."
+    },
+    {
+      "type": "p",
+      "text": "Search, entry selection and language changes retain unapplied inputs. Configuration fields show their Before and After values. License values, credentials and callback bodies use placeholders in this comparison. Reset draft discards edits for the selected entry; Remove this override removes an applied override."
     },
     {
       "type": "steps",
@@ -716,8 +724,8 @@
     },
     {
       "type": "figure",
-      "file": "sdk-configuration",
-      "caption": "The SDK editor searches public paths and provides inputs for the selected setting. This example edits the source title."
+      "file": "web-sdk-differences",
+      "caption": "The SDK editor compares the source title before and after editing. The new title remains in the draft until Apply setting."
     },
     {
       "type": "h3",
@@ -1062,7 +1070,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 640
+      "line": 642
     },
     {
       "path": "apps/web/src/uiGuide.ts",
@@ -1094,11 +1102,11 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 637
+      "line": 638
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 818
+      "line": 824
     },
     {
       "path": "apps/web/src/sources.ts",
@@ -1142,7 +1150,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 840
+      "line": 846
     },
     {
       "path": "tests/e2e/specs/app-ui.spec.ts",
@@ -1170,15 +1178,15 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 448
+      "line": 450
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 743
+      "line": 745
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 834
+      "line": 840
     },
     {
       "path": "tests/e2e/specs/app-ui.spec.ts",
@@ -1278,27 +1286,27 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 289,
+      "line": 310,
       "label": "Event counts and recent-payload history"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 225,
+      "line": 237,
       "label": "Record reset on Player replacement"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 336,
+      "line": 358,
       "label": "Explicit event-history reset"
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 637,
+      "line": 638,
       "label": "Player and source application callbacks"
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 758,
+      "line": 760,
       "label": "PlayerConfig construction"
     },
     {
@@ -1319,7 +1327,7 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 320
+      "line": 341
     }
   ]
 }

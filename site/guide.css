@@ -168,6 +168,7 @@
 .guide-figure-capture { --guide-capture-ratio: 16 / 9; --guide-capture-top: 0%; width: 100%; }
 /* Top percentages use the cropped viewport height, preserving the source pixels. */
 .guide-figure-capture[data-guide-capture="ios-phone"] { --guide-capture-ratio: 1206 / 2436; --guide-capture-top: calc(-100% * 186 / 2436); width: 25rem; }
+.guide-figure-capture[data-guide-capture="ios-detail"] { --guide-capture-ratio: 1134 / 472; --guide-capture-top: 0%; width: calc(25rem * 1134 / 1206); }
 .guide-figure-capture[data-guide-capture="android-phone"] { --guide-capture-ratio: 1080 / 2274; --guide-capture-top: calc(-100% * 63 / 2274); width: 22.5rem; }
 .guide-figure-capture[data-guide-capture="ipad"] { --guide-capture-ratio: 1640 / 2272; --guide-capture-top: calc(-100% * 48 / 2272); width: 48rem; }
 .guide-figure-capture[data-guide-capture="tv"] { width: 40rem; }

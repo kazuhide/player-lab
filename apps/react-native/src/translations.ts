@@ -1,5 +1,11 @@
 /** Japanese application copy. Public SDK names and code samples retain their original spelling. */
 export const japaneseCopy: Record<string, string> = {
+  "Changes": "変更",
+  "Changed": "変更あり",
+  "Added": "追加",
+  "Removed": "削除",
+  "Before": "適用済み",
+  "After": "編集後",
   "Settings": "設定",
   "APIs": "API",
   "Code": "コード",

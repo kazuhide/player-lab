@@ -65,9 +65,10 @@ const screenGuideSections: Record<string, string[]> = {
   "native-vega": ["vega-os-and-kepler", "source-and-apply", "playback-and-subtitles", "applied-code",
     "vega-typed-configuration-and-callbacks", "vega-operations-state-and-events", "vega-hls-interstitials"],
 };
-type CaptureProfile = "ios-phone" | "android-phone" | "ipad" | "tv" | "tv-dense";
+type CaptureProfile = "ios-phone" | "ios-detail" | "android-phone" | "ipad" | "tv" | "tv-dense";
 const captureProfiles: Record<CaptureProfile, { width: number; height: number; top: number; bottom: number; displayWidth?: number }> = {
   "ios-phone": { width: 1206, height: 2622, top: 186, bottom: 0, displayWidth: 400 },
+  "ios-detail": { width: 1134, height: 472, top: 0, bottom: 0, displayWidth: 400 * 1134 / 1206 },
   "android-phone": { width: 1080, height: 2400, top: 63, bottom: 63, displayWidth: 360 },
   ipad: { width: 1640, height: 2360, top: 48, bottom: 40, displayWidth: 768 },
   tv: { width: 1920, height: 1080, top: 0, bottom: 0, displayWidth: 640 },
@@ -84,15 +85,17 @@ const nativeCaptureSets: { slug: string; profile: CaptureProfile; files: string[
     "android-applied-code", "android-api-callback", "android-api-operation", "android-api-state", "android-api-events",
     "android-media-session", "android-offline-tracks"] },
   { slug: "native-android", profile: "tv", files: ["android-tv-workspace", "android-tv-api"] },
-  { slug: "native-react-native", profile: "ios-phone", files: ["rn-ios-subtitles", "rn-ios-caption", "rn-ios-code",
+  { slug: "native-react-native", profile: "ios-detail", files: ["rn-ios-configuration-differences"] },
+  { slug: "native-react-native", profile: "ios-phone", files: ["rn-ios-caption", "rn-ios-code",
     "rn-ios-api-callback", "rn-ios-api-events"] },
-  { slug: "native-react-native", profile: "android-phone", files: ["rn-android-subtitles", "rn-android-caption",
+  { slug: "native-react-native", profile: "android-phone", files: ["rn-android-configuration-differences", "rn-android-caption",
     "rn-android-api-operation", "rn-android-cast-startup"] },
   { slug: "native-vega", profile: "tv-dense", files: ["vega-subtitles", "vega-caption", "vega-code",
-    "vega-api-callback", "vega-api-operation", "vega-api-volume"] },
+    "vega-api-callback", "vega-api-search", "vega-api-volume"] },
 ];
 const representativeCaptures: { slug: string; file: string; profile: CaptureProfile }[] = [
   { slug: "native-apple", file: "ios-applied-code", profile: "ios-phone" },
+  { slug: "native-react-native", file: "rn-ios-configuration-differences", profile: "ios-detail" },
   { slug: "native-android", file: "android-applied-code", profile: "android-phone" },
   { slug: "native-apple", file: "ios-initial-tracks", profile: "ipad" },
   { slug: "native-android", file: "android-tv-workspace", profile: "tv" },

@@ -37,6 +37,8 @@ export function createExpoProject({ target, assets = join(repoRoot, "packages/ui
     recursive:true,
     filter:(path) => lstatSync(path).isDirectory() || (lstatSync(path).isFile() && /\.tsx?$/.test(path)),
   });
+  // External projects keep the comparison helper local without a checkout-relative import.
+  copyFileSync(join(repoRoot, "shared/configurationDifferences.ts"), join(target, "src/differenceValues.ts"));
   cpSync(join(appRoot, "expo/plugins"), join(target, "plugins"), { recursive:true });
   cpSync(join(appRoot, "expo/native-locks"), join(target, "native-locks"), { recursive:true });
   mkdirSync(join(target, "assets/webui"), { recursive:true });

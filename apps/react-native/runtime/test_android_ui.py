@@ -9,6 +9,33 @@ spec.loader.exec_module(module)
 
 
 class AndroidLocatorTests(unittest.TestCase):
+    def test_fixed_configuration_actions_reject_missing_and_clipped_buttons(self):
+        ui = module.Ui.__new__(module.Ui)
+        ui.width, ui.height = 2400, 1080
+        tree = ET.fromstring('<hierarchy><node bounds="[0,0][2400,1080]">'
+                            '<node resource-id="configuration-fields-scroll" bounds="[960,260][2400,740]"/>'
+                            '<node resource-id="configuration-actions" bounds="[960,740][2400,1017]">'
+                            '<node resource-id="configuration-reset" bounds="[992,859][1670,985]"/>'
+                            '<node resource-id="configuration-apply" bounds="[1691,859][2369,985]"/>'
+                            '</node></node></hierarchy>')
+        ui.assert_configuration_footer(tree)
+        ui.bottom = 900  # An edge-to-edge window can extend behind the keyboard.
+        with self.assertRaisesRegex(RuntimeError, "fixed configuration actions"):
+            ui.assert_configuration_footer(tree)
+        ui.bottom = 1080
+        apply = tree.find(".//node[@resource-id='configuration-apply']")
+        apply.set("bounds", "[1691,1040][2369,1166]")
+        with self.assertRaisesRegex(RuntimeError, "fixed configuration actions"):
+            ui.assert_configuration_footer(tree)
+        apply.set("bounds", "[1691,859][2369,985]")
+        actions = tree.find(".//node[@resource-id='configuration-actions']")
+        tree.find('node').remove(actions)
+        with self.assertRaisesRegex(RuntimeError, "fixed configuration actions"):
+            ui.assert_configuration_footer(tree)
+        tree.find(".//node[@resource-id='configuration-fields-scroll']").append(actions)
+        with self.assertRaisesRegex(RuntimeError, "fixed configuration actions"):
+            ui.assert_configuration_footer(tree)
+
     def test_visible_caption_never_substitutes_for_a_clipped_input(self):
         ui = module.Ui.__new__(module.Ui)
         ui.width, ui.height, ui.scroll_top, ui.bottom = 1080, 2400, 381, 2337
