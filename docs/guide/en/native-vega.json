@@ -198,6 +198,10 @@
       "id": "vega-operations-state-and-events"
     },
     {
+      "type": "p",
+      "text": "Search by an API path, method name or a feature such as volume or subtitles. English and Japanese search terms work, and exact paths and method names appear first. Previous results and Next results move through all matches; changing the search returns to the first result page."
+    },
+    {
       "type": "figure",
       "file": "vega-api-operation",
       "caption": "PlayerAPI.getCurrentTime during playback. The result appears below Run Vega SDK API; the picture and SDK events provide additional context."

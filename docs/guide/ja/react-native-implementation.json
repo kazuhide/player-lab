@@ -321,7 +321,7 @@
     },
     {
       "type": "p",
-      "text": "Appがセーフエリアを管理するため、生成したExpoのindex.tsxはAppを直接登録します。さらにSafeAreaViewで包むと入力領域の原点がずれ、固定ボタンがキーボードに隠れる場合があります。KeyboardAvoidingViewはuseSafeAreaFrameのyでホスト内の位置を補正します。組み込む画面でも変換候補を含むキーボードとボタンの位置を確認します。"
+      "text": "Appがセーフエリアを管理するため、生成したExpoのindex.tsxはAppを直接登録します。さらにSafeAreaViewで包むと入力領域の原点がずれ、固定ボタンがキーボードに隠れる場合があります。KeyboardAvoidingViewはuseSafeAreaFrameのyでホスト内の位置を補正します。Androidでbehaviorをheightにすると、キーボードを使って画面を回転させた後も最初の縦向きの高さが残り、固定ボタンが画面外に出る場合があります。このアプリはiOSとAndroidの両方でpaddingを使い、元の高さが残るのを防いでいます。組み込む画面でも変換候補を含むキーボードとボタンの位置を確認します。"
     },
     {
       "type": "table",

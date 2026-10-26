@@ -321,7 +321,7 @@
     },
     {
       "type": "p",
-      "text": "App owns the safe area, so the generated Expo index.tsx registers App directly. An extra SafeAreaView can shift the editor origin and hide fixed actions behind the keyboard. KeyboardAvoidingView uses useSafeAreaFrame’s y coordinate to account for its position in the host. Check button positions against the complete keyboard, including predictive text, in an integrated screen."
+      "text": "App owns the safe area, so the generated Expo index.tsx registers App directly. An extra SafeAreaView can shift the editor origin and hide fixed actions behind the keyboard. KeyboardAvoidingView uses useSafeAreaFrame’s y coordinate to account for its position in the host. On Android, height behavior can retain the initial portrait height after keyboard use and rotation, pushing fixed actions below the screen. This app uses padding behavior on both iOS and Android to avoid retaining that height. Check button positions against the complete keyboard, including predictive text, in an integrated screen."
     },
     {
       "type": "table",

@@ -46,14 +46,18 @@
       "id": "source-and-apply"
     },
     {
-      "type": "figure",
-      "file": "rn-ios-subtitles",
-      "caption": "iOSの設定画面です。ソースの設定項目を直接選択でき、適用と編集の取り消しは入力領域の外にあります。"
+      "type": "p",
+      "text": "「変更」には追加・変更・削除した値が表示されます。「適用済み」は現在のPlayerに渡した設定、「編集後」は編集中の値です。再生状態はプレイヤー画面やイベントで確認します。適用済みの値へ戻すと差分が消え、「編集内容を戻す」で未適用の変更をすべて取り消せます。入力の検証に失敗した場合は、Playerに渡した設定と編集中の値がそのまま残ります。"
     },
     {
       "type": "figure",
-      "file": "rn-android-subtitles",
-      "caption": "Androidの設定画面です。iOSと同じ設定区分と項目選択を使い、外部WebVTT字幕の情報を編集できます。"
+      "file": "rn-ios-configuration-differences",
+      "caption": "iOSの設定画面の「変更」欄です。Playerに渡したソースのタイトルと編集中の値を表示しています。"
+    },
+    {
+      "type": "figure",
+      "file": "rn-android-configuration-differences",
+      "caption": "Androidの設定画面でPlayerに渡したソースのタイトルと編集中の値を比較しています。編集欄の下に「編集内容を戻す」と「設定を適用」が表示されます。"
     },
     {
       "type": "steps",

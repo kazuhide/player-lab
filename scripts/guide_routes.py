@@ -103,9 +103,11 @@ NATIVE_FIGURES = {
     'tvos-video-scaling': (1920, 1080),
     'tvos-applied-code': (1920, 1080),
     'rn-ios-subtitles': (1206, 2622),
+    'rn-ios-configuration-differences': (1134, 472),
     'rn-ios-caption': (1206, 2622),
     'rn-ios-code': (1206, 2622),
     'rn-android-subtitles': (1080, 2400),
+    'rn-android-configuration-differences': (1080, 2400),
     'rn-android-caption': (1080, 2400),
     'vega-subtitles': (1920, 1080),
     'vega-caption': (1920, 1080),
@@ -113,6 +115,7 @@ NATIVE_FIGURES = {
 }
 NATIVE_CAPTURE_PROFILES = {
     (1206, 2622): 'ios-phone',
+    (1134, 472): 'ios-detail',
     (1080, 2400): 'android-phone',
     (1640, 2360): 'ipad',
     (1920, 1080): 'tv',
@@ -130,11 +133,13 @@ LOCALIZED_FIGURES = {
     'source-controls': {'en': (301, 193), 'ja': (301, 197)},
     'config': {'en': (1210, 147), 'ja': (1210, 155)},
     'sdk-configuration': {'en': (1240, 1402), 'ja': (1240, 1402)},
+    'web-sdk-differences': {'en': (928, 636), 'ja': (928, 637)},
     'sdk-callback': {'en': (1240, 1527), 'ja': (1240, 1529)},
     'ui-controls': {'en': (301, 546), 'ja': (301, 656)},
     'applied-settings': {'en': (1240, 511), 'ja': (1240, 512)},
 }
 FIGURE_EXTENSIONS = {name: 'png' for name in (*NATIVE_FIGURES, *SHARED_FIGURES)}
+FIGURE_EXTENSIONS['web-sdk-differences'] = 'png'
 
 
 def figure_capture_profile(name):

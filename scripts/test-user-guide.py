@@ -878,7 +878,8 @@ class GuideTests(unittest.TestCase):
 
 class GuideRenderingTests(unittest.TestCase):
     def test_native_capture_viewports_preserve_localized_images_and_original_dimensions(self):
-        expected_profiles = {(1206, 2622): 'ios-phone', (1080, 2400): 'android-phone',
+        expected_profiles = {(1206, 2622): 'ios-phone', (1134, 472): 'ios-detail',
+                             (1080, 2400): 'android-phone',
                              (1640, 2360): 'ipad', (1920, 1080): 'tv'}
         caption = 'Player settings <preview> & controls'
         for name, (width, height) in NATIVE_FIGURES.items():
