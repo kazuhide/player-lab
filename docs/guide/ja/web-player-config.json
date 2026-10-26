@@ -23,7 +23,7 @@
     },
     {
       "type": "p",
-      "text": "「SDKの詳細設定・API・イベント」では、オブジェクトや関数を含む公開APIの型に沿って入力できます。入力欄の上には、適用時にPlayerを再生成するか、ソースを再読み込みするか、UIを再生成するかを表示します。「設定を送信しました」は設定を渡す処理の完了を示し、再生や認証の成功を示すものではありません。「状態の取得」、イベントの内容、実際の映像で対象の動作を確認してください。"
+      "text": "「SDKの詳細設定・API・イベント」ではオブジェクトや関数を含む公開APIの型に沿って入力できます。入力欄の上には適用時にPlayerを再生成するか、ソースを再読み込みするか、UIを再生成するかを表示します。「設定を送信しました」は設定を渡す処理の完了を示し、再生や認証の成功を示すものではありません。「状態の取得」、イベントの内容、実際の映像で対象の動作を確認してください。"
     },
     {
       "type": "p",
@@ -36,7 +36,7 @@
     },
     {
       "type": "p",
-      "text": "PlayerConfigを書き換える操作と、現在のPlayerのsetterを呼び出す操作は異なります。生成時の設定を変えるには、新しい値をコンストラクターへ渡してPlayerを作り直します。ソース固有の値は次のplayer.loadへ渡します。即時反映できる項目には、現在のインスタンスの実行時APIを使います。UIConfigはPlayer UIライブラリーの設定で、映像エンジンの設定とは分けて扱います。"
+      "text": "PlayerConfigを書き換える操作と、現在のPlayerのsetterを呼び出す操作は異なります。生成時の設定を変えるには、新しい値をコンストラクターへ渡してPlayerを作り直します。ソース固有の値は次のplayer.loadへ渡します。即時反映できる項目には現在のインスタンスの実行時APIを使います。UIConfigはPlayer UIライブラリーの設定で、映像エンジンの設定とは分けて扱います。"
     },
     {
       "type": "links",
@@ -87,7 +87,7 @@
     },
     {
       "type": "p",
-      "text": "実行時の項目は、文字の入力ごとではなくchangeイベントでsetterを呼びます。音量を変えるとミュートが解除される場合があります。全画面とPiPにはブラウザーの対応と利用者の操作も必要です。"
+      "text": "実行時の項目では文字を入力するたびではなくchangeイベントでsetterを呼びます。音量を変えるとミュートが解除される場合があります。全画面とPiPにはブラウザーの対応と利用者の操作も必要です。"
     },
     {
       "type": "links",
@@ -108,7 +108,7 @@
     },
     {
       "type": "p",
-      "text": "title、description、poster、optionsはSourceConfigとしてplayer.loadへ渡します。Playerを再生成せずソースを読み込み直します。Player Labの適用操作は、プリセットと適用済みの上書きを統合したSourceConfig全体を渡します。自分のアプリでも、維持したい設定を含むソースを組み立ててからloadを呼んでください。"
+      "text": "title、description、poster、optionsはSourceConfigとしてplayer.loadへ渡します。Playerを再生成せずソースを読み込み直します。Player Labの適用操作はプリセットと適用済みの上書きを統合したSourceConfig全体を渡します。自分のアプリでも維持したい設定を含むソースを組み立ててからloadを呼んでください。"
     },
     {
       "type": "links",
@@ -285,7 +285,7 @@
     },
     {
       "type": "p",
-      "text": "適応ビットレート制御(ABR)は、再生条件に応じて映像品質を選ぶ仕組みです。VOD DASHとPremiereを選び、プレイヤーの画質メニューをAutoにします。Pagesに同梱する素材は180pと360pです。素材の最高画質より高い上限では変化を確認できず、画質を手動で固定した状態も自動選択の比較にはなりません。"
+      "text": "適応ビットレート制御(ABR)は再生条件に応じて映像品質を選ぶ仕組みです。VOD DASHとPremiereを選び、プレイヤーの画質メニューをAutoにします。Pagesに同梱する素材は180pと360pです。素材の最高画質より高い上限では変化を確認できず、画質を手動で固定した状態も自動選択の比較にはなりません。"
     },
     {
       "type": "steps",
@@ -365,7 +365,7 @@
         [
           "再生パネルのバッファ目標 (秒)",
           "10秒を入力し、「バッファ目標を設定」を押す。",
-          "イベントログに指定した目標が表示されます。同じ映像用の前方バッファAPIを使う別の操作欄です。入力欄の数値は、現在の蓄積量を示すメーターではありません。"
+          "イベントログに指定した目標が表示されます。同じ映像用の前方バッファAPIを使う別の操作欄です。入力欄の数値は現在の蓄積量を示すメーターではありません。"
         ],
         [
           "Buffer(初期)",
@@ -480,18 +480,18 @@
     },
     {
       "type": "note",
-      "text": "Web SDKの型名はTweakConfigではなくTweaksConfigです。指定先はPlayerConfig.tweaksです。通常の設定より変更されやすい項目を含むため、問題の再現や回避の目的と対象SDK版を記録して使います。SDKの詳細設定に表示される項目が、すべての素材や端末で有効とは限りません。"
+      "text": "Web SDKの型名はTweakConfigではなくTweaksConfigです。指定先はPlayerConfig.tweaksです。通常の設定より変更されやすい項目を含むため、問題の再現や回避の目的と対象SDKのバージョンを記録して使います。SDKの詳細設定に表示される項目が、すべての素材や端末で有効とは限りません。"
     },
     {
       "type": "code",
       "title": "このアプリが生成時設定とソース設定を適用する箇所",
-      "text": "  onRecreate: (overrides) => {\n    apiExplorer?.discardPatch(\"PlayerConfig\", overrides);\n    playerOverrides = deepMerge(playerOverrides, overrides);\n    void build();\n  },\n  onReload: (srcOverrides) => {\n    apiExplorer?.discardPatch(\"SourceConfig\", srcOverrides);\n    sourceOverrides = deepMerge(sourceOverrides, srcOverrides);\n    currentSource = deepMerge(sourcePreset, sourceOverrides);\n    if (player) void loadCurrentSource(player).catch((err: unknown) => console.error(\"config reload failed\", err));\n  },",
+      "text": "  onRecreate: async (overrides) => {\n    const previous = playerOverrides;\n    const rollback = apiExplorer?.discardPatch(\"PlayerConfig\", overrides);\n    const applied = deepMerge(playerOverrides, overrides);\n    playerOverrides = applied;\n    const pending = build();\n    const request = buildRequest;\n    try { return await pending; }\n    catch (error) {\n      if (request === buildRequest && playerOverrides === applied) {\n        playerOverrides = previous;\n        rollback?.();\n      }\n      throw error;\n    }\n  },\n  onReload: async (srcOverrides) => {\n    const instance = player;\n    if (!instance) throw new Error(\"Create a player first.\");\n    const previous = sourceOverrides;\n    const previousSource = currentSource;\n    const rollback = apiExplorer?.discardPatch(\"SourceConfig\", srcOverrides);\n    const applied = deepMerge(sourceOverrides, srcOverrides);\n    sourceOverrides = applied;\n    const pending = reloadConfiguration(instance);\n    const generation = sourceLoadGeneration;\n    try { return await pending; }\n    catch (error) {\n      if (player === instance && generation === sourceLoadGeneration && sourceOverrides === applied) {\n        sourceOverrides = previous;\n        currentSource = previousSource;\n        rollback?.();\n      }\n      throw error;\n    }\n  },",
       "source": {
         "path": "apps/web/src/main.ts",
-        "line": 637,
-        "label": "main.ts:637–647"
+        "line": 642,
+        "label": "main.ts:642–677"
       },
-      "endLine": 647
+      "endLine": 677
     },
     {
       "type": "p",
@@ -525,7 +525,7 @@
     },
     {
       "type": "note",
-      "text": "任意の設定項目でundefinedを選ぶと、そのプロパティを省略してSDKへ渡します。たとえばWeb SDK 8.281.0では、playbackに明示的なundefinedを渡すと初期化に失敗しますが、プロパティを省略すれば初期化できます。「この上書きを解除」は、アプリの基本設定へ戻す操作です。この扱いは設定のプロパティに適用し、SDKが関数へ渡す引数の値や個数は変えません。"
+      "text": "任意の設定項目でundefinedを選ぶと、そのプロパティを省略してSDKへ渡します。たとえばWeb SDK 8.281.0ではplaybackに明示的なundefinedを渡すと初期化に失敗しますが、プロパティを省略すれば初期化できます。「この上書きを解除」はアプリの基本設定へ戻す操作です。この扱いは設定のプロパティに適用し、SDKが関数へ渡す引数の値や個数は変えません。"
     },
     {
       "type": "figure",
@@ -571,7 +571,7 @@
     },
     {
       "type": "p",
-      "text": "「状態の取得」でPlayerAPI.getConfigやPlayerAPI.getSourceを選ぶと、送信した設定値を確認できます。setVolumeなどの操作では、引数を入力して実行します。取得したSDKインスタンスや関数を後の呼び出しで選ぶこともできます。取得元のPlayerなどが入れ替わった場合は取得し直します。コード例からライセンス値を除きます。選択したインスタンスを参照する部分には、先の呼び出しで取得した同じオブジェクトを使ってください。"
+      "text": "「状態の取得」でPlayerAPI.getConfigやPlayerAPI.getSourceを選ぶと、送信した設定値を確認できます。setVolumeなどの操作では引数を入力して実行します。取得したSDKインスタンスや関数を後の呼び出しで選ぶこともできます。取得元のPlayerなどが入れ替わった場合は取得し直します。コード例からライセンス値を除きます。選択したインスタンスを参照する部分には、先の呼び出しで取得した同じオブジェクトを使ってください。"
     },
     {
       "type": "p",
@@ -579,11 +579,11 @@
     },
     {
       "type": "p",
-      "text": "PlayerConfig.uiに空のオブジェクト{}を適用するとSDKがUIを生成します。アプリは使用中のUIバージョンに対応するスクリプトとスタイルの読み込み先を指定し、PlayerConfig.locationから変更できます。SDKは設定したstyle.uiManagerFactoryを呼び出します。テーマを選ぶとアプリが生成するUIへ戻り、UIManagerが重複しないようにします。"
+      "text": "PlayerConfig.uiに空のオブジェクト{}を適用するとSDKがUIを生成します。アプリは使用中のUIバージョンに対応するスクリプトとスタイルの読み込み先を指定しています。この読み込み先はPlayerConfig.locationから変更できます。SDKは設定したstyle.uiManagerFactoryを呼び出します。テーマを選ぶとアプリが生成するUIへ戻り、UIManagerが重複しないようにします。"
     },
     {
       "type": "p",
-      "text": "Player UI 4.23.0では、UI設定を合成するときに、空でないSourceConfig.title・descriptionをUIConfig.metadata.title・descriptionより優先します。プリセットのタイトルや説明よりUIConfig側のメタデータを優先させるには、対応するSourceConfigの値を空文字列にして適用します。ソースごとの表示を変える場合はSourceConfigを編集します。"
+      "text": "Player UI 4.23.0では、UI設定を合成するときに空でないSourceConfig.title・descriptionをUIConfig.metadata.title・descriptionより優先します。プリセットのタイトルや説明よりUIConfig側のメタデータを優先させるには、対応するSourceConfigの値を空文字列にして適用します。ソースごとの表示を変える場合はSourceConfigを編集します。"
     },
     {
       "type": "note",
@@ -712,17 +712,17 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 238,
+      "line": 250,
       "label": "イベント回数と直近の内容"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 185,
+      "line": 197,
       "label": "Playerの入れ替え時の記録消去"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 271,
+      "line": 283,
       "label": "イベント履歴の消去操作"
     },
     {

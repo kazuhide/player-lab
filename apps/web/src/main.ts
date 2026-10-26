@@ -731,7 +731,7 @@ apiExplorer = new ApiExplorer(document.getElementById("api-explorer")!, {
     uiManager = undefined; sdkUiManager = undefined; sdkUiOwner = undefined;
     apiExplorer?.refresh(); previousUi?.release();
   },
-  recreate: async () => { await build(); },
+  recreate: () => build(),
 });
 
 renderMetrics();

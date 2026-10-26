@@ -113,11 +113,11 @@
     },
     {
       "type": "p",
-      "text": "次はVIDEO_STARTUPTIME > 0のデータを、ブラウザー別・1時間ごとに平均する例です。JSONをquery.jsonへ保存し、Analyticsライセンスを置き換え、保持期間内の日付を選びます。ローカルGUIではなく、サーバーや端末から実行します。"
+      "text": "次はVIDEO_STARTUPTIME > 0のデータを、ブラウザー別・1時間ごとに平均する例です。JSONをquery.jsonへ保存し、Analyticsライセンスを置き換え、保持期間内の日付を選びます。ローカルGUIではなくサーバーや端末から実行します。"
     },
     {
       "type": "code",
-      "title": "query.json — ブラウザー別・1時間ごとの再生開始にかかる時間",
+      "title": "query.json：ブラウザー別・1時間ごとの再生開始にかかる時間",
       "text": "{\n  \"licenseKey\": \"<ANALYTICS_LICENSE_KEY>\",\n  \"dimension\": \"VIDEO_STARTUPTIME\",\n  \"start\": \"2026-10-14T00:00:00.000Z\",\n  \"end\": \"2026-10-15T00:00:00.000Z\",\n  \"interval\": \"HOUR\",\n  \"groupBy\": [\n    \"BROWSER\"\n  ],\n  \"filters\": [\n    {\n      \"name\": \"VIDEO_STARTUPTIME\",\n      \"operator\": \"GT\",\n      \"value\": 0\n    }\n  ],\n  \"limit\": 200,\n  \"includeContext\": true\n}"
     },
     {
@@ -165,7 +165,7 @@
         ],
         [
           "401または403",
-          "サーバーのAPIキーの参照権限と組織指定を確認します。Playerライセンスでは、このAPIを認証できません。"
+          "サーバーのAPIキーの参照権限と組織指定を確認します。PlayerライセンスではこのAPIを認証できません。"
         ],
         [
           "502／プロキシへの接続メッセージ",

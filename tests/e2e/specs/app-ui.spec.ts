@@ -1166,7 +1166,8 @@ test.describe("Web app UI", () => {
     await expect.poll(() => page.evaluate(() => innerWidth)).toBe(375);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.getByRole("button", { name: "日本語", exact: true }).click();
-    await page.locator(".config-code > summary").click();
+    await expect(page.locator(".config-code")).toHaveAttribute("open", "");
+    await expect(page.locator(".config-code > summary")).toHaveText("適用済み設定をコードで表示");
     await expect(page.getByRole("textbox", { name: "適用済み設定コード", exact: true })).toHaveValue(/CODE_SNAPSHOT_APPLIED_TITLE/);
   });
 

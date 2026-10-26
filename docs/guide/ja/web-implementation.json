@@ -1,7 +1,7 @@
 {
   "id": "web-implementation",
   "title": "Web版の実装ガイド",
-  "lead": "Web Playerの組み込み、再生設定、UIの変更を、Player Labの実装を参照しながら説明します。",
+  "lead": "Player Labの実装に沿って、Web Playerの組み込み、再生設定、UIの変更方法を説明します。",
   "blocks": [
     {
       "type": "p",
@@ -57,10 +57,10 @@
       "text": "  const instance = new Player(playerEl as HTMLElement, config);\n  player = instance;\n  if (sdkUiEnabled) { renderThemeBar(); renderActiveConstruction(); apiExplorer?.refresh(); }\n  else applyTheme(instance, currentThemeId);\n  wireMetrics(instance);",
       "source": {
         "path": "apps/web/src/main.ts",
-        "line": 803,
-        "label": "main.ts:803–807"
+        "line": 849,
+        "label": "main.ts:849–853"
       },
-      "endLine": 807
+      "endLine": 853
     },
     {
       "type": "p",
@@ -69,13 +69,13 @@
     {
       "type": "code",
       "title": "現行アプリから設定済みソースを読み込む",
-      "text": "async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, disableSeeking?: boolean): Promise<void> {\n  const isLive = SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false;\n  const settle = controlPanel?.beginSourceLoad(isLive);\n  const base = deepMerge((apiSourceInput ?? sourcePreset) as SourceConfig, sourceOverrides);\n  const source = apiExplorer?.prepare(\"SourceConfig\", base) ?? structuredClone(base);\n  currentSource = source;\n  const request = { player: instance, source, settle };\n  appSourceLoad = request;\n  try {\n    await instance.load(request.source, forceTechnology, disableSeeking);\n  } catch (error) {\n    if (appSourceLoad === request) appSourceLoad = undefined;\n    if (player === instance) request.settle?.();\n    throw error;\n  } finally {\n    if (player === instance) configPanel?.refresh();\n  }\n}",
+      "text": "async function loadCurrentSource(instance: PlayerAPI, forceTechnology?: string, disableSeeking?: boolean): Promise<void> {\n  const generation = ++sourceLoadGeneration;\n  const isLive = SOURCES.find((source) => source.id === currentSourceId)?.isLive ?? false;\n  const settle = controlPanel?.beginSourceLoad(isLive);\n  const base = deepMerge((apiSourceInput ?? sourcePreset) as SourceConfig, sourceOverrides);\n  const source = apiExplorer?.prepare(\"SourceConfig\", base) ?? structuredClone(base);\n  currentSource = source;\n  const request = { player: instance, source, settle };\n  appSourceLoad = request;\n  try {\n    await instance.load(request.source, forceTechnology, disableSeeking);\n  } catch (error) {\n    if (appSourceLoad === request) appSourceLoad = undefined;\n    if (player === instance && generation === sourceLoadGeneration) request.settle?.();\n    throw error;\n  } finally {\n    if (player === instance && generation === sourceLoadGeneration) configPanel?.refresh();\n  }\n}",
       "source": {
         "path": "apps/web/src/main.ts",
-        "line": 478,
-        "label": "main.ts:478–495"
+        "line": 480,
+        "label": "main.ts:480–498"
       },
-      "endLine": 495
+      "endLine": 498
     },
     {
       "type": "p",
@@ -125,7 +125,7 @@
         [
           "UIConfig",
           "bitmovin-player-uiのUI動作、表示言語、表示用メタデータ、部品ごとの上書き設定。",
-          "アプリ管理のUIでは、UIを再構築して適用します。SDK管理のUIを使う場合、このアプリはPlayerの再生成で反映します。"
+          "アプリ管理のUIではUIを再構築して適用します。SDK管理のUIを使う場合、このアプリはPlayerの再生成で反映します。"
         ],
         [
           "PlayerAPIとその配下のAPI",
@@ -163,10 +163,10 @@
       "text": "  function dynAdapt(mutate: (cur: DynamicAdaptationConfig) => DynamicAdaptationConfig): void {\n    const p = options.getPlayer();\n    if (!p) return;\n    p.adaptation.setConfig(mutate(p.adaptation.getConfig()));\n  }",
       "source": {
         "path": "apps/web/src/configPanel.ts",
-        "line": 252,
-        "label": "configPanel.ts:252–256"
+        "line": 274,
+        "label": "configPanel.ts:274–278"
       },
-      "endLine": 256
+      "endLine": 278
     },
     {
       "type": "p",
@@ -179,7 +179,7 @@
     },
     {
       "type": "p",
-      "text": "この例は、再利用するPlayerConfigとSourceConfigを、アプリのフォーム用の補助実装から分けたものです。インストール済みSDKの型で検査しています。メディアURLとPlayerライセンスは自分の値へ置き換えてください。設定値は比較用の入力例であり、推奨値ではありません。ui: falseの場合は、UI変更の節を参照し、UIManagerとスタイルシートを組み込みます。"
+      "text": "この例は再利用するPlayerConfigとSourceConfigをアプリのフォーム用の補助実装から分けたものです。インストール済みSDKの型で検査しています。メディアURLとPlayerライセンスは自分の値へ置き換えてください。設定値は比較用の入力例であり、推奨値ではありません。ui: falseの場合は、UI変更の節を参照し、UIManagerとスタイルシートを組み込みます。"
     },
     {
       "type": "code",
@@ -188,7 +188,7 @@
     },
     {
       "type": "p",
-      "text": "playerConfigは既存のnew Player(container, playerConfig)へ、sourceConfigはplayer.load(sourceConfig)へ渡します。音声の優先言語と初期の画質・バッファ・通信条件を生成時に指定し、ソース側では表示名と開始位置を指定しています。startOffset: 5は、オンデマンド素材では既定で先頭から5秒の位置を指定します。ライブで末尾基準を使う場合は、SourceのstartOffsetTimelineReferenceも選びます。"
+      "text": "playerConfigは既存のnew Player(container, playerConfig)へ、sourceConfigはplayer.load(sourceConfig)へ渡します。音声の優先言語と初期の画質・バッファ・通信条件を生成時に指定し、ソース側では表示名と開始位置を指定しています。startOffset: 5はオンデマンド素材では既定で先頭から5秒の位置を指定します。ライブで末尾基準を使う場合は、SourceのstartOffsetTimelineReferenceも選びます。"
     },
     {
       "type": "table",
@@ -228,7 +228,7 @@
     {
       "type": "figure",
       "file": "sdk-configuration",
-      "caption": "SDKの詳細設定では、設定パスとSDKの型に応じた入力欄を表示します。変更を適用してからRead stateで値を確認します。"
+      "caption": "SDKの詳細設定では設定パスとSDKの型に応じた入力欄を表示します。変更を適用してからRead stateで値を確認します。"
     },
     {
       "type": "links",
@@ -262,7 +262,7 @@
       "items": [
         "対応する動作と部品の上書きにはUIConfig、見た目にはCSS、配置には部品の配列を使います。",
         "アプリ管理ではPlayerをui: falseで生成し、UIManagerを保持します。同じPlayerへ別のUIを接続する前に、古いUIManagerを解放します。",
-        "画面終了時はUIを解放してからPlayerを破棄します。共有テーマのファクトリーは、このリポジトリの実装でありSDKのクラスではありません。"
+        "画面終了時はUIを解放してからPlayerを破棄します。共有テーマのファクトリーはこのリポジトリの実装でありSDKのクラスではありません。"
       ]
     },
     {
@@ -272,7 +272,7 @@
     },
     {
       "type": "p",
-      "text": "アプリ管理の方式ではPlayerConfig.uiをfalseにし、アプリがUIManagerを生成・解放します。以下の例は、独立したプロジェクトで標準UIのレスポンシブな構成を使うためのUI接続関数です。現行ソースの抜粋ではありません。Playerはui: falseで生成済みとし、必要な依存パッケージをインストールします。戻り値のUIManagerを保持し、入れ替えや画面終了時にreleaseを呼びます。"
+      "text": "アプリ管理の方式ではPlayerConfig.uiをfalseにし、アプリがUIManagerを生成・解放します。以下の例は独立したプロジェクトで標準UIのレスポンシブな構成を使うためのUI接続関数です。現行ソースの抜粋ではありません。Playerはui: falseで生成済みとし、必要な依存パッケージをインストールします。戻り値のUIManagerを保持し、入れ替えや画面終了時にreleaseを呼びます。"
     },
     {
       "type": "code",
@@ -281,7 +281,7 @@
     },
     {
       "type": "p",
-      "text": "この例は速度の設定項目を隠し、UIContainerの自動非表示を止めます。表示言語はenです。使用中のUI版ではplaybackSpeedSelectionEnabledは旧形式の設定なので、新しい実装ではcomponentLayoutOverridesを使えます。GUIの既存トグルも比較用として利用できます。レイアウト上書きで指定できる部品はSDKの対応表にある型に限られ、任意の独自クラスを名前だけで追加する機能ではありません。"
+      "text": "この例は速度の設定項目を隠し、UIContainerの自動非表示を止めます。表示言語はenです。使用中のUIバージョンではplaybackSpeedSelectionEnabledは旧形式の設定なので、新しい実装ではcomponentLayoutOverridesを使えます。GUIの既存トグルも比較用として利用できます。レイアウト上書きで指定できる部品はSDKの対応表にある型に限られ、任意の独自クラスを名前だけで追加する機能ではありません。"
     },
     {
       "type": "code",
@@ -301,7 +301,7 @@
     {
       "type": "figure",
       "file": "custom-premiere",
-      "caption": "Premiereは、タイトル・シーク操作・設定メニューを持つ部品構成の例です。部品構成とUIConfigの値をそれぞれ確認します。"
+      "caption": "Premiereはタイトル・シーク操作・設定メニューを持つ部品構成の例です。部品構成とUIConfigの値をそれぞれ確認します。"
     },
     {
       "type": "links",
@@ -327,7 +327,7 @@
     },
     {
       "type": "p",
-      "text": "次の例は、このリポジトリのワークスペースパッケージ@showcase/ui-sharedを使います。独立したプロジェクト向けにnpmで公開されたパッケージではありません。別のプロジェクトではbitmovin-player-uiの基本スタイルシートを読み込み、自分のファクトリーへスキンクラスとCSSルールを適用してください。"
+      "text": "次の例はこのリポジトリのワークスペースパッケージ@showcase/ui-sharedを使います。独立したプロジェクト向けにnpmで公開されたパッケージではありません。別のプロジェクトではbitmovin-player-uiの基本スタイルシートを読み込み、自分のファクトリーへスキンクラスとCSSルールを適用してください。"
     },
     {
       "type": "p",
@@ -352,7 +352,7 @@
     },
     {
       "type": "p",
-      "text": "次のコード例は、Compactの構成からオプションのキャストボタンを省いたものです。componentsの順番で操作列の並びが決まります。PlaybackTimeLabelをSeekBarの前へ移し、配置を比較できます。GUIに部品の順番を編集する欄はないため、コードを変更してビルドし、アプリのCompactと結果を比べます。"
+      "text": "次のコード例はCompactの構成からオプションのキャストボタンを省いたものです。componentsの順番で操作列の並びが決まります。PlaybackTimeLabelをSeekBarの前へ移し、配置を比較できます。GUIに部品の順番を編集する欄はないため、コードを変更してビルドし、アプリのCompactと結果を比べます。"
     },
     {
       "type": "code",
@@ -360,7 +360,7 @@
     },
     {
       "type": "p",
-      "text": "UIManagerごとに新しい部品を作成します。ui: falseで生成したプレイヤーへ接続する前に、以前のUIManagerを解放してください。このコンパクトな構成例には、中央の再生オーバーレイ、音量操作、設定メニュー、字幕オーバーレイを含めていません。必要な場合は、他のファクトリーの対応する部品を参照して追加します。"
+      "text": "UIManagerごとに新しい部品を作成します。ui: falseで生成したプレイヤーへ接続する前に、以前のUIManagerを解放してください。このコンパクトな構成例には中央の再生オーバーレイ、音量操作、設定メニュー、字幕オーバーレイを含めていません。必要な場合は、他のファクトリーの対応する部品を参照して追加します。"
     },
     {
       "type": "h2",
@@ -379,7 +379,7 @@
         [
           "音声切り替え・字幕表示：対応するプリセットを選び、プレイヤー内のメニューを操作します。",
           "getAvailableAudio / setAudio、subtitles.list / subtitles.enable。初期の優先言語はPlayerConfig.playback、外部字幕のURLはSourceConfig.subtitleTracksです。",
-          "トラックIDは読み込み済みソースから取得します。選択言語や字幕本文を確認します。同梱の音声トラックは、言葉を含まない同じ音源を異なる音量にしたテスト用です。"
+          "トラックIDは読み込み済みソースから取得します。選択言語や字幕本文を確認します。同梱の音声トラックは言葉を含まない同じ音源を異なる音量にしたテスト用です。"
         ],
         [
           "自動画質選択：VOD DASHをAuto画質で再生し、動的な解像度上限を比較します。",
@@ -467,7 +467,7 @@
         ],
         [
           "UIConfigのタイトルがプリセットのタイトルを上書きしないのはなぜですか。",
-          "使用中のUI版では、空でないSourceConfig.titleやdescriptionがUIConfig.metadataより優先されます。コンテンツの表示内容はSourceConfigで変更します。UIConfig.metadataを試す場合は、対応するSourceConfigの項目へ空文字列を適用してから読み込みます。"
+          "使用中のUIバージョンでは、空でないSourceConfig.titleやdescriptionがUIConfig.metadataより優先されます。コンテンツの表示内容はSourceConfigで変更します。UIConfig.metadataを試す場合は、対応するSourceConfigの項目へ空文字列を適用してから読み込みます。"
         ],
         [
           "URLを別タブで開けても再生に失敗するのはなぜですか。",
@@ -499,7 +499,7 @@
     },
     {
       "type": "p",
-      "text": "Web版はPlayerに同梱されたAnalytics収集機能を使います。Playerライセンスは再生の許可、Analyticsライセンスはデータの送信先に使います。このアプリのanalyticsKeyは、設定したクライアント用Analyticsライセンスから取得し、空でない場合に設定へ加えます。これらは、サーバー側の問い合わせに使うアカウントAPIキーとは別のものです。"
+      "text": "Web版はPlayerに同梱されたAnalytics収集機能を使います。Playerライセンスは再生の許可、Analyticsライセンスはデータの送信先に使います。このアプリのanalyticsKeyは設定したクライアント用Analyticsライセンスから取得し、空でない場合に設定へ加えます。これらはサーバー側の問い合わせに使うアカウントAPIキーとは別のものです。"
     },
     {
       "type": "code",
@@ -507,10 +507,10 @@
       "text": "    ...(analyticsKey ? { analytics: { key: analyticsKey } } : {}),",
       "source": {
         "path": "apps/web/src/main.ts",
-        "line": 771,
-        "label": "main.ts:771"
+        "line": 817,
+        "label": "main.ts:817"
       },
-      "endLine": 771
+      "endLine": 817
     },
     {
       "type": "table",
@@ -603,7 +603,7 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 108,
+      "line": 110,
       "label": "SDK設定エディターと再生中のAPI操作"
     },
     {
@@ -722,7 +722,7 @@
     },
     {
       "path": "apps/web/src/main.ts",
-      "line": 832
+      "line": 878
     },
     {
       "path": "apps/web/src/uiGuide.ts",
@@ -827,17 +827,17 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 238,
+      "line": 250,
       "label": "イベント回数と直近の内容"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 185,
+      "line": 197,
       "label": "Playerの入れ替え時の記録消去"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 271,
+      "line": 283,
       "label": "イベント履歴の消去操作"
     },
     {

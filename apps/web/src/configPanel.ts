@@ -1077,7 +1077,7 @@ export function mountConfigPanel(container: HTMLElement, options: ConfigPanelOpt
     const poster = readRuntime("poster");
     if (poster !== undefined) runtime.push(`player.setPosterImage(${javascriptValue(poster)}, true);`);
     const logLevel = readRuntime("logLevel");
-    if (logLevel !== undefined) runtime.push(`player.setLogLevel(${javascriptValue(logLevel)} as Parameters<typeof player.setLogLevel>[0]);`);
+    if (logLevel !== undefined) runtime.push(`player.setLogLevel(player.exports.LogLevel[${javascriptValue(String(logLevel).toUpperCase())}]);`);
     if (p.isLive()) {
       runtime.push(`player.lowlatency.setTargetLatency(${javascriptValue(p.lowlatency.getTargetLatency())});`);
       const catchup = p.lowlatency.getCatchupConfig();

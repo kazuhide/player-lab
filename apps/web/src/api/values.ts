@@ -149,15 +149,34 @@ function mergeValue(base: unknown, value: unknown): unknown {
   return result;
 }
 
-function pruneValue(value: unknown, path: PathPart[]): unknown {
+type OverrideEntry = { path: PathPart[]; value: unknown };
+type Mutation = { path: PathPart[]; revision: number };
+type MutationState = { epoch: number; sets: Map<string, Mutation>; removes: Map<string, Mutation>; patches: Map<string, Mutation> };
+type DiscardedPatch = { paths: PathPart[][]; removed: (OverrideEntry & { owner: PathPart[] })[]; order: string[]; epoch: number; checkpoint: number };
+
+function restoreValue(value: unknown, path: PathPart[], restored: unknown): unknown {
+  if (!path.length) return restored;
+  const key = path[0]!;
+  if (typeof key === "string") safeKey(key);
+  const result = plain(value) ? { ...value } : {};
+  result[key] = restoreValue(result[key], path.slice(1), restored);
+  return result;
+}
+
+function pruneValue(value: unknown, path: PathPart[], removed: OverrideEntry[], prefix: PathPart[]): unknown {
   const key = path[0];
-  if (!plain(value)) return undefined;
+  if (!plain(value)) { removed.push({ path: prefix, value }); return undefined; }
   if (typeof key !== "string" || !Object.prototype.hasOwnProperty.call(value, key)) return value;
   const result = { ...value };
-  if (path.length === 1) delete result[key];
+  const next = [...prefix, key];
+  if (path.length === 1) { removed.push({ path: next, value: value[key] }); delete result[key]; }
   else {
-    result[key] = pruneValue(value[key], path.slice(1));
-    if (result[key] === undefined || plain(result[key]) && Object.keys(result[key]).length === 0) delete result[key];
+    const checkpoint = removed.length;
+    result[key] = pruneValue(value[key], path.slice(1), removed, next);
+    if (result[key] === undefined || plain(result[key]) && Object.keys(result[key]).length === 0) {
+      if (removed.length === checkpoint) removed.push({ path: next, value: value[key] });
+      delete result[key];
+    }
   }
   return result;
 }
@@ -187,8 +206,19 @@ function overlaps(a: PathPart[], b: PathPart[]): boolean {
 
 export class ApiOverrides {
   private readonly values = new Map<ConfigRoot, Map<string, { path: PathPart[]; value: unknown }>>();
+  private readonly mutations = new Map<ConfigRoot, MutationState>();
+  private revision = 0;
+  private state(root: ConfigRoot): MutationState {
+    let state = this.mutations.get(root);
+    if (!state) {
+      state = { epoch: ++this.revision, sets: new Map(), removes: new Map(), patches: new Map() };
+      this.mutations.set(root, state);
+    }
+    return state;
+  }
   set(root: ConfigRoot, path: PathPart[], value: unknown): { path: PathPart[]; value: unknown }[] {
     path.forEach(part => { if (typeof part === "string") safeKey(part); });
+    this.state(root).sets.set(JSON.stringify(path), { path: [...path], revision: ++this.revision });
     const values = this.values.get(root) ?? new Map();
     const replaced: { path: PathPart[]; value: unknown }[] = [];
     for (const [key, item] of values) if (overlaps(item.path, path) && item.path.length >= path.length) { replaced.push(item); values.delete(key); }
@@ -196,15 +226,24 @@ export class ApiOverrides {
     this.values.set(root, values);
     return replaced;
   }
-  remove(root: ConfigRoot, path: PathPart[]): void { this.values.get(root)?.delete(JSON.stringify(path)); }
+  remove(root: ConfigRoot, path: PathPart[]): void {
+    this.state(root).removes.set(JSON.stringify(path), { path: [...path], revision: ++this.revision });
+    this.values.get(root)?.delete(JSON.stringify(path));
+  }
+  clear(root: ConfigRoot): void {
+    this.values.delete(root);
+    this.mutations.set(root, { epoch: ++this.revision, sets: new Map(), removes: new Map(), patches: new Map() });
+  }
   entries(root: ConfigRoot): { path: PathPart[]; value: unknown }[] { return [...this.values.get(root)?.values() ?? []]; }
   apply<T extends object>(root: ConfigRoot, base: T, materialize: (value: unknown) => unknown = value => value): T {
     const result = clone(base) as Record<string, unknown>;
     for (const entry of this.entries(root)) put(result, entry.path, materialize(entry.value));
     return result as T;
   }
-  discardPatch(root: ConfigRoot, patch: object): void {
+  discardPatch(root: ConfigRoot, patch: object): DiscardedPatch {
     const paths: PathPart[][] = [];
+    const removed: DiscardedPatch["removed"] = [];
+    const order = [...this.values.get(root)?.keys() ?? []];
     const visit = (value: object, prefix: PathPart[]) => {
       for (const [key, item] of Object.entries(value)) {
         safeKey(key);
@@ -213,11 +252,44 @@ export class ApiOverrides {
       }
     };
     visit(patch, []);
+    const state = this.state(root);
+    const checkpoint = ++this.revision;
+    for (const path of paths) state.patches.set(JSON.stringify(path), { path, revision: checkpoint });
     for (const [key, item] of this.values.get(root) ?? []) for (const path of paths) {
       if (!overlaps(path, item.path)) continue;
-      if (path.length <= item.path.length) { this.values.get(root)!.delete(key); break; }
-      item.value = pruneValue(item.value, path.slice(item.path.length));
-      if (item.value === undefined || plain(item.value) && Object.keys(item.value).length === 0) { this.values.get(root)!.delete(key); break; }
+      if (path.length <= item.path.length) { removed.push({ ...item, owner: item.path }); this.values.get(root)!.delete(key); break; }
+      const previous = item.value;
+      const fragments: OverrideEntry[] = [];
+      item.value = pruneValue(item.value, path.slice(item.path.length), fragments, item.path);
+      removed.push(...fragments.map(fragment => ({ ...fragment, owner: item.path })));
+      if (item.value === undefined || plain(item.value) && Object.keys(item.value).length === 0) {
+        if (!fragments.length) removed.push({ ...item, value: previous, owner: item.path });
+        this.values.get(root)!.delete(key); break;
+      }
     }
+    return { paths, removed, order, epoch: state.epoch, checkpoint };
+  }
+  restoreDiscarded(root: ConfigRoot, discarded: DiscardedPatch): void {
+    const state = this.state(root);
+    if (state.epoch !== discarded.epoch || !discarded.removed.length) return;
+    const values = this.values.get(root) ?? new Map();
+    const contains = (parent: PathPart[], child: PathPart[]) => parent.length <= child.length
+      && parent.every((part, index) => part === child[index]);
+    const newer = (mutation: Mutation) => mutation.revision > discarded.checkpoint;
+    // Child edits keep their parent's history; a replaced parent stays retired.
+    const sets = [...state.sets.values()].filter(newer);
+    const removes = new Set([...state.removes.values()].filter(newer).map(write => JSON.stringify(write.path)));
+    const patches = [...state.patches.values()].filter(newer);
+    for (const entry of discarded.removed) {
+      if (sets.some(write => contains(write.path, entry.owner)) || removes.has(JSON.stringify(entry.owner))
+        || patches.some(write => overlaps(write.path, entry.path))) continue;
+      const key = JSON.stringify(entry.owner);
+      const value = restoreValue(values.get(key)?.value, entry.path.slice(entry.owner.length), entry.value);
+      values.set(key, { path: [...entry.owner], value });
+    }
+    // Restore original layer order without replacing newer independent entries.
+    const original = new Set(discarded.order);
+    const keys = [...discarded.order.filter(key => values.has(key)), ...[...values.keys()].filter(key => !original.has(key))];
+    this.values.set(root, new Map(keys.map(key => [key, values.get(key)!])));
   }
 }

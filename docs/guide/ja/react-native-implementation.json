@@ -51,7 +51,7 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/ca84e8fcbd8da9f1c2e8b5452f779fb119c84d5b/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/321a7ad807c03550b28fe2aa331bf2a0615fed83/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README：Expoホストの生成とビルド"
         }
       ]
@@ -124,7 +124,7 @@
         [
           "バッファー目標",
           "PlayerConfig.bufferConfig.audioAndVideo.forwardDuration",
-          "秒単位の有限の十進数です。空欄ではSDK既定値のiOSは0（自動選択）、Androidは50秒を使います。フォームはiOSで0以上、Androidで正の値を受け付けます。先読みメディアの目標で、起動時間やメモリー使用量を保証しません。"
+          "秒単位の有限の十進数です。空欄ではSDK既定値を使います。iOSは0（自動選択）、Androidは50秒です。フォームはiOSで0以上、Androidで正の値を受け付けます。先読みメディアの目標で、起動時間やメモリー使用量を保証しません。"
         ],
         [
           "画質選択の上限",
@@ -171,7 +171,7 @@
     {
       "type": "steps",
       "items": [
-        "適用時は編集値全体を検証し、変更が有効な場合だけPlayerを置き換えます。ソース項目だけの変更も再作成し、指定したオフセットから読み直します。",
+        "適用時は編集値全体を検証し、変更が有効な場合だけPlayerを置き換えます。ソース項目だけを変更した場合もPlayerを再作成し、指定したオフセットから読み直します。",
         "Appは検証済みのPlayer設定とソース設定を分けて保持し、revisionを増やしてReactのkeyでPlayerの管理コンポーネントを作り直します。usePlayerの引数を変えるだけでは、既存のPlayerは再設定されません。",
         "プリセットは通常ソースだけを読み直します。コールバックや全画面表示の設定がある場合はPlayerの再作成も必要です。テーマ変更ではPlayerを再作成し、適用済みソースを読み込みます。",
         "「編集内容を戻す」は未適用の編集値だけを破棄します。ネイティブSDKのインスタンスが必要な項目には、文字列や通常のオブジェクトを代用できません。"
@@ -183,7 +183,7 @@
     },
     {
       "type": "p",
-      "text": "ライセンス欄は空欄で始まり、環境変数の値を表示しません。nativeIdは同じIDのネイティブインスタンスを再利用する指定なので、再利用する場合にだけ設定します。値・OS・ソースへの対応はネイティブSDKが判定し、OS固有の項目は別のOSで反映されない場合があります。オフライン設定は対応するAPI操作が使い、Castの受信機設定はプロセス起動時に適用します。「ライブの巻き戻しを許可」はアプリの補助処理を切り替え、SDK生成時のプロパティは変更しません。"
+      "text": "ライセンス欄は空欄で始まり、環境変数の値を表示しません。nativeIdは同じIDのネイティブインスタンスを再利用する指定なので、再利用する場合にだけ設定します。値・OS・ソースへの対応はネイティブSDKが判定し、OS固有の項目は別のOSで反映されない場合があります。オフライン設定は対応するAPI操作で使います。Castの受信機設定はプロセス起動時に適用します。「ライブの巻き戻しを許可」はアプリの補助処理を切り替え、SDK生成時のプロパティは変更しません。"
     },
     {
       "type": "h3",
@@ -203,7 +203,7 @@
     },
     {
       "type": "p",
-      "text": "loadOwnedSourceは、ネイティブソースと読み込み先のPlayerを管理するアプリの補助処理です。古い初期化処理が置き換え後のPlayerへ接続するのを防ぎます。ラッパー1.29のPlayer.loadはvoidを返し、読み込み完了を待つPromiseではありません。現在のビューが準備できてから読み込み、SourceLoaded・Player error・ソースerrorで結果を確認します。"
+      "text": "loadOwnedSourceはネイティブソースと読み込み先のPlayerを管理するアプリの補助処理です。古い初期化処理が置き換え後のPlayerへ接続するのを防ぎます。ラッパー1.29のPlayer.loadはvoidを返し、読み込み完了を待つPromiseではありません。現在のビューが準備できてから読み込み、SourceLoaded・Player error・ソースerrorで結果を確認します。"
     },
     {
       "type": "figure",
@@ -307,7 +307,7 @@
     {
       "type": "note",
       "title": "全画面表示とUIメッセージ",
-      "text": "PlayerViewProps.fullscreenHandlerはスタイルのフラグではなく、処理を持つオブジェクトです。コールバックエディターではisFullscreenActive・enterFullscreen・exitFullscreenを持つ生成関数を指定し、lab.setFullscreenでこのアプリのModalへ接続します。全画面表示を終了するときも対応する処理を呼び、ネイティブ側とReact側の状態をそろえます。カスタムメッセージ用の生成関数は、エディターに示すSDKのCustomMessageHandlerインスタンスを返す必要があります。labはこのアプリが用意する補助機能で、SDK共通のグローバル変数ではありません。古いPlayerへの呼び出しを防ぐ確認処理も、アプリ側の実装です。"
+      "text": "PlayerViewProps.fullscreenHandlerはスタイルのフラグではなく処理を持つオブジェクトです。コールバックエディターではisFullscreenActive・enterFullscreen・exitFullscreenを持つ生成関数を指定し、lab.setFullscreenでこのアプリのModalへ接続します。全画面表示を終了するときも対応する処理を呼び、ネイティブ側とReact側の状態をそろえます。カスタムメッセージ用の生成関数はエディターに示すSDKのCustomMessageHandlerインスタンスを返す必要があります。labはこのアプリが用意する補助機能で、SDK共通のグローバル変数ではありません。古いPlayerへの呼び出しを防ぐ確認処理も、アプリ側の実装です。"
     },
     {
       "type": "figure",
@@ -364,7 +364,7 @@
       "items": [
         "字幕はWebVTTのURL・ラベル・言語を設定して適用します。SourceLoaded後に字幕メニュー、またはPlayer.getAvailableSubtitlesで確認し、返された識別子をPlayer.setSubtitleTrackへ渡します。Labの入力欄で識別子を空欄にすると、SDKへundefinedを渡して字幕を無効にします。SDKを直接呼ぶコードではPlayer.setSubtitleTrack(undefined)を使います。一覧に載るだけでなく、キューの時刻まで再生して表示を確認します。",
         "音声切り替えには複数の音声トラックを持つソースを使います。Player.getAvailableAudioTracksの識別子をPlayer.setAudioTrackへ渡し、Player.getAudioTrackと実際の音声を確認します。識別子は現在のソースに属するため、別ソースで使い回しません。",
-        "Androidで画質を選ぶ場合は、Player.getAvailableVideoQualitiesとPlayer.getVideoQualityを確認し、返された画質IDをPlayer.setVideoQualityへ渡します。Androidではautoで自動画質選択へ戻します。iOSでは、Labの一覧にこの操作があっても、ラッパー1.29は警告を出して画質を選択せずに戻ります。iOSの自動画質選択を比較する場合は、「最大ビットレート」（PlayerConfig.adaptationConfig.maxSelectableBitrate）を変更して適用し、選択された画質と再生を確認します。このビットレートの上限設定は、特定の画質を固定して選ぶ操作ではありません。"
+        "Androidで画質を選ぶ場合は、Player.getAvailableVideoQualitiesとPlayer.getVideoQualityを確認し、返された画質IDをPlayer.setVideoQualityへ渡します。Androidではautoで自動画質選択へ戻します。iOSでは、Labの一覧にこの操作があっても、ラッパー1.29は警告を出して画質を選択せずに戻ります。iOSの自動画質選択を比較する場合は、「最大ビットレート」（PlayerConfig.adaptationConfig.maxSelectableBitrate）を変更して適用し、選択された画質と再生を確認します。このビットレートの上限設定は特定の画質を固定して選ぶ操作ではありません。"
       ]
     },
     {
@@ -380,7 +380,7 @@
     },
     {
       "type": "p",
-      "text": "oneは引数入力と操作ハンドラーを登録するアプリの補助関数です。中のコールバックはSDKのPlayer.setVideoQuality・setAudioTrack・setSubtitleTrackを呼びます。自分の画面では、現在の識別子を取得してイベントハンドラーからSDKを呼べばよく、この登録用の補助関数は不要です。"
+      "text": "oneは引数入力と操作ハンドラーを登録するアプリの補助関数です。中のコールバックはSDKのPlayer.setVideoQuality・setAudioTrack・setSubtitleTrackを呼びます。自分の画面では現在の識別子を取得してイベントハンドラーからSDKを呼べばよく、この登録用の補助関数は不要です。"
     },
     {
       "type": "p",
@@ -448,7 +448,7 @@
         ],
         [
           "再作成後にAPIやコールバックが失敗します。",
-          "以前のPlayerやソースに属する資源を参照している場合があります。新しいインスタンスから状態を取得し直し、現在のトラック・ネイティブ識別子と関数の型を確認します。destroyを試した後はAPI操作後にプレイヤーを再作成で適用済み設定から復元します。"
+          "以前のPlayerやソースに属する資源を参照している場合があります。新しいインスタンスから状態を取得し直し、現在のトラック・ネイティブ識別子と関数の型を確認します。destroyを試した後は「API操作後にプレイヤーを再作成」で適用済み設定から復元します。"
         ],
         [
           "新しいiOSホストでExpoModulesCoreのチェックサムだけが変わりました。",
@@ -476,7 +476,7 @@
         ],
         [
           "WebUiConfig.variantには何を入力しますか？",
-          "設定したWeb UIのJavaScriptファイルが公開するファクトリ名を入力します。アプリはその名前からCustomUiインスタンスを作成します。URLではなく、ファイルに存在しないファクトリが入力によって追加されることもありません。"
+          "設定したWeb UIのJavaScriptファイルが公開するファクトリ名を入力します。アプリはその名前からCustomUiインスタンスを作成します。入力するのはURLではありません。ファイルに存在しないファクトリが入力によって追加されることもありません。"
         ]
       ],
       "widths": [
@@ -537,7 +537,7 @@
     },
     {
       "type": "p",
-      "text": "App.tsxでは、この後のusePlayer呼び出しへanalyticsConfigを渡します。ライセンスを明示的に上書きした場合はその値を使い、メタデータだけを変更した場合は既定のライセンスを維持します。収集機能がある場合、APIパネルからPlayer.analytics.getUserIdとsendCustomDataEventを試せますが、どちらも集計結果を取得するAPIではありません。分類用のラベルやカスタム項目へ個人情報や機密情報を入れないでください。"
+      "text": "App.tsxではこの後のusePlayer呼び出しへanalyticsConfigを渡します。ライセンスを明示的に上書きした場合はその値を使い、メタデータだけを変更した場合は既定のライセンスを維持します。収集機能がある場合、APIパネルからPlayer.analytics.getUserIdとsendCustomDataEventを試せますが、どちらも集計結果を取得するAPIではありません。分類用のラベルやカスタム項目へ個人情報や機密情報を入れないでください。"
     },
     {
       "type": "h3",
@@ -554,7 +554,7 @@
     {
       "type": "figure",
       "file": "analytics-dashboard-overview",
-      "caption": "Bitmovin Dashboardの英語UI。ライセンス、期間、絞り込み条件を示すBitmovin公式デモDashboardのダミーデータです。自分のアプリの再生セッションは、自分のDashboardで探してください。この画像はPlayer Labの収集結果ではなく、現行画面とは構成が異なる場合があります。© Bitmovin。"
+      "caption": "Bitmovin Dashboardの英語UI。ライセンス、期間、絞り込み条件を示すBitmovin公式デモDashboardのダミーデータです。自分のアプリの再生セッションは自分のDashboardで探してください。この画像はPlayer Labの収集結果ではありません。現行画面とは構成が異なる場合があります。© Bitmovin。"
     },
     {
       "type": "links",

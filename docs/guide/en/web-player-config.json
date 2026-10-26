@@ -485,13 +485,13 @@
     {
       "type": "code",
       "title": "Where this app applies creation and source settings",
-      "text": "  onRecreate: (overrides) => {\n    apiExplorer?.discardPatch(\"PlayerConfig\", overrides);\n    playerOverrides = deepMerge(playerOverrides, overrides);\n    void build();\n  },\n  onReload: (srcOverrides) => {\n    apiExplorer?.discardPatch(\"SourceConfig\", srcOverrides);\n    sourceOverrides = deepMerge(sourceOverrides, srcOverrides);\n    currentSource = deepMerge(sourcePreset, sourceOverrides);\n    if (player) void loadCurrentSource(player).catch((err: unknown) => console.error(\"config reload failed\", err));\n  },",
+      "text": "  onRecreate: async (overrides) => {\n    const previous = playerOverrides;\n    const rollback = apiExplorer?.discardPatch(\"PlayerConfig\", overrides);\n    const applied = deepMerge(playerOverrides, overrides);\n    playerOverrides = applied;\n    const pending = build();\n    const request = buildRequest;\n    try { return await pending; }\n    catch (error) {\n      if (request === buildRequest && playerOverrides === applied) {\n        playerOverrides = previous;\n        rollback?.();\n      }\n      throw error;\n    }\n  },\n  onReload: async (srcOverrides) => {\n    const instance = player;\n    if (!instance) throw new Error(\"Create a player first.\");\n    const previous = sourceOverrides;\n    const previousSource = currentSource;\n    const rollback = apiExplorer?.discardPatch(\"SourceConfig\", srcOverrides);\n    const applied = deepMerge(sourceOverrides, srcOverrides);\n    sourceOverrides = applied;\n    const pending = reloadConfiguration(instance);\n    const generation = sourceLoadGeneration;\n    try { return await pending; }\n    catch (error) {\n      if (player === instance && generation === sourceLoadGeneration && sourceOverrides === applied) {\n        sourceOverrides = previous;\n        currentSource = previousSource;\n        rollback?.();\n      }\n      throw error;\n    }\n  },",
       "source": {
         "path": "apps/web/src/main.ts",
-        "line": 637,
-        "label": "main.ts:637–647"
+        "line": 642,
+        "label": "main.ts:642–677"
       },
-      "endLine": 647
+      "endLine": 677
     },
     {
       "type": "p",
@@ -712,17 +712,17 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 238,
+      "line": 250,
       "label": "Event counts and recent-payload history"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 185,
+      "line": 197,
       "label": "Record reset on Player replacement"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 271,
+      "line": 283,
       "label": "Explicit event-history reset"
     },
     {
