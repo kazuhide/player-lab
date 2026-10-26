@@ -82,6 +82,10 @@ jobs:
           node --test apps/ios/scripts/test-native-script-engine.cjs
       - name: Correctness worker budget tests
         run: pnpm --filter @showcase/e2e test:workers
+      - name: Test browser diagnostic redaction and event limits
+        run: pnpm --filter @showcase/e2e test:diagnostics
+      - name: Test public preview ownership and recovery
+        run: python3 -B scripts/test-preview-pages.py
       - name: Test environment loading and bundle verification
         run: |
           bash scripts/test-env-lib.sh
@@ -129,6 +133,8 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Install browser
         run: pnpm --filter @showcase/e2e exec playwright install --with-deps chromium firefox
+      - name: Verify diagnostics from an intentional isolated browser failure
+        run: pnpm --filter @showcase/e2e test:diagnostics-browser
       - name: Check public playback and the existing GUI
         env:
           PLAYWRIGHT_BROWSER_CHANNEL: chromium
@@ -194,6 +200,14 @@ jobs:
         run: pnpm --filter @showcase/e2e e2e:cross-browser --project=firefox
       - name: Verify the tested Pages files before upload
         run: python3 scripts/package-pages.py --verify-dir "$RUNNER_TEMP/pages-release/site" --manifest "$RUNNER_TEMP/pages-release/manifest.json"
+      - name: Save sanitized browser failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: browser-diagnostics-web
+          path: tests/e2e/test-results/**/browser-diagnostics.json
+          if-no-files-found: ignore
+          retention-days: 3
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         id: pages_artifact
         with:
@@ -243,6 +257,14 @@ jobs:
         run: pnpm --filter @showcase/e2e e2e:cross-browser --project=webkit
       - name: Verify the tested Pages files again
         run: python3 scripts/package-pages.py --verify-dir "$RUNNER_TEMP/pages-release/site" --manifest "$RUNNER_TEMP/pages-release/manifest.json"
+      - name: Save sanitized WebKit failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: browser-diagnostics-webkit
+          path: tests/e2e/test-results/**/browser-diagnostics.json
+          if-no-files-found: ignore
+          retention-days: 3
 
   ios:
     needs: build

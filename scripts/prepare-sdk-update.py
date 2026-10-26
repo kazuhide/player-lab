@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Prepare exact dependency pins for a reviewed, draft SDK update pull request."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import re
 import subprocess
+from urllib.parse import quote
+import xml.etree.ElementTree as ET
 
-from sdk_updates import SOURCES, UpdateError, release_markdown, version_key
+from sdk_updates import SOURCES, UpdateError, fetch_public, release_markdown, version_key
 
 
 JSON_PINS = {
@@ -18,9 +21,103 @@ JSON_PINS = {
                      ('apps/react-native/expo/package.json', 'dependencies', 'bitmovin-player-react-native')],
     'vega': [('apps/vega/package.json', 'dependencies', 'bitmovin-player')],
 }
+ANDROID_ARTIFACTS = ('player', 'player-media-session')
+ANDROID_MAVEN = 'https://artifacts.bitmovin.com/artifactory/public-releases/com/bitmovin/player/'
+# Review this fingerprint with any Gradle changes beyond the two SDK versions.
+# General Kotlin code can add dependencies through APIs other than implementation.
+ANDROID_TEMPLATE_SHA256 = '95312db5401d7c17d8e85c3aee2eec5124e85357d3e268da4e86058925733f7d'
 
 
-def candidate_files(repo, report):
+def android_candidate(text, old, new, fetch):
+    """Keep the published standard or relocated-IMA variant paired across modules."""
+    pins = {artifact: [] for artifact in ANDROID_ARTIFACTS}
+    # Examine string literals, skipping comments and multiline code examples.
+    tokens = re.compile(r'//[^\n]*|/\*.*?(?:\*/|\Z)|""".*?"""|"(?:\\.|[^"\\])*"', re.DOTALL)
+    # This repository uses literal coordinates and two reviewed Gradle helpers.
+    # Dynamic expressions require manual review; do not try to evaluate Kotlin.
+    masked = tokens.sub(lambda match: re.sub(r'[^\n]', ' ', match.group()), text)
+    if '`' in masked:
+        raise UpdateError('Quoted Android Gradle identifiers require manual review.')
+    for call in re.finditer(r'\bimplementation\s*\(', masked):
+        depth, end = 1, call.end()
+        while depth and end < len(masked):
+            if masked[end] == '(':
+                depth += 1
+            elif masked[end] == ')':
+                depth -= 1
+            end += 1
+        if depth:
+            raise UpdateError('Unclosed Android implementation dependency.')
+        expression = text[call.end():end - 1].strip()
+        literal = re.fullmatch(r'"(?:\\.|[^"\\])*"', expression)
+        if literal and '$' not in expression and '\\' not in expression:
+            continue
+        if re.fullmatch(r'project\(\s*":playback"\s*\)', expression):
+            continue
+        bom = [match for match in re.finditer(
+            r'\bval\s+composeBom\s*=\s*platform\("androidx\.compose:compose-bom:[0-9.]+"\)'
+            r'[ \t]*\r?\n[ \t]*implementation\(composeBom\)[ \t]*(?:\r?$)', text, re.MULTILINE)
+            if masked[match.start():match.start() + 3] == 'val']
+        declarations = re.findall(r'\b(?:val|var)\s+composeBom\b', masked)
+        if expression == 'composeBom' and len(bom) == len(declarations) == 1:
+            continue
+        raise UpdateError('Unreviewed Android dependency expression requires manual review.')
+    for token in tokens.finditer(text):
+        literal = token.group()
+        if literal.startswith('/*') and (not literal.endswith('*/') or '/*' in literal[2:]):
+            raise UpdateError('Unterminated or nested Android Gradle comments require manual review.')
+        if literal.startswith('"""') and 'com.bitmovin.player' in literal:
+            prefix = tokens.sub(' ', text[:token.start()])
+            example = (re.search(r'\bval\s+\w+\s*=\s*$', prefix)
+                       and re.match(r'\s*implementation\s*\(', literal[3:-3]))
+            if not example:
+                raise UpdateError('Raw-string Android managed dependencies require manual review.')
+        if literal.startswith('"') and not literal.startswith('"""'):
+            try:
+                value = json.loads(literal)
+            except ValueError:
+                value = ''  # Other Kotlin strings can contain escapes outside JSON.
+            if (value == 'com.bitmovin.player'
+                    or (value.startswith('com.bitmovin.player:') and value != literal[1:-1])):
+                raise UpdateError('Nonliteral Android managed dependencies require manual review.')
+        pin = re.fullmatch(r'"com\.bitmovin\.player:(player|player-media-session):([^"\r\n]+)"', literal)
+        if not pin:
+            if literal.startswith('"com.bitmovin.player:'):
+                raise UpdateError('Ambiguous Android managed dependency requires manual review.')
+            continue
+        start = text.rfind('\n', 0, token.start()) + 1
+        end = text.find('\n', token.end())
+        end = len(text) if end == -1 else end
+        if (not re.fullmatch(r'[ \t]*implementation[ \t]*\([ \t]*', text[start:token.start()])
+                or not re.fullmatch(r'[ \t]*\)[ \t]*(?://[^\r\n]*)?\r?', text[token.end():end])):
+            raise UpdateError('Expected a direct Android implementation dependency.')
+        pins[pin[1]].append((token.start() + pin.start(2), token.start() + pin.end(2), pin[2]))
+    if any(len(pins[artifact]) != 1 for artifact in ANDROID_ARTIFACTS):
+        raise UpdateError('Expected one Android Player and one MediaSession dependency.')
+    current = pins['player'][0][2]
+    if current != pins['player-media-session'][0][2] or current not in (old, old + '+jason'):
+        raise UpdateError('Android Player and MediaSession must match the reported version and supported qualifier.')
+    target = new + ('+jason' if current.endswith('+jason') else '')
+    encoded = quote(target, safe='')
+    namespace = '{http://maven.apache.org/POM/4.0.0}'
+    for artifact in ANDROID_ARTIFACTS:
+        url = f'{ANDROID_MAVEN}{artifact}/{encoded}/{artifact}-{encoded}.pom'
+        try:
+            pom = ET.fromstring(fetch(url))
+        except ET.ParseError as error:
+            raise UpdateError('Invalid Android artifact publication: ' + artifact) from error
+        expected = {'groupId': 'com.bitmovin.player', 'artifactId': artifact, 'version': target, 'packaging': 'aar'}
+        fields = {key: pom.findall(namespace + key) for key in expected}
+        if pom.tag != namespace + 'project' or any(
+                len(fields[key]) != 1 or len(fields[key][0]) != 0 or fields[key][0].text != value
+                for key, value in expected.items()):
+            raise UpdateError('Android artifact publication differs from the proposed dependency: ' + artifact)
+    for start, end, _ in sorted((pin for values in pins.values() for pin in values), reverse=True):
+        text = text[:start] + target + text[end:]
+    return text
+
+
+def candidate_files(repo, report, fetch=fetch_public):
     """Return proposed edits, without writing or changing coverage classifications."""
     if report.get('schemaVersion') != 1:
         raise UpdateError('Unsupported update report schema.')
@@ -49,11 +146,11 @@ def candidate_files(repo, report):
         if sdk_id == 'android':
             file = 'apps/android/app/build.gradle.kts'
             text = (repo / file).read_text()
-            pattern = r'(?<=com\.bitmovin\.player:player:)' + re.escape(old) + r'(?=")'
-            text, count = re.subn(pattern, new, text)
-            if count != 1:
-                raise UpdateError('Expected one exact Android Player dependency.')
-            files[file] = text
+            template = re.sub(r'("com\.bitmovin\.player:(?:player|player-media-session):)[^"\r\n]+(")',
+                              r'\g<1>SDK_VERSION\2', text)
+            if hashlib.sha256(template.encode()).hexdigest() != ANDROID_TEMPLATE_SHA256:
+                raise UpdateError('Android Gradle changed beyond the reviewed SDK pins; review its template fingerprint.')
+            files[file] = android_candidate(text, old, new, fetch)
         elif sdk_id == 'apple':
             file = 'apps/ios/project.yml'
             text, count = re.subn(r'(?<=exactVersion: ")' + re.escape(old) + r'(?=")', new, (repo / file).read_text())

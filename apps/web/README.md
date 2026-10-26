@@ -113,3 +113,38 @@ Run these commands from the repository root. Use new output paths; the packager
 refuses to overwrite existing output. The production build ignores dotenv files,
 keeps only approved public files, and writes its manifest outside the site.
 See [Pages configuration](../../docs/SETUP.md#pages-version) for the public licenses.
+
+### Preview the public build locally
+
+The managed preview requires Python 3.9 or later on macOS or Linux. Package a
+complete build with `site/` and its separate `manifest.json`, then start it:
+
+```sh
+python3 encoding/test-streams/local.py --output .cache/preview-media
+bash scripts/build-pages.sh .cache/preview-media .cache/preview-build/site .cache/preview-build/manifest.json
+pnpm preview start --artifact-dir .cache/preview-build
+pnpm preview status
+pnpm preview restart
+pnpm preview stop
+```
+
+The command prints the Web app and English/Japanese guide URLs under
+`http://localhost:5218/player-lab/`. It verifies every packaged file and copies the
+site into `$XDG_CACHE_HOME/player-lab/preview`, or `~/.cache/player-lab/preview`
+when that variable is unset. Removing the original build directory or checkout
+does not remove the running site's files. No license values are printed or
+stored in the preview receipt; the built files retain only the public client
+keys you explicitly selected for that build.
+
+Use `pnpm preview restart --artifact-dir PATH` to switch to a new complete
+artifact. The replacement must verify before the running preview is stopped.
+If cached files were removed or changed, supply a verified artifact this way
+to restore the preview. An unchanged artifact reuses the cached copy.
+
+`--port 5220` on start or restart selects another local port.
+`--state-dir PATH` on every command selects a separate cache outside the checkout.
+The manager authenticates its live server before stopping it and never signals
+a PID from a file or stops a different process using the same port. An occupied
+port or mismatched receipt causes an error; use another port/cache or stop the
+other server through its own controls. Stop the managed preview before manually
+removing its cache. Old cached builds remain available until you remove them.
