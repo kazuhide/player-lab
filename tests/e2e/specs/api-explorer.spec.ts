@@ -158,7 +158,7 @@ test("a complete subtitle array applies required sibling fields in one SDK load"
   await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
 });
 
-test("indexed comparisons follow the selected item and retain its baseline after a failed SDK load", async ({ page }) => {
+test("indexed comparisons follow the selected item and retain its baseline after a failed SDK load", async ({ page, browserName }, testInfo) => {
   const urls = ["first", "second", "draft"].map(name => new URL(`./indexed-${name}.vtt`, page.url()).href);
   await page.route(/indexed-.*\.vtt$/, route => route.fulfill({ status: 200, contentType: "text/vtt",
     body: "WEBVTT\n\n00:00.000 --> 10:00.000\nIndexed comparison fixture\n" }));
@@ -175,7 +175,7 @@ test("indexed comparisons follow the selected item and retain its baseline after
     await location.locator('input[type="text"]').fill(url);
   }
   await apply(page);
-  const source = JSON.parse(await readApi(page, "PlayerAPI.getSource")) as { hls: string };
+  const source = JSON.parse(await readApi(page, "PlayerAPI.getSource"));
   const master = new URL(source.hls, page.url()).href;
   const id = "SourceConfig.subtitleTracks[].url";
   await selectApi(page, "configuration", id); await branch(page, id, "string");
@@ -189,21 +189,87 @@ test("indexed comparisons follow the selected item and retain its baseline after
   await index.fill(""); await expect(difference).toContainText("After: Incomplete input.");
   await index.fill("1"); await value.fill(urls[2]!);
   await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[2]}`);
-  let pending: Route | undefined;
-  await page.route(master, route => { pending = route; });
-  await page.getByRole("button", { name: "Apply setting", exact: true }).click();
-  await expect.poll(() => Boolean(pending)).toBe(true);
-  await index.fill("0"); await expect(difference).toHaveText(`Before: ${urls[0]} → After: ${urls[2]}`);
-  await index.fill("1"); await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[2]}`);
-  await pending!.fulfill({ status: 200, contentType: "application/vnd.apple.mpegurl", body: "invalid HLS manifest" });
-  await expect(page.locator(".api-explorer > [role=status]")).toContainText("1202:");
-  await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[2]}`);
-  await index.fill("0");
-  await expect(difference).toHaveText(`Before: ${urls[0]} → After: ${urls[2]}`);
-  await value.fill(urls[0]!); await expect(difference).toBeHidden();
-  await index.fill("1");
-  await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[0]}`);
-  await page.unroute(master);
+  const requests: { route: Route; response?: Promise<void> }[] = [];
+  const settled = new Set<Route>();
+  let rejectRequests = false;
+  const rejectRequest = (request: typeof requests[number]): Promise<void> => request.response ??= request.route.fulfill({
+    status: 404, contentType: "application/vnd.apple.mpegurl", body: "not found",
+  }).then(() => { settled.add(request.route); });
+  const interceptSource = async (route: Route): Promise<void> => {
+    const request = { route };
+    requests.push(request);
+    if (rejectRequests) await rejectRequest(request);
+  };
+  await page.route(master, interceptSource);
+  try {
+    await page.getByRole("button", { name: "Apply setting", exact: true }).click();
+    await expect.poll(() => requests.length > 0).toBe(true);
+    await index.fill("0"); await expect(difference).toHaveText(`Before: ${urls[0]} → After: ${urls[2]}`);
+    await index.fill("1"); await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[2]}`);
+    // Native HLS and scripted HLS can retry with different request types.
+    rejectRequests = true;
+    await Promise.all(requests.map(rejectRequest));
+    const failure = browserName === "webkit"
+      ? "1210: The video element has thrown an error while loading the stream."
+      : "1208: Failed to load HLS playlist: 404 Not Found.";
+    await expect(page.locator(".api-explorer > [role=status]")).toHaveText(failure);
+    await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[2]}`);
+    await index.fill("0");
+    await expect(difference).toHaveText(`Before: ${urls[0]} → After: ${urls[2]}`);
+    await value.fill(urls[0]!); await expect(difference).toBeHidden();
+    await index.fill("1");
+    await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[0]}`);
+    await value.fill(urls[2]!);
+    await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[2]}`);
+    await page.unroute(master, interceptSource);
+    await Promise.all(requests.map(rejectRequest));
+    expect(settled.size, "every intercepted request must be fulfilled before retry").toBe(requests.length);
+    await apply(page);
+    await expect(difference).toBeHidden();
+    await index.fill("0");
+    await expect(difference).toHaveText(`Before: ${urls[0]} → After: ${urls[2]}`);
+    await index.fill("1"); await expect(difference).toBeHidden();
+    expect(JSON.parse(await readApi(page, "PlayerAPI.getSource"))).toEqual({ ...source, subtitleTracks: [
+      source.subtitleTracks[0], { ...source.subtitleTracks[1], url: urls[2] },
+    ] });
+    const video = page.locator("#player video");
+    const playbackBefore = await video.evaluate((element: HTMLVideoElement) => {
+      const progress = { frames: 0, callback: 0 };
+      const presented = () => { progress.frames++; progress.callback = element.requestVideoFrameCallback(presented); };
+      progress.callback = element.requestVideoFrameCallback(presented);
+      Reflect.set(element, "__indexedApplyRecovery", progress);
+      return { time: element.currentTime, frames: progress.frames };
+    });
+    try {
+      await selectApi(page, "command", "PlayerAPI.play");
+      await page.getByRole("button", { name: "Run API", exact: true }).click();
+      await expect(page.locator(".api-explorer > [role=status]")).toHaveText("SDK call completed.");
+      await video.scrollIntoViewIfNeeded();
+      // Count fresh frames presented after the successful retry.
+      await expect.poll(() => video.evaluate((element: HTMLVideoElement, start) =>
+        !element.paused && element.readyState >= 3 && element.videoWidth > 0
+          && element.currentTime > start.time + 0.3
+          && Reflect.get(element, "__indexedApplyRecovery").frames > 1, playbackBefore)).toBe(true);
+    } finally {
+      const playbackAfter = await video.evaluate((element: HTMLVideoElement) => {
+        const progress = Reflect.get(element, "__indexedApplyRecovery");
+        element.cancelVideoFrameCallback(progress.callback);
+        Reflect.deleteProperty(element, "__indexedApplyRecovery");
+        return { time: element.currentTime, frames: progress.frames, paused: element.paused,
+          readyState: element.readyState, errorCode: element.error?.code ?? null,
+          width: element.videoWidth, height: element.videoHeight };
+      });
+      await testInfo.attach("indexed-apply-recovery", { contentType: "application/json", body: JSON.stringify({
+        engine: browserName, failure, matchedRequests: requests.length, settledRequests: settled.size,
+        requestTypes: requests.map(request => request.route.request().resourceType()),
+        frameMeasurement: "requestVideoFrameCallback", playbackBefore, playbackAfter,
+      }) });
+    }
+  } finally {
+    rejectRequests = true;
+    await page.unroute(master, interceptSource);
+    await Promise.all(requests.map(rejectRequest));
+  }
 });
 
 test("component constructor overrides apply through every original theme", async ({ page }) => {
