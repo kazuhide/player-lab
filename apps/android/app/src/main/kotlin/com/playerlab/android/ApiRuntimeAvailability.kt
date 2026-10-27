@@ -2,6 +2,10 @@ package com.playerlab.android
 
 import android.os.Handler
 import android.os.Looper
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+import android.view.TextureView
+import android.view.ViewTreeObserver
 import androidx.compose.runtime.*
 import com.bitmovin.player.api.advertising.AdSourceType
 import com.bitmovin.player.api.source.LoadingState
@@ -31,6 +35,30 @@ internal fun rememberApiCommandCapabilities(controller: PlayerController, contex
         }
         controller.currentView()?.let { view ->
             ApiEvents.views.filter { it.id in availabilityViewEvents }.forEach { subscriptions += it.subscribe(view, false, report) }
+            // Surface validity can change while playback is paused and no SDK clock event is emitted.
+            var observedHolder: SurfaceHolder? = null
+            val callback = object : SurfaceHolder.Callback {
+                override fun surfaceCreated(holder: SurfaceHolder) { if (active.get()) handler.post(refresh) }
+                override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) { if (active.get()) handler.post(refresh) }
+                override fun surfaceDestroyed(holder: SurfaceHolder) { if (active.get()) handler.post(refresh) }
+            }
+            fun observeHolder() {
+                val holder = findApiRenderView<SurfaceView>(view)?.holder
+                if (holder !== observedHolder) {
+                    observedHolder?.removeCallback(callback)
+                    observedHolder = holder
+                    holder?.addCallback(callback)
+                }
+            }
+            val tree = view.viewTreeObserver
+            val layout = ViewTreeObserver.OnGlobalLayoutListener { if (active.get()) { observeHolder(); refresh.run() } }
+            tree.addOnGlobalLayoutListener(layout)
+            observeHolder()
+            subscriptions += {
+                val currentTree = if (tree.isAlive) tree else view.viewTreeObserver
+                if (currentTree.isAlive) currentTree.removeOnGlobalLayoutListener(layout)
+                observedHolder?.removeCallback(callback)
+            }
         }
         refresh.run()
         onDispose {
@@ -42,14 +70,17 @@ internal fun rememberApiCommandCapabilities(controller: PlayerController, contex
     // Metadata objects are Compose state, unlike the SDK's advertising properties.
     return capabilities.copy(hasSsaiAds = controller.apiSsaiAds.isNotEmpty(), hasSsaiBreaks = controller.apiSsaiBreaks.isNotEmpty(),
         viewAttached = controller.currentView() != null, viewRecoverable = controller.apiHasRecoverableView,
-        customMessageHandlerInstalled = controller.apiHasCustomMessageHandler)
+        customMessageHandlerInstalled = controller.apiHasCustomMessageHandler,
+        vrRendererAvailable = controller.apiVrRenderer != null, vrCallbackHandles = controller.apiVrCallbackHandles,
+        nonLinearAdPresented = controller.apiActiveNonLinearAd != null)
 }
 
 private val availabilityPlayerEvents = setOf("PlayerEvent.Ready", "PlayerEvent.Active", "PlayerEvent.Inactive",
     "PlayerEvent.Error", "PlayerEvent.Destroy", "PlayerEvent.TimeChanged", "PlayerEvent.PlaylistTransition",
     "PlayerEvent.AdStarted", "PlayerEvent.AdFinished", "PlayerEvent.AdSkipped", "PlayerEvent.AdBreakStarted",
     "PlayerEvent.AdBreakFinished", "PlayerEvent.AdScheduleChanged", "PlayerEvent.CastAvailable", "PlayerEvent.CastStarted",
-    "PlayerEvent.CastStopped", "PlayerEvent.SourceAdded", "PlayerEvent.SourceRemoved")
+    "PlayerEvent.CastStopped", "PlayerEvent.SourceAdded", "PlayerEvent.SourceRemoved", "PlayerEvent.NonLinearAdStarted",
+    "PlayerEvent.NonLinearAdSkipped", "PlayerEvent.NonLinearAdFinished")
 private val availabilityViewEvents = setOf("PlayerEvent.FullscreenEnter", "PlayerEvent.FullscreenExit",
     "PlayerEvent.PictureInPictureEntered", "PlayerEvent.PictureInPictureExited", "PlayerEvent.PictureInPictureAvailabilityChanged")
 
@@ -73,6 +104,10 @@ internal fun apiCommandCapabilities(controller: PlayerController): ApiCommandCap
         nagraConfigured = apiNagraConfigApplied(controller.apiOverrides.values),
         gyroscopicProviderAvailable = player.vr.gyroscopicOrientationProvider != null,
         touchProviderAvailable = player.vr.touchOrientationProvider != null,
+        vrRendererAvailable = controller.apiVrRenderer != null,
+        vrCallbackHandles = controller.apiVrCallbackHandles,
+        surfaceReady = view?.let { findApiRenderView<SurfaceView>(it)?.holder?.surface?.isValid } == true,
+        textureViewAvailable = view?.let { findApiRenderView<TextureView>(it) } != null,
         fullscreen = view?.isFullscreen == true,
         pictureInPicture = view?.isPictureInPicture == true,
         pictureInPictureAvailable = view?.isPictureInPictureAvailable == true,
@@ -82,6 +117,7 @@ internal fun apiCommandCapabilities(controller: PlayerController): ApiCommandCap
         skippableAd = ad != null && ad !is SsaiAd && ad.skippableAfter?.let { player.currentTime >= it } == true &&
             (adClientType == AdSourceType.Bitmovin || adClientType == AdSourceType.Ima && ad.uiConfig?.requestsUi == false),
         activeSsaiAd = ad is SsaiAd,
+        nonLinearAdPresented = controller.apiActiveNonLinearAd != null,
         activeSsaiBreak = player.ads.activeAdBreak is SsaiAdBreak,
         hasSsaiAds = controller.apiSsaiAds.isNotEmpty(),
         hasSsaiBreaks = controller.apiSsaiBreaks.isNotEmpty(),

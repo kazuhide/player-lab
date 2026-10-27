@@ -462,7 +462,7 @@
     <string name="ui_api_registered_ssai_required" formatted="false">Register an SSAI ad break first.</string>
     <string name="ui_api_active_ssai_ad_required" formatted="false">Requires an active SSAI ad.</string>
     <string name="ui_api_active_ssai_break_required" formatted="false">Requires an active SSAI ad break.</string>
-    <string name="ui_api_skippable_ad_required" formatted="false">Requires an active skippable ad.</string>
+    <string name="ui_api_skippable_ad_required" formatted="false">Requires a skippable ad or presented pause ad.</string>
     <string name="ui_api_client_ad_required" formatted="false">Requires an active Bitmovin client-side ad.</string>
     <string name="ui_api_no_cast_receiver" formatted="false">No Cast receiver is available.</string>
     <string name="ui_api_cast_already_active" formatted="false">Cast playback is already active.</string>
@@ -483,4 +483,8 @@
     <string name="ui_api_nagra_required" formatted="false">Apply NagraConnect configuration first.</string>
     <string name="ui_api_orientation_provider_required" formatted="false">The selected orientation provider is unavailable.</string>
     <string name="ui_api_view_creation_required" formatted="false">Create a PlayerView first.</string>
+    <string name="ui_api_vr_renderer_required" formatted="false">Enable the host VR renderer first.</string>
+    <string name="ui_api_vr_callback_required" formatted="false">Register the selected update callback first.</string>
+    <string name="ui_api_surface_ready_required" formatted="false">A valid SurfaceView surface is required.</string>
+    <string name="ui_api_texture_view_required" formatted="false">Choose TextureView in PlayerViewConfig and Apply first.</string>
 </resources>

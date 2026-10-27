@@ -15,12 +15,17 @@ internal data class ApiCommandCapabilities(
     val nagraConfigured: Boolean = false,
     val gyroscopicProviderAvailable: Boolean = false,
     val touchProviderAvailable: Boolean = false,
+    val vrRendererAvailable: Boolean = false,
+    val vrCallbackHandles: Set<String> = emptySet(),
+    val surfaceReady: Boolean = false,
+    val textureViewAvailable: Boolean = false,
     val fullscreen: Boolean = false,
     val pictureInPicture: Boolean = false,
     val pictureInPictureAvailable: Boolean = false,
     val activeAd: Boolean = false,
     val clientAdCallbacksAvailable: Boolean = false,
     val skippableAd: Boolean = false,
+    val nonLinearAdPresented: Boolean = false,
     val activeSsaiAd: Boolean = false,
     val activeSsaiBreak: Boolean = false,
     val hasSsaiAds: Boolean = false,
@@ -32,6 +37,25 @@ internal fun apiCommandUnavailableReason(id: String, state: ApiCommandCapabiliti
     arguments: Map<String, String>? = null): String? {
     if (!state.playerAvailable) return "Player is unavailable."
     val member = id.substringAfterLast('.')
+    if (id.endsWith("VrRenderer.setSourceConfig()") || id.endsWith("VrRenderer.addUpdateCallback()") || id.endsWith("VrRenderer.removeUpdateCallback()")) {
+        if (!state.vrRendererAvailable) return "Enable the host VR renderer first."
+        if (member == "removeUpdateCallback()") {
+            val handle = arguments?.get("handle")
+            if (if (handle == null) state.vrCallbackHandles.isEmpty() else handle !in state.vrCallbackHandles)
+                return "Register the selected update callback first."
+        }
+        return null
+    }
+    if (id.endsWith("Player.setSurface()") || id.endsWith("Player.setTextureView()") || id.endsWith("Player.setAdViewGroup()")) {
+        // The method chooser retains the None cleanup route even without a render target.
+        if (arguments?.get("target") == null || arguments["target"] == "None") return null
+        if (!state.viewAttached) return "Attach a player view first."
+        return when (member) {
+            "setSurface()" -> if (!state.surfaceReady) "A valid SurfaceView surface is required." else null
+            "setTextureView()" -> if (!state.textureViewAvailable) "Choose TextureView in PlayerViewConfig and Apply first." else null
+            else -> null
+        }
+    }
     if (id == "app:custom-message-send")
         return if (!state.customMessageHandlerInstalled) "Install the host message handler first." else null
     if (id.endsWith("Player.preloadDrmLicense()"))
@@ -64,7 +88,7 @@ internal fun apiCommandUnavailableReason(id: String, state: ApiCommandCapabiliti
         }
     }
     if (id.endsWith("Player.skipAd()") || id.endsWith("AdvertisingApi.skip()"))
-        return if (!state.skippableAd) "Requires an active skippable ad." else null
+        return if (!state.skippableAd && !state.nonLinearAdPresented) "Requires a skippable ad or presented pause ad." else null
     if (".advertising.Ad." in id)
         return if (!state.activeAd || !state.clientAdCallbacksAvailable) "Requires an active Bitmovin client-side ad." else null
     if (id.endsWith("Player.scheduleAd()") || id.endsWith("AdvertisingApi.schedule()"))

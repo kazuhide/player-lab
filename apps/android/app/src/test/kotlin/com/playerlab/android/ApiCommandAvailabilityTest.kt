@@ -4,6 +4,78 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ApiCommandAvailabilityTest {
+    @Test fun hostRendererCommandsRequireTheirInstalledRuntimeObject() {
+        for (member in listOf("vr.VrRenderer.setSourceConfig()", "vr.VrRenderer.addUpdateCallback()", "vr.VrRenderer.removeUpdateCallback()")) {
+            assertNotNull("$member requires the host renderer", apiCommandUnavailableReason("android:com.bitmovin.player.api.$member", ApiCommandCapabilities(), false))
+        }
+        assertNull(apiCommandUnavailableReason("android:com.bitmovin.player.api.vr.VrApi.setVrRenderer()", ApiCommandCapabilities(), false))
+    }
+
+    @Test fun nonnullRenderTargetsNeedCompatibleAttachedObjectsButNoneRemainsValid() {
+        val empty = ApiCommandCapabilities()
+        val view = empty.copy(viewAttached = true)
+        for ((member, target) in listOf("setSurface()" to "SurfaceHolder", "setSurface()" to "Surface", "setTextureView()" to "Current TextureView", "setAdViewGroup()" to "Current PlayerView")) {
+            val id = "android:com.bitmovin.player.api.Player.$member"
+            assertNotNull("$member cannot use $target without its view", apiCommandUnavailableReason(id, empty, false, mapOf("target" to target)))
+            if (member != "setAdViewGroup()") assertNotNull(apiCommandUnavailableReason(id, view, false, mapOf("target" to target)))
+            assertNull("None is an independent cleanup route", apiCommandUnavailableReason(id, empty, false, mapOf("target" to "None")))
+            assertNull("The chooser must leave the None route accessible", apiCommandUnavailableReason(id, empty, false))
+        }
+    }
+
+    @Test fun rendererCallbacksRequireTheCurrentRendererAndSelectedKnownHandle() {
+        val setSource = command("vr.VrRenderer.setSourceConfig()")
+        val add = command("vr.VrRenderer.addUpdateCallback()")
+        val remove = command("vr.VrRenderer.removeUpdateCallback()")
+        val renderer = loaded.copy(vrRendererAvailable = true)
+        assertNull(apiCommandUnavailableReason(setSource, renderer, false, mapOf("source" to "None")))
+        assertNull(apiCommandUnavailableReason(add, renderer, false))
+        assertNotNull(apiCommandUnavailableReason(remove, renderer, false))
+        val registered = renderer.copy(vrCallbackHandles = setOf("current-callback"))
+        assertNull(apiCommandUnavailableReason(remove, registered, false))
+        assertNotNull(apiCommandUnavailableReason(remove, registered, false, mapOf("handle" to "previous-callback")))
+        assertNull(apiCommandUnavailableReason(remove, registered, false, mapOf("handle" to "current-callback")))
+        var calls = 0
+        assertTrue(runCatching { runAvailableApiCommand(remove, registered.copy(vrRendererAvailable = false), false,
+            mapOf("handle" to "current-callback")) { calls++ } }.isFailure)
+        assertEquals(0, calls)
+    }
+
+    @Test fun renderTargetArgumentsFollowActualCompatibleObjectsAndRecheckAfterDetach() {
+        val surface = command("Player.setSurface()")
+        val texture = command("Player.setTextureView()")
+        val ads = command("Player.setAdViewGroup()")
+        val surfaceView = loaded.copy(viewAttached = true, surfaceReady = true)
+        assertNull(apiCommandUnavailableReason(surface, surfaceView, false, mapOf("target" to "SurfaceHolder")))
+        assertNull(apiCommandUnavailableReason(surface, surfaceView, false, mapOf("target" to "Surface")))
+        assertNotNull(apiCommandUnavailableReason(texture, surfaceView, false, mapOf("target" to "Current TextureView")))
+        val textureView = loaded.copy(viewAttached = true, textureViewAvailable = true)
+        assertNull(apiCommandUnavailableReason(texture, textureView, false, mapOf("target" to "Current TextureView")))
+        assertNotNull(apiCommandUnavailableReason(surface, textureView, false, mapOf("target" to "SurfaceHolder")))
+        assertNull(apiCommandUnavailableReason(ads, textureView, false, mapOf("target" to "Current PlayerView")))
+        var calls = 0
+        val detached = surfaceView.copy(viewAttached = false)
+        assertTrue(runCatching { runAvailableApiCommand(surface, detached, false, mapOf("target" to "Surface")) { calls++ } }.isFailure)
+        assertEquals(0, calls)
+        runAvailableApiCommand(surface, detached, false, mapOf("target" to "None")) { calls++ }
+        assertEquals(1, calls)
+    }
+
+    @Test fun presentedPauseAdsCanBeDismissedWithoutLinearAdStateOrAnAdClock() {
+        val ordinary = loaded.copy(activeAd = false, skippableAd = false)
+        val presented = ordinary.copy(nonLinearAdPresented = true)
+        for (member in listOf("Player.skipAd()", "advertising.AdvertisingApi.skip()")) {
+            assertNotNull(reason(member, ordinary))
+            assertNull(reason(member, presented))
+            assertNotNull(reason(member, presented.copy(nonLinearAdPresented = false)))
+            assertNotNull(reason(member, presented.copy(playerAvailable = false)))
+            var calls = 0
+            runAvailableApiCommand(command(member), presented, false) { calls++ }
+            assertEquals(1, calls)
+            assertTrue(runCatching { runAvailableApiCommand(command(member), ordinary, false) { calls++ } }.isFailure)
+            assertEquals(1, calls)
+        }
+    }
     private val loaded = ApiCommandCapabilities(sourceAttached = true, sourceLoaded = true)
     private fun command(member: String) = "android:com.bitmovin.player.api.$member"
     private fun reason(member: String, state: ApiCommandCapabilities = loaded, manualSsai: Boolean = false) =

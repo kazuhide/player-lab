@@ -143,6 +143,7 @@ internal class PlayerController(
     private var apiVrRequested = false
     internal val apiVrCallbackStates = androidx.compose.runtime.mutableStateMapOf<String, String>()
     private val apiVrCallbacks = mutableMapOf<String, ApiVrUserCallback>()
+    internal val apiVrCallbackHandles: Set<String> get() = apiVrCallbacks.keys.toSet()
     private val apiHostLifecycle = lifecycle
     private val apiVrLifecycle = androidx.lifecycle.LifecycleEventObserver { _, event ->
         when (event) {
@@ -222,6 +223,8 @@ internal class PlayerController(
     internal var apiActiveAd: com.bitmovin.player.api.advertising.Ad? by mutableStateOf(null)
         private set
     internal var apiActiveAdClientType: com.bitmovin.player.api.advertising.AdSourceType? by mutableStateOf(null)
+        private set
+    internal var apiActiveNonLinearAd: com.bitmovin.player.api.advertising.NonLinearAd? by mutableStateOf(null, referentialEqualityPolicy())
         private set
     internal var apiVector: com.bitmovin.player.api.vr.orientation.Vector3? = null
     internal var apiMediaSession: com.bitmovin.player.api.media.session.MediaSession? = null
@@ -462,6 +465,9 @@ internal class PlayerController(
         onPlayer(PlayerEvent.AdFinished::class) { apiActiveAd = null; apiActiveAdClientType = null }
         onPlayer(PlayerEvent.AdSkipped::class) { apiActiveAd = null; apiActiveAdClientType = null }
         onPlayer(PlayerEvent.AdBreakFinished::class) { apiActiveAd = null; apiActiveAdClientType = null }
+        onPlayer(PlayerEvent.NonLinearAdStarted::class) { apiActiveNonLinearAd = it.ad }
+        onPlayer(PlayerEvent.NonLinearAdSkipped::class) { if (apiActiveNonLinearAd === it.ad) apiActiveNonLinearAd = null }
+        onPlayer(PlayerEvent.NonLinearAdFinished::class) { if (apiActiveNonLinearAd === it.ad) apiActiveNonLinearAd = null }
         onPlayer(PlayerEvent.Error::class) { lastErrorCode = it.code.value; append("PlayerError ${it.code.value}") }
         onPlayer(PlayerEvent.TimeChanged::class) { refresh() }
         onPlayer(PlayerEvent.TimeShifted::class) { append("TimeShifted"); refresh() }
@@ -671,6 +677,7 @@ internal class PlayerController(
         apiSelectedSsaiBreak = null
         apiActiveAd = null
         apiActiveAdClientType = null
+        apiActiveNonLinearAd = null
     }
 
     fun release() {

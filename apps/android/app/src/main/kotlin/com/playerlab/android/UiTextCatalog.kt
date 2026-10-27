@@ -3,6 +3,10 @@ package com.playerlab.android
 /** Stable English presentation labels map to Android locale resources; SDK data is left intact. */
 internal object UiTextCatalog {
     val resources = mapOf(
+        "Enable the host VR renderer first." to R.string.ui_api_vr_renderer_required,
+        "Register the selected update callback first." to R.string.ui_api_vr_callback_required,
+        "A valid SurfaceView surface is required." to R.string.ui_api_surface_ready_required,
+        "Choose TextureView in PlayerViewConfig and Apply first." to R.string.ui_api_texture_view_required,
         "Install the host message handler first." to R.string.ui_api_message_handler_required,
         "Apply NagraConnect configuration first." to R.string.ui_api_nagra_required,
         "The selected orientation provider is unavailable." to R.string.ui_api_orientation_provider_required,
@@ -17,7 +21,7 @@ internal object UiTextCatalog {
         "Register an SSAI ad break first." to R.string.ui_api_registered_ssai_required,
         "Requires an active SSAI ad." to R.string.ui_api_active_ssai_ad_required,
         "Requires an active SSAI ad break." to R.string.ui_api_active_ssai_break_required,
-        "Requires an active skippable ad." to R.string.ui_api_skippable_ad_required,
+        "Requires a skippable ad or presented pause ad." to R.string.ui_api_skippable_ad_required,
         "Requires an active Bitmovin client-side ad." to R.string.ui_api_client_ad_required,
         "No Cast receiver is available." to R.string.ui_api_no_cast_receiver,
         "Cast playback is already active." to R.string.ui_api_cast_already_active,

@@ -48,7 +48,7 @@ internal fun workspaceWaitForPickerDismissal(ui: WorkspaceRule, tag: String) {
 }
 
 /** Wait for actual IME visibility; Android can omit a hide-result callback when it is already hidden. */
-private fun workspaceHideKeyboard(ui: WorkspaceRule) {
+internal fun workspaceHideKeyboard(ui: WorkspaceRule) {
     ui.runOnUiThread {
         val decor = ui.activity.window.decorView
         if (ViewCompat.getRootWindowInsets(decor)?.isVisible(WindowInsetsCompat.Type.ime()) == true) {

@@ -462,7 +462,7 @@
     <string name="ui_api_registered_ssai_required" formatted="false">SSAIの広告ブレークを登録してください。</string>
     <string name="ui_api_active_ssai_ad_required" formatted="false">SSAIの広告を再生中に利用できます。</string>
     <string name="ui_api_active_ssai_break_required" formatted="false">SSAIの広告ブレーク中に利用できます。</string>
-    <string name="ui_api_skippable_ad_required" formatted="false">スキップ可能な広告を再生中に利用できます。</string>
+    <string name="ui_api_skippable_ad_required" formatted="false">スキップ可能な広告または一時停止時の広告を表示中に利用できます。</string>
     <string name="ui_api_client_ad_required" formatted="false">Bitmovinのクライアント側の広告を再生中に利用できます。</string>
     <string name="ui_api_no_cast_receiver" formatted="false">利用可能なCast受信機がありません。</string>
     <string name="ui_api_cast_already_active" formatted="false">すでにCastで再生中です。</string>
@@ -483,4 +483,8 @@
     <string name="ui_api_nagra_required" formatted="false">NagraConnectの設定を適用してください。</string>
     <string name="ui_api_orientation_provider_required" formatted="false">選択したOrientationProviderがありません。</string>
     <string name="ui_api_view_creation_required" formatted="false">PlayerViewを作成してください。</string>
+    <string name="ui_api_vr_renderer_required" formatted="false">ホスト側のVRレンダラーを有効にしてください。</string>
+    <string name="ui_api_vr_callback_required" formatted="false">選択した更新コールバックを登録してください。</string>
+    <string name="ui_api_surface_ready_required" formatted="false">SurfaceViewの有効な描画先が必要です。</string>
+    <string name="ui_api_texture_view_required" formatted="false">PlayerViewConfigでTextureViewを選んで適用してください。</string>
 </resources>
