@@ -58,10 +58,7 @@ class Ui:
         return Ui._find(tree, text, plain_text=True)
 
     @staticmethod
-    def _find(tree, label, plain_text):
-        scope = next((n for n in tree.iter("app") if n.get("appName") == "com.playerlab.vega"), None)
-        if scope is None:
-            return None
+    def _visibility_check(scope):
         viewport = scope.find("child")
         width = float(viewport.get("width", "1920")) if viewport is not None else 1920
         height = float(viewport.get("height", "1080")) if viewport is not None else 1080
@@ -78,6 +75,14 @@ class Ui:
                 if visibility is not None and visibility.get("alpha") == "0": return False
                 node = parents.get(node)
             return True
+        return visible
+
+    @staticmethod
+    def _find(tree, label, plain_text):
+        scope = next((n for n in tree.iter("app") if n.get("appName") == "com.playerlab.vega"), None)
+        if scope is None:
+            return None
+        visible = Ui._visibility_check(scope)
         for node in scope.iter():
             if not visible(node):
                 continue
@@ -136,8 +141,7 @@ class Ui:
                 if self.keyboard_node(tree, "Done") is not None:
                     # Passing an editable field can open the OS keyboard and
                     # capture arrows. Commit its unchanged value normally.
-                    self.keyboard_select("Done")
-                    self.wait(lambda current: self.keyboard_node(current, "Done") is None)
+                    self.dismiss_keyboard()
                     continue
                 node = lookup(tree, label)
                 if node is not None:
@@ -222,15 +226,20 @@ class Ui:
         raise RuntimeError("The real native keyboard did not reach its requested key")
 
     def dismiss_keyboard(self, seconds=30):
-        if self.keyboard_node(self.tree(), "Done") is not None:
-            deadline = time.monotonic() + seconds
-            self.keyboard_select("Done", deadline)
-            self.wait(lambda tree: self.keyboard_node(tree, "Done") is None, max(0, deadline - time.monotonic()))
+        with self.observation_budget(time.monotonic() + seconds) as deadline:
+            if self.keyboard_node(self.tree(), "Done") is not None:
+                self.wait(lambda tree: self.keyboard_node(tree, "Done") is not None and
+                    self.keyboard_node(tree, focused=True) is not None, max(0, deadline - time.monotonic()))
+                self.keyboard_select("Done", deadline)
+                self.wait(lambda tree: self.keyboard_node(tree, "Done") is None, max(0, deadline - time.monotonic()))
 
     @staticmethod
     def editable(tree, label):
         node = Ui.find(tree, label)
-        return None if node is None else next((child for child in node.iter("child") if child.find("./traits/editable") is not None), None)
+        if node is None: return None
+        scope = next(n for n in tree.iter("app") if n.get("appName") == "com.playerlab.vega")
+        visible = Ui._visibility_check(scope)
+        return next((child for child in node.iter("child") if child.find("./traits/editable") is not None and visible(child)), None)
 
     @staticmethod
     def input_with_keyboard(tree, label):

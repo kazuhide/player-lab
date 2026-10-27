@@ -23,8 +23,10 @@ class NativeKeyboardUi(Ui):
         self.deadline = time.monotonic() + 900
 
     def tree(self):
+        # Absolute native bounds observed in the real focused Source URL AX tree.
         tree = ET.fromstring('<root><app appName="com.playerlab.vega"><child x="0" y="0" width="1920" height="1080">'
-            '<child description="Source URL" x="20" y="100" width="800" height="52"><child role="edit"><traits><editable/><focusable/></traits><text/></child></child>'
+            '<child description="Source URL" x="24" y="552" width="1872" height="52"><traits><visibility alpha="100"/></traits>'
+            '<child role="edit" x="38" y="566" width="1844" height="24"><traits><editable/><focusable/><visibility zIndex="0"/></traits><text/></child></child>'
             '</child></app></root>')
         edit = tree.find('./app/child/child/child')
         tree.find('./app/child/child').set('description', self.label)
@@ -100,6 +102,35 @@ class NativeKeyboardUi(Ui):
 
 
 class KeyboardEditTests(unittest.TestCase):
+    def test_initial_dismiss_waits_for_the_real_focused_key_after_done_appears(self):
+        class PendingKeyboard(NativeKeyboardUi):
+            def wait(self, predicate, seconds=30): return Ui.wait(self, predicate, seconds)
+        ui = PendingKeyboard(keyboard_focus_pending_reads=3)
+        ui.open, ui.focused = True, True
+        with patch('driver.time.sleep', lambda seconds: None): ui.dismiss_keyboard()
+        self.assertEqual(ui.value, 'old value')
+        self.assertEqual(ui.events, ['Done'])
+        self.assertFalse(ui.open)
+
+    def test_accepts_the_visible_native_child_with_real_absolute_capture_geometry(self):
+        tree = NativeKeyboardUi().tree()
+        node = Ui.editable(tree, 'Source URL')
+        self.assertIsNotNone(node)
+        self.assertEqual([node.get(key) for key in ['x','y','width','height']], ['38','566','1844','24'])
+
+    def test_rejects_retained_hidden_or_clipped_native_children_inside_a_visible_wrapper(self):
+        for attributes, hidden in [({'y':'1200'}, False), ({'width':'0'}, False), ({}, True)]:
+            with self.subTest(attributes=attributes, hidden=hidden):
+                ui = NativeKeyboardUi()
+                ui.focused, ui.open = True, True
+                tree = ui.tree()
+                node = tree.find('./app/child/child/child')
+                node.attrib.update(attributes)
+                if hidden: node.find('./traits/visibility').set('alpha', '0')
+                self.assertIsNotNone(Ui.find(tree, 'Source URL'))
+                self.assertIsNone(Ui.editable(tree, 'Source URL'))
+                self.assertIsNone(Ui.input_with_keyboard(tree, 'Source URL'))
+
     def test_waits_for_coupled_input_and_keyboard_focus_when_done_appears_first(self):
         class PendingKeyboard(NativeKeyboardUi):
             def wait(self, predicate, seconds=30): return Ui.wait(self, predicate, seconds)
