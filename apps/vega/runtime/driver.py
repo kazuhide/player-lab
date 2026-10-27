@@ -47,6 +47,14 @@ class Ui:
 
     @staticmethod
     def find(tree, label):
+        return Ui._find(tree, label, plain_text=False)
+
+    @staticmethod
+    def find_text(tree, text):
+        return Ui._find(tree, text, plain_text=True)
+
+    @staticmethod
+    def _find(tree, label, plain_text):
         scope = next((n for n in tree.iter("app") if n.get("appName") == "com.playerlab.vega"), None)
         if scope is None:
             return None
@@ -69,8 +77,12 @@ class Ui:
         for node in scope.iter():
             if not visible(node):
                 continue
-            if node.get("description") == label or node.get("test_id") == label or (node.get("role") in {"button", "text"} and
-                    any(child.text == label for child in node.iter("text"))):
+            text_matches = any(child.text == label for child in node.iter("text"))
+            if plain_text:
+                matches = node.get("role") == "text" and text_matches
+            else:
+                matches = node.get("description") == label or node.get("test_id") == label or (node.get("role") == "button" and text_matches)
+            if matches:
                 return node
         return None
 
@@ -94,12 +106,18 @@ class Ui:
                 (focus := n.find("./traits/focusable")) is not None and focus.get("focused") == "true" for n in tree.iter()))
 
     def reveal(self, label):
+        return self._reveal(label, self.find)
+
+    def reveal_text(self, text):
+        return self._reveal(text, self.find_text)
+
+    def _reveal(self, label, lookup):
         self.last_label, self.last_action = label, "reveal"
         # Focus follows the normal TV hierarchy and scrolls its controls into view.
         for direction in [108, 103]:
             for _ in range(70):
                 tree = self.tree()
-                node = self.find(tree, label)
+                node = lookup(tree, label)
                 if node is not None:
                     return node
                 self.key(direction)

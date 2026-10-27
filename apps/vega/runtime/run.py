@@ -205,7 +205,7 @@ def main():
         ui.edit("Filter Vega API operations", "PlayerAPI.sgai.skip")
         if button_enabled("PlayerAPI.sgai.skip"):
             raise RuntimeError("Ordinary VOD must not offer an inactive SGAI skip command")
-        ui.reveal("No SGAI ad is active.")
+        ui.reveal_text("No SGAI ad is active.")
         if read()["owner"]["generation"] != first_owner:
             raise RuntimeError("Inspecting API availability must retain the ordinary VOD owner")
         result["ordinaryVodSgaiSkipDisabled"] = True
