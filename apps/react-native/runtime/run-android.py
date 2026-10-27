@@ -229,13 +229,25 @@ class Ui:
     def pause_visible(self):
         self.playback_control(False)
 
+    def playback_button(self, tree, play):
+        names = {"play", "play video"} if play else {"pause", "pause video"}
+        webviews = [node for node in tree.iter("node") if node.get("class") == "android.webkit.WebView"]
+        candidates = [node for view in webviews for node in view.iter("node")
+                      if node.get("class") == "android.widget.Button" and self.visible(node) and
+                      any(node.get(key, "").casefold() in names for key in ["text", "content-desc"])]
+        if candidates:
+            # A full-video overlay can share the label while only revealing controls.
+            # Prefer the compact SDK control; native readback still acknowledges every touch.
+            return min(candidates, key=lambda node: (self.bounds(node)[2] - self.bounds(node)[0]) *
+                       (self.bounds(node)[3] - self.bounds(node)[1]))
+        control = self.find(tree, "Play" if play else "Pause")
+        return control if control is not None else self.find(tree, "Play video" if play else "Pause video")
+
     def playback_control(self, play):
         self.top()
         tree = self.tree()
         for _ in range(3):
-            control = self.find(tree, "Play" if play else "Pause")
-            if control is None:
-                control = self.find(tree, "Play video" if play else "Pause video")
+            control = self.playback_button(tree, play)
             if control is not None:
                 read = self.find(tree, "Read runtime report")
                 prior = self.last_report and self.last_report["owner"]

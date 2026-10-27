@@ -140,7 +140,10 @@ final class RuntimeChecks: XCTestCase {
         let baseline = try report()
         let generation = try owner(baseline)
         for _ in 0..<3 {
-            let control = app.webViews.firstMatch.buttons.matching(NSPredicate(format: "label ==[c] 'Pause' OR label ==[c] 'Pause video'")).firstMatch
+            let controls = app.webViews.firstMatch.buttons.matching(NSPredicate(format: "label ==[c] 'Pause' OR label ==[c] 'Pause video'"))
+            // The SDK overlay shares this label; prefer the compact control-bar button.
+            let control = controls.allElementsBoundByIndex.filter { $0.frame.width > 0 && $0.frame.height > 0 }
+                .min { $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height } ?? controls.firstMatch
             if !control.isHittable { tapVideoCenter() }
             if control.exists && control.isHittable { control.tap() }
             let value = try report()
