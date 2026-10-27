@@ -83,8 +83,15 @@ final class NativeControlsTouchUITests: XCTestCase {
             self.newer($0, than: beforeVodOff) && $0["appRewindEnabled"] as? Bool == false && self.seekVisibility($0, equals: false)
         }
         assertSamePausedPlayback(beforeVodOff, disabled)
-        try fixture("finalize")
-        try run("Player.load(source:)")
+        if let vodURL = ProcessInfo.processInfo.environment["PLAYER_LAB_CONTROLS_VOD_MEDIA_URL"] {
+            try fixture("finalize", controlURL: ProcessInfo.processInfo.environment["PLAYER_LAB_CONTROLS_VOD_CONTROL_URL"])
+            try WorkspaceUITestNavigation.setting("configuration.sourceURL", in: app)
+            try WorkspaceUITestNavigation.replace(app.textFields["configuration.sourceURL"], with: vodURL, in: app)
+            try WorkspaceUITestNavigation.activate(app.buttons["configuration.apply"], in: app)
+        } else {
+            try fixture("finalize")
+            try run("Player.load(source:)")
+        }
         let vod = try waitSnapshot("ordinary reload loads the finalized VOD source") {
             ($0["sourceIdentity"] as? String) != (disabled["sourceIdentity"] as? String) &&
             $0["nativePlaying"] as? Bool == true && $0["nativeLive"] as? Bool == false &&
@@ -198,9 +205,9 @@ final class NativeControlsTouchUITests: XCTestCase {
         }
         let screen = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); screen.name = stage + "-screen"; screen.lifetime = .keepAlways; add(screen)
     }
-    private func fixture(_ action: String) throws {
+    private func fixture(_ action: String, controlURL: String? = nil) throws {
         let complete = expectation(description: "Public fixture " + action)
-        let control = ProcessInfo.processInfo.environment["PLAYER_LAB_CONTROLS_CONTROL_URL"] ?? "http://localhost:5199"
+        let control = controlURL ?? ProcessInfo.processInfo.environment["PLAYER_LAB_CONTROLS_CONTROL_URL"] ?? "http://localhost:5199"
         var request = URLRequest(url: try XCTUnwrap(URL(string: "\(control)/\(action)")))
         request.httpMethod = "POST"
         var status: Int?
