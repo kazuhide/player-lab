@@ -12,22 +12,23 @@ import WebKit
 /// Uses the public HLS finalization fixture on ports 5198/5199; no synthetic playback state.
 @MainActor
 final class NativeControlsRuntimeTests: XCTestCase {
+    private var failureObservation: (() async -> Void)?
     func testSourceFailureAndRecoveryUpdateGuardsWithEventRecordingDisabled() async throws {
         try await resetFixture()
         XCTAssertFalse(bitmovinLicenseKey().isEmpty)
         let model = PlayerModel(licenseKey: bitmovinLicenseKey())
         model.setPresentation(.playerView)
         model.setApiEventRecording(false)
-        var receivedSourceError = false
-        let errors = model.player.events.on(SourceErrorEvent.self).sink { _ in receivedSourceError = true }
-        defer { errors.cancel() }
         var draft = model.configurationDraft
         draft.sourceURL = "http://localhost:5198/missing-controls-fixture.m3u8"
         draft.autoplay = true
         try model.apply(draft)
         let (window, host) = try show(model)
-        defer { model.player.destroy(); window.isHidden = true; _ = host }
         let player = model.player
+        var receivedSourceError = false
+        let errors = player.events.on(SourceErrorEvent.self).sink { _ in receivedSourceError = true }
+        failureObservation = { await self.capture(model, host: host, window: window, stage: "source-failure") }
+        defer { failureObservation = nil; errors.cancel(); model.player.destroy(); window.isHidden = true; _ = host }
         try await eventually("real source error updates permanent command observer") {
             let context = model.apiContext()
             return receivedSourceError && (context.playback.source == .failed || !context.hasSource)
@@ -60,9 +61,11 @@ final class NativeControlsRuntimeTests: XCTestCase {
         draft.posterURL = ""; draft.autoplay = true
         try model.apply(draft)
         let (window, host) = try show(model)
-        defer { model.player.destroy(); window.isHidden = true; _ = host }
-        try await eventually("native live playback and Web UI handshake") {
-            model.liveRewindUiReady && model.player.isPlaying && model.hasCurrentLiveSource && model.dvr.dvrAvailable
+        failureObservation = { await self.capture(model, host: host, window: window, stage: "live-control-failure") }
+        defer { failureObservation = nil; model.player.destroy(); window.isHidden = true; _ = host }
+        try await eventually("Web UI handshake") { model.liveRewindUiReady }
+        try await eventually("native live playback and DVR window") {
+            model.player.isPlaying && model.hasCurrentLiveSource && model.dvr.dvrAvailable
         }
         let player = model.player, source = try XCTUnwrap(model.player.source)
         let view = try XCTUnwrap(model.apiPlayerView)
@@ -87,12 +90,14 @@ final class NativeControlsRuntimeTests: XCTestCase {
         XCTAssertTrue(player.isPaused)
         XCTAssertEqual(player.currentTime, pausedTime, accuracy: 0.75)
         XCTAssertEqual(sourceLoads, 0)
+        await capture(model, host: host, window: window, stage: "paused-live-rewind-hidden")
         XCTAssertThrowsError(try model.executeApi(.timeShift, arguments: ["value": "-5"]))
         model.timeShiftEnabled = true
         try await eventually("embedded live seek controls restored") { try await self.seekControls(web, expectedVisible: true) }
         XCTAssertTrue(model.player === player)
         XCTAssertTrue(player.source === source)
         XCTAssertEqual(sourceLoads, 0)
+        await capture(model, host: host, window: window, stage: "paused-live-rewind-restored")
         player.play()
         let before = player.currentTime
         try await eventually("same native playback advances after toggle") { player.isPlaying && player.currentTime > before + 1 }
@@ -108,7 +113,7 @@ final class NativeControlsRuntimeTests: XCTestCase {
         XCTAssertTrue(model.player === player)
         XCTAssertNotNil(model.apiContext().rejection(for: .timeShift))
         XCTAssertNil(model.apiContext().rejection(for: .seek, arguments: ["value": "2"]))
-        print("Apple controls: embedded Web UI seek/quickseek visibility changes while paused; exact Player, Source and PlayerView retained; no source reload; same native playback advances; VOD seeking restored")
+        print("Apple controls: embedded Web UI seek-control visibility changes while paused; exact Player, Source and PlayerView retained; no source reload; same native playback advances; VOD seeking restored")
     }
 
     private func seekControls(_ web: WKWebView, expectedVisible: Bool) async throws -> Bool {
@@ -167,6 +172,54 @@ final class NativeControlsRuntimeTests: XCTestCase {
         host.view.frame = window.bounds; host.view.layoutIfNeeded()
         return (window, host)
     }
+    private func capture(_ model: PlayerModel, host: UIViewController, window: UIWindow, stage: String) async {
+        let player = model.player
+        guard !player.isDestroyed else { return }
+        var values: [String: Any] = [
+            "stage": stage, "sdkVersion": PlayerFactory.sdkVersion,
+            "playerIdentity": String(describing: ObjectIdentifier(player)),
+            "sourceIdentity": player.source.map { String(describing: ObjectIdentifier($0)) } ?? "nil",
+            "viewIdentity": model.apiPlayerView.map { String(describing: ObjectIdentifier($0)) } ?? "nil",
+            "nativeLive": player.isLive, "nativePlaying": player.isPlaying, "nativePaused": player.isPaused,
+            "nativeCurrentTime": player.currentTime.isFinite ? player.currentTime as Any : "nonfinite",
+            "nativeMaxTimeShift": player.maxTimeShift.isFinite ? player.maxTimeShift as Any : "nonfinite",
+            "nativeSourceState": player.source.map { String(describing: $0.loadingState) } ?? "nil",
+            "appLiveSource": model.hasCurrentLiveSource, "appDvrAvailable": model.dvr.dvrAvailable,
+            "webUiReady": model.liveRewindUiReady,
+            "currentSourceReady": player.source.map { model.apiSession.readySource === $0 } ?? false,
+            "currentSourceFailed": player.source.map { model.apiSession.failedSource === $0 } ?? false,
+        ]
+        #if !os(tvOS)
+        if let web = find(WKWebView.self, in: host.view) {
+            values["web"] = try? await web.evaluateJavaScript("""
+            (() => {
+              const visible = e => {
+                for (let p = e; p; p = p.parentElement) {
+                  const s = getComputedStyle(p);
+                  if (s.display === 'none' || s.visibility === 'hidden' || Number(s.opacity) === 0) return false;
+                }
+                const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0;
+              };
+              return JSON.stringify({state:document.readyState,
+              bridgeOn:typeof window.bitmovin?.customMessageHandler?.on,
+              bridgeSend:typeof window.bitmovin?.customMessageHandler?.sendAsynchronousMessage,
+              bridgeSendAsynchronous:typeof window.bitmovin?.customMessageHandler?.sendAsynchronous,
+              roots:document.querySelectorAll('.bmpui-ui-uicontainer').length,
+              seekbars:document.querySelectorAll('.bmpui-ui-seekbar').length,
+              seekVisibility:[...document.querySelectorAll('.bmpui-ui-seekbar, .bmpui-ui-quickseekbutton')].map(visible),
+              playbackVisibility:[...document.querySelectorAll('.bmpui-ui-playbacktogglebutton')].map(visible),
+              text:document.body.innerText.slice(0,180)});
+            })()
+            """)
+        }
+        #endif
+        if let data = try? JSONSerialization.data(withJSONObject: values, options: [.sortedKeys]), let text = String(data: data, encoding: .utf8) {
+            print("Apple controls observation: " + text)
+            let attachment = XCTAttachment(string: text); attachment.name = stage + "-state"; attachment.lifetime = .keepAlways; add(attachment)
+        }
+        let image = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in window.drawHierarchy(in: window.bounds, afterScreenUpdates: true) }
+        let attachment = XCTAttachment(image: image); attachment.name = stage + "-screen"; attachment.lifetime = .keepAlways; add(attachment)
+    }
     private func resetFixture() async throws {
         try await setFixture("reset")
     }
@@ -189,6 +242,7 @@ final class NativeControlsRuntimeTests: XCTestCase {
             if try await predicate() { return }
             try await Task.sleep(nanoseconds: 100_000_000)
         }
+        await failureObservation?()
         XCTFail("Timed out waiting for \(stage)"); throw QualificationFailure.deadline
     }
     private enum QualificationFailure: Error { case deadline }

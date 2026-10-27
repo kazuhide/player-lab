@@ -70,10 +70,10 @@ final class NativeApiAvailabilityTests: XCTestCase {
         defer { model.player.destroy() }
         model.setApiEventRecording(false)
         model.apiSession.playerFailed = true
-        model.apiSession.adPosition = 12
+        model.apiSession.adClientType = .ima
         model.unloadFromApi()
         XCTAssertFalse(model.apiSession.playerFailed)
-        XCTAssertTrue(model.apiSession.adPosition.isNaN)
+        XCTAssertNil(model.apiSession.adClientType)
         XCTAssertTrue(model.apiEvents.isEmpty)
         #if os(tvOS)
         model.timeShiftEnabled = false
@@ -87,31 +87,41 @@ final class NativeApiAvailabilityTests: XCTestCase {
     func testLiveRewindBridgePreservesDemoDelegateAndRejectsRetiredReadiness() async throws {
         let model = PlayerModel(licenseKey: "configuration-tests-invalid-license")
         defer { model.player.destroy() }
-        var draft = model.configurationDraft
-        draft.advancedValues = [
-            "BitmovinUserInterfaceConfig.customMessageHandler": "true",
-            "CustomMessageHandler.receivedSynchronousMessage": "return input.message + ':' + input.data;",
-        ]
-        try model.apply(draft)
+        // Keep this ownership test source-free so invalid-license loading and
+        // asynchronous cancellation do not affect the delegate assertions.
         let originalPlayer = model.player
         let ui = try XCTUnwrap(originalPlayer.config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig)
         let handler = try XCTUnwrap(ui.customMessageHandler)
         let delegate = try XCTUnwrap(handler.delegate)
-        XCTAssertEqual(delegate.receivedSynchronousMessage("example", withData: "value"), "example:value")
+        XCTAssertTrue(delegate is NativeLiveRewindBridge, "Configured handler delegate: \(type(of: delegate))")
+        XCTAssertFalse(originalPlayer.isDestroyed)
         model.timeShiftEnabled = false
         XCTAssertTrue(model.player === originalPlayer)
         XCTAssertNil(model.player.source)
         delegate.receivedAsynchronousMessage(NativeLiveRewindBridge.readyMessage, withData: nil)
-        try await Task.sleep(nanoseconds: 30_000_000)
+        for _ in 0..<100 {
+            if model.liveRewindUiReady { break }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
         XCTAssertTrue(model.liveRewindUiReady)
-        draft.startMuted.toggle()
-        try model.apply(draft)
+        model.setUiMode(.sports)
         XCTAssertTrue(originalPlayer.isDestroyed)
         XCTAssertFalse(model.liveRewindUiReady)
         delegate.receivedAsynchronousMessage(NativeLiveRewindBridge.readyMessage, withData: nil)
         try await Task.sleep(nanoseconds: 30_000_000)
         XCTAssertFalse(model.liveRewindUiReady, "An old Web UI cannot mark the replacement view ready")
         XCTAssertEqual((model.player.config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig)?.customOptions["playerLabLiveRewindEnabled"] as? Bool, false)
+    }
+
+    func testLiveRewindBridgePreservesTheConfiguredDemonstrationDelegate() {
+        let handler = CustomMessageHandler(), journal = NativeCallbackJournal()
+        let delegate = EchoWebMessageDelegate()
+        handler.delegate = delegate
+        let bridge = NativeLiveRewindBridge(handler: handler, journal: journal)
+        XCTAssertTrue(handler.delegate === bridge)
+        XCTAssertEqual(bridge.receivedSynchronousMessage("example", withData: "value"), "example:value")
+        bridge.receivedAsynchronousMessage("example", withData: "value")
+        XCTAssertEqual(delegate.lastMessage, "example:value")
     }
     #endif
 
@@ -123,3 +133,11 @@ final class NativeApiAvailabilityTests: XCTestCase {
         return context
     }
 }
+
+#if !os(tvOS)
+private final class EchoWebMessageDelegate: NSObject, CustomMessageHandlerDelegate {
+    var lastMessage: String?
+    func receivedSynchronousMessage(_ message: String, withData data: String?) -> String? { message + ":" + (data ?? "") }
+    func receivedAsynchronousMessage(_ message: String, withData data: String?) { lastMessage = message + ":" + (data ?? "") }
+}
+#endif

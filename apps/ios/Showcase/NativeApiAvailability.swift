@@ -130,7 +130,9 @@ extension PlayerModel {
         context.playback.linearAdActive = player.isAd || activeAd?.isLinear == true
         if let activeAd, apiSession.activeAd === activeAd {
             context.playback.adSkippableAfter = (activeAd as? LinearAd)?.skippableAfter ?? .nan
-            context.playback.adPosition = apiSession.adPosition
+            // Read at dispatch time; an older queued content TimeChanged event
+            // must not enable skipping a newly started ad.
+            if player.isAd { context.playback.adPosition = player.currentTime }
             context.activeAdIsIma = apiSession.adClientType == .ima
         }
         #if !os(tvOS)
@@ -166,13 +168,12 @@ final class NativeApiSession: NSObject, PlayerListener, SourceListener {
     var playerFailed = false
     weak var activeAd: Ad?
     var adClientType: AdSourceType?
-    var adPosition: TimeInterval = .nan
     private weak var model: PlayerModel?
     private weak var owner: Player?
     private weak var observedSource: Source?
 
     init(model: PlayerModel, player: Player) { self.model = model; owner = player }
-    func reset() { readySource = nil; failedSource = nil; playerFailed = false; activeAd = nil; adClientType = nil; adPosition = .nan }
+    func reset() { readySource = nil; failedSource = nil; playerFailed = false; activeAd = nil; adClientType = nil }
     func bind(to source: Source?) {
         guard observedSource !== source else { return }
         observedSource?.remove(listener: self)
@@ -203,20 +204,14 @@ final class NativeApiSession: NSObject, PlayerListener, SourceListener {
         update(player, source: player.source) { $0.playerFailed = true }
     }
     func onAdStarted(_ event: AdStartedEvent, player: Player) {
-        update(player, source: player.source) { $0.activeAd = event.ad; $0.adClientType = event.clientType; $0.adPosition = 0 }
-    }
-    func onTimeChanged(_ event: TimeChangedEvent, player: Player) {
-        let ad = player.ads.activeAd
-        update(player, source: player.source) { state in
-            if let ad, state.activeAd === ad { state.adPosition = event.currentTime }
-        }
+        update(player, source: player.source) { $0.activeAd = event.ad; $0.adClientType = event.clientType }
     }
     func onAdFinished(_ event: AdFinishedEvent, player: Player) { finishAd(event.ad, player: player) }
     func onAdSkipped(_ event: AdSkippedEvent, player: Player) { finishAd(event.ad, player: player) }
     func onAdBreakFinished(_ event: AdBreakFinishedEvent, player: Player) {
-        update(player, source: player.source) { $0.activeAd = nil; $0.adClientType = nil; $0.adPosition = .nan }
+        update(player, source: player.source) { $0.activeAd = nil; $0.adClientType = nil }
     }
     private func finishAd(_ ad: Ad, player: Player) {
-        update(player, source: player.source) { if $0.activeAd === ad { $0.activeAd = nil; $0.adClientType = nil; $0.adPosition = .nan } }
+        update(player, source: player.source) { if $0.activeAd === ad { $0.activeAd = nil; $0.adClientType = nil } }
     }
 }

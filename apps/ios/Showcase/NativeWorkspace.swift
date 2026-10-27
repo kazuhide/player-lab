@@ -383,6 +383,7 @@ struct NativeMoreWorkspace: View {
                             .disabled(model.liveRewindControlsUnavailableReason != nil)
                         if let reason = model.liveRewindControlsUnavailableReason {
                             Text(LocalizedStringKey(reason)).font(.caption).foregroundStyle(Color.workspaceSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("dvr.controls.unavailable")
                         }
                         if model.hasCurrentLiveSource {

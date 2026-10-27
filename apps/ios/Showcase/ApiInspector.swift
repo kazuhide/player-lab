@@ -97,7 +97,7 @@ struct ApiInspector: View {
         }
         .alert("API invocation", isPresented: $showsResultDetails) {
             Button("Close", role: .cancel) {}
-        } message: { Text(NativeLocalization.format("Target: %@", operation.rawValue) + "\n\n" + NativeLocalization.operationResult(error ?? invocationResult ?? "No invocation for the selected operation and current player/source.")) }
+        } message: { Text(NativeLocalization.format("Target: %@", operation.rawValue) + "\n\n" + NativeLocalization.operationResult(error ?? availabilityReason ?? invocationResult ?? "No invocation for the selected operation and current player/source.")) }
 
     }
 
@@ -142,7 +142,10 @@ struct ApiInspector: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(LocalizedStringKey(candidate.displayName)).font(.subheadline)
                                 .fixedSize(horizontal: false, vertical: true)
-                            if let reason { Text(LocalizedStringKey(reason)).font(.caption).foregroundStyle(Color.workspaceSecondary) }
+                            if let reason {
+                                Text(LocalizedStringKey(reason)).font(.caption).foregroundStyle(Color.workspaceSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
                         }
                         Spacer()
                         if candidate == operation { Image(systemName: "checkmark").accessibilityLabel("Selected") }
@@ -224,6 +227,7 @@ struct ApiInspector: View {
             if workspaceActive { VStack(alignment: .leading, spacing: 6) {
                 if let reason = availabilityReason {
                     Text(LocalizedStringKey(reason)).font(.caption).foregroundStyle(Color.workspaceSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("api.unavailable")
                 }
                 HStack {
