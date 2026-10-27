@@ -219,14 +219,21 @@ def main():
         result["allAppliedCodeLinesObserved"] = True
         if not all(value in original_code for value in ["player-lab-external", "External English", "en-US"]):
             raise RuntimeError("Applied external subtitle metadata must be visible in generated code")
+        # Collapse focusable code rows during draft input and Reset, then
+        # reopen and freshly read the complete applied output each time.
+        ui.click("Hide applied code")
         phase("edit-unapplied-subtitle-label")
         ui.edit("Subtitle label", "Unapplied subtitle")
         phase("read-code-excluding-draft")
+        ui.click("Show applied code")
         if code() != original_code:
             raise RuntimeError("Draft subtitle edits must not change applied code")
+        ui.click("Hide applied code")
         ui.click("Reset draft")
         phase("read-code-after-reset")
-        if not any(n.text == "External English" for n in ui.reveal("Subtitle label").iter("text")) or code() != original_code:
+        reset_label_restored = any(n.text == "External English" for n in ui.reveal("Subtitle label").iter("text"))
+        ui.click("Show applied code")
+        if not reset_label_restored or code() != original_code:
             raise RuntimeError("Reset must restore applied subtitle metadata and retain code")
         ui.click("Hide applied code")
         # Finish this normal UI transaction before moving TV focus to the
