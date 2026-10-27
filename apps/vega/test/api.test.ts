@@ -114,6 +114,33 @@ describe("Vega typed API dispatch and session ownership", () => {
     expect(player.sgai.list).not.toHaveBeenCalled();
   });
 
+  it("blocks the selector and Run when the native SDK exposes a null SGAI namespace", async () => {
+    const { session, player } = fixture();
+    const sgai = player.sgai;
+    Object.defineProperty(player, "sgai", { get: () => null });
+    const skip = row("PlayerAPI.sgai.skip");
+    const reason = "This public API cannot be read in the current native SDK state.";
+    expect(session.operationAvailability(skip)).toEqual({ callable: false, reason });
+    expect(session.availability().find(entry => entry.id === skip.id)).toEqual({ id: skip.id, callable: false, reason });
+    await expect(session.run(skip, 0, [])).rejects.toThrow(reason);
+    expect(sgai.getActiveAd).not.toHaveBeenCalled();
+    expect(sgai.skip).not.toHaveBeenCalled();
+    expect(session.operationAvailability(row("PlayerAPI.load"))).toEqual({ callable: true });
+  });
+
+  it("rejects a fresh Run when the SGAI namespace disappears after the picker check", async () => {
+    const { session, player } = fixture();
+    const sgai = player.sgai;
+    sgai.getActiveAd.mockReturnValue({ isLinear: true });
+    const namespace = vi.fn((): typeof sgai | null => sgai);
+    Object.defineProperty(player, "sgai", { get: namespace });
+    const skip = row("PlayerAPI.sgai.skip");
+    expect(session.operationAvailability(skip)).toEqual({ callable: true });
+    namespace.mockReturnValue(null);
+    await expect(session.run(skip, 0, [])).rejects.toThrow("This public API cannot be read in the current native SDK state.");
+    expect(sgai.skip).not.toHaveBeenCalled();
+  });
+
   it("rechecks current SGAI state at dispatch and refreshes availability with recording paused", async () => {
     vi.useFakeTimers();
     const { session, player, listeners } = fixture();
