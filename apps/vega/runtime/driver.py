@@ -228,8 +228,15 @@ class Ui:
     def dismiss_keyboard(self, seconds=30):
         with self.observation_budget(time.monotonic() + seconds) as deadline:
             if self.keyboard_node(self.tree(), "Done") is not None:
-                self.wait(lambda tree: self.keyboard_node(tree, "Done") is not None and
-                    self.keyboard_node(tree, focused=True) is not None, max(0, deadline - time.monotonic()))
+                def readiness(tree):
+                    if not any(node.get("appName") == "com.amazon.silverstone" for node in tree.iter("app")):
+                        return "closed"
+                    if self.keyboard_node(tree, "Done") is not None and self.keyboard_node(tree, focused=True) is not None:
+                        return "ready"
+                    return None
+                # An incidental keyboard can finish closing before it focuses
+                # a key. This optional dismissal does not commit an edit.
+                if self.wait(readiness, max(0, deadline - time.monotonic())) == "closed": return
                 self.keyboard_select("Done", deadline)
                 self.wait(lambda tree: self.keyboard_node(tree, "Done") is None, max(0, deadline - time.monotonic()))
 

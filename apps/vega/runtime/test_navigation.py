@@ -32,6 +32,19 @@ class KeyboardCapturesNavigation(NativeKeyboardUi):
 
 
 class NativeNavigationTests(unittest.TestCase):
+    def test_navigation_accepts_the_intermediate_keyboard_app_closing_while_focus_is_pending(self):
+        class PendingKeyboard(KeyboardCapturesNavigation):
+            def wait(self, predicate, seconds=30): return Ui.wait(self, predicate, seconds)
+        ui = PendingKeyboard()
+        ui.keyboard_focus_pending_reads, ui.keyboard_closes_after_reads = 100, 3
+        clock = [100.0]
+        with patch('driver.time.monotonic', lambda: clock[0]), patch('driver.time.sleep', lambda seconds: clock.__setitem__(0, clock[0] + seconds)):
+            node = ui.reveal('Autoplay')
+        self.assertEqual(node.get('description'), 'Autoplay')
+        self.assertEqual(ui.value, 'Unchanged input')
+        self.assertEqual(ui.events, [])
+        self.assertFalse(ui.open)
+
     def test_navigation_waits_for_a_focused_key_when_the_intermediate_done_appears_first(self):
         class PendingKeyboard(KeyboardCapturesNavigation):
             def wait(self, predicate, seconds=30): return Ui.wait(self, predicate, seconds)

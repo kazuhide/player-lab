@@ -8,7 +8,7 @@ from driver import Ui
 
 
 class NativeKeyboardUi(Ui):
-    def __init__(self, current="old value", keyboard_app="com.amazon.silverstone", hidden=False, correct_focus=True, stale_done=False, placeholder=None, label='Source URL', vanish_before_done=None, replace_focus_once=False, reuse_id_in_other_field=False, late_focus_loss=None, after_focus=None, keyboard_focus_pending_reads=0):
+    def __init__(self, current="old value", keyboard_app="com.amazon.silverstone", hidden=False, correct_focus=True, stale_done=False, placeholder=None, label='Source URL', vanish_before_done=None, replace_focus_once=False, reuse_id_in_other_field=False, late_focus_loss=None, after_focus=None, keyboard_focus_pending_reads=0, keyboard_closes_after_reads=None):
         self.value, self.keyboard_app, self.hidden = current, keyboard_app, hidden
         self.correct_focus, self.stale_done = correct_focus, stale_done
         self.placeholder = placeholder
@@ -18,11 +18,16 @@ class NativeKeyboardUi(Ui):
         self.wrong_field_id, self.focus_count = None, 0
         self.late_focus_loss, self.after_focus = late_focus_loss, after_focus
         self.keyboard_focus_pending_reads = keyboard_focus_pending_reads
+        self.keyboard_closes_after_reads, self.keyboard_reads = keyboard_closes_after_reads, 0
         self.input_id, self.focused, self.open, self.key_focus = 1, False, False, "Clear"
         self.events, self.last_label, self.last_action = [], None, None
         self.deadline = time.monotonic() + 900
 
     def tree(self):
+        if self.open:
+            self.keyboard_reads += 1
+            if self.keyboard_closes_after_reads is not None and self.keyboard_reads >= self.keyboard_closes_after_reads:
+                self.open = False
         # Absolute native bounds observed in the real focused Source URL AX tree.
         tree = ET.fromstring('<root><app appName="com.playerlab.vega"><child x="0" y="0" width="1920" height="1080">'
             '<child description="Source URL" x="24" y="552" width="1872" height="52"><traits><visibility alpha="100"/></traits>'
@@ -102,6 +107,18 @@ class NativeKeyboardUi(Ui):
 
 
 class KeyboardEditTests(unittest.TestCase):
+    def test_initial_optional_dismiss_accepts_the_keyboard_app_closing_while_focus_is_pending(self):
+        class PendingKeyboard(NativeKeyboardUi):
+            def wait(self, predicate, seconds=30): return Ui.wait(self, predicate, seconds)
+        ui = PendingKeyboard(keyboard_focus_pending_reads=100, keyboard_closes_after_reads=3)
+        ui.open, ui.focused = True, True
+        clock = [100.0]
+        with patch('driver.time.monotonic', lambda: clock[0]), patch('driver.time.sleep', lambda seconds: clock.__setitem__(0, clock[0] + seconds)):
+            ui.dismiss_keyboard()
+        self.assertEqual(ui.value, 'old value')
+        self.assertEqual(ui.events, [])
+        self.assertFalse(ui.open)
+
     def test_initial_dismiss_waits_for_the_real_focused_key_after_done_appears(self):
         class PendingKeyboard(NativeKeyboardUi):
             def wait(self, predicate, seconds=30): return Ui.wait(self, predicate, seconds)
