@@ -1,5 +1,14 @@
 /** Japanese application copy. Public SDK names and code samples retain their original spelling. */
 export const japaneseCopy: Record<string, string> = {
+  "Wait for a current native playback state.": "現在の再生状態をSDKから取得するまで待ってください。",
+  "Load a source again after the source error.": "ソースエラーが発生したため、ソースを読み込み直してください。",
+  "Recreate the player after the player error.": "プレイヤーエラーが発生したため、プレイヤーを再作成してください。",
+  "Wait for the current audio track list.": "現在の音声トラック一覧を取得するまで待ってください。",
+  "Wait for the current subtitle track list.": "現在の字幕トラック一覧を取得するまで待ってください。",
+  "Wait for the current video quality list.": "現在の映像品質一覧を取得するまで待ってください。",
+  "Choose an available audio track identifier.": "利用可能な音声トラックの識別子を指定してください。",
+  "Choose an available subtitle identifier or leave it blank.": "利用可能な字幕の識別子を指定してください。字幕を無効にする場合は空欄にします。",
+  "Choose an available quality ID or auto.": "利用可能な映像品質ID、またはautoを指定してください。",
   "This ad does not allow skipping.": "この広告はスキップできません。",
   "Wait until the ad's skip offset is reached.": "広告をスキップできる再生位置に達するまで待ってください。",
   "The current ad's skip metadata is unavailable.": "現在の広告のスキップ条件を取得できません。",

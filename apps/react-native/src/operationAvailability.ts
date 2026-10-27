@@ -3,6 +3,7 @@ import type { NativeSettings } from "./nativeSettings";
 
 export interface NativePlaybackContext {
   loaded: boolean;
+  failure: "source" | "player" | null;
   live: boolean | null;
   maxTimeShift: number;
   linearAd: boolean;
@@ -13,15 +14,27 @@ export interface NativePlaybackContext {
   nonLinearAd: boolean;
   castAvailable: boolean;
   casting: boolean;
+  audioTrackIds: string[] | null;
+  subtitleTrackIds: string[] | null;
+  videoQualityIds: string[] | null;
 }
-const empty = (): NativePlaybackContext => ({ loaded: false, live: null, maxTimeShift: 0,
+const empty = (failure: NativePlaybackContext["failure"] = null): NativePlaybackContext => ({ loaded: false, failure, live: null, maxTimeShift: 0,
   linearAd: false, adPlaying: false, adSkipOffset: null, adClientType: null, adTime: null,
-  nonLinearAd: false, castAvailable: false, casting: false });
+  nonLinearAd: false, castAvailable: false, casting: false, audioTrackIds: null, subtitleTrackIds: null, videoQualityIds: null });
 
 function adPayload(value: unknown): Partial<AdStartedEvent & NonLinearAdStartedEvent> {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 const clearLinearAd = { linearAd: false, adPlaying: false, adSkipOffset: null, adClientType: null, adTime: null } as const;
+
+function catalogIds(result: PromiseSettledResult<unknown>, key: "identifier" | "id"): string[] | null {
+  if (result.status !== "fulfilled" || !Array.isArray(result.value)) return null;
+  return result.value.flatMap(value => value && typeof value === "object" && typeof value[key] === "string" && value[key].length
+    ? [value[key] as string] : []);
+}
+
+// RN 1.29 forwards Android's enum name and iOS's ordinal without normalization.
+const sourceIsLoaded = (value: unknown): boolean => value === "LOADED" || value === 2;
 
 /** Capability observations belong to one player and current source, never to the event log. */
 export class NativeOperationContext {
@@ -32,14 +45,18 @@ export class NativeOperationContext {
   private reading: Promise<boolean> | undefined;
   private offlineRequested = false;
   private offlineLoaded = false;
+  private sourceFailed = false;
+  private playerFailed = false;
   constructor(private readonly player: Player, private readonly changed: () => void = () => {}) {}
   snapshot(): NativePlaybackContext {
-    return this.source === this.player.source ? this.state : empty();
+    return this.source === this.player.source ? this.state : empty(this.playerFailed ? "player" : null);
   }
   reset(offlineRequested = false): void {
-    this.generation++; this.source = this.player.source; this.state = empty();
+    if (this.source !== this.player.source) this.sourceFailed = false;
+    this.generation++; this.source = this.player.source; this.state = empty(this.failure());
     this.offlineRequested = offlineRequested; this.offlineLoaded = false; this.changed();
   }
+  private failure(): NativePlaybackContext["failure"] { return this.playerFailed ? "player" : this.sourceFailed ? "source" : null; }
   retire(): void { this.active = false; this.reset(); }
   event(name: string, payload?: unknown): void {
     if (!this.active) return;
@@ -56,10 +73,13 @@ export class NativeOperationContext {
     else if (name === "onAdBreakStarted") this.state = { ...this.state, ...clearLinearAd, linearAd: true };
     else if (["onAdBreakFinished", "onAdFinished", "onAdSkipped"].includes(name)) this.state = { ...this.state, ...clearLinearAd };
     else if (name === "onAdError") this.state = { ...this.state, ...clearLinearAd, nonLinearAd: false };
-    else if (name === "onSourceLoaded" && this.offlineRequested && !this.player.source) { this.offlineLoaded = true; this.state = { ...this.state, loaded: true }; }
-    else if (name === "onSourceLoad") { this.reset(this.offlineRequested); return; }
+    else if (name === "onSourceLoaded" && this.offlineRequested && !this.player.source) { this.offlineLoaded = true; this.state = { ...this.state, loaded: !this.failure() }; }
+    else if (name === "onSourceLoad") { this.sourceFailed = false; this.reset(this.offlineRequested); return; }
     else if (name === "onSourceUnloaded") { this.reset(this.offlineRequested && !this.offlineLoaded); return; }
-    else if (["onSourceError", "onPlayerError", "onDestroy"].includes(name)) { this.reset(); return; }
+    else if (name === "onSourceError") { this.sourceFailed = true; this.reset(); return; }
+    else if (["onPlayerError", "onDestroy"].includes(name)) { this.playerFailed = true; this.reset(); return; }
+    else if (["onAudioAdded", "onAudioRemoved"].includes(name)) this.state = { ...this.state, audioTrackIds: null };
+    else if (["onSubtitleAdded", "onSubtitleRemoved"].includes(name)) this.state = { ...this.state, subtitleTrackIds: null };
     else return;
     this.generation++;
     this.changed();
@@ -84,9 +104,11 @@ export class NativeOperationContext {
     if (!reads) return false;
     try {
       const [loading, live, maxTimeShift, nativeAd, castAvailable, casting] = await Promise.all(reads);
-      const current = () => this.active && !this.player.isDestroyed && source === this.player.source && generation === this.generation;
+      const current = () => this.active && !this.player.isDestroyed && !source?.isDestroyed && source === this.player.source && generation === this.generation;
       if (!current()) return false;
-      let linearAd = nativeAd;
+      const failure = this.failure();
+      const loaded = sourceIsLoaded(loading) && !failure;
+      let linearAd = loaded && nativeAd;
       let adTime: number | null = null;
       // Relative time is ad-relative for VOD. RN's native live time-mode offsets
       // are not an independently readable ad clock, so live thresholds stay unavailable.
@@ -97,14 +119,24 @@ export class NativeOperationContext {
         if (!current()) return false;
         if (linearAd && Number.isFinite(time) && time >= 0) adTime = time;
       }
-      this.state = { ...this.state, ...(!linearAd ? clearLinearAd : {}), loaded: loading === 2,
-        live, maxTimeShift, linearAd, adPlaying: linearAd, adTime, castAvailable, casting };
+      // Catalogs can change within one Source. A failed list read blocks only its setter.
+      const catalogs = loaded ? await Promise.allSettled([
+        Promise.resolve().then(() => current() ? this.player.getAvailableAudioTracks() : null),
+        Promise.resolve().then(() => current() ? this.player.getAvailableSubtitles() : null),
+        Promise.resolve().then(() => current() ? this.player.getAvailableVideoQualities() : null),
+      ]) : null;
+      if (!current()) return false;
+      this.state = { ...this.state, ...(!linearAd ? clearLinearAd : {}), loaded, failure,
+        live, maxTimeShift, linearAd, adPlaying: linearAd, adTime, castAvailable, casting,
+        audioTrackIds: catalogs ? catalogIds(catalogs[0]!, "identifier") : null,
+        subtitleTrackIds: catalogs ? catalogIds(catalogs[1]!, "identifier") : null,
+        videoQualityIds: catalogs ? catalogIds(catalogs[2]!, "id") : null };
       this.changed();
       return true;
     } catch {
       await Promise.allSettled(reads);
       if (this.active && source === this.player.source && generation === this.generation) {
-        this.state = { ...empty(), nonLinearAd: this.state.nonLinearAd }; this.changed();
+        this.state = { ...empty(this.failure()), nonLinearAd: this.state.nonLinearAd }; this.changed();
       }
       return false;
     }
@@ -120,17 +152,33 @@ const sessionMethods = new Set(["Player.play", "Player.pause", "Player.seek", "P
 export const operationNeedsFreshContext = (id: string): boolean => sessionMethods.has(id) || id === "Player.castStop" || id === "BitmovinCastManager.sendMessage";
 
 export function operationUnavailable(id: string, player: Player, state: NativePlaybackContext, platform: string,
-  settings: NativeSettings, dvrAllowed: boolean, values: Record<string, string> = {}): string | undefined {
+  settings: NativeSettings, dvrAllowed: boolean, values?: Record<string, string>): string | undefined {
   if (player.isDestroyed) return "Recreate the player before running this operation.";
   if (platform !== "ios" && (id.includes("AirPlay") || id.startsWith("Source.drm.fairplay."))) return "This operation requires iOS.";
-  if (platform !== "android" && id === "BitmovinCastManager.updateContext") return "This operation requires Android.";
+  if (platform !== "android" && ["BitmovinCastManager.updateContext", "Player.setVideoQuality"].includes(id)) return "This operation requires Android.";
   if (id.startsWith("Player.analytics.") && !player.analytics) return "Configure Analytics before creating this player.";
   if (id.startsWith("Source.")) {
     if (!player.source || player.source.isDestroyed) return "Load a source first.";
     if (id.startsWith("Source.drm.") && !player.source.drm) return "Load a DRM-configured source first.";
     if (id.startsWith("Source.drm.fairplay.") && !player.source.drm?.fairplay) return "Load a FairPlay-configured source first.";
   }
-  if (sessionMethods.has(id) && !state.loaded) return "Wait for a loaded source.";
+  if (sessionMethods.has(id)) {
+    if (state.failure === "player") return "Recreate the player after the player error.";
+    if (state.failure === "source") return "Load a source again after the source error.";
+    if (!state.loaded) return "Wait for a loaded source.";
+  }
+  if (id === "Player.setAudioTrack") {
+    if (!state.audioTrackIds) return "Wait for the current audio track list.";
+    if (values ? !state.audioTrackIds.includes(values.value ?? "") : !state.audioTrackIds.length) return "Choose an available audio track identifier.";
+  }
+  if (id === "Player.setSubtitleTrack" && values?.value) {
+    if (!state.subtitleTrackIds) return "Wait for the current subtitle track list.";
+    if (!state.subtitleTrackIds.includes(values.value)) return "Choose an available subtitle identifier or leave it blank.";
+  }
+  if (id === "Player.setVideoQuality" && values && values.value !== "auto") {
+    if (!state.videoQualityIds) return "Wait for the current video quality list.";
+    if (!state.videoQualityIds.includes(values.value ?? "")) return "Choose an available quality ID or auto.";
+  }
   if (id === "Player.skipAd") {
     if (!state.linearAd && !state.nonLinearAd) return "No active ad is available to skip.";
     if (state.linearAd) {
@@ -148,7 +196,7 @@ export function operationUnavailable(id: string, player: Player, state: NativePl
   if (id === "Player.timeShift") {
     if (state.live !== true) return "Time shift requires a live source.";
     // Returning to the edge remains available when live rewind is disabled.
-    if (Number(values.value ?? "0") !== 0 && (!dvrAllowed || !Number.isFinite(state.maxTimeShift) || state.maxTimeShift >= 0)) return "Live rewind is unavailable for this source or setting.";
+    if (Number(values?.value ?? "0") !== 0 && (!dvrAllowed || !Number.isFinite(state.maxTimeShift) || state.maxTimeShift >= 0)) return "Live rewind is unavailable for this source or setting.";
   }
   if (id === "Player.scheduleAd" && !settings.player.advertisingConfig?.schedule.length) return "Apply an advertising schedule first.";
   if (id === "Player.castVideo" && !state.castAvailable) return "No Cast receiver is available.";

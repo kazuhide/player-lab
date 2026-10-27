@@ -342,6 +342,16 @@ provide separate evidence from native playback.
 Verify these behaviors in the external Expo build with a valid player license.
 
 The API picker disables unavailable operations and displays the prerequisite.
+Track setters verify the current native audio/subtitle identifiers; Android video
+quality selection verifies the current quality IDs. Argument drafts survive a
+source replacement, but IDs from the previous source cannot be dispatched.
+Blank subtitles still disable subtitles, and `auto` still restores Android
+automatic quality selection. Catalog events update availability even while event
+recording is paused; Run reads fresh catalogs before dispatch. Source errors stay
+blocked until a new source load or replacement. Player errors require recreation,
+even if the native source still reports `LOADED`.
+The pinned RN 1.29 bridge returns Android's loading-state name (`"LOADED"`) and
+iOS's ordinal (`2`); both are recognized explicitly.
 Session operations require a loaded source; seek and time shift follow the native
 VOD/live state, linear-ad interruptions and the live-rewind setting. Skip requires
 a presented non-linear ad, or a linear ad with public `onAdStarted.skipOffset`

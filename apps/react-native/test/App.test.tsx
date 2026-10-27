@@ -50,7 +50,7 @@ vi.mock("bitmovin-player-react-native", async () => {
     constructor(public config: import("bitmovin-player-react-native").SourceConfig) {}
     initialize = vi.fn(async () => { this.isInitialized = true; });
     destroy = vi.fn(() => { this.isDestroyed = true; });
-    loadingState = vi.fn(async () => 2);
+    loadingState = vi.fn(async () => runtime.os === "android" ? "LOADED" : 2);
   }
   return {
     CustomUi: class { constructor(public factoryFunction: string) {} },
@@ -86,6 +86,10 @@ vi.mock("bitmovin-player-react-native", async () => {
         isLive: vi.fn(async () => true), getDuration: vi.fn(async () => Infinity),
         getMaxTimeShift: vi.fn(async () => -900), getTimeShift: vi.fn(async () => 0),
         getCurrentTime: vi.fn(async () => 0),
+        getAvailableAudioTracks: vi.fn(async () => [{ identifier: "audio-a" }]),
+        getAvailableSubtitles: vi.fn(async () => [{ identifier: "subtitle-a" }]),
+        getAvailableVideoQualities: vi.fn(async () => [{ id: "quality-a" }]),
+        setAudioTrack: vi.fn(), setSubtitleTrack: vi.fn(), setVideoQuality: vi.fn(),
         setVolume: vi.fn(), getVolume: vi.fn(async () => 100), play: vi.fn(), pause: vi.fn(),
       };
       runtime.players.push(player);
@@ -347,6 +351,98 @@ describe("React Native configuration in the mounted App", () => {
     expect(runtime.scrollApi).toHaveBeenCalledTimes(scrolls);
     await press("Run selected API");
     expect(owner.setVolume).toHaveBeenLastCalledWith(37);
+  });
+
+  it.each([
+    ["Player.setAudioTrack", "Audio track identifier (getAvailableAudioTracks)", "getAvailableAudioTracks", "setAudioTrack", "audio-a", { identifier: "audio-b" }],
+    ["Player.setSubtitleTrack", "Subtitle identifier (blank disables subtitles)", "getAvailableSubtitles", "setSubtitleTrack", "subtitle-a", { identifier: "subtitle-b" }],
+    ["Player.setVideoQuality", "Quality ID (getAvailableVideoQualities, or auto)", "getAvailableVideoQualities", "setVideoQuality", "quality-a", { id: "quality-b" }],
+  ] as const)("retains the %s draft but blocks its old ID after source replacement", async (id, label, getter, setter, oldId, replacement) => {
+    await mount(); await ready(); await press("Pause event log");
+    const owner = current();
+    await text("Filter API operations", id); await press(id); await text(label, oldId);
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(false);
+    Reflect.get(owner, getter).mockResolvedValue([replacement]);
+    await press("Live HLS");
+    expect(current()).toBe(owner);
+    expect(input(label).props.value).toBe(oldId);
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(true);
+    await press("Run selected API");
+    expect(Reflect.get(owner, setter)).not.toHaveBeenCalled();
+    const newId = "identifier" in replacement ? replacement.identifier : replacement.id;
+    await text(label, newId); await press("Run selected API");
+    expect(Reflect.get(owner, setter)).toHaveBeenCalledExactlyOnceWith(newId);
+  });
+
+  it.each([
+    ["Player.setAudioTrack", "Audio track identifier (getAvailableAudioTracks)", "getAvailableAudioTracks", "setAudioTrack", "audio-a"],
+    ["Player.setSubtitleTrack", "Subtitle identifier (blank disables subtitles)", "getAvailableSubtitles", "setSubtitleTrack", "subtitle-a"],
+    ["Player.setVideoQuality", "Quality ID (getAvailableVideoQualities, or auto)", "getAvailableVideoQualities", "setVideoQuality", "quality-a"],
+  ] as const)("freshly rejects %s when its catalog changes immediately before Run", async (id, label, getter, setter, oldId) => {
+    await mount(); await ready();
+    const owner = current();
+    await text("Filter API operations", id); await press(id); await text(label, oldId);
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(false);
+    Reflect.get(owner, getter).mockResolvedValue([]);
+    await press("Run selected API");
+    expect(Reflect.get(owner, setter)).not.toHaveBeenCalled();
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(true);
+  });
+
+  it("updates removed audio tracks while event recording is paused", async () => {
+    await mount(); await ready(); await press("Pause event log");
+    const owner = current();
+    await text("Filter API operations", "Player.setAudioTrack"); await press("Player.setAudioTrack");
+    await text("Audio track identifier (getAvailableAudioTracks)", "audio-a");
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(false);
+    Reflect.get(owner, "getAvailableAudioTracks").mockResolvedValue([]);
+    await act(async () => element("PlayerView").props.onAudioRemoved({ track: { identifier: "audio-a" } }));
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(true);
+    expect(Reflect.get(owner, "setAudioTrack")).not.toHaveBeenCalled();
+  });
+
+  it("dispatches blank subtitle clearing and Android auto quality with empty catalogs", async () => {
+    await mount(); await ready();
+    const owner = current();
+    Reflect.get(owner, "getAvailableSubtitles").mockResolvedValue([]);
+    Reflect.get(owner, "getAvailableVideoQualities").mockResolvedValue([]);
+    await act(async () => element("PlayerView").props.onTimeChanged());
+    await text("Filter API operations", "Player.setSubtitleTrack"); await press("Player.setSubtitleTrack");
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(false);
+    await press("Run selected API");
+    expect(Reflect.get(owner, "setSubtitleTrack")).toHaveBeenCalledExactlyOnceWith(undefined);
+    await text("Filter API operations", "Player.setVideoQuality"); await press("Player.setVideoQuality");
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(false);
+    await press("Run selected API");
+    expect(Reflect.get(owner, "setVideoQuality")).toHaveBeenCalledExactlyOnceWith("auto");
+  });
+
+  it("rejects a setter when a native lifecycle event invalidates its fresh catalog read", async () => {
+    await mount(); await ready();
+    const owner = current();
+    await text("Filter API operations", "Player.setAudioTrack"); await press("Player.setAudioTrack");
+    await text("Audio track identifier (getAvailableAudioTracks)", "audio-a");
+    let finish!: (tracks: { identifier: string }[]) => void;
+    Reflect.get(owner, "getAvailableAudioTracks").mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    await press("Run selected API");
+    expect(finish).toBeTypeOf("function");
+    await act(async () => element("PlayerView").props.onAdBreakStarted());
+    await act(async () => finish([{ identifier: "audio-a" }]));
+    expect(Reflect.get(owner, "setAudioTrack")).not.toHaveBeenCalled();
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).toBe("Wait for a current native playback state.");
+  });
+
+  it.each(["onSourceError", "onPlayerError"])("keeps %s commands blocked across fresh reads while recording is paused", async name => {
+    await mount(); await ready(); await press("Pause event log");
+    const owner = current();
+    await text("Filter API operations", "Player.play"); await press("Player.play");
+    const stale = element("Pressable", { testID: "api-run" }).props.onPress;
+    await act(async () => element("PlayerView").props[name]({ code: 2000 }));
+    await act(async () => element("PlayerView").props.onTimeChanged());
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(true);
+    await act(async () => stale());
+    expect(owner.play).not.toHaveBeenCalled();
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(true);
   });
 
   it("refreshes the actual ad threshold before dispatch instead of trusting the enabled Run state", async () => {

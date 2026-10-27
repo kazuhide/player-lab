@@ -61,7 +61,7 @@ export function ApiPanel({ player, source, ready, operationContext, dvrAllowed, 
   useEffect(() => {
     setValues(Object.fromEntries(selected.arguments.map((argument) => [argument.name, argument.initial])));
   }, [selected.id, player]);
-  const unavailable = (id: string, input: Record<string, string> = {}) => operationUnavailable(id, player, operationContext.snapshot(), Platform.OS, settings, dvrAllowed, input);
+  const unavailable = (id: string, input?: Record<string, string>) => operationUnavailable(id, player, operationContext.snapshot(), Platform.OS, settings, dvrAllowed, input);
   const selectedUnavailable = unavailable(selected.id, values);
   const currentRun = useRef({ ready, page, selected, values, settings, dvrAllowed });
   currentRun.current = { ready, page, selected, values, settings, dvrAllowed };
@@ -75,12 +75,13 @@ export function ApiPanel({ player, source, ready, operationContext, dvrAllowed, 
     let dispatchAllowed = true;
     try {
       const dispatch = async () => {
-        if (operationNeedsFreshContext(selected.id)) await operationContext.refresh(true);
+        const refreshed = !operationNeedsFreshContext(selected.id) || await operationContext.refresh(true);
         // Bridge reads may yield to a source replacement, owner retirement or picker change.
         const latest = currentRun.current;
         if (!dispatchAllowed || generation.current !== current || !latest.ready || player.isDestroyed || latest.selected !== selected || latest.page !== page || latest.values !== values) return;
         const reason = operationUnavailable(selected.id, player, operationContext.snapshot(), Platform.OS, latest.settings, latest.dvrAllowed, values);
         if (reason) throw new Error(reason);
+        if (!refreshed) throw new Error("Wait for a current native playback state.");
         const appliedCode = selected.code(values);
         if (["Player.load", "Player.loadSource", "Player.loadOfflineContent", "Player.unload", "Player.destroy", "Source.destroy"].includes(selected.id)) { onSourceMutation(selected.id); }
         const value = await selected.run(values);

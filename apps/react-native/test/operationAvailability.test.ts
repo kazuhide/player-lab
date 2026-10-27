@@ -4,18 +4,125 @@ import type { NativeSettings } from "../src/nativeSettings";
 import { NativeOperationContext, operationUnavailable } from "../src/operationAvailability";
 
 function fixture() {
-  const source = { isInitialized: true, isDestroyed: false, loadingState: vi.fn(async () => 2) };
+  const source = { isInitialized: true, isDestroyed: false, loadingState: vi.fn(async (): Promise<unknown> => "LOADED") };
   const player = { source, isDestroyed: false, isLive: vi.fn(async () => false), getMaxTimeShift: vi.fn(async () => 0),
     getCurrentTime: vi.fn(async () => 0),
+    getAvailableAudioTracks: vi.fn(async () => [{ identifier: "audio-a" }]),
+    getAvailableSubtitles: vi.fn(async () => [{ identifier: "subtitle-a" }]),
+    getAvailableVideoQualities: vi.fn(async () => [{ id: "quality-a" }]),
     isAd: vi.fn(async () => false), isCastAvailable: vi.fn(async () => false), isCasting: vi.fn(async () => false) };
   const context = new NativeOperationContext(player as unknown as Player);
   const settings = { player: {}, source: {} } as NativeSettings;
-  const reason = (id: string, platform = "android", allowed = true, values: Record<string, string> = {}) =>
+  const reason = (id: string, platform = "android", allowed = true, values?: Record<string, string>) =>
     operationUnavailable(id, player as unknown as Player, context.snapshot(), platform, settings, allowed, values);
   return { source, player, context, settings, reason };
 }
 
 describe("native operation availability", () => {
+  it.each([
+    ["Android loaded name", "LOADED", true], ["iOS loaded ordinal", 2, true],
+    ["Android loading name", "LOADING", false], ["Android unloaded name", "UNLOADED", false],
+    ["iOS loading ordinal", 1, false], ["iOS unloaded ordinal", 0, false],
+    ["missing source", null, false], ["numeric string", "2", false], ["different name", "loaded", false],
+  ])("uses the pinned native loading-state wire shape: %s", async (_name, wireValue, loaded) => {
+    const f = fixture(); f.source.loadingState.mockResolvedValue(wireValue);
+    await f.context.refresh();
+    expect(f.context.snapshot().loaded).toBe(loaded);
+    expect(f.reason("Player.play")).toBe(loaded ? undefined : "Wait for a loaded source.");
+  });
+
+  it.each([
+    ["Player.setAudioTrack", "getAvailableAudioTracks", "audio-a", { identifier: "audio-b" }, "Choose an available audio track identifier."],
+    ["Player.setSubtitleTrack", "getAvailableSubtitles", "subtitle-a", { identifier: "subtitle-b" }, "Choose an available subtitle identifier or leave it blank."],
+    ["Player.setVideoQuality", "getAvailableVideoQualities", "quality-a", { id: "quality-b" }, "Choose an available quality ID or auto."],
+  ] as const)("rejects a retained %s ID after replacing the source catalog", async (id, getter, oldId, replacement, expected) => {
+    const f = fixture(); await f.context.refresh();
+    expect(f.reason(id, "android", true, { value: oldId })).toBeUndefined();
+    f.player.source = { ...f.source };
+    f.player[getter].mockResolvedValue([replacement] as never);
+    await f.context.refresh(true);
+    expect(f.reason(id, "android", true, { value: oldId })).toBe(expected);
+    const newId = "identifier" in replacement ? replacement.identifier : replacement.id;
+    expect(f.reason(id, "android", true, { value: newId })).toBeUndefined();
+  });
+
+  it("retains subtitle clearing and Android auto quality without a selectable catalog", async () => {
+    const f = fixture();
+    f.player.getAvailableAudioTracks.mockResolvedValue([]);
+    f.player.getAvailableSubtitles.mockResolvedValue([]);
+    f.player.getAvailableVideoQualities.mockResolvedValue([]);
+    await f.context.refresh();
+    expect(f.reason("Player.setAudioTrack")).toBe("Choose an available audio track identifier.");
+    expect(f.reason("Player.setSubtitleTrack")).toBeUndefined();
+    expect(f.reason("Player.setSubtitleTrack", "android", true, { value: "" })).toBeUndefined();
+    expect(f.reason("Player.setVideoQuality")).toBeUndefined();
+    expect(f.reason("Player.setVideoQuality", "android", true, { value: "auto" })).toBeUndefined();
+    expect(f.reason("Player.setVideoQuality", "ios", true, { value: "auto" })).toBe("This operation requires Android.");
+  });
+
+  it("keeps failed catalog reads unavailable without invalidating unrelated loaded-source operations", async () => {
+    const f = fixture();
+    f.player.getAvailableAudioTracks.mockRejectedValue(new Error("bridge read failed"));
+    f.player.getAvailableSubtitles.mockRejectedValue(new Error("bridge read failed"));
+    f.player.getAvailableVideoQualities.mockRejectedValue(new Error("bridge read failed"));
+    expect(await f.context.refresh()).toBe(true);
+    expect(f.reason("Player.play")).toBeUndefined();
+    expect(f.reason("Player.setAudioTrack", "android", true, { value: "audio-a" })).toBe("Wait for the current audio track list.");
+    expect(f.reason("Player.setSubtitleTrack", "android", true, { value: "subtitle-a" })).toBe("Wait for the current subtitle track list.");
+    expect(f.reason("Player.setVideoQuality", "android", true, { value: "quality-a" })).toBe("Wait for the current video quality list.");
+    expect(f.reason("Player.setSubtitleTrack", "android", true, { value: "" })).toBeUndefined();
+    expect(f.reason("Player.setVideoQuality", "android", true, { value: "auto" })).toBeUndefined();
+  });
+
+  it.each(["reset", "retire", "source replacement"])("discards deferred catalog reads after %s", async action => {
+    const f = fixture();
+    let finish!: (value: { identifier: string }[]) => void;
+    f.player.getAvailableAudioTracks.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    const pending = f.context.refresh();
+    for (let turn = 0; turn < 8 && !finish; turn++) await Promise.resolve();
+    expect(finish).toBeTypeOf("function");
+    if (action === "source replacement") f.player.source = { ...f.source };
+    else f.context[action as "reset" | "retire"]();
+    finish([{ identifier: "stale-audio" }]);
+    expect(await pending).toBe(false);
+    expect(f.context.snapshot().loaded).toBe(false);
+    expect(f.reason("Player.setAudioTrack", "android", true, { value: "stale-audio" })).toBeDefined();
+  });
+
+  it.each([["onSourceError", "LOADED"], ["onSourceError", 2], ["onPlayerError", "LOADED"], ["onPlayerError", 2]])("latches %s even when native loadingState remains %s", async (name, wireValue) => {
+    const f = fixture(); f.source.loadingState.mockResolvedValue(wireValue); f.player.isLive.mockResolvedValue(true); await f.context.refresh();
+    f.context.event(String(name));
+    await f.context.refresh(true);
+    expect(f.context.snapshot().loaded).toBe(false);
+    const expected = name === "onSourceError" ? "Load a source again after the source error." : "Recreate the player after the player error.";
+    expect(f.reason("Player.play")).toBe(expected);
+    expect(f.reason("Player.timeShift", "android", true, { value: "-10" })).toBe(expected);
+    for (const id of ["Player.load", "Player.loadSource", "Player.loadOfflineContent", "Player.initialize", "Player.destroy"])
+      expect(f.reason(id)).toBeUndefined();
+  });
+
+  it.each(["onSourceLoad", "source replacement"])("recovers a source error only after %s", async action => {
+    const f = fixture(); await f.context.refresh(); f.context.event("onSourceError");
+    f.context.reset(); await f.context.refresh(true);
+    expect(f.context.snapshot().loaded).toBe(false);
+    if (action === "source replacement") f.player.source = { ...f.source };
+    else f.context.event("onSourceLoad");
+    await f.context.refresh(true);
+    expect(f.reason("Player.play")).toBeUndefined();
+  });
+
+  it("keeps a player error latched across source recovery and replacement", async () => {
+    const f = fixture(); await f.context.refresh(); f.context.event("onPlayerError");
+    f.context.event("onSourceLoad"); f.context.event("onSourceLoaded"); await f.context.refresh(true);
+    expect(f.reason("Player.play")).toBe("Recreate the player after the player error.");
+    f.player.source = { ...f.source }; await f.context.refresh(true);
+    expect(f.reason("Player.play")).toBe("Recreate the player after the player error.");
+    const newPlayer = { ...f.player } as unknown as Player;
+    const recreated = new NativeOperationContext(newPlayer);
+    await recreated.refresh();
+    expect(operationUnavailable("Player.play", newPlayer, recreated.snapshot(), "android", f.settings, true)).toBeUndefined();
+  });
+
   it.each([
     ["unskippable", -1, 99, "bitmovin", "This ad does not allow skipping."],
     ["immediately skippable", 0, 0, "bitmovin", undefined],

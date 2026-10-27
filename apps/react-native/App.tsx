@@ -277,7 +277,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
   const recordApiEvent = useCallback((name: string, event: unknown) => {
     if (active.current) {
       operationContext.event(name, event);
-      if (name === "onAdStarted") void operationContext.refresh(true);
+      if (["onAdStarted", "onAudioAdded", "onAudioRemoved", "onSubtitleAdded", "onSubtitleRemoved"].includes(name)) void operationContext.refresh(true);
     }
     if (!active.current || !recording.current) return;
     eventBuffer.current = [`${name}: ${apiValue(event).slice(0, 2000)}`, ...eventBuffer.current].slice(0, 80);
