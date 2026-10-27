@@ -77,7 +77,7 @@ final class RuntimeChecks: XCTestCase {
         result["phase"] = "native-pause-and-rewind"
         try pauseControlsPlayback()
         try chooseOperation("Player.timeShift")
-        try replace("Time (seconds)", "-10"); try tapWorkspace("api-run")
+        try replace("Time (seconds)", "-10", editorIdentifier: "api-fields-scroll"); try tapWorkspace("api-run")
         let before = try waitReport { value in
             let sample = (value["owner"] as? [String: Any])?["sample"] as? [String: Any]
             return sample?["playing"] as? Bool == false && (sample?["timeShift"] as? Double ?? 0) < -5
@@ -157,6 +157,14 @@ final class RuntimeChecks: XCTestCase {
     }
     private func chooseOperation(_ id: String) throws {
         try openOperationPicker(id); try tapWorkspace("api-operation-selector-option-" + id)
+        let deadline = Date().addingTimeInterval(5)
+        let source = app.descendants(matching: .any).matching(identifier: "source-selector").firstMatch
+        while Date() < deadline {
+            if !app.keyboards.firstMatch.exists && source.exists && source.isHittable { return }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        XCTFail("Picker dismissal must restore the ordinary workspace and hide its keyboard")
+        throw Failure.viewport
     }
     private func embeddedSeekbar(_ expected: Bool) throws -> Bool {
         let before = try freshNativeReport()
@@ -598,13 +606,29 @@ final class RuntimeChecks: XCTestCase {
         let bottom = keyboard.map { min(container.maxY, $0.minY) } ?? container.maxY
         return CGRect(x: container.minX, y: container.minY, width: container.width, height: max(0, bottom - container.minY))
     }
-    private func reveal(_ element: XCUIElement, modalWindow: XCUIElement? = nil) throws {
-        let scroll = modalWindow ?? mainScroll()
+    private static func editorDrag(in viewport: CGRect, targetY: CGFloat, down: Bool) -> (CGPoint, CGPoint) {
+        let inset = min(8, viewport.height / 4)
+        let distance = min(abs(targetY - viewport.midY), viewport.height - 2 * inset)
+        let start = CGPoint(x: viewport.maxX - 4, y: down ? viewport.minY + inset : viewport.maxY - inset)
+        return (start, CGPoint(x: start.x, y: start.y + (down ? distance : -distance)))
+    }
+    private func reveal(_ element: XCUIElement, modalWindow: XCUIElement? = nil, editor: XCUIElement? = nil) throws {
+        let scroll = modalWindow ?? editor ?? mainScroll()
         for _ in 0..<30 {
             let keyboard = app.keyboards.firstMatch
             let viewport = Self.inputViewport(container: scroll.frame, keyboard: keyboard.exists ? keyboard.frame : nil)
             if element.exists && element.isHittable && (modalWindow != nil ? viewport.contains(element.frame) : viewport.contains(CGPoint(x: element.frame.midX, y: element.frame.midY))) { return }
             if modalWindow != nil { Thread.sleep(forTimeInterval: 0.1); continue }
+            if editor != nil {
+                XCTAssertTrue(scroll.exists && viewport.width > 20 && viewport.height > 20, "The selected API editor must have a usable native scroll viewport")
+                let down = element.exists && element.frame.midY < viewport.minY
+                let (start, end) = Self.editorDrag(in: viewport, targetY: element.exists ? element.frame.midY : viewport.maxY, down: down)
+                XCTAssertFalse(element.exists && (element.frame.contains(start) || element.frame.contains(end)), "The parent scroll gesture must use observed padding outside the input")
+                let root = app.coordinate(withNormalizedOffset: .zero)
+                root.withOffset(CGVector(dx: start.x, dy: start.y))
+                    .press(forDuration: 0.05, thenDragTo: root.withOffset(CGVector(dx: end.x, dy: end.y)), withVelocity: .slow, thenHoldForDuration: 0.2)
+                continue
+            }
             let down = element.exists && element.frame.midY < viewport.minY
             let root = app.coordinate(withNormalizedOffset: .zero)
             root.withOffset(CGVector(dx: viewport.maxX - 8, dy: down ? viewport.minY + 35 : viewport.maxY - 30))
@@ -626,15 +650,17 @@ final class RuntimeChecks: XCTestCase {
         XCTAssertTrue(button.exists && button.isEnabled && button.isHittable, "Normal App button must be usable")
         button.tap()
     }
-    private func replace(_ label: String, _ text: String) throws {
+    private func replace(_ label: String, _ text: String, editorIdentifier: String? = nil) throws {
         let field = app.textFields[label].exists ? app.textFields[label] : app.textViews[label]
+        let editor = editorIdentifier.map { app.descendants(matching: .any).matching(identifier: $0).firstMatch }
+        if let editor { XCTAssertTrue(editor.waitForExistence(timeout: 5), "The field must belong to the selected workspace editor") }
         let modalWindow: XCUIElement?
         if label.hasPrefix("Find ") {
             let owners = app.windows.allElementsBoundByIndex.filter { ($0.textFields[label].exists || $0.textViews[label].exists) && $0.buttons["Close"].exists }
             XCTAssertEqual(owners.count, 1, "A picker search must belong to one observed modal window with its Close action")
             modalWindow = try XCTUnwrap(owners.first)
         } else { modalWindow = nil }
-        try reveal(field, modalWindow: modalWindow); field.tap(); _ = app.keyboards.firstMatch.waitForExistence(timeout: 2); try reveal(field, modalWindow: modalWindow)
+        try reveal(field, modalWindow: modalWindow, editor: editor); field.tap(); _ = app.keyboards.firstMatch.waitForExistence(timeout: 2); try reveal(field, modalWindow: modalWindow, editor: editor)
         let value = field.value as? String ?? ""
         if !value.isEmpty {
             field.press(forDuration: 1.1)
@@ -680,6 +706,16 @@ final class RuntimeChecks: XCTestCase {
         XCTAssertFalse(Self.inputViewport(container: main, keyboard: keyboard).contains(search))
         XCTAssertTrue(Self.inputViewport(container: window, keyboard: keyboard).contains(search))
         XCTAssertFalse(Self.inputViewport(container: window, keyboard: CGRect(x: 0, y: 110, width: 402, height: 764)).contains(search))
+    }
+    func testApiEditorViewportContract() {
+        let editor = CGRect(x: 0, y: 694, width: 402, height: 48)
+        let field = CGRect(x: 13, y: 730, width: 376, height: 46)
+        let (start, end) = Self.editorDrag(in: editor, targetY: field.midY, down: false)
+        XCTAssertTrue(editor.contains(start) && editor.contains(end))
+        XCTAssertTrue(start.x > field.maxX && end.x > field.maxX)
+        XCTAssertFalse(editor.contains(CGPoint(x: field.midX, y: field.midY)))
+        XCTAssertTrue(editor.contains(CGPoint(x: field.midX, y: field.midY - (start.y - end.y))))
+        XCTAssertEqual(Self.inputViewport(container: editor, keyboard: CGRect(x: 0, y: 538, width: 402, height: 336)).height, 0)
     }
     private func setSwitch(_ label: String, _ enabled: Bool) throws {
         let control = app.switches[label]
