@@ -59,9 +59,9 @@ describe("optional native live rewind UI policy", () => {
   function nativeMessages() {
     const callbacks = new Map<string, (data?: string) => void>();
     const on = vi.fn((name: string, callback: (data?: string) => void) => callbacks.set(name, callback));
-    const sendAsynchronousMessage = vi.fn();
-    vi.stubGlobal("window", { bitmovin: { customMessageHandler: { on, sendAsynchronousMessage } } });
-    return { on, sendAsynchronousMessage,
+    const sendAsynchronous = vi.fn();
+    vi.stubGlobal("window", { bitmovin: { customMessageHandler: { on, sendAsynchronous } } });
+    return { on, sendAsynchronous,
       send: (data?: string) => callbacks.get("playerlab-live-rewind-enabled")?.(data) };
   }
 
@@ -70,7 +70,7 @@ describe("optional native live rewind UI policy", () => {
     const f = fixture();
     applyNativeLiveRewindPolicy(f.player, f.manager);
     await Promise.resolve();
-    expect(messages.sendAsynchronousMessage).toHaveBeenCalledWith("playerlab-live-rewind-ready", "");
+    expect(messages.sendAsynchronous).toHaveBeenCalledWith("playerlab-live-rewind-ready", "");
     messages.send("false");
     expect(f.first.classes.has(disabledClass)).toBe(true);
     messages.send("true");
@@ -105,7 +105,7 @@ describe("optional native live rewind UI policy", () => {
     messages.send("false");
     expect(second.classes.size).toBe(0);
     await Promise.resolve();
-    expect(messages.sendAsynchronousMessage).not.toHaveBeenCalled();
+    expect(messages.sendAsynchronous).not.toHaveBeenCalled();
   });
 
   it("accepts only explicit boolean text and preserves the initial host policy", () => {
@@ -124,11 +124,11 @@ describe("optional native live rewind UI policy", () => {
     applyNativeLiveRewindPolicy(f.player, f.manager);
     await Promise.resolve();
     expect(messages.on).not.toHaveBeenCalled();
-    expect(messages.sendAsynchronousMessage).not.toHaveBeenCalled();
+    expect(messages.sendAsynchronous).not.toHaveBeenCalled();
     f.activate(f.first);
     await Promise.resolve();
     expect(messages.on).toHaveBeenCalledTimes(1);
-    expect(messages.sendAsynchronousMessage).toHaveBeenCalledTimes(1);
+    expect(messages.sendAsynchronous).toHaveBeenCalledTimes(1);
     messages.send("false");
     expect(f.first.classes.has(disabledClass)).toBe(true);
     f.first.onRelease.emit();

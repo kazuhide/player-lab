@@ -11,7 +11,7 @@ const READY_MESSAGE = "playerlab-live-rewind-ready";
 
 interface NativeMessages {
   on(name: string, listener: (data?: string) => void): void;
-  sendAsynchronousMessage(name: string, data: string): void;
+  sendAsynchronous(name: string, data: string): void;
 }
 
 // The public native bridge has no documented off method. Keep one dispatcher
@@ -21,7 +21,7 @@ const messageSubscribers = new WeakMap<NativeMessages, Set<(data?: string) => vo
 function nativeMessages(): NativeMessages | undefined {
   if (typeof window === "undefined") return undefined;
   const bridge = (window as Window & { bitmovin?: { customMessageHandler?: NativeMessages } }).bitmovin?.customMessageHandler;
-  return bridge && typeof bridge.on === "function" && typeof bridge.sendAsynchronousMessage === "function" ? bridge : undefined;
+  return bridge && typeof bridge.on === "function" && typeof bridge.sendAsynchronous === "function" ? bridge : undefined;
 }
 
 function subscribe(bridge: NativeMessages, listener: (data?: string) => void): () => void {
@@ -90,7 +90,7 @@ export function applyNativeLiveRewindPolicy(player: PlayerAPI, manager: UIManage
           queueMicrotask(() => {
             if (released) return;
             // Older hosts need not implement this optional control channel.
-            try { bridge.sendAsynchronousMessage(READY_MESSAGE, ""); } catch { /* Keep the initial policy. */ }
+            try { bridge.sendAsynchronous(READY_MESSAGE, ""); } catch { /* Keep the initial policy. */ }
           });
         }
       }
