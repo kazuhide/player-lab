@@ -58,7 +58,7 @@ class Ui:
         return Ui._find(tree, text, plain_text=True)
 
     @staticmethod
-    def _visibility_check(scope):
+    def _visibility_check(scope, clip_scrollable=False):
         viewport = scope.find("child")
         width = float(viewport.get("width", "1920")) if viewport is not None else 1920
         height = float(viewport.get("height", "1080")) if viewport is not None else 1080
@@ -70,9 +70,17 @@ class Ui:
                     return False
             except ValueError:
                 return False
+            center_x, center_y = x + w / 2, y + h / 2
             while node is not None:
                 visibility = node.find("./traits/visibility")
                 if visibility is not None and visibility.get("alpha") == "0": return False
+                if clip_scrollable and node.find("./traits/scrollable") is not None:
+                    try:
+                        x, y, w, h = [float(node.get(k, "0")) for k in ["x", "y", "width", "height"]]
+                        if w <= 0 or h <= 0 or not x <= center_x < x + w or not y <= center_y < y + h:
+                            return False
+                    except ValueError:
+                        return False
                 node = parents.get(node)
             return True
         return visible
@@ -260,7 +268,9 @@ class Ui:
         node = Ui.find(tree, label)
         if node is None: return None
         scope = next(n for n in tree.iter("app") if n.get("appName") == "com.playerlab.vega")
-        visible = Ui._visibility_check(scope)
+        # Retained editable children use the absolute native ScrollView frame.
+        # Keep wrapper lookup available as a hint for ordinary typed navigation.
+        visible = Ui._visibility_check(scope, clip_scrollable=True)
         return next((child for child in node.iter("child") if child.find("./traits/editable") is not None and visible(child)), None)
 
     @staticmethod

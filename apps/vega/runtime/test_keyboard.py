@@ -158,6 +158,25 @@ class KeyboardEditTests(unittest.TestCase):
         self.assertIsNotNone(node)
         self.assertEqual([node.get(key) for key in ['x','y','width','height']], ['38','566','1844','24'])
 
+    def test_rejects_the_captured_input_center_above_its_scrollable_ancestor(self):
+        tree = ET.fromstring('''<root><app appName="com.playerlab.vega">
+<child x="0" y="0" width="1920" height="1080">
+<child x="0" y="565" width="1920" height="515"><traits><scrollable/></traits>
+<child x="0" y="-713" width="1920" height="3561"><traits><visibility alpha="100"/></traits>
+<child description="Subtitle label" x="24" y="534" width="1872" height="52"><traits><visibility alpha="100"/></traits>
+<child x="37" y="547" width="1846" height="26"><traits><editable/><focusable focused="true"/><visibility alpha="100"/></traits><text>External English</text></child>
+</child></child></child></child></app></root>''')
+        self.assertIsNone(Ui.editable(tree, 'Subtitle label'))
+
+    def test_accepts_captured_absolute_input_geometry_inside_the_scrollable_ancestor(self):
+        tree = ET.fromstring('''<root><app appName="com.playerlab.vega">
+<child x="0" y="0" width="1920" height="1080">
+<child x="0" y="565" width="1920" height="515"><traits><scrollable/></traits>
+<child description="Source URL" x="24" y="552" width="1872" height="52"><traits><visibility alpha="100"/></traits>
+<child x="38" y="566" width="1844" height="24"><traits><editable/><focusable focused="true"/><visibility alpha="100"/></traits><text>Original source</text></child>
+</child></child></child></app></root>''')
+        self.assertIsNotNone(Ui.editable(tree, 'Source URL'))
+
     def test_rejects_retained_hidden_or_clipped_native_children_inside_a_visible_wrapper(self):
         for attributes, hidden in [({'y':'1200'}, False), ({'width':'0'}, False), ({}, True)]:
             with self.subTest(attributes=attributes, hidden=hidden):

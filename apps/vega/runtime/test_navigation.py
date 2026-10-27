@@ -128,6 +128,25 @@ class NativeNavigationTests(unittest.TestCase):
                 self.assertNotIn('Clear', ui.events)
                 self.assertNotIn('type', ui.events)
 
+    def test_reveals_the_captured_input_above_its_scrollable_viewport_before_editing(self):
+        ui = ClippedNativeInput(534, mode='scroll-ancestor')
+        ui.label = 'Subtitle label'
+        with patch('driver.time.sleep', lambda seconds: None): ui.edit('Subtitle label', 'Unapplied subtitle')
+        self.assertEqual(ui.navigation, [103])
+        self.assertEqual(ui.value, 'Unapplied subtitle')
+        self.assertIn('Clear', ui.events)
+        self.assertIn('Done', ui.events)
+
+    def test_never_clears_or_types_into_an_input_permanently_clipped_by_its_ancestor(self):
+        ui = ClippedNativeInput(534, permanent=True, mode='scroll-ancestor')
+        ui.label = 'Subtitle label'
+        with patch('driver.time.sleep', lambda seconds: None):
+            with self.assertRaises(RuntimeError): ui.edit('Subtitle label', 'Unapplied subtitle')
+        self.assertLessEqual(len(ui.navigation), 140)
+        self.assertNotIn('Clear', ui.events)
+        self.assertNotIn('type', ui.events)
+        self.assertEqual(ui.value, 'old value')
+
     def test_reveals_again_after_layout_settles_before_acquiring_the_current_input_id(self):
         ui = ClippedNativeInput(100)
         ui.revealed = True
@@ -164,6 +183,14 @@ class ClippedNativeInput(NativeKeyboardUi):
             if self.mode == 'missing': field.remove(child)
             elif self.mode == 'hidden': child.find('./traits/visibility').set('alpha', '0')
             elif self.mode == 'outside': child.set('y', '1200')
+        if self.mode == 'scroll-ancestor':
+            viewport = tree.find('./app/child')
+            viewport.remove(field)
+            frame = ET.SubElement(viewport, 'child', {'x':'0','y':'565','width':'1920','height':'515'})
+            ET.SubElement(ET.SubElement(frame, 'traits'), 'scrollable')
+            frame.append(field)
+            field.set('y', '600' if self.revealed else '534')
+            child.attrib.update({'x':'37','y':'613' if self.revealed else '547','width':'1846','height':'26'})
         return tree
 
     def key(self, code):
