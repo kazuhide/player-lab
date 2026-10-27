@@ -70,6 +70,7 @@ final class NativeControlsRuntimeTests: XCTestCase {
         try await resetFixture()
         XCTAssertFalse(bitmovinLicenseKey().isEmpty)
         let model = PlayerModel(licenseKey: bitmovinLicenseKey())
+        model.setApiEventRecording(false)
         model.setPresentation(.playerView)
         var draft = model.configurationDraft
         draft.sourceURL = "http://localhost:5198/master.m3u8"
@@ -94,7 +95,6 @@ final class NativeControlsRuntimeTests: XCTestCase {
         player.pause()
         try await eventually("paused native playback") { player.isPaused }
         let pausedTime = player.currentTime
-        model.setApiEventRecording(false)
         model.timeShiftEnabled = false
         try await eventually("embedded live seek controls hidden while paused") {
             try await self.seekControls(web, expectedVisible: false)
