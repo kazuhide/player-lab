@@ -213,6 +213,17 @@ test("indexed comparisons follow the selected item and retain its baseline after
       ? "1210: The video element has thrown an error while loading the stream."
       : "1208: Failed to load HLS playlist: 404 Not Found.";
     await expect(page.locator(".api-explorer > [role=status]")).toHaveText(failure);
+    await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("command");
+    await page.getByRole("searchbox", { name: "Search APIs" }).fill("PlayerAPI.play");
+    await expect(page.locator('option[value="PlayerAPI.play"]')).toBeDisabled();
+    await expect(page.locator('button[data-api-run="PlayerAPI.play"]')).toBeDisabled();
+    await expect(page.locator('button[data-api-run="PlayerAPI.play"]')).toHaveAttribute("data-api-unavailable", "source");
+    const retainedSource = await readApi(page, "PlayerAPI.getSource");
+    await testInfo.attach("failed-source-availability", { contentType: "application/json", body: JSON.stringify({
+      engine: browserName, failure, sourceRetained: !["null", "undefined"].includes(retainedSource),
+      operation: "PlayerAPI.play", unavailable: "source",
+    }) });
+    await selectApi(page, "configuration", id);
     await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[2]}`);
     await index.fill("0");
     await expect(difference).toHaveText(`Before: ${urls[0]} → After: ${urls[2]}`);
