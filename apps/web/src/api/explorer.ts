@@ -105,6 +105,7 @@ export class ApiExplorer {
   private player: PlayerAPI | undefined;
   private sourceFailed = false;
   private ui: UIManager | undefined;
+  private subscribedCatalog: ApiSchema | undefined;
   private unsubscribe: (() => void)[] = [];
   private readonly details = node("details");
   private readonly summary = node("summary");
@@ -144,6 +145,7 @@ export class ApiExplorer {
     this.details.addEventListener("toggle", () => {
       if (this.details.open) void this.loadCatalog().catch(error => { this.setStatus(applyErrorMessage(error)); });
     });
+    this.refresh();
   }
 
   relocalize(): void {
@@ -260,15 +262,18 @@ export class ApiExplorer {
   }
 
   refresh(): void {
-    if (!this.catalog) return;
+    // Observe playback before the optional catalog opens; earlier errors remain relevant.
     const player = this.options.getPlayer();
     const ui = this.options.getUi();
     if (player !== this.player) this.clearComparisons();
     else if (ui !== this.ui) this.clearComparisons("UIConfig");
-    if (player === this.player && ui === this.ui) { this.refreshEditors(); this.refreshRuntimeAvailability(); return; }
+    if (player === this.player && ui === this.ui && this.subscribedCatalog === this.catalog) {
+      this.refreshEditors(); this.refreshRuntimeAvailability(); return;
+    }
     this.operation++;
     this.unsubscribe.forEach(unsubscribe => { try { unsubscribe(); } catch { /* The SDK may already have released it. */ } });
     this.unsubscribe = [];
+    this.subscribedCatalog = this.catalog;
     if (player !== this.player) {
       this.sourceFailed = false;
       if (!this.preparingPlayer) {
@@ -301,7 +306,7 @@ export class ApiExplorer {
       player.on(event, listener);
       this.unsubscribe.push(() => player.off(event, listener));
     }
-    for (const entry of this.catalog.rows.filter(entry => entry.category === "event")) {
+    for (const entry of this.catalog?.rows.filter(entry => entry.category === "event") ?? []) {
       if (entry.root === "PlayerAPI" && player && entry.value && Object.values(PlayerEvent).includes(entry.value as PlayerEvent)) {
         const event = entry.value as PlayerEvent;
         const listener = (payload: unknown) => {
@@ -339,6 +344,7 @@ export class ApiExplorer {
   }
 
   private refreshRuntimeAvailability(): void {
+    if (!this.catalog) return;
     const snapshot = this.runtimeState();
     this.refreshRuntimeSelection?.(snapshot);
     this.drafts.forEach(draft => draft.refreshRuntime?.(snapshot));

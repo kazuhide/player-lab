@@ -86,6 +86,50 @@ test("a failed basic Apply restores its detailed override after an unrelated Rea
   expect(JSON.parse(await readApi(page, "PlayerAPI.getSource")).title).toBe("Detailed original title");
 });
 
+test("an error before first opening the SDK editor disables commands until source recovery", async ({ page }, testInfo) => {
+  const source = JSON.parse(await readApi(page, "PlayerAPI.getSource")) as { hls: string };
+  const master = new URL(source.hls, page.url()).href;
+  // A fresh document starts playback without loading the optional SDK catalog.
+  await page.goto("./");
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  const details = page.locator(".api-explorer");
+  await expect(details).toHaveJSProperty("open", false);
+  await expect(page.getByRole("searchbox", { name: "Search APIs" })).toHaveCount(0);
+  const video = page.locator("#player video");
+  await expect(video).toHaveJSProperty("readyState", 4);
+  await page.route(master, route => route.fulfill({ status: 404,
+    contentType: "application/vnd.apple.mpegurl", body: "not found" }));
+  try {
+    const title = page.locator("#config-panel .config-field").filter({
+      has: page.locator(".config-field-label", { hasText: /^title/ }),
+    }).locator("input");
+    await title.fill("Source recovery before opening the SDK editor");
+    await title.dispatchEvent("change");
+    await page.getByRole("button", { name: "Reload the source to apply", exact: true }).click();
+    await expect(page.locator(".config-band-dynamic [role=status]")).toContainText("Could not apply settings.");
+    await expect(details).toHaveJSProperty("open", false);
+    await details.locator(":scope > summary").click();
+    await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("command");
+    await page.getByRole("searchbox", { name: "Search APIs" }).fill("PlayerAPI.play");
+    await expect(page.locator('option[value="PlayerAPI.play"]')).toBeDisabled();
+    await expect(page.locator('button[data-api-run="PlayerAPI.play"]')).toBeDisabled();
+    await expect(page.locator('button[data-api-run="PlayerAPI.play"]')).toHaveAttribute("data-api-unavailable", "source");
+    const retained = await readApi(page, "PlayerAPI.getSource");
+    // This transport may unload on a manifest error. Controller tests also
+    // cover SDK failures that retain the historical source configuration.
+    await testInfo.attach("closed-editor-failed-source", { contentType: "application/json",
+      body: JSON.stringify({ sourceRetained: !["null", "undefined"].includes(retained),
+        editorOpenedAfterFailure: true, unavailable: "source" }) });
+    await page.unroute(master);
+    await page.getByRole("button", { name: "Reload the source to apply", exact: true }).click();
+    await expect(video).toHaveJSProperty("readyState", 4);
+    await selectApi(page, "command", "PlayerAPI.pause");
+    await expect(page.getByRole("button", { name: "Run API", exact: true })).toBeEnabled();
+  } finally {
+    await page.unroute(master);
+  }
+});
+
 for (const successor of ["pending", "failed"]) test(`Recreate reports superseded while a newer Cast build is ${successor}`, async ({ page }) => {
   await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
   const source = JSON.parse(await readApi(page, "PlayerAPI.getSource")) as { hls: string };

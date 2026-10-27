@@ -3,7 +3,8 @@ import type { PlayerAPI } from "bitmovin-player";
 import type { ApiMaterializer } from "../src/api/materialize";
 import type { ApiEntry, ApiSchema, Signature } from "../src/api/types";
 
-vi.mock("bitmovin-player", () => ({ PlayerEvent: new Proxy({}, { get: (_target, key) => String(key).toLowerCase() }) }));
+vi.mock("bitmovin-player", () => ({ PlayerEvent: new Proxy({ TimeChanged: "timechanged" },
+  { get: (_target, key) => String(key).toLowerCase() }) }));
 
 // The repository has no DOM test dependency. Exercise the explorer's real form
 // and event handlers with the same small EventTarget-based boundary used by its
@@ -68,12 +69,14 @@ function playerFixture() {
     emit: (event: string) => listeners.get(event)?.forEach(listener => listener({ type: event })) };
 }
 
-async function mounted(getPlayer: () => PlayerAPI | undefined) {
+async function mounted(getPlayer: () => PlayerAPI | undefined, beforeCatalog?: (explorer: ExplorerHarness) => void,
+  schema = catalog) {
   const { ApiExplorer } = await import("../src/api/explorer");
   const container = new TestElement();
   const explorer = new ApiExplorer(container as unknown as HTMLElement, { getPlayer, getUi: () => undefined,
     apply: async () => "applied", load: async () => {}, destroy: async () => {}, releaseUi: () => {}, recreate: async () => "applied" }) as unknown as ExplorerHarness;
-  explorer.catalog = catalog; explorer.render(); explorer.refresh();
+  beforeCatalog?.(explorer);
+  explorer.catalog = schema; explorer.render(); explorer.refresh();
   const category = find(container, element => element.attributes.get("aria-label") === "API category");
   category.value = "command"; category.dispatchEvent(new Event("change"));
   const picker = find(container, element => element.attributes.get("aria-label") === "SDK entry");
@@ -171,6 +174,55 @@ it("keeps a failed source unavailable despite its retained configuration until a
   expect(fixture.player.timeShift).not.toHaveBeenCalled();
   fixture.emit("sourceloaded");
   expect(run.disabled).toBe(false); expect(input.value).toBe("-12");
+});
+
+it("retains an error received before the SDK editor is first opened", async () => {
+  const fixture = playerFixture();
+  const view = await mounted(() => fixture.player, explorer => {
+    explorer.refresh();
+    fixture.emit("error");
+    fixture.emit("timechanged");
+  });
+  view.select("PlayerAPI.timeShift");
+  const run = find(view.container, element => element.textContent === "Run API");
+  expect(fixture.player.getSource()).not.toBeNull();
+  expect(run.disabled).toBe(true);
+  expect(view.picker.options.find(option => option.value === "PlayerAPI.timeShift")!.disabled).toBe(true);
+  run.dispatchEvent(new Event("click")); await Promise.resolve();
+  expect(fixture.player.timeShift).not.toHaveBeenCalled();
+  fixture.emit("sourceloaded");
+  expect(run.disabled).toBe(false);
+});
+
+it("recovers before the editor opens and ignores failures from a replaced hidden owner", async () => {
+  const first = playerFixture(); const replacement = playerFixture(); let current = first.player;
+  const view = await mounted(() => current, explorer => {
+    explorer.refresh(); first.emit("error"); first.emit("sourceloaded");
+    const retiredErrors = [...first.listeners.get("error") ?? []];
+    current = replacement.player; explorer.refresh();
+    retiredErrors.forEach(listener => listener({ type: "error" }));
+  });
+  view.select("PlayerAPI.timeShift");
+  const run = find(view.container, element => element.textContent === "Run API");
+  expect(run.disabled).toBe(false);
+  replacement.emit("error");
+  expect(run.disabled).toBe(true);
+});
+
+it("starts optional event logging after the lazy catalog attaches without clearing a prior failure", async () => {
+  const fixture = playerFixture();
+  const schema: ApiSchema = { ...catalog, rows: [...catalog.rows,
+    { id: "PlayerEvent.TimeChanged", root: "PlayerAPI", category: "event", value: "timechanged" }] };
+  const view = await mounted(() => fixture.player, explorer => {
+    explorer.refresh(); fixture.emit("error");
+  }, schema);
+  view.select("PlayerAPI.timeShift");
+  fixture.emit("timechanged");
+  const log = find(view.container, element => element.className === "api-event-log");
+  await vi.waitFor(() => expect(log.textContent).toContain("PlayerEvent.TimeChanged: 1"));
+  expect(find(view.container, element => element.textContent === "Run API").disabled).toBe(true);
+  fixture.emit("sourceloaded");
+  expect(find(view.container, element => element.textContent === "Run API").disabled).toBe(false);
 });
 
 it("rejects an error received while arguments are materialized without dispatching to a failed source", async () => {
