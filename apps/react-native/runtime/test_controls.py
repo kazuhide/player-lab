@@ -24,6 +24,7 @@ class EmbeddedControlEvidenceTests(unittest.TestCase):
                        lambda v: v[1]["owner"].update(sourceLoaded=2),
                        lambda v: v[1]["owner"]["sample"].update(sequence=1),
                        lambda v: v[1]["owner"]["sample"].update(playing=True),
+                       lambda v: v[1]["owner"]["sample"].update(time=999),
                        lambda v: v[1]["owner"]["sample"].update(timeShift=0),
                        lambda v: v[1]["owner"]["sample"].update(maxTimeShift=0)]:
             changed = copy.deepcopy(values); mutate(changed)

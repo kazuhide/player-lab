@@ -5,12 +5,19 @@ from report import validate_report
 def live_rewind_transition(before, disabled, enabled, visible):
     identity = None
     sequence = -1
+    position = None
     for value in [before, disabled, enabled]:
         validate_report(value)
         owner = value["owner"]
         sample = owner and owner["sample"]
         if not sample or owner["errors"] or owner["readFailures"] or not sample["live"] or sample["playing"]:
             raise ValueError("A successful paused native live source is required")
+        if sample["time"] is None:
+            raise ValueError("A paused native playback position is required")
+        if position is None:
+            position = sample["time"]
+        if abs(sample["time"] - position) > .25:
+            raise ValueError("The control toggle changed the paused native playback position")
         current = tuple(owner[key] for key in ["generation", "sourceLoads", "sourceLoaded"])
         if identity is None:
             identity = current

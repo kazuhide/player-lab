@@ -12,7 +12,19 @@ export function embeddedUiSnapshot() {
     }
     return true;
   };
-  return { width: innerWidth, height: innerHeight, controls: [...document.querySelectorAll('button, [role="slider"]')].map(node => {
+  let revealPoint = null;
+  const bar = document.querySelector('.bmpui-ui-controlbar');
+  if (bar) {
+    const [x, y, width, height] = rect(bar);
+    for (const point of [[x + width - 4, y + height - 4], [x + 4, y + height - 4], [x + width - 4, y + 4]]) {
+      const hit = document.elementFromPoint(...point);
+      if (point[0] > 0 && point[0] < innerWidth && point[1] > 0 && point[1] < innerHeight && hit && bar.contains(hit) &&
+          !hit.closest('button, a, input, select, textarea, [role="button"], [role="slider"]')) {
+        revealPoint = { x: point[0], y: point[1], hitClass: hit.className }; break;
+      }
+    }
+  }
+  return { width: innerWidth, height: innerHeight, revealPoint, controls: [...document.querySelectorAll('button, [role="slider"]')].map(node => {
     const box = rect(node), hit = document.elementFromPoint(box[0] + box[2] / 2, box[1] + box[3] / 2);
     const shown = visible(node);
     return { id: node.id, label: node.getAttribute('aria-label'), role: node.getAttribute('role'), className: node.className,

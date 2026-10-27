@@ -23,6 +23,7 @@ class ControlsUi(driver.Ui):
     INPUT_LABELS = driver.Ui.INPUT_LABELS | {"Find API operation", "Time (seconds)"}
     sdk_port = None
     sdk_observations = None
+    sdk_last_snapshot = None
 
     def sdk_snapshot(self):
         if self.sdk_port is None:
@@ -37,7 +38,8 @@ class ControlsUi(driver.Ui):
             stdout=driver.subprocess.PIPE, stderr=driver.subprocess.DEVNULL, timeout=15)
         if result.returncode or len(result.stdout) > 128 * 1024:
             raise RuntimeError("Read-only SDK DOM observation failed")
-        return json.loads(result.stdout)
+        self.sdk_last_snapshot = json.loads(result.stdout)
+        return self.sdk_last_snapshot
 
     def sdk_frame(self):
         tree = self.tree()
@@ -63,11 +65,12 @@ class ControlsUi(driver.Ui):
     def sdk_reveal(self, frame, snapshot):
         if any(control["visible"] and control["hittable"] for control in self.compact_controls(snapshot)):
             return snapshot
-        overlays = [control for control in snapshot["controls"] if "bmpui-ui-hugeplaybacktogglebutton" in control["className"].split()
-            and control["visible"] and control["hittable"]]
-        if len(overlays) != 1:
-            raise RuntimeError("A visible SDK reveal target was unavailable")
-        self.sdk_tap(overlays[0], frame, snapshot)
+        point = snapshot.get("revealPoint")
+        if not point or not 0 < point["x"] < snapshot["width"] or not 0 < point["y"] < snapshot["height"]:
+            raise RuntimeError("A non-activating SDK reveal point was unavailable")
+        left, top, right, bottom = frame
+        self.adb("shell", "input", "tap", str(round(left + point["x"] / snapshot["width"] * (right - left))),
+                 str(round(top + point["y"] / snapshot["height"] * (bottom - top))))
         deadline = time.monotonic() + 5
         while time.monotonic() < deadline:
             snapshot = self.sdk_snapshot()
@@ -144,13 +147,20 @@ class ControlsUi(driver.Ui):
         return self.by_id("api-operation-selector-option-" + identifier)
 
     def seekbar(self, expected):
+        before = self.report()
         snapshot = self.sdk_reveal(self.sdk_frame(), self.sdk_snapshot())
         visible = any(control["visible"] and "bmpui-ui-seekbar" in control["className"].split() for control in snapshot["controls"])
         if visible is not expected:
             raise RuntimeError("The actual SDK seekbar did not match the preference")
         if self.sdk_observations is None:
             self.sdk_observations = []
-        self.sdk_observations.append(snapshot)
+        after = self.report()
+        self.sdk_observations.append({**snapshot, "nativeBefore": before, "nativeAfter": after})
+        first, last = before["owner"], after["owner"]
+        if not first or not last or any(first[key] != last[key] for key in ["generation", "sourceLoads", "sourceLoaded"]) or not first["sample"] or not last["sample"]:
+            raise RuntimeError("The SDK reveal crossed native owners or sources")
+        if first["sample"]["playing"] or last["sample"]["playing"] or last["sample"]["sequence"] <= first["sample"]["sequence"] or abs(first["sample"]["time"] - last["sample"]["time"]) > .25:
+            raise RuntimeError("The SDK reveal changed paused playback or reused a native observation")
         return visible
 
     @staticmethod
@@ -235,8 +245,8 @@ def main():
         visible = [ui.seekbar(True)]
         phase("embedded-rewind-disabled"); ui.dvr(False); disabled = ui.report(); visible.append(ui.seekbar(False))
         phase("embedded-rewind-enabled"); ui.dvr(True); enabled = ui.report(); visible.append(ui.seekbar(True))
-        receipt["liveControls"] = live_rewind_transition(before, disabled, enabled, visible)
         receipt["liveControlSamples"] = [before, disabled, enabled]
+        receipt["liveControls"] = live_rewind_transition(before, disabled, enabled, visible)
         phase("configure-vod"); ui.configure(args.media_url); ui.dvr(False)
         vod = ui.wait_report(lambda v: v["owner"] and v["owner"]["sample"] and not v["owner"]["sample"]["live"] and
                              v["owner"]["sourceLoaded"] > 0 and v["owner"]["sample"]["playing"])
@@ -265,6 +275,7 @@ def main():
     finally:
         if ui:
             receipt["embeddedUiObservations"] = ui.sdk_observations
+            receipt["lastEmbeddedUi"] = ui.sdk_last_snapshot
             try:
                 ui.close_sdk_observer()
             except (RuntimeError, OSError, driver.subprocess.TimeoutExpired):

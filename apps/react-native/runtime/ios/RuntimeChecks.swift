@@ -154,11 +154,29 @@ final class RuntimeChecks: XCTestCase {
         try openOperationPicker(id); try tapWorkspace("api-operation-selector-option-" + id)
     }
     private func embeddedSeekbar(_ expected: Bool) throws -> Bool {
+        let before = try report()
+        try revealControlBarPadding()
         let deadline = Date().addingTimeInterval(5)
         while Date() < deadline {
             let webview = app.webViews.firstMatch
             let visible = webview.sliders.allElementsBoundByIndex.contains { $0.isHittable }
-            if webview.exists && visible == expected { return visible }
+            if webview.exists && visible == expected {
+                try revealControlBarPadding()
+                let attachment = XCTAttachment(screenshot: webview.screenshot())
+                attachment.name = "embedded-seekbar-\(expected)-\(result.count)"; attachment.lifetime = .keepAlways; add(attachment)
+                let original = try XCTUnwrap(before["owner"] as? [String: Any])
+                let previous = try XCTUnwrap(original["sample"] as? [String: Any])
+                let after = try waitReport { value in
+                    let sample = (value["owner"] as? [String: Any])?["sample"] as? [String: Any]
+                    return (sample?["sequence"] as? Int ?? 0) > (previous["sequence"] as? Int ?? 0)
+                }
+                let current = try XCTUnwrap(after["owner"] as? [String: Any])
+                let sample = try XCTUnwrap(current["sample"] as? [String: Any])
+                for key in ["generation", "sourceLoads", "sourceLoaded"] { XCTAssertEqual(current[key] as? Int, original[key] as? Int) }
+                XCTAssertEqual(previous["playing"] as? Bool, false); XCTAssertEqual(sample["playing"] as? Bool, false)
+                XCTAssertLessThanOrEqual(abs(try XCTUnwrap(sample["time"] as? Double) - XCTUnwrap(previous["time"] as? Double)), 0.25)
+                return visible
+            }
             Thread.sleep(forTimeInterval: 0.1)
         }
         XCTFail("The actual SDK WebView seekbar did not match the preference")
@@ -167,19 +185,37 @@ final class RuntimeChecks: XCTestCase {
     private func pauseControlsPlayback() throws {
         let baseline = try report()
         let generation = try owner(baseline)
+        var previousReport = baseline
         for _ in 0..<3 {
             let controls = app.webViews.firstMatch.buttons.matching(NSPredicate(format: "label ==[c] 'Pause' OR label ==[c] 'Pause video'"))
             // The SDK overlay shares this label; prefer the compact control-bar button.
             let control = controls.allElementsBoundByIndex.filter { $0.frame.width > 0 && $0.frame.height > 0 }
                 .min { $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height } ?? controls.firstMatch
-            if !control.isHittable { tapVideoCenter() }
+            try revealControlBarPadding()
             if control.exists && control.isHittable { control.tap() }
-            let value = try report()
+            let previous = (previousReport["owner"] as? [String: Any])?["sample"] as? [String: Any]
+            let value = try waitReport { value in
+                let sample = (value["owner"] as? [String: Any])?["sample"] as? [String: Any]
+                return (sample?["sequence"] as? Int ?? 0) > (previous?["sequence"] as? Int ?? 0)
+            }
             XCTAssertEqual(try owner(value), generation)
+            let original = try XCTUnwrap(baseline["owner"] as? [String: Any])
+            let current = try XCTUnwrap(value["owner"] as? [String: Any])
+            for key in ["sourceLoads", "sourceLoaded"] { XCTAssertEqual(current[key] as? Int, original[key] as? Int) }
+            previousReport = value
             if try !playing(value) { return }
         }
         XCTFail("The native player did not acknowledge the SDK Pause control")
         throw Failure.deadline
+    }
+    private func revealControlBarPadding() throws {
+        let webview = app.webViews.firstMatch
+        let point = CGPoint(x: webview.frame.maxX - 4, y: webview.frame.maxY - 4)
+        XCTAssertTrue(webview.exists && webview.frame.contains(point), "The native WebView edge must be visible")
+        // Shared UI control bars fill the viewport width; their edge padding contains no action.
+        let compact = webview.buttons.allElementsBoundByIndex.filter { $0.frame.width * $0.frame.height < webview.frame.width * webview.frame.height / 2 }
+        XCTAssertFalse(compact.contains { $0.frame.contains(point) }, "The reveal point must be outside every compact action")
+        webview.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 1)).withOffset(CGVector(dx: -4, dy: -4)).tap()
     }
 
     func testNormalConfigurationPlaybackAndCleanup() throws {

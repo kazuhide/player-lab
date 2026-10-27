@@ -9,7 +9,7 @@ spec.loader.exec_module(driver)
 
 
 def snapshot(shown):
-    return {"width": 400, "height": 220, "controls": [
+    return {"width": 400, "height": 220, "revealPoint": {"x": 396, "y": 216, "hitClass": "bmpui-ui-controlbar"}, "controls": [
         {"id": "overlay", "label": "Pause", "className": "bmpui-ui-hugeplaybacktogglebutton", "visible": True, "hittable": True},
         {"id": "compact", "label": "Pause", "className": "bmpui-ui-playbacktogglebutton", "visible": shown, "hittable": shown},
     ]}
@@ -36,6 +36,9 @@ class ObservedUi(driver.ControlsUi):
 
     def sdk_tap(self, control, frame, observed):
         self.touches.append(control["id"])
+
+    def adb(self, *args):
+        self.touches.append("non-action-padding")
 
     def wait_report(self, predicate):
         value = next(self.reports)
@@ -66,7 +69,7 @@ class EffectiveVisibilityTests(unittest.TestCase):
     def test_hidden_bar_is_revealed_then_compact_pause_is_touched_before_native_readback(self):
         ui = ObservedUi([snapshot(False), snapshot(True)], [report(2, False)])
         ui.pause_visible()
-        self.assertEqual(ui.touches, ["overlay", "compact"])
+        self.assertEqual(ui.touches, ["non-action-padding", "compact"])
 
     def test_already_visible_bar_is_not_blindly_double_tapped(self):
         ui = ObservedUi([snapshot(True)], [report(2, False)])

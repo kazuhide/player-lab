@@ -2,10 +2,13 @@
 
 The Android controls check additionally requires Node 22 or newer. It opens an
 owned, temporary debugger port for the debug SDK WebView and reads computed DOM
-visibility, including hidden ancestors. It uses normal Android touches to reveal
+visibility, including hidden ancestors. A reveal point must hit control-bar
+padding outside all actionable ancestors. It uses normal Android touches to reveal
 and operate the compact SDK controls, then requires fresh native playback and
 owner/source readback. The port is removed during cleanup. No DOM or player
-state is changed by the observer. Both native controls checks run
+state is changed by the observer. Fresh native samples must remain paused at the
+same position and owner/source across reveal actions and preference toggles.
+Both native controls checks run
 `Player.getMaxTimeShift` through the normal API picker and Run action to verify
 that a loaded source is usable through the actual bridge. They first run
 `Source.loadingState` and record the actual wire value (`"Loaded"` on the pinned
