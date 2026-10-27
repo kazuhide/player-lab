@@ -92,7 +92,7 @@ def main():
         for stage in receipt["stages"]:
             playback_samples(stage["samples"])
         if args.live_url:
-            validate_observations(receipt["embeddedUiObservations"])
+            validate_observations(receipt["embeddedUiObservations"], receipt["liveControlSamples"][0])
             live_rewind_transition(*receipt["liveControlSamples"], receipt["liveControls"]["seekbarVisible"])
             vod_controls(receipt["vodSample"], receipt["vodControls"]["seekbarVisible"], receipt["vodControls"]["skipAdUnavailable"], receipt["vodControls"]["scheduleAdUnavailable"])
         elif not args.subtitle_url:

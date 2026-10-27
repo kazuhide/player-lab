@@ -2,9 +2,17 @@
 from report import validate_report
 
 
-def validate_observations(values):
+def validate_observations(values, original_live=None):
     if not isinstance(values, list) or len(values) != 4:
         raise ValueError("Four read-only embedded UI observations are required")
+    original_live = original_live if original_live is not None else values[0]["nativeBefore"]
+    validate_report(original_live)
+    original_owner = original_live["owner"]
+    original_sample = original_owner and original_owner["sample"]
+    if not original_sample or not original_sample["live"] or original_sample["playing"] or original_sample["time"] is None:
+        raise ValueError("The original paused native live position is required")
+    original_source = tuple(original_owner[key] for key in ["generation", "sourceLoads", "sourceLoaded"])
+    original_position = original_sample["time"]
     identity = None
     sequence = 0
     for index, (value, expected) in enumerate(zip(values, [True, False, True, True])):
@@ -37,6 +45,11 @@ def validate_observations(values):
             raise ValueError("The WK observation must retain freshly observed paused playback")
         if previous["time"] is None or current["time"] is None or abs(current["time"] - previous["time"]) > .25:
             raise ValueError("The WK observation changed paused native playback position")
+        if index < 3:
+            if tuple(first[key] for key in ["generation", "sourceLoads", "sourceLoaded"]) != original_source:
+                raise ValueError("The WK observation replaced the original live owner or source")
+            if any(abs(sample["time"] - original_position) > .25 for sample in [previous, current]):
+                raise ValueError("The live WK roundtrip changed the original paused native position")
         current_identity = (snapshot["viewIdentity"], first["generation"], first["sourceLoads"], first["sourceLoaded"])
         if index == 0:
             identity = current_identity

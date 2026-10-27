@@ -49,6 +49,23 @@ class WkEvidenceTests(unittest.TestCase):
             with self.subTest(mutation=mutate), self.assertRaises(ValueError):
                 validate_observations(changed)
 
+    def test_locally_stable_later_pair_cannot_hide_a_live_position_jump(self):
+        for index in [1, 2]:
+            changed = values()
+            for key in ["nativeBefore", "nativeAfter"]:
+                changed[index][key]["owner"]["sample"]["time"] = 999
+            with self.subTest(index=index), self.assertRaises(ValueError):
+                validate_observations(changed)
+
+    def test_first_pair_is_also_bound_to_the_original_pre_toggle_position(self):
+        changed = values()
+        original = copy.deepcopy(changed[0]["nativeBefore"])
+        for value in changed[:3]:
+            for key in ["nativeBefore", "nativeAfter"]:
+                value[key]["owner"]["sample"]["time"] = 999
+        with self.assertRaises(ValueError):
+            validate_observations(changed, original)
+
 
 if __name__ == "__main__":
     unittest.main()
