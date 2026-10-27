@@ -205,12 +205,26 @@ class Ui:
             if visible: return node
         return None
 
-    def keyboard_select(self, label, deadline=None, target_label=None):
+    @staticmethod
+    def _ordinary_done_observation(tree):
+        if not any(node.get("appName") == "com.amazon.silverstone" for node in tree.iter("app")):
+            return tree, False
+        if Ui.keyboard_node(tree, "Done") is not None and Ui.keyboard_node(tree, focused=True) is not None:
+            return tree, True
+        return None
+
+    def keyboard_select(self, label, deadline=None, target_label=None, ordinary_dismiss=False):
+        if ordinary_dismiss and (label != "Done" or target_label is not None or deadline is None):
+            raise RuntimeError("Only bounded ordinary Done dismissal accepts a closed keyboard")
         self.last_action = "native-keyboard-" + label.lower()
         for _ in range(35):
             if deadline is not None and time.monotonic() >= deadline:
                 raise RuntimeError("The native keyboard action exceeded its observation deadline")
-            tree = self.tree()
+            if ordinary_dismiss:
+                tree, active = self.wait(self._ordinary_done_observation, max(0, deadline - time.monotonic()))
+                if not active: return "closed"
+            else:
+                tree = self.tree()
             if target_label is not None and self.input_with_keyboard(tree, target_label) is None:
                 raise RuntimeError("The current labelled input lost its native keyboard focus")
             current, wanted = self.keyboard_node(tree, focused=True), self.keyboard_node(tree, label)
@@ -228,16 +242,11 @@ class Ui:
     def dismiss_keyboard(self, seconds=30):
         with self.observation_budget(time.monotonic() + seconds) as deadline:
             if self.keyboard_node(self.tree(), "Done") is not None:
-                def readiness(tree):
-                    if not any(node.get("appName") == "com.amazon.silverstone" for node in tree.iter("app")):
-                        return "closed"
-                    if self.keyboard_node(tree, "Done") is not None and self.keyboard_node(tree, focused=True) is not None:
-                        return "ready"
-                    return None
                 # An incidental keyboard can finish closing before it focuses
                 # a key. This optional dismissal does not commit an edit.
-                if self.wait(readiness, max(0, deadline - time.monotonic())) == "closed": return
-                self.keyboard_select("Done", deadline)
+                _, active = self.wait(self._ordinary_done_observation, max(0, deadline - time.monotonic()))
+                if not active: return
+                if self.keyboard_select("Done", deadline, ordinary_dismiss=True) == "closed": return
                 self.wait(lambda tree: self.keyboard_node(tree, "Done") is None, max(0, deadline - time.monotonic()))
 
     @staticmethod

@@ -20,6 +20,7 @@ class NativeKeyboardUi(Ui):
         self.keyboard_focus_pending_reads = keyboard_focus_pending_reads
         self.keyboard_closes_after_reads, self.keyboard_reads = keyboard_closes_after_reads, 0
         self.input_id, self.focused, self.open, self.key_focus = 1, False, False, "Clear"
+        self.key_codes = []
         self.events, self.last_label, self.last_action = [], None, None
         self.deadline = time.monotonic() + 900
 
@@ -83,6 +84,7 @@ class NativeKeyboardUi(Ui):
         if self.vanish_before_done == 'after-type': self.open = False
 
     def key(self, code):
+        self.key_codes.append(code)
         if not self.open: raise RuntimeError('No active native keyboard')
         if code == 28:
             if self.key_focus == 'Clear':
@@ -107,6 +109,27 @@ class NativeKeyboardUi(Ui):
 
 
 class KeyboardEditTests(unittest.TestCase):
+    def test_optional_dismiss_accepts_app_closure_between_readiness_and_first_done_step(self):
+        ui = NativeKeyboardUi(keyboard_closes_after_reads=3)
+        ui.open, ui.focused = True, True
+        ui.dismiss_keyboard()
+        self.assertFalse(ui.open)
+        self.assertEqual(ui.value, 'old value')
+        self.assertEqual(ui.key_codes, [])
+        self.assertEqual(ui.events, [])
+
+    def test_optional_dismiss_never_sends_keys_to_a_permanently_non_ready_keyboard(self):
+        class PendingKeyboard(NativeKeyboardUi):
+            def wait(self, predicate, seconds=30): return Ui.wait(self, predicate, seconds)
+        ui = PendingKeyboard(keyboard_focus_pending_reads=10000)
+        ui.open, ui.focused = True, True
+        clock = [100.0]
+        with patch('driver.time.monotonic', lambda: clock[0]), patch('driver.time.sleep', lambda seconds: clock.__setitem__(0, clock[0] + seconds)):
+            with self.assertRaises(RuntimeError): ui.dismiss_keyboard(seconds=2)
+        self.assertLessEqual(clock[0], 102.0)
+        self.assertEqual(ui.key_codes, [])
+        self.assertEqual(ui.value, 'old value')
+
     def test_initial_optional_dismiss_accepts_the_keyboard_app_closing_while_focus_is_pending(self):
         class PendingKeyboard(NativeKeyboardUi):
             def wait(self, predicate, seconds=30): return Ui.wait(self, predicate, seconds)

@@ -32,6 +32,16 @@ class KeyboardCapturesNavigation(NativeKeyboardUi):
 
 
 class NativeNavigationTests(unittest.TestCase):
+    def test_navigation_accepts_keyboard_app_closure_during_normal_done_traversal(self):
+        ui = KeyboardCapturesNavigation()
+        ui.keyboard_closes_after_reads = 5
+        with patch('driver.time.sleep', lambda seconds: None): node = ui.reveal('Autoplay')
+        self.assertEqual(node.get('description'), 'Autoplay')
+        self.assertFalse(ui.open)
+        self.assertEqual(ui.value, 'Unchanged input')
+        self.assertEqual(ui.key_codes, [108])
+        self.assertEqual(ui.events, [])
+
     def test_navigation_accepts_the_intermediate_keyboard_app_closing_while_focus_is_pending(self):
         class PendingKeyboard(KeyboardCapturesNavigation):
             def wait(self, predicate, seconds=30): return Ui.wait(self, predicate, seconds)
