@@ -282,7 +282,7 @@ describe("React Native configuration in the mounted App", () => {
     const owner = current();
     const isAd = Reflect.get(owner, "isAd");
     isAd.mockResolvedValue(true);
-    await act(async () => element("PlayerView").props.onAdStarted({}));
+    await act(async () => element("PlayerView").props.onAdStarted({ skipOffset: 0, clientType: "bitmovin" }));
     await text("Filter API operations", "Player.skipAd"); await press("Player.skipAd");
     isAd.mockResolvedValue(false);
     await press("Run selected API");
@@ -294,7 +294,7 @@ describe("React Native configuration in the mounted App", () => {
     await mount(); await ready();
     const owner = current();
     Reflect.get(owner, "isAd").mockResolvedValue(true);
-    await act(async () => element("PlayerView").props.onAdStarted({}));
+    await act(async () => element("PlayerView").props.onAdStarted({ skipOffset: 0, clientType: "bitmovin" }));
     await text("Filter API operations", "Player.skipAd"); await press("Player.skipAd");
     let finish!: (value: number) => void;
     owner.getMaxTimeShift.mockReturnValueOnce(new Promise<number>(resolve => { finish = resolve; }));
@@ -307,6 +307,43 @@ describe("React Native configuration in the mounted App", () => {
       expect(Reflect.get(owner, "skipAd")).not.toHaveBeenCalled();
       expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(false);
     } finally { vi.useRealTimers(); }
+  });
+
+  it("qualifies skip from the native ad clock and disables IMA while event recording is paused", async () => {
+    await mount(); await ready(); await press("Pause event log");
+    const owner = current();
+    owner.isLive.mockResolvedValue(false);
+    Reflect.get(owner, "isAd").mockResolvedValue(true);
+    const clock = Reflect.get(owner, "getCurrentTime");
+    clock.mockResolvedValue(4.9);
+    await act(async () => element("PlayerView").props.onAdStarted({ skipOffset: 5, clientType: "bitmovin" }));
+    await text("Filter API operations", "Player.skipAd");
+    expect(element("Pressable", { testID: "api-operation-selector-option-Player.skipAd" }).props.disabled).toBe(true);
+    await act(async () => button("Close").props.onPress());
+    clock.mockResolvedValue(5);
+    await act(async () => element("PlayerView").props.onTimeChanged());
+    await text("Filter API operations", "Player.skipAd");
+    expect(element("Pressable", { testID: "api-operation-selector-option-Player.skipAd" }).props.disabled).toBe(false);
+    await press("Player.skipAd"); await press("Run selected API");
+    expect(Reflect.get(owner, "skipAd")).toHaveBeenCalledOnce();
+    expect(clock).toHaveBeenCalledWith("relative");
+    await act(async () => element("PlayerView").props.onAdStarted({ skipOffset: 0, clientType: "ima" }));
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(true);
+    expect(element("Text", { testID: "api-unavailable-reason" }).props.children).toBe("Programmatic skipping is unavailable for IMA ads.");
+  });
+
+  it("refreshes the actual ad threshold before dispatch instead of trusting the enabled Run state", async () => {
+    await mount(); await ready();
+    const owner = current(); owner.isLive.mockResolvedValue(false);
+    Reflect.get(owner, "isAd").mockResolvedValue(true);
+    const clock = Reflect.get(owner, "getCurrentTime"); clock.mockResolvedValue(5);
+    await act(async () => element("PlayerView").props.onAdStarted({ skipOffset: 5, clientType: "bitmovin" }));
+    await text("Filter API operations", "Player.skipAd"); await press("Player.skipAd");
+    expect(element("Pressable", { testID: "api-run" }).props.disabled).toBe(false);
+    clock.mockResolvedValue(4);
+    await press("Run selected API");
+    expect(Reflect.get(owner, "skipAd")).not.toHaveBeenCalled();
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).toBe("Wait until the ad's skip offset is reached.");
   });
 
   it("updates seek availability from native live-to-VOD state while DVR stays disabled", async () => {

@@ -1,5 +1,11 @@
 /** Japanese application copy. Public SDK names and code samples retain their original spelling. */
 export const japaneseCopy: Record<string, string> = {
+  "This ad does not allow skipping.": "この広告はスキップできません。",
+  "Wait until the ad's skip offset is reached.": "広告をスキップできる再生位置に達するまで待ってください。",
+  "The current ad's skip metadata is unavailable.": "現在の広告のスキップ条件を取得できません。",
+  "Wait for a current native ad position.": "広告の現在の再生位置をSDKから取得するまで待ってください。",
+  "Programmatic skipping is unavailable for IMA ads.": "このアプリではIMA広告をAPIでスキップできません。",
+  "The live ad's playback position cannot be verified.": "ライブ再生中の広告の再生位置を確認できません。",
   "Recreate the player before running this operation.": "この操作を実行する前にプレイヤーを再作成してください。",
   "This operation requires iOS.": "この操作にはiOSが必要です。",
   "This operation requires Android.": "この操作にはAndroidが必要です。",

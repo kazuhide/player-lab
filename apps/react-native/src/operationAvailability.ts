@@ -1,4 +1,4 @@
-import type { Player } from "bitmovin-player-react-native";
+import type { AdStartedEvent, NonLinearAdStartedEvent, Player } from "bitmovin-player-react-native";
 import type { NativeSettings } from "./nativeSettings";
 
 export interface NativePlaybackContext {
@@ -6,12 +6,22 @@ export interface NativePlaybackContext {
   live: boolean | null;
   maxTimeShift: number;
   linearAd: boolean;
+  adPlaying: boolean;
+  adSkipOffset: number | null;
+  adClientType: AdStartedEvent["clientType"] | null;
+  adTime: number | null;
   nonLinearAd: boolean;
   castAvailable: boolean;
   casting: boolean;
 }
 const empty = (): NativePlaybackContext => ({ loaded: false, live: null, maxTimeShift: 0,
-  linearAd: false, nonLinearAd: false, castAvailable: false, casting: false });
+  linearAd: false, adPlaying: false, adSkipOffset: null, adClientType: null, adTime: null,
+  nonLinearAd: false, castAvailable: false, casting: false });
+
+function adPayload(value: unknown): Partial<AdStartedEvent & NonLinearAdStartedEvent> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+const clearLinearAd = { linearAd: false, adPlaying: false, adSkipOffset: null, adClientType: null, adTime: null } as const;
 
 /** Capability observations belong to one player and current source, never to the event log. */
 export class NativeOperationContext {
@@ -31,14 +41,21 @@ export class NativeOperationContext {
     this.offlineRequested = offlineRequested; this.offlineLoaded = false; this.changed();
   }
   retire(): void { this.active = false; this.reset(); }
-  event(name: string): void {
+  event(name: string, payload?: unknown): void {
     if (!this.active) return;
     if (this.source !== this.player.source) this.reset(this.offlineRequested && !this.offlineLoaded && !this.player.source);
     // isAd is false for pause ads; their independent public lifecycle is required.
-    if (name === "onNonLinearAdStarted") this.state = { ...this.state, nonLinearAd: true };
+    if (name === "onNonLinearAdStarted") this.state = { ...this.state, nonLinearAd: adPayload(payload).ad?.isLinear === false };
     else if (["onNonLinearAdFinished", "onNonLinearAdSkipped"].includes(name)) this.state = { ...this.state, nonLinearAd: false };
-    else if (["onAdBreakStarted", "onAdStarted"].includes(name)) this.state = { ...this.state, linearAd: true };
-    else if (["onAdBreakFinished", "onAdFinished", "onAdSkipped"].includes(name)) this.state = { ...this.state, linearAd: false };
+    else if (name === "onAdStarted") {
+      const ad = adPayload(payload);
+      this.state = { ...this.state, ...clearLinearAd, linearAd: true, nonLinearAd: false,
+        adSkipOffset: typeof ad.skipOffset === "number" && Number.isFinite(ad.skipOffset) ? ad.skipOffset : null,
+        adClientType: typeof ad.clientType === "string" && ["bitmovin", "progressive", "ima"].includes(ad.clientType) ? ad.clientType : null };
+    }
+    else if (name === "onAdBreakStarted") this.state = { ...this.state, ...clearLinearAd, linearAd: true };
+    else if (["onAdBreakFinished", "onAdFinished", "onAdSkipped"].includes(name)) this.state = { ...this.state, ...clearLinearAd };
+    else if (name === "onAdError") this.state = { ...this.state, ...clearLinearAd, nonLinearAd: false };
     else if (name === "onSourceLoaded" && this.offlineRequested && !this.player.source) { this.offlineLoaded = true; this.state = { ...this.state, loaded: true }; }
     else if (name === "onSourceLoad") { this.reset(this.offlineRequested); return; }
     else if (name === "onSourceUnloaded") { this.reset(this.offlineRequested && !this.offlineLoaded); return; }
@@ -66,9 +83,22 @@ export class NativeOperationContext {
     ] as const : undefined;
     if (!reads) return false;
     try {
-      const [loading, live, maxTimeShift, linearAd, castAvailable, casting] = await Promise.all(reads);
-      if (!this.active || this.player.isDestroyed || source !== this.player.source || generation !== this.generation) return false;
-      this.state = { ...this.state, loaded: loading === 2, live, maxTimeShift, linearAd, castAvailable, casting };
+      const [loading, live, maxTimeShift, nativeAd, castAvailable, casting] = await Promise.all(reads);
+      const current = () => this.active && !this.player.isDestroyed && source === this.player.source && generation === this.generation;
+      if (!current()) return false;
+      let linearAd = nativeAd;
+      let adTime: number | null = null;
+      // Relative time is ad-relative for VOD. RN's native live time-mode offsets
+      // are not an independently readable ad clock, so live thresholds stay unavailable.
+      if (linearAd && live === false) {
+        const time = await this.player.getCurrentTime("relative");
+        if (!current()) return false;
+        linearAd = await this.player.isAd();
+        if (!current()) return false;
+        if (linearAd && Number.isFinite(time) && time >= 0) adTime = time;
+      }
+      this.state = { ...this.state, ...(!linearAd ? clearLinearAd : {}), loaded: loading === 2,
+        live, maxTimeShift, linearAd, adPlaying: linearAd, adTime, castAvailable, casting };
       this.changed();
       return true;
     } catch {
@@ -101,7 +131,18 @@ export function operationUnavailable(id: string, player: Player, state: NativePl
     if (id.startsWith("Source.drm.fairplay.") && !player.source.drm?.fairplay) return "Load a FairPlay-configured source first.";
   }
   if (sessionMethods.has(id) && !state.loaded) return "Wait for a loaded source.";
-  if (id === "Player.skipAd" && !state.linearAd && !state.nonLinearAd) return "No active ad is available to skip.";
+  if (id === "Player.skipAd") {
+    if (!state.linearAd && !state.nonLinearAd) return "No active ad is available to skip.";
+    if (state.linearAd) {
+      // RN 1.29 does not expose preferredUiType; it cannot prove IMA programmatic skip is enabled.
+      if (state.adClientType === "ima") return "Programmatic skipping is unavailable for IMA ads.";
+      if (!["bitmovin", "progressive"].includes(state.adClientType ?? "") || state.adSkipOffset === null) return "The current ad's skip metadata is unavailable.";
+      if (state.adSkipOffset < 0) return "This ad does not allow skipping.";
+      if (state.adSkipOffset > 0 && state.live !== false && state.adTime === null) return "The live ad's playback position cannot be verified.";
+      if (!state.adPlaying || (state.adSkipOffset > 0 && state.adTime === null)) return "Wait for a current native ad position.";
+      if (state.adTime !== null && state.adTime < state.adSkipOffset) return "Wait until the ad's skip offset is reached.";
+    }
+  }
   if ((id === "Player.seek" || id === "Player.timeShift") && state.linearAd) return "Wait for the linear ad to finish.";
   if (id === "Player.seek" && state.live !== false) return "Seek requires an on-demand source.";
   if (id === "Player.timeShift") {

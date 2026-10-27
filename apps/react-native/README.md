@@ -344,9 +344,19 @@ Verify these behaviors in the external Expo build with a valid player license.
 The API picker disables unavailable operations and displays the prerequisite.
 Session operations require a loaded source; seek and time shift follow the native
 VOD/live state, linear-ad interruptions and the live-rewind setting. Skip requires
-an active linear or non-linear ad. The SDK's `isAd()` returns false for pause ads,
+a presented non-linear ad, or a linear ad with public `onAdStarted.skipOffset`
+and `clientType` metadata. Negative offsets, missing metadata and unsupported
+clients are unavailable. Offset zero is immediate after a fresh `isAd()` check;
+positive VOD offsets also require a fresh relative native ad clock to reach the
+threshold, with another `isAd()` check after the clock read. The SDK's `isAd()`
+returns false for pause ads,
 so their separate public lifecycle events are tracked even when event recording
-is paused. The SDK still decides when a linear ad is skippable. Schedule Ad needs
+is paused. The pinned RN bridge exposes neither native `skippableAfter` nor IMA
+`preferredUiType`. Programmatic IMA skip stays disabled; use the ad's on-screen
+Skip control. Positive live-ad thresholds also stay disabled: RN applies the
+source's absolute/relative time offsets to native time, so the wrapper getter is
+not a verified live-ad elapsed clock. Unknown metadata or clock readings cannot
+enable Skip. Schedule Ad needs
 an applied advertising item and an active session. Platform, DRM, Analytics and
 Cast prerequisites are also checked. A fresh public SDK observation guards native
 session dispatch; source replacement and owner retirement invalidate older reads.

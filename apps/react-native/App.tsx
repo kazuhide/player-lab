@@ -275,7 +275,10 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
   const eventBuffer = useRef<string[]>([]);
   const eventFlush = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const recordApiEvent = useCallback((name: string, event: unknown) => {
-    if (active.current) operationContext.event(name);
+    if (active.current) {
+      operationContext.event(name, event);
+      if (name === "onAdStarted") void operationContext.refresh(true);
+    }
     if (!active.current || !recording.current) return;
     eventBuffer.current = [`${name}: ${apiValue(event).slice(0, 2000)}`, ...eventBuffer.current].slice(0, 80);
     // Batch high-frequency bridge events rather than rendering once per callback.

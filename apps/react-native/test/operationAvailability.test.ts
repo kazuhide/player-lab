@@ -6,6 +6,7 @@ import { NativeOperationContext, operationUnavailable } from "../src/operationAv
 function fixture() {
   const source = { isInitialized: true, isDestroyed: false, loadingState: vi.fn(async () => 2) };
   const player = { source, isDestroyed: false, isLive: vi.fn(async () => false), getMaxTimeShift: vi.fn(async () => 0),
+    getCurrentTime: vi.fn(async () => 0),
     isAd: vi.fn(async () => false), isCastAvailable: vi.fn(async () => false), isCasting: vi.fn(async () => false) };
   const context = new NativeOperationContext(player as unknown as Player);
   const settings = { player: {}, source: {} } as NativeSettings;
@@ -15,6 +16,97 @@ function fixture() {
 }
 
 describe("native operation availability", () => {
+  it.each([
+    ["unskippable", -1, 99, "bitmovin", "This ad does not allow skipping."],
+    ["immediately skippable", 0, 0, "bitmovin", undefined],
+    ["before threshold", 5, 4.99, "bitmovin", "Wait until the ad's skip offset is reached."],
+    ["at threshold", 5, 5, "bitmovin", undefined],
+    ["after threshold", 5, 6, "progressive", undefined],
+    ["unknown threshold", undefined, 99, "bitmovin", "The current ad's skip metadata is unavailable."],
+    ["invalid threshold", NaN, 99, "bitmovin", "The current ad's skip metadata is unavailable."],
+    ["unknown native clock", 5, NaN, "bitmovin", "Wait for a current native ad position."],
+    ["IMA UI", 0, 99, "ima", "Programmatic skipping is unavailable for IMA ads."],
+    ["unknown ad client", 0, 99, "unknown", "The current ad's skip metadata is unavailable."],
+  ])("qualifies actual skip capability for %s", async (_name, skipOffset, time, clientType, expected) => {
+    const f = fixture(); await f.context.refresh();
+    f.player.isAd.mockResolvedValue(true); f.player.getCurrentTime.mockResolvedValue(Number(time));
+    f.context.event("onAdStarted", { skipOffset, clientType });
+    await f.context.refresh(true);
+    expect(f.reason("Player.skipAd")).toBe(expected);
+  });
+
+  it("never treats main-content time as the current ad's skip clock", async () => {
+    const f = fixture(); await f.context.refresh();
+    f.player.getCurrentTime.mockResolvedValue(100);
+    f.context.event("onAdStarted", { skipOffset: 5, clientType: "bitmovin" });
+    await f.context.refresh(true);
+    expect(f.reason("Player.skipAd")).toBe("No active ad is available to skip.");
+    expect(f.player.getCurrentTime).not.toHaveBeenCalled();
+  });
+
+  it("keeps unverified live time-mode offsets out of a positive ad threshold", async () => {
+    const f = fixture(); await f.context.refresh();
+    f.player.isLive.mockResolvedValue(true); f.player.isAd.mockResolvedValue(true); f.player.getCurrentTime.mockResolvedValue(1000000);
+    f.context.event("onAdStarted", { skipOffset: 5, clientType: "bitmovin" });
+    await f.context.refresh(true);
+    expect(f.reason("Player.skipAd")).toBe("The live ad's playback position cannot be verified.");
+    expect(f.player.getCurrentTime).not.toHaveBeenCalled();
+    f.context.event("onAdStarted", { skipOffset: 0, clientType: "bitmovin" }); await f.context.refresh(true);
+    expect(f.reason("Player.skipAd")).toBeUndefined();
+  });
+
+  it.each(["onAdFinished", "onAdSkipped", "onAdBreakFinished", "onAdError", "onSourceError"])("clears the current ad capability on %s", async name => {
+    const f = fixture(); await f.context.refresh(); f.player.isAd.mockResolvedValue(true);
+    f.context.event("onAdStarted", { skipOffset: 0, clientType: "bitmovin" }); await f.context.refresh(true);
+    expect(f.reason("Player.skipAd")).toBeUndefined();
+    f.context.event(name);
+    expect(f.context.snapshot()).toMatchObject({ adSkipOffset: null, adClientType: null, adTime: null, adPlaying: false });
+    expect(f.reason("Player.skipAd")).toBeDefined();
+  });
+
+  it("discards an older ad's deferred clock when a new unskippable ad starts", async () => {
+    const f = fixture(); await f.context.refresh(); f.player.isAd.mockResolvedValue(true);
+    f.context.event("onAdStarted", { skipOffset: 5, clientType: "bitmovin" });
+    let finish!: (value: number) => void;
+    f.player.getCurrentTime.mockImplementationOnce(() => new Promise<number>(resolve => { finish = resolve; }));
+    const pending = f.context.refresh();
+    for (let turn = 0; turn < 8 && !finish; turn++) await Promise.resolve();
+    expect(finish).toBeTypeOf("function");
+    f.context.event("onAdStarted", { skipOffset: -1, clientType: "bitmovin" }); finish(100);
+    expect(await pending).toBe(false);
+    expect(f.reason("Player.skipAd")).toBe("This ad does not allow skipping.");
+    expect(f.context.snapshot().adTime).toBeNull();
+  });
+
+  it.each(["reset", "retire", "source replacement"])("fences a deferred native ad clock at %s before any follow-up SDK read", async action => {
+    const f = fixture(); await f.context.refresh(); f.player.isAd.mockResolvedValue(true);
+    f.context.event("onAdStarted", { skipOffset: 5, clientType: "bitmovin" });
+    let finish!: (value: number) => void;
+    f.player.getCurrentTime.mockImplementationOnce(() => new Promise<number>(resolve => { finish = resolve; }));
+    const pending = f.context.refresh();
+    for (let turn = 0; turn < 8 && !finish; turn++) await Promise.resolve();
+    const reads = f.player.isAd.mock.calls.length;
+    if (action === "source replacement") f.player.source = { ...f.source };
+    else f.context[action as "reset" | "retire"]();
+    finish(100);
+    expect(await pending).toBe(false);
+    expect(f.player.isAd).toHaveBeenCalledTimes(reads);
+    expect(f.context.snapshot().adTime).toBeNull();
+    expect(f.reason("Player.skipAd")).toBeDefined();
+  });
+
+  it("requires a presented non-linear payload instead of treating isAd=false as dismissible", async () => {
+    const f = fixture(); await f.context.refresh();
+    for (const payload of [undefined, {}, { ad: { isLinear: true } }]) {
+      f.context.event("onNonLinearAdStarted", payload);
+      expect(f.reason("Player.skipAd")).toBe("No active ad is available to skip.");
+    }
+    f.context.event("onNonLinearAdStarted", { ad: { isLinear: false } });
+    expect(f.reason("Player.skipAd")).toBeUndefined();
+    f.context.event("onNonLinearAdFinished");
+    expect(f.reason("Player.skipAd")).toBe("No active ad is available to skip.");
+  });
+
   it("rejects ordinary-source ad operations while retaining load/bootstrap and explicit clearing", async () => {
     const f = fixture(); await f.context.refresh();
     expect(f.reason("Player.skipAd")).toBe("No active ad is available to skip.");
@@ -55,10 +147,10 @@ describe("native operation availability", () => {
 
   it("distinguishes linear interruptions from pause ads whose isAd getter is false", async () => {
     const f = fixture(); await f.context.refresh();
-    f.player.isAd.mockResolvedValue(true); f.context.event("onAdStarted"); await f.context.refresh();
+    f.player.isAd.mockResolvedValue(true); f.context.event("onAdStarted", { skipOffset: 0, clientType: "bitmovin" }); await f.context.refresh();
     expect(f.reason("Player.skipAd")).toBeUndefined();
     expect(f.reason("Player.seek")).toBe("Wait for the linear ad to finish.");
-    f.player.isAd.mockResolvedValue(false); f.context.event("onAdFinished"); f.context.event("onNonLinearAdStarted"); await f.context.refresh();
+    f.player.isAd.mockResolvedValue(false); f.context.event("onAdFinished"); f.context.event("onNonLinearAdStarted", { ad: { isLinear: false } }); await f.context.refresh();
     expect(f.reason("Player.skipAd")).toBeUndefined();
     expect(f.reason("Player.seek")).toBeUndefined();
     f.context.event("onNonLinearAdSkipped");
