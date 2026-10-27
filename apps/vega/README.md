@@ -192,18 +192,32 @@ settle, recreate the player; the replacement waits for the native cleanup
 barrier. `destroy` retires the current owner and makes further calls unavailable
 until recreation.
 
-**Inspect current SDK API availability** lists whether each operation or state
-query exists on the current native player. This check reads public method
-properties without executing them. Manifest methods follow the loaded format:
+The picker and **Run Vega SDK API** use the current native player's methods,
+loaded source, live DVR window, advertising state and relevant capability
+getters. Unavailable entries show a reason and remain disabled. If the selected
+operation becomes unavailable, its selection and arguments remain visible;
+Run is disabled. Source changes and recreation retain edited argument inputs.
+Dispatch checks the current state again before invoking the
+operation. **Inspect current SDK API availability** lists the same decisions
+without executing the selected operations. Manifest methods follow the loaded format:
 HLS track methods require HLS, and DASH period methods require DASH. A missing
 method is reported explicitly instead of being treated as a successful test.
 The app registers the low-latency, thumbnail, WebM, Smooth Streaming, TTML,
 CEA-608, AdvertisingCore and SGAI modules as well as the core HLS/DASH modules. Their effective behavior
 still depends on the content and Vega media capabilities.
 
+After an SDK `Error`, source-dependent commands stay unavailable even if
+`getSource()` still returns the last successful configuration. `SourceLoaded`
+or a successful recovery `load` restores them. A newer error during that load
+keeps them blocked. Loading, recreation, configuration clearing, state queries
+and Analytics SSAI notifications remain available; pausing event recording does
+not change this failure state.
+
 Inputs requiring SDK instances list actual objects returned by the current
 player. An object literal does not create a native instance. Query resources
 expire with their owner and cannot be carried into a recreated configuration.
+A retained reference to an expired SDK resource is rejected; select a resource
+from the current player before running that operation again.
 For `on` and `off`, choose the same callback from the current SDK resources to
 remove the registered function.
 
@@ -215,7 +229,8 @@ inactive control; measuring actual playback delay needs a suitable live stream.
 The event log shows named SDK event summaries for the current owner. It retains
 a bounded recent history and redacts credential fields. Use **Pause Vega event
 log** and **Clear Vega event log** to control it. The matching source, device or
-service must produce an event before it can appear. A successful call, a constant
+service must produce an event before it can appear. Pausing recording does not
+pause API availability updates. A successful call, a constant
 return or an empty result does not prove that an underlying feature is available;
 check the resulting state, events and playback behavior separately.
 
@@ -238,7 +253,11 @@ sample lists as unsupported.
 In **Show SDK API experiments**, use `PlayerAPI.sgai.list` to inspect the
 schedule, `PlayerAPI.sgai.getActiveAd` to inspect a currently playing
 interstitial, and `PlayerAPI.sgai.skip` to skip that interstitial. An empty
-active-ad result outside an interstitial is expected. Check `AdStarted`,
+active-ad result outside an interstitial is expected; skip remains disabled
+until the current SDK reports an active SGAI ad. This guard is separate from
+client-side advertising and Analytics SSAI notifications, which can be sent
+without an active SGAI ad. The app does not infer advertising from source URLs.
+Check `AdStarted`,
 `AdSkipped` and `AdBreakFinished` in the event log along with the playback state.
 The stream's program date and interstitial start date determine the scheduled
 position; an inconsistent date can place an interstitial outside the media.

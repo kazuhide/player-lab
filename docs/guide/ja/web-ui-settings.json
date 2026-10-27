@@ -86,11 +86,11 @@
   "sources": [
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 282
+      "line": 283
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 393
+      "line": 394
     },
     {
       "path": "apps/web/src/main.ts",
@@ -102,19 +102,19 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 256
+      "line": 257
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 276
+      "line": 277
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 415
+      "line": 416
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 488
+      "line": 489
     },
     {
       "path": "apps/web/src/main.ts",

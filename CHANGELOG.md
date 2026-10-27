@@ -3,6 +3,17 @@
 Product versions describe Player Lab releases. Bitmovin SDK versions are tracked
 separately in the [API coverage guide](https://kazuhide.github.io/player-lab/guide/api-coverage/).
 
+## Unreleased
+
+- Apply the live-rewind preference to the embedded iOS, iPadOS and React Native
+  controls without replacing playback. Explain the tvOS System UI limitation
+  beside its disabled runtime preference.
+- Disable API operations when the current source, ad, track or display target
+  does not meet their prerequisites. Check again before execution and retain
+  selected operations and argument drafts across source changes.
+- Keep the Web live-rewind buttons consistent with the embedded seek bar and
+  document advertising, insertion and Analytics notification prerequisites.
+
 ## 0.1.5
 
 - Give Android, Apple and React Native apps direct setting selection, fixed Apply

@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 
 from driver import Ui
-from report import applied, playback, released, validate
+from report import applied, live_controls, playback, released, shift_completed, validate
 
 
 def fixture_url(value, https=False):
@@ -82,6 +82,16 @@ def main():
         result["phase"] = name
         (output / "progress.json").write_text(json.dumps({"phase": name}) + "\n")
 
+    def button_enabled(label):
+        node = ui.reveal(label)
+        enabled = node.find("./traits/enableable")
+        if enabled is None or enabled.get("enabled") not in {"true", "false"}:
+            raise RuntimeError("The normal native button did not expose its enabled state")
+        return enabled.get("enabled") == "true"
+
+    def rewind_buttons():
+        return {label: button_enabled(label) for label in ["-10s", "-30s", "-60s"]}
+
     def code():
         lines, last_line = {}, None
         ui.focus(ui.reveal("Hide applied code"))
@@ -136,13 +146,37 @@ def main():
         os_app("terminate")
         os_app("launch")
         ui = Ui(args.appium, args.device)
+        if button_enabled("English"):
+            ui.click("English")
         before = wait_report(lambda v: v["owner"] is not None and v["owner"]["sourceLoaded"] > 0 and v["owner"]["sample"] is not None)
         initial_owner = before["owner"]["generation"]
+        phase("live-rewind-native-controls")
+        live_controls(before, initial_owner, True, rewind_buttons())
+        ui.switch("Allow DVR", False)
+        live_controls(read(), initial_owner, False, rewind_buttons())
+        if not button_enabled("Live edge"):
+            raise RuntimeError("Live edge must remain available when rewinding is disabled")
+        ui.switch("Allow DVR", True)
+        live_controls(read(), initial_owner, True, rewind_buttons())
+        rewind_reference = read()
+        ui.click("-10s")
+        wait_report(lambda v: shift_completed(rewind_reference, v, initial_owner, -10))
+        edge_reference = read()
+        ui.click("Live edge")
+        wait_report(lambda v: shift_completed(edge_reference, v, initial_owner, 0))
+        result["liveRewindButtonsFollowToggle"] = True
+        result["liveRewindCompletionObserved"] = True
+        phase("live-api-argument-draft")
+        ui.click("Show SDK API experiments")
+        ui.edit("Filter Vega API operations", "PlayerAPI.timeShift")
+        ui.click("PlayerAPI.timeShift")
+        ui.edit("SDK numeric value", "-12.5")
+        ui.click("Hide SDK API experiments", up_first=True)
         ui.click("Show configuration")
         title_node = ui.reveal("Source title")
         original_title = next((n.text for n in title_node.iter("text") if n.text), "")
         ui.edit("Source title", "Unapplied draft"); ui.click("Reset draft")
-        if not any(n.text == original_title for n in ui.reveal("Source title").iter("text")):
+        if not any(n.text == original_title for n in ui.reveal("Source title", up_first=True).iter("text")):
             raise RuntimeError("Reset must restore the applied title")
         phase("external-subtitle-fields")
         for label, value in [("Source URL", args.media_url), ("Source title", "WebVTT example"),
@@ -150,8 +184,8 @@ def main():
             ("Subtitle language", "EN-us"), ("Start offset (seconds)", "1"),
             ("Video forward buffer (seconds)", "8"), ("Audio forward buffer (seconds)", "8"),
             ("Maximum video bitrate (bits per second)", "2500000")]:
-            ui.edit(label, value)
-        hls = ui.reveal("HLS")
+            ui.edit(label, value, up_first=label == "Source URL")
+        hls = ui.reveal("HLS", up_first=True)
         if (enabled := hls.find("./traits/enableable")) is None or enabled.get("enabled") != "false": ui.click("HLS")
         for label in ["Autoplay", "Mute on startup", "Enable external subtitle on load"]: ui.switch(label, True)
         ui.click("Apply and recreate player")
@@ -163,6 +197,20 @@ def main():
         result["nativeCueEventsAndVisibleOverlay"] = True
         result["cueEvents"] = cue["owner"]["cueEnter"]
         first_owner = stage("applied-playback", True)
+        phase("ordinary-vod-api-availability")
+        ui.click("Show SDK API experiments")
+        if not any(node.text == "-12.5" for node in ui.reveal("SDK numeric value").iter("text")) or button_enabled("Run Vega SDK API"):
+            raise RuntimeError("The retained timeShift draft must stay visible and unavailable on the replacement VOD source")
+        result["apiScalarDraftRetainedAcrossSourceApply"] = True
+        ui.edit("Filter Vega API operations", "PlayerAPI.sgai.skip")
+        if button_enabled("PlayerAPI.sgai.skip"):
+            raise RuntimeError("Ordinary VOD must not offer an inactive SGAI skip command")
+        # The pinned native SDK exposes no SGAI namespace without SgaiService.
+        ui.reveal_text("This public API cannot be read in the current native SDK state.")
+        if read()["owner"]["generation"] != first_owner:
+            raise RuntimeError("Inspecting API availability must retain the ordinary VOD owner")
+        result["ordinaryVodSgaiSkipDisabled"] = True
+        ui.click("Hide SDK API experiments")
         code_generation = last["codeGeneration"]
         phase("show-applied-code")
         ui.click("Show applied code")
@@ -171,16 +219,23 @@ def main():
         result["allAppliedCodeLinesObserved"] = True
         if not all(value in original_code for value in ["player-lab-external", "External English", "en-US"]):
             raise RuntimeError("Applied external subtitle metadata must be visible in generated code")
+        # Collapse focusable code rows during draft input and Reset, then
+        # reopen and freshly read the complete applied output each time.
+        ui.click("Hide applied code", up_first=True)
         phase("edit-unapplied-subtitle-label")
-        ui.edit("Subtitle label", "Unapplied subtitle")
+        ui.edit("Subtitle label", "Unapplied subtitle", up_first=True)
         phase("read-code-excluding-draft")
+        ui.click("Show applied code")
         if code() != original_code:
             raise RuntimeError("Draft subtitle edits must not change applied code")
+        ui.click("Hide applied code", up_first=True)
         ui.click("Reset draft")
         phase("read-code-after-reset")
-        if not any(n.text == "External English" for n in ui.reveal("Subtitle label").iter("text")) or code() != original_code:
+        reset_label_restored = any(n.text == "External English" for n in ui.reveal("Subtitle label", up_first=True).iter("text"))
+        ui.click("Show applied code")
+        if not reset_label_restored or code() != original_code:
             raise RuntimeError("Reset must restore applied subtitle metadata and retain code")
-        ui.click("Hide applied code")
+        ui.click("Hide applied code", up_first=True)
         # Finish this normal UI transaction before moving TV focus to the
         # separate read-only observation header.
         retained = read()

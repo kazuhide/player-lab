@@ -44,6 +44,8 @@ import { nativeEventProps } from "./src/apiEvents";
 import { disposeOwnedSources, loadOwnedSource } from "./src/sourceOwnership";
 import { apiValue } from "./src/apiValues";
 import { applyNativeScripts, NativeScriptOwner } from "./src/nativeScripts";
+import { LiveRewindChannel } from "./src/liveRewindChannel";
+import { NativeOperationContext } from "./src/operationAvailability";
 
 // Both keys flow from the repo-root .env via scripts/sync-env.sh → this app's .env
 // (EXPO_PUBLIC_* = client-embedded; license keys are domain-locked, not secret).
@@ -243,23 +245,25 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
     licenseKey: Object.prototype.hasOwnProperty.call(settings.draft.apiSettings ?? {}, "PlayerConfig.analyticsConfig.licenseKey")
       ? playerConfig.analyticsConfig.licenseKey : ANALYTICS_LICENSE_KEY,
   } : ANALYTICS_LICENSE_KEY ? { licenseKey: ANALYTICS_LICENSE_KEY } : undefined;
-  const player = usePlayer(
-    uiMode.factoryFunction
-      ? {
-          licenseKey: LICENSE_KEY,
-          ...ANALYTICS,
-          ...playerConfig,
-          ...(analyticsConfig ? { analyticsConfig } : {}),
-          styleConfig: {
-            userInterfaceType: UserInterfaceType.Bitmovin,
-            playerUiJs: WEBUI_JS,
-            playerUiCss: WEBUI_CSS,
-            ...playerConfig.styleConfig,
-          },
-        }
-      : { licenseKey: LICENSE_KEY, ...ANALYTICS, ...playerConfig, ...(analyticsConfig ? { analyticsConfig } : {}) },
-  );
+  const player = usePlayer({
+    licenseKey: LICENSE_KEY,
+    ...ANALYTICS,
+    ...playerConfig,
+    ...(analyticsConfig ? { analyticsConfig } : {}),
+    styleConfig: {
+      userInterfaceType: UserInterfaceType.Bitmovin,
+      playerUiJs: WEBUI_JS,
+      playerUiCss: WEBUI_CSS,
+      ...playerConfig.styleConfig,
+    },
+  });
   const [dvr, setDvr] = useState<TimelineState | null>(null);
+  const [, updateAvailability] = useState(0);
+  const operationContext = useMemo(() => new NativeOperationContext(player, () => updateAvailability(value => value + 1)), [player]);
+  useEffect(() => () => operationContext.retire(), [operationContext]);
+  const uiChannel = useMemo(() => new LiveRewindChannel(settings.props.customMessageHandler), [player, settings.props.customMessageHandler]);
+  useLayoutEffect(() => uiChannel.attach(), [uiChannel]);
+  useEffect(() => uiChannel.setEnabled(timeShiftEnabled), [uiChannel, timeShiftEnabled]);
   scriptOwner.bind(player);
   const [viewReady, setViewReady] = useState(false);
   const snapshots = useRef<SnapshotController | null>(null);
@@ -271,6 +275,10 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
   const eventBuffer = useRef<string[]>([]);
   const eventFlush = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const recordApiEvent = useCallback((name: string, event: unknown) => {
+    if (active.current) {
+      operationContext.event(name, event);
+      if (["onAdStarted", "onAudioAdded", "onAudioRemoved", "onSubtitleAdded", "onSubtitleRemoved"].includes(name)) void operationContext.refresh(true);
+    }
     if (!active.current || !recording.current) return;
     eventBuffer.current = [`${name}: ${apiValue(event).slice(0, 2000)}`, ...eventBuffer.current].slice(0, 80);
     // Batch high-frequency bridge events rather than rendering once per callback.
@@ -278,7 +286,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
       eventFlush.current = undefined;
       if (active.current) setApiEvents(eventBuffer.current);
     }, 125);
-  }, []);
+  }, [operationContext]);
   const apiEventProps = useMemo(() => nativeEventProps(recordApiEvent), [recordApiEvent]);
   scriptRecorder.current = recordApiEvent;
   useEffect(() => () => { if (eventFlush.current) clearTimeout(eventFlush.current); }, []);
@@ -327,26 +335,27 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
   useEffect(() => {
     if (!viewReady || !active.current) return;
     snapshots.current?.sourceChanged();
+    operationContext.reset();
     setDvr(null);
     append(`load ${source.title || "source"}`);
     // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.
-    void loadOwnedSource(player, source).catch(() => { if (active.current) append("Source initialization failed; inspect source events or retry after the pending initializer settles."); });
+    void loadOwnedSource(player, source).then(() => operationContext.refresh()).catch(() => { if (active.current) append("Source initialization failed; inspect source events or retry after the pending initializer settles."); });
     observed.current?.sourceLoad();
-  }, [source, player, viewReady, append]);
+  }, [source, player, viewReady, append, operationContext]);
 
   useEffect(() => {
     snapshots.current?.setTimeShiftEnabled(timeShiftEnabled);
     if (viewReady) void snapshots.current?.refresh();
   }, [timeShiftEnabled, viewReady]);
 
-  const refresh = useCallback(() => snapshots.current?.refresh(), []);
+  const refresh = useCallback(() => { const pending = snapshots.current?.refresh(); void operationContext.refresh(); return pending; }, [operationContext]);
   const seek = useCallback((offset: number) => snapshots.current?.seek(offset), []);
-  const sourceMutated = useCallback(() => { snapshots.current?.sourceChanged(); setDvr(null); }, []);
+  const sourceMutated = useCallback((id: string) => { snapshots.current?.sourceChanged(); operationContext.reset(id === "Player.loadOfflineContent"); setDvr(null); }, [operationContext]);
 
-  // Select our custom factory by name; omitted for the SDK default UI.
-  const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction || Object.keys(settings.view).length || Object.keys(settings.webUi).length
-    ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }
-    : undefined;
+  // The Default theme keeps the stock SmallScreen tree in the shared bundle.
+  const viewConfig: PlayerViewConfig = { ...settings.view, uiConfig: {
+    variant: new CustomUi(uiMode.factoryFunction ?? "bitmovin.playerui.UIFactory.buildSmallScreenUI"), ...settings.webUi,
+  } satisfies WebUiConfig };
 
   const playerView = <View testID="player-lab-player" style={fullscreen ? styles.fullscreen : { height: workspace.previewHeight, overflow: "hidden" }}
     pointerEvents={workspace.previewHeight === 0 ? "none" : "auto"}
@@ -359,6 +368,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
       <PlayerView
         {...apiEventProps}
         {...settings.props}
+        customMessageHandler={uiChannel.handler}
         {...("isFullscreenRequested" in settings.props ? { isFullscreenRequested: fullscreen } : {})}
         player={player}
         style={fullscreen ? styles.fullscreen : { ...styles.player, height: workspace.previewHeight }}
@@ -414,6 +424,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
           onValueChange={(v) => {
             // Update the controller before a refresh, including when playback is paused.
             snapshots.current?.setTimeShiftEnabled(v);
+            uiChannel.setEnabled(v);
             onTimeShiftEnabled(v);
             void refresh();
           }}
@@ -439,6 +450,7 @@ function ActivePlayerPane({ uiMode, source, playerConfig, settings, sources, onS
       </WorkspacePage>
       <WorkspacePage active={workspace.tab === "apis"} testID="workspace-apis">
       <ApiPanel player={player} source={source} ready={viewReady} events={apiEvents} recording={recordingEvents}
+        operationContext={operationContext} dvrAllowed={timeShiftEnabled}
         compactEditing={workspace.compactEditing}
         onRecording={setRecordingEvents} onClearEvents={() => { eventBuffer.current = []; setApiEvents([]); }} onRecreate={onRecreate}
         settings={settings} onEvent={recordApiEvent} onSourceMutation={sourceMutated} />

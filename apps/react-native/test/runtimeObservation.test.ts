@@ -5,6 +5,7 @@ function player(): RuntimeReadablePlayer & { licenseKey: string; nativeId: strin
   return {
     licenseKey: "never-serialize-this", nativeId: "never-serialize-this-id", isDestroyed: false,
     getCurrentTime: vi.fn(async () => 5.25), getDuration: vi.fn(async () => 60),
+    getTimeShift: vi.fn(async () => 0), getMaxTimeShift: vi.fn(async () => 0),
     isLive: vi.fn(async () => false), isPlaying: vi.fn(async () => true), isMuted: vi.fn(async () => true),
     getAvailableSubtitles: vi.fn(async () => [{ identifier: "player-lab-external", url: "never-serialize-this-url", label: "never-serialize-this-label" }]),
     getSubtitleTrack: vi.fn(async () => ({ identifier: "player-lab-external", language: "never-serialize-this-language" })),

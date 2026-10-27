@@ -122,19 +122,19 @@
   "sources": [
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 204
+      "line": 205
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 544
+      "line": 545
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 654
+      "line": 660
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 713
+      "line": 723
     },
     {
       "path": "apps/web/src/playback/state.ts",

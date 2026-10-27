@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { PlayerAPI } from "bitmovin-player";
 import type { UIConfig, UIInstanceManager, UIManager } from "bitmovin-player-ui";
 import { applyNativeLiveRewindPolicy } from "../src/nativeLiveRewind";
@@ -54,6 +54,89 @@ function fixture(initialLive = true, initiallyActive = true) {
 }
 
 describe("optional native live rewind UI policy", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  function nativeMessages() {
+    const callbacks = new Map<string, (data?: string) => void>();
+    const on = vi.fn((name: string, callback: (data?: string) => void) => callbacks.set(name, callback));
+    const sendAsynchronous = vi.fn();
+    vi.stubGlobal("window", { bitmovin: { customMessageHandler: { on, sendAsynchronous } } });
+    return { on, sendAsynchronous,
+      send: (data?: string) => callbacks.get("playerlab-live-rewind-enabled")?.(data) };
+  }
+
+  it("changes the live controls through public native messages without a clock tick or UI replacement", async () => {
+    const messages = nativeMessages();
+    const f = fixture();
+    applyNativeLiveRewindPolicy(f.player, f.manager);
+    await Promise.resolve();
+    expect(messages.sendAsynchronous).toHaveBeenCalledWith("playerlab-live-rewind-ready", "");
+    messages.send("false");
+    expect(f.first.classes.has(disabledClass)).toBe(true);
+    messages.send("true");
+    expect(f.first.classes.has(disabledClass)).toBe(false);
+    expect(f.manager.activeUi).toBe(f.first);
+    messages.send("false");
+    f.setLive(false); f.emit("DurationChanged");
+    expect(f.first.classes.has(disabledClass)).toBe(false);
+    f.setLive(true); f.emit("TimeChanged");
+    expect(f.first.classes.has(disabledClass)).toBe(true);
+  });
+
+  it("uses one native dispatcher and retires only the released UI's subscription", async () => {
+    const messages = nativeMessages();
+    const f = fixture();
+    const second = variant();
+    const secondManager = { activeUi: second, onActiveUiChanged: event() } as unknown as UIManager;
+    applyNativeLiveRewindPolicy(f.player, f.manager);
+    applyNativeLiveRewindPolicy(f.player, secondManager);
+    expect(messages.on).toHaveBeenCalledTimes(1);
+    messages.send("false");
+    expect(f.first.classes.has(disabledClass)).toBe(true);
+    expect(second.classes.has(disabledClass)).toBe(true);
+    f.first.onRelease.emit();
+    expect(f.first.classes.size).toBe(0);
+    expect(f.listenerCount()).toBe(4);
+    messages.send("true"); messages.send("false");
+    expect(f.first.classes.size).toBe(0);
+    expect(second.classes.has(disabledClass)).toBe(true);
+    second.onRelease.emit();
+    expect(f.listenerCount()).toBe(0);
+    messages.send("false");
+    expect(second.classes.size).toBe(0);
+    await Promise.resolve();
+    expect(messages.sendAsynchronous).not.toHaveBeenCalled();
+  });
+
+  it("accepts only explicit boolean text and preserves the initial host policy", () => {
+    const messages = nativeMessages();
+    const f = fixture();
+    applyNativeLiveRewindPolicy(f.player, f.manager, disabledConfig);
+    for (const data of [undefined, "TRUE", "", "0", "{\"enabled\":true}"]) messages.send(data);
+    expect(f.first.classes.has(disabledClass)).toBe(true);
+    messages.send("true");
+    expect(f.first.classes.has(disabledClass)).toBe(false);
+  });
+
+  it("keeps a bridge free of UI references until a lazy variant actually activates", async () => {
+    const messages = nativeMessages();
+    const f = fixture(true, false);
+    applyNativeLiveRewindPolicy(f.player, f.manager);
+    await Promise.resolve();
+    expect(messages.on).not.toHaveBeenCalled();
+    expect(messages.sendAsynchronous).not.toHaveBeenCalled();
+    f.activate(f.first);
+    await Promise.resolve();
+    expect(messages.on).toHaveBeenCalledTimes(1);
+    expect(messages.sendAsynchronous).toHaveBeenCalledTimes(1);
+    messages.send("false");
+    expect(f.first.classes.has(disabledClass)).toBe(true);
+    f.first.onRelease.emit();
+    messages.send("false");
+    expect(f.first.classes.size).toBe(0);
+    expect(f.listenerCount()).toBe(0);
+  });
+
   it("keeps existing consumers unchanged when the policy is absent or enabled", () => {
     for (const config of [undefined, { playerLabLiveRewindEnabled: true } as UIConfig]) {
       const f = fixture();

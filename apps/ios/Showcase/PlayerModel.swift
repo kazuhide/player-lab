@@ -3,11 +3,8 @@ import Combine
 import BitmovinPlayer
 import PlaybackCore
 
-/// Which UI renders over the player. `default` is the SDK's own Web UI; the rest load our shared
-/// `@showcase/ui-shared` bundle (bundled as an app resource — see scripts/sync-webui-bundle.sh)
-/// and select one of its custom factories by name, demonstrating the §12 "build the UI once, reuse
-/// it across web-capable targets" story. iOS renders the player UI as a Web UI, so the same bundle
-/// the web app uses runs here unchanged. (Not applicable on tvOS — it uses the native System UI.)
+/// The bundled Web UI keeps the stock default layout and exposes shared custom factories.
+/// tvOS uses the native System UI because the Web UI is unavailable there.
 enum UiMode: String, CaseIterable, Identifiable {
     case `default` = "Default"
     case sports = "Sports"
@@ -43,6 +40,8 @@ final class PlayerModel: ObservableObject {
     @Published private(set) var sourceSettings: SourceSettings?
     @Published private(set) var sourcePresetRevision = UUID()
     @Published private(set) var apiObservationRevision = UUID()
+    @Published private(set) var apiAvailabilityRevision = UUID()
+    @Published private(set) var liveRewindUiReady = false
     @Published private(set) var playerSettings = PlayerSettings()
     @Published private(set) var configurationStatus = "Startup defaults active"
     @Published private(set) var trackStatus = PlaybackTrackStatus()
@@ -91,7 +90,14 @@ final class PlayerModel: ObservableObject {
     )
     @Published private(set) var log: [String] = []
     @Published var timeShiftEnabled = true {
-        didSet { refresh() }
+        didSet {
+            #if os(tvOS)
+            // System UI has no public runtime visibility switch. Keep the disabled
+            // preference aligned with the controls, including programmatic writes.
+            if !timeShiftEnabled { timeShiftEnabled = true }
+            #endif
+            synchronizeLiveRewindControls(); refresh()
+        }
     }
 
     private let licenseKey: String
@@ -102,15 +108,23 @@ final class PlayerModel: ObservableObject {
     private var liveSourceFinalized = false
     private var lastSnapshot: PlayerSnapshot?
     private var initialTrackSelection = InitialTrackSelectionGate()
+    private(set) var apiSession: NativeApiSession!
+    #if !os(tvOS)
+    private var liveRewindBridge: NativeLiveRewindBridge?
+    #endif
 
     init(licenseKey: String, analyticsLicenseKey: String = "") {
         self.licenseKey = licenseKey
         self.analyticsLicenseKey = analyticsLicenseKey
         let journal = NativeCallbackJournal()
         playerCallbackJournal = journal
-        player = PlayerModel.makePlayer(
+        let created = PlayerModel.makePlayer(
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
-            uiMode: .default, settings: PlayerSettings(), callbackJournal: journal, factory: .standard)
+            uiMode: .default, settings: PlayerSettings(), callbackJournal: journal, factory: .standard, rewindEnabled: true)
+        player = created.player
+        #if !os(tvOS)
+        liveRewindBridge = created.bridge
+        #endif
         journal.setModel(self)
         bindEvents()
     }
@@ -150,6 +164,9 @@ final class PlayerModel: ObservableObject {
 
     private func recreatePlayer() {
         let previous = player
+        apiSession?.bind(to: nil)
+        if let session = apiSession, !previous.isDestroyed { previous.remove(listener: session) }
+        apiSession = nil
         apiObjects.presentationRegistration.retire()
         apiObjects.retirePlayer(previous)
         apiPlaylistContexts.removeAll()
@@ -157,25 +174,37 @@ final class PlayerModel: ObservableObject {
         retireApiSourceEvents()
         cancellables.removeAll()
         resetSourceCompletion()
+        resetApiSession()
         initialTrackSelection.retire()
         lastSnapshot = nil
+        liveRewindUiReady = false
         let journal = NativeCallbackJournal()
         playerCallbackJournal = journal
-        let next = PlayerModel.makePlayer(
+        let created = PlayerModel.makePlayer(
             licenseKey: licenseKey, analyticsLicenseKey: analyticsLicenseKey,
-            uiMode: uiMode, settings: playerSettings, callbackJournal: journal, factory: nativePlayerFactory)
-        player = next
+            uiMode: uiMode, settings: playerSettings, callbackJournal: journal, factory: nativePlayerFactory, rewindEnabled: timeShiftEnabled)
+        player = created.player
+        #if !os(tvOS)
+        liveRewindBridge = created.bridge
+        #endif
         journal.setModel(self)
         playerGeneration = UUID()
         bindEvents()
         reloadCurrentSource()
         refresh()
-        previous.destroy()
+        if !previous.isDestroyed { previous.destroy() }
+    }
+
+    private struct CreatedPlayer {
+        let player: Player
+        #if !os(tvOS)
+        var bridge: NativeLiveRewindBridge?
+        #endif
     }
 
     private static func makePlayer(
-        licenseKey: String, analyticsLicenseKey: String, uiMode: UiMode, settings: PlayerSettings, callbackJournal: NativeCallbackJournal, factory: NativePlayerFactory
-    ) -> Player {
+        licenseKey: String, analyticsLicenseKey: String, uiMode: UiMode, settings: PlayerSettings, callbackJournal: NativeCallbackJournal, factory: NativePlayerFactory, rewindEnabled: Bool
+    ) -> CreatedPlayer {
         NativeLoggingOwner.apply(settings.advanced, journal: callbackJournal)
         let config = PlayerConfig()
         config.key = licenseKey
@@ -183,39 +212,74 @@ final class PlayerModel: ObservableObject {
         // tvOS: native System UI — the Web UI is unavailable here (§12).
         config.styleConfig.userInterfaceType = .system
         #else
-        // iOS: for a custom mode, point the Web UI at our shared bundle and select the factory.
-        // `default` (or a missing bundle) leaves the SDK's built-in Web UI in place.
-        if let factory = uiMode.factoryFunction,
-           let js = Bundle.main.url(forResource: "bitmovinplayer-ui", withExtension: "js"),
+        // The shared wrapper preserves the stock small-screen layout for Default.
+        // A missing bundle falls back to the SDK UI and leaves the preference unavailable.
+        if let js = Bundle.main.url(forResource: "bitmovinplayer-ui", withExtension: "js"),
            let css = Bundle.main.url(forResource: "bitmovinplayer-ui", withExtension: "css") {
             config.styleConfig.playerUiJs = js
             config.styleConfig.playerUiCss = css
             let uiConfig = BitmovinUserInterfaceConfig()
-            uiConfig.uiManagerFactoryFunction = factory
+            uiConfig.uiManagerFactoryFunction = uiMode.factoryFunction ?? "bitmovin.playerui.UIFactory.buildSmallScreenUI"
             config.styleConfig.userInterfaceConfig = uiConfig
         }
         #endif
         settings.apply(to: config, callbackJournal: callbackJournal)
         settings.advanced.applyUI(to: config, callbackJournal: callbackJournal)
+        #if !os(tvOS)
+        var bridge: NativeLiveRewindBridge?
+        if config.styleConfig.userInterfaceType == .bitmovin {
+            let ui = config.styleConfig.userInterfaceConfig as? BitmovinUserInterfaceConfig ?? BitmovinUserInterfaceConfig()
+            ui.customOptions["playerLabLiveRewindEnabled"] = rewindEnabled && settings.sdkTimeShiftEnabled
+            let handler = ui.customMessageHandler ?? CustomMessageHandler()
+            bridge = NativeLiveRewindBridge(handler: handler, journal: callbackJournal)
+            ui.customMessageHandler = handler
+            config.styleConfig.userInterfaceConfig = ui
+        }
+        #endif
         let configuredAdsManagerCallback = config.advertisingConfig.onAdsManagerAvailable
         config.advertisingConfig.onAdsManagerAvailable = { [weak callbackJournal] manager in
             callbackJournal?.setAdsManager(manager)
             configuredAdsManagerCallback?(manager)
         }
-        switch factory {
-        case .core: return PlayerCoreFactory.createPlayer(playerConfig: config)
-        case .legacy: return PlayerFactory.create(playerConfig: config)
-        case .standard: break
-        }
         // §15: the bundled analytics collector reports QoE to the Bitmovin dashboard
         // when a key is configured (repo-root .env → sync-env.sh → Local.xcconfig).
-        guard !analyticsLicenseKey.isEmpty else {
-            return PlayerFactory.createPlayer(playerConfig: config)
+        let result: Player
+        switch factory {
+        case .core: result = PlayerCoreFactory.createPlayer(playerConfig: config)
+        case .legacy: result = PlayerFactory.create(playerConfig: config)
+        case .standard:
+            if analyticsLicenseKey.isEmpty { result = PlayerFactory.createPlayer(playerConfig: config) }
+            else { result = PlayerFactory.createPlayer(playerConfig: config, analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))) }
         }
-        return PlayerFactory.createPlayer(
-            playerConfig: config,
-            analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))
-        )
+        #if os(tvOS)
+        return CreatedPlayer(player: result)
+        #else
+        bridge?.bind(to: result)
+        return CreatedPlayer(player: result, bridge: bridge)
+        #endif
+    }
+
+    func synchronizeLiveRewindControls() {
+        #if !os(tvOS)
+        liveRewindBridge?.send(timeShiftEnabled && playerSettings.sdkTimeShiftEnabled)
+        #endif
+    }
+
+    #if !os(tvOS)
+    @MainActor
+    func liveRewindUiDidBecomeReady(bridge: NativeLiveRewindBridge) {
+        guard liveRewindBridge === bridge else { return }
+        liveRewindUiReady = true
+        bridge.send(timeShiftEnabled && playerSettings.sdkTimeShiftEnabled, force: true)
+    }
+    #endif
+
+    var liveRewindControlsUnavailableReason: String? {
+        #if os(tvOS)
+        return "tvOS System UI does not support changing rewind control visibility during playback."
+        #else
+        return liveRewindUiReady ? nil : "This control requires the bundled Player Lab Web UI."
+        #endif
     }
 
     func load(_ source: ShowcaseSource) {
@@ -241,6 +305,7 @@ final class PlayerModel: ObservableObject {
         guard let sourceSettings else { return }
         retireApiSourceEvents()
         resetSourceCompletion()
+        resetApiSession()
         initialTrackSelection.retire()
         trackStatus = PlaybackTrackStatus()
         sourceCallbackJournal = NativeCallbackJournal()
@@ -327,6 +392,13 @@ final class PlayerModel: ObservableObject {
         liveSourceFinalized = false
     }
 
+    private func resetApiSession() {
+        apiSession?.bind(to: nil)
+        apiSession?.reset()
+        playerCallbackJournal.retireSourceObjects()
+        refreshApiAvailability()
+    }
+
     private func bindSourceCompletion(_ player: Player) {
         guard let source = player.source else { return }
         resetSourceCompletion()
@@ -348,6 +420,9 @@ final class PlayerModel: ObservableObject {
     }
 
     private func bindEvents() {
+        let session = NativeApiSession(model: self, player: player)
+        apiSession = session
+        player.add(listener: session)
         bindApiPlayerEvents()
         // Bind against a local (not the @Published `player` property): repeated property-wrapper
         // access across these four Combine chains pushes the Swift type-checker past its
@@ -473,6 +548,7 @@ final class PlayerModel: ObservableObject {
     }
 
     func setApiResult(_ message: String) { apiResult = message }
+    func refreshApiAvailability() { apiAvailabilityRevision = UUID() }
     func setApiState(_ values: [ApiStateValue]) { apiState = values }
     func clearApiEvents() { apiEvents.removeAll() }
 
@@ -480,6 +556,7 @@ final class PlayerModel: ObservableObject {
         apiPlaylistContexts.removeAll()
         initialTrackSelection.retire()
         resetSourceCompletion()
+        resetApiSession()
         player.unload()
         retireApiSourceEvents()
         trackStatus = PlaybackTrackStatus()
@@ -497,6 +574,7 @@ final class PlayerModel: ObservableObject {
         apiPlaylistContexts.removeAll()
         retireApiSourceEvents()
         resetSourceCompletion()
+        resetApiSession()
         initialTrackSelection.retire()
         trackStatus = PlaybackTrackStatus()
         player.load(sourceConfig: config)
@@ -510,6 +588,7 @@ final class PlayerModel: ObservableObject {
     func loadApiPlaylist(_ config: PlaylistConfig, contexts: [NativePlaylistSourceContext]) {
         retireApiSourceEvents()
         resetSourceCompletion()
+        resetApiSession()
         initialTrackSelection.retire()
         lastSnapshot = nil
         trackStatus = PlaybackTrackStatus()
@@ -532,6 +611,7 @@ final class PlayerModel: ObservableObject {
             apiPlaylistProgressSource = nil
             apiPlaylistProgressTime = nil
             resetSourceCompletion()
+            resetApiSession()
             initialTrackSelection.bind(source)
             lastSnapshot = nil
             trackStatus = PlaybackTrackStatus()
@@ -585,11 +665,12 @@ final class PlayerModel: ObservableObject {
 
     private func retireApiPlayerEvents() {
         playerApiPublishers.removeAll()
-        if let listener = playerApiListener { player.remove(listener: listener) }
+        if let listener = playerApiListener, !player.isDestroyed { player.remove(listener: listener) }
         playerApiListener = nil
     }
 
     private func bindApiSourceEvents(_ source: Source) {
+        apiSession?.bind(to: source)
         guard apiEventsEnabled else { return }
         apiSource = source
         let listener = SourceApiEventListener { [weak self, weak source] api, timestamp in

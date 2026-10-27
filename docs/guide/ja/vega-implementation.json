@@ -43,7 +43,7 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/5302052c73cacf6c15fc650932fc9ed8a776546e/apps/vega/README.md#build-the-kepler-application",
+          "url": "https://github.com/kazuhide/player-lab/blob/ade5442bf8c92ded898b60031d1800498e15ced6/apps/vega/README.md#build-the-kepler-application",
           "label": "Vega README：Keplerホストのビルド"
         },
         {
@@ -387,7 +387,11 @@
     },
     {
       "type": "p",
-      "text": "APIパネルは導入済みPlayerAPIへ型に応じた引数を渡します。「現在のSDKで呼び出せるAPIを確認」はメソッドの存在を調べるだけで呼び出しません。実行後は戻り値やエラーに加え、状態・イベント・映像で結果を確認します。マニフェスト関連の機能も形式に依存し、HLSのトラック用機能にはHLS、DASHのperiod用機能にはDASHが必要です。"
+      "text": "APIパネルは導入済みPlayerAPIへ型に応じた引数を渡します。「現在のSDKで呼び出せるAPIを確認」は、操作を実行せず、メソッドの存在と現在のソース・ライブ範囲・広告などの条件を調べます。選択欄と実行処理は同じ条件を使い、引数からSDKオブジェクトを作る処理の後にも確認します。ソースを変えても選択した操作と入力内容は保持します。実行後は状態・イベント・映像で結果を確認します。HLSのトラック操作にはHLS、DASHのperiod操作にはDASHが必要です。"
+    },
+    {
+      "type": "p",
+      "text": "getSource()はErrorの後も設定を返す場合があります。VegaSessionApiはイベント記録を停止している間もエラー状態を保持し、SourceLoadedまたは正常な再読み込みで解除します。読み込み中に新しいErrorが発生した場合は解除しません。数値・文字列やソース設定の入力内容は、ソースを変えても保持します。SDKオブジェクトへの参照は元のセッションに属するため、無効になった場合は選び直します。"
     },
     {
       "type": "steps",
@@ -668,6 +672,11 @@
     {
       "url": "https://developer.amazon.com/docs/vega/0.24/foreground-background",
       "label": "Amazon：前面・背景への状態変化"
+    },
+    {
+      "path": "apps/vega/src/api/availability.ts",
+      "line": 1,
+      "label": "VegaのAPIの実行条件"
     }
   ]
 }

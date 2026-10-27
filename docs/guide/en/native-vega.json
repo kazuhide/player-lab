@@ -202,6 +202,10 @@
       "text": "Search by an API path, method name or a feature such as volume or subtitles. English and Japanese search terms work, and exact paths and method names appear first. Previous results and Next results move through all matches; changing the search returns to the first result page."
     },
     {
+      "type": "p",
+      "text": "Commands that require a loaded source, live window or active insertion are disabled when those conditions are missing, with a reason for the selected command. Execution checks the current session again. PlayerAPI.sgai.skip needs active insertion content; an ordinary VOD source has none. Analytics SSAI notifications only report ad events and do not create or insert advertisements."
+    },
+    {
       "type": "figure",
       "file": "vega-api-search",
       "caption": "API results for “volume” with PlayerAPI.getVolume selected."
@@ -210,7 +214,7 @@
       "type": "steps",
       "items": [
         "Open Show SDK API experiments, search PlayerAPI.getCurrentTime and choose a call signature if needed. Optional arguments can be supplied or omitted. Select Run Vega SDK API. Executed call displays the submitted code; Result displays the returned value, while API error identifies a failed call or input validation.",
-        "Run the time query again while media advances, and compare seconds with the picture. Inspect current SDK API availability only checks whether methods exist; it does not call them or demonstrate their feature behavior.",
+        "Run the time query again while media advances, and compare seconds with the picture. Inspect current SDK API availability checks method presence and the current source/ad prerequisites; it does not execute the listed methods or establish media playback.",
         "To compare a command, read PlayerAPI.getVolume, record its value, run PlayerAPI.setVolume and read it again. Restore the recorded volume afterward. A returned value, a setter or an empty result should be checked against the relevant state/events.",
         "Use SDK events, Pause Vega event log and Clear Vega event log to isolate the relevant notifications. For on/off experiments, remove the same callback instance that was registered. Query any required SDK objects from the current session after recreation.",
         "Use Recreate Vega player after destroying the Player or to return to the applied configuration. The replacement waits for the previous media session to release. It does not undo saved source/configuration changes; restore those in the form when needed."

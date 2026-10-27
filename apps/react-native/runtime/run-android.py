@@ -147,7 +147,18 @@ class Ui:
             self.swipe(True)
         raise RuntimeError("The normal App header was unreachable")
 
-    def edit(self, label, text):
+    @staticmethod
+    def input_acknowledged(tree, label, expected):
+        for node in tree.iter("node"):
+            if node.get("class") != "android.widget.EditText" or node.get("content-desc") != label or node.get("focused") != "true":
+                continue
+            text, hint = node.get("text", ""), node.get("hint", "")
+            # Android AX exposes an empty input's placeholder as its text.
+            if text == expected or (expected == "" and hint and text == hint):
+                return True
+        return False
+
+    def edit(self, label, text, dismiss_keyboard=True):
         self.last_control, self.last_action = label, "focus"
         self.tap(self.reveal(label, upwards=label in {"Source URL", "Source title"}))
         keyboard_deadline = time.monotonic() + 2
@@ -163,8 +174,7 @@ class Ui:
         def acknowledged(tree, expected):
             # Android can scroll a focused input during IME/layout animation.
             # Read that exact focused input; typing still uses normal OS input.
-            return any(node.get("content-desc") == label and node.get("focused") == "true" and
-                       node.get("text", "") == expected for node in tree.iter("node"))
+            return self.input_acknowledged(tree, label, expected)
         self.wait(lambda tree: acknowledged(tree, ""))
         # React controlled inputs must acknowledge each edit before the next one.
         self.last_action = "type"
@@ -176,7 +186,7 @@ class Ui:
             time.sleep(.1)
         self.wait(lambda tree: acknowledged(tree, text))
         self.tree()
-        if self.keyboard_visible:
+        if self.keyboard_visible and dismiss_keyboard:
             self.adb("shell", "input", "keyevent", "4")
             self.wait(lambda tree: not self.keyboard_visible)
         self.last_action = "acknowledged"
@@ -219,13 +229,25 @@ class Ui:
     def pause_visible(self):
         self.playback_control(False)
 
+    def playback_button(self, tree, play):
+        names = {"play", "play video"} if play else {"pause", "pause video"}
+        webviews = [node for node in tree.iter("node") if node.get("class") == "android.webkit.WebView"]
+        candidates = [node for view in webviews for node in view.iter("node")
+                      if node.get("class") == "android.widget.Button" and self.visible(node) and
+                      any(node.get(key, "").casefold() in names for key in ["text", "content-desc"])]
+        if candidates:
+            # A full-video overlay can share the label while only revealing controls.
+            # Prefer the compact SDK control; native readback still acknowledges every touch.
+            return min(candidates, key=lambda node: (self.bounds(node)[2] - self.bounds(node)[0]) *
+                       (self.bounds(node)[3] - self.bounds(node)[1]))
+        control = self.find(tree, "Play" if play else "Pause")
+        return control if control is not None else self.find(tree, "Play video" if play else "Pause video")
+
     def playback_control(self, play):
         self.top()
         tree = self.tree()
         for _ in range(3):
-            control = self.find(tree, "Play" if play else "Pause")
-            if control is None:
-                control = self.find(tree, "Play video" if play else "Pause video")
+            control = self.playback_button(tree, play)
             if control is not None:
                 read = self.find(tree, "Read runtime report")
                 prior = self.last_report and self.last_report["owner"]

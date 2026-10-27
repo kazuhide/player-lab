@@ -210,10 +210,10 @@
       "text": "    func effect(for configuration: ValidatedConfiguration) -> ConfigurationEffect {\n        if configuration.player != playerSettings { return .recreatePlayer }\n        if configuration.source != sourceSettings { return .reloadSource }\n        return .none\n    }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 127,
-        "label": "PlayerModel.swift:127–131"
+        "line": 141,
+        "label": "PlayerModel.swift:141–145"
       },
-      "endLine": 131
+      "endLine": 145
     },
     {
       "type": "p",
@@ -336,18 +336,18 @@
     },
     {
       "type": "p",
-      "text": "iOS/iPadOS themes select a factory by JavaScript function name and set resource URLs through StyleConfig. Sports scores and player details are fictional samples. tvOS sets userInterfaceType to .system and omits the shared Web UI theme selector."
+      "text": "iOS/iPadOS loads the bundled shared JavaScript and CSS for Default as well as custom themes. Default keeps the SDK small-screen component layout; custom themes select another exported factory. Sports scores and player details are fictional samples. tvOS selects .system and has no shared Web UI theme selector."
     },
     {
       "type": "code",
       "title": "Load a bundled UI and select its factory on iOS/iPadOS",
-      "text": "        if let factory = uiMode.factoryFunction,\n           let js = Bundle.main.url(forResource: \"bitmovinplayer-ui\", withExtension: \"js\"),\n           let css = Bundle.main.url(forResource: \"bitmovinplayer-ui\", withExtension: \"css\") {\n            config.styleConfig.playerUiJs = js\n            config.styleConfig.playerUiCss = css\n            let uiConfig = BitmovinUserInterfaceConfig()\n            uiConfig.uiManagerFactoryFunction = factory\n            config.styleConfig.userInterfaceConfig = uiConfig\n        }",
+      "text": "        if let js = Bundle.main.url(forResource: \"bitmovinplayer-ui\", withExtension: \"js\"),\n           let css = Bundle.main.url(forResource: \"bitmovinplayer-ui\", withExtension: \"css\") {\n            config.styleConfig.playerUiJs = js\n            config.styleConfig.playerUiCss = css\n            let uiConfig = BitmovinUserInterfaceConfig()\n            uiConfig.uiManagerFactoryFunction = uiMode.factoryFunction ?? \"bitmovin.playerui.UIFactory.buildSmallScreenUI\"\n            config.styleConfig.userInterfaceConfig = uiConfig\n        }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 188,
-        "label": "PlayerModel.swift:188–196"
+        "line": 217,
+        "label": "PlayerModel.swift:217–224"
       },
-      "endLine": 196
+      "endLine": 224
     },
     {
       "type": "steps",
@@ -410,6 +410,10 @@
       "type": "h3",
       "id": "tvos-system-ui",
       "text": "System UI on tvOS"
+    },
+    {
+      "type": "p",
+      "text": "SystemUserInterfaceConfig.showSeekBar is a creation-time option; it also affects track menus. The pinned SDK has no public runtime API for hiding only live rewind while keeping the rest of the transport UI. Player Lab therefore disables its live-rewind preference on tvOS instead of showing a switch that cannot update those controls. SDK time-shift configuration remains editable before player creation."
     },
     {
       "type": "p",
@@ -500,7 +504,7 @@
         [
           "Live rewind: live HLS with a retained seekable window",
           "Load Live HLS, start playback, then use a negative offset action in More → Live controls and return with Live edge.",
-          "The app sets player.timeShift within player.maxTimeShift and derives its display state. The app control switch and the SDK time-shift setting both affect the quick actions; no retained media means no rewind window."
+          "The app sets player.timeShift within player.maxTimeShift. On iOS/iPadOS the app preference also changes the live seek bar immediately through CustomMessageHandler, without replacing Player, Source or PlayerView. SDK isTimeShiftEnabled is a separate creation-time setting. No retained media means no rewind window."
         ]
       ]
     },
@@ -578,6 +582,14 @@
     },
     {
       "type": "p",
+      "text": "NativeApiSession observes readiness, source failure and ad lifecycle independently of event-log recording. The operation chooser and dispatch share NativeApiContext; dispatch reads current SDK objects again. Ad skip requires an observed active linear ad, its skippableAfter threshold and the current ad position. IMA also requires disabled IMA UI. Non-linear lifecycle APIs marked ExperimentalApi are not used to infer eligibility in this public-API integration."
+    },
+    {
+      "type": "p",
+      "text": "Source loading state alone does not describe failure. The app retains source/player errors until recovery. Player.maxSelectableBitrate remains configurable without a loaded source, including zero to clear the cap. On a usable live source with SDK time shifting enabled, timeShift(0) remains a return-to-edge operation when only the app rewind preference is off or the rewind window is zero."
+    },
+    {
+      "type": "p",
       "text": "Retain event subscriptions while their SDK owner is active and remove them before replacing it. In the listener path below, player.add/remove are SDK APIs; playerApiListener and recordApiEvent are app helpers. The API pane can select listener or publisher transport."
     },
     {
@@ -587,13 +599,13 @@
     {
       "type": "code",
       "title": "Retain and remove the Player API listener",
-      "text": "    private func bindApiPlayerEvents() {\n        guard apiEventsEnabled else { return }\n        let player = self.player\n        let listener = PlayerApiEventListener { [weak self, weak player] api, timestamp in\n            guard let self, let player, self.player === player else { return }\n            self.recordApiEvent(api, timestamp: timestamp, owner: \"Player\")\n        }\n        playerApiListener = listener\n        if apiEventTransport == .listener { player.add(listener: listener) }\n        else { playerApiPublishers = NativePublisherSubscriptions.player(player, receiver: listener) }\n    }\n\n    private func retireApiPlayerEvents() {\n        playerApiPublishers.removeAll()\n        if let listener = playerApiListener { player.remove(listener: listener) }\n        playerApiListener = nil\n    }",
+      "text": "    private func bindApiPlayerEvents() {\n        guard apiEventsEnabled else { return }\n        let player = self.player\n        let listener = PlayerApiEventListener { [weak self, weak player] api, timestamp in\n            guard let self, let player, self.player === player else { return }\n            self.recordApiEvent(api, timestamp: timestamp, owner: \"Player\")\n        }\n        playerApiListener = listener\n        if apiEventTransport == .listener { player.add(listener: listener) }\n        else { playerApiPublishers = NativePublisherSubscriptions.player(player, receiver: listener) }\n    }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 574,
-        "label": "PlayerModel.swift:574–590"
+        "line": 654,
+        "label": "PlayerModel.swift:654–664"
       },
-      "endLine": 590
+      "endLine": 664
     },
     {
       "type": "h2",
@@ -676,13 +688,13 @@
     {
       "type": "code",
       "title": "Enable Analytics on the standard factory path",
-      "text": "        guard !analyticsLicenseKey.isEmpty else {\n            return PlayerFactory.createPlayer(playerConfig: config)\n        }\n        return PlayerFactory.createPlayer(\n            playerConfig: config,\n            analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))\n        )",
+      "text": "        case .standard:\n            if analyticsLicenseKey.isEmpty { result = PlayerFactory.createPlayer(playerConfig: config) }\n            else { result = PlayerFactory.createPlayer(playerConfig: config, analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))) }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 212,
-        "label": "PlayerModel.swift:212–218"
+        "line": 250,
+        "label": "PlayerModel.swift:250–252"
       },
-      "endLine": 218
+      "endLine": 252
     },
     {
       "type": "steps",
@@ -738,7 +750,7 @@
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 125,
+      "line": 139,
       "label": "Apply, player creation and source loading"
     },
     {
@@ -863,6 +875,16 @@
     {
       "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerview/index.html",
       "label": "Bitmovin: PlayerView, System UI and native registration"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeApiAvailability.swift",
+      "line": 1,
+      "label": "Current native prerequisites and errors"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeLiveRewindBridge.swift",
+      "line": 1,
+      "label": "Native control preference messages"
     }
   ]
 }

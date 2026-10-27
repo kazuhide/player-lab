@@ -1,0 +1,275 @@
+import BitmovinPlayer
+import Combine
+import SwiftUI
+import XCTest
+#if os(tvOS)
+@testable import Showcase_tvOS
+#else
+import WebKit
+@testable import Showcase_iOS
+#endif
+
+/// Uses the public HLS finalization fixture on ports 5198/5199; no synthetic playback state.
+@MainActor
+final class NativeControlsRuntimeTests: XCTestCase {
+    private var failureObservation: (() async -> Void)?
+    func testSourceFailureAndRecoveryUpdateGuardsWithEventRecordingDisabled() async throws {
+        try await resetFixture()
+        XCTAssertFalse(bitmovinLicenseKey().isEmpty)
+        let model = PlayerModel(licenseKey: bitmovinLicenseKey())
+        model.setPresentation(.playerView)
+        model.setApiEventRecording(false)
+        var draft = model.configurationDraft
+        draft.sourceURL = "http://localhost:5198/missing-controls-fixture.m3u8"
+        draft.autoplay = true
+        try model.apply(draft)
+        let (window, host) = try show(model)
+        let player = model.player
+        var receivedSourceError = false
+        let errors = player.events.on(SourceErrorEvent.self).sink { _ in receivedSourceError = true }
+        failureObservation = { await self.capture(model, host: host, window: window, stage: "source-failure") }
+        defer { failureObservation = nil; errors.cancel(); model.player.destroy(); window.isHidden = true; _ = host }
+        try await eventually("real source error updates permanent command observer") {
+            let context = model.apiContext()
+            return receivedSourceError && (context.playback.source == .failed || !context.hasSource)
+        }
+        XCTAssertThrowsError(try model.executeApi(.play, arguments: [:]))
+        XCTAssertThrowsError(try model.executeApi(.seek, arguments: ["value": "2"]))
+        XCTAssertNil(model.apiContext().rejection(for: .reload))
+        XCTAssertNil(model.apiContext().rejection(for: .destroyAndRecreate))
+        let failedSource = player.source
+        XCTAssertNil(model.apiContext().rejection(for: .bitrate))
+        XCTAssertNoThrow(try model.executeApi(.bitrate, arguments: ["value": "2500000"]))
+        XCTAssertNoThrow(try model.executeApi(.bitrate, arguments: ["value": "0"]))
+        XCTAssertEqual(player.maxSelectableBitrate, 0)
+        XCTAssertTrue(model.player === player)
+        XCTAssertTrue(player.source === failedSource)
+        XCTAssertTrue(model.apiEvents.isEmpty)
+        try await setFixture("finalize")
+        draft.sourceURL = "http://localhost:5198/master.m3u8?recovered=1"
+        try model.apply(draft)
+        try await eventually("new VOD source clears retired error context") {
+            model.apiContext().rejection(for: .seek, arguments: ["value": "2"]) == nil && player.isPlaying
+        }
+        XCTAssertTrue(model.player === player)
+        XCTAssertTrue(model.apiEvents.isEmpty)
+        XCTAssertNoThrow(try model.executeApi(.seek, arguments: ["value": "2"]))
+        XCTAssertNoThrow(try model.executeApi(.unload, arguments: [:]))
+        try await eventually("explicit unload clears the current Source") { player.source == nil }
+        XCTAssertNil(model.apiContext().rejection(for: .bitrate))
+        XCTAssertNoThrow(try model.executeApi(.bitrate, arguments: ["value": "0"]))
+        XCTAssertTrue(model.player === player)
+        XCTAssertTrue(model.apiEvents.isEmpty)
+    }
+
+    #if !os(tvOS)
+    // Host/API regression. Ordinary native touch qualification uses the separate
+    // NativeControlsTouchUITests target and read-only observations.
+    func testHostPreferenceUpdatesEmbeddedControlsWithoutReplacingNativePlayback() async throws {
+        continueAfterFailure = false
+        try await resetFixture()
+        XCTAssertFalse(bitmovinLicenseKey().isEmpty)
+        let model = PlayerModel(licenseKey: bitmovinLicenseKey())
+        model.setApiEventRecording(false)
+        model.setPresentation(.playerView)
+        var draft = model.configurationDraft
+        draft.sourceURL = "http://localhost:5198/master.m3u8"
+        draft.posterURL = ""; draft.autoplay = true
+        try model.apply(draft)
+        let (window, host) = try show(model)
+        failureObservation = { await self.capture(model, host: host, window: window, stage: "live-control-failure") }
+        defer { failureObservation = nil; model.player.destroy(); window.isHidden = true; _ = host }
+        try await eventually("Web UI handshake") { model.liveRewindUiReady }
+        try await eventually("native live playback and DVR window") {
+            model.player.isPlaying && model.hasCurrentLiveSource && model.dvr.dvrAvailable
+        }
+        let player = model.player, source = try XCTUnwrap(model.player.source)
+        let view = try XCTUnwrap(model.apiPlayerView)
+        let web = try XCTUnwrap(find(WKWebView.self, in: view))
+        var sourceLoads = 0
+        let loads = player.events.on(SourceLoadedEvent.self).sink { _ in sourceLoads += 1 }
+        defer { loads.cancel() }
+        try await eventually("visible enabled embedded seek control") {
+            try await self.seekControls(web, expectedVisible: true)
+        }
+        player.pause()
+        try await eventually("paused native playback") { player.isPaused }
+        let pausedTime = player.currentTime
+        model.timeShiftEnabled = false
+        try await eventually("embedded live seek controls hidden while paused") {
+            try await self.seekControls(web, expectedVisible: false)
+        }
+        XCTAssertTrue(model.player === player)
+        XCTAssertTrue(player.source === source)
+        XCTAssertTrue(model.apiPlayerView === view)
+        XCTAssertTrue(player.isPaused)
+        XCTAssertEqual(player.currentTime, pausedTime, accuracy: 0.75)
+        XCTAssertEqual(sourceLoads, 0)
+        await capture(model, host: host, window: window, stage: "paused-live-rewind-hidden")
+        XCTAssertThrowsError(try model.executeApi(.timeShift, arguments: ["value": "-5"]))
+        model.timeShiftEnabled = true
+        try await eventually("embedded live seek controls restored") { try await self.seekControls(web, expectedVisible: true) }
+        XCTAssertTrue(model.player === player)
+        XCTAssertTrue(player.source === source)
+        XCTAssertEqual(sourceLoads, 0)
+        await capture(model, host: host, window: window, stage: "paused-live-rewind-restored")
+        player.play()
+        let before = player.currentTime
+        try await eventually("same native playback advances after toggle") { player.isPlaying && player.currentTime > before + 1 }
+
+        XCTAssertNoThrow(try model.executeApi(.timeShift, arguments: ["value": "-5"]))
+        try await eventually("native playback is rewound before disabling controls") { player.timeShift < -2 }
+        model.timeShiftEnabled = false
+        try await eventually("rewound playback hides only embedded seek controls") {
+            try await self.seekControls(web, expectedVisible: false)
+        }
+        XCTAssertNil(model.apiContext().rejection(for: .timeShift))
+        XCTAssertNil(model.apiContext().rejection(for: .timeShift, arguments: ["value": "0"]))
+        XCTAssertThrowsError(try model.executeApi(.timeShift, arguments: ["value": "-5"]))
+        XCTAssertNoThrow(try model.executeApi(.timeShift, arguments: ["value": "0"]))
+        try await eventually("zero-offset recovery reaches the native live edge") { abs(player.timeShift) <= 1 }
+        XCTAssertTrue(model.player === player)
+        XCTAssertTrue(player.source === source)
+        XCTAssertTrue(model.apiPlayerView === view)
+        XCTAssertEqual(sourceLoads, 0)
+        XCTAssertTrue(model.apiEvents.isEmpty)
+        await capture(model, host: host, window: window, stage: "live-edge-recovery-with-rewind-disabled")
+        try await setFixture("finalize")
+        model.load(ShowcaseSource(id: "controls-vod", label: "Local VOD", kind: .vodHls,
+                                 url: try XCTUnwrap(URL(string: "http://localhost:5198/master.m3u8?vod=1"))))
+        try await eventually("VOD playback restores embedded seeking despite live preference") {
+            guard player.source !== source, !player.isLive, player.duration.isFinite, player.duration > 0 else { return false }
+            return try await self.seekControls(web, expectedVisible: true)
+        }
+        XCTAssertTrue(model.player === player)
+        XCTAssertNotNil(model.apiContext().rejection(for: .timeShift))
+        XCTAssertNil(model.apiContext().rejection(for: .seek, arguments: ["value": "2"]))
+        print("Apple controls: embedded Web UI seek-control visibility changes while paused; exact Player, Source and PlayerView retained; no source reload; same native playback advances; VOD seeking restored")
+    }
+
+    private func seekControls(_ web: WKWebView, expectedVisible: Bool) async throws -> Bool {
+        let script = """
+        (() => {
+          const visible = e => {
+            for (let p = e; p; p = p.parentElement) {
+              const s = getComputedStyle(p);
+              if (s.display === 'none' || s.visibility === 'hidden' || Number(s.opacity) === 0) return false;
+            }
+            const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0;
+          };
+          const seek = [...document.querySelectorAll('.bmpui-ui-seekbar, .bmpui-ui-quickseekbutton')];
+          if (!seek.length) return false;
+          const playback = [...document.querySelectorAll('.bmpui-ui-playbacktogglebutton')].some(visible);
+          return playback && \(expectedVisible ? "seek.some(visible)" : "seek.every(e => !visible(e))");
+        })()
+        """
+        return (try await web.evaluateJavaScript(script) as? Bool) == true
+    }
+    #else
+    func testTvSystemUiKeepsUnsupportedPreferenceAndNativePlaybackAligned() async throws {
+        try await resetFixture()
+        XCTAssertFalse(bitmovinLicenseKey().isEmpty)
+        let model = PlayerModel(licenseKey: bitmovinLicenseKey())
+        model.setPresentation(.playerView)
+        var draft = model.configurationDraft
+        draft.sourceURL = "http://localhost:5198/master.m3u8"; draft.autoplay = true
+        try model.apply(draft)
+        let (window, host) = try show(model)
+        defer { model.player.destroy(); window.isHidden = true; _ = host }
+        try await eventually("native tvOS playback") { model.player.isPlaying && model.hasCurrentLiveSource }
+        let player = model.player, source = try XCTUnwrap(player.source), view = try XCTUnwrap(model.apiPlayerView)
+        XCTAssertNotNil(view.systemUi)
+        XCTAssertEqual(player.config.styleConfig.userInterfaceType, .system)
+        model.timeShiftEnabled = false
+        XCTAssertTrue(model.timeShiftEnabled)
+        XCTAssertNotNil(model.liveRewindControlsUnavailableReason)
+        XCTAssertTrue(model.player === player)
+        XCTAssertTrue(player.source === source)
+        XCTAssertTrue(model.apiPlayerView === view)
+        let before = player.currentTime
+        try await eventually("same System UI playback advances") { player.currentTime > before + 1 }
+    }
+    #endif
+
+    private func show(_ model: PlayerModel) throws -> (UIWindow, UIHostingController<NativePresentationSurface>) {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene), host = UIHostingController(rootView: NativePresentationSurface(model: model))
+        window.rootViewController = host; window.windowLevel = .alert + 1; window.makeKeyAndVisible()
+        host.view.frame = window.bounds; host.view.layoutIfNeeded()
+        return (window, host)
+    }
+    private func capture(_ model: PlayerModel, host: UIViewController, window: UIWindow, stage: String) async {
+        let player = model.player
+        guard !player.isDestroyed else { return }
+        var values: [String: Any] = [
+            "stage": stage, "sdkVersion": PlayerFactory.sdkVersion,
+            "playerIdentity": String(describing: ObjectIdentifier(player)),
+            "sourceIdentity": player.source.map { String(describing: ObjectIdentifier($0)) } ?? "nil",
+            "viewIdentity": model.apiPlayerView.map { String(describing: ObjectIdentifier($0)) } ?? "nil",
+            "nativeLive": player.isLive, "nativePlaying": player.isPlaying, "nativePaused": player.isPaused,
+            "nativeCurrentTime": player.currentTime.isFinite ? player.currentTime as Any : "nonfinite",
+            "nativeMaxTimeShift": player.maxTimeShift.isFinite ? player.maxTimeShift as Any : "nonfinite",
+            "nativeSourceState": player.source.map { String(describing: $0.loadingState) } ?? "nil",
+            "appLiveSource": model.hasCurrentLiveSource, "appDvrAvailable": model.dvr.dvrAvailable,
+            "webUiReady": model.liveRewindUiReady,
+            "currentSourceReady": player.source.map { model.apiSession.readySource === $0 } ?? false,
+            "currentSourceFailed": player.source.map { model.apiSession.failedSource === $0 } ?? false,
+        ]
+        #if !os(tvOS)
+        if let web = find(WKWebView.self, in: host.view) {
+            values["web"] = try? await web.evaluateJavaScript("""
+            (() => {
+              const visible = e => {
+                for (let p = e; p; p = p.parentElement) {
+                  const s = getComputedStyle(p);
+                  if (s.display === 'none' || s.visibility === 'hidden' || Number(s.opacity) === 0) return false;
+                }
+                const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0;
+              };
+              return JSON.stringify({state:document.readyState,
+              bridgeOn:typeof window.bitmovin?.customMessageHandler?.on,
+              bridgeSend:typeof window.bitmovin?.customMessageHandler?.sendAsynchronousMessage,
+              bridgeSendAsynchronous:typeof window.bitmovin?.customMessageHandler?.sendAsynchronous,
+              roots:document.querySelectorAll('.bmpui-ui-uicontainer').length,
+              seekbars:document.querySelectorAll('.bmpui-ui-seekbar').length,
+              seekVisibility:[...document.querySelectorAll('.bmpui-ui-seekbar, .bmpui-ui-quickseekbutton')].map(visible),
+              playbackVisibility:[...document.querySelectorAll('.bmpui-ui-playbacktogglebutton')].map(visible),
+              text:document.body.innerText.slice(0,180)});
+            })()
+            """)
+        }
+        #endif
+        if let data = try? JSONSerialization.data(withJSONObject: values, options: [.sortedKeys]), let text = String(data: data, encoding: .utf8) {
+            print("Apple controls observation: " + text)
+            let attachment = XCTAttachment(string: text); attachment.name = stage + "-state"; attachment.lifetime = .keepAlways; add(attachment)
+        }
+        let image = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in window.drawHierarchy(in: window.bounds, afterScreenUpdates: true) }
+        let attachment = XCTAttachment(image: image); attachment.name = stage + "-screen"; attachment.lifetime = .keepAlways; add(attachment)
+    }
+    private func resetFixture() async throws {
+        try await setFixture("reset")
+    }
+    private func setFixture(_ action: String) async throws {
+        var request = URLRequest(url: try XCTUnwrap(URL(string: "http://localhost:5199/\(action)")))
+        request.httpMethod = "POST"
+        let (_, response) = try await URLSession.shared.data(for: request)
+        XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
+    }
+    #if !os(tvOS)
+    private func find<T: UIView>(_ type: T.Type, in root: UIView) -> T? {
+        if let result = root as? T { return result }
+        for child in root.subviews { if let result = find(type, in: child) { return result } }
+        return nil
+    }
+    #endif
+    private func eventually(_ stage: String, predicate: () async throws -> Bool) async throws {
+        let deadline = Date().addingTimeInterval(45)
+        while Date() < deadline {
+            if try await predicate() { return }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        await failureObservation?()
+        XCTFail("Timed out waiting for \(stage)"); throw QualificationFailure.deadline
+    }
+    private enum QualificationFailure: Error { case deadline }
+}

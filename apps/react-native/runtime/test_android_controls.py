@@ -40,6 +40,16 @@ def observation(sequence, playing, generation=2):
 
 
 class NativeControlAcknowledgementTests(unittest.TestCase):
+    def test_compact_sdk_pause_button_precedes_the_full_video_overlay(self):
+        ui = ControlUi([observation(2, False)])
+        ui.last_tree = ET.fromstring('<hierarchy><node class="android.webkit.WebView" bounds="[0,0][400,220]">'
+            '<node class="android.widget.Button" resource-id="overlay-pause" text="Pause" bounds="[0,0][400,220]"/>'
+            '<node class="android.widget.Button" resource-id="bar-pause" text="Pause" bounds="[10,160][60,210]"/>'
+            '</node><node text="Read runtime report" bounds="[0,240][180,300]"/></hierarchy>')
+        ui.tap = lambda node: ui.touches.append(node.get("resource-id") or node.get("text"))
+        ui.pause_visible()
+        self.assertEqual(ui.touches, ["bar-pause", "Read runtime report"])
+
     def test_reveal_only_touch_does_not_count_as_pause(self):
         ui = ControlUi([observation(2, True), observation(3, False)])
         ui.pause_visible()

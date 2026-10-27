@@ -138,6 +138,7 @@ targets:
         buildPhase: resources
         excludes: [README.md]
       - Showcase/NativePlayerSurface.swift
+      - Showcase/NativeLiveRewindBridge.swift
       - Showcase/NativeTVControls.swift
       - Showcase/NativeTVOperations.swift
       - Showcase/NativeNetworkConfiguration.swift
@@ -152,6 +153,7 @@ targets:
       - Showcase/NativeRichConfiguration.swift
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
+      - Showcase/NativeApiAvailability.swift
       - Showcase/NativeExtendedApi.swift
       - Showcase/NativeCastWorkbench.swift
       - Showcase/ApiState.swift
@@ -267,6 +269,7 @@ targets:
         buildPhase: resources
         excludes: [README.md]
       - Showcase/NativePlayerSurface.swift
+      - Showcase/NativeLiveRewindBridge.swift
       - Showcase/NativeTVControls.swift
       - Showcase/NativeTVOperations.swift
       - Showcase/NativeNetworkConfiguration.swift
@@ -281,6 +284,7 @@ targets:
       - Showcase/NativeRichConfiguration.swift
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
+      - Showcase/NativeApiAvailability.swift
       - Showcase/NativeExtendedApi.swift
       - Showcase/NativeCastWorkbench.swift
       - Showcase/ApiState.swift
@@ -318,6 +322,50 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.tvos.tests.configurationui
+
+  # This target reuses the exact production model, native host and workspace.
+  # Only its app entry point and read-only AX observations are test-specific.
+  Showcase-iOSControlsHost:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: Showcase
+        excludes: [ShowcaseApp.swift]
+      - path: Showcase/NativeExamples/NativeRemoteSourceFactory.swift.txt
+        buildPhase: resources
+      - path: Showcase/NativeScripts
+        buildPhase: resources
+        excludes: [README.md]
+      - path: ShowcaseControlsQualificationHost
+      - path: WebUI
+        buildPhase: resources
+        optional: true
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Showcase/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.ios
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - package: GoogleCast
+        product: GoogleCastDynamic
+      - package: BitmovinPlayer
+        product: BitmovinPlayer
+      - package: PlaybackCore
+
+  Showcase-iOSControlsQualificationUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - ShowcaseControlsQualificationUITests
+      - ShowcaseConfigurationUITests/WorkspaceUITestNavigation.swift
+    dependencies:
+      - target: Showcase-iOSControlsHost
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.playerlab.ios.tests.controlstouch
 
 # Keep app build schemes alongside the opt-in runtime scheme for command-line builds.
 schemes:
@@ -387,3 +435,9 @@ schemes:
         Showcase-tvOS: all
     test:
       targets: [Showcase-tvOSTrackRuntimeTests, Showcase-tvOSConfigurationUITests]
+  Showcase-iOS-ControlsTouchQualification:
+    build:
+      targets:
+        Showcase-iOSControlsHost: all
+    test:
+      targets: [Showcase-iOSControlsQualificationUITests]

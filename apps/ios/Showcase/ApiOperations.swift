@@ -176,7 +176,9 @@ extension PlayerModel {
         let arguments = try operation.validated(arguments)
         let value = arguments["value"] ?? ""
         let player = self.player
-        guard !player.isDestroyed else { throw ConfigurationValidationError(message: "Create a player before invoking this API.") }
+        if let reason = apiContext().rejection(for: operation, arguments: arguments) {
+            throw ConfigurationValidationError(message: reason.nativeLocalized)
+        }
         var result = operation.rawValue + " invoked. Inspect the state and event log for SDK completion."
         switch operation {
         case .play: player.play()

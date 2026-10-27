@@ -67,13 +67,13 @@ export function sdkCodeValue(value: unknown, path: string, depth = 0): string {
 /** Read the validated applied object, never unapplied form text or environment keys. */
 export function configurationCode(applied: Configuration, platform: NativePlatform, factory: string | null): string {
   const playerConfig: SDK.PlayerConfig = { ...applied.player, licenseKey: "YOUR_PLAYER_KEY" };
-  if (factory) playerConfig.styleConfig = {
+  playerConfig.styleConfig = {
     userInterfaceType: SDK.UserInterfaceType.Bitmovin,
     playerUiJs: platform === "android" ? "file:///android_asset/webui/bitmovinplayer-ui.js" : "bitmovinplayer-ui.js",
     playerUiCss: platform === "android" ? "file:///android_asset/webui/bitmovinplayer-ui.css" : "bitmovinplayer-ui.css",
     ...applied.player.styleConfig,
   };
-  const webUi: SDK.WebUiConfig = { ...(factory ? { variant: new SDK.CustomUi(factory) } : {}), ...applied.webUi };
+  const webUi: SDK.WebUiConfig = { variant: new SDK.CustomUi(factory ?? "bitmovin.playerui.UIFactory.buildSmallScreenUI"), ...applied.webUi };
   const viewConfig: SDK.PlayerViewConfig = { ...applied.view, ...(Object.keys(webUi).length ? { uiConfig: webUi } : {}) };
   const scripts = applied.draft.scripts;
   const lines = [

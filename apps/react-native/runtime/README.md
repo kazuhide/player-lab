@@ -1,5 +1,35 @@
 # React Native device regression checks
 
+The Android controls check additionally requires Node 22 or newer. It opens an
+owned, temporary debugger port for the debug SDK WebView and reads computed DOM
+visibility, including hidden ancestors. A reveal point must hit control-bar
+padding outside all actionable ancestors. It uses normal Android touches to reveal
+and operate the compact SDK controls, then requires fresh native playback and
+owner/source readback. The port is removed during cleanup. No DOM or player
+state is changed by the observer. Fresh native samples must remain paused at the
+same position and owner/source across reveal actions and preference toggles.
+Both native controls checks run
+`Player.getMaxTimeShift` through the normal API picker and Run action to verify
+that a loaded source is usable through the actual bridge. They first run
+`Source.loadingState` and record the actual wire value (`"Loaded"` on the pinned
+Android SDK, `2` on iOS).
+Pass `--live-type dash` to the Android controls runner for a live DASH fixture;
+the default live format and the ordinary VOD stage are HLS. The read-only DOM
+checks have standalone regressions: `node --test apps/react-native/runtime/test_embedded_ui.mjs`.
+When changing a generated host's JavaScript under Metro's CI mode, restart that
+owned Metro process with `--clear` before qualification. CI mode disables file
+watching. Verify the served bundle and the new GUI markers before binding a run
+to the updated source.
+
+Before building an iOS controls host, run
+`node apps/react-native/runtime/prepare-ios-observer.mjs EXTERNAL_RUNTIME_HOST`.
+This explicitly adds a debug-only native WK observer to that generated host.
+The XCTest runner requests read-only computed-style and hit-test snapshots through
+a process-local observation label. A negative seekbar result also requires an
+ordinary compact playback control to be visible. Normal showcase builds and
+App/src JavaScript are unchanged. Rebuild the iOS app after preparing the observer;
+the original app artifact cannot qualify the new observation path.
+
 These runners operate an explicitly generated `--runtime-checks` host. That
 entry wraps the production `App`; it keeps the existing player creation, native
 view readiness, source loading, GUI controls and cleanup. The report reads only
@@ -111,3 +141,25 @@ source URLs, cue text, license keys, native identifiers and raw SDK messages.
 Local build/test logs and screenshots remain private, including failed results;
 do not publish the result directory or generated host. Capture user-guide images
 from the normal entry without the runtime header or footer.
+
+## Live controls and API availability
+
+The controls scenario additionally needs an existing live HLS source with more
+than ten seconds of native DVR depth. Supply the fixture explicitly; the runner
+does not create media or launch a simulator/emulator. It checks the real embedded
+SDK seekbar while the native player is paused and rewound: visible, hidden after
+disabling **Allow DVR**, then visible after enabling it. Fresh native offsets and
+unchanged player/source counters must accompany the UI transition. Native live
+clock advancement and changing video pixels establish playback before pausing.
+The existing VOD fixture must retain its seekbar with DVR disabled and disable
+the ordinary-source `skipAd` and `scheduleAd` picker entries.
+
+```bash
+python3 -B apps/react-native/runtime/run-controls-android.py --device <SERIAL> --media-url <VOD_HLS_URL> --live-url <LIVE_DVR_HLS_URL> --output ../runtime-android-controls
+python3 -B apps/react-native/runtime/run-ios.py --device <UDID> --media-url <VOD_HLS_URL> --live-url <LIVE_DVR_HLS_URL> --output ../runtime-ios-controls
+```
+
+The report includes allowlisted native `getTimeShift()` and `getMaxTimeShift()`
+values. An app preference flag alone cannot satisfy this scenario. Ad playback,
+linear skip timing, SSAI behavior and device qualification require their own
+fixtures and runtime results.

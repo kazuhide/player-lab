@@ -51,7 +51,7 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/5302052c73cacf6c15fc650932fc9ed8a776546e/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/ade5442bf8c92ded898b60031d1800498e15ced6/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README：Expoホストの生成とビルド"
         }
       ]
@@ -98,13 +98,13 @@
     {
       "type": "code",
       "title": "既存のネイティブPlayerViewを接続する",
-      "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : { ...styles.player, height: workspace.previewHeight }}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}",
+      "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        customMessageHandler={uiChannel.handler}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : { ...styles.player, height: workspace.previewHeight }}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}\n        onTimeChanged={(event) => { apiEventProps.onTimeChanged?.(event); if (active.current) { observed.current?.event(\"timeChanged\"); void refresh(); } }}",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 359,
-        "label": "App.tsx:359–366"
+        "line": 368,
+        "label": "App.tsx:368–377"
       },
-      "endLine": 366
+      "endLine": 377
     },
     {
       "type": "p",
@@ -211,7 +211,7 @@
     },
     {
       "type": "p",
-      "text": "ライセンス欄は空欄で始まり、環境変数の値を表示しません。nativeIdは同じIDのネイティブインスタンスを再利用する指定なので、再利用する場合にだけ設定します。値・OS・ソースへの対応はネイティブSDKが判定し、OS固有の項目は別のOSで反映されない場合があります。オフライン設定は対応するAPI操作で使います。Castの受信機設定はプロセス起動時に適用します。「ライブの巻き戻しを許可」はアプリの補助処理を切り替え、SDK生成時のプロパティは変更しません。"
+      "text": "ライセンス欄は空欄で始まり、環境変数の値を表示しません。nativeIdは同じIDのネイティブインスタンスを再利用する指定なので、再利用する場合にだけ設定します。値・OS・ソースへの対応はネイティブSDKが判定し、OS固有の項目は別のOSで反映されない場合があります。オフライン設定は対応するAPI操作で使います。Castの受信機設定はプロセス起動時に適用します。「ライブの巻き戻しを許可」は動画内のライブ用シークバーとアプリの巻き戻しボタンを動的に切り替え、SDK生成時のプロパティは変更しません。"
     },
     {
       "type": "h3",
@@ -221,13 +221,13 @@
     {
       "type": "code",
       "title": "現在のネイティブビューが準備できてから読み込む",
-      "text": "  useEffect(() => {\n    if (!viewReady || !active.current) return;\n    snapshots.current?.sourceChanged();\n    setDvr(null);\n    append(`load ${source.title || \"source\"}`);\n    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.\n    void loadOwnedSource(player, source).catch(() => { if (active.current) append(\"Source initialization failed; inspect source events or retry after the pending initializer settles.\"); });\n    observed.current?.sourceLoad();\n  }, [source, player, viewReady, append]);",
+      "text": "  useEffect(() => {\n    if (!viewReady || !active.current) return;\n    snapshots.current?.sourceChanged();\n    operationContext.reset();\n    setDvr(null);\n    append(`load ${source.title || \"source\"}`);\n    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.\n    void loadOwnedSource(player, source).then(() => operationContext.refresh()).catch(() => { if (active.current) append(\"Source initialization failed; inspect source events or retry after the pending initializer settles.\"); });\n    observed.current?.sourceLoad();\n  }, [source, player, viewReady, append, operationContext]);",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 327,
-        "label": "App.tsx:327–335"
+        "line": 335,
+        "label": "App.tsx:335–344"
       },
-      "endLine": 335
+      "endLine": 344
     },
     {
       "type": "p",
@@ -263,7 +263,7 @@
         [
           "既存の共通テーマを使う",
           "UI選択はApp.tsxのUI_MODESでファクトリー名を選びます。スポーツ・Live・シネマはpackages/ui-shared/src/global.tsの公開名へ対応します。",
-          "テーマを選ぶとPlayerPaneを作り直し、適用済みソースを読み込みます。標準はファクトリーを指定しません。"
+          "テーマを選ぶとPlayerPaneを作り直し、適用済みソースを読み込みます。標準は同梱のbuildSmallScreenUIを明示的に指定し、SDK標準のコンポーネント構成を使います。"
         ],
         [
           "埋め込みUIの外観を変える",
@@ -299,29 +299,33 @@
     },
     {
       "type": "code",
-      "title": "カスタムテーマに共通JavaScriptとCSSを渡す",
-      "text": "          styleConfig: {\n            userInterfaceType: UserInterfaceType.Bitmovin,\n            playerUiJs: WEBUI_JS,\n            playerUiCss: WEBUI_CSS,\n            ...playerConfig.styleConfig,\n          },\n        }",
+      "title": "埋め込みPlayer UIの共通JavaScriptとCSSを読み込む",
+      "text": "    styleConfig: {\n      userInterfaceType: UserInterfaceType.Bitmovin,\n      playerUiJs: WEBUI_JS,\n      playerUiCss: WEBUI_CSS,\n      ...playerConfig.styleConfig,\n    },",
       "source": {
         "path": "apps/react-native/App.tsx",
         "line": 253,
-        "label": "App.tsx:253–259"
+        "label": "App.tsx:253–258"
       },
-      "endLine": 259
+      "endLine": 258
     },
     {
       "type": "code",
       "title": "PlayerViewConfigから公開ファクトリーを選ぶ",
-      "text": "  const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction || Object.keys(settings.view).length || Object.keys(settings.webUi).length\n    ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }\n    : undefined;",
+      "text": "  const viewConfig: PlayerViewConfig = { ...settings.view, uiConfig: {\n    variant: new CustomUi(uiMode.factoryFunction ?? \"bitmovin.playerui.UIFactory.buildSmallScreenUI\"), ...settings.webUi,\n  } satisfies WebUiConfig };",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 347,
-        "label": "App.tsx:347–349"
+        "line": 356,
+        "label": "App.tsx:356–358"
       },
-      "endLine": 349
+      "endLine": 358
     },
     {
       "type": "p",
       "text": "CustomUiはUIバンドル内のファクトリー名を指定するラッパーのクラスであり、その名前はURLではありません。このアプリはAndroidでfile:///android_asset/webuiのアセットを、iOSでメインアプリのバンドル内のファイル名を使います。これらはプラグインがネイティブアセットとして同梱するため、Metroをリロードしても更新されません。JavaScriptとCSSは同じ共通UIビルドのものを使います。"
+    },
+    {
+      "type": "p",
+      "text": "LiveRewindChannelはラッパーの公開CustomMessageHandlerを使います。共通UIがsendAsynchronousでplayerlab-live-rewind-readyを送ると、ホストがplayerlab-live-rewind-enabledで現在のtrue・falseを文字列として返し、その後の変更も通知します。一時停止中や巻き戻し中もPlayer・Source・PlayerViewを維持します。この通知に関係しないメッセージは、利用者が編集したデモ用ハンドラーへ渡します。外部UIへ置き換える場合は、この任意の通知に対応するとアプリの操作スイッチを反映できます。"
     },
     {
       "type": "h3",
@@ -423,6 +427,14 @@
       "type": "h3",
       "id": "native-features-and-cast",
       "text": "Castの起動設定とネイティブ連携を設定する"
+    },
+    {
+      "type": "p",
+      "text": "NativeOperationContextはイベントログの記録とは独立して現在のソースと広告の開始・終了を監視し、実行前にネイティブの値を取得します。Player.skipAdはスキップ条件が未指定・負値の場合や、待ち時間に達していない場合に無効になります。IMAも使えません。待ち時間のあるライブ広告では、ラッパーによる現在時刻の変換でソースの時刻オフセットが加わるため、広告の経過時間を確定できず、操作を無効にしています。待ち時間が0の広告は時刻の比較をせず、ネイティブのisAdを確認します。状態の取得や、条件を満たす設定・広告スケジュール追加・復帰操作は利用できます。"
+    },
+    {
+      "type": "p",
+      "text": "ラッパー1.29.0のネイティブ側は、loadingStateをAndroidでは文字列のLoaded、iOSでは列挙値の2で返します。アプリは両方の形式を扱います。これらの値にはソースやPlayerのエラー状態が含まれないため、別にエラーを保持し、後の状態取得で復帰前の操作が有効にならないようにしています。トラックや画質のIDも、設定APIの実行前に現在のソースから取得し直します。"
     },
     {
       "type": "steps",
@@ -558,10 +570,10 @@
       "text": "  const analyticsConfig = playerConfig.analyticsConfig ? {\n    ...playerConfig.analyticsConfig,\n    licenseKey: Object.prototype.hasOwnProperty.call(settings.draft.apiSettings ?? {}, \"PlayerConfig.analyticsConfig.licenseKey\")\n      ? playerConfig.analyticsConfig.licenseKey : ANALYTICS_LICENSE_KEY,\n  } : ANALYTICS_LICENSE_KEY ? { licenseKey: ANALYTICS_LICENSE_KEY } : undefined;",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 241,
-        "label": "App.tsx:241–245"
+        "line": 243,
+        "label": "App.tsx:243–247"
       },
-      "endLine": 245
+      "endLine": 247
     },
     {
       "type": "p",
@@ -609,7 +621,7 @@
   "sources": [
     {
       "path": "apps/react-native/App.tsx",
-      "line": 79,
+      "line": 81,
       "label": "App・Playerの再作成・ネイティブ表示"
     },
     {
@@ -659,7 +671,7 @@
     },
     {
       "path": "apps/react-native/README.md",
-      "line": 112,
+      "line": 115,
       "label": "Expoホストの生成と依存関係の固定"
     },
     {
@@ -677,6 +689,16 @@
     {
       "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/src/bufferConfig.ts",
       "label": "公式のプラットフォーム別バッファー設定"
+    },
+    {
+      "path": "apps/react-native/src/operationAvailability.ts",
+      "line": 1,
+      "label": "ネイティブの状態・トラック一覧とエラー処理"
+    },
+    {
+      "path": "apps/react-native/src/liveRewindChannel.ts",
+      "line": 1,
+      "label": "埋め込みUIへ設定を伝える処理"
     }
   ]
 }

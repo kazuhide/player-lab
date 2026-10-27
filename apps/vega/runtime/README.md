@@ -4,6 +4,21 @@ This opt-in entry wraps the production App, native surface and session barrier.
 The report uses public Player getters/events, native decoded-frame counts and
 the App's real release acknowledgement. It cannot apply settings or control
 playback. The ordinary entry has no test header/buttons.
+The runner selects English through the normal language control after launch,
+so its labels do not depend on a reused device's locale.
+
+Kepler layout updates can replace native input IDs, and TV navigation can open
+the system keyboard. The driver reveals the current editable field and verifies
+its native focus before using the keyboard's real Clear and Done controls. It
+closes the keyboard with Done when it interrupts navigation to another app control.
+
+Before the VOD form checks, the runner uses the initial public live DVR source.
+It reads all three real native rewind buttons with Allow DVR on, off and on,
+retains the same player owner, and checks a normal -10s press and Live edge
+against fresh `TimeShifted` events and a media-time target calculated from
+the SDK clock and live offset immediately before each press. The live source must
+actually expose a negative `getMaxTimeShift()` window; a VOD fixture or an App
+flag alone cannot pass this stage.
 
 The runner edits the normal form, resets an unapplied title, then applies a
 one-minute HLS source, external HTTPS WebVTT track, normalized language tag,
@@ -15,6 +30,11 @@ alongside cue events. The runner reads every normal focusable code line, checks
 draft exclusion/Reset, reapplies a title with retained settings/Allow DVR, and
 uses a documented app-to-app transfer to check foreground replacement. Final unmount must
 acknowledge every session's SDK destruction and native media release.
+On that ordinary VOD source, the normal API picker must disable
+`PlayerAPI.sgai.skip` and explain that no SGAI ad is active. This verifies the
+invalid-operation boundary without ad media or a simulated ad playback claim.
+An edited numeric `timeShift` argument must survive the live-to-VOD source Apply
+and remain visible while Run is disabled for the VOD source.
 
 ## Prepare the dedicated runtime
 
@@ -52,6 +72,8 @@ The script never boots/stops/erases a device or selects another connected target
 
 Build the small, license-free companion in a new directory outside the checkout.
 It reuses the installed frozen dependencies and creates no Player or media element.
+The generated build command resolves the installed React Native CLI directly,
+so PNPM's relative shell shims do not depend on the companion's directory.
 Install it on the same dedicated device before running the check:
 
 ```bash

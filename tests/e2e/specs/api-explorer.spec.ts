@@ -86,6 +86,50 @@ test("a failed basic Apply restores its detailed override after an unrelated Rea
   expect(JSON.parse(await readApi(page, "PlayerAPI.getSource")).title).toBe("Detailed original title");
 });
 
+test("an error before first opening the SDK editor disables commands until source recovery", async ({ page }, testInfo) => {
+  const source = JSON.parse(await readApi(page, "PlayerAPI.getSource")) as { hls: string };
+  const master = new URL(source.hls, page.url()).href;
+  // A fresh document starts playback without loading the optional SDK catalog.
+  await page.goto("./");
+  await page.getByRole("button", { name: "English", exact: true }).click();
+  const details = page.locator(".api-explorer");
+  await expect(details).toHaveJSProperty("open", false);
+  await expect(page.getByRole("searchbox", { name: "Search APIs" })).toHaveCount(0);
+  const video = page.locator("#player video");
+  await expect(video).toHaveJSProperty("readyState", 4);
+  await page.route(master, route => route.fulfill({ status: 404,
+    contentType: "application/vnd.apple.mpegurl", body: "not found" }));
+  try {
+    const title = page.locator("#config-panel .config-field").filter({
+      has: page.locator(".config-field-label", { hasText: /^title/ }),
+    }).locator("input");
+    await title.fill("Source recovery before opening the SDK editor");
+    await title.dispatchEvent("change");
+    await page.getByRole("button", { name: "Reload the source to apply", exact: true }).click();
+    await expect(page.locator(".config-band-dynamic [role=status]")).toContainText("Could not apply settings.");
+    await expect(details).toHaveJSProperty("open", false);
+    await details.locator(":scope > summary").click();
+    await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("command");
+    await page.getByRole("searchbox", { name: "Search APIs" }).fill("PlayerAPI.play");
+    await expect(page.locator('option[value="PlayerAPI.play"]')).toBeDisabled();
+    await expect(page.locator('button[data-api-run="PlayerAPI.play"]')).toBeDisabled();
+    await expect(page.locator('button[data-api-run="PlayerAPI.play"]')).toHaveAttribute("data-api-unavailable", "source");
+    const retained = await readApi(page, "PlayerAPI.getSource");
+    // This transport may unload on a manifest error. Controller tests also
+    // cover SDK failures that retain the historical source configuration.
+    await testInfo.attach("closed-editor-failed-source", { contentType: "application/json",
+      body: JSON.stringify({ sourceRetained: !["null", "undefined"].includes(retained),
+        editorOpenedAfterFailure: true, unavailable: "source" }) });
+    await page.unroute(master);
+    await page.getByRole("button", { name: "Reload the source to apply", exact: true }).click();
+    await expect(video).toHaveJSProperty("readyState", 4);
+    await selectApi(page, "command", "PlayerAPI.pause");
+    await expect(page.getByRole("button", { name: "Run API", exact: true })).toBeEnabled();
+  } finally {
+    await page.unroute(master);
+  }
+});
+
 for (const successor of ["pending", "failed"]) test(`Recreate reports superseded while a newer Cast build is ${successor}`, async ({ page }) => {
   await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
   const source = JSON.parse(await readApi(page, "PlayerAPI.getSource")) as { hls: string };
@@ -213,6 +257,17 @@ test("indexed comparisons follow the selected item and retain its baseline after
       ? "1210: The video element has thrown an error while loading the stream."
       : "1208: Failed to load HLS playlist: 404 Not Found.";
     await expect(page.locator(".api-explorer > [role=status]")).toHaveText(failure);
+    await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("command");
+    await page.getByRole("searchbox", { name: "Search APIs" }).fill("PlayerAPI.play");
+    await expect(page.locator('option[value="PlayerAPI.play"]')).toBeDisabled();
+    await expect(page.locator('button[data-api-run="PlayerAPI.play"]')).toBeDisabled();
+    await expect(page.locator('button[data-api-run="PlayerAPI.play"]')).toHaveAttribute("data-api-unavailable", "source");
+    const retainedSource = await readApi(page, "PlayerAPI.getSource");
+    await testInfo.attach("failed-source-availability", { contentType: "application/json", body: JSON.stringify({
+      engine: browserName, failure, sourceRetained: !["null", "undefined"].includes(retainedSource),
+      operation: "PlayerAPI.play", unavailable: "source",
+    }) });
+    await selectApi(page, "configuration", id);
     await expect(difference).toHaveText(`Before: ${urls[1]} → After: ${urls[2]}`);
     await index.fill("0");
     await expect(difference).toHaveText(`Before: ${urls[0]} → After: ${urls[2]}`);
@@ -232,6 +287,12 @@ test("indexed comparisons follow the selected item and retain its baseline after
     expect(JSON.parse(await readApi(page, "PlayerAPI.getSource"))).toEqual({ ...source, subtitleTracks: [
       source.subtitleTracks[0], { ...source.subtitleTracks[1], url: urls[2] },
     ] });
+    // Recovery follows autoplay. Pause explicitly so the following play command
+    // exercises a permitted transition rather than an already-playing no-op.
+    await expect.poll(() => page.locator("#player video").evaluate((video: HTMLVideoElement) => !video.paused)).toBe(true);
+    await selectApi(page, "command", "PlayerAPI.pause");
+    await page.getByRole("button", { name: "Run API", exact: true }).click();
+    await expect(page.locator("#player video")).toHaveJSProperty("paused", true);
     const video = page.locator("#player video");
     const playbackBefore = await video.evaluate((element: HTMLVideoElement) => {
       const progress = { frames: 0, callback: 0 };
@@ -270,6 +331,24 @@ test("indexed comparisons follow the selected item and retain its baseline after
     await page.unroute(master, interceptSource);
     await Promise.all(requests.map(rejectRequest));
   }
+});
+
+test("ordinary VOD disables ad actions while notification APIs remain available", async ({ page }) => {
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("command");
+  for (const [id, reason] of [["PlayerAPI.ads.skip", "ad-inactive"], ["PlayerAPI.sgai.skip", "sgai-inactive"]]) {
+    await page.getByRole("searchbox", { name: "Search APIs" }).fill(id!);
+    const option = page.locator(`option[value="${id}"]`);
+    await expect(option).toBeDisabled();
+    await expect(option).toHaveAttribute("data-api-unavailable", reason!);
+    await expect(page.locator(`button[data-api-run="${id}"]`)).toBeDisabled();
+    await expect(page.locator(`p[data-api-reason="${id}"]`)).toBeVisible();
+  }
+  // These calls report externally managed ad events; they do not insert ads.
+  const notification = "PlayerAPI.analytics.ssai.adBreakEnd";
+  await page.getByRole("searchbox", { name: "Search APIs" }).fill(notification);
+  await expect(page.locator(`option[value="${notification}"]`)).toBeEnabled();
+  await expect(page.locator(`button[data-api-run="${notification}"]`)).toBeEnabled();
 });
 
 test("component constructor overrides apply through every original theme", async ({ page }) => {

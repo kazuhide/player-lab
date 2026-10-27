@@ -32,6 +32,9 @@ function fixture() {
   const player = {
     getVideoElement: vi.fn(() => video), getSource: vi.fn(() => ({ hls: "https://example.com/media.m3u8" })),
     getDuration: vi.fn(() => 60), seek: vi.fn(() => true), load: vi.fn(async () => {}),
+    play: vi.fn(async () => {}), pause: vi.fn(), timeShift: vi.fn(),
+    isLive: vi.fn(() => false), getMaxTimeShift: vi.fn(() => 0),
+    sgai: { getActiveAd: vi.fn((): object | undefined => undefined), list: vi.fn(() => []), skip: vi.fn(async () => {}) },
     on: vi.fn((event: string, callback: (event: unknown) => void) => {
       if (!listeners.has(event)) listeners.set(event, new Set()); listeners.get(event)!.add(callback);
     }),
@@ -44,6 +47,204 @@ function fixture() {
 }
 
 describe("Vega typed API dispatch and session ownership", () => {
+  it("keeps a source Error latched despite historical getSource data and paused event recording", async () => {
+    vi.useFakeTimers();
+    const { session, player, listeners } = fixture();
+    session.setRecording(false);
+    const changed = vi.fn(); session.onChange(changed);
+    const event = catalog.rows.find(entry => entry.id === "PlayerEvent.Error")!.value!;
+    [...listeners.get(event)!][0]!({ type: event, code: 1200 });
+    expect(player.getSource()).not.toBeNull();
+    await expect(session.run(row("PlayerAPI.play"), 0, [])).rejects.toThrow("An SDK error occurred");
+    expect(session.operationAvailability(row("PlayerAPI.play")).callable).toBe(false);
+    expect(player.play).not.toHaveBeenCalled();
+    expect(session.operationAvailability(row("PlayerAPI.load"))).toEqual({ callable: true });
+    expect(session.operationAvailability(row("PlayerAPI.getSource"))).toEqual({ callable: true });
+    const clearQueryParameters = vi.fn(); const adBreakEnd = vi.fn();
+    Object.assign(player, { clearQueryParameters, analytics: { ssai: { adBreakEnd } } });
+    await session.run(row("PlayerAPI.clearQueryParameters"), 0, []);
+    await session.run(row("PlayerAPI.analytics.ssai.adBreakEnd"), 0, []);
+    expect(clearQueryParameters).toHaveBeenCalledOnce(); expect(adBreakEnd).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(125); expect(changed).toHaveBeenCalled();
+    expect(session.eventLines()).toEqual([]);
+  });
+
+  it("recovers from source failure on SourceLoaded or a successful new load", async () => {
+    const { session, listeners } = fixture();
+    const emit = (name: string) => [...listeners.get(catalog.rows.find(entry => entry.id === name)!.value!)!][0]!({});
+    emit("PlayerEvent.Error");
+    expect(session.operationAvailability(row("PlayerAPI.play")).callable).toBe(false);
+    emit("PlayerEvent.SourceLoaded");
+    expect(session.operationAvailability(row("PlayerAPI.play"))).toEqual({ callable: true });
+    emit("PlayerEvent.Error");
+    await session.run(row("PlayerAPI.load"), 0, [{ hls: "https://example.com/recovery.m3u8" }]);
+    expect(session.operationAvailability(row("PlayerAPI.play"))).toEqual({ callable: true });
+  });
+
+  it("does not let a recovery load completion clear a newer SDK Error", async () => {
+    const { session, player, listeners } = fixture();
+    const error = [...listeners.get(catalog.rows.find(entry => entry.id === "PlayerEvent.Error")!.value!)!][0]!;
+    error({});
+    let resolve!: () => void;
+    player.load.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
+    const pending = session.run(row("PlayerAPI.load"), 0, [{ hls: "https://example.com/recovery.m3u8" }]);
+    error({}); resolve(); await pending;
+    await expect(session.run(row("PlayerAPI.play"), 0, [])).rejects.toThrow("An SDK error occurred");
+    expect(player.play).not.toHaveBeenCalled();
+  });
+
+  it("never resolves a previous owner's resource ID in a replacement session", async () => {
+    const previous = fixture();
+    const type = catalog.nodes[signature("PlayerAPI.setVideoElement").parameters[0]!.schema]!;
+    const selected = previous.session.resources.list(type).find(entry => entry.label.includes("video element"))!;
+    previous.session.dispose();
+    const current = fixture();
+    await expect(current.session.run(row("PlayerAPI.setVideoElement"), 0, [new ResourceInput(selected.id)])).rejects.toThrow("expired");
+    expect(current.player.setVideoElement).not.toHaveBeenCalled();
+  });
+
+  it("rejects SGAI skip for ordinary VOD even when the registered module exposes the method", async () => {
+    const { session, player } = fixture();
+    const skip = row("PlayerAPI.sgai.skip");
+    await expect(session.run(skip, 0, [])).rejects.toThrow("No SGAI ad is active.");
+    expect(session.operationAvailability(skip)).toEqual({ callable: false, reason: "No SGAI ad is active." });
+    expect(session.availability().find(entry => entry.id === skip.id)).toEqual({ id: skip.id, callable: false, reason: "No SGAI ad is active." });
+    expect(player.sgai.skip).not.toHaveBeenCalled();
+    expect(session.operationAvailability(row("PlayerAPI.sgai.list"))).toEqual({ callable: true });
+    expect(player.sgai.list).not.toHaveBeenCalled();
+  });
+
+  it("blocks the selector and Run when the native SDK exposes a null SGAI namespace", async () => {
+    const { session, player } = fixture();
+    const sgai = player.sgai;
+    Object.defineProperty(player, "sgai", { get: () => null });
+    const skip = row("PlayerAPI.sgai.skip");
+    const reason = "This public API cannot be read in the current native SDK state.";
+    expect(session.operationAvailability(skip)).toEqual({ callable: false, reason });
+    expect(session.availability().find(entry => entry.id === skip.id)).toEqual({ id: skip.id, callable: false, reason });
+    await expect(session.run(skip, 0, [])).rejects.toThrow(reason);
+    expect(sgai.getActiveAd).not.toHaveBeenCalled();
+    expect(sgai.skip).not.toHaveBeenCalled();
+    expect(session.operationAvailability(row("PlayerAPI.load"))).toEqual({ callable: true });
+  });
+
+  it("rejects a fresh Run when the SGAI namespace disappears after the picker check", async () => {
+    const { session, player } = fixture();
+    const sgai = player.sgai;
+    sgai.getActiveAd.mockReturnValue({ isLinear: true });
+    const namespace = vi.fn((): typeof sgai | null => sgai);
+    Object.defineProperty(player, "sgai", { get: namespace });
+    const skip = row("PlayerAPI.sgai.skip");
+    expect(session.operationAvailability(skip)).toEqual({ callable: true });
+    namespace.mockReturnValue(null);
+    await expect(session.run(skip, 0, [])).rejects.toThrow("This public API cannot be read in the current native SDK state.");
+    expect(sgai.skip).not.toHaveBeenCalled();
+  });
+
+  it("rechecks current SGAI state at dispatch and refreshes availability with recording paused", async () => {
+    vi.useFakeTimers();
+    const { session, player, listeners } = fixture();
+    const skip = row("PlayerAPI.sgai.skip");
+    player.sgai.getActiveAd.mockReturnValue({ isLinear: true });
+    expect(session.operationAvailability(skip)).toEqual({ callable: true });
+    session.setRecording(false);
+    const changed = vi.fn(); session.onChange(changed);
+    player.sgai.getActiveAd.mockReturnValue(undefined);
+    const finished = catalog.rows.find(entry => entry.id === "PlayerEvent.AdFinished")!.value!;
+    [...listeners.get(finished)!][0]!({ type: finished });
+    vi.advanceTimersByTime(125);
+    expect(changed).toHaveBeenCalled();
+    expect(session.eventLines()).toEqual([]);
+    await expect(session.run(skip, 0, [])).rejects.toThrow("No SGAI ad is active.");
+    expect(player.sgai.skip).not.toHaveBeenCalled();
+    player.sgai.getActiveAd.mockReturnValue({ isLinear: true });
+    await session.run(skip, 0, []);
+    expect(player.sgai.skip).toHaveBeenCalledOnce();
+  });
+
+  it("uses the current source for playback operations while retaining source load and event recovery paths", async () => {
+    const { session, player } = fixture();
+    player.getSource.mockReturnValue(null as never);
+    await expect(session.run(row("PlayerAPI.play"), 0, [])).rejects.toThrow("Load a source before this operation.");
+    expect(player.play).not.toHaveBeenCalled();
+    expect(session.operationAvailability(row("PlayerAPI.load"))).toEqual({ callable: true });
+    expect(session.operationAvailability(row("PlayerAPI.on"))).toEqual({ callable: true });
+    await session.run(row("PlayerAPI.load"), 0, [{ hls: "https://example.com/recovery.m3u8" }]);
+    expect(player.load).toHaveBeenCalledOnce();
+  });
+
+  it("uses native live state for timeshift and rechecks the source immediately before dispatch", async () => {
+    const { session, player } = fixture();
+    const shift = row("PlayerAPI.timeShift");
+    expect(session.operationAvailability(shift).callable).toBe(false);
+    player.isLive.mockReturnValue(true); player.getMaxTimeShift.mockReturnValue(-300);
+    expect(session.operationAvailability(shift)).toEqual({ callable: true });
+    player.getSource.mockReturnValueOnce({ hls: "https://example.com/live.m3u8" }).mockReturnValueOnce(null as never);
+    await expect(session.run(shift, 0, [new NumericInput("-10")])).rejects.toThrow("Load a source before this operation.");
+    expect(player.timeShift).not.toHaveBeenCalled();
+  });
+
+  it("retains live-edge recovery without a DVR window while blocking a rewind request", async () => {
+    const { session, player } = fixture();
+    player.isLive.mockReturnValue(true);
+    const shift = row("PlayerAPI.timeShift");
+    expect(session.operationAvailability(shift)).toEqual({ callable: true });
+    await session.run(shift, 0, [new NumericInput("0")]);
+    expect(player.timeShift).toHaveBeenCalledWith(0);
+    await expect(session.run(shift, 0, [new NumericInput("-10")])).rejects.toThrow("no live DVR window");
+    expect(player.timeShift).toHaveBeenCalledOnce();
+  });
+
+  it("does not treat Analytics SSAI notifications as SGAI playback commands", async () => {
+    const { session, player } = fixture();
+    const adStart = vi.fn(); Object.assign(player, { analytics: { ssai: { adStart } } });
+    const notify = row("PlayerAPI.analytics.ssai.adStart");
+    expect(session.operationAvailability(notify)).toEqual({ callable: true });
+    await session.run(notify, 0, []);
+    expect(adStart).toHaveBeenCalledOnce();
+  });
+
+  it("keeps client-side scheduling independent of active ad state and separates it from SGAI", async () => {
+    const { session, player } = fixture();
+    const ads = { schedule: vi.fn(async () => []), skip: vi.fn(async () => {}), getActiveAd: vi.fn((): object | null => null),
+      list: vi.fn((): Array<{ id: string }> => []), getActiveAdBreak: () => null, discardAdBreak: vi.fn() };
+    Object.assign(player, { ads, getCurrentTime: () => 5 });
+    expect(session.operationAvailability(row("PlayerAPI.ads.schedule"))).toEqual({ callable: true });
+    await expect(session.run(row("PlayerAPI.ads.skip"), 0, [])).rejects.toThrow("No client-side ad is active");
+    player.sgai.getActiveAd.mockReturnValue({ isLinear: true });
+    expect(session.operationAvailability(row("PlayerAPI.ads.skip")).callable).toBe(false);
+    ads.getActiveAd.mockReturnValue({ isLinear: true, skippableAfter: 10 });
+    await expect(session.run(row("PlayerAPI.ads.skip"), 0, [])).rejects.toThrow("cannot be skipped yet");
+    ads.getActiveAd.mockReturnValue({ isLinear: true, skippableAfter: 0 });
+    await session.run(row("PlayerAPI.ads.skip"), 0, []); expect(ads.skip).toHaveBeenCalledOnce();
+    expect(session.operationAvailability(row("PlayerAPI.ads.discardAdBreak")).callable).toBe(false);
+    ads.list.mockReturnValue([{ id: "current-break" }]);
+    await expect(session.run(row("PlayerAPI.ads.discardAdBreak"), 0, ["old-break"])).rejects.toThrow("current or scheduled");
+    await session.run(row("PlayerAPI.ads.discardAdBreak"), 0, ["current-break"]);
+    expect(ads.discardAdBreak).toHaveBeenCalledWith("current-break");
+  });
+
+  it("keeps auto quality and subtitle clearing available while rejecting stale current-source choices", async () => {
+    const { session, player } = fixture();
+    const setVideoQuality = vi.fn(); const disable = vi.fn(); const enable = vi.fn();
+    Object.assign(player, { setVideoQuality, getAvailableVideoQualities: vi.fn(() => []), subtitles: { list: () => [], disable, enable } });
+    await session.run(row("PlayerAPI.setVideoQuality"), 0, ["auto"]);
+    expect(setVideoQuality).toHaveBeenCalledWith("auto");
+    await expect(session.run(row("PlayerAPI.setVideoQuality"), 0, ["old-source-quality"])).rejects.toThrow("current source or use auto");
+    expect(setVideoQuality).toHaveBeenCalledOnce();
+    expect(session.operationAvailability(row("PlayerAPI.subtitles.enable")).callable).toBe(false);
+    player.getSource.mockReturnValue(null as never);
+    await session.run(row("PlayerAPI.subtitles.disable"), 0, ["old-source-subtitle"]);
+    expect(disable).toHaveBeenCalledOnce(); expect(enable).not.toHaveBeenCalled();
+  });
+
+  it("rejects operations whose native capability getter fails instead of sending an SDK command", async () => {
+    const { session, player } = fixture();
+    player.sgai.getActiveAd.mockImplementation(() => { throw new Error("native getter unavailable"); });
+    await expect(session.run(row("PlayerAPI.sgai.skip"), 0, [])).rejects.toThrow("current native SDK state");
+    expect(player.sgai.skip).not.toHaveBeenCalled();
+  });
+
   it("dispatches published numeric arguments and rejects invalid input before calling the SDK", async () => {
     const { session, player } = fixture();
     expect(await session.run(row("PlayerAPI.seek"), 0, [new NumericInput("12.5"), "gui-test"])).toEqual({ value: "true", code: 'player.seek(12.5, "gui-test");' });
@@ -52,7 +253,7 @@ describe("Vega typed API dispatch and session ownership", () => {
     expect(player.seek).toHaveBeenCalledTimes(1);
   });
 
-  it("reports actual current method availability without invoking APIs or presenting it as feature qualification", () => {
+  it("reports current method and state availability without invoking the selected commands", () => {
     const { session, player } = fixture();
     const present = session.availability();
     expect(present.find(row => row.id === "PlayerAPI.seek")).toEqual({ id: "PlayerAPI.seek", callable: true });

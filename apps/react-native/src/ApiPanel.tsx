@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, ScrollView, View } from "react-native";
+import { Keyboard, Platform, ScrollView, View } from "react-native";
 import { Button, Text, TextInput } from "./localization";
 import type { Player, SourceConfig } from "bitmovin-player-react-native";
 import { nativeOperations } from "./apiOperations";
@@ -9,24 +9,27 @@ import type { NativeSettings } from "./nativeSettings";
 import { MetadataInput } from "./metadataInput";
 import { panelStyles as styles } from "./panelStyles";
 import { WorkspaceAction, WorkspaceChoice, WorkspacePage } from "./Workspace";
+import { NativeOperationContext, operationNeedsFreshContext, operationUnavailable } from "./operationAvailability";
 
 interface Props {
   player: Player;
   source: SourceConfig;
   ready: boolean;
+  operationContext: NativeOperationContext;
+  dvrAllowed: boolean;
   events: string[];
   recording: boolean;
   onRecording: (enabled: boolean) => void;
   onClearEvents: () => void;
   onRecreate: () => void;
-  onSourceMutation: () => void;
+  onSourceMutation: (id: string) => void;
   settings: NativeSettings;
   onEvent: (name: string, value: unknown) => void;
   compactEditing?: boolean;
 }
 
 /** The selected typed operation is dispatched only by an explicit user action. */
-export function ApiPanel({ player, source, ready, events, recording, onRecording, onClearEvents, onRecreate, onSourceMutation, settings, onEvent, compactEditing = false }: Props): React.JSX.Element {
+export function ApiPanel({ player, source, ready, operationContext, dvrAllowed, events, recording, onRecording, onClearEvents, onRecreate, onSourceMutation, settings, onEvent, compactEditing = false }: Props): React.JSX.Element {
   const [page, setPage] = useState("operations");
   const currentSettings = useRef(settings);
   currentSettings.current = settings;
@@ -36,7 +39,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
   const [selectedId, setSelectedId] = useState("Player.play");
   const selected = operations.find((operation) => operation.id === selectedId) ?? operations[0]!;
   const editor = useRef<ScrollView>(null);
-  useLayoutEffect(() => { editor.current?.scrollTo({ y: 0, animated: false }); }, [page, selected]);
+  useLayoutEffect(() => { editor.current?.scrollTo({ y: 0, animated: false }); }, [page, selected.id, player]);
   const [values, setValues] = useState<Record<string, string>>({});
   const [result, setResult] = useState("");
   const [code, setCode] = useState("");
@@ -57,7 +60,11 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
   }, [player, source, auxiliary]);
   useEffect(() => {
     setValues(Object.fromEntries(selected.arguments.map((argument) => [argument.name, argument.initial])));
-  }, [selected]);
+  }, [selected.id, player]);
+  const unavailable = (id: string, input?: Record<string, string>) => operationUnavailable(id, player, operationContext.snapshot(), Platform.OS, settings, dvrAllowed, input);
+  const selectedUnavailable = unavailable(selected.id, values);
+  const currentRun = useRef({ ready, page, selected, values, settings, dvrAllowed });
+  currentRun.current = { ready, page, selected, values, settings, dvrAllowed };
 
   const run = async () => {
     if (!ready || player.isDestroyed || pending.current || (page === "state" && !isQuery(selected.id))) return;
@@ -65,17 +72,31 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
     pending.current = true;
     setBusy(true);
     let timeout: ReturnType<typeof setTimeout> | undefined;
+    let dispatchAllowed = true;
     try {
-      const appliedCode = selected.code(values);
-      if (["Player.load", "Player.loadSource", "Player.loadOfflineContent", "Player.unload", "Player.destroy", "Source.destroy"].includes(selected.id)) { onSourceMutation(); }
-      const value = await Promise.race([
-        Promise.resolve(selected.run(values)),
+      const dispatch = async () => {
+        const refreshed = !operationNeedsFreshContext(selected.id) || await operationContext.refresh(true);
+        // Bridge reads may yield to a source replacement, owner retirement or picker change.
+        const latest = currentRun.current;
+        if (!dispatchAllowed || generation.current !== current || !latest.ready || player.isDestroyed || latest.selected !== selected || latest.page !== page || latest.values !== values) return;
+        const reason = operationUnavailable(selected.id, player, operationContext.snapshot(), Platform.OS, latest.settings, latest.dvrAllowed, values);
+        if (reason) throw new Error(reason);
+        if (!refreshed) throw new Error("Wait for a current native playback state.");
+        const appliedCode = selected.code(values);
+        if (["Player.load", "Player.loadSource", "Player.loadOfflineContent", "Player.unload", "Player.destroy", "Source.destroy"].includes(selected.id)) { onSourceMutation(selected.id); }
+        const value = await selected.run(values);
+        void operationContext.refresh();
+        return { appliedCode, value };
+      };
+      const completed = await Promise.race([
+        dispatch(),
         new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error("No response within 10 seconds. The native call may still complete; it has not been retried.")), 10000); }),
       ]);
-      if (generation.current === current) { setCode(appliedCode); setResult(apiValue(value)); setExecutedId(selected.id); setFailed(false); }
+      if (completed && generation.current === current) { setCode(completed.appliedCode); setResult(apiValue(completed.value)); setExecutedId(selected.id); setFailed(false); }
     } catch (error) {
       if (generation.current === current) { setResult(error instanceof Error ? error.message : "API call failed."); setExecutedId(selected.id); setFailed(true); }
     } finally {
+      dispatchAllowed = false;
       if (timeout) clearTimeout(timeout);
       if (generation.current === current) { pending.current = false; setBusy(false); }
     }
@@ -92,7 +113,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
         setPage(value);
       }} testID="api-view-selector" />
       {(page === "operations" || page === "state") && <WorkspaceChoice label="API operation" selected={selected.id}
-        options={targets.map(operation => ({ id: operation.id, label: operation.id }))} testID="api-operation-selector"
+        options={targets.map(operation => ({ id: operation.id, label: operation.id, unavailable: unavailable(operation.id) }))} testID="api-operation-selector"
         onSelect={id => {
           if (id === selectedId) editor.current?.scrollTo({ y: 0, animated: false });
           setSelectedId(id); setResult(""); setCode(""); setExecutedId(""); setFailed(false);
@@ -106,6 +127,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
       </WorkspacePage>
       <WorkspacePage active={page === "operations" || page === "state"}>
       {!validTarget && <Text style={styles.help}>Choose a state query before reading the SDK.</Text>}
+      {selectedUnavailable && <Text testID="api-unavailable-reason" style={styles.help}>{selectedUnavailable}</Text>}
       {compactEditing && <Text verbatim style={[styles.heading, styles.mono]}>{selected.id}</Text>}
       {selected.id === "OfflineContentManager.addListener" && <Text style={styles.warning}>Replaces the current offline listener. Edited JavaScript runs on future SDK events inside this app without a sandbox. Allow execution before Run.</Text>}
       {["OfflineContentManager.deleteAll", "OfflineContentManager.cancelDownload", "OfflineContentManager.releaseLicense"].includes(selected.id) && <View style={{ gap: 4 }}>
@@ -126,7 +148,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
       <Text verbatim selectable accessibilityLabel="Executed API code" accessibilityValue={{ text: failed ? "" : code }} style={[styles.mono, !!code && !failed && styles.result]}>{failed ? "" : code}</Text>
       {!!executedId && <Text style={styles.label}>{failed ? "API error" : "Result"}</Text>}
       {!!executedId && <Text verbatim testID="api-result-origin" style={styles.mono}>{executedId}</Text>}
-      <Text verbatim selectable accessibilityLabel="API result" accessibilityValue={{ text: result }} accessibilityRole={failed ? "alert" : "text"} style={[styles.mono, !!executedId && styles.result, failed && styles.error]}>{result}</Text>
+      <Text verbatim selectable testID="api-result-value" accessibilityLabel="API result" accessibilityValue={{ text: result }} accessibilityRole={failed ? "alert" : "text"} style={[styles.mono, !!executedId && styles.result, failed && styles.error]}>{result}</Text>
       </WorkspacePage>
       <WorkspacePage active={page === "events"}>
       <Text style={styles.heading}>Player events</Text>
@@ -145,7 +167,7 @@ export function ApiPanel({ player, source, ready, events, recording, onRecording
       {compactEditing && <WorkspaceAction title="Done" testID="api-done" onPress={() => Keyboard.dismiss()} />}
       <View style={{ flex: 1 }}>
       <WorkspaceAction title={busy ? "Waiting for API result" : page === "state" ? "Read state" : "Run selected API"}
-        testID="api-run" primary disabled={!ready || busy || player.isDestroyed || !validTarget} onPress={() => { void run(); }} />
+        testID="api-run" primary disabled={!ready || busy || player.isDestroyed || !validTarget || Boolean(selectedUnavailable)} onPress={() => { void run(); }} />
       </View>
       </View>
     </View>}

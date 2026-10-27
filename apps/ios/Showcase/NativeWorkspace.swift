@@ -380,6 +380,12 @@ struct NativeMoreWorkspace: View {
                         Text(NativeLocalization.format("Subtitles: %@", model.trackStatus.subtitles))
                     case .live:
                         WorkspaceToggle(title: "Allow live rewind controls", isOn: $model.timeShiftEnabled, identifier: "dvr.allowControls")
+                            .disabled(model.liveRewindControlsUnavailableReason != nil)
+                        if let reason = model.liveRewindControlsUnavailableReason {
+                            Text(LocalizedStringKey(reason)).font(.caption).foregroundStyle(Color.workspaceSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("dvr.controls.unavailable")
+                        }
                         if model.hasCurrentLiveSource {
                         Button("Live edge") { model.goToLiveEdge() }
                             .accessibilityIdentifier("playback.liveEdge")

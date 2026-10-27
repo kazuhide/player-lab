@@ -297,12 +297,12 @@
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 321,
+      "line": 386,
       "label": "Source-owned HLS completion"
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 236,
+      "line": 300,
       "label": "Reloading the same URL with a new Source"
     },
     {
@@ -317,7 +317,7 @@
     },
     {
       "path": "apps/ios/README.md",
-      "line": 303,
+      "line": 330,
       "label": "Recorded same-URL HLS reload and completed VOD seek"
     },
     {
@@ -330,21 +330,21 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 651,
+      "line": 657,
       "label": "Explicit relative and absolute SDK clocks"
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 674,
+      "line": 680,
       "label": "Player-state time precision"
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 708,
+      "line": 713,
       "label": "Readout refresh follows time/source/duration events"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/5302052c73cacf6c15fc650932fc9ed8a776546e/patches/bitmovin-player-ui%404.23.0.patch#L669",
+      "url": "https://github.com/kazuhide/player-lab/blob/ade5442bf8c92ded898b60031d1800498e15ced6/patches/bitmovin-player-ui%404.23.0.patch#L669",
       "label": "VOD keyboard seeks use the seekable-range origin"
     },
     {

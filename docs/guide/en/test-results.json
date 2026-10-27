@@ -222,17 +222,17 @@
     },
     {
       "path": "apps/ios/README.md",
-      "line": 560,
+      "line": 587,
       "label": "Recorded Apple SDK and normal-GUI results"
     },
     {
       "path": "apps/react-native/README.md",
-      "line": 263,
+      "line": 274,
       "label": "React Native native playback and configuration checks"
     },
     {
       "path": "apps/vega/README.md",
-      "line": 403,
+      "line": 422,
       "label": "Vega runtime validation scope"
     },
     {

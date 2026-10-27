@@ -484,6 +484,14 @@
       ]
     },
     {
+      "type": "p",
+      "text": "SDKの操作は公開APIで取得した現在の状態から有効・無効を判断します。ソース、広告、トラック、巻き戻し範囲、表示モードなどの条件を満たさない場合は理由を表示し、引数を作った後の実行直前にも確認します。ソースを変えても選択したAPIと入力中の引数は保持します。PlayerAPI.ads.skipにはスキップ可能な再生中の広告が必要で、IMAでは使えません。PlayerAPI.sgai.skipには再生中の挿入コンテンツが必要です。AnalyticsのSSAI通知は外部で管理する広告の開始・終了などを報告するもので、呼び出してもソースへ広告を挿入しません。"
+    },
+    {
+      "type": "p",
+      "text": "SDKのgetSource()は、Errorの後も最後に読み込んだ設定を返す場合があります。アプリはその設定だけで再生可能と判断せず、SourceLoadedまたはPlayerの置き換えまでエラー状態を保持します。状態の取得や、条件を満たす設定変更・復帰操作は引き続き使えます。"
+    },
+    {
       "type": "h2",
       "id": "faq",
       "text": "実装時によくある疑問",
@@ -646,7 +654,7 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 118,
+      "line": 136,
       "label": "SDK設定エディターと再生中のAPI操作"
     },
     {
@@ -773,7 +781,7 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 300
+      "line": 301
     },
     {
       "url": "https://developer.bitmovin.com/playback/docs/bitmovin-player-ui",
@@ -870,17 +878,17 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 310,
+      "line": 370,
       "label": "イベント回数と直近の内容"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 237,
+      "line": 257,
       "label": "Playerの入れ替え時の記録消去"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 358,
+      "line": 419,
       "label": "イベント履歴の消去操作"
     },
     {
@@ -892,6 +900,11 @@
       "path": "apps/web/src/main.ts",
       "line": 760,
       "label": "PlayerConfig construction"
+    },
+    {
+      "path": "apps/web/src/api/availability.ts",
+      "line": 1,
+      "label": "現在のSDKの実行条件"
     }
   ]
 }

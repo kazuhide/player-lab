@@ -1,20 +1,290 @@
 import XCTest
 import UIKit
+import CoreFoundation
 
 /// Drives the installed opt-in entry through the same production App and SDK UI as a user.
 final class RuntimeChecks: XCTestCase {
     private let app = XCUIApplication(bundleIdentifier: "com.playerlab.reactnative")
     private var stages: [[String: Any]] = []
     private var result: [String: Any] = ["schemaVersion": 1, "platform": "ios", "passed": false]
+    private var uiSequence = 0
+    private var uiObservations: [[String: Any]] = []
     override func setUpWithError() throws { continueAfterFailure = false }
     override func tearDownWithError() throws {
         result["stages"] = stages
+        result["embeddedUiObservations"] = uiObservations
         // hasSucceeded is not final inside tearDown; the outer runner also requires the finalized xcresult.
         result["assertionFailures"] = testRun?.failureCount ?? -1
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
             .write(to: documents.appendingPathComponent("runtime-report.json"), options: .atomic)
         app.terminate()
+    }
+
+    func testLiveRewindAndOperationAvailability() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard let live = environment["PLAYER_LAB_LIVE_URL"], let vod = environment["PLAYER_LAB_MEDIA_URL"] else { throw Failure.input }
+        app.launch()
+        _ = try waitReport { ($0["owner"] as? [String: Any])?["viewReady"] as? Bool == true }
+        try configureControlsSource(live)
+        try chooseWorkspace("theme-selector", "Live (DVR)")
+        let playing = try waitReport { value in
+            guard let owner = value["owner"] as? [String: Any], let sample = owner["sample"] as? [String: Any] else { return false }
+            return owner["sourceLoaded"] as? Int ?? 0 > 0 && sample["live"] as? Bool == true && sample["playing"] as? Bool == true &&
+                (sample["maxTimeShift"] as? Double ?? 0) < -10
+        }
+        let video = app.descendants(matching: .any).matching(identifier: "player-lab-player").firstMatch
+        let pixels = try moviePixels(video.screenshot().image)
+        Thread.sleep(forTimeInterval: 1.5)
+        let advanced = try waitReport { value in
+            guard let owner = value["owner"] as? [String: Any], let sample = owner["sample"] as? [String: Any],
+                  let original = playing["owner"] as? [String: Any], let previous = original["sample"] as? [String: Any] else { return false }
+            return owner["generation"] as? Int == original["generation"] as? Int &&
+                (sample["sequence"] as? Int ?? 0) > (previous["sequence"] as? Int ?? 0) &&
+                (sample["time"] as? Double ?? 0) > (previous["time"] as? Double ?? 0)
+        }
+        let afterPixels = try moviePixels(video.screenshot().image)
+        let ratio = Double(zip(pixels, afterPixels).filter { abs(Int($0.0) - Int($0.1)) > 12 }.count) / Double(pixels.count)
+        XCTAssertGreaterThan(ratio, 0.01, "The live native picture must change with the native clock")
+        result["livePlayback"] = ["samples": [playing, advanced], "videoRegionChangedRatio": ratio]
+        result["phase"] = "loaded-source-api"
+        try chooseOperation("Source.loadingState")
+        try tapWorkspace("api-run")
+        let wireQuery = app.descendants(matching: .any).matching(identifier: "api-result-value").firstMatch
+        let wireOrigin = app.descendants(matching: .any).matching(identifier: "api-result-origin").firstMatch
+        let wireDeadline = Date().addingTimeInterval(10)
+        var loadingWire: Int?
+        while Date() < wireDeadline {
+            if wireOrigin.exists && wireOrigin.label == "Source.loadingState", Int(wireQuery.value as? String ?? wireQuery.label) == 2 {
+                loadingWire = 2; break
+            }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        result["loadingStateWire"] = try XCTUnwrap(loadingWire, "The real iOS bridge must report its loaded ordinal")
+        try chooseOperation("Player.getMaxTimeShift")
+        try tapWorkspace("api-run")
+        let query = app.descendants(matching: .any).matching(identifier: "api-result-value").firstMatch
+        let origin = app.descendants(matching: .any).matching(identifier: "api-result-origin").firstMatch
+        let queryDeadline = Date().addingTimeInterval(10)
+        var nativeWindow: Double?
+        while Date() < queryDeadline {
+            if origin.exists && origin.label == "Player.getMaxTimeShift", let value = Double(query.value as? String ?? query.label), value.isFinite && value < -10 {
+                nativeWindow = value; break
+            }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        result["loadedSourceApi"] = ["id": "Player.getMaxTimeShift", "value": try XCTUnwrap(nativeWindow, "The loaded source API must run through the normal GUI")]
+        result["phase"] = "native-pause-and-rewind"
+        try pauseControlsPlayback()
+        try chooseOperation("Player.timeShift")
+        try replace("Time (seconds)", "-10", editorIdentifier: "api-fields-scroll"); try tapWorkspace("api-run")
+        let before = try waitReport { value in
+            let sample = (value["owner"] as? [String: Any])?["sample"] as? [String: Any]
+            return sample?["playing"] as? Bool == false && (sample?["timeShift"] as? Double ?? 0) < -5
+        }
+        let visibleBefore = try embeddedSeekbar(true)
+        try tapWorkspace("workspace-nav-more"); try setSwitch("Allow DVR", false)
+        let disabled = try report()
+        let visibleDisabled = try embeddedSeekbar(false)
+        try setSwitch("Allow DVR", true)
+        let enabled = try report()
+        let visibleEnabled = try embeddedSeekbar(true)
+        result["liveControlSamples"] = [before, disabled, enabled]
+        result["liveControls"] = ["seekbarVisible": [visibleBefore, visibleDisabled, visibleEnabled]]
+        let originalOwner = try XCTUnwrap(before["owner"] as? [String: Any])
+        for value in [disabled, enabled] {
+            let owner = try XCTUnwrap(value["owner"] as? [String: Any])
+            let sample = try XCTUnwrap(owner["sample"] as? [String: Any])
+            for key in ["generation", "sourceLoads", "sourceLoaded"] { XCTAssertEqual(owner[key] as? Int, originalOwner[key] as? Int) }
+            XCTAssertEqual(sample["playing"] as? Bool, false)
+            XCTAssertLessThan(try XCTUnwrap(sample["timeShift"] as? Double), -5)
+        }
+        try configureControlsSource(vod)
+        try tapWorkspace("workspace-nav-more"); try setSwitch("Allow DVR", false)
+        let ordinary = try waitReport { value in
+            let owner = value["owner"] as? [String: Any]
+            let sample = owner?["sample"] as? [String: Any]
+            return owner?["sourceLoaded"] as? Int ?? 0 > 0 && sample?["live"] as? Bool == false && sample?["playing"] as? Bool == true
+        }
+        try pauseControlsPlayback()
+        let vodVisible = try embeddedSeekbar(true)
+        var unavailable: [Bool] = []
+        for id in ["Player.skipAd", "Player.scheduleAd"] {
+            try openOperationPicker(id)
+            let option = app.buttons.matching(identifier: "api-operation-selector-option-" + id).firstMatch
+            XCTAssertTrue(option.exists && !option.isEnabled, "Ordinary VOD must disable the unavailable ad operation")
+            unavailable.append(option.exists && !option.isEnabled)
+            try tap("Close", scroll: false)
+        }
+        result["vodSample"] = ordinary
+        result["vodControls"] = ["seekbarVisible": vodVisible, "skipAdUnavailable": unavailable[0], "scheduleAdUnavailable": unavailable[1]]
+        try tap("Finish runtime checks", scroll: false)
+        let finished = try waitReport { $0["owner"] is NSNull }
+        let retired = try XCTUnwrap(finished["retired"] as? [[String: Any]])
+        XCTAssertEqual(retired.count, finished["created"] as? Int)
+        XCTAssertTrue(retired.allSatisfy { $0["wrapperDestroyed"] as? Bool == true })
+        result["final"] = finished
+        result["wrapperDestroyFlagsConfirmed"] = true
+        result["nativeReleaseAcknowledgementAvailable"] = false
+        result["passed"] = true
+    }
+
+    private func tapWorkspace(_ identifier: String) throws {
+        // RN workspace tabs have a tab role, so match their exact native identifier across element types.
+        let control = app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+        XCTAssertTrue(control.waitForExistence(timeout: 5) && control.isHittable && control.isEnabled, "Workspace control must be usable")
+        control.tap()
+    }
+    private func chooseWorkspace(_ identifier: String, _ value: String) throws {
+        try tapWorkspace(identifier); try tapWorkspace(identifier + "-option-" + value)
+    }
+    private func controlsField(_ group: String, _ field: String) throws {
+        try tapWorkspace("workspace-nav-settings")
+        try chooseWorkspace("configuration-group-selector", group)
+        try chooseWorkspace("workspace-setting-selector", field)
+    }
+    private func configureControlsSource(_ url: String) throws {
+        try controlsField("source", "url"); try replace("Source URL", url)
+        try controlsField("source", "type"); if app.buttons["HLS"].isEnabled { try tap("HLS", scroll: false) }
+        try controlsField("source", "startOffset"); try replace("Start offset (seconds)", "")
+        try controlsField("player", "autoplay"); try setSwitch("Autoplay", true)
+        try controlsField("player", "muted"); try setSwitch("Mute on startup", true)
+        try tapWorkspace("configuration-apply")
+    }
+    private func openOperationPicker(_ id: String) throws {
+        try tapWorkspace("workspace-nav-apis"); try chooseWorkspace("api-view-selector", "operations")
+        try tapWorkspace("api-operation-selector"); try replace("Find API operation", id)
+    }
+    private func chooseOperation(_ id: String) throws {
+        try openOperationPicker(id); try tapWorkspace("api-operation-selector-option-" + id)
+        let deadline = Date().addingTimeInterval(5)
+        let source = app.descendants(matching: .any).matching(identifier: "source-selector").firstMatch
+        while Date() < deadline {
+            if !app.keyboards.firstMatch.exists && source.exists && source.isHittable { return }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        XCTFail("Picker dismissal must restore the ordinary workspace and hide its keyboard")
+        throw Failure.viewport
+    }
+    private func embeddedSeekbar(_ expected: Bool) throws -> Bool {
+        let before = try freshNativeReport()
+        let snapshot = try revealControlBarFromDom()
+        let controls = try uiControls(snapshot)
+        XCTAssertTrue(controls.contains { uiClass($0, "bmpui-ui-playbacktogglebutton") && $0["visible"] as? Bool == true && $0["hittable"] as? Bool == true }, "An ordinary compact control must be actually visible, including for the negative seekbar check")
+        let visible = controls.contains { uiClass($0, "bmpui-ui-seekbar") && $0["visible"] as? Bool == true }
+        XCTAssertEqual(visible, expected, "The computed SDK DOM seekbar must match the preference")
+        let attachment = XCTAttachment(screenshot: try uiWebView(snapshot).screenshot())
+        attachment.name = "embedded-seekbar-\(expected)-\(uiObservations.count)"; attachment.lifetime = .keepAlways; add(attachment)
+        let after = try freshNativeReport()
+        uiObservations.append(["snapshot": snapshot, "nativeBefore": before, "nativeAfter": after])
+        let original = try XCTUnwrap(before["owner"] as? [String: Any])
+        let current = try XCTUnwrap(after["owner"] as? [String: Any])
+        let previous = try XCTUnwrap(original["sample"] as? [String: Any])
+        let sample = try XCTUnwrap(current["sample"] as? [String: Any])
+        for key in ["generation", "sourceLoads", "sourceLoaded"] { XCTAssertEqual(current[key] as? Int, original[key] as? Int) }
+        for owner in [original, current] { XCTAssertEqual(owner["errors"] as? Int, 0); XCTAssertEqual(owner["readFailures"] as? Int, 0) }
+        XCTAssertEqual(previous["playing"] as? Bool, false); XCTAssertEqual(sample["playing"] as? Bool, false)
+        XCTAssertLessThanOrEqual(abs(try XCTUnwrap(sample["time"] as? Double) - XCTUnwrap(previous["time"] as? Double)), 0.25)
+        if uiObservations.count <= 3 {
+            XCTAssertEqual(snapshot["viewIdentity"] as? String, (uiObservations[0]["snapshot"] as? [String: Any])?["viewIdentity"] as? String)
+        }
+        return visible
+    }
+    private func pauseControlsPlayback() throws {
+        let baseline = try freshNativeReport()
+        XCTAssertTrue(try playing(baseline), "Pause must start from actual native playback")
+        let generation = try owner(baseline)
+        for _ in 0..<3 {
+            let snapshot = try revealControlBarFromDom()
+            let controls = try uiControls(snapshot).filter { uiClass($0, "bmpui-ui-playbacktogglebutton") && $0["visible"] as? Bool == true && $0["hittable"] as? Bool == true }
+            XCTAssertEqual(controls.count, 1, "Exactly one visible compact playback control is required")
+            let rect = try XCTUnwrap(controls.first?["rect"] as? [Double])
+            XCTAssertEqual(rect.count, 4)
+            try tapDomPoint(x: rect[0] + rect[2] / 2, y: rect[1] + rect[3] / 2, snapshot: snapshot)
+            let value = try freshNativeReport()
+            XCTAssertEqual(try owner(value), generation)
+            let original = try XCTUnwrap(baseline["owner"] as? [String: Any])
+            let current = try XCTUnwrap(value["owner"] as? [String: Any])
+            for key in ["sourceLoads", "sourceLoaded"] { XCTAssertEqual(current[key] as? Int, original[key] as? Int) }
+            if try !playing(value) { return }
+        }
+        XCTFail("The native player did not acknowledge the SDK Pause control")
+        throw Failure.deadline
+    }
+    private func uiClass(_ control: [String: Any], _ name: String) -> Bool {
+        (control["className"] as? String ?? "").split(separator: " ").contains(Substring(name))
+    }
+    private func uiControls(_ snapshot: [String: Any]) throws -> [[String: Any]] {
+        let dom = try XCTUnwrap(snapshot["dom"] as? [String: Any])
+        return try XCTUnwrap(dom["controls"] as? [[String: Any]])
+    }
+    private func readEmbeddedUi() throws -> [String: Any] {
+        CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(rawValue: "com.playerlab.reactnative.runtime.observe-ui" as CFString), nil, nil, true)
+        let node = app.descendants(matching: .any).matching(identifier: "player-lab-native-ui-observation").firstMatch
+        let deadline = Date().addingTimeInterval(5)
+        while Date() < deadline {
+            if node.exists, let text = node.value as? String, let data = text.data(using: .utf8),
+               let value = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let sequence = value["sequence"] as? Int, sequence > uiSequence {
+                XCTAssertNil(value["error"], "The native WK observer must return a current DOM observation")
+                XCTAssertNotNil(value["dom"] as? [String: Any]); XCTAssertNotNil(value["viewIdentity"] as? String)
+                uiSequence = sequence
+                return value
+            }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        XCTFail("Read-only native WK observation deadline exceeded")
+        throw Failure.deadline
+    }
+    private func uiWebView(_ snapshot: [String: Any]) throws -> XCUIElement {
+        let frame = try XCTUnwrap(snapshot["frame"] as? [Double])
+        XCTAssertEqual(frame.count, 4)
+        return try XCTUnwrap(app.webViews.allElementsBoundByIndex.first { view in
+            abs(view.frame.minX - frame[0]) < 1 && abs(view.frame.minY - frame[1]) < 1 &&
+            abs(view.frame.width - frame[2]) < 1 && abs(view.frame.height - frame[3]) < 1
+        }, "The DOM observation must belong to the actual native WebView viewport")
+    }
+    private func tapDomPoint(x: Double, y: Double, snapshot: [String: Any]) throws {
+        let dom = try XCTUnwrap(snapshot["dom"] as? [String: Any])
+        let width = try XCTUnwrap(dom["width"] as? Double), height = try XCTUnwrap(dom["height"] as? Double)
+        XCTAssertTrue(width > 0 && height > 0 && x > 0 && x < width && y > 0 && y < height)
+        try uiWebView(snapshot).coordinate(withNormalizedOffset: CGVector(dx: x / width, dy: y / height)).tap()
+    }
+    private func revealControlBarFromDom() throws -> [String: Any] {
+        var snapshot = try readEmbeddedUi()
+        func shown(_ value: [String: Any]) throws -> Bool {
+            try uiControls(value).contains { uiClass($0, "bmpui-ui-playbacktogglebutton") && $0["visible"] as? Bool == true && $0["hittable"] as? Bool == true }
+        }
+        if try shown(snapshot) { return snapshot }
+        let dom = try XCTUnwrap(snapshot["dom"] as? [String: Any])
+        let point = try XCTUnwrap(dom["revealPoint"] as? [String: Any], "A DOM-proven non-action reveal point is required")
+        try tapDomPoint(x: XCTUnwrap(point["x"] as? Double), y: XCTUnwrap(point["y"] as? Double), snapshot: snapshot)
+        let deadline = Date().addingTimeInterval(5)
+        while Date() < deadline {
+            snapshot = try readEmbeddedUi()
+            if try shown(snapshot) { return snapshot }
+        }
+        XCTFail("The SDK control bar must become actually visible")
+        throw Failure.deadline
+    }
+    private func freshNativeReport() throws -> [String: Any] {
+        let deadline = Date().addingTimeInterval(40)
+        var value = try report(refresh: false)
+        // The first sample can drain an earlier coalesced read. The second starts after it.
+        for _ in 0..<2 {
+            let previous = ((value["owner"] as? [String: Any])?["sample"] as? [String: Any])?["sequence"] as? Int ?? 0
+            _ = try report()
+            var advanced = false
+            while Date() < deadline {
+                value = try report(refresh: false)
+                let sequence = ((value["owner"] as? [String: Any])?["sample"] as? [String: Any])?["sequence"] as? Int ?? 0
+                if sequence > previous { advanced = true; break }
+                Thread.sleep(forTimeInterval: 0.1)
+            }
+            guard advanced else { XCTFail("A fresh native sample is required"); throw Failure.deadline }
+        }
+        return value
     }
 
     func testNormalConfigurationPlaybackAndCleanup() throws {
@@ -332,13 +602,33 @@ final class RuntimeChecks: XCTestCase {
             scroll.swipeDown()
         }
     }
-    private func reveal(_ element: XCUIElement) throws {
-        let scroll = mainScroll()
+    private static func inputViewport(container: CGRect, keyboard: CGRect?) -> CGRect {
+        let bottom = keyboard.map { min(container.maxY, $0.minY) } ?? container.maxY
+        return CGRect(x: container.minX, y: container.minY, width: container.width, height: max(0, bottom - container.minY))
+    }
+    private static func editorDrag(in viewport: CGRect, targetY: CGFloat, down: Bool) -> (CGPoint, CGPoint) {
+        let inset = min(8, viewport.height / 4)
+        let distance = min(abs(targetY - viewport.midY), viewport.height - 2 * inset)
+        let start = CGPoint(x: viewport.maxX - 4, y: down ? viewport.minY + inset : viewport.maxY - inset)
+        return (start, CGPoint(x: start.x, y: start.y + (down ? distance : -distance)))
+    }
+    private func reveal(_ element: XCUIElement, modalWindow: XCUIElement? = nil, editor: XCUIElement? = nil) throws {
+        let scroll = modalWindow ?? editor ?? mainScroll()
         for _ in 0..<30 {
             let keyboard = app.keyboards.firstMatch
-            let bottom = keyboard.exists ? min(scroll.frame.maxY, keyboard.frame.minY) : scroll.frame.maxY
-            let viewport = CGRect(x: scroll.frame.minX, y: scroll.frame.minY, width: scroll.frame.width, height: bottom - scroll.frame.minY)
-            if element.exists && element.isHittable && viewport.contains(CGPoint(x: element.frame.midX, y: element.frame.midY)) { return }
+            let viewport = Self.inputViewport(container: scroll.frame, keyboard: keyboard.exists ? keyboard.frame : nil)
+            if element.exists && element.isHittable && (modalWindow != nil ? viewport.contains(element.frame) : viewport.contains(CGPoint(x: element.frame.midX, y: element.frame.midY))) { return }
+            if modalWindow != nil { Thread.sleep(forTimeInterval: 0.1); continue }
+            if editor != nil {
+                XCTAssertTrue(scroll.exists && viewport.width > 20 && viewport.height > 20, "The selected API editor must have a usable native scroll viewport")
+                let down = element.exists && element.frame.midY < viewport.minY
+                let (start, end) = Self.editorDrag(in: viewport, targetY: element.exists ? element.frame.midY : viewport.maxY, down: down)
+                XCTAssertFalse(element.exists && (element.frame.contains(start) || element.frame.contains(end)), "The parent scroll gesture must use observed padding outside the input")
+                let root = app.coordinate(withNormalizedOffset: .zero)
+                root.withOffset(CGVector(dx: start.x, dy: start.y))
+                    .press(forDuration: 0.05, thenDragTo: root.withOffset(CGVector(dx: end.x, dy: end.y)), withVelocity: .slow, thenHoldForDuration: 0.2)
+                continue
+            }
             let down = element.exists && element.frame.midY < viewport.minY
             let root = app.coordinate(withNormalizedOffset: .zero)
             root.withOffset(CGVector(dx: viewport.maxX - 8, dy: down ? viewport.minY + 35 : viewport.maxY - 30))
@@ -360,9 +650,17 @@ final class RuntimeChecks: XCTestCase {
         XCTAssertTrue(button.exists && button.isEnabled && button.isHittable, "Normal App button must be usable")
         button.tap()
     }
-    private func replace(_ label: String, _ text: String) throws {
-        let field = app.textFields[label]
-        try reveal(field); field.tap(); _ = app.keyboards.firstMatch.waitForExistence(timeout: 2); try reveal(field)
+    private func replace(_ label: String, _ text: String, editorIdentifier: String? = nil) throws {
+        let field = app.textFields[label].exists ? app.textFields[label] : app.textViews[label]
+        let editor = editorIdentifier.map { app.descendants(matching: .any).matching(identifier: $0).firstMatch }
+        if let editor { XCTAssertTrue(editor.waitForExistence(timeout: 5), "The field must belong to the selected workspace editor") }
+        let modalWindow: XCUIElement?
+        if label.hasPrefix("Find ") {
+            let owners = app.windows.allElementsBoundByIndex.filter { ($0.textFields[label].exists || $0.textViews[label].exists) && $0.buttons["Close"].exists }
+            XCTAssertEqual(owners.count, 1, "A picker search must belong to one observed modal window with its Close action")
+            modalWindow = try XCTUnwrap(owners.first)
+        } else { modalWindow = nil }
+        try reveal(field, modalWindow: modalWindow, editor: editor); field.tap(); _ = app.keyboards.firstMatch.waitForExistence(timeout: 2); try reveal(field, modalWindow: modalWindow, editor: editor)
         let value = field.value as? String ?? ""
         if !value.isEmpty {
             field.press(forDuration: 1.1)
@@ -373,10 +671,51 @@ final class RuntimeChecks: XCTestCase {
             else if button.waitForExistence(timeout: 1) { button.tap() }
             else { field.tap(withNumberOfTaps: 3, numberOfTouches: 1) }
             field.typeText(XCUIKeyboardKey.delete.rawValue)
-            XCTAssertTrue(field.value as? String == "", "Controlled input must be empty before typing")
+            let cleared = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                Self.emptyInput(value: field.value as? String, placeholder: field.placeholderValue)
+            }, object: nil)
+            XCTAssertEqual(XCTWaiter.wait(for: [cleared], timeout: 2), .completed, "Controlled input must acknowledge its empty value before typing")
+            let placeholder = field.placeholderValue ?? ""
+            if !placeholder.isEmpty && field.value as? String == placeholder {
+                print("Controlled input clear: value equals its exact reported nonempty placeholder")
+            }
         }
-        field.typeText(text + "\n")
-        XCTAssertTrue(field.value as? String == text, "Controlled input must retain the exact edit")
+        field.typeText(text + (field.elementType == .textView ? "" : "\n"))
+        if text.isEmpty {
+            XCTAssertTrue(Self.emptyInput(value: field.value as? String, placeholder: field.placeholderValue), "Clear-only input must retain its acknowledged empty value")
+        } else {
+            XCTAssertTrue(field.value as? String == text, "Controlled input must retain the exact edit")
+        }
+    }
+    private static func emptyInput(value: String?, placeholder: String?) -> Bool {
+        value == nil || value == "" || (placeholder?.isEmpty == false && value == placeholder)
+    }
+    func testEmptyInputAccessibilityContract() {
+        XCTAssertTrue(Self.emptyInput(value: nil, placeholder: "Example"))
+        XCTAssertTrue(Self.emptyInput(value: "", placeholder: "Example"))
+        XCTAssertTrue(Self.emptyInput(value: "Example", placeholder: "Example"))
+        XCTAssertFalse(Self.emptyInput(value: "Uncleared value", placeholder: "Example"))
+        XCTAssertFalse(Self.emptyInput(value: " ", placeholder: "Example"))
+        XCTAssertFalse(Self.emptyInput(value: "Value", placeholder: ""))
+    }
+    func testModalInputViewportContract() {
+        let window = CGRect(x: 0, y: 0, width: 402, height: 874)
+        let main = CGRect(x: 0, y: 188.3, width: 402, height: 685.7)
+        let search = CGRect(x: 32, y: 90, width: 338, height: 48)
+        let keyboard = CGRect(x: 0, y: 541, width: 402, height: 333)
+        XCTAssertFalse(Self.inputViewport(container: main, keyboard: keyboard).contains(search))
+        XCTAssertTrue(Self.inputViewport(container: window, keyboard: keyboard).contains(search))
+        XCTAssertFalse(Self.inputViewport(container: window, keyboard: CGRect(x: 0, y: 110, width: 402, height: 764)).contains(search))
+    }
+    func testApiEditorViewportContract() {
+        let editor = CGRect(x: 0, y: 694, width: 402, height: 48)
+        let field = CGRect(x: 13, y: 730, width: 376, height: 46)
+        let (start, end) = Self.editorDrag(in: editor, targetY: field.midY, down: false)
+        XCTAssertTrue(editor.contains(start) && editor.contains(end))
+        XCTAssertTrue(start.x > field.maxX && end.x > field.maxX)
+        XCTAssertFalse(editor.contains(CGPoint(x: field.midX, y: field.midY)))
+        XCTAssertTrue(editor.contains(CGPoint(x: field.midX, y: field.midY - (start.y - end.y))))
+        XCTAssertEqual(Self.inputViewport(container: editor, keyboard: CGRect(x: 0, y: 538, width: 402, height: 336)).height, 0)
     }
     private func setSwitch(_ label: String, _ enabled: Bool) throws {
         let control = app.switches[label]

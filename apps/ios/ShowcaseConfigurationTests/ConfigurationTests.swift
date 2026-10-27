@@ -207,7 +207,11 @@ final class ConfigurationTests: XCTestCase {
         XCTAssertNotEqual(model.playerGeneration, generation)
         XCTAssertEqual(model.sourceSettings, source)
         XCTAssertEqual(model.configurationDraft, draft)
+        #if os(tvOS)
+        XCTAssertTrue(model.timeShiftEnabled, "The unavailable System UI preference stays aligned with native controls")
+        #else
         XCTAssertFalse(model.timeShiftEnabled)
+        #endif
         XCTAssertEqual(model.player.config.adaptationConfig.maxSelectableBitrate, 4_000_000)
         XCTAssertEqual(model.sourceSettings?.initialTracks.audioLanguage, "de")
         XCTAssertEqual(model.sourceSettings?.initialTracks.subtitleLanguage, "en")

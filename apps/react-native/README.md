@@ -94,7 +94,10 @@ unapplied playback/buffer/adaptation edits remain in the draft.
 The complete applied source, chosen UI, log and **Allow DVR** setting survive
 recreation. Playback starts according to the Autoplay setting. Source/player
 errors add log entries. DVR means the window of live media that a viewer can
-rewind. **Allow DVR** controls the application's live-rewind helper;
+rewind. **Allow DVR** controls the application's live-rewind helper and hides the
+embedded UI's live seekbar and time labels while disabled. The public
+`CustomMessageHandler` channel updates the existing UI even while paused, without
+reloading the Player or Source. On-demand seeking remains available;
 it does not edit the SDK's creation-time `isTimeShiftEnabled` property.
 
 The direct editable mappings are:
@@ -237,12 +240,20 @@ bridge and Expo still use CocoaPods. Existing projects should follow the
 
 ## Shared player UI
 
-The **Theme** picker selects the default Web UI or Sports, Live, and Cinema factories
-from `@showcase/ui-shared`. Custom modes set
+The **Theme** picker selects the stock SmallScreen UI or Sports, Live, and Cinema factories
+from `@showcase/ui-shared`. All four modes set
 `usePlayer({ styleConfig: { userInterfaceType: UserInterfaceType.Bitmovin, playerUiJs, playerUiCss } })`
-and use `PlayerView` with `uiConfig.variant = new CustomUi("…buildSportsUI")`.
+and use `PlayerView` with a named `uiConfig.variant`: Default uses the stock
+`buildSmallScreenUI` tree, and custom themes use factories such as
+`new CustomUi("…buildSportsUI")`.
 The configuration applies when the player is created, so changing it remounts the
 keyed `PlayerPane`.
+
+The shared UI announces readiness through the public SDK message channel before
+the app sends its latest live-rewind preference. Later toggles use the same
+channel. Applied demonstration message handlers still receive their own messages;
+retired owners cannot send further control updates. Arbitrary `WebUiConfig`
+properties are not used because the pinned native bridges whitelist its fields.
 
 The generator consumes the repository's built shared UI. After editing that UI,
 rebuild it and copy the two updated files into an existing external project:
@@ -320,7 +331,8 @@ provide separate evidence from native playback.
 - A rejected read keeps the last valid display and logs `Snapshot read failed`.
   The other reads in that batch finish before another batch starts. Read and
   seek completions from a previous source cannot update controls or seek.
-- "Allow DVR" updates the cached display immediately, including while paused.
+- "Allow DVR" updates the cached display and embedded live controls immediately,
+  including while paused. It keeps the current native playback position.
 - The screen detects a live stream becoming on-demand by comparing snapshots on
   `onTimeChanged`, rather than relying on an `onDurationChanged` event.
 - Recovery from an expired rewind position is also detected from snapshots. The
@@ -328,6 +340,38 @@ provide separate evidence from native playback.
   it does not rely on a `DvrWindowExceeded` event prop.
 
 Verify these behaviors in the external Expo build with a valid player license.
+
+The API picker disables unavailable operations and displays the prerequisite.
+Track setters verify the current native audio/subtitle identifiers; Android video
+quality selection verifies the current quality IDs. Argument drafts survive a
+source replacement, but IDs from the previous source cannot be dispatched.
+Blank subtitles still disable subtitles, and `auto` still restores Android
+automatic quality selection. Catalog events update availability even while event
+recording is paused; Run reads fresh catalogs before dispatch. Source errors stay
+blocked until a new source load or replacement. Player errors require recreation,
+even if the native source still reports a loaded state.
+The pinned RN 1.29 bridge returns Android's loading-state name (`"Loaded"`) and
+iOS's ordinal (`2`); both are recognized explicitly.
+Session operations require a loaded source; seek and time shift follow the native
+VOD/live state, linear-ad interruptions and the live-rewind setting. Skip requires
+a presented non-linear ad, or a linear ad with public `onAdStarted.skipOffset`
+and `clientType` metadata. Negative offsets, missing metadata and unsupported
+clients are unavailable. Offset zero is immediate after a fresh `isAd()` check;
+positive VOD offsets also require a fresh relative native ad clock to reach the
+threshold, with another `isAd()` check after the clock read. The SDK's `isAd()`
+returns false for pause ads,
+so their separate public lifecycle events are tracked even when event recording
+is paused. The pinned RN bridge exposes neither native `skippableAfter` nor IMA
+`preferredUiType`. Programmatic IMA skip stays disabled; use the ad's on-screen
+Skip control. Positive live-ad thresholds also stay disabled: RN applies the
+source's absolute/relative time offsets to native time, so the wrapper getter is
+not a verified live-ad elapsed clock. Unknown metadata or clock readings cannot
+enable Skip. Schedule Ad needs
+an applied advertising item and an active session. Platform, DRM, Analytics and
+Cast prerequisites are also checked. A fresh public SDK observation guards native
+session dispatch; source replacement and owner retirement invalidate older reads.
+Load/bootstrap actions and explicit subtitle/bitrate clearing retain their normal
+paths. These guards do not add an SSAI metadata API to the pinned wrapper.
 
 ## Applied configuration code
 

@@ -137,6 +137,16 @@ for (const format of ["hls", "dash"] as const) {
     await page.goto(`${APP}/`);
     await page.getByRole("button", { name: "English", exact: true }).click();
     await page.getByRole("button", { name: "Live (DVR)", exact: true }).click();
+    await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+    await page.locator(".api-explorer > summary").click();
+    await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("command");
+    await page.getByRole("searchbox", { name: "Search APIs" }).fill("PlayerAPI.seek");
+    const apiPicker = page.getByRole("listbox", { name: "SDK entry", exact: true });
+    await apiPicker.selectOption("PlayerAPI.seek");
+    const seekArgument = page.locator('.api-explorer-form fieldset input[type="text"]').first();
+    await seekArgument.fill("12");
+    const runSeek = page.locator('button[data-api-run="PlayerAPI.seek"]');
+    await expect(runSeek).toBeEnabled();
     const label = format === "hls" ? "Live HLS" : "Live DASH + DVR";
     await page.getByRole("button", { name: label, exact: true }).click();
     const state = page.locator(".panel-readout");
@@ -147,14 +157,23 @@ for (const format of ["hls", "dash"] as const) {
     })).toBe(true);
     expect(media.counts().liveManifests).toBeGreaterThan(0);
     expect(media.counts().mediaRequests).toBeGreaterThan(0);
+    await expect(apiPicker).toHaveValue("PlayerAPI.seek");
+    await expect(seekArgument).toHaveValue("12");
+    await expect(runSeek).toBeDisabled();
+    await expect(runSeek).toHaveAttribute("data-api-unavailable", "vod-only");
+    await expect(page.locator('p[data-api-reason="PlayerAPI.seek"]')).toHaveText("Available for on-demand sources.");
 
     // Rebuild through the real setting twice; the active source must remain live.
     const dvr = page.getByRole("checkbox", { name: /^Allow DVR \(timeShift\)/ });
     await expect(dvr).toBeVisible();
     await dvr.uncheck();
     await expect(state).toContainText(/mode:\s*live-no-dvr/);
+    await expect(page.locator("#player .bmpui-ui-seekbar")).toBeHidden();
+    await expect(page.getByRole("button", { name: "-10s", exact: true })).toBeDisabled();
     await dvr.check();
     await expect(state).toContainText(/mode:\s*live-dvr/);
+    await expect(page.locator("#player .bmpui-ui-seekbar")).toBeVisible();
+    await expect(page.getByRole("button", { name: "-10s", exact: true })).toBeEnabled();
     await expect.poll(() => page.evaluate(() =>
       (window as unknown as { finalizationSourceLoaded: boolean }).finalizationSourceLoaded)).toBe(true);
     await expect.poll(() => page.evaluate(() => window.player?.getDuration())).toBe(Infinity);
@@ -189,6 +208,13 @@ for (const format of ["hls", "dash"] as const) {
     await expect(state).toContainText(/mode:\s*vod/);
     await expect(state).toContainText(/dvrAvailable:\s*false/);
     await expect(page.locator('#player [class*="livebutton"]')).toBeHidden();
+    await expect(apiPicker).toHaveValue("PlayerAPI.seek");
+    await expect(seekArgument).toHaveValue("12");
+    // Finalization retains the source's timeline origin. The original draft is
+    // kept; a value in the current seekable range is now a valid VOD operation.
+    const validSeek = await page.evaluate(() => window.player!.getSeekableRange().start + 12);
+    await seekArgument.fill(String(validSeek));
+    await expect(runSeek).toBeEnabled();
     const after = await page.evaluate(() => {
       const globals = window as unknown as { finalizingPlayer: unknown; finalizationEvents: string[] };
       return {

@@ -9,6 +9,21 @@ spec.loader.exec_module(module)
 
 
 class AndroidLocatorTests(unittest.TestCase):
+    def test_empty_focused_input_can_be_reported_as_its_placeholder(self):
+        tree = ET.fromstring('<hierarchy><node class="android.widget.EditText" content-desc="Source URL" focused="true" '
+                            'text="https://example.com/master.m3u8" hint="https://example.com/master.m3u8"/></hierarchy>')
+        self.assertTrue(module.Ui.input_acknowledged(tree, "Source URL", ""))
+        self.assertFalse(module.Ui.input_acknowledged(tree, "Source URL", "http://127.0.0.1:5198/master.m3u8"))
+        node = tree.find("node")
+        node.set("text", "http://127.0.0.1:5198/master.m3u8")
+        self.assertFalse(module.Ui.input_acknowledged(tree, "Source URL", ""))
+        self.assertTrue(module.Ui.input_acknowledged(tree, "Source URL", "http://127.0.0.1:5198/master.m3u8"))
+
+    def test_a_caption_or_unfocused_input_cannot_acknowledge_clear(self):
+        tree = ET.fromstring('<hierarchy><node class="android.widget.TextView" content-desc="Source URL" focused="true" text=""/>'
+                            '<node class="android.widget.EditText" content-desc="Source URL" focused="false" text=""/></hierarchy>')
+        self.assertFalse(module.Ui.input_acknowledged(tree, "Source URL", ""))
+
     def test_fixed_configuration_actions_reject_missing_and_clipped_buttons(self):
         ui = module.Ui.__new__(module.Ui)
         ui.width, ui.height = 2400, 1080

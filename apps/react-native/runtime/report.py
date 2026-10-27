@@ -56,11 +56,11 @@ def validate_report(value):
 
 
 def validate_sample(sample):
-    _keys(sample, "sequence time duration live playing muted subtitleCount externalSubtitleAvailable externalSubtitleSelected")
+    _keys(sample, "sequence time duration timeShift maxTimeShift live playing muted subtitleCount externalSubtitleAvailable externalSubtitleSelected")
     for name in ["sequence", "subtitleCount"]:
         if type(sample[name]) is not int or sample[name] < 0:
             raise ValueError("Invalid sample counter")
-    for name in ["time", "duration"]:
+    for name in ["time", "duration", "timeShift", "maxTimeShift"]:
         number(sample[name], nullable=True)
     for name in ["live", "playing", "muted", "externalSubtitleAvailable", "externalSubtitleSelected"]:
         if type(sample[name]) is not bool:

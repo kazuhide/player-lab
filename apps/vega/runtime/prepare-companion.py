@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shlex
 import shutil
 
 
@@ -25,7 +26,12 @@ def main():
     package.update(name="player-lab-runtime-companion", description="License-free Vega lifecycle test companion")
     package["dependencies"] = {key: value for key, value in package["dependencies"].items()
                                if key in {"react", "react-native", "@amazon-devices/react-native-kepler"}}
-    package["scripts"] = {"build": "react-native build-vega --build-type Release --max-workers 2"}
+    native_cli = (app / "node_modules/react-native/cli.js").resolve()
+    if not native_cli.is_file():
+        parser.error("The pinned React Native CLI is not installed")
+    # PNPM's .bin shell shim contains paths relative to its original location.
+    # Execute the installed CLI directly when this project lives elsewhere.
+    package["scripts"] = {"build": "node " + shlex.quote(str(native_cli)) + " build-vega --build-type Release --max-workers 2"}
     package["kepler"]["appName"] = "PlayerLabRuntimeCompanion"
     (output / "package.json").write_text(json.dumps(package, indent=2) + "\n")
     modules = output / "node_modules"
@@ -43,6 +49,14 @@ def main():
     if not plugin.is_dir():
         parser.error("The pinned React Native CLI Metro plugin is not installed")
     (modules / "@react-native-community/cli-plugin-metro").symlink_to(plugin.resolve(), target_is_directory=True)
+    platform = (app / "node_modules/@amazon-devices/kepler-cli-platform").resolve()
+    # These build tools are transitive dependencies in the frozen PNPM graph.
+    # Kepler looks them up from the external project instead of its own package.
+    for name in ["kepler-module-manifest-builder", "kepler-compatibility-metro-config"]:
+        dependency = platform.parent / name
+        if not dependency.is_dir():
+            parser.error("A pinned Kepler build dependency is not installed: " + name)
+        (modules / "@amazon-devices" / name).symlink_to(dependency.resolve(), target_is_directory=True)
     shutil.copyfile(app / "babel.config.js", output / "babel.config.js")
     (output / "app.json").write_text(json.dumps({"name": "com.playerlab.runtimecompanion.main", "displayName": "Player Lab Runtime Companion"}) + "\n")
     (output / "index.js").write_text('''import React from "react";

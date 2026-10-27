@@ -1251,6 +1251,12 @@ body {
   margin: 0.7rem 0.4rem 0.2rem 0;
 }
 
+.api-unavailable-reason {
+  margin: 0.2rem 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .api-explorer a {
   color: var(--accent);
   text-underline-offset: 0.2em;
