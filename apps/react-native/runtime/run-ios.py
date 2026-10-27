@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 
 from report import configuration_stages, external_cue_selection, playback_samples, validate_report
 from controls import live_rewind_transition, vod_controls
+from embedded_ios import validate_observations
 
 
 def command(args, cwd=None, log=None, timeout=300):
@@ -91,6 +92,7 @@ def main():
         for stage in receipt["stages"]:
             playback_samples(stage["samples"])
         if args.live_url:
+            validate_observations(receipt["embeddedUiObservations"])
             live_rewind_transition(*receipt["liveControlSamples"], receipt["liveControls"]["seekbarVisible"])
             vod_controls(receipt["vodSample"], receipt["vodControls"]["seekbarVisible"], receipt["vodControls"]["skipAdUnavailable"], receipt["vodControls"]["scheduleAdUnavailable"])
         elif not args.subtitle_url:

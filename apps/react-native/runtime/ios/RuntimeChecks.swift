@@ -1,14 +1,18 @@
 import XCTest
 import UIKit
+import CoreFoundation
 
 /// Drives the installed opt-in entry through the same production App and SDK UI as a user.
 final class RuntimeChecks: XCTestCase {
     private let app = XCUIApplication(bundleIdentifier: "com.playerlab.reactnative")
     private var stages: [[String: Any]] = []
     private var result: [String: Any] = ["schemaVersion": 1, "platform": "ios", "passed": false]
+    private var uiSequence = 0
+    private var uiObservations: [[String: Any]] = []
     override func setUpWithError() throws { continueAfterFailure = false }
     override func tearDownWithError() throws {
         result["stages"] = stages
+        result["embeddedUiObservations"] = uiObservations
         // hasSucceeded is not final inside tearDown; the outer runner also requires the finalized xcresult.
         result["assertionFailures"] = testRun?.failureCount ?? -1
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -99,7 +103,8 @@ final class RuntimeChecks: XCTestCase {
         try tapWorkspace("workspace-nav-more"); try setSwitch("Allow DVR", false)
         let ordinary = try waitReport { value in
             let owner = value["owner"] as? [String: Any]
-            return owner?["sourceLoaded"] as? Int ?? 0 > 0 && (owner?["sample"] as? [String: Any])?["live"] as? Bool == false
+            let sample = owner?["sample"] as? [String: Any]
+            return owner?["sourceLoaded"] as? Int ?? 0 > 0 && sample?["live"] as? Bool == false && sample?["playing"] as? Bool == true
         }
         try pauseControlsPlayback()
         let vodVisible = try embeddedSeekbar(true)
@@ -154,68 +159,124 @@ final class RuntimeChecks: XCTestCase {
         try openOperationPicker(id); try tapWorkspace("api-operation-selector-option-" + id)
     }
     private func embeddedSeekbar(_ expected: Bool) throws -> Bool {
-        let before = try report()
-        try revealControlBarPadding()
-        let deadline = Date().addingTimeInterval(5)
-        while Date() < deadline {
-            let webview = app.webViews.firstMatch
-            let visible = webview.sliders.allElementsBoundByIndex.contains { $0.isHittable }
-            if webview.exists && visible == expected {
-                try revealControlBarPadding()
-                let attachment = XCTAttachment(screenshot: webview.screenshot())
-                attachment.name = "embedded-seekbar-\(expected)-\(result.count)"; attachment.lifetime = .keepAlways; add(attachment)
-                let original = try XCTUnwrap(before["owner"] as? [String: Any])
-                let previous = try XCTUnwrap(original["sample"] as? [String: Any])
-                let after = try waitReport { value in
-                    let sample = (value["owner"] as? [String: Any])?["sample"] as? [String: Any]
-                    return (sample?["sequence"] as? Int ?? 0) > (previous["sequence"] as? Int ?? 0)
-                }
-                let current = try XCTUnwrap(after["owner"] as? [String: Any])
-                let sample = try XCTUnwrap(current["sample"] as? [String: Any])
-                for key in ["generation", "sourceLoads", "sourceLoaded"] { XCTAssertEqual(current[key] as? Int, original[key] as? Int) }
-                XCTAssertEqual(previous["playing"] as? Bool, false); XCTAssertEqual(sample["playing"] as? Bool, false)
-                XCTAssertLessThanOrEqual(abs(try XCTUnwrap(sample["time"] as? Double) - XCTUnwrap(previous["time"] as? Double)), 0.25)
-                return visible
-            }
-            Thread.sleep(forTimeInterval: 0.1)
+        let before = try freshNativeReport()
+        let snapshot = try revealControlBarFromDom()
+        let controls = try uiControls(snapshot)
+        XCTAssertTrue(controls.contains { uiClass($0, "bmpui-ui-playbacktogglebutton") && $0["visible"] as? Bool == true && $0["hittable"] as? Bool == true }, "An ordinary compact control must be actually visible, including for the negative seekbar check")
+        let visible = controls.contains { uiClass($0, "bmpui-ui-seekbar") && $0["visible"] as? Bool == true }
+        XCTAssertEqual(visible, expected, "The computed SDK DOM seekbar must match the preference")
+        let attachment = XCTAttachment(screenshot: try uiWebView(snapshot).screenshot())
+        attachment.name = "embedded-seekbar-\(expected)-\(uiObservations.count)"; attachment.lifetime = .keepAlways; add(attachment)
+        let after = try freshNativeReport()
+        uiObservations.append(["snapshot": snapshot, "nativeBefore": before, "nativeAfter": after])
+        let original = try XCTUnwrap(before["owner"] as? [String: Any])
+        let current = try XCTUnwrap(after["owner"] as? [String: Any])
+        let previous = try XCTUnwrap(original["sample"] as? [String: Any])
+        let sample = try XCTUnwrap(current["sample"] as? [String: Any])
+        for key in ["generation", "sourceLoads", "sourceLoaded"] { XCTAssertEqual(current[key] as? Int, original[key] as? Int) }
+        for owner in [original, current] { XCTAssertEqual(owner["errors"] as? Int, 0); XCTAssertEqual(owner["readFailures"] as? Int, 0) }
+        XCTAssertEqual(previous["playing"] as? Bool, false); XCTAssertEqual(sample["playing"] as? Bool, false)
+        XCTAssertLessThanOrEqual(abs(try XCTUnwrap(sample["time"] as? Double) - XCTUnwrap(previous["time"] as? Double)), 0.25)
+        if uiObservations.count <= 3 {
+            XCTAssertEqual(snapshot["viewIdentity"] as? String, (uiObservations[0]["snapshot"] as? [String: Any])?["viewIdentity"] as? String)
         }
-        XCTFail("The actual SDK WebView seekbar did not match the preference")
-        throw Failure.deadline
+        return visible
     }
     private func pauseControlsPlayback() throws {
-        let baseline = try report()
+        let baseline = try freshNativeReport()
+        XCTAssertTrue(try playing(baseline), "Pause must start from actual native playback")
         let generation = try owner(baseline)
-        var previousReport = baseline
         for _ in 0..<3 {
-            let controls = app.webViews.firstMatch.buttons.matching(NSPredicate(format: "label ==[c] 'Pause' OR label ==[c] 'Pause video'"))
-            // The SDK overlay shares this label; prefer the compact control-bar button.
-            let control = controls.allElementsBoundByIndex.filter { $0.frame.width > 0 && $0.frame.height > 0 }
-                .min { $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height } ?? controls.firstMatch
-            try revealControlBarPadding()
-            if control.exists && control.isHittable { control.tap() }
-            let previous = (previousReport["owner"] as? [String: Any])?["sample"] as? [String: Any]
-            let value = try waitReport { value in
-                let sample = (value["owner"] as? [String: Any])?["sample"] as? [String: Any]
-                return (sample?["sequence"] as? Int ?? 0) > (previous?["sequence"] as? Int ?? 0)
-            }
+            let snapshot = try revealControlBarFromDom()
+            let controls = try uiControls(snapshot).filter { uiClass($0, "bmpui-ui-playbacktogglebutton") && $0["visible"] as? Bool == true && $0["hittable"] as? Bool == true }
+            XCTAssertEqual(controls.count, 1, "Exactly one visible compact playback control is required")
+            let rect = try XCTUnwrap(controls.first?["rect"] as? [Double])
+            XCTAssertEqual(rect.count, 4)
+            try tapDomPoint(x: rect[0] + rect[2] / 2, y: rect[1] + rect[3] / 2, snapshot: snapshot)
+            let value = try freshNativeReport()
             XCTAssertEqual(try owner(value), generation)
             let original = try XCTUnwrap(baseline["owner"] as? [String: Any])
             let current = try XCTUnwrap(value["owner"] as? [String: Any])
             for key in ["sourceLoads", "sourceLoaded"] { XCTAssertEqual(current[key] as? Int, original[key] as? Int) }
-            previousReport = value
             if try !playing(value) { return }
         }
         XCTFail("The native player did not acknowledge the SDK Pause control")
         throw Failure.deadline
     }
-    private func revealControlBarPadding() throws {
-        let webview = app.webViews.firstMatch
-        let point = CGPoint(x: webview.frame.maxX - 4, y: webview.frame.maxY - 4)
-        XCTAssertTrue(webview.exists && webview.frame.contains(point), "The native WebView edge must be visible")
-        // Shared UI control bars fill the viewport width; their edge padding contains no action.
-        let compact = webview.buttons.allElementsBoundByIndex.filter { $0.frame.width * $0.frame.height < webview.frame.width * webview.frame.height / 2 }
-        XCTAssertFalse(compact.contains { $0.frame.contains(point) }, "The reveal point must be outside every compact action")
-        webview.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 1)).withOffset(CGVector(dx: -4, dy: -4)).tap()
+    private func uiClass(_ control: [String: Any], _ name: String) -> Bool {
+        (control["className"] as? String ?? "").split(separator: " ").contains(Substring(name))
+    }
+    private func uiControls(_ snapshot: [String: Any]) throws -> [[String: Any]] {
+        let dom = try XCTUnwrap(snapshot["dom"] as? [String: Any])
+        return try XCTUnwrap(dom["controls"] as? [[String: Any]])
+    }
+    private func readEmbeddedUi() throws -> [String: Any] {
+        CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(rawValue: "com.playerlab.reactnative.runtime.observe-ui" as CFString), nil, nil, true)
+        let node = app.descendants(matching: .any).matching(identifier: "player-lab-native-ui-observation").firstMatch
+        let deadline = Date().addingTimeInterval(5)
+        while Date() < deadline {
+            if node.exists, let text = node.value as? String, let data = text.data(using: .utf8),
+               let value = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let sequence = value["sequence"] as? Int, sequence > uiSequence {
+                XCTAssertNil(value["error"], "The native WK observer must return a current DOM observation")
+                XCTAssertNotNil(value["dom"] as? [String: Any]); XCTAssertNotNil(value["viewIdentity"] as? String)
+                uiSequence = sequence
+                return value
+            }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        XCTFail("Read-only native WK observation deadline exceeded")
+        throw Failure.deadline
+    }
+    private func uiWebView(_ snapshot: [String: Any]) throws -> XCUIElement {
+        let frame = try XCTUnwrap(snapshot["frame"] as? [Double])
+        XCTAssertEqual(frame.count, 4)
+        return try XCTUnwrap(app.webViews.allElementsBoundByIndex.first { view in
+            abs(view.frame.minX - frame[0]) < 1 && abs(view.frame.minY - frame[1]) < 1 &&
+            abs(view.frame.width - frame[2]) < 1 && abs(view.frame.height - frame[3]) < 1
+        }, "The DOM observation must belong to the actual native WebView viewport")
+    }
+    private func tapDomPoint(x: Double, y: Double, snapshot: [String: Any]) throws {
+        let dom = try XCTUnwrap(snapshot["dom"] as? [String: Any])
+        let width = try XCTUnwrap(dom["width"] as? Double), height = try XCTUnwrap(dom["height"] as? Double)
+        XCTAssertTrue(width > 0 && height > 0 && x > 0 && x < width && y > 0 && y < height)
+        try uiWebView(snapshot).coordinate(withNormalizedOffset: CGVector(dx: x / width, dy: y / height)).tap()
+    }
+    private func revealControlBarFromDom() throws -> [String: Any] {
+        var snapshot = try readEmbeddedUi()
+        func shown(_ value: [String: Any]) throws -> Bool {
+            try uiControls(value).contains { uiClass($0, "bmpui-ui-playbacktogglebutton") && $0["visible"] as? Bool == true && $0["hittable"] as? Bool == true }
+        }
+        if try shown(snapshot) { return snapshot }
+        let dom = try XCTUnwrap(snapshot["dom"] as? [String: Any])
+        let point = try XCTUnwrap(dom["revealPoint"] as? [String: Any], "A DOM-proven non-action reveal point is required")
+        try tapDomPoint(x: XCTUnwrap(point["x"] as? Double), y: XCTUnwrap(point["y"] as? Double), snapshot: snapshot)
+        let deadline = Date().addingTimeInterval(5)
+        while Date() < deadline {
+            snapshot = try readEmbeddedUi()
+            if try shown(snapshot) { return snapshot }
+        }
+        XCTFail("The SDK control bar must become actually visible")
+        throw Failure.deadline
+    }
+    private func freshNativeReport() throws -> [String: Any] {
+        let deadline = Date().addingTimeInterval(40)
+        var value = try report(refresh: false)
+        // The first sample can drain an earlier coalesced read. The second starts after it.
+        for _ in 0..<2 {
+            let previous = ((value["owner"] as? [String: Any])?["sample"] as? [String: Any])?["sequence"] as? Int ?? 0
+            _ = try report()
+            var advanced = false
+            while Date() < deadline {
+                value = try report(refresh: false)
+                let sequence = ((value["owner"] as? [String: Any])?["sample"] as? [String: Any])?["sequence"] as? Int ?? 0
+                if sequence > previous { advanced = true; break }
+                Thread.sleep(forTimeInterval: 0.1)
+            }
+            guard advanced else { XCTFail("A fresh native sample is required"); throw Failure.deadline }
+        }
+        return value
     }
 
     func testNormalConfigurationPlaybackAndCleanup() throws {

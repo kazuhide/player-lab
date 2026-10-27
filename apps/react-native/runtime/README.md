@@ -15,11 +15,20 @@ that a loaded source is usable through the actual bridge. They first run
 Android SDK, `2` on iOS).
 Pass `--live-type dash` to the Android controls runner for a live DASH fixture;
 the default live format and the ordinary VOD stage are HLS. The read-only DOM
-checks have standalone regressions: `node --test runtime/test_embedded_ui.mjs`.
+checks have standalone regressions: `node --test apps/react-native/runtime/test_embedded_ui.mjs`.
 When changing a generated host's JavaScript under Metro's CI mode, restart that
 owned Metro process with `--clear` before qualification. CI mode disables file
 watching. Verify the served bundle and the new GUI markers before binding a run
 to the updated source.
+
+Before building an iOS controls host, run
+`node apps/react-native/runtime/prepare-ios-observer.mjs EXTERNAL_RUNTIME_HOST`.
+This explicitly adds a debug-only native WK observer to that generated host.
+The XCTest runner requests read-only computed-style and hit-test snapshots through
+a process-local observation label. A negative seekbar result also requires an
+ordinary compact playback control to be visible. Normal showcase builds and
+App/src JavaScript are unchanged. Rebuild the iOS app after preparing the observer;
+the original app artifact cannot qualify the new observation path.
 
 These runners operate an explicitly generated `--runtime-checks` host. That
 entry wraps the production `App`; it keeps the existing player creation, native
