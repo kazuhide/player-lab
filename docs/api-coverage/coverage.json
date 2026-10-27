@@ -1,7 +1,7 @@
 {
  "schemaVersion": 1,
  "checkedAt": "2026-10-26",
- "sourceRevision": "f9bf56ee8bfec13b95c17761ca295e53dfc0244e",
+ "sourceRevision": "5302052c73cacf6c15fc650932fc9ed8a776546e",
  "sdks": [
   {
    "id": "web",
@@ -180363,7 +180363,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 104,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "settings.toPlayerConfig(licenseKey)"
       }
      ]
@@ -180401,7 +180401,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 104,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "settings.toPlayerConfig(licenseKey)"
       }
      ]
@@ -180439,7 +180439,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 104,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "settings.toPlayerConfig(licenseKey)"
       }
      ]
@@ -183524,7 +183524,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 104,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "ApiNativeFactories.player(context,"
       }
      ]
@@ -185323,7 +185323,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 112,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "apiCompanionHosts"
       }
      ]
@@ -186481,8 +186481,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 526,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 532,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata())"
       },
       {
@@ -186640,7 +186640,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 104,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "settings.toPlayerConfig(licenseKey)"
       }
      ]
@@ -186678,7 +186678,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 104,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "settings.toPlayerConfig(licenseKey)"
       }
      ]
@@ -186840,7 +186840,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 104,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "settings.toPlayerConfig(licenseKey)"
       }
      ]
@@ -191961,7 +191961,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 104,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "settings.toPlayerConfig(licenseKey)"
       }
      ]
@@ -191999,7 +191999,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 104,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "settings.toPlayerConfig(licenseKey)"
       }
      ]
@@ -192037,7 +192037,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 104,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "settings.toPlayerConfig(licenseKey)"
       }
      ]
@@ -192075,7 +192075,7 @@
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
        "line": 104,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "settings.toPlayerConfig(licenseKey)"
       }
      ]
@@ -193079,8 +193079,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 526,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 532,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "mediaSessionConfig = apiOverrides.mediaSession()"
       }
      ]
@@ -194886,8 +194886,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 564,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 570,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "PlaylistConfig(sources, apiOverrides.playlistOptions())"
       }
      ]
@@ -194945,8 +194945,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 564,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 570,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "PlaylistConfig(sources, apiOverrides.playlistOptions())"
       }
      ]
@@ -195004,8 +195004,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 564,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 570,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "PlaylistConfig(sources, apiOverrides.playlistOptions())"
       }
      ]
@@ -195063,8 +195063,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 564,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 570,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "PlaylistConfig(sources, apiOverrides.playlistOptions())"
       }
      ]
@@ -195491,8 +195491,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 262,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 265,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "return ApiNativeFactories.source(context,"
       }
      ]
@@ -196522,8 +196522,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 485,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 491,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "internal fun applySource(settings: SourceSettings) {"
       }
      ]
@@ -196666,8 +196666,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 485,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 491,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "internal fun applySource(settings: SourceSettings) {"
       }
      ]
@@ -196880,8 +196880,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 485,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 491,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "internal fun applySource(settings: SourceSettings) {"
       }
      ]
@@ -196911,8 +196911,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 485,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 491,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "internal fun applySource(settings: SourceSettings) {"
       }
      ]
@@ -196949,8 +196949,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 485,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 491,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "internal fun applySource(settings: SourceSettings) {"
       }
      ]
@@ -197070,8 +197070,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 262,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 265,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "return ApiNativeFactories.source(context,"
       }
      ]
@@ -197101,8 +197101,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 485,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 491,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "internal fun applySource(settings: SourceSettings) {"
       }
      ]
@@ -197132,8 +197132,8 @@
       {
        "kind": "app",
        "file": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-       "line": 485,
-       "sha256": "96f43a588955a0ad9b6dccf54071b9b28448dafe25e1039a683022c0c227ecc9",
+       "line": 491,
+       "sha256": "eff48028e2cde37bda0a281507f7c6a09482cc2d6350f742274f09b5851ed117",
        "symbol": "internal fun applySource(settings: SourceSettings) {"
       }
      ]

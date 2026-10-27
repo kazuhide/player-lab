@@ -307,10 +307,10 @@
       "text": "        val sourceConfigs = configs ?: sourceConfigurations(callbacks = callbacks)\n        val sources = sourceConfigs.map { sourceConfig -> sourceFactory?.invoke(sourceConfig)\n            ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), mediaSessionConfig = apiOverrides.mediaSession()) }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 549,
-        "label": "MainActivity.kt:549–551"
+        "line": 555,
+        "label": "MainActivity.kt:555–557"
       },
-      "endLine": 551
+      "endLine": 557
     },
     {
       "type": "code",
@@ -318,10 +318,10 @@
       "text": "        if (offlinePlayback == null && ApiCollectionSettings.PLAYLIST in apiOverrides.values)\n            owner.load(com.bitmovin.player.api.playlist.PlaylistConfig(sources, apiOverrides.playlistOptions()))\n        else owner.load(sources.single())",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 563,
-        "label": "MainActivity.kt:563–565"
+        "line": 569,
+        "label": "MainActivity.kt:569–571"
       },
-      "endLine": 565
+      "endLine": 571
     },
     {
       "type": "steps",
@@ -604,7 +604,7 @@
     },
     {
       "type": "p",
-      "text": "「広告」の「SSAIの手動連携」を有効にすると、現在のソースに対して広告メタデータの作成や開始・終了の通知を試せます。SSAIは配信側で広告映像をコンテンツに組み込む方式です。「SSAIの広告メタデータを作成」はSDK内のオブジェクトを作るだけで、通常のストリームに広告映像を挿入しません。広告の時刻や開始・終了をアプリから通知する連携の検証に使います。この設定はソースの再読み込みやPlayerの再生成で無効に戻ります。スキップやクライアント側広告の操作には、対応する広告が再生中である必要があります。"
+      "text": "「広告」の「SSAIの手動連携」を有効にすると、現在のソースに対して広告メタデータの作成や開始・終了の通知を試せます。SSAIは配信側で広告映像をコンテンツに組み込む方式です。「SSAIの広告メタデータを作成」はSDK内のオブジェクトを作るだけで、通常のストリームに広告映像を挿入しません。広告の時刻や開始・終了をアプリから通知する連携の検証に使います。この設定はソースの再読み込みやPlayerの再生成で無効に戻ります。クライアント側広告の操作には、対応する広告が再生中である必要があります。広告のスキップは、スキップ可能な広告の再生中、または一時停止広告の表示中に利用できます。一時停止広告を閉じても本編は一時停止したままです。"
     },
     {
       "type": "table",
@@ -668,10 +668,10 @@
       "text": "    private fun <E : Event> onPlayer(type: KClass<E>, action: (E) -> Unit) {\n        val owner = player\n        val generation = playerGeneration\n        val guarded: (E) -> Unit = { if (!released && player === owner && generation == playerGeneration) action(it) }\n        owner.on(type, guarded)\n        playerSubscriptions += { owner.off(type, guarded) }\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 623,
-        "label": "MainActivity.kt:623–629"
+        "line": 629,
+        "label": "MainActivity.kt:629–635"
       },
-      "endLine": 629
+      "endLine": 635
     },
     {
       "type": "p",
@@ -759,10 +759,10 @@
       "text": "    internal fun releaseView(view: PlayerView) {\n        if (!views.remove(view)) return\n        retireApiViewSubscriptions(view)\n        retireApiViewHandlers(view)\n        apiSurfaces.clear(view)\n        if (apiDetachedView === view) apiDetachedView = null\n        viewLifecycle.detach(view)\n        view.player = null\n        view.onDestroy()\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 637,
-        "label": "MainActivity.kt:637–646"
+        "line": 643,
+        "label": "MainActivity.kt:643–652"
       },
-      "endLine": 646
+      "endLine": 652
     },
     {
       "type": "p",
