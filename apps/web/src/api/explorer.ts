@@ -10,6 +10,8 @@ import { ApiMaterializer, ResourcePool, inputCode } from "./materialize";
 import { ApiOverrides, apiPath, validateData } from "./values";
 import { configurationCode, uiConfigurationCode } from "./code";
 import { ResourceInput, type ApiEntry, type ApiSchema, type ConfigRoot, type PathPart, type Signature } from "./types";
+import { apiReason, apiUnavailableReason, ApiUnavailableError, argumentPrerequisites, readApiRuntimeState,
+  type ApiRuntimeState, type ApiUnavailableReason } from "./availability";
 
 export interface ApiExplorerOptions {
   getPlayer: () => PlayerAPI | undefined;
@@ -35,7 +37,20 @@ interface ExplorerDraft {
   comparisonValues: Map<string, { ticket: number; value: unknown }>;
   root?: ConfigRoot;
   refreshApplied?: () => void;
+  refreshRuntime?: (snapshot: ApiRuntimeState) => void;
 }
+
+// Prerequisites must update even when an event is absent from the log catalog.
+const availabilityEvents = [PlayerEvent.Ready, PlayerEvent.SourceLoaded, PlayerEvent.SourceUnloaded, PlayerEvent.Error,
+  PlayerEvent.Play, PlayerEvent.Playing, PlayerEvent.Paused, PlayerEvent.PlaybackFinished, PlayerEvent.TimeChanged,
+  PlayerEvent.Seeked, PlayerEvent.TimeShifted, PlayerEvent.AdStarted, PlayerEvent.AdFinished, PlayerEvent.AdSkipped,
+  PlayerEvent.AdError, PlayerEvent.AdManifestLoaded, PlayerEvent.AdBreakStarted, PlayerEvent.AdBreakFinished,
+  PlayerEvent.OverlayAdStarted, PlayerEvent.NonLinearAdStarted,
+  PlayerEvent.NonLinearAdFinished, PlayerEvent.NonLinearAdSkipped, PlayerEvent.CastAvailable, PlayerEvent.CastStarted,
+  PlayerEvent.CastStopped, PlayerEvent.AirplayAvailable, PlayerEvent.AirplayChanged, PlayerEvent.ViewModeChanged,
+  PlayerEvent.DurationChanged, PlayerEvent.AudioAdded, PlayerEvent.AudioRemoved,
+  PlayerEvent.AudioQualityAdded, PlayerEvent.AudioQualityRemoved, PlayerEvent.VideoQualityAdded, PlayerEvent.VideoQualityRemoved,
+  PlayerEvent.SubtitleAdded, PlayerEvent.SubtitleRemoved, PlayerEvent.ModuleReady];
 
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): HTMLElementTagNameMap[K] {
   const element = document.createElement(tag);
@@ -112,6 +127,7 @@ export class ApiExplorer {
   private removalKey: string | undefined;
   private readonly drafts = new Map<string, ExplorerDraft>();
   private statusValue: L | string = "";
+  private refreshRuntimeSelection?: (snapshot: ApiRuntimeState) => void;
 
   constructor(container: HTMLElement, private readonly options: ApiExplorerOptions) {
     this.details.className = "api-explorer";
@@ -132,6 +148,7 @@ export class ApiExplorer {
   relocalize(): void {
     this.summary.textContent = pick({ ja: "SDKの詳細設定・API・イベント", en: "SDK settings, APIs and events" });
     this.labels.refresh();
+    this.refreshRuntimeAvailability();
     this.setStatus(this.statusValue);
   }
 
@@ -237,6 +254,7 @@ export class ApiExplorer {
     this.contexts.clear(); this.resources.clear(); this.counts.clear(); this.events.length = 0;
     this.player = undefined; this.ui = undefined; this.preparingPlayer = true;
     this.result.textContent = ""; this.log.textContent = "";
+    this.refreshRuntimeAvailability();
     return () => cleanups.forEach(cleanup => cleanup());
   }
 
@@ -246,7 +264,7 @@ export class ApiExplorer {
     const ui = this.options.getUi();
     if (player !== this.player) this.clearComparisons();
     else if (ui !== this.ui) this.clearComparisons("UIConfig");
-    if (player === this.player && ui === this.ui) { this.refreshEditors(); return; }
+    if (player === this.player && ui === this.ui) { this.refreshEditors(); this.refreshRuntimeAvailability(); return; }
     this.operation++;
     this.unsubscribe.forEach(unsubscribe => { try { unsubscribe(); } catch { /* The SDK may already have released it. */ } });
     this.unsubscribe = [];
@@ -270,12 +288,20 @@ export class ApiExplorer {
     const video = document.querySelector("#player video");
     if (video) this.resources.add(video, "Current video", "HTMLVideoElement", player);
     this.resources.add(document, "Document", "Document");
+    if (player) for (const event of availabilityEvents) {
+      const listener = () => {
+        if (this.options.getPlayer() !== player || this.preparingPlayer) return;
+        if (event === PlayerEvent.SourceLoaded || event === PlayerEvent.SourceUnloaded) this.operation++;
+        this.refreshRuntimeAvailability();
+      };
+      player.on(event, listener);
+      this.unsubscribe.push(() => player.off(event, listener));
+    }
     for (const entry of this.catalog.rows.filter(entry => entry.category === "event")) {
       if (entry.root === "PlayerAPI" && player && entry.value && Object.values(PlayerEvent).includes(entry.value as PlayerEvent)) {
         const event = entry.value as PlayerEvent;
         const listener = (payload: unknown) => {
           if (this.options.getPlayer() !== player) return;
-          if (event === PlayerEvent.SourceLoaded || event === PlayerEvent.SourceUnloaded) this.operation++;
           this.record(entry.id, preview(payload));
         };
         player.on(event, listener);
@@ -288,6 +314,23 @@ export class ApiExplorer {
       }
     }
     this.refreshEditors();
+    this.refreshRuntimeAvailability();
+  }
+
+  private unavailable(entry: ApiEntry, snapshot: ApiRuntimeState, args?: readonly unknown[]): ApiUnavailableReason | undefined {
+    if (entry.category === "configuration" || entry.category === "event") return undefined;
+    const root = entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi();
+    if (!root || this.preparingPlayer) return apiReason(entry.root === "PlayerAPI" ? "player" : "ui");
+    if (typeof readPath(root, apiPath(entry.id)) !== "function") return apiReason("method");
+    const identities = this.identityItems(entry.id);
+    if (identities && !identities.length) return apiReason("ui-object");
+    return apiUnavailableReason(entry.id, snapshot, args);
+  }
+
+  private refreshRuntimeAvailability(): void {
+    const snapshot = readApiRuntimeState(this.options.getPlayer());
+    this.refreshRuntimeSelection?.(snapshot);
+    this.drafts.forEach(draft => draft.refreshRuntime?.(snapshot));
   }
 
   private refreshEditors(): void {
@@ -328,6 +371,7 @@ export class ApiExplorer {
 
   private render(): void {
     const catalog = this.catalog!;
+    const entries = new Map(catalog.rows.map(entry => [entry.id, entry]));
     const text = <K extends keyof HTMLElementTagNameMap>(tag: K, value: L) => this.labels.text(node(tag), value);
     const action = (value: L, run: () => void) => this.labels.text(button("", run), value);
     const choice = (value: string, label: L) => this.labels.text(option(value, ""), label);
@@ -339,7 +383,7 @@ export class ApiExplorer {
     this.labels.attribute(search, "placeholder", { ja: "APIを検索", en: "Search APIs" });
     const category = node("select"); this.labels.attribute(category, "aria-label", { ja: "APIの種類", en: "API category" });
     category.append(choice("configuration", { ja: "設定", en: "Configuration" }), choice("command", { ja: "操作", en: "Commands" }), choice("observation", { ja: "状態の取得", en: "Read state" }), choice("event", { ja: "イベント", en: "Events" }));
-    const selection = node("select"); selection.size = 9; this.labels.attribute(selection, "aria-label", { ja: "SDKの項目", en: "SDK entry" });
+    const selection = node("select"); selection.size = 9; selection.dataset.apiPicker = ""; this.labels.attribute(selection, "aria-label", { ja: "SDKの項目", en: "SDK entry" });
     const searchStatus = node("p"); searchStatus.className = "api-search-status"; searchStatus.setAttribute("role", "status");
     const form = node("div"); form.className = "api-explorer-form";
     const layout = node("div"); layout.className = "api-explorer-layout";
@@ -370,7 +414,7 @@ export class ApiExplorer {
       rendered = selection.value;
       const draft = reset ? undefined : this.drafts.get(rendered);
       if (draft) { form.append(...draft.nodes); return; }
-      const entry = catalog.rows.find(entry => entry.id === selection.value);
+      const entry = entries.get(selection.value);
       if (!entry) return;
       const state: ExplorerDraft = { nodes: [], labels: new DomLocalization(), editors: new Set(), buttons: new Map(), edited: false, comparisonValues: new Map() };
       this.drafts.set(rendered, state);
@@ -493,7 +537,7 @@ export class ApiExplorer {
             } else value = valueEditor(catalog, parameter.schema, resources);
             state.editors.add(value);
             labels.bind(() => value.relocalize?.());
-            const edited = () => { state.edited = true; };
+            const edited = () => { state.edited = true; state.refreshRuntime?.(readApiRuntimeState(this.options.getPlayer())); };
             value.element.addEventListener("input", edited);
             value.element.addEventListener("change", edited);
             const enabled = node("input"); enabled.type = "checkbox"; enabled.checked = !parameter.optional; enabled.disabled = !parameter.optional;
@@ -505,15 +549,39 @@ export class ApiExplorer {
             args.push({ element: field, read: () => enabled.checked ? value.read() : undefined });
           }
         };
-        overload.addEventListener("change", update); update(); form.append(overload, body);
+        overload.addEventListener("change", () => { update(); state.refreshRuntime?.(readApiRuntimeState(this.options.getPlayer())); }); update(); form.append(overload, body);
+        let pending = false;
+        const reasonText = node("p"); reasonText.className = "api-unavailable-reason";
+        reasonText.dataset.apiReason = entry.id; reasonText.id = "api-unavailable-" + entry.id;
         const run = action(entry.category === "observation" ? { ja: "状態を取得", en: "Read state" } : { ja: "APIを実行", en: "Run API" }, () => {
-          run.disabled = true;
-          void (async () => this.invoke(entry, signature!, args.map(arg => arg.read())))()
+          if (pending) return;
+          let inputs: unknown[];
+          try { inputs = args.map(arg => arg.read()); }
+          catch (error) { this.setStatus(applyErrorMessage(error)); return; }
+          const reason = this.unavailable(entry, readApiRuntimeState(this.options.getPlayer()), inputs);
+          if (reason) { this.setStatus(reason.message); this.refreshRuntimeAvailability(); return; }
+          pending = true; run.disabled = true;
+          void this.invoke(entry, signature!, inputs)
             .then(() => { if (selection.value === entry.id) renderSelected(); })
-            .catch(error => { this.setStatus(applyErrorMessage(error)); })
-            .finally(() => { run.disabled = false; });
+            .catch(error => { this.setStatus(error instanceof ApiUnavailableError ? error.reason.message : applyErrorMessage(error)); })
+            .finally(() => { pending = false; this.refreshRuntimeAvailability(); });
         });
-        form.append(run);
+        run.dataset.apiRun = entry.id; run.setAttribute("aria-describedby", reasonText.id);
+        state.refreshRuntime = snapshot => {
+          let inputs: unknown[] | undefined;
+          try { if (argumentPrerequisites.has(entry.id)) inputs = args.map(arg => arg.read()); }
+          catch { /* Input validation remains at submission. */ }
+          const reason = this.unavailable(entry, snapshot, inputs);
+          run.disabled = pending || !!reason;
+          const code = reason?.code ?? "";
+          if (run.dataset.apiUnavailable !== code) run.dataset.apiUnavailable = code;
+          reasonText.hidden = !reason;
+          const message = reason ? pick(reason.message) : "";
+          if (reasonText.textContent !== message) reasonText.textContent = message;
+          if (run.title !== message) run.title = message;
+        };
+        state.refreshRuntime(readApiRuntimeState(this.options.getPlayer()));
+        form.append(run, reasonText);
       }
       form.append(action({ ja: "編集をリセット", en: "Reset draft" }, () => renderSelected(true)));
     };
@@ -527,10 +595,28 @@ export class ApiExplorer {
       if (!this.drafts.get(current)?.edited && first && [first, first.slice(first.lastIndexOf(".") + 1)].some(value => value.toLocaleLowerCase() === query)) selection.value = first;
       else if ([...selection.options].some(option => option.value === current)) selection.value = current;
       if (!selection.value && selection.options.length) selection.selectedIndex = 0;
+      this.refreshRuntimeAvailability();
       renderSelected();
     };
+    this.refreshRuntimeSelection = snapshot => {
+      if (category.value === "configuration" || category.value === "event") return;
+      for (const option of selection.options) {
+        const entry = entries.get(option.value)!;
+        const reason = this.unavailable(entry, snapshot);
+        option.disabled = !!reason;
+        const code = reason?.code ?? "";
+        if (option.dataset.apiUnavailable !== code) option.dataset.apiUnavailable = code;
+        const message = reason ? pick(reason.message) : "";
+        if (option.title !== message) option.title = message;
+        const label = `${pick(apiFeature(option.value))} · ${option.value}${reason ? " · " + message : ""}`;
+        if (option.textContent !== label) option.textContent = label;
+      }
+    };
     this.labels.bind(() => {
-      for (const option of selection.options) option.textContent = `${pick(apiFeature(option.value))} · ${option.value}`;
+      if (category.value === "configuration" || category.value === "event") {
+        for (const option of selection.options) option.textContent = `${pick(apiFeature(option.value))} · ${option.value}`;
+      }
+      this.refreshRuntimeAvailability();
       if (!selection.options.length) searchStatus.textContent = pick({ ja: "該当する項目がありません。", en: "No matching items." });
     });
     search.addEventListener("input", filter); category.addEventListener("change", filter); selection.addEventListener("change", () => renderSelected()); filter();
@@ -612,7 +698,7 @@ export class ApiExplorer {
     this.setStatus({ ja: "SDKを呼び出しています。", en: "Calling the SDK." });
     this.result.textContent = "";
     const root = entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi();
-    if (!root) throw new Error("Create a player and UI first.");
+    if (!root) throw new ApiUnavailableError(apiReason(entry.root === "PlayerAPI" ? "player" : "ui"));
     const context = this.context("runtime:" + entry.root);
     const checkpoint = context.checkpoint();
     let through = checkpoint;
@@ -636,7 +722,10 @@ export class ApiExplorer {
       const path = apiPath(entry.id);
       const owner = readPath(root, path.slice(0, -1));
       const fn = readPath(root, path);
-      if (typeof fn !== "function") throw new Error("This API is unavailable in the current SDK instance.");
+      if (typeof fn !== "function") throw new ApiUnavailableError(apiReason("method"));
+      if (root !== (entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi())) { context.rollback(checkpoint, through); return; }
+      const reason = this.unavailable(entry, readApiRuntimeState(this.options.getPlayer()), args);
+      if (reason) throw new ApiUnavailableError(reason);
       if (root !== (entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi())) { context.rollback(checkpoint, through); return; }
       this.code.textContent = `${entry.id.replace(/^PlayerAPI/, "player").replace(/^UIManager/, "uiManager")}(${submitted.map(input => inputCode(input)).join(", ")});`;
       if (entry.id === "PlayerAPI.destroy") result = await this.options.destroy();

@@ -59,6 +59,19 @@ Select a theme to inspect its actual UI and construction code. The configuration
 panels distinguish settings that recreate the player, reload the source, or
 apply immediately. Unapplied changes do not prove that the SDK accepted them.
 
+The SDK explorer shows unavailable operations with an English or Japanese
+reason. Source, live rewind, ad, Cast, AirPlay, view-mode and current track
+requirements update from SDK events without clearing the selected operation or
+its draft. Run checks the current requirements again immediately before the SDK
+call. General setters and load, unload, destroy and subtitle-disable operations
+keep their valid setup and clearing paths.
+
+`ads.skip()` requires an active native Bitmovin ad: a linear ad must have reached
+its skip time, while a presented nonlinear or pause ad can be dismissed without
+an ad clock. The IMA SDK does not support programmatic skipping. SGAI skip uses
+the separate SGAI ad state. Analytics SSAI methods report ad events; they do not
+insert ad media.
+
 Network settings select XMLHttpRequest or Fetch and set default or request-type
 timeouts in **seconds**. Decimal values are accepted. A request-type timeout
 overrides the default; clearing a field removes only that override. Invalid or
