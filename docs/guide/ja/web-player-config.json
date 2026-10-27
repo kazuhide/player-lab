@@ -712,17 +712,17 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 355,
+      "line": 364,
       "label": "イベント回数と直近の内容"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 254,
+      "line": 255,
       "label": "Playerの入れ替え時の記録消去"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 404,
+      "line": 413,
       "label": "イベント履歴の消去操作"
     },
     {

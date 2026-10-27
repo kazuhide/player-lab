@@ -51,7 +51,7 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/e7e83864cc3dd12015f8d7db83e8a46b6097a3b8/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/fad614ecfca72943b525bc84dd185a19f8ce8900/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README：Expoホストの生成とビルド"
         }
       ]
@@ -433,6 +433,10 @@
       "text": "NativeOperationContextはイベントログの記録とは独立して現在のソースと広告の開始・終了を監視し、実行前にネイティブの値を取得します。Player.skipAdはスキップ条件が未指定・負値の場合や、待ち時間に達していない場合に無効になります。IMAも使えません。待ち時間のあるライブ広告では、ラッパーによる現在時刻の変換でソースの時刻オフセットが加わるため、広告の経過時間を確定できず、操作を無効にしています。待ち時間が0の広告は時刻の比較をせず、ネイティブのisAdを確認します。状態の取得や、条件を満たす設定・広告スケジュール追加・復帰操作は利用できます。"
     },
     {
+      "type": "p",
+      "text": "ラッパー1.29.0のネイティブ側は、loadingStateをAndroidでは文字列のLoaded、iOSでは列挙値の2で返します。アプリは両方の形式を扱います。これらの値にはソースやPlayerのエラー状態が含まれないため、別にエラーを保持し、後の状態取得で復帰前の操作が有効にならないようにしています。トラックや画質のIDも、設定APIの実行前に現在のソースから取得し直します。"
+    },
+    {
       "type": "steps",
       "items": [
         "ピクチャーインピクチャーとバックグラウンド再生には、生成したホストのネイティブ機能が必要です。AirPlayはApple向けです。PlayerViewやPlayerの設定に加え、OSの権限、受信機、コンテンツの対応を確認します。",
@@ -685,6 +689,16 @@
     {
       "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/src/bufferConfig.ts",
       "label": "公式のプラットフォーム別バッファー設定"
+    },
+    {
+      "path": "apps/react-native/src/operationAvailability.ts",
+      "line": 1,
+      "label": "ネイティブの状態・トラック一覧とエラー処理"
+    },
+    {
+      "path": "apps/react-native/src/liveRewindChannel.ts",
+      "line": 1,
+      "label": "埋め込みUIへ設定を伝える処理"
     }
   ]
 }

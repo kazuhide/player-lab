@@ -43,7 +43,7 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/e7e83864cc3dd12015f8d7db83e8a46b6097a3b8/apps/vega/README.md#build-the-kepler-application",
+          "url": "https://github.com/kazuhide/player-lab/blob/fad614ecfca72943b525bc84dd185a19f8ce8900/apps/vega/README.md#build-the-kepler-application",
           "label": "Vega README：Keplerホストのビルド"
         },
         {
@@ -390,6 +390,10 @@
       "text": "APIパネルは導入済みPlayerAPIへ型に応じた引数を渡します。「現在のSDKで呼び出せるAPIを確認」は、操作を実行せず、メソッドの存在と現在のソース・ライブ範囲・広告などの条件を調べます。選択欄と実行処理は同じ条件を使い、引数からSDKオブジェクトを作る処理の後にも確認します。ソースを変えても選択した操作と入力内容は保持します。実行後は状態・イベント・映像で結果を確認します。HLSのトラック操作にはHLS、DASHのperiod操作にはDASHが必要です。"
     },
     {
+      "type": "p",
+      "text": "getSource()はErrorの後も設定を返す場合があります。VegaSessionApiはイベント記録を停止している間もエラー状態を保持し、SourceLoadedまたは正常な再読み込みで解除します。読み込み中に新しいErrorが発生した場合は解除しません。数値・文字列やソース設定の入力内容は、ソースを変えても保持します。SDKオブジェクトへの参照は元のセッションに属するため、無効になった場合は選び直します。"
+    },
+    {
       "type": "steps",
       "items": [
         "音声はPlayerAPI.getAvailableAudioで一覧を取得し、返されたトラックIDをPlayerAPI.setAudioへ渡します。PlayerAPI.getAudioと実際の音声を確認します。画質やバッファーの操作も、現在値と操作後の再生を比較します。画質や音声が一つしかないソースでは切り替えを比較できません。",
@@ -668,6 +672,11 @@
     {
       "url": "https://developer.amazon.com/docs/vega/0.24/foreground-background",
       "label": "Amazon：前面・背景への状態変化"
+    },
+    {
+      "path": "apps/vega/src/api/availability.ts",
+      "line": 1,
+      "label": "VegaのAPIの実行条件"
     }
   ]
 }

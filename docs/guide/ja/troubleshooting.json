@@ -344,7 +344,7 @@
       "label": "時間・ソース・長さのイベントによる表示更新"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/e7e83864cc3dd12015f8d7db83e8a46b6097a3b8/patches/bitmovin-player-ui%404.23.0.patch#L669",
+      "url": "https://github.com/kazuhide/player-lab/blob/fad614ecfca72943b525bc84dd185a19f8ce8900/patches/bitmovin-player-ui%404.23.0.patch#L669",
       "label": "シーク可能範囲の先頭を起点にしたVODキー操作"
     },
     {

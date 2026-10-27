@@ -51,7 +51,7 @@
           "label": "Local setup and licenses"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/e7e83864cc3dd12015f8d7db83e8a46b6097a3b8/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/fad614ecfca72943b525bc84dd185a19f8ce8900/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README: generate and build the Expo host"
         }
       ]
@@ -433,6 +433,10 @@
       "text": "NativeOperationContext tracks the current native source and ad lifecycle independently of event-log recording, then checks native getters before execution. Player.skipAd is disabled for missing/negative skip offsets and until a positive offset is reached; IMA is unavailable. For live ads with a positive skip offset, the wrapper’s current-time conversion adds a source timeline offset, so Player Lab cannot establish elapsed ad time and disables the command. Zero-offset ads use fresh native isAd instead of a clock comparison. Query operations and valid configuration, scheduling and recovery routes remain available."
     },
     {
+      "type": "p",
+      "text": "In wrapper 1.29.0, the Android native bridge returns loadingState as the string Loaded, while iOS returns the numeric enum value 2. The app accepts both observed representations. Neither representation records a source/player error, so a separate failure latch prevents a later state read from enabling commands until recovery. Track and quality identifiers are read again from the current source before a setter runs."
+    },
+    {
       "type": "steps",
       "items": [
         "Picture in picture and background playback require the generated host’s native capabilities. AirPlay is an Apple feature. Check OS permissions, receiver hardware and content support as well as PlayerView and Player settings.",
@@ -685,6 +689,16 @@
     {
       "url": "https://github.com/bitmovin/bitmovin-player-react-native/blob/v1.29.0/src/bufferConfig.ts",
       "label": "Official platform-specific buffer semantics"
+    },
+    {
+      "path": "apps/react-native/src/operationAvailability.ts",
+      "line": 1,
+      "label": "Native state, catalogs and failure handling"
+    },
+    {
+      "path": "apps/react-native/src/liveRewindChannel.ts",
+      "line": 1,
+      "label": "Embedded UI preference channel"
     }
   ]
 }

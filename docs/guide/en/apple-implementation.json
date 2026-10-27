@@ -586,6 +586,10 @@
     },
     {
       "type": "p",
+      "text": "Source loading state alone does not describe failure. The app retains source/player errors until recovery. Player.maxSelectableBitrate remains configurable without a loaded source, including zero to clear the cap. On a usable live source with SDK time shifting enabled, timeShift(0) remains a return-to-edge operation when only the app rewind preference is off or the rewind window is zero."
+    },
+    {
+      "type": "p",
       "text": "Retain event subscriptions while their SDK owner is active and remove them before replacing it. In the listener path below, player.add/remove are SDK APIs; playerApiListener and recordApiEvent are app helpers. The API pane can select listener or publisher transport."
     },
     {
@@ -871,6 +875,16 @@
     {
       "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerview/index.html",
       "label": "Bitmovin: PlayerView, System UI and native registration"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeApiAvailability.swift",
+      "line": 1,
+      "label": "Current native prerequisites and errors"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeLiveRewindBridge.swift",
+      "line": 1,
+      "label": "Native control preference messages"
     }
   ]
 }

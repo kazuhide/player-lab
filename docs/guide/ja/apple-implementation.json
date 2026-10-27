@@ -586,6 +586,10 @@
     },
     {
       "type": "p",
+      "text": "ソースの読み込み状態だけではエラーの有無を判断できないため、アプリは復帰までソースやPlayerのエラーを保持します。Player.maxSelectableBitrateはソースがなくても変更でき、0で上限を解除できます。再生可能なライブソースでSDKの巻き戻しが有効なら、アプリ側の操作スイッチが無効でも、巻き戻し範囲が0でも、timeShift(0)でライブ位置へ戻れます。"
+    },
+    {
+      "type": "p",
       "text": "イベントの購読はSDKの対象が有効な間保持し、対象を置き換える前に解除します。次のlistener方式ではplayer.add/removeがSDKのAPI、playerApiListenerとrecordApiEventがアプリの補助実装です。API画面はlistenerとpublisherの方式を切り替えられます。"
     },
     {
@@ -871,6 +875,16 @@
     {
       "url": "https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/playerview/index.html",
       "label": "Bitmovin: PlayerView, System UI and native registration"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeApiAvailability.swift",
+      "line": 1,
+      "label": "ネイティブ側の実行条件とエラー状態"
+    },
+    {
+      "path": "apps/ios/Showcase/NativeLiveRewindBridge.swift",
+      "line": 1,
+      "label": "操作表示の設定をネイティブ側へ伝える処理"
     }
   ]
 }

@@ -43,7 +43,7 @@
           "label": "Local setup and licenses"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/e7e83864cc3dd12015f8d7db83e8a46b6097a3b8/apps/vega/README.md#build-the-kepler-application",
+          "url": "https://github.com/kazuhide/player-lab/blob/fad614ecfca72943b525bc84dd185a19f8ce8900/apps/vega/README.md#build-the-kepler-application",
           "label": "Vega README: build the Kepler host"
         },
         {
@@ -390,6 +390,10 @@
       "text": "The API panel passes typed arguments to the installed PlayerAPI. Inspect current SDK API availability checks method presence and current source, live-window and ad prerequisites without calling commands. The selector and dispatch share the same checks; dispatch repeats them after materializing arguments. Source changes preserve the selected command and draft. After execution, inspect state, events and the picture. HLS track operations require HLS; DASH period operations require DASH."
     },
     {
+      "type": "p",
+      "text": "getSource() can retain a configuration after Error. VegaSessionApi keeps a separate failure state even when event recording is paused; SourceLoaded or a successful recovery load clears it, while a newer Error during that load stays recorded. Drafts such as numbers, strings and source-configuration data survive source replacement. SDK object references remain tied to their original session and must be selected again if expired."
+    },
+    {
       "type": "steps",
       "items": [
         "For audio, call PlayerAPI.getAvailableAudio and pass a returned track ID to PlayerAPI.setAudio. Compare PlayerAPI.getAudio with the audible output. For quality and buffer experiments, compare current values and playback after the operation. A source with one quality or one audio track cannot demonstrate switching.",
@@ -668,6 +672,11 @@
     {
       "url": "https://developer.amazon.com/docs/vega/0.24/foreground-background",
       "label": "Amazon: foreground/background transitions"
+    },
+    {
+      "path": "apps/vega/src/api/availability.ts",
+      "line": 1,
+      "label": "Current Vega operation prerequisites"
     }
   ]
 }
