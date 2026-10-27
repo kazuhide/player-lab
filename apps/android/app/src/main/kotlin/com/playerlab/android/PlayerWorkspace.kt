@@ -188,7 +188,7 @@ private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, televisi
     } else key(displayedPlayer, uiMode, television, controller.apiViewRevision) {
         AndroidView(factory = { context ->
             PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,
-                controller.apiOverrides.view(playerViewConfig(uiMode, television)))))
+                liveRewindViewConfig(controller.apiOverrides.view(playerViewConfig(uiMode, television)), controller.timeShiftEnabled))))
         }, onRelease = { host ->
             host.releaseTouchOwnership()
             controller.releaseView(host.content as PlayerView)

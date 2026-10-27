@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("bitmovin-player-ui", () => ({
   // Stock methods that must be preserved by the spread.
-  UIFactory: { buildDefaultUI: () => null, buildModernUI: () => null },
+  UIFactory: { buildSmallScreenUI: vi.fn(() => null), buildTvUI: () => null, defaultLayouts: { main: () => null } },
 }));
 
 vi.mock("../src/liveUi", () => ({
@@ -44,8 +44,23 @@ describe("WebView global bundle (src/global.ts)", () => {
   it("preserves the library's stock factory methods (spread of UIFactory)", async () => {
     await import("../src/global");
     const factory = registeredFactory();
-    expect(typeof factory.buildDefaultUI).toBe("function");
-    expect(typeof factory.buildModernUI).toBe("function");
+    expect(typeof factory.buildSmallScreenUI).toBe("function");
+    expect(typeof factory.buildTvUI).toBe("function");
+  });
+
+  it("forwards the original receiver, arguments and result and preserves non-factory properties", async () => {
+    await import("../src/global");
+    const { UIFactory } = await import("bitmovin-player-ui");
+    const receiver = { marker: "native-host" };
+    const player = {};
+    const config = { metadata: { title: "Example" } };
+    const options = { hideDelay: 7000 };
+    const factory = registeredFactory().buildSmallScreenUI as (...args: unknown[]) => unknown;
+    expect(factory.call(receiver, player, config, options)).toBeNull();
+    expect(UIFactory.buildSmallScreenUI).toHaveBeenLastCalledWith(player, config, options);
+    const contexts = vi.mocked(UIFactory.buildSmallScreenUI).mock.contexts;
+    expect(contexts[contexts.length - 1]).toBe(receiver);
+    expect(registeredFactory().defaultLayouts).toBe(UIFactory.defaultLayouts);
   });
 
   it("does NOT register Binge (it needs a JS↔native bridge, not a pure factory)", async () => {

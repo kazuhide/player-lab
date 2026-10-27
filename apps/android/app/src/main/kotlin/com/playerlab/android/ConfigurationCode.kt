@@ -19,7 +19,7 @@ internal fun kotlinString(value: String) = buildString {
 }
 
 /** Applied values only; no environment or credential-bearing SDK config is read. */
-internal fun configurationCode(source: SourceSettings, player: PlayerSettings, uiMode: UiMode, television: Boolean = false): String {
+internal fun configurationCode(source: SourceSettings, player: PlayerSettings, uiMode: UiMode, television: Boolean = false, liveRewindEnabled: Boolean = true): String {
     val title = source.title.takeIf { it.isNotBlank() }?.let(::kotlinString) ?: "null"
     val poster = source.posterUrl.takeIf { it.isNotBlank() }?.let(::kotlinString) ?: "null"
     val reference = source.offsetReference?.let { "TimelineReferencePoint.${it.name}" } ?: "null"
@@ -46,6 +46,11 @@ internal fun configurationCode(source: SourceSettings, player: PlayerSettings, u
     variant = UiConfig.WebUi.Variant.TvUi,
     focusUiOnInitialization = true,
 ))""" else "PlayerViewConfig()"
+    val liveUiPolicy = if (liveRewindEnabled) "" else """.let { config ->
+    config.copy(uiConfig = (config.uiConfig as UiConfig.WebUi).copy(
+        customOptions = ${kotlinString("{\"playerLabLiveRewindEnabled\":false}")},
+    ))
+}"""
     val legacyClass = when (source.type.name) { "Hls" -> "HLSSource"; "Dash" -> "DASHSource"; "Smooth" -> "SmoothSource"; else -> "ProgressiveSource" }
     val sourceCode = if (source.useLegacyMediaSource) """SourceConfig($legacyClass(${kotlinString(source.url)})).apply {
     title = $title; posterSource = $poster; isPosterPersistent = ${source.posterPersistent}
@@ -87,11 +92,11 @@ val playerConfig = PlayerConfig(
     networkConfig = NetworkConfig(retryHttpRequestConfig = $retries),
 )
 val sourceConfig = $sourceCode
-val playerViewConfig = $view
+val playerViewConfig = $view$liveUiPolicy
 
 // Create and attach PlayerView with playerViewConfig before loading sourceConfig.
 // Forward the Activity lifecycle to the view; retain one owner for the player.
 // Player and Analytics license values are not included.
-// Allow DVR controls the app's quick-seek controls separately from SDK configuration.
+// playerLabLiveRewindEnabled is consumed by the bundled Player Lab UI, not PlaybackConfig.
 """
 }

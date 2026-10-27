@@ -12,6 +12,8 @@ import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import org.junit.Assert.assertTrue
 import java.util.concurrent.ConcurrentHashMap
 
@@ -22,7 +24,7 @@ internal fun workspaceChoose(ui: WorkspaceRule, tag: String, value: String, sear
     workspaceCloseDialog(ui)
     // System keyboard dismissal can outlive Espresso's input connection. Wait for
     // its actual window transition before using a header restored from IME mode.
-    closeSoftKeyboard()
+    workspaceHideKeyboard(ui)
     InstrumentationRegistry.getInstrumentation().uiAutomation.waitForIdle(100, 5_000)
     ui.waitForIdle()
     ui.waitUntil(5_000) { runCatching { ui.onNodeWithTag(tag).assertIsDisplayed() }.isSuccess }
@@ -40,9 +42,28 @@ internal fun workspaceChoose(ui: WorkspaceRule, tag: String, value: String, sear
 internal fun workspaceWaitForPickerDismissal(ui: WorkspaceRule, tag: String) {
     ui.waitUntil(5_000) { ui.onAllNodesWithTag("$tag-options").fetchSemanticsNodes().isEmpty() }
     InstrumentationRegistry.getInstrumentation().uiAutomation.waitForIdle(100, 5_000)
-    closeSoftKeyboard()
+    workspaceHideKeyboard(ui)
     ui.waitUntil(5_000) { runCatching { ui.onNodeWithTag(tag).assertIsDisplayed() }.isSuccess }
     ui.waitForIdle()
+}
+
+/** Wait for actual IME visibility; Android can omit a hide-result callback when it is already hidden. */
+private fun workspaceHideKeyboard(ui: WorkspaceRule) {
+    ui.runOnUiThread {
+        val decor = ui.activity.window.decorView
+        if (ViewCompat.getRootWindowInsets(decor)?.isVisible(WindowInsetsCompat.Type.ime()) == true) {
+            val input = ui.activity.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+            input.hideSoftInputFromWindow(ui.activity.currentFocus?.windowToken ?: decor.windowToken, 0)
+        }
+    }
+    ui.waitUntil(5_000) {
+        var hidden = false
+        ui.runOnUiThread {
+            hidden = ViewCompat.getRootWindowInsets(ui.activity.window.decorView)
+                ?.isVisible(WindowInsetsCompat.Type.ime()) == false
+        }
+        hidden
+    }
 }
 
 internal fun workspaceTheme(ui: WorkspaceRule, label: String) {

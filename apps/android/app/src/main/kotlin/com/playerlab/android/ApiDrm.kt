@@ -45,6 +45,12 @@ private fun drmVariant(values: Map<String, String>): String {
     return selected ?: variants.firstOrNull() ?: "Widevine"
 }
 
+/** Inspect applied DRM selection without constructing callbacks or a license request. */
+internal fun apiNagraConfigApplied(values: Map<String, String>): Boolean {
+    val drmValues = values.filterKeys { ApiSettings.byId[it]?.drmParameter == true }
+    return drmValues.isNotEmpty() && drmVariant(drmValues) == "NagraConnect"
+}
+
 /** Construct the whole DRM object once so input order cannot discard another field. */
 internal fun configureApiDrm(source: SourceConfig, values: Map<String, String>, callbacks: ApiCallbackContext = ApiCallbackContext()) {
     if (values.isEmpty()) return

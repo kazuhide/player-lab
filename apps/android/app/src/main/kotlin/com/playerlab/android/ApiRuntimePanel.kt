@@ -26,6 +26,9 @@ internal data class ApiRuntimeContext(
     val uiMode: UiMode,
 )
 
+private data class ApiRuntimeSourceContext(val playerGeneration: Int, val sourceRevision: Int, val source: ApiRuntimeOwnerIdentity)
+private fun ApiRuntimeContext.sourceContext() = ApiRuntimeSourceContext(playerGeneration, sourceRevision, source)
+
 private fun runtimeContext(controller: PlayerController, uiMode: UiMode) = ApiRuntimeContext(
     controller.apiPlayerGeneration, controller.sourceRevision, ApiRuntimeOwnerIdentity(controller.configuredSource),
     controller.apiViewRevision, ApiRuntimeOwnerIdentity(controller.apiVrRenderer), uiMode,
@@ -43,7 +46,16 @@ internal class ApiRuntimeWorkspaceState {
     var observations by mutableStateOf(emptyMap<String, String>())
     var stateSelected by mutableStateOf(ApiRuntime.reads.first().id)
     var eventSelected by mutableStateOf(ApiEvents.player.first().id)
+    var dispatchRevision by mutableIntStateOf(0)
+        private set
+    fun commandDispatched() { dispatchRevision++ }
+    private var manualSsaiContext by mutableStateOf<ApiRuntimeSourceContext?>(null)
+    fun manualSsaiEnabled(context: ApiRuntimeContext) = manualSsaiContext == context.sourceContext()
+    fun setManualSsaiEnabled(enabled: Boolean, context: ApiRuntimeContext) {
+        manualSsaiContext = if (enabled) context.sourceContext() else null
+    }
     fun invalidateFor(context: ApiRuntimeContext) {
+        if (!manualSsaiEnabled(context)) manualSsaiContext = null
         if (resultContext != context) { result = ""; resultContext = null }
         observed = ""
         observations = emptyMap()
@@ -63,6 +75,9 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
     val keyboardVisible = workspaceKeyboardEditing()
     val command = ApiRuntime.commands.first { it.id == state.selected }
     val context = runtimeContext(controller, uiMode)
+    val capabilities = rememberApiCommandCapabilities(controller, context, state.dispatchRevision)
+    val manualSsai = state.manualSsaiEnabled(context)
+    val unavailableReason = apiCommandUnavailableReason(command.id, capabilities, manualSsai, state.arguments(command))
     LaunchedEffect(context) {
         // A synchronous command can replace its own view or source. Keep only its
         // receipt for that resulting context; unrelated ownership changes retire it.
@@ -79,7 +94,8 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
                         focus.clearFocus()
                     }
                     WorkspacePicker("Operation", state.selected, ApiRuntime.commands.filter { state.purpose == "All features" || apiPurpose(it.id) == state.purpose }.map { it.id to it.label },
-                        "api-command-selector", searchable = true, compact = true, selectedLabel = command.label) { state.select(it); focus.clearFocus() }
+                        "api-command-selector", searchable = true, compact = true, selectedLabel = command.label,
+                        unavailableReason = { apiCommandUnavailableReason(it, capabilities, manualSsai) }) { state.select(it); focus.clearFocus() }
                 }
                 "State" -> WorkspacePicker("SDK state", state.stateSelected, ApiRuntime.reads.map { it.id to apiDisplayName(it.id) },
                     "api-state-selector", searchable = true) { state.stateSelected = it; focus.clearFocus() }
@@ -91,6 +107,14 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
             when (state.section) {
                 "Commands" -> {
+                    if (state.purpose == "Advertising" || command.id == "app:ssai-ad" || ".ssai." in command.id) {
+                        ConfigToggle("Manual SSAI integration", manualSsai, "api-manual-ssai") {
+                            state.setManualSsaiEnabled(it, context)
+                            state.result = ""
+                            state.resultContext = null
+                        }
+                        UiText("Metadata only; does not insert ad media.", style = MaterialTheme.typography.bodySmall)
+                    }
                     if (command.arguments.isEmpty()) UiText("No arguments.", style = MaterialTheme.typography.bodyMedium)
                     else {
                         val selectedArgument = command.arguments.firstOrNull { it.name == state.argument } ?: command.arguments.first()
@@ -151,16 +175,23 @@ internal fun ApiRuntimePanel(controller: PlayerController, state: ApiRuntimeWork
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.testTag("api-run-target"))
                         if (!state.selectedMatchesFeature) UiText(uiFormat(R.string.ui_choose_operation, uiText(state.purpose)),
                             style = MaterialTheme.typography.labelSmall, maxLines = 2, modifier = Modifier.testTag("api-command-filter-status"))
+                        unavailableReason?.let { UiText(it, style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.testTag("api-command-unavailable")) }
                         Button(onClick = {
                             if (!state.selectedMatchesFeature) return@Button
                             focus.clearFocus()
                             state.result = runCatching {
                                 val inputs = ApiInputs(state.arguments(command)); command.validate(inputs)
-                                apiResultText(controller.hostContext, command.execute(controller, inputs))
+                                val currentContext = runtimeContext(controller, uiMode)
+                                runAvailableApiCommand(command.id, apiCommandCapabilities(controller), state.manualSsaiEnabled(currentContext), state.arguments(command)) {
+                                    apiResultText(controller.hostContext, command.execute(controller, inputs))
+                                }
                             }.getOrElse { controller.hostContext.getString(R.string.ui_api_failed, it.javaClass.simpleName) }
                             state.resultContext = runtimeContext(controller, uiMode)
                             state.observed = observedPlayback(controller)
-                        }, enabled = state.selectedMatchesFeature, modifier = Modifier.fillMaxWidth().testTag("api-command-run")) { UiText("Run API") }
+                            state.commandDispatched()
+                        }, enabled = state.selectedMatchesFeature && unavailableReason == null,
+                            modifier = Modifier.fillMaxWidth().testTag("api-command-run")) { UiText("Run API") }
                     }
                     "State" -> Button(onClick = {
                         val field = ApiRuntime.reads.first { it.id == state.stateSelected }

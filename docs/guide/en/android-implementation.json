@@ -173,7 +173,7 @@
         [
           "SDK live time shifting",
           "PlaybackConfig.isTimeShiftEnabled; default on",
-          "Player creation-time setting. More → Playback options → Enable live rewind controls is a separate app preference and does not change VOD behavior."
+          "Player creation-time setting. More → Playback options → Enable live rewind controls changes seekbar and quick-seek visibility in the bundled UI. Only PlayerView is replaced; the Player, source and playback session are retained. This UI preference does not enable SDK time shifting, create a rewind window or change VOD seeking."
         ],
         [
           "Buffer",
@@ -307,10 +307,10 @@
       "text": "        val sourceConfigs = configs ?: sourceConfigurations(callbacks = callbacks)\n        val sources = sourceConfigs.map { sourceConfig -> sourceFactory?.invoke(sourceConfig)\n            ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), mediaSessionConfig = apiOverrides.mediaSession()) }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 524,
-        "label": "MainActivity.kt:524–526"
+        "line": 549,
+        "label": "MainActivity.kt:549–551"
       },
-      "endLine": 526
+      "endLine": 551
     },
     {
       "type": "code",
@@ -318,10 +318,10 @@
       "text": "        if (offlinePlayback == null && ApiCollectionSettings.PLAYLIST in apiOverrides.values)\n            owner.load(com.bitmovin.player.api.playlist.PlaylistConfig(sources, apiOverrides.playlistOptions()))\n        else owner.load(sources.single())",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 537,
-        "label": "MainActivity.kt:537–539"
+        "line": 563,
+        "label": "MainActivity.kt:563–565"
       },
-      "endLine": 539
+      "endLine": 565
     },
     {
       "type": "steps",
@@ -447,7 +447,7 @@
     {
       "type": "code",
       "title": "Embed PlayerView in the existing Compose screen",
-      "text": "private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, television: Boolean, modifier: Modifier) {\n    val displayedPlayer = controller.player\n    val vrRenderer = controller.apiVrRenderer\n    if (vrRenderer != null) key(vrRenderer) {\n        AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)\n    } else key(displayedPlayer, uiMode, television, controller.apiViewRevision) {\n        AndroidView(factory = { context ->\n            PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,\n                controller.apiOverrides.view(playerViewConfig(uiMode, television)))))\n        }, onRelease = { host ->\n            host.releaseTouchOwnership()\n            controller.releaseView(host.content as PlayerView)\n        }, modifier = modifier)\n    }\n}",
+      "text": "private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, television: Boolean, modifier: Modifier) {\n    val displayedPlayer = controller.player\n    val vrRenderer = controller.apiVrRenderer\n    if (vrRenderer != null) key(vrRenderer) {\n        AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)\n    } else key(displayedPlayer, uiMode, television, controller.apiViewRevision) {\n        AndroidView(factory = { context ->\n            PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,\n                liveRewindViewConfig(controller.apiOverrides.view(playerViewConfig(uiMode, television)), controller.timeShiftEnabled))))\n        }, onRelease = { host ->\n            host.releaseTouchOwnership()\n            controller.releaseView(host.content as PlayerView)\n        }, modifier = modifier)\n    }\n}",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
         "line": 183,
@@ -600,7 +600,11 @@
     },
     {
       "type": "p",
-      "text": "Runtime APIs operate on the current Player, Source or attached PlayerView. Refresh reads current SDK values; Events records counts and timestamps. Check completion events and state alongside the call result for asynchronous work."
+      "text": "Runtime APIs operate on the current Player, Source or attached PlayerView. Operations whose current prerequisites are missing are disabled in the chooser with a reason; Run checks those prerequisites again. Refresh reads current SDK values; Events records counts and timestamps. Check completion events and state alongside the call result for asynchronous work."
+    },
+    {
+      "type": "p",
+      "text": "In Advertising, Manual SSAI integration enables metadata and lifecycle calls for the current source. SSAI means server-side ad insertion: the stream provider stitches advertising media into the content. Create SSAI ad metadata only constructs a local SDK object; it does not insert advertising into an ordinary stream. Enable this mode when testing an integration that supplies ad timing and lifecycle notifications. It turns off when the source is reloaded or the Player is replaced. Skip and client-side ad callbacks require a compatible active ad."
     },
     {
       "type": "table",
@@ -632,7 +636,7 @@
         ],
         [
           "Special state",
-          "Ad values need an active ad or selected SSAI test object. Vector3 reads the last moveViewingDirection input.",
+          "Ad values need an active ad or selected SSAI metadata object. Vector3 reads the last moveViewingDirection input.",
           "activeAdBreak and activeLinearAd read actual SDK state. Do not confuse a stored test input with current playback state."
         ]
       ]
@@ -664,10 +668,10 @@
       "text": "    private fun <E : Event> onPlayer(type: KClass<E>, action: (E) -> Unit) {\n        val owner = player\n        val generation = playerGeneration\n        val guarded: (E) -> Unit = { if (!released && player === owner && generation == playerGeneration) action(it) }\n        owner.on(type, guarded)\n        playerSubscriptions += { owner.off(type, guarded) }\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 600,
-        "label": "MainActivity.kt:600–606"
+        "line": 623,
+        "label": "MainActivity.kt:623–629"
       },
-      "endLine": 606
+      "endLine": 629
     },
     {
       "type": "p",
@@ -755,10 +759,10 @@
       "text": "    internal fun releaseView(view: PlayerView) {\n        if (!views.remove(view)) return\n        retireApiViewSubscriptions(view)\n        retireApiViewHandlers(view)\n        apiSurfaces.clear(view)\n        if (apiDetachedView === view) apiDetachedView = null\n        viewLifecycle.detach(view)\n        view.player = null\n        view.onDestroy()\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 614,
-        "label": "MainActivity.kt:614–623"
+        "line": 637,
+        "label": "MainActivity.kt:637–646"
       },
-      "endLine": 623
+      "endLine": 646
     },
     {
       "type": "p",

@@ -125,11 +125,11 @@ internal class PlayerController(
     internal val apiSurfaces = ApiSurfaceBinding()
     internal var apiViewRevision by mutableStateOf(0)
         private set
-    private var apiDetachedView: PlayerView? = null
+    private var apiDetachedView: PlayerView? by mutableStateOf(null, referentialEqualityPolicy())
     private class ApiViewSubscription(val owner: PlayerView) { var dispose: () -> Unit = {} }
     private val apiViewSubscriptions = mutableMapOf<String, ApiViewSubscription>()
     private val apiFullscreenHandlers = mutableMapOf<PlayerView, ApiFullscreenHandler>()
-    private val apiCustomMessages = mutableMapOf<PlayerView, ApiCustomMessages>()
+    private val apiCustomMessages = androidx.compose.runtime.mutableStateMapOf<PlayerView, ApiCustomMessages>()
     private val apiCustomMessageTokens = mutableMapOf<PlayerView, Any>()
     internal var apiFullscreen by mutableStateOf(false)
         private set
@@ -219,6 +219,10 @@ internal class PlayerController(
     internal val apiSsaiBreaks = androidx.compose.runtime.mutableStateMapOf<String, com.bitmovin.player.api.ssai.SsaiAdBreak>()
     internal var apiSelectedSsaiAd: String? by mutableStateOf(null)
     internal var apiSelectedSsaiBreak: String? by mutableStateOf(null)
+    internal var apiActiveAd: com.bitmovin.player.api.advertising.Ad? by mutableStateOf(null)
+        private set
+    internal var apiActiveAdClientType: com.bitmovin.player.api.advertising.AdSourceType? by mutableStateOf(null)
+        private set
     internal var apiVector: com.bitmovin.player.api.vr.orientation.Vector3? = null
     internal var apiMediaSession: com.bitmovin.player.api.media.session.MediaSession? = null
         private set
@@ -263,6 +267,10 @@ internal class PlayerController(
             ?: listOf(sourceConfiguration(overrides, callbacks))
     }
     internal fun currentView(): PlayerView? = views.firstOrNull { it.player === player }
+    internal val apiHasRecoverableView: Boolean
+        get() = apiVrRenderer == null && (currentView() != null || apiDetachedView?.let { it in views } == true)
+    internal val apiHasCustomMessageHandler: Boolean
+        get() = currentView()?.let { apiCustomMessages.containsKey(it) } == true
     internal fun setApiFullscreenHandler(enabled: Boolean) {
         val view = requireNotNull(currentView()) { "Attach a PlayerView first." }
         val activity = requireNotNull(context.apiActivity()) { "A host Activity is required." }
@@ -442,7 +450,18 @@ internal class PlayerController(
                 apiEvent(id, timestamp) { !released && player === owner && generation == playerGeneration }
             }
         }
-        onPlayer(PlayerEvent.PlaylistTransition::class) { invalidateApiQuery(); configuredSource = it.to }
+        onPlayer(PlayerEvent.PlaylistTransition::class) {
+            invalidateApiQuery()
+            if (configuredSource !== it.to) resetApiAdState()
+            configuredSource = it.to
+        }
+        onPlayer(PlayerEvent.AdStarted::class) {
+            apiActiveAd = it.ad ?: player.ads.activeLinearAd
+            apiActiveAdClientType = it.clientType
+        }
+        onPlayer(PlayerEvent.AdFinished::class) { apiActiveAd = null; apiActiveAdClientType = null }
+        onPlayer(PlayerEvent.AdSkipped::class) { apiActiveAd = null; apiActiveAdClientType = null }
+        onPlayer(PlayerEvent.AdBreakFinished::class) { apiActiveAd = null; apiActiveAdClientType = null }
         onPlayer(PlayerEvent.Error::class) { lastErrorCode = it.code.value; append("PlayerError ${it.code.value}") }
         onPlayer(PlayerEvent.TimeChanged::class) { refresh() }
         onPlayer(PlayerEvent.TimeShifted::class) { append("TimeShifted"); refresh() }
@@ -495,6 +514,7 @@ internal class PlayerController(
     }
     internal fun unloadApiSource() {
         check(!released); invalidateApiQuery(); ++sourceGeneration
+        resetApiAdState()
         retireApiSourceSubscriptions(); sourceSubscription = null; configuredSource = null
         apiSourceCallbacks.close(); apiSourceCallbacks = ApiCallbackContext()
         player.unload(); refresh()
@@ -512,18 +532,24 @@ internal class PlayerController(
         check(!released)
         val source = player.playlist.sources.getOrNull(index) ?: error("No playlist source at that index.")
         invalidateApiQuery(); player.playlist.remove(index); retireApiSource(source)
-        if (configuredSource === source) configuredSource = player.source ?: player.playlist.sources.firstOrNull()
+        if (configuredSource === source) {
+            resetApiAdState()
+            configuredSource = player.source ?: player.playlist.sources.firstOrNull()
+        }
     }
     internal fun seekApiPlaylistSource(index: Int, target: com.bitmovin.player.api.playlist.SeekTarget?) {
         check(!released)
         val source = player.playlist.sources.getOrNull(index) ?: error("No playlist source at that index.")
-        invalidateApiQuery(); player.playlist.seek(source, target); configuredSource = source
+        invalidateApiQuery()
+        if (configuredSource !== source) resetApiAdState()
+        player.playlist.seek(source, target); configuredSource = source
     }
 
     private fun loadCurrentSource(configs: List<SourceConfig>? = null, callbacks: ApiCallbackContext = ApiCallbackContext()) {
         val sourceConfigs = configs ?: sourceConfigurations(callbacks = callbacks)
         val sources = sourceConfigs.map { sourceConfig -> sourceFactory?.invoke(sourceConfig)
             ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), mediaSessionConfig = apiOverrides.mediaSession()) }
+        resetApiAdState()
         invalidateApiQuery()
         sourceSubscription?.invoke()
         val owner = player
@@ -583,10 +609,7 @@ internal class PlayerController(
         apiAnalyticsSettings = analytics
         apiCallbacks = nextCallbacks
         invalidateApiQuery()
-        apiSsaiAds.clear()
-        apiSsaiBreaks.clear()
-        apiSelectedSsaiAd = null
-        apiSelectedSsaiBreak = null
+        resetApiAdState()
         apiVector = null
         apiOriginalOrientations.clear()
         observePlayer()
@@ -633,9 +656,21 @@ internal class PlayerController(
     }
 
     fun toggleDvr(enabled: Boolean) {
-        if (released) return
+        if (released || timeShiftEnabled == enabled) return
         timeShiftEnabled = enabled
+        // Web UI configuration belongs to PlayerView. Retain the Player and Source while
+        // replacing only the view, as for a theme change, and retire its API context.
+        recreateApiView()
         refresh()
+    }
+
+    private fun resetApiAdState() {
+        apiSsaiAds.clear()
+        apiSsaiBreaks.clear()
+        apiSelectedSsaiAd = null
+        apiSelectedSsaiBreak = null
+        apiActiveAd = null
+        apiActiveAdClientType = null
     }
 
     fun release() {
@@ -650,10 +685,7 @@ internal class PlayerController(
         apiMediaSession = null
         invalidateApiQuery()
         apiMain.removeCallbacksAndMessages(null)
-        apiSsaiAds.clear()
-        apiSsaiBreaks.clear()
-        apiSelectedSsaiAd = null
-        apiSelectedSsaiBreak = null
+        resetApiAdState()
         apiVector = null
         apiOriginalOrientations.clear()
         apiSurfaces.clear()

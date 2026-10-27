@@ -6,6 +6,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ApiDrmTest {
+    @Test fun nagraAvailabilityUsesTheSameExplicitAndImplicitVariantAsConfiguration() {
+        val key = "android:com.bitmovin.player.api.source.SourceConfig.drmConfig"
+        assertFalse(apiNagraConfigApplied(emptyMap()))
+        assertFalse(apiNagraConfigApplied(mapOf(key to "None")))
+        assertFalse(apiNagraConfigApplied(mapOf(key to "Widevine")))
+        assertTrue(apiNagraConfigApplied(mapOf(key to "NagraConnect")))
+        assertTrue(apiNagraConfigApplied(mapOf("android:com.bitmovin.player.api.drm.NagraConnectConfig.operatorVault" to "example")))
+        assertFalse(apiNagraConfigApplied(mapOf("android:com.bitmovin.player.api.drm.DrmConfig.licenseUrl" to "https://example.invalid/license")))
+    }
     @Test fun editableCallbackBodyTransformsActualSdkBytesAndRetirementKeepsOriginal() {
         val scope = ApiCallbackContext()
         val values = ApiOverrides.validate(mapOf(id("WidevineConfig.prepareMessageCallback") to "return input.bytes.slice().reverse();",

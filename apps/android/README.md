@@ -197,6 +197,11 @@ the active controller. Invalid drafts leave the active player and source intact.
 | Live quality / stability balance | 0 through 1; 0.5; relevant near the live edge only |
 
 **Reset draft** restores the currently applied Player values without applying them.
+**More → Playback options → Enable live rewind controls** immediately changes
+seekbar and quick-seek visibility in the bundled UI. It replaces only PlayerView,
+keeping the Player, source and playback session. It does not enable SDK time
+shifting, create a rewind window, or disable VOD seeking.
+
 Changing tabs or settings retains unapplied values. All
 numeric fields reject non-finite values; bitrate uses the SDK's nonnegative `Int`
 range. The field definitions and defaults follow the pinned
@@ -255,9 +260,12 @@ inspector, and event occurrence counts with SDK timestamps. Commands can require
 an active source, an attached view, compatible media or a connected service.
 The Run action names its target. Search narrows the chooser; it does not run an
 API. Check the separately observed state and events after running a command.
-Creating an SSAI
-test ad builds a local input object; ad playback must be established separately
-from the active SDK ad state and playback events.
+Unavailable operations are disabled in the chooser with a reason. Run checks the
+current source and SDK state again before dispatch. **Manual SSAI integration**
+is an explicit per-source mode for testing metadata and lifecycle notifications;
+it resets on source reload or Player replacement. **Create SSAI ad metadata**
+builds a local SDK object and does not insert media into the stream. Ad playback
+must be established separately from active SDK ad state and playback events.
 
 View event subscriptions accept an event name and a subscription ID. `on` keeps
 listening, `next` listens once, and `off` removes the matching ID. Subscriptions

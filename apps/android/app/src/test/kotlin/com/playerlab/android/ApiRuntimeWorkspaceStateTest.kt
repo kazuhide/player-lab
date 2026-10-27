@@ -4,10 +4,31 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ApiRuntimeWorkspaceStateTest {
+    @Test fun posterImagesAreDisplayOperationsRatherThanImaAdvertising() {
+        assertEquals("UI and display", apiPurpose("android:com.bitmovin.player.PlayerView.setPosterImage()"))
+        assertEquals("Advertising", apiPurpose("android:com.bitmovin.player.api.advertising.AdvertisingApi.schedule()"))
+    }
+
     private data class EqualSource(val name: String)
     private fun context(source: Any, view: Int = 3) = ApiRuntimeContext(
         2, 7, ApiRuntimeOwnerIdentity(source), view, ApiRuntimeOwnerIdentity(null), UiMode.DEFAULT,
     )
+
+    @Test fun manualSsaiOptInBelongsToOneSourceAndPlayerButNotItsView() {
+        val source = Any()
+        val state = ApiRuntimeWorkspaceState()
+        assertFalse(state.manualSsaiEnabled(context(source)))
+        state.setManualSsaiEnabled(true, context(source))
+        assertTrue(state.manualSsaiEnabled(context(source, view = 4)))
+        assertFalse(state.manualSsaiEnabled(context(Any())))
+        assertFalse(state.manualSsaiEnabled(context(source).copy(sourceRevision = 8)))
+        assertFalse(state.manualSsaiEnabled(context(source).copy(playerGeneration = 3)))
+        state.invalidateFor(context(source).copy(sourceRevision = 8))
+        assertFalse("Returning to an old source must not revive its opt-in", state.manualSsaiEnabled(context(source)))
+        state.setManualSsaiEnabled(true, context(source))
+        state.setManualSsaiEnabled(false, context(source))
+        assertFalse(state.manualSsaiEnabled(context(source)))
+    }
 
     @Test fun equalSourceValuesDoNotKeepAReceiptOrSnapshotForADifferentNativeSource() {
         val previous = EqualSource("same public source values")

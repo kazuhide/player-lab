@@ -28,4 +28,11 @@ class TelevisionUiTest {
         assertTrue(tv.contains("focusUiOnInitialization = true"))
         assertTrue(tv.contains("YOUR_PLAYER_KEY"))
     }
+
+    @Test fun appliedCodeDistinguishesTheUiOnlyPreferenceFromSdkTimeShifting() {
+        val source = SourceSettings.from(Sources.all.first())
+        val code = configurationCode(source, PlayerSettings(), UiMode.DEFAULT, liveRewindEnabled = false)
+        assertTrue(code.contains("isTimeShiftEnabled = true"))
+        assertTrue(code.contains("customOptions = \"{\\\"playerLabLiveRewindEnabled\\\":false}\""))
+    }
 }

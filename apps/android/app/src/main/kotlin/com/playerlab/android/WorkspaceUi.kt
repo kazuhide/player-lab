@@ -170,6 +170,7 @@ internal fun <T> WorkspacePicker(
     compact: Boolean = false,
     modifier: Modifier = Modifier,
     selectedLabel: String? = null,
+    unavailableReason: (T) -> String? = { null },
     change: (T) -> Unit,
 ) {
     val selectionChanged = LocalWorkspaceSelectionChanged.current
@@ -207,16 +208,17 @@ internal fun <T> WorkspacePicker(
             var keyboardWasVisible by remember { mutableStateOf(false) }
             val localizedChoices = choices.map { (value, title) -> Triple(value, title, uiText(title)) }
             val matches = localizedChoices.filter { (value, title, localized) -> localized.contains(query, ignoreCase = true) || title.contains(query, ignoreCase = true) || value.toString().contains(query, ignoreCase = true) }
-            LaunchedEffect(television, keyboardVisible, searchFocused, query, selected, matches.map { it.first }) {
+            val firstEnabledIndex = matches.indexOfFirst { unavailableReason(it.first) == null }
+            LaunchedEffect(television, keyboardVisible, searchFocused, query, selected, matches.map { it.first }, firstEnabledIndex) {
                 if (keyboardVisible) {
                     if (television && searchFocused) keyboardWasVisible = true
                 } else if (keyboardWasVisible) {
                     keyboardWasVisible = false
                     // This dialog owns its focus. Query changes or dismissal cancel the pending return.
-                    if (matches.isNotEmpty()) optionsState.scrollToItem(0)
+                    if (firstEnabledIndex >= 0) optionsState.scrollToItem(firstEnabledIndex)
                     withFrameNanos { }
                     if (television && searchFocused && dialogView.hasWindowFocus()) {
-                        if (matches.isEmpty()) closeFocus.requestFocus() else firstOptionFocus.requestFocus()
+                        if (firstEnabledIndex < 0) closeFocus.requestFocus() else firstOptionFocus.requestFocus()
                     }
                 }
             }
@@ -230,15 +232,23 @@ internal fun <T> WorkspacePicker(
                 LazyColumn(Modifier.heightIn(max = 360.dp).testTag("$tag-options"), state = optionsState) {
                     itemsIndexed(matches) { index, (value, _, title) ->
                         var optionFocused by remember(value) { mutableStateOf(false) }
+                        val reason = unavailableReason(value)
                         Row(Modifier.fillMaxWidth().heightIn(min = 48.dp)
                             .testTag("$tag-option-${value}")
-                            .then(if (index == 0) Modifier.focusRequester(firstOptionFocus) else Modifier)
+                            .then(if (index == firstEnabledIndex) Modifier.focusRequester(firstOptionFocus) else Modifier)
                             .onFocusChanged { optionFocused = it.isFocused }
                             .then(if (optionFocused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small) else Modifier)
-                            .selectable(selected == value, role = Role.RadioButton, onClick = { selectionChanged(); change(value); open = false })
+                            .selectable(selected == value, enabled = reason == null, role = Role.RadioButton, onClick = {
+                                if (unavailableReason(value) == null) { selectionChanged(); change(value); open = false }
+                            })
                             .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(selected == value, onClick = null)
-                            UiText(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                            RadioButton(selected == value, onClick = null, enabled = reason == null)
+                            Column(Modifier.weight(1f)) {
+                                UiText(title, style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (reason == null) 1f else 0.38f))
+                                reason?.let { UiText(it, style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            }
                         }
                     }
                 }
@@ -288,7 +298,7 @@ internal fun apiPurpose(id: String): String {
     return when {
         "analytics" in value -> "Analytics"
         "offline" in value || "download" in value -> "Offline"
-        "advertis" in value || "ssai" in value || "ima" in value || "aditem" in value || "adconfig" in value -> "Advertising"
+        "advertis" in value || "ssai" in value || ".ima." in value || "aditem" in value || "adconfig" in value -> "Advertising"
         "drm" in value || "widevine" in value || "clearkey" in value -> "Content protection"
         "network" in value || "http" in value || "retry" in value -> "Network"
         "subtitle" in value || "audio" in value || "caption" in value -> "Audio and subtitles"
