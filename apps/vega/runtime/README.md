@@ -63,6 +63,8 @@ The script never boots/stops/erases a device or selects another connected target
 
 Build the small, license-free companion in a new directory outside the checkout.
 It reuses the installed frozen dependencies and creates no Player or media element.
+The generated build command resolves the installed React Native CLI directly,
+so PNPM's relative shell shims do not depend on the companion's directory.
 Install it on the same dedicated device before running the check:
 
 ```bash
