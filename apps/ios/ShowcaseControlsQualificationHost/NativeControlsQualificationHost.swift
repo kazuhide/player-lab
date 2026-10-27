@@ -54,7 +54,7 @@ private final class NativeControlsQualificationState: ObservableObject {
         model.setPresentation(.playerView)
         model.setApiEventRecording(false)
         var draft = model.configurationDraft
-        draft.sourceURL = "http://localhost:5198/master.m3u8"
+        draft.sourceURL = ProcessInfo.processInfo.environment["PLAYER_LAB_CONTROLS_MEDIA_URL"] ?? "http://localhost:5198/master.m3u8"
         draft.posterURL = ""
         draft.autoplay = true
         do { try model.apply(draft) }

@@ -8,6 +8,9 @@ final class NativeControlsTouchUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         XCUIDevice.shared.orientation = .portrait
+        if let media = ProcessInfo.processInfo.environment["PLAYER_LAB_CONTROLS_MEDIA_URL"] {
+            app.launchEnvironment["PLAYER_LAB_CONTROLS_MEDIA_URL"] = media
+        }
     }
     override func tearDownWithError() throws {
         if app.state == .runningForeground {
@@ -197,7 +200,8 @@ final class NativeControlsTouchUITests: XCTestCase {
     }
     private func fixture(_ action: String) throws {
         let complete = expectation(description: "Public fixture " + action)
-        var request = URLRequest(url: try XCTUnwrap(URL(string: "http://localhost:5199/\(action)")))
+        let control = ProcessInfo.processInfo.environment["PLAYER_LAB_CONTROLS_CONTROL_URL"] ?? "http://localhost:5199"
+        var request = URLRequest(url: try XCTUnwrap(URL(string: "\(control)/\(action)")))
         request.httpMethod = "POST"
         var status: Int?
         URLSession.shared.dataTask(with: request) { _, response, _ in status = (response as? HTTPURLResponse)?.statusCode; complete.fulfill() }.resume()
