@@ -12,9 +12,13 @@ struct NativeControlsQualificationHost: App {
     var body: some Scene {
         WindowGroup {
             GeometryReader { geometry in
+                // Leave the original workspace usable when the OS keyboard
+                // reduces this test viewport; the same native host is resized.
+                let previewHeight = min(max(1, geometry.size.width - 24) * 9 / 16,
+                                        max(44, geometry.size.height - 420))
                 VStack(spacing: 8) {
                     NativePresentationSurface(model: state.model)
-                        .frame(height: max(1, geometry.size.width - 24) * 9 / 16)
+                        .frame(height: previewHeight)
                         .accessibilityIdentifier("qualification.player.surface")
                     NativeControlsObservationLabel(state: state).frame(height: 20)
                     ControlPanel(model: state.model)
