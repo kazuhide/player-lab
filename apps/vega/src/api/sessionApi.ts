@@ -33,6 +33,8 @@ export class VegaSessionApi {
   private player: PlayerAPI | undefined;
   private removeEvents: (() => void) | undefined;
   private ready = false;
+  private sourceFailed = false;
+  private sourceErrorRevision = 0;
   private pending: Promise<unknown> | undefined;
   private listeners = new Set<() => void>();
   private lines: string[] = [];
@@ -72,7 +74,12 @@ export class VegaSessionApi {
     try {
       for (const entry of catalog.rows.filter((entry) => entry.category === "event")) {
         const event = eventValue(entry.value!);
-        const callback = (value: unknown) => this.event(entry.id, value);
+        const callback = (value: unknown) => {
+          if (!this.isActive()) return;
+          if (event === PlayerEvent.Error) { this.sourceFailed = true; this.sourceErrorRevision++; }
+          else if (event === PlayerEvent.SourceLoaded) this.sourceFailed = false;
+          this.event(entry.id, value);
+        };
         player.on(event, callback); registrations.push({ event, callback });
       }
     } catch (error) { remove(); throw error; }
@@ -102,7 +109,7 @@ export class VegaSessionApi {
     try {
       const player = this.requirePlayer();
       this.resolveMethod(player, entry);
-      return currentOperationAvailability(player, entry.id, args);
+      return currentOperationAvailability(player, entry.id, args, this.sourceFailed);
     } catch {
       return { callable: false, reason: "This public API cannot be read in the current native SDK state." };
     }
@@ -145,6 +152,7 @@ export class VegaSessionApi {
     // Re-read state at dispatch instead of trusting the earlier picker result.
     this.requireOperation(entry, args);
     const player = this.requirePlayer();
+    const sourceErrorRevision = this.sourceErrorRevision;
     let work: Promise<unknown>;
     if (entry.id === "PlayerAPI.destroy" && this.retirement) work = this.retirement();
     else {
@@ -155,6 +163,7 @@ export class VegaSessionApi {
     try {
       const value = await work;
       if (!this.isActive()) throw new Error("The Vega session retired before this operation completed.");
+      if (entry.id === "PlayerAPI.load" && this.sourceErrorRevision === sourceErrorRevision) this.sourceFailed = false;
       const returns = catalog.nodes[signature.returns]!;
       const actualReturn = returns.kind === "promise" ? catalog.nodes[returns.value as string] : returns;
       const resource = actualReturn?.kind === "instance" ? this.resources.add(value, entry.id, actualReturn.name) : undefined;

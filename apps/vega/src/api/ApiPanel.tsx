@@ -27,7 +27,7 @@ export function ApiPanel({ session, source, onRecreate }: { session: VegaSession
   const signatures = catalog.nodes[selected.schema!]!.signatures!;
   const signature = signatures[overload] ?? signatures[0]!;
   const argumentOwner = useMemo(() => ++nextArgumentOwner, [session, source]);
-  const argumentKey = argumentOwner + ":" + selected.id + ":" + overload;
+  const argumentKey = selected.id + ":" + overload;
   const values = argumentDraft?.key === argumentKey ? argumentDraft.values : selected.id === "PlayerAPI.load" ? [source]
     : signature.parameters.map(parameter => parameter.optional ? undefined : initialValue(catalog, parameter.schema));
   const selectedAvailability = session?.operationAvailability(selected, values);
@@ -69,7 +69,7 @@ export function ApiPanel({ session, source, onRecreate }: { session: VegaSession
       })}</View>
       <Text verbatim style={styles.heading}>{selected.id}</Text>
       {signatures.length > 1 && <View style={styles.row}>{signatures.map((_, index) => <Action key={index} title={`Method signature ${index + 1}`} disabled={overload === index} onPress={() => setOverload(index)} />)}</View>}
-      {session && <ArgumentsEditor key={argumentKey} catalog={catalog} signature={signature} values={values} onChange={values => setArgumentDraft({ key: argumentKey, values })} resources={session.resources} />}
+      {session && <ArgumentsEditor key={argumentOwner + ":" + argumentKey} catalog={catalog} signature={signature} values={values} onChange={values => setArgumentDraft({ key: argumentKey, values })} resources={session.resources} />}
       <Text style={styles.badge}>{session?.isBusy() ? "Waiting for API result" : session?.isReady() ? "Player ready" : "Player unavailable"}</Text>
       {!session?.isReady() && <Text style={styles.help}>The player is loading or inactive. Recreate after destroy.</Text>}
       {selectedAvailability?.reason && <Text accessibilityLabel="Vega API unavailable reason" style={styles.warning}>{selectedAvailability.reason}</Text>}

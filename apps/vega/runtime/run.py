@@ -166,6 +166,12 @@ def main():
         wait_report(lambda v: shift_completed(edge_reference, v, initial_owner, 0))
         result["liveRewindButtonsFollowToggle"] = True
         result["liveRewindCompletionObserved"] = True
+        phase("live-api-argument-draft")
+        ui.click("Show SDK API experiments")
+        ui.edit("Filter Vega API operations", "PlayerAPI.timeShift")
+        ui.click("PlayerAPI.timeShift")
+        ui.edit("SDK numeric value", "-12.5")
+        ui.click("Hide SDK API experiments")
         ui.click("Show configuration")
         title_node = ui.reveal("Source title")
         original_title = next((n.text for n in title_node.iter("text") if n.text), "")
@@ -193,6 +199,9 @@ def main():
         first_owner = stage("applied-playback", True)
         phase("ordinary-vod-api-availability")
         ui.click("Show SDK API experiments")
+        if not any(node.text == "-12.5" for node in ui.reveal("SDK numeric value").iter("text")) or button_enabled("Run Vega SDK API"):
+            raise RuntimeError("The retained timeShift draft must stay visible and unavailable on the replacement VOD source")
+        result["apiScalarDraftRetainedAcrossSourceApply"] = True
         ui.edit("Filter Vega API operations", "PlayerAPI.sgai.skip")
         if button_enabled("PlayerAPI.sgai.skip"):
             raise RuntimeError("Ordinary VOD must not offer an inactive SGAI skip command")

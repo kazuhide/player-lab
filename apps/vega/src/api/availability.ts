@@ -13,7 +13,8 @@ const sourceCommands = new Set([
 ]);
 
 /** Read current public SDK state without executing the selected operation. */
-export function currentOperationAvailability(player: PlayerAPI, id: string, args?: readonly unknown[]): OperationAvailability {
+export function currentOperationAvailability(player: PlayerAPI, id: string, args?: readonly unknown[], sourceFailed = false): OperationAvailability {
+  if (sourceFailed && sourceCommands.has(id)) return blocked("An SDK error occurred. Reload a source or recreate the player.");
   if (sourceCommands.has(id) && !player.getSource()) return blocked("Load a source before this operation.");
   // SGAI/HLS interstitials have their own active-ad getter. Analytics SSAI
   // notifications and metadata setters are independent of playback ad state.

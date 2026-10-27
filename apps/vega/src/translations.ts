@@ -59,6 +59,8 @@ export const japaneseCopy: Record<string, string> = {
   "Vega SDK API availability": "VegaのSDK API呼び出し可否",
   "Vega API unavailable reason": "VegaのAPIを実行できない理由",
   "Load a source before this operation.": "ソースを読み込んでから実行してください。",
+  "An SDK error occurred. Reload a source or recreate the player.": "SDKでエラーが発生しました。ソースを読み直すか、プレイヤーを再作成してください。",
+  "This SDK instance has expired. Obtain it again from the current player.": "このSDKインスタンスは使えません。現在のプレイヤーから取得し直してください。",
   "No SGAI ad is active.": "再生中のSGAI広告がありません。",
   "No client-side ad is active.": "再生中のクライアント側広告がありません。",
   "The current client-side ad cannot be skipped yet.": "現在のクライアント側広告はまだスキップできません。",

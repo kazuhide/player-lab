@@ -28,6 +28,8 @@ acknowledge every session's SDK destruction and native media release.
 On that ordinary VOD source, the normal API picker must disable
 `PlayerAPI.sgai.skip` and explain that no SGAI ad is active. This verifies the
 invalid-operation boundary without ad media or a simulated ad playback claim.
+An edited numeric `timeShift` argument must survive the live-to-VOD source Apply
+and remain visible while Run is disabled for the VOD source.
 
 ## Prepare the dedicated runtime
 

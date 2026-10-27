@@ -4,17 +4,18 @@ import { numericValue, parseBinary, safeKey, validateData } from "./values";
 import { copiedConfigurationString } from "../../../../shared/configurationDifferences";
 
 type Constructors = Record<string, unknown>;
+let nextResourceId = 0;
 
 /** Only objects actually owned by this generation can be selected as SDK inputs. */
 export class ResourcePool {
-  private sequence = 0;
   private readonly values = new Map<string, { value: object | Function; label: string; type?: string; owner?: object }>();
   constructor(private readonly constructors: Constructors, private readonly limit = 64) {}
   add(value: unknown, label: string, type?: string, owner?: object): string | undefined {
     if ((!value || typeof value !== "object") && typeof value !== "function") return undefined;
     const existing = [...this.values].find(([, entry]) => entry.value === value);
     if (existing) return existing[0];
-    const id = "r" + (++this.sequence);
+    // Retained drafts must never alias an unrelated replacement owner's resource.
+    const id = "r" + (++nextResourceId);
     this.values.set(id, { value: value as object, label, ...(type ? { type } : {}), ...(owner ? { owner } : {}) });
     while (this.values.size > this.limit) this.values.delete(this.values.keys().next().value!);
     return id;
@@ -24,6 +25,7 @@ export class ResourcePool {
     if (!entry) throw new Error("This SDK instance has expired. Obtain it again from the current player.");
     return entry.value;
   }
+  has(id: string): boolean { return this.values.has(id); }
   matches(schema: InputSchema, value: unknown): boolean {
     if (schema.kind === "function") return typeof value === "function";
     if (schema.kind === "unknown") return true;

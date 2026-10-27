@@ -47,6 +47,62 @@ function fixture() {
 }
 
 describe("Vega typed API dispatch and session ownership", () => {
+  it("keeps a source Error latched despite historical getSource data and paused event recording", async () => {
+    vi.useFakeTimers();
+    const { session, player, listeners } = fixture();
+    session.setRecording(false);
+    const changed = vi.fn(); session.onChange(changed);
+    const event = catalog.rows.find(entry => entry.id === "PlayerEvent.Error")!.value!;
+    [...listeners.get(event)!][0]!({ type: event, code: 1200 });
+    expect(player.getSource()).not.toBeNull();
+    await expect(session.run(row("PlayerAPI.play"), 0, [])).rejects.toThrow("An SDK error occurred");
+    expect(session.operationAvailability(row("PlayerAPI.play")).callable).toBe(false);
+    expect(player.play).not.toHaveBeenCalled();
+    expect(session.operationAvailability(row("PlayerAPI.load"))).toEqual({ callable: true });
+    expect(session.operationAvailability(row("PlayerAPI.getSource"))).toEqual({ callable: true });
+    const clearQueryParameters = vi.fn(); const adBreakEnd = vi.fn();
+    Object.assign(player, { clearQueryParameters, analytics: { ssai: { adBreakEnd } } });
+    await session.run(row("PlayerAPI.clearQueryParameters"), 0, []);
+    await session.run(row("PlayerAPI.analytics.ssai.adBreakEnd"), 0, []);
+    expect(clearQueryParameters).toHaveBeenCalledOnce(); expect(adBreakEnd).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(125); expect(changed).toHaveBeenCalled();
+    expect(session.eventLines()).toEqual([]);
+  });
+
+  it("recovers from source failure on SourceLoaded or a successful new load", async () => {
+    const { session, listeners } = fixture();
+    const emit = (name: string) => [...listeners.get(catalog.rows.find(entry => entry.id === name)!.value!)!][0]!({});
+    emit("PlayerEvent.Error");
+    expect(session.operationAvailability(row("PlayerAPI.play")).callable).toBe(false);
+    emit("PlayerEvent.SourceLoaded");
+    expect(session.operationAvailability(row("PlayerAPI.play"))).toEqual({ callable: true });
+    emit("PlayerEvent.Error");
+    await session.run(row("PlayerAPI.load"), 0, [{ hls: "https://example.com/recovery.m3u8" }]);
+    expect(session.operationAvailability(row("PlayerAPI.play"))).toEqual({ callable: true });
+  });
+
+  it("does not let a recovery load completion clear a newer SDK Error", async () => {
+    const { session, player, listeners } = fixture();
+    const error = [...listeners.get(catalog.rows.find(entry => entry.id === "PlayerEvent.Error")!.value!)!][0]!;
+    error({});
+    let resolve!: () => void;
+    player.load.mockImplementation(() => new Promise<void>(done => { resolve = done; }));
+    const pending = session.run(row("PlayerAPI.load"), 0, [{ hls: "https://example.com/recovery.m3u8" }]);
+    error({}); resolve(); await pending;
+    await expect(session.run(row("PlayerAPI.play"), 0, [])).rejects.toThrow("An SDK error occurred");
+    expect(player.play).not.toHaveBeenCalled();
+  });
+
+  it("never resolves a previous owner's resource ID in a replacement session", async () => {
+    const previous = fixture();
+    const type = catalog.nodes[signature("PlayerAPI.setVideoElement").parameters[0]!.schema]!;
+    const selected = previous.session.resources.list(type).find(entry => entry.label.includes("video element"))!;
+    previous.session.dispose();
+    const current = fixture();
+    await expect(current.session.run(row("PlayerAPI.setVideoElement"), 0, [new ResourceInput(selected.id)])).rejects.toThrow("expired");
+    expect(current.player.setVideoElement).not.toHaveBeenCalled();
+  });
+
   it("rejects SGAI skip for ordinary VOD even when the registered module exposes the method", async () => {
     const { session, player } = fixture();
     const skip = row("PlayerAPI.sgai.skip");

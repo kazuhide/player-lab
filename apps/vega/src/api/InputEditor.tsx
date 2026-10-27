@@ -72,6 +72,8 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
   const [newKey, setNewKey] = useState("");
   const [error, setError] = useState("");
   const [unknownKind, setUnknownKind] = useState(() => value instanceof ExpressionInput ? "factory" : value instanceof CallbackInput ? "function" : value instanceof NumericInput ? "number" : value instanceof BinaryInput ? "binary" : value instanceof ResourceInput ? "resource" : Array.isArray(value) ? "array" : value === null ? "null" : value === undefined ? "undefined" : typeof value);
+  const expiredResource = value instanceof ResourceInput && !resources.has(value.id)
+    ? <Text style={styles.warning}>This SDK instance has expired. Obtain it again from the current player.</Text> : null;
   const input = (label: string, text: string, update: (text: string) => void, multiline = false) => <TextInput accessibilityLabel={label} value={text} onChangeText={update} style={[styles.input, multiline ? styles.code : null]} multiline={multiline} autoCapitalize="none" autoCorrect={false} />;
   const child = (schema: string, value: unknown, update: (value: unknown) => void, key: string | number = schema) => <InputEditor key={key} catalog={catalog} schema={schema} value={value} onChange={update} resources={resources} level={level + 1} />;
   if (level > 20) return <Text style={styles.help}>This editor supports up to 20 nested levels. Remove a containing value to shorten the input.</Text>;
@@ -134,7 +136,7 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
     return <View style={styles.section}>
       <View style={styles.row}>{resources.list(schema).map((resource) => <Action key={resource.id} verbatim title={resource.label} disabled={value instanceof ResourceInput && value.id === resource.id} onPress={() => onChange(new ResourceInput(resource.id))} />)}</View>
       {value instanceof ResourceInput ? <>
-        <Text style={styles.help}>Using current callback instance {value.id}. This preserves the identity needed by off.</Text>
+        {expiredResource ?? <Text style={styles.help}>Using current callback instance {value.id}. This preserves the identity needed by off.</Text>}
         <Action title="Edit a new SDK callback" onPress={() => onChange(new CallbackInput("return undefined;", signatures[0]!, false, promises(catalog, signatures[0]!.returns)))} />
       </> : <>
       <Text style={styles.warning}>JavaScript runs in this app without a sandbox when the SDK calls it. Enable permission, then Apply or Run. Editing alone does not run code.</Text>
@@ -154,6 +156,7 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
   }
   if (schema.kind === "instance") return <View style={styles.section}>
     <Text style={styles.help}>Required instance: <Text verbatim>{schema.label}</Text></Text>
+    {expiredResource}
     {resources.list(schema).map((resource) => <Action key={resource.id} verbatim title={resource.label} disabled={value instanceof ResourceInput && value.id === resource.id} onPress={() => onChange(new ResourceInput(resource.id))} />)}
     {!resources.list(schema).length && <Text style={styles.help}>No compatible current SDK instance is available. Run the corresponding query first. An object literal cannot satisfy this instance contract.</Text>}
   </View>;
@@ -177,7 +180,7 @@ export function InputEditor({ catalog, schema: id, value, onChange, resources, l
         <Text style={styles.warning}>Approved JavaScript runs in this app without a sandbox on Apply, Run and session recreation.</Text>
         {input("SDK value factory JavaScript body", expression.body, (body) => onChange(new ExpressionInput(body, expression.approved)), true)}
         <View style={styles.row}><Text style={styles.text}>Allow this value factory</Text><Switch focusable style={styles.toggle} accessibilityLabel="Allow this SDK value factory" value={expression.approved} onValueChange={(approved) => onChange(new ExpressionInput(expression.body, approved))} /></View>
-      </> : unknownKind === "resource" ? <View style={styles.row}>{resources.list(schema).map((resource) => <Action key={resource.id} verbatim title={resource.label} onPress={() => onChange(new ResourceInput(resource.id))} />)}</View> : <InputEditor key={unknownKind} catalog={enriched} schema={synthetic} value={value} onChange={onChange} resources={resources} level={level + 1} />}
+      </> : unknownKind === "resource" ? <View style={styles.row}>{expiredResource}{resources.list(schema).map((resource) => <Action key={resource.id} verbatim title={resource.label} onPress={() => onChange(new ResourceInput(resource.id))} />)}</View> : <InputEditor key={unknownKind} catalog={enriched} schema={synthetic} value={value} onChange={onChange} resources={resources} level={level + 1} />}
     </View>;
   }
   return <Text style={styles.help}>This input requires <Text verbatim>{schema.label}</Text>. A Promise must be returned from an approved callback; it cannot be replaced by a JSON value.</Text>;
