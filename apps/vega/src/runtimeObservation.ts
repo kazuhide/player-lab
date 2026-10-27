@@ -17,11 +17,13 @@ interface OwnerReport {
   generation: number;
   sourceLoaded: number;
   cueEnter: number;
+  timeShifted: number;
   cueVisible: boolean;
   errors: number;
   errorCodes: number[];
   readFailures: number;
   sample: null | { sequence: number; time: number | null; duration: number | null; live: boolean; playing: boolean;
+    maxTimeShift: number | null; timeShift: number | null;
     muted: boolean; decodedFrames: number | null; subtitleCount: number; externalSubtitleAvailable: boolean; externalSubtitleEnabled: boolean };
 }
 export interface RuntimeReport {
@@ -51,23 +53,26 @@ export function createRuntimeMonitor(): RuntimeMonitor {
   let code: string | null = null;
   return {
     attach(player, frames) {
-      const report: OwnerReport = { generation: ++state.created, sourceLoaded: 0, cueEnter: 0, cueVisible: false,
+      const report: OwnerReport = { generation: ++state.created, sourceLoaded: 0, cueEnter: 0, timeShifted: 0, cueVisible: false,
         errors: 0, errorCodes: [], readFailures: 0, sample: null };
       const owner = { player, frames, report };
       current = owner; state.owner = report;
       const sourceLoaded = () => { if (current === owner) report.sourceLoaded++; };
       const cue = () => { if (current === owner) report.cueEnter++; };
+      const shifted = () => { if (current === owner) report.timeShifted++; };
       const error = (event: ErrorEvent) => {
         if (current !== owner) return;
         report.errors++;
         if (Number.isSafeInteger(event.code) && event.code >= 0 && event.code <= 1000000000) report.errorCodes = [...report.errorCodes, event.code].slice(-8);
       };
       player.on(PlayerEvent.SourceLoaded, sourceLoaded); player.on(PlayerEvent.CueEnter, cue); player.on(PlayerEvent.Error, error);
+      player.on(PlayerEvent.TimeShifted, shifted);
       let retired: RuntimeReport["retired"][number] | null = null;
       return {
         retire() {
           if (retired) return;
           player.off(PlayerEvent.SourceLoaded, sourceLoaded); player.off(PlayerEvent.CueEnter, cue); player.off(PlayerEvent.Error, error);
+          player.off(PlayerEvent.TimeShifted, shifted);
           retired = { generation: report.generation, releaseConfirmed: false };
           state.retired = [...state.retired, retired].slice(-32);
           if (current === owner) { current = null; state.owner = null; }
@@ -86,6 +91,7 @@ export function createRuntimeMonitor(): RuntimeMonitor {
         const tracks = player.subtitles.list();
         report.sample = { sequence: (report.sample?.sequence ?? 0) + 1, time: finite(player.getCurrentTime()), duration: finite(player.getDuration()),
           live: player.isLive(), playing: player.isPlaying(), muted: player.isMuted(), decodedFrames: finite(frames()),
+          maxTimeShift: finite(player.getMaxTimeShift()), timeShift: finite(player.getTimeShift()),
           subtitleCount: tracks.length, externalSubtitleAvailable: tracks.some((track) => track.id === "player-lab-external"),
           externalSubtitleEnabled: tracks.some((track) => track.id === "player-lab-external" && track.enabled === true) };
       } catch { report.readFailures++; }

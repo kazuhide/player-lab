@@ -30,6 +30,7 @@ export function ApiPanel({ session, source, onRecreate }: { session: VegaSession
   const argumentKey = argumentOwner + ":" + selected.id + ":" + overload;
   const values = argumentDraft?.key === argumentKey ? argumentDraft.values : selected.id === "PlayerAPI.load" ? [source]
     : signature.parameters.map(parameter => parameter.optional ? undefined : initialValue(catalog, parameter.schema));
+  const selectedAvailability = session?.operationAvailability(selected, values);
   useEffect(() => {
     let active = true;
     const remove = session?.onChange(() => { if (active) refresh((value) => value + 1); });
@@ -59,15 +60,22 @@ export function ApiPanel({ session, source, onRecreate }: { session: VegaSession
         <Action title="Next results" disabled={pageCount === 1} onPress={() => setPage((page + 1) % pageCount)} />
       </View>
       {!matches.length && <Text style={styles.help}>No matching items.</Text>}
-      <View style={styles.row}>{matches.slice(page * 12, (page + 1) * 12).map((entry) => <Action key={entry.id} verbatim title={entry.id} disabled={entry.id === selected.id || Boolean(session?.isBusy())} onPress={() => { setSelectedId(entry.id); setOverload(0); setResult(""); setCode(""); setFailed(false); }} />)}</View>
+      <View style={styles.row}>{matches.slice(page * 12, (page + 1) * 12).map((entry) => {
+        const available = session?.operationAvailability(entry);
+        return <View key={entry.id}>
+          <Action verbatim title={entry.id} disabled={entry.id === selected.id || !available?.callable} onPress={() => { setSelectedId(entry.id); setOverload(0); setResult(""); setCode(""); setFailed(false); }} />
+          {available?.reason && <Text style={styles.help}>{available.reason}</Text>}
+        </View>;
+      })}</View>
       <Text verbatim style={styles.heading}>{selected.id}</Text>
       {signatures.length > 1 && <View style={styles.row}>{signatures.map((_, index) => <Action key={index} title={`Method signature ${index + 1}`} disabled={overload === index} onPress={() => setOverload(index)} />)}</View>}
       {session && <ArgumentsEditor key={argumentKey} catalog={catalog} signature={signature} values={values} onChange={values => setArgumentDraft({ key: argumentKey, values })} resources={session.resources} />}
       <Text style={styles.badge}>{session?.isBusy() ? "Waiting for API result" : session?.isReady() ? "Player ready" : "Player unavailable"}</Text>
       {!session?.isReady() && <Text style={styles.help}>The player is loading or inactive. Recreate after destroy.</Text>}
+      {selectedAvailability?.reason && <Text accessibilityLabel="Vega API unavailable reason" style={styles.warning}>{selectedAvailability.reason}</Text>}
       {selected.id === "PlayerAPI.destroy" && <Text style={styles.warning}>Starts releasing this player. Use Recreate Vega player to start again.</Text>}
       <View style={styles.row}>
-        <Action title="Run Vega SDK API" disabled={!session?.isReady() || Boolean(session?.isBusy())} onPress={() => { void run(); }} />
+        <Action title="Run Vega SDK API" disabled={!selectedAvailability?.callable} onPress={() => { void run(); }} />
         <Action title="Recreate Vega player" onPress={onRecreate} />
       </View>
       {!!code && !failed && <Text style={styles.label}>Executed call</Text>}
@@ -86,7 +94,7 @@ export function ApiPanel({ session, source, onRecreate }: { session: VegaSession
         try { setAvailability(JSON.stringify(session?.availability(), null, 2)); }
         catch { setAvailability("Wait for the current native player before inspecting public APIs."); }
       }} />
-      <Text style={styles.help}>Callable methods only. Check state and events for their effect.</Text>
+      <Text style={styles.help}>Uses current SDK, source and feature state. Checked again before dispatch.</Text>
       {!!availability && <ScrollView focusable style={{ maxHeight: 240 }}><Text verbatim selectable accessibilityLabel="Vega SDK API availability" accessibilityValue={{ text: availability }} style={styles.codeText}>{availability}</Text></ScrollView>}
     </>}
   </View>;

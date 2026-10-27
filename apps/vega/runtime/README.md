@@ -5,6 +5,14 @@ The report uses public Player getters/events, native decoded-frame counts and
 the App's real release acknowledgement. It cannot apply settings or control
 playback. The ordinary entry has no test header/buttons.
 
+Before the VOD form checks, the runner uses the initial public live DVR source.
+It reads all three real native rewind buttons with Allow DVR on, off and on,
+retains the same player owner, and checks a normal -10s press and Live edge
+against fresh `TimeShifted` events and a media-time target calculated from
+the SDK clock and live offset immediately before each press. The live source must
+actually expose a negative `getMaxTimeShift()` window; a VOD fixture or an App
+flag alone cannot pass this stage.
+
 The runner edits the normal form, resets an unapplied title, then applies a
 one-minute HLS source, external HTTPS WebVTT track, normalized language tag,
 offset 1 second, autoplay/mute, audio/video buffers of 8 seconds and video cap
@@ -15,6 +23,9 @@ alongside cue events. The runner reads every normal focusable code line, checks
 draft exclusion/Reset, reapplies a title with retained settings/Allow DVR, and
 uses a documented app-to-app transfer to check foreground replacement. Final unmount must
 acknowledge every session's SDK destruction and native media release.
+On that ordinary VOD source, the normal API picker must disable
+`PlayerAPI.sgai.skip` and explain that no SGAI ad is active. This verifies the
+invalid-operation boundary without ad media or a simulated ad playback claim.
 
 ## Prepare the dedicated runtime
 

@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 
 from driver import Ui
-from report import applied, playback, released, validate
+from report import applied, live_controls, playback, released, shift_completed, validate
 
 
 def fixture_url(value, https=False):
@@ -82,6 +82,16 @@ def main():
         result["phase"] = name
         (output / "progress.json").write_text(json.dumps({"phase": name}) + "\n")
 
+    def button_enabled(label):
+        node = ui.reveal(label)
+        enabled = node.find("./traits/enableable")
+        if enabled is None or enabled.get("enabled") not in {"true", "false"}:
+            raise RuntimeError("The normal native button did not expose its enabled state")
+        return enabled.get("enabled") == "true"
+
+    def rewind_buttons():
+        return {label: button_enabled(label) for label in ["-10s", "-30s", "-60s"]}
+
     def code():
         lines, last_line = {}, None
         ui.focus(ui.reveal("Hide applied code"))
@@ -138,6 +148,22 @@ def main():
         ui = Ui(args.appium, args.device)
         before = wait_report(lambda v: v["owner"] is not None and v["owner"]["sourceLoaded"] > 0 and v["owner"]["sample"] is not None)
         initial_owner = before["owner"]["generation"]
+        phase("live-rewind-native-controls")
+        live_controls(before, initial_owner, True, rewind_buttons())
+        ui.switch("Allow DVR", False)
+        live_controls(read(), initial_owner, False, rewind_buttons())
+        if not button_enabled("Live edge"):
+            raise RuntimeError("Live edge must remain available when rewinding is disabled")
+        ui.switch("Allow DVR", True)
+        live_controls(read(), initial_owner, True, rewind_buttons())
+        rewind_reference = read()
+        ui.click("-10s")
+        wait_report(lambda v: shift_completed(rewind_reference, v, initial_owner, -10))
+        edge_reference = read()
+        ui.click("Live edge")
+        wait_report(lambda v: shift_completed(edge_reference, v, initial_owner, 0))
+        result["liveRewindButtonsFollowToggle"] = True
+        result["liveRewindCompletionObserved"] = True
         ui.click("Show configuration")
         title_node = ui.reveal("Source title")
         original_title = next((n.text for n in title_node.iter("text") if n.text), "")
@@ -163,6 +189,16 @@ def main():
         result["nativeCueEventsAndVisibleOverlay"] = True
         result["cueEvents"] = cue["owner"]["cueEnter"]
         first_owner = stage("applied-playback", True)
+        phase("ordinary-vod-api-availability")
+        ui.click("Show SDK API experiments")
+        ui.edit("Filter Vega API operations", "PlayerAPI.sgai.skip")
+        if button_enabled("PlayerAPI.sgai.skip"):
+            raise RuntimeError("Ordinary VOD must not offer an inactive SGAI skip command")
+        ui.wait(lambda tree: any("No SGAI ad is active." in (node.get("description", "") + (node.text or "")) for node in tree.iter()))
+        if read()["owner"]["generation"] != first_owner:
+            raise RuntimeError("Inspecting API availability must retain the ordinary VOD owner")
+        result["ordinaryVodSgaiSkipDisabled"] = True
+        ui.click("Hide SDK API experiments")
         code_generation = last["codeGeneration"]
         phase("show-applied-code")
         ui.click("Show applied code")

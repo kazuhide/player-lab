@@ -2,6 +2,7 @@ import React from "react";
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
 import { PlayerEvent } from "bitmovin-player/modules/bitmovinplayer-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { SourceConfig } from "bitmovin-player";
 
 const runtime = vi.hoisted(() => ({
   players: [] as Array<{ config: object; load: ReturnType<typeof vi.fn>; destroy: ReturnType<typeof vi.fn>; listeners: Map<string, Set<() => void>> }>,
@@ -52,13 +53,16 @@ vi.mock("@amazon-devices/react-native-w3cmedia", () => ({
 vi.mock("../src/vegaPlayer", () => ({
   createVegaPlayer: (config: object) => {
     const listeners = new Map<string, Set<() => void>>();
+    let source: SourceConfig | null = null;
     const player = {
-      config, listeners, load: vi.fn(async () => {}),
+      config, listeners, load: vi.fn(async (value: SourceConfig) => { source = value; }),
+      getSource: vi.fn(() => source),
       destroy: vi.fn(() => { const gate = runtime.destruction; runtime.destruction = null; return gate ?? Promise.resolve(); }),
       on: (event: string, callback: () => void) => { if (!listeners.has(event)) listeners.set(event, new Set()); listeners.get(event)!.add(callback); },
       off: (event: string, callback: () => void) => listeners.get(event)?.delete(callback),
-      isLive: () => true, getDuration: () => Infinity, getMaxTimeShift: () => -900, getTimeShift: () => 0, getCurrentTime: () => 0,
-      timeShift: vi.fn(), seek: vi.fn(() => true),
+      isLive: vi.fn(() => true), getDuration: vi.fn(() => Infinity), getMaxTimeShift: vi.fn(() => -900), getTimeShift: () => 0, getCurrentTime: () => 0,
+      timeShift: vi.fn(), seek: vi.fn(() => true), play: vi.fn(async () => {}),
+      sgai: { getActiveAd: vi.fn((): object | undefined => undefined), list: vi.fn(() => []), skip: vi.fn(async () => {}) },
     };
     runtime.players.push(player);
     return player;
@@ -94,6 +98,11 @@ async function mount() {
   await act(async () => { screen = create(<App />); });
   await act(async () => element("KeplerVideoSurfaceView").props.onSurfaceViewCreated("surface"));
 }
+function vodState() {
+  Reflect.get(current(), "isLive").mockReturnValue(false);
+  Reflect.get(current(), "getDuration").mockReturnValue(60);
+  Reflect.get(current(), "getMaxTimeShift").mockReturnValue(0);
+}
 beforeEach(() => {
   vi.stubGlobal("crypto", undefined);
   runtime.players.length = 0;
@@ -117,6 +126,94 @@ afterEach(async () => {
 });
 
 describe("Vega configuration in the mounted App and media session", () => {
+  it("applies the live rewind toggle to the real mounted playback buttons and controller without replacing the owner", async () => {
+    await mount();
+    const player = current(); const shift = Reflect.get(player, "timeShift");
+    for (const offset of [-10, -30, -60]) {
+      expect(button(`${offset}s`).props.disabled).toBe(false);
+      expect(button(`${offset}s`).props.focusable).toBe(true);
+    }
+    const queuedRewind = button("-30s").props.onPress;
+    await press("-10s"); expect(shift).toHaveBeenLastCalledWith(-10);
+    await act(async () => element("Switch", { accessibilityLabel: "Allow DVR" }).props.onValueChange(false));
+    for (const offset of [-10, -30, -60]) {
+      expect(button(`${offset}s`).props.disabled).toBe(true);
+      expect(button(`${offset}s`).props.focusable).toBe(false);
+      expect(button(`${offset}s`).props.onPress).toBeUndefined();
+    }
+    await act(async () => queuedRewind());
+    expect(shift).toHaveBeenLastCalledWith(0);
+    await press("Live edge"); expect(shift).toHaveBeenLastCalledWith(0);
+    await act(async () => element("Switch", { accessibilityLabel: "Allow DVR" }).props.onValueChange(true));
+    await press("-60s"); expect(shift).toHaveBeenLastCalledWith(-60);
+    expect(current()).toBe(player); expect(player.load).toHaveBeenCalledOnce();
+    expect(player.destroy).not.toHaveBeenCalled();
+    vodState();
+    await act(async () => { for (const listener of player.listeners.get(PlayerEvent.TimeChanged)!) listener(); });
+    expect(button("-10s").props.disabled).toBe(true);
+  });
+
+  it("disables SGAI skip in the ordinary source picker when the SDK exposes only an inactive ad namespace", async () => {
+    await mount(); vodState(); await action("Show SDK API experiments");
+    await text("Filter Vega API operations", "PlayerAPI.sgai.skip");
+    const skip = button("PlayerAPI.sgai.skip");
+    expect(skip.props.disabled).toBe(true); expect(skip.props.focusable).toBe(false);
+    await act(async () => skip.props.onPress());
+    expect(Reflect.get(current(), "sgai").skip).not.toHaveBeenCalled();
+    expect(screen.root.findAll(node => String(node.type) === "Text" && node.props.children === "No SGAI ad is active.")).toHaveLength(1);
+    // The unavailable result does not discard the valid current selection.
+    expect(button("Run Vega SDK API").props.disabled).toBe(false);
+    await action("Run Vega SDK API");
+    expect(element("Text", { accessibilityLabel: "Vega executed API code" }).props.children).toBe("player.getDuration();");
+  });
+
+  it("retains the selected operation when an ad ends and disables Run with a localized reason even when logging is paused", async () => {
+    await mount(); vodState();
+    const owner = current(); const sgai = Reflect.get(owner, "sgai");
+    sgai.getActiveAd.mockReturnValue({ isLinear: true });
+    await action("Show SDK API experiments");
+    await text("Filter Vega API operations", "PlayerAPI.sgai.skip"); await action("PlayerAPI.sgai.skip");
+    expect(button("Run Vega SDK API").props.disabled).toBe(false);
+    await action("Pause Vega event log");
+    const queuedRun = button("Run Vega SDK API").props.onPress;
+    sgai.getActiveAd.mockReturnValue(undefined);
+    // A saved native callback must still hit a fresh dispatch check.
+    await act(async () => queuedRun());
+    expect(sgai.skip).not.toHaveBeenCalled();
+    await act(async () => {
+      for (const listener of owner.listeners.get(PlayerEvent.AdFinished)!) listener();
+      await new Promise(resolve => setTimeout(resolve, 150));
+    });
+    expect(button("Run Vega SDK API").props.disabled).toBe(true);
+    expect(element("Text", { accessibilityLabel: "Vega API unavailable reason" }).props.children).toBe("No SGAI ad is active.");
+    expect(String(element("Text", { accessibilityLabel: "Vega SDK event log" }).props.children ?? "")).toBe("");
+    await press("日本語");
+    expect(element("Text", { accessibilityLabel: "VegaのAPIを実行できない理由" }).props.children).toBe("再生中のSGAI広告がありません。");
+    expect(screen.root.findAll(node => String(node.type) === "Text" && node.props.children === "PlayerAPI.sgai.skip").length).toBeGreaterThan(0);
+    expect(current()).toBe(owner); expect(owner.destroy).not.toHaveBeenCalled();
+    await press("English");
+  });
+
+  it("disables Run for a stale quality selection and restores the valid auto recovery value", async () => {
+    await mount(); vodState();
+    const setVideoQuality = vi.fn(); const qualities = vi.fn(() => [{ id: "current-quality" }]);
+    Object.assign(current(), { setVideoQuality, getAvailableVideoQualities: qualities });
+    await action("Show SDK API experiments");
+    await text("Filter Vega API operations", "PlayerAPI.setVideoQuality"); await action("PlayerAPI.setVideoQuality");
+    await text("SDK text value", "current-quality");
+    expect(button("Run Vega SDK API").props.disabled).toBe(false);
+    qualities.mockReturnValue([]);
+    await act(async () => {
+      for (const listener of current().listeners.get(PlayerEvent.VideoQualityChanged)!) listener();
+      await new Promise(resolve => setTimeout(resolve, 150));
+    });
+    expect(button("Run Vega SDK API").props.disabled).toBe(true);
+    expect(input("SDK text value").props.value).toBe("current-quality");
+    await text("SDK text value", "auto");
+    expect(button("Run Vega SDK API").props.disabled).toBe(false);
+    await action("Run Vega SDK API"); expect(setVideoQuality).toHaveBeenCalledExactlyOnceWith("auto");
+  });
+
   it("finds a short exact method before Player namespace substring matches", async () => {
     await mount(); await action("Show SDK API experiments");
     await text("Filter Vega API operations", "play");
@@ -147,7 +244,7 @@ describe("Vega configuration in the mounted App and media session", () => {
     const { catalog } = await import("../src/api/catalog");
     const count = catalog.rows.filter(entry => entry.category === "command" || entry.category === "observation").length;
     expect(count).toBeGreaterThan(12);
-    await mount(); await press("Show configuration");
+    await mount(); vodState(); await press("Show configuration");
     await text("Source title", "Unapplied search draft"); await press("Show applied code");
     const owner = current(); const code = appliedCode();
     const playerCount = runtime.players.length; const videoCount = runtime.videos.length;
@@ -292,7 +389,7 @@ describe("Vega configuration in the mounted App and media session", () => {
   });
 
   it("runs a typed SDK operation from the GUI and keeps malformed numbers away from its SDK call", async () => {
-    await mount(); await action("Show SDK API experiments");
+    await mount(); vodState(); await action("Show SDK API experiments");
     await text("Filter Vega API operations", "PlayerAPI.seek"); await action("PlayerAPI.seek");
     await text("SDK numeric value", "12.75"); await action("Run Vega SDK API");
     const seek = Reflect.get(current(), "seek") as ReturnType<typeof vi.fn>;
@@ -305,7 +402,7 @@ describe("Vega configuration in the mounted App and media session", () => {
   });
 
   it("resets argument editor ownership when switching from numeric seek to optional play arguments", async () => {
-    await mount(); await action("Show SDK API experiments");
+    await mount(); vodState(); await action("Show SDK API experiments");
     await text("Filter Vega API operations", "PlayerAPI.seek"); await action("PlayerAPI.seek");
     await text("SDK numeric value", "12.5");
     await text("Filter Vega API operations", "PlayerAPI.play"); await action("PlayerAPI.play");
@@ -316,14 +413,16 @@ describe("Vega configuration in the mounted App and media session", () => {
     await action("Run Vega SDK API"); expect(Reflect.get(current(), "seek")).toHaveBeenCalledWith(0);
   });
 
-  it("renders each published operation's argument form after selection without running a native API", async () => {
+  it("keeps every published operation inspectable and renders argument forms only for available selections", async () => {
     const { catalog } = await import("../src/api/catalog");
     await mount(); await action("Show SDK API experiments");
     let selected = "PlayerAPI.getDuration";
     for (const entry of catalog.rows.filter(entry => entry.category === "command" || entry.category === "observation")) {
       await text("Filter Vega API operations", entry.id);
-      if (selected !== entry.id) await action(entry.id);
-      selected = entry.id;
+      if (selected !== entry.id && !button(entry.id).props.disabled) {
+        await action(entry.id); selected = entry.id;
+        expect(screen.root.findAll(node => String(node.type) === "Text" && node.props.children === selected).length).toBeGreaterThan(0);
+      }
       expect(element("Pressable", { accessibilityLabel: "Run Vega SDK API" }), entry.id).toBeDefined();
     }
     expect(current().load).toHaveBeenCalledTimes(1);
@@ -333,7 +432,8 @@ describe("Vega configuration in the mounted App and media session", () => {
   it("lets users inspect the actual current SDK API availability from the normal screen", async () => {
     await mount(); await action("Show SDK API experiments"); await action("Inspect current SDK API availability");
     const value = JSON.parse(String(element("Text", { accessibilityLabel: "Vega SDK API availability" }).props.children));
-    expect(value.find((row: { id: string }) => row.id === "PlayerAPI.seek")).toEqual({ id: "PlayerAPI.seek", callable: true });
+    expect(value.find((row: { id: string }) => row.id === "PlayerAPI.seek")).toEqual({ id: "PlayerAPI.seek", callable: false, reason: "Use timeShift for the current live source." });
+    expect(value.find((row: { id: string }) => row.id === "PlayerAPI.timeShift")).toEqual({ id: "PlayerAPI.timeShift", callable: true });
     expect(value.find((row: { id: string }) => row.id === "PlayerAPI.ads.schedule")?.callable).toBe(false);
     expect(Reflect.get(current(), "seek")).not.toHaveBeenCalled();
   });

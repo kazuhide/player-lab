@@ -7,6 +7,7 @@ import { apiPath } from "./values";
 import type { ApiEntry, Signature } from "./types";
 import { typedCode } from "./typedCode";
 import { apiValue } from "./apiValues";
+import { currentOperationAvailability, type OperationAvailability } from "./availability";
 
 function runtimeConstructors(): Record<string, unknown> {
   const constructors: Record<string, unknown> = { ArrayBuffer, Uint8Array, Uint16Array, Uint32Array, Int8Array, Int16Array, Int32Array, Float32Array, Float64Array, DataView, Date, RegExp };
@@ -81,8 +82,9 @@ export class VegaSessionApi {
   onChange(callback: () => void): () => void { this.listeners.add(callback); return () => { this.listeners.delete(callback); }; }
   private notify(): void { if (this.isActive()) for (const callback of this.listeners) callback(); }
   private event(name: string, value: unknown): void {
-    if (!this.isActive() || !this.recording) return;
-    this.lines = [`${name}: ${apiValue(value).slice(0, 2000)}`, ...this.lines].slice(0, 80);
+    if (!this.isActive()) return;
+    if (this.recording) this.lines = [`${name}: ${apiValue(value).slice(0, 2000)}`, ...this.lines].slice(0, 80);
+    // Pausing the optional event log must not freeze current API availability.
     if (!this.timer) this.timer = setTimeout(() => { this.timer = undefined; this.notify(); }, 125);
   }
   eventLines(): string[] { return this.lines; }
@@ -90,15 +92,24 @@ export class VegaSessionApi {
   isRecording(): boolean { return this.recording; }
   clearEvents(): void { this.lines = []; this.notify(); }
   availability(): { id: string; callable: boolean; reason?: string }[] {
-    const player = this.requirePlayer();
-    return catalog.rows.filter(entry => entry.category === "command" || entry.category === "observation").map(entry => {
-      try {
-        const { method } = this.resolveMethod(player, entry);
-        return { id: entry.id, callable: typeof method === "function" };
-      } catch {
-        return { id: entry.id, callable: false, reason: "This public API cannot be read in the current native SDK state." };
-      }
-    });
+    this.requirePlayer();
+    return catalog.rows.filter(entry => entry.category === "command" || entry.category === "observation")
+      .map(entry => ({ id: entry.id, ...this.operationAvailability(entry) }));
+  }
+  operationAvailability(entry: ApiEntry, args?: readonly unknown[]): OperationAvailability {
+    if (!this.isReady()) return { callable: false, reason: "Wait for the current Vega source to load." };
+    if (this.pending) return { callable: false, reason: "The previous SDK operation is still pending; it has not been retried." };
+    try {
+      const player = this.requirePlayer();
+      this.resolveMethod(player, entry);
+      return currentOperationAvailability(player, entry.id, args);
+    } catch {
+      return { callable: false, reason: "This public API cannot be read in the current native SDK state." };
+    }
+  }
+  private requireOperation(entry: ApiEntry, args?: readonly unknown[]): void {
+    const available = this.operationAvailability(entry, args);
+    if (!available.callable) throw new Error(available.reason);
   }
   private resolveMethod(player: PlayerAPI, entry: ApiEntry): { owner: object | Function; method: Function } {
     const parts = apiPath(entry.id);
@@ -125,12 +136,14 @@ export class VegaSessionApi {
       (signature.parameters[index]?.rest ? "..." : "") + typedCode(signature.parameters[index]?.schema ?? "", value)).join(", ") + ");";
   }
   async run(entry: ApiEntry, overload: number, values: unknown[]): Promise<{ value: string; code: string }> {
-    if (!this.isReady()) throw new Error("Wait for the current Vega source to load.");
-    if (this.pending) throw new Error("The previous SDK operation is still pending; it has not been retried.");
+    this.requireOperation(entry);
     const signature = this.signature(entry, overload);
     values.forEach((value) => this.materializer.preflight(value));
     const args = this.materializer.arguments(signature, values);
     const callCode = this.code(entry, values, overload);
+    // Approved value factories can change the source or retire this owner.
+    // Re-read state at dispatch instead of trusting the earlier picker result.
+    this.requireOperation(entry, args);
     const player = this.requirePlayer();
     let work: Promise<unknown>;
     if (entry.id === "PlayerAPI.destroy" && this.retirement) work = this.retirement();
