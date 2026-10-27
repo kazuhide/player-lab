@@ -171,12 +171,12 @@ def main():
         ui.edit("Filter Vega API operations", "PlayerAPI.timeShift")
         ui.click("PlayerAPI.timeShift")
         ui.edit("SDK numeric value", "-12.5")
-        ui.click("Hide SDK API experiments")
+        ui.click("Hide SDK API experiments", up_first=True)
         ui.click("Show configuration")
         title_node = ui.reveal("Source title")
         original_title = next((n.text for n in title_node.iter("text") if n.text), "")
         ui.edit("Source title", "Unapplied draft"); ui.click("Reset draft")
-        if not any(n.text == original_title for n in ui.reveal("Source title").iter("text")):
+        if not any(n.text == original_title for n in ui.reveal("Source title", up_first=True).iter("text")):
             raise RuntimeError("Reset must restore the applied title")
         phase("external-subtitle-fields")
         for label, value in [("Source URL", args.media_url), ("Source title", "WebVTT example"),
@@ -184,8 +184,8 @@ def main():
             ("Subtitle language", "EN-us"), ("Start offset (seconds)", "1"),
             ("Video forward buffer (seconds)", "8"), ("Audio forward buffer (seconds)", "8"),
             ("Maximum video bitrate (bits per second)", "2500000")]:
-            ui.edit(label, value)
-        hls = ui.reveal("HLS")
+            ui.edit(label, value, up_first=label == "Source URL")
+        hls = ui.reveal("HLS", up_first=True)
         if (enabled := hls.find("./traits/enableable")) is None or enabled.get("enabled") != "false": ui.click("HLS")
         for label in ["Autoplay", "Mute on startup", "Enable external subtitle on load"]: ui.switch(label, True)
         ui.click("Apply and recreate player")
@@ -221,21 +221,21 @@ def main():
             raise RuntimeError("Applied external subtitle metadata must be visible in generated code")
         # Collapse focusable code rows during draft input and Reset, then
         # reopen and freshly read the complete applied output each time.
-        ui.click("Hide applied code")
+        ui.click("Hide applied code", up_first=True)
         phase("edit-unapplied-subtitle-label")
-        ui.edit("Subtitle label", "Unapplied subtitle")
+        ui.edit("Subtitle label", "Unapplied subtitle", up_first=True)
         phase("read-code-excluding-draft")
         ui.click("Show applied code")
         if code() != original_code:
             raise RuntimeError("Draft subtitle edits must not change applied code")
-        ui.click("Hide applied code")
+        ui.click("Hide applied code", up_first=True)
         ui.click("Reset draft")
         phase("read-code-after-reset")
-        reset_label_restored = any(n.text == "External English" for n in ui.reveal("Subtitle label").iter("text"))
+        reset_label_restored = any(n.text == "External English" for n in ui.reveal("Subtitle label", up_first=True).iter("text"))
         ui.click("Show applied code")
         if not reset_label_restored or code() != original_code:
             raise RuntimeError("Reset must restore applied subtitle metadata and retain code")
-        ui.click("Hide applied code")
+        ui.click("Hide applied code", up_first=True)
         # Finish this normal UI transaction before moving TV focus to the
         # separate read-only observation header.
         retained = read()

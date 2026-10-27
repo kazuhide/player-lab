@@ -131,19 +131,19 @@ class Ui:
             self.wait(lambda tree: any(n.get("id") == node.get("id") and
                 (focus := n.find("./traits/focusable")) is not None and focus.get("focused") == "true" for n in tree.iter()))
 
-    def reveal(self, label):
-        return self._reveal(label, self.find)
+    def reveal(self, label, up_first=False):
+        return self._reveal(label, self.find, up_first=up_first)
 
     def reveal_text(self, text):
         return self._reveal(text, self.find_text)
 
-    def reveal_input(self, label):
-        return self._reveal(label, self.find, require_editable=True)
+    def reveal_input(self, label, up_first=False):
+        return self._reveal(label, self.find, require_editable=True, up_first=up_first)
 
-    def _reveal(self, label, lookup, require_editable=False):
+    def _reveal(self, label, lookup, require_editable=False, up_first=False):
         self.last_label, self.last_action = label, "reveal"
         # Focus follows the normal TV hierarchy and scrolls its controls into view.
-        for direction in [108, 103]:
+        for direction in ([103, 108] if up_first else [108, 103]):
             for _ in range(70):
                 tree = self.tree()
                 node = lookup(tree, label)
@@ -173,8 +173,8 @@ class Ui:
                 time.sleep(.12)
         raise RuntimeError("Normal Vega control remained outside its viewport")
 
-    def click(self, label):
-        node = self.reveal(label)
+    def click(self, label, up_first=False):
+        node = self.reveal(label, up_first=up_first)
         enabled = node.find("./traits/enableable")
         if enabled is not None and enabled.get("enabled") == "false":
             raise RuntimeError("The normal Vega control is disabled")
@@ -294,10 +294,10 @@ class Ui:
         node = Ui.editable(tree, label)
         return node is not None and Ui.text_matches(label, "".join(child.text or "" for child in node.iter("text")), expected)
 
-    def edit(self, label, value):
+    def edit(self, label, value, up_first=False):
         if not isinstance(value, str) or len(value) > 512: raise RuntimeError("The requested native text exceeds its bounded shape")
         self.dismiss_keyboard()
-        self.reveal_input(label)
+        self.reveal_input(label, up_first=up_first)
         focus_deadline = time.monotonic() + 30
         with self.observation_budget(focus_deadline):
             for attempt in range(3):
@@ -305,7 +305,7 @@ class Ui:
                 # ID can have been replaced or reused by a different field.
                 time.sleep(min(.2, max(0, focus_deadline - time.monotonic())))
                 with self.observation_budget(time.monotonic() + 2) as attempt_deadline:
-                    self.reveal_input(label)
+                    self.reveal_input(label, up_first=up_first)
                     editable = self.editable(self.tree(), label)
                     if editable is None: raise RuntimeError("The labelled Vega control has no editable native input")
                     if time.monotonic() >= attempt_deadline: raise RuntimeError("The native target input focus deadline expired")

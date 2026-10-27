@@ -166,6 +166,50 @@ class NativeNavigationTests(unittest.TestCase):
         self.assertEqual(ui.value, 'Unchanged input')
         self.assertEqual(ui.events, ['Done'])
 
+    def test_up_first_reaches_an_earlier_input_without_the_blind_down_leg(self):
+        ui = OrderedInputReturn()
+        with patch('driver.time.sleep', lambda seconds: None):
+            ui.edit('Subtitle label', 'Unapplied subtitle', up_first=True)
+        self.assertEqual(ui.navigation, [103] * 60)
+        self.assertEqual(ui.value, 'Unapplied subtitle')
+        self.assertTrue(ui.destructive_positions)
+        self.assertEqual(set(ui.destructive_positions), {20})
+
+    def test_default_direction_order_stays_down_then_up_with_the_same_limit(self):
+        ui = OrderedInputReturn()
+        with patch('driver.time.sleep', lambda seconds: None):
+            with self.assertRaises(RuntimeError): ui.edit('Subtitle label', 'Unapplied subtitle')
+        self.assertEqual(ui.navigation, [108] * 70 + [103] * 70)
+        self.assertEqual(ui.value, 'old value')
+        self.assertNotIn('Clear', ui.events)
+        self.assertNotIn('type', ui.events)
+
+    def test_up_first_keeps_the_bounded_reverse_fallback_for_a_lower_input(self):
+        ui = OrderedInputReturn(position=10, target=25, maximum=50)
+        with patch('driver.time.sleep', lambda seconds: None): ui.reveal_input('Subtitle label', up_first=True)
+        self.assertEqual(ui.navigation[:70], [103] * 70)
+        self.assertIn(108, ui.navigation[70:])
+        self.assertLessEqual(len(ui.navigation), 140)
+        self.assertEqual(ui.events, [])
+
+    def test_up_first_dismisses_an_incidental_keyboard_without_early_editing(self):
+        ui = OrderedInputReturn(incidental_at=70)
+        with patch('driver.time.sleep', lambda seconds: None):
+            ui.edit('Subtitle label', 'Unapplied subtitle', up_first=True)
+        self.assertEqual(ui.navigation, [103] * 60)
+        self.assertEqual(ui.events.count('Done'), 2)
+        self.assertEqual(set(ui.destructive_positions), {20})
+        self.assertEqual(ui.value, 'Unapplied subtitle')
+
+    def test_up_first_rejects_a_permanently_missing_input_without_destructive_work(self):
+        ui = OrderedInputReturn(permanent=True)
+        with patch('driver.time.sleep', lambda seconds: None):
+            with self.assertRaises(RuntimeError): ui.edit('Subtitle label', 'Unapplied subtitle', up_first=True)
+        self.assertEqual(ui.navigation, [103] * 70 + [108] * 70)
+        self.assertNotIn('Clear', ui.events)
+        self.assertNotIn('type', ui.events)
+        self.assertEqual(ui.value, 'old value')
+
 
 class ClippedNativeInput(NativeKeyboardUi):
     def __init__(self, y, permanent=False, mode='missing'):
@@ -198,6 +242,43 @@ class ClippedNativeInput(NativeKeyboardUi):
         if code in [103,108]:
             self.navigation.append(code)
             self.revealed = not self.permanent
+
+
+class OrderedInputReturn(NativeKeyboardUi):
+    """Unit-only linear focus graph with an absolute clipped input frame."""
+    def __init__(self, position=80, target=20, maximum=150, permanent=False, incidental_at=None):
+        super().__init__(label='Subtitle label')
+        self.position, self.target, self.maximum = position, target, maximum
+        self.permanent, self.incidental_at = permanent, incidental_at
+        self.navigation, self.destructive_positions = [], []
+
+    def tree(self):
+        tree = super().tree()
+        viewport = tree.find('./app/child')
+        field = viewport.find('child')
+        viewport.remove(field)
+        frame = ET.SubElement(viewport, 'child', {'x':'0','y':'565','width':'1920','height':'515'})
+        ET.SubElement(ET.SubElement(frame, 'traits'), 'scrollable')
+        frame.append(field)
+        y = 2000 if self.permanent else 600 + (self.target - self.position) * 80
+        field.set('y', str(y))
+        field.find('child').set('y', str(y + 14))
+        return tree
+
+    def key(self, code):
+        if self.open:
+            if code == 28 and self.key_focus == 'Clear': self.destructive_positions.append(self.position)
+            return super().key(code)
+        if code in [103,108]:
+            self.navigation.append(code)
+            self.position = max(0, min(self.maximum, self.position + (1 if code == 108 else -1)))
+            if self.position == self.incidental_at:
+                self.incidental_at = None
+                self.open, self.focused = True, False
+
+    def command(self, method, path, value=None):
+        if method == 'POST' and path.endswith('/value'): self.destructive_positions.append(self.position)
+        return super().command(method, path, value)
 
 
 
