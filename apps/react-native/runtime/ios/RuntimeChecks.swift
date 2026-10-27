@@ -97,7 +97,8 @@ final class RuntimeChecks: XCTestCase {
     }
 
     private func tapWorkspace(_ identifier: String) throws {
-        let control = app.buttons.matching(identifier: identifier).firstMatch
+        // RN workspace tabs have a tab role, so match their exact native identifier across element types.
+        let control = app.descendants(matching: .any).matching(identifier: identifier).firstMatch
         XCTAssertTrue(control.waitForExistence(timeout: 5) && control.isHittable && control.isEnabled, "Workspace control must be usable")
         control.tap()
     }
