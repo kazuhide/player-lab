@@ -69,7 +69,7 @@ class Ui:
         for node in scope.iter():
             if not visible(node):
                 continue
-            if node.get("description") == label or node.get("test_id") == label or (node.get("role") == "button" and
+            if node.get("description") == label or node.get("test_id") == label or (node.get("role") in {"button", "text"} and
                     any(child.text == label for child in node.iter("text"))):
                 return node
         return None

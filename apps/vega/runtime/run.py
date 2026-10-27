@@ -146,6 +146,8 @@ def main():
         os_app("terminate")
         os_app("launch")
         ui = Ui(args.appium, args.device)
+        if button_enabled("English"):
+            ui.click("English")
         before = wait_report(lambda v: v["owner"] is not None and v["owner"]["sourceLoaded"] > 0 and v["owner"]["sample"] is not None)
         initial_owner = before["owner"]["generation"]
         phase("live-rewind-native-controls")
@@ -194,7 +196,7 @@ def main():
         ui.edit("Filter Vega API operations", "PlayerAPI.sgai.skip")
         if button_enabled("PlayerAPI.sgai.skip"):
             raise RuntimeError("Ordinary VOD must not offer an inactive SGAI skip command")
-        ui.wait(lambda tree: any("No SGAI ad is active." in (node.get("description", "") + (node.text or "")) for node in tree.iter()))
+        ui.reveal("No SGAI ad is active.")
         if read()["owner"]["generation"] != first_owner:
             raise RuntimeError("Inspecting API availability must retain the ordinary VOD owner")
         result["ordinaryVodSgaiSkipDisabled"] = True

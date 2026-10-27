@@ -4,6 +4,8 @@ This opt-in entry wraps the production App, native surface and session barrier.
 The report uses public Player getters/events, native decoded-frame counts and
 the App's real release acknowledgement. It cannot apply settings or control
 playback. The ordinary entry has no test header/buttons.
+The runner selects English through the normal language control after launch,
+so its labels do not depend on a reused device's locale.
 
 Before the VOD form checks, the runner uses the initial public live DVR source.
 It reads all three real native rewind buttons with Allow DVR on, off and on,
