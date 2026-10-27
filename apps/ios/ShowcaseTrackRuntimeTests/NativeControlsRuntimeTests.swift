@@ -63,7 +63,9 @@ final class NativeControlsRuntimeTests: XCTestCase {
     }
 
     #if !os(tvOS)
-    func testLivePreferenceUpdatesEmbeddedControlsWithoutReplacingNativePlayback() async throws {
+    // Host/API regression. Ordinary native touch qualification uses the separate
+    // NativeControlsTouchUITests target and read-only observations.
+    func testHostPreferenceUpdatesEmbeddedControlsWithoutReplacingNativePlayback() async throws {
         continueAfterFailure = false
         try await resetFixture()
         XCTAssertFalse(bitmovinLicenseKey().isEmpty)
@@ -157,11 +159,6 @@ final class NativeControlsRuntimeTests: XCTestCase {
           };
           const seek = [...document.querySelectorAll('.bmpui-ui-seekbar, .bmpui-ui-quickseekbutton')];
           if (!seek.length) return false;
-          // Autohide may hide the entire control bar. The policy itself must remove
-          // seek controls even when the containing UI is made visible for this check.
-          for (const root of document.querySelectorAll('.bmpui-ui-uicontainer')) {
-            root.classList.remove('bmpui-controls-hidden');
-          }
           const playback = [...document.querySelectorAll('.bmpui-ui-playbacktogglebutton')].some(visible);
           return playback && \(expectedVisible ? "seek.some(visible)" : "seek.every(e => !visible(e))");
         })()

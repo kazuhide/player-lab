@@ -207,6 +207,20 @@ channel to update the bundled Web UI, including while playback is paused. It
 applies to live content; VOD keeps its seek controls. The preference is disabled
 when the current UI has not registered the Player Lab bridge.
 
+`NativeControlsRuntimeTests` checks host API behavior with read-only DOM
+observations. Ordinary touch qualification is separate:
+`Showcase-iOS-ControlsTouchQualification` builds a test-only viewport with the
+original PlayerModel, native PlayerView host, bundled UI and workspace controls.
+`NativeControlsTouchUITests` pauses and toggles through those controls, uses
+normal OS touches on DOM hit-tested control-bar padding, and reads computed
+visibility without changing the DOM. Each paused reveal and preference toggle
+must preserve the exact Player, Source and PlayerView, source-load count and
+native playback position within 0.25 seconds. Resuming must advance that same
+native player, and an intentional reload of the finalized fixture must restore
+VOD seeking while the live preference remains off. This opt-in target requires
+the normal player key and the existing local HLS fixture on ports 5198/5199;
+Analytics is disabled in its test host.
+
 On tvOS, the preference is disabled with a visible explanation. The pinned
 System UI has no public runtime property for changing seek-control visibility.
 Its creation-time
