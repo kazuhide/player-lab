@@ -418,7 +418,7 @@
     <string name="ui_input_cuepoints_progress_ad_return_an_array_of_nativ_ceb842" formatted="false">inputは{cuePoints, progress, ad}です。start、pause、resume、skip、discardAdBreak、clicked、focus、init、destroyの操作を配列で返します。マネージャーの準備完了時に実行します。initとdestroyはSDK所有のマネージャーに作用するため、IMAの想定するライフサイクルに合わせて使ってください。</string>
     <string name="ui_deprecated_ima_manager_hook_same_editable_action_con_30422b" formatted="false">IMAマネージャーの非推奨のコールバックです。操作はImaConfig.onAdsManagerAvailableと同じです。同じ設定の別名を併用しないでください。</string>
     <string name="ui_input_kind_id_url_duration_customattributes_return_c_e08c29" formatted="false">inputは{kind, id?, url?, duration?, customAttributes}です。{clickThroughUrl?, tracking: [{trigger, urls: [strings], offset?}]}またはnullを返します。triggerには公開されたInterstitialTrackingEventTriggerの値を使います。登録したURLへの要求時点はSDKが管理します。</string>
-    <string name="ui_create_ssai_test_ad_86df4d" formatted="false">SSAIのテスト広告を作成</string>
+    <string name="ui_create_ssai_test_ad_86df4d" formatted="false">SSAIの広告メタデータを作成</string>
     <string name="ui_send_message_to_custom_web_ui_8ad236" formatted="false">カスタムWeb UIにメッセージを送信</string>
     <string name="ui_use_one_field_value_per_line_text_artist_albumtitle__ae8760" formatted="false">field=valueを1行に1件入力します。文字列：artist、albumTitle、albumArtist、displayTitle、subtitle、writer、author、composer、conductor、genre、compilation、station。整数：duration（ミリ秒）、trackNumber、totalTrackCount、recordingYear/Month/Day、releaseYear/Month/Day、discNumber、totalDiscCount。真偽値：isBrowsable、isPlayable。mediaTypeはMediaMetadata.MediaTypeの値（MovieやVideoなど）を指定します。userRatingとoverallRatingはHeart:true、Thumb:false、Percentage:75、Star:5:4.5などです。nullは値を消去します。適用するとMediaSessionSourceConfig.Enabledでソースを読み込み直します。Androidに公開するにはAPI操作でホストのメディアセッションを有効にしてください。</string>
     <string name="ui_refresh_to_read_playback_state_70529a" formatted="false">更新して再生状態を取得します。</string>
@@ -452,4 +452,39 @@
     <string name="ui_input_code_message_severity_originalerrortype_retu_ae74d7" formatted="false">inputは{code, message, severity, originalErrorType}です。エラーの一部またはnullを返します。</string>
     <string name="ui_uses_staged_runtime_source_metadata_verify_deliver_4d58d9" formatted="false">登録した実行時・ソースのメタデータを使います。受信はBitmovin Dashboardで確認します。</string>
     <string name="ui_stage_then_apply_or_run_the_matching_action_bd1fa5" formatted="false">値を登録してから、適用または対応する操作を実行します。</string>
+    <string name="ui_api_player_unavailable" formatted="false">プレイヤーを利用できません。</string>
+    <string name="ui_api_manual_ssai_required" formatted="false">このソースでSSAIの手動連携を有効にしてください。</string>
+    <string name="ui_api_source_required" formatted="false">ソースを読み込んでください。</string>
+    <string name="ui_api_cast_unsupported" formatted="false">Castで再生中は利用できません。</string>
+    <string name="ui_api_ssai_break_required" formatted="false">SSAIの広告ブレークを開始してください。</string>
+    <string name="ui_api_ssai_metadata_required" formatted="false">SSAIの広告メタデータを作成してください。</string>
+    <string name="ui_api_finish_ad_first" formatted="false">再生中の広告を終了してください。</string>
+    <string name="ui_api_registered_ssai_required" formatted="false">SSAIの広告ブレークを登録してください。</string>
+    <string name="ui_api_active_ssai_ad_required" formatted="false">SSAIの広告を再生中に利用できます。</string>
+    <string name="ui_api_active_ssai_break_required" formatted="false">SSAIの広告ブレーク中に利用できます。</string>
+    <string name="ui_api_skippable_ad_required" formatted="false">スキップ可能な広告または一時停止時の広告を表示中に利用できます。</string>
+    <string name="ui_api_client_ad_required" formatted="false">Bitmovinのクライアント側の広告を再生中に利用できます。</string>
+    <string name="ui_api_no_cast_receiver" formatted="false">利用可能なCast受信機がありません。</string>
+    <string name="ui_api_cast_already_active" formatted="false">すでにCastで再生中です。</string>
+    <string name="ui_api_active_cast_required" formatted="false">Castで再生中に利用できます。</string>
+    <string name="ui_api_live_rewind_required" formatted="false">巻き戻し可能なライブ配信とSDKの巻き戻し設定が必要です。</string>
+    <string name="ui_api_live_required" formatted="false">ライブ配信で利用できます。</string>
+    <string name="ui_api_use_timeshift_for_live" formatted="false">ライブ配信にはtimeShiftを使ってください。</string>
+    <string name="ui_api_playlist_required" formatted="false">プレイリストにソースを追加してください。</string>
+    <string name="ui_api_view_required" formatted="false">プレイヤーの表示画面を接続してください。</string>
+    <string name="ui_api_fullscreen_active" formatted="false">すでに全画面で表示中です。</string>
+    <string name="ui_api_fullscreen_required" formatted="false">全画面で表示中に利用できます。</string>
+    <string name="ui_api_pip_active" formatted="false">すでにピクチャ・イン・ピクチャで表示中です。</string>
+    <string name="ui_api_pip_unavailable" formatted="false">ピクチャ・イン・ピクチャを利用できません。</string>
+    <string name="ui_api_pip_required" formatted="false">ピクチャ・イン・ピクチャで表示中に利用できます。</string>
+    <string name="ui_api_manual_ssai" formatted="false">SSAIの手動連携</string>
+    <string name="ui_api_ssai_metadata_only" formatted="false">広告メタデータのみを扱います。広告の映像は挿入しません。</string>
+    <string name="ui_api_message_handler_required" formatted="false">ホスト側のメッセージハンドラーを設定してください。</string>
+    <string name="ui_api_nagra_required" formatted="false">NagraConnectの設定を適用してください。</string>
+    <string name="ui_api_orientation_provider_required" formatted="false">選択したOrientationProviderがありません。</string>
+    <string name="ui_api_view_creation_required" formatted="false">PlayerViewを作成してください。</string>
+    <string name="ui_api_vr_renderer_required" formatted="false">ホスト側のVRレンダラーを有効にしてください。</string>
+    <string name="ui_api_vr_callback_required" formatted="false">選択した更新コールバックを登録してください。</string>
+    <string name="ui_api_surface_ready_required" formatted="false">SurfaceViewの有効な描画先が必要です。</string>
+    <string name="ui_api_texture_view_required" formatted="false">PlayerViewConfigでTextureViewを選んで適用してください。</string>
 </resources>

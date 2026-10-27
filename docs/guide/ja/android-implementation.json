@@ -173,7 +173,7 @@
         [
           "SDKのライブタイムシフト",
           "PlaybackConfig.isTimeShiftEnabled。既定はオン",
-          "Player生成時の設定です。その他 → 再生オプションの「ライブの巻き戻し操作を有効にする」は別のアプリ設定で、VODの動作は変えません。"
+          "Player生成時の設定です。「その他」→「再生オプション」の「ライブの巻き戻し操作を有効にする」は、同梱UIのシークバーと早戻し・早送りボタンの表示を切り替えます。PlayerViewだけを作り直し、Player、ソース、再生セッションは保持します。この操作でSDKの巻き戻し機能を有効にしたり、巻き戻せる範囲を増やしたりはしません。VODのシークにも影響しません。"
         ],
         [
           "バッファー",
@@ -307,10 +307,10 @@
       "text": "        val sourceConfigs = configs ?: sourceConfigurations(callbacks = callbacks)\n        val sources = sourceConfigs.map { sourceConfig -> sourceFactory?.invoke(sourceConfig)\n            ?: Source(sourceConfig, com.bitmovin.player.api.analytics.AnalyticsSourceConfig.Enabled(apiAnalyticsSettings.sourceMetadata()), mediaSessionConfig = apiOverrides.mediaSession()) }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 524,
-        "label": "MainActivity.kt:524–526"
+        "line": 555,
+        "label": "MainActivity.kt:555–557"
       },
-      "endLine": 526
+      "endLine": 557
     },
     {
       "type": "code",
@@ -318,10 +318,10 @@
       "text": "        if (offlinePlayback == null && ApiCollectionSettings.PLAYLIST in apiOverrides.values)\n            owner.load(com.bitmovin.player.api.playlist.PlaylistConfig(sources, apiOverrides.playlistOptions()))\n        else owner.load(sources.single())",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 537,
-        "label": "MainActivity.kt:537–539"
+        "line": 569,
+        "label": "MainActivity.kt:569–571"
       },
-      "endLine": 539
+      "endLine": 571
     },
     {
       "type": "steps",
@@ -447,7 +447,7 @@
     {
       "type": "code",
       "title": "既存のCompose画面へPlayerViewを埋め込む",
-      "text": "private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, television: Boolean, modifier: Modifier) {\n    val displayedPlayer = controller.player\n    val vrRenderer = controller.apiVrRenderer\n    if (vrRenderer != null) key(vrRenderer) {\n        AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)\n    } else key(displayedPlayer, uiMode, television, controller.apiViewRevision) {\n        AndroidView(factory = { context ->\n            PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,\n                controller.apiOverrides.view(playerViewConfig(uiMode, television)))))\n        }, onRelease = { host ->\n            host.releaseTouchOwnership()\n            controller.releaseView(host.content as PlayerView)\n        }, modifier = modifier)\n    }\n}",
+      "text": "private fun PlayerPreview(controller: PlayerController, uiMode: UiMode, television: Boolean, modifier: Modifier) {\n    val displayedPlayer = controller.player\n    val vrRenderer = controller.apiVrRenderer\n    if (vrRenderer != null) key(vrRenderer) {\n        AndroidView(factory = { vrRenderer }, onRelease = { it.close() }, modifier = modifier)\n    } else key(displayedPlayer, uiMode, television, controller.apiViewRevision) {\n        AndroidView(factory = { context ->\n            PlayerTouchHost(context, controller.attachView(PlayerView(context, displayedPlayer,\n                liveRewindViewConfig(controller.apiOverrides.view(playerViewConfig(uiMode, television)), controller.timeShiftEnabled))))\n        }, onRelease = { host ->\n            host.releaseTouchOwnership()\n            controller.releaseView(host.content as PlayerView)\n        }, modifier = modifier)\n    }\n}",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/PlayerWorkspace.kt",
         "line": 183,
@@ -600,7 +600,11 @@
     },
     {
       "type": "p",
-      "text": "実行時APIは現在のPlayer、Source、接続済みPlayerViewを操作します。状態の更新はその時点のSDK値を読み取り、イベントは発生回数とSDK時刻を記録します。非同期処理の完了は呼び出し結果に加えて完了イベントと状態を確認します。"
+      "text": "実行時APIは現在のPlayer、Source、接続済みPlayerViewを操作します。実行条件を満たさない操作は選択肢で無効になり、理由を表示します。実行時にも条件を再確認します。状態の更新はその時点のSDK値を読み取り、イベントは発生回数とSDK時刻を記録します。非同期処理の完了は呼び出し結果に加えて完了イベントと状態を確認します。"
+    },
+    {
+      "type": "p",
+      "text": "「広告」の「SSAIの手動連携」を有効にすると、現在のソースに対して広告メタデータの作成や開始・終了の通知を試せます。SSAIは配信側で広告映像をコンテンツに組み込む方式です。「SSAIの広告メタデータを作成」はSDK内のオブジェクトを作るだけで、通常のストリームに広告映像を挿入しません。広告の時刻や開始・終了をアプリから通知する連携の検証に使います。この設定はソースの再読み込みやPlayerの再生成で無効に戻ります。クライアント側広告の操作には、対応する広告が再生中である必要があります。広告のスキップは、スキップ可能な広告の再生中、または一時停止広告の表示中に利用できます。一時停止広告を閉じても本編は一時停止したままです。"
     },
     {
       "type": "table",
@@ -632,7 +636,7 @@
         ],
         [
           "一部の状態",
-          "広告の値には再生中の広告か選択済みSSAIテストオブジェクトが必要です。Vector3は最後のmoveViewingDirectionへの入力です。",
+          "広告の値には再生中の広告か選択済みのSSAIメタデータが必要です。Vector3は最後のmoveViewingDirectionへの入力です。",
           "activeAdBreakとactiveLinearAdは実際のSDKの状態です。保存した試験用の入力と現在の再生状態を区別します。"
         ]
       ]
@@ -664,10 +668,10 @@
       "text": "    private fun <E : Event> onPlayer(type: KClass<E>, action: (E) -> Unit) {\n        val owner = player\n        val generation = playerGeneration\n        val guarded: (E) -> Unit = { if (!released && player === owner && generation == playerGeneration) action(it) }\n        owner.on(type, guarded)\n        playerSubscriptions += { owner.off(type, guarded) }\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 600,
-        "label": "MainActivity.kt:600–606"
+        "line": 629,
+        "label": "MainActivity.kt:629–635"
       },
-      "endLine": 606
+      "endLine": 635
     },
     {
       "type": "p",
@@ -755,10 +759,10 @@
       "text": "    internal fun releaseView(view: PlayerView) {\n        if (!views.remove(view)) return\n        retireApiViewSubscriptions(view)\n        retireApiViewHandlers(view)\n        apiSurfaces.clear(view)\n        if (apiDetachedView === view) apiDetachedView = null\n        viewLifecycle.detach(view)\n        view.player = null\n        view.onDestroy()\n    }",
       "source": {
         "path": "apps/android/app/src/main/kotlin/com/playerlab/android/MainActivity.kt",
-        "line": 614,
-        "label": "MainActivity.kt:614–623"
+        "line": 643,
+        "label": "MainActivity.kt:643–652"
       },
-      "endLine": 623
+      "endLine": 652
     },
     {
       "type": "p",

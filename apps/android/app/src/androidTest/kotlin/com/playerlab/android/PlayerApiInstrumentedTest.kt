@@ -62,8 +62,13 @@ class PlayerApiInstrumentedTest {
 
     @Test fun ssaiTestObjectsAreEditableAndInspectedWithoutClaimingAdPlayback() {
         val controller = ui.activity.controller
+        await("A source is loaded before manual SSAI metadata is created") {
+            controller.player.source?.loadingState == com.bitmovin.player.api.source.LoadingState.Loaded
+        }
         click("api-runtime-toggle")
-        field("api-runtime-search", "Create SSAI test ad")
+        workspaceChoose(ui, "api-command-category", "Advertising")
+        ui.onNodeWithTag("api-manual-ssai").performClick()
+        field("api-runtime-search", "Create SSAI ad metadata")
         click("api-command-app:ssai-ad")
         field("api-argument-id", "example-ad")
         field("api-argument-duration", "12.5")
@@ -78,6 +83,116 @@ class PlayerApiInstrumentedTest {
         field("api-runtime-search", "api.ssai.SsaiAd.duration")
         click("api-state-refresh")
         workspaceState(ui, "android:com.bitmovin.player.api.ssai.SsaiAd.duration").assertTextEquals("12.5")
+    }
+
+    @Test fun ordinaryStreamsDisableManualSsaiAndAdOperationsUntilTheirPrerequisitesHold() {
+        val controller = ui.activity.controller
+        ui.runOnUiThread {
+            controller.apiEventRecording = false
+            controller.applySource(SourceSettings(Sources.all.first { it.id == "vod-hls" }.url, SourceType.Hls))
+        }
+        await("The current source is loaded") {
+            controller.player.source === controller.configuredSource &&
+                controller.player.source?.loadingState == com.bitmovin.player.api.source.LoadingState.Loaded
+        }
+        click("api-runtime-toggle")
+        workspaceChoose(ui, "api-command-category", "Advertising")
+        ui.onNodeWithTag("api-command-selector").performClick()
+        ui.onNodeWithTag("api-command-selector-options").performScrollToNode(hasTestTag("api-command-selector-option-app:ssai-ad"))
+        ui.onNodeWithTag("api-command-selector-option-app:ssai-ad").assertIsNotEnabled()
+        ApiGuideScreenshot.capture("android-api-ssai-metadata-disabled", ui.activity)
+        ui.onNodeWithTag("api-command-selector-options").performScrollToNode(hasTestTag("api-command-selector-option-android:com.bitmovin.player.api.advertising.AdvertisingApi.skip()"))
+        ui.onNodeWithTag("api-command-selector-option-android:com.bitmovin.player.api.advertising.AdvertisingApi.skip()").performScrollTo().assertIsNotEnabled()
+        ui.onNodeWithText(workspaceLocalizedLabel(ui, "Close")).performClick()
+        ui.onNodeWithTag("api-manual-ssai").performClick()
+        workspaceCommand(ui, "app:ssai-ad")
+        click("api-command-run")
+        ui.runOnUiThread {
+            assertNotNull(controller.apiSsaiAds["test-ad"])
+            assertNull("Metadata creation does not start an ad", controller.player.ads.activeLinearAd)
+        }
+        workspaceCommand(ui, "android:com.bitmovin.player.api.ssai.SsaiApi.registerAdBreak()")
+        click("api-command-run")
+        workspaceCommand(ui, "android:com.bitmovin.player.api.ssai.SsaiApi.startAdBreak()")
+        click("api-command-run")
+        await("Manual SSAI integration exposes the active break") { controller.player.ads.activeAdBreak is com.bitmovin.player.api.ssai.SsaiAdBreak }
+        workspaceCommand(ui, "android:com.bitmovin.player.api.ssai.SsaiApi.startAd()")
+        click("api-command-run")
+        await("Manual SSAI integration exposes the active ad") { controller.player.ads.activeLinearAd is com.bitmovin.player.api.ssai.SsaiAd }
+        workspaceCommand(ui, "android:com.bitmovin.player.api.ssai.SsaiApi.finishAd()")
+        click("api-command-run")
+        await("The ad finishes independently of optional event recording") { controller.player.ads.activeLinearAd == null }
+        ui.waitUntil(5_000) { androidx.compose.ui.semantics.SemanticsProperties.Disabled in ui.onNodeWithTag("api-command-run").fetchSemanticsNode().config }
+        ui.onNodeWithTag("api-command-run").assertIsNotEnabled()
+        workspaceCommand(ui, "android:com.bitmovin.player.api.ssai.SsaiApi.removeAdBreak()")
+        click("api-command-run")
+        ui.runOnUiThread {
+            assertFalse("Removed breaks must not remain available as registered objects", controller.apiSsaiBreaks.containsKey("test-break"))
+            assertNull(controller.apiSelectedSsaiBreak)
+            assertNull(controller.player.ads.activeAdBreak)
+        }
+        ui.onNodeWithTag("api-command-run").assertIsNotEnabled()
+        ui.runOnUiThread { controller.applySource(controller.sourceSettings) }
+        ui.onNodeWithTag("api-manual-ssai").assertIsOff()
+        ui.onNodeWithTag("api-command-run").assertIsNotEnabled()
+    }
+
+    @Test fun detachedPlayerViewCanReattachWhilePausedAndUnavailableIntegrationsStayDisabled() {
+        val controller = ui.activity.controller
+        ui.runOnUiThread {
+            controller.apiEventRecording = false
+            controller.applySource(SourceSettings(Sources.all.first { it.id == "vod-hls" }.url, SourceType.Hls))
+            controller.applyPlayerSettings(controller.playerSettings.copy(autoplay = true, muted = true))
+        }
+        // Let the Compose test clock replace the view before waiting on its SDK ownership.
+        ui.waitForIdle()
+        await("The source is playing before testing paused-view recovery") {
+            controller.player.source?.loadingState == com.bitmovin.player.api.source.LoadingState.Loaded &&
+                controller.player.isPlaying && controller.player.currentTime > 0.5 && controller.currentView() != null
+        }
+        workspaceCommand(ui, "android:com.bitmovin.player.api.Player.pause()")
+        click("api-command-run")
+        await("The GUI pauses the source before detaching its view") { controller.player.isPaused }
+        val player = controller.player
+        val source = controller.configuredSource
+        var originalView: com.bitmovin.player.PlayerView? = null
+        ui.runOnUiThread { originalView = controller.currentView() }
+        workspaceCommand(ui, "android:com.bitmovin.player.PlayerView.player")
+        field("api-argument-attachCurrentPlayer", "false")
+        click("api-command-run")
+        ui.runOnUiThread {
+            assertNull(controller.currentView())
+            assertTrue(controller.apiHasRecoverableView)
+            assertFalse(controller.apiHasCustomMessageHandler)
+        }
+        ui.onNodeWithTag("api-command-run").assertIsEnabled()
+        field("api-argument-attachCurrentPlayer", "true")
+        click("api-command-run")
+        ui.runOnUiThread {
+            assertSame(originalView, controller.currentView())
+            assertSame(player, controller.player)
+            assertSame(source, controller.configuredSource)
+        }
+        assertUnavailableChoice("app:custom-message-send")
+        assertUnavailableChoice("android:com.bitmovin.player.api.Player.preloadDrmLicense()")
+        workspaceCommand(ui, "android:com.bitmovin.player.PlayerView.setCustomMessageHandler()")
+        click("api-command-run")
+        ui.runOnUiThread { assertTrue(controller.apiHasCustomMessageHandler) }
+        workspaceCommand(ui, "app:custom-message-send")
+        ui.onNodeWithTag("api-command-run").assertIsEnabled()
+        workspaceCommand(ui, "android:com.bitmovin.player.PlayerView.setCustomMessageHandler()")
+        field("api-argument-enabled", "false")
+        click("api-command-run")
+        ui.runOnUiThread { assertFalse(controller.apiHasCustomMessageHandler) }
+        assertUnavailableChoice("app:custom-message-send")
+    }
+
+    private fun assertUnavailableChoice(id: String) {
+        workspaceChoose(ui, "api-command-category", apiPurpose(id))
+        ui.onNodeWithTag("api-command-selector").performClick()
+        ui.onNodeWithTag("api-command-selector-search").performTextReplacement(id)
+        ui.onNodeWithTag("api-command-selector-option-$id").assertIsNotEnabled()
+        ui.onNodeWithText(workspaceLocalizedLabel(ui, "Close")).performClick()
     }
 
     private fun choose(member: String) {
@@ -97,6 +212,12 @@ class PlayerApiInstrumentedTest {
             if (ready) return
             SystemClock.sleep(100)
         }
-        fail(label)
+        var details = ""
+        ui.runOnUiThread {
+            val c = ui.activity.controller
+            details = "sourceState=${c.player.source?.loadingState}; currentSource=${c.player.source === c.configuredSource}; " +
+                "playing=${c.player.isPlaying}; paused=${c.player.isPaused}; view=${c.currentView() != null}; errorCode=${c.lastErrorCode}"
+        }
+        fail("$label; $details")
     }
 }

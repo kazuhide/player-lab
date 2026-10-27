@@ -183,6 +183,94 @@ class PlayerControlsInstrumentedTest {
 
 
     @Test
+    fun liveRewindSwitchChangesVisibleControlsWithoutReloadingPlayback() {
+        val controller = ui.activity.controller
+        val player = controller.player
+        observeErrors()
+        ui.runOnUiThread { player.mute() }
+        for (sourceName in listOf("Live DASH + DVR", "Live HLS")) {
+            workspaceSource(ui, sourceName)
+            await("$sourceName supplies a real rewind window") {
+                player.isLive && player.maxTimeShift < -10 && controller.dvr.dvrAvailable
+            }
+            ui.runOnUiThread { player.play() }
+            for (theme in listOf("Default", "Sports", "Live", "Cinema")) {
+                workspaceTheme(ui, theme)
+                workspaceMore(ui, "Playback options")
+                var source: com.bitmovin.player.api.source.Source? = null
+                var clock = 0.0
+                var generation = 0
+                var revision = 0
+                ui.runOnUiThread {
+                    source = controller.configuredSource
+                    clock = player.currentTime
+                    generation = controller.apiPlayerGeneration
+                    revision = controller.sourceRevision
+                }
+                awaitJavascript(attachedWebView(), rewindControlsScript(enabled = true),
+                    "$sourceName / $theme initially shows live seeking", revealControls = true)
+                ui.onNodeWithTag("allow-dvr").assertIsDisplayed().performClick()
+                awaitJavascript(attachedWebView(), rewindControlsScript(enabled = false),
+                    "$sourceName / $theme hides only live seeking", revealControls = true)
+                ui.runOnUiThread {
+                    assertTrue("The UI switch must retain the player", player === controller.player)
+                    assertTrue("The UI switch must retain the source", source === controller.configuredSource)
+                    assertEquals(generation, controller.apiPlayerGeneration)
+                    assertEquals(revision, controller.sourceRevision)
+                }
+                await("$sourceName / $theme keeps playing while seeking is hidden") {
+                    player.isPlaying && player.currentTime > clock + 1
+                }
+                if (theme == "Default") {
+                    awaitJavascript(attachedWebView(), rewindControlsScript(enabled = false),
+                        "the hidden preference persists after view initialization", revealControls = true)
+                    ApiGuideScreenshot.capture("android-${Sources.all.first { it.label == sourceName }.id}-rewind-disabled", ui.activity)
+                }
+                ui.runOnUiThread { clock = player.currentTime }
+                ui.onNodeWithTag("allow-dvr").assertIsDisplayed().performClick()
+                await("$sourceName / $theme keeps playing after seeking is restored") {
+                    player.isPlaying && player.currentTime > clock + 1
+                }
+                awaitJavascript(attachedWebView(), rewindControlsScript(enabled = true),
+                    "$sourceName / $theme restores live seeking", revealControls = true)
+                if (theme == "Default") ApiGuideScreenshot.capture("android-${Sources.all.first { it.label == sourceName }.id}-rewind-enabled", ui.activity)
+                ui.runOnUiThread {
+                    assertTrue(player === controller.player && source === controller.configuredSource)
+                    println("LIVE_REWIND_UI source=$sourceName theme=$theme hidden=true restored=true retainedPlayer=true retainedSource=true")
+                }
+            }
+        }
+        workspaceMore(ui, "Playback options")
+        ui.onNodeWithTag("allow-dvr").assertIsDisplayed().performClick()
+        workspaceSource(ui, "VOD HLS")
+        await("VOD loads with the live preference disabled") { !player.isLive && player.duration.isFinite() && player.duration > 20 }
+        awaitJavascript(attachedWebView(), rewindControlsScript(enabled = true),
+            "VOD seeking is unaffected by the live-only switch", revealControls = true)
+        workspaceSource(ui, "Live DASH + DVR")
+        await("live source returns with preference disabled") { player.isLive && player.maxTimeShift < -10 }
+        awaitJavascript(attachedWebView(), rewindControlsScript(enabled = false),
+            "the disabled preference survives source changes", revealControls = true)
+        assertTrue("Player/Source error codes: $errors", errors.isEmpty())
+    }
+
+    private fun rewindControlsScript(enabled: Boolean): String = """
+        (() => {
+          $visibleElementScript
+          const inViewport = selector => {
+            const element = visible(selector);
+            if (!element) return null;
+            const rect = element.getBoundingClientRect();
+            return rect.right > 0 && rect.bottom > 0 && rect.left < innerWidth && rect.top < innerHeight ? element : null;
+          };
+          const controls = inViewport('.bmpui-ui-playbacktogglebutton');
+          if (!controls) return false;
+          const seekbar = inViewport('.bmpui-ui-seekbar');
+          const quickSeek = inViewport('.bmpui-ui-quickseekbutton');
+          return $enabled ? !!seekbar : !seekbar && !quickSeek;
+        })()
+    """.trimIndent()
+
+    @Test
     fun standardVodControlsDriveNativePlaybackSeekMuteAndSpeed() {
         val controller = ui.activity.controller
         val player = controller.player

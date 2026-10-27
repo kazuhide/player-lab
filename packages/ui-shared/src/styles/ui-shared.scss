@@ -5,6 +5,15 @@
 // `.bmpui-ui-livebutton`; the ToggleButton on/off classes as
 // `.bmpui-at-live-edge` / `.bmpui-behind-live`.
 
+// The optional native-host policy affects live rewind controls only. SDK events
+// continue to own the components' normal visibility and VOD seek behavior.
+.playerlab-live-rewind-disabled {
+  .bmpui-ui-seekbar,
+  .bmpui-ui-quickseekbutton {
+    display: none !important;
+  }
+}
+
 // A self-contained "LIVE" pill. The component sets `cssClass: "ui-livebutton"`,
 // which REPLACES the library's `.bmpui-ui-button` base — so this element does not
 // inherit the button reset and must reset the UA `<button>` look itself (otherwise

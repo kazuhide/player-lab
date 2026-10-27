@@ -11,7 +11,9 @@
  * "next episode" action asks the host app to load the next source, which requires a
  * CustomMessageHandler bridge (a later phase), not a pure UI factory.
  */
-import { UIFactory } from "bitmovin-player-ui";
+import { UIFactory, type UIConfig, type UIManager } from "bitmovin-player-ui";
+import type { PlayerAPI } from "bitmovin-player";
+import { applyNativeLiveRewindPolicy } from "./nativeLiveRewind";
 import {
   CinemaUIFactory,
   CompactUIFactory,
@@ -48,5 +50,11 @@ const scope = window as unknown as PlayerUiGlobal;
 const bitmovin = (scope.bitmovin ??= {});
 const playerui = (bitmovin.playerui ??= {});
 
-// Keep the library's stock factory methods (buildDefaultUI / buildModernUI / …), then add ours.
-playerui.UIFactory = { ...UIFactory, ...CUSTOM_FACTORIES };
+// Keep stock layouts and forward every factory argument, including custom theme options.
+playerui.UIFactory = Object.fromEntries(Object.entries({ ...UIFactory, ...CUSTOM_FACTORIES }).map(([name, factory]) => [
+  name,
+  typeof factory === "function" && name.startsWith("build") ? function (this: unknown, ...args: unknown[]) {
+    const manager = Reflect.apply(factory, this, args) as UIManager;
+    return applyNativeLiveRewindPolicy(args[0] as PlayerAPI, manager, args[1] as UIConfig | undefined);
+  } : factory,
+]));

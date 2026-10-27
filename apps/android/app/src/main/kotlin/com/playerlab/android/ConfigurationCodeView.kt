@@ -21,8 +21,8 @@ internal fun ConfigurationCodeView(controller: PlayerController, uiMode: UiMode)
     var section by remember { mutableStateOf("Player, source and UI") }
     var wrap by remember { mutableStateOf(true) }
     val television = workspaceTelevision()
-    val standard = remember(controller.sourceRevision, controller.playerSettings, uiMode, television) {
-        configurationCode(controller.sourceSettings, controller.playerSettings, uiMode, television)
+    val standard = remember(controller.sourceRevision, controller.playerSettings, uiMode, television, controller.timeShiftEnabled) {
+        configurationCode(controller.sourceSettings, controller.playerSettings, uiMode, television, controller.timeShiftEnabled)
     }
     val code = if (section == "SDK overrides") controller.apiOverrides.code().ifEmpty { "// No additional SDK overrides." } else standard
     var copied by remember(code) { mutableStateOf(false) }
