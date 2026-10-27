@@ -19,7 +19,9 @@ struct NativePlayerSurface: UIViewRepresentable {
         return container
     }
 
-    func updateUIView(_ view: UIView, context: Context) {}
+    func updateUIView(_ view: UIView, context: Context) {
+        model.synchronizeLiveRewindControls()
+    }
 
     static func dismantleUIView(_ view: UIView, coordinator: Coordinator) {
         coordinator.onFullscreenExitRequested()

@@ -118,7 +118,7 @@ window updates the arrangement while preserving the draft.
 | Offset reference | Automatic, Start, or End. Automatic uses the beginning for VOD and the live edge for live. The SDK corrects offsets to stream boundaries. A VOD offset applies on load; a live offset applies when playback starts. |
 | Autoplay after source load | Starts the source automatically after Apply or source selection when enabled. Default: off. |
 | Start muted | Initial mute setting when the player is created. Default: on. |
-| Live time shift | Enables the SDK's live rewind support. Default: on. The separate **Allow live rewind controls** preference under More governs the app's quick-seek buttons. |
+| Live time shift | Enables the SDK's live rewind support. Default: on. On iOS/iPadOS, **Allow live rewind controls** under More updates the embedded Player Lab Web UI seek and quick-seek controls without replacing the Player or Source. |
 | Maximum bitrate | Nonnegative whole bit/s; `0` means unlimited. |
 | Forward buffer | Nonnegative finite seconds; `0` lets the SDK choose. |
 | Initial audio language (app) | Optional two- or three-letter language code, with optional script/region subtags, such as `en`, `de-AT`, or `zh-Hant`. Empty keeps the SDK/OS choice. |
@@ -200,6 +200,33 @@ WebView; check that combination on your target device or simulator.
 ## Playback checks
 
 DVR means the window of live media that a viewer can rewind.
+
+On iOS/iPadOS, the live rewind preference uses the public
+[`CustomMessageHandler`](https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/custommessagehandler/index.html)
+channel to update the bundled Web UI, including while playback is paused. It
+applies to live content; VOD keeps its seek controls. The preference is disabled
+when the current UI has not registered the Player Lab bridge.
+
+On tvOS, the preference is disabled with a visible explanation. The pinned
+System UI has no public runtime property for changing seek-control visibility.
+Its creation-time
+[`showSeekBar`](https://cdn.bitmovin.com/player/ios/3/documentation/bitmovinplayercore/systemuserinterfaceconfig/showseekbar/index.html)
+setting also hides audio/subtitle selection views, so it is not used as a live
+preference substitute. Apply **Live time shift** to change the SDK playback
+configuration. Programmatic writes to the unavailable UI preference remain on.
+
+The API operation chooser shows unavailable operations with their current
+reason. Run checks the same capabilities again against the current native
+Player and Source. Source loading, playback errors, live/VOD state, seek ranges,
+track identifiers and active linear ads affect eligibility. A source change
+preserves the selected operation and its draft arguments. Reload, recreate,
+configuration and subtitle clearing remain available where applicable.
+These checks do not depend on optional API event recording.
+
+Programmatic ad skipping requires an active public `LinearAd`, its actual
+playback position reaching `skippableAfter`, and a supported IMA UI configuration.
+Nonlinear pause-ad lifecycle events are experimental SPI in Player 3.128.0 and
+are not used by this public-API sample.
 A successful build or `PlaybackCore` test does not verify licensed playback.
 With your license and a running live source, check seeking within the window, returning to
 live, recovery when paused media expires, and a live stream becoming on-demand.

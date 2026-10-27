@@ -50,6 +50,12 @@ final class NativeCallbackJournal: @unchecked Sendable {
         currentAdsManager = manager
     }
 
+    func retireSourceObjects() {
+        lock.lock(); defer { lock.unlock() }
+        currentAdsManager = nil
+        currentInterstitialRegistry = nil
+    }
+
     func configure(_ ids: Dictionary<String, String>.Keys) {
         lock.lock()
         defer { lock.unlock() }

@@ -27,7 +27,9 @@ final class NativeApiObjects: ObservableObject {
     var sharePlaySuspensions: [OwnedSuspension] = []
 
     func retirePlayer(_ player: Player) {
-        for item in sharePlaySuspensions where item.player === player { player.sharePlay.endSuspension(item.suspension) }
+        if !player.isDestroyed {
+            for item in sharePlaySuspensions where item.player === player { player.sharePlay.endSuspension(item.suspension) }
+        }
         sharePlaySuspensions.removeAll { $0.player == nil || $0.player === player }
     }
 

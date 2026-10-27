@@ -212,7 +212,11 @@ final class TrackRuntimeTests: XCTestCase {
             if let previousSource { XCTAssertFalse(previousSource.isAttachedToPlayer) }
             XCTAssertEqual(nextView.scalingMode, scaling.sdkValue)
             XCTAssertEqual(model.player.config.styleConfig.scalingMode, scaling.sdkValue)
+            #if os(tvOS)
+            XCTAssertTrue(model.timeShiftEnabled, "System UI cannot change rewind visibility at runtime")
+            #else
             XCTAssertFalse(model.timeShiftEnabled)
+            #endif
             try await progress(model.player, stage: scaling.rawValue) {
                 model.player.audio?.language == "de" && model.player.subtitle.language == "de"
             }

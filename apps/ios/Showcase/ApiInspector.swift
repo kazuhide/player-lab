@@ -42,6 +42,7 @@ struct ApiInspector: View {
         }
     }
     private var selectionMatches: Bool { matchingOperations.contains(operation) }
+    private var availabilityReason: String? { model.apiContext().rejection(for: operation, arguments: arguments) }
     private var currentArgument: ApiArgument? {
         operation.arguments.first(where: { $0.id == selectedArgument }) ?? operation.arguments.first
     }
@@ -132,18 +133,23 @@ struct ApiInspector: View {
                     .font(.subheadline)
             }
             List(matchingOperations) { candidate in
+                let reason = model.apiContext().rejection(for: candidate)
                 Button {
                     if candidate == operation { showsOperations = false }
                     else { operation = candidate }
                 } label: {
                     HStack(alignment: .top) {
-                        Text(LocalizedStringKey(candidate.displayName)).font(.subheadline)
-                            .fixedSize(horizontal: false, vertical: true)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(LocalizedStringKey(candidate.displayName)).font(.subheadline)
+                                .fixedSize(horizontal: false, vertical: true)
+                            if let reason { Text(LocalizedStringKey(reason)).font(.caption).foregroundStyle(Color.workspaceSecondary) }
+                        }
                         Spacer()
                         if candidate == operation { Image(systemName: "checkmark").accessibilityLabel("Selected") }
                     }
                 }
                 .accessibilityIdentifier("api.operation.select.\(candidate.id)")
+                .disabled(reason != nil)
                 .accessibilityLabel(candidate.rawValue)
                 .accessibilityAddTraits(candidate == operation ? .isSelected : [])
                 .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
@@ -216,6 +222,10 @@ struct ApiInspector: View {
                 .accessibilityIdentifier("api.form")
             }
             if workspaceActive { VStack(alignment: .leading, spacing: 6) {
+                if let reason = availabilityReason {
+                    Text(LocalizedStringKey(reason)).font(.caption).foregroundStyle(Color.workspaceSecondary)
+                        .accessibilityIdentifier("api.unavailable")
+                }
                 HStack {
                   Text(NativeLocalization.format("Run target: %@", operation.displayName.nativeLocalized))
                     .font(.caption.weight(.semibold))
@@ -256,7 +266,7 @@ struct ApiInspector: View {
                     .buttonStyle(WorkspacePrimaryButtonStyle())
                     #endif
                     .controlSize(.large)
-                    .disabled(!selectionMatches)
+                    .disabled(!selectionMatches || availabilityReason != nil)
                     .accessibilityIdentifier("api.run")
                     Spacer()
                     Button("Read state") { readRelatedState() }

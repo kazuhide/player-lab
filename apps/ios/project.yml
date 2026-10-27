@@ -138,6 +138,7 @@ targets:
         buildPhase: resources
         excludes: [README.md]
       - Showcase/NativePlayerSurface.swift
+      - Showcase/NativeLiveRewindBridge.swift
       - Showcase/NativeTVControls.swift
       - Showcase/NativeTVOperations.swift
       - Showcase/NativeNetworkConfiguration.swift
@@ -152,6 +153,7 @@ targets:
       - Showcase/NativeRichConfiguration.swift
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
+      - Showcase/NativeApiAvailability.swift
       - Showcase/NativeExtendedApi.swift
       - Showcase/NativeCastWorkbench.swift
       - Showcase/ApiState.swift
@@ -267,6 +269,7 @@ targets:
         buildPhase: resources
         excludes: [README.md]
       - Showcase/NativePlayerSurface.swift
+      - Showcase/NativeLiveRewindBridge.swift
       - Showcase/NativeTVControls.swift
       - Showcase/NativeTVOperations.swift
       - Showcase/NativeNetworkConfiguration.swift
@@ -281,6 +284,7 @@ targets:
       - Showcase/NativeRichConfiguration.swift
       - Showcase/ApiEvents.swift
       - Showcase/ApiOperations.swift
+      - Showcase/NativeApiAvailability.swift
       - Showcase/NativeExtendedApi.swift
       - Showcase/NativeCastWorkbench.swift
       - Showcase/ApiState.swift
