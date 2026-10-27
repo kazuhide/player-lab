@@ -349,8 +349,8 @@ Blank subtitles still disable subtitles, and `auto` still restores Android
 automatic quality selection. Catalog events update availability even while event
 recording is paused; Run reads fresh catalogs before dispatch. Source errors stay
 blocked until a new source load or replacement. Player errors require recreation,
-even if the native source still reports `LOADED`.
-The pinned RN 1.29 bridge returns Android's loading-state name (`"LOADED"`) and
+even if the native source still reports a loaded state.
+The pinned RN 1.29 bridge returns Android's loading-state name (`"Loaded"`) and
 iOS's ordinal (`2`); both are recognized explicitly.
 Session operations require a loaded source; seek and time shift follow the native
 VOD/live state, linear-ad interruptions and the live-rewind setting. Skip requires

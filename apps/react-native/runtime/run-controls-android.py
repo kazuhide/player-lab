@@ -153,22 +153,32 @@ class ControlsUi(driver.Ui):
         self.sdk_observations.append(snapshot)
         return visible
 
-    def loaded_api_query(self):
-        option = self.operation("Player.getMaxTimeShift")
+    @staticmethod
+    def api_scalar(tree, identifier):
+        origin = next((n for n in tree.iter("node") if n.get("resource-id", "").endswith("api-result-origin")), None)
+        node = next((n for n in tree.iter("node") if n.get("resource-id", "").endswith("api-result-value")), None)
+        if origin is None or origin.get("text") != identifier or node is None:
+            return None
+        raw = node.get("text", "") or node.get("content-desc", "").removeprefix("API result, ")
+        try:
+            return {"id": identifier, "value": json.loads(raw)}
+        except ValueError:
+            return None
+
+    def api_query(self, identifier, accept):
+        option = self.operation(identifier)
         if option.get("enabled") == "false":
             raise RuntimeError("The loaded native source API was unavailable in the picker")
         self.tap(option); self.tap_id("api-run")
         def result(tree):
-            origin = next((n for n in tree.iter("node") if n.get("resource-id", "").endswith("api-result-origin")), None)
-            node = next((n for n in tree.iter("node") if n.get("resource-id", "").endswith("api-result-value")), None)
-            if origin is None or origin.get("text") != "Player.getMaxTimeShift" or node is None:
-                return None
-            try:
-                value = float(node.get("text", ""))
-            except ValueError:
-                return None
-            return {"id": "Player.getMaxTimeShift", "value": value} if math.isfinite(value) and value < -10 else None
+            value = self.api_scalar(tree, identifier)
+            return value if value and accept(value["value"]) else None
         return self.wait(result)
+
+    def loaded_api_query(self):
+        wire = self.api_query("Source.loadingState", lambda value: value == "Loaded")
+        window = self.api_query("Player.getMaxTimeShift", lambda value: type(value) in {int, float} and math.isfinite(value) and value < -10)
+        return {"loadingStateWire": wire, "sessionQuery": window}
 
 
 def main():

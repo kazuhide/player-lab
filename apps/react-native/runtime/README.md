@@ -7,10 +7,16 @@ and operate the compact SDK controls, then requires fresh native playback and
 owner/source readback. The port is removed during cleanup. No DOM or player
 state is changed by the observer. Both native controls checks run
 `Player.getMaxTimeShift` through the normal API picker and Run action to verify
-that a loaded source is usable through the actual bridge.
+that a loaded source is usable through the actual bridge. They first run
+`Source.loadingState` and record the actual wire value (`"Loaded"` on the pinned
+Android SDK, `2` on iOS).
 Pass `--live-type dash` to the Android controls runner for a live DASH fixture;
 the default live format and the ordinary VOD stage are HLS. The read-only DOM
 checks have standalone regressions: `node --test runtime/test_embedded_ui.mjs`.
+When changing a generated host's JavaScript under Metro's CI mode, restart that
+owned Metro process with `--clear` before qualification. CI mode disables file
+watching. Verify the served bundle and the new GUI markers before binding a run
+to the updated source.
 
 These runners operate an explicitly generated `--runtime-checks` host. That
 entry wraps the production `App`; it keeps the existing player creation, native

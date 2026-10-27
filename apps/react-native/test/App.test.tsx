@@ -50,7 +50,7 @@ vi.mock("bitmovin-player-react-native", async () => {
     constructor(public config: import("bitmovin-player-react-native").SourceConfig) {}
     initialize = vi.fn(async () => { this.isInitialized = true; });
     destroy = vi.fn(() => { this.isDestroyed = true; });
-    loadingState = vi.fn(async () => runtime.os === "android" ? "LOADED" : 2);
+    loadingState = vi.fn(async () => runtime.os === "android" ? "Loaded" : 2);
   }
   return {
     CustomUi: class { constructor(public factoryFunction: string) {} },

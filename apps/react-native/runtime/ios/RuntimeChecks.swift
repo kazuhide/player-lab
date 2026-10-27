@@ -44,6 +44,19 @@ final class RuntimeChecks: XCTestCase {
         XCTAssertGreaterThan(ratio, 0.01, "The live native picture must change with the native clock")
         result["livePlayback"] = ["samples": [playing, advanced], "videoRegionChangedRatio": ratio]
         result["phase"] = "loaded-source-api"
+        try chooseOperation("Source.loadingState")
+        try tapWorkspace("api-run")
+        let wireQuery = app.descendants(matching: .any).matching(identifier: "api-result-value").firstMatch
+        let wireOrigin = app.descendants(matching: .any).matching(identifier: "api-result-origin").firstMatch
+        let wireDeadline = Date().addingTimeInterval(10)
+        var loadingWire: Int?
+        while Date() < wireDeadline {
+            if wireOrigin.exists && wireOrigin.label == "Source.loadingState", Int(wireQuery.value as? String ?? wireQuery.label) == 2 {
+                loadingWire = 2; break
+            }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        result["loadingStateWire"] = try XCTUnwrap(loadingWire, "The real iOS bridge must report its loaded ordinal")
         try chooseOperation("Player.getMaxTimeShift")
         try tapWorkspace("api-run")
         let query = app.descendants(matching: .any).matching(identifier: "api-result-value").firstMatch

@@ -1,6 +1,7 @@
 import importlib.util
 from pathlib import Path
 import unittest
+import xml.etree.ElementTree as ET
 
 spec = importlib.util.spec_from_file_location("controls_driver", Path(__file__).with_name("run-controls-android.py"))
 driver = importlib.util.module_from_spec(spec)
@@ -44,6 +45,14 @@ class ObservedUi(driver.ControlsUi):
 
 
 class EffectiveVisibilityTests(unittest.TestCase):
+    def test_actual_scalar_wire_is_read_from_the_matching_executed_api_only(self):
+        tree = ET.fromstring('<hierarchy><node resource-id="api-result-origin" text="Source.loadingState"/>'
+            '<node resource-id="api-result-value" text="" content-desc="API result, &quot;Loaded&quot;"/></hierarchy>')
+        self.assertEqual(driver.ControlsUi.api_scalar(tree, "Source.loadingState"), {"id": "Source.loadingState", "value": "Loaded"})
+        self.assertIsNone(driver.ControlsUi.api_scalar(tree, "Player.getMaxTimeShift"))
+        tree[1].set("text", "-120.5")
+        self.assertEqual(driver.ControlsUi.api_scalar(tree, "Source.loadingState")["value"], -120.5)
+
     def test_api_picker_keeps_its_keyboard_until_the_normal_option_touch(self):
         ui = ObservedUi([], [])
         edits = []

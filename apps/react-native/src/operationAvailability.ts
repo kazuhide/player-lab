@@ -34,7 +34,7 @@ function catalogIds(result: PromiseSettledResult<unknown>, key: "identifier" | "
 }
 
 // RN 1.29 forwards Android's enum name and iOS's ordinal without normalization.
-const sourceIsLoaded = (value: unknown): boolean => value === "LOADED" || value === 2;
+const sourceIsLoaded = (value: unknown): boolean => value === "Loaded" || value === 2;
 
 /** Capability observations belong to one player and current source, never to the event log. */
 export class NativeOperationContext {

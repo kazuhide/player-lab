@@ -4,7 +4,7 @@ import type { NativeSettings } from "../src/nativeSettings";
 import { NativeOperationContext, operationUnavailable } from "../src/operationAvailability";
 
 function fixture() {
-  const source = { isInitialized: true, isDestroyed: false, loadingState: vi.fn(async (): Promise<unknown> => "LOADED") };
+  const source = { isInitialized: true, isDestroyed: false, loadingState: vi.fn(async (): Promise<unknown> => "Loaded") };
   const player = { source, isDestroyed: false, isLive: vi.fn(async () => false), getMaxTimeShift: vi.fn(async () => 0),
     getCurrentTime: vi.fn(async () => 0),
     getAvailableAudioTracks: vi.fn(async () => [{ identifier: "audio-a" }]),
@@ -20,8 +20,9 @@ function fixture() {
 
 describe("native operation availability", () => {
   it.each([
-    ["Android loaded name", "LOADED", true], ["iOS loaded ordinal", 2, true],
-    ["Android loading name", "LOADING", false], ["Android unloaded name", "UNLOADED", false],
+    ["Android loaded name", "Loaded", true], ["iOS loaded ordinal", 2, true],
+    ["Android loading name", "Loading", false], ["Android unloaded name", "Unloaded", false],
+    ["TypeScript enum member name", "LOADED", false],
     ["iOS loading ordinal", 1, false], ["iOS unloaded ordinal", 0, false],
     ["missing source", null, false], ["numeric string", "2", false], ["different name", "loaded", false],
   ])("uses the pinned native loading-state wire shape: %s", async (_name, wireValue, loaded) => {
@@ -89,7 +90,7 @@ describe("native operation availability", () => {
     expect(f.reason("Player.setAudioTrack", "android", true, { value: "stale-audio" })).toBeDefined();
   });
 
-  it.each([["onSourceError", "LOADED"], ["onSourceError", 2], ["onPlayerError", "LOADED"], ["onPlayerError", 2]])("latches %s even when native loadingState remains %s", async (name, wireValue) => {
+  it.each([["onSourceError", "Loaded"], ["onSourceError", 2], ["onPlayerError", "Loaded"], ["onPlayerError", 2]])("latches %s even when native loadingState remains %s", async (name, wireValue) => {
     const f = fixture(); f.source.loadingState.mockResolvedValue(wireValue); f.player.isLive.mockResolvedValue(true); await f.context.refresh();
     f.context.event(String(name));
     await f.context.refresh(true);
