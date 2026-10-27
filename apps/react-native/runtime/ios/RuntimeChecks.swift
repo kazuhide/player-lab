@@ -594,13 +594,17 @@ final class RuntimeChecks: XCTestCase {
             scroll.swipeDown()
         }
     }
-    private func reveal(_ element: XCUIElement) throws {
-        let scroll = mainScroll()
+    private static func inputViewport(container: CGRect, keyboard: CGRect?) -> CGRect {
+        let bottom = keyboard.map { min(container.maxY, $0.minY) } ?? container.maxY
+        return CGRect(x: container.minX, y: container.minY, width: container.width, height: max(0, bottom - container.minY))
+    }
+    private func reveal(_ element: XCUIElement, modalWindow: XCUIElement? = nil) throws {
+        let scroll = modalWindow ?? mainScroll()
         for _ in 0..<30 {
             let keyboard = app.keyboards.firstMatch
-            let bottom = keyboard.exists ? min(scroll.frame.maxY, keyboard.frame.minY) : scroll.frame.maxY
-            let viewport = CGRect(x: scroll.frame.minX, y: scroll.frame.minY, width: scroll.frame.width, height: bottom - scroll.frame.minY)
-            if element.exists && element.isHittable && viewport.contains(CGPoint(x: element.frame.midX, y: element.frame.midY)) { return }
+            let viewport = Self.inputViewport(container: scroll.frame, keyboard: keyboard.exists ? keyboard.frame : nil)
+            if element.exists && element.isHittable && (modalWindow != nil ? viewport.contains(element.frame) : viewport.contains(CGPoint(x: element.frame.midX, y: element.frame.midY))) { return }
+            if modalWindow != nil { Thread.sleep(forTimeInterval: 0.1); continue }
             let down = element.exists && element.frame.midY < viewport.minY
             let root = app.coordinate(withNormalizedOffset: .zero)
             root.withOffset(CGVector(dx: viewport.maxX - 8, dy: down ? viewport.minY + 35 : viewport.maxY - 30))
@@ -624,7 +628,13 @@ final class RuntimeChecks: XCTestCase {
     }
     private func replace(_ label: String, _ text: String) throws {
         let field = app.textFields[label].exists ? app.textFields[label] : app.textViews[label]
-        try reveal(field); field.tap(); _ = app.keyboards.firstMatch.waitForExistence(timeout: 2); try reveal(field)
+        let modalWindow: XCUIElement?
+        if label.hasPrefix("Find ") {
+            let owners = app.windows.allElementsBoundByIndex.filter { ($0.textFields[label].exists || $0.textViews[label].exists) && $0.buttons["Close"].exists }
+            XCTAssertEqual(owners.count, 1, "A picker search must belong to one observed modal window with its Close action")
+            modalWindow = try XCTUnwrap(owners.first)
+        } else { modalWindow = nil }
+        try reveal(field, modalWindow: modalWindow); field.tap(); _ = app.keyboards.firstMatch.waitForExistence(timeout: 2); try reveal(field, modalWindow: modalWindow)
         let value = field.value as? String ?? ""
         if !value.isEmpty {
             field.press(forDuration: 1.1)
@@ -661,6 +671,15 @@ final class RuntimeChecks: XCTestCase {
         XCTAssertFalse(Self.emptyInput(value: "Uncleared value", placeholder: "Example"))
         XCTAssertFalse(Self.emptyInput(value: " ", placeholder: "Example"))
         XCTAssertFalse(Self.emptyInput(value: "Value", placeholder: ""))
+    }
+    func testModalInputViewportContract() {
+        let window = CGRect(x: 0, y: 0, width: 402, height: 874)
+        let main = CGRect(x: 0, y: 188.3, width: 402, height: 685.7)
+        let search = CGRect(x: 32, y: 90, width: 338, height: 48)
+        let keyboard = CGRect(x: 0, y: 541, width: 402, height: 333)
+        XCTAssertFalse(Self.inputViewport(container: main, keyboard: keyboard).contains(search))
+        XCTAssertTrue(Self.inputViewport(container: window, keyboard: keyboard).contains(search))
+        XCTAssertFalse(Self.inputViewport(container: window, keyboard: CGRect(x: 0, y: 110, width: 402, height: 764)).contains(search))
     }
     private func setSwitch(_ label: String, _ enabled: Bool) throws {
         let control = app.switches[label]
