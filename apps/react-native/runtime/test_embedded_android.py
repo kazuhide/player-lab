@@ -44,6 +44,16 @@ class ObservedUi(driver.ControlsUi):
 
 
 class EffectiveVisibilityTests(unittest.TestCase):
+    def test_api_picker_keeps_its_keyboard_until_the_normal_option_touch(self):
+        ui = ObservedUi([], [])
+        edits = []
+        ui.tap_id = lambda identifier: None
+        ui.choice = lambda identifier, selected: None
+        ui.edit = lambda label, value, **options: edits.append((label, value, options))
+        ui.by_id = lambda identifier: identifier
+        self.assertEqual(ui.operation("Player.getMaxTimeShift"), "api-operation-selector-option-Player.getMaxTimeShift")
+        self.assertEqual(edits, [("Find API operation", "Player.getMaxTimeShift", {"dismiss_keyboard": False})])
+
     def test_hidden_bar_is_revealed_then_compact_pause_is_touched_before_native_readback(self):
         ui = ObservedUi([snapshot(False), snapshot(True)], [report(2, False)])
         ui.pause_visible()

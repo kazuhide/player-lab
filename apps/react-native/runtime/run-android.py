@@ -158,7 +158,7 @@ class Ui:
                 return True
         return False
 
-    def edit(self, label, text):
+    def edit(self, label, text, dismiss_keyboard=True):
         self.last_control, self.last_action = label, "focus"
         self.tap(self.reveal(label, upwards=label in {"Source URL", "Source title"}))
         keyboard_deadline = time.monotonic() + 2
@@ -186,7 +186,7 @@ class Ui:
             time.sleep(.1)
         self.wait(lambda tree: acknowledged(tree, text))
         self.tree()
-        if self.keyboard_visible:
+        if self.keyboard_visible and dismiss_keyboard:
             self.adb("shell", "input", "keyevent", "4")
             self.wait(lambda tree: not self.keyboard_visible)
         self.last_action = "acknowledged"

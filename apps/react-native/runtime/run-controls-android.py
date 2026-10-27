@@ -140,7 +140,7 @@ class ControlsUi(driver.Ui):
         self.tap_id("workspace-nav-apis")
         self.choice("api-view-selector", "operations")
         self.tap_id("api-operation-selector")
-        self.edit("Find API operation", identifier)
+        self.edit("Find API operation", identifier, dismiss_keyboard=False)
         return self.by_id("api-operation-selector-option-" + identifier)
 
     def seekbar(self, expected):
