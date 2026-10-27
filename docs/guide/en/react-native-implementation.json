@@ -51,7 +51,7 @@
           "label": "Local setup and licenses"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/5302052c73cacf6c15fc650932fc9ed8a776546e/apps/react-native/README.md#build-in-an-expo-project",
+          "url": "https://github.com/kazuhide/player-lab/blob/e7e83864cc3dd12015f8d7db83e8a46b6097a3b8/apps/react-native/README.md#build-in-an-expo-project",
           "label": "React Native README: generate and build the Expo host"
         }
       ]
@@ -98,13 +98,13 @@
     {
       "type": "code",
       "title": "Attach the existing native PlayerView",
-      "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : { ...styles.player, height: workspace.previewHeight }}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}",
+      "text": "      <PlayerView\n        {...apiEventProps}\n        {...settings.props}\n        customMessageHandler={uiChannel.handler}\n        {...(\"isFullscreenRequested\" in settings.props ? { isFullscreenRequested: fullscreen } : {})}\n        player={player}\n        style={fullscreen ? styles.fullscreen : { ...styles.player, height: workspace.previewHeight }}\n        {...(viewConfig ? { config: viewConfig } : {})}\n        onPlayerViewReady={() => { if (active.current) { recordApiEvent(\"onPlayerViewReady\", undefined); observed.current?.viewReady(); setViewReady(true); } }}\n        onTimeChanged={(event) => { apiEventProps.onTimeChanged?.(event); if (active.current) { observed.current?.event(\"timeChanged\"); void refresh(); } }}",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 359,
-        "label": "App.tsx:359–366"
+        "line": 368,
+        "label": "App.tsx:368–377"
       },
-      "endLine": 366
+      "endLine": 377
     },
     {
       "type": "p",
@@ -211,7 +211,7 @@
     },
     {
       "type": "p",
-      "text": "License fields start empty and never display environment values. Set nativeId only when reuse of the native instance with that ID is intended. The native SDK determines value, OS and source support; an OS-specific field may have no effect on the other platform. Offline operations consume their own configuration, while Cast receiver settings apply at process startup. Allow DVR controls the app’s rewind helper rather than an SDK creation property."
+      "text": "License fields start empty and never display environment values. Set nativeId only when reuse of the native instance with that ID is intended. The native SDK determines value, OS and source support; an OS-specific field may have no effect on the other platform. Offline operations consume their own configuration, while Cast receiver settings apply at process startup. Allow DVR controls the embedded live seek bar and app quick actions at runtime; it does not change an SDK creation property."
     },
     {
       "type": "h3",
@@ -221,13 +221,13 @@
     {
       "type": "code",
       "title": "Load after the current native view becomes ready",
-      "text": "  useEffect(() => {\n    if (!viewReady || !active.current) return;\n    snapshots.current?.sourceChanged();\n    setDvr(null);\n    append(`load ${source.title || \"source\"}`);\n    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.\n    void loadOwnedSource(player, source).catch(() => { if (active.current) append(\"Source initialization failed; inspect source events or retry after the pending initializer settles.\"); });\n    observed.current?.sourceLoad();\n  }, [source, player, viewReady, append]);",
+      "text": "  useEffect(() => {\n    if (!viewReady || !active.current) return;\n    snapshots.current?.sourceChanged();\n    operationContext.reset();\n    setDvr(null);\n    append(`load ${source.title || \"source\"}`);\n    // Player.load is void in wrapper 1.29.0; native Source/Player error events report failures.\n    void loadOwnedSource(player, source).then(() => operationContext.refresh()).catch(() => { if (active.current) append(\"Source initialization failed; inspect source events or retry after the pending initializer settles.\"); });\n    observed.current?.sourceLoad();\n  }, [source, player, viewReady, append, operationContext]);",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 327,
-        "label": "App.tsx:327–335"
+        "line": 335,
+        "label": "App.tsx:335–344"
       },
-      "endLine": 335
+      "endLine": 344
     },
     {
       "type": "p",
@@ -263,7 +263,7 @@
         [
           "Use an existing shared theme",
           "The UI picker selects a factory name in App.tsx UI_MODES. Sports, Live and Cinema resolve through packages/ui-shared/src/global.ts.",
-          "Select the theme; the keyed PlayerPane recreates the Player with the applied source. Default leaves the factory unspecified."
+          "Select the theme; the keyed PlayerPane recreates the Player with the applied source. Default explicitly selects the bundled buildSmallScreenUI factory and keeps its stock component layout."
         ],
         [
           "Change the embedded UI appearance",
@@ -299,29 +299,33 @@
     },
     {
       "type": "code",
-      "title": "Use the shared JavaScript and CSS in the custom-theme branch",
-      "text": "          styleConfig: {\n            userInterfaceType: UserInterfaceType.Bitmovin,\n            playerUiJs: WEBUI_JS,\n            playerUiCss: WEBUI_CSS,\n            ...playerConfig.styleConfig,\n          },\n        }",
+      "title": "Load the shared JavaScript and CSS for the embedded Player UI",
+      "text": "    styleConfig: {\n      userInterfaceType: UserInterfaceType.Bitmovin,\n      playerUiJs: WEBUI_JS,\n      playerUiCss: WEBUI_CSS,\n      ...playerConfig.styleConfig,\n    },",
       "source": {
         "path": "apps/react-native/App.tsx",
         "line": 253,
-        "label": "App.tsx:253–259"
+        "label": "App.tsx:253–258"
       },
-      "endLine": 259
+      "endLine": 258
     },
     {
       "type": "code",
       "title": "Choose the exported factory through PlayerViewConfig",
-      "text": "  const viewConfig: PlayerViewConfig | undefined = uiMode.factoryFunction || Object.keys(settings.view).length || Object.keys(settings.webUi).length\n    ? { ...settings.view, uiConfig: { ...(uiMode.factoryFunction ? { variant: new CustomUi(uiMode.factoryFunction) } : {}), ...settings.webUi } satisfies WebUiConfig }\n    : undefined;",
+      "text": "  const viewConfig: PlayerViewConfig = { ...settings.view, uiConfig: {\n    variant: new CustomUi(uiMode.factoryFunction ?? \"bitmovin.playerui.UIFactory.buildSmallScreenUI\"), ...settings.webUi,\n  } satisfies WebUiConfig };",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 347,
-        "label": "App.tsx:347–349"
+        "line": 356,
+        "label": "App.tsx:356–358"
       },
-      "endLine": 349
+      "endLine": 358
     },
     {
       "type": "p",
       "text": "CustomUi is the wrapper class that names a factory in the UI bundle; its name is not a URL. In this app, Android loads file:///android_asset/webui resources and iOS loads filenames from the main application bundle. The native asset plugin supplies those files. A Metro reload does not replace resources already packaged into the native application. Keep the JavaScript and CSS from the same shared UI build."
+    },
+    {
+      "type": "p",
+      "text": "LiveRewindChannel uses the wrapper’s public CustomMessageHandler. The shared UI sends playerlab-live-rewind-ready through sendAsynchronous; the host replays the latest Boolean text on playerlab-live-rewind-enabled and sends later changes. This leaves the Player, Source and PlayerView mounted, including while paused or rewound. The channel also forwards unrelated messages to an edited demonstration handler. A replacement external UI must implement this optional channel to respond to the app preference."
     },
     {
       "type": "h3",
@@ -423,6 +427,10 @@
       "type": "h3",
       "id": "native-features-and-cast",
       "text": "Configure Cast startup and native features"
+    },
+    {
+      "type": "p",
+      "text": "NativeOperationContext tracks the current native source and ad lifecycle independently of event-log recording, then checks native getters before execution. Player.skipAd is disabled for missing/negative skip offsets and until a positive offset is reached; IMA is unavailable. For live ads with a positive skip offset, the wrapper’s current-time conversion adds a source timeline offset, so Player Lab cannot establish elapsed ad time and disables the command. Zero-offset ads use fresh native isAd instead of a clock comparison. Query operations and valid configuration, scheduling and recovery routes remain available."
     },
     {
       "type": "steps",
@@ -558,10 +566,10 @@
       "text": "  const analyticsConfig = playerConfig.analyticsConfig ? {\n    ...playerConfig.analyticsConfig,\n    licenseKey: Object.prototype.hasOwnProperty.call(settings.draft.apiSettings ?? {}, \"PlayerConfig.analyticsConfig.licenseKey\")\n      ? playerConfig.analyticsConfig.licenseKey : ANALYTICS_LICENSE_KEY,\n  } : ANALYTICS_LICENSE_KEY ? { licenseKey: ANALYTICS_LICENSE_KEY } : undefined;",
       "source": {
         "path": "apps/react-native/App.tsx",
-        "line": 241,
-        "label": "App.tsx:241–245"
+        "line": 243,
+        "label": "App.tsx:243–247"
       },
-      "endLine": 245
+      "endLine": 247
     },
     {
       "type": "p",
@@ -609,7 +617,7 @@
   "sources": [
     {
       "path": "apps/react-native/App.tsx",
-      "line": 79,
+      "line": 81,
       "label": "App, keyed Player ownership and native view"
     },
     {
@@ -659,7 +667,7 @@
     },
     {
       "path": "apps/react-native/README.md",
-      "line": 112,
+      "line": 115,
       "label": "Expo host generation and dependency locks"
     },
     {

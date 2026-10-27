@@ -31,7 +31,7 @@
         },
         {
           "path": "apps/react-native/README.md",
-          "line": 112,
+          "line": 115,
           "label": "Generate and run the Expo development host"
         },
         {
@@ -135,7 +135,7 @@
     {
       "type": "steps",
       "items": [
-        "Try play, pause and seek in the Player UI. Switch audio tracks on a source with alternate audio. More contains the live rewind controls and status. Allow DVR toggles the app’s rewind helper.",
+        "Try play, pause and seek in the Player UI. Switch audio tracks on a source with alternate audio. More contains live controls and status. Allow DVR changes the embedded live seek bar and app quick actions immediately without recreating the player; it does not hide on-demand seeking.",
         "Select Default, Sports, Live (DVR) or Cinema under Theme. A theme change recreates the Player and loads the applied source. Compare the controls and UI settings in Code using the same source.",
         "In Settings → Source, enter an external WebVTT subtitle URL, label and language. Match cue times to the media and use a language tag such as en-US.",
         "After Apply, select the label in the Player’s subtitle menu and play through a cue. Mark as default sets metadata; it does not enable display by itself.",
@@ -277,6 +277,10 @@
     },
     {
       "type": "p",
+      "text": "The operation selector disables commands whose current source, playback or view prerequisites are missing and shows the reason. Run checks native state again before dispatch; source changes preserve your selected operation and argument draft. Player.skipAd requires an active, skippable ad. Programmatic IMA skipping is unavailable. For live ads with a positive skip offset, this wrapper cannot verify elapsed ad time without its source time-mode offset, so the app disables that operation with a reason."
+    },
+    {
+      "type": "p",
       "text": "Some listed operations are platform-specific. In wrapper 1.29, Player.setVideoQuality and auto work on Android; iOS warns and makes no selection. On iOS, compare Maximum bitrate with the selected quality. Leave the Player.setSubtitleTrack input blank to disable subtitles."
     },
     {
@@ -324,7 +328,7 @@
   "sources": [
     {
       "path": "apps/react-native/README.md",
-      "line": 112,
+      "line": 115,
       "label": "Expo integration steps and limits"
     },
     {
@@ -339,7 +343,7 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 79,
+      "line": 81,
       "label": "Screen implementation and UI switching"
     },
     {

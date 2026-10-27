@@ -1086,7 +1086,7 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 255
+      "line": 256
     },
     {
       "path": "packages/ui-shared/src/sportsData.ts",
@@ -1114,7 +1114,7 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 213
+      "line": 214
     },
     {
       "path": "apps/web/src/gestures.ts",
@@ -1142,11 +1142,11 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 282
+      "line": 283
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 393
+      "line": 394
     },
     {
       "path": "apps/web/src/main.ts",
@@ -1158,19 +1158,19 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 256
+      "line": 257
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 276
+      "line": 277
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 415
+      "line": 416
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 488
+      "line": 489
     },
     {
       "path": "apps/web/src/main.ts",
@@ -1286,17 +1286,17 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 310,
+      "line": 355,
       "label": "Event counts and recent-payload history"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 237,
+      "line": 254,
       "label": "Record reset on Player replacement"
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 358,
+      "line": 404,
       "label": "Explicit event-history reset"
     },
     {
@@ -1327,7 +1327,7 @@
     },
     {
       "path": "apps/web/src/api/explorer.ts",
-      "line": 341
+      "line": 387
     }
   ]
 }

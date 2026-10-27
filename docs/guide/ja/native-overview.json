@@ -358,12 +358,12 @@
     },
     {
       "path": "apps/react-native/README.md",
-      "line": 112,
+      "line": 115,
       "label": "同梱Expoアプリとビルド準備"
     },
     {
       "path": "apps/vega/README.md",
-      "line": 279,
+      "line": 288,
       "label": "同梱Vegaアプリと実行準備"
     },
     {
@@ -378,7 +378,7 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 107,
+      "line": 109,
       "label": "React Nativeのプリセット読み込み・編集後の再作成・下書き復帰"
     },
     {

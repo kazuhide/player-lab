@@ -210,10 +210,10 @@
       "text": "    func effect(for configuration: ValidatedConfiguration) -> ConfigurationEffect {\n        if configuration.player != playerSettings { return .recreatePlayer }\n        if configuration.source != sourceSettings { return .reloadSource }\n        return .none\n    }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 127,
-        "label": "PlayerModel.swift:127–131"
+        "line": 141,
+        "label": "PlayerModel.swift:141–145"
       },
-      "endLine": 131
+      "endLine": 145
     },
     {
       "type": "p",
@@ -336,18 +336,18 @@
     },
     {
       "type": "p",
-      "text": "iOS・iPadOSのテーマはJavaScriptの関数名でファクトリーを選び、StyleConfigでJavaScriptとCSSのリソースURLを指定します。Sportsのスコアや選手情報は架空のサンプルです。tvOSはuserInterfaceTypeを.systemにし、共有Web UIのテーマ選択欄を表示しません。"
+      "text": "iOS・iPadOSでは標準を含む各テーマで共通のJavaScriptとCSSを読み込みます。標準はSDKの小画面向けコンポーネント構成を使い、独自テーマは公開された別のファクトリーを指定します。スポーツのスコアや人物情報は架空のサンプルです。tvOSは.systemを使い、共通Web UIのテーマ選択欄は表示しません。"
     },
     {
       "type": "code",
       "title": "iOS・iPadOSで同梱UIとファクトリーを選ぶ",
-      "text": "        if let factory = uiMode.factoryFunction,\n           let js = Bundle.main.url(forResource: \"bitmovinplayer-ui\", withExtension: \"js\"),\n           let css = Bundle.main.url(forResource: \"bitmovinplayer-ui\", withExtension: \"css\") {\n            config.styleConfig.playerUiJs = js\n            config.styleConfig.playerUiCss = css\n            let uiConfig = BitmovinUserInterfaceConfig()\n            uiConfig.uiManagerFactoryFunction = factory\n            config.styleConfig.userInterfaceConfig = uiConfig\n        }",
+      "text": "        if let js = Bundle.main.url(forResource: \"bitmovinplayer-ui\", withExtension: \"js\"),\n           let css = Bundle.main.url(forResource: \"bitmovinplayer-ui\", withExtension: \"css\") {\n            config.styleConfig.playerUiJs = js\n            config.styleConfig.playerUiCss = css\n            let uiConfig = BitmovinUserInterfaceConfig()\n            uiConfig.uiManagerFactoryFunction = uiMode.factoryFunction ?? \"bitmovin.playerui.UIFactory.buildSmallScreenUI\"\n            config.styleConfig.userInterfaceConfig = uiConfig\n        }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 188,
-        "label": "PlayerModel.swift:188–196"
+        "line": 217,
+        "label": "PlayerModel.swift:217–224"
       },
-      "endLine": 196
+      "endLine": 224
     },
     {
       "type": "steps",
@@ -410,6 +410,10 @@
       "type": "h3",
       "id": "tvos-system-ui",
       "text": "tvOSのSystem UI"
+    },
+    {
+      "type": "p",
+      "text": "SystemUserInterfaceConfig.showSeekBarは生成時の設定で、トラックメニューにも影響します。使用中のSDKには、他の操作部を維持しながらライブの巻き戻しだけを非表示にする公開の実行時APIがありません。そのため、tvOSではアプリの巻き戻し操作スイッチを無効にしています。SDKのtime-shift設定はPlayer生成前に変更できます。"
     },
     {
       "type": "p",
@@ -500,7 +504,7 @@
         [
           "ライブの巻き戻し：巻き戻せる範囲を保持するライブHLS",
           "Live HLSを再生し、その他 → ライブの操作で負のオフセット操作を試してからライブ位置で戻ります。",
-          "player.maxTimeShiftの範囲内でplayer.timeShiftを設定し、アプリが表示状態を計算します。アプリの操作スイッチとSDKのtime-shift設定が両方影響します。保持されたメディアがなければ巻き戻せる範囲もありません。"
+          "player.maxTimeShiftの範囲内でplayer.timeShiftを設定します。iOS・iPadOSの操作スイッチはCustomMessageHandler経由で動画内のライブ用シークバーにも即時に反映し、Player・Source・PlayerViewは置き換えません。SDKのisTimeShiftEnabledは別の生成時設定です。保持されたメディアがなければ巻き戻せる範囲もありません。"
         ]
       ]
     },
@@ -578,6 +582,10 @@
     },
     {
       "type": "p",
+      "text": "NativeApiSessionはイベントログの記録とは独立して、再生準備、ソースのエラー、広告の開始・終了を監視します。操作の選択欄と実行処理はNativeApiContextを使い、実行時には現在のSDKオブジェクトを読み直します。広告のスキップには開始を確認したリニア広告、skippableAfterの条件、現在の広告位置が必要です。IMAではIMA側のUIを無効にする条件もあります。この実装ではExperimentalApiに属するノンリニア広告のライフサイクルAPIを実行条件の判定に使いません。"
+    },
+    {
+      "type": "p",
       "text": "イベントの購読はSDKの対象が有効な間保持し、対象を置き換える前に解除します。次のlistener方式ではplayer.add/removeがSDKのAPI、playerApiListenerとrecordApiEventがアプリの補助実装です。API画面はlistenerとpublisherの方式を切り替えられます。"
     },
     {
@@ -587,13 +595,13 @@
     {
       "type": "code",
       "title": "PlayerのAPI listenerを保持して解除する",
-      "text": "    private func bindApiPlayerEvents() {\n        guard apiEventsEnabled else { return }\n        let player = self.player\n        let listener = PlayerApiEventListener { [weak self, weak player] api, timestamp in\n            guard let self, let player, self.player === player else { return }\n            self.recordApiEvent(api, timestamp: timestamp, owner: \"Player\")\n        }\n        playerApiListener = listener\n        if apiEventTransport == .listener { player.add(listener: listener) }\n        else { playerApiPublishers = NativePublisherSubscriptions.player(player, receiver: listener) }\n    }\n\n    private func retireApiPlayerEvents() {\n        playerApiPublishers.removeAll()\n        if let listener = playerApiListener { player.remove(listener: listener) }\n        playerApiListener = nil\n    }",
+      "text": "    private func bindApiPlayerEvents() {\n        guard apiEventsEnabled else { return }\n        let player = self.player\n        let listener = PlayerApiEventListener { [weak self, weak player] api, timestamp in\n            guard let self, let player, self.player === player else { return }\n            self.recordApiEvent(api, timestamp: timestamp, owner: \"Player\")\n        }\n        playerApiListener = listener\n        if apiEventTransport == .listener { player.add(listener: listener) }\n        else { playerApiPublishers = NativePublisherSubscriptions.player(player, receiver: listener) }\n    }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 574,
-        "label": "PlayerModel.swift:574–590"
+        "line": 654,
+        "label": "PlayerModel.swift:654–664"
       },
-      "endLine": 590
+      "endLine": 664
     },
     {
       "type": "h2",
@@ -676,13 +684,13 @@
     {
       "type": "code",
       "title": "Standardの生成経路でAnalyticsを有効にする",
-      "text": "        guard !analyticsLicenseKey.isEmpty else {\n            return PlayerFactory.createPlayer(playerConfig: config)\n        }\n        return PlayerFactory.createPlayer(\n            playerConfig: config,\n            analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))\n        )",
+      "text": "        case .standard:\n            if analyticsLicenseKey.isEmpty { result = PlayerFactory.createPlayer(playerConfig: config) }\n            else { result = PlayerFactory.createPlayer(playerConfig: config, analytics: .enabled(analyticsConfig: AnalyticsConfig(licenseKey: analyticsLicenseKey))) }",
       "source": {
         "path": "apps/ios/Showcase/PlayerModel.swift",
-        "line": 212,
-        "label": "PlayerModel.swift:212–218"
+        "line": 250,
+        "label": "PlayerModel.swift:250–252"
       },
-      "endLine": 218
+      "endLine": 252
     },
     {
       "type": "steps",
@@ -738,7 +746,7 @@
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 125,
+      "line": 139,
       "label": "設定の適用・Playerの生成・ソースの読み込み"
     },
     {

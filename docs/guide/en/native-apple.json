@@ -316,12 +316,16 @@
       "text": "The default menu offers speed presets. Its speaker button can toggle mute without providing a numeric volume slider. Use API operations to try other accepted values."
     },
     {
+      "type": "p",
+      "text": "On iOS/iPadOS, Allow live rewind controls changes the embedded live seek bar and app quick actions immediately without reloading media. On-demand seeking remains available. tvOS uses native System UI; its public API cannot switch only live rewind controls at runtime, so this preference is disabled with a reason. Use Settings → Playback → Live time shift and Apply to change the SDK creation-time setting."
+    },
+    {
       "type": "h2",
       "text": "Run APIs and read their results"
     },
     {
       "type": "p",
-      "text": "In APIs → Operations, choose the target and check its name beside Run API. Search only filters candidates; it does not change the target automatically. State reads current values, Events records notifications, and Host selects the player factory and video presentation."
+      "text": "In APIs → Operations, choose the target and check its name beside Run API. Search only filters candidates; it does not change the target automatically. State reads current values, Events records notifications, and Host selects the player factory and video presentation. Operations requiring a source, active ad, current track or native view are disabled while prerequisites are missing, with a reason beside the selected operation. Run API checks again before dispatch. Source changes preserve the operation and argument draft."
     },
     {
       "type": "note",
@@ -584,7 +588,7 @@
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 133,
+      "line": 147,
       "label": "Apply, player generation, and retained source"
     },
     {
@@ -603,7 +607,7 @@
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 389,
+      "line": 464,
       "label": "Ready-bound selection on the intended Source"
     },
     {

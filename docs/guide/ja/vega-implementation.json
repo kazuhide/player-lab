@@ -43,7 +43,7 @@
           "label": "ローカル実行とライセンス設定"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/5302052c73cacf6c15fc650932fc9ed8a776546e/apps/vega/README.md#build-the-kepler-application",
+          "url": "https://github.com/kazuhide/player-lab/blob/e7e83864cc3dd12015f8d7db83e8a46b6097a3b8/apps/vega/README.md#build-the-kepler-application",
           "label": "Vega README：Keplerホストのビルド"
         },
         {
@@ -387,7 +387,7 @@
     },
     {
       "type": "p",
-      "text": "APIパネルは導入済みPlayerAPIへ型に応じた引数を渡します。「現在のSDKで呼び出せるAPIを確認」はメソッドの存在を調べるだけで呼び出しません。実行後は戻り値やエラーに加え、状態・イベント・映像で結果を確認します。マニフェスト関連の機能も形式に依存し、HLSのトラック用機能にはHLS、DASHのperiod用機能にはDASHが必要です。"
+      "text": "APIパネルは導入済みPlayerAPIへ型に応じた引数を渡します。「現在のSDKで呼び出せるAPIを確認」は、操作を実行せず、メソッドの存在と現在のソース・ライブ範囲・広告などの条件を調べます。選択欄と実行処理は同じ条件を使い、引数からSDKオブジェクトを作る処理の後にも確認します。ソースを変えても選択した操作と入力内容は保持します。実行後は状態・イベント・映像で結果を確認します。HLSのトラック操作にはHLS、DASHのperiod操作にはDASHが必要です。"
     },
     {
       "type": "steps",

@@ -43,7 +43,7 @@
           "label": "Local setup and licenses"
         },
         {
-          "url": "https://github.com/kazuhide/player-lab/blob/5302052c73cacf6c15fc650932fc9ed8a776546e/apps/vega/README.md#build-the-kepler-application",
+          "url": "https://github.com/kazuhide/player-lab/blob/e7e83864cc3dd12015f8d7db83e8a46b6097a3b8/apps/vega/README.md#build-the-kepler-application",
           "label": "Vega README: build the Kepler host"
         },
         {
@@ -387,7 +387,7 @@
     },
     {
       "type": "p",
-      "text": "The API panel passes typed arguments to the installed PlayerAPI. Inspect current SDK API availability checks method presence without calling them. After execution, check state, events and the picture as well as values or errors. Manifest operations are format-specific: HLS track operations need HLS; DASH period operations need DASH."
+      "text": "The API panel passes typed arguments to the installed PlayerAPI. Inspect current SDK API availability checks method presence and current source, live-window and ad prerequisites without calling commands. The selector and dispatch share the same checks; dispatch repeats them after materializing arguments. Source changes preserve the selected command and draft. After execution, inspect state, events and the picture. HLS track operations require HLS; DASH period operations require DASH."
     },
     {
       "type": "steps",

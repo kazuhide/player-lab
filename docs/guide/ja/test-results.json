@@ -222,17 +222,17 @@
     },
     {
       "path": "apps/ios/README.md",
-      "line": 560,
+      "line": 587,
       "label": "AppleのSDKケースと通常GUIケースの確認記録"
     },
     {
       "path": "apps/react-native/README.md",
-      "line": 263,
+      "line": 274,
       "label": "React Nativeの実再生と設定の確認"
     },
     {
       "path": "apps/vega/README.md",
-      "line": 403,
+      "line": 412,
       "label": "Vegaランタイムの確認範囲"
     },
     {

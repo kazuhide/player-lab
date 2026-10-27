@@ -297,12 +297,12 @@
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 321,
+      "line": 386,
       "label": "現在のSourceに対応するHLS完了状態"
     },
     {
       "path": "apps/ios/Showcase/PlayerModel.swift",
-      "line": 236,
+      "line": 300,
       "label": "同じURLを新しいSourceで読み直す処理"
     },
     {
@@ -317,7 +317,7 @@
     },
     {
       "path": "apps/ios/README.md",
-      "line": 303,
+      "line": 330,
       "label": "同一URLのHLS再読み込みとVODシークの確認記録"
     },
     {
@@ -330,21 +330,21 @@
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 651,
+      "line": 657,
       "label": "相対時刻と絶対時刻の明示取得"
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 674,
+      "line": 680,
       "label": "Player stateの時間表示の精度"
     },
     {
       "path": "apps/web/src/controlPanel.ts",
-      "line": 708,
+      "line": 713,
       "label": "時間・ソース・長さのイベントによる表示更新"
     },
     {
-      "url": "https://github.com/kazuhide/player-lab/blob/5302052c73cacf6c15fc650932fc9ed8a776546e/patches/bitmovin-player-ui%404.23.0.patch#L669",
+      "url": "https://github.com/kazuhide/player-lab/blob/e7e83864cc3dd12015f8d7db83e8a46b6097a3b8/patches/bitmovin-player-ui%404.23.0.patch#L669",
       "label": "シーク可能範囲の先頭を起点にしたVODキー操作"
     },
     {

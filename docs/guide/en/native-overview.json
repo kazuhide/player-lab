@@ -358,12 +358,12 @@
     },
     {
       "path": "apps/react-native/README.md",
-      "line": 112,
+      "line": 115,
       "label": "Included Expo host and build preparation"
     },
     {
       "path": "apps/vega/README.md",
-      "line": 279,
+      "line": 288,
       "label": "Included Vega host and runtime preparation"
     },
     {
@@ -378,7 +378,7 @@
     },
     {
       "path": "apps/react-native/App.tsx",
-      "line": 107,
+      "line": 109,
       "label": "React Native preset load, editor recreation and applied reset"
     },
     {
