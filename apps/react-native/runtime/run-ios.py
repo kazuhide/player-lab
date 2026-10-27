@@ -62,7 +62,7 @@ def main():
         derived = output / "derived-data"
         command(["xcodebuild", "-project", str(driver / "PlayerLabRuntime.xcodeproj"), "-scheme", "RuntimeChecks",
                  "-destination", "platform=iOS Simulator,id=" + args.device, "-derivedDataPath", str(derived),
-                 "-parallel-testing-enabled", "NO", "CODE_SIGNING_ALLOWED=NO", "build-for-testing"], log=output / "build.private.log")
+                 "-parallel-testing-enabled", "NO", "-jobs", "2", "CODE_SIGNING_ALLOWED=NO", "build-for-testing"], log=output / "build.private.log")
         runs = list((derived / "Build/Products").glob("*.xctestrun"))
         if len(runs) != 1:
             raise RuntimeError("Expected one generated XCTest configuration")

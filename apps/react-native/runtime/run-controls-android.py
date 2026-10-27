@@ -8,6 +8,7 @@ from pathlib import Path
 import shutil
 import sys
 import time
+import traceback
 from urllib.parse import urlsplit
 
 from controls import live_rewind_transition, vod_controls
@@ -88,14 +89,19 @@ def main():
         parser.error("Supply adb and a new private output directory outside the checkout")
     os.umask(0o077); output.mkdir(parents=True)
     receipt = {"schemaVersion": 1, "platform": "android", "passed": False}
+    def phase(name):
+        receipt["phase"] = name
+        (output / "progress.json").write_text(json.dumps({"phase": name}) + "\n")
     ui = None
     try:
+        phase("launch-and-readiness")
         ui = ControlsUi(args.adb, args.device)
         ui.adb("shell", "am", "force-stop", driver.PACKAGE)
         ui.adb("shell", "am", "start", "-W", "-n", driver.PACKAGE + "/.MainActivity")
         ui.wait_report(lambda v: v["owner"] is not None and v["owner"]["viewReady"])
-        ui.configure(args.live_url)
+        phase("configure-live"); ui.configure(args.live_url)
         ui.choice("theme-selector", "Live (DVR)")
+        phase("native-live-playback")
         live = ui.wait_report(lambda v: v["owner"] and v["owner"]["sample"] and v["owner"]["sample"]["live"] and
                               v["owner"]["sample"]["playing"] and (v["owner"]["sample"]["maxTimeShift"] or 0) < -10)
         frames = [ui.frame(output / "live-playing-before.png")]
@@ -109,42 +115,46 @@ def main():
         if ratio <= .01:
             raise RuntimeError("The native video did not change with its live clock")
         receipt["livePlayback"] = {"samples": [live, advanced], "videoRegionChangedRatio": ratio}
-        ui.pause_visible()
+        phase("native-pause-and-rewind"); ui.pause_visible()
         ui.tap(ui.operation("Player.timeShift"))
         ui.edit("Time (seconds)", "-10"); ui.tap_id("api-run")
         before = ui.wait_report(lambda v: v["owner"] and v["owner"]["sample"] and
             not v["owner"]["sample"]["playing"] and (v["owner"]["sample"]["timeShift"] or 0) < -5)
         visible = [ui.seekbar(True)]
-        ui.dvr(False); disabled = ui.report(); visible.append(ui.seekbar(False))
-        ui.dvr(True); enabled = ui.report(); visible.append(ui.seekbar(True))
+        phase("embedded-rewind-disabled"); ui.dvr(False); disabled = ui.report(); visible.append(ui.seekbar(False))
+        phase("embedded-rewind-enabled"); ui.dvr(True); enabled = ui.report(); visible.append(ui.seekbar(True))
         receipt["liveControls"] = live_rewind_transition(before, disabled, enabled, visible)
         receipt["liveControlSamples"] = [before, disabled, enabled]
-        ui.configure(args.media_url); ui.dvr(False)
+        phase("configure-vod"); ui.configure(args.media_url); ui.dvr(False)
         vod = ui.wait_report(lambda v: v["owner"] and v["owner"]["sample"] and not v["owner"]["sample"]["live"] and
                              v["owner"]["sourceLoaded"] > 0)
         ui.pause_visible(); vod_visible = ui.seekbar(True)
-        unavailable = []
+        phase("ordinary-source-ad-availability"); unavailable = []
         for identifier in ["Player.skipAd", "Player.scheduleAd"]:
             option = ui.operation(identifier)
             unavailable.append(option.get("enabled") == "false")
             ui.button("Close")
         receipt["vodControls"] = vod_controls(vod, vod_visible, *unavailable)
         receipt["vodSample"] = vod
-        ui.tap_id("workspace-nav-settings"); ui.button("Finish runtime checks")
+        phase("normal-owner-cleanup"); ui.tap_id("workspace-nav-settings"); ui.button("Finish runtime checks")
         final = ui.wait_report(lambda v: v["owner"] is None)
         if len(final["retired"]) != final["created"] or not all(owner["wrapperDestroyed"] for owner in final["retired"]):
             raise RuntimeError("The normal owner cleanup was not confirmed")
         receipt.update(final=final, passed=True, nativeReleaseAcknowledgementAvailable=False)
-    except (RuntimeError, ValueError, KeyError, TypeError, OSError):
+    except (RuntimeError, ValueError, KeyError, TypeError, OSError, driver.subprocess.TimeoutExpired) as error:
         receipt["failure"] = "Native controls qualification failed; private evidence is retained"
+        receipt["failureReason"] = str(error)
+        (output / "failure.private.log").write_text(traceback.format_exc())
         if ui:
             (output / "last.private.xml").write_bytes(driver.ET.tostring(ui.last_tree)) if ui.last_tree is not None else None
             receipt["lastObservation"] = ui.last_report
+            receipt["lastControl"] = ui.last_control
+            receipt["lastAction"] = ui.last_action
     finally:
         if ui:
             try:
                 ui.adb("shell", "am", "force-stop", driver.PACKAGE)
-            except (RuntimeError, OSError):
+            except (RuntimeError, OSError, driver.subprocess.TimeoutExpired):
                 receipt.update(passed=False, failure="Dedicated target cleanup could not be requested")
         (output / "runtime-report.json").write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
     print(json.dumps({"passed": receipt["passed"], "platform": "android"}))

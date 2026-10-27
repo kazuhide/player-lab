@@ -39,7 +39,7 @@ export function ApiPanel({ player, source, ready, operationContext, dvrAllowed, 
   const [selectedId, setSelectedId] = useState("Player.play");
   const selected = operations.find((operation) => operation.id === selectedId) ?? operations[0]!;
   const editor = useRef<ScrollView>(null);
-  useLayoutEffect(() => { editor.current?.scrollTo({ y: 0, animated: false }); }, [page, selected]);
+  useLayoutEffect(() => { editor.current?.scrollTo({ y: 0, animated: false }); }, [page, selected.id, player]);
   const [values, setValues] = useState<Record<string, string>>({});
   const [result, setResult] = useState("");
   const [code, setCode] = useState("");
@@ -60,7 +60,7 @@ export function ApiPanel({ player, source, ready, operationContext, dvrAllowed, 
   }, [player, source, auxiliary]);
   useEffect(() => {
     setValues(Object.fromEntries(selected.arguments.map((argument) => [argument.name, argument.initial])));
-  }, [selected]);
+  }, [selected.id, player]);
   const unavailable = (id: string, input: Record<string, string> = {}) => operationUnavailable(id, player, operationContext.snapshot(), Platform.OS, settings, dvrAllowed, input);
   const selectedUnavailable = unavailable(selected.id, values);
   const currentRun = useRef({ ready, page, selected, values, settings, dvrAllowed });

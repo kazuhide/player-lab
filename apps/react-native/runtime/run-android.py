@@ -147,6 +147,17 @@ class Ui:
             self.swipe(True)
         raise RuntimeError("The normal App header was unreachable")
 
+    @staticmethod
+    def input_acknowledged(tree, label, expected):
+        for node in tree.iter("node"):
+            if node.get("class") != "android.widget.EditText" or node.get("content-desc") != label or node.get("focused") != "true":
+                continue
+            text, hint = node.get("text", ""), node.get("hint", "")
+            # Android AX exposes an empty input's placeholder as its text.
+            if text == expected or (expected == "" and hint and text == hint):
+                return True
+        return False
+
     def edit(self, label, text):
         self.last_control, self.last_action = label, "focus"
         self.tap(self.reveal(label, upwards=label in {"Source URL", "Source title"}))
@@ -163,8 +174,7 @@ class Ui:
         def acknowledged(tree, expected):
             # Android can scroll a focused input during IME/layout animation.
             # Read that exact focused input; typing still uses normal OS input.
-            return any(node.get("content-desc") == label and node.get("focused") == "true" and
-                       node.get("text", "") == expected for node in tree.iter("node"))
+            return self.input_acknowledged(tree, label, expected)
         self.wait(lambda tree: acknowledged(tree, ""))
         # React controlled inputs must acknowledge each edit before the next one.
         self.last_action = "type"

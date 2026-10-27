@@ -332,6 +332,23 @@ describe("React Native configuration in the mounted App", () => {
     expect(element("Text", { testID: "api-unavailable-reason" }).props.children).toBe("Programmatic skipping is unavailable for IMA ads.");
   });
 
+  it("retains the selected API argument draft across source replacement while clearing its old result", async () => {
+    await mount(); await ready();
+    await text("Filter API operations", "Player.setVolume"); await press("Player.setVolume");
+    await text("Volume (0–100)", "37"); await press("Run selected API");
+    const owner = current();
+    expect(element("Text", { testID: "api-result-origin" }).props.children).toBe("Player.setVolume");
+    const scrolls = runtime.scrollApi.mock.calls.length;
+    await press("Live HLS");
+    expect(current()).toBe(owner);
+    expect(element("Pressable", { testID: "api-operation-selector" }).props.accessibilityValue.text).toBe("Player.setVolume");
+    expect(input("Volume (0–100)").props.value).toBe("37");
+    expect(element("Text", { accessibilityLabel: "API result" }).props.children).toBe("");
+    expect(runtime.scrollApi).toHaveBeenCalledTimes(scrolls);
+    await press("Run selected API");
+    expect(owner.setVolume).toHaveBeenLastCalledWith(37);
+  });
+
   it("refreshes the actual ad threshold before dispatch instead of trusting the enabled Run state", async () => {
     await mount(); await ready();
     const owner = current(); owner.isLive.mockResolvedValue(false);
