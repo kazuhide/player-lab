@@ -321,10 +321,12 @@ export class ApiExplorer {
     if (entry.category === "configuration" || entry.category === "event") return undefined;
     const root = entry.root === "PlayerAPI" ? this.options.getPlayer() : this.options.getUi();
     if (!root || this.preparingPlayer) return apiReason(entry.root === "PlayerAPI" ? "player" : "ui");
+    const prerequisite = apiUnavailableReason(entry.id, snapshot, args);
+    if (prerequisite) return prerequisite;
     if (typeof readPath(root, apiPath(entry.id)) !== "function") return apiReason("method");
     const identities = this.identityItems(entry.id);
     if (identities && !identities.length) return apiReason("ui-object");
-    return apiUnavailableReason(entry.id, snapshot, args);
+    return undefined;
   }
 
   private refreshRuntimeAvailability(): void {

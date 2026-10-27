@@ -192,6 +192,7 @@ export function mountControlPanel(
   }
 
   function seekToOffset(offset: number): void {
+    if (!canSeekLive()) { refresh(); return; }
     // Offset is relative to the live edge (timeShift semantics); clamp to the window.
     player.timeShift(clampToWindow(offset, player.getMaxTimeShift()), "panel");
   }
@@ -234,9 +235,9 @@ export function mountControlPanel(
   const seekBtn = button({ ja: "シーク", en: "Seek" }, () => seekToOffset(Number(seekInput.value)));
   const quickRow = document.createElement("div");
   quickRow.className = "panel-row";
-  for (const off of [-10, -30, -60, -120]) {
-    quickRow.append(button(`${off}s`, () => seekToOffset(off)));
-  }
+  const quickButtons = [-10, -30, -60, -120].map(off => button(`${off}s`, () => seekToOffset(off)));
+  quickRow.append(...quickButtons);
+  const liveEdgeBtn = button({ ja: "ライブ端へ移動", en: "Go to live edge" }, () => seekToOffset(0));
 
   // --- Playback configuration ---
   const timeShiftToggle = checkbox(
@@ -567,7 +568,7 @@ export function mountControlPanel(
     section({ ja: "ソース", en: "Source" }, sourceRow, missingAssets),
     section(
       { ja: "シーク", en: "Seek" },
-      row({ ja: "ライブ", en: "Live" }, button({ ja: "ライブ端へ移動", en: "Go to live edge" }, () => player.timeShift(0, "panel"))),
+      row({ ja: "ライブ", en: "Live" }, liveEdgeBtn),
       rowWithHint(
         { ja: "端からのオフセット (秒)", en: "Offset from edge (s)" },
         {
@@ -641,6 +642,11 @@ export function mountControlPanel(
     };
   }
 
+  function canSeekLive(): boolean {
+    const state = deriveTimelineState(sourceHint.snapshot(snapshot()), { timeShiftEnabled });
+    return !!player.getSource() && state.dvrAvailable && !player.ads?.isLinearAdActive?.();
+  }
+
   function refresh(): void {
     const snap = sourceHint.snapshot(snapshot());
     const state = deriveTimelineState(snap, { timeShiftEnabled });
@@ -675,9 +681,8 @@ export function mountControlPanel(
       `time (abs/PDT): ${absStr}`,
     ].join("\n");
     // Reflect DVR allow/forbid in the panel too: disable the seek controls.
-    const disabled = !state.dvrAvailable;
-    seekInput.toggleAttribute("disabled", disabled);
-    seekBtn.toggleAttribute("disabled", disabled);
+    const disabled = !canSeekLive();
+    for (const control of [seekInput, seekBtn, liveEdgeBtn, ...quickButtons]) control.disabled = disabled;
   }
 
   // --- Event log ---
@@ -708,7 +713,12 @@ export function mountControlPanel(
   // Readout follows TimeChanged (frequent; not logged) plus source/duration changes.
   player.on(PlayerEvent.TimeChanged, refresh);
   player.on(PlayerEvent.SourceLoaded, refresh);
+  player.on(PlayerEvent.SourceUnloaded, refresh);
   player.on(PlayerEvent.DurationChanged, refresh);
+  player.on(PlayerEvent.AdStarted, refresh);
+  player.on(PlayerEvent.AdFinished, refresh);
+  player.on(PlayerEvent.AdSkipped, refresh);
+  player.on(PlayerEvent.AdBreakFinished, refresh);
 
   refresh();
   return {

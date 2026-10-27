@@ -232,6 +232,12 @@ test("indexed comparisons follow the selected item and retain its baseline after
     expect(JSON.parse(await readApi(page, "PlayerAPI.getSource"))).toEqual({ ...source, subtitleTracks: [
       source.subtitleTracks[0], { ...source.subtitleTracks[1], url: urls[2] },
     ] });
+    // Recovery follows autoplay. Pause explicitly so the following play command
+    // exercises a permitted transition rather than an already-playing no-op.
+    await expect.poll(() => page.locator("#player video").evaluate((video: HTMLVideoElement) => !video.paused)).toBe(true);
+    await selectApi(page, "command", "PlayerAPI.pause");
+    await page.getByRole("button", { name: "Run API", exact: true }).click();
+    await expect(page.locator("#player video")).toHaveJSProperty("paused", true);
     const video = page.locator("#player video");
     const playbackBefore = await video.evaluate((element: HTMLVideoElement) => {
       const progress = { frames: 0, callback: 0 };
@@ -270,6 +276,24 @@ test("indexed comparisons follow the selected item and retain its baseline after
     await page.unroute(master, interceptSource);
     await Promise.all(requests.map(rejectRequest));
   }
+});
+
+test("ordinary VOD disables ad actions while notification APIs remain available", async ({ page }) => {
+  await expect(page.locator("#player video")).toHaveJSProperty("readyState", 4);
+  await page.getByRole("combobox", { name: "API category", exact: true }).selectOption("command");
+  for (const [id, reason] of [["PlayerAPI.ads.skip", "ad-inactive"], ["PlayerAPI.sgai.skip", "sgai-inactive"]]) {
+    await page.getByRole("searchbox", { name: "Search APIs" }).fill(id!);
+    const option = page.locator(`option[value="${id}"]`);
+    await expect(option).toBeDisabled();
+    await expect(option).toHaveAttribute("data-api-unavailable", reason!);
+    await expect(page.locator(`button[data-api-run="${id}"]`)).toBeDisabled();
+    await expect(page.locator(`p[data-api-reason="${id}"]`)).toBeVisible();
+  }
+  // These calls report externally managed ad events; they do not insert ads.
+  const notification = "PlayerAPI.analytics.ssai.adBreakEnd";
+  await page.getByRole("searchbox", { name: "Search APIs" }).fill(notification);
+  await expect(page.locator(`option[value="${notification}"]`)).toBeEnabled();
+  await expect(page.locator(`button[data-api-run="${notification}"]`)).toBeEnabled();
 });
 
 test("component constructor overrides apply through every original theme", async ({ page }) => {
