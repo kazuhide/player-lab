@@ -32,6 +32,39 @@ class KeyboardCapturesNavigation(NativeKeyboardUi):
 
 
 class NativeNavigationTests(unittest.TestCase):
+    def test_typed_reveal_preserves_the_already_focused_target_and_its_keyboard(self):
+        ui = NativeKeyboardUi(label='SDK numeric value')
+        ui.open, ui.focused = True, True
+        with patch('driver.time.sleep', lambda seconds: None): node = ui.reveal_input('SDK numeric value')
+        self.assertEqual(node.get('description'), 'SDK numeric value')
+        self.assertTrue(ui.open)
+        self.assertEqual(ui.events, [])
+        self.assertEqual(ui.key_codes, [])
+
+    def test_typed_reveal_preserves_own_target_while_keyboard_key_focus_is_pending(self):
+        ui = NativeKeyboardUi(label='SDK numeric value', keyboard_focus_pending_reads=100)
+        ui.open, ui.focused = True, True
+        node = ui.reveal_input('SDK numeric value')
+        self.assertEqual(node.get('description'), 'SDK numeric value')
+        self.assertTrue(ui.open)
+        self.assertEqual(ui.events, [])
+        self.assertEqual(ui.key_codes, [])
+
+    def test_typed_reveal_still_dismisses_a_keyboard_when_another_field_has_focus(self):
+        ui = NativeKeyboardUi(label='SDK numeric value')
+        ui.open, ui.focused, ui.wrong_field_id = True, False, 100
+        with patch('driver.time.sleep', lambda seconds: None): ui.reveal_input('SDK numeric value')
+        self.assertFalse(ui.open)
+        self.assertEqual(ui.events, ['Done'])
+        self.assertEqual(ui.value, 'old value')
+
+    def test_ordinary_reveal_still_dismisses_the_keyboard(self):
+        ui = NativeKeyboardUi(label='SDK numeric value')
+        ui.open, ui.focused = True, True
+        with patch('driver.time.sleep', lambda seconds: None): ui.reveal('SDK numeric value')
+        self.assertFalse(ui.open)
+        self.assertEqual(ui.events, ['Done'])
+
     def test_navigation_accepts_keyboard_app_closure_during_normal_done_traversal(self):
         ui = KeyboardCapturesNavigation()
         ui.keyboard_closes_after_reads = 5

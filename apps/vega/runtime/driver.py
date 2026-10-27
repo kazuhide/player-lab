@@ -138,14 +138,20 @@ class Ui:
         for direction in [108, 103]:
             for _ in range(70):
                 tree = self.tree()
+                node = lookup(tree, label)
+                editable = self.editable(tree, label) if require_editable else None
+                focus = editable.find("./traits/focusable") if editable is not None else None
+                # Traversal can open this field's own keyboard. Keep it for
+                # the edit when the current visible target already owns focus.
+                if node is not None and focus is not None and focus.get("focused") == "true":
+                    return node
                 if self.keyboard_node(tree, "Done") is not None:
                     # Passing an editable field can open the OS keyboard and
                     # capture arrows. Commit its unchanged value normally.
                     self.dismiss_keyboard()
                     continue
-                node = lookup(tree, label)
                 if node is not None:
-                    if require_editable and self.editable(tree, label) is None:
+                    if require_editable and editable is None:
                         # A clipped RN wrapper can remain in the AX tree after
                         # its real editable child leaves the ScrollView.
                         scope = next(n for n in tree.iter("app") if n.get("appName") == "com.playerlab.vega")
