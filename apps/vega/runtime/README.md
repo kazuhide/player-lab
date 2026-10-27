@@ -7,6 +7,11 @@ playback. The ordinary entry has no test header/buttons.
 The runner selects English through the normal language control after launch,
 so its labels do not depend on a reused device's locale.
 
+Kepler layout updates can replace native input IDs, and TV navigation can open
+the system keyboard. The driver reveals the current editable field and verifies
+its native focus before using the keyboard's real Clear and Done controls. It
+closes the keyboard with Done when it interrupts navigation to another app control.
+
 Before the VOD form checks, the runner uses the initial public live DVR source.
 It reads all three real native rewind buttons with Allow DVR on, off and on,
 retains the same player owner, and checks a normal -10s press and Live edge
