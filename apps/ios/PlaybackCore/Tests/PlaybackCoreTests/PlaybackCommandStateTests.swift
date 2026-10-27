@@ -62,6 +62,42 @@ final class PlaybackCommandStateTests: XCTestCase {
         XCTAssertEqual(state.rejection(for: .adSkip), .adNotSkippable)
     }
 
+    func testLiveEdgeRecoveryRemainsAvailableWhenOnlyRewindControlsAreDisabled() {
+        var state = ready()
+        state.live = true
+        state.maxTimeShift = -30
+        state.rewindEnabled = false
+        XCTAssertNil(state.rejection(for: .timeShift), "The catalog must allow selecting the valid zero-offset recovery")
+        XCTAssertNil(state.rejection(for: .timeShift, value: 0))
+        XCTAssertEqual(state.rejection(for: .timeShift, value: -5), .rewindDisabled)
+
+        state.sdkTimeShiftEnabled = false
+        XCTAssertEqual(state.rejection(for: .timeShift), .rewindDisabled)
+        XCTAssertEqual(state.rejection(for: .timeShift, value: 0), .rewindDisabled)
+        state.sdkTimeShiftEnabled = true
+        state.linearAdActive = true
+        XCTAssertEqual(state.rejection(for: .timeShift, value: 0), .linearAdActive)
+        state.linearAdActive = false
+        state.finalizedLive = true
+        XCTAssertEqual(state.rejection(for: .timeShift, value: 0), .liveOnly)
+        state.finalizedLive = false
+        state.source = .failed
+        XCTAssertEqual(state.rejection(for: .timeShift, value: 0), .recoverSource)
+    }
+
+    func testZeroOffsetIsValidWithoutRewindWindowButNonzeroOffsetsStillRequireIt() {
+        var state = ready()
+        state.live = true
+        XCTAssertNil(state.rejection(for: .timeShift))
+        XCTAssertNil(state.rejection(for: .timeShift, value: 0))
+        XCTAssertEqual(state.rejection(for: .timeShift, value: -1), .noLiveWindow)
+        state.maxTimeShift = .nan
+        XCTAssertEqual(state.rejection(for: .timeShift, value: 0), .noLiveWindow)
+        state.maxTimeShift = -30
+        XCTAssertEqual(state.rejection(for: .timeShift, value: .nan), .outsideSeekRange)
+        XCTAssertEqual(state.rejection(for: .timeShift, value: 1), .outsideSeekRange)
+    }
+
     private func ready() -> PlaybackCommandState {
         var state = PlaybackCommandState()
         state.source = .ready

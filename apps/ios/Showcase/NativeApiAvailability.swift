@@ -36,7 +36,10 @@ struct NativeApiContext {
             return hasConfiguredSource ? nil : "Apply source settings first."
         case .unload:
             return hasSource ? nil : "Load a source first."
-        case .play, .pause, .speed, .canPlay, .bitrate, .bufferLevel:
+        case .bitrate:
+            // This Player property can be configured or cleared without a ready Source.
+            return nil
+        case .play, .pause, .speed, .canPlay, .bufferLevel:
             return playback.rejection(for: .playback)?.rawValue
         case .seek:
             return playback.rejection(for: .seek, value: arguments.flatMap { Double($0["value"] ?? "") })?.rawValue

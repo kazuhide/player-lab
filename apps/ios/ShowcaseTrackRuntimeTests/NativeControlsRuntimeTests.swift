@@ -37,6 +37,13 @@ final class NativeControlsRuntimeTests: XCTestCase {
         XCTAssertThrowsError(try model.executeApi(.seek, arguments: ["value": "2"]))
         XCTAssertNil(model.apiContext().rejection(for: .reload))
         XCTAssertNil(model.apiContext().rejection(for: .destroyAndRecreate))
+        let failedSource = player.source
+        XCTAssertNil(model.apiContext().rejection(for: .bitrate))
+        XCTAssertNoThrow(try model.executeApi(.bitrate, arguments: ["value": "2500000"]))
+        XCTAssertNoThrow(try model.executeApi(.bitrate, arguments: ["value": "0"]))
+        XCTAssertEqual(player.maxSelectableBitrate, 0)
+        XCTAssertTrue(model.player === player)
+        XCTAssertTrue(player.source === failedSource)
         XCTAssertTrue(model.apiEvents.isEmpty)
         try await setFixture("finalize")
         draft.sourceURL = "http://localhost:5198/master.m3u8?recovered=1"
@@ -47,6 +54,12 @@ final class NativeControlsRuntimeTests: XCTestCase {
         XCTAssertTrue(model.player === player)
         XCTAssertTrue(model.apiEvents.isEmpty)
         XCTAssertNoThrow(try model.executeApi(.seek, arguments: ["value": "2"]))
+        XCTAssertNoThrow(try model.executeApi(.unload, arguments: [:]))
+        try await eventually("explicit unload clears the current Source") { player.source == nil }
+        XCTAssertNil(model.apiContext().rejection(for: .bitrate))
+        XCTAssertNoThrow(try model.executeApi(.bitrate, arguments: ["value": "0"]))
+        XCTAssertTrue(model.player === player)
+        XCTAssertTrue(model.apiEvents.isEmpty)
     }
 
     #if !os(tvOS)
@@ -102,7 +115,23 @@ final class NativeControlsRuntimeTests: XCTestCase {
         let before = player.currentTime
         try await eventually("same native playback advances after toggle") { player.isPlaying && player.currentTime > before + 1 }
 
+        XCTAssertNoThrow(try model.executeApi(.timeShift, arguments: ["value": "-5"]))
+        try await eventually("native playback is rewound before disabling controls") { player.timeShift < -2 }
         model.timeShiftEnabled = false
+        try await eventually("rewound playback hides only embedded seek controls") {
+            try await self.seekControls(web, expectedVisible: false)
+        }
+        XCTAssertNil(model.apiContext().rejection(for: .timeShift))
+        XCTAssertNil(model.apiContext().rejection(for: .timeShift, arguments: ["value": "0"]))
+        XCTAssertThrowsError(try model.executeApi(.timeShift, arguments: ["value": "-5"]))
+        XCTAssertNoThrow(try model.executeApi(.timeShift, arguments: ["value": "0"]))
+        try await eventually("zero-offset recovery reaches the native live edge") { abs(player.timeShift) <= 1 }
+        XCTAssertTrue(model.player === player)
+        XCTAssertTrue(player.source === source)
+        XCTAssertTrue(model.apiPlayerView === view)
+        XCTAssertEqual(sourceLoads, 0)
+        XCTAssertTrue(model.apiEvents.isEmpty)
+        await capture(model, host: host, window: window, stage: "live-edge-recovery-with-rewind-disabled")
         try await setFixture("finalize")
         model.load(ShowcaseSource(id: "controls-vod", label: "Local VOD", kind: .vodHls,
                                  url: try XCTUnwrap(URL(string: "http://localhost:5198/master.m3u8?vod=1"))))

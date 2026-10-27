@@ -57,8 +57,13 @@ public struct PlaybackCommandState {
             if let value, !value.isFinite || value < 0 || value > duration { return .outsideSeekRange }
         case .timeShift:
             guard live && !finalizedLive else { return .liveOnly }
-            guard rewindEnabled && sdkTimeShiftEnabled else { return .rewindDisabled }
-            guard maxTimeShift.isFinite, maxTimeShift < 0 else { return .noLiveWindow }
+            guard sdkTimeShiftEnabled else { return .rewindDisabled }
+            guard maxTimeShift.isFinite, maxTimeShift <= 0 else { return .noLiveWindow }
+            // The catalog and zero-offset recovery remain available when only
+            // the app's rewind controls are disabled or the window is still zero.
+            if value == nil || value == 0 { return nil }
+            guard rewindEnabled else { return .rewindDisabled }
+            guard maxTimeShift < 0 else { return .noLiveWindow }
             if let value, !value.isFinite || value < maxTimeShift || value > 0 { return .outsideSeekRange }
         case .liveLatency:
             guard live && !finalizedLive else { return .liveOnly }

@@ -22,6 +22,29 @@ final class NativeApiAvailabilityTests: XCTestCase {
         XCTAssertNil(context.rejection(for: .destroyAndRecreate))
     }
 
+    func testBitrateConfigurationAndClearingDoNotRequireAReadySource() {
+        var context = NativeApiContext()
+        for sourceState in [PlaybackCommandState.SourceState.empty, .loading, .failed, .ready] {
+            context.playback.source = sourceState
+            XCTAssertNil(context.rejection(for: .bitrate), "The Player-property catalog must not require a ready Source")
+            XCTAssertNil(context.rejection(for: .bitrate, arguments: ["value": "2500000"]))
+            XCTAssertNil(context.rejection(for: .bitrate, arguments: ["value": "0"]))
+        }
+        context.playback.playerDestroyed = true
+        XCTAssertNotNil(context.rejection(for: .bitrate))
+        XCTAssertNotNil(context.rejection(for: .bitrate, arguments: ["value": "0"]))
+    }
+
+    func testTimeShiftCatalogRetainsZeroOffsetRecoveryWhenRewindControlsAreDisabled() {
+        var context = ready()
+        context.playback.live = true
+        context.playback.maxTimeShift = -30
+        context.playback.rewindEnabled = false
+        XCTAssertNil(context.rejection(for: .timeShift))
+        XCTAssertNil(context.rejection(for: .timeShift, arguments: ["value": "0"]))
+        XCTAssertNotNil(context.rejection(for: .timeShift, arguments: ["value": "-5"]))
+    }
+
     func testTrackCatalogAndFreshArgumentsUseOnlyTheCurrentSource() {
         var context = ready()
         XCTAssertNotNil(context.rejection(for: .audio))
@@ -62,6 +85,23 @@ final class NativeApiAvailabilityTests: XCTestCase {
         XCTAssertNil(model.player.source)
         XCTAssertTrue(model.apiEvents.isEmpty)
         XCTAssertNoThrow(try model.executeApi(.subtitle, arguments: ["value": ""]))
+    }
+
+    @MainActor
+    func testFreshBitrateDispatchConfiguresAndClearsTheSamePlayerWithoutASource() {
+        let model = PlayerModel(licenseKey: "configuration-tests-invalid-license")
+        defer { model.player.destroy() }
+        model.setApiEventRecording(false)
+        let player = model.player
+        XCTAssertNil(player.source)
+        XCTAssertNoThrow(try model.executeApi(.bitrate, arguments: ["value": "2500000"]))
+        model.unloadFromApi()
+        model.apiSession.playerFailed = true
+        XCTAssertNil(model.apiContext().rejection(for: .bitrate))
+        XCTAssertNoThrow(try model.executeApi(.bitrate, arguments: ["value": "0"]))
+        XCTAssertTrue(model.player === player)
+        XCTAssertNil(player.source)
+        XCTAssertTrue(model.apiEvents.isEmpty)
     }
 
     @MainActor
